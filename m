@@ -1,132 +1,88 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree based
- pinctrl driver
-Date: Fri, 15 Jun 2012 10:17:04 -0600
-Message-ID: <4FDB6000.5080703@wwwdotorg.org>
-References: <20120611135826.GB12766@atomide.com> <4FDA6FCD.1020605@wwwdotorg.org> <20120615094938.GQ12766@atomide.com>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
+Date: Fri, 15 Jun 2012 12:28:53 -0700 (PDT)
+Message-ID: <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120615094938.GQ12766@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm33-vm7.bullet.mail.ne1.yahoo.com ([98.138.229.71]:44185 "HELO
+	nm33-vm7.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753900Ab2FOT2y convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jun 2012 15:28:54 -0400
+In-Reply-To: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 06/15/2012 03:49 AM, Tony Lindgren wrote:
+We continue to try to sort this out.=A0 Ignoring the errors for a momen=
+t, has anyone else experienced the performance slowdown quoted below be=
+tween two EMACs?
 
-(Arnd, Grant, Rob, CC'ing you mainly re: the very last set of comments
-in this email; can you take a look at Tony's patch and comment on the
-binding)
 
-> * Stephen Warren <swarren@wwwdotorg.org> [120614 16:16]:
->> On 06/11/2012 07:58 AM, Tony Lindgren wrote:
->>> Add one-register-per-pin type device tree based pinctrl driver.
->>>
->>> Currently this driver only works on omap2+ series of processors,
->>> where there is either an 8 or 16-bit padconf register for each pin.
->>> Support for other similar pinmux controllers can be added.
->>
->>> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-omap2plus.txt
->>
->> I'm not sure why you'd need an explicit OMAP2 binding document or
->> compatible values if it just uses the plain pinctrl-single binding
->> unmodified.
-> 
-> Hmm I thought that's what you wanted with your earlier comments at [1]:
-> 
-> * Stephen Warren <swarren@wwwdotorg.org> [120504 12:27]:
->>
->> If this is truly intended to be generic, I would not document any of the
->> ti compatible values here. Instead, I'd create a binding document for
->> the TI controllers that basically just says "this uses the bindings in
->> pinctrl-simple.txt, with the following additions", and list the
->> compatible values as an addition.
-> 
-> Care to clarify a bit what you had in mind there?
+If not, could anyone with two AM3517-baed platforms with the EMACs expo=
+sed please test this for us?=A0 We've run several tests between all the=
+ hardware we have available, and all perform like this.=A0 Connecting a=
+n EMAC to another EMAC and testing with iperf ("iperf -s" on one side, =
+"iperf -c <IP>" on the other) shows the performance drop vs. connecting=
+ the same EMAC to nearly any other non-EMAC NIC and running the same te=
+st, even through the same infrastructure.
 
-Basically I meant:
 
-1) Remove anything TI-/OMAP-specific from the generic binding document
+Our theory is that this could be a driver issue that when only 1 side h=
+as it, performance is fine.=A0 However, if both sides have the same iss=
+ue, as in the case of EMAC to EMAC, the performance degrades significan=
+tly.
 
-2) For any TI-/OMAP-specific additions, create a binding document that
-describes those separately to the generic binding documentation.
+Thanks again for looking.
 
-However, given that there are no TI-/OMAP-specific additions; OMAP2 just
-uses the base generic bindings exactly as defined, I don't think you
-actually need to create an TI-/OMAP-specific document, since there's
-nothing for it to document.
+------------------------------------------------------------
+Server listening on TCP port 5001
+TCP window size: 85.3 KByte (default)
+------------------------------------------------------------
+{{ DaVinci EMAC server, PC client }}
 
->>> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
 
->>> +static struct of_device_id pcs_of_match[] __devinitdata = {
->>> +	{ .compatible = DRIVER_NAME, },
->>> +	{ .compatible = "ti,omap2420-padconf", },
->>> +	{ .compatible = "ti,omap2430-padconf", },
->>> +	{ .compatible = "ti,omap3-padconf", },
->>> +	{ .compatible = "ti,omap4-padconf", },
->>> +	{ },
->>> +};
->>
->> Shouldn't that contain just one entry for "pinctrl-single", and no others?
-> 
-> It's best to describe the hardware in case we need to set up some hardware
-> specific things in the driver.
+[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44452
+[ ID] Interval=A0=A0=A0=A0=A0=A0 Transfer=A0=A0=A0=A0 Bandwidth
+[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
+[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44459
+[=A0 5]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.0 Mbits/sec
+[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44467
+[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 113 MBytes=A0 94.1 Mbits/sec
+[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44474
+[=A0 5]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
+[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44481
+[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
+[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
+44488
+[=A0 5]=A0 0.0- 9.8 sec=A0=A0=A0 110 MBytes=A0 94.1 Mbits/sec
 
-There's a difference between the (set of) compatible value(s) that
-appears in the .dts file, and the compatible value(s) that the driver
-binds to.
+{{ same DaVinci EMAC server, still running, just changed to DaVinci EMA=
+C client }}
 
-Since this driver is purely implementing the pinctrl-single binding, I
-believe only that should be listed in the driver's of_match table.
-
-However, since the .dts file is describing HW that is both a specific
-OMAP instance, and compatible with pinctrl-single, the .dts file can
-certainly list both. If in the future, the driver ever needs to
-specifically know the difference between the specific OMAP versions, or
-OMAP-vs-something-else, the compatible value will be there already in
-the .dts file, so this will all work. However, I'd argue that if the
-driver has to ever know that, it's probably not appropriate to say it's
-compatible with pinctrl-single any more...
-
->> One final comment: A little while before Linaro Connect in San
->> Francisco, we were all having difficulty coming up with any kind of DT
->> binding for pinctrl. I had suggested the possibility of creating a
->> binding which just said "write value X to register Y, write value P to
->> register Q, ...". This was rejected at connect, because a raw list of
->> register writes didn't document anything or describe semantics - it was
->> too much of a binary blob. This driver seems to be doing almost the
->> exact same thing. In order to avoid that assertion, it'd need to truly
->> have individual representations of which pins exist, which pingroups
->> exist, which functions exist, and which functions can be selected onto
->> which pins/pingroups. That would be a radically different binding. I
->> wonder what's changed such that this kind of driver wasn't acceptable
->> then, but is now?
-> 
-> Well that's why I had two bindings earlier: The current binding for the
-> bulk pins that's faster to parse, and a more verbose binding for drivers that
-> allows naming the functions.
-> 
-> In your previous comments at [1] you seemed to prefer this current binding
-> based on the "Why not only allow (1)?" comment. Maybe you had something else
-> in mind, care to clarify that a bit too?
-
-Well, first I thought about semantics vs. just banging a register list a
-tiny bit more, and remembered the previous discussion.
-
-But my comment at [1] wasn't so much about "why not just have a raw
-register list", but more regarding why support two different
-representations within the same binding; it wasn't really clear to me
-from reading the original email what the difference between the two
-representations; why have two representations, why/when-to use one vs.
-the other, that the difference was about providing a "semantic" list of
-pins/pingroups/functions vs. providing a "raw" register list.
-
-IIRC, the pushback on a raw "bang these registers" representation came
-from Grant and/or Arnd. It'd be a good idea if they (and indeed Rob)
-could comment on this binding proposal. If they're OK with this kind of
-pretty raw representation, I'm not going to object, but I have a feeling
-they might not like it?
-
-> [1] http://article.gmane.org/gmane.linux.kernel/1291838
+[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
+37325
+[=A0 5]=A0 0.0-10.4 sec=A0 73.9 MBytes=A0 59.6 Mbits/sec
+[=A0 6] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
+37326
+[=A0 6]=A0 0.0-10.8 sec=A0 61.5 MBytes=A0 47.8 Mbits/sec
+[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
+37327
+[=A0 5]=A0 0.0-10.3 sec=A0 64.6 MBytes=A0 52.6 Mbits/sec
+[=A0 6] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
+37328
+[=A0 6]=A0 0.0-10.0 sec=A0 78.2 MBytes=A0 65.5 Mbits/sec
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
