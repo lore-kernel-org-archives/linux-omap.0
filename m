@@ -1,88 +1,86 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
-Date: Fri, 15 Jun 2012 12:28:53 -0700 (PDT)
-Message-ID: <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: jaswinder.singh@linaro.org
+Subject: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
+Date: Sat, 16 Jun 2012 03:31:41 +0530
+Message-ID: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm33-vm7.bullet.mail.ne1.yahoo.com ([98.138.229.71]:44185 "HELO
-	nm33-vm7.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753900Ab2FOT2y convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jun 2012 15:28:54 -0400
-In-Reply-To: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:48407 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758029Ab2FOWBy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 18:01:54 -0400
+Received: by pbbrp8 with SMTP id rp8so5812320pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 15:01:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 
-We continue to try to sort this out.=A0 Ignoring the errors for a momen=
-t, has anyone else experienced the performance slowdown quoted below be=
-tween two EMACs?
+From: Jassi Brar <jaswinder.singh@linaro.org>
 
+Explicitly maintaining HDMI phy power state using a flag is prone to
+race and un-necessary when we have a zero-cost alternative of checking
+the state before trying to set it.
 
-If not, could anyone with two AM3517-baed platforms with the EMACs expo=
-sed please test this for us?=A0 We've run several tests between all the=
- hardware we have available, and all perform like this.=A0 Connecting a=
-n EMAC to another EMAC and testing with iperf ("iperf -s" on one side, =
-"iperf -c <IP>" on the other) shows the performance drop vs. connecting=
- the same EMAC to nearly any other non-EMAC NIC and running the same te=
-st, even through the same infrastructure.
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+---
+ drivers/video/omap2/dss/ti_hdmi.h         |    1 -
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   11 ++++-------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index e734cb4..d174ca1 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -177,7 +177,6 @@ struct hdmi_ip_data {
+ 
+ 	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
+ 	int hpd_gpio;
+-	bool phy_tx_enabled;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index 4dae1b2..3fa3d98 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -157,6 +157,10 @@ static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
+ /* PHY_PWR_CMD */
+ static int hdmi_set_phy_pwr(struct hdmi_ip_data *ip_data, enum hdmi_phy_pwr val)
+ {
++	/* Return if already the state */
++	if (REG_GET(hdmi_wp_base(ip_data), HDMI_WP_PWR_CTRL, 5, 4) == val)
++		return 0;
++
+ 	/* Command for power control of HDMI PHY */
+ 	REG_FLD_MOD(hdmi_wp_base(ip_data), HDMI_WP_PWR_CTRL, val, 7, 6);
+ 
+@@ -241,11 +245,6 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
+ 
+ 	hpd = gpio_get_value(ip_data->hpd_gpio);
+ 
+-	if (hpd == ip_data->phy_tx_enabled) {
+-		spin_unlock_irqrestore(&phy_tx_lock, flags);
+-		return 0;
+-	}
+-
+ 	if (hpd)
+ 		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
+ 	else
+@@ -257,7 +256,6 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
+ 		goto err;
+ 	}
+ 
+-	ip_data->phy_tx_enabled = hpd;
+ err:
+ 	spin_unlock_irqrestore(&phy_tx_lock, flags);
+ 	return r;
+@@ -327,7 +325,6 @@ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data)
+ 	free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
+ 
+ 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
+-	ip_data->phy_tx_enabled = false;
+ }
+ 
+ static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
+-- 
+1.7.4.1
 
-Our theory is that this could be a driver issue that when only 1 side h=
-as it, performance is fine.=A0 However, if both sides have the same iss=
-ue, as in the case of EMAC to EMAC, the performance degrades significan=
-tly.
-
-Thanks again for looking.
-
-------------------------------------------------------------
-Server listening on TCP port 5001
-TCP window size: 85.3 KByte (default)
-------------------------------------------------------------
-{{ DaVinci EMAC server, PC client }}
-
-
-[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44452
-[ ID] Interval=A0=A0=A0=A0=A0=A0 Transfer=A0=A0=A0=A0 Bandwidth
-[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
-[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44459
-[=A0 5]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.0 Mbits/sec
-[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44467
-[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 113 MBytes=A0 94.1 Mbits/sec
-[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44474
-[=A0 5]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
-[=A0 4] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44481
-[=A0 4]=A0 0.0-10.1 sec=A0=A0=A0 114 MBytes=A0 94.1 Mbits/sec
-[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.40 port =
-44488
-[=A0 5]=A0 0.0- 9.8 sec=A0=A0=A0 110 MBytes=A0 94.1 Mbits/sec
-
-{{ same DaVinci EMAC server, still running, just changed to DaVinci EMA=
-C client }}
-
-[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
-37325
-[=A0 5]=A0 0.0-10.4 sec=A0 73.9 MBytes=A0 59.6 Mbits/sec
-[=A0 6] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
-37326
-[=A0 6]=A0 0.0-10.8 sec=A0 61.5 MBytes=A0 47.8 Mbits/sec
-[=A0 5] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
-37327
-[=A0 5]=A0 0.0-10.3 sec=A0 64.6 MBytes=A0 52.6 Mbits/sec
-[=A0 6] local 192.168.2.192 port 5001 connected with 192.168.2.74 port =
-37328
-[=A0 6]=A0 0.0-10.0 sec=A0 78.2 MBytes=A0 65.5 Mbits/sec
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
