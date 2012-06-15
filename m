@@ -1,82 +1,117 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 15 Jun 2012 09:00:50 +0000
-Message-ID: <201206150900.50866.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <Pine.LNX.4.64.1206141537190.30810@axis700.grange> <4FDA5D0A.1040105@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv2 08/12] ARM: OMAP4: hwmod data: add SL2IF hardreset line
+Date: Fri, 15 Jun 2012 11:11:26 +0200
+Message-ID: <4FDAFC3E.5010006@ti.com>
+References: <20120611004502.20034.8840.stgit@dusk> <20120611004614.20034.50895.stgit@dusk> <4FD9DF2A.3010000@ti.com> <alpine.DEB.2.00.1206141052240.30212@utopia.booyaka.com> <4FDA527D.9080401@ti.com> <alpine.DEB.2.00.1206141702120.25628@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:49963 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753877Ab2FOJBt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 05:01:49 -0400
-In-Reply-To: <4FDA5D0A.1040105@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53737 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754978Ab2FOJLc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jun 2012 05:11:32 -0400
+In-Reply-To: <alpine.DEB.2.00.1206141702120.25628@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
 
-On Thursday 14 June 2012, Jon Hunter wrote:
+On 6/15/2012 1:02 AM, Paul Walmsley wrote:
+> On Thu, 14 Jun 2012, Cousson, Benoit wrote:
+>=20
+>> Yep, but for that I'd rather add a flag than a information that is a
+>> duplication of the parent data.
+>=20
+> Great, send a patch.
 
-> > Generic DMACs can perform memory-to-memory DMA, USB DMACs cannot.
-> > 
-> > Generic DMACs can serve any slave (peripheral) request line on any their 
-> > physical channel, USB DMACs only serve fixed USB controller instances. To 
-> > configure (connect) a certain physical DMA channel to s specific 
-> > peripheral request line, a certain value has to be written to a 
-> > configuration register of that physical DMA channel.
-> 
-> Do you still need to specify a request line for the USB DMACs or are
-> these fixed? In other words, what purpose would the DMA binding serve
-> for the USB DMACs?
+Cool.
 
-If I understood Guennadi right, the DMA engines are the same kind as the
-other ones, so we really want to use the same bindings for each instance.
+Well, in fact the HWMOD_EXT_OPT_MAIN_CLK patch is already good enough a=
+ssuming we make it a little bit more generic.
 
-> > To add to complexity, on other SoCs (e.g., SuperH sh7724) some of generic 
-> > DMACs (DMAC0) have external DMA request pins, others don't.
-> 
-> OMAP also has this. To me an request line going to an external pin can
-> be handled in the same way as one going to a internal peripheral.
-> However, what happens to that pin externally is a different story.
+Here is your patch sightly updated manually to make it more generic.
+The data will have to add some relevant comment on top of the flag to c=
+leary
+indicate the reason of that dependency.
 
-Right, I don't see a problem here with any of the proposed binding.
+Regards,
+Benoit
 
-> > I'm sure there's more to that, but that's about the scope, that's 
-> > currently supported or wants to be supported by the driver.
-> > 
-> > Currently we do the slave-switching in the following way: platform data 
-> > for each DMAC instance references a table of supported peripherals with 
-> > their IDs and configuration register values. Each peripheral, that wishes 
-> > to use DMA, provides its slave ID to the DMAC driver, by which it checks, 
-> > whether this peripheral is supported and, if so, finds its configuration, 
-> > picks up the next free channel and configures it.
-> > 
-> > So, with the above in mind, IIUC, the above DT binding proposal would 
-> > require us to reference all 3 generic DMAC instances in each slave dmas 
-> > property? 
-> 
-> You could if you wanted to have the ability to select 1 out of the 3.
-> However, I would not say it is a hard requirement. You could just
-> provide one. Or you could list all 3, but use some form of match
-> variable to indicate a default DMAC for a given peripheral.
 
-Right. From the description above, it seems that shmobile is actually
-simpler than some of the others because the slave ID is always the
-same for each of the controllers.
+---
+ARM: OMAP2+: hwmod: add flag to prevent hwmod code from touching IP blo=
+ck during init
 
-In the common case, you could have one device connected to the third
-slave ID of the first controller but the fifth slave ID of the
-second controller. In this case, you really have to specify each
-controller with its slave ID separately, even if that means a lot
-of duplicate data for shmobile.
+Add HWMOD_HAS_EXT_DEP flag to indicate that this IP block is
+dependent on an external resource that is not guaranteed to be
+present during initialization. Typical resources are: External
+clock from a off-chip device (Audio codec), clocks from a parent
+subsystem or another IP, reset line from a parent subsystem.
+IP blocks marked with this flag are left in the INITIALIZED state
+during kernel init.
 
-I'm not sure I understand what the "configuration register values"
-above are. Most likely, those should all be part of the slave ID,
-which would then span multiple 32-bit values in the "dmas" property.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+[b-cousson@ti.com: Change the changelog and the flag name
+to make it more generic]
+Cc: Beno=EEt Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |    3 +++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-Conveniently, that also takes care of removing the DMAC platform data.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index d27bf48..e0b8131 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2140,6 +2140,9 @@ static int __init _setup_reset(struct omap_hwmod =
+*oh)
+ 	if (oh->_state !=3D _HWMOD_STATE_INITIALIZED)
+ 		return -EINVAL;
+=20
++	if (oh->flags & HWMOD_HAS_EXT_DEP)
++		return -EPERM;
++
+ 	if (oh->rst_lines_cnt =3D=3D 0) {
+ 		r =3D _enable(oh);
+ 		if (r) {
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index 2c53648..b5f3efc 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -417,6 +417,11 @@ struct omap_hwmod_omap4_prcm {
+  *     running on the chip (e.g., the MPU is in idle).  For such modul=
+es,
+  *     fine-grained PM runtime-based idle control is simply a waste of
+  *     CPU cycles.
++ * HWMOD_HAS_EXT_DEP: This IP block is dependent on an external
++ *     resource that is not guaranteed to be present during initializa=
+tion.
++ *     Typical resources are: External clock from a off-chip device
++ *     (Audio codec), clocks from a parent subsystem, reset line from =
+a
++ *     parent subsystem.
++ *     This prevents the hwmod code from being able to enable=20
++ *     and reset the IP block early.
+  */
+ #define HWMOD_SWSUP_SIDLE			(1 << 0)
+ #define HWMOD_SWSUP_MSTANDBY			(1 << 1)
+@@ -428,6 +433,7 @@ struct omap_hwmod_omap4_prcm {
+ #define HWMOD_CONTROL_OPT_CLKS_IN_RESET		(1 << 7)
+ #define HWMOD_16BIT_REG				(1 << 8)
+ #define HWMOD_ALWAYS_FORCE_SIDLE		(1 << 9)
++#define HWMOD_HAS_EXT_DEP			(1 << 10)
+=20
+ /*
+  * omap_hwmod._int_flags definitions
 
-	Arnd
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
