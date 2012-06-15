@@ -1,97 +1,73 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 2/3] ARM: OMAP2+: onenand: cleanup for gpmc driver
- conversion
-Date: Fri, 15 Jun 2012 06:52:36 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99A307@DBDE01.ent.ti.com>
-References: <cover.1339419244.git.afzal@ti.com>
- <2d6f0fb31cde98cd700d7a4268683b4aeeee87f2.1339419244.git.afzal@ti.com>
- <4FD63AAE.90008@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E997D47@DBDE01.ent.ti.com>
- <4FD77CC8.4000003@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E998781@DBDE01.ent.ti.com>
- <4FD8C217.2050006@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9993EF@DBDE01.ent.ti.com>
- <4FDA252C.4020708@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif
+ driver
+Date: Fri, 15 Jun 2012 12:36:13 +0530
+Message-ID: <CAMQu2gx5CCDyrvozX06neBnA8J2heg+HL7DOewDm5voxqbpetw@mail.gmail.com>
+References: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
+ <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
+ <20120614154820.GG17140@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47329 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754560Ab2FOGwp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 02:52:45 -0400
-In-Reply-To: <4FDA252C.4020708@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120614154820.GG17140@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon,
+On Thu, Jun 14, 2012 at 9:18 PM, Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Thu, Jun 14, 2012 at 03:59:24PM +0530, Santosh Shilimkar wrote:
+> > From: Aneesh V <aneesh@ti.com>
+> >
+> > Device tree support for the EMIF driver.
+> >
+> > Reviewed-by: Benoit Cousson <b-cousson@ti.com>
+> > Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
+> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > Signed-off-by: Aneesh V <aneesh@ti.com>
+> > [santosh.shilimkar@ti.com: Rebased against 3.5-rc]
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>
+> Am I the memory maintainer now taking these patches?
+>
+I assumed that.
+With your ack, $subject patch should go along with other 3 OMAP
+platform patches because of dependency.
 
-On Thu, Jun 14, 2012 at 23:23:48, Hunter, Jon wrote:
-> On 06/14/2012 12:40 AM, Mohammed, Afzal wrote:
+> > @@ -1267,7 +1534,13 @@ static int __init_or_module emif_probe(struct
+> > platform_device *pdev)
+> > =A0 =A0 =A0 struct resource =A0 =A0 =A0 =A0 *res;
+> > =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq;
+> >
+> > - =A0 =A0 emif =3D get_device_details(pdev);
+> > +#if defined(CONFIG_OF)
+> > + =A0 =A0 if (pdev->dev.of_node)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 emif =3D of_get_device_details(pdev->dev.of_n=
+ode,
+> > &pdev->dev);
+> > + =A0 =A0 else
+> > +#endif
+> > + =A0 =A0 =A0 =A0 =A0 =A0 emif =3D get_device_details(pdev);
+> > +
+>
+> Can't you do this without the #ifdef?
+>
+Can be done. Just need to have empty of_get_device_details()
+for the !CONFIG_OF build to avoid build break.
 
-> > During gpmc driver probe, it will configure all the connected peripherals,
-> > if configuration details are not present at that point of time, gpmc driver
-> > will cry out saying that configuration & timings has not been configured,
-> > (please see holler if no configuration patch). 
-> 
-> Sorry, I am not sure if I am missing something here, but isn't the
-> chip-select requested during the gpmc probe? If so then we should not be
-> programming the gpmc registers at all until the chip-select has been
-> allocated. Hence, after the probe seems more appropriate.
-
-This patch by itself has no much meaning other than preparing for driver
-conversion so that driver conversion series would be simpler, if you read
-it with gpmc driver conversion series and adapting peripherals to gpmc
-driver series, hopefully you can make out what I am trying to express
-
-with gpmc driver, first chip select request happens, then programming
-gpmc registers happen, but note that both happen in probe
-
-> >> I am not convinced we need to. Furthermore with your change you do not
-> >> actually set async mode in the onenand until _set_sync() is called.
-> > 
-> > Yes, setting async mode in onenand is done in set_sync function, and it is
-> > always called by onenand driver indirectly.
-> > 
-> > Seems if setting async mode in onenand is taken out of set_sync & placed
-> > it before set_sync invocation in gpmc_onenand_setup, intention will be
-> > clear, right ? (even though sequence wise same thing is happening now)
-> 
-> Exactly.
-
-Ok, v2 will have this change
-
-> >> Yes but as far as I can see, it seems that this is the intent of the
-> >> onenand_setup() function to perform the necessary initialisation.
-> > 
-> > I believe doing it in gpmc_onenand_init is better, due to the reasons
-> > mentioned above as well as because function name will correspond to what
-> > it is doing, i.e. initialization
-> 
-> If the chip-select is allocating during the probe, then I don't agree.
-
-I believe you were referring to gpmc driver probe, not onenand probe,
-the changes has been done such that both old and new driver interface
-can make use of most of existing code.
-
-And only old interface will call gpmc_onenand_init, and with that gpmc
-driver interface is not coming into picture, while with new gpmc driver
-interface, function used would be different one as in [1]
-
-> > Yes, on omap3evm, with help of local patches (as mainline doesn't have
-> > those). It was mentioned in cover letter of gpmc driver conversion series
-> 
-> Great. Sorry but with 20+ patch spread across 3 series it is not always
-> easy to find the details. So ideally it should be mentioned in this
-> cover letter too.
-
-I am sorry for that
+Will fix that.
 
 Regards
-Afzal
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69919.html
-
+santosh
