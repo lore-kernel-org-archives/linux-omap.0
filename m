@@ -1,127 +1,65 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 02/12] ARM: OMAP2+: hwmod code/data: fix 32K sync timer
-Date: Fri, 15 Jun 2012 15:28:28 +0200
-Message-ID: <4FDB387C.7030003@ti.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004555.20034.87035.stgit@dusk> <4FDA15AA.6090704@ti.com> <alpine.DEB.2.00.1206141136080.30212@utopia.booyaka.com> <4FDA45F5.9090300@ti.com> <alpine.DEB.2.00.1206141706420.25628@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP2: twl-common: Fix compiler warning
+Date: Fri, 15 Jun 2012 16:33:54 +0300
+Message-ID: <1339767234-25323-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48389 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756294Ab2FON2f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:28:35 -0400
-In-Reply-To: <alpine.DEB.2.00.1206141706420.25628@utopia.booyaka.com>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:47550 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750751Ab2FONdp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Jun 2012 09:33:45 -0400
+Received: by lahg1 with SMTP id g1so2090525lah.2
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 06:33:43 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+If the kernel is built only for OMAP2 the following warning will show u=
+p:
 
-On 6/15/2012 2:18 AM, Paul Walmsley wrote:
-> On Thu, 14 Jun 2012, Cousson, Benoit wrote:
->
->> On 6/14/2012 8:04 PM, Paul Walmsley wrote:
->>> On Thu, 14 Jun 2012, Cousson, Benoit wrote:
->
-> (attribution lost)
->
->>>>> Furthermore, the PRCM will never request target idle for this IP block
->>>>> while the kernel is running, due to the sleep dependency that prevents
->>>>> the WKUP clockdomain from idling while the CORE_L3 clockdomain is
->>>>> active.  So we can safely leave the 32k sync timer in target-no-idle
->>>>> mode, even while we continue to access it.
->>>>
->>>> Do you mean force-idle? Because accessing a module in no-idle is always
->>>> possible.
->>>
->>> Thanks, that's indeed a description bug.
->>
->> I'm not sure to follow you? My point was it should be: "So we can safely leave
->> the 32k sync timer in force-idle mode, even while we continue to access it."
->> This is what the WA is doing.
->
-> I am expressing appreciation to you for pointing out something incorrect
-> in the patch description, which has been fixed in the current version of
-> the patch.
+arch/arm/mach-omap2/twl-common.c:52: warning: =E2=80=98twl_set_voltage=E2=
+=80=99 defined but not used
+arch/arm/mach-omap2/twl-common.c:58: warning: =E2=80=98twl_get_voltage=E2=
+=80=99 defined but not used
 
-OK, thanks for the clarification, I was confused by the sentence :-(.
+The twl_set/get_voltage callbacks only used when OMAP3/4 is selected.
 
->>> SIDLE_NO is the option that makes more sense to me.>>>
->>> Consider an IP block with SIDLE_NO and SIDLE_FORCE but without
->>> SIDLE_SMART.  When an initiator will access it, the default setting should
->>> be SIDLE_NO, for the reason that you identified above: "because accessing
->>> a module in no-idle is always possible."  On the other hand, we don't know
->>> when it's safe to access a module in SIDLE_FORCE unless we have additional
->>> information as to how the IP block handles the SIdleReq signal internally,
->>> and the characteristics of the clock domain in which it's integrated.
->
-> ...
->
->> This is the modulemode and clkdm static dependency / dynamic on OMAP3/4 that
->> will guaranty that the OCP clock will be enabled upon any access to this
->> L4_WKUP clock domain IPs. This has nothing to do with the SIDLE mode.
->
-> I want to implement a behavior that does not implicitly assume that an IP
-> block without smart-idle will only exist inside clockdomains which are
-> guaranteed to be active when the kernel is running.  That might be true
-> for current WBU chips, but it seems unwise to make that assumption in
-> general.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/twl-common.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-1- The fact that the IP does not support smart-idle does not change 
-anything regarding the clock domain behavior.
-2- So far the assumption is true for all the existing OMAP devices. 
-Let's not anticipate something that will potentially never ever happen.
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl=
+-common.c
+index 119d5a9..5447c13 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -48,6 +48,7 @@ static struct i2c_board_info __initdata omap4_i2c1_bo=
+ard_info[] =3D {
+ 	},
+ };
+=20
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static int twl_set_voltage(void *data, int target_uV)
+ {
+ 	struct voltagedomain *voltdm =3D (struct voltagedomain *)data;
+@@ -59,6 +60,7 @@ static int twl_get_voltage(void *data)
+ 	struct voltagedomain *voltdm =3D (struct voltagedomain *)data;
+ 	return voltdm_get_voltage(voltdm);
+ }
++#endif
+=20
+ void __init omap_pmic_init(int bus, u32 clkrate,
+ 			   const char *pmic_type, int pmic_irq,
+--=20
+1.7.8.6
 
->>> It might be reasonable to remove the HWMOD_SWSUP_SIDLE flag from the 32k
->>> counter and just test again for HWMOD_ALWAYS_FORCE_SIDLE in the module
->>> disable.  I'll take a look at this.
->>
->> Both should be removed as explained before. There is clearly no need for
->> HWMOD_ALWAYS_FORCE_SIDLE.
->>
->> We are already explicitly listing the limitation through the idlemodes
->> attribute. Only SIDLE_FORCE and SIDLE_NO are supported, so we already
->> know that SIDLE_FORCE is the proper way to fix that limitation for the
->> current OMAPs. Since there is no other IP with such limitation, we know
->> as well that there will be no side effect. If, in the future, some more
->> IPs will have that limitation and will not work as expected, it will
->> mean that some other HW bugs will be there, and only these ones will
->> have to be flagged.
->>
->> But my point is let's keep it simple and not try to anticipate future
->> bugs. This flag is not require today, let's not add it.
->
-> Which of these two behaviors do you feel is more "future-proof," in
-> general:
->
-> 1. Implementing a target idle policy that could break if a hardware
->     designer were to skip adding a target smart-idle mode to a module in
->     a clockdomain that might go idle while the kernel was active?
-
-That's not fully accurate. Even with smart-idle implemented in this 
-module, it will still go to idle automatically without any clock domain 
-dependency properly handled.
-
-The goal of this fix is to adapt the SIDLE management for such module, 
-it will not solve the overall idle management that is anyway handled at 
-clock domain level whatever the SIDLE implementation.
-
-> 2. Implementing a target idle policy that is guaranteed to allow
->     initiator accesses to succeed by definition?
-
-It will not, as explained before. This is the clock domain settings that 
-will make the whole thing working properly.
-
-> considering that the implementation cost of either approach is identical?
-
-My point is simple, we should not add any new custom flag when all the 
-information to detect such exception are already there in the current 
-data and represent accurately what the HW is doing.
-
-So far every IPs that do not support SIDLE_SMART can/should use 
-SIDLE_FORCE instead.
-
-Regards,
-Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
