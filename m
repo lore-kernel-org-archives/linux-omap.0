@@ -1,93 +1,55 @@
 From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH 2/3] ARM: OMAP: hwmod: revise deassert sequence
-Date: Fri, 15 Jun 2012 20:54:40 -0500
-Message-ID: <1339811681-5256-3-git-send-email-omar.luna@linaro.org>
-References: <1339811681-5256-1-git-send-email-omar.luna@linaro.org>
+Subject: [PATCH 0/6] OMAP: iommu: hwmod, reset handling and runtime PM
+Date: Fri, 15 Jun 2012 20:55:58 -0500
+Message-ID: <1339811764-5337-1-git-send-email-omar.luna@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37831 "EHLO
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:57142 "EHLO
 	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752123Ab2FPBzA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 21:55:00 -0400
-Received: by mail-ob0-f174.google.com with SMTP id tb18so4800188obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 18:55:00 -0700 (PDT)
-In-Reply-To: <1339811681-5256-1-git-send-email-omar.luna@linaro.org>
+	with ESMTP id S1752814Ab2FPB46 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 21:56:58 -0400
+Received: by obbtb18 with SMTP id tb18so4802379obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 18:56:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.luna@linaro.org>
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 
-For a reset sequence to complete cleanly, a module needs its
-associated clocks to be enabled, otherwise the timeout check
-in prcm code can print a false failure (failed to hardreset)
-that occurs because the clocks aren't powered ON and the status
-bit checked can't transition without them.
+Introduced hwmod support for OMAP3 (iva, isp) and OMAP4 (ipu, dsp),
+along with the corresponding runtime PM and routines to deassert reset
+lines, enable/disable clocks and configure sysc registers.
 
-Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
----
- arch/arm/mach-omap2/omap_hwmod.c |   33 ++++++++++++++++++++++++++++++++-
- 1 files changed, 32 insertions(+), 1 deletions(-)
+Due to compatibility an ifdef needs to be propagated (previously on
+iommu resource info) to hwmod data in OMAP3, so users of iommu and
+tidspbridge can avoid issues of two modules managing mmu data/irqs/resets;
+this until tidspbridge can be safely migrated to iommu framework.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5f0811a..8a7e5bc 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1472,7 +1472,7 @@ static int _assert_hardreset(struct omap_hwmod *oh, const char *name)
- static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- {
- 	struct omap_hwmod_rst_info ohri;
--	int ret;
-+	int ret, hwsup = 0;
- 
- 	if (!oh)
- 		return -EINVAL;
-@@ -1481,6 +1481,23 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 	if (IS_ERR_VALUE(ret))
- 		return ret;
- 
-+	if (oh->clkdm) {
-+		/*
-+		 * A clockdomain must be in SW_SUP otherwise reset
-+		 * might not be completed. The clockdomain can be set
-+		 * in HW_AUTO only when the module become ready.
-+		 */
-+		hwsup = clkdm_in_hwsup(oh->clkdm);
-+		ret = clkdm_hwmod_enable(oh->clkdm, oh);
-+		if (ret) {
-+			WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
-+			     oh->name, oh->clkdm->name, ret);
-+			return ret;
-+		}
-+	}
-+
-+	_enable_clocks(oh);
-+
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
- 						   ohri.rst_shift,
-@@ -1497,9 +1514,23 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
- 		return -EINVAL;
- 	}
- 
-+	_disable_clocks(oh);
-+
- 	if (ret == -EBUSY)
- 		pr_warning("omap_hwmod: %s: failed to hardreset\n", oh->name);
- 
-+	if (!ret) {
-+		/*
-+		 * Set the clockdomain to HW_AUTO, assuming that the
-+		 * previous state was HW_AUTO.
-+		 */
-+		if (oh->clkdm && hwsup)
-+			clkdm_allow_idle(oh->clkdm);
-+	} else {
-+		if (oh->clkdm)
-+			clkdm_hwmod_disable(oh->clkdm, oh);
-+	}
-+
- 	return ret;
- }
- 
+Although IOMMU hwmod patches were already submitted in the past,
+this series adds few more changes, like:
+- New reset handling, based on a series that needs to be accepted first.
+- Fix for compile break if IOMMU_API is not selected.
+
+Previous work can be found at:
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60133.html
+
+Omar Ramirez Luna (6):
+  ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
+  ARM: OMAP3: hwmod data: add mmu data for iva and isp
+  ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+  ARM: OMAP3/4: iommu: migrate to hwmod framework
+  ARM: OMAP2+: iommu: add reset handling
+  ARM: OMAP3/4: iommu: adapt to runtime pm
+
+ arch/arm/mach-omap2/devices.c              |    2 +-
+ arch/arm/mach-omap2/iommu2.c               |   36 ------
+ arch/arm/mach-omap2/omap-iommu.c           |  166 ++++++---------------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  115 +++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  136 ++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/iommu.h    |   25 ++++-
+ arch/arm/plat-omap/include/plat/iommu2.h   |    2 -
+ drivers/iommu/omap-iommu.c                 |   68 ++++++-----
+ 8 files changed, 346 insertions(+), 204 deletions(-)
+
 -- 
 1.7.4.1
 
