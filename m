@@ -1,44 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V4 12/12] ARM: OMAP2+: Simplify dmtimer clock aliases
-Date: Fri, 15 Jun 2012 19:38:46 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206151937541.25436@utopia.booyaka.com>
-References: <1338917700-29174-1-git-send-email-jon-hunter@ti.com> <1338917700-29174-13-git-send-email-jon-hunter@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: [PATCH 0/3] OMAP: hwmod: reset API proposal
+Date: Fri, 15 Jun 2012 20:54:38 -0500
+Message-ID: <1339811681-5256-1-git-send-email-omar.luna@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37784 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754165Ab2FPBir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 21:38:47 -0400
-In-Reply-To: <1338917700-29174-13-git-send-email-jon-hunter@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:37831 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923Ab2FPByz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 21:54:55 -0400
+Received: by obbtb18 with SMTP id tb18so4800188obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 18:54:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.luna@linaro.org>
 
-On Tue, 5 Jun 2012, Jon Hunter wrote:
+Recent changes in omap_hwmod framework have reworked the behaviour
+towards hardreset handling, commit 747834a (ARM: OMAP2+: hwmod:
+revise hardreset behavior) recommends for drivers to implement
+their own reset sequences until code out-of-tree hits mainline
+and then their needs and code can be reviewed.
 
-> The OMAP dmtimer driver allows you to dynamically configure the functional
-> clock that drives the timer logic. The dmtimer driver uses the device name and
-> a "con-id" string to search for the appropriate functional clock.
-> 
-> Currently, we define a clock alias for each functional clock source each timer
-> supports. Some functional clock sources are common to all of the timers on a
-> device and so for these clock sources we can use a single alias with a unique
-> con-id string.
-> 
-> The possible functional clock sources for an OMAP device are a 32kHz clock,
-> a system (MHz range) clock and (for OMAP2 only) an external clock. By defining
-> a unique con-id name for each of these (timer_32k_ck, timer_sys_ck and
-> timer_ext_ck) we can eliminate a lot of the clock aliases for timers. This
-> reduces code, speeds-up searches and clock initialisation time.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Since it is not clear when this will occur for all drivers and
+hwmod code was not deleted (presumably because at some point it
+will handle the resets once again), this series exports functions
+to handle hardreset lines in an attempt to reduce code duplication
+for those who have a common reset sequence.
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+These APIs are intended to be used by iommu for now, but were
+tested with IPU and remoteproc on Pandaboard.
+ 
+Omar Ramirez Luna (3):
+  ARM: OMAP: hwmod: partially un-reset hwmods might not be properly
+    enabled
+  ARM: OMAP: hwmod: revise deassert sequence
+  ARM: OMAP: omap_device: expose hwmod assert/deassert to omap devices
 
-At some point we should probably investigate moving these aliases into the 
-hwmod optional clocks, but this requires more thought.
+ arch/arm/mach-omap2/omap_hwmod.c              |   70 +++++++++++++++++++------
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
+ arch/arm/plat-omap/omap_device.c              |   45 ++++++++++++++++
+ 3 files changed, 103 insertions(+), 16 deletions(-)
 
+-- 
+1.7.4.1
 
-- Paul
