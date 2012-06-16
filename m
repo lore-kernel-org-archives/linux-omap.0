@@ -1,103 +1,94 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH] SPI: OMAP: fix over-eager devm_xxx() conversion (was:
-	Re: [CFT 07/11] spi: omap2-mcspi: add DMA engine support)
-Date: Sat, 16 Jun 2012 11:33:34 +0100
-Message-ID: <20120616103334.GA27445@n2100.arm.linux.org.uk>
-References: <20120607110610.GB15973@n2100.arm.linux.org.uk>
-	<E1ScaZv-0003tz-6F@rmk-PC.arm.linux.org.uk>
-	<20120614115335.GE31187@n2100.arm.linux.org.uk>
-	<20120614120842.GF31187@n2100.arm.linux.org.uk>
-	<20120614125012.GG31187@n2100.arm.linux.org.uk>
-	<20120614140712.GH31187@n2100.arm.linux.org.uk>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [PATCH V2 5/5] Input: ads7846: set proper debounce time in driver level
+Date: Sat, 16 Jun 2012 15:27:22 +0200
+Message-ID: <201206161527.22560.marek.vasut@gmail.com>
+References: <zumeng.chen@gmail.com> <4FD8577B.1010408@windriver.com> <4FD867CC.30302@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120614140712.GH31187-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: Text/Plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4FD867CC.30302@compulab.co.il>
+Sender: linux-input-owner@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Zumeng Chen <zumeng.chen@windriver.com>, Zumeng Chen <zumeng.chen@gmail.com>, tony@atomide.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, khasim@ti.com, ajay.gupta@ti.com, hvaibhav@ti.com, dmitry.torokhov@gmail.com, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Okay, I'm going to queue this up in my tree for -rc as no one seems to
-be listening to any of the emails I've sent on Thursday.
+Dear Igor Grinberg,
 
-On Thu, Jun 14, 2012 at 03:07:12PM +0100, Russell King - ARM Linux wrote:
-> From: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-> Subject: [PATCH] SPI: OMAP: fix over-eager devm_xxx() conversion
-> 
-> 1a77b127ae (OMAP : SPI : use devm_* functions) converted the SPI
-> device controller state to use devm_kzalloc().  Unfortunately, this
-> is used against an unbound struct device, which results in the
-> following when the device is eventually bound to its driver:
-> 
-> ------------[ cut here ]------------
-> WARNING: at /home/rmk/git/linux-rmk/drivers/base/dd.c:257 driver_probe_device+0x78/0x21c()
-> Modules linked in:
-> Backtrace:
-> [<c0017d0c>] (dump_backtrace+0x0/0x10c) from [<c033e208>] (dump_stack+0x18/0x1c) r7:00000000 r6:c01ff28c r5:c040050c r4:00000101
-> [<c033e1f0>] (dump_stack+0x0/0x1c) from [<c00337ec>] (warn_slowpath_common+0x58/0x70)
-> [<c0033794>] (warn_slowpath_common+0x0/0x70) from [<c0033828>] (warn_slowpath_null+0x24/0x2c)
-> [<c0033804>] (warn_slowpath_null+0x0/0x2c) from [<c01ff28c>] (driver_probe_device+0x78/0x21c)
-> [<c01ff214>] (driver_probe_device+0x0/0x21c) from [<c01ff49c>] (__driver_attach+0x6c/0x90)
-> [<c01ff430>] (__driver_attach+0x0/0x90) from [<c01fda70>] (bus_for_each_dev+0x58/0x98)
-> [<c01fda18>] (bus_for_each_dev+0x0/0x98) from [<c01ff0f4>] (driver_attach+0x20/0x28)
-> [<c01ff0d4>] (driver_attach+0x0/0x28) from [<c01fe2f4>] (bus_add_driver+0xb4/0x230)
-> [<c01fe240>] (bus_add_driver+0x0/0x230) from [<c01ffb24>] (driver_register+0xac/0x138)
-> [<c01ffa78>] (driver_register+0x0/0x138) from [<c0215d4c>] (spi_register_driver+0x4c/0x60)
-> [<c0215d00>] (spi_register_driver+0x0/0x60) from [<c045414c>] (ks8851_init+0x14/0x1c)
-> [<c0454138>] (ks8851_init+0x0/0x1c) from [<c0008770>] (do_one_initcall+0x9c/0x164)
-> [<c00086d4>] (do_one_initcall+0x0/0x164) from [<c0436410>] (kernel_init+0x128/0x210)
-> [<c04362e8>] (kernel_init+0x0/0x210) from [<c0038754>] (do_exit+0x0/0x72c)
-> ---[ end trace 4dcda79f5e89dd84 ]---
-> ks8851 spi1.0: message enable is 0
-> ks8851 spi1.0: eth0: revision 0, MAC 08:00:28:01:4d:c6, IRQ 194, has EEPROM
-> 
-> Fix this by partially reverting the original commit.
-> 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-> ---
->  drivers/spi/spi-omap2-mcspi.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 9d3409a..6263b0f 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -829,7 +829,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
->  	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
->  
->  	if (!cs) {
-> -		cs = devm_kzalloc(&spi->dev , sizeof *cs, GFP_KERNEL);
-> +		cs = kzalloc(sizeof *cs, GFP_KERNEL);
->  		if (!cs)
->  			return -ENOMEM;
->  		cs->base = mcspi->base + spi->chip_select * 0x14;
-> @@ -869,6 +869,7 @@ static void omap2_mcspi_cleanup(struct spi_device *spi)
->  		cs = spi->controller_state;
->  		list_del(&cs->node);
->  
-> +		kfree(cs);
->  	}
->  
->  	if (spi->chip_select < spi->master->num_chipselect) {
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> On 06/13/12 12:03, Zumeng Chen wrote:
+> > =E4=BA=8E 2012=E5=B9=B406=E6=9C=8813=E6=97=A5 15:51, Igor Grinberg =
+=E5=86=99=E9=81=93:
+> >> On 06/13/12 04:44, Zumeng Chen wrote:
+> >>> From: Zumeng Chen<zumeng.chen@windriver.com>
+> >>>=20
+> >>> If we don't set proper debouce time for ads7846, then there are
+> >>> flooded interrupt counters of ads7846 responding to one time
+> >>> touch on screen, so the driver couldn't work well.
+> >>>=20
+> >>> And since most OMAP3 series boards pass NULL pointer of board_pda=
+ta
+> >>> to omap_ads7846_init, so it's more proper to set it in driver lev=
+el
+> >>> after having gpio_request done.
+> >>>=20
+> >>> This patch has been validated on 3530evm.
+> >>>=20
+> >>> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
+> >>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
+> >>> ---
+> >>>=20
+> >>>   drivers/input/touchscreen/ads7846.c |    4 ++++
+> >>>   1 files changed, 4 insertions(+), 0 deletions(-)
+> >>>=20
+> >>> diff --git a/drivers/input/touchscreen/ads7846.c
+> >>> b/drivers/input/touchscreen/ads7846.c index f02028e..459ff29 1006=
+44
+> >>> --- a/drivers/input/touchscreen/ads7846.c
+> >>> +++ b/drivers/input/touchscreen/ads7846.c
+> >>> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendown(s=
+truct
+> >>> spi_device *spi, struct ads784
+> >>>=20
+> >>>           }
+> >>>          =20
+> >>>           ts->gpio_pendown =3D pdata->gpio_pendown;
+> >>>=20
+> >>> +#ifdef CONFIG_ARCH_OMAP3
+> >>> +        /* 310 means about 10 microsecond for omap3 */
+> >>> +        gpio_set_debounce(pdata->gpio_pendown, 310);
+> >>> +#endif
+> >>=20
+> >> Unless this concerns many boards/archs/platforms,
+> >=20
+> > Yes, this is the case.
+> >=20
+> >> I'd suggest you to implement
+> >> the get_pendown_state() method in the board file.
+> >=20
+> > it seems they are different way between gpio and
+> > get_pendown_state, and gpio way is used for omap3
+> > to drive ads7846, so I guess we may have to do like this.
+>=20
+> No, this is not (and does not have to be) OMAP wide.
+> The decision for this is made on per-board basis.
 
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
++1 agreed
+
+> > Regards,
+> > Zumeng
+> >=20
+> >> If more users will need this, it can be facilitated in the driver.
+> >> (and of course not with the ugly ifdefs...)
+> >>=20
+> >>>       } else {
+> >>>      =20
+> >>>           dev_err(&spi->dev, "no get_pendown_state nor
+> >>>           gpio_pendown?\n");
+
+Best regards,
+Marek Vasut
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
