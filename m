@@ -1,55 +1,62 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH 0/6] OMAP: iommu: hwmod, reset handling and runtime PM
-Date: Fri, 15 Jun 2012 20:55:58 -0500
-Message-ID: <1339811764-5337-1-git-send-email-omar.luna@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:57142 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752814Ab2FPB46 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Jun 2012 21:56:58 -0400
-Received: by obbtb18 with SMTP id tb18so4802379obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 15 Jun 2012 18:56:57 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 1/6] ARM: OMAP: iommu: fix including iommu.h without IOMMU_API
+	selected
+Date: Fri, 15 Jun 2012 20:55:59 -0500
+Message-ID: <1339811764-5337-2-git-send-email-omar.luna@linaro.org>
+References: <1339811764-5337-1-git-send-email-omar.luna@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1339811764-5337-1-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 
-Introduced hwmod support for OMAP3 (iva, isp) and OMAP4 (ipu, dsp),
-along with the corresponding runtime PM and routines to deassert reset
-lines, enable/disable clocks and configure sysc registers.
+If included without IOMMU_API being selected it will break
+compilation:
 
-Due to compatibility an ifdef needs to be propagated (previously on
-iommu resource info) to hwmod data in OMAP3, so users of iommu and
-tidspbridge can avoid issues of two modules managing mmu data/irqs/resets;
-this until tidspbridge can be safely migrated to iommu framework.
+arch/arm/plat-omap/include/plat/iommu.h:
+	In function 'dev_to_omap_iommu':
+arch/arm/plat-omap/include/plat/iommu.h:148:
+	error: 'struct dev_archdata' has no member named 'iommu'
 
-Although IOMMU hwmod patches were already submitted in the past,
-this series adds few more changes, like:
-- New reset handling, based on a series that needs to be accepted first.
-- Fix for compile break if IOMMU_API is not selected.
+This will be seen, when hwmod includes iommu.h to get the
+structure for attributes.
 
-Previous work can be found at:
+Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+---
+ arch/arm/plat-omap/include/plat/iommu.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60133.html
-
-Omar Ramirez Luna (6):
-  ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
-  ARM: OMAP3: hwmod data: add mmu data for iva and isp
-  ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
-  ARM: OMAP3/4: iommu: migrate to hwmod framework
-  ARM: OMAP2+: iommu: add reset handling
-  ARM: OMAP3/4: iommu: adapt to runtime pm
-
- arch/arm/mach-omap2/devices.c              |    2 +-
- arch/arm/mach-omap2/iommu2.c               |   36 ------
- arch/arm/mach-omap2/omap-iommu.c           |  166 ++++++---------------------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  115 +++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  136 ++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/iommu.h    |   25 ++++-
- arch/arm/plat-omap/include/plat/iommu2.h   |    2 -
- drivers/iommu/omap-iommu.c                 |   68 ++++++-----
- 8 files changed, 346 insertions(+), 204 deletions(-)
-
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index 88be3e6..e58d571 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -126,6 +126,7 @@ struct omap_iommu_arch_data {
+ 	struct omap_iommu *iommu_dev;
+ };
+ 
++#ifdef CONFIG_IOMMU_API
+ /**
+  * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
+  * @dev: iommu client device
+@@ -136,6 +137,7 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ 
+ 	return arch_data->iommu_dev;
+ }
++#endif
+ 
+ /* IOMMU errors */
+ #define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
 -- 
 1.7.4.1
-
