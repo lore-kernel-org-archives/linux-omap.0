@@ -1,109 +1,69 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: MFD USB host: prevents CORE retention in idle
-Date: Mon, 18 Jun 2012 13:39:08 +0530
-Message-ID: <CAP05o4Kh+YVYgv_F-GZ=A0V+Nt=x4wCRwek81K7M=bT=PmyBGw@mail.gmail.com>
-References: <87zk8yxx9l.fsf@ti.com>
-	<4FBD7FDC.9050307@ti.com>
-	<CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
-	<871um9wlzx.fsf@ti.com>
-	<878vghut1u.fsf@ti.com>
-	<4FCE46E7.60702@ti.com>
-	<CAP05o4L+0E6fa1VoP_UPTJgKjXb-VqZorUfzsTB3d-KVoFrXfw@mail.gmail.com>
-	<CAP05o4KuoQHhTRTCtdpiywgC1HjwzXZHhROKOgSLhoK76Z2aaQ@mail.gmail.com>
-	<87fwa56gxp.fsf@ti.com>
-	<CAP05o4JEEp-yXjijeeejN3j8uVBDQ35DMGqP9UKj3f7sNnO8LA@mail.gmail.com>
-	<CAP05o4LYhFQpEFukyCT2fA7XHPU2L5K8=8W0fncMJk6YEUWdOQ@mail.gmail.com>
-	<CAP05o4KaZ93Nt58h5ZccWeM2EazLtwOcV5rkmLvijuB5HRbJ8g@mail.gmail.com>
-	<CAORVsuVpbgtS8+Jkw+Z2kA0k0SuL=kYRYcO3JRJ0D9LL34gH2Q@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
+Date: Mon, 18 Jun 2012 11:11:34 +0300
+Message-ID: <1340007094.1859.3.camel@lappyti>
+References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-/7tra/vIxPHQAvqjqbmZ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:41090 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751223Ab2FRIJL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 04:09:11 -0400
-Received: by lbbgk8 with SMTP id gk8so4587290lbb.12
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 01:09:08 -0700 (PDT)
-In-Reply-To: <CAORVsuVpbgtS8+Jkw+Z2kA0k0SuL=kYRYcO3JRJ0D9LL34gH2Q@mail.gmail.com>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:59678 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751307Ab2FRILq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jun 2012 04:11:46 -0400
+Received: by lags15 with SMTP id s15so3508195lag.20
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 01:11:42 -0700 (PDT)
+In-Reply-To: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, Ameya Palande <ameya.palande@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
 
-On Fri, Jun 15, 2012 at 7:17 PM, Jean Pihet <jean.pihet@newoldbits.com>=
- wrote:
-> Hi Keshava,
->
-> On Fri, Jun 15, 2012 at 2:04 PM, Munegowda, Keshava
-> <keshava_mgowda@ti.com> wrote:
->> On Tue, Jun 12, 2012 at 6:28 PM, Munegowda, Keshava
->> <keshava_mgowda@ti.com> wrote:
->>> hi kevin
->>> =A0=A0=A0=A0=A0=A0=A0 now I am using initramfs with kernel linux3.5=
-=2Erc1,
->>> but the retention is not working in 3430 sdp.=A0 I am seeing the fo=
-llowing
->>> error followed by a crash
->>>
->>>
->>> echo mem > /sys/power/state
->>> [=A0=A0 35.609252] PM: Syncing filesystems ... done.
->>> [=A0=A0 35.614654] PM: Preparing system for mem sleep
->>> [=A0=A0 35.658630] Freezing user space processes ... (elapsed 0.01 =
-seconds)
->>> done.
->>> [=A0=A0 35.689727] Freezing remaining freezable tasks ... (elapsed =
-0.02 seconds)
->>> done.
->>> [=A0=A0 35.697692] PM: Entering mem sleep
->>> [=A0=A0 35.722442] usb usb1: usb auto-resume
->>> [=A0=A0 35.726409] ehci-omap ehci-omap.0: resume root hub
->>> [=A0=A0 35.775451] hub 1-0:1.0: hub_resume
->>> [=A0=A0 35.779846] hub 1-0:1.0: hub_suspend
->>> [=A0=A0 35.784240] usb usb1: bus suspend, wakeup 0
->>> [=A0=A0 35.788665] ehci-omap ehci-omap.0: suspend root hub
->>> [=A0=A0 35.805786] PM: suspend of devices complete after 99.304 mse=
-cs
->>> [=A0=A0 35.816497] PM: late suspend of devices complete after 4.364=
- msecs
->>> [=A0=A0 35.831573] PM: noirq suspend of devices complete after 8.33=
-1 msecs
->>> [=A0=A0 35.838500] Disabling non-boot CPUs ...
->>> [=A0=A0 36.312164] Powerdomain (core_pwrdm) didn't enter target sta=
-te 1
->>> [=A0=A0 36.318481] Could not enter target state in pm_suspend
->>> [=A0=A0 36.324859] Unable to handle kernel NULL pointer dereference=
- at virtual
->>> address 00000018
->>> [=A0=A0 36.333557] pgd =3D c6280000
->>> [=A0=A0 36.336639] [00000018] *pgd=3D85c8f831, *pte=3D00000000, *pp=
-te=3D00000000
->>> [=A0=A0 36.343414] Internal error: Oops: 17 [#1] SMP ARM
->>> [=A0=A0 36.348388] Modules linked in:
->>> [=A0=A0 36.351623] CPU: 0=A0=A0=A0 Tainted: G=A0=A0=A0=A0=A0=A0=A0 =
-W=A0=A0=A0=A0 (3.5.0-rc1 #1)
->>> [=A0=A0 36.357574] PC is at _od_resume_noirq+0x14/0x58
->>> [=A0=A0 36.362365] LR is at dpm_run_callback+0x2c/0x74
->
-> You need the fix from
-> https://gitorious.org/linux-omap-dss2/linux/commit/9e0ca55fa5d9ff0129=
-64a7c7cef8af1b814b2fdb
->
-> Hope this helps!
->
-> Regards,
-> Jean
 
-thanks Jean
-    I used this patch; this solved the crash issue, but suspend/resume
-is still failing.
+--=-/7tra/vIxPHQAvqjqbmZ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sat, 2012-06-16 at 03:31 +0530, jaswinder.singh@linaro.org wrote:
+> From: Jassi Brar <jaswinder.singh@linaro.org>
+>=20
+> Explicitly maintaining HDMI phy power state using a flag is prone to
+> race and un-necessary when we have a zero-cost alternative of checking
+> the state before trying to set it.
+
+Why would reading the value from the register be any less racy than
+keeping it in memory? And reading from memory is probably much faster
+than reading from an HDMI register, so I'm not sure what you mean with
+zero-cost.
+
+But I guess it is simpler, so in that sense the patch is ok. But please
+revise the description.
+
+ Tomi
+
+
+--=-/7tra/vIxPHQAvqjqbmZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP3uK2AAoJEPo9qoy8lh71kCkP/jigdnZrAKJhRfulGVew6O29
+kylPAslxOamTwHu8aHhDO3x51YnP1rwC+orCLfogqAWLedINDtUk9b5iPT/DQgdM
+pih5TpWAq0f9Y8QT3lwybK8nIS56OPRVUw5uuLFFIsFqymqqVydyajHDbams7HRs
+xq8lAjtK6tRKLSYIWd7MkGcYCfp15Z/lLzHCivlaBGZwECG27dOowkqMIfvLxejq
+Wj3PhHoyhoIwh7v1gO17RfjARcqrEm7kObxqsvE2R2ylvgvp8A0DmTO6bW55p93S
+bjDocTevLl9e1u2e/a5JblT447b0F5DQkFfonyao1mhP3A8ob+xk4Ym0hAtc0DPd
+NVkh+aRA3blBUMAnYggAhi+E+VQs4oJwmRnhhQvsWet7+2RO2uKC6ANSodxn7ukd
+I54/ohYflYcKNExuunqYYfXg3RkKtoR418hiw9KMZQNY9So/IzluoADvWUo3zUiM
+QRSffwL2cU/l0WWNU4j0dy3VIhpUV656NZEXlJSJ+dRzUgzSMPsbnm9DTkrV/G0f
+qmSJBNp96S0SBIHyqirv3e9QT5iHPejgGHhweBN9P0aP2JPHbhFj//rTbC4K7lm6
+kac+zpjHSnrjlELOhvtiLwxxPBE0pQQ57xpiYRRyVuYTHr3yvyCX2a6z29OS4ZDV
++g5zjgXXDENUrdZD5JJN
+=IhrD
+-----END PGP SIGNATURE-----
+
+--=-/7tra/vIxPHQAvqjqbmZ--
+
