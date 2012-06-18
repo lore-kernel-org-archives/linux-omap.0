@@ -1,53 +1,45 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
-Date: Mon, 18 Jun 2012 15:42:45 +0530
-Message-ID: <CAJe_ZhdhBre8DUVNpawF6X5P+QSiMarkt3WUvbJ=RPcmpX3TPA@mail.gmail.com>
-References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340007094.1859.3.camel@lappyti>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: 3.5-rc3: vdd_mpu_iva warnings
+Date: Mon, 18 Jun 2012 11:39:57 +0100
+Message-ID: <WC20120618103957.6103F2@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52623 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751972Ab2FRKMr (ORCPT
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:55530 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752195Ab2FRKkJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:12:47 -0400
-Received: by lahd3 with SMTP id d3so3378429lah.19
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 03:12:46 -0700 (PDT)
-In-Reply-To: <1340007094.1859.3.camel@lappyti>
+	Mon, 18 Jun 2012 06:40:09 -0400
+Received: from terrafix.co.uk (reverse.keele.netcentral.co.uk [212.57.249.250] (may be forged))
+	by smtp3.keele.netcentral.co.uk (8.14.2/8.14.2) with ESMTP id q5IAe1V9011945
+	for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 11:40:06 +0100
+Received: from WorldClient by terrafix.co.uk (MDaemon PRO v12.5.6)
+	with ESMTP id md50002237718.msg
+	for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 11:40:01 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 18 June 2012 13:41, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->>
->> Explicitly maintaining HDMI phy power state using a flag is prone to
->> race and un-necessary when we have a zero-cost alternative of checking
->> the state before trying to set it.
->
-> Why would reading the value from the register be any less racy than
-> keeping it in memory?
->
-Racy in the sense that h/w doesn't always hop states according to what
-a "state" variable would expect it to.
-Also in this case, phy_tx_enabled modification is unprotected in
-ti_hdmi_4xxx_phy_disable().
+I have a GUMSTIX Overo AirSTORM module (AM3703-based).
 
-BTW, coming to think about it, I am not sure what we need the
-spin_lock_irqsave() protection for in hdmi_check_hpd_state() ?  It
-can't control HPD gpio state change and hdmi_set_phy_pwr() seems too
-expensive and is already unprotected elsewhere.
+When booting the kernel the following features are listed:
+OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
 
-> And reading from memory is probably much faster
-> than reading from an HDMI register, so I'm not sure what you mean with
-> zero-cost.
->
-Zero-cost in terms of space and bother :)
+After booting I get the following (repeating every few seconds):
 
-> But I guess it is simpler, so in that sense the patch is ok. But please
-> revise the description.
->
-OK, will do.
+[   81.122558] voltdm_scale: No voltage scale API registered for vdd_mpu_iva
+[   81.130340] platform mpu.0: omap_target: unable to scale voltage up.
 
-Thanks.
+I have SmartReflex enabled, and the same defconfig used to work on 3.4.
+CONFIG_OMAP_SMARTREFLEX=y
+CONFIG_OMAP_SMARTREFLEX_CLASS3=y
+
+I'm assuming this is because of changes to twl-common.c to add the "IVA" voltage 
+domain, but on the OMAP I have there is no IVA - hence the warnings?
+
+Is there a known fix for this (disabling SmartReflex seems to make no difference)?
+
+Cheers,
+Joe Woodward
+
+
