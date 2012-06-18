@@ -1,102 +1,53 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Bringing back gptimer_wakeup
-Date: Mon, 18 Jun 2012 15:30:52 +0530
-Message-ID: <CAMQu2gwvSMNBr54t3jKsnSbkLKEscGuPFac-ywuruktosWjPgA@mail.gmail.com>
-References: <4FDEF24C.8020305@gmail.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
+Date: Mon, 18 Jun 2012 15:42:45 +0530
+Message-ID: <CAJe_ZhdhBre8DUVNpawF6X5P+QSiMarkt3WUvbJ=RPcmpX3TPA@mail.gmail.com>
+References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340007094.1859.3.camel@lappyti>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:43733 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752234Ab2FRKBQ (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52623 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751972Ab2FRKMr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:01:16 -0400
-Received: by qcmv28 with SMTP id v28so3817353qcm.39
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 03:01:12 -0700 (PDT)
-In-Reply-To: <4FDEF24C.8020305@gmail.com>
+	Mon, 18 Jun 2012 06:12:47 -0400
+Received: by lahd3 with SMTP id d3so3378429lah.19
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 03:12:46 -0700 (PDT)
+In-Reply-To: <1340007094.1859.3.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Mon, Jun 18, 2012 at 2:48 PM, Tasslehoff Kjappfot
-<tasskjapp@gmail.com> wrote:
-> The support for using a timer to wake from suspend was removed in:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
+On 18 June 2012 13:41, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>>
+>> Explicitly maintaining HDMI phy power state using a flag is prone to
+>> race and un-necessary when we have a zero-cost alternative of checking
+>> the state before trying to set it.
 >
-> I found an alternative patch
-> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html) that
-> claimed to keep it working using GPTIMER1 instead, but I haven't been able
-> to make it work (likely because the timer code has changed a good deal since
-> the patch was posted).
+> Why would reading the value from the register be any less racy than
+> keeping it in memory?
 >
-> Anyone got
-> a) a patch that enables this feature on newer kernels, or
-> b) an idea how the patch above can be made to work?
+Racy in the sense that h/w doesn't always hop states according to what
+a "state" variable would expect it to.
+Also in this case, phy_tx_enabled modification is unprotected in
+ti_hdmi_4xxx_phy_disable().
+
+BTW, coming to think about it, I am not sure what we need the
+spin_lock_irqsave() protection for in hdmi_check_hpd_state() ?  It
+can't control HPD gpio state change and hdmi_set_phy_pwr() seems too
+expensive and is already unprotected elsewhere.
+
+> And reading from memory is probably much faster
+> than reading from an HDMI register, so I'm not sure what you mean with
+> zero-cost.
 >
-I had one working against 3.4. may be you can try this out and see it helps.
+Zero-cost in terms of space and bother :)
 
-Regards
-Santosh
+> But I guess it is simpler, so in that sense the patch is ok. But please
+> revise the description.
+>
+OK, will do.
 
----
- arch/arm/mach-omap2/pm-debug.c |    5 +++++
- arch/arm/mach-omap2/timer.c    |   12 ++++++++++++
- 2 files changed, 17 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 814bcd9..8f59a70 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -39,6 +39,7 @@
- #include "pm.h"
-
- u32 enable_off_mode;
-+u32 wakeup_timer_seconds = 0;
-
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
-@@ -276,6 +277,10 @@ static int __init pm_dbg_init(void)
-
- 	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
- 				   &enable_off_mode, &pm_dbg_option_fops);
-+
-+	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUSR, d,
-+				   &wakeup_timer_seconds, &pm_dbg_option_fops);
-+
- 	pm_dbg_init_done = 1;
-
- 	return 0;
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b28ea5e..31a0628 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -82,6 +82,9 @@
- #define MAX_GPTIMER_ID		12
-
- static u32 sys_timer_reserved;
-+#ifdef CONFIG_PM_DEBUG
-+extern u32	wakeup_timer_seconds;
-+#endif
-
- /* Clockevent code */
-
-@@ -138,6 +141,15 @@ static void omap2_gp_timer_set_mode(enum
-clock_event_mode mode,
- 		break;
- 	case CLOCK_EVT_MODE_UNUSED:
- 	case CLOCK_EVT_MODE_SHUTDOWN:
-+#ifdef CONFIG_PM_DEBUG
-+		if (wakeup_timer_seconds) {
-+			__omap_dm_timer_write(&clkev, OMAP_TIMER_LOAD_REG,
-+			0xffffffff - (clkev.rate * wakeup_timer_seconds), 1);
-+			__omap_dm_timer_load_start(&clkev, OMAP_TIMER_CTRL_ST,
-+			0xffffffff - (clkev.rate * wakeup_timer_seconds), 1);
-+		}
-+#endif
-+		break;
- 	case CLOCK_EVT_MODE_RESUME:
- 		break;
- 	}
--- 
-1.7.9.5
+Thanks.
