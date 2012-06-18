@@ -1,86 +1,305 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
-Date: Mon, 18 Jun 2012 16:11:11 +0300
-Message-ID: <1340025071.4012.27.camel@deskari>
-References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340007094.1859.3.camel@lappyti>
-	 <CAJe_ZhdhBre8DUVNpawF6X5P+QSiMarkt3WUvbJ=RPcmpX3TPA@mail.gmail.com>
-	 <1340016865.4012.10.camel@deskari>
-	 <CAJe_ZhfJV6kYvSkU+4RGywv80A47=CxnoCy2rr-x=c2LFDGb7A@mail.gmail.com>
-	 <1340022276.4012.23.camel@deskari>
-	 <CAJe_ZhdoEjyf0ejjsJJpznt83bTJTR0UW3aqaYAZdcm01GBp_A@mail.gmail.com>
+From: Sunil Matange <smatange@ti.com>
+Subject: RE: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
+Date: Mon, 18 Jun 2012 18:30:05 +0530
+Message-ID: <358d9bc4c1dc38c326256727e21daa1c@mail.gmail.com>
+References: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com><393884FF03A1CE4A86A02FC97D0954E73E91B6EC@DBDE01.ent.ti.com>
+ <CAP05o4Lna51bZHKSNLy9zK49dAf1k1UY_sSXRwPGYcgKtPmzkQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Ys41bnN1QSPO4mK7hJrw"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52625 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750992Ab2FRNLO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 09:11:14 -0400
-Received: by lbol5 with SMTP id l5so4589254lbo.20
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 06:11:11 -0700 (PDT)
-In-Reply-To: <CAJe_ZhdoEjyf0ejjsJJpznt83bTJTR0UW3aqaYAZdcm01GBp_A@mail.gmail.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:53048 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751042Ab2FRNQo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jun 2012 09:16:44 -0400
+Received: by vbal1 with SMTP id l1so3700686vba.37
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 06:16:41 -0700 (PDT)
+In-Reply-To: <CAP05o4Lna51bZHKSNLy9zK49dAf1k1UY_sSXRwPGYcgKtPmzkQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: Russ Dill <russ.dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Sapna Setty <s-sapna1@ti.com>, Russ Dill <Russ.Dill@gmail.com>, Mantesh Sarashetti <mantesh@ti.com>, Nishant Kamat <nskamat@ti.com>, Linux USB Devel <linux-usb@vger.kernel.org>
+
+Thanks Keshava.
+
+Regards
+Sunil Matange
 
 
---=-Ys41bnN1QSPO4mK7hJrw
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+-----Original Message-----
+=46rom: Munegowda, Keshava [mailto:keshava_mgowda@ti.com]
+Sent: Monday, June 18, 2012 1:59 PM
+To: Samuel Ortiz
+Cc: Dill, Russ; linux-omap@vger.kernel.org;
+linux-arm-kernel@lists.infradead.org; Balbi, Felipe; Partha Basak; Igor
+Grinberg; Setty, Sapna; Russ Dill; Mantesh Sarashetti; Sunil Matange;
+Nishant Kamat; Linux USB Devel
+Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fi=
+x
+issues.
 
-On Mon, 2012-06-18 at 18:37 +0530, Jassi Brar wrote:
-> On 18 June 2012 17:54, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Mon, 2012-06-18 at 17:16 +0530, Jassi Brar wrote:
->=20
-> >> So preferably I would move request_threaded_irq() to after
-> >> hdmi_check_hpd_state() in ti_hdmi_4xxx_phy_enable()  and convert the
-> >
-> > No, you can't move the check. If you move it, the HPD state could chang=
-e
-> > between the check and the request_irq, and we'd miss it.
-> >
-> Wouldn't we then get an irq, and hence another hdmi_check_hpd_state(), fo=
-r that?
+On Fri, Jun 15, 2012 at 12:36 AM, Sarashetti, Mantesh <mantesh@ti.com>
+wrote:
+> 'Acked-by: mantesh@ti.com'
+> 'Tested-by: mantesh@ti.com'
+>
+> Regards,
+> Mantesh
+> -----Original Message-----
+> From: Russ Dill [mailto:russ.dill@gmail.com] On Behalf Of Dill, Russ
+> Sent: Thursday, June 14, 2012 11:24 AM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: Balbi, Felipe; Munegowda, Keshava; Partha Basak; Igor Grinberg;
+Samuel Ortiz; Sarashetti, Mantesh; Setty, Sapna; Russ Dill
+> Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
+issues.
+>
+> From: Russ Dill <Russ.Dill@gmail.com>
+>
+> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
+> an issue where the ULPI PHYs were not held in reset while initializin=
+g
+> the EHCI controller. However, it also changes behavior in
+> omap-usb-host.c omap_usbhs_init by releasing reset while the
+> configuration in that function was done.
+>
+> This change caused a regression on BB-xM where USB would not function
+> if 'usb start' had been run from u-boot before booting. A change was
+> made to release reset a little bit earlier which fixed the issue on
+> BB-xM and did not cause any regressions on 3430 sdp, the board for
+> which the fix was originally made.
+>
+> This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
+> before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
+>
+> The original fix to hold the EHCI controller in reset during
+> initialization was correct, however it appears that changing
+> omap_usbhs_init to not hold the PHYs in reset during it's
+> configuration was incorrect. This patch first reverts both fixes, and
+> then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
+> reset as the original patch had done. It also is sure to incorporate
+> the _cansleep change that has been made in the meantime.
+>
+> I've tested this on Beagleboard xM, I'd really like to get an ack fro=
+m
+> the 3430 sdp and OMAP5 guys before getting this merged.
+>
+> v3 - Brown paper bag its too early in the morning actually run
+> =A0 =A0 git commit amend fix
+> v2 - Put cansleep gpiolib call outside of spinlock
+>
+> Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
+> ---
+> =A0drivers/mfd/omap-usb-host.c =A0| =A0 48
++++++++++++++++++++++++++++++++++++++++++-
+> =A0drivers/usb/host/ehci-omap.c | =A0 18 +++++++---------
+> =A02 files changed, 55 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.=
+c
+> index 7e96bb2..41088ec 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -25,6 +25,7 @@
+> =A0#include <linux/clk.h>
+> =A0#include <linux/dma-mapping.h>
+> =A0#include <linux/spinlock.h>
+> +#include <linux/gpio.h>
+> =A0#include <plat/cpu.h>
+> =A0#include <plat/usb.h>
+> =A0#include <linux/pm_runtime.h>
+> @@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
+> =A0 =A0 =A0 =A0dev_dbg(dev, "starting TI HSUSB Controller\n");
+>
+> =A0 =A0 =A0 =A0pm_runtime_get_sync(dev);
+> - =A0 =A0 =A0 spin_lock_irqsave(&omap->lock, flags);
+>
+> + =A0 =A0 =A0 if (pdata->ehci_data->phy_reset) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[0]))
+> +
+gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0GPIOF_OUT_INIT_LOW, "USB1 PHY
+reset");
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[1]))
+> +
+gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0GPIOF_OUT_INIT_LOW, "USB2 PHY
+reset");
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Hold the PHY in RESET for enough tim=
+e till DIR is
+high */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(10);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 spin_lock_irqsave(&omap->lock, flags);
+> =A0 =A0 =A0 =A0omap->usbhs_rev =3D usbhs_read(omap->uhh_base, OMAP_UH=
+H_REVISION);
+> =A0 =A0 =A0 =A0dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_r=
+ev);
+>
+> @@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0spin_unlock_irqrestore(&omap->lock, flags);
+> +
+> + =A0 =A0 =A0 if (pdata->ehci_data->phy_reset) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Hold the PHY in RESET for enough tim=
+e till
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* PHY is settled and ready
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(10);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[0]))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value_cansleep
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata-=
+>ehci_data->reset_gpio_port[0],
+1);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[1]))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value_cansleep
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata-=
+>ehci_data->reset_gpio_port[1],
+1);
+> + =A0 =A0 =A0 }
+> +
+> =A0 =A0 =A0 =A0pm_runtime_put_sync(dev);
+> =A0}
+>
+> +static void omap_usbhs_deinit(struct device *dev)
+> +{
+> + =A0 =A0 =A0 struct usbhs_hcd_omap =A0 =A0 =A0 =A0 =A0 *omap =3D dev=
+_get_drvdata(dev);
+> + =A0 =A0 =A0 struct usbhs_omap_platform_data *pdata =3D &omap->platd=
+ata;
+> +
+> + =A0 =A0 =A0 if (pdata->ehci_data->phy_reset) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[0]))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->ehci_d=
+ata->reset_gpio_port[0]);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (gpio_is_valid(pdata->ehci_data->res=
+et_gpio_port[1]))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->ehci_d=
+ata->reset_gpio_port[1]);
+> + =A0 =A0 =A0 }
+> +}
+> +
+>
+> =A0/**
+> =A0* usbhs_omap_probe - initialize TI-based HCDs
+> @@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct
+platform_device *pdev)
+> =A0 =A0 =A0 =A0goto end_probe;
+>
+> =A0err_alloc:
+> + =A0 =A0 =A0 omap_usbhs_deinit(&pdev->dev);
+> =A0 =A0 =A0 =A0iounmap(omap->tll_base);
+>
+> =A0err_tll:
+> @@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct
+platform_device *pdev)
+> =A0{
+> =A0 =A0 =A0 =A0struct usbhs_hcd_omap *omap =3D platform_get_drvdata(p=
+dev);
+>
+> + =A0 =A0 =A0 omap_usbhs_deinit(&pdev->dev);
+> =A0 =A0 =A0 =A0iounmap(omap->tll_base);
+> =A0 =A0 =A0 =A0iounmap(omap->uhh_base);
+> =A0 =A0 =A0 =A0clk_put(omap->init_60m_fclk);
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-oma=
+p.c
+> index a44294d..d0815b6 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -192,14 +192,13 @@ static int ehci_hcd_omap_probe(struct
+platform_device *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0}
+>
+> + =A0 =A0 =A0 /* Hold PHYs in reset while initializing EHCI controlle=
+r */
+> =A0 =A0 =A0 =A0if (pdata->phy_reset) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->reset_gpio_po=
+rt[0]))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_request_one(pdata-=
+>reset_gpio_port[0],
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0GPIOF_OUT_INIT_LOW, "USB1 PHY
+reset");
+> +
+gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->reset_gpio_po=
+rt[1]))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_request_one(pdata-=
+>reset_gpio_port[1],
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0GPIOF_OUT_INIT_LOW, "USB2 PHY
+reset");
+> +
+gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Hold the PHY in RESET for enough ti=
+me till DIR is high
+*/
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0udelay(10);
+> @@ -241,6 +240,11 @@ static int ehci_hcd_omap_probe(struct
+platform_device *pdev)
+> =A0 =A0 =A0 =A0omap_ehci->hcs_params =3D readl(&omap_ehci->caps->hcs_=
+params);
+>
+> =A0 =A0 =A0 =A0ehci_reset(omap_ehci);
+> + =A0 =A0 =A0 ret =3D usb_add_hcd(hcd, irq, IRQF_SHARED);
+> + =A0 =A0 =A0 if (ret) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "failed to add hcd with er=
+r %d\n", ret);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_add_hcd;
+> + =A0 =A0 =A0 }
+>
+> =A0 =A0 =A0 =A0if (pdata->phy_reset) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Hold the PHY in RESET for enough ti=
+me till
+> @@ -255,12 +259,6 @@ static int ehci_hcd_omap_probe(struct
+platform_device *pdev)
+>
+=A0gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 ret =3D usb_add_hcd(hcd, irq, IRQF_SHARED);
+> - =A0 =A0 =A0 if (ret) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "failed to add hcd with er=
+r %d\n", ret);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_add_hcd;
+> - =A0 =A0 =A0 }
+> -
+> =A0 =A0 =A0 =A0/* root ports should always stay powered */
+> =A0 =A0 =A0 =A0ehci_port_power(omap_ehci, 1);
+>
+> --
+> 1.7.10.4
+>
 
-No, if we haven't requested the irq yet. So what could happen:
+Hi Samuel
 
-- initially the cable is unplugged
-- ti_hdmi_4xxx_phy_enable() calls hdmi_check_hpd_state(), nothing is
-done as cable is unplugged
-- cable plugged in
-- ti_hdmi_4xxx_phy_enable() calls request_irq. No irq raised, as the
-cable's state doesn't change.
+I have validated this patch v3 in omap3 beagle XM .
 
-We wouldn't know that cable is actually plugged in at that point.
+Acked-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Tested-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
- Tomi
-
-
---=-Ys41bnN1QSPO4mK7hJrw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP3yjvAAoJEPo9qoy8lh714wgP/jcSgYC1xIc/YfYdCyBN2U43
-2ognCDMEtZ+2CVWg2s1FNT5PNFcW693E9m1Uo62/6eqlUPdK0rY5jjFpRLUyoSt0
-P6YyUHyI6hPXgFiimYrmch8z5gHQwhCjw41UOSn/2WmkIyOkaKzTHCM7AJBfEzdy
-uS32B6KwLLZa/mX1olmFIqqhmQWW44NH7gYqpfyszcZM8rIwHpfc+48xda7Ejpjo
-AQ8hMg247aVsyYZTQqVQD0lDqHUDfJwPt110bSvB/oIfPt6ZJZqxUPZhXlSYKEbc
-Z6Od1XKBKExCox0BIyyMKHC1rXwud8zkT3RWVTmr4ag5vizEKLxtdbQ/BG7jInv/
-TbOJs0WEd1vGu/sKCTp+pPOuij+3fSELM9zDBj3DDgNAggE7ZGM4X+lRvYKu1ZzT
-U+3HJdRC6ZczEUParE8Mz1YXKzTu0YwuG4V0h5Ssrb8w82/Bvlxw0Zx/BKDMfxDT
-gYDsWJpOptXEDjM8ZTSkKWmR3ebrSYRz2+1DhT2UuDUIP2YemQrtXePf3MY70K45
-hKZh49UUYwslxI3c+bhKoLgQ7uZl9L4XSRmmH4nttmDZVqsfYDrtMxgZ4MKagQPr
-M8jSeX5YNgQjyQE93re6I1I8mCsPs+CaOdrZRhzcbZr/tLOjLQ27mqcN1NjX1TNc
-NDHaUYmcEki49c7o7p/P
-=BUYN
------END PGP SIGNATURE-----
-
---=-Ys41bnN1QSPO4mK7hJrw--
-
+regards
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
