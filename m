@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 08/13] I2C: OMAP: Use SET_RUNTIME_PM_OPS
-Date: Mon, 18 Jun 2012 20:00:23 +0530
-Message-ID: <1340029828-20751-9-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 13/13] I2C: OMAP: simplify omap_i2c_ack_stat()
+Date: Mon, 18 Jun 2012 20:00:28 +0530
+Message-ID: <1340029828-20751-14-git-send-email-shubhrajyoti@ti.com>
 References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,48 +9,72 @@ Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340029828-20751-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use SET_RUNTIME_PM_OPS macro to set runtime functions.
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+stat & BIT(1) is the same as BIT(1), so let's
+simplify things a bit by removing "stat &" from
+all omap_i2c_ack_stat() calls.
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Reviewed-by : Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 326b99c..6f8e7d9 100644
+index 6a79089..bac6305 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1147,6 +1147,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
+@@ -763,7 +763,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
  
-+#ifdef CONFIG_PM
- #ifdef CONFIG_PM_RUNTIME
- static void omap_i2c_restore(struct omap_i2c_dev *dev)
- {
-@@ -1208,15 +1209,16 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+-			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
+ 							OMAP_I2C_STAT_XDR));
+ 			return -ETIMEDOUT;
+ 		}
+@@ -824,10 +824,11 @@ complete:
+ 		 */
+ 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+ 					OMAP_I2C_STAT_AL)) {
+-			omap_i2c_ack_stat(dev, stat &
+-				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+-				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
+-				OMAP_I2C_STAT_ARDY));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
++						OMAP_I2C_STAT_RDR |
++						OMAP_I2C_STAT_XRDY |
++						OMAP_I2C_STAT_XDR |
++						OMAP_I2C_STAT_ARDY));
+ 			omap_i2c_complete_cmd(dev, err);
+ 			return IRQ_HANDLED;
+ 		}
+@@ -874,8 +875,8 @@ complete:
+ 					}
+ 				}
+ 			}
+-			omap_i2c_ack_stat(dev,
+-				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
++						OMAP_I2C_STAT_RDR));
+ 			continue;
+ 		}
  
- 	return 0;
- }
-+#endif /* CONFIG_PM_RUNTIME */
+@@ -922,8 +923,8 @@ complete:
  
- static struct dev_pm_ops omap_i2c_pm_ops = {
--	.runtime_suspend = omap_i2c_runtime_suspend,
--	.runtime_resume = omap_i2c_runtime_resume,
-+	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-+			   omap_i2c_runtime_resume, NULL)
- };
- #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
- #else
- #define OMAP_I2C_PM_OPS NULL
--#endif
-+#endif /* CONFIG_PM */
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-			omap_i2c_ack_stat(dev,
+-				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
++						OMAP_I2C_STAT_XDR));
+ 			continue;
+ 		}
  
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
 -- 
 1.7.5.4
