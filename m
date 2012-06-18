@@ -1,69 +1,74 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 00/13] I2C cleanups
-Date: Mon, 18 Jun 2012 20:00:15 +0530
-Message-ID: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 06/13] I2C: OMAP: Correct I2C revision for OMAP3
+Date: Mon, 18 Jun 2012 20:00:21 +0530
+Message-ID: <1340029828-20751-7-git-send-email-shubhrajyoti@ti.com>
+References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340029828-20751-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 
-The patch series does the following
+The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
+revision is the same for 3430 and 3530. However, the OMAP3630 device has the
+same I2C revision as OMAP4. Correct the revision definition to reflect this.
 
-- I2C register restore only if context if the context is lost
-- Bus busy recovery mechanism.
-- the reset is not done in init.
-- Adds a patch to use devm_* functions
-- Adds a pdata function pointer to do context save restore
-- Split the omap_i2c_isr to increase readability
-- Make the i2c use SET_RUNTIME_PM_OPS
-- Use INIT_COMPLETION instead of init_completion
-- Dropping a cleanup and taking few patchs Felipe's series as it may
- not be needed.
+This patch is based on work done by Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Changes from his patch
+- Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
 
-This applies on Wolfram's i2c-embedded/for-next branch.
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 691550a..5c3a299 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -50,8 +50,8 @@
  
-Functional testing on omap4sdp and omap3sdp. 
-
-Previous discurssions 
-http://www.spinics.net/lists/linux-i2c/msg07748.html
-
-This series mainly is the cleanups rebased on
-i2c-embedded/for-next branch.
-
-
-The following changes since commit 0f009a914b40be8786fa67b1f4345cacc263b48c:
-
-  i2c: tegra: make all resource allocation through devm_* (2012-06-13 16:01:38 +0200)
-
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git for_next/i2c_omap
-
-Felipe Balbi (4):
-      I2C: OMAP: simplify num_bytes handling
-      I2C: OMAP: decrease indentation level on data handling
-      I2C: OMAP: add blank lines
-      I2C: OMAP: simplify omap_i2c_ack_stat()
-
-Jon Hunter (1):
-      I2C: OMAP: Correct I2C revision for OMAP3
-
-Shubhrajyoti D (7):
-      I2C: OMAP: I2C register restore only if context is lost
-      I2C: OMAP: Remove the definition of SYSS_RESETDONE_MASK
-      I2C: OMAP: Remove reset at init
-      I2C: OMAP: Optimise the remove code
-      I2C: OMAP: use devm_* functions
-      I2C: OMAP: Use SET_RUNTIME_PM_OPS
-      I2C: OMAP: Do not initialise the completion everytime
-
-Vikram Pandita (1):
-      I2C: OMAP: Recover from Bus Busy condition
-
- arch/arm/plat-omap/i2c.c      |    3 +
- drivers/i2c/busses/i2c-omap.c |  261 +++++++++++++++++++++++-----------------
- include/linux/i2c-omap.h      |    1 +
- 3 files changed, 154 insertions(+), 111 deletions(-)
+ /* I2C controller revisions present on specific hardware */
+ #define OMAP_I2C_REV_ON_2430		0x36
+-#define OMAP_I2C_REV_ON_3430		0x3C
+-#define OMAP_I2C_REV_ON_3530_4430	0x40
++#define OMAP_I2C_REV_ON_3430_3530	0x3C
++#define OMAP_I2C_REV_ON_3630_4430	0x40
+ 
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+@@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+ 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+ 					   SYSC_AUTOIDLE_MASK);
+ 
+-		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
++		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
+ 			dev->syscstate = SYSC_AUTOIDLE_MASK;
+ 			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+ 			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+@@ -1055,7 +1055,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
+ 
+-	if (dev->rev <= OMAP_I2C_REV_ON_3430)
++	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+ 		dev->errata |= I2C_OMAP_ERRATA_I462;
+ 
+ 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+@@ -1073,7 +1073,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 		dev->fifo_size = (dev->fifo_size / 2);
+ 
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
++		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+ 		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+-- 
+1.7.5.4
