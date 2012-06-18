@@ -1,96 +1,55 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCHv3 0/7] ARM: OMAP: core/hwmod: first set of fixes for 3.5-rc
-Date: Mon, 18 Jun 2012 00:15:54 -0600
-Message-ID: <20120618061037.30632.28539.stgit@dusk>
+Subject: [PATCHv3 4/7] ARM: OMAP4: hwmod data: fix 32k sync timer idle modes
+Date: Mon, 18 Jun 2012 00:16:08 -0600
+Message-ID: <20120618061605.30632.31634.stgit@dusk>
+References: <20120618061037.30632.28539.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55768 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55786 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579Ab2FRGS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 02:18:27 -0400
+	with ESMTP id S1751579Ab2FRGS3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 02:18:29 -0400
+In-Reply-To: <20120618061037.30632.28539.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Hi,
+The 32k sync timer IP block target idle modes in the hwmod data are
+incorrect.  The IP block does not support any smart-idle modes.
+Update the data to reflect the correct modes.
 
-Here is an initial set of fixes for power management and OMAP core
-infrastructure for 3.5-rc.  Most of these patches address boot
-warnings and power management problems on OMAP4, although a few of
-them address more general issues.
+This problem was initially identified and a diff fragment posted to
+the lists by Beno=C3=AEt Cousson <b-cousson@ti.com>.  A patch descripti=
+on
+bug in the first version was also identified by Beno=C3=AEt.
 
-Thanks to (in alphabetical order) Beno=C3=AEt Cousson, Tero Kristo, Kev=
-in
-Hilman, Vaibhav Hiremath, and Tony Lindgren for help with this series.
-
-Compile- and boot-test information is below.  Note that on OMAP3,
-return from suspend when off-mode is enabled is via GPIO buttons due to=
-:
-
-http://www.spinics.net/lists/arm-kernel/msg173688.html
-
-Boot logs are available from:
-
-http://www.pwsan.com/omap/bootlogs/20120617/omap_fixes_a_3.5rc__52a5ae4=
-06dadef781bfcf3a641dae2064e9697ff/
-
-These patches are available via git from git://git.pwsan.com/linux-2.6
-in the branch 'omap_fixes_a_3.5rc'.
-
-This third version adds a fix for a new sparse warning, and drops
-everything that is still being commented on or reviewed or which needs
-acks.  Hopefully those will make it into a future 3.5-rc series.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-object size (delta in bytes from v3.5-rc3 (485802a6c524e62b5924849dd727=
-ddbb1497cc71)):
- text 	 data 	  bss 	total 	kernel
-    0 	    0 	    0 	    0 	5912osk_testconfig/vmlinux
-  +32 	    0 	    0 	  +32 	n800_multi_omap2xxx/vmlinux
-  +64 	    0 	    0 	  +64 	n800_testconfig/vmlinux
-    0 	    0 	    0 	    0 	omap1510_defconfig/vmlinux
-    0 	    0 	    0 	    0 	omap1_defconfig/vmlinux
-  +64 	    0 	    0 	  +64 	omap2_4_testconfig/vmlinux
-+4160 	    0 	    0 	+4160 	omap2plus_defconfig/vmlinux
-    0 	    0 	    0 	    0 	omap2plus_no_pm/vmlinux
-    0 	    0 	    0 	    0 	omap3_4_testconfig/vmlinux
-    0 	    0 	    0 	    0 	omap3_testconfig/vmlinux
-  +64 	    0 	    0 	  +64 	omap4_testconfig/vmlinux
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 4aaaa84..6b0aedc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -393,8 +393,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_c=
+ounter_sysc =3D {
+ 	.rev_offs	=3D 0x0000,
+ 	.sysc_offs	=3D 0x0004,
+ 	.sysc_flags	=3D SYSC_HAS_SIDLEMODE,
+-	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+-			   SIDLE_SMART_WKUP),
++	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO),
+ 	.sysc_fields	=3D &omap_hwmod_sysc_type1,
+ };
+=20
 
-
-Djamil Elaidi (1):
-      ARM: OMAP4+: hwmod: fix issue causing IPs not going back to Smart=
--Standby
-
-Paul Walmsley (5):
-      ARM: OMAP2+: hwmod code/data: fix 32K sync timer
-      ARM: OMAP4: hwmod data: fix 32k sync timer idle modes
-      ARM: OMAP4: clock data: add clockdomains for clocks used as main =
-clocks
-      ARM: OMAP2+: CM: increase the module disable timeout
-      ARM: OMAP2+: mux: fix sparse warning
-
-Todd Poynor (1):
-      ARM: OMAP: PM: Lock clocks list while generating summary
-
-
- arch/arm/mach-omap2/clock44xx_data.c         |    5 +++++
- arch/arm/mach-omap2/cm.h                     |   11 ++++++++++
- arch/arm/mach-omap2/cminst44xx.c             |    4 ++--
- arch/arm/mach-omap2/mux.c                    |    1 +
- arch/arm/mach-omap2/omap_hwmod.c             |   28 ++++++++++++++++++=
---------
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    6 +++---
- arch/arm/plat-omap/clock.c                   |    2 ++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    9 ++++++++
- 9 files changed, 53 insertions(+), 15 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
