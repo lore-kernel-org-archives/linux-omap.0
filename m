@@ -1,308 +1,563 @@
 From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: [RFC PATCH v2 05/11] mfd: omap: control: usb-phy: introduce the ctrl-module
- usb driver
-Date: Mon, 18 Jun 2012 15:32:26 +0400
-Message-ID: <4FDF11CA.4040009@dev.rtsoft.ru>
+Subject: [RFC PATCH v2 02/11] ARM: OMAP: expose control.h to mach area
+Date: Mon, 18 Jun 2012 15:32:16 +0400
+Message-ID: <4FDF11C0.4090908@dev.rtsoft.ru>
 References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48629 "HELO
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48597 "HELO
 	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751246Ab2FRLc2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:32:28 -0400
+	with SMTP id S1750828Ab2FRLcS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:32:18 -0400
 In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
 Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Created a new platform driver for the platform device created by the
-control module mfd core, wrt usb. This driver has API's to power on/off
-the phy and the API's to write to musb mailbox.
+This patch exposes the definitions under control.h to
+drivers outside the machine code.
 
-Changes since previous version:
-- Bandgap and usb phy: drivers are now independent from control module driver, they use their own API functions.
-Dependency was removed from Kconfig.
-- Bandgap and usb phy: Added private spinlocks for bandgap and usb drivers.
-
-(p.s. the mailbox for musb in omap4 is present in system control
-module)
-
-[kishon@ti.com: wrote the original API's related to USB functions]
-Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/usb/otg/Kconfig           |   12 ++
- drivers/usb/otg/Makefile          |    1 
- drivers/usb/otg/omap4-usb-phy.c   |  167 ++++++++++++++++++++++++++++++++++++++
- include/linux/usb/omap4_usb_phy.h |   53 ++++++++++++
- 4 files changed, 233 insertions(+)
+ arch/arm/mach-omap2/am35xx-emac.c                |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c              |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c              |    2 +-
+ arch/arm/mach-omap2/board-am3517crane.c          |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c            |    2 +-
+ arch/arm/mach-omap2/board-apollon.c              |    2 +-
+ arch/arm/mach-omap2/board-cm-t3517.c             |    2 +-
+ arch/arm/mach-omap2/board-h4.c                   |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c             |    2 +-
+ arch/arm/mach-omap2/board-ldp.c                  |    2 +-
+ arch/arm/mach-omap2/board-omap3logic.c           |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c           |    2 +-
+ arch/arm/mach-omap2/board-omap4pcm049.c          |    2 +-
+ arch/arm/mach-omap2/clock2420_data.c             |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c             |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c             |    2 +-
+ arch/arm/mach-omap2/clock44xx_data.c             |    2 +-
+ arch/arm/mach-omap2/common.c                     |    2 +-
+ arch/arm/mach-omap2/control.c                    |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                |    2 +-
+ arch/arm/mach-omap2/devices.c                    |    2 +-
+ arch/arm/mach-omap2/display.c                    |    2 +-
+ arch/arm/mach-omap2/hsmmc.c                      |    2 +-
+ arch/arm/mach-omap2/id.c                         |    2 +-
+ arch/arm/mach-omap2/{ => include/mach}/control.h |    2 +-
+ arch/arm/mach-omap2/mcbsp.c                      |    2 +-
+ arch/arm/mach-omap2/mux.c                        |    2 +-
+ arch/arm/mach-omap2/omap_phy_internal.c          |    2 +-
+ arch/arm/mach-omap2/opp3xxx_data.c               |    2 +-
+ arch/arm/mach-omap2/opp4xxx_data.c               |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                     |    2 +-
+ arch/arm/mach-omap2/pm34xx.c                     |    2 +-
+ arch/arm/mach-omap2/prcm.c                       |    2 +-
+ arch/arm/mach-omap2/serial.c                     |    2 +-
+ arch/arm/mach-omap2/sleep34xx.S                  |    2 +-
+ arch/arm/mach-omap2/sr_device.c                  |    2 +-
+ arch/arm/mach-omap2/usb-fs.c                     |    2 +-
+ arch/arm/mach-omap2/voltage.c                    |    2 +-
+ 38 files changed, 38 insertions(+), 38 deletions(-)
+ rename arch/arm/mach-omap2/{ => include/mach}/control.h (99%)
 
-Index: linux-2.6/drivers/usb/otg/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/usb/otg/Kconfig
-+++ linux-2.6/drivers/usb/otg/Kconfig
-@@ -78,6 +78,18 @@ config TWL6030_USB
- 	  are hooked to this driver through platform_data structure.
- 	  The definition of internal PHY APIs are in the mach-omap2 layer.
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index 447682c..c3da28a 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -21,7 +21,7 @@
+ #include <plat/irqs.h>
+ #include <mach/am35xx.h>
  
-+config OMAP4_USB_PHY
-+	tristate "Texas Instruments OMAP4+ USB pin control driver"
-+	help
-+	  If you say yes here you get support for the Texas Instruments
-+	  OMAP4+ USB pin control driver. The register set is part of system
-+	  control module.
-+
-+	  USB phy in OMAP configures control module register for powering on
-+	  the phy, configuring VBUSVALID, AVALID, IDDIG and SESSEND. For
-+	  performing the above mentioned configuration, API's are added in
-+	  by this children of the control module driver.
-+
- config NOP_USB_XCEIV
- 	tristate "NOP USB Transceiver Driver"
- 	select USB_OTG_UTILS
-Index: linux-2.6/drivers/usb/otg/Makefile
-===================================================================
---- linux-2.6.orig/drivers/usb/otg/Makefile
-+++ linux-2.6/drivers/usb/otg/Makefile
-@@ -13,6 +13,7 @@ obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus
- obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
- obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
- obj-$(CONFIG_TWL6030_USB)	+= twl6030-usb.o
-+obj-$(CONFIG_OMAP4_USB_PHY)	+= omap4-usb-phy.o
- obj-$(CONFIG_NOP_USB_XCEIV)	+= nop-usb-xceiv.o
- obj-$(CONFIG_USB_ULPI)		+= ulpi.o
- obj-$(CONFIG_USB_ULPI_VIEWPORT)	+= ulpi_viewport.o
-Index: linux-2.6/drivers/usb/otg/omap4-usb-phy.c
-===================================================================
---- /dev/null
-+++ linux-2.6/drivers/usb/otg/omap4-usb-phy.c
-@@ -0,0 +1,167 @@
-+/*
-+ * OMAP4 system control module driver, USB control children
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Contact:
-+ *    Kishon Vijay Abraham I <kishon@ti.com>
-+ *    Eduardo Valentin <eduardo.valentin@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/usb/omap4_usb_phy.h>
-+
-+void __iomem *omap_usb_phy_base;
-+spinlock_t omap_usb_phy_lock;
-+
-+static int omap_usb_phy_readl(u32 reg, u32 *val)
-+{
-+	if (!omap_usb_phy_base)
-+		return -EINVAL;
-+
-+	*val = __raw_readl(omap_usb_phy_base + reg);
-+	return 0;
-+}
-+
-+/*
-+ * TODO: Get rid from omap_usb_phy_writel() return value -
-+ * It's useless.
-+ */
-+static int omap_usb_phy_writel(u32 val, u32 reg)
-+{
-+	unsigned long flags;
-+
-+	if (!omap_usb_phy_base)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&omap_usb_phy_lock, flags);
-+	__raw_writel(val, omap_usb_phy_base + reg);
-+	spin_unlock_irqrestore(&omap_usb_phy_lock, flags);
-+	return 0;
-+}
-+
-+/**
-+ * omap4_usb_phy_power - power on/off the phy using control module reg
-+ * @dev: struct device *
-+ * @on: 0 or 1, based on powering on or off the PHY
-+ *
-+ * omap_usb2 can call this API to power on or off the PHY.
-+ */
-+int omap4_usb_phy_power(struct device *dev, int on)
-+{
-+	u32 val;
-+	int ret;
-+
-+	if (on) {
-+		ret = omap_usb_phy_readl(CONTROL_DEV_CONF, &val);
-+		if (!ret && (val & PHY_PD)) {
-+			ret = omap_usb_phy_writel(~PHY_PD,
-+						  CONTROL_DEV_CONF);
-+			/* XXX: add proper documentation for this delay */
-+			mdelay(200);
-+		}
-+	} else
-+		ret = omap_usb_phy_writel(PHY_PD, CONTROL_DEV_CONF);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(omap4_usb_phy_power);
-+
-+/**
-+ * omap4_usb_phy_mailbox - write to usb otg mailbox
-+ * @dev: struct device *
-+ * @val: the value to be written to the mailbox
-+ *
-+ * On detection of a device (ID pin is grounded), the phy should call this API
-+ * to set AVALID, VBUSVALID and ID pin is grounded.
-+ *
-+ * When OMAP is connected to a host (OMAP in device mode), the phy should call
-+ * this API to set AVALID, VBUSVALID and ID pin in high impedance.
-+ *
-+ * The phy should call this API, if OMAP is disconnected from host or device.
-+ */
-+int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-+{
-+	return omap_usb_phy_writel(val, CONTROL_USBOTGHS_CONTROL);
-+}
-+EXPORT_SYMBOL_GPL(omap4_usb_phy_mailbox);
-+
-+static int __devinit omap_usb_phy_probe(struct platform_device *pdev)
-+{
-+	struct resource *io_res;
-+
-+//	printk("\n\t\t **** omap_usb_phy_probe(): enter ");
-+
-+	io_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!io_res)
-+		return -ENOENT;
-+
-+//	printk("\n\t\t **** omap_usb_phy_probe(): start %x ", io_res->start);
-+//	printk("\n\t\t **** omap_usb_phy_probe(): size %x ", resource_size(io_res));
-+	omap_usb_phy_base = ioremap(io_res->start, resource_size(io_res));
-+//	printk("\n\t\t **** omap_usb_phy_probe(): omap_usb_phy_base %x ", omap_usb_phy_base);
-+	if (!omap_usb_phy_base)
-+		return -ENOMEM;
-+
-+	/* Initialize register lock */
-+	spin_lock_init(&omap_usb_phy_lock);
-+
-+	return 0;
-+}
-+
-+static int __devexit omap_usb_phy_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static const struct of_device_id of_omap_usb_phy_match[] = {
-+	{ .compatible = "ti,omap4-usb-phy", },
-+	{ },
-+};
-+
-+static struct platform_driver omap_usb_phy_driver = {
-+	.probe = omap_usb_phy_probe,
-+	.remove = __devexit_p(omap_usb_phy_remove),
-+	.driver = {
-+			.name	= "omap4-usb-phy",
-+			.owner	= THIS_MODULE,
-+			.of_match_table	= of_omap_usb_phy_match,
-+	},
-+};
-+
-+static int __init omap_usb_phy_init(void)
-+{
-+	return platform_driver_register(&omap_usb_phy_driver);
-+}
-+postcore_initcall(omap_usb_phy_init);
-+
-+static void __exit omap_usb_phy_exit(void)
-+{
-+	platform_driver_unregister(&omap_usb_phy_driver);
-+}
-+module_exit(omap_usb_phy_exit);
-+
-+MODULE_DESCRIPTION("OMAP4+ USB-phy driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform: omap4-usb-phy");
-+MODULE_AUTHOR("Texas Instrument Inc.");
-Index: linux-2.6/include/linux/usb/omap4_usb_phy.h
-===================================================================
---- /dev/null
-+++ linux-2.6/include/linux/usb/omap4_usb_phy.h
-@@ -0,0 +1,53 @@
-+/*
-+ * OMAP4 USB-phy
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * Contact:
-+ *    Kishon Vijay Abraham I <kishon@ti.com>
-+ *    Eduardo Valentin <eduardo.valentin@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#ifndef __OMAP4_USB_PHY_H
-+#define __OMAP4_USB_PHY_H
-+
-+#define	PHY_PD				0x1
-+#define	AVALID				BIT(0)
-+#define	BVALID				BIT(1)
-+#define	VBUSVALID			BIT(2)
-+#define	SESSEND				BIT(3)
-+#define	IDDIG				BIT(4)
-+#define	CONTROL_DEV_CONF		0x00000300
-+#define	CONTROL_USBOTGHS_CONTROL	0x0000033C
-+
-+/* USB-PHY helpers */
-+#if (defined(CONFIG_OMAP4_USB_PHY)) || (defined(CONFIG_OMAP4_USB_PHY_MODULE))
-+extern int omap4_usb_phy_mailbox(struct device *dev, u32 val);
-+extern int omap4_usb_phy_power(struct device *dev, int on);
-+#else
-+static inline int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-+{
-+	return 0;
-+}
-+static inline int omap4_usb_phy_power(struct device *dev, int on)
-+{
-+	return 0;
-+}
-+#endif
-+
-+#endif
+-#include "control.h"
++#include <mach/control.h>
+ 
+ static struct mdio_platform_data am35xx_emac_mdio_pdata;
+ 
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 37abb0d..ad1132b 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -46,7 +46,7 @@
+ #include "sdram-qimonda-hyb18m512160af-6.h"
+ #include "hsmmc.h"
+ #include "pm.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common-board-devices.h"
+ 
+ #define CONFIG_DISABLE_HFCLK 1
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 94af6cd..8f7f76b 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -47,7 +47,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common-board-devices.h"
+ 
+ #define ETH_KS8851_IRQ			34
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index 3b8a53c..2ad514d 100644
+--- a/arch/arm/mach-omap2/board-am3517crane.c
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -32,7 +32,7 @@
+ 
+ #include "am35xx-emac.h"
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #define GPIO_USB_POWER		35
+ #define GPIO_USB_NRESET		38
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 99790eb..bef6586 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -41,7 +41,7 @@
+ 
+ #include "am35xx-emac.h"
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "hsmmc.h"
+ 
+ #define LCD_PANEL_PWR		176
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 768ece2..bd04fe2 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -44,7 +44,7 @@
+ #include <video/omap-panel-generic-dpi.h>
+ 
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /* LED & Switch macros */
+ #define LED0_GPIO13		13
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index 9e66e16..1d2b7a3 100644
+--- a/arch/arm/mach-omap2/board-cm-t3517.c
++++ b/arch/arm/mach-omap2/board-cm-t3517.c
+@@ -47,7 +47,7 @@
+ #include <mach/am35xx.h>
+ 
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common-board-devices.h"
+ #include "am35xx-emac.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 0bbbabe..623a231 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -43,7 +43,7 @@
+ #include <video/omap-panel-generic-dpi.h>
+ 
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #define H4_FLASH_CS	0
+ #define H4_SMC91X_CS	1
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 7a27409..ebef044 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -42,7 +42,7 @@
+ #include "sdram-numonyx-m65kxxxxam.h"
+ #include "common-board-devices.h"
+ #include "board-flash.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #define IGEP2_SMSC911X_CS       5
+ #define IGEP2_SMSC911X_GPIO     176
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 1b60495..6383a76 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -50,7 +50,7 @@
+ #include "board-flash.h"
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common-board-devices.h"
+ 
+ #define LDP_SMSC911X_CS		1
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index c008bf8..ca3e075 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -37,7 +37,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common-board-devices.h"
+ 
+ #include <plat/mux.h>
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 847a857..b1c8517 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -45,7 +45,7 @@
+ #include <video/omap-panel-tfp410.h>
+ 
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "mux.h"
+ #include "common-board-devices.h"
+ 
+diff --git a/arch/arm/mach-omap2/board-omap4pcm049.c b/arch/arm/mach-omap2/board-omap4pcm049.c
+index a95f426..101e984 100644
+--- a/arch/arm/mach-omap2/board-omap4pcm049.c
++++ b/arch/arm/mach-omap2/board-omap4pcm049.c
+@@ -48,7 +48,7 @@
+ 
+ #include "common.h"
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "mux.h"
+ #include "common-board-devices.h"
+ 
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index bace930..f350e96 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -30,7 +30,7 @@
+ #include "prm-regbits-24xx.h"
+ #include "cm-regbits-24xx.h"
+ #include "sdrc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #define OMAP_CM_REGADDR                 OMAP2420_CM_REGADDR
+ 
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 3b4d09a..dd08bcb 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -29,7 +29,7 @@
+ #include "prm-regbits-24xx.h"
+ #include "cm-regbits-24xx.h"
+ #include "sdrc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #define OMAP_CM_REGADDR			OMAP2430_CM_REGADDR
+ 
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 4e1a3b0..694625f 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -34,7 +34,7 @@
+ #include "cm-regbits-34xx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "prm-regbits-34xx.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /*
+  * clocks
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 2172f66..ce11ee4 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -39,7 +39,7 @@
+ #include "cm-regbits-44xx.h"
+ #include "prm44xx.h"
+ #include "prm-regbits-44xx.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "scrm44xx.h"
+ 
+ /* OMAP4 modulemode control */
+diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
+index 8a6953a..3dc94d0 100644
+--- a/arch/arm/mach-omap2/common.c
++++ b/arch/arm/mach-omap2/common.c
+@@ -25,7 +25,7 @@
+ #include "iomap.h"
+ #include "common.h"
+ #include "sdrc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /* Global address base setup code */
+ 
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 08e674b..92e35bf 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -26,7 +26,7 @@
+ #include "cm2xxx_3xxx.h"
+ #include "sdrc.h"
+ #include "pm.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /* Used by omap3_ctrl_save_padconf() */
+ #define START_PADCONF_SAVE		0x2
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 207bc1c..7d82c6bb 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -33,7 +33,7 @@
+ #include "clockdomain.h"
+ 
+ #include "pm.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "common.h"
+ 
+ #ifdef CONFIG_CPU_IDLE
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 7b4b932..152c266 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -34,7 +34,7 @@
+ #include <plat/omap4-keypad.h>
+ 
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "devices.h"
+ 
+ #define L3_MODULES_MAX_LEN 12
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index db5a88a..0681407 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -32,7 +32,7 @@
+ 
+ #include "iomap.h"
+ #include "mux.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "display.h"
+ 
+ #define DISPC_CONTROL		0x0040
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index be697d4..33b3d62 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -22,7 +22,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
+ 
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 0389b32..5bb9746 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -26,7 +26,7 @@
+ 
+ #include <mach/id.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ 
+ static unsigned int omap_revision;
+ static const char *cpu_rev;
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/include/mach/control.h
+similarity index 99%
+rename from arch/arm/mach-omap2/control.h
+rename to arch/arm/mach-omap2/include/mach/control.h
+index dad2903..cf42764 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/include/mach/control.h
+@@ -1,5 +1,5 @@
+ /*
+- * arch/arm/mach-omap2/control.h
++ * arch/arm/mach-omap2/include/mach/control.h
+  *
+  * OMAP2/3/4 System Control Module definitions
+  *
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 577cb77..0367035 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -25,7 +25,7 @@
+ #include <plat/omap_device.h>
+ #include <linux/pm_runtime.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /*
+  * FIXME: Find a mechanism to enable/disable runtime the McBSP ICLK autoidle.
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 3268ee2..f23e6618 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -38,7 +38,7 @@
+ 
+ #include <plat/omap_hwmod.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ #include "mux.h"
+ #include "prm.h"
+ 
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index 4c90477..b2c9253 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -29,7 +29,7 @@
+ #include <linux/usb.h>
+ 
+ #include <plat/usb.h>
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /* OMAP control module register for UTMI PHY */
+ #define CONTROL_DEV_CONF		0x300
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d95f3f9..6dafdbb 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -21,7 +21,7 @@
+ 
+ #include <plat/cpu.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ #include "omap_opp_data.h"
+ #include "pm.h"
+ 
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index 2293ba2..27f823c 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -22,7 +22,7 @@
+ 
+ #include <plat/cpu.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ #include "omap_opp_data.h"
+ #include "pm.h"
+ 
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index facfffc..7ebca30 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -49,7 +49,7 @@
+ #include "cm-regbits-24xx.h"
+ #include "sdrc.h"
+ #include "pm.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8b43aef..1d2a51c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -49,7 +49,7 @@
+ #include "prm2xxx_3xxx.h"
+ #include "pm.h"
+ #include "sdrc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /* pm34xx errata defined in pm.h */
+ u16 pm34xx_errata;
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 480f40a..fff0b09 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -37,7 +37,7 @@
+ #include "prminst44xx.h"
+ #include "prm-regbits-24xx.h"
+ #include "prm-regbits-44xx.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ void __iomem *prm_base;
+ void __iomem *cm_base;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 678dd1d..97b09da5 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -39,7 +39,7 @@
+ #include "pm.h"
+ #include "cm2xxx_3xxx.h"
+ #include "prm-regbits-34xx.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "mux.h"
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 1f62f23..b3f6bfc 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -33,7 +33,7 @@
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+ #include "sdrc.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ /*
+  * Registers access definitions
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index a503e1e..48a01f6 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -26,7 +26,7 @@
+ 
+ #include "smartreflex.h"
+ #include "voltage.h"
+-#include "control.h"
++#include <mach/control.h>
+ #include "pm.h"
+ 
+ static bool sr_enable_on_init;
+diff --git a/arch/arm/mach-omap2/usb-fs.c b/arch/arm/mach-omap2/usb-fs.c
+index 1481078..94d471c 100644
+--- a/arch/arm/mach-omap2/usb-fs.c
++++ b/arch/arm/mach-omap2/usb-fs.c
+@@ -32,7 +32,7 @@
+ #include <plat/usb.h>
+ #include <plat/board.h>
+ 
+-#include "control.h"
++#include <mach/control.h>
+ #include "mux.h"
+ 
+ #define INT_USB_IRQ_GEN		INT_24XX_USB_IRQ_GEN
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 4dc60e8..d2f0644 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -34,7 +34,7 @@
+ #include "prm44xx.h"
+ #include "prcm44xx.h"
+ #include "prminst44xx.h"
+-#include "control.h"
++#include <mach/control.h>
+ 
+ #include "voltage.h"
+ #include "powerdomain.h"
+-- 1.7.7.1.488.ge8e1c
+
+
