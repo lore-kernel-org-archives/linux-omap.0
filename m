@@ -1,214 +1,118 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
- getting stuck intransition state.
-Date: Mon, 18 Jun 2012 11:11:13 +0530
-Message-ID: <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
-References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree
+ based pinctrl driver
+Date: Sun, 17 Jun 2012 22:50:36 -0700
+Message-ID: <20120618055036.GU12766@atomide.com>
+References: <20120611135826.GB12766@atomide.com>
+ <4FDA6FCD.1020605@wwwdotorg.org>
+ <20120615094938.GQ12766@atomide.com>
+ <4FDB6000.5080703@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:36886 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751075Ab2FRFle convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 01:41:34 -0400
-Received: by qcsd16 with SMTP id d16so3124869qcs.0
-        for <linux-omap@vger.kernel.org>; Sun, 17 Jun 2012 22:41:33 -0700 (PDT)
-In-Reply-To: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FDB6000.5080703@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 List-Id: linux-omap@vger.kernel.org
-To: Lokesh Vutla <lokeshvutla@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Wim Van Sebroeck <wim@iguana.be>, linux-omap <linux-omap@vger.kernel.org>
 
-(You should cc linux-omap too.  CC'ing linux-omap)
+* Stephen Warren <swarren@wwwdotorg.org> [120615 09:21]:
+> On 06/15/2012 03:49 AM, Tony Lindgren wrote:
+> 
+> (Arnd, Grant, Rob, CC'ing you mainly re: the very last set of comments
+> in this email; can you take a look at Tony's patch and comment on the
+> binding)
 
-On Mon, Jun 18, 2012 at 10:53 AM, Lokesh Vutla <lokeshvutla@ti.com> wro=
-te:
-> OMAP watchdong driver is adapted to runtime PM like a general device
-> driver but it is not appropriate. It is causing couple of functional
-> issues.
->
-> 1. On OMAP4 SYSCLK can't be gated, because of issue with WDTIMER2 mod=
-ule,
-> which constantly stays in "in transition" state. Value of register
-> CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.
-> Issue occurs immediately after first idle, when hwmod framework tries
-> to disable WDTIMER2 functional clock - "wd_timer2_fck". After this
-> module falls to "in transition" state, and SYSCLK gating is blocked.
->
-> 2. Due to runtime PM, watchdog timer may be completely disabled.
-> In current code base watchdog timer is not disabled only because of
-> issue 1. Otherwise state of WDTIMER2 module will be "Disabled", and t=
-here
-> will be no interrupts from omap_wdt. In other words watchdog will not
-> work at all.
->
-> Watchdong is a special IP and it should not be disabled otherwise
-> purpose of it itself is defeated. Watchdog functional clock should
-> never be disabled. This patch updates the runtime PM handling in
-> driver so that runtime PM is limited only during probe/shutdown
-> and suspend/resume.
->
-> The patch fixes issue 1 and 2
->
-> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Wim Van Sebroeck <wim@iguana.be>
-> ---
-> Tested on OMAP4430SDP.
->
-> Issue #1 can be easily reproduced on mainline kernel.
-> - Take latest mainline kernel and create uImage using omap2plus_defco=
-nfig
-> - Write a program to open watchdog,like
-> void main(void)
-> {
-> =A0 =A0 =A0 =A0int fd =3D open("/dev/watchdog", O_WRONLY);
->
-> =A0 =A0 =A0 =A0if (fd =3D=3D -1) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0perror("Watchdog device interface is n=
-ot available!\n");
-> =A0 =A0 =A0 =A0}
-> }
-> - Build with arm compiler and copy it to your file syatem
-> - Boot the image and run the executable.
->
->
-> =A0drivers/watchdog/omap_wdt.c | =A0 17 -----------------
-> =A01 files changed, 0 insertions(+), 17 deletions(-)
->
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.=
-c
-> index 8285d65..27ab8db 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -126,8 +126,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_=
-dev *wdev)
-> =A0 =A0 =A0 =A0u32 pre_margin =3D GET_WLDR_VAL(timer_margin);
-> =A0 =A0 =A0 =A0void __iomem *base =3D wdev->base;
->
-> - =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> -
-> =A0 =A0 =A0 =A0/* just count up at 32 KHz */
-> =A0 =A0 =A0 =A0while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
-> @@ -135,8 +133,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_=
-dev *wdev)
-> =A0 =A0 =A0 =A0__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
-> =A0 =A0 =A0 =A0while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
-> -
-> - =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> =A0}
->
-> =A0/*
-> @@ -166,8 +162,6 @@ static int omap_wdt_open(struct inode *inode, str=
-uct file *file)
-> =A0 =A0 =A0 =A0omap_wdt_ping(wdev); /* trigger loading of new timeout=
- value */
-> =A0 =A0 =A0 =A0omap_wdt_enable(wdev);
->
-> - =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> -
-> =A0 =A0 =A0 =A0return nonseekable_open(inode, file);
-> =A0}
->
-> @@ -179,8 +173,6 @@ static int omap_wdt_release(struct inode *inode, =
-struct file *file)
-> =A0 =A0 =A0 =A0 * =A0 =A0 =A0Shut off the timer unless NOWAYOUT is de=
-fined.
-> =A0 =A0 =A0 =A0 */
-> =A0#ifndef CONFIG_WATCHDOG_NOWAYOUT
-> - =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> -
-> =A0 =A0 =A0 =A0omap_wdt_disable(wdev);
->
-> =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev->dev);
-> @@ -199,11 +191,9 @@ static ssize_t omap_wdt_write(struct file *file,=
- const char __user *data,
->
-> =A0 =A0 =A0 =A0/* Refresh LOAD_TIME. */
-> =A0 =A0 =A0 =A0if (len) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&wdt_lock);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&wdt_lock);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0}
-> =A0 =A0 =A0 =A0return len;
-> =A0}
-> @@ -236,18 +226,15 @@ static long omap_wdt_ioctl(struct file *file, u=
-nsigned int cmd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0(int __user *)arg);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return put_user(0, (int __user *)arg);
-> =A0 =A0 =A0 =A0case WDIOC_KEEPALIVE:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&wdt_lock);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&wdt_lock);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
-> =A0 =A0 =A0 =A0case WDIOC_SETTIMEOUT:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (get_user(new_margin, (int __user *=
-)arg))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EFAULT;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_adjust_timeout(new_margin);
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&wdt_lock);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_set_timeout(wdev);
-> @@ -255,7 +242,6 @@ static long omap_wdt_ioctl(struct file *file, uns=
-igned int cmd,
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&wdt_lock);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Fall */
-> =A0 =A0 =A0 =A0case WDIOC_GETTIMEOUT:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return put_user(timer_margin, (int __u=
-ser *)arg);
-> @@ -363,7 +349,6 @@ static void omap_wdt_shutdown(struct platform_dev=
-ice *pdev)
-> =A0 =A0 =A0 =A0struct omap_wdt_dev *wdev =3D platform_get_drvdata(pde=
-v);
->
-> =A0 =A0 =A0 =A0if (wdev->omap_wdt_users) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0}
-> @@ -403,7 +388,6 @@ static int omap_wdt_suspend(struct platform_devic=
-e *pdev, pm_message_t state)
-> =A0 =A0 =A0 =A0struct omap_wdt_dev *wdev =3D platform_get_drvdata(pde=
-v);
->
-> =A0 =A0 =A0 =A0if (wdev->omap_wdt_users) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0}
-> @@ -419,7 +403,6 @@ static int omap_wdt_resume(struct platform_device=
- *pdev)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_get_sync(wdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_enable(wdev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev->dev);
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0return 0;
-> --
-> 1.7.5.4
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes please take a look.
+ 
+> > Care to clarify a bit what you had in mind there?
+> 
+> Basically I meant:
+> 
+> 1) Remove anything TI-/OMAP-specific from the generic binding document
+> 
+> 2) For any TI-/OMAP-specific additions, create a binding document that
+> describes those separately to the generic binding documentation.
+> 
+> However, given that there are no TI-/OMAP-specific additions; OMAP2 just
+> uses the base generic bindings exactly as defined, I don't think you
+> actually need to create an TI-/OMAP-specific document, since there's
+> nothing for it to document.
+
+OK so basically you just want the pinctrl-single binding document to be
+generic. Yes I'll do that.
+ 
+> > It's best to describe the hardware in case we need to set up some hardware
+> > specific things in the driver.
+> 
+> There's a difference between the (set of) compatible value(s) that
+> appears in the .dts file, and the compatible value(s) that the driver
+> binds to.
+> 
+> Since this driver is purely implementing the pinctrl-single binding, I
+> believe only that should be listed in the driver's of_match table.
+> 
+> However, since the .dts file is describing HW that is both a specific
+> OMAP instance, and compatible with pinctrl-single, the .dts file can
+> certainly list both. If in the future, the driver ever needs to
+> specifically know the difference between the specific OMAP versions, or
+> OMAP-vs-something-else, the compatible value will be there already in
+> the .dts file, so this will all work. However, I'd argue that if the
+> driver has to ever know that, it's probably not appropriate to say it's
+> compatible with pinctrl-single any more...
+
+Yes OK I see what you mean now. Sounds good to me, and if/when we need
+some hardware specific things, we'll add specific parsing for the other
+compatible values.
+ 
+> >> One final comment: A little while before Linaro Connect in San
+> >> Francisco, we were all having difficulty coming up with any kind of DT
+> >> binding for pinctrl. I had suggested the possibility of creating a
+> >> binding which just said "write value X to register Y, write value P to
+> >> register Q, ...". This was rejected at connect, because a raw list of
+> >> register writes didn't document anything or describe semantics - it was
+> >> too much of a binary blob. This driver seems to be doing almost the
+> >> exact same thing. In order to avoid that assertion, it'd need to truly
+> >> have individual representations of which pins exist, which pingroups
+> >> exist, which functions exist, and which functions can be selected onto
+> >> which pins/pingroups. That would be a radically different binding. I
+> >> wonder what's changed such that this kind of driver wasn't acceptable
+> >> then, but is now?
+> > 
+> > Well that's why I had two bindings earlier: The current binding for the
+> > bulk pins that's faster to parse, and a more verbose binding for drivers that
+> > allows naming the functions.
+> > 
+> > In your previous comments at [1] you seemed to prefer this current binding
+> > based on the "Why not only allow (1)?" comment. Maybe you had something else
+> > in mind, care to clarify that a bit too?
+> 
+> Well, first I thought about semantics vs. just banging a register list a
+> tiny bit more, and remembered the previous discussion.
+> 
+> But my comment at [1] wasn't so much about "why not just have a raw
+> register list", but more regarding why support two different
+> representations within the same binding; it wasn't really clear to me
+> from reading the original email what the difference between the two
+> representations; why have two representations, why/when-to use one vs.
+> the other, that the difference was about providing a "semantic" list of
+> pins/pingroups/functions vs. providing a "raw" register list.
+
+I too would prefer more verbose .dts files. Unfortunately the parsing of
+several hundred board specific pins adds quite a bit of overhead.
+ 
+> IIRC, the pushback on a raw "bang these registers" representation came
+> from Grant and/or Arnd. It'd be a good idea if they (and indeed Rob)
+> could comment on this binding proposal. If they're OK with this kind of
+> pretty raw representation, I'm not going to object, but I have a feeling
+> they might not like it?
+
+Yes let's see if anybody has better ideas.
+
+Regards,
+
+Tony
+
+ 
+> > [1] http://article.gmane.org/gmane.linux.kernel/1291838
