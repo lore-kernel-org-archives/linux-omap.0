@@ -1,61 +1,56 @@
-From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: [RFC PATCH v2 09/11] ARM: DT: Add support to system control module
- for OMAP4
-Date: Mon, 18 Jun 2012 15:32:38 +0400
-Message-ID: <4FDF11D6.6050205@dev.rtsoft.ru>
-References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
+Date: Mon, 18 Jun 2012 17:16:28 +0530
+Message-ID: <CAJe_ZhfJV6kYvSkU+4RGywv80A47=CxnoCy2rr-x=c2LFDGb7A@mail.gmail.com>
+References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340007094.1859.3.camel@lappyti>
+	<CAJe_ZhdhBre8DUVNpawF6X5P+QSiMarkt3WUvbJ=RPcmpX3TPA@mail.gmail.com>
+	<1340016865.4012.10.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48679 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752268Ab2FRLck (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:32:40 -0400
-In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:42596 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750792Ab2FRLqa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jun 2012 07:46:30 -0400
+Received: by lahd3 with SMTP id d3so3430582lah.19
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 04:46:28 -0700 (PDT)
+In-Reply-To: <1340016865.4012.10.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
-Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-This patch adds device tree entries on OMAP4 based boards
-for System Control Module (SCM).
+On 18 June 2012 16:24, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Mon, 2012-06-18 at 15:42 +0530, Jassi Brar wrote:
 
-TODO:
-The IOMEM windows of ctrl_module_core, bandgap, usbphy overlap, so
-probably only specific registers should be specified in dts for
-bandgap and usb phy entries.
-
-Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
-
-Index: linux-2.6/arch/arm/boot/dts/omap4.dtsi
-===================================================================
---- linux-2.6.orig/arch/arm/boot/dts/omap4.dtsi
-+++ linux-2.6/arch/arm/boot/dts/omap4.dtsi
-@@ -272,5 +272,22 @@
- 			ti,hwmods = "mmc5";
- 			ti,needs-special-reset;
- 		};
-+
-+		ctrl_module_core: ctrl_module_core@4a002000 {
-+			compatible = "ti,omap4-control";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ctrl_module_core";
-+			reg = <0x4a002000 0x1000>;
-+			bandgap@4a002000 {
-+				compatible = "ti,omap4-bandgap";
-+				reg = <0x4a002000 0x1000>;
-+			};
-+			usb@4a002000 {
-+				compatible = "ti,omap4-usb-phy";
-+				reg = <0x4a002000 0x1000>;
-+			};
-+		};
- 	};
- };
+>> BTW, coming to think about it, I am not sure what we need the
+>> spin_lock_irqsave() protection for in hdmi_check_hpd_state() ? =A0It
+>> can't control HPD gpio state change and hdmi_set_phy_pwr() seems too
+>> expensive and is already unprotected elsewhere.
+>
+> It's needed when enabling the hdmi output. In phy_enable() the irq is
+> requested first, and then the phy_enable() runs hdmi_check_hpd_state(=
+).
+> So there's a chance to run hdmi_check_hpd_state() from both
+> hpd-interrupt and phy_enable() at the same time.
+>
+> The hdmi_set_phy_pwr() is not called in many places, but I think ther=
+e's
+> indeed a problem there. It is called after free_irq(), but I think
+> (guess) the irq handler could still be running after free_irq. So tho=
+se
+> should be protected by the same spinlock too.
+>
+You know TI HDMI better than I do, so I assume your concerns are valid.
+So preferably I would move request_threaded_irq() to after
+hdmi_check_hpd_state() in ti_hdmi_4xxx_phy_enable()  and convert the
+spin_lock_irqsave() in hdmi_check_hpd_state() to some mutex (we don't
+want irqs disabled so long as it takes for phy to power on/off).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
