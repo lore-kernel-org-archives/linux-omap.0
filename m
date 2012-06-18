@@ -1,46 +1,33 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Bringing back gptimer_wakeup
-Date: Mon, 18 Jun 2012 11:01:59 -0700
-Message-ID: <87k3z4lcrs.fsf@ti.com>
-References: <4FDEF24C.8020305@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH-V2 0/4] ARM: OMAP2+: am33xx: Add clocktree and hwmod
+ data
+Date: Mon, 18 Jun 2012 12:06:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206181206000.11642@utopia.booyaka.com>
+References: <1338285402-11306-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A83EA50AF1@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55042 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751464Ab2FRSCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 14:02:07 -0400
-Received: by pbcwy7 with SMTP id wy7so8593613pbc.31
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 11:02:01 -0700 (PDT)
-In-Reply-To: <4FDEF24C.8020305@gmail.com> (Tasslehoff Kjappfot's message of
-	"Mon, 18 Jun 2012 11:18:04 +0200")
+Received: from utopia.booyaka.com ([72.9.107.138]:43694 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951Ab2FRSG7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 14:06:59 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA50AF1@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
+Hi Vaibhav,
 
-> The support for using a timer to wake from suspend was removed in:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
->
-> I found an alternative patch
-> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
-> that claimed to keep it working using GPTIMER1 instead, but I haven't
-> been able to make it work (likely because the timer code has changed a
-> good deal since the patch was posted).
->
-> Anyone got
-> a) a patch that enables this feature on newer kernels, or
-> b) an idea how the patch above can be made to work?
+On Thu, 14 Jun 2012, Hiremath, Vaibhav wrote:
 
-The branch below (based on v3.4) will work (at least on OMAP3)
+> Leaving HWMOD data patch aside, both the above patches should be 
+> considered for acceptance, can you please review the same and if there 
+> are no review comments, can it be merged?
 
-We've been holding off on putting this back becasue the timer interface
-has been going through some major cleanup/rework, but I would like to
-see this make it back in soonish.
+I don't quite understand the part about leaving the hwmod data patch 
+aside.  Is that one not ready?  Or does it need to be modified pending 
+some other series?
 
-Kevin
 
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-wip/wakeup-timer
+- Paul
