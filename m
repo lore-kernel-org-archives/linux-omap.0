@@ -1,69 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
-Date: Mon, 18 Jun 2012 11:11:34 +0300
-Message-ID: <1340007094.1859.3.camel@lappyti>
-References: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Mon, 18 Jun 2012 08:15:21 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-/7tra/vIxPHQAvqjqbmZ"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:59678 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751307Ab2FRILq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 04:11:46 -0400
-Received: by lags15 with SMTP id s15so3508195lag.20
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 01:11:42 -0700 (PDT)
-In-Reply-To: <1339797701-11540-1-git-send-email-jaswinder.singh@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54524 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751261Ab2FRIPa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 04:15:30 -0400
+In-Reply-To: <CBFB6F19.95320%jkridner@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
+To: Jason Kridner <jkridner@gmail.com>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+
+On Mon, Jun 11, 2012 at 19:21:21, Jason Kridner wrote:
+> From: Daniel Mack <zonque@gmail.com>
+> >Hey,
+> >
+> >can anybody give me a quick wrap-up about the current state of AM33xx
+> >based SoCs in mainline? What are the next steps to get things merged?
+> 
+> There is a wiki page [1] that is intended to provide a summary, but I'm
+> confident it is not up-to-date.  
+
+Page updated now...
+
+http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status#AM335x_Linux_Status
 
 
---=-/7tra/vIxPHQAvqjqbmZ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, 2012-06-16 at 03:31 +0530, jaswinder.singh@linaro.org wrote:
-> From: Jassi Brar <jaswinder.singh@linaro.org>
->=20
-> Explicitly maintaining HDMI phy power state using a flag is prone to
-> race and un-necessary when we have a zero-cost alternative of checking
-> the state before trying to set it.
-
-Why would reading the value from the register be any less racy than
-keeping it in memory? And reading from memory is probably much faster
-than reading from an HDMI register, so I'm not sure what you mean with
-zero-cost.
-
-But I guess it is simpler, so in that sense the patch is ok. But please
-revise the description.
-
- Tomi
-
-
---=-/7tra/vIxPHQAvqjqbmZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP3uK2AAoJEPo9qoy8lh71kCkP/jigdnZrAKJhRfulGVew6O29
-kylPAslxOamTwHu8aHhDO3x51YnP1rwC+orCLfogqAWLedINDtUk9b5iPT/DQgdM
-pih5TpWAq0f9Y8QT3lwybK8nIS56OPRVUw5uuLFFIsFqymqqVydyajHDbams7HRs
-xq8lAjtK6tRKLSYIWd7MkGcYCfp15Z/lLzHCivlaBGZwECG27dOowkqMIfvLxejq
-Wj3PhHoyhoIwh7v1gO17RfjARcqrEm7kObxqsvE2R2ylvgvp8A0DmTO6bW55p93S
-bjDocTevLl9e1u2e/a5JblT447b0F5DQkFfonyao1mhP3A8ob+xk4Ym0hAtc0DPd
-NVkh+aRA3blBUMAnYggAhi+E+VQs4oJwmRnhhQvsWet7+2RO2uKC6ANSodxn7ukd
-I54/ohYflYcKNExuunqYYfXg3RkKtoR418hiw9KMZQNY9So/IzluoADvWUo3zUiM
-QRSffwL2cU/l0WWNU4j0dy3VIhpUV656NZEXlJSJ+dRzUgzSMPsbnm9DTkrV/G0f
-qmSJBNp96S0SBIHyqirv3e9QT5iHPejgGHhweBN9P0aP2JPHbhFj//rTbC4K7lm6
-kac+zpjHSnrjlELOhvtiLwxxPBE0pQQ57xpiYRRyVuYTHr3yvyCX2a6z29OS4ZDV
-+g5zjgXXDENUrdZD5JJN
-=IhrD
------END PGP SIGNATURE-----
-
---=-/7tra/vIxPHQAvqjqbmZ--
-
+Thanks,
+Vaibhav
