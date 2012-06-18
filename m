@@ -1,177 +1,93 @@
 From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: [RFC PATCH v2 03/11] mfd: omap: control: core system control driver
-Date: Mon, 18 Jun 2012 15:32:19 +0400
-Message-ID: <4FDF11C3.4010701@dev.rtsoft.ru>
+Subject: [RFC PATCH v2 05/11] mfd: omap: control: usb-phy: introduce the ctrl-module
+ usb driver
+Date: Mon, 18 Jun 2012 15:32:26 +0400
+Message-ID: <4FDF11CA.4040009@dev.rtsoft.ru>
 References: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48603 "HELO
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48629 "HELO
 	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751344Ab2FRLcV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:32:21 -0400
+	with SMTP id S1751246Ab2FRLc2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:32:28 -0400
 In-Reply-To: <1337934361-1606-1-git-send-email-eduardo.valentin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
-Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>, J Keerthy <j-keerthy@ti.com>
+Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-This patch introduces a MFD core device driver for
-OMAP system control module.
-
-The control module allows software control of
-various static modes supported by the device. It is
-composed of two control submodules: general control
-module and device (padconfiguration) control
-module.
+Created a new platform driver for the platform device created by the
+control module mfd core, wrt usb. This driver has API's to power on/off
+the phy and the API's to write to musb mailbox.
 
 Changes since previous version:
-- omap-control-core: driver is basically the same as arch/arm/mach-omap2/control.c, but resources aren't hardcoded, they are specified in dts file.
-- omap-control-core: Control module is a built-in driver - added control module select to ARCH_HAS_CONTROL_MODULE and ARCH_OMAP4.
-Probably, no configuration option is required!
-- omap-control-core: Added early init call that ioremaps control module IOMEM window, this allows
-omap-control-core.c API to be called very early, for example from omap_type()
-- omap-control-core: Removed device pointer from omap-control-core API arguments, becuase there can be only one instance control
-module device.
+- Bandgap and usb phy: drivers are now independent from control module driver, they use their own API functions.
+Dependency was removed from Kconfig.
+- Bandgap and usb phy: Added private spinlocks for bandgap and usb drivers.
 
+(p.s. the mailbox for musb in omap4 is present in system control
+module)
+
+[kishon@ti.com: wrote the original API's related to USB functions]
 Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-
 ---
- Documentation/devicetree/bindings/mfd/omap_control.txt |   44 +++++
- arch/arm/mach-omap2/Kconfig                            |    1 
- arch/arm/plat-omap/Kconfig                             |    4 
- drivers/mfd/Kconfig                                    |    9 +
- drivers/mfd/Makefile                                   |    1 
- drivers/mfd/omap-control-core.c                        |  141 +++++++++++++++++
- include/linux/mfd/omap_control.h                       |   70 ++++++++
- 7 files changed, 270 insertions(+)
+ drivers/usb/otg/Kconfig           |   12 ++
+ drivers/usb/otg/Makefile          |    1 
+ drivers/usb/otg/omap4-usb-phy.c   |  167 ++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/omap4_usb_phy.h |   53 ++++++++++++
+ 4 files changed, 233 insertions(+)
 
-Index: linux-2.6/Documentation/devicetree/bindings/mfd/omap_control.txt
+Index: linux-2.6/drivers/usb/otg/Kconfig
 ===================================================================
---- /dev/null
-+++ linux-2.6/Documentation/devicetree/bindings/mfd/omap_control.txt
-@@ -0,0 +1,44 @@
-+* Texas Instrument OMAP System Control Module (SCM) bindings
-+
-+The control module allows software control of various static modes supported by
-+the device. The control module controls the settings of various device  modules
-+through register configuration and internal signals. It also controls  the  pad
-+configuration, pin functional multiplexing, and the routing of internal signals
-+(such as PRCM  signals or DMA requests)  to output pins configured for hardware
-+observability.
-+
-+Required properties:
-+- compatible : Should be:
-+  - "ti,omap3-control" for OMAP3 support
-+  - "ti,omap4-control" for OMAP4 support
-+  - "ti,omap5-control" for OMAP5 support
-+
-+OMAP specific properties:
-+- ti,hwmods: Name of the hwmod associated to the control module:
-+  Should be "ctrl_module_core";
-+
-+Sub-nodes:
-+- bandgap : contains the bandgap node
-+
-+  The bindings details of individual bandgap device can be found in:
-+  Documentation/devicetree/bindings/thermal/omap_bandgap.txt
-+
-+- usb : contains the usb phy pin control node
-+
-+  The only required property for this child is:
-+    - compatible = "ti,omap4-control-usb";
-+
-+Examples:
-+
-+ctrl_module_core: ctrl_module_core@4a002000 {
-+	compatible = "ti,omap4-control";
-+	ti,hwmods = "ctrl_module_core";
-+	bandgap {
-+		compatible = "ti,omap4460-bandgap";
-+		interrupts = <0 126 4>; /* talert */
-+		ti,tshut-gpio = <86>; /* tshut */
-+	};
-+	usb {
-+		compatible = "ti,omap4-usb-phy";
-+	};
-+};
-Index: linux-2.6/arch/arm/mach-omap2/Kconfig
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/Kconfig
-+++ linux-2.6/arch/arm/mach-omap2/Kconfig
-@@ -52,6 +52,7 @@ config ARCH_OMAP4
- 	select PL310_ERRATA_727915
- 	select ARM_ERRATA_720789
- 	select ARCH_HAS_OPP
-+	select ARCH_HAS_CONTROL_MODULE
- 	select PM_OPP if PM
- 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
- 	select ARM_CPU_SUSPEND if PM
-Index: linux-2.6/arch/arm/plat-omap/Kconfig
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/Kconfig
-+++ linux-2.6/arch/arm/plat-omap/Kconfig
-@@ -5,6 +5,10 @@ menu "TI OMAP Common Features"
- config ARCH_OMAP_OTG
- 	bool
+--- linux-2.6.orig/drivers/usb/otg/Kconfig
++++ linux-2.6/drivers/usb/otg/Kconfig
+@@ -78,6 +78,18 @@ config TWL6030_USB
+ 	  are hooked to this driver through platform_data structure.
+ 	  The definition of internal PHY APIs are in the mach-omap2 layer.
  
-+config ARCH_HAS_CONTROL_MODULE
-+	bool
-+	select MFD_OMAP_CONTROL
-+
- choice
- 	prompt "OMAP System Type"
- 	default ARCH_OMAP2PLUS
-Index: linux-2.6/drivers/mfd/Kconfig
-===================================================================
---- linux-2.6.orig/drivers/mfd/Kconfig
-+++ linux-2.6/drivers/mfd/Kconfig
-@@ -822,6 +822,15 @@ config MFD_WL1273_CORE
- 	  driver connects the radio-wl1273 V4L2 module and the wl1273
- 	  audio codec.
- 
-+config MFD_OMAP_CONTROL
-+	bool "Texas Instruments OMAP System control module"
-+	depends on ARCH_HAS_CONTROL_MODULE
++config OMAP4_USB_PHY
++	tristate "Texas Instruments OMAP4+ USB pin control driver"
 +	help
-+	  This is the core driver for system control module. This driver
-+	  is responsible for creating the control module mfd child,
-+	  like USB-pin control, pin muxing, MMC-pbias and DDR IO dynamic
-+	  change for off mode.
++	  If you say yes here you get support for the Texas Instruments
++	  OMAP4+ USB pin control driver. The register set is part of system
++	  control module.
 +
- config MFD_OMAP_USB_HOST
- 	bool "Support OMAP USBHS core driver"
- 	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
-Index: linux-2.6/drivers/mfd/Makefile
++	  USB phy in OMAP configures control module register for powering on
++	  the phy, configuring VBUSVALID, AVALID, IDDIG and SESSEND. For
++	  performing the above mentioned configuration, API's are added in
++	  by this children of the control module driver.
++
+ config NOP_USB_XCEIV
+ 	tristate "NOP USB Transceiver Driver"
+ 	select USB_OTG_UTILS
+Index: linux-2.6/drivers/usb/otg/Makefile
 ===================================================================
---- linux-2.6.orig/drivers/mfd/Makefile
-+++ linux-2.6/drivers/mfd/Makefile
-@@ -107,6 +107,7 @@ obj-$(CONFIG_MFD_TPS6586X)	+= tps6586x.o
- obj-$(CONFIG_MFD_VX855)		+= vx855.o
- obj-$(CONFIG_MFD_WL1273_CORE)	+= wl1273-core.o
- obj-$(CONFIG_MFD_CS5535)	+= cs5535-mfd.o
-+obj-$(CONFIG_MFD_OMAP_CONTROL)	+= omap-control-core.o
- obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o
- obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o
- obj-$(CONFIG_MFD_PM8XXX_IRQ) 	+= pm8xxx-irq.o
-Index: linux-2.6/drivers/mfd/omap-control-core.c
+--- linux-2.6.orig/drivers/usb/otg/Makefile
++++ linux-2.6/drivers/usb/otg/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus
+ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
+ obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
+ obj-$(CONFIG_TWL6030_USB)	+= twl6030-usb.o
++obj-$(CONFIG_OMAP4_USB_PHY)	+= omap4-usb-phy.o
+ obj-$(CONFIG_NOP_USB_XCEIV)	+= nop-usb-xceiv.o
+ obj-$(CONFIG_USB_ULPI)		+= ulpi.o
+ obj-$(CONFIG_USB_ULPI_VIEWPORT)	+= ulpi_viewport.o
+Index: linux-2.6/drivers/usb/otg/omap4-usb-phy.c
 ===================================================================
 --- /dev/null
-+++ linux-2.6/drivers/mfd/omap-control-core.c
-@@ -0,0 +1,141 @@
++++ linux-2.6/drivers/usb/otg/omap4-usb-phy.c
+@@ -0,0 +1,167 @@
 +/*
-+ * OMAP system control module driver file
++ * OMAP4 system control module driver, USB control children
 + *
-+ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Contacts:
-+ * Based on original code written by:
-+ *    J Keerthy <j-keerthy@ti.com>
-+ *    Moiz Sonasath <m-sonasath@ti.com>
-+ * MFD clean up and re-factoring:
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * Contact:
++ *    Kishon Vijay Abraham I <kishon@ti.com>
 + *    Eduardo Valentin <eduardo.valentin@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or
@@ -183,141 +99,168 @@ Index: linux-2.6/drivers/mfd/omap-control-core.c
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
 +#include <linux/module.h>
-+#include <linux/export.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
++#include <linux/init.h>
++#include <linux/gpio.h>
++#include <linux/delay.h>
 +#include <linux/err.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_address.h>
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/omap_control.h>
++#include <linux/platform_device.h>
++#include <linux/usb/omap4_usb_phy.h>
 +
-+#include <linux/of.h>
-+#include <linux/of_address.h>
++void __iomem *omap_usb_phy_base;
++spinlock_t omap_usb_phy_lock;
 +
-+void __iomem *omap_control_base;
-+
-+void __iomem *omap_control_get(void)
++static int omap_usb_phy_readl(u32 reg, u32 *val)
 +{
-+	return omap_control_base;
++	if (!omap_usb_phy_base)
++		return -EINVAL;
++
++	*val = __raw_readl(omap_usb_phy_base + reg);
++	return 0;
 +}
 +
-+u32 omap_control_readl(u16 offset)
++/*
++ * TODO: Get rid from omap_usb_phy_writel() return value -
++ * It's useless.
++ */
++static int omap_usb_phy_writel(u32 val, u32 reg)
 +{
-+	return __raw_readl(omap_control_base + (offset));
++	unsigned long flags;
++
++	if (!omap_usb_phy_base)
++		return -EINVAL;
++
++	spin_lock_irqsave(&omap_usb_phy_lock, flags);
++	__raw_writel(val, omap_usb_phy_base + reg);
++	spin_unlock_irqrestore(&omap_usb_phy_lock, flags);
++	return 0;
 +}
 +
-+void omap_control_writel(u32 val, u16 offset)
++/**
++ * omap4_usb_phy_power - power on/off the phy using control module reg
++ * @dev: struct device *
++ * @on: 0 or 1, based on powering on or off the PHY
++ *
++ * omap_usb2 can call this API to power on or off the PHY.
++ */
++int omap4_usb_phy_power(struct device *dev, int on)
 +{
-+	__raw_writel(val, omap_control_base + (offset));
++	u32 val;
++	int ret;
++
++	if (on) {
++		ret = omap_usb_phy_readl(CONTROL_DEV_CONF, &val);
++		if (!ret && (val & PHY_PD)) {
++			ret = omap_usb_phy_writel(~PHY_PD,
++						  CONTROL_DEV_CONF);
++			/* XXX: add proper documentation for this delay */
++			mdelay(200);
++		}
++	} else
++		ret = omap_usb_phy_writel(PHY_PD, CONTROL_DEV_CONF);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(omap4_usb_phy_power);
++
++/**
++ * omap4_usb_phy_mailbox - write to usb otg mailbox
++ * @dev: struct device *
++ * @val: the value to be written to the mailbox
++ *
++ * On detection of a device (ID pin is grounded), the phy should call this API
++ * to set AVALID, VBUSVALID and ID pin is grounded.
++ *
++ * When OMAP is connected to a host (OMAP in device mode), the phy should call
++ * this API to set AVALID, VBUSVALID and ID pin in high impedance.
++ *
++ * The phy should call this API, if OMAP is disconnected from host or device.
++ */
++int omap4_usb_phy_mailbox(struct device *dev, u32 val)
++{
++	return omap_usb_phy_writel(val, CONTROL_USBOTGHS_CONTROL);
++}
++EXPORT_SYMBOL_GPL(omap4_usb_phy_mailbox);
++
++static int __devinit omap_usb_phy_probe(struct platform_device *pdev)
++{
++	struct resource *io_res;
++
++//	printk("\n\t\t **** omap_usb_phy_probe(): enter ");
++
++	io_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!io_res)
++		return -ENOENT;
++
++//	printk("\n\t\t **** omap_usb_phy_probe(): start %x ", io_res->start);
++//	printk("\n\t\t **** omap_usb_phy_probe(): size %x ", resource_size(io_res));
++	omap_usb_phy_base = ioremap(io_res->start, resource_size(io_res));
++//	printk("\n\t\t **** omap_usb_phy_probe(): omap_usb_phy_base %x ", omap_usb_phy_base);
++	if (!omap_usb_phy_base)
++		return -ENOMEM;
++
++	/* Initialize register lock */
++	spin_lock_init(&omap_usb_phy_lock);
++
++	return 0;
 +}
 +
-+static const struct of_device_id of_omap_control_match[] = {
-+	{ .compatible = "ti,omap3-control", },
-+	{ .compatible = "ti,omap4-control", },
-+	{ .compatible = "ti,omap5-control", },
++static int __devexit omap_usb_phy_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static const struct of_device_id of_omap_usb_phy_match[] = {
++	{ .compatible = "ti,omap4-usb-phy", },
 +	{ },
 +};
 +
-+static int __devinit omap_control_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct device_node *np = dev->of_node;
-+
-+	/*
-+	 *  Build child defvices of ctrl_module_core
-+	 */
-+	return of_platform_populate(np, of_omap_control_match, NULL, dev);
-+}
-+
-+
-+static struct platform_driver omap_control_driver = {
-+	.probe			= omap_control_probe,
++static struct platform_driver omap_usb_phy_driver = {
++	.probe = omap_usb_phy_probe,
++	.remove = __devexit_p(omap_usb_phy_remove),
 +	.driver = {
-+		.name		= "omap-control-core",
-+		.owner		= THIS_MODULE,
-+		.of_match_table	= of_omap_control_match,
++			.name	= "omap4-usb-phy",
++			.owner	= THIS_MODULE,
++			.of_match_table	= of_omap_usb_phy_match,
 +	},
 +};
 +
-+int __init omap_control_of_init(struct device_node *node,
-+			     struct device_node *parent)
++static int __init omap_usb_phy_init(void)
 +{
-+	struct resource res;
-+
-+	if (WARN_ON(!node))
-+		return -ENODEV;
-+
-+	if (of_address_to_resource(node, 0, &res)) {
-+		WARN(1, "unable to get intc registers\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
++	return platform_driver_register(&omap_usb_phy_driver);
 +}
++postcore_initcall(omap_usb_phy_init);
 +
-+void __init of_omap_control_init(const struct of_device_id *matches)
++static void __exit omap_usb_phy_exit(void)
 +{
-+	struct device_node *np;
-+	struct property *pp = 0;
-+	unsigned long phys_base = 0;
-+	size_t mapsize = 0;
-+
-+	for_each_matching_node(np, matches) {
-+
-+		pp = of_find_property(np, "reg", NULL);
-+		if(pp) {
-+			phys_base = (unsigned long)be32_to_cpup(pp->value);
-+			mapsize = (size_t)be32_to_cpup( (void*)((char*)pp->value + 4) );
-+			omap_control_base = ioremap(phys_base, mapsize);
-+		}
-+	}
++	platform_driver_unregister(&omap_usb_phy_driver);
 +}
++module_exit(omap_usb_phy_exit);
 +
-+static int __init
-+omap_control_early_initcall(void)
-+{
-+	of_omap_control_init(of_omap_control_match);
-+
-+	return 0;
-+}
-+early_initcall(omap_control_early_initcall);
-+
-+static int __init omap_control_init(void)
-+{
-+	return platform_driver_register(&omap_control_driver);
-+}
-+postcore_initcall_sync(omap_control_init);
-+
-+static void __exit omap_control_exit(void)
-+{
-+	platform_driver_unregister(&omap_control_driver);
-+}
-+module_exit(omap_control_exit);
-+early_platform_init("early_omap_control", &omap_control_driver);
-+
-+MODULE_DESCRIPTION("OMAP system control module driver");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:omap-control-core");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-Index: linux-2.6/include/linux/mfd/omap_control.h
++MODULE_DESCRIPTION("OMAP4+ USB-phy driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform: omap4-usb-phy");
++MODULE_AUTHOR("Texas Instrument Inc.");
+Index: linux-2.6/include/linux/usb/omap4_usb_phy.h
 ===================================================================
 --- /dev/null
-+++ linux-2.6/include/linux/mfd/omap_control.h
-@@ -0,0 +1,70 @@
++++ linux-2.6/include/linux/usb/omap4_usb_phy.h
+@@ -0,0 +1,53 @@
 +/*
-+ * OMAP system control module header file
++ * OMAP4 USB-phy
 + *
-+ * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
 + * Contact:
-+ *   J Keerthy <j-keerthy@ti.com>
-+ *   Moiz Sonasath <m-sonasath@ti.com>
-+ *   Abraham, Kishon Vijay <kishon@ti.com>
-+ *   Eduardo Valentin <eduardo.valentin@ti.com>
++ *    Kishon Vijay Abraham I <kishon@ti.com>
++ *    Eduardo Valentin <eduardo.valentin@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License
@@ -328,54 +271,38 @@ Index: linux-2.6/include/linux/mfd/omap_control.h
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+#ifndef __DRIVERS_OMAP_CONTROL_H
-+#define __DRIVERS_OMAP_CONTROL_H
++#ifndef __OMAP4_USB_PHY_H
++#define __OMAP4_USB_PHY_H
 +
-+#include <linux/err.h>
++#define	PHY_PD				0x1
++#define	AVALID				BIT(0)
++#define	BVALID				BIT(1)
++#define	VBUSVALID			BIT(2)
++#define	SESSEND				BIT(3)
++#define	IDDIG				BIT(4)
++#define	CONTROL_DEV_CONF		0x00000300
++#define	CONTROL_USBOTGHS_CONTROL	0x0000033C
 +
-+/**
-+ * struct system control module - scm device structure
-+ * @dev: device pointer
-+ * @base: Base of the temp I/O
-+ * @reg_lock: protect omap_control structure
-+ * @use_count: track API users
-+ */
-+struct omap_control {
-+	struct device		*dev;
-+	void __iomem		*base;
-+	/* protect this data structure and register access */
-+	spinlock_t		reg_lock;
-+	int			use_count;
-+};
-+
-+/* TODO: Add helpers for 16bit and byte access */
-+#ifdef CONFIG_MFD_OMAP_CONTROL
-+void __iomem *omap_control_get(void);
-+u32 omap_control_readl(u16 offset);
-+void omap_control_writel(u32 val, u16 offset);
-+
-+extern void omap_control_put(struct device *dev);
++/* USB-PHY helpers */
++#if (defined(CONFIG_OMAP4_USB_PHY)) || (defined(CONFIG_OMAP4_USB_PHY_MODULE))
++extern int omap4_usb_phy_mailbox(struct device *dev, u32 val);
++extern int omap4_usb_phy_power(struct device *dev, int on);
 +#else
-+static inline int omap_control_readl(struct device *dev, u32 reg, u32 *val)
++static inline int omap4_usb_phy_mailbox(struct device *dev, u32 val)
 +{
 +	return 0;
 +}
-+
-+static inline int omap_control_writel(struct device *dev, u32 val, u32 reg)
++static inline int omap4_usb_phy_power(struct device *dev, int on)
 +{
 +	return 0;
-+}
-+
-+static inline struct device *omap_control_get(void)
-+{
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static inline void omap_control_put(struct device *dev)
-+{
 +}
 +#endif
 +
-+#endif /* __DRIVERS_OMAP_CONTROL_H */
++#endif
