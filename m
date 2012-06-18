@@ -1,52 +1,109 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
-Date: Mon, 18 Jun 2012 16:33:11 +0530
-Message-ID: <4FDF0AEF.3080108@ti.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206172225450.10859@utopia.booyaka.com>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: [RFC PATCH v2 00/11] OMAP System Control Module
+Date: Mon, 18 Jun 2012 15:31:57 +0400
+Message-ID: <4FDF11AD.4040305@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:43223 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120Ab2FRLDS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jun 2012 07:03:18 -0400
-Received: by obbta17 with SMTP id ta17so2085089obb.36
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 04:03:17 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1206172225450.10859@utopia.booyaka.com>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:48562 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751658Ab2FRLb7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 07:31:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: b-cousson@ti.com, kishon@ti.com, kbaidarov@dev.rtsoft.ru, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
+Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-On Monday 18 June 2012 09:57 AM, Paul Walmsley wrote:
-> On Thu, 14 Jun 2012, Rajendra Nayak wrote:
->
->> OMAP3 has suspend broken in mainline, so I tested it on an
->> older kernel (3.4-rc4 using my RFC series)
->> Idle and OFF mode however seem to be broken for a long time,
->> I wasn;t able to get it working even on 3.4 major.
->> See my logs '3630 Beagle-Xm broken idle/off on 3.4' if
->> I am doing anything wrong. I have CPUidle enabled in the
->> kernel config.
->
-> http://www.spinics.net/lists/arm-kernel/msg173688.html
+  Hello.
 
-Thanks Paul. I re-tested my branch [1] after applying the 32K sync
-timer fix [2] and using timer based wakeup [3] instead of UART.
-Both retention and off work fine on my 3630 Beagle-Xm on my CCF
-conversion branch.
-Updated logs can be found here http://pastebin.com/u/rnayak
+  This is a next version of series of patches(based on Eduardo Valentin's patch set) adding a basic support for system control module, on OMAP4+ context. It is a working in progress.
 
-regards,
-Rajendra
+Main changes since previous patch set version:
+- Bandgap and usb phy: drivers are now independent from control module driver, they use their own API functions.
+Dependency was removed from Kconfig.
+- omap-control-core: driver is basically the same as arch/arm/mach-omap2/control.c, but resources aren't hardcoded, they are specified in dts file.
+- omap-control-core: Control module is a built-in driver - added control module select to ARCH_HAS_CONTROL_MODULE and ARCH_OMAP4.
+Probably, no configuration option is required!
+- omap-control-core: Added early init call that ioremaps control module IOMEM window, this allows
+omap-control-core.c API to be called very early, for example from omap_type()
+- omap-control-core: Removed device pointer from omap-control-core API arguments, becuase there can be only one instance control
+module device.
+- Bandgap and usb phy: Added private spinlocks for bandgap and usb drivers.
+- Bandgap: Check the type of bandgap dynamically in bandgap driver probe function by reading
+omap core control module revision register CONTROL_GEN_CORE_REVISION.
 
-[1] git://github.com/rrnayak/linux.git clk-next-omap-3.5-rc2
-[2] http://marc.info/?l=linux-omap&m=134000053229888&w=2
-[3] http://marc.info/?l=linux-omap&m=134001387702336&w=2
+TODO list for bandgap driver:
+- Currently, bandgap and usb phy are children of control module, but, in fact, the drivers are independent,
+so probably they should be independent entries in dts as well.
+- Reserve omap-control-core IOMEM window.
+- Improve thermal zone definition for OMAP4
+- Introduce the thermal zones for OMAP5
 
->
->
-> - Paul
+Overall series has been tested only with panda board OMAP4430, so bandgap and usb phy drivers weren't tested at all.
+
+---
+ Documentation/devicetree/bindings/mfd/omap_control.txt       |   44 
+ Documentation/devicetree/bindings/thermal/omap_bandgap.txt   |   27 
+ arch/arm/boot/dts/omap4.dtsi                                 |   17 
+ arch/arm/mach-omap2/Kconfig                                  |    1 
+ arch/arm/mach-omap2/am35xx-emac.c                            |    2 
+ arch/arm/mach-omap2/board-3430sdp.c                          |    2 
+ arch/arm/mach-omap2/board-4430sdp.c                          |    2 
+ arch/arm/mach-omap2/board-am3517crane.c                      |    2 
+ arch/arm/mach-omap2/board-am3517evm.c                        |    2 
+ arch/arm/mach-omap2/board-apollon.c                          |    2 
+ arch/arm/mach-omap2/board-cm-t3517.c                         |    2 
+ arch/arm/mach-omap2/board-h4.c                               |    2 
+ arch/arm/mach-omap2/board-igep0020.c                         |    2 
+ arch/arm/mach-omap2/board-ldp.c                              |    2 
+ arch/arm/mach-omap2/board-omap3logic.c                       |    2 
+ arch/arm/mach-omap2/board-omap4panda.c                       |    2 
+ arch/arm/mach-omap2/clock2420_data.c                         |    2 
+ arch/arm/mach-omap2/clock2430_data.c                         |    2 
+ arch/arm/mach-omap2/clock3xxx_data.c                         |    2 
+ arch/arm/mach-omap2/clock44xx_data.c                         |    2 
+ arch/arm/mach-omap2/common.c                                 |    2 
+ arch/arm/mach-omap2/control.c                                |    2 
+ arch/arm/mach-omap2/control.h                                |  416 --
+ arch/arm/mach-omap2/cpuidle34xx.c                            |    2 
+ arch/arm/mach-omap2/devices.c                                |    2 
+ arch/arm/mach-omap2/display.c                                |    2 
+ arch/arm/mach-omap2/hsmmc.c                                  |    2 
+ arch/arm/mach-omap2/id.c                                     |    7 
+ arch/arm/mach-omap2/include/mach/control.h                   |  567 +++
+ arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h     |  391 --
+ arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h | 1409 ---------
+ arch/arm/mach-omap2/include/mach/ctrl_module_pad_wkup_44xx.h |  236 -
+ arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h     |   92 
+ arch/arm/mach-omap2/mcbsp.c                                  |    2 
+ arch/arm/mach-omap2/mux.c                                    |    2 
+ arch/arm/mach-omap2/omap_phy_internal.c                      |    2 
+ arch/arm/mach-omap2/opp3xxx_data.c                           |    2 
+ arch/arm/mach-omap2/opp4xxx_data.c                           |    2 
+ arch/arm/mach-omap2/pm24xx.c                                 |    2 
+ arch/arm/mach-omap2/pm34xx.c                                 |    2 
+ arch/arm/mach-omap2/prcm.c                                   |    2 
+ arch/arm/mach-omap2/serial.c                                 |    2 
+ arch/arm/mach-omap2/sleep34xx.S                              |    2 
+ arch/arm/mach-omap2/sr_device.c                              |    2 
+ arch/arm/mach-omap2/usb-fs.c                                 |    2 
+ arch/arm/mach-omap2/voltage.c                                |    2 
+ arch/arm/plat-omap/Kconfig                                   |    4 
+ drivers/mfd/Kconfig                                          |    9 
+ drivers/mfd/Makefile                                         |    1 
+ drivers/mfd/omap-control-core.c                              |  141 
+ drivers/thermal/Kconfig                                      |   24 
+ drivers/thermal/Makefile                                     |    5 
+ drivers/thermal/omap-bandgap.c                               | 1658 +++++++++++
+ drivers/thermal/omap-bandgap.h                               |   76 
+ drivers/thermal/omap4-thermal.c                              |   72 
+ drivers/usb/otg/Kconfig                                      |   12 
+ drivers/usb/otg/Makefile                                     |    1 
+ drivers/usb/otg/omap4-usb-phy.c                              |  167 +
+ include/linux/mfd/omap_control.h                             |   70 
+ include/linux/usb/omap4_usb_phy.h                            |   53 
+ 60 files changed, 2988 insertions(+), 2582 deletions(-)
+
+
 
