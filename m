@@ -1,47 +1,131 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on
- OMAP4
-Date: Mon, 18 Jun 2012 09:57:44 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206180957250.9031@utopia.booyaka.com>
-References: <4FDEF7FE.9040202@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Mon, 18 Jun 2012 11:01:46 -0500
+Message-ID: <4FDF50EA.4080506@ti.com>
+References: <cover.1339828867.git.afzal@ti.com> <1414767dd444d4ab3998adf957e77ff4f3394f92.1339828867.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4FDEF7FE.9040202@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "Lopez Cruz,
- Misael" <misael.lopez@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49297 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752545Ab2FRQBv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jun 2012 12:01:51 -0400
+In-Reply-To: <1414767dd444d4ab3998adf957e77ff4f3394f92.1339828867.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, 18 Jun 2012, Cousson, Benoit wrote:
+Hi Afzal,
 
-> The commit 503d0ea24d1d3dd3db95e5e0edd693da7a2a23eb
->   ARM: OMAP4: hwmod data: Add aliases for McBSP fclk clocks
-> 
-> added a wrong "prcm_clk" alias for PRCM clock whereas the McBSP
-> driver and previous OMAPs are using "prcm_fck".
-> 
-> It thus lead to the following warning.
-> 
-> [   47.409729] omap-mcbsp: clks: could not clk_get() prcm_fck
-> 
-> Fix that by changing the opt_clk role to prcm_fck.
-> 
-> Reported-by: Misael Lopez Cruz <misael.lopez@ti.com>
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Tested-by: Sebastien Guiriec <s-guiriec@ti.com>
+Thanks for sending the update.
 
-Thanks, will queue this as part of the next 3.5-rc series.
+On 06/16/2012 03:03 AM, Afzal Mohammed wrote:
+> Reorganize gpmc-onenand initialization so that changes
+> required for gpmc driver migration can be made smooth.
+> 
+> Ensuring sync read/write are disabled in onenand cannot
+> be expected to work properly unless GPMC is setup, this
+> has been removed. And invocation of set_async has been
+> moved from set_sync to gpmc_onenand_init function; gpmc
+> for onenand needs to be initialized to async mode (even
+> for sync mode initially). Ensuring that onenand part
+> has been setup for async mode has been moved now to
+> setup function.
+> 
+> Thanks to Jon for his suggestions on improving this change.
+> 
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> ---
+> 
+> v2: Move ensuring that async mode in OneNAND has been setup from
+>  set_sync to setup function, improve commit message
+> 
+>  arch/arm/mach-omap2/gpmc-onenand.c |   25 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 15 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+> index 71d7c07..975c1f9 100644
+> --- a/arch/arm/mach-omap2/gpmc-onenand.c
+> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
+> @@ -38,10 +38,9 @@ static struct platform_device gpmc_onenand_device = {
+>  	.resource	= &gpmc_onenand_resource,
+>  };
+>  
+> -static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
+> +static int omap2_onenand_set_async_mode(int cs)
+>  {
+>  	struct gpmc_timings t;
+> -	u32 reg;
+>  	int err;
+>  
+>  	const int t_cer = 15;
+> @@ -55,11 +54,6 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
+>  	const int t_wpl = 40;
+>  	const int t_wph = 30;
+>  
+> -	/* Ensure sync read and sync write are disabled */
+> -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> -	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> -	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+> -
+>  	memset(&t, 0, sizeof(t));
+>  	t.sync_clk = 0;
+>  	t.cs_on = 0;
+> @@ -95,10 +89,6 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
+>  	if (err)
+>  		return err;
+>  
+> -	/* Ensure sync read and sync write are disabled */
+> -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> -	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> -	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
 
-- Paul
+Sorry if I was not clear, but I was still thinking that we keep the
+above instance of setting async mode.
+
+>  	return 0;
+>  }
+> @@ -197,13 +187,10 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+>  		sync_read = 1;
+>  		sync_write = 1;
+>  	} else
+> -		return omap2_onenand_set_async_mode(cs, onenand_base);
+> +		return 0;
+>  
+>  	if (!freq) {
+>  		/* Very first call freq is not known */
+> -		err = omap2_onenand_set_async_mode(cs, onenand_base);
+> -		if (err)
+> -			return err;
+>  		freq = omap2_onenand_get_freq(cfg, onenand_base, &clk_dep);
+>  		first_time = 1;
+>  	}
+> @@ -385,6 +372,12 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
+>  static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+>  {
+>  	struct device *dev = &gpmc_onenand_device.dev;
+> +	u32 reg;
+> +
+> +	/* Ensure sync read and sync write are disabled */
+> +	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> +	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> +	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+
+... and here we should just call omap2_onenand_set_async_mode(), ...
+
+>  	/* Set sync timings in GPMC */
+>  	if (omap2_onenand_set_sync_mode(gpmc_onenand_data, onenand_base,
+> @@ -421,6 +414,8 @@ void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
+>  	gpmc_onenand_resource.end = gpmc_onenand_resource.start +
+>  							ONENAND_IO_SIZE - 1;
+>  
+> +	omap2_onenand_set_async_mode(gpmc_onenand_data->cs);
+> +
+
+...  then remove the above call.
+
+Cheers
+Jon
