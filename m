@@ -1,44 +1,42 @@
-From: Help Desk Webmestre <cyber_upgrade@cyberservices.com>
-Subject: =?utf-8?q?Compl=C3=A9ter_et_de_faire_VOTRE_BO=C3=8ETE_AUX_LETTRES?=
-Date: Mon, 18 Jun 2012 17:32:09 +0100
-Message-ID: <20120618163220.C532AF1870__3343.72748989171$1340038390$gmane$org@smtp.insa-lyon.fr>
-Reply-To: cyber_upgrade@cyberservices.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 09/11] ARM: OMAP4: clock data: add clockdomains for clocks
+ used as main clocks
+Date: Mon, 18 Jun 2012 11:41:49 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206070108540.6684@utopia.booyaka.com>
+References: <20120607060901.25532.68354.stgit@dusk> <20120607061313.25532.84569.stgit@dusk> <4FD04C8D.50609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from criges14.insa-lyon.fr ([134.214.76.242]:49414 "EHLO
-	smtp.insa-lyon.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab2FRQwv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 12:52:51 -0400
-Content-Description: Mail message body
+Received: from utopia.booyaka.com ([72.9.107.138]:51613 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab2FRRlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 13:41:50 -0400
+In-Reply-To: <4FD04C8D.50609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <cyber_upgrade@cyberservices.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-Cher utilisateur Webmail
+On Thu, 7 Jun 2012, Rajendra Nayak wrote:
 
- Votre bo=C3=AEte aux lettres a d=C3=A9pass=C3=A9 la limite de l'utilis=
-ation des quotas, qui est fix=C3=A9 par votre gestionnaire, et l'acc=C3=
-=A8s =C3=A0 votre bo=C3=AEte aux lettres via notre portail =C3=A9lectro=
-nique ne sera pas disponible pendant un certain temps au cours de cette=
- p=C3=A9riode de maintenance.
+> On Thursday 07 June 2012 11:43 AM, Paul Walmsley wrote:
+> > Until the OMAP4 code is converted to disable the use of the clock
+> > framework-based clockdomain enable/disable sequence, any clock used as
+> > a hwmod main_clk must have a clockdomain associated with it.  This
+> > patch populates some clock structure clockdomain names to resolve the
+> > following warnings during kernel init:
+> 
+> But these associations are useless if the clock is not a 'gate' clock, 
+> except for getting rid of these warnings. Maybe we should make hwmod 
+> understand that not all clocks need to have a clockdomain associated 
+> with it and stop complaining.
 
- Vous ne serez pas en mesure de cr=C3=A9er un nouvel e-mail pour envoye=
-r ou recevoir de nouveau jusqu'=C3=A0 ce que vous validez votre bo=C3=AE=
-te aux lettres.
+In retrospect, I think I should have made clockdomains mandatory for all 
+clocks for OMAP4 back then, rather than only allowing them for some 
+clocks.  As I understand it, that would have saved a lot of time and 
+debugging frustration on the bug fixed by commit 
+6c4a057bffe9823221eab547e11fac181dc18a2b ("ARM: OMAP4: clock data: Force a 
+DPLL clkdm/pwrdm ON before a relock").  Oh well.
 
- Pour re-valider votre bo=C3=AEte aux lettres, vous pouvez cliquer ici =
-https://docs.google.com/spreadsheet/viewform?formkey=3DdG5WQm5FUThnRmU0=
-alNBOUFvWmFlQnc6MQ
 
- Merci
- Administrateur syst=C3=A8me.
-
- Copyright =C2=A9 2012 # admin Webmaster =E2=80=A2 TOUS DROITS R=C3=89S=
-ERV=C3=89S =E2=80=A2
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
