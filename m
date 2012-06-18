@@ -1,42 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 09/11] ARM: OMAP4: clock data: add clockdomains for clocks
- used as main clocks
-Date: Mon, 18 Jun 2012 11:41:49 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206070108540.6684@utopia.booyaka.com>
-References: <20120607060901.25532.68354.stgit@dusk> <20120607061313.25532.84569.stgit@dusk> <4FD04C8D.50609@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Bringing back gptimer_wakeup
+Date: Mon, 18 Jun 2012 11:01:59 -0700
+Message-ID: <87k3z4lcrs.fsf@ti.com>
+References: <4FDEF24C.8020305@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51613 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751510Ab2FRRlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Jun 2012 13:41:50 -0400
-In-Reply-To: <4FD04C8D.50609@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55042 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751464Ab2FRSCH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Jun 2012 14:02:07 -0400
+Received: by pbcwy7 with SMTP id wy7so8593613pbc.31
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 11:02:01 -0700 (PDT)
+In-Reply-To: <4FDEF24C.8020305@gmail.com> (Tasslehoff Kjappfot's message of
+	"Mon, 18 Jun 2012 11:18:04 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 7 Jun 2012, Rajendra Nayak wrote:
+Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
 
-> On Thursday 07 June 2012 11:43 AM, Paul Walmsley wrote:
-> > Until the OMAP4 code is converted to disable the use of the clock
-> > framework-based clockdomain enable/disable sequence, any clock used as
-> > a hwmod main_clk must have a clockdomain associated with it.  This
-> > patch populates some clock structure clockdomain names to resolve the
-> > following warnings during kernel init:
-> 
-> But these associations are useless if the clock is not a 'gate' clock, 
-> except for getting rid of these warnings. Maybe we should make hwmod 
-> understand that not all clocks need to have a clockdomain associated 
-> with it and stop complaining.
+> The support for using a timer to wake from suspend was removed in:
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
+>
+> I found an alternative patch
+> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
+> that claimed to keep it working using GPTIMER1 instead, but I haven't
+> been able to make it work (likely because the timer code has changed a
+> good deal since the patch was posted).
+>
+> Anyone got
+> a) a patch that enables this feature on newer kernels, or
+> b) an idea how the patch above can be made to work?
 
-In retrospect, I think I should have made clockdomains mandatory for all 
-clocks for OMAP4 back then, rather than only allowing them for some 
-clocks.  As I understand it, that would have saved a lot of time and 
-debugging frustration on the bug fixed by commit 
-6c4a057bffe9823221eab547e11fac181dc18a2b ("ARM: OMAP4: clock data: Force a 
-DPLL clkdm/pwrdm ON before a relock").  Oh well.
+The branch below (based on v3.4) will work (at least on OMAP3)
 
+We've been holding off on putting this back becasue the timer interface
+has been going through some major cleanup/rework, but I would like to
+see this make it back in soonish.
 
-- Paul
+Kevin
+
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-wip/wakeup-timer
