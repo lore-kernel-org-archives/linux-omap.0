@@ -1,51 +1,72 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCHv3 6/7] ARM: OMAP2+: CM: increase the module disable timeout
-Date: Tue, 19 Jun 2012 16:46:32 +0400
-Message-ID: <4FE074A8.5010109@mvista.com>
-References: <20120618061037.30632.28539.stgit@dusk> <20120618061611.30632.51094.stgit@dusk>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCHv8 13/13] I2C: OMAP: simplify omap_i2c_ack_stat()
+Date: Tue, 19 Jun 2012 15:33:52 +0200
+Message-ID: <20120619133352.GB18711@pengutronix.de>
+References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
+ <1340029828-20751-14-git-send-email-shubhrajyoti@ti.com>
+ <20120618153000.GC10768@pengutronix.de>
+ <CAM=Q2ctOS19ToH7JRLxmEkoz8eUj8umcWFhaTQ-MWBbeh_DHtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:38745 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab2FSMrR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 08:47:17 -0400
-Received: by eaak11 with SMTP id k11so1950494eaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 05:47:16 -0700 (PDT)
-In-Reply-To: <20120618061611.30632.51094.stgit@dusk>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41829 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650Ab2FSNeA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 09:34:00 -0400
+Content-Disposition: inline
+In-Reply-To: <CAM=Q2ctOS19ToH7JRLxmEkoz8eUj8umcWFhaTQ-MWBbeh_DHtA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>
+To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
 
-Hello.
 
-On 18-06-2012 10:16, Paul Walmsley wrote:
+--0eh6TmSyL6TZE2Uz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Increase the timeout for disabling an IP block to five milliseconds.
-> This is to handle the usb_host_fs idle latency, which takes almost
-> four milliseconds after a host controller reset.
+On Tue, Jun 19, 2012 at 02:50:23PM +0530, Shubhrajyoti Datta wrote:
+> On Mon, Jun 18, 2012 at 9:00 PM, Wolfram Sang <w.sang@pengutronix.de> wro=
+te:
+> > On Mon, Jun 18, 2012 at 08:00:28PM +0530, Shubhrajyoti D wrote:
+> >> From: Felipe Balbi <balbi@ti.com>
+> >>
+> >> stat & BIT(1) is the same as BIT(1),
+> >
+> > Not true. I'd guess you are missing some context in the patch
+> > description.
+>=20
+>=20
+> See the explanation , hope I understood your concern correctly.
+>=20
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70277.html
 
-> This is the second of two patches needed to resolve the following
-> boot warning:
+The code may be right, but as Russell pointed out, the patch description
+is very weak. I could read the mail now to understand, but I prefer to
+wait for a better patch description. Because I need to ensure other
+people reading the git history later will understand easily without
+having to search the web.
 
-> omap_hwmod: usb_host_fs: _wait_target_disable failed
+Regards,
 
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> Cc: Tero Kristo<t-kristo@ti.com>
-[...]
+   Wolfram
 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 6b0aedc..a428305 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -30,6 +30,7 @@
->   #include<plat/mmc.h>
->   #include<plat/dmtimer.h>
->   #include<plat/common.h>
-> +#include<plat/usb.h>
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-    How this hunk is related?
+--0eh6TmSyL6TZE2Uz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-WBR, Sergei
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk/gf8AACgkQD27XaX1/VRs6ngCgvceYI8tX6PNSYZgeLlS/jk+W
+doUAoIVGvc+cVFxrX7ahIuzsGaQWaCNR
+=FLcB
+-----END PGP SIGNATURE-----
+
+--0eh6TmSyL6TZE2Uz--
