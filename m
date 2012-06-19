@@ -1,84 +1,67 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [RESEND/PATCHv5 2/2] arm/dts: omap4-sdp: Add keypad data
-Date: Tue, 19 Jun 2012 19:57:24 +0530
-Message-ID: <CAKdam57z02eeQzvwOYmXOhvRHj6GzvoyyUsNYsf9WquXj9OjZQ@mail.gmail.com>
-References: <1339152780-25301-1-git-send-email-sourav.poddar@ti.com>
-	<1339152780-25301-2-git-send-email-sourav.poddar@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [RFC] ARM: OMAP4: hwmod data: add HWMOD_SWSUP_SIDLE to dss_hdmi
+ to data
+Date: Tue, 19 Jun 2012 10:08:56 -0500
+Message-ID: <4FE09608.3090104@ti.com>
+References: <1339890877-20129-1-git-send-email-ricardo.neri@ti.com> <alpine.DEB.2.00.1206181518430.11642@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1339152780-25301-2-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, sourav.poddar@ti.com, Andrew Morton <akpm@linux-foundation.org>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, Dmitry Torokhov <dtor@mail.ru>, lo <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38315 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751902Ab2FSPJg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jun 2012 11:09:36 -0400
+In-Reply-To: <alpine.DEB.2.00.1206181518430.11642@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: b-cousson@ti.com, tony@atomide.com, tomi.valkeinen@ti.com, s-guiriec@ti.com, mythripk@ti.com, linux-omap@vger.kernel.org
 
-K2NjIGxpbnV4LW9tYXAKCk9uIEZyaSwgSnVuIDgsIDIwMTIgYXQgNDoyMyBQTSwgU291cmF2IFBv
-ZGRhciA8c291cmF2LnBvZGRhckB0aS5jb20+IHdyb3RlOgo+IEFkZCBrZXlwYWQgZGF0YSBub2Rl
-IGluIG9tYXA0IGRldmljZSB0cmVlIGZpbGUuCj4gQWxzbyBmaWxsIHRoZSBkZXZpY2UgdHJlZSBi
-aW5kaW5nIHBhcmFtZXRlcnMKPiB3aXRoIHRoZSByZXF1aXJlZCB2YWx1ZSBpbiAib21hcDQtc2Rw
-IiBkdHMgZmlsZS4KPgo+IFRlc3RlZCBvbiBvbWFwNDQzMCBzZHAgd2l0aCBkbWl0cnkncyAnbmV4
-dCcgYnJhbmNoLgo+Cj4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5v
-cmc+Cj4gQ2M6IEJlbm9pdCBDb3Vzc29uIDxiLWNvdXNzb25AdGkuY29tPgo+IENjOiBSb2IgSGVy
-cmluZyA8cm9iLmhlcnJpbmdAY2FseGVkYS5jb20+Cj4gQ2M6IEdyYW50IExpa2VseSA8Z3JhbnQu
-bGlrZWx5QHNlY3JldGxhYi5jYT4KPiBDYzogRmVsaXBlIEJhbGJpIDxiYWxiaUB0aS5jb20+Cj4g
-Q2M6IERtaXRyeSBUb3Jva2hvdiA8ZHRvckBtYWlsLnJ1Pgo+IFNpZ25lZC1vZmYtYnk6IFNvdXJh
-diBQb2RkYXIgPHNvdXJhdi5wb2RkYXJAdGkuY29tPgo+IC0tLQo+IKBhcmNoL2FybS9ib290L2R0
-cy9vbWFwNC1zZHAuZHRzIHwgoCA2MyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysKPiCgYXJjaC9hcm0vYm9vdC9kdHMvb21hcDQuZHRzaSCgIKB8IKAgoDUgKysrCj4goDIg
-ZmlsZXMgY2hhbmdlZCwgNjggaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKPgo+IGRpZmYg
-LS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC1zZHAuZHRzIGIvYXJjaC9hcm0vYm9vdC9k
-dHMvb21hcDQtc2RwLmR0cwo+IGluZGV4IDYzYzZiMmIuLjBjOWIzYmYgMTAwNjQ0Cj4gLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDQtc2RwLmR0cwo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRz
-L29tYXA0LXNkcC5kdHMKPiBAQCAtMTcsNCArMTcsNjcgQEAKPiCgIKAgoCCgIKAgoCCgIKBkZXZp
-Y2VfdHlwZSA9ICJtZW1vcnkiOwo+IKAgoCCgIKAgoCCgIKAgoHJlZyA9IDwweDgwMDAwMDAwIDB4
-NDAwMDAwMDA+OyAvKiAxIEdCICovCj4goCCgIKAgoH07Cj4gKwo+ICsgoCCgIKAga2V5cGFkQDRh
-ZTFjMDAwIHsKPiArIKAgoCCgIKAgoCCgIKAga2V5cGFkLG51bS1yb3dzID0gPDg+Owo+ICsgoCCg
-IKAgoCCgIKAgoCBrZXlwYWQsbnVtLWNvbHVtbnMgPSA8OD47Cj4gKyCgIKAgoCCgIKAgoCCgIGxp
-bnV4LGtleW1hcCA9IDwgMHgwMDAwMDAxMgo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDAw
-MTAwMTMKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDAwMDIwMDE0Cj4gKyCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgMHgwMDAzMDA2Ngo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDAwNDAw
-M2YKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDAwMDYwMDE3Cj4gKyCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgMHgwMDA3MDAyYQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDEwMDAwMjAK
-PiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDAxMDEwMDIxCj4gKyCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgMHgwMTAyMDAyMgo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDEwMzAwNTQKPiAr
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDAxMDQwMDQwCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgMHgwMTA2MDAyNQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDEwNzAwMWMKPiArIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCAweDAyMDAwMDJkCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-MHgwMjAxMDAyZQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDIwMjAwMmYKPiArIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCAweDAyMDMwMDZiCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgw
-MjA0MDA0MQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDIwNjAwMzQKPiArIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCAweDAyMDcwMDNhCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwMzAw
-MDAyYwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDMwMTAwNGUKPiArIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCAweDAzMDIwMDMwCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwMzAzMDAz
-Ygo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDMwNDAwNDIKPiArIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCAweDAzMDYwMDE4Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwMzA3MDAzOQo+
-ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDQwMDAwMTEKPiArIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCAweDA0MDEwMDE1Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNDAyMDAxNgo+ICsg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4MDQwMzAwM2MKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCAweDA0MDQwMDczCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNDA2MDAyNgo+ICsgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIDB4MDQwNzAwNjkKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAw
-eDA1MDAwMDFmCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNTAxMDAyMwo+ICsgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIDB4MDUwMjAwMjQKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA1
-MDMwMDNkCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNTA0MDA0Mwo+ICsgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIDB4MDUwNTAwNzIKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA1MDYw
-MDMyCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNTA3MDA2YQo+ICsgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIDB4MDYwMDAwMTAKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA2MDEwMDFl
-Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNjAyMDAzMQo+ICsgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIDB4MDYwMzAwNWMKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA2MDQwMDBlCj4g
-KyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNjA2MDAxOQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIDB4MDYwNzAwNjcKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA3MDAwMDk0Cj4gKyCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgMHgwNzAxMDA5NQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IDB4MDcwMjAwY2EKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA3MDMwMGNiCj4gKyCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgMHgwNzA0MDAzZQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIDB4
-MDcwNjAxNjAKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAweDA3MDcwMDZjID47Cj4gKyCgIKAg
-oCCgIKAgoCCgIGxpbnV4LGlucHV0LW5vLWF1dG9yZXBlYXQ7Cj4gKyCgIKAgoCB9Owo+IKB9Owo+
-IGRpZmYgLS1naXQgYS9hcmNoL2FybS9ib290L2R0cy9vbWFwNC5kdHNpIGIvYXJjaC9hcm0vYm9v
-dC9kdHMvb21hcDQuZHRzaQo+IGluZGV4IDNkMzU1NTkuLmUwZjY3OGEgMTAwNjQ0Cj4gLS0tIGEv
-YXJjaC9hcm0vYm9vdC9kdHMvb21hcDQuZHRzaQo+ICsrKyBiL2FyY2gvYXJtL2Jvb3QvZHRzL29t
-YXA0LmR0c2kKPiBAQCAtMTU2LDQgKzE1Niw5IEBACj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB0
-aSxod21vZHMgPSAiaTJjNCI7Cj4goCCgIKAgoCCgIKAgoCCgfTsKPiCgIKAgoCCgfTsKPiArCj4g
-KyCgIKAgoCBrZXlwYWRANGFlMWMwMDAgewo+ICsgoCCgIKAgoCCgIKAgoCBjb21wYXRpYmxlID0g
-InRpLG9tYXA0LWtleXBhZCI7Cj4gKyCgIKAgoCCgIKAgoCCgIHRpLGh3bW9kcyA9ICJrYmQiOwo+
-ICsgoCCgIKAgfTsKPiCgfTsKPiAtLQo+IDEuNy4xCj4K
+On 06/18/2012 04:22 PM, Paul Walmsley wrote:
+> Hi
+>
+> On Sat, 16 Jun 2012, Ricardo Neri wrote:
+>
+>> I would like to revive an old discussion regarding how to use a particular
+>> idle mode for a specific use-case[1].
+>>
+>> As per the OMAP4 documentation, audio over HDMI should be transmitted in
+>> no-idle mode. This patch adds the HWMOD_SWSUP_SIDLE so that omap_hwmode uses
+>> no-idle/force-idle settings instead of smart-idle.
+>>
+>> However, if this flag is used, smart-idle nor smart-idle wakeup-capable
+>> features could not be used. This would not be ideal if we want, for instance,
+>> to wake up using a HDMI cable connect event.
+>>
+>> Ideally, the HDMI module should be set to no-idle when transmitting audio
+>> and then go back to whatever mode it was (e.g., smart-idle) when audio
+>> transmission is over. I am not sure how to do that, though.
+>>
+>> In the past, it was suggested to use an integration function through
+>> platform_data[2], which didn't seem to be  suitable from the device tree
+>> perspective; although there were no other alternatives[3].
+>>
+>> It was also suggested to add functions to allow/block smart-idle
+>> momentarily[4], but how would the driver let know omap_hwmod when to
+>> allow/block smart-idle without using platform_data/integration function?
+>
+> Yep that's indeed a good summary of the situation.
+>
+> Since your patch fixes a functionality problem, maybe update the inline
+> comment that you add to the data file to summarize what you wrote above:
+> that this is simply a temporary workaround until the device driver has the
+> ability to control the idle behavior.
+>
+> Also if you want this patch to go in during the 3.5-rc fixes cycle, please
+> document further in the patch description what specific problem this fixes
+> (e.g., choppy/broken audio, etc.)
+
+Thanks Paul! I will resend the patch with the updated comments.
+
+Ricardo
+>
+>
+> - Paul
+>
+
