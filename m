@@ -1,96 +1,66 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: Please help! AM35xx mm/slab.c BUG
-Date: Tue, 19 Jun 2012 06:29:28 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99C552@DBDE01.ent.ti.com>
-References: <1338878255.13133.YahooMailNeo@web125205.mail.ne1.yahoo.com>
- <20120605070853.GE12766@atomide.com>
- <1338913755.88514.YahooMailNeo@web125201.mail.ne1.yahoo.com>
- <1338963298.87083.YahooMailNeo@web125204.mail.ne1.yahoo.com>
- <CAMQu2gw2bGNwot_xVPdAsYjZChzzNib2USg8Ci+W5aLbenPnqA@mail.gmail.com>
- <20120606071024.GP12766@atomide.com>
- <1338969083.99043.YahooMailNeo@web125201.mail.ne1.yahoo.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E995E3B@DBDE01.ent.ti.com>
- <1339098613.84700.YahooMailNeo@web125202.mail.ne1.yahoo.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9980CC@DBDE01.ent.ti.com>
- <1340069382.68890.YahooMailNeo@web125206.mail.ne1.yahoo.com>
+From: Andrea Scian - DAVE Simply Embedded <andrea.scian@dave.eu>
+Subject: Re: RFC: PATCH TI81xx fix MUSB software mode setting
+Date: Tue, 19 Jun 2012 08:55:00 +0200
+Message-ID: <4FE02244.6020006@dave.eu>
+References: <464859D4BE03A84686BA47749242C1D03EA93DED@DBDE01.ent.ti.com> <6C6B28D4DC342643927BEAFCE8707BF63E9B104D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41989 "EHLO arroyo.ext.ti.com"
+Received: from mx.dave-tech.it ([2.229.21.40]:45386 "EHLO mx.dave-tech.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753078Ab2FSG3n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 02:29:43 -0400
-In-Reply-To: <1340069382.68890.YahooMailNeo@web125206.mail.ne1.yahoo.com>
-Content-Language: en-US
+	id S1752014Ab2FSHB6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jun 2012 03:01:58 -0400
+In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF63E9B104D@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: CF Adad <cfadad@rocketmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "B, Ravi" <ravibabu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-On Tue, Jun 19, 2012 at 06:59:42, CF Adad wrote:
+Dear Ravi,
 
-> Anyway, we have advanced our kernel to today's latest l-o (3.5-rc2). =
-Though we are not considering the GPMC a likely source of the error at =
-this moment, I'm considering exploring this patchset.=A0 Unfortunately,=
- the NAND is very critical to our current efforts.=A0 So I'm trying to =
-find a time where it would be OK to disable it as you suggested to try =
-this.=A0 Since these values are being set now in Linux, do I need to re=
-work my bootloaders as well?=A0 In my current case, these settings are =
-all done in u-boot. I do not believe Linux did anything with them.=A0 D=
-o I need to remove those in order to use your patches?=A0 If I do, do I=
- not lose access to those things while in the bootloaders?
+>>
+>> Dear all,
+>>
+>> when configuring our platform (DM8148 based) to work with
+>> USB0 as device and USB1 as host I've found some problems.
+>
+> It seems that you created the patch against the ti-psp release, there
+> is another way to achieve this (one port as host and other port as device).
 
-Please sent me your board file, I will modify it to use the
-new interface with NAND relying on bootloader settings and
-SMSC relying on Kernel.
+Yes you are correct, I'm using ti-psp by cloning this tree:
 
-No bootloader modifications are required.
+http://arago-project.org/git/projects/linux-omap3.git
 
-Regards
-Afzal
-=20
-> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69501.h=
-tml
-> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69881.h=
-tml
-> [3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69891.h=
-tml
-> [4] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69897.h=
-tml
-> [5] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69917.h=
-tml
-> [5.x] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69924=
-=2Ehtml
->=20
-> [6]
-> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap=
-2/gpmc-smsc911x.c
-> index 4bfe721..34816b9 100644
-> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-> @@ -105,12 +105,12 @@ static void gpmc_smsc911x_timing(struct gpmc_ti=
-me_ctrl *time_ctrl,
-> {
-> =A0 =A0 =A0 =A0 struct gpmc_timings t;
-> =A0 =A0 =A0 =A0 /* SMSC 9220 timings */
-> -=A0 =A0 =A0  unsigned tcycle_r =3D 165;
-> +=A0 =A0 =A0  unsigned tcycle_r =3D 45;
-> =A0 =A0 =A0 =A0 unsigned tcsl_r =3D 32;
-> =A0 =A0 =A0 =A0 unsigned tcsh_r =3D 133;
-> =A0 =A0 =A0 =A0 unsigned tcsdv_r =3D 30;
-> =A0 =A0 =A0 =A0 unsigned tdoff_r =3D 9;
-> -=A0 =A0 =A0  unsigned tcycle_w =3D 165;
-> +=A0 =A0 =A0  unsigned tcycle_w =3D 45;
-> =A0 =A0 =A0 =A0 unsigned tcsl_w =3D 32;
-> =A0 =A0 =A0 =A0 unsigned tcsh_w =3D 133;
-> =A0 =A0 =A0 =A0 unsigned tdsu_w =3D 7;
->=20
+> Please refer to release/user's guide.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I've looked here:
+
+http://processors.wiki.ti.com/index.php/Usbgeneralpage#One_port_as_host_and_other_port_as_Gadget_.28for_DM81XX.29
+
+but this setup does not work.
+
+Both ports starts from "b_idle" state and always stay there.
+I've try both software setting and from hardware pin (I've left ID pin 
+floating for USB0, device, and set ID pin to gnd for USB1, host only) 
+without success.
+However if I configure both port as host or device (thus disabling OTG 
+support) they work correctly (of course, only the device port works as 
+device and host port as host in either case ;-) )
+
+> Moreover, you should create a patch against mainline, where the musb_dsps.c is
+> used instead of ti81xx.c, where there is no host-only or device-only mode, by
+> default OTG mode is used.
+>
+
+Ok, but I've found here:
+
+http://processors.wiki.ti.com/index.php/TI81XX_USB_Driver_User_Guide#OTG_support_.28TI816X.2FTI814X.2FTI813x.29
+
+that OTG is not supported for TI81xx.
+Am I wrong? Maybe the situation is different in the mainline?
+
+Best Regards and thank for you prompt answer,
+
+Andrea
