@@ -1,116 +1,67 @@
 From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: [PATCH 4/4] OMAP:IOMMU:flush L1 and L2 caches
-Date: Tue, 19 Jun 2012 16:51:46 +0530
-Message-ID: <CADysL2bDxkaRTWhyVDeYTO=oLUw8pezEL3ujxYx53M7is=cG9A@mail.gmail.com>
+Subject: [RESEND][PATCH v2 0/4] OMAP:IOMMU:Add L1 and L2 cache flush
+Date: Tue, 19 Jun 2012 17:12:29 +0530
+Message-ID: <CADysL2apkpGLcSgrTwGqYLM5k8zKH5QYDq25HEz5C7pH6+8tsw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:43024 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751930Ab2FSLmc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jun 2012 07:42:32 -0400
+Received: by bkcik5 with SMTP id ik5so5664621bkc.29
+        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 04:42:29 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
 
->From eb07a74132cd9305c1b82610dd1c2a9adfc72986 Mon Sep 17 00:00:00 2001
-From: Ramesh Gupta G <grgupta@ti.com>
-Date: Fri, 15 Jun 2012 16:46:46 +0530
-Subject: [PATCH 4/4] OMAP:IOMMU:flush L1 and L2 caches
+=46rom 639d8228c118f884e0d04d33331338bf9561700e Mon Sep 17 00:00:00 200=
+1
+=46rom: Ramesh Gupta G <grgupta@ti.com>
+Date: Fri, 15 Jun 2012 17:06:14 +0530
+Subject: [PATCH v2 0/4] OMAP:IOMMU:Add L1 and L2 cache flush
 
-IOMMU need to make sure that data in L1 and L2 caches
-is visible to the MMU hardware whenever the pagetables are
-updated. The current code only takes care of L1 cache using
-assembly.Added code to take care of both L1 and L2 caches
-using a new L1 cache flush function and the outer cache function.
+This patch series is second version to
+- add a new cache maintenance api to flush L1 cache.
+- flush both L1 and L2 caches from iommu whenever the pagetable memory
+  is updated.
+
+Added the new api support for ARMv6 and ARMv7
+based on the dma functions. The implementation of the
+new api is based on the approach[1] discussed some time back.
+
+[1]http://marc.info/?l=3Dlinux-kernel&m=3D131316512713815&w=3D2
+
+These patches have been validated on Panda Board.
 
 Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
----
- drivers/iommu/omap-iommu.c |   26 +++++++++-----------------
- 1 files changed, 9 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 6899dcd..6344fbc 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -469,22 +469,14 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
-  */
- static void flush_iopgd_range(u32 *first, u32 *last)
- {
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
-+	flush_mem(first, last);
-+	outer_flush_range(virt_to_phys(first), virt_to_phys(last));
- }
+Ramesh Gupta G (4):
+=A0 ARM: new cache maintenance api for iommu mem flush
+=A0 ARM: add flush_mem api for ARMv6
+=A0 ARM: add flush_mem api for ARMv7
+=A0 OMAP:IOMMU: flush L1 and L2 caches
 
- static void flush_iopte_range(u32 *first, u32 *last)
- {
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
-+	flush_mem(first, last);
-+	outer_flush_range(virt_to_phys(first), virt_to_phys(last));
- }
-
- static void iopte_free(u32 *iopte)
-@@ -513,7 +505,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj,
-u32 *iopgd, u32 da)
- 			return ERR_PTR(-ENOMEM);
-
- 		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
--		flush_iopgd_range(iopgd, iopgd);
-+		flush_iopgd_range(iopgd, iopgd + 1);
-
- 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
- 	} else {
-@@ -542,7 +534,7 @@ static int iopgd_alloc_section(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
- 	}
-
- 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
--	flush_iopgd_range(iopgd, iopgd);
-+	flush_iopgd_range(iopgd, iopgd + 1);
- 	return 0;
- }
-
-@@ -559,7 +551,7 @@ static int iopgd_alloc_super(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
-
- 	for (i = 0; i < 16; i++)
- 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
--	flush_iopgd_range(iopgd, iopgd + 15);
-+	flush_iopgd_range(iopgd, iopgd + 16);
- 	return 0;
- }
-
-@@ -700,7 +692,7 @@ static size_t iopgtable_clear_entry_core(struct
-omap_iommu *obj, u32 da)
- 		}
- 		bytes *= nent;
- 		memset(iopte, 0, nent * sizeof(*iopte));
--		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
-+		flush_iopte_range(iopte, iopte + nent * sizeof(*iopte));
-
- 		/*
- 		 * do table walk to check if this table is necessary or not
-@@ -722,7 +714,7 @@ static size_t iopgtable_clear_entry_core(struct
-omap_iommu *obj, u32 da)
- 		bytes *= nent;
- 	}
- 	memset(iopgd, 0, nent * sizeof(*iopgd));
--	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
-+	flush_iopgd_range(iopgd, iopgd + nent * sizeof(*iopgd));
- out:
- 	return bytes;
- }
--- 
-1.7.0.4
+=A0arch/arm/include/asm/cacheflush.h | =A0 17 +++++++++++++++++
+=A0arch/arm/include/asm/glue-cache.h | =A0 =A01 +
+=A0arch/arm/mm/cache-v6.S =A0 =A0 =A0 =A0 =A0 =A0| =A0 28 +++++++++++++=
++++++++++++++++
+=A0arch/arm/mm/cache-v7.S =A0 =A0 =A0 =A0 =A0 =A0| =A0 21 +++++++++++++=
+++++++++
+=A0arch/arm/mm/proc-macros.S =A0 =A0 =A0 =A0 | =A0 =A01 +
+=A0drivers/iommu/omap-iommu.c =A0 =A0 =A0 =A0| =A0 26 +++++++++--------=
+---------
+=A06 files changed, 77 insertions(+), 17 deletions(-)
 
 
--- 
+--
 regards
 Ramesh Gupta G
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
