@@ -1,54 +1,73 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 01/29] clk: Add support for rate table based dividers
-Date: Tue, 19 Jun 2012 10:52:43 +0530
-Message-ID: <4FE00CA3.5080309@ti.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <1339678038-23082-2-git-send-email-rnayak@ti.com> <20120618200442.GA4402@gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v2 2/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 19 Jun 2012 05:57:57 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99C502@DBDE01.ent.ti.com>
+References: <cover.1339828867.git.afzal@ti.com>
+ <1414767dd444d4ab3998adf957e77ff4f3394f92.1339828867.git.afzal@ti.com>
+ <4FDF50EA.4080506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56760 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752467Ab2FSFWu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jun 2012 01:22:50 -0400
-Received: by obbtb8 with SMTP id tb8so3837995obb.0
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 22:22:48 -0700 (PDT)
-In-Reply-To: <20120618200442.GA4402@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57183 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2FSF6F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 01:58:05 -0400
+In-Reply-To: <4FDF50EA.4080506@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 19 June 2012 01:34 AM, Mike Turquette wrote:
-> On 20120614-18:16, Rajendra Nayak wrote:
->> diff --git a/drivers/clk/clk-divider.c b/drivers/clk/clk-divider.c
->> index e548c43..e4911ee 100644
->> --- a/drivers/clk/clk-divider.c
->> +++ b/drivers/clk/clk-divider.c
->> @@ -32,30 +32,69 @@
->>   #define div_mask(d)	((1<<  (d->width)) - 1)
->>   #define is_power_of_two(i)	!(i&  ~i)
->>
->> +static unsigned int _get_table_maxdiv(const struct clk_div_table *table)
->> +{
->> +	unsigned int maxdiv;
->> +	const struct clk_div_table *clkt;
->> +
->> +	for (clkt = table; clkt->div; clkt++)
->> +		if (clkt->div>  maxdiv)
->> +			maxdiv = clkt->div;
->> +	return maxdiv;
->> +}
->> +
->
-> Hi Rajendra,
->
-> During testing the compiler warns that maxdiv is uninitialized here.
+Hi Jon,
 
-Thanks Mike, I'll fix that up.
+On Mon, Jun 18, 2012 at 21:31:46, Hunter, Jon wrote:
 
->
-> Regards,
-> Mike
+> > @@ -95,10 +89,6 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
+> >  	if (err)
+> >  		return err;
+> >  
+> > -	/* Ensure sync read and sync write are disabled */
+> > -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> > -	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> > -	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+> 
+> Sorry if I was not clear, but I was still thinking that we keep the
+> above instance of setting async mode.
+:
+> >  static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
+> >  {
+> >  	struct device *dev = &gpmc_onenand_device.dev;
+> > +	u32 reg;
+> > +
+> > +	/* Ensure sync read and sync write are disabled */
+> > +	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
+> > +	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
+> > +	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
+> 
+> ... and here we should just call omap2_onenand_set_async_mode(), ...
+
+If omap2_onenand_set_async_mode is called from gpmc_onenand_setup & removed
+from gpmc_onenand_init, when using new gpmc driver interface, i.e. using
+gpmc_onenand_update [1], we lost opportunity to provide gpmc driver with
+configuration details for async mode causing a big warning about each
+timings & configurations that was left by bootloader (which is meant only
+for cases where Kernel can't configure GPMC). Of course, we can put
+omap2_onenand_set_async_mode in gpmc_onenand_update too, but then
+unnecessarily, omap2_onenand_sey_async_mode would be called twice.
+
+Please note that gpmc_onenand_setup is a callback by onenand driver.
+
+Regards
+Afzal
+
+> >  
+> > +	omap2_onenand_set_async_mode(gpmc_onenand_data->cs);
+> > +
+> 
+> ...  then remove the above call.
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69919.html
 
