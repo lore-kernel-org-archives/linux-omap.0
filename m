@@ -1,73 +1,47 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 2/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Tue, 19 Jun 2012 05:57:57 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99C502@DBDE01.ent.ti.com>
-References: <cover.1339828867.git.afzal@ti.com>
- <1414767dd444d4ab3998adf957e77ff4f3394f92.1339828867.git.afzal@ti.com>
- <4FDF50EA.4080506@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: Bringing back gptimer_wakeup
+Date: Tue, 19 Jun 2012 11:37:32 +0530
+Message-ID: <CAMQu2gwsL6v06fk=nJuRtuP0HZ5Jt0BmitaQ=FHJeVC__QQXAw@mail.gmail.com>
+References: <4FDEF24C.8020305@gmail.com> <87k3z4lcrs.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57183 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767Ab2FSF6F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 01:58:05 -0400
-In-Reply-To: <4FDF50EA.4080506@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33462 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752615Ab2FSGIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jun 2012 02:08:18 -0400
+Received: by qabg1 with SMTP id g1so1848180qab.20
+        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 23:07:52 -0700 (PDT)
+In-Reply-To: <87k3z4lcrs.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tasslehoff Kjappfot <tasskjapp@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Jon,
-
-On Mon, Jun 18, 2012 at 21:31:46, Hunter, Jon wrote:
-
-> > @@ -95,10 +89,6 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
-> >  	if (err)
-> >  		return err;
-> >  
-> > -	/* Ensure sync read and sync write are disabled */
-> > -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
-> > -	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
-> > -	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
-> 
-> Sorry if I was not clear, but I was still thinking that we keep the
-> above instance of setting async mode.
-:
-> >  static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
-> >  {
-> >  	struct device *dev = &gpmc_onenand_device.dev;
-> > +	u32 reg;
-> > +
-> > +	/* Ensure sync read and sync write are disabled */
-> > +	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
-> > +	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
-> > +	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
-> 
-> ... and here we should just call omap2_onenand_set_async_mode(), ...
-
-If omap2_onenand_set_async_mode is called from gpmc_onenand_setup & removed
-from gpmc_onenand_init, when using new gpmc driver interface, i.e. using
-gpmc_onenand_update [1], we lost opportunity to provide gpmc driver with
-configuration details for async mode causing a big warning about each
-timings & configurations that was left by bootloader (which is meant only
-for cases where Kernel can't configure GPMC). Of course, we can put
-omap2_onenand_set_async_mode in gpmc_onenand_update too, but then
-unnecessarily, omap2_onenand_sey_async_mode would be called twice.
-
-Please note that gpmc_onenand_setup is a callback by onenand driver.
+On Mon, Jun 18, 2012 at 11:31 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
+>
+>> The support for using a timer to wake from suspend was removed in:
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
+>>
+>> I found an alternative patch
+>> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
+>> that claimed to keep it working using GPTIMER1 instead, but I haven't
+>> been able to make it work (likely because the timer code has changed a
+>> good deal since the patch was posted).
+>>
+>> Anyone got
+>> a) a patch that enables this feature on newer kernels, or
+>> b) an idea how the patch above can be made to work?
+>
+> The branch below (based on v3.4) will work (at least on OMAP3)
+>
+> We've been holding off on putting this back becasue the timer interface
+> has been going through some major cleanup/rework, but I would like to
+> see this make it back in soonish.
+>
+I got an off-list message from Tasslehoff, that the patch I sent worked for him.
 
 Regards
-Afzal
-
-> >  
-> > +	omap2_onenand_set_async_mode(gpmc_onenand_data->cs);
-> > +
-> 
-> ...  then remove the above call.
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69919.html
-
+Santosh
