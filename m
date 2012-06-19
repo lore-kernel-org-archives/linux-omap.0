@@ -1,47 +1,62 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Bringing back gptimer_wakeup
-Date: Tue, 19 Jun 2012 11:37:32 +0530
-Message-ID: <CAMQu2gwsL6v06fk=nJuRtuP0HZ5Jt0BmitaQ=FHJeVC__QQXAw@mail.gmail.com>
-References: <4FDEF24C.8020305@gmail.com> <87k3z4lcrs.fsf@ti.com>
+From: "B, Ravi" <ravibabu@ti.com>
+Subject: RE: RFC: PATCH TI81xx fix MUSB software mode setting
+Date: Tue, 19 Jun 2012 06:18:27 +0000
+Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63E9B104D@DBDE01.ent.ti.com>
+References: <464859D4BE03A84686BA47749242C1D03EA93DED@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33462 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752615Ab2FSGIS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jun 2012 02:08:18 -0400
-Received: by qabg1 with SMTP id g1so1848180qab.20
-        for <linux-omap@vger.kernel.org>; Mon, 18 Jun 2012 23:07:52 -0700 (PDT)
-In-Reply-To: <87k3z4lcrs.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36889 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753473Ab2FSGSe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 02:18:34 -0400
+In-Reply-To: <464859D4BE03A84686BA47749242C1D03EA93DED@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tasslehoff Kjappfot <tasskjapp@gmail.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "andrea.scian@dave.eu" <andrea.scian@dave.eu>
 
-On Mon, Jun 18, 2012 at 11:31 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
->
->> The support for using a timer to wake from suspend was removed in:
->> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
->>
->> I found an alternative patch
->> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
->> that claimed to keep it working using GPTIMER1 instead, but I haven't
->> been able to make it work (likely because the timer code has changed a
->> good deal since the patch was posted).
->>
->> Anyone got
->> a) a patch that enables this feature on newer kernels, or
->> b) an idea how the patch above can be made to work?
->
-> The branch below (based on v3.4) will work (at least on OMAP3)
->
-> We've been holding off on putting this back becasue the timer interface
-> has been going through some major cleanup/rework, but I would like to
-> see this make it back in soonish.
->
-I got an off-list message from Tasslehoff, that the patch I sent worked for him.
 
-Regards
-Santosh
+> ----- Original Message -----
+> From: Andrea Scian [mailto:rnd4@dave-tech.it]
+> Sent: Monday, June 18, 2012 08:25 PM
+> To: linux-omap@vger.kernel.org <linux-omap@vger.kernel.org>
+> Subject: RFC: PATCH TI81xx fix MUSB software mode setting
+> 
+> 
+> Dear all,
+> 
+> when configuring our platform (DM8148 based) to work with 
+> USB0 as device and USB1 as host I've found some problems.
+
+It seems that you created the patch against the ti-psp release, there
+is another way to achieve this (one port as host and other port as device). 
+Please refer to release/user's guide.
+Moreover, you should create a patch against mainline, where the musb_dsps.c is
+used instead of ti81xx.c, where there is no host-only or device-only mode, by 
+default OTG mode is used.
+
+> It was fine if I configure both as device or both as host or 
+> enable only one port, but configure both in different modes 
+> lead to a not working configuration.
+> After a bit of debug I've found that probably the problem is inside
+> ti81xx_musb_set_mode() because this configure the controller 
+> but does not set musb->board_mode. IIUC, without setting this 
+> structure the whole musb generic state machine does not work 
+> correctly.
+> Attached you can find the patch that fixed the problem on our 
+> board. I hope -this can help others too and can be integrated 
+> inside the main tree.
+> Feel free to comment and tell me if I've done something wrong.
+> 
+> I hope the the patch format is quite correct for you.
+> 
+> Best Regards,
+> 
+> 
+> -- 
+> 
+> Andrea SCIAN
+> 
