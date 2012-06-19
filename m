@@ -1,126 +1,139 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP4: hwmod data: add mmu hwmod for ipu and
- dsp
-Date: Tue, 19 Jun 2012 19:48:07 +0200
-Message-ID: <4FE0BB57.3080403@ti.com>
-References: <1339811764-5337-1-git-send-email-omar.luna@linaro.org> <1339811764-5337-4-git-send-email-omar.luna@linaro.org> <4FE07268.7040606@ti.com> <CALLhW=67d7=4Jx1T4Kn5ddNz7vQ5YeN4AzuOuXrW1_UGYwpG2A@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: MFD USB host: prevents CORE retention in idle
+Date: Tue, 19 Jun 2012 11:02:57 -0700
+Message-ID: <87mx3zji26.fsf@ti.com>
+References: <87zk8yxx9l.fsf@ti.com> <4FBD7FDC.9050307@ti.com>
+	<CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
+	<871um9wlzx.fsf@ti.com> <878vghut1u.fsf@ti.com>
+	<4FCE46E7.60702@ti.com>
+	<CAP05o4L+0E6fa1VoP_UPTJgKjXb-VqZorUfzsTB3d-KVoFrXfw@mail.gmail.com>
+	<CAP05o4KuoQHhTRTCtdpiywgC1HjwzXZHhROKOgSLhoK76Z2aaQ@mail.gmail.com>
+	<87fwa56gxp.fsf@ti.com>
+	<CAP05o4JEEp-yXjijeeejN3j8uVBDQ35DMGqP9UKj3f7sNnO8LA@mail.gmail.com>
+	<CAP05o4LYhFQpEFukyCT2fA7XHPU2L5K8=8W0fncMJk6YEUWdOQ@mail.gmail.com>
+	<CAP05o4KaZ93Nt58h5ZccWeM2EazLtwOcV5rkmLvijuB5HRbJ8g@mail.gmail.com>
+	<CAORVsuVpbgtS8+Jkw+Z2kA0k0SuL=kYRYcO3JRJ0D9LL34gH2Q@mail.gmail.com>
+	<CAP05o4Kh+YVYgv_F-GZ=A0V+Nt=x4wCRwek81K7M=bT=PmyBGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43320 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752715Ab2FSRs1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jun 2012 13:48:27 -0400
-In-Reply-To: <CALLhW=67d7=4Jx1T4Kn5ddNz7vQ5YeN4AzuOuXrW1_UGYwpG2A@mail.gmail.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:41945 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753211Ab2FSSC7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Jun 2012 14:02:59 -0400
+Received: by pbbrp12 with SMTP id rp12so8378571pbb.15
+        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 11:02:58 -0700 (PDT)
+In-Reply-To: <CAP05o4Kh+YVYgv_F-GZ=A0V+Nt=x4wCRwek81K7M=bT=PmyBGw@mail.gmail.com>
+	(Keshava Munegowda's message of "Mon, 18 Jun 2012 13:39:08 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Ameya Palande <ameya.palande@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-On 6/19/2012 6:39 PM, Omar Ramirez Luna wrote:
-> Hi Benoit,
+"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+
+> On Fri, Jun 15, 2012 at 7:17 PM, Jean Pihet <jean.pihet@newoldbits.co=
+m> wrote:
+>> Hi Keshava,
+>>
+>> On Fri, Jun 15, 2012 at 2:04 PM, Munegowda, Keshava
+>> <keshava_mgowda@ti.com> wrote:
+>>> On Tue, Jun 12, 2012 at 6:28 PM, Munegowda, Keshava
+>>> <keshava_mgowda@ti.com> wrote:
+>>>> hi kevin
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 now I am using initramf=
+s with kernel linux3.5.rc1,
+>>>> but the retention is not working in 3430 sdp.=C2=A0 I am seeing th=
+e following
+>>>> error followed by a crash
+>>>>
+>>>>
+>>>> echo mem > /sys/power/state
+>>>> [=C2=A0=C2=A0 35.609252] PM: Syncing filesystems ... done.
+>>>> [=C2=A0=C2=A0 35.614654] PM: Preparing system for mem sleep
+>>>> [=C2=A0=C2=A0 35.658630] Freezing user space processes ... (elapse=
+d 0.01 seconds)
+>>>> done.
+>>>> [=C2=A0=C2=A0 35.689727] Freezing remaining freezable tasks ... (e=
+lapsed 0.02 seconds)
+>>>> done.
+>>>> [=C2=A0=C2=A0 35.697692] PM: Entering mem sleep
+>>>> [=C2=A0=C2=A0 35.722442] usb usb1: usb auto-resume
+>>>> [=C2=A0=C2=A0 35.726409] ehci-omap ehci-omap.0: resume root hub
+>>>> [=C2=A0=C2=A0 35.775451] hub 1-0:1.0: hub_resume
+>>>> [=C2=A0=C2=A0 35.779846] hub 1-0:1.0: hub_suspend
+>>>> [=C2=A0=C2=A0 35.784240] usb usb1: bus suspend, wakeup 0
+>>>> [=C2=A0=C2=A0 35.788665] ehci-omap ehci-omap.0: suspend root hub
+>>>> [=C2=A0=C2=A0 35.805786] PM: suspend of devices complete after 99.=
+304 msecs
+>>>> [=C2=A0=C2=A0 35.816497] PM: late suspend of devices complete afte=
+r 4.364 msecs
+>>>> [=C2=A0=C2=A0 35.831573] PM: noirq suspend of devices complete aft=
+er 8.331 msecs
+>>>> [=C2=A0=C2=A0 35.838500] Disabling non-boot CPUs ...
+>>>> [=C2=A0=C2=A0 36.312164] Powerdomain (core_pwrdm) didn't enter tar=
+get state 1
+>>>> [=C2=A0=C2=A0 36.318481] Could not enter target state in pm_suspen=
+d
+>>>> [=C2=A0=C2=A0 36.324859] Unable to handle kernel NULL pointer dere=
+ference at virtual
+>>>> address 00000018
+>>>> [=C2=A0=C2=A0 36.333557] pgd =3D c6280000
+>>>> [=C2=A0=C2=A0 36.336639] [00000018] *pgd=3D85c8f831, *pte=3D000000=
+00, *ppte=3D00000000
+>>>> [=C2=A0=C2=A0 36.343414] Internal error: Oops: 17 [#1] SMP ARM
+>>>> [=C2=A0=C2=A0 36.348388] Modules linked in:
+>>>> [=C2=A0=C2=A0 36.351623] CPU: 0=C2=A0=C2=A0=C2=A0 Tainted: G=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 W=C2=A0=C2=A0=C2=A0=C2=A0 (3.5.0-r=
+c1 #1)
+>>>> [=C2=A0=C2=A0 36.357574] PC is at _od_resume_noirq+0x14/0x58
+>>>> [=C2=A0=C2=A0 36.362365] LR is at dpm_run_callback+0x2c/0x74
+>>
+>> You need the fix from
+>> https://gitorious.org/linux-omap-dss2/linux/commit/9e0ca55fa5d9ff012=
+964a7c7cef8af1b814b2fdb
+>>
+>> Hope this helps!
+>>
+>> Regards,
+>> Jean
 >
-> On 19 June 2012 07:36, Cousson, Benoit <b-cousson@ti.com> wrote:
->> On 6/16/2012 3:56 AM, Omar Ramirez Luna wrote:
-> ...
->>> +static struct omap_hwmod omap44xx_ipu_mmu_hwmod = {
->>> +     .name           = "ipu_mmu",
->>> +     .class          = &omap44xx_mmu_hwmod_class,
->>> +     .clkdm_name     = "ducati_clkdm",
->>> +     .mpu_irqs       = omap44xx_ipu_mmu_irqs,
->>> +     .rst_lines      = omap44xx_ipu_mmu_resets,
->>> +     .rst_lines_cnt  = ARRAY_SIZE(omap44xx_ipu_mmu_resets),
->>> +     .main_clk       = "ipu_fck",
->>> +     .prcm = {
->>> +             .omap4 = {
->>> +                     .clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
->>> +                     .rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
->>> +                     .context_offs = OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET,
->>> +                     .modulemode   = MODULEMODE_HWCTRL,
->>> +             },
->>> +     },
->>> +     .dev_attr       = &ipu_mmu_dev_attr,
->>> +};
->>
->> In fact, the MMU_IPU hwmod is now almost the same one than the previous IPU one...
->> If we do that we should maybe just rename the IPU -> MMU_IPU and DSP -> MMU_DSP.
->>
->> But by doing that we will assume that the MMU does represent the subsystem, which is not necessarily super nice.
->>
->> I guess that a much better representation will be to keep the subsystem (IPU) to handle the PRCM part:
->>
->> +       .main_clk       = "ipu_fck",
->> +       .prcm = {
->> +               .clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
->> +               .rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
->> +               .context_offs = OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET,
->> +               .modulemode   = MODULEMODE_HWCTRL,
->>
->> And then the MMU_IPU will handle the configuration registers part and the reset + irq.
->>
->> But then, you will have to create a parent child dependency between your devices to ensure that the IPU subsystem device will be enabled before trying to access the MMU_IPU.
->>
->> This is what the DSS is about to do to handle the same kind of power dependency. The DSS device is the parent of all the DSS IPs (DISPC, HDMI...) and thus pm_runtime will ensure that the parent is enabled before trying to enable the children.
->>
->> In term of DT, just to illustrate the situation, it will be something like that:
->>
->> ipu {
->>         compatible = "simple-bus";
->>         ti,hwmods = "ipu";
->>
->>         ipu_mmu: mmu@4a066000 {
->>                 compatible = "omap-mmu";
->>                 ti,hwmods = "mmu_ipu";
->>                 reg...;
->>                 irqs...;
->>         }
->> }
->>
->> Is it something you can handle with your current framework?
->
-> I agree it would be nice only IPU managed the prcm, however we can't
-> do that right now because hwmod expects the IP block to be out of
-> reset to continue the _enable sequence. On IPU both reset lines are
-> asserted at that point and hence _are_any_hardreset_lines_asserted
-> check will bail out, and ipu resets can't be lifted without a
-> configured iommu otherwise it might execute random garbage.
+> thanks Jean
+>     I used this patch; this solved the crash issue, but suspend/resum=
+e
+> is still failing.
 
-That's a good point, but like Paul said, the hard reset was removed 
-outside of the fmwk due to the lack of understanding about the real 
-usage / need for it.
+=46ailing in what way?  Did you debug any further?
 
-If we do have a better understanding, we might add some more support in 
-the fmwk or at least improve it.
+It may be failing because of problems with the USB host driver, which i=
+s
+what I'm needing you to debug.
 
-I'm now realizing that aborting the init if some reset lines are 
-asserted is not what we want to do for the IPU SS hwmod that will 
-contain the IPU (processor) reset control.
-In fact the previous approach with a fake hwmod for the ipu_c0 processor 
-would have been avoided that issue.
+I'm convinced now that these USB host PM changes were not very well
+tested at all as they seem to be causing a variety of different problem=
+s
+on my boards: faults during boot, preventing CORE idle retention,
+hanging suspend/resume.
 
-If we do not want to go back with that, we should clearly revise the 
-_are_any_hardreset_lines_asserted approach and not prevent the init in 
-such case since it will prevent all the subsystem to start properly.
+Anyways...
 
-> So, for IPU and DSP the mmu must be deasserted and configured before
-> the processor reset line (which is more like a parking brake) is
-> deasserted, and the latter should be made before _enable is called so
-> it can fully execute the enable sequence.
+To get current l-o master to succesfully suspend/resume, you need 3 thi=
+ngs:
 
-Yep, so we have to change the way it is handled today.
+1) the DSS fixes that Jean mentioned above (these are merged in
+   v3.5-rc3, but not yet into l-o master)
+2) disable USB host: set CONFIG_MFD_OMAP_USB_HOST=3Dn
+3) for for 32k timer which is also preventing CORE retention
+   http://marc.info/?l=3Dlinux-omap&m=3D134000053229888&w=3D2
 
+With that setup on top of current l-o master, suspend/resume is working
+for me on several OMAP3/4 platforms.
 
-Paul,
-
-If we consider that the reset lines are stored in the subsystem hwmod 
-(IPU, DSP or IVA), we cannot prevent the init phase because some line 
-are asserted. Otherwise we will never allow the MMU or processor to be 
-enabled later.
-We might have to remove that check, maybe based on flag if we want to 
-keep that functionality or do an explicit reset control like we use to do.
-
-What do you think?
-
-Regards,
-Benoit
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
