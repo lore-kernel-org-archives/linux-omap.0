@@ -1,66 +1,53 @@
-From: Andrea Scian - DAVE Simply Embedded <andrea.scian@dave.eu>
-Subject: Re: RFC: PATCH TI81xx fix MUSB software mode setting
-Date: Tue, 19 Jun 2012 08:55:00 +0200
-Message-ID: <4FE02244.6020006@dave.eu>
-References: <464859D4BE03A84686BA47749242C1D03EA93DED@DBDE01.ent.ti.com> <6C6B28D4DC342643927BEAFCE8707BF63E9B104D@DBDE01.ent.ti.com>
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Subject: Re: Bringing back gptimer_wakeup
+Date: Tue, 19 Jun 2012 10:24:50 +0200
+Message-ID: <4FE03752.7030009@gmail.com>
+References: <4FDEF24C.8020305@gmail.com> <87k3z4lcrs.fsf@ti.com> <CAMQu2gwsL6v06fk=nJuRtuP0HZ5Jt0BmitaQ=FHJeVC__QQXAw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx.dave-tech.it ([2.229.21.40]:45386 "EHLO mx.dave-tech.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752014Ab2FSHB6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jun 2012 03:01:58 -0400
-In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF63E9B104D@DBDE01.ent.ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:63921 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586Ab2FSI1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Jun 2012 04:27:35 -0400
+Received: by lbbgm6 with SMTP id gm6so5436951lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 01:27:34 -0700 (PDT)
+In-Reply-To: <CAMQu2gwsL6v06fk=nJuRtuP0HZ5Jt0BmitaQ=FHJeVC__QQXAw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "B, Ravi" <ravibabu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-
-Dear Ravi,
-
+On 06/19/2012 08:07 AM, Shilimkar, Santosh wrote:
+> On Mon, Jun 18, 2012 at 11:31 PM, Kevin Hilman<khilman@ti.com>  wrote:
+>> Tasslehoff Kjappfot<tasskjapp@gmail.com>  writes:
 >>
->> Dear all,
+>>> The support for using a timer to wake from suspend was removed in:
+>>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
+>>>
+>>> I found an alternative patch
+>>> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
+>>> that claimed to keep it working using GPTIMER1 instead, but I haven't
+>>> been able to make it work (likely because the timer code has changed a
+>>> good deal since the patch was posted).
+>>>
+>>> Anyone got
+>>> a) a patch that enables this feature on newer kernels, or
+>>> b) an idea how the patch above can be made to work?
 >>
->> when configuring our platform (DM8148 based) to work with
->> USB0 as device and USB1 as host I've found some problems.
+>> The branch below (based on v3.4) will work (at least on OMAP3)
+>>
+>> We've been holding off on putting this back becasue the timer interface
+>> has been going through some major cleanup/rework, but I would like to
+>> see this make it back in soonish.
+>>
+> I got an off-list message from Tasslehoff, that the patch I sent worked for him.
 >
-> It seems that you created the patch against the ti-psp release, there
-> is another way to achieve this (one port as host and other port as device).
+> Regards
+> Santosh
 
-Yes you are correct, I'm using ti-psp by cloning this tree:
+Ah, that was meant to be an on-list message. Santosh' fix worked well on 
+my 3.2.18 kernel.
 
-http://arago-project.org/git/projects/linux-omap3.git
-
-> Please refer to release/user's guide.
-
-I've looked here:
-
-http://processors.wiki.ti.com/index.php/Usbgeneralpage#One_port_as_host_and_other_port_as_Gadget_.28for_DM81XX.29
-
-but this setup does not work.
-
-Both ports starts from "b_idle" state and always stay there.
-I've try both software setting and from hardware pin (I've left ID pin 
-floating for USB0, device, and set ID pin to gnd for USB1, host only) 
-without success.
-However if I configure both port as host or device (thus disabling OTG 
-support) they work correctly (of course, only the device port works as 
-device and host port as host in either case ;-) )
-
-> Moreover, you should create a patch against mainline, where the musb_dsps.c is
-> used instead of ti81xx.c, where there is no host-only or device-only mode, by
-> default OTG mode is used.
->
-
-Ok, but I've found here:
-
-http://processors.wiki.ti.com/index.php/TI81XX_USB_Driver_User_Guide#OTG_support_.28TI816X.2FTI814X.2FTI813x.29
-
-that OTG is not supported for TI81xx.
-Am I wrong? Maybe the situation is different in the mainline?
-
-Best Regards and thank for you prompt answer,
-
-Andrea
+- Tasslehoff
