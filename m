@@ -1,169 +1,25 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 04/10] ARM: OMAP: omap_device: register to the per-device
- PM QoS framework
-Date: Wed, 20 Jun 2012 16:11:24 +0530
-Message-ID: <4FE1A8D4.1060003@ti.com>
-References: <1339686361-11526-1-git-send-email-j-pihet@ti.com> <1339686361-11526-5-git-send-email-j-pihet@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 3/3] arm: omap: phy: remove unused functions from
+ omap-phy-internal.c
+Date: Wed, 20 Jun 2012 03:44:40 -0700
+Message-ID: <20120620104440.GE12766@atomide.com>
+References: <1338388466-3565-1-git-send-email-kishon@ti.com>
+ <1338388466-3565-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:43403 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756351Ab2FTKlc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 06:41:32 -0400
-Received: by obbta14 with SMTP id ta14so3440494obb.18
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 03:41:30 -0700 (PDT)
-In-Reply-To: <1339686361-11526-5-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1338388466-3565-4-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux@arm.linux.org.uk, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
-On Thursday 14 June 2012 08:35 PM, Jean Pihet wrote:
-> Implement the devices wake-up latency constraints using the global
-> device PM QoS notification handler which applies the constraints to the
-> underlying layer by calling the corresponding function at hwmod level.
->
-> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
-> latency constraints on MPU, CORE and PER.
->
-> Signed-off-by: Jean Pihet<j-pihet@ti.com>
-> Reviewed-by: Kevin Hilman<khilman@ti.com>
-> [paul@pwsan.com: modified to work with omap_devices with large numbers of
->   hwmods; moved code to mach-omap2/omap_device.c; added documentation; use
->   notifier return codes]
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> ---
->   arch/arm/plat-omap/omap_device.c |   81 +++++++++++++++++++++++++++++++++++++-
->   1 files changed, 80 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index c490240..241705b 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -3,6 +3,7 @@
->    * omap_device implementation
->    *
->    * Copyright (C) 2009-2010 Nokia Corporation
-> + * Copyright (C) 2011 Texas Instruments, Inc.
+* Kishon Vijay Abraham I <kishon@ti.com> [120530 07:38]:
+> All the unnessary functions in omap-phy-internal is removed.
+> These functionality are now handled by omap-usb2 phy driver.
 
-2012?
+Glad to see these move to live under drivers. Up to Felipe
+to merge via linux-usb once the driver parts are finished:
 
->    * Paul Walmsley, Kevin Hilman
->    *
->    * Developed in collaboration with (alphabetical order): Benoit
-> @@ -89,6 +90,7 @@
->   #include<linux/pm_runtime.h>
->   #include<linux/of.h>
->   #include<linux/notifier.h>
-> +#include<linux/pm_qos.h>
->
->   #include<plat/omap_device.h>
->   #include<plat/omap_hwmod.h>
-> @@ -401,6 +403,72 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
->   	return NOTIFY_DONE;
->   }
->
-> +/**
-> + * _omap_device_pm_qos_handler - interface to the per-device PM QoS framework
-> + * @nb: pointer to omap_device_pm_qos_nb (not used)
-> + * @new_value: new maximum wakeup latency constraint for @req->dev (in us)
-> + * @req: struct dev_pm_qos_request * passed by the Linux PM QoS code
-> + *
-> + * Called by the Linux core device PM QoS code to alter the maximum
-> + * wakeup latency constraint on a device.  If the underlying device is
-> + * an omap_device, then this code will pass the constraint on to the
-> + * underlying hwmods.  Returns -EINVAL if this code can't handle the
-> + * constraint for some reason, or passes along the return code from the
-> + * hwmod wakeup latency constraint functions.
-> + */
-> +static int _omap_device_pm_qos_handler(struct notifier_block *nb,
-> +				       unsigned long new_value,
-> +				       void *req)
-> +{
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +	struct platform_device *pdev;
-> +	struct dev_pm_qos_request *dev_pm_qos_req = req;
-> +	int ret = NOTIFY_OK;
-> +	int r, i;
-> +
-> +	pr_debug("OMAP PM constraints: req@0x%p, new_value=%lu\n",
-> +		 req, new_value);
-> +
-> +	/* Look for the platform device for the constraint target device */
-> +	pdev = to_platform_device(dev_pm_qos_req->dev);
-> +
-> +	/* Try to catch non platform devices */
-> +	if (pdev->name == NULL) {
-
-Is this a safe way to catch non platform devices?
-
-regards,
-Rajendra
-> +		pr_err("%s: Error: platform device for device %s not valid\n",
-> +		       __func__, dev_name(dev_pm_qos_req->dev));
-> +		return NOTIFY_DONE;
-> +	}
-> +
-> +	/* Find the associated omap_device for dev */
-> +	od = to_omap_device(pdev);
-> +	if (od == NULL) {
-> +		pr_err("%s: Error: no omap_device for device %s\n",
-> +		       __func__, dev_name(dev_pm_qos_req->dev));
-> +		return NOTIFY_DONE;
-> +	}
-> +
-> +	pr_debug("OMAP PM constraints: req@0x%p, dev=0x%p, new_value=%lu\n",
-> +		 req, dev_pm_qos_req->dev, new_value);
-> +
-> +	for (i = 0; i<  od->hwmods_cnt; i++) {
-> +		oh = od->hwmods[i];
-> +		if (new_value == PM_QOS_DEV_LAT_DEFAULT_VALUE)
-> +			r = omap_hwmod_remove_wakeuplat_constraint(
-> +							oh,
-> +							dev_pm_qos_req);
-> +		else
-> +			r = omap_hwmod_set_wakeuplat_constraint(
-> +							oh,
-> +							dev_pm_qos_req,
-> +							new_value);
-> +
-> +		if (!r)
-> +			ret = NOTIFY_BAD;
-> +	}
-> +
-> +	return ret;
-> +}
->
->   /* Public functions for use by core code */
->
-> @@ -1115,13 +1183,24 @@ int omap_device_enable_clocks(struct omap_device *od)
->   	return 0;
->   }
->
-> +static struct notifier_block omap_device_pm_qos_nb = {
-> +	.notifier_call = _omap_device_pm_qos_handler,
-> +};
-> +
->   static struct notifier_block platform_nb = {
->   	.notifier_call = _omap_device_notifier_call,
->   };
->
->   static int __init omap_device_init(void)
->   {
-> +	int ret;
-> +
->   	bus_register_notifier(&platform_bus_type,&platform_nb);
-> -	return 0;
-> +
-> +	ret = dev_pm_qos_add_global_notifier(&omap_device_pm_qos_nb);
-> +	if (ret)
-> +		pr_err("omap_device: cannot add global notifier for dev PM QoS\n");
-> +
-> +	return ret;
->   }
->   core_initcall(omap_device_init);
-
+Acked-by: Tony Lindgren <tony@atomide.com>
