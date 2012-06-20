@@ -1,41 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv8 03/13] I2C: OMAP: Remove reset at init
-Date: Wed, 20 Jun 2012 03:29:05 -0700
-Message-ID: <20120620102905.GC12766@atomide.com>
-References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
- <1340029828-20751-4-git-send-email-shubhrajyoti@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 03/10] ARM: OMAP2+: PM QoS: manage the per-device latency
+ constraints in hwmod
+Date: Wed, 20 Jun 2012 15:59:21 +0530
+Message-ID: <4FE1A601.9000802@ti.com>
+References: <1339686361-11526-1-git-send-email-j-pihet@ti.com> <1339686361-11526-4-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14884 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753048Ab2FTK3L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 06:29:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1340029828-20751-4-git-send-email-shubhrajyoti@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:49297 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752859Ab2FTK33 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 06:29:29 -0400
+Received: by obbtb18 with SMTP id tb18so11388666obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 03:29:27 -0700 (PDT)
+In-Reply-To: <1339686361-11526-4-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
-* Shubhrajyoti D <shubhrajyoti@ti.com> [120618 07:35]:
-> The reset in the driver at init is not needed anymore as the
-> following patch has removed the HWMOD_INIT_NO_RESET flag.
-> 6d3c55f [OMAP: hwmod: fix the i2c-reset timeout during bootup]
-> 
-> This patch does the following
-> -removes the reset from the probe and implements a omap_i2c_reset
->  function to reset.
-> - Reset is removed from omap_i2c_init, which was called
->  not only during probe, but also after time out and error handling.
->  omap_i2c_reset is added in those places to effect the reset.
+On Thursday 14 June 2012 08:35 PM, Jean Pihet wrote:
+> Call the per-device PM QoS functions of the power domain code from the
+> hwmod layer, in order to apply the constraints requested to a device.
+>
+> While at it, correct the functions kerneldoc.
 
-See the comments regarding driver specific resets in hwmod code.
+Shouldn't this patch be just merged with PATCH 02/10?
 
-The way to set this up is to have a shared inline function in
-i2c-omap.h that both the driver and hwmod code can use.
+>
+> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod.c |   22 ++++++----------------
+>   1 files changed, 6 insertions(+), 16 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index cc173d9..4f43e0c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -3302,15 +3302,13 @@ ohsps_unlock:
+>   }
+>
+>   /**
+> - * omap_hwmod_set_wakeuplat_constraint - set/release a wake-up latency
+> + * omap_hwmod_set_wakeuplat_constraint - Set or update a wake-up latency
+>    * constraint
+>    * @oh: struct omap_hwmod* to which the target device belongs to.
+>    * @cookie: identifier of the constraints list for @oh.
+>    * @min_latency: the minimum allowed wake-up latency for @oh.
+>    *
+> - * Sets a wakeup latency contraint.  (To remove a wakeup latency
+> - * constraint, call omap_hwmod_remove_wakeuplat_constraint()).
+> - * Returns the return value from pwrdm_wakeuplat_remove_constraint(),
+> + * Returns the return value from pwrdm_wakeuplat_update_constraint(),
+>    * or -EINVAL in case of invalid parameters.
+>    */
+>   int omap_hwmod_set_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie,
+> @@ -3321,21 +3319,17 @@ int omap_hwmod_set_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie,
+>   	if (!pwrdm)
+>   		return -EINVAL;
+>
+> -	/*
+> -	 * XXX Update to use pwrdm_wakeuplat_update_constraint() when
+> -	 * that code is ready
+> -	 */
+> -	return -EINVAL;
+> +	return pwrdm_wakeuplat_update_constraint(pwrdm, cookie, min_latency);
+>   }
+>
+>   /**
+> - * omap_hwmod_remove_wakeuplat_constraint - release a wake-up latency
+> + * omap_hwmod_remove_wakeuplat_constraint - Release a wake-up latency
+>    * constraint
+>    * @oh: struct omap_hwmod* to which the target device belongs to.
+>    * @cookie: identifier of the constraints list for @oh.
+>    *
+>    * Removes a wakeup latency contraint.  Returns the return value from
+> - * pwrdm_wakeuplat_update_constraint(), or -EINVAL in case of invalid
+> + * pwrdm_wakeuplat_remove_constraint(), or -EINVAL in case of invalid
+>    * parameters.
+>    */
+>   int omap_hwmod_remove_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie)
+> @@ -3345,11 +3339,7 @@ int omap_hwmod_remove_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie)
+>   	if (!pwrdm)
+>   		return -EINVAL;
+>
+> -	/*
+> -	 * XXX Update to use pwrdm_wakeuplat_remove_constraint() when
+> -	 * that code is ready
+> -	 */
+> -	return -EINVAL;
+> +	return pwrdm_wakeuplat_remove_constraint(pwrdm, cookie);
+>   }
+>
+>   /**
 
-Eventually hwmod code will do the reset only in late initcall
-if no driver is loaded for the device in question.
-
-Tony
