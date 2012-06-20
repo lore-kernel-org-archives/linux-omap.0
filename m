@@ -1,98 +1,70 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 03/10] ARM: OMAP2+: PM QoS: manage the per-device latency
- constraints in hwmod
-Date: Wed, 20 Jun 2012 15:59:21 +0530
-Message-ID: <4FE1A601.9000802@ti.com>
-References: <1339686361-11526-1-git-send-email-j-pihet@ti.com> <1339686361-11526-4-git-send-email-j-pihet@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv8 06/13] I2C: OMAP: Correct I2C revision for OMAP3
+Date: Wed, 20 Jun 2012 03:32:35 -0700
+Message-ID: <20120620103235.GD12766@atomide.com>
+References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
+ <1340029828-20751-7-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:49297 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859Ab2FTK33 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 06:29:29 -0400
-Received: by obbtb18 with SMTP id tb18so11388666obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 03:29:27 -0700 (PDT)
-In-Reply-To: <1339686361-11526-4-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1340029828-20751-7-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
-On Thursday 14 June 2012 08:35 PM, Jean Pihet wrote:
-> Call the per-device PM QoS functions of the power domain code from the
-> hwmod layer, in order to apply the constraints requested to a device.
->
-> While at it, correct the functions kerneldoc.
+* Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120618 07:35]:
+> From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+> 
+> The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
+> revision is the same for 3430 and 3530. However, the OMAP3630 device has the
+> same I2C revision as OMAP4. Correct the revision definition to reflect this.
+> 
+> This patch is based on work done by Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+> Changes from his patch
+> - Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
+...
+>  /* timeout waiting for the controller to respond */
+>  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+> @@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+>  			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+>  					   SYSC_AUTOIDLE_MASK);
+>  
+> -		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+> +		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
+>  			dev->syscstate = SYSC_AUTOIDLE_MASK;
+>  			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+>  			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
 
-Shouldn't this patch be just merged with PATCH 02/10?
+Having to patch all over the place for these revision defines leads
+into unmaintainable code as new SoCs get added.
 
->
-> Signed-off-by: Jean Pihet<j-pihet@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod.c |   22 ++++++----------------
->   1 files changed, 6 insertions(+), 16 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index cc173d9..4f43e0c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -3302,15 +3302,13 @@ ohsps_unlock:
->   }
->
->   /**
-> - * omap_hwmod_set_wakeuplat_constraint - set/release a wake-up latency
-> + * omap_hwmod_set_wakeuplat_constraint - Set or update a wake-up latency
->    * constraint
->    * @oh: struct omap_hwmod* to which the target device belongs to.
->    * @cookie: identifier of the constraints list for @oh.
->    * @min_latency: the minimum allowed wake-up latency for @oh.
->    *
-> - * Sets a wakeup latency contraint.  (To remove a wakeup latency
-> - * constraint, call omap_hwmod_remove_wakeuplat_constraint()).
-> - * Returns the return value from pwrdm_wakeuplat_remove_constraint(),
-> + * Returns the return value from pwrdm_wakeuplat_update_constraint(),
->    * or -EINVAL in case of invalid parameters.
->    */
->   int omap_hwmod_set_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie,
-> @@ -3321,21 +3319,17 @@ int omap_hwmod_set_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie,
->   	if (!pwrdm)
->   		return -EINVAL;
->
-> -	/*
-> -	 * XXX Update to use pwrdm_wakeuplat_update_constraint() when
-> -	 * that code is ready
-> -	 */
-> -	return -EINVAL;
-> +	return pwrdm_wakeuplat_update_constraint(pwrdm, cookie, min_latency);
->   }
->
->   /**
-> - * omap_hwmod_remove_wakeuplat_constraint - release a wake-up latency
-> + * omap_hwmod_remove_wakeuplat_constraint - Release a wake-up latency
->    * constraint
->    * @oh: struct omap_hwmod* to which the target device belongs to.
->    * @cookie: identifier of the constraints list for @oh.
->    *
->    * Removes a wakeup latency contraint.  Returns the return value from
-> - * pwrdm_wakeuplat_update_constraint(), or -EINVAL in case of invalid
-> + * pwrdm_wakeuplat_remove_constraint(), or -EINVAL in case of invalid
->    * parameters.
->    */
->   int omap_hwmod_remove_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie)
-> @@ -3345,11 +3339,7 @@ int omap_hwmod_remove_wakeuplat_constraint(struct omap_hwmod *oh, void *cookie)
->   	if (!pwrdm)
->   		return -EINVAL;
->
-> -	/*
-> -	 * XXX Update to use pwrdm_wakeuplat_remove_constraint() when
-> -	 * that code is ready
-> -	 */
-> -	return -EINVAL;
-> +	return pwrdm_wakeuplat_remove_constraint(pwrdm, cookie);
->   }
->
->   /**
+Please instead just check the revision once during init, then set
+up some feature bits like I2C_OMAP_NEEDS_XYZ_RESET that the runtime
+code can check.
 
+
+> @@ -1055,7 +1055,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+>  		dev->errata |= I2C_OMAP_ERRATA_I207;
+>  
+> -	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+> +	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+>  		dev->errata |= I2C_OMAP_ERRATA_I462;
+>  
+>  	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+> @@ -1073,7 +1073,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  
+>  		dev->fifo_size = (dev->fifo_size / 2);
+>  
+> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+> +		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
+>  			dev->b_hw = 0; /* Disable hardware fixes */
+>  		else
+>  			dev->b_hw = 1; /* Enable hardware fixes */
+
+That way the code does not need to change when new SoC revisions
+get added.
+
+Tony
