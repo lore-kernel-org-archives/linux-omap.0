@@ -1,150 +1,96 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: MFD USB host: prevents CORE retention in idle
-Date: Wed, 20 Jun 2012 11:53:21 +0530
-Message-ID: <CAP05o4LKMJiHhu7f+dyhEHo5Up1PioCYgmn122vda5d5NfW5Uw@mail.gmail.com>
-References: <87zk8yxx9l.fsf@ti.com>
-	<4FBD7FDC.9050307@ti.com>
-	<CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
-	<871um9wlzx.fsf@ti.com>
-	<878vghut1u.fsf@ti.com>
-	<4FCE46E7.60702@ti.com>
-	<CAP05o4L+0E6fa1VoP_UPTJgKjXb-VqZorUfzsTB3d-KVoFrXfw@mail.gmail.com>
-	<CAP05o4KuoQHhTRTCtdpiywgC1HjwzXZHhROKOgSLhoK76Z2aaQ@mail.gmail.com>
-	<87fwa56gxp.fsf@ti.com>
-	<CAP05o4JEEp-yXjijeeejN3j8uVBDQ35DMGqP9UKj3f7sNnO8LA@mail.gmail.com>
-	<CAP05o4LYhFQpEFukyCT2fA7XHPU2L5K8=8W0fncMJk6YEUWdOQ@mail.gmail.com>
-	<CAP05o4KaZ93Nt58h5ZccWeM2EazLtwOcV5rkmLvijuB5HRbJ8g@mail.gmail.com>
-	<CAORVsuVpbgtS8+Jkw+Z2kA0k0SuL=kYRYcO3JRJ0D9LL34gH2Q@mail.gmail.com>
-	<CAP05o4Kh+YVYgv_F-GZ=A0V+Nt=x4wCRwek81K7M=bT=PmyBGw@mail.gmail.com>
-	<87mx3zji26.fsf@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
+ latency in C1 state
+Date: Wed, 20 Jun 2012 13:49:52 +0530
+Message-ID: <4FE187A8.8060203@ti.com>
+References: <1338563468-31403-1-git-send-email-j-pihet@ti.com> <1338563468-31403-4-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:51029 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658Ab2FTGXY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 02:23:24 -0400
-Received: by lbok6 with SMTP id k6so210051lbo.18
-        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 23:23:21 -0700 (PDT)
-In-Reply-To: <87mx3zji26.fsf@ti.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:55499 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753274Ab2FTIUA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 04:20:00 -0400
+Received: by obbwc20 with SMTP id wc20so11288294obb.3
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 01:19:58 -0700 (PDT)
+In-Reply-To: <1338563468-31403-4-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Ameya Palande <ameya.palande@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Tue, Jun 19, 2012 at 11:32 PM, Kevin Hilman <khilman@ti.com> wrote:
-> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
->
->> On Fri, Jun 15, 2012 at 7:17 PM, Jean Pihet <jean.pihet@newoldbits.c=
-om> wrote:
->>> Hi Keshava,
->>>
->>> On Fri, Jun 15, 2012 at 2:04 PM, Munegowda, Keshava
->>> <keshava_mgowda@ti.com> wrote:
->>>> On Tue, Jun 12, 2012 at 6:28 PM, Munegowda, Keshava
->>>> <keshava_mgowda@ti.com> wrote:
->>>>> hi kevin
->>>>> =A0=A0=A0=A0=A0=A0=A0 now I am using initramfs with kernel linux3=
-=2E5.rc1,
->>>>> but the retention is not working in 3430 sdp.=A0 I am seeing the =
-following
->>>>> error followed by a crash
->>>>>
->>>>>
->>>>> echo mem > /sys/power/state
->>>>> [=A0=A0 35.609252] PM: Syncing filesystems ... done.
->>>>> [=A0=A0 35.614654] PM: Preparing system for mem sleep
->>>>> [=A0=A0 35.658630] Freezing user space processes ... (elapsed 0.0=
-1 seconds)
->>>>> done.
->>>>> [=A0=A0 35.689727] Freezing remaining freezable tasks ... (elapse=
-d 0.02 seconds)
->>>>> done.
->>>>> [=A0=A0 35.697692] PM: Entering mem sleep
->>>>> [=A0=A0 35.722442] usb usb1: usb auto-resume
->>>>> [=A0=A0 35.726409] ehci-omap ehci-omap.0: resume root hub
->>>>> [=A0=A0 35.775451] hub 1-0:1.0: hub_resume
->>>>> [=A0=A0 35.779846] hub 1-0:1.0: hub_suspend
->>>>> [=A0=A0 35.784240] usb usb1: bus suspend, wakeup 0
->>>>> [=A0=A0 35.788665] ehci-omap ehci-omap.0: suspend root hub
->>>>> [=A0=A0 35.805786] PM: suspend of devices complete after 99.304 m=
-secs
->>>>> [=A0=A0 35.816497] PM: late suspend of devices complete after 4.3=
-64 msecs
->>>>> [=A0=A0 35.831573] PM: noirq suspend of devices complete after 8.=
-331 msecs
->>>>> [=A0=A0 35.838500] Disabling non-boot CPUs ...
->>>>> [=A0=A0 36.312164] Powerdomain (core_pwrdm) didn't enter target s=
-tate 1
->>>>> [=A0=A0 36.318481] Could not enter target state in pm_suspend
->>>>> [=A0=A0 36.324859] Unable to handle kernel NULL pointer dereferen=
-ce at virtual
->>>>> address 00000018
->>>>> [=A0=A0 36.333557] pgd =3D c6280000
->>>>> [=A0=A0 36.336639] [00000018] *pgd=3D85c8f831, *pte=3D00000000, *=
-ppte=3D00000000
->>>>> [=A0=A0 36.343414] Internal error: Oops: 17 [#1] SMP ARM
->>>>> [=A0=A0 36.348388] Modules linked in:
->>>>> [=A0=A0 36.351623] CPU: 0=A0=A0=A0 Tainted: G=A0=A0=A0=A0=A0=A0=A0=
- W=A0=A0=A0=A0 (3.5.0-rc1 #1)
->>>>> [=A0=A0 36.357574] PC is at _od_resume_noirq+0x14/0x58
->>>>> [=A0=A0 36.362365] LR is at dpm_run_callback+0x2c/0x74
->>>
->>> You need the fix from
->>> https://gitorious.org/linux-omap-dss2/linux/commit/9e0ca55fa5d9ff01=
-2964a7c7cef8af1b814b2fdb
->>>
->>> Hope this helps!
->>>
->>> Regards,
->>> Jean
->>
->> thanks Jean
->> =A0 =A0 I used this patch; this solved the crash issue, but suspend/=
-resume
->> is still failing.
->
-> Failing in what way? =A0Did you debug any further?
->
-> It may be failing because of problems with the USB host driver, which=
- is
-> what I'm needing you to debug.
+Hi Jean,
 
-The suspend/resume was failing even without USB in the mainline kernel =
-image.
+On Friday 01 June 2012 08:41 PM, Jean Pihet wrote:
+> For a power domain to idle all the clock domains in it must idle.
+> This patch implements an optimization of the cpuidle code by
+> denying and later allowing only the first registered clock domain
+> of a power domain, and so optimizes the latency of the low power code.
+
+How much do we really save doing this? I understand what you are doing
+by looking at the patch but the changelog seems very confusing.
+What the patch does is get rid of a few function indirection
+and assumes there is only *one* clkdm for mpu and core. Is that right?
+
+regards,
+Rajendra
 
 >
-> I'm convinced now that these USB host PM changes were not very well
-> tested at all as they seem to be causing a variety of different probl=
-ems
-> on my boards: faults during boot, preventing CORE idle retention,
-> hanging suspend/resume.
+> The functions _cpuidle_allow_idle and _cpuidle_deny_idle are
+> not used anymore and so are removed.
 >
-> Anyways...
+> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+> ---
+>   arch/arm/mach-omap2/cpuidle34xx.c |   22 ++++------------------
+>   1 files changed, 4 insertions(+), 18 deletions(-)
 >
-> To get current l-o master to succesfully suspend/resume, you need 3 t=
-hings:
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index 2e2f1c6..e6ae3fe 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -77,20 +77,6 @@ static struct omap3_idle_statedata omap3_idle_data[] = {
 >
-> 1) the DSS fixes that Jean mentioned above (these are merged in
-> =A0 v3.5-rc3, but not yet into l-o master)
-> 2) disable USB host: set CONFIG_MFD_OMAP_USB_HOST=3Dn
-> 3) for for 32k timer which is also preventing CORE retention
-> =A0 http://marc.info/?l=3Dlinux-omap&m=3D134000053229888&w=3D2
+>   static struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
 >
-> With that setup on top of current l-o master, suspend/resume is worki=
-ng
-> for me on several OMAP3/4 platforms.
+> -static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
+> -				struct clockdomain *clkdm)
+> -{
+> -	clkdm_allow_idle(clkdm);
+> -	return 0;
+> -}
+> -
+> -static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
+> -				struct clockdomain *clkdm)
+> -{
+> -	clkdm_deny_idle(clkdm);
+> -	return 0;
+> -}
+> -
+>   static int __omap3_enter_idle(struct cpuidle_device *dev,
+>   				struct cpuidle_driver *drv,
+>   				int index)
+> @@ -108,8 +94,8 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
 >
-> Kevin
+>   	/* Deny idle for C1 */
+>   	if (index == 0) {
+> -		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
+> -		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
+> +		clkdm_deny_idle(mpu_pd->pwrdm_clkdms[0]);
+> +		clkdm_deny_idle(core_pd->pwrdm_clkdms[0]);
+>   	}
+>
+>   	/*
+> @@ -131,8 +117,8 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
+>
+>   	/* Re-allow idle for C1 */
+>   	if (index == 0) {
+> -		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
+> -		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
+> +		clkdm_allow_idle(mpu_pd->pwrdm_clkdms[0]);
+> +		clkdm_allow_idle(core_pd->pwrdm_clkdms[0]);
+>   	}
+>
+>   return_sleep_time:
 
-Ok, I will test this.
-
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
