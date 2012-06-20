@@ -1,84 +1,92 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 4/5 V2 RESEND] ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
-Date: Wed, 20 Jun 2012 17:38:13 +0530
-Message-ID: <1340194094-26708-5-git-send-email-keshava_mgowda@ti.com>
-References: <1340194094-26708-1-git-send-email-keshava_mgowda@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv8 06/13] I2C: OMAP: Correct I2C revision for OMAP3
+Date: Wed, 20 Jun 2012 18:31:32 +0530
+Message-ID: <4FE1C9AC.3020104@ti.com>
+References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com> <1340029828-20751-7-git-send-email-shubhrajyoti@ti.com> <20120620103235.GD12766@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38974 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab2FTMIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 08:08:24 -0400
-In-Reply-To: <1340194094-26708-1-git-send-email-keshava_mgowda@ti.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:48999 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753360Ab2FTNBj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 09:01:39 -0400
+Received: by obbtb18 with SMTP id tb18so11652636obb.33
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 06:01:38 -0700 (PDT)
+In-Reply-To: <20120620103235.GD12766@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, paul@pwsan.com, b-cousson@ti.com, sshtylyov@mvista.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de, Jon Hunter <jon-hunter@ti.com>
 
-The usbhs driver invokes the enable/disable APIs of the
-usb tll driver in the runtime resume/suspend callbacks
-of the runtime get sync and put sync of the usbhs driver.
+On Wednesday 20 June 2012 04:02 PM, Tony Lindgren wrote:
+> * Shubhrajyoti D <shubhrajyoti@ti.com> [120618 07:35]:
+>> From: Jon Hunter <jon-hunter@ti.com>
+>>
+>> The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
+>> revision is the same for 3430 and 3530. However, the OMAP3630 device has the
+>> same I2C revision as OMAP4. Correct the revision definition to reflect this.
+>>
+>> This patch is based on work done by Jon Hunter <jon-hunter@ti.com>
+>> Changes from his patch
+>> - Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
+> ...
+>>  /* timeout waiting for the controller to respond */
+>>  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+>> @@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
+>>  			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+>>  					   SYSC_AUTOIDLE_MASK);
+>>  
+>> -		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+>> +		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
+>>  			dev->syscstate = SYSC_AUTOIDLE_MASK;
+>>  			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+>>  			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+> Having to patch all over the place for these revision defines leads
+> into unmaintainable code as new SoCs get added.
+>
+> Please instead just check the revision once during init, then set
+> up some feature bits like I2C_OMAP_NEEDS_XYZ_RESET that the runtime
+> code can check.
+Even now at probe
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-Reviewed-by: Partha Basak <parthab@india.ti.com>
----
- arch/arm/plat-omap/include/plat/usb.h |    1 +
- drivers/mfd/omap-usb-host.c           |    7 +++++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+dev->rev is set by reading the rev register.
 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index b8a9d5e..8eac78c 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -4,6 +4,7 @@
- #define	__ASM_ARCH_OMAP_USB_H
- 
- #include <linux/io.h>
-+#include <linux/platform_device.h>
- #include <linux/usb/musb.h>
- #include <plat/board.h>
- 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index c1baf20..23cec57 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -21,7 +21,6 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
--#include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/spinlock.h>
-@@ -287,6 +286,7 @@ static int usbhs_runtime_resume(struct device *dev)
- 		return  -ENODEV;
- 	}
- 
-+	omap_tll_enable();
- 	spin_lock_irqsave(&omap->lock, flags);
- 
- 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
-@@ -332,6 +332,7 @@ static int usbhs_runtime_suspend(struct device *dev)
- 		clk_disable(omap->ehci_logic_fck);
- 
- 	spin_unlock_irqrestore(&omap->lock, flags);
-+	omap_tll_disable();
- 
- 	return 0;
- }
-@@ -699,8 +700,10 @@ static int __init omap_usbhs_drvinit(void)
-  * init before ehci and ohci drivers;
-  * The usbhs core driver should be initialized much before
-  * the omap ehci and ohci probe functions are called.
-+ * This usbhs core driver should be initialized after
-+ * usb tll driver
-  */
--fs_initcall(omap_usbhs_drvinit);
-+fs_initcall_sync(omap_usbhs_drvinit);
- 
- static void __exit omap_usbhs_drvexit(void)
- {
--- 
-1.7.9.5
+The (macro)name used to identify is only changed.
+
+Also all the ips need reset the difference is that 2430 has less bits eg only autoidle and reset.
+So a flag needs reset may not be meaningful.
+
+
+
+>
+>
+>> @@ -1055,7 +1055,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+>>  		dev->errata |= I2C_OMAP_ERRATA_I207;
+>>  
+>> -	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+>> +	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+>>  		dev->errata |= I2C_OMAP_ERRATA_I462;
+>>  
+>>  	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+>> @@ -1073,7 +1073,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>>  
+>>  		dev->fifo_size = (dev->fifo_size / 2);
+>>  
+>> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+>> +		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
+>>  			dev->b_hw = 0; /* Disable hardware fixes */
+>>  		else
+>>  			dev->b_hw = 1; /* Enable hardware fixes */
+> That way the code does not need to change when new SoC revisions
+> get added.
+I think it might still not need to change because of >= .
+I have just renamed
+
+OMAP_I2C_REV_ON_3530_4430 as 3530 rev is not the same as 4430 that the name implies.
+
+>
+> Tony
 
