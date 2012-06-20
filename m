@@ -1,50 +1,52 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: omap: dmtimer: set non-posted mode if iclk less
- than 4*fck
-Date: Wed, 20 Jun 2012 18:47:10 +0530
-Message-ID: <CAMQu2gxVP7_G2GrYYsL+DhJoKW_iS7+6EG9R5QBU50dXG_roFQ@mail.gmail.com>
-References: <1336744398-23803-1-git-send-email-tarun.kanti@ti.com>
- <1336744398-23803-3-git-send-email-tarun.kanti@ti.com> <87pq9mel9i.fsf@ti.com>
- <CAC83ZvKv_kwvYLG3RfN-ttKXU8pg+yqRGa9S83BAJj6=yeVP2g@mail.gmail.com> <20120620131346.GI12766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: OMAP depends on MMU
+Date: Wed, 20 Jun 2012 06:19:19 -0700
+Message-ID: <20120620131918.GJ12766@atomide.com>
+References: <1339116651-18051-1-git-send-email-mathieu.poirier@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:40674 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751595Ab2FTNRc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 09:17:32 -0400
-Received: by qabg27 with SMTP id g27so3011183qab.14
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 06:17:30 -0700 (PDT)
-In-Reply-To: <20120620131346.GI12766@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1339116651-18051-1-git-send-email-mathieu.poirier@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mathieu.poirier@linaro.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, arnd@arndb.de
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
 
-Tony,
+* mathieu.poirier@linaro.org <mathieu.poirier@linaro.org> [120607 17:55]:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> There is no way to build OMAP kernels without an MMU
+> at this point because of dependencies on MMU-only functions.
+> 
+> As long as nobody is interested in fixing this, let's just disable
+> this platforms for nommu kernels.
 
-On Wed, Jun 20, 2012 at 6:43 PM, Tony Lindgren <tony@atomide.com> wrote:
->
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120606 04:15]:
-> > On Wed, May 30, 2012 at 2:51 AM, Kevin Hilman <khilman@ti.com> wrote:
-> > > Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> > >
-> > >> Timers in PER domain periodically report old time from TCRR in
-> > >> posted mode if ick < 4*fck. Therefore, set timer to non-posted
-> > >> whenever ick < 4*fck for all timers.
-> > >
-> > > Is there an erratum assocaited with this?
-> > Yes, but it has not yet got into the document. Right now what we have
-> > is a hardware defect.
-> > >
-> > > Does this problem affect every SoC?
-> > Not quite sure about OMAP2 but it affects OMAP3+.
->
-> This seems not too urgent and OK to queue into fixes-non-critical?
->
-Lets hold on this entire series. We are thinking of better WA especially to
-avoid static dependencies. So just ignore this series all together for now.
+Thanks, applying into fixes non-critical.
 
-Regards
-Santosh
+Tony
+
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index 84449dd..4b1fc0d 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -934,6 +934,7 @@ config ARCH_DAVINCI
+>  
+>  config ARCH_OMAP
+>  	bool "TI OMAP"
+> +	depends on MMU
+>  	select HAVE_CLK
+>  	select ARCH_REQUIRE_GPIOLIB
+>  	select ARCH_HAS_CPUFREQ
+> -- 
+> 1.7.5.4
+> 
