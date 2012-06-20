@@ -1,336 +1,98 @@
-From: "Gross, Andy" <andy.gross@ti.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Tue, 19 Jun 2012 16:12:54 -0500
-Message-ID: <CABT81PhCGAwFBgVCk7CJGg7_erVZjS0DUM9ajg9uaQh5wf6ZRQ@mail.gmail.com>
-References: <1337803690-30116-1-git-send-email-andy.gross@ti.com>
-	<CAF6AEGs0OYSUg0uGi5y0HgsHzqJYUwWj7Hx1Tupzu7mxa3VvLQ@mail.gmail.com>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH V2 5/5] Input: ads7846: set proper debounce time in driver
+ level
+Date: Wed, 20 Jun 2012 13:28:46 +0800
+Message-ID: <4FE15F8E.4000008@windriver.com>
+References: <zumeng.chen@gmail.com> <1339551850-20827-1-git-send-email-zumeng.chen@gmail.com> <1339551850-20827-6-git-send-email-zumeng.chen@gmail.com> <79CD15C6BA57404B839C016229A409A83EA4F07F@DBDE01.ent.ti.com> <4FD96CBF.5040106@windriver.com> <79CD15C6BA57404B839C016229A409A83EA4FC98@DBDE01.ent.ti.com> <4FD98BD0.7090901@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:33222 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752659Ab2FSVM6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Jun 2012 17:12:58 -0400
-Received: by vbip1 with SMTP id p1so3471493vbi.10
-        for <linux-omap@vger.kernel.org>; Tue, 19 Jun 2012 14:12:55 -0700 (PDT)
-In-Reply-To: <CAF6AEGs0OYSUg0uGi5y0HgsHzqJYUwWj7Hx1Tupzu7mxa3VvLQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <4FD98BD0.7090901@windriver.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "mike@compulab.co.il" <mike@compulab.co.il>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Zumeng Chen <zumeng.chen@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, greg@kroah.com, tomi.valkeinen@ti.com, tony@atomide.com
 
-Tony,
+于 2012年06月14日 14:59, Zumeng Chen 写道:
+> 于 2012年06月14日 14:31, Hiremath, Vaibhav 写道:
+>> On Thu, Jun 14, 2012 at 10:16:55, Zumeng Chen wrote:
+>>> 于 2012年06月13日 20:18, Hiremath, Vaibhav 写道:
+>>>> On Wed, Jun 13, 2012 at 07:14:10, Zumeng Chen wrote:
+>>>>> From: Zumeng Chen<zumeng.chen@windriver.com>
+>>>>>
+>>>>> If we don't set proper debouce time for ads7846, then there are
+>>>>> flooded interrupt counters of ads7846 responding to one time
+>>>>> touch on screen, so the driver couldn't work well.
+>>>>>
+>>>>> And since most OMAP3 series boards pass NULL pointer of board_pdata
+>>>>> to omap_ads7846_init, so it's more proper to set it in driver level
+>>>>> after having gpio_request done.
+>>>>>
+>>>>> This patch has been validated on 3530evm.
+>>>>>
+>>>>> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
+>>>>> Signed-off-by: Syed Mohammed Khasim<khasim@ti.com>
+>>>>> ---
+>>>>>   drivers/input/touchscreen/ads7846.c |    4 ++++
+>>>>>   1 files changed, 4 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+>>>>> index f02028e..459ff29 100644
+>>>>> --- a/drivers/input/touchscreen/ads7846.c
+>>>>> +++ b/drivers/input/touchscreen/ads7846.c
+>>>>> @@ -980,6 +980,10 @@ static int __devinit ads7846_setup_pendown(struct spi_device *spi, struct ads784
+>>>>>   		}
+>>>>>
+>>>>>   		ts->gpio_pendown = pdata->gpio_pendown;
+>>>>> +#ifdef CONFIG_ARCH_OMAP3
+>>>>> +		/* 310 means about 10 microsecond for omap3 */
+>>>>> +		gpio_set_debounce(pdata->gpio_pendown, 310);
+>>>>> +#endif
+>>>>>
+>>>> Zumeng,
+>>>>
+>>>> With my sign-off you are changing the original code, that too
+>>>> without my sign-off and ack.
+>>>> I wouldn't mind you to submit patches from my tree, but the expectation is
+>>>> if you are changing the original code, it should be under your sign-off.
+>>> Thanks, good to learn. I'll remove in next time.
+>>>> Coming to the patch, #ifdef in driver is not recommended, and this 10msec
+>>>> delay is specific to OMAP GPIO and driver should not be aware of this,
+>>>> that's where you will find the original patch handling it in board file.
+>>> According to the git blame of the board-omap3evm.c I think
+>>> 96974a24 did a good thing to all the related codes for omap3
+>>> boards. So I think we can call board and driver as BSP level :-)
+>>>
+>>> If #ifdef in driver can save many codes, I guess it's deserved.
+>>>
+>> No, not really.
+>>
+>> In the same commit, the debounce time is already handled as an argument to 
+>> the function omap_ads7846_init(), and that’s the way it should be.
+> That means you'd like to implement the same get_pendown_state for every
+> omap3 board? Currently, board_pdata is NULL.
+>
+> And actually, the reason why I agree 96974a24 is that get_pendown_state
+> for all omap3 boards is the common chip level gpio operations. so I think
+> we should set debounce for them in one common point.
+>
+> But since Igor and you don't like them, I have created and tested the
+> attachment
+> patch, and I'd like Mike to check if convenience too
+> But obviously there are more codes than mine before :-)
+Hi Mike,
 
-Please queue this patch at your earliest convenience.
-
-We had some discussion on the splitting out of the DMM/Tiler driver
-from the omapdrm driver.  There might be some interest in leveraging
-the Tiler for omapfb.  However, we agreed this can be deferred until
-some other device (omapfb or otherwise) needs to use the Tiler.
+I'll send V3 with the change on the attachment to you for 5/5,
+if you happen to get it, it's high appreciated to review it.
 
 Regards,
-
-Andy Gross
-
-
-On Mon, Jun 11, 2012 at 10:51 AM, Rob Clark <rob.clark@linaro.org> wrot=
-e:
+Zumeng
 >
-> On Wed, May 23, 2012 at 3:08 PM, Andy Gross <andy.gross@ti.com> wrote=
-:
-> > Register OMAP DRM/KMS platform device. =A0DMM is split into a
-> > separate device using hwmod.
-> >
-> > Signed-off-by: Andy Gross <andy.gross@ti.com>
->
-> Signed-off-by: Rob Clark <rob.clark@linaro.org>
->
-> > ---
-> > =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 | =A0 =A04 ++
-> > =A0arch/arm/mach-omap2/drm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 61 ++=
-++++++++++++++++++++++++++++++
-> > =A0drivers/staging/omapdrm/omap_drv.h =A0 =A0 | =A0 =A02 +-
-> > =A0drivers/staging/omapdrm/omap_priv.h =A0 =A0| =A0 55 ------------=
-----------------
-> > =A0include/linux/platform_data/omap_drm.h | =A0 52 ++++++++++++++++=
-+++++++++++
-> > =A05 files changed, 118 insertions(+), 56 deletions(-)
-> > =A0create mode 100644 arch/arm/mach-omap2/drm.c
-> > =A0delete mode 100644 drivers/staging/omapdrm/omap_priv.h
-> > =A0create mode 100644 include/linux/platform_data/omap_drm.h
-> >
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Mak=
-efile
-> > index 49f92bc..c301ab7 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -187,6 +187,10 @@ ifneq ($(CONFIG_TIDSPBRIDGE),)
-> > =A0obj-y =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0+=3D dsp.o
-> > =A0endif
-> >
-> > +ifneq ($(CONFIG_DRM_OMAP),)
-> > +obj-y =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0+=3D drm.o
-> > +endif
-> > +
-> > =A0# Specific board support
-> > =A0obj-$(CONFIG_MACH_OMAP_GENERIC) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=
-=3D board-generic.o
-> > =A0obj-$(CONFIG_MACH_OMAP_H4) =A0 =A0 =A0 =A0 =A0 =A0 +=3D board-h4=
-=2Eo
-> > diff --git a/arch/arm/mach-omap2/drm.c b/arch/arm/mach-omap2/drm.c
-> > new file mode 100644
-> > index 0000000..72e0f01b
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/drm.c
-> > @@ -0,0 +1,61 @@
-> > +/*
-> > + * DRM/KMS device registration for TI OMAP platforms
-> > + *
-> > + * Copyright (C) 2012 Texas Instruments
-> > + * Author: Rob Clark <rob.clark@linaro.org>
-> > + *
-> > + * This program is free software; you can redistribute it and/or m=
-odify it
-> > + * under the terms of the GNU General Public License version 2 as =
-published by
-> > + * the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,=
- but WITHOUT
-> > + * ANY WARRANTY; without even the implied warranty of MERCHANTABIL=
-ITY or
-> > + * FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU General Public=
- License for
-> > + * more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public Licen=
-se along with
-> > + * this program. =A0If not, see <http://www.gnu.org/licenses/>.
-> > + */
-> > +
-> > +#include <linux/module.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/mm.h>
-> > +#include <linux/init.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/dma-mapping.h>
-> > +
-> > +#include <plat/omap_device.h>
-> > +#include <plat/omap_hwmod.h>
-> > +
-> > +#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
-> > +
-> > +static struct platform_device omap_drm_device =3D {
-> > + =A0 =A0 =A0 .dev =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .coherent_dma_mask =3D DMA_BIT_MASK(3=
-2),
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 .name =3D "omapdrm",
-> > + =A0 =A0 =A0 .id =3D 0,
-> > +};
-> > +
-> > +static int __init omap_init_drm(void)
-> > +{
-> > + =A0 =A0 =A0 struct omap_hwmod *oh =3D NULL;
-> > + =A0 =A0 =A0 struct platform_device *pdev;
-> > +
-> > + =A0 =A0 =A0 /* lookup and populate the DMM information, if presen=
-t - OMAP4+ */
-> > + =A0 =A0 =A0 oh =3D omap_hwmod_lookup("dmm");
-> > +
-> > + =A0 =A0 =A0 if (oh) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev =3D omap_device_build(oh->name, =
--1, oh, NULL, 0, NULL, 0,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 false);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(IS_ERR(pdev), "Could not build o=
-map_device for %s\n",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->name);
-> > + =A0 =A0 =A0 }
-> > +
-> > + =A0 =A0 =A0 return platform_device_register(&omap_drm_device);
-> > +
-> > +}
-> > +
-> > +arch_initcall(omap_init_drm);
-> > +
-> > +#endif
-> > diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/o=
-mapdrm/omap_drv.h
-> > index b7e0f07..96296e0 100644
-> > --- a/drivers/staging/omapdrm/omap_drv.h
-> > +++ b/drivers/staging/omapdrm/omap_drv.h
-> > @@ -25,8 +25,8 @@
-> > =A0#include <linux/types.h>
-> > =A0#include <drm/drmP.h>
-> > =A0#include <drm/drm_crtc_helper.h>
-> > +#include <linux/platform_data/omap_drm.h>
-> > =A0#include "omap_drm.h"
-> > -#include "omap_priv.h"
-> >
-> > =A0#define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
-> > =A0#define VERB(fmt, ...) if (0) DRM_DEBUG(fmt, ##__VA_ARGS__) /* v=
-erbose debug */
-> > diff --git a/drivers/staging/omapdrm/omap_priv.h b/drivers/staging/=
-omapdrm/omap_priv.h
-> > deleted file mode 100644
-> > index ef64414..0000000
-> > --- a/drivers/staging/omapdrm/omap_priv.h
-> > +++ /dev/null
-> > @@ -1,55 +0,0 @@
-> > -/*
-> > - * include/drm/omap_priv.h
-> > - *
-> > - * Copyright (C) 2011 Texas Instruments
-> > - * Author: Rob Clark <rob@ti.com>
-> > - *
-> > - * This program is free software; you can redistribute it and/or m=
-odify it
-> > - * under the terms of the GNU General Public License version 2 as =
-published by
-> > - * the Free Software Foundation.
-> > - *
-> > - * This program is distributed in the hope that it will be useful,=
- but WITHOUT
-> > - * ANY WARRANTY; without even the implied warranty of MERCHANTABIL=
-ITY or
-> > - * FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU General Public=
- License for
-> > - * more details.
-> > - *
-> > - * You should have received a copy of the GNU General Public Licen=
-se along with
-> > - * this program. =A0If not, see <http://www.gnu.org/licenses/>.
-> > - */
-> > -
-> > -#ifndef __OMAP_PRIV_H__
-> > -#define __OMAP_PRIV_H__
-> > -
-> > -/* Non-userspace facing APIs
-> > - */
-> > -
-> > -/* optional platform data to configure the default configuration o=
-f which
-> > - * pipes/overlays/CRTCs are used.. if this is not provided, then i=
-nstead the
-> > - * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each con=
-nected to
-> > - * one manager, with priority given to managers that are connected=
- to
-> > - * detected devices. =A0Remaining overlays are used as video plane=
-s. =A0This
-> > - * should be a good default behavior for most cases, but yet there=
- still
-> > - * might be times when you wish to do something different.
-> > - */
-> > -struct omap_kms_platform_data {
-> > - =A0 =A0 =A0 /* overlays to use as CRTCs: */
-> > - =A0 =A0 =A0 int ovl_cnt;
-> > - =A0 =A0 =A0 const int *ovl_ids;
-> > -
-> > - =A0 =A0 =A0 /* overlays to use as video planes: */
-> > - =A0 =A0 =A0 int pln_cnt;
-> > - =A0 =A0 =A0 const int *pln_ids;
-> > -
-> > - =A0 =A0 =A0 int mgr_cnt;
-> > - =A0 =A0 =A0 const int *mgr_ids;
-> > -
-> > - =A0 =A0 =A0 int dev_cnt;
-> > - =A0 =A0 =A0 const char **dev_names;
-> > -};
-> > -
-> > -struct omap_drm_platform_data {
-> > - =A0 =A0 =A0 struct omap_kms_platform_data *kms_pdata;
-> > - =A0 =A0 =A0 struct omap_dmm_platform_data *dmm_pdata;
-> > -};
-> > -
-> > -#endif /* __OMAP_DRM_H__ */
-> > diff --git a/include/linux/platform_data/omap_drm.h b/include/linux=
-/platform_data/omap_drm.h
-> > new file mode 100644
-> > index 0000000..3da73bd
-> > --- /dev/null
-> > +++ b/include/linux/platform_data/omap_drm.h
-> > @@ -0,0 +1,52 @@
-> > +/*
-> > + * DRM/KMS platform data for TI OMAP platforms
-> > + *
-> > + * Copyright (C) 2012 Texas Instruments
-> > + * Author: Rob Clark <rob.clark@linaro.org>
-> > + *
-> > + * This program is free software; you can redistribute it and/or m=
-odify it
-> > + * under the terms of the GNU General Public License version 2 as =
-published by
-> > + * the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,=
- but WITHOUT
-> > + * ANY WARRANTY; without even the implied warranty of MERCHANTABIL=
-ITY or
-> > + * FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU General Public=
- License for
-> > + * more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public Licen=
-se along with
-> > + * this program. =A0If not, see <http://www.gnu.org/licenses/>.
-> > + */
-> > +
-> > +#ifndef __PLATFORM_DATA_OMAP_DRM_H__
-> > +#define __PLATFORM_DATA_OMAP_DRM_H__
-> > +
-> > +/*
-> > + * Optional platform data to configure the default configuration o=
-f which
-> > + * pipes/overlays/CRTCs are used.. if this is not provided, then i=
-nstead the
-> > + * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each con=
-nected to
-> > + * one manager, with priority given to managers that are connected=
- to
-> > + * detected devices. =A0Remaining overlays are used as video plane=
-s. =A0This
-> > + * should be a good default behavior for most cases, but yet there=
- still
-> > + * might be times when you wish to do something different.
-> > + */
-> > +struct omap_kms_platform_data {
-> > + =A0 =A0 =A0 /* overlays to use as CRTCs: */
-> > + =A0 =A0 =A0 int ovl_cnt;
-> > + =A0 =A0 =A0 const int *ovl_ids;
-> > +
-> > + =A0 =A0 =A0 /* overlays to use as video planes: */
-> > + =A0 =A0 =A0 int pln_cnt;
-> > + =A0 =A0 =A0 const int *pln_ids;
-> > +
-> > + =A0 =A0 =A0 int mgr_cnt;
-> > + =A0 =A0 =A0 const int *mgr_ids;
-> > +
-> > + =A0 =A0 =A0 int dev_cnt;
-> > + =A0 =A0 =A0 const char **dev_names;
-> > +};
-> > +
-> > +struct omap_drm_platform_data {
-> > + =A0 =A0 =A0 struct omap_kms_platform_data *kms_pdata;
-> > +};
-> > +
-> > +#endif /* __PLATFORM_DATA_OMAP_DRM_H__ */
-> > --
-> > 1.7.5.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Zumeng
+>> So no need for #ifdefs in driver...
+>>
+>> Thanks,
+>> Vaibhav
+
