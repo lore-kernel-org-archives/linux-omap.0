@@ -1,69 +1,115 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
- latency in C1 state
-Date: Wed, 20 Jun 2012 14:27:06 +0530
-Message-ID: <4FE19062.6010502@ti.com>
-References: <1338563468-31403-1-git-send-email-j-pihet@ti.com>	<1338563468-31403-4-git-send-email-j-pihet@ti.com>	<4FE187A8.8060203@ti.com> <CAORVsuWEpsY2MDO=6oLWs=Sdxq+0gk5PHvMvqCwYCjv1+4WDOw@mail.gmail.com> <4FE18E02.6020008@ti.com> <4FE18F3A.8090103@ti.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: Re: [PATCH v2 1/4] ARM: new cache maintenance api for iommu mem flush
+Date: Wed, 20 Jun 2012 14:30:32 +0530
+Message-ID: <CADysL2bzL_TCmeEcSJdv-_WeXFyU3zNnU8mxtc81JDG7bLYHoQ@mail.gmail.com>
+References: <CADysL2aFufYzmxWOHp2xUt_TkqOQpX883za+7it5h2qd=PMwwA@mail.gmail.com>
+	<20120620084330.GA13009@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:52978 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751554Ab2FTI5N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 04:57:13 -0400
-Received: by obbup19 with SMTP id up19so6709769obb.12
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 01:57:11 -0700 (PDT)
-In-Reply-To: <4FE18F3A.8090103@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:51691 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755617Ab2FTJAf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 05:00:35 -0400
+Received: by wgbdq11 with SMTP id dq11so4836249wgb.5
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 02:00:32 -0700 (PDT)
+In-Reply-To: <20120620084330.GA13009@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com
 
-Jean,
+Hi Russell,
 
-On Wednesday 20 June 2012 02:22 PM, Rajendra Nayak wrote:
-> Hi Jean,
->
-> On Wednesday 20 June 2012 02:16 PM, Rajendra Nayak wrote:
->> On Wednesday 20 June 2012 02:01 PM, Jean Pihet wrote:
->>> Hi Rajendra,
->>>
->>> On Wed, Jun 20, 2012 at 10:19 AM, Rajendra Nayak<rnayak@ti.com> wrote:
->>>> Hi Jean,
->>>>
->>>>
->>>> On Friday 01 June 2012 08:41 PM, Jean Pihet wrote:
->>>>>
->>>>> For a power domain to idle all the clock domains in it must idle.
->>>>> This patch implements an optimization of the cpuidle code by
->>>>> denying and later allowing only the first registered clock domain
->>>>> of a power domain, and so optimizes the latency of the low power code.
->>>>
->>>>
->>>> How much do we really save doing this? I understand what you are doing
->>>> by looking at the patch but the changelog seems very confusing.
->>> The gain is on the registers accesses and the internal PRCM state
->>> machine.
->>> If needed the changelog can be updated.
+
+On Wed, Jun 20, 2012 at 2:13 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Jun 19, 2012 at 04:51:07PM +0530, Gupta, Ramesh wrote:
+>> >From 785a1f2854002ce7c1c8880bc5d8d92a7868bf1c Mon Sep 17 00:00:00 2=
+001
+>> From: Ramesh Gupta G <grgupta@ti.com>
+>> Date: Fri, 15 Jun 2012 16:37:20 +0530
+>> Subject: [PATCH v2 1/4] ARM: new cache maintenance api for iommu mem=
+ flush
 >>
->> Can you explain a bit more on which register accesses are you talking
->> about? and some more on the PRCM state machine.
+>> non-coherent IOMMUs need to make sure that the
+>> data held in the caches need to be visible for the
+>> MMU hardware. A new L1 cache maintenance api has been
+>> created to handle this. Thanks to RMK's suggestions on
+>> creating a dedicated API for this purpose.
+>>
+>> ref:
+>> http://marc.info/?l=3Dlinux-kernel&m=3D131316512713815&w=3D2
+>>
+>> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+>> ---
+>> =A0arch/arm/include/asm/cacheflush.h | =A0 17 +++++++++++++++++
+>> =A0arch/arm/include/asm/glue-cache.h | =A0 =A01 +
+>> =A0arch/arm/mm/proc-macros.S =A0 =A0 =A0 =A0 | =A0 =A01 +
+>> =A03 files changed, 19 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/include/asm/cacheflush.h
+>> b/arch/arm/include/asm/cacheflush.h
+>> index d5d8d5c..2b4f5aa 100644
+>> --- a/arch/arm/include/asm/cacheflush.h
+>> +++ b/arch/arm/include/asm/cacheflush.h
+>> @@ -84,6 +84,11 @@
+>> =A0 * =A0 =A0 =A0 =A0 =A0 - kaddr =A0- page address
+>> =A0 * =A0 =A0 =A0 =A0 =A0 - size =A0 - region size
+>> =A0 *
+>> + * =A0 =A0 flush_mem(start, end)
+>> + *
+>> + * =A0 =A0 =A0 =A0 =A0 =A0 Clean and invalidate the specified virtu=
+al address range.
+>> + * =A0 =A0 =A0 =A0 =A0 =A0 - start =A0- virtual start address
+>> + * =A0 =A0 =A0 =A0 =A0 =A0 - end =A0 =A0- virtual end address
 >
-> never mind, I looked at the patch again and then the cpuidle code and
-> figured what you are doing. Makes sense to me now :-)
+> You're missing a blank line here.
 
-How do you like this updated changelog, I just added one more line.
+I will fix it.
 
-"
-For a power domain to idle all the clock domains in it must idle.
-Denying just *one* clkdm in a pwrdm from idling should have the
-same effect as denying *all*.
-This patch implements an optimization of the cpuidle code by
-denying and later allowing only the first registered clock domain
-of a power domain, and so optimizes the latency of the low power code.
-"
+> Also, "flush_mem" is a very lame name - it tells us nothing about wha=
+t the
+> purpose of this new API is. =A0Should it be used for when the CPU MMU=
+ TLB
+> entries are changed? =A0What about if we're suspending, should it be =
+used
+> then? =A0What about if we're performing DMA - should it be used for t=
+hat
+> memory too?
+>
+> Please, give it a better name which describes what it is for.
 
-regards,
-Rajendra
+I agree, will choose a better name to describe the api.
+
+>> diff --git a/arch/arm/mm/proc-macros.S b/arch/arm/mm/proc-macros.S
+>> index 2d8ff3a..f48a5ab 100644
+>> --- a/arch/arm/mm/proc-macros.S
+>> +++ b/arch/arm/mm/proc-macros.S
+>> @@ -307,6 +307,7 @@ ENTRY(\name\()_cache_fns)
+>> =A0 =A0 =A0 .long =A0 \name\()_dma_map_area
+>> =A0 =A0 =A0 .long =A0 \name\()_dma_unmap_area
+>> =A0 =A0 =A0 .long =A0 \name\()_dma_flush_range
+>> + =A0 =A0 .long =A0 \name\()_flush_mem
+>> =A0 =A0 =A0 .size =A0 \name\()_cache_fns, . - \name\()_cache_fns
+>> =A0.endm
+>
+> This will immediately break the kernel compilation. =A0Therefore, you=
+r
+> patch is incomplete and unsuitable for applying.
+
+I was checking only with panda configuration, I will update the patch
+set to take care of this.
+
+Thank you for review comments.
+
+--=20
+regards
+Ramesh Gupta G
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
