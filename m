@@ -1,43 +1,45 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: Re: [PATCH v2 2/4] ARM: add flush_mem api for ARMv6
-Date: Wed, 20 Jun 2012 14:32:08 +0530
-Message-ID: <CADysL2aTMwDW1xXjRcOrEm5Fq2S6+V31yE0AeDCHBw2Ak+sU7Q@mail.gmail.com>
-References: <CADysL2acF3ttJ-TR2as+GT66MfJiK4YyWYaAiP5j8yQ+YLBGYQ@mail.gmail.com>
-	<20120620084547.GB13009@n2100.arm.linux.org.uk>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: [PATCH v3 0/5] ARM OMAP3530evm misc fixes
+Date: Wed, 20 Jun 2012 17:14:48 +0800
+Message-ID: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120620084547.GB13009@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:49109 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754206Ab2FTJPX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 05:15:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jon-hunter@ti.com, mike@compulab.co.il, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@ti.com, hvaibhav@ti.com, ajay.gupta@ti.com
 
-Hi Russell,
+The series is based upon the latest linux-omap master branch from
+Tony (3.5-rc2).
 
+V3 Changes :
 
-On Wed, Jun 20, 2012 at 2:15 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
->
-> On Tue, Jun 19, 2012 at 04:51:16PM +0530, Gupta, Ramesh wrote:
-> > >From 630a3a8f341eb7f58f9a63bf786d732b5bdfd01e Mon Sep 17 00:00:00 2001
-> > From: Ramesh Gupta G <grgupta@ti.com>
-> > Date: Fri, 15 Jun 2012 16:39:21 +0530
-> > Subject: [PATCH v2 2/4] ARM: add flush_mem api for ARMv6
-> >
-> > Added flush_mem cache maintenance api for ARMv6.
-> > The implementation is based on dma_flush_range.
->
-> And what about all the other users of the define_cache_functions macro?
+ 1. [patch 5/5] Leave driver/input/touchscreen as-is. some changes
+    on arch/arm/mach-omap2/common-board-devices.c, please see the
+    shortlog for more information.
+ 2. For the first patch, I noticed GPMC driver conversion v5, so
+    this is decided by Tony, we can drop it, and I'll create a new
+    one if needed, but obviously I'm not very proper candidate for
+    it.
 
-I initially added only for ARMv6/7 and I will add this for the other users.
+ Thanks all comments :-)
 
-> This series is incomplete, and therefore entirely unsuitable for
-> upstreaming.
+Zumeng Chen (5):
+      ARM: OMAP3EVM: Add NAND flash definition
+      ARM: OMAP3EVM: Adding USB internal LDOs board file
+      ARM: omap3evm: enable VBUS switch for EHCI tranceiver
+      ARM: OMAP3EVM: cosmetic fixes for parent clk set
+      ARM: OMAP3530evm: set pendown_state and debounce time for ads7846
 
-I will send an updated patch set.
+ arch/arm/mach-omap2/board-omap3evm.c       |   74 +++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/common-board-devices.c |   18 ++++++-
+ arch/arm/mach-omap2/common-board-devices.h |    1 +
+ arch/arm/plat-omap/clock.c                 |    4 ++
+ drivers/mfd/omap-usb-host.c                |    2 +-
+ 5 files changed, 95 insertions(+), 4 deletions(-)
 
-Thank you for the comments.
-
-Regards
-Ramesh Gupta G
