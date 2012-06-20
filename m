@@ -1,85 +1,48 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 2/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Wed, 20 Jun 2012 17:11:39 -0500
-Message-ID: <4FE24A9B.6070203@ti.com>
-References: <cover.1339828867.git.afzal@ti.com> <1414767dd444d4ab3998adf957e77ff4f3394f92.1339828867.git.afzal@ti.com> <4FDF50EA.4080506@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E99C502@DBDE01.ent.ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH RESEND] ARM: OMAP4: hwmod data: add HWMOD_SWSUP_SIDLE to dss_hdmi to data
+Date: Wed, 20 Jun 2012 18:10:10 -0500
+Message-ID: <1340233810-1087-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41900 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45101 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757667Ab2FTWLh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 18:11:37 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99C502@DBDE01.ent.ti.com>
+	id S1754824Ab2FTXKw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 19:10:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: b-cousson@ti.com, tony@atomide.com, paul@pwsan.com, tomi.valkeinen@ti.com
+Cc: s-guiriec@ti.com, mythripk@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
-Hi Afzal,
+As per the OMAP4 documentation, audio over HDMI should be transmitted in
+no-idle mode. This patch adds the HWMOD_SWSUP_SIDLE so that omap_hwmode uses
+no-idle/force-idle settings instead of smart-idle mode.
 
-On 06/19/2012 12:57 AM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Mon, Jun 18, 2012 at 21:31:46, Hunter, Jon wrote:
-> 
->>> @@ -95,10 +89,6 @@ static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
->>>  	if (err)
->>>  		return err;
->>>  
->>> -	/* Ensure sync read and sync write are disabled */
->>> -	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
->>> -	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
->>> -	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
->>
->> Sorry if I was not clear, but I was still thinking that we keep the
->> above instance of setting async mode.
-> :
->>>  static int gpmc_onenand_setup(void __iomem *onenand_base, int *freq_ptr)
->>>  {
->>>  	struct device *dev = &gpmc_onenand_device.dev;
->>> +	u32 reg;
->>> +
->>> +	/* Ensure sync read and sync write are disabled */
->>> +	reg = readw(onenand_base + ONENAND_REG_SYS_CFG1);
->>> +	reg &= ~ONENAND_SYS_CFG1_SYNC_READ & ~ONENAND_SYS_CFG1_SYNC_WRITE;
->>> +	writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
->>
->> ... and here we should just call omap2_onenand_set_async_mode(), ...
-> 
-> If omap2_onenand_set_async_mode is called from gpmc_onenand_setup & removed
-> from gpmc_onenand_init, when using new gpmc driver interface, i.e. using
-> gpmc_onenand_update [1], we lost opportunity to provide gpmc driver with
-> configuration details for async mode causing a big warning about each
-> timings & configurations that was left by bootloader (which is meant only
-> for cases where Kernel can't configure GPMC). Of course, we can put
-> omap2_onenand_set_async_mode in gpmc_onenand_update too, but then
-> unnecessarily, omap2_onenand_sey_async_mode would be called twice.
-> 
-> Please note that gpmc_onenand_setup is a callback by onenand driver.
+This is required as the DSS interface clock is used as functional clock
+for the HDMI wrapper audio FIFO. If no-idle mode is not used, audio could
+be choppy, have bad quality or not be audible at all.
 
-Ok, I see your point. So today the _set_async_mode() is really doing two
-things ...
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-1. It is calculating the timings
-2. Programming the timings and setting async mode.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 950454a..0cd6ee1 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -865,6 +865,11 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 	},
+ 	.opt_clks	= dss_hdmi_opt_clks,
+ 	.opt_clks_cnt	= ARRAY_SIZE(dss_hdmi_opt_clks),
++	/*
++	 * HDMI audio requires to use no-idle mode. Hence,
++	 * set idle mode by software.
++	 */
++	.flags          = HWMOD_SWSUP_SIDLE,
+ };
+ 
+ /*
+-- 
+1.7.5.4
 
-I think that it would be best if we were to make _set_async_mode() into
-two functions, for example ...
-
-1. omap2_onenand_get_async_timings()
-2. omap2_onenand_set_async_timings()
-
-Where the omap2_onenand_get_async_timings() calculates the timings and
-can be used in both legacy mode and with the driver. Then
-omap2_onenand_set_sync_timings() is just used in the legacy mode where
-we don't have the driver to configure the chip-select.
-
-Do you think that could work?
-
-We could also do the same for omap2_onenand_set_sync_mode().
-
-Cheers
-Jon
