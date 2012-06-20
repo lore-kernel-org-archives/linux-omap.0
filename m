@@ -1,113 +1,107 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: [PATCH 5/5] ARM: OMAP3530evm: set pendown_state and debounce time for ads7846
-Date: Wed, 20 Jun 2012 17:14:53 +0800
-Message-ID: <1340183693-3195-6-git-send-email-zumeng.chen@windriver.com>
-References: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP2+: PM: protect the power domain state change
+ by a mutex
+Date: Wed, 20 Jun 2012 14:47:33 +0530
+Message-ID: <4FE1952D.1020102@ti.com>
+References: <1339685591-11177-1-git-send-email-j-pihet@ti.com> <1339685591-11177-2-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail1.windriver.com ([147.11.146.13]:60467 "EHLO
-	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab2FTJPf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 05:15:35 -0400
-In-Reply-To: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40090 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751726Ab2FTJRk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Jun 2012 05:17:40 -0400
+Received: by obbwc20 with SMTP id wc20so11357292obb.3
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 02:17:39 -0700 (PDT)
+In-Reply-To: <1339685591-11177-2-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jon-hunter@ti.com, mike@compulab.co.il, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@ti.com, hvaibhav@ti.com, ajay.gupta@ti.com
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
-Currently most ads7846 config definitions for OMAP3 series boards have
-been moved to common-board-devices.c, and it is transparent for init.
-And it's no very proper to do gpio_request based on get_pendown_state
-since omap_ads7846_init knows everything about ads7846_config.
+On Thursday 14 June 2012 08:23 PM, Jean Pihet wrote:
+> omap_set_pwrdm_state is intented to be the only API for changing
+> a power domain state.
 
-So it's more fit to request gpio according to the right gpio_pendown
-and set debounce time conditionally. If we don't set proper debouce
-time, there are flooded interrupt counters of ads7846 responding to
-one time touch on screen, then the driver couldn't work very well.
+Yes, but there are others which are used to _read_ the power domain
+state. Shouldn't those be protected too?
 
-This patch has been validated on 3530evm.
-
-Signed-off-by: Zumeng Chen <zumeng.chen@windriver.com>
----
- arch/arm/mach-omap2/board-omap3evm.c       |    1 -
- arch/arm/mach-omap2/common-board-devices.c |   18 ++++++++++++++++--
- arch/arm/mach-omap2/common-board-devices.h |    1 +
- 3 files changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 02d8047..834cfc0 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -58,7 +58,6 @@
- #include "hsmmc.h"
- #include "common-board-devices.h"
- 
--#define OMAP3_EVM_TS_GPIO	175
- #define OMAP3_EVM_EHCI_VBUS	22
- #define OMAP3_EVM_EHCI_SELECT	61
- 
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index 1706ebc..4ba070e 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -35,6 +35,16 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
- 	.turbo_mode	= 0,
- };
- 
-+/*
-+ * ADS7846 driver maybe request a gpio according to the value
-+ * of pdata->get_pendown_state, but we have done this. So set
-+ * get_pendown_state to avoid twice gpio requesting.
-+ */
-+static int omap3_get_pendown_state(void)
-+{
-+	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
-+}
-+
- static struct ads7846_platform_data ads7846_config = {
- 	.x_max			= 0x0fff,
- 	.y_max			= 0x0fff,
-@@ -45,6 +55,7 @@ static struct ads7846_platform_data ads7846_config = {
- 	.debounce_rep		= 1,
- 	.gpio_pendown		= -EINVAL,
- 	.keep_vref_on		= 1,
-+	.get_pendown_state	= &omap3_get_pendown_state,
- };
- 
- static struct spi_board_info ads7846_spi_board_info __initdata = {
-@@ -63,14 +74,17 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
- 	int err;
- 
--	if (board_pdata && board_pdata->get_pendown_state) {
-+	if (gpio_pendown) {
- 		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
- 		if (err) {
- 			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
- 			return;
- 		}
--		gpio_export(gpio_pendown, 0);
- 
-+		/* TS GPIOPendown doesn't allow user to change the direction */
-+		gpio_export(gpio_pendown, false);
-+
-+		/* Set proper debouce time for ads7846. */
- 		if (gpio_debounce)
- 			gpio_set_debounce(gpio_pendown, gpio_debounce);
- 	}
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index a0b4a428..4c4ef6a 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -4,6 +4,7 @@
- #include "twl-common.h"
- 
- #define NAND_BLOCK_SIZE	SZ_128K
-+#define OMAP3_EVM_TS_GPIO	175
- 
- struct mtd_partition;
- struct ads7846_platform_data;
--- 
-1.7.5.4
+> This patch protects the power domains settings and structs from
+> concurrent accesses to the function by using a mutex.
+>
+> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+> ---
+>   arch/arm/mach-omap2/pm.c          |    8 ++++++--
+>   arch/arm/mach-omap2/powerdomain.c |    1 +
+>   arch/arm/mach-omap2/powerdomain.h |    3 ++-
+>   3 files changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 9cb5ced..a05f00c 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -100,15 +100,17 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+>   	if (!pwrdm || IS_ERR(pwrdm))
+>   		return -EINVAL;
+>
+> +	mutex_lock(&pwrdm->lock);
+> +
+>   	while (!(pwrdm->pwrsts&  (1<<  pwrst))) {
+>   		if (pwrst == PWRDM_POWER_OFF)
+> -			return ret;
+> +			goto out;
+>   		pwrst--;
+>   	}
+>
+>   	next_pwrst = pwrdm_read_next_pwrst(pwrdm);
+>   	if (next_pwrst == pwrst)
+> -		return ret;
+> +		goto out;
+>
+>   	curr_pwrst = pwrdm_read_pwrst(pwrdm);
+>   	if (curr_pwrst<  PWRDM_POWER_ON) {
+> @@ -141,6 +143,8 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 pwrst)
+>   		break;
+>   	}
+>
+> +out:
+> +	mutex_unlock(&pwrdm->lock);
+>   	return ret;
+>   }
+>
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 9611490..1641e72 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -102,6 +102,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+>   	INIT_LIST_HEAD(&pwrdm->voltdm_node);
+>   	voltdm_add_pwrdm(voltdm, pwrdm);
+>
+> +	mutex_init(&pwrdm->lock);
+>   	list_add(&pwrdm->node,&pwrdm_list);
+>
+>   	/* Initialize the powerdomain's state counter */
+> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+> index 8f88d65..bab84fc 100644
+> --- a/arch/arm/mach-omap2/powerdomain.h
+> +++ b/arch/arm/mach-omap2/powerdomain.h
+> @@ -19,7 +19,7 @@
+>
+>   #include<linux/types.h>
+>   #include<linux/list.h>
+> -
+> +#include<linux/mutex.h>
+>   #include<linux/atomic.h>
+>
+>   #include<plat/cpu.h>
+> @@ -116,6 +116,7 @@ struct powerdomain {
+>   	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+>   	struct list_head node;
+>   	struct list_head voltdm_node;
+> +	struct mutex lock;
+>   	int state;
+>   	unsigned state_counter[PWRDM_MAX_PWRSTS];
+>   	unsigned ret_logic_off_counter;
 
