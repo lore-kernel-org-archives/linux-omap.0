@@ -1,47 +1,118 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 07/10] ARM: OMAP3: update cpuidle latency and threshold
- figures
-Date: Wed, 20 Jun 2012 16:31:31 +0530
-Message-ID: <4FE1AD8B.305@ti.com>
-References: <1339686361-11526-1-git-send-email-j-pihet@ti.com> <1339686361-11526-8-git-send-email-j-pihet@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP3: PM: cpuidle: optimize the clkdm idle
+ latency in C1 state
+Date: Wed, 20 Jun 2012 13:34:06 +0200
+Message-ID: <CAORVsuXdszF5+m24tzQg=OXydsVpqFCHH0TxxKobfSvihpBhtQ@mail.gmail.com>
+References: <1338563468-31403-1-git-send-email-j-pihet@ti.com>
+	<1338563468-31403-4-git-send-email-j-pihet@ti.com>
+	<4FE187A8.8060203@ti.com>
+	<CAORVsuWEpsY2MDO=6oLWs=Sdxq+0gk5PHvMvqCwYCjv1+4WDOw@mail.gmail.com>
+	<4FE18E02.6020008@ti.com>
+	<4FE18F3A.8090103@ti.com>
+	<4FE19062.6010502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:55998 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893Ab2FTLBj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 07:01:39 -0400
-Received: by obbwc20 with SMTP id wc20so14221097obb.17
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 04:01:38 -0700 (PDT)
-In-Reply-To: <1339686361-11526-8-git-send-email-j-pihet@ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:48412 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658Ab2FTLeH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 07:34:07 -0400
+Received: by lbbgm6 with SMTP id gm6so483682lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 04:34:06 -0700 (PDT)
+In-Reply-To: <4FE19062.6010502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
-On Thursday 14 June 2012 08:35 PM, Jean Pihet wrote:
->   		{
->   			.enter		  = omap3_enter_idle_bm,
-> -			.exit_latency	  = 3000 + 8500,
-> -			.target_residency = 15000,
-> +			.exit_latency	  = 4080 + 801,
-> +			.target_residency = 215000,
->   			.flags		  = CPUIDLE_FLAG_TIME_VALID,
->   			.name		  = "C6",
->   			.desc		  = "MPU OFF + CORE RET",
->   		},
->   		{
->   			.enter		  = omap3_enter_idle_bm,
-> -			.exit_latency	  = 10000 + 30000,
-> -			.target_residency = 30000,
-> +			.exit_latency	  = 4300 + 13000,
-> +			.target_residency = 215000,
+Hi Rajendra,
 
-Is the target_residency same for both these states?
+On Wed, Jun 20, 2012 at 10:57 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> Jean,
+>
+>
+> On Wednesday 20 June 2012 02:22 PM, Rajendra Nayak wrote:
+>>
+>> Hi Jean,
+>>
+>> On Wednesday 20 June 2012 02:16 PM, Rajendra Nayak wrote:
+>>>
+>>> On Wednesday 20 June 2012 02:01 PM, Jean Pihet wrote:
+>>>>
+>>>> Hi Rajendra,
+>>>>
+>>>> On Wed, Jun 20, 2012 at 10:19 AM, Rajendra Nayak<rnayak@ti.com> wr=
+ote:
+>>>>>
+>>>>> Hi Jean,
+>>>>>
+>>>>>
+>>>>> On Friday 01 June 2012 08:41 PM, Jean Pihet wrote:
+>>>>>>
+>>>>>>
+>>>>>> For a power domain to idle all the clock domains in it must idle=
+=2E
+>>>>>> This patch implements an optimization of the cpuidle code by
+>>>>>> denying and later allowing only the first registered clock domai=
+n
+>>>>>> of a power domain, and so optimizes the latency of the low power=
+ code.
+>>>>>
+>>>>>
+>>>>>
+>>>>> How much do we really save doing this? I understand what you are =
+doing
+>>>>> by looking at the patch but the changelog seems very confusing.
+>>>>
+>>>> The gain is on the registers accesses and the internal PRCM state
+>>>> machine.
+>>>> If needed the changelog can be updated.
+>>>
+>>>
+>>> Can you explain a bit more on which register accesses are you talki=
+ng
+>>> about? and some more on the PRCM state machine.
+>>
+>>
+>> never mind, I looked at the patch again and then the cpuidle code an=
+d
+>> figured what you are doing. Makes sense to me now :-)
+Ok!
 
->   			.flags		  = CPUIDLE_FLAG_TIME_VALID,
->   			.name		  = "C7",
->   			.desc		  = "MPU OFF + CORE OFF",
+>
+>
+> How do you like this updated changelog, I just added one more line.
+>
+>
+> "
+> For a power domain to idle all the clock domains in it must idle.
+> Denying just *one* clkdm in a pwrdm from idling should have the
+> same effect as denying *all*.
+>
+> This patch implements an optimization of the cpuidle code by
+> denying and later allowing only the first registered clock domain
+> of a power domain, and so optimizes the latency of the low power code=
+=2E
+> "
+That looks great!
 
+Kevin,
+Can you take this change still in your for_3.6/pm/performance branch?
+
+Thanks & regards,
+Jean
+
+>
+> regards,
+> Rajendra
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
