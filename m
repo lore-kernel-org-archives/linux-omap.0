@@ -1,92 +1,70 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCHv8 06/13] I2C: OMAP: Correct I2C revision for OMAP3
-Date: Wed, 20 Jun 2012 18:31:32 +0530
-Message-ID: <4FE1C9AC.3020104@ti.com>
-References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com> <1340029828-20751-7-git-send-email-shubhrajyoti@ti.com> <20120620103235.GD12766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH V3 2/2] arm/dts: OMAP2: Fix interrupt controller
+ binding
+Date: Wed, 20 Jun 2012 06:10:22 -0700
+Message-ID: <20120620131022.GH12766@atomide.com>
+References: <1339548046-27988-1-git-send-email-jon-hunter@ti.com>
+ <1339548046-27988-3-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:48999 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753360Ab2FTNBj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Jun 2012 09:01:39 -0400
-Received: by obbtb18 with SMTP id tb18so11652636obb.33
-        for <linux-omap@vger.kernel.org>; Wed, 20 Jun 2012 06:01:38 -0700 (PDT)
-In-Reply-To: <20120620103235.GD12766@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34233 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754115Ab2FTNK3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 09:10:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1339548046-27988-3-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de, Jon Hunter <jon-hunter@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 20 June 2012 04:02 PM, Tony Lindgren wrote:
-> * Shubhrajyoti D <shubhrajyoti@ti.com> [120618 07:35]:
->> From: Jon Hunter <jon-hunter@ti.com>
->>
->> The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
->> revision is the same for 3430 and 3530. However, the OMAP3630 device has the
->> same I2C revision as OMAP4. Correct the revision definition to reflect this.
->>
->> This patch is based on work done by Jon Hunter <jon-hunter@ti.com>
->> Changes from his patch
->> - Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
-> ...
->>  /* timeout waiting for the controller to respond */
->>  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
->> @@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
->>  			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
->>  					   SYSC_AUTOIDLE_MASK);
->>  
->> -		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
->> +		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
->>  			dev->syscstate = SYSC_AUTOIDLE_MASK;
->>  			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
->>  			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
-> Having to patch all over the place for these revision defines leads
-> into unmaintainable code as new SoCs get added.
->
-> Please instead just check the revision once during init, then set
-> up some feature bits like I2C_OMAP_NEEDS_XYZ_RESET that the runtime
-> code can check.
-Even now at probe
+* Jon Hunter <jon-hunter@ti.com> [120612 17:45]:
+> When booting with device-tree on an OMAP2420H4, the kernel is hanging when
+> initialising the interrupts and following kernel dumps is seen ...
+> 
+> [    0.000000] ------------[ cut here ]------------
+> [    0.000000] WARNING: at arch/arm/mach-omap2/irq.c:271 omap_intc_of_init+0x50/0xb4()
+> [    0.000000] unable to get intc registers
+> [    0.000000] Modules linked in:
+> [    0.000000] [<c001befc>] (unwind_backtrace+0x0/0xf4) from [<c0040c34>] (warn_slowpath_common+0x4c/0x64)
+> [    0.000000] [<c0040c34>] (warn_slowpath_common+0x4c/0x64) from [<c0040ce0>] (warn_slowpath_fmt+0x30/0x40)
+> [    0.000000] [<c0040ce0>] (warn_slowpath_fmt+0x30/0x40) from [<c066b8a4>] (omap_intc_of_init+0x50/0xb4)
+> [    0.000000] [<c066b8a4>] (omap_intc_of_init+0x50/0xb4) from [<c0688b70>] (of_irq_init+0x144/0x288)
+> [    0.000000] [<c0688b70>] (of_irq_init+0x144/0x288) from [<c0663294>] (init_IRQ+0x14/0x1c)
+> [    0.000000] [<c0663294>] (init_IRQ+0x14/0x1c) from [<c06607fc>] (start_kernel+0x198/0x304)
+> [    0.000000] [<c06607fc>] (start_kernel+0x198/0x304) from [<80008044>] (0x80008044)
+> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+> [    0.000000] of_irq_init: children remain, but no parents
+> 
+> The OMAP2 interrupt controller binding is missing the number of interrupts and
+> interrupt controller register address. Adding these fixes the problem.
 
-dev->rev is set by reading the rev register.
+Thanks this is a good one, applying into fixes.
 
-The (macro)name used to identify is only changed.
+Tony
 
-Also all the ips need reset the difference is that 2430 has less bits eg only autoidle and reset.
-So a flag needs reset may not be meaningful.
-
-
-
->
->
->> @@ -1055,7 +1055,7 @@ omap_i2c_probe(struct platform_device *pdev)
->>  	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->>  		dev->errata |= I2C_OMAP_ERRATA_I207;
->>  
->> -	if (dev->rev <= OMAP_I2C_REV_ON_3430)
->> +	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
->>  		dev->errata |= I2C_OMAP_ERRATA_I462;
->>  
->>  	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
->> @@ -1073,7 +1073,7 @@ omap_i2c_probe(struct platform_device *pdev)
->>  
->>  		dev->fifo_size = (dev->fifo_size / 2);
->>  
->> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
->> +		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
->>  			dev->b_hw = 0; /* Disable hardware fixes */
->>  		else
->>  			dev->b_hw = 1; /* Enable hardware fixes */
-> That way the code does not need to change when new SoC revisions
-> get added.
-I think it might still not need to change because of >= .
-I have just renamed
-
-OMAP_I2C_REV_ON_3530_4430 as 3530 rev is not the same as 4430 that the name implies.
-
->
-> Tony
-
+> 
+> This is based upon latest linux-omap master (3.5-rc1) git tree.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
+>  arch/arm/boot/dts/omap2.dtsi |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+> index f2ab4ea..581cb08 100644
+> --- a/arch/arm/boot/dts/omap2.dtsi
+> +++ b/arch/arm/boot/dts/omap2.dtsi
+> @@ -44,6 +44,8 @@
+>  			compatible = "ti,omap2-intc";
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+> +			ti,intc-size = <96>;
+> +			reg = <0x480FE000 0x1000>;
+>  		};
+>  
+>  		uart1: serial@4806a000 {
+> -- 
+> 1.7.9.5
+> 
