@@ -1,41 +1,34 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 21 Jun 2012 14:56:56 +0000
-Message-ID: <201206211456.56933.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206151127.24386.arnd@arndb.de> <Pine.LNX.4.64.1206211250190.3513@axis700.grange>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
+Date: Thu, 21 Jun 2012 11:36:26 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1206211136010.1164-100000@iolanthe.rowland.org>
+References: <1340275473-16374-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58045 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757690Ab2FUO5h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 10:57:37 -0400
-In-Reply-To: <Pine.LNX.4.64.1206211250190.3513@axis700.grange>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340275473-16374-1-git-send-email-Russ.Dill-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Volodymyr Mieshkov <x0182794-l0cyMroinI0@public.gmane.org>, yan-liu-l0cyMroinI0@public.gmane.org, aparnab-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
 
-On Thursday 21 June 2012, Guennadi Liakhovetski wrote:
-> Indeed, this solution should be good enough, thanks! I'm not sure, whether 
-> making this multiplexing available requires any additional code to the 
-> generic DMA DT binding implementation. If it does - please, let's make 
-> this a part of the implementation.
+On Thu, 21 Jun 2012, Russ Dill wrote:
 
-It depends how the dma engine gets represented in Linux then: Either
-we make the common dmaengine code handle multiple dma-engines with the
-same of_node pointer, or you make the driver register a single dma-engine
-to Linux that is backed by the three physical devices but just one
-of_node pointer. I think either way will work, and someone has to
-try it to determine which one is simpler.
+> A recent commit, [PATCH] Fix OMAP EHCI suspend/resume failure
+> (i693) '354ab856' causes ehci probe to fail on omap3xxx. This
+> exposed bugs in the ehci_hcd_omap_probe error path causing
+> an oops.
+> 
+> On the error path, call usb_remove_hcd if usb_add_hcd has been
+> called, and call usb_put_hcd if usb_alloc_hcd has been called.
+> 
+> Tested on BB-xM.
+> 
+> Signed-off-by: Russ.Dill-l0cyMroinI0@public.gmane.org
 
-> It is also important to provide a flexible multiple channel per device 
-> configuration support to let slave drivers distinguish between different 
-> DMA channels, that they get back from the API. But I think this is a part 
-> of the current proposal and is being taken care of.
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Yes, it is.
-
-	Arnd
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
