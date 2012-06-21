@@ -1,52 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.5-rc3
-Date: Thu, 21 Jun 2012 09:20:26 -0700
-Message-ID: <20120621162026.GW12766@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: 5912OSK NFS root broken on v3.5-rc3
+Date: Thu, 21 Jun 2012 12:16:57 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206211212290.10198@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:28924 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759724Ab2FUQUa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 12:20:30 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:47524 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932745Ab2FUSQ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 14:16:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: linux-arm-kernel@vger.kernel.org
 
-The following changes since commit 485802a6c524e62b5924849dd727ddbb1497cc71:
 
-  Linux 3.5-rc3 (2012-06-16 17:25:17 -0700)
+The 5912OSK here no longer mounts NFS root:
 
-are available in the git repository at:
+http://www.pwsan.com/omap/bootlogs/20120620/omap_cleanup_a_3.6__07b3a13957aa250ff5b5409b8ed756b113544112/
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.5-rc3
+This broke at some point between v3.4-rc2 and v3.5-rc3.
 
-for you to fetch changes up to aef2b89662b8a7506846d0dc0df672d196ddf8d0:
 
-  ARM: OMAP: Fix Beagleboard DVI reset gpio (2012-06-20 07:18:21 -0700)
-
-----------------------------------------------------------------
-Here are a few fixes with the biggest one being fix for Beagle DVI
-reset. All of them are regression fixes, except for the missing omap2
-interrupt controller binding that somehow got missed earlier.
-
-----------------------------------------------------------------
-Jon Hunter (1):
-      arm/dts: OMAP2: Fix interrupt controller binding
-
-Russ Dill (1):
-      ARM: OMAP: Fix Beagleboard DVI reset gpio
-
-Tony Lindgren (2):
-      ARM: OMAP2+: Fix MUSB ifdefs for platform init code
-      ARM: OMAP2: Fix tusb6010 GPIO interrupt for n8x0
-
- arch/arm/boot/dts/omap2.dtsi            |    2 ++
- arch/arm/mach-omap2/board-n8x0.c        |    6 ++----
- arch/arm/mach-omap2/board-omap3beagle.c |   28 ++++++++++++----------------
- arch/arm/mach-omap2/omap_phy_internal.c |    6 ------
- arch/arm/mach-omap2/usb-musb.c          |    6 ++----
- arch/arm/mach-omap2/usb-tusb6010.c      |    2 +-
- 6 files changed, 19 insertions(+), 31 deletions(-)
+- Paul
