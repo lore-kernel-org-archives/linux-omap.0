@@ -1,70 +1,59 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP: USB: Fix omap3xxx EHCI regression caused by i693 errata fix.
-Date: Thu, 21 Jun 2012 03:44:32 -0700
-Message-ID: <1340275473-16374-2-git-send-email-Russ.Dill@ti.com>
-References: <CA+Bv8XZ-g26_3Hv9xgDvwRooUeZwaKtZJwvnxxEZHcFx06es7Q@mail.gmail.com>
- <1340275473-16374-1-git-send-email-Russ.Dill@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: MFD USB host: prevents CORE retention in idle
+Date: Thu, 21 Jun 2012 13:47:10 +0300
+Message-ID: <CANOLnOOAQiSfZCj1SuiXC5QYuBCwLPLmHDnHTG-pjZFvsdmAwg@mail.gmail.com>
+References: <87zk8yxx9l.fsf@ti.com>
+	<4FBD7FDC.9050307@ti.com>
+	<CAP05o4KNnrKdmgJ=Ky=MS4pwEoEErH+Agkm2EwN1i1UDb-CbPQ@mail.gmail.com>
+	<871um9wlzx.fsf@ti.com>
+	<878vghut1u.fsf@ti.com>
+	<4FCE46E7.60702@ti.com>
+	<CAP05o4L+0E6fa1VoP_UPTJgKjXb-VqZorUfzsTB3d-KVoFrXfw@mail.gmail.com>
+	<CAP05o4KuoQHhTRTCtdpiywgC1HjwzXZHhROKOgSLhoK76Z2aaQ@mail.gmail.com>
+	<87fwa56gxp.fsf@ti.com>
+	<CAP05o4JEEp-yXjijeeejN3j8uVBDQ35DMGqP9UKj3f7sNnO8LA@mail.gmail.com>
+	<CAP05o4LYhFQpEFukyCT2fA7XHPU2L5K8=8W0fncMJk6YEUWdOQ@mail.gmail.com>
+	<CAP05o4KaZ93Nt58h5ZccWeM2EazLtwOcV5rkmLvijuB5HRbJ8g@mail.gmail.com>
+	<CAORVsuVpbgtS8+Jkw+Z2kA0k0SuL=kYRYcO3JRJ0D9LL34gH2Q@mail.gmail.com>
+	<CAP05o4Kh+YVYgv_F-GZ=A0V+Nt=x4wCRwek81K7M=bT=PmyBGw@mail.gmail.com>
+	<87mx3zji26.fsf@ti.com>
+	<CAP05o4LKMJiHhu7f+dyhEHo5Up1PioCYgmn122vda5d5NfW5Uw@mail.gmail.com>
+	<CAP05o4JET=htEeyOkpCDwLKeOSCT24+tNMF0dkE24VLH6s6uLQ@mail.gmail.com>
+	<874nq6jc55.fsf@ti.com>
+	<CAP05o4+Fcb0Xy_P8hrJ9=Vium_yCFA2mm+fy7nO2=nAsRpK5xQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:33237 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753643Ab2FUKoq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 06:44:46 -0400
-In-Reply-To: <1340275473-16374-1-git-send-email-Russ.Dill@ti.com>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:44689 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984Ab2FUKrL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 06:47:11 -0400
+Received: by mail-gg0-f174.google.com with SMTP id u4so309790ggl.19
+        for <linux-omap@vger.kernel.org>; Thu, 21 Jun 2012 03:47:11 -0700 (PDT)
+In-Reply-To: <CAP05o4+Fcb0Xy_P8hrJ9=Vium_yCFA2mm+fy7nO2=nAsRpK5xQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Anand Gadiyar <gadiyar@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vikram Pandita <vikram.pandita@ti.com>, Volodymyr Mieshkov <x0182794@ti.com>, Alan Stern <stern@rowland.harvard.edu>, yan-liu@ti.com, aparnab@ti.com, Russ Dill <Russ.Dill@ti.com>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, Ameya Palande <ameya.palande@ti.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-[PATCH] Fix OMAP EHCI suspend/resume failure (i693) '354ab856' causes
-an oops on boot for all omap3xxx platforms that use usbhs_omap for
-EHCI. The actual oops comes from faulty ehci-omap cleanup, but the
-failure caused by the change is evidenced here:
+On Thu, Jun 21, 2012 at 10:12 AM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> I did the clone of this , But I am not seeing the branch 'tmp/test/us=
+b-host'
+> I am seeing only the branch /wip/arm-nohz-cpusets other than master.
+> I didn't any usb-host branch here too:
+> http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux.git;a=3Dsum=
+mary
 
-[    3.655059] ehci-omap ehci-omap.0: utmi_p1_gfclk failed error:-2
-[    3.661376] ehci-omap: probe of ehci-omap.0 failed with error -2
+It seems Kevin linked the wrong git tree, try this one:
+http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux-omap-pm.git
 
-utmi_p1_gfclk is a clock that exists on OMAP4, but not OMAP3. In the
-OMAP3 case, it is configured as a dummy clock. However, OMAP4 lists
-the dev_id as NULL, but OMAP3 lists it as "usbhs_omap".
 
-Attempting to get that clock from ehci-omap then fails. The solution
-is to just change the clock3xxx_data.c for dummy clocks used in the
-errata fix to match the dev_id, NULL, used in clock44xx_data.c.
-
-Tested on BB-xM.
-
-Signed-off-by: Russ Dill <Russ.Dill@ti.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 4e1a3b0..59d5315 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3391,15 +3391,15 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("usbhs_omap",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
- 	CLK("usbhs_omap",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
- 	CLK("usbhs_omap",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
-+	CLK(NULL,	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
- 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
--- 
-1.7.10.4
-
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
