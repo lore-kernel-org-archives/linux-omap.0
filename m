@@ -1,55 +1,229 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Audio support on OMAP 3430LDP or 4430SDP boards
-Date: Thu, 21 Jun 2012 14:22:49 +0100
-Message-ID: <20120621132249.GA27635@n2100.arm.linux.org.uk>
-References: <20120427165032.GD28062@n2100.arm.linux.org.uk> <CAPo=G1yiX1644Cwkdnt7Ff7+yYbJQw5mnEbwd0txw-Wj_YdV7Q@mail.gmail.com> <20120427171933.GE28062@n2100.arm.linux.org.uk> <CAPo=G1wDANyQ5ARyerizp6oA=Wyc7s_to7zfz-n4GdZ20tfX4g@mail.gmail.com> <20120427183116.GF28062@n2100.arm.linux.org.uk> <20120427193129.GA3951@n2100.arm.linux.org.uk> <20120429203525.GA4618@n2100.arm.linux.org.uk> <4F9E3EB5.8030104@ti.com> <20120621125903.GA17984@n2100.arm.linux.org.uk> <20120621131642.GA27383@n2100.arm.linux.org.uk>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Thu, 21 Jun 2012 19:12:12 +0530
+Message-ID: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59941 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759598Ab2FUNW5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 09:22:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20120621131642.GA27383@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>
 
-On Thu, Jun 21, 2012 at 02:16:42PM +0100, Russell King - ARM Linux wrote:
-> On Thu, Jun 21, 2012 at 01:59:03PM +0100, Russell King - ARM Linux wrote:
-> > On Mon, Apr 30, 2012 at 10:26:45AM +0300, Peter Ujfalusi wrote:
-> > > On 04/29/2012 11:35 PM, Russell King - ARM Linux wrote:
-> > > > Please can someone at TI take a current mainline kernel, build it, and
-> > > > test out audio support on the 4430SDP - specifically output through the
-> > > > headset jack into a line input, and report when it works.  Thanks.
-> > > 
-> > > Try to use my attached aconf for SDP4430 to configure the HS playback.
-> > > Note that the HS is not a line out, so on your line-in device it will
-> > > cause distortion. If you have a headset/headphone you will have better
-> > > quality.
-> > > alsactl -f blaze.aconf restore
-> > > 
-> > > To play samples with aplay:
-> > > aplay -Dplughw:0,0 <wav file>
-> > > The sample format fot Legacy McPDM is S32_LE, 96KHz, 24bit (32 bit
-> > > sample with 24 LSB).
-> > 
-> > I'm just having another go with OMAP4430 audio... and again I find that
-> > I can't get anything out of the board.
-> > 
-> > I've followed what you've said above, and it doesn't work.  I've undone
-> > my DMA engine changes.  Still doesn't work.  I've checked
-> > /sys/kernel/debug/asoc for the codecs and DAIs, and they're there, and
-> > the SDP4430 audio is shown in /proc/asound/cards too, and yes, you
-> > guessed it, it still doesn't work.
-> > 
-> > It's just a really expensive /dev/null from what I can tell at the moment.
-> > 
-> > Frustrated.
-> 
-> Okay, reverting back to v3.4-rc4 works.
+This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+"Fix OMAP EHCI suspend/resume failure (i693)" is causing
+the usb hub and device detection fails in beagle XM
+causeing NFS not functional. This affects the core retention too.
+The same commit logic needs to be revisted adhering to hwmod and
+device tree framework.
+for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
+titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
 
-As does reverting to v3.4, of course.  So, it was broken during the last
-merge window.
+This patch is validated on BeagleXM with NFS support over
+usb ethernet and USB mass storage and other device detection.
+
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/host/ehci-omap.c |  164 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 163 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 17cfb8a..272e661 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -56,15 +56,6 @@
+ #define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT		8
+ #define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT		0
+ 
+-/* Errata i693 */
+-static struct clk	*utmi_p1_fck;
+-static struct clk	*utmi_p2_fck;
+-static struct clk	*xclk60mhsp1_ck;
+-static struct clk	*xclk60mhsp2_ck;
+-static struct clk	*usbhost_p1_fck;
+-static struct clk	*usbhost_p2_fck;
+-static struct clk	*init_60m_fclk;
+-
+ /*-------------------------------------------------------------------------*/
+ 
+ static const struct hc_driver ehci_omap_hc_driver;
+@@ -80,40 +71,6 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
+ 	return __raw_readl(base + reg);
+ }
+ 
+-/* Erratum i693 workaround sequence */
+-static void omap_ehci_erratum_i693(struct ehci_hcd *ehci)
+-{
+-	int ret = 0;
+-
+-	/* Switch to the internal 60 MHz clock */
+-	ret = clk_set_parent(utmi_p1_fck, init_60m_fclk);
+-	if (ret != 0)
+-		ehci_err(ehci, "init_60m_fclk set parent"
+-			"failed error:%d\n", ret);
+-
+-	ret = clk_set_parent(utmi_p2_fck, init_60m_fclk);
+-	if (ret != 0)
+-		ehci_err(ehci, "init_60m_fclk set parent"
+-			"failed error:%d\n", ret);
+-
+-	clk_enable(usbhost_p1_fck);
+-	clk_enable(usbhost_p2_fck);
+-
+-	/* Wait 1ms and switch back to the external clock */
+-	mdelay(1);
+-	ret = clk_set_parent(utmi_p1_fck, xclk60mhsp1_ck);
+-	if (ret != 0)
+-		ehci_err(ehci, "xclk60mhsp1_ck set parent"
+-			"failed error:%d\n", ret);
+-
+-	ret = clk_set_parent(utmi_p2_fck, xclk60mhsp2_ck);
+-	if (ret != 0)
+-		ehci_err(ehci, "xclk60mhsp2_ck set parent"
+-			"failed error:%d\n", ret);
+-
+-	clk_disable(usbhost_p1_fck);
+-	clk_disable(usbhost_p2_fck);
+-}
+ 
+ static void omap_ehci_soft_phy_reset(struct platform_device *pdev, u8 port)
+ {
+@@ -145,50 +102,6 @@ static void omap_ehci_soft_phy_reset(struct platform_device *pdev, u8 port)
+ 	}
+ }
+ 
+-static int omap_ehci_hub_control(
+-	struct usb_hcd	*hcd,
+-	u16		typeReq,
+-	u16		wValue,
+-	u16		wIndex,
+-	char		*buf,
+-	u16		wLength
+-)
+-{
+-	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
+-	u32 __iomem *status_reg = &ehci->regs->port_status[
+-				(wIndex & 0xff) - 1];
+-	u32		temp;
+-	unsigned long	flags;
+-	int		retval = 0;
+-
+-	spin_lock_irqsave(&ehci->lock, flags);
+-
+-	if (typeReq == SetPortFeature && wValue == USB_PORT_FEAT_SUSPEND) {
+-		temp = ehci_readl(ehci, status_reg);
+-		if ((temp & PORT_PE) == 0 || (temp & PORT_RESET) != 0) {
+-			retval = -EPIPE;
+-			goto done;
+-		}
+-
+-		temp &= ~PORT_WKCONN_E;
+-		temp |= PORT_WKDISC_E | PORT_WKOC_E;
+-		ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
+-
+-		omap_ehci_erratum_i693(ehci);
+-
+-		set_bit((wIndex & 0xff) - 1, &ehci->suspended_ports);
+-		goto done;
+-	}
+-
+-	spin_unlock_irqrestore(&ehci->lock, flags);
+-
+-	/* Handle the hub control events here */
+-	return ehci_hub_control(hcd, typeReq, wValue, wIndex, buf, wLength);
+-done:
+-	spin_unlock_irqrestore(&ehci->lock, flags);
+-	return retval;
+-}
+-
+ static void disable_put_regulator(
+ 		struct ehci_hcd_omap_platform_data *pdata)
+ {
+@@ -353,76 +266,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	/* root ports should always stay powered */
+ 	ehci_port_power(omap_ehci, 1);
+ 
+-	/* get clocks */
+-	utmi_p1_fck = clk_get(dev, "utmi_p1_gfclk");
+-	if (IS_ERR(utmi_p1_fck)) {
+-		ret = PTR_ERR(utmi_p1_fck);
+-		dev_err(dev, "utmi_p1_gfclk failed error:%d\n",	ret);
+-		goto err_add_hcd;
+-	}
+-
+-	xclk60mhsp1_ck = clk_get(dev, "xclk60mhsp1_ck");
+-	if (IS_ERR(xclk60mhsp1_ck)) {
+-		ret = PTR_ERR(xclk60mhsp1_ck);
+-		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
+-		goto err_utmi_p1_fck;
+-	}
+-
+-	utmi_p2_fck = clk_get(dev, "utmi_p2_gfclk");
+-	if (IS_ERR(utmi_p2_fck)) {
+-		ret = PTR_ERR(utmi_p2_fck);
+-		dev_err(dev, "utmi_p2_gfclk failed error:%d\n", ret);
+-		goto err_xclk60mhsp1_ck;
+-	}
+-
+-	xclk60mhsp2_ck = clk_get(dev, "xclk60mhsp2_ck");
+-	if (IS_ERR(xclk60mhsp2_ck)) {
+-		ret = PTR_ERR(xclk60mhsp2_ck);
+-		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
+-		goto err_utmi_p2_fck;
+-	}
+-
+-	usbhost_p1_fck = clk_get(dev, "usb_host_hs_utmi_p1_clk");
+-	if (IS_ERR(usbhost_p1_fck)) {
+-		ret = PTR_ERR(usbhost_p1_fck);
+-		dev_err(dev, "usbhost_p1_fck failed error:%d\n", ret);
+-		goto err_xclk60mhsp2_ck;
+-	}
+-
+-	usbhost_p2_fck = clk_get(dev, "usb_host_hs_utmi_p2_clk");
+-	if (IS_ERR(usbhost_p2_fck)) {
+-		ret = PTR_ERR(usbhost_p2_fck);
+-		dev_err(dev, "usbhost_p2_fck failed error:%d\n", ret);
+-		goto err_usbhost_p1_fck;
+-	}
+-
+-	init_60m_fclk = clk_get(dev, "init_60m_fclk");
+-	if (IS_ERR(init_60m_fclk)) {
+-		ret = PTR_ERR(init_60m_fclk);
+-		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
+-		goto err_usbhost_p2_fck;
+-	}
+ 
+ 	return 0;
+ 
+-err_usbhost_p2_fck:
+-	clk_put(usbhost_p2_fck);
+-
+-err_usbhost_p1_fck:
+-	clk_put(usbhost_p1_fck);
+-
+-err_xclk60mhsp2_ck:
+-	clk_put(xclk60mhsp2_ck);
+-
+-err_utmi_p2_fck:
+-	clk_put(utmi_p2_fck);
+-
+-err_xclk60mhsp1_ck:
+-	clk_put(xclk60mhsp1_ck);
+-
+-err_utmi_p1_fck:
+-	clk_put(utmi_p1_fck);
+-
+ err_add_hcd:
+ 	disable_put_regulator(pdata);
+ 	pm_runtime_put_sync(dev);
+@@ -452,14 +298,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	iounmap(hcd->regs);
+ 	usb_put_hcd(hcd);
+ 
+-	clk_put(utmi_p1_fck);
+-	clk_put(utmi_p2_fck);
+-	clk_put(xclk60mhsp1_ck);
+-	clk_put(xclk60mhsp2_ck);
+-	clk_put(usbhost_p1_fck);
+-	clk_put(usbhost_p2_fck);
+-	clk_put(init_60m_fclk);
