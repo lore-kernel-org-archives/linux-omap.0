@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv9 6/8] I2C: OMAP: Remove the definition of SYSS_RESETDONE_MASK
-Date: Thu, 21 Jun 2012 15:38:47 +0530
-Message-ID: <1340273329-8319-7-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv9 4/8] I2C: OMAP: Use SET_RUNTIME_PM_OPS
+Date: Thu, 21 Jun 2012 15:38:45 +0530
+Message-ID: <1340273329-8319-5-git-send-email-shubhrajyoti@ti.com>
 References: <1340273329-8319-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,31 +12,45 @@ To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the definition of SYSS_RESETDONE_MASK and use the
-one in omap_hwmod.h.
+Use SET_RUNTIME_PM_OPS macro to set runtime functions.
 
-Also fixes the warning
- CC      drivers/i2c/busses/i2c-omap.o
-drivers/i2c/busses/i2c-omap.c:163: warning: "SYSS_RESETDONE_MASK" redefined
-
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2a50094..cbf7ecd 100644
+index 328a022..ccb2fc4 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -159,9 +159,6 @@ enum {
- #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
- #endif
+@@ -1115,6 +1115,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
--/* OCP_SYSSTATUS bit definitions */
--#define SYSS_RESETDONE_MASK		(1 << 0)
--
- /* OCP_SYSCONFIG bit definitions */
- #define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
- #define SYSC_SIDLEMODE_MASK		(0x3 << 3)
++#ifdef CONFIG_PM
+ #ifdef CONFIG_PM_RUNTIME
+ static void omap_i2c_restore(struct omap_i2c_dev *dev)
+ {
+@@ -1176,15 +1177,16 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 
+ 	return 0;
+ }
++#endif /* CONFIG_PM_RUNTIME */
+ 
+ static struct dev_pm_ops omap_i2c_pm_ops = {
+-	.runtime_suspend = omap_i2c_runtime_suspend,
+-	.runtime_resume = omap_i2c_runtime_resume,
++	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
++			   omap_i2c_runtime_resume, NULL)
+ };
+ #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
+ #else
+ #define OMAP_I2C_PM_OPS NULL
+-#endif
++#endif /* CONFIG_PM */
+ 
+ static struct platform_driver omap_i2c_driver = {
+ 	.probe		= omap_i2c_probe,
 -- 
 1.7.5.4
