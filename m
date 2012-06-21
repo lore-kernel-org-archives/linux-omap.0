@@ -1,76 +1,78 @@
 From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: Re: [PATCH 3/5] ARM: omap3evm: enable VBUS switch for EHCI tranceiver
-Date: Thu, 21 Jun 2012 09:03:06 +0800
-Message-ID: <4FE272CA.6090502@windriver.com>
-References: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com> <1340183693-3195-4-git-send-email-zumeng.chen@windriver.com> <4FE1BC98.7050607@mvista.com>
+Subject: Re: [PATCH 4/5] ARM: OMAP3EVM: cosmetic fixes for parent clk set
+Date: Thu, 21 Jun 2012 09:05:10 +0800
+Message-ID: <4FE27346.30100@windriver.com>
+References: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com> <1340183693-3195-5-git-send-email-zumeng.chen@windriver.com> <4FE1F39C.50104@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:42261 "EHLO
+Received: from mail.windriver.com ([147.11.1.11]:42731 "EHLO
 	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755151Ab2FUBEP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 21:04:15 -0400
-In-Reply-To: <4FE1BC98.7050607@mvista.com>
+	with ESMTP id S1750742Ab2FUBGL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Jun 2012 21:06:11 -0400
+In-Reply-To: <4FE1F39C.50104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: jon-hunter@ti.com, mike@compulab.co.il, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, hvaibhav@ti.com, linux-arm-kernel@lists.infradead.org, ajay.gupta@ti.com
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: mike@compulab.co.il, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, khilman@ti.com, hvaibhav@ti.com, ajay.gupta@ti.com
 
-=E4=BA=8E 2012=E5=B9=B406=E6=9C=8820=E6=97=A5 20:05, Sergei Shtylyov =E5=
-=86=99=E9=81=93:
-> Hello.
->
-> On 20-06-2012 13:14, Zumeng Chen wrote:
->
->> This was chosen by following the trace on the schematic from=20
->> component U131
->> and U134 to the CPEN pin on the USB3320 device.
->
->> TWL4030.GPIO2-...->(T2_GPIO2_3V3)U131-..>nUSB2_EN-..>U134-..>EXP_nUS=
-B2_1V8=20
+=E4=BA=8E 2012=E5=B9=B406=E6=9C=8821=E6=97=A5 00:00, Jon Hunter =E5=86=99=
+=E9=81=93:
+> On 06/20/2012 04:14 AM, Zumeng Chen wrote:
+>> Since it's no more sense to set parent for dummy clock,
+>> so we can just ignore it to mute failed message.
 >>
->> which starts EHCI tranceiver USB3320.
->
->> This will set TWL4030.GPIO2 as output pin to drive EHCI tranceiver.
->
->> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
+>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>> Signed-off-by: Zumeng Chen<zumeng.chen@gmail.com>
 >> ---
->> arch/arm/mach-omap2/board-omap3evm.c | 9 +++++++++
->> 1 files changed, 9 insertions(+), 0 deletions(-)
->
->> diff --git a/arch/arm/mach-omap2/board-omap3evm.c=20
->> b/arch/arm/mach-omap2/board-omap3evm.c
->> index 1bfbe42..02d8047 100644
->> --- a/arch/arm/mach-omap2/board-omap3evm.c
->> +++ b/arch/arm/mach-omap2/board-omap3evm.c
->> @@ -360,6 +360,15 @@ static int omap3evm_twl_gpio_setup(struct devic=
-e=20
->> *dev,
+>>   arch/arm/plat-omap/clock.c  |    4 ++++
+>>   drivers/mfd/omap-usb-host.c |    2 +-
+>>   2 files changed, 5 insertions(+), 1 deletions(-)
 >>
->> platform_device_register(&leds_gpio);
+>> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+>> index 62ec5c4..c7e26e4 100644
+>> --- a/arch/arm/plat-omap/clock.c
+>> +++ b/arch/arm/plat-omap/clock.c
+>> @@ -149,6 +149,10 @@ int clk_set_parent(struct clk *clk, struct clk =
+*parent)
+>>   	if (!arch_clock || !arch_clock->clk_set_parent)
+>>   		return ret;
 >>
->> + /* Enable VBUS switch by setting TWL4030.GPIO2DIR as output
->> + * for starting USB tranceiver
->> + */
->> + if (get_omap3_evm_rev()>=3D OMAP3EVM_BOARD_GEN_2) {
->> + u8 val;
->
-> Empty line after declaration block wouldn't hurt...
-Yes, Agreed.
+>> +	/* If the clock is a dummy clock just return */
+>> +	if (clk =3D=3D&dummy_ck)
+>> +		return 0;
+>> +
+>>   	spin_lock_irqsave(&clockfw_lock, flags);
+>>   	if (clk->usecount =3D=3D 0) {
+>>   		ret =3D arch_clock->clk_set_parent(clk, parent);
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
+=2Ec
+>> index 7e96bb2..c9d27c4 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -699,7 +699,7 @@ static int __devinit usbhs_omap_probe(struct pla=
+tform_device *pdev)
+>>   	}
+>>
+>>   	if (is_ehci_phy_mode(pdata->port_mode[0])) {
+>> -		/* for OMAP3 , the clk set paretn fails */
+>> +		/* for OMAP3 , the clk set parent fails */
+> Can't we remove this comment now with the above fix? It is no longer
+> relevant, right?
+Yes, NP.
 
 Regards,
 Zumeng
 >
->> + twl_i2c_read_u8(TWL4030_MODULE_GPIO,&val, REG_GPIODATADIR1);
->> + val |=3D 0x04; /* TWL4030.GPIO2DIR BIT at GPIODATADIR1(0x9B) */
->> + twl_i2c_write_u8(TWL4030_MODULE_GPIO, val, REG_GPIODATADIR1);
->> + }
->> return 0;
->> }
->
-> WBR, Sergei
+> Cheers
+> Jon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
