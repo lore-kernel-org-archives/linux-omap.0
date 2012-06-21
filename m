@@ -1,44 +1,77 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
-Date: Thu, 21 Jun 2012 15:55:21 +0400
-Message-ID: <4FE30BA9.1070108@mvista.com>
-References: <CA+Bv8XZ-g26_3Hv9xgDvwRooUeZwaKtZJwvnxxEZHcFx06es7Q@mail.gmail.com> <1340275473-16374-1-git-send-email-Russ.Dill@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v3 0/3] Prepare for GPMC driver conversion
+Date: Thu, 21 Jun 2012 18:07:57 +0530
+Message-ID: <cover.1340281127.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340275473-16374-1-git-send-email-Russ.Dill-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Volodymyr Mieshkov <x0182794-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, yan-liu-l0cyMroinI0@public.gmane.org, aparnab-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47724 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759539Ab2FUMx0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 08:53:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-Hello.
+Hi,
 
-On 21-06-2012 14:44, Russ Dill wrote:
+Objective of this series is to make things easy for GPMC driver
+conversion series by separating out more things from driver
+conversion series.
 
-> A recent commit, [PATCH] Fix OMAP EHCI suspend/resume failure
-> (i693) '354ab856'
+This series,
+1. Unifies NAND platform initialization functions
+2. Prepares OneNAND platform code for gpmc driver migration
+3. Handles additional timings in Kernel
 
-    Usually commit ID follows the word "commit", and then the commit summary.
+This series is based on 3.5-rc1 & made on top of
+[PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+{http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html}
 
-> causes ehci probe to fail on omap3xxx. This
-> exposed bugs in the ehci_hcd_omap_probe error path causing
-> an oops.
+These changes has been tested with omap3evm & beagle board. Relevant
+GPMC peripherals that got tested by this were NAND (beagle) and
+OneNAND (using local patches for omap3evm)
 
-> On the error path, call usb_remove_hcd if usb_add_hcd has been
-> called, and call usb_put_hcd if usb_alloc_hcd has been called.
+Regards
+Afzal
 
-> Tested on BB-xM.
+v3:
+1. Refactor OneNAND set_sync/async functions to separate out timing
+ and configurations
+2. Handle bool type timings too
+3. Swap patches 2 & 3 due to dependency of OneNAND change on  newly
+ added bool type timings
+v2:
+1. Make use of timing api for setting clock activation time, and
+ remove direct writing to register for clock activation. Peripherals
+ making use of it were tusb6010 & onenand
+2. Move ensuring that async mode in OneNAND has been setup from
+ set_sync to setup function, improve commit message
 
-> Signed-off-by: Russ.Dill-l0cyMroinI0@public.gmane.org
 
-    It should be:
+Afzal Mohammed (3):
+  ARM: OMAP2+: nand: unify init functions
+  ARM: OMAP2+: gpmc: handle additional timings
+  ARM: OMAP2+: onenand: prepare for gpmc driver migration
 
-Signed-off-by: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+ arch/arm/mach-omap2/board-devkit8000.c     |    8 +-
+ arch/arm/mach-omap2/board-flash.c          |   45 ++++-----
+ arch/arm/mach-omap2/board-flash.h          |    6 +-
+ arch/arm/mach-omap2/board-igep0020.c       |    2 +-
+ arch/arm/mach-omap2/board-ldp.c            |    4 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |    8 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |    8 +-
+ arch/arm/mach-omap2/board-overo.c          |    7 +-
+ arch/arm/mach-omap2/board-zoom.c           |    5 +-
+ arch/arm/mach-omap2/common-board-devices.c |   46 ----------
+ arch/arm/mach-omap2/common-board-devices.h |    1 -
+ arch/arm/mach-omap2/gpmc-onenand.c         |  137 ++++++++++++++--------------
+ arch/arm/mach-omap2/gpmc.c                 |   45 +++++++++
+ arch/arm/mach-omap2/usb-tusb6010.c         |    3 +-
+ arch/arm/plat-omap/include/plat/gpmc.h     |   19 ++++
+ 15 files changed, 193 insertions(+), 151 deletions(-)
 
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.7.10.2
+
