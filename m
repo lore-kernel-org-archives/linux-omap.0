@@ -1,97 +1,44 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 21 Jun 2012 13:21:47 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1206211250190.3513@axis700.grange>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <201206150900.50866.arnd@arndb.de> <Pine.LNX.4.64.1206151107480.11729@axis700.grange>
- <201206151127.24386.arnd@arndb.de>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
+Date: Thu, 21 Jun 2012 15:55:21 +0400
+Message-ID: <4FE30BA9.1070108@mvista.com>
+References: <CA+Bv8XZ-g26_3Hv9xgDvwRooUeZwaKtZJwvnxxEZHcFx06es7Q@mail.gmail.com> <1340275473-16374-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61805 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758785Ab2FULWI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 07:22:08 -0400
-In-Reply-To: <201206151127.24386.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340275473-16374-1-git-send-email-Russ.Dill-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Volodymyr Mieshkov <x0182794-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, yan-liu-l0cyMroinI0@public.gmane.org, aparnab-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
 
-Hi Arnd
+Hello.
 
-Sorry for a delayed reply, we had to discuss this your idea internally 
-first before replying.
+On 21-06-2012 14:44, Russ Dill wrote:
 
-On Fri, 15 Jun 2012, Arnd Bergmann wrote:
+> A recent commit, [PATCH] Fix OMAP EHCI suspend/resume failure
+> (i693) '354ab856'
 
-> On Friday 15 June 2012, Guennadi Liakhovetski wrote:
-> > > In the common case, you could have one device connected to the third
-> > > slave ID of the first controller but the fifth slave ID of the
-> > > second controller. In this case, you really have to specify each
-> > > controller with its slave ID separately, even if that means a lot
-> > > of duplicate data for shmobile.
-> > 
-> > So, you don't think it's worth making a short-cut possible to specify a 
-> > DMAC type instead of each instance phandle? It really would mean __a lot__ 
-> > of duplication - with 3 generic controllers on (some) current chips and 
-> > possibly more on those, that I'm not aware about.
-> 
-> It's certainly possible to make that short-cut, but I'm not convinced
-> if it's worth it. One thing you can do is create a meta-device for
-> all of the identical DMA controllers, and refer to that one from the
-> devices, but make it a separate device node from the actual controllers,
-> of which you can have more than one. This makes the binding for your
-> dma controller more complex but reduces the amount of data required
-> in the other device nodes.
-> 
-> In case of sh7372, this could look something like
-> 
-> 	dma: dmac-mux {
-> 		compatible = "renesas,sh-dma-mux";
-> 		#dma-cells = <4>; /* slave-id, addr, chcr, mid-rid */
-> 		#address-cells = <1>;
-> 		#size-cells = <1>;
-> 		ranges;
-> 
-> 		dmae@0xfe008020{
-> 			compatible = "renesas,sh-dma";
-> 			reg = <0xfe008020 0xfe00828f
-> 				0xfe009000 0xfe00900b>
-> 			interrupts = <0x20c0 0x2000 0x2020 0x2040 0x2060 0x2080 0x20a0>;
-> 		};
-> 
-> 		dmae@0xfe018020{
-> 			compatible = "renesas,sh-dma";
-> 			reg = <0xfe018020 0xfe01828f
-> 				0xfe019000 0xfe01900b>
-> 			interrupts = <0x21c0 0x2100 0x2120 0x2140 0x2160 0x2180 0x21a0>;
-> 		};
-> 
-> 		dmae@0xfe028020{
-> 			compatible = "renesas,sh-dma";
-> 			reg = <0xfe028020 0xfe02828f
-> 				0xfe029000 0xfe02900b>
-> 			interrupts = <0x22c0 0x2200 0x2220 0x2240 0x2260 0x2280 0x22a0>;
-> 		};
-> 	};
-> 
-> This way, a slave would refer to the dmac-mux node and while
-> the device driver binds to the child nodes.
+    Usually commit ID follows the word "commit", and then the commit summary.
 
-Indeed, this solution should be good enough, thanks! I'm not sure, whether 
-making this multiplexing available requires any additional code to the 
-generic DMA DT binding implementation. If it does - please, let's make 
-this a part of the implementation.
+> causes ehci probe to fail on omap3xxx. This
+> exposed bugs in the ehci_hcd_omap_probe error path causing
+> an oops.
 
-It is also important to provide a flexible multiple channel per device 
-configuration support to let slave drivers distinguish between different 
-DMA channels, that they get back from the API. But I think this is a part 
-of the current proposal and is being taken care of.
+> On the error path, call usb_remove_hcd if usb_add_hcd has been
+> called, and call usb_put_hcd if usb_alloc_hcd has been called.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Tested on BB-xM.
+
+> Signed-off-by: Russ.Dill-l0cyMroinI0@public.gmane.org
+
+    It should be:
+
+Signed-off-by: Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
