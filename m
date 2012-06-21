@@ -1,41 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv8 03/13] I2C: OMAP: Remove reset at init
-Date: Thu, 21 Jun 2012 00:20:00 -0700
-Message-ID: <20120621071959.GV12766@atomide.com>
-References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
- <1340029828-20751-4-git-send-email-shubhrajyoti@ti.com>
- <20120620102905.GC12766@atomide.com>
- <4FE2C750.3020803@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH RESEND] ARM: OMAP4: hwmod data: add HWMOD_SWSUP_SIDLE
+ to dss_hdmi to data
+Date: Thu, 21 Jun 2012 09:59:53 +0200
+Message-ID: <4FE2D479.5000300@ti.com>
+References: <1340233810-1087-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36846 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758485Ab2FUHUE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 03:20:04 -0400
-Content-Disposition: inline
-In-Reply-To: <4FE2C750.3020803@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39627 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754378Ab2FUIAE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jun 2012 04:00:04 -0400
+In-Reply-To: <1340233810-1087-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, w.sang@pengutronix.de
+To: Ricardo Neri <ricardo.neri@ti.com>, paul@pwsan.com
+Cc: tony@atomide.com, tomi.valkeinen@ti.com, s-guiriec@ti.com, mythripk@ti.com, linux-omap@vger.kernel.org
 
-* Shubhrajyoti <shubhrajyoti@ti.com> [120621 00:08]:
-> On Wednesday 20 June 2012 03:59 PM, Tony Lindgren wrote:
-> > See the comments regarding driver specific resets in hwmod code.
-> you mean omap_hwmod.c
-> >
-> > The way to set this up is to have a shared inline function in
-> > i2c-omap.h that both the driver and hwmod code can use.
-> hwmod reset function uses oh (omap_hwmod).
-> 
-> How could the driver also pass oh ?
-> Could we keep a local copy in driver data?
-> > Eventually hwmod code will do the reset only in late initcall
-> > if no driver is loaded for the device in question.
-> 
+Hi Ricardo,
 
-There's no need for the driver to know anything about oh.
-The driver just needs to know the iobase.
+Thanks for the update.
 
-Tony
+On 6/21/2012 1:10 AM, Ricardo Neri wrote:
+> As per the OMAP4 documentation, audio over HDMI should be transmitted in
+> no-idle mode. This patch adds the HWMOD_SWSUP_SIDLE so that omap_hwmode uses
+> no-idle/force-idle settings instead of smart-idle mode.
+>
+> This is required as the DSS interface clock is used as functional clock
+> for the HDMI wrapper audio FIFO. If no-idle mode is not used, audio could
+> be choppy, have bad quality or not be audible at all.
+>
+> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+
+Acked-by: Benoit Cousson <b-cousson@ti.com>
+
+
+Paul,
+Will you take it as part of your fixes series for 3.5-rc?
+
+Regards,
+Benoit
+
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
+>   1 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 950454a..0cd6ee1 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -865,6 +865,11 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+>   	},
+>   	.opt_clks	= dss_hdmi_opt_clks,
+>   	.opt_clks_cnt	= ARRAY_SIZE(dss_hdmi_opt_clks),
+> +	/*
+> +	 * HDMI audio requires to use no-idle mode. Hence,
+> +	 * set idle mode by software.
+> +	 */
+> +	.flags          = HWMOD_SWSUP_SIDLE,
+>   };
+>
+>   /*
+>
+
+
