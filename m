@@ -1,44 +1,97 @@
-From: Rene Ramirez <rramirez27@mail.csuchico.edu>
-Subject: =?ISO-8859-1?Q?Compl=E9ter_et_de_faire_VOTRE_BO=CETE_AUX_LETTRES?=
-Date: Thu, 21 Jun 2012 11:37:32 +0100
-Message-ID: <CAD3uhy_E+NCDyg9nY7pThQ0CahOib7g_4sqjTiBpyCo7zWe9og__30527.756890706$1340275798$gmane$org@mail.gmail.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 21 Jun 2012 13:21:47 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1206211250190.3513@axis700.grange>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+ <201206150900.50866.arnd@arndb.de> <Pine.LNX.4.64.1206151107480.11729@axis700.grange>
+ <201206151127.24386.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:51527 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757631Ab2FUKty convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 06:49:54 -0400
-Received: by vcbf11 with SMTP id f11so220626vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 21 Jun 2012 03:49:54 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.186]:61805 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758785Ab2FULWI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 07:22:08 -0400
+In-Reply-To: <201206151127.24386.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Magnus Damm <magnus.damm@gmail.com>
 
---=20
-Cher utilisateur Webmail
+Hi Arnd
 
- Votre bo=EEte aux lettres a d=E9pass=E9 la limite de l'utilisation des
-quotas, qui est fix=E9 par votre gestionnaire, et l'acc=E8s =E0 votre b=
-o=EEte
-aux lettres via notre portail =E9lectronique ne sera pas disponible
-pendant un certain temps au cours de cette p=E9riode de maintenance.
+Sorry for a delayed reply, we had to discuss this your idea internally 
+first before replying.
 
- Vous ne serez pas en mesure de cr=E9er un nouvel e-mail pour envoyer o=
-u
-recevoir de nouveau jusqu'=E0 ce que vous validez votre bo=EEte aux
-lettres.
+On Fri, 15 Jun 2012, Arnd Bergmann wrote:
 
- Pour re-valider votre bo=EEte aux lettres, vous pouvez cliquer ici
-https://docs.google.com/spreadsheet/viewform?formkey=3DdDNoS1hJTTlrN1Na=
-Si1wV1RXemVDbWc6MQ
+> On Friday 15 June 2012, Guennadi Liakhovetski wrote:
+> > > In the common case, you could have one device connected to the third
+> > > slave ID of the first controller but the fifth slave ID of the
+> > > second controller. In this case, you really have to specify each
+> > > controller with its slave ID separately, even if that means a lot
+> > > of duplicate data for shmobile.
+> > 
+> > So, you don't think it's worth making a short-cut possible to specify a 
+> > DMAC type instead of each instance phandle? It really would mean __a lot__ 
+> > of duplication - with 3 generic controllers on (some) current chips and 
+> > possibly more on those, that I'm not aware about.
+> 
+> It's certainly possible to make that short-cut, but I'm not convinced
+> if it's worth it. One thing you can do is create a meta-device for
+> all of the identical DMA controllers, and refer to that one from the
+> devices, but make it a separate device node from the actual controllers,
+> of which you can have more than one. This makes the binding for your
+> dma controller more complex but reduces the amount of data required
+> in the other device nodes.
+> 
+> In case of sh7372, this could look something like
+> 
+> 	dma: dmac-mux {
+> 		compatible = "renesas,sh-dma-mux";
+> 		#dma-cells = <4>; /* slave-id, addr, chcr, mid-rid */
+> 		#address-cells = <1>;
+> 		#size-cells = <1>;
+> 		ranges;
+> 
+> 		dmae@0xfe008020{
+> 			compatible = "renesas,sh-dma";
+> 			reg = <0xfe008020 0xfe00828f
+> 				0xfe009000 0xfe00900b>
+> 			interrupts = <0x20c0 0x2000 0x2020 0x2040 0x2060 0x2080 0x20a0>;
+> 		};
+> 
+> 		dmae@0xfe018020{
+> 			compatible = "renesas,sh-dma";
+> 			reg = <0xfe018020 0xfe01828f
+> 				0xfe019000 0xfe01900b>
+> 			interrupts = <0x21c0 0x2100 0x2120 0x2140 0x2160 0x2180 0x21a0>;
+> 		};
+> 
+> 		dmae@0xfe028020{
+> 			compatible = "renesas,sh-dma";
+> 			reg = <0xfe028020 0xfe02828f
+> 				0xfe029000 0xfe02900b>
+> 			interrupts = <0x22c0 0x2200 0x2220 0x2240 0x2260 0x2280 0x22a0>;
+> 		};
+> 	};
+> 
+> This way, a slave would refer to the dmac-mux node and while
+> the device driver binds to the child nodes.
 
- Merci
- Administrateur syst=E8me.
+Indeed, this solution should be good enough, thanks! I'm not sure, whether 
+making this multiplexing available requires any additional code to the 
+generic DMA DT binding implementation. If it does - please, let's make 
+this a part of the implementation.
 
- Copyright =A9 2012 # admin Webmaster =95 TOUS DROITS R=C9SERV=C9S =95
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is also important to provide a flexible multiple channel per device 
+configuration support to let slave drivers distinguish between different 
+DMA channels, that they get back from the API. But I think this is a part 
+of the current proposal and is being taken care of.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
