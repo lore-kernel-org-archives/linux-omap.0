@@ -1,121 +1,129 @@
-From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
-Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree based
- pinctrl driver
-Date: Thu, 21 Jun 2012 16:13:26 -0600
-Message-ID: <4FE39C86.5070901@wwwdotorg.org>
-References: <20120611135826.GB12766@atomide.com>
- <4FDA6FCD.1020605@wwwdotorg.org> <20120615094938.GQ12766@atomide.com>
- <4FDB6000.5080703@wwwdotorg.org> <20120618055036.GU12766@atomide.com>
- <20120619135600.GX12766@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC] ARM: OMAP: Remove nodes dynamically at runtime
+Date: Thu, 21 Jun 2012 18:50:00 -0500
+Message-ID: <4FE3B328.8060805@ti.com>
+References: <4FE372CA.7020008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120619135600.GX12766-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60944 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760623Ab2FUXt5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Jun 2012 19:49:57 -0400
+In-Reply-To: <4FE372CA.7020008@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: device-tree <devicetree-discuss@lists.ozlabs.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 06/19/2012 07:56 AM, Tony Lindgren wrote:
-> Hi,
+
+On 06/21/2012 02:15 PM, Jon Hunter wrote:
+> Hi all,
 > 
-> Below is the pinctrl-single patch updated with hopefully all the Stephen's
-> comments addressed. The binding still needs to be looked at, see relevant
-> parts of the discussion below.
-...
-> From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Date: Wed, 6 Jun 2012 04:18:18 -0700
-> Subject: [PATCH] pinctrl: Add one-register-per-pin type device tree based pinctrl driver
+> I am in the process of adding a device-tree binding for OMAP timers and
+> I have encountered a scenario where ideally it would be useful to remove
+> a device-tree node at runtime.
 > 
-> Add one-register-per-pin type device tree based pinctrl driver.
+> The scenario is this ...
 > 
-> Currently this driver only works on omap2+ series of processors,
-> where there is either an 8 or 16-bit padconf register for each pin.
-> Support for other similar pinmux controllers can be added.
+> 1. OMAP3 devices may or may not have security features enabled. Security
+>    enabled devices are known as high-secure (HS) and devices without 
+>    security are known as general purpose (GP).
+> 2. For OMAP3 devices there are 12 general purpose timers available.
+> 3. On secure devices the 12th timer is reserved for secure usage and so
+>    cannot be used by the kernel, where as for a GP device it is available.
+> 4. We can detect the OMAP device type, secure or GP, at runtime via an
+>    on-chip register.
+> 5. Today, when not using DT, we do not register the 12th timer as a linux
+>    device if the device is secure.
 > 
-> Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> When migrating the timers to DT, I need a way to prevent this 12th timer
+> from being registered as a device on a secure device. The options I have
+> considered are ...
 > 
-> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-> new file mode 100644
-> index 0000000..929254c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-> @@ -0,0 +1,106 @@
-> +One-register-per-pin type device tree based pinctrl driver
+> a. Have separate a omap3.dtsi for GP and secure devices or place the
+>    node for the 12th timer in a omap3-gp.dtsi that is only used for
+>    boards with GP devices. The downside of this is that for boards
+>    that can support GP and secure device (such as the omap3 SDP) we
+>    require a separate dtb blob.
+> 
+> b. Remove the timer node dynamically at runtime using the
+>    of_node_detach() API. In this solution we define a "ti,timer-secure"
+>    property that the 12th timer on omap3 devices would have and at
+>    runtime if we are a secure omap3 device, we search the timer nodes
+>    for any nodes with this property and remove them.
+> 
+> Option B, seems to be the better option but requires me to enable 
+> CONFIG_OF_DYNAMIC for all omap devices and I was not sure if there is any
+> downside to doing so. Enabling this feature does not seem to add much code
+> as far as I can tell, however, I  wanted to get some feedback before
+> proposing this. Also if there are any other options I should consider then
+> please let me know.
+> 
+> For option B, the timer node would look like ...
+> 
+> +               timer12: timer@48304000 {
+> +                       compatible = "ti,omap3-timer";
+> +                       ti,hwmods = "timer12";
+> +                       ti,timer-alwon;
+> +                       ti,timer-secure;
+> +               };
+> 
+> I would then add the following function to the omap timer code to search
+> for any timers with the "ti,timer-secure" on a secure device and enable
+> the OF_DYNAMIC option. Right now it is only timer 12 on OMAP3 that
+> requires this, but I have made the function generic so that it could
+> handle other devices (but none exist today that I am aware of).
+> 
+> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> index 8c22a8e..5e38946 100644
+> --- a/arch/arm/mach-omap2/timer.c
+> +++ b/arch/arm/mach-omap2/timer.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/clocksource.h>
+>  #include <linux/clockchips.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+>  
+>  #include <asm/mach/time.h>
+>  #include <plat/dmtimer.h>
+> @@ -482,6 +483,35 @@ static int __init omap2_dm_timer_init(void)
+>  }
+>  arch_initcall(omap2_dm_timer_init);
+>  
+> +static struct of_device_id omap3_timer_match[] __initdata = {
+> +       { .compatible = "ti,omap3-timer", },
+> +       { }
+> +};
 > +
-> +Required properties:
-> +- compatible : "pinctrl-single"
+> +/**
+> + * omap_dmtimer_init - initialisation function when device tree is used
+> + *
+> + * For secure OMAP3 devices, timers with property "ti,timer-secure" cannot
+> + * be used by the kernel as they are reserved. Therefore, to prevent the
+> + * kernel registering these devices remove them dynamically from the device
+> + * tree on boot.
+> + */
+> +void __init omap_dmtimer_init(void)
+> +{
+> +       struct device_node *np;
 > +
-> +- reg : offset and length of the register set for the mux registers
+> +       if (!cpu_is_omap34xx())
+> +               return;
 > +
-> +- pinctrl-single,register-width : pinmux register access width in bits
-> +
-> +- pinctrl-single,function-mask : mask of allowed pinmux function bits
-> +  in the pinmux register
-> +
-> +- pinctrl-single,pinconf-mask : mask of allowed pinconf bits in the
-> +  pinmux register; this gets combined with pinconf mask but is a separate
-> +  mask to allow the option of setting pinconf separatately from the
-> +  function
+> +       /* If we are a secure device, remove any secure timer nodes */
+> +       if ((omap_type() == OMAP2_DEVICE_TYPE_GP)) {
 
-Given that this binding doesn't allow describing pin configuration at
-present, I would simply remove all mention of that property in the
-binding documentation. It can be added back if/when that feature is
-added. Any future driver using this binding can refuse to allow pin
-configuration if that property is missing.
+Oops! Bug in the above code. Meant to be ...
 
-> +- pinctrl-single,function-off : function off mode for disabled state if
-> +  available and same for all registers; if not, use a value larger than
-> +  function-mask to ignore disabling of registers
+	 if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+> +               for_each_matching_node(np, omap3_timer_match) {
+> +                       if (of_get_property(np, "ti,timer-secure", NULL))
+> +                               of_detach_node(np);
+> +               }
+> +       }
+> +}
 
-Rather than requiring an invalid value in this property, shouldn't the
-lack of a valid function-off value be represented by the property not
-being present in the DT?
-
-> +This driver assumes that there is only one register for each pin,
-> +and uses the common pinctrl bindings as specified in the pinctrl-bindings.txt
-> +document in this directory.
-
-At this point in the file, I think you need to mention that you're
-switching from describing the top-level device node to describing pin
-configuration nodes.
-
-> +The pinctrl register offsets and default values are specified as pairs
-
-I thought we were going to remove "default" here?
-
-> +using pinctrl-single,pins. For example, setting a pin for a device
-> +could be done with:
-> +
-> +	pinctrl-single,pins = <0xdc 0x118>;
-> +
-> +Where 0xdc is the offset from the pinctrl register base address for the
-> +device pinctrl register, and 0x118 contains the desired value of the
-> +pinctrl register. See the device example and static board pins example
-> +below for more information.
-
-There should be some explanation only the portion of this value covered
-by the pinctrl-single,function-mask value is updated in the register.
-
-> +This driver tries to avoid understanding pin and function names because of
-> +the extra bloat they would cause especially in the case of a large number
-> +of pins. This driver just sets what is specified for the board in the .dts file.
-> +Further user space debugging tools can be developed to decipher the pin and
-> +function names using debugfs.
-
-There shouldn't be any discussion of a driver here; the binding is a HW
-description.
-
-> +Example:
-
-I only reviewed the binding document, not the code.
+Cheers
+Jon
