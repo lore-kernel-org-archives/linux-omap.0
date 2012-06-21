@@ -1,111 +1,90 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv8 06/13] I2C: OMAP: Correct I2C revision for OMAP3
-Date: Thu, 21 Jun 2012 12:26:07 +0530
-Message-ID: <CAM=Q2cvW3MaU4ZT8Lv6hKBtwuXiSVP75y4A5RWAB+oQr3B6kdQ@mail.gmail.com>
-References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
-	<1340029828-20751-7-git-send-email-shubhrajyoti@ti.com>
-	<20120620103235.GD12766@atomide.com>
-	<4FE1C9AC.3020104@ti.com>
-	<20120620141437.GN12766@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 13/24] ARM: omap4: clk: Add 44xx data using common struct
+ clk
+Date: Thu, 21 Jun 2012 00:00:42 -0700
+Message-ID: <20120621070041.GU12766@atomide.com>
+References: <1338552485-31325-1-git-send-email-rnayak@ti.com>
+ <1338552485-31325-14-git-send-email-rnayak@ti.com>
+ <20120605064250.GC12766@atomide.com>
+ <4FD03C3F.5000707@ti.com>
+ <20120620113933.GF12766@atomide.com>
+ <4FE2BF1A.308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120620141437.GN12766-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29202 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757122Ab2FUHAp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Jun 2012 03:00:45 -0400
+Content-Disposition: inline
+In-Reply-To: <4FE2BF1A.308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: mturquette@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jun 20, 2012 at 7:44 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote=
-:
-> * Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120620 06:06]:
->> On Wednesday 20 June 2012 04:02 PM, Tony Lindgren wrote:
->> > * Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120618 07:35]:
->> >> From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
->> >>
->> >> The OMAP3530 is based upon the same silicon as the OMAP3430 and s=
-o the I2C
->> >> revision is the same for 3430 and 3530. However, the OMAP3630 dev=
-ice has the
->> >> same I2C revision as OMAP4. Correct the revision definition to re=
-flect this.
->> >>
->> >> This patch is based on work done by Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org=
->
->> >> Changes from his patch
->> >> - Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as =
-3530
->> > ...
->> >> =A0/* timeout waiting for the controller to respond */
->> >> =A0#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
->> >> @@ -298,7 +298,7 @@ static int omap_i2c_reset(struct omap_i2c_dev=
- *dev)
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_i2c_write_reg(dev, OM=
-AP_I2C_SYSC_REG,
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 SYSC_AUTOIDLE_MASK);
->> >>
->> >> - =A0 =A0 =A0 =A0 =A0} else if (dev->rev >=3D OMAP_I2C_REV_ON_343=
-0) {
->> >> + =A0 =A0 =A0 =A0 =A0} else if (dev->rev >=3D OMAP_I2C_REV_ON_343=
-0_3530) {
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->syscstate =3D SYSC_AU=
-TOIDLE_MASK;
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->syscstate |=3D SYSC_E=
-NAWAKEUP_MASK;
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->syscstate |=3D (SYSC_=
-IDLEMODE_SMART <<
->> > Having to patch all over the place for these revision defines lead=
-s
->> > into unmaintainable code as new SoCs get added.
->> >
->> > Please instead just check the revision once during init, then set
->> > up some feature bits like I2C_OMAP_NEEDS_XYZ_RESET that the runtim=
-e
->> > code can check.
->> Even now at probe
->>
->> dev->rev is set by reading the rev register.
->>
->> The (macro)name used to identify is only changed.
->>
->> Also all the ips need reset the difference is that 2430 has less bit=
-s eg only autoidle and reset.
->> So a flag needs reset may not be meaningful.
->
-> Hmm OK so this is a cosmetic/readability fix..
+* Rajendra Nayak <rnayak@ti.com> [120620 23:33]:
+> On Wednesday 20 June 2012 05:09 PM, Tony Lindgren wrote:
+> >* Rajendra Nayak<rnayak@ti.com>  [120606 22:33]:
+> >>Hi Tony,
+> >>
+> >>On Tuesday 05 June 2012 12:12 PM, Tony Lindgren wrote:
+> >>>* Rajendra Nayak<rnayak@ti.com>   [120601 05:13]:
+> >>>>The data is autogenerated using the OMAP autogeneration scripts (python
+> >>>>scripts). Thanks to Mike Turquette for the initial efforts in updating
+> >>>>the script which was later updated by me.
+> >>>>All data is added into a new cclock44xx_data.c file, a later patch will get
+> >>>>rid of clock44xx_data.c file.
+> >>>>
+> >>>>Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> >>>>---
+> >>>>  arch/arm/mach-omap2/cclock44xx_data.c   | 2602 +++++++++++++++++++++++++++++++
+> >>>>  arch/arm/mach-omap2/clock.h             |   17 +
+> >>>>  arch/arm/mach-omap2/clock_common_data.c |   14 +
+> >>>>  arch/arm/mach-omap2/scrm44xx.h          |    2 +
+> >>>>  4 files changed, 2635 insertions(+), 0 deletions(-)
+> >>>>  create mode 100644 arch/arm/mach-omap2/cclock44xx_data.c
+> >>>
+> >>>If you are adding new data anyways, why not add it to drivers/clock/omap
+> >>>to start with?
+> >>
+> >>Sorry, I missed out on responding to this one.
+> >>We won't be able to move just the new data but will need
+> >>all clkops handling around clksel/dpll etc also to be moved,
+> >>and I was thinking we might end up with 2 issues doing that.
+> >
+> >We should sort out those issues, sounds like we're missing few
+> >interfaces..
+> >
+> >>-1- We have low level PRM/CM headers and apis used across multiple
+> >>frameworks for clocks/clockdomains/powerdomains and also some low
+> >>level PM code. This might get duplicated in drivers/clk and mach-omap2/
+> >
+> >Well the PM code should be a loadable module using standard driver
+> >interfaces.. Maybe all it takes is adding few functions that both
+> >drivers/clk and mach-omap2 code can use without exposing all the registers?
+> >Then we may have a better idea what infrastructure pieces are missing.
+> >
+> >>-2- We still need to control clockdomains along with clocks atleast for
+> >>OMAP2/3 (We should be able to get rid of it for OMAP4+ once all drivers
+> >>start using omap_device/runtime) and I am not sure how to do it with
+> >>the clockdomain framework residing in mach-omap2/
+> >
+> >Maybe clockdomains could be also handled with some functions without
+> >exposing all the registers in the headers?
+> 
+> Is moving some of the mach-omap2 headers into mach/include and
+> plat/include and using them in drivers/clk/omap an acceptable
+> first step? I see both the other architectures (imx and spear)
+> in drivers/clk already doing it.
 
-Yes
+Yes if it helps to get things going. But it would be best to split the
+headers into common and private headers so only minimal amount of
+shared registers are defined in plat/include and mach/include. Otherwise
+those defines will get misused all over the place. Also note that names
+for the headers in plat/include and mach/include need to be omap specific
+for common zImage support.
 
->
-> ..but your earlier patch now spreads the checking of revision
-> to the new non-init function omap_i2c_reset.
->
-> Why don't you just do this cosmetic/readability rename fix
-> before your 03/13 patch?
+Regards,
 
-OK thats doable.I can reorder the patch.
-
-> Then set the already existing
-> OMAP_I2C_FLAG_RESET_REGS_POSTIDLE during init for some
-> revisions and use that instead of the rev check in
-> omap_i2c_reset?
-
-OMAP_I2C_FLAG_RESET_REGS_POSTIDLE is a hwmod flag whose intention is to=
- find
-know if it can lose context after idle.
-
-The rev check that we have is because post reset( triggered by driver)
-to know if we have to restore only autoidle or other bits like clockact=
-ivity
-sidle , enable wakeup .
-
->
-> Tony
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+Tony
