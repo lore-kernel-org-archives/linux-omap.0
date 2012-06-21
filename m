@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv9 4/8] I2C: OMAP: Use SET_RUNTIME_PM_OPS
-Date: Thu, 21 Jun 2012 15:38:45 +0530
-Message-ID: <1340273329-8319-5-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv9 7/8] I2C: OMAP: Correct I2C revision for OMAP3
+Date: Thu, 21 Jun 2012 15:38:48 +0530
+Message-ID: <1340273329-8319-8-git-send-email-shubhrajyoti@ti.com>
 References: <1340273329-8319-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,48 +9,66 @@ Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1340273329-8319-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Use SET_RUNTIME_PM_OPS macro to set runtime functions.
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
+revision is the same for 3430 and 3530. However, the OMAP3630 device has the
+same I2C revision as OMAP4. Correct the revision definition to reflect this.
+
+This patch is based on work done by Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Changes from his patch
+- Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
+
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 328a022..ccb2fc4 100644
+index cbf7ecd..a492d93 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1115,6 +1115,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
+@@ -50,8 +50,8 @@
  
-+#ifdef CONFIG_PM
- #ifdef CONFIG_PM_RUNTIME
- static void omap_i2c_restore(struct omap_i2c_dev *dev)
- {
-@@ -1176,15 +1177,16 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ /* I2C controller revisions present on specific hardware */
+ #define OMAP_I2C_REV_ON_2430		0x36
+-#define OMAP_I2C_REV_ON_3430		0x3C
+-#define OMAP_I2C_REV_ON_3530_4430	0x40
++#define OMAP_I2C_REV_ON_3430_3530	0x3C
++#define OMAP_I2C_REV_ON_3630_4430	0x40
  
- 	return 0;
- }
-+#endif /* CONFIG_PM_RUNTIME */
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+@@ -305,7 +305,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+ 					   SYSC_AUTOIDLE_MASK);
  
- static struct dev_pm_ops omap_i2c_pm_ops = {
--	.runtime_suspend = omap_i2c_runtime_suspend,
--	.runtime_resume = omap_i2c_runtime_resume,
-+	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-+			   omap_i2c_runtime_resume, NULL)
- };
- #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
- #else
- #define OMAP_I2C_PM_OPS NULL
--#endif
-+#endif /* CONFIG_PM */
+-		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
++		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
+ 			dev->syscstate = SYSC_AUTOIDLE_MASK;
+ 			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+ 			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+@@ -1015,7 +1015,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+ 		dev->errata |= I2C_OMAP_ERRATA_I207;
  
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
+-	if (dev->rev <= OMAP_I2C_REV_ON_3430)
++	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
+ 		dev->errata |= I2C_OMAP_ERRATA_I462;
+ 
+ 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
+@@ -1033,7 +1033,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 		dev->fifo_size = (dev->fifo_size / 2);
+ 
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
++		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+ 		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
 -- 
 1.7.5.4
