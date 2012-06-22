@@ -1,22 +1,23 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 07/13] ARM: OMAP2+: gpmc: register time setting helper
-Date: Fri, 22 Jun 2012 18:27:11 +0530
-Message-ID: <380b06b354fa76dc4ed82e398219f1e4ccf387c5.1340367480.git.afzal@ti.com>
+Subject: [PATCH v6 05/13] ARM: OMAP2+: gpmc: resource creation helpers
+Date: Fri, 22 Jun 2012 18:26:59 +0530
+Message-ID: <1e0922e87a54c68c33647af3cafee5b941a44629.1340367480.git.afzal@ti.com>
 References: <cover.1340367480.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60344 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37161 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932659Ab2FVNMa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 09:12:30 -0400
+	id S932659Ab2FVNMR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 09:12:17 -0400
 In-Reply-To: <cover.1340367480.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Helper for setting GPMC timing by taking input as register values.
+Helpers for populating given resource structure
+with memory & interrupt information.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
@@ -24,61 +25,61 @@ Signed-off-by: Afzal Mohammed <afzal@ti.com>
  1 file changed, 45 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 8f596ce..1998285 100644
+index 08fc5df..e427ff4 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1011,6 +1011,51 @@ static void gpmc_setup_cs_config(unsigned cs, unsigned conf)
- 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
+@@ -950,6 +950,51 @@ static void __devinit gpmc_mem_init(void)
+ 	}
  }
  
-+static inline void gpmc_set_one_timing(int cs, int reg, int start,
-+							int end, u32 val)
++static __devinit int gpmc_setup_cs_mem(struct gpmc_cs_data *cs,
++						struct resource *res)
 +{
-+	u32 l;
-+	unsigned mask;
++	unsigned long start;
++	int ret;
 +
-+	mask = (1 << (end - start + 1)) - 1;
-+	l = gpmc_cs_read_reg(cs, reg);
-+	l &= ~(mask << start);
-+	l |= val << start;
-+	gpmc_cs_write_reg(cs, reg, l);
++	ret = gpmc_cs_request(cs->cs, cs->mem_size, &start);
++	if (IS_ERR_VALUE(ret)) {
++		dev_err(gpmc_dev, "error: gpmc request on CS: %d\n", cs->cs);
++		return ret;
++	}
++
++	res->start = start + cs->mem_offset;
++	res->end = res->start + cs->mem_size - 1;
++	res->flags = IORESOURCE_MEM;
++
++	dev_info(gpmc_dev, "memory 0x%x-0x%x on CS %d\n", res->start,
++							res->end, cs->cs);
++
++	return 0;
 +}
 +
-+static void gpmc_cs_set_register_timings(int cs, const struct gpmc_timings *t)
++static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
++						struct resource *res)
 +{
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 0, 1, t->sync_clk);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 18, 19, t->wait_monitoring);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 25, 26, t->clk_activation);
++	int i, n;
 +
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 0, 3, t->cs_on);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 8, 12, t->cs_rd_off);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 16, 20, t->cs_wr_off);
++	if (!gpmc_irq || !gpmc_irq_start) {
++		if (cs->irq_config)
++			dev_err(gpmc_dev, "gpmc not able to configure irq\n");
++		return 0;
++	}
 +
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 0, 3, t->adv_on);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 8, 12, t->adv_rd_off);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 16, 20, t->adv_wr_off);
++	for (i = 0, n = 0; i < GPMC_NR_IRQ; i++)
++		if (gpmc_client_irq[i].bitmask & cs->irq_config) {
++			res[n].start = res[n].end = gpmc_client_irq[i].irq;
++			res[n].flags = IORESOURCE_IRQ;
++			dev_info(gpmc_dev, "irq %u on CS %d\n",
++						res[n].start, cs->cs);
++			n++;
++		}
 +
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 0, 3, t->oe_on);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 8, 12, t->oe_off);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 16, 19, t->we_on);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 24, 28, t->we_off);
-+
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG5, 24, 27, t->page_burst_access);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 0, 3, t->bus_turnaround);
-+	gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 8, 11,	t->cycle2cycle_delay);
-+
-+	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
-+		gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 24, 28, t->wr_access);
-+	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
-+		gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 16, 19,
-+						t->wr_data_mux_bus);
-+
-+	gpmc_cs_bool_timings(cs, &t->bool_timings);
++	return n;
 +}
 +
- static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
- 						struct resource *res)
+ static __devinit int gpmc_probe(struct platform_device *pdev)
  {
+ 	u32 l;
 -- 
 1.7.10.2
 
