@@ -1,103 +1,84 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 06/13] ARM: OMAP2+: gpmc: CS configuration helper
-Date: Fri, 22 Jun 2012 18:27:05 +0530
-Message-ID: <89feb2034c7b94bf7a7aeaa0cca45f69cb2f5e2a.1340367480.git.afzal@ti.com>
+Subject: [PATCH v6 07/13] ARM: OMAP2+: gpmc: register time setting helper
+Date: Fri, 22 Jun 2012 18:27:11 +0530
+Message-ID: <380b06b354fa76dc4ed82e398219f1e4ccf387c5.1340367480.git.afzal@ti.com>
 References: <cover.1340367480.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60333 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60344 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932659Ab2FVNMY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 09:12:24 -0400
+	id S932659Ab2FVNMa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 09:12:30 -0400
 In-Reply-To: <cover.1340367480.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Helper for configuring given CS based on flags.
+Helper for setting GPMC timing by taking input as register values.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |   39 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc.h |    5 ++++
- 2 files changed, 44 insertions(+)
+ arch/arm/mach-omap2/gpmc.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index e427ff4..8f596ce 100644
+index 8f596ce..1998285 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -972,6 +972,45 @@ static __devinit int gpmc_setup_cs_mem(struct gpmc_cs_data *cs,
- 	return 0;
+@@ -1011,6 +1011,51 @@ static void gpmc_setup_cs_config(unsigned cs, unsigned conf)
+ 	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
  }
  
-+static void gpmc_setup_cs_config(unsigned cs, unsigned conf)
++static inline void gpmc_set_one_timing(int cs, int reg, int start,
++							int end, u32 val)
 +{
-+	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	u32 l;
++	unsigned mask;
 +
-+	l &= ~(GPMC_CONFIG1_MUXADDDATA |
-+		GPMC_CONFIG1_WRITETYPE_SYNC |
-+		GPMC_CONFIG1_WRITEMULTIPLE_SUPP |
-+		GPMC_CONFIG1_READTYPE_SYNC |
-+		GPMC_CONFIG1_READMULTIPLE_SUPP |
-+		GPMC_CONFIG1_WRAPBURST_SUPP |
-+		GPMC_CONFIG1_DEVICETYPE(~0) |
-+		GPMC_CONFIG1_DEVICESIZE(~0) |
-+		GPMC_CONFIG1_PAGE_LEN(~0));
++	mask = (1 << (end - start + 1)) - 1;
++	l = gpmc_cs_read_reg(cs, reg);
++	l &= ~(mask << start);
++	l |= val << start;
++	gpmc_cs_write_reg(cs, reg, l);
++}
 +
-+	/* device type & size bits are cleared above, implying NOR & 8 bit,
-+	 * only other options possible are NAND & 16 bit respectively,
-+	 * configure if user asked for it, else default is already setup
-+	 * users has been provided with NOR & 8 bit macros, nothing to be
-+	 * done here as already it has been setup above
-+	 */
-+	l |= conf & GPMC_CONFIG1_DEVICETYPE_NAND;
-+	l |= conf & GPMC_CONFIG1_DEVICESIZE_16;
++static void gpmc_cs_set_register_timings(int cs, const struct gpmc_timings *t)
++{
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 0, 1, t->sync_clk);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 18, 19, t->wait_monitoring);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG1, 25, 26, t->clk_activation);
 +
-+	if (conf & GPMC_CONFIG1_PAGE_LEN_8)
-+		l |= GPMC_CONFIG1_PAGE_LEN_8;
-+	else if (conf & GPMC_CONFIG1_PAGE_LEN_16)
-+		l |= GPMC_CONFIG1_PAGE_LEN_16;
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 0, 3, t->cs_on);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 8, 12, t->cs_rd_off);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG2, 16, 20, t->cs_wr_off);
 +
-+	conf &= (GPMC_CONFIG1_MUXADDDATA |
-+			GPMC_CONFIG1_WRITETYPE_SYNC |
-+			GPMC_CONFIG1_WRITEMULTIPLE_SUPP |
-+			GPMC_CONFIG1_READTYPE_SYNC |
-+			GPMC_CONFIG1_READMULTIPLE_SUPP |
-+			GPMC_CONFIG1_WRAPBURST_SUPP);
-+	l |= conf;
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 0, 3, t->adv_on);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 8, 12, t->adv_rd_off);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG3, 16, 20, t->adv_wr_off);
 +
-+	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, l);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 0, 3, t->oe_on);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 8, 12, t->oe_off);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 16, 19, t->we_on);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG4, 24, 28, t->we_off);
++
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG5, 24, 27, t->page_burst_access);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 0, 3, t->bus_turnaround);
++	gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 8, 11,	t->cycle2cycle_delay);
++
++	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
++		gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 24, 28, t->wr_access);
++	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
++		gpmc_set_one_timing(cs, GPMC_CS_CONFIG6, 16, 19,
++						t->wr_data_mux_bus);
++
++	gpmc_cs_bool_timings(cs, &t->bool_timings);
 +}
 +
  static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
  						struct resource *res)
  {
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 157753ab..7187445 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -57,14 +57,19 @@
- #define GPMC_CONFIG1_WRITETYPE_SYNC     (1 << 27)
- #define GPMC_CONFIG1_CLKACTIVATIONTIME(val) ((val & 3) << 25)
- #define GPMC_CONFIG1_PAGE_LEN(val)      ((val & 3) << 23)
-+#define	GPMC_CONFIG1_PAGE_LEN_4		GPMC_CONFIG1_PAGE_LEN(0)
-+#define	GPMC_CONFIG1_PAGE_LEN_8		GPMC_CONFIG1_PAGE_LEN(1)
-+#define	GPMC_CONFIG1_PAGE_LEN_16	GPMC_CONFIG1_PAGE_LEN(2)
- #define GPMC_CONFIG1_WAIT_READ_MON      (1 << 22)
- #define GPMC_CONFIG1_WAIT_WRITE_MON     (1 << 21)
- #define GPMC_CONFIG1_WAIT_MON_IIME(val) ((val & 3) << 18)
- #define GPMC_CONFIG1_WAIT_PIN_SEL(val)  ((val & 3) << 16)
- #define GPMC_CONFIG1_DEVICESIZE(val)    ((val & 3) << 12)
-+#define	GPMC_CONFIG1_DEVICESIZE_8	GPMC_CONFIG1_DEVICESIZE(0)
- #define GPMC_CONFIG1_DEVICESIZE_16      GPMC_CONFIG1_DEVICESIZE(1)
- #define GPMC_CONFIG1_DEVICETYPE(val)    ((val & 3) << 10)
- #define GPMC_CONFIG1_DEVICETYPE_NOR     GPMC_CONFIG1_DEVICETYPE(0)
-+#define	GPMC_CONFIG1_DEVICETYPE_NAND	GPMC_CONFIG1_DEVICETYPE(2)
- #define GPMC_CONFIG1_MUXADDDATA         (1 << 9)
- #define GPMC_CONFIG1_TIME_PARA_GRAN     (1 << 4)
- #define GPMC_CONFIG1_FCLK_DIV(val)      (val & 3)
 -- 
 1.7.10.2
 
