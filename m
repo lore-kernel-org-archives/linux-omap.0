@@ -1,125 +1,109 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Fri, 22 Jun 2012 20:41:13 +0530
-Message-ID: <CAP05o4JqmQyrpauTbyHLg2LC-UaNaYgiqtG=6MdCHs3Ks0NxqA@mail.gmail.com>
-References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
-	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
-	<87fw9o32v2.fsf@ti.com>
-	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
-	<20120622103050.GG28472@arwen.pp.htv.fi>
-	<87ehp71liv.fsf@ti.com>
-	<CA+Bv8XY-_x+Vh+D8sec5tvL9MkOYFKnts1WBp_AsCck2y6QNZg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: PRCM/hwmod: reimplement the OMAP PRCM I/O
+ chain code for 3.6
+Date: Fri, 22 Jun 2012 09:37:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206220935000.10198@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+Bv8XY-_x+Vh+D8sec5tvL9MkOYFKnts1WBp_AsCck2y6QNZg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russ Dill <russ.dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60687 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762606Ab2FVPhY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jun 2012 11:37:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, vishwanath.bs@ti.com, t-kristo@ti.com, rnayak@ti.com, mohanv@ti.com
 
-On Fri, Jun 22, 2012 at 8:33 PM, Russ Dill <russ.dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Fri, Jun 22, 2012 at 7:14 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
->> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
->>
->>> Hi,
->>>
->>> On Fri, Jun 22, 2012 at 01:00:39PM +0530, Munegowda, Keshava wrote:
->>>> On Fri, Jun 22, 2012 at 12:32 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wr=
-ote:
->>>> > "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->>>> >
->>>> >> On Thu, Jun 21, 2012 at 7:12 PM, Keshava Munegowda
->>>> >> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
->>>> >>> This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
->>>> >>> "Fix OMAP EHCI suspend/resume failure (i693)" is causing
->>>> >>> the usb hub and device detection fails in beagle XM
->>>> >>> causeing NFS not functional. This affects the core retention t=
-oo.
->>>> >>> The same commit logic needs to be revisted adhering to hwmod a=
-nd
->>>> >>> device tree framework.
->>>> >>> for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598a=
-ac
->>>> >>> titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
->>>> >>>
->>>> >>> This patch is validated on BeagleXM with NFS support over
->>>> >>> usb ethernet and USB mass storage and other device detection.
->>>> >>>
->>>> >>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>>> >
->>>> > [...]
->>>> >
->>>> >>
->>>> >> hi kevin
->>>> >>
->>>> >> here is pm count log on beagle XM with the above patch:
->>>> >
->>>> > What are you meaning to show by this log?
->>>> >
->>>> > This dump shows that neither PER or CORE are hitting retention i=
-n idle.
->>>> > Which sounds to me like you have not enabled UART runtime suspen=
-d:
->>>> >
->>>> > echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_=
-delay_ms
->>>> > echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_=
-delay_ms
->>>> > echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_=
-delay_ms
->>>> > echo 3000 > /sys/devices/platform/omap_uart.3/power/autosuspend_=
-delay_ms
->>>> >
->>>> > My test with your patch shows that it fixes the oops during boot=
-, and
->>>> > doesn't hang during suspend, but that USB host is still preventi=
-ng CORE
->>>> > retention during idle (after UART runtime suspend is enabled.)
->>>> >
->>>> > This happens on 3530/Overo, 3630/Beagle-xM and 3730/Overo
->>>> >
->>>> > Setting CONFIG_MFD_OMAP_USB_HOST=3Dn allows CORE to hit retentio=
-n again.
->>>> >
->>>> > Kevin
->>>>
->>>>
->>>>
->>>> Hi kevin
->>>> =A0 =A0 =A0 =A0It woks. only the log was wrong. I was using no_con=
-sole_suspend
->>>> in boot args.
->>>> i removed it. now I can see the core retention hits with USB host =
-in Beagle XM.
->>>> below is the log:
->>>
->>> the fact is that we can't really survive without that workaround. K=
-evin,
->>
->> I don't know what workaround you're talking about. =A0 =A0Are you ta=
-lking
->> about the revert proposed in $SUBJECT patch?
->>
->> I don't have a problem with that revert. =A0The problem I have is th=
-at it
->> does not fix the problem I initially reported: USB host prevents COR=
-E
->> retention in *idle*.
->
-> I already have a pair of patches posted to linux-omap and linux that
-> fixes the oops on boot caused by the i693 errata patch. The first
-> fixes the bad error path that causes the oops, the second allows the
-> dummy clocks on omap3xxx to be grabbed by the ehci-host driver as is
-> being done with real clocks on the omap44xx.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I request please resend the patches !
- cc me (keshava_mgowda-l0cyMroinI0@public.gmane.org) in all your patches.
+Hi Tony
 
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following changes since commit 485802a6c524e62b5924849dd727ddbb1497cc71:
+
+  Linux 3.5-rc3 (2012-06-16 17:25:17 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-c-for-3.6
+
+for you to fetch changes up to fafcdd53220f44d7ae2f06a9ce20c8d550df2d9b:
+
+  ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle (2012-06-22 08:40:36 -0600)
+
+- ----------------------------------------------------------------
+Reimplement the OMAP PRCM I/O chain code.  Needed for I/O wakeups to
+work correctly.
+
+- ----------------------------------------------------------------
+
+Testing logs are at:
+
+http://www.pwsan.com/omap/bootlogs/20120621/io_chain_devel_3.6__fafcdd53220f44d7ae2f06a9ce20c8d550df2d9b/
+
+All the usual v3.5-rc3 issues are present; this series doesn't affect them.
+N800 crashes on boot due to an MMC driver bug.  3517 boards won't NFS-mount
+root and several WARN()s occur during boot.  37xx EVM and 35xx Beagle CORE
+powerdomain doesn't enter retention or off-mode.  Also, on 35xx Beagle,
+wakeup via the serial port does not work for off-mode system suspend.
+
+object size (delta in bytes from v3.5-rc3 (485802a6c524e62b5924849dd727ddbb1497cc71)):
+  text 	  data 	   bss 	 total 	kernel
+     0 	     0 	     0 	     0 	5912osk_testconfig/vmlinux
+  +276 	   +16 	     0 	  +292 	am33xx_testconfig/vmlinux
+  +204 	   +40 	     0 	  +244 	n800_b_testconfig/vmlinux
+  +172 	   +32 	     0 	  +204 	n800_multi_omap2xxx/vmlinux
+  +204 	   +40 	     0 	  +244 	n800_testconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1510_defconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1_defconfig/vmlinux
+  +400 	   +16 	     0 	  +416 	omap2_4_testconfig/vmlinux
+ +4372 	   +48 	     0 	 +4420 	omap2plus_defconfig/vmlinux
+  +212 	    +8 	     0 	  +220 	omap2plus_no_pm/vmlinux
+  +216 	   -24 	     0 	  +192 	omap3_4_testconfig/vmlinux
+    +4 	   +16 	     0 	   +20 	omap3_testconfig/vmlinux
+  +228 	   +72 	     0 	  +300 	omap4_testconfig/vmlinux
+
+
+Kevin Hilman (1):
+      ARM: OMAP2+: PRM: fix compile for OMAP4-only build
+
+Mohan V (1):
+      ARM: OMAP3: PM: correct enable/disable of daisy io chain
+
+Rajendra Nayak (1):
+      ARM: OMAP4: PRM: Add IO Daisychain support
+
+Tero Kristo (1):
+      ARM: OMAP3+: PRM: Enable IO wake up
+
+Vishwanath BS (3):
+      ARM: OMAP3: PM: Move IO Daisychain function to omap3 prm file
+      ARM: OMAP3PLUS: hwmod: reconfigure IO Daisychain during hwmod mux
+      ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle
+
+ arch/arm/mach-omap2/omap_hwmod.c   |   38 ++++++++++++++++++++--
+ arch/arm/mach-omap2/pm34xx.c       |   44 -------------------------
+ arch/arm/mach-omap2/prcm-common.h  |    8 +++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   51 ++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    6 ++--
+ arch/arm/mach-omap2/prm44xx.c      |   63 +++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm44xx.h      |    2 ++
+ 7 files changed, 162 insertions(+), 50 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP5JCOAAoJEMePsQ0LvSpLEaUP/0vitnlw++YkhczasWdnaeVh
+mAUwrJsfbacx+zNBMyGLzaoSsWNAaVuQMHQsU83GyQ7HEQeSZJZimcW0D2gwww4g
+6Gm++sKjaJ5ch2lA6SxLG5S3tZl0z3El9SqCFF4JNIJcItjZ600yMOiwZXidV5y+
+9Ni/Ad1YJwC1it+aHiEevTYqJ8gxE6DceyF/3abP2wzXBcWN/XQJOmto4DxCpVO6
+z4xOaY7b4+gmVnYcidAkZWRvRR5YCLB9CNDqBD8WrHjJ3Dw+nIwhigCSJfmG0M5L
+pn/rH9kMenDs1xmQD8vvels5BQ6Z1gZCcfMmU8nLCwvBobGlHSHwbl63Yby3xz8O
+Z8wWLgEeHKsDnCBgIkEweG6kPDQnpv3Xj/vpBILEbAK3CJuwKdXh/ngXYwCEMOTh
++9/zGKDaNNPzOOHMf14b6zIBjJmWv2kSB98IsUYDASSNd3FlAgGX2QcNUo3IXVxO
+4oROrwH/2gflcEzvm+ppJb0jpH7Yx7QhAkkwlYwBOCMxKFrs9pb8oi18Rev0SB32
+REXLWfJE7KlWyc0xIkujP+aD0vxv+Msb4bU7xKAvaO20ZHgSqfwSKb9O1bz8NiOL
+Og+/SSVAVhZ4oa0dZ0huMedNpmKKfRsd0xUNCTbw/IyCgO+Bfy+wM8rePDbYjZyd
+aHPpWYUVx62iu7TXGd7/
+=nCye
+-----END PGP SIGNATURE-----
