@@ -1,138 +1,120 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 1/5] usb: musb: move work_struct(otg_notifier_work) from core to omap glue
-Date: Fri, 22 Jun 2012 17:40:51 +0530
-Message-ID: <1340367055-19835-2-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 3/5] drivers: usb: musb: move otg specific initializations from twl to glue
+Date: Fri, 22 Jun 2012 17:40:53 +0530
+Message-ID: <1340367055-19835-4-git-send-email-kishon@ti.com>
 References: <1340367055-19835-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57315 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932681Ab2FVMLM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:11:12 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340367055-19835-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Commit 712d8e(fixes pm_runtime calls while atomic by using a work
-queue. musb pm_runtime_get_sync call happens in interrupt context
-on cable attach case. That can result in re-enabling the interrupts and
-cause side affect. To avoid this deferred processing is used)
+Moved otg specific state(OTG_STATE_B_IDLE, OTG_STATE_A_IDLE) initializations
+from twl to glue. These initializations are removed from twl4030 and
+twl6030 and moved to the mailbox API defined in glue.
+This is part of the cleanup in preparation to make use of usb2 phy
+driver.
 
-While the issue and the work queue implementation is specific to omap
-(omap2430.c), the work_struct is defined as a member of struct musb
-(musb_core.h). Hence moved the work_struct from musb_core to omap
-glue.
-
-Cc: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/musb/musb_core.h |    2 --
- drivers/usb/musb/omap2430.c  |   24 +++++++++++++++---------
- 2 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/usb/musb/omap2430.c   |    5 +++++
+ drivers/usb/otg/twl4030-usb.c |    8 --------
+ drivers/usb/otg/twl6030-usb.c |    6 ------
+ 3 files changed, 5 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index f4a40f0..dbcdeea 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -327,7 +327,6 @@ struct musb {
- 
- 	irqreturn_t		(*isr)(int, void *);
- 	struct work_struct	irq_work;
--	struct work_struct	otg_notifier_work;
- 	u16			hwvers;
- 
- /* this hub status bit is reserved by USB 2.0 and not seen by usbcore */
-@@ -373,7 +372,6 @@ struct musb {
- 	u16			int_tx;
- 
- 	struct usb_phy		*xceiv;
--	u8			xceiv_event;
- 
- 	int nIrq;
- 	unsigned		irq_wake:1;
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index e279cf3..f40c805 100644
+index 0636870..c4dc92b 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -41,6 +41,8 @@
- struct omap2430_glue {
- 	struct device		*dev;
- 	struct platform_device	*musb;
-+	u8			xceiv_event;
-+	struct work_struct	omap_musb_mailbox_work;
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
- 
-@@ -226,22 +228,26 @@ static inline void omap2430_low_level_init(struct musb *musb)
- static int musb_otg_notifications(struct notifier_block *nb,
- 		unsigned long event, void *unused)
- {
--	struct musb	*musb = container_of(nb, struct musb, nb);
-+	struct musb		*musb = container_of(nb, struct musb, nb);
-+	struct device		*dev = musb->controller;
-+	struct omap2430_glue	*glue = dev_get_drvdata(dev->parent);
- 
--	musb->xceiv_event = event;
--	schedule_work(&musb->otg_notifier_work);
-+	glue->xceiv_event = event;
-+	schedule_work(&glue->omap_musb_mailbox_work);
- 
- 	return NOTIFY_OK;
- }
- 
--static void musb_otg_notifier_work(struct work_struct *data_notifier_work)
-+static void omap_musb_mailbox_work(struct work_struct *data_notifier_work)
- {
--	struct musb *musb = container_of(data_notifier_work, struct musb, otg_notifier_work);
-+	struct omap2430_glue *glue = container_of(data_notifier_work,
-+		struct omap2430_glue, omap_musb_mailbox_work);
-+	struct musb *musb = glue_to_musb(glue);
+@@ -249,11 +249,14 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
  	struct device *dev = musb->controller;
  	struct musb_hdrc_platform_data *pdata = dev->platform_data;
  	struct omap_musb_board_data *data = pdata->board_data;
++	struct usb_otg *otg = musb->xceiv->otg;
  
--	switch (musb->xceiv_event) {
-+	switch (glue->xceiv_event) {
- 	case USB_EVENT_ID:
- 		dev_dbg(musb->controller, "ID GND\n");
+ 	switch (glue->status) {
+ 	case OMAP_MUSB_ID_GROUND:
+ 		dev_dbg(dev, "ID GND\n");
  
-@@ -298,8 +304,6 @@ static int omap2430_musb_init(struct musb *musb)
- 		return -ENODEV;
- 	}
++		otg->default_a = true;
++		musb->xceiv->state = OTG_STATE_A_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_ID;
+ 		if (!is_otg_enabled(musb) || musb->gadget_driver) {
+ 			pm_runtime_get_sync(dev);
+@@ -265,6 +268,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
+ 	case OMAP_MUSB_VBUS_VALID:
+ 		dev_dbg(dev, "VBUS Connect\n");
  
--	INIT_WORK(&musb->otg_notifier_work, musb_otg_notifier_work);
--
- 	status = pm_runtime_get_sync(dev);
- 	if (status < 0) {
- 		dev_err(dev, "pm_runtime_get_sync FAILED %d\n", status);
-@@ -388,7 +392,6 @@ static void omap2430_musb_disable(struct musb *musb)
- static int omap2430_musb_exit(struct musb *musb)
++		otg->default_a = false;
++		musb->xceiv->state = OTG_STATE_B_IDLE;
+ 		musb->xceiv->last_event = USB_EVENT_VBUS;
+ 		if (musb->gadget_driver)
+ 			pm_runtime_get_sync(dev);
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 77f4ff6..990263e 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -251,7 +251,6 @@ static enum omap_musb_vbus_id_status
  {
- 	del_timer_sync(&musb_idle_timer);
--	cancel_work_sync(&musb->otg_notifier_work);
+ 	int	status;
+ 	enum omap_musb_vbus_id_status linkstat = OMAP_MUSB_UNKNOWN;
+-	struct usb_otg *otg = twl->phy.otg;
  
- 	omap2430_low_level_exit(musb);
- 	usb_put_phy(musb->xceiv);
-@@ -441,6 +444,8 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	twl->vbus_supplied = false;
  
- 	platform_set_drvdata(pdev, glue);
+@@ -291,13 +290,6 @@ static enum omap_musb_vbus_id_status
  
-+	INIT_WORK(&glue->omap_musb_mailbox_work, omap_musb_mailbox_work);
-+
- 	ret = platform_device_add_resources(musb, pdev->resource,
- 			pdev->num_resources);
- 	if (ret) {
-@@ -478,6 +483,7 @@ static int __devexit omap2430_remove(struct platform_device *pdev)
+ 	spin_lock_irq(&twl->lock);
+ 	twl->linkstat = linkstat;
+-	if (linkstat == OMAP_MUSB_ID_GROUND) {
+-		otg->default_a = true;
+-		twl->phy.state = OTG_STATE_A_IDLE;
+-	} else {
+-		otg->default_a = false;
+-		twl->phy.state = OTG_STATE_B_IDLE;
+-	}
+ 	spin_unlock_irq(&twl->lock);
+ 
+ 	return linkstat;
+diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+index 6c75883..66cfea7 100644
+--- a/drivers/usb/otg/twl6030-usb.c
++++ b/drivers/usb/otg/twl6030-usb.c
+@@ -256,7 +256,6 @@ static DEVICE_ATTR(vbus, 0444, twl6030_usb_vbus_show, NULL);
+ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
  {
- 	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
+ 	struct twl6030_usb *twl = _twl;
+-	struct usb_otg *otg = twl->phy.otg;
+ 	enum omap_musb_vbus_id_status status = OMAP_MUSB_UNKNOWN;
+ 	u8 vbus_state, hw_state;
  
-+	cancel_work_sync(&glue->omap_musb_mailbox_work);
- 	platform_device_del(glue->musb);
- 	platform_device_put(glue->musb);
- 	kfree(glue);
+@@ -269,8 +268,6 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
+ 			regulator_enable(twl->usb3v3);
+ 			twl->asleep = 1;
+ 			status = OMAP_MUSB_VBUS_VALID;
+-			otg->default_a = false;
+-			twl->phy.state = OTG_STATE_B_IDLE;
+ 			twl->linkstat = status;
+ 			omap_musb_mailbox(status);
+ 		} else {
+@@ -293,7 +290,6 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
+ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ {
+ 	struct twl6030_usb *twl = _twl;
+-	struct usb_otg *otg = twl->phy.otg;
+ 	enum omap_musb_vbus_id_status status = OMAP_MUSB_UNKNOWN;
+ 	u8 hw_state;
+ 
+@@ -307,8 +303,6 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_SET,
+ 								0x10);
+ 		status = OMAP_MUSB_ID_GROUND;
+-		otg->default_a = true;
+-		twl->phy.state = OTG_STATE_A_IDLE;
+ 		twl->linkstat = status;
+ 		omap_musb_mailbox(status);
+ 	} else  {
 -- 
 1.7.5.4
-
