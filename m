@@ -1,257 +1,143 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
-Date: Fri, 22 Jun 2012 13:22:53 -0700 (PDT)
-Message-ID: <1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com> <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
+ issue
+Date: Fri, 22 Jun 2012 23:36:46 +0300
+Message-ID: <20120622203645.GD29290@arwen.pp.htv.fi>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+ <CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
+ <87fw9o32v2.fsf@ti.com>
+ <CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+ <20120622103050.GG28472@arwen.pp.htv.fi>
+ <87ehp71liv.fsf@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm20.bullet.mail.ne1.yahoo.com ([98.138.90.83]:25911 "HELO
-	nm20.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753804Ab2FVUWz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 16:22:55 -0400
-In-Reply-To: <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yudcn1FV7Hsu/q59"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87ehp71liv.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "afzal@ti.com" <afzal@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "tony@atomide.com" <tony@atomide.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "khilman@ti.com" <khilman@ti.com>
-
-All,
-
-Sorry to spam this out to so many folks, but we are REALLY getting stym=
-ied by this bug at the moment and cannot believe we're the only ones se=
-eing it.=A0 Googles for this particular crash ONLY show this thread, an=
-d so far, no one has responded.=A0 The folks CC'd on here have been kin=
-d enough to take a look at the other issues and/or seem to be the exper=
-ts on the DaVinci EMAC from other threads.=A0 *Can anyone please help??=
-?*
-
-As previously discussed, we're having some stability issues with the AM=
-3517.=A0 We initially thought they may be separate issues, hence the se=
-parate threads here, but now we're suspecting they could all be the sam=
-e error or at least related.=A0 We're presently testing with Technexion=
- TAM3517s.=A0 These processor boards can sometimes run under load for d=
-ays, but will suddenly produce a crash of some sort.=A0 Sometimes it ha=
-ngs the kernel completely, sometimes not.=A0 These issues have been *ve=
-ry* hard to track, but we believe we're starting to see a rough commona=
-lity in the errors, and they seem more prevalent now that we're enablin=
-g and using the EMAC heavily.=A0 All are memory management errors, and =
-now some are directly blaming the EMAC.=A0 As noted previously, our EMA=
-C performance has *always* been questionable, especially when connectin=
-g EMAC to EMAC.=A0 So maybe we're onto something?
-
-Our current tests are running on a Linux-omap build straight off the ma=
-ster that's a few days old now.=A0 It's a 3.5-rc2, and we're running SL=
-UB now rather than SLAB as we try to get more information on this mm is=
-sue.
-
-Things did seem to get a bit worse after enabling the EMAC interface in=
-side of u-boot, but I suspect that could just be coincidence.=A0 Could =
-that make a difference to Linux somehow?=A0 I'll happily provide anythi=
-ng u-boot, or otherwise, related if that would be helpful.=A0 We are do=
-ing _nothing_ special. We are configuring the EMAC just about=20
-like everyone else, including the CM-T3517, AM3517EVM, and=20
-AM3517-crane.=A0 For now here is our Linux config:
-
-CONFIG_SMSC911X=3Dy
-# CONFIG_SMSC911X_ARCH_HOOKS is not set
-# CONFIG_NET_VENDOR_STMICRO is not set
-CONFIG_NET_VENDOR_TI=3Dy
-CONFIG_TI_DAVINCI_EMAC=3Dy
-CONFIG_TI_DAVINCI_MDIO=3Dy
-CONFIG_TI_DAVINCI_CPDMA=3Dy
-# CONFIG_NET_VENDOR_WIZNET is not set
-CONFIG_PHYLIB=3Dy
-
-In our board file we just do:
 
 
---------board file ----------------------------------------------------=
----------------------------------------------------
+--yudcn1FV7Hsu/q59
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-#include <linux/davinci_emac.h>
-#include "am35xx-emac.h"
+Hi,
 
+On Fri, Jun 22, 2012 at 07:14:32AM -0700, Kevin Hilman wrote:
+> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+>=20
+> > Hi,
+> >
+> > On Fri, Jun 22, 2012 at 01:00:39PM +0530, Munegowda, Keshava wrote:
+> >> On Fri, Jun 22, 2012 at 12:32 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+> >> > "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+> >> >
+> >> >> On Thu, Jun 21, 2012 at 7:12 PM, Keshava Munegowda
+> >> >> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
+> >> >>> This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+> >> >>> "Fix OMAP EHCI suspend/resume failure (i693)" is causing
+> >> >>> the usb hub and device detection fails in beagle XM
+> >> >>> causeing NFS not functional. This affects the core retention too.
+> >> >>> The same commit logic needs to be revisted adhering to hwmod and
+> >> >>> device tree framework.
+> >> >>> for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
+> >> >>> titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
+> >> >>>
+> >> >>> This patch is validated on BeagleXM with NFS support over
+> >> >>> usb ethernet and USB mass storage and other device detection.
+> >> >>>
+> >> >>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> >> >
+> >> > [...]
+> >> >
+> >> >>
+> >> >> hi kevin
+> >> >>
+> >> >> here is pm count log on beagle XM with the above patch:
+> >> >
+> >> > What are you meaning to show by this log?
+> >> >
+> >> > This dump shows that neither PER or CORE are hitting retention in id=
+le.
+> >> > Which sounds to me like you have not enabled UART runtime suspend:
+> >> >
+> >> > echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_dela=
+y_ms
+> >> > echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_dela=
+y_ms
+> >> > echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_dela=
+y_ms
+> >> > echo 3000 > /sys/devices/platform/omap_uart.3/power/autosuspend_dela=
+y_ms
+> >> >
+> >> > My test with your patch shows that it fixes the oops during boot, and
+> >> > doesn't hang during suspend, but that USB host is still preventing C=
+ORE
+> >> > retention during idle (after UART runtime suspend is enabled.)
+> >> >
+> >> > This happens on 3530/Overo, 3630/Beagle-xM and 3730/Overo
+> >> >
+> >> > Setting CONFIG_MFD_OMAP_USB_HOST=3Dn allows CORE to hit retention ag=
+ain.
+> >> >
+> >> > Kevin
+> >>=20
+> >>=20
+> >>=20
+> >> Hi kevin
+> >>        It woks. only the log was wrong. I was using no_console_suspend
+> >> in boot args.
+> >> i removed it. now I can see the core retention hits with USB host in B=
+eagle XM.
+> >> below is the log:
+> >
+> > the fact is that we can't really survive without that workaround. Kevin,
+>=20
+> I don't know what workaround you're talking about.    Are you talking
+> about the revert proposed in $SUBJECT patch?
+>=20
+> I don't have a problem with that revert.  The problem I have is that it
+> does not fix the problem I initially reported: USB host prevents CORE
+> retention in *idle*.
 
-=2E..
+Keshava is reverting a fix for a HW errata. I can't accept it as it will
+cause regressions. Granted, regression by regression, there's no change,
+but I simply can't knowingly cause a regression to the driver just to
+have PM working. We need a real fix for this issue.
 
-am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
+--=20
+balbi
 
-=2E..
+--yudcn1FV7Hsu/q59
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
------------------------------------------------------------------------=
-------------------------------------------------------
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-The *ONLY* tweak to the current "linux/arch/arm/mach-omap2/am35xx-emac.=
-c" is a little patch to use the fused MAC address in the AM3517:
+iQIcBAEBAgAGBQJP5NddAAoJEIaOsuA1yqREDxoQALWvkE3CtPmErhg/PMgfOh1E
+O9+8iTYPgYVRPbF8Gd4xavzRjjBCdgZgZPgrF53wtZWoAakiADpOvD622Vdo1KhW
+XSDvVNtxA7tMshdNau0bPBgRWliRSckAQOXt0Y7Gp1VtYZMiBGTDkFEv+2N3itdI
+oDmYNLKP5DJzw8+Up5WHMZJoefk1MNaq2NmrCU5wNzS37/vFqb5hysGBYqv8MHFE
+ltwU7E83Bkezftb4PtxK49iOpU6fGPlZubok+ggyapBCFGwlPxQeqcdGFWtyXVzO
+0Jvn9l+OUudelJfKbm/Tue96iMgBKySBMJ4Ph9qfkT10LqHls4+/L9JsJjcOptjY
+3wz8uhshJ0XLvIyvazM3VKTxxzZBMAJuRZJpn/8Byfeagl/iRkUO7hmdcqfgf+wh
+4YFFChafwIHNItQxvm1Jp+xg+VUsWMk+hpD97CufFFVHAc3VRssv26deR0tZsT2x
+IorSoU5Ef/F8TU7N6fO6K7jLpMLYWxWIxk8PgyBQ5Qg1/FVhiTwG9Ueq42gVlcKH
+s1+rw2rRQxWYfdsS4sK2xrF+ZlQYx2pBr5sOcyQc9bPUAHPSe9sBl/mSuFGRRK6h
+7MoD846PQnop8TK6nG3YwmLlMrjtMYI7KjBKbCIG8/+3pwHl0jU2eb6u4qyQeTur
+u1jQYWuVomc1OCHdK26N
+=wsH9
+-----END PGP SIGNATURE-----
 
-
---------small patch to "linux/arch/arm/mach-omap2/am35xx-emac.c"-------=
----------------------
-
-void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-{
-=A0=A0=A0 u32 v;
-=A0=A0=A0 int err;
-
-#if 1
-=A0=A0=A0 /* use the TI-provided MAC address fused in the AM35xx */
-=A0=A0=A0 u32 regval, mac_lo, mac_hi;
-
-=A0=A0=A0 mac_lo =3D omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_LSB);
-=A0=A0=A0 mac_hi =3D omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_MSB);
-
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[0] =3D (u_int8_t)((mac_hi & 0xFF00=
-00) >> 16);
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[1] =3D (u_int8_t)((mac_hi & 0xFF00=
-) >> 8);
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[2] =3D (u_int8_t)((mac_hi & 0xFF) =
->> 0);
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[3] =3D (u_int8_t)((mac_lo & 0xFF00=
-00) >> 16);
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[4] =3D (u_int8_t)((mac_lo & 0xFF00=
-) >> 8);
-=A0=A0=A0 am35xx_emac_pdata.mac_addr[5] =3D (u_int8_t)((mac_lo & 0xFF) =
->> 0);
-#endif
-
-
-=2E..
-
------------------------------------------------------------------------=
-------------------------------------------------------
-
-There are *NO* changes to "linux/drivers/net/ethernet/ti/..." files at =
-all.
-
-The test I ran was simple:=A0 I kicked off a "ping -s 8000 <IP> &" to a=
- common laptop on several TAM-3517 platforms.=A0 Then I also ran the 's=
-tress' utility (http://weather.ou.edu/~apw/projects/stress/) to put ver=
-y light, *non-Ethernet* load on the platform.=A0 A day or so later, 2 o=
-f the 3 processors are running.=A0 The 3rd crashed with the error below=
-=2E=A0 This is an identical error to one mentioned in the top post of t=
-his thread (http://article.gmane.org/gmane.linux.ports.arm.omap/78647):
-
-[312631.542877] ------------[ cut here ]------------
-[312631.547851] WARNING: at drivers/net/ethernet/ti/davinci_emac.c:997 =
-emac_rx_alloc+0x5c/0x64()
-[312631.556854] Modules linked in:
-[312631.560211] [<c0013d60>] (unwind_backtrace+0x0/0x104) from [<c0394f=
-34>] (dump_stack+0x20/0x24)
-[312631.569396] [<c0394f34>] (dump_stack+0x20/0x24) from [<c002efa8>] (=
-warn_slowpath_common+0x5c/0x)
-[312631.578948] [<c002efa8>] (warn_slowpath_common+0x5c/0x74) from [<c0=
-02efec>] (warn_slowpath_null)
-[312631.589233] [<c002efec>] (warn_slowpath_null+0x2c/0x34) from [<c029=
-8bc4>] (emac_rx_alloc+0x5c/0)
-[312631.598846] [<c0298bc4>] (emac_rx_alloc+0x5c/0x64) from [<c0299a90>=
-] (emac_rx_handler+0x74/0x11)
-[312631.608306] [<c0299a90>] (emac_rx_handler+0x74/0x11c) from [<c029ad=
-88>] (__cpdma_chan_free+0xc8)
-[312631.618103] [<c029ad88>] (__cpdma_chan_free+0xc8/0xe0) from [<c029a=
-e6c>] (__cpdma_chan_process+)
-[312631.628356] [<c029ae6c>] (__cpdma_chan_process+0xcc/0x104) from [<c=
-029ba00>] (cpdma_chan_proces)
-[312631.638732] [<c029ba00>] (cpdma_chan_process+0x4c/0x64) from [<c029=
-9f64>] (emac_poll+0x9c/0x208)
-[312631.648101] [<c0299f64>] (emac_poll+0x9c/0x208) from [<c030b228>] (=
-net_rx_action+0xb0/0x1a8)
-[312631.657073] [<c030b228>] (net_rx_action+0xb0/0x1a8) from [<c0035c0c=
->] (__do_softirq+0xb0/0x1d8)
-[312631.666351] [<c0035c0c>] (__do_softirq+0xb0/0x1d8) from [<c0036110>=
-] (irq_exit+0x8c/0x94)
-[312631.675048] [<c0036110>] (irq_exit+0x8c/0x94) from [<c000f010>] (ha=
-ndle_IRQ+0x44/0x94)
-[312631.683502] [<c000f010>] (handle_IRQ+0x44/0x94) from [<c00085b4>] (=
-omap3_intc_handle_irq+0x68/0)
-[312631.693145] [<c00085b4>] (omap3_intc_handle_irq+0x68/0x78) from [<c=
-000e480>] (__irq_usr+0x40/0x)
-[312631.702667] Exception stack(0xce029fb0 to 0xce029ff8)
-[312631.708068] 9fa0:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 00000000 0000=
-0000 b6e64020 b6e63458
-[312631.716796] 9fc0: 00000000 00000001 b6e64020 0000e530 00000011 0000=
-e478 00000001 00000000
-[312631.725494] 9fe0: b6e63198 bef7ab68 b6d6c4f4 b6d6c504 20000010 ffff=
-ffff
-[312631.732543] ---[ end trace bf1e7d78367d02a3 ]---
-[312631.737579] stress: page allocation failure: order:0, mode:0x120
-[312631.743988] [<c0013d60>] (unwind_backtrace+0x0/0x104) from [<c0394f=
-34>] (dump_stack+0x20/0x24)
-[312631.753173] [<c0394f34>] (dump_stack+0x20/0x24) from [<c009cec4>] (=
-warn_alloc_failed+0xd8/0x11c)
-[312631.762481] [<c009cec4>] (warn_alloc_failed+0xd8/0x11c) from [<c009=
-f4d8>] (__alloc_pages_nodema)
-[312631.773101] [<c009f4d8>] (__alloc_pages_nodemask+0x508/0x678) from =
-[<c030031c>] (netdev_alloc_f)
-[312631.783630] [<c030031c>] (netdev_alloc_frag+0xa4/0xdc) from [<c0301=
-2ec>] (__netdev_alloc_skb+0x)
-[312631.793609] [<c03012ec>] (__netdev_alloc_skb+0x78/0xd0) from [<c029=
-8b90>] (emac_rx_alloc+0x28/0)
-[312631.803192] [<c0298b90>] (emac_rx_alloc+0x28/0x64) from [<c0299a90>=
-] (emac_rx_handler+0x74/0x11)
-[312631.812622] [<c0299a90>] (emac_rx_handler+0x74/0x11c) from [<c029ad=
-88>] (__cpdma_chan_free+0xc8)
-[312631.822387] [<c029ad88>] (__cpdma_chan_free+0xc8/0xe0) from [<c029a=
-e6c>] (__cpdma_chan_process+)
-[312631.832641] [<c029ae6c>] (__cpdma_chan_process+0xcc/0x104) from [<c=
-029ba00>] (cpdma_chan_proces)
-[312631.842987] [<c029ba00>] (cpdma_chan_process+0x4c/0x64) from [<c029=
-9f64>] (emac_poll+0x9c/0x208)
-[312631.852294] [<c0299f64>] (emac_poll+0x9c/0x208) from [<c030b228>] (=
-net_rx_action+0xb0/0x1a8)
-[312631.861267] [<c030b228>] (net_rx_action+0xb0/0x1a8) from [<c0035c0c=
->] (__do_softirq+0xb0/0x1d8)
-[312631.870483] [<c0035c0c>] (__do_softirq+0xb0/0x1d8) from [<c0036110>=
-] (irq_exit+0x8c/0x94)
-[312631.879180] [<c0036110>] (irq_exit+0x8c/0x94) from [<c000f010>] (ha=
-ndle_IRQ+0x44/0x94)
-[312631.887603] [<c000f010>] (handle_IRQ+0x44/0x94) from [<c00085b4>] (=
-omap3_intc_handle_irq+0x68/0)
-[312631.897186] [<c00085b4>] (omap3_intc_handle_irq+0x68/0x78) from [<c=
-000e480>] (__irq_usr+0x40/0x)
-[312631.906707] Exception stack(0xce029fb0 to 0xce029ff8)
-[312631.912078] 9fa0:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 00000000 0000=
-0000 b6e64020 b6e63458
-[312631.920776] 9fc0: 00000000 00000001 b6e64020 0000e530 00000011 0000=
-e478 00000001 00000000
-[312631.929473] 9fe0: b6e63198 bef7ab68 b6d6c4f4 b6d6c504 20000010 ffff=
-ffff
-[312631.936492] Mem-info:
-[312631.938964] Normal per-cpu:
-[312631.941986] CPU=A0=A0=A0 0: hi:=A0=A0 90, btch:=A0 15 usd:=A0 13
-[312631.947113] active_anon:41797 inactive_anon:30 isolated_anon:0
-[312631.947113]=A0 active_file:2215 inactive_file:12995 isolated_file:0
-[312631.947113]=A0 unevictable:0 dirty:11034 writeback:1 unstable:0
-[312631.947113]=A0 free:2352 slab_reclaimable:583 slab_unreclaimable:10=
-14
-[312631.947113]=A0 mapped:982 shmem:83 pagetables:606 bounce:0
-[312631.978271] Normal free:9408kB min:2028kB low:2532kB high:3040kB ac=
-tive_anon:167188kB inactive_o
-[312632.019989] lowmem_reserve[]: 0 0 0
-[312632.023742] Normal: 1488*4kB 432*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0=
-*256kB 0*512kB 0*1024kB 0*20B
-[312632.034973] 15295 total pagecache pages
-[312632.049987] 65536 pages of RAM
-[312632.053283] 2944 free pages
-[312632.056304] 2306 reserved pages
-[312632.059692] 1333 slab pages
-[312632.062713] 3869 pages shared
-[312632.065917] 0 pages swap cached
-
-
-Any ideas what could be causing this?=A0 It has now happened with both =
-SLAB and SLUB and with both heavy and relatively light Ethernet loads o=
-n the EMAC.=A0 Can anyone please help?
-
-Thanks in advance!
-
+--yudcn1FV7Hsu/q59--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
