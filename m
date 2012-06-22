@@ -1,80 +1,372 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v4 0/3] Prepare for GPMC driver conversion
-Date: Fri, 22 Jun 2012 14:30:06 +0530
-Message-ID: <cover.1340354985.git.afzal@ti.com>
+Subject: [PATCH v4 1/3] ARM: OMAP2+: nand: unify init functions
+Date: Fri, 22 Jun 2012 14:30:34 +0530
+Message-ID: <cdcf19df902fbfa0632371f94309f21544cdad21.1340354986.git.afzal@ti.com>
+References: <cover.1340354985.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57372 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57390 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932399Ab2FVJPd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 05:15:33 -0400
+	id S1758616Ab2FVJPz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 05:15:55 -0400
+In-Reply-To: <cover.1340354985.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Hi,
+Helper function for updating nand platform data has been
+added the capability to take timing structure arguement.
+Usage of omap_nand_flash_init() has been replaced by modifed
+one, omap_nand_flash_init was doing things similar to
+board_nand_init except that NAND CS# were being acquired
+based on bootloader setting. As CS# is hardwired for a given
+board, acquiring gpmc CS# has been removed, and updated with
+the value on board.
 
-Objective of this series is to make things easy for GPMC driver
-conversion series by separating out more things from driver
-conversion series.
+NAND CS# used in beagle board was found to be CS0.
+Thomas Weber <thomas.weber.linux@googlemail.com> reported
+that value of devkit8000 to be CS0. Overo board was found
+to be using CS0 based on u-boot, while google grep says
+omap3touchbook too has CS0.
 
-This series,
-1. Unifies NAND platform initialization functions
-2. Prepares OneNAND platform code for gpmc driver migration
-3. Handles additional timings in Kernel
-
-This series is based on 3.5-rc1 & made on top of
-[PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-{http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html}
-
-These changes has been tested with omap3evm & beagle board. Relevant
-GPMC peripherals that got tested by this were NAND (beagle) and
-OneNAND (using local patches for omap3evm)
-
-Regards
-Afzal
-
-v4:
-1. Reorganize OneNAND set_sync/async functions in a better way
-v3:
-1. Refactor OneNAND set_sync/async functions to separate out timing
- and configurations
-2. Handle bool type timings too
-3. Swap patches 2 & 3 due to dependency of OneNAND change on  newly
- added bool type timings
-v2:
-1. Make use of timing api for setting clock activation time, and
- remove direct writing to register for clock activation. Peripherals
- making use of it were tusb6010 & onenand
-2. Move ensuring that async mode in OneNAND has been setup from
- set_sync to setup function, improve commit message
-
-
-
-Afzal Mohammed (3):
-  ARM: OMAP2+: nand: unify init functions
-  ARM: OMAP2+: gpmc: handle additional timings
-  ARM: OMAP2+: onenand: prepare for gpmc driver migration
-
- arch/arm/mach-omap2/board-devkit8000.c     |    8 +-
- arch/arm/mach-omap2/board-flash.c          |   45 ++++----
- arch/arm/mach-omap2/board-flash.h          |    6 +-
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/board-devkit8000.c     |    8 +++--
+ arch/arm/mach-omap2/board-flash.c          |   45 ++++++++++++++-------------
+ arch/arm/mach-omap2/board-flash.h          |    6 ++--
  arch/arm/mach-omap2/board-igep0020.c       |    2 +-
- arch/arm/mach-omap2/board-ldp.c            |    4 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    8 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    8 +-
- arch/arm/mach-omap2/board-overo.c          |    7 +-
- arch/arm/mach-omap2/board-zoom.c           |    5 +-
- arch/arm/mach-omap2/common-board-devices.c |   46 --------
+ arch/arm/mach-omap2/board-ldp.c            |    4 +--
+ arch/arm/mach-omap2/board-omap3beagle.c    |    8 +++--
+ arch/arm/mach-omap2/board-omap3touchbook.c |    8 +++--
+ arch/arm/mach-omap2/board-overo.c          |    7 +++--
+ arch/arm/mach-omap2/board-zoom.c           |    5 +--
+ arch/arm/mach-omap2/common-board-devices.c |   46 ----------------------------
  arch/arm/mach-omap2/common-board-devices.h |    1 -
- arch/arm/mach-omap2/gpmc-onenand.c         |  156 +++++++++++++++-------------
- arch/arm/mach-omap2/gpmc.c                 |   45 ++++++++
- arch/arm/mach-omap2/usb-tusb6010.c         |    3 +-
- arch/arm/plat-omap/include/plat/gpmc.h     |   19 ++++
- 15 files changed, 207 insertions(+), 156 deletions(-)
+ 11 files changed, 56 insertions(+), 84 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 6567c1c..6ee429a 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -59,8 +59,11 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "board-flash.h"
+ #include "common-board-devices.h"
+ 
++#define	NAND_CS			0
++
+ #define OMAP_DM9000_GPIO_IRQ	25
+ #define OMAP3_DEVKIT_TS_GPIO	27
+ 
+@@ -628,8 +631,9 @@ static void __init devkit8000_init(void)
+ 
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+-	omap_nand_flash_init(NAND_BUSWIDTH_16, devkit8000_nand_partitions,
+-			     ARRAY_SIZE(devkit8000_nand_partitions));
++	board_nand_init(devkit8000_nand_partitions,
++		ARRAY_SIZE(devkit8000_nand_partitions), NAND_CS,
++		NAND_BUSWIDTH_16, NULL);
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 70a81f9..0ee820b 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -108,41 +108,41 @@ __init board_onenand_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
+ 		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+ 
+ /* Note that all values in this struct are in nanoseconds */
+-static struct gpmc_timings nand_timings = {
++struct gpmc_timings nand_default_timings[1] = {
++	{
++		.sync_clk = 0,
+ 
+-	.sync_clk = 0,
++		.cs_on = 0,
++		.cs_rd_off = 36,
++		.cs_wr_off = 36,
+ 
+-	.cs_on = 0,
+-	.cs_rd_off = 36,
+-	.cs_wr_off = 36,
++		.adv_on = 6,
++		.adv_rd_off = 24,
++		.adv_wr_off = 36,
+ 
+-	.adv_on = 6,
+-	.adv_rd_off = 24,
+-	.adv_wr_off = 36,
++		.we_off = 30,
++		.oe_off = 48,
+ 
+-	.we_off = 30,
+-	.oe_off = 48,
++		.access = 54,
++		.rd_cycle = 72,
++		.wr_cycle = 72,
+ 
+-	.access = 54,
+-	.rd_cycle = 72,
+-	.wr_cycle = 72,
+-
+-	.wr_access = 30,
+-	.wr_data_mux_bus = 0,
++		.wr_access = 30,
++		.wr_data_mux_bus = 0,
++	},
+ };
+ 
+-static struct omap_nand_platform_data board_nand_data = {
+-	.gpmc_t		= &nand_timings,
+-};
++static struct omap_nand_platform_data board_nand_data;
+ 
+ void
+-__init board_nand_init(struct mtd_partition *nand_parts,
+-			u8 nr_parts, u8 cs, int nand_type)
++__init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs,
++				int nand_type, struct gpmc_timings *gpmc_t)
+ {
+ 	board_nand_data.cs		= cs;
+ 	board_nand_data.parts		= nand_parts;
+ 	board_nand_data.nr_parts	= nr_parts;
+ 	board_nand_data.devsize		= nand_type;
++	board_nand_data.gpmc_t		= gpmc_t;
+ 
+ 	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
+ 	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
+@@ -243,5 +243,6 @@ void __init board_flash_init(struct flash_partitions partition_info[],
+ 		pr_err("NAND: Unable to find configuration in GPMC\n");
+ 	else
+ 		board_nand_init(partition_info[2].parts,
+-			partition_info[2].nr_parts, nandcs, nand_type);
++			partition_info[2].nr_parts, nandcs,
++			nand_type, nand_default_timings);
+ }
+diff --git a/arch/arm/mach-omap2/board-flash.h b/arch/arm/mach-omap2/board-flash.h
+index c44b70d..a3aa5fc 100644
+--- a/arch/arm/mach-omap2/board-flash.h
++++ b/arch/arm/mach-omap2/board-flash.h
+@@ -40,12 +40,14 @@ static inline void board_flash_init(struct flash_partitions part[],
+ #if defined(CONFIG_MTD_NAND_OMAP2) || \
+ 		defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+ extern void board_nand_init(struct mtd_partition *nand_parts,
+-					u8 nr_parts, u8 cs, int nand_type);
++		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t);
++extern struct gpmc_timings nand_default_timings[];
+ #else
+ static inline void board_nand_init(struct mtd_partition *nand_parts,
+-					u8 nr_parts, u8 cs, int nand_type)
++		u8 nr_parts, u8 cs, int nand_type, struct gpmc_timings *gpmc_t)
+ {
+ }
++#define	nand_default_timings	NULL
+ #endif
+ 
+ #if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 7491529..40d2d5d 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -175,7 +175,7 @@ static void __init igep_flash_init(void)
+ 		pr_info("IGEP: initializing NAND memory device\n");
+ 		board_nand_init(igep_flash_partitions,
+ 				ARRAY_SIZE(igep_flash_partitions),
+-				0, NAND_BUSWIDTH_16);
++				0, NAND_BUSWIDTH_16, nand_default_timings);
+ 	} else if (mux == IGEP_SYSBOOT_ONENAND) {
+ 		pr_info("IGEP: initializing OneNAND memory device\n");
+ 		board_onenand_init(igep_flash_partitions,
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index ef9e829..5d8fa99 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -427,8 +427,8 @@ static void __init omap_ldp_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 	usb_musb_init(NULL);
+-	board_nand_init(ldp_nand_partitions,
+-		ARRAY_SIZE(ldp_nand_partitions), ZOOM_NAND_CS, 0);
++	board_nand_init(ldp_nand_partitions, ARRAY_SIZE(ldp_nand_partitions),
++				ZOOM_NAND_CS, 0, nand_default_timings);
+ 
+ 	omap_hsmmc_init(mmc);
+ 	ldp_display_init();
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 79c6909..5aa8f28 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -51,8 +51,11 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "pm.h"
++#include "board-flash.h"
+ #include "common-board-devices.h"
+ 
++#define	NAND_CS	0
++
+ /*
+  * OMAP3 Beagle revision
+  * Run time detection of Beagle revision is done by reading GPIO.
+@@ -521,8 +524,9 @@ static void __init omap3_beagle_init(void)
+ 
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+-	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+-			     ARRAY_SIZE(omap3beagle_nand_partitions));
++	board_nand_init(omap3beagle_nand_partitions,
++		ARRAY_SIZE(omap3beagle_nand_partitions), NAND_CS,
++		NAND_BUSWIDTH_16, NULL);
+ 
+ 	/* Ensure msecure is mux'd to be able to set the RTC. */
+ 	omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 485d14d..75e07f6 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -52,6 +52,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "board-flash.h"
+ #include "common-board-devices.h"
+ 
+ #include <asm/setup.h>
+@@ -61,6 +62,8 @@
+ #define TB_BL_PWM_TIMER		9
+ #define TB_KILL_POWER_GPIO	168
+ 
++#define	NAND_CS			0
++
+ static unsigned long touchbook_revision;
+ 
+ static struct mtd_partition omap3touchbook_nand_partitions[] = {
+@@ -370,8 +373,9 @@ static void __init omap3_touchbook_init(void)
+ 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+-	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
+-			     ARRAY_SIZE(omap3touchbook_nand_partitions));
++	board_nand_init(omap3touchbook_nand_partitions,
++		ARRAY_SIZE(omap3touchbook_nand_partitions), NAND_CS,
++		NAND_BUSWIDTH_16, NULL);
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 8fa2fc3..39f2994 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -57,8 +57,11 @@
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
++#include "board-flash.h"
+ #include "common-board-devices.h"
+ 
++#define	NAND_CS			0
++
+ #define OVERO_GPIO_BT_XGATE	15
+ #define OVERO_GPIO_W2W_NRESET	16
+ #define OVERO_GPIO_PENDOWN	114
+@@ -500,8 +503,8 @@ static void __init overo_init(void)
+ 	omap_serial_init();
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+ 				  mt46h32m32lf6_sdrc_params);
+-	omap_nand_flash_init(0, overo_nand_partitions,
+-			     ARRAY_SIZE(overo_nand_partitions));
++	board_nand_init(overo_nand_partitions,
++		ARRAY_SIZE(overo_nand_partitions), NAND_CS, 0, NULL);
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
+index 4e7e561..a04dd85 100644
+--- a/arch/arm/mach-omap2/board-zoom.c
++++ b/arch/arm/mach-omap2/board-zoom.c
+@@ -114,8 +114,9 @@ static void __init omap_zoom_init(void)
+ 		usbhs_init(&usbhs_bdata);
+ 	}
+ 
+-	board_nand_init(zoom_nand_partitions, ARRAY_SIZE(zoom_nand_partitions),
+-						ZOOM_NAND_CS, NAND_BUSWIDTH_16);
++	board_nand_init(zoom_nand_partitions,
++			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS,
++			NAND_BUSWIDTH_16, nand_default_timings);
+ 	zoom_debugboard_init();
+ 	zoom_peripherals_init();
+ 
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index 1706ebc..0fd35a4 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -93,49 +93,3 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ {
+ }
+ #endif
+-
+-#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+-static struct omap_nand_platform_data nand_data;
+-
+-void __init omap_nand_flash_init(int options, struct mtd_partition *parts,
+-				 int nr_parts)
+-{
+-	u8 cs = 0;
+-	u8 nandcs = GPMC_CS_NUM + 1;
+-
+-	/* find out the chip-select on which NAND exists */
+-	while (cs < GPMC_CS_NUM) {
+-		u32 ret = 0;
+-		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+-
+-		if ((ret & 0xC00) == 0x800) {
+-			printk(KERN_INFO "Found NAND on CS%d\n", cs);
+-			if (nandcs > GPMC_CS_NUM)
+-				nandcs = cs;
+-		}
+-		cs++;
+-	}
+-
+-	if (nandcs > GPMC_CS_NUM) {
+-		printk(KERN_INFO "NAND: Unable to find configuration "
+-				 "in GPMC\n ");
+-		return;
+-	}
+-
+-	if (nandcs < GPMC_CS_NUM) {
+-		nand_data.cs = nandcs;
+-		nand_data.parts = parts;
+-		nand_data.nr_parts = nr_parts;
+-		nand_data.devsize = options;
+-
+-		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+-		if (gpmc_nand_init(&nand_data) < 0)
+-			printk(KERN_ERR "Unable to register NAND device\n");
+-	}
+-}
+-#else
+-void __init omap_nand_flash_init(int options, struct mtd_partition *parts,
+-				 int nr_parts)
+-{
+-}
+-#endif
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index a0b4a428..72bb41b 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -10,6 +10,5 @@ struct ads7846_platform_data;
+ 
+ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 		       struct ads7846_platform_data *board_pdata);
+-void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
+ 
+ #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
 -- 
 1.7.10.2
 
