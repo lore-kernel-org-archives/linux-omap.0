@@ -1,729 +1,450 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 11/11] ARM: omap: clk: Remove all direct dereferencing of struct clk
-Date: Fri, 22 Jun 2012 19:18:10 +0530
-Message-ID: <1340372890-10091-12-git-send-email-rnayak@ti.com>
+Subject: [PATCH 10/11] ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+Date: Fri, 22 Jun 2012 19:18:09 +0530
+Message-ID: <1340372890-10091-11-git-send-email-rnayak@ti.com>
 References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34303 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39422 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932876Ab2FVNsp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 09:48:45 -0400
+	id S932873Ab2FVNsm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 09:48:42 -0400
 In-Reply-To: <1340372890-10091-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com, mturquette@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-While we move to Common Clk Framework (CCF), direct deferencing of struct
-clk wouldn't be possible anymore. Hence get rid of all such instances
-in the current clock code and use macros/helpers similar to the ones that
-are provided by CCF.
+Moving to Common clk framework for OMAP would mean we no longer use
+internal lookup mechanism like omap_clk_get_by_name().
+get rid of all its usage mostly from hwmod and omap_device
+code.
+
+Also use IS_ERR_OR_NULL() for error checking.
+
+Moving to clk_get() also means the respective platforms
+need the clkdev tables updated with an entry for all clocks
+used by hwmod to have clock name same as the alias.
+
+Based on original changes from Mike Turquette.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    4 +-
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   18 +++---
- arch/arm/mach-omap2/clkt_clksel.c            |   84 ++++++++++++++++++--------
- arch/arm/mach-omap2/clkt_dpll.c              |   24 ++++---
- arch/arm/mach-omap2/clock.c                  |    9 ++-
- arch/arm/mach-omap2/dpll3xxx.c               |   45 ++++++++------
- arch/arm/mach-omap2/omap_hwmod.c             |    6 +-
- arch/arm/mach-omap2/pm.c                     |    2 +-
- arch/arm/plat-omap/include/plat/clock.h      |    4 +
- 10 files changed, 125 insertions(+), 73 deletions(-)
+ arch/arm/mach-omap2/clock2420_data.c |   17 +++++++++++++++++
+ arch/arm/mach-omap2/clock2430_data.c |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c |   24 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock44xx_data.c |   17 +++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod.c     |   12 ++++++------
+ arch/arm/plat-omap/omap_device.c     |    6 +++---
+ 6 files changed, 88 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
-index b19a1f7..c2d1521 100644
---- a/arch/arm/mach-omap2/clkt2xxx_apll.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
-@@ -59,7 +59,7 @@ static int omap2_clk_apll_enable(struct clk *clk, u32 status_mask)
- 	omap2_cm_write_mod_reg(cval, PLL_MOD, CM_CLKEN);
- 
- 	omap2_cm_wait_idlest(cm_idlest_pll, status_mask,
--			     OMAP24XX_CM_IDLEST_VAL, clk->name);
-+			     OMAP24XX_CM_IDLEST_VAL, __clk_get_name(clk));
- 
- 	/*
- 	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
-diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-index 3d9d746..3a27426 100644
---- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-@@ -75,7 +75,7 @@ long omap2_round_to_table_rate(struct clk *clk, unsigned long rate)
- 	for (ptr = rate_table; ptr->mpu_speed; ptr++) {
- 		if (!(ptr->flags & cpu_mask))
- 			continue;
--		if (ptr->xtal_speed != sclk->rate)
-+		if (ptr->xtal_speed != __clk_get_rate(sclk))
- 			continue;
- 
- 		highest_rate = ptr->mpu_speed;
-@@ -99,7 +99,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 		if (!(prcm->flags & cpu_mask))
- 			continue;
- 
--		if (prcm->xtal_speed != sclk->rate)
-+		if (prcm->xtal_speed != __clk_get_rate(sclk))
- 			continue;
- 
- 		if (prcm->mpu_speed <= rate) {
-diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-index d6e34dd..51601db 100644
---- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-+++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-@@ -56,6 +56,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	struct omap_sdrc_params *sdrc_cs0;
- 	struct omap_sdrc_params *sdrc_cs1;
- 	int ret;
-+	unsigned long clkrate;
- 
- 	if (!clk || !rate)
- 		return -EINVAL;
-@@ -64,11 +65,12 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	if (validrate != rate)
- 		return -EINVAL;
- 
--	sdrcrate = sdrc_ick_p->rate;
--	if (rate > clk->rate)
--		sdrcrate <<= ((rate / clk->rate) >> 1);
-+	sdrcrate = __clk_get_rate(sdrc_ick_p);
-+	clkrate = __clk_get_rate(clk);
-+	if (rate > clkrate)
-+		sdrcrate <<= ((rate / clkrate) >> 1);
- 	else
--		sdrcrate >>= ((clk->rate / rate) >> 1);
-+		sdrcrate >>= ((clkrate / rate) >> 1);
- 
- 	ret = omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
- 	if (ret)
-@@ -82,7 +84,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	/*
- 	 * XXX This only needs to be done when the CPU frequency changes
- 	 */
--	_mpurate = arm_fck_p->rate / CYCLES_PER_MHZ;
-+	_mpurate = __clk_get_rate(arm_fck_p) / CYCLES_PER_MHZ;
- 	c = (_mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
- 	c += 1;  /* for safety */
- 	c *= SDRC_MPURATE_LOOPS;
-@@ -90,7 +92,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	if (c == 0)
- 		c = 1;
- 
--	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
-+	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clkrate,
- 		 validrate);
- 	pr_debug("clock: SDRC CS0 timing params used:"
- 		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
-@@ -104,14 +106,14 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 
- 	if (sdrc_cs1)
- 		omap3_configure_core_dpll(
--				  new_div, unlock_dll, c, rate > clk->rate,
-+				  new_div, unlock_dll, c, rate > clkrate,
- 				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
- 				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
- 				  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
- 				  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
- 	else
- 		omap3_configure_core_dpll(
--				  new_div, unlock_dll, c, rate > clk->rate,
-+				  new_div, unlock_dll, c, rate > clkrate,
- 				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
- 				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
- 				  0, 0, 0, 0);
-diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
-index 04d551b..1c054ba 100644
---- a/arch/arm/mach-omap2/clkt_clksel.c
-+++ b/arch/arm/mach-omap2/clkt_clksel.c
-@@ -72,7 +72,9 @@ static const struct clksel *_get_clksel_by_parent(struct clk *clk,
- 	if (!clks->parent) {
- 		/* This indicates a data problem */
- 		WARN(1, "clock: Could not find parent clock %s in clksel array "
--		     "of clock %s\n", src_clk->name, clk->name);
-+		     "of clock %s\n",
-+		      __clk_get_name(src_clk),
-+		      __clk_get_name(clk));
- 		return NULL;
- 	}
- 
-@@ -127,7 +129,8 @@ static u8 _get_div_and_fieldval(struct clk *src_clk, struct clk *clk,
- 	if (max_div == 0) {
- 		/* This indicates an error in the clksel data */
- 		WARN(1, "clock: Could not find divisor for clock %s parent %s"
--		     "\n", clk->name, src_clk->parent->name);
-+		     "\n", __clk_get_name(clk),
-+		     __clk_get_name(__clk_get_parent(src_clk)));
- 		return 0;
- 	}
- 
-@@ -176,8 +179,10 @@ static u32 _clksel_to_divisor(struct clk *clk, u32 field_val)
- {
- 	const struct clksel *clks;
- 	const struct clksel_rate *clkr;
-+	struct clk *parent;
- 
--	clks = _get_clksel_by_parent(clk, clk->parent);
-+	parent = __clk_get_parent(clk);
-+	clks = _get_clksel_by_parent(clk, parent);
- 	if (!clks)
- 		return 0;
- 
-@@ -192,7 +197,9 @@ static u32 _clksel_to_divisor(struct clk *clk, u32 field_val)
- 	if (!clkr->div) {
- 		/* This indicates a data error */
- 		WARN(1, "clock: Could not find fieldval %d for clock %s parent "
--		     "%s\n", field_val, clk->name, clk->parent->name);
-+		     "%s\n", field_val,
-+		     __clk_get_name(clk),
-+		     __clk_get_name(parent));
- 		return 0;
- 	}
- 
-@@ -213,11 +220,13 @@ static u32 _divisor_to_clksel(struct clk *clk, u32 div)
- {
- 	const struct clksel *clks;
- 	const struct clksel_rate *clkr;
-+	struct clk *parent;
- 
- 	/* should never happen */
- 	WARN_ON(div == 0);
- 
--	clks = _get_clksel_by_parent(clk, clk->parent);
-+	parent = __clk_get_parent(clk);
-+	clks = _get_clksel_by_parent(clk, parent);
- 	if (!clks)
- 		return ~0;
- 
-@@ -231,7 +240,9 @@ static u32 _divisor_to_clksel(struct clk *clk, u32 div)
- 
- 	if (!clkr->div) {
- 		pr_err("clock: Could not find divisor %d for clock %s parent "
--		       "%s\n", div, clk->name, clk->parent->name);
-+		       "%s\n", div,
-+		       __clk_get_name(clk),
-+		       __clk_get_name(parent));
- 		return ~0;
- 	}
- 
-@@ -281,16 +292,23 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	const struct clksel *clks;
- 	const struct clksel_rate *clkr;
- 	u32 last_div = 0;
-+	struct clk *parent;
-+	unsigned long parent_rate;
-+	const char *clk_name;
-+
-+	parent = __clk_get_parent(clk);
-+	parent_rate = __clk_get_rate(parent);
-+	clk_name = __clk_get_name(clk);
- 
- 	if (!clk->clksel || !clk->clksel_mask)
- 		return ~0;
- 
- 	pr_debug("clock: clksel_round_rate_div: %s target_rate %ld\n",
--		 clk->name, target_rate);
-+		 clk_name, target_rate);
- 
- 	*new_div = 1;
- 
--	clks = _get_clksel_by_parent(clk, clk->parent);
-+	clks = _get_clksel_by_parent(clk, parent);
- 	if (!clks)
- 		return ~0;
- 
-@@ -301,11 +319,11 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 		/* Sanity check */
- 		if (clkr->div <= last_div)
- 			pr_err("clock: clksel_rate table not sorted "
--			       "for clock %s", clk->name);
-+			       "for clock %s", clk_name);
- 
- 		last_div = clkr->div;
- 
--		test_rate = clk->parent->rate / clkr->div;
-+		test_rate = parent_rate / clkr->div;
- 
- 		if (test_rate <= target_rate)
- 			break; /* found it */
-@@ -314,16 +332,16 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	if (!clkr->div) {
- 		pr_err("clock: Could not find divisor for target "
- 		       "rate %ld for clock %s parent %s\n", target_rate,
--		       clk->name, clk->parent->name);
-+		       clk_name, __clk_get_name(parent));
- 		return ~0;
- 	}
- 
- 	*new_div = clkr->div;
- 
- 	pr_debug("clock: new_div = %d, new_rate = %ld\n", *new_div,
--		 (clk->parent->rate / clkr->div));
-+		 (parent_rate / clkr->div));
- 
--	return clk->parent->rate / clkr->div;
-+	return parent_rate / clkr->div;
- }
- 
- /*
-@@ -345,10 +363,15 @@ void omap2_init_clksel_parent(struct clk *clk)
- 	const struct clksel *clks;
- 	const struct clksel_rate *clkr;
- 	u32 r, found = 0;
-+	struct clk *parent;
-+	const char *clk_name;
- 
- 	if (!clk->clksel || !clk->clksel_mask)
- 		return;
- 
-+	parent = __clk_get_parent(clk);
-+	clk_name = __clk_get_name(clk);
-+
- 	r = __raw_readl(clk->clksel_reg) & clk->clksel_mask;
- 	r >>= __ffs(clk->clksel_mask);
- 
-@@ -358,12 +381,14 @@ void omap2_init_clksel_parent(struct clk *clk)
- 				continue;
- 
- 			if (clkr->val == r) {
--				if (clk->parent != clks->parent) {
-+				if (parent != clks->parent) {
- 					pr_debug("clock: inited %s parent "
- 						 "to %s (was %s)\n",
--						 clk->name, clks->parent->name,
--						 ((clk->parent) ?
--						  clk->parent->name : "NULL"));
-+						 clk_name,
-+						 __clk_get_name(clks->parent),
-+						 ((parent) ?
-+						  __clk_get_name(parent) :
-+						 "NULL"));
- 					clk_reparent(clk, clks->parent);
- 				};
- 				found = 1;
-@@ -373,7 +398,7 @@ void omap2_init_clksel_parent(struct clk *clk)
- 
- 	/* This indicates a data error */
- 	WARN(!found, "clock: %s: init parent: could not find regval %0x\n",
--	     clk->name, r);
-+	     clk_name, r);
- 
- 	return;
- }
-@@ -391,14 +416,17 @@ unsigned long omap2_clksel_recalc(struct clk *clk)
- {
- 	unsigned long rate;
- 	u32 div = 0;
-+	struct clk *parent;
- 
- 	div = _read_divisor(clk);
- 	if (div == 0)
--		return clk->rate;
-+		return __clk_get_rate(clk);
- 
--	rate = clk->parent->rate / div;
-+	parent = __clk_get_parent(clk);
-+	rate = __clk_get_rate(parent) / div;
- 
--	pr_debug("clock: %s: recalc'd rate is %ld (div %d)\n", clk->name,
-+	pr_debug("clock: %s: recalc'd rate is %ld (div %d)\n",
-+		 __clk_get_name(clk),
- 		 rate, div);
- 
- 	return rate;
-@@ -454,9 +482,11 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- 
- 	_write_clksel_reg(clk, field_val);
- 
--	clk->rate = clk->parent->rate / new_div;
-+	clk->rate = __clk_get_rate(__clk_get_parent(clk)) / new_div;
- 
--	pr_debug("clock: %s: set rate to %ld\n", clk->name, clk->rate);
-+	pr_debug("clock: %s: set rate to %ld\n",
-+				__clk_get_name(clk),
-+				__clk_get_rate(clk));
- 
- 	return 0;
- }
-@@ -498,13 +528,15 @@ int omap2_clksel_set_parent(struct clk *clk, struct clk *new_parent)
- 	clk_reparent(clk, new_parent);
- 
- 	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
--	clk->rate = new_parent->rate;
-+	clk->rate = __clk_get_rate(new_parent);
- 
- 	if (parent_div > 0)
--		clk->rate /= parent_div;
-+		__clk_get_rate(clk) /= parent_div;
- 
- 	pr_debug("clock: %s: set parent to %s (new rate %ld)\n",
--		 clk->name, clk->parent->name, clk->rate);
-+		 __clk_get_name(clk),
-+		 __clk_get_name(__clk_get_parent(clk)),
-+		 __clk_get_rate(clk));
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/clkt_dpll.c b/arch/arm/mach-omap2/clkt_dpll.c
-index cd7fd0f..6a8a012 100644
---- a/arch/arm/mach-omap2/clkt_dpll.c
-+++ b/arch/arm/mach-omap2/clkt_dpll.c
-@@ -87,7 +87,7 @@ static int _dpll_test_fint(struct clk *clk, u8 n)
- 	dd = clk->dpll_data;
- 
- 	/* DPLL divider must result in a valid jitter correction val */
--	fint = clk->parent->rate / n;
-+	fint = __clk_get_rate(__clk_get_parent(clk)) / n;
- 
- 	if (cpu_is_omap24xx()) {
- 		/* Should not be called for OMAP2, so warn if it is called */
-@@ -252,16 +252,16 @@ u32 omap2_get_dpll_rate(struct clk *clk)
- 	if (cpu_is_omap24xx()) {
- 		if (v == OMAP2XXX_EN_DPLL_LPBYPASS ||
- 		    v == OMAP2XXX_EN_DPLL_FRBYPASS)
--			return dd->clk_bypass->rate;
-+			return __clk_get_rate(dd->clk_bypass);
- 	} else if (cpu_is_omap34xx()) {
- 		if (v == OMAP3XXX_EN_DPLL_LPBYPASS ||
- 		    v == OMAP3XXX_EN_DPLL_FRBYPASS)
--			return dd->clk_bypass->rate;
-+			return __clk_get_rate(dd->clk_bypass);
- 	} else if (cpu_is_omap44xx()) {
- 		if (v == OMAP4XXX_EN_DPLL_LPBYPASS ||
- 		    v == OMAP4XXX_EN_DPLL_FRBYPASS ||
- 		    v == OMAP4XXX_EN_DPLL_MNBYPASS)
--			return dd->clk_bypass->rate;
-+			return __clk_get_rate(dd->clk_bypass);
- 	}
- 
- 	v = __raw_readl(dd->mult_div1_reg);
-@@ -270,7 +270,7 @@ u32 omap2_get_dpll_rate(struct clk *clk)
- 	dpll_div = v & dd->div1_mask;
- 	dpll_div >>= __ffs(dd->div1_mask);
- 
--	dpll_clk = (long long)dd->clk_ref->rate * dpll_mult;
-+	dpll_clk = (long long) __clk_get_rate(dd->clk_ref) * dpll_mult;
- 	do_div(dpll_clk, dpll_div + 1);
- 
- 	return dpll_clk;
-@@ -296,16 +296,20 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 	unsigned long scaled_rt_rp;
- 	unsigned long new_rate = 0;
- 	struct dpll_data *dd;
-+	unsigned long ref_rate;
-+	const char *clk_name;
- 
- 	if (!clk || !clk->dpll_data)
- 		return ~0;
- 
- 	dd = clk->dpll_data;
- 
-+	ref_rate = __clk_get_rate(dd->clk_ref);
-+	clk_name = __clk_get_name(clk);
- 	pr_debug("clock: %s: starting DPLL round_rate, target rate %ld\n",
--		 clk->name, target_rate);
-+		 clk_name, target_rate);
- 
--	scaled_rt_rp = target_rate / (dd->clk_ref->rate / DPLL_SCALE_FACTOR);
-+	scaled_rt_rp = target_rate / (ref_rate / DPLL_SCALE_FACTOR);
- 	scaled_max_m = dd->max_multiplier * DPLL_SCALE_FACTOR;
- 
- 	dd->last_rounded_rate = 0;
-@@ -332,14 +336,14 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 			break;
- 
- 		r = _dpll_test_mult(&m, n, &new_rate, target_rate,
--				    dd->clk_ref->rate);
-+				    ref_rate);
- 
- 		/* m can't be set low enough for this n - try with a larger n */
- 		if (r == DPLL_MULT_UNDERFLOW)
- 			continue;
- 
- 		pr_debug("clock: %s: m = %d: n = %d: new_rate = %ld\n",
--			 clk->name, m, n, new_rate);
-+			 clk_name, m, n, new_rate);
- 
- 		if (target_rate == new_rate) {
- 			dd->last_rounded_m = m;
-@@ -350,7 +354,7 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 	}
- 
- 	if (target_rate != new_rate) {
--		pr_debug("clock: %s: cannot round to rate %ld\n", clk->name,
-+		pr_debug("clock: %s: cannot round to rate %ld\n", clk_name,
- 			 target_rate);
- 		return ~0;
- 	}
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 5c4e665..aa00f72 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -76,7 +76,7 @@ static void _omap2_module_wait_ready(struct clk *clk)
- 	clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit, &idlest_val);
- 
- 	omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), idlest_val,
--			     clk->name);
-+			     __clk_get_name(clk));
- }
- 
- /* Public functions */
-@@ -92,18 +92,21 @@ static void _omap2_module_wait_ready(struct clk *clk)
- void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
-+	const char *clk_name;
- 
- 	if (!clk->clkdm_name)
- 		return;
- 
-+	clk_name = __clk_get_name(clk);
-+
- 	clkdm = clkdm_lookup(clk->clkdm_name);
- 	if (clkdm) {
- 		pr_debug("clock: associated clk %s to clkdm %s\n",
--			 clk->name, clk->clkdm_name);
-+			 clk_name, clk->clkdm_name);
- 		clk->clkdm = clkdm;
- 	} else {
- 		pr_debug("clock: could not associate clk %s to "
--			 "clkdm %s\n", clk->name, clk->clkdm_name);
-+			 "clkdm %s\n", clk_name, clk->clkdm_name);
- 	}
- }
- 
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f0f10be..d390f40 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -63,8 +63,10 @@ static int _omap3_wait_dpll_status(struct clk *clk, u8 state)
- 	const struct dpll_data *dd;
- 	int i = 0;
- 	int ret = -EINVAL;
-+	const char *clk_name;
- 
- 	dd = clk->dpll_data;
-+	clk_name = __clk_get_name(clk);
- 
- 	state <<= __ffs(dd->idlest_mask);
- 
-@@ -76,10 +78,10 @@ static int _omap3_wait_dpll_status(struct clk *clk, u8 state)
- 
- 	if (i == MAX_DPLL_WAIT_TRIES) {
- 		printk(KERN_ERR "clock: %s failed transition to '%s'\n",
--		       clk->name, (state) ? "locked" : "bypassed");
-+		       clk_name, (state) ? "locked" : "bypassed");
- 	} else {
- 		pr_debug("clock: %s transition to '%s' in %d loops\n",
--			 clk->name, (state) ? "locked" : "bypassed", i);
-+			 clk_name, (state) ? "locked" : "bypassed", i);
- 
- 		ret = 0;
- 	}
-@@ -93,7 +95,7 @@ static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
- 	unsigned long fint;
- 	u16 f = 0;
- 
--	fint = clk->dpll_data->clk_ref->rate / n;
-+	fint = __clk_get_rate(clk->dpll_data->clk_ref) / n;
- 
- 	pr_debug("clock: fint is %lu\n", fint);
- 
-@@ -138,7 +140,7 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
- 	u8 ai;
- 	int r;
- 
--	pr_debug("clock: locking DPLL %s\n", clk->name);
-+	pr_debug("clock: locking DPLL %s\n", __clk_get_name(clk));
- 
- 	ai = omap3_dpll_autoidle_read(clk);
- 
-@@ -177,7 +179,7 @@ static int _omap3_noncore_dpll_bypass(struct clk *clk)
- 		return -EINVAL;
- 
- 	pr_debug("clock: configuring DPLL %s for low-power bypass\n",
--		 clk->name);
-+		 __clk_get_name(clk));
- 
- 	ai = omap3_dpll_autoidle_read(clk);
- 
-@@ -207,7 +209,7 @@ static int _omap3_noncore_dpll_stop(struct clk *clk)
- 	if (!(clk->dpll_data->modes & (1 << DPLL_LOW_POWER_STOP)))
- 		return -EINVAL;
- 
--	pr_debug("clock: stopping DPLL %s\n", clk->name);
-+	pr_debug("clock: stopping DPLL %s\n", __clk_get_name(clk));
- 
- 	ai = omap3_dpll_autoidle_read(clk);
- 
-@@ -235,7 +237,7 @@ static void _lookup_dco(struct clk *clk, u8 *dco, u16 m, u8 n)
- {
- 	unsigned long fint, clkinp; /* watch out for overflow */
- 
--	clkinp = clk->parent->rate;
-+	clkinp = __clk_get_rate(__clk_get_parent(clk));
- 	fint = (clkinp / n) * m;
- 
- 	if (fint < 1000000000)
-@@ -261,7 +263,7 @@ static void _lookup_sddiv(struct clk *clk, u8 *sd_div, u16 m, u8 n)
- 	unsigned long clkinp, sd; /* watch out for overflow */
- 	int mod1, mod2;
- 
--	clkinp = clk->parent->rate;
-+	clkinp = __clk_get_rate(__clk_get_parent(clk));
- 
- 	/*
- 	 * target sigma-delta to near 250MHz
-@@ -370,16 +372,19 @@ int omap3_noncore_dpll_enable(struct clk *clk)
- {
- 	int r;
- 	struct dpll_data *dd;
-+	struct clk *parent;
- 
- 	dd = clk->dpll_data;
- 	if (!dd)
- 		return -EINVAL;
- 
--	if (clk->rate == dd->clk_bypass->rate) {
--		WARN_ON(clk->parent != dd->clk_bypass);
-+	parent = __clk_get_parent(clk);
-+
-+	if (__clk_get_rate(clk) == __clk_get_rate(dd->clk_bypass)) {
-+		WARN_ON(parent != dd->clk_bypass);
- 		r = _omap3_noncore_dpll_bypass(clk);
- 	} else {
--		WARN_ON(clk->parent != dd->clk_ref);
-+		WARN_ON(parent != dd->clk_ref);
- 		r = _omap3_noncore_dpll_lock(clk);
- 	}
- 	/*
-@@ -446,7 +451,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 	omap2_clk_enable(dd->clk_bypass);
- 	omap2_clk_enable(dd->clk_ref);
- 
--	if (dd->clk_bypass->rate == rate &&
-+	if (__clk_get_rate(dd->clk_bypass) == rate &&
- 	    (clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
- 		pr_debug("clock: %s: set rate: entering bypass.\n", clk->name);
- 
-@@ -469,7 +474,7 @@ int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
- 		}
- 
- 		pr_debug("clock: %s: set rate: locking rate to %lu.\n",
--			 clk->name, rate);
-+			 __clk_get_name(clk), rate);
- 
- 		ret = omap3_noncore_dpll_program(clk, dd->last_rounded_m,
- 						 dd->last_rounded_n, freqsel);
-@@ -547,7 +552,7 @@ void omap3_dpll_allow_idle(struct clk *clk)
- 
- 	if (!dd->autoidle_reg) {
- 		pr_debug("clock: DPLL %s: autoidle not supported\n",
--			clk->name);
-+			__clk_get_name(clk));
- 		return;
- 	}
- 
-@@ -581,7 +586,7 @@ void omap3_dpll_deny_idle(struct clk *clk)
- 
- 	if (!dd->autoidle_reg) {
- 		pr_debug("clock: DPLL %s: autoidle not supported\n",
--			clk->name);
-+			__clk_get_name(clk));
- 		return;
- 	}
- 
-@@ -607,11 +612,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 	unsigned long rate;
- 	u32 v;
- 	struct clk *pclk;
-+	unsigned long parent_rate;
- 
- 	/* Walk up the parents of clk, looking for a DPLL */
--	pclk = clk->parent;
-+	pclk = __clk_get_parent(clk);
- 	while (pclk && !pclk->dpll_data)
--		pclk = pclk->parent;
-+		pclk = __clk_get_parent(pclk);
- 
- 	/* clk does not have a DPLL as a parent? */
- 	WARN_ON(!pclk);
-@@ -620,11 +626,12 @@ unsigned long omap3_clkoutx2_recalc(struct clk *clk)
- 
- 	WARN_ON(!dd->enable_mask);
- 
-+	parent_rate = __clk_get_rate(__clk_get_parent(clk));
- 	v = __raw_readl(dd->control_reg) & dd->enable_mask;
- 	v >>= __ffs(dd->enable_mask);
- 	if ((v != OMAP3XXX_EN_DPLL_LOCKED) || (dd->flags & DPLL_J_TYPE))
--		rate = clk->parent->rate;
-+		rate = parent_rate;
- 	else
--		rate = clk->parent->rate * 2;
-+		rate = parent_rate * 2;
- 	return rate;
- }
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index bace930..7fe2233 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1808,6 +1808,7 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"gfx_ick",	&gfx_ick,	CK_242X),
+ 	/* DSS domain clocks */
+ 	CLK("omapdss_dss",	"ick",		&dss_ick,	CK_242X),
++	CLK(NULL,	"dss_ick",		&dss_ick,	CK_242X),
+ 	CLK(NULL,	"dss1_fck",		&dss1_fck,	CK_242X),
+ 	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_242X),
+ 	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_242X),
+@@ -1847,12 +1848,16 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_242X),
+ 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_242X),
+ 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_242X),
++	CLK(NULL, 	"mcbsp1_ick",	&mcbsp1_ick,	CK_242X),
+ 	CLK(NULL,	"mcbsp1_fck",	&mcbsp1_fck,	CK_242X),
+ 	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_242X),
++	CLK(NULL, 	"mcbsp2_ick",	&mcbsp2_ick,	CK_242X),
+ 	CLK(NULL,	"mcbsp2_fck",	&mcbsp2_fck,	CK_242X),
+ 	CLK("omap2_mcspi.1", "ick",	&mcspi1_ick,	CK_242X),
++	CLK(NULL, 	"mcspi1_ick",	&mcspi1_ick,	CK_242X),
+ 	CLK(NULL,	"mcspi1_fck",	&mcspi1_fck,	CK_242X),
+ 	CLK("omap2_mcspi.2", "ick",	&mcspi2_ick,	CK_242X),
++	CLK(NULL, 	"mcspi2_ick",	&mcspi2_ick,	CK_242X),
+ 	CLK(NULL,	"mcspi2_fck",	&mcspi2_fck,	CK_242X),
+ 	CLK(NULL,	"uart1_ick",	&uart1_ick,	CK_242X),
+ 	CLK(NULL,	"uart1_fck",	&uart1_fck,	CK_242X),
+@@ -1863,12 +1868,15 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"gpios_ick",	&gpios_ick,	CK_242X),
+ 	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_242X),
+ 	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_242X),
++	CLK(NULL,	"mpu_wdt_ick",		&mpu_wdt_ick,	CK_242X),
+ 	CLK(NULL,	"mpu_wdt_fck",	&mpu_wdt_fck,	CK_242X),
+ 	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_242X),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_242X),
+ 	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_242X),
+ 	CLK("omap24xxcam", "fck",	&cam_fck,	CK_242X),
++	CLK(NULL, 	"cam_fck",	&cam_fck,	CK_242X),
+ 	CLK("omap24xxcam", "ick",	&cam_ick,	CK_242X),
++	CLK(NULL, 	"cam_ick",	&cam_ick,	CK_242X),
+ 	CLK(NULL,	"mailboxes_ick", &mailboxes_ick,	CK_242X),
+ 	CLK(NULL,	"wdt4_ick",	&wdt4_ick,	CK_242X),
+ 	CLK(NULL,	"wdt4_fck",	&wdt4_fck,	CK_242X),
+@@ -1877,16 +1885,22 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_242X),
+ 	CLK(NULL,	"mspro_fck",	&mspro_fck,	CK_242X),
+ 	CLK("mmci-omap.0", "ick",	&mmc_ick,	CK_242X),
++	CLK(NULL, "mmc_ick",	&mmc_ick,	CK_242X),
+ 	CLK("mmci-omap.0", "fck",	&mmc_fck,	CK_242X),
++	CLK(NULL, "mmc_fck",	&mmc_fck,	CK_242X),
+ 	CLK(NULL,	"fac_ick",	&fac_ick,	CK_242X),
+ 	CLK(NULL,	"fac_fck",	&fac_fck,	CK_242X),
+ 	CLK(NULL,	"eac_ick",	&eac_ick,	CK_242X),
+ 	CLK(NULL,	"eac_fck",	&eac_fck,	CK_242X),
+ 	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_242X),
++	CLK(NULL, 	"hdq_ick",	&hdq_ick,	CK_242X),
+ 	CLK("omap_hdq.0", "fck",	&hdq_fck,	CK_242X),
++	CLK(NULL, 	"hdq_fck",	&hdq_fck,	CK_242X),
+ 	CLK("omap_i2c.1", "ick",	&i2c1_ick,	CK_242X),
++	CLK(NULL, 	"i2c1_ick",	&i2c1_ick,	CK_242X),
+ 	CLK(NULL,	"i2c1_fck",	&i2c1_fck,	CK_242X),
+ 	CLK("omap_i2c.2", "ick",	&i2c2_ick,	CK_242X),
++	CLK(NULL, 	"i2c2_ick",	&i2c2_ick,	CK_242X),
+ 	CLK(NULL,	"i2c2_fck",	&i2c2_fck,	CK_242X),
+ 	CLK(NULL,	"gpmc_fck",	&gpmc_fck,	CK_242X),
+ 	CLK(NULL,	"sdma_fck",	&sdma_fck,	CK_242X),
+@@ -1896,8 +1910,11 @@ static struct omap_clk omap2420_clks[] = {
+ 	CLK(NULL,	"vlynq_fck",	&vlynq_fck,	CK_242X),
+ 	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
+ 	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
++	CLK(NULL,	"sha_ick",	&sha_ick,	CK_242X),
+ 	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
++	CLK(NULL,	"rng_ick",		&rng_ick,	CK_242X),
+ 	CLK("omap-aes",	"ick",	&aes_ick,	CK_242X),
++	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+ 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
+ 	CLK("musb-hdrc",	"fck",	&osc_ck,	CK_242X),
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 3b4d09a..21e69ab 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -1897,6 +1897,7 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
+ 	/* DSS domain clocks */
+ 	CLK("omapdss_dss",	"ick",		&dss_ick,	CK_243X),
++	CLK(NULL,	"dss_ick",		&dss_ick,	CK_243X),
+ 	CLK(NULL,	"dss1_fck",		&dss1_fck,	CK_243X),
+ 	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_243X),
+ 	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_243X),
+@@ -1936,20 +1937,28 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_243X),
+ 	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_243X),
+ 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_243X),
++	CLK(NULL, 	"mcbsp1_ick",	&mcbsp1_ick,	CK_243X),
+ 	CLK(NULL,	"mcbsp1_fck",	&mcbsp1_fck,	CK_243X),
+ 	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_243X),
++	CLK(NULL, 	"mcbsp2_ick",	&mcbsp2_ick,	CK_243X),
+ 	CLK(NULL,	"mcbsp2_fck",	&mcbsp2_fck,	CK_243X),
+ 	CLK("omap-mcbsp.3", "ick",	&mcbsp3_ick,	CK_243X),
++	CLK(NULL, 	"mcbsp3_ick",	&mcbsp3_ick,	CK_243X),
+ 	CLK(NULL,	"mcbsp3_fck",	&mcbsp3_fck,	CK_243X),
+ 	CLK("omap-mcbsp.4", "ick",	&mcbsp4_ick,	CK_243X),
++	CLK(NULL, 	"mcbsp4_ick",	&mcbsp4_ick,	CK_243X),
+ 	CLK(NULL,	"mcbsp4_fck",	&mcbsp4_fck,	CK_243X),
+ 	CLK("omap-mcbsp.5", "ick",	&mcbsp5_ick,	CK_243X),
++	CLK(NULL, 	"mcbsp5_ick",	&mcbsp5_ick,	CK_243X),
+ 	CLK(NULL,	"mcbsp5_fck",	&mcbsp5_fck,	CK_243X),
+ 	CLK("omap2_mcspi.1", "ick",	&mcspi1_ick,	CK_243X),
++	CLK(NULL, 	"mcspi1_ick",	&mcspi1_ick,	CK_243X),
+ 	CLK(NULL,	"mcspi1_fck",	&mcspi1_fck,	CK_243X),
+ 	CLK("omap2_mcspi.2", "ick",	&mcspi2_ick,	CK_243X),
++	CLK(NULL, 	"mcspi2_ick",	&mcspi2_ick,	CK_243X),
+ 	CLK(NULL,	"mcspi2_fck",	&mcspi2_fck,	CK_243X),
+ 	CLK("omap2_mcspi.3", "ick",	&mcspi3_ick,	CK_243X),
++	CLK(NULL, 	"mcspi3_ick",	&mcspi3_ick,	CK_243X),
+ 	CLK(NULL,	"mcspi3_fck",	&mcspi3_fck,	CK_243X),
+ 	CLK(NULL,	"uart1_ick",	&uart1_ick,	CK_243X),
+ 	CLK(NULL,	"uart1_fck",	&uart1_fck,	CK_243X),
+@@ -1960,13 +1969,16 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"gpios_ick",	&gpios_ick,	CK_243X),
+ 	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_243X),
+ 	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_243X),
++	CLK(NULL,	"mpu_wdt_ick",	&mpu_wdt_ick,	CK_243X),
+ 	CLK(NULL,	"mpu_wdt_fck",	&mpu_wdt_fck,	CK_243X),
+ 	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_243X),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_243X),
+ 	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_243X),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_243X),
+ 	CLK("omap24xxcam", "fck",	&cam_fck,	CK_243X),
++	CLK(NULL, 	"cam_fck",	&cam_fck,	CK_243X),
+ 	CLK("omap24xxcam", "ick",	&cam_ick,	CK_243X),
++	CLK(NULL, 	"cam_ick",	&cam_ick,	CK_243X),
+ 	CLK(NULL,	"mailboxes_ick", &mailboxes_ick,	CK_243X),
+ 	CLK(NULL,	"wdt4_ick",	&wdt4_ick,	CK_243X),
+ 	CLK(NULL,	"wdt4_fck",	&wdt4_fck,	CK_243X),
+@@ -1975,10 +1987,14 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"fac_ick",	&fac_ick,	CK_243X),
+ 	CLK(NULL,	"fac_fck",	&fac_fck,	CK_243X),
+ 	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_243X),
++	CLK(NULL, 	"hdq_ick",	&hdq_ick,	CK_243X),
+ 	CLK("omap_hdq.1", "fck",	&hdq_fck,	CK_243X),
++	CLK(NULL, 	"hdq_fck",	&hdq_fck,	CK_243X),
+ 	CLK("omap_i2c.1", "ick",	&i2c1_ick,	CK_243X),
++	CLK(NULL, 	"i2c1_ick",	&i2c1_ick,	CK_243X),
+ 	CLK(NULL,	"i2chs1_fck",	&i2chs1_fck,	CK_243X),
+ 	CLK("omap_i2c.2", "ick",	&i2c2_ick,	CK_243X),
++	CLK(NULL, 	"i2c2_ick",	&i2c2_ick,	CK_243X),
+ 	CLK(NULL,	"i2chs2_fck",	&i2chs2_fck,	CK_243X),
+ 	CLK(NULL,	"gpmc_fck",	&gpmc_fck,	CK_243X),
+ 	CLK(NULL,	"sdma_fck",	&sdma_fck,	CK_243X),
+@@ -1991,15 +2007,20 @@ static struct omap_clk omap2430_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
+ 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X),
+ 	CLK("musb-omap2430",	"ick",	&usbhs_ick,	CK_243X),
++	CLK(NULL,	"usbhs_ick",	&usbhs_ick,	CK_243X),
+ 	CLK("omap_hsmmc.0", "ick",	&mmchs1_ick,	CK_243X),
++	CLK(NULL, 	"mmchs1_ick",	&mmchs1_ick,	CK_243X),
+ 	CLK(NULL,	"mmchs1_fck",	&mmchs1_fck,	CK_243X),
+ 	CLK("omap_hsmmc.1", "ick",	&mmchs2_ick,	CK_243X),
++	CLK(NULL, 	"mmchs2_ick",	&mmchs2_ick,	CK_243X),
+ 	CLK(NULL,	"mmchs2_fck",	&mmchs2_fck,	CK_243X),
+ 	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_243X),
+ 	CLK(NULL,	"gpio5_fck",	&gpio5_fck,	CK_243X),
+ 	CLK(NULL,	"mdm_intc_ick",	&mdm_intc_ick,	CK_243X),
+ 	CLK("omap_hsmmc.0", "mmchsdb_fck",	&mmchsdb1_fck,	CK_243X),
++	CLK(NULL,	 "mmchsdb1_fck",	&mmchsdb1_fck,	CK_243X),
+ 	CLK("omap_hsmmc.1", "mmchsdb_fck",	&mmchsdb2_fck,	CK_243X),
++	CLK(NULL,	 "mmchsdb2_fck",	&mmchsdb2_fck,	CK_243X),
+ 	CLK("omap_timer.1",	"32k_ck",  &func_32k_ck,   CK_243X),
+ 	CLK("omap_timer.2",	"32k_ck",  &func_32k_ck,   CK_243X),
+ 	CLK("omap_timer.3",	"32k_ck",  &func_32k_ck,   CK_243X),
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 4e1a3b0..4c826e0 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3260,6 +3260,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"dpll4_x2_ck",	&dpll4_x2_ck,	CK_3XXX),
+ 	CLK(NULL,	"omap_192m_alwon_fck", &omap_192m_alwon_fck, CK_36XX),
+ 	CLK(NULL,	"omap_96m_alwon_fck", &omap_96m_alwon_fck, CK_3XXX),
++	CLK(NULL,	"omap_96m_alwon_fck_3630", &omap_96m_alwon_fck_3630, CK_3XXX),
+ 	CLK(NULL,	"omap_96m_fck",	&omap_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"cm_96m_fck",	&cm_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"omap_54m_fck",	&omap_54m_fck,	CK_3XXX),
+@@ -3329,6 +3330,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"fshostusb_fck", &fshostusb_fck, CK_3430ES1),
+ 	CLK(NULL,	"core_12m_fck",	&core_12m_fck,	CK_3XXX),
+ 	CLK("omap_hdq.0",	"fck",	&hdq_fck,	CK_3XXX),
++	CLK(NULL,	"hdq_fck",	&hdq_fck,	CK_3XXX),
+ 	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es1,	CK_3430ES1),
+ 	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck_3430es2,	CK_3430ES2PLUS | CK_36XX),
+ 	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck_3430es1,	CK_3430ES1),
+@@ -3336,6 +3338,8 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"core_l3_ick",	&core_l3_ick,	CK_3XXX),
+ 	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es1,	CK_3430ES1),
+ 	CLK("musb-omap2430",	"ick",	&hsotgusb_ick_3430es2,	CK_3430ES2PLUS | CK_36XX),
++	CLK(NULL,	"hsotgusb_ick",	&hsotgusb_ick_3430es1,	CK_3430ES1),
++	CLK(NULL,	"hsotgusb_ick",	&hsotgusb_ick_3430es2,	CK_3430ES2PLUS | CK_36XX),
+ 	CLK(NULL,	"sdrc_ick",	&sdrc_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpmc_fck",	&gpmc_fck,	CK_3XXX),
+ 	CLK(NULL,	"security_l3_ick", &security_l3_ick, CK_34XX | CK_36XX),
+@@ -3344,27 +3348,40 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK("usbhs_omap",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++	CLK(NULL,	"mmchs3_ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap-sham",	"ick",	&sha12_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"des2_ick",	&des2_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap_hsmmc.1",	"ick",	&mmchs2_ick,	CK_3XXX),
+ 	CLK("omap_hsmmc.0",	"ick",	&mmchs1_ick,	CK_3XXX),
++	CLK(NULL,	"mmchs2_ick",	&mmchs2_ick,	CK_3XXX),
++	CLK(NULL,	"mmchs1_ick",	&mmchs1_ick,	CK_3XXX),
+ 	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_34XX | CK_36XX),
+ 	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_3XXX),
++	CLK(NULL, 	"hdq_ick",	&hdq_ick,	CK_3XXX),
+ 	CLK("omap2_mcspi.4", "ick",	&mcspi4_ick,	CK_3XXX),
+ 	CLK("omap2_mcspi.3", "ick",	&mcspi3_ick,	CK_3XXX),
+ 	CLK("omap2_mcspi.2", "ick",	&mcspi2_ick,	CK_3XXX),
+ 	CLK("omap2_mcspi.1", "ick",	&mcspi1_ick,	CK_3XXX),
++	CLK(NULL, 	"mcspi4_ick",	&mcspi4_ick,	CK_3XXX),
++	CLK(NULL, 	"mcspi3_ick",	&mcspi3_ick,	CK_3XXX),
++	CLK(NULL, 	"mcspi2_ick",	&mcspi2_ick,	CK_3XXX),
++	CLK(NULL, 	"mcspi1_ick",	&mcspi1_ick,	CK_3XXX),
+ 	CLK("omap_i2c.3", "ick",	&i2c3_ick,	CK_3XXX),
+ 	CLK("omap_i2c.2", "ick",	&i2c2_ick,	CK_3XXX),
+ 	CLK("omap_i2c.1", "ick",	&i2c1_ick,	CK_3XXX),
++	CLK(NULL, 	"i2c3_ick",	&i2c3_ick,	CK_3XXX),
++	CLK(NULL, 	"i2c2_ick",	&i2c2_ick,	CK_3XXX),
++	CLK(NULL, 	"i2c1_ick",	&i2c1_ick,	CK_3XXX),
+ 	CLK(NULL,	"uart2_ick",	&uart2_ick,	CK_3XXX),
+ 	CLK(NULL,	"uart1_ick",	&uart1_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_3XXX),
+ 	CLK("omap-mcbsp.5", "ick",	&mcbsp5_ick,	CK_3XXX),
+ 	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_3XXX),
++	CLK(NULL, 	"mcbsp5_ick",	&mcbsp5_ick,	CK_3XXX),
++	CLK(NULL, 	"mcbsp1_ick",	&mcbsp1_ick,	CK_3XXX),
+ 	CLK(NULL,	"fac_ick",	&fac_ick,	CK_3430ES1),
+ 	CLK(NULL,	"mailboxes_ick", &mailboxes_ick, CK_34XX | CK_36XX),
+ 	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_3XXX),
+@@ -3383,7 +3400,9 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"dss_96m_fck",	&dss_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"dss2_alwon_fck",	&dss2_alwon_fck, CK_3XXX),
+ 	CLK("omapdss_dss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
++	CLK(NULL,	"dss_ick",		&dss_ick_3430es1,	CK_3430ES1),
+ 	CLK("omapdss_dss",	"ick",		&dss_ick_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
++	CLK(NULL,	"dss_ick",		&dss_ick_3430es2,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
+ 	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX | CK_36XX),
+@@ -3408,6 +3427,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick,	CK_34XX | CK_36XX),
+ 	CLK(NULL,	"usim_ick",	&usim_ick,	CK_3430ES2PLUS | CK_36XX),
+ 	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_3XXX),
++	CLK(NULL,	"wdt2_ick",	&wdt2_ick,	CK_3XXX),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_3XXX),
+ 	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_3XXX),
+@@ -3456,6 +3476,9 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_3XXX),
+ 	CLK("omap-mcbsp.3", "ick",	&mcbsp3_ick,	CK_3XXX),
+ 	CLK("omap-mcbsp.4", "ick",	&mcbsp4_ick,	CK_3XXX),
++	CLK(NULL, 	"mcbsp4_ick",	&mcbsp2_ick,	CK_3XXX),
++	CLK(NULL, 	"mcbsp3_ick",	&mcbsp3_ick,	CK_3XXX),
++	CLK(NULL, 	"mcbsp2_ick",	&mcbsp4_ick,	CK_3XXX),
+ 	CLK(NULL,	"mcbsp2_fck",	&mcbsp2_fck,	CK_3XXX),
+ 	CLK(NULL,	"mcbsp3_fck",	&mcbsp3_fck,	CK_3XXX),
+ 	CLK(NULL,	"mcbsp4_fck",	&mcbsp4_fck,	CK_3XXX),
+@@ -3479,6 +3502,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK("vpfe-capture",	"master",	&vpfe_ick,	CK_AM35XX),
+ 	CLK("vpfe-capture",	"slave",	&vpfe_fck,	CK_AM35XX),
+ 	CLK("musb-am35x",	"ick",		&hsotgusb_ick_am35xx,	CK_AM35XX),
++	CLK(NULL,	"hsotgusb_ick",		&hsotgusb_ick_am35xx,	CK_AM35XX),
+ 	CLK("musb-am35x",	"fck",		&hsotgusb_fck_am35xx,	CK_AM35XX),
+ 	CLK(NULL,	"hecc_ck",	&hecc_ck,	CK_AM35XX),
+ 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 2172f66..51eea69 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3223,6 +3223,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"dss_tv_clk",			&dss_tv_clk,	CK_443X),
+ 	CLK(NULL,	"dss_48mhz_clk",		&dss_48mhz_clk,	CK_443X),
+ 	CLK(NULL,	"dss_dss_clk",			&dss_dss_clk,	CK_443X),
++	CLK(NULL,	"dss_fck",			&dss_fck,	CK_443X),
+ 	CLK("omapdss_dss",	"ick",				&dss_fck,	CK_443X),
+ 	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
+ 	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
+@@ -3279,6 +3280,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"ocp2scp_usb_phy_phy_48m",	&ocp2scp_usb_phy_phy_48m,	CK_443X),
+ 	CLK(NULL,	"ocp2scp_usb_phy_ick",		&ocp2scp_usb_phy_ick,	CK_443X),
+ 	CLK(NULL,	"ocp_wp_noc_ick",		&ocp_wp_noc_ick,	CK_443X),
++	CLK(NULL,	"rng_ick",			&rng_ick,	CK_443X),
+ 	CLK("omap_rng",	"ick",				&rng_ick,	CK_443X),
+ 	CLK(NULL,	"sha2md5_fck",			&sha2md5_fck,	CK_443X),
+ 	CLK(NULL,	"sl2if_ick",			&sl2if_ick,	CK_443X),
+@@ -3295,20 +3297,32 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
+ 	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
+ 	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_443X),
++	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
+ 	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_443X),
++	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
+ 	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_443X),
++	CLK(NULL,	"timer11_fck",			&timer11_fck,	CK_443X),
+ 	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_443X),
++	CLK(NULL,	"timer2_fck",			&timer2_fck,	CK_443X),
+ 	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_443X),
++	CLK(NULL,	"timer3_fck",			&timer3_fck,	CK_443X),
+ 	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_443X),
++	CLK(NULL,	"timer4_fck",			&timer4_fck,	CK_443X),
+ 	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_443X),
++	CLK(NULL,	"timer5_fck",			&timer5_fck,	CK_443X),
+ 	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_443X),
++	CLK(NULL,	"timer6_fck",			&timer6_fck,	CK_443X),
+ 	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_443X),
++	CLK(NULL,	"timer7_fck",			&timer7_fck,	CK_443X),
+ 	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_443X),
++	CLK(NULL,	"timer8_fck",			&timer8_fck,	CK_443X),
+ 	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_443X),
++	CLK(NULL,	"timer9_fck",			&timer9_fck,	CK_443X),
+ 	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_443X),
+ 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
+ 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+ 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
++	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK("usbhs_omap",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
+@@ -3320,14 +3334,17 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"usb_host_hs_hsic60m_p2_clk",	&usb_host_hs_hsic60m_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_443X),
++	CLK(NULL,	"usb_host_hs_fck",		&usb_host_hs_fck,	CK_443X),
+ 	CLK("usbhs_omap",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
+ 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_443X),
+ 	CLK(NULL,	"usb_otg_hs_xclk",		&usb_otg_hs_xclk,	CK_443X),
++	CLK(NULL,	"usb_otg_hs_ick",		&usb_otg_hs_ick,	CK_443X),
+ 	CLK("musb-omap2430",	"ick",				&usb_otg_hs_ick,	CK_443X),
+ 	CLK(NULL,	"usb_phy_cm_clk32k",		&usb_phy_cm_clk32k,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
+ 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
++	CLK(NULL,	"usb_tll_hs_ick",		&usb_tll_hs_ick,	CK_443X),
+ 	CLK("usbhs_omap",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
+ 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
+ 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 9e0b342..7891670 100644
+index 2746bce..9e0b342 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -612,7 +612,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
+@@ -602,8 +602,8 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 	if (!oh->main_clk)
+ 		return 0;
  
- 	if (!oh->_clk->clkdm)
- 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
--			   oh->main_clk, oh->_clk->name);
-+			   oh->name, oh->main_clk);
+-	oh->_clk = omap_clk_get_by_name(oh->main_clk);
+-	if (!oh->_clk) {
++	oh->_clk = clk_get(NULL, oh->main_clk);
++	if (IS_ERR_OR_NULL(oh->_clk)) {
+ 		pr_warning("omap_hwmod: %s: cannot clk_get main_clk %s\n",
+ 			   oh->name, oh->main_clk);
+ 		return -EINVAL;
+@@ -639,8 +639,8 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+ 		if (!os->clk)
+ 			continue;
  
- 	return ret;
- }
-@@ -753,7 +753,7 @@ static void _enable_optional_clocks(struct omap_hwmod *oh)
- 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
- 		if (oc->_clk) {
- 			pr_debug("omap_hwmod: enable %s:%s\n", oc->role,
--				 oc->_clk->name);
-+				 __clk_get_name(oc->_clk));
- 			clk_enable(oc->_clk);
- 		}
- }
-@@ -768,7 +768,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
- 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
- 		if (oc->_clk) {
- 			pr_debug("omap_hwmod: disable %s:%s\n", oc->role,
--				 oc->_clk->name);
-+				 __clk_get_name(oc->_clk));
- 			clk_disable(oc->_clk);
- 		}
- }
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 9cb5ced..40012e3 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -188,7 +188,7 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
- 		goto exit;
+-		c = omap_clk_get_by_name(os->clk);
+-		if (!c) {
++		c = clk_get(NULL, os->clk);
++		if (IS_ERR_OR_NULL(c)) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get interface_clk %s\n",
+ 				   oh->name, os->clk);
+ 			ret = -EINVAL;
+@@ -667,8 +667,8 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+ 	int ret = 0;
+ 
+ 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
+-		c = omap_clk_get_by_name(oc->clk);
+-		if (!c) {
++		c = clk_get(NULL, oc->clk);
++		if (IS_ERR_OR_NULL(c)) {
+ 			pr_warning("omap_hwmod: %s: cannot clk_get opt_clk %s\n",
+ 				   oh->name, oc->clk);
+ 			ret = -EINVAL;
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index c490240..af822d5 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -266,10 +266,10 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
+ 		return;
  	}
  
--	freq = clk->rate;
-+	freq = clk_get_rate(clk);
- 	clk_put(clk);
+-	r = omap_clk_get_by_name(clk_name);
+-	if (IS_ERR(r)) {
++	r = clk_get(NULL, clk_name);
++	if (IS_ERR_OR_NULL(r)) {
+ 		dev_err(&od->pdev->dev,
+-			"omap_clk_get_by_name for %s failed\n", clk_name);
++			"clk_get for %s failed\n", clk_name);
+ 		return;
+ 	}
  
- 	rcu_read_lock();
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index d0ef57c..ccb229a 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -19,6 +19,10 @@ struct module;
- struct clk;
- struct clockdomain;
- 
-+#define __clk_get_name(clk) clk->name
-+#define __clk_get_parent(clk) clk->parent
-+#define __clk_get_rate(clk) clk->rate
-+
- /**
-  * struct clkops - some clock function pointers
-  * @enable: fn ptr that enables the current clock in hardware
 -- 
 1.7.1
 
