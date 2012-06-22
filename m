@@ -1,58 +1,83 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
-Date: Fri, 22 Jun 2012 13:50:44 -0700 (PDT)
-Message-ID: <1340398244.35574.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com> <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com> <1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 22 Jun 2012 17:52:08 -0500
+Message-ID: <4FE4F718.3080204@ti.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206090004.10086.arnd@arndb.de> <4FD914F6.6000402@ti.com> <201206141148.20371.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm21-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.46]:30109 "HELO
-	nm21-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755722Ab2FVUuo convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 16:50:44 -0400
-In-Reply-To: <1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59148 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284Ab2FVWwi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 18:52:38 -0400
+In-Reply-To: <201206141148.20371.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "afzal@ti.com" <afzal@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "tony@atomide.com" <tony@atomide.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "khilman@ti.com" <khilman@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Jassi Brar <jaswinder.singh@linaro.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-A quick follow-up note:
+Hi Arnd,
 
-The stress line that was running during the crash mentioned was: "stres=
-s --cpu 8 --io 8 --vm 1 --vm-bytes 150M --hdd 2 --timeout 60". The "--h=
-dd 2" option was a leftover that was not supposed to be there.=A0 So th=
-at may have created a chunk more disk work for the processor.=A0 Regard=
-less, stress did not crash.=A0 Ping died with the EMAC error mentioned,=
- but stress was still running fine when I stopped it.
+On 06/14/2012 06:48 AM, Arnd Bergmann wrote:
 
+[snip]
 
-It's been suggested that stress may be eating up too much memory and ca=
-using the EMAC driver to do this.=A0 That's a fair point, as these "WAR=
-NING: at drivers/net/ethernet/ti/davinci_emac.c:997 emac_rx_alloc" erro=
-rs only appear to show up with stress running.=A0 I suspect that could =
-be true, though no other drivers or other applications are throwing sim=
-ilar errors.=A0 When I've cranked stress too high memory wise in the pa=
-st, I've seen it break out the oom-killer.=A0 That's what I would expec=
-t.=A0 Since I'm no longer seeing that, I suspect I'm playing within the=
- bounds.=A0 Regardless, should a userspace app sucking up too much memo=
-ry cause a driver to crash?
+> This would let us handle the following cases very easily:
+> 
+> 1. one read-write channel
+> 
+> 	dmas = <&dmac 0x3 match>;
+> 
+> 2. a choice of two read-write channels:
+> 
+> 	dmas = <&dmacA 0x3 matchA>, <&dmacB 0x3 matchB>;
+> 
+> 3. one read-channel, one write channel:
+> 
+> 	dmas = <&dmac 0x1 match-read>, <&dmac 0x2 match-write>;
+> 
+> 4. a choice of two read channels and one write channel:
+> 
+> 	dmas = <&dmacA 0x1 match-readA>, <&dmacA 0x2 match-write> 
+> 			<&dmacB match-readB>;
+> 
+> And only the cases where we have more multiple channels that differ
+> in more aspects would require named properties:
+> 
+> 5. two different channels
+> 
+> 	dmas = <&dmac 0x3 match-rwdata>, <&dmac 0x1 match-status>;
+> 	dma-names = "rwdata", "status";
+> 
+> 6. same as 5, but with a choice of channels:
+> 
+> 	dmas = <&dmacA 0x3 match-rwdataA>, <&dmacA 0x1 match-status>;
+> 		<dmacB 0x3 match-rwdataB>;
+> 	dma-names = "rwdata", "status", "rwdata";
+> 
+> 
+> With a definition like that, we can implement a very simple device
+> driver interface for the common cases, and a slightly more complex
+> one for the more complex cases:
+> 
+> 1. chan = of_dma_request_channel(dev->of_node, 0);
+> 2. chan = of_dma_request_channel(dev->of_node, 0);
+> 3. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
+>    txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
+> 4. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
+>    txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
+> 5. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
+>    auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
+> 6. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
+>    auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
 
+In the above examples, did you imply that the of_dma_request_channel()
+function would return a type of "struct dma_chan" and so be calling
+dma_request_channel() underneath?
 
-I bring these questions here, as the crash's call stack shares so many =
-similarities to the "SLAB crash" discussed "http://thread.gmane.org/gma=
-ne.linux.ports.arm.omap/78039/", that I think they're related.=A0 At th=
-e very least, the EMAC to EMAC performance issues we have always seen a=
-re troubling.=A0 IMHO, clearly the EMAC driver is doing something a lit=
-tle questionable.
+I am been prototyping something, but wanted to make sure I am completely
+aligned on this :-)
 
-Thoughts?
-
-Thanks again.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Jon
