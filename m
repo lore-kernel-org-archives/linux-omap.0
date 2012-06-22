@@ -1,120 +1,93 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [RFC PATCH 09/10] arm/dts: omap: Add usb_otg and glue data
-Date: Fri, 22 Jun 2012 19:02:18 +0530
-Message-ID: <1340371939-23572-10-git-send-email-kishon@ti.com>
-References: <1340371939-23572-1-git-send-email-kishon@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
+Date: Fri, 22 Jun 2012 19:17:59 +0530
+Message-ID: <1340372890-10091-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340371939-23572-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, kishon@ti.com, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39389 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762139Ab2FVNsX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 09:48:23 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com, mturquette@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Add usb otg data node in omap4/omap3 device tree file. Also update
-the node with board specific setting in omapx-<board>.dts file.
+Hi,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/omap3-beagle.dts |    6 ++++++
- arch/arm/boot/dts/omap3-evm.dts    |    6 ++++++
- arch/arm/boot/dts/omap3.dtsi       |    8 ++++++++
- arch/arm/boot/dts/omap4-panda.dts  |    6 ++++++
- arch/arm/boot/dts/omap4-sdp.dts    |    6 ++++++
- arch/arm/boot/dts/omap4.dtsi       |    8 ++++++++
- 6 files changed, 40 insertions(+), 0 deletions(-)
+This is a preparatory series for the OMAP Common Clk
+conversion. They mostly add clk_prepare/clk_unprepare
+in OMAP drivers and platform code. Also gets
+rid of omap_clk_get_by_name() and uses clk_get(), and
+removes all direct 'struct clk' dereferrencing and
+uses helpers similar to what is provided by Common
+Clk.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 5b4506c..f3d7076 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -67,3 +67,9 @@
- &mmc3 {
- 	status = "disable";
- };
-+
-+&usb_otg_hs {
-+	interface_type = <0>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 2eee16e..8963b3d 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -18,3 +18,9 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- };
-+
-+&usb_otg_hs {
-+	interface_type = <0>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-index 99474fa..2f565d6 100644
---- a/arch/arm/boot/dts/omap3.dtsi
-+++ b/arch/arm/boot/dts/omap3.dtsi
-@@ -215,5 +215,13 @@
- 			compatible = "ti,omap3-hsmmc";
- 			ti,hwmods = "mmc3";
- 		};
-+
-+		usb_otg_hs: usb_otg_hs@4a0ab000 {
-+			compatible = "ti,musb-omap2430";
-+			ti,hwmods = "usb_otg_hs";
-+			multipoint = <1>;
-+			num_eps = <16>;
-+			ram_bits = <12>;
-+		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 1efe0c5..0825fa7 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -89,3 +89,9 @@
- 	ti,non-removable;
- 	bus-width = <4>;
- };
-+
-+&usb_otg_hs {
-+	interface_type = <1>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index d08c4d1..5244d51 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -158,3 +158,9 @@
- 	bus-width = <4>;
- 	ti,non-removable;
- };
-+
-+&usb_otg_hs {
-+	interface_type = <1>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index e670394..dca0133 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -296,5 +296,13 @@
- 				reg = <0x4a0ad080 0x58>;
- 			};
- 		};
-+
-+		usb_otg_hs: usb_otg_hs@4a0ab000 {
-+			compatible = "ti,musb-omap2430";
-+			ti,hwmods = "usb_otg_hs";
-+			multipoint = <1>;
-+			num_eps = <16>;
-+			ram_bits = <12>;
-+		};
- 	};
- };
--- 
-1.7.5.4
+Patches are boot tested on OMAP2430sdp, 3630 Beagle-Xm
+and 4460 Panda.
+
+Some of these patches were earlier posted as part of
+OMAP2+ Common Clk conversion series [1] which is now
+split into a preparatory series and actual CCF conversion
+series.
+
+Patches from this series can be found here
+git://github.com/rrnayak/linux.git prepare-common-clk-3.5-rc3
+
+regards,
+Rajendra
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70299.html
+
+Rajendra Nayak (11):
+  ARM: omap: clk: add clk_prepare and clk_unprepare
+  mmc: omap: add clk_prepare and clk_unprepare
+  hwrng: omap: add clk_prepare and clk_unprepare
+  mfd: omap-usb: add clk_prepare and clk_unprepare
+  OMAPDSS: add clk_prepare and clk_unprepare
+  gpio/omap: add clk_prepare and clk_unprepare
+  w1: omap_hdq: add clk_prepare and clk_unprepare
+  crypto: omap: add clk_prepare and clk_unprepare
+  iommu: omap: add clk_prepare and clk_unprepare
+  ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+  ARM: omap: clk: Remove all direct dereferencing of struct clk
+
+ arch/arm/mach-omap2/board-apollon.c          |    4 +-
+ arch/arm/mach-omap2/board-h4.c               |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    4 +-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   18 +++---
+ arch/arm/mach-omap2/clkt_clksel.c            |   84 ++++++++++++++++++--------
+ arch/arm/mach-omap2/clkt_dpll.c              |   24 ++++---
+ arch/arm/mach-omap2/clock.c                  |    9 ++-
+ arch/arm/mach-omap2/clock2420_data.c         |   17 +++++
+ arch/arm/mach-omap2/clock2430_data.c         |   21 +++++++
+ arch/arm/mach-omap2/clock3xxx.c              |    8 +-
+ arch/arm/mach-omap2/clock3xxx_data.c         |   24 +++++++
+ arch/arm/mach-omap2/clock44xx_data.c         |   17 +++++
+ arch/arm/mach-omap2/display.c                |    4 +-
+ arch/arm/mach-omap2/dpll3xxx.c               |   45 ++++++++------
+ arch/arm/mach-omap2/gpmc.c                   |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   21 ++++---
+ arch/arm/mach-omap2/omap_phy_internal.c      |    3 +
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/mach-omap2/pm24xx.c                 |    2 +
+ arch/arm/mach-omap2/usb-fs.c                 |    4 +-
+ arch/arm/plat-omap/include/plat/clock.h      |    4 +
+ arch/arm/plat-omap/omap_device.c             |    6 +-
+ drivers/char/hw_random/omap-rng.c            |    6 +-
+ drivers/crypto/omap-aes.c                    |    2 +
+ drivers/crypto/omap-sham.c                   |    2 +
+ drivers/gpio/gpio-omap.c                     |    2 +
+ drivers/iommu/omap-iommu.c                   |    2 +
+ drivers/mfd/omap-usb-host.c                  |   20 ++++++
+ drivers/mmc/host/omap.c                      |    9 ++-
+ drivers/mmc/host/omap_hsmmc.c                |    6 +-
+ drivers/video/omap2/dss/dsi.c                |    5 +-
+ drivers/video/omap2/dss/hdmi.c               |    5 +-
+ drivers/video/omap2/dss/venc.c               |    5 +-
+ drivers/w1/masters/omap_hdq.c                |    8 +-
+ 36 files changed, 292 insertions(+), 113 deletions(-)
+
