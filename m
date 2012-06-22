@@ -1,61 +1,82 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
-Date: Fri, 22 Jun 2012 13:29:38 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99E02E@DBDE01.ent.ti.com>
-References: <4FD8A906.8080202@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999582@DBDE01.ent.ti.com>
- <4FD9E5AF.6010201@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E999CA6@DBDE01.ent.ti.com>
- <4FDA3464.4040704@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99A511@DBDE01.ent.ti.com>
- <20120615124520.GS12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99A9E7@DBDE01.ent.ti.com>
- <20120620132848.GK12766@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99D1C5@DBDE01.ent.ti.com>
- <20120620151221.GT12766@atomide.com> <4FE25E5C.9020908@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [RFC PATCH 00/10] omap: musb: Add device tree support
+Date: Fri, 22 Jun 2012 19:02:09 +0530
+Message-ID: <1340371939-23572-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38153 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932861Ab2FVN3o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jun 2012 09:29:44 -0400
-In-Reply-To: <4FE25E5C.9020908@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, kishon@ti.com, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony, Jon,
+This patch series adds device tree support for MUSB and device
+tree support for all the related modules to get MUSB working in
+OMAP platform.
 
-On Thu, Jun 21, 2012 at 05:05:56, Hunter, Jon wrote:
-> On 06/20/2012 10:12 AM, Tony Lindgren wrote:
-> > * Mohammed, Afzal <afzal@ti.com> [120620 07:57]:
+A new omap-usb2 phy driver has been added (with only dt suppport)
+to perform phy configurations. Previously this configuration was
+performed by twl6030, using pdata function pointers.
 
-> Therefore, I am wondering if Afzal's driver needs to register the gpmc
-> devices outside of the gpmc_probe() and add the devices as children. Or
-> maybe we tackle that when we migrate it to DT.
+With the addition of omap-usb2 to perform phy configurations,
+twl6030 is made as a comparator driver to detect VBUS and ID events
+and notify it to the glue layer.
 
-V6 of this series has been posted assuming that we tackle above issue
-during DT migration
+musb core is _NOT_ yet converted to support device tree support as it
+would need lot of driver re-design because of its enormous use of
+function pointers. That will be in _TO DO_ list.
 
-> >> For gpmc driver to calculate timings rather than platform code doing it,
-> >> we first need to have a generalized way to calculate gpmc timings for
-> >> all peripherals as well as have a logic to calculate timings based on
-> >> time & cycles, correct ? (to make sure we are talking the same thing)
-> > 
-> > Yes that might be tricky..
-> 
-> I am wondering more and more if we need to do a clean-up of the timing
-> calculations prior to driver migration ...
+This series was developed on
+http://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git usb-next
 
-I propose to have clean-up of timing calculations after driver migration,
-v6 of this series has been posted, except the controversial issue of clock,
-I believe other issues has been addressed.
+However to test this patch series, the following patch series is needed
+[PATCH v7 0/3] usb: multi-phy support
+[PATCH v3 0/5] usb: musb: cleanup
+[RFC PATCH 00/11] OMAP System Control Module
+[RFC PATCH v2 0/2] omap: add ocp2scp as a misc driver
 
-Please let me know your comments.
+Performed device mode testing on OMAP4 panda and OMAP3 beagle.
 
-Regards
-Afzal
+Kishon Vijay Abraham I (10):
+  drivers: usb: otg: add a new driver for omap usb2 phy
+  arm/dts: omap: Add omap-usb2 dt data
+  drivers: usb: otg: make twl6030_usb as a comparator driver to
+    omap_usb2
+  drivers: usb: twl6030: Add dt support for twl6030 usb
+  arm/dts: Add twl6030-usb data
+  drivers: usb: twl4030: Add device tree support for twl4030 usb
+  arm/dts: Add twl4030-usb data
+  drivers: usb: musb: Add device tree support for omap musb glue
+  arm/dts: omap: Add usb_otg and glue data
+  arm: omap: phy: remove unused functions from omap-phy-internal.c
+
+ .../devicetree/bindings/misc/omap-ocp2scp.txt      |    3 +
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   46 ++++
+ .../devicetree/bindings/usb/twlxxxx-usb.txt        |   37 +++
+ arch/arm/boot/dts/omap3-beagle.dts                 |    6 +
+ arch/arm/boot/dts/omap3-evm.dts                    |    6 +
+ arch/arm/boot/dts/omap3.dtsi                       |    8 +
+ arch/arm/boot/dts/omap4-panda.dts                  |    6 +
+ arch/arm/boot/dts/omap4-sdp.dts                    |    6 +
+ arch/arm/boot/dts/omap4.dtsi                       |   12 +
+ arch/arm/boot/dts/twl4030.dtsi                     |   21 ++
+ arch/arm/boot/dts/twl6030.dtsi                     |    7 +
+ arch/arm/mach-omap2/omap_phy_internal.c            |  138 -----------
+ arch/arm/mach-omap2/twl-common.c                   |    5 -
+ drivers/usb/musb/omap2430.c                        |   86 +++++++-
+ drivers/usb/otg/Kconfig                            |   17 +-
+ drivers/usb/otg/Makefile                           |    1 +
+ drivers/usb/otg/omap-usb2.c                        |  239 ++++++++++++++++++++
+ drivers/usb/otg/twl4030-usb.c                      |   26 ++-
+ drivers/usb/otg/twl6030-usb.c                      |  153 ++++---------
+ include/linux/usb/omap_usb.h                       |   43 ++++
+ include/linux/usb/phy_companion.h                  |   34 +++
+ 21 files changed, 627 insertions(+), 273 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/omap-usb.txt
+ create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+ create mode 100644 drivers/usb/otg/omap-usb2.c
+ create mode 100644 include/linux/usb/omap_usb.h
+ create mode 100644 include/linux/usb/phy_companion.h
+
+-- 
+1.7.5.4
+
