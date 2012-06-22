@@ -1,50 +1,61 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 0/3] Add cyclic DMA support to OMAP DMA engine driver
-Date: Fri, 22 Jun 2012 14:17:51 +0100
-Message-ID: <20120622131750.GB19226@n2100.arm.linux.org.uk>
-References: <20120622085911.GA19026@n2100.arm.linux.org.uk> <20120622123013.GA7586@sirena.org.uk>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 02/14] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Fri, 22 Jun 2012 13:29:38 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99E02E@DBDE01.ent.ti.com>
+References: <4FD8A906.8080202@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E999582@DBDE01.ent.ti.com>
+ <4FD9E5AF.6010201@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E999CA6@DBDE01.ent.ti.com>
+ <4FDA3464.4040704@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99A511@DBDE01.ent.ti.com>
+ <20120615124520.GS12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99A9E7@DBDE01.ent.ti.com>
+ <20120620132848.GK12766@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E99D1C5@DBDE01.ent.ti.com>
+ <20120620151221.GT12766@atomide.com> <4FE25E5C.9020908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60531 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932861Ab2FVNR7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jun 2012 09:17:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20120622123013.GA7586@sirena.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:38153 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932861Ab2FVN3o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Jun 2012 09:29:44 -0400
+In-Reply-To: <4FE25E5C.9020908@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Liam Girdwood <lrg@ti.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 22, 2012 at 01:30:13PM +0100, Mark Brown wrote:
-> On Fri, Jun 22, 2012 at 09:59:11AM +0100, Russell King - ARM Linux wrote:
+Hi Tony, Jon,
+
+On Thu, Jun 21, 2012 at 05:05:56, Hunter, Jon wrote:
+> On 06/20/2012 10:12 AM, Tony Lindgren wrote:
+> > * Mohammed, Afzal <afzal@ti.com> [120620 07:57]:
+
+> Therefore, I am wondering if Afzal's driver needs to register the gpmc
+> devices outside of the gpmc_probe() and add the devices as children. Or
+> maybe we tackle that when we migrate it to DT.
+
+V6 of this series has been posted assuming that we tackle above issue
+during DT migration
+
+> >> For gpmc driver to calculate timings rather than platform code doing it,
+> >> we first need to have a generalized way to calculate gpmc timings for
+> >> all peripherals as well as have a logic to calculate timings based on
+> >> time & cycles, correct ? (to make sure we are talking the same thing)
+> > 
+> > Yes that might be tricky..
 > 
-> > As v3.5-rc is horribly broken on my OMAP platforms, I've had to back out
-> > all the sound/soc/omap changes from the last merge window to test this,
-> > inspite of Peter Ujfalusi maintaining that there is nothing wrong.  I
-> > can't get working audio support on the OMAP4430SDP any other way.
-> 
-> Do you have any details on what's wrong here?  I've not seen any
-> upstream reports but there's been precious little upstream work there so
-> it should be simple to identify which changes caused the breakage and
-> just drop them.  There's been no public reports...
+> I am wondering more and more if we need to do a clean-up of the timing
+> calculations prior to driver migration ...
 
-Peter took the thread off the mailing lists.
+I propose to have clean-up of timing calculations after driver migration,
+v6 of this series has been posted, except the controversial issue of clock,
+I believe other issues has been addressed.
 
-3.5-rc3 + Peter's blaze.aconf + aplay produces no audio but aplay
-appears to complete in about the right time.
+Please let me know your comments.
 
-3.5-rc3 + Peter's blaze.aconf + aplay + sound/soc/omap reverted back to
-v3.4 produces audio.
-
-I have nothing further, other than "it produces no audio".  As I have
-zero information on the SDP4430 hardware, if something doesn't work I
-just stop and post a bug report.  I've no idea of the structure of the
-audio implementations on OMAP platforms.  That information is kept from
-me.
-
-I suspect the key difference is I run the uImage kernels on the SDP4430
-without a DT blob.  I suspect it's the DT conversion of sound/soc/omap
-that's buggered it up.
-
+Regards
+Afzal
