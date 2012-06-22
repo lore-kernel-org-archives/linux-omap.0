@@ -1,62 +1,108 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 0/5] usb: musb: cleanup
-Date: Fri, 22 Jun 2012 17:40:50 +0530
-Message-ID: <1340367055-19835-1-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 4/5] usb: musb: omap: use devres API to allocate resources
+Date: Fri, 22 Jun 2012 17:40:54 +0530
+Message-ID: <1340367055-19835-5-git-send-email-kishon@ti.com>
+References: <1340367055-19835-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1340367055-19835-1-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@linuxfoundation.org, kishon@ti.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Most part of this patch series was obtained by splitting
-[RFC PATCH 2/3] usb: musb: omap glue: use omap-usb2 as the phy driver.
+used devres API while allocating memory resource and while getting
+usb phy so that these resources are released automatically on driver
+detach.
 
-TO DO:
-* dt adaptation of musb omap glue, twl4030, twl6030.
-* Use control module driver API to write to control module registers
- (mailbox and power control of phy)
-* send usb2 phy driver
-* make musb omap glue use usb2 phy driver and make twl630
- as a comparator driver.
-
-Changes from v2:
-* Added a condition in twl4030 to avoid spurious disconnect event
-message to the omap glue, on bootup if the cable is not connected.
-
-Changes from v1:
-Changed the commit log of *usb: musb: move work_struct(otg_notifier_work)
-from core to omap glue* as per Sergei's suggestion.
-
-Patch series depends on
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+This patch uses an API thats introduced in
 [PATCH v7 0/3] usb: multi-phy support
+ drivers/usb/musb/omap2430.c |   19 +++++++------------
+ 1 files changed, 7 insertions(+), 12 deletions(-)
 
-Developed and Tested on.
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git musb
-
-commit 2ed9127cff9a255b7671b8d3d938109f68a87961
-Author: Mantesh Sarasetti <mantesh@ti.com>
-Date:   Fri Jun 1 14:54:30 2012 +0300
-
-    usb: musb: host: Disable MUSB DMA mode incase of DMA channel request failure
-
-Performed device mode testing in omap4 panda and omap3 beagle.
-
-Kishon Vijay Abraham I (5):
-  usb: musb: move work_struct(otg_notifier_work) from core to omap glue
-  usb: musb: twl: use mailbox API to send VBUS or ID events
-  drivers: usb: musb: move otg specific initializations from twl to
-    glue
-  usb: musb: omap: use devres API to allocate resources
-  drivers: usb: otg: twl: use devres API to allocate resources
-
- drivers/usb/musb/musb_core.h  |    2 -
- drivers/usb/musb/omap2430.c   |  122 +++++++++++++++++++++++++---------------
- drivers/usb/otg/twl4030-usb.c |   67 ++++++++--------------
- drivers/usb/otg/twl6030-usb.c |   69 ++++++++---------------
- include/linux/usb/musb-omap.h |   30 ++++++++++
- 5 files changed, 155 insertions(+), 135 deletions(-)
- create mode 100644 include/linux/usb/musb-omap.h
-
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index c4dc92b..2813490 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -319,7 +319,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	musb->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
+ 	if (!musb->xceiv) {
+ 		pr_err("HS USB OTG: no transceiver configured\n");
+ 		return -ENODEV;
+@@ -416,7 +416,6 @@ static int omap2430_musb_exit(struct musb *musb)
+ 	del_timer_sync(&musb_idle_timer);
+ 
+ 	omap2430_low_level_exit(musb);
+-	usb_put_phy(musb->xceiv);
+ 
+ 	return 0;
+ }
+@@ -443,7 +442,7 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	struct omap2430_glue		*glue;
+ 	int				ret = -ENOMEM;
+ 
+-	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
++	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+ 		dev_err(&pdev->dev, "failed to allocate glue context\n");
+ 		goto err0;
+@@ -452,7 +451,7 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	musb = platform_device_alloc("musb-hdrc", -1);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err0;
+ 	}
+ 
+ 	musb->dev.parent		= &pdev->dev;
+@@ -479,13 +478,13 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err2;
++		goto err1;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err2;
++		goto err1;
+ 	}
+ 
+ 	pm_runtime_enable(&pdev->dev);
+@@ -493,16 +492,13 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err2;
++		goto err1;
+ 	}
+ 
+ 	return 0;
+ 
+-err2:
+-	platform_device_put(musb);
+-
+ err1:
+-	kfree(glue);
++	platform_device_put(musb);
+ 
+ err0:
+ 	return ret;
+@@ -515,7 +511,6 @@ static int __devexit omap2430_remove(struct platform_device *pdev)
+ 	cancel_work_sync(&glue->omap_musb_mailbox_work);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+-	kfree(glue);
+ 
+ 	return 0;
+ }
 -- 
 1.7.5.4
