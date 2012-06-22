@@ -1,151 +1,216 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 08/13] ARM: OMAP2+: gpmc: holler if no configuration
-Date: Fri, 22 Jun 2012 18:27:17 +0530
-Message-ID: <0c48341ab1fff2b84ed1c0773d57b7b00472177e.1340367480.git.afzal@ti.com>
+Subject: [PATCH v6 10/13] ARM: OMAP2+: gpmc: handle connected peripherals
+Date: Fri, 22 Jun 2012 18:27:29 +0530
+Message-ID: <9d38a98179a4cf8250f71a0a60a2a22786a02859.1340367480.git.afzal@ti.com>
 References: <cover.1340367480.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40017 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40035 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932659Ab2FVNMh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Jun 2012 09:12:37 -0400
+	id S1752954Ab2FVNMt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 09:12:49 -0400
 In-Reply-To: <cover.1340367480.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Some of the GPMC peripherals depend on bootloader to do the
-configuration. This facility is deprecated, notify user
-about the present GPMC settings & inform that that relying
-on bootloader for GPMC setting is deprecated.
-
-Note: This has to be reverted once Kernel is updated with
-sufficient details so that all the gpmc periherals can be
-configured in Kernel for all boards instead of relying on
-bootloader.
+Platform will provide driver with configuration details for
+each CS like configuration, timing, interrupts. Setup GPMC
+based on it. Platform data also provides platform data &
+resources used for connected peripheral (eg. gpio irq).
+GPMC driver tunnels those information to respective driver.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c |  104 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 104 insertions(+)
+ arch/arm/mach-omap2/gpmc.c |  142 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 142 insertions(+)
 
 diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1998285..9e3960e 100644
+index 15688da..ac66267 100644
 --- a/arch/arm/mach-omap2/gpmc.c
 +++ b/arch/arm/mach-omap2/gpmc.c
-@@ -1056,6 +1056,110 @@ static void gpmc_cs_set_register_timings(int cs, const struct gpmc_timings *t)
- 	gpmc_cs_bool_timings(cs, &t->bool_timings);
+@@ -156,6 +156,8 @@ struct gpmc_peripheral {
+ 	struct platform_device	*pdev;
+ };
+ 
++static struct gpmc_peripheral gpmc_peripheral[GPMC_CS_NUM];
++static unsigned gpmc_num_peripheral;
+ static unsigned gpmc_waitpin_map;
+ static unsigned gpmc_waitpin_nr = GPMC_MAX_NR_WAITPIN;
+ 
+@@ -1229,6 +1231,37 @@ static int gpmc_setup_cs_waitpin(struct gpmc_peripheral *g_per, unsigned cs,
+ 	return 0;
  }
  
-+static void gpmc_print_cs_config(int cs)
++static int gpmc_setup_cs_config_timing(struct gpmc_peripheral *g_per,
++						struct gpmc_cs_data *cs)
 +{
-+	u32 l = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++	int ret;
 +
-+	dev_warn(gpmc_dev, "GPMC CS%d depends on bootloader for config\n", cs);
-+	dev_warn(gpmc_dev, "Please update it in Kernel ASAP to prevent losing support for this peripheral\n");
-+	dev_warn(gpmc_dev, "Bootloader dependency for GPMC configuration is deprecated\n");
++	/* some boards rely on bootloader for configuration */
++	if (cs->have_config) {
++		gpmc_setup_cs_config(cs->cs, cs->config);
++		ret = gpmc_setup_cs_waitpin(g_per, cs->cs, cs->config);
++		if (IS_ERR_VALUE(ret)) {
++			dev_err(gpmc_dev, "error: waitpin on CS %d\n", cs->cs);
++			return ret;
++		}
++	} else
++		gpmc_print_cs_config(cs->cs);
 +
-+	dev_warn(gpmc_dev, "muxadddata: %s\n",
-+			l & GPMC_CONFIG1_MUXADDDATA ? "yes" : "no");
-+	dev_warn(gpmc_dev, "writetypesync: %s\n",
-+			l & GPMC_CONFIG1_WRITETYPE_SYNC ? "yes" : "no");
-+	dev_warn(gpmc_dev, "writemultiple: %s\n",
-+			l & GPMC_CONFIG1_WRITEMULTIPLE_SUPP ? "yes" : "no");
-+	dev_warn(gpmc_dev, "readtypesync: %s\n",
-+			l & GPMC_CONFIG1_READTYPE_SYNC ? "yes" : "no");
-+	dev_warn(gpmc_dev, "readmultiple: %s\n",
-+			l & GPMC_CONFIG1_READMULTIPLE_SUPP ? "yes" : "no");
-+	dev_warn(gpmc_dev, "wrapburst: %s\n",
-+			l & GPMC_CONFIG1_WRAPBURST_SUPP ? "yes" : "no");
-+	dev_warn(gpmc_dev, "devicetype: %s\n",
-+			l & GPMC_CONFIG1_DEVICETYPE_NAND ? "nand" : "nor");
-+	dev_warn(gpmc_dev, "devicesize: %d\n",
-+			l & GPMC_CONFIG1_DEVICESIZE_16 ? 16 : 8);
-+	dev_warn(gpmc_dev, "pagelength: %d\n",
-+			l & GPMC_CONFIG1_PAGE_LEN(~0) ?
-+			(l & GPMC_CONFIG1_PAGE_LEN_16 ? 16 : 8) : 4);
-+}
-+static inline unsigned gpmc_get_one_timing(int cs, int reg, int start, int end)
-+{
-+	u32 l = gpmc_cs_read_reg(cs, reg);
-+	unsigned mask;
++	/* some boards rely on bootloader for timing */
++	if (cs->time_ctrl.type == has_period) {
++		ret = gpmc_cs_set_timings(cs->cs, &cs->time_ctrl.timings);
++		if (IS_ERR_VALUE(ret)) {
++			dev_err(gpmc_dev, "error: timing on CS: %d\n", cs->cs);
++			return ret;
++		}
++	} else if (cs->time_ctrl.type == has_clock)
++		gpmc_cs_set_register_timings(cs->cs, &cs->time_ctrl.timings);
++	else
++		gpmc_print_cs_timings(cs->cs);
 +
-+	mask = (1 << (end - start + 1)) - 1;
-+	l &= (mask << start);
-+	return l >>= start;
-+}
-+
-+static void gpmc_print_cs_timings(int cs)
-+{
-+	dev_warn(gpmc_dev, "GPMC CS%d depends on bootloader for timing\n", cs);
-+	dev_warn(gpmc_dev, "Please update it in Kernel ASAP to prevent losing support for this peripheral\n");
-+	dev_warn(gpmc_dev, "Bootloader dependency for GPMC configuration is deprecated\n");
-+
-+	dev_warn(gpmc_dev, "fclk period: %lups\n", gpmc_get_fclk_period());
-+	dev_warn(gpmc_dev, "sync_clk: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 0, 1));
-+	dev_warn(gpmc_dev, "wait_monitoring: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 18, 19));
-+	dev_warn(gpmc_dev, "clk_activation: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 25, 26));
-+	dev_warn(gpmc_dev, "cs_on: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 0, 3));
-+	dev_warn(gpmc_dev, "cs_rd_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 8, 12));
-+	dev_warn(gpmc_dev, "cs_wr_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 16, 20));
-+	dev_warn(gpmc_dev, "adv_on: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 0, 3));
-+	dev_warn(gpmc_dev, "adv_rd_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 8, 12));
-+	dev_warn(gpmc_dev, "adv_wr_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 16, 20));
-+	dev_warn(gpmc_dev, "oe_on: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 0, 3));
-+	dev_warn(gpmc_dev, "oe_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 8, 12));
-+	dev_warn(gpmc_dev, "we_on: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 16, 19));
-+	dev_warn(gpmc_dev, "we_off: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 24, 28));
-+	dev_warn(gpmc_dev, "rd_cycle: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 0, 4));
-+	dev_warn(gpmc_dev, "wr_cycle: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 8, 12));
-+	dev_warn(gpmc_dev, "acess: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 16, 20));
-+	dev_warn(gpmc_dev, "page_burst_access: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG5, 24, 27));
-+	dev_warn(gpmc_dev, "bus_turnaround: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 0, 3));
-+	dev_warn(gpmc_dev, "cycle2cycle_delay: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 8, 11));
-+	dev_warn(gpmc_dev, "wr_data_mux_bus: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 16, 19));
-+	dev_warn(gpmc_dev, "wr_access: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 24, 28));
-+
-+	dev_warn(gpmc_dev, "time_para_granularity: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG1, 4, 4));
-+	dev_warn(gpmc_dev, "cs_extra_delay: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG2, 7, 7));
-+	dev_warn(gpmc_dev, "adv_extra_delay: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG3, 7, 7));
-+	dev_warn(gpmc_dev, "oe_extra_delay: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 7, 7));
-+	dev_warn(gpmc_dev, "we_extra_delay: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG4, 23, 23));
-+	dev_warn(gpmc_dev, "cycle2cyclediffcsen: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 6, 6));
-+	dev_warn(gpmc_dev, "cycle2cyclesamecsen: %u\n",
-+			gpmc_get_one_timing(cs, GPMC_CS_CONFIG6, 7, 7));
++	return 0;
 +}
 +
  static __devinit int gpmc_setup_cs_irq(struct gpmc_cs_data *cs,
  						struct resource *res)
  {
+@@ -1301,11 +1334,99 @@ static int gpmc_setup_waitpin(struct gpmc_peripheral *g_per)
+ 	return 0;
+ }
+ 
++static __devinit int gpmc_setup_cs(struct gpmc_peripheral *g_per,
++				struct gpmc_cs_data *cs, struct resource *res)
++{
++	int num, ret;
++
++	ret = gpmc_setup_cs_mem(cs, res);
++	if (IS_ERR_VALUE(ret))
++		return ret;
++
++	ret = gpmc_setup_cs_config_timing(g_per, cs);
++	if (IS_ERR_VALUE(ret))
++		return ret;
++
++	num = gpmc_setup_cs_irq(cs, res + 1); /* +1 to account for memory */
++
++	return num + 1; /* +1 to account for memory*/
++}
++
++static __devinit int gpmc_setup_device(struct gpmc_peripheral *g_per,
++					struct gpmc_device_pdata *gdp)
++{
++	int i, n, ret;
++	struct gpmc_cs_data *cs;
++
++	for (i = 0, n = gdp->num_cs, cs = gdp->cs_data;
++				i < gdp->num_cs; i++, cs++)
++		n += hweight32(cs->irq_config);
++
++	g_per->gpmc_res = devm_kzalloc(gpmc_dev, sizeof(*g_per->gpmc_res) * n,
++								GFP_KERNEL);
++	if (g_per->gpmc_res == NULL) {
++		dev_err(gpmc_dev, "error: memory allocation\n");
++		return -ENOMEM;
++	}
++
++	for (i = 0, cs = gdp->cs_data, g_per->gpmc_res_cnt = 0;
++			i < gdp->num_cs; cs++, i++) {
++		ret = gpmc_setup_cs(g_per, cs,
++					g_per->gpmc_res + g_per->gpmc_res_cnt);
++		if (IS_ERR_VALUE(ret) ||
++				IS_ERR_VALUE(gpmc_setup_waitpin(g_per))) {
++			dev_err(gpmc_dev, "error: setup for %s\n", gdp->name);
++			devm_kfree(gpmc_dev, g_per->gpmc_res);
++			g_per->gpmc_res = NULL;
++			g_per->gpmc_res_cnt = 0;
++			return -EINVAL;
++		} else
++			g_per->gpmc_res_cnt += ret;
++	}
++
++	g_per->name = gdp->name;
++	g_per->id = gdp->id;
++	g_per->pdata = gdp->pdata;
++	g_per->pdata_size = gdp->pdata_size;
++	g_per->per_res = gdp->per_res;
++	g_per->per_res_cnt = gdp->per_res_cnt;
++
++	return 0;
++}
++
++static __devinit
++struct platform_device *gpmc_create_device(struct gpmc_peripheral *p)
++{
++	int num = p->per_res_cnt + p->gpmc_res_cnt;
++	struct resource *res;
++
++	res = devm_kzalloc(gpmc_dev, sizeof(struct resource) * num,
++								GFP_KERNEL);
++	if (!res) {
++		dev_err(gpmc_dev, "error: allocating memory\n");
++		return NULL;
++	}
++
++	memcpy((char *)res, (const char *) p->gpmc_res,
++				sizeof(struct resource) * p->gpmc_res_cnt);
++	memcpy((char *)(res + p->gpmc_res_cnt), (const char *)p->per_res,
++				sizeof(struct resource) * p->per_res_cnt);
++
++	p->pdev = platform_device_register_resndata(gpmc_dev, p->name, p->id,
++					res, num, p->pdata, p->pdata_size);
++
++	devm_kfree(gpmc_dev, res);
++
++	return p->pdev;
++}
++
+ static __devinit int gpmc_probe(struct platform_device *pdev)
+ {
+ 	u32 l;
+ 	struct resource *res;
+ 	struct gpmc_pdata *gp = dev_get_platdata(&pdev->dev);
++	struct gpmc_device_pdata **gdq = NULL;
++	struct gpmc_peripheral *g_per = NULL;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL)
+@@ -1343,11 +1464,32 @@ static __devinit int gpmc_probe(struct platform_device *pdev)
+ 	if (gp->waitpin_nr)
+ 		gpmc_waitpin_nr = gp->waitpin_nr;
+ 
++	/* Traverse NULL terminated array of peripheral pointers and setup */
++	for (gdq = gp->device_pdata, g_per = gpmc_peripheral; *gdq; gdq++)
++		if (IS_ERR_VALUE(gpmc_setup_device(g_per, *gdq)))
++			dev_err(gpmc_dev, "gpmc setup on %s failed\n",
++								(*gdq)->name);
++		else
++			g_per++;
++	gpmc_num_peripheral = g_per - gpmc_peripheral;
++
++	for (l = 0, g_per = gpmc_peripheral;
++			l < gpmc_num_peripheral; l++, g_per++)
++		if (IS_ERR(gpmc_create_device(g_per)))
++			dev_err(gpmc_dev, "device creation on %s failed\n",
++								g_per->name);
++
+ 	return 0;
+ }
+ 
+ static __exit int gpmc_remove(struct platform_device *pdev)
+ {
++	struct gpmc_peripheral *g_per = gpmc_peripheral;
++
++	for (; gpmc_num_peripheral; g_per++, gpmc_num_peripheral--)
++		platform_device_unregister(g_per->pdev);
++
++	gpmc_waitpin_map = 0;
+ 	gpmc_waitpin_nr = GPMC_MAX_NR_WAITPIN;
+ 	gpmc_free_irq();
+ 	gpmc_mem_exit();
 -- 
 1.7.10.2
 
