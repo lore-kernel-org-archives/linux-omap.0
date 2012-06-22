@@ -1,143 +1,58 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
- issue
-Date: Fri, 22 Jun 2012 23:36:46 +0300
-Message-ID: <20120622203645.GD29290@arwen.pp.htv.fi>
-References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
- <CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
- <87fw9o32v2.fsf@ti.com>
- <CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
- <20120622103050.GG28472@arwen.pp.htv.fi>
- <87ehp71liv.fsf@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
+Date: Fri, 22 Jun 2012 13:50:44 -0700 (PDT)
+Message-ID: <1340398244.35574.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com> <1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com> <1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yudcn1FV7Hsu/q59"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87ehp71liv.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm21-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.46]:30109 "HELO
+	nm21-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755722Ab2FVUuo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Jun 2012 16:50:44 -0400
+In-Reply-To: <1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "afzal@ti.com" <afzal@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "tony@atomide.com" <tony@atomide.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "khilman@ti.com" <khilman@ti.com>
+
+A quick follow-up note:
+
+The stress line that was running during the crash mentioned was: "stres=
+s --cpu 8 --io 8 --vm 1 --vm-bytes 150M --hdd 2 --timeout 60". The "--h=
+dd 2" option was a leftover that was not supposed to be there.=A0 So th=
+at may have created a chunk more disk work for the processor.=A0 Regard=
+less, stress did not crash.=A0 Ping died with the EMAC error mentioned,=
+ but stress was still running fine when I stopped it.
 
 
---yudcn1FV7Hsu/q59
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It's been suggested that stress may be eating up too much memory and ca=
+using the EMAC driver to do this.=A0 That's a fair point, as these "WAR=
+NING: at drivers/net/ethernet/ti/davinci_emac.c:997 emac_rx_alloc" erro=
+rs only appear to show up with stress running.=A0 I suspect that could =
+be true, though no other drivers or other applications are throwing sim=
+ilar errors.=A0 When I've cranked stress too high memory wise in the pa=
+st, I've seen it break out the oom-killer.=A0 That's what I would expec=
+t.=A0 Since I'm no longer seeing that, I suspect I'm playing within the=
+ bounds.=A0 Regardless, should a userspace app sucking up too much memo=
+ry cause a driver to crash?
 
-Hi,
 
-On Fri, Jun 22, 2012 at 07:14:32AM -0700, Kevin Hilman wrote:
-> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
->=20
-> > Hi,
-> >
-> > On Fri, Jun 22, 2012 at 01:00:39PM +0530, Munegowda, Keshava wrote:
-> >> On Fri, Jun 22, 2012 at 12:32 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> >> > "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
-> >> >
-> >> >> On Thu, Jun 21, 2012 at 7:12 PM, Keshava Munegowda
-> >> >> <keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
-> >> >>> This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-> >> >>> "Fix OMAP EHCI suspend/resume failure (i693)" is causing
-> >> >>> the usb hub and device detection fails in beagle XM
-> >> >>> causeing NFS not functional. This affects the core retention too.
-> >> >>> The same commit logic needs to be revisted adhering to hwmod and
-> >> >>> device tree framework.
-> >> >>> for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
-> >> >>> titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
-> >> >>>
-> >> >>> This patch is validated on BeagleXM with NFS support over
-> >> >>> usb ethernet and USB mass storage and other device detection.
-> >> >>>
-> >> >>> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> >> >
-> >> > [...]
-> >> >
-> >> >>
-> >> >> hi kevin
-> >> >>
-> >> >> here is pm count log on beagle XM with the above patch:
-> >> >
-> >> > What are you meaning to show by this log?
-> >> >
-> >> > This dump shows that neither PER or CORE are hitting retention in id=
-le.
-> >> > Which sounds to me like you have not enabled UART runtime suspend:
-> >> >
-> >> > echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_dela=
-y_ms
-> >> > echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_dela=
-y_ms
-> >> > echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_dela=
-y_ms
-> >> > echo 3000 > /sys/devices/platform/omap_uart.3/power/autosuspend_dela=
-y_ms
-> >> >
-> >> > My test with your patch shows that it fixes the oops during boot, and
-> >> > doesn't hang during suspend, but that USB host is still preventing C=
-ORE
-> >> > retention during idle (after UART runtime suspend is enabled.)
-> >> >
-> >> > This happens on 3530/Overo, 3630/Beagle-xM and 3730/Overo
-> >> >
-> >> > Setting CONFIG_MFD_OMAP_USB_HOST=3Dn allows CORE to hit retention ag=
-ain.
-> >> >
-> >> > Kevin
-> >>=20
-> >>=20
-> >>=20
-> >> Hi kevin
-> >>        It woks. only the log was wrong. I was using no_console_suspend
-> >> in boot args.
-> >> i removed it. now I can see the core retention hits with USB host in B=
-eagle XM.
-> >> below is the log:
-> >
-> > the fact is that we can't really survive without that workaround. Kevin,
->=20
-> I don't know what workaround you're talking about.    Are you talking
-> about the revert proposed in $SUBJECT patch?
->=20
-> I don't have a problem with that revert.  The problem I have is that it
-> does not fix the problem I initially reported: USB host prevents CORE
-> retention in *idle*.
+I bring these questions here, as the crash's call stack shares so many =
+similarities to the "SLAB crash" discussed "http://thread.gmane.org/gma=
+ne.linux.ports.arm.omap/78039/", that I think they're related.=A0 At th=
+e very least, the EMAC to EMAC performance issues we have always seen a=
+re troubling.=A0 IMHO, clearly the EMAC driver is doing something a lit=
+tle questionable.
 
-Keshava is reverting a fix for a HW errata. I can't accept it as it will
-cause regressions. Granted, regression by regression, there's no change,
-but I simply can't knowingly cause a regression to the driver just to
-have PM working. We need a real fix for this issue.
+Thoughts?
 
---=20
-balbi
-
---yudcn1FV7Hsu/q59
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJP5NddAAoJEIaOsuA1yqREDxoQALWvkE3CtPmErhg/PMgfOh1E
-O9+8iTYPgYVRPbF8Gd4xavzRjjBCdgZgZPgrF53wtZWoAakiADpOvD622Vdo1KhW
-XSDvVNtxA7tMshdNau0bPBgRWliRSckAQOXt0Y7Gp1VtYZMiBGTDkFEv+2N3itdI
-oDmYNLKP5DJzw8+Up5WHMZJoefk1MNaq2NmrCU5wNzS37/vFqb5hysGBYqv8MHFE
-ltwU7E83Bkezftb4PtxK49iOpU6fGPlZubok+ggyapBCFGwlPxQeqcdGFWtyXVzO
-0Jvn9l+OUudelJfKbm/Tue96iMgBKySBMJ4Ph9qfkT10LqHls4+/L9JsJjcOptjY
-3wz8uhshJ0XLvIyvazM3VKTxxzZBMAJuRZJpn/8Byfeagl/iRkUO7hmdcqfgf+wh
-4YFFChafwIHNItQxvm1Jp+xg+VUsWMk+hpD97CufFFVHAc3VRssv26deR0tZsT2x
-IorSoU5Ef/F8TU7N6fO6K7jLpMLYWxWIxk8PgyBQ5Qg1/FVhiTwG9Ueq42gVlcKH
-s1+rw2rRQxWYfdsS4sK2xrF+ZlQYx2pBr5sOcyQc9bPUAHPSe9sBl/mSuFGRRK6h
-7MoD846PQnop8TK6nG3YwmLlMrjtMYI7KjBKbCIG8/+3pwHl0jU2eb6u4qyQeTur
-u1jQYWuVomc1OCHdK26N
-=wsH9
------END PGP SIGNATURE-----
-
---yudcn1FV7Hsu/q59--
+Thanks again.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
