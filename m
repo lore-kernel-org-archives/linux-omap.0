@@ -1,81 +1,43 @@
-From: jaswinder.singh@linaro.org
-Subject: [PATCH] OMAPDSS: HDMI: Replace spinlock with mutex in hdmi_check_hpd_state
-Date: Sat, 23 Jun 2012 13:37:18 +0530
-Message-ID: <1340438838-25692-1-git-send-email-jaswinder.singh@linaro.org>
+From: Domenico Andreoli <cavokz@gmail.com>
+Subject: Re: Current state of AM33xx patches
+Date: Sat, 23 Jun 2012 15:03:13 +0200
+Message-ID: <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
+References: <4FD5BA4C.9070706@gmail.com>
+	<4FD5FD9E.5040203@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:39169 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753595Ab2FWIH1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 04:07:27 -0400
-Received: by mail-pz0-f46.google.com with SMTP id y13so3270238dad.19
-        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 01:07:26 -0700 (PDT)
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:61951 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752256Ab2FWNDN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 09:03:13 -0400
+Received: by ghrr11 with SMTP id r11so2126978ghr.19
+        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 06:03:13 -0700 (PDT)
+In-Reply-To: <4FD5FD9E.5040203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, mythripk@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, Jassi Brar <jaswinder.singh@linaro.org>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Jassi Brar <jaswinder.singh@linaro.org>
+Hello,
 
-State change of HDMI PHY could potentially take many millisecs, we can do
-better by protecting things in hdmi_set_phy_pwr() with a mutex rather than
-a spin_lock_irqsave.
+On Mon, Jun 11, 2012 at 4:15 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>
+> I do maintain wiki page which you should refer for any updates:
+> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
+>
+> In order to get latest and greatest kernel to boot, you can use my repo:
+> https://github.com/hvaibhav/am335x-linux
 
-Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
----
- drivers/video/omap2/dss/hdmi.c            |    1 +
- drivers/video/omap2/dss/ti_hdmi.h         |    1 +
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    6 ++----
- 3 files changed, 4 insertions(+), 4 deletions(-)
+do you have any usable defconfig? I've some trouble with the build of
+this branch and I'm not sure about the configuration.
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 8195c71..0738090 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -758,6 +758,7 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
- 	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
- 	hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
- 	hdmi.ip_data.phy_offset = HDMI_PHY;
-+	mutex_init(&hdmi.ip_data.lock);
- 
- 	hdmi_panel_init();
- 
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index d174ca1..cc292b8 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -177,6 +177,7 @@ struct hdmi_ip_data {
- 
- 	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
- 	int hpd_gpio;
-+	struct mutex lock;
- };
- int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 3fa3d98..04acca9 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -238,10 +238,8 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
- 	unsigned long flags;
- 	bool hpd;
- 	int r;
--	/* this should be in ti_hdmi_4xxx_ip private data */
--	static DEFINE_SPINLOCK(phy_tx_lock);
- 
--	spin_lock_irqsave(&phy_tx_lock, flags);
-+	mutex_lock(&ip_data->lock);
- 
- 	hpd = gpio_get_value(ip_data->hpd_gpio);
- 
-@@ -257,7 +255,7 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
- 	}
- 
- err:
--	spin_unlock_irqrestore(&phy_tx_lock, flags);
-+	mutex_unlock(&ip_data->lock);
- 	return r;
- }
- 
--- 
-1.7.4.1
+> Also, note that, currently there will be very minimal feature-set
+> supported in the kernel, so not sure how much can be leveraged for
+> production use-cases.
 
+I need something that boots to userspace, nothing more (but I'm happy
+to test) :)
+
+thanks,
+Domenico
