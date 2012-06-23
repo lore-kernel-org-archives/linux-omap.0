@@ -1,14 +1,14 @@
 From: jaswinder.singh@linaro.org
-Subject: [PATCH] OMAPDSS: HDMI: Cache EDID
-Date: Sat, 23 Jun 2012 13:36:46 +0530
-Message-ID: <1340438806-25622-1-git-send-email-jaswinder.singh@linaro.org>
+Subject: [PATCH] OMAPDSS: HDMI: Discard phy_tx_enabled member
+Date: Sat, 23 Jun 2012 13:37:02 +0530
+Message-ID: <1340438822-25657-1-git-send-email-jaswinder.singh@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:39169 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951Ab2FWIG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 04:06:56 -0400
-Received: by dady13 with SMTP id y13so3270238dad.19
-        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 01:06:55 -0700 (PDT)
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43957 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab2FWIHM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 04:07:12 -0400
+Received: by pbbrp8 with SMTP id rp8so4494071pbb.19
+        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 01:07:12 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, mythripk@ti.com
@@ -16,101 +16,70 @@ Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.o
 
 From: Jassi Brar <jaswinder.singh@linaro.org>
 
-We can easily keep track of latest EDID from the display and hence avoid
-expensive EDID re-reads over I2C.
-This could also help some cheapo displays that provide EDID reliably only
-immediately after asserting HPD and not later.
-Even with good displays, there is something in OMAPDSS that apparantly
-messes up DDC occasionally while EDID is being read, giving the
-  "operation stopped when reading edid" error.
+It is simpler to read the current status from a register as compared
+to maintaining a state variable to hold the information.
 
 Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
 ---
- drivers/video/omap2/dss/hdmi.c            |    1 +
- drivers/video/omap2/dss/ti_hdmi.h         |    2 ++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   23 ++++++++++++++++++++---
- 3 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/video/omap2/dss/ti_hdmi.h         |    1 -
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   11 ++++-------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 900e621..0a8c825 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -764,6 +764,7 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
- 	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
- 	hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
- 	hdmi.ip_data.phy_offset = HDMI_PHY;
-+	hdmi.ip_data.edid_len = 0; /* Invalidate EDID Cache */
- 	mutex_init(&hdmi.ip_data.lock);
- 
- 	hdmi_panel_init();
 diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index cc292b8..4735860 100644
+index e734cb4..d174ca1 100644
 --- a/drivers/video/omap2/dss/ti_hdmi.h
 +++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -178,6 +178,8 @@ struct hdmi_ip_data {
+@@ -177,7 +177,6 @@ struct hdmi_ip_data {
+ 
  	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
  	int hpd_gpio;
- 	struct mutex lock;
-+	u8 edid_cached[256];
-+	unsigned edid_len;
+-	bool phy_tx_enabled;
  };
  int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
  void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
 diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 04acca9..2633ade 100644
+index 4dae1b2..3fa3d98 100644
 --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
 +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -243,10 +243,13 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
+@@ -157,6 +157,10 @@ static int hdmi_pll_init(struct hdmi_ip_data *ip_data)
+ /* PHY_PWR_CMD */
+ static int hdmi_set_phy_pwr(struct hdmi_ip_data *ip_data, enum hdmi_phy_pwr val)
+ {
++	/* Return if already the state */
++	if (REG_GET(hdmi_wp_base(ip_data), HDMI_WP_PWR_CTRL, 5, 4) == val)
++		return 0;
++
+ 	/* Command for power control of HDMI PHY */
+ 	REG_FLD_MOD(hdmi_wp_base(ip_data), HDMI_WP_PWR_CTRL, val, 7, 6);
+ 
+@@ -241,11 +245,6 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
  
  	hpd = gpio_get_value(ip_data->hpd_gpio);
  
--	if (hpd)
-+	if (hpd) {
+-	if (hpd == ip_data->phy_tx_enabled) {
+-		spin_unlock_irqrestore(&phy_tx_lock, flags);
+-		return 0;
+-	}
+-
+ 	if (hpd)
  		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
--	else
-+	} else {
-+		/* Invalidate EDID Cache */
-+		ip_data->edid_len = 0;
- 		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON);
-+	}
- 
- 	if (r) {
- 		DSSERR("Failed to %s PHY TX power\n",
-@@ -454,6 +457,11 @@ int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
- {
- 	int r, l;
- 
-+	if (ip_data->edid_len) {
-+		memcpy(edid, ip_data->edid_cached, ip_data->edid_len);
-+		return ip_data->edid_len;
-+	}
-+
- 	if (len < 128)
- 		return -EINVAL;
- 
-@@ -474,12 +482,21 @@ int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
- 		l += 128;
+ 	else
+@@ -257,7 +256,6 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
+ 		goto err;
  	}
  
-+	ip_data->edid_len = l;
-+	memcpy(ip_data->edid_cached, edid, l);
-+
- 	return l;
+-	ip_data->phy_tx_enabled = hpd;
+ err:
+ 	spin_unlock_irqrestore(&phy_tx_lock, flags);
+ 	return r;
+@@ -327,7 +325,6 @@ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data)
+ 	free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
+ 
+ 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
+-	ip_data->phy_tx_enabled = false;
  }
  
- bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
- {
--	return gpio_get_value(ip_data->hpd_gpio);
-+	if (gpio_get_value(ip_data->hpd_gpio))
-+		return true;
-+
-+	/* Invalidate EDID Cache */
-+	ip_data->edid_len = 0;
-+
-+	return false;
- }
- 
- static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
+ static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
 -- 
 1.7.4.1
 
