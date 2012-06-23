@@ -1,43 +1,40 @@
-From: Domenico Andreoli <cavokz@gmail.com>
-Subject: Re: Current state of AM33xx patches
-Date: Sat, 23 Jun 2012 15:03:13 +0200
-Message-ID: <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
-References: <4FD5BA4C.9070706@gmail.com>
-	<4FD5FD9E.5040203@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: [PATCH 1/1] ARM: OMAP: omap2plus_defconfig: Enable EXT4 support
+Date: Sun, 24 Jun 2012 00:18:59 +0200
+Message-ID: <1340489939-5390-1-git-send-email-javier@dowhile0.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:61951 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256Ab2FWNDN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 09:03:13 -0400
-Received: by ghrr11 with SMTP id r11so2126978ghr.19
-        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 06:03:13 -0700 (PDT)
-In-Reply-To: <4FD5FD9E.5040203@ti.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:51389 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756094Ab2FWWTW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Jun 2012 18:19:22 -0400
+Received: by wgbdr13 with SMTP id dr13so2886521wgb.1
+        for <linux-omap@vger.kernel.org>; Sat, 23 Jun 2012 15:19:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>
 
-Hello,
+On OMAP boards that includes an SD card slot, an EXT4 partition could
+be used to store the root file system. So, the kernel should have
+built-in support for EXT4 to be able to mount the VFS root on boot.
 
-On Mon, Jun 11, 2012 at 4:15 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->
-> I do maintain wiki page which you should refer for any updates:
-> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
->
-> In order to get latest and greatest kernel to boot, you can use my repo:
-> https://github.com/hvaibhav/am335x-linux
+Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-do you have any usable defconfig? I've some trouble with the build of
-this branch and I'm not sure about the configuration.
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 9854ff4..f3087cb 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -197,6 +197,7 @@ CONFIG_RTC_DRV_TWL4030=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
++CONFIG_EXT4_FS=y
+ CONFIG_QUOTA=y
+ CONFIG_QFMT_V2=y
+ CONFIG_MSDOS_FS=y
+-- 
+1.7.7.6
 
-> Also, note that, currently there will be very minimal feature-set
-> supported in the kernel, so not sure how much can be leveraged for
-> production use-cases.
-
-I need something that boots to userspace, nothing more (but I'm happy
-to test) :)
-
-thanks,
-Domenico
