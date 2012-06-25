@@ -1,129 +1,44 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP2+: AM33XX: Add tps65217 device tree data
-Date: Mon, 25 Jun 2012 17:34:37 +0530
-Message-ID: <1340625878-32336-3-git-send-email-anilkumar@ti.com>
-References: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
+Date: Mon, 25 Jun 2012 15:05:18 +0300
+Message-ID: <CANOLnOOodXtqV7Hs-SsEUfB3Uo1PSGb8bkaeN7M48jVpQrb-cA@mail.gmail.com>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340605221.12683.30.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: sameo@linux.intel.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:54545 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756228Ab2FYMFT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 08:05:19 -0400
+In-Reply-To: <1340605221.12683.30.camel@lappyti>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: jaswinder.singh@linaro.org, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
-Add device tree data for tps65217 regulator by adding all the consumers
-necessary for AM335X-BeagleBone. The data will be map to a regulator
-constraints which is required for regulator set_voltage and get_voltage
-calls.
+On Mon, Jun 25, 2012 at 9:20 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Sat, 2012-06-23 at 13:36 +0530, jaswinder.singh@linaro.org wrote:
+>>
+>>  Currenlty HDMI fails to come up in the suspend-resume path.
+>> This patch helps that real-world scenario.
+>
+> What is the problem there? It'd be good to explain the problem in the
+> patch description. Does the pm_runtime_get return -EACCES?
 
-All tps65217 PMIC regulator constraints are placed in a seperate device
-tree include file (tps65217.dtsi).
+On slightly different but related issue, currently OMAPDSS always
+spits lots of backtraces when it's compiled without CONFIG_PM_RUNTIME,
+because pm_runtime_put* always return -ENOSYS without
+CONFIG_PM_RUNTIME. So something like this patch proposes is needed, or
+maybe WARN_ON should check for -ENOSYS, I don't know..
 
-This patch also adds the I2C slave address of TPS65217 pmic to
-am335x-bone.dts file.
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
-These patches were tested along with these patches
-* DT addition to AM33XX family
-http://marc.info/?l=linux-omap&m=134035826700991&w=2
-
- arch/arm/boot/dts/am335x-bone.dts |   10 ++++++
- arch/arm/boot/dts/tps65217.dtsi   |   67 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 77 insertions(+)
- create mode 100644 arch/arm/boot/dts/tps65217.dtsi
-
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index a9af4db..a4d4415 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -18,3 +18,13 @@
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
- };
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+
-+	tps: tps@24 {
-+		reg = <0x24>;
-+	};
-+};
-+
-+/include/ "tps65217.dtsi"
-diff --git a/arch/arm/boot/dts/tps65217.dtsi b/arch/arm/boot/dts/tps65217.dtsi
-new file mode 100644
-index 0000000..5b9850b
---- /dev/null
-+++ b/arch/arm/boot/dts/tps65217.dtsi
-@@ -0,0 +1,67 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Integrated Power Management Chip
-+ * http://www.ti.com/lit/ds/symlink/tps65217.pdf
-+ */
-+
-+&tps {
-+	compatible = "ti,tps65217";
-+
-+	regulators {
-+		dcdc1_reg: dcdc1 {
-+			regulator-min-microvolt = <900000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		dcdc2_reg: dcdc2 {
-+			regulator-min-microvolt = <900000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		dcdc3_reg: dcdc3 {
-+			regulator-min-microvolt = <900000>;
-+			regulator-max-microvolt = <1500000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		ldo1_reg: ldo1 {
-+			regulator-min-microvolt = <1000000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		ldo2_reg: ldo2 {
-+			regulator-min-microvolt = <900000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		ldo3_reg: ldo3 {
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		ldo4_reg: ldo4 {
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+	};
-+};
--- 
-1.7.9.5
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
