@@ -1,108 +1,106 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
-Date: Mon, 25 Jun 2012 22:36:23 +0530
-Message-ID: <CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340605221.12683.30.camel@lappyti>
-	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	<1340616643.3395.19.camel@deskari>
-	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	<1340628094.3395.63.camel@deskari>
-	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	<1340632161.3395.100.camel@deskari>
+From: "R, Sricharan" <r.sricharan@ti.com>
+Subject: Re: Crash with VMALLOC api
+Date: Mon, 25 Jun 2012 22:53:32 +0530
+Message-ID: <CAJ7qFSdZpXq=s8Kq6x6QxPjYOK6jp-OrPHY_TLJd9tgOuSTRfQ@mail.gmail.com>
+References: <CAJ7qFSdiGw1krDbWg6HvwBymp2gwrYKb8UuA00wSP0rgZi-EMw@mail.gmail.com>
+	<alpine.DEB.2.00.1206241345060.13297@chino.kir.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:51920 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080Ab2FYRGZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 13:06:25 -0400
-Received: by lbbgm6 with SMTP id gm6so6754504lbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 10:06:23 -0700 (PDT)
-In-Reply-To: <1340632161.3395.100.camel@deskari>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:55298 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757253Ab2FYRXf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 13:23:35 -0400
+Received: by lbbgg6 with SMTP id gg6so9117243lbb.22
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 10:23:32 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1206241345060.13297@chino.kir.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: David Rientjes <rientjes@google.com>
+Cc: linux-mm@kvack.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
 
-On 25 June 2012 19:19, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Mon, 2012-06-25 at 19:01 +0530, Jassi Brar wrote:
+Hi David,
 
->> > /* this accesses a register, but the HW is disabled? */
->> > dispc_read_reg(FOO);
->> >
->> .... the H/W is already always enabled if CONFIG_PM_RUNTIME is not d=
-efined.
+On Mon, Jun 25, 2012 at 2:17 AM, David Rientjes <rientjes@google.com> w=
+rote:
+> On Sat, 23 Jun 2012, R, Sricharan wrote:
+>
+>> Hi,
+>> =A0 I am observing a below crash with VMALLOC call on mainline kerne=
+l.
+>> =A0 The issue happens when there is insufficent vmalloc space.
+>> =A0 Isn't it expected that the API should return a NULL instead of c=
+rashing when
+>> =A0 there is not enough memory?.
+>
+> Yes.
+>
+>> =A0 This can be reproduced with succesive vmalloc
+>> =A0 calls for a size of about say 10MB, without a vfree, thus exhaus=
+ting
+>> the memory.
 >>
->> If CONFIG_PM_RUNTIME is indeed defined, =A0pm_runtime_enabled() will
->> always return true after pm_runtime_enable() =A0unless someone disab=
-les
->> it explicitly - omapdss or the RPM stack(during suspend/resume).
->> OMAPDSS never does so in the lifetime of a driver. =A0So the only pe=
-riod
->> in which pm_runtime_enabled() returns false, is when the platform is
->> suspending, suspended or resuming.
->
-> Right. So what happens in my example above?
->
-> Normally if the driver does dispc_runtime_get() and dispc_read_reg(),
-> the first call will enable the HW so the reg read works.
->
-> But if the pm_runtime is disabled, say, during system suspend, with y=
-our
-> patch dispc_runtime_get() will just return 0 without doing anything, =
-and
-> the dispc_read_reg() will crash because the HW is disabled (because
-> nobody enabled it).
->
-Hmm, I am not sure if new calls would/should be made to dispc.c after
-the system has suspended and before resumed. That is, anything other
-than from runtime_resume/suspend callbacks of DSS, DISPC, HDMI, VENC
-and RFBI, which rightly don't touch any dss reg but only
-enable/disable a clock.
-As we know, a subsystem should make sure any active work is cleared
-out before suspending and set some flag so that nothing runs until it
-has resumed. I don't say we can't crash the system with this patch,
-but then we would be violating rules of suspend-resume.
-
-
+>> =A0Strangely when vmalloc is requested for a large chunk, then at th=
+at time API
+>> =A0does not crash instead returns a NULL correctly.
 >>
->> As I said, for omapdss, PM is disabled (not device deactivated) only
->> during rpm suspend/resume.
->> And it should be no different than any lock protected section
->> preempted by suspend-resume before reaching its end.
+>> =A0 Please correct me if my understanding is not correct..
+>>
+>> --------------------------------------------------------------------=
+------------------
+>>
+>> [ =A0345.059841] Unable to handle kernel paging request at virtual
+>> address 90011000
+>> [ =A0345.067063] pgd =3D ebc34000
+>> [ =A0345.069793] [90011000] *pgd=3D00000000
+>> [ =A0345.073383] Internal error: Oops: 5 [#1] PREEMPT SMP ARM
+>> [ =A0345.078685] Modules linked in: bcmdhd cfg80211 inv_mpu_ak8975
+>> inv_mpu_kxtf9 mpu3050
+>> [ =A0345.086380] CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0 =A0W =A0 =A0 (=
+3.4.0-rc1-05660-g0d4b175 #1)
+>> [ =A0345.093351] PC is at vmap_page_range_noflush+0xf0/0x200
+>> [ =A0345.098569] LR is at vmap_page_range+0x14/0x50
+>> [ =A0345.103005] pc : [<c01091c8>] =A0 =A0lr : [<c01092ec>] =A0 =A0p=
+sr: 80000013
+>> [ =A0345.103009] sp : ebc41e38 =A0ip : fe000fff =A0fp : 00002000
+>> [ =A0345.114472] r10: c0a78480 =A0r9 : 90011000 =A0r8 : c096e2ac
+>> [ =A0345.119685] r7 : 90011000 =A0r6 : 00000000 =A0r5 : fe000000 =A0=
+r4 : 00000000
+>> [ =A0345.126198] r3 : 50011452 =A0r2 : f385c400 =A0r1 : fe000fff =A0=
+r0 : f385c400
+>> [ =A0345.132713] Flags: Nzcv =A0IRQs on =A0FIQs on =A0Mode SVC_32 =A0=
+ISA ARM =A0Segment user
+>> [ =A0345.139835] Control: 10c5387d =A0Table: abc3404a =A0DAC: 000000=
+15
 >
-> I'm not sure if I understand... If the driver does dispc_runtime_get(=
-)
-> while the PM is disabled, say, during system resume, dispc_runtime_ge=
-t()
-> will do nothing and return 0. The driver thinks it succeeded, and wil=
-l
-> call dispc_runtime_put() later.
+> Couple requests:
 >
-> Calling the dispc_runtime_put() could happen very soon, while runtime=
- PM
-> is still disabled, in which case everything works fine. But there's n=
-o
-> rule to say dispc_runtime_put() has to be called very soon after
-> dispc_runtime_get(). The driver might as well call put later, when
-> runtime PM is enabled.
+> =A0- since you're already running an -rc kernel, would it be possible=
+ to
+> =A0 try 3.5-rc4, which was released today, instead?
 >
-> This would end up with a pm_runtime_put call without a matching
-> pm_runtime_get call.
->
-Again, we need to see if there is really some situation where
-something new is attempted before the subsystem has resumed. If there
-is indeed, maybe omapdss need to flag it's suspended and prevent such
-thing until it has resumed.
-Btw, even without this patch, when dispc_runtime_get() does return
-error under rpm disabled, we disturb the dev.power.usage_count balance
-by not calling dispc_runtime_put()
-This patch doesn't make everything perfect, but only improve upon the
-current situation.
+> =A0- could you disassemble vmap_page_range_noflush and post the outpu=
+t or
+> =A0 map the offset back to the line in the code?
 
-thnx
+      Thanks a lot for the response.
+
+      Debugged this further and the real issue was because of
+      static mapping for a 1MB io page and the vmalloc mapping for a
+     1MB dram page falling in to one PGD entry (PGDIR_SHIFT is 0x21).
+
+     While trying to setup the pagetables for the dram page,
+     the PGD entry of static io map is used, resulting in the paging fa=
+ult.
+
+     This was because of a recent change that brought the static io map=
+pings
+    under the vmalloc space.
+
+Thanks,
+ Sricharan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
