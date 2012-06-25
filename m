@@ -1,169 +1,126 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv9 3/8] I2C: OMAP: use devm_* functions
-Date: Mon, 25 Jun 2012 12:51:54 +0300
-Message-ID: <20120625095152.GE6468@arwen.pp.htv.fi>
-References: <1340273329-8319-1-git-send-email-shubhrajyoti@ti.com>
- <1340273329-8319-4-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi@ti.com
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 06/11] gpio/omap: add clk_prepare and clk_unprepare
+Date: Mon, 25 Jun 2012 15:52:58 +0530
+Message-ID: <CAC83ZvLbLM1b=UpM8DeW4KvoGbtd7AG5a1PQeauD4m0RficKQg@mail.gmail.com>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
+	<1340372890-10091-7-git-send-email-rnayak@ti.com>
+	<alpine.DEB.2.00.1206221312400.10198@utopia.booyaka.com>
+	<4FE7F765.40405@ti.com>
+	<CAC83Zv+2B9=fu+YDab62O-WZdJzP8-qddPOZaVKLrqD0vvzCjw@mail.gmail.com>
+	<4FE80D05.7010305@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FN+gV9K+162wdwwF"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57683 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542Ab2FYJyQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 05:54:16 -0400
-Received: by lbbgj10 with SMTP id gj10so6335529lbb.9
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 02:54:13 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1340273329-8319-4-git-send-email-shubhrajyoti@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41039 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751189Ab2FYKW7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 06:22:59 -0400
+Received: by qcmv28 with SMTP id v28so2359196qcm.25
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 03:22:58 -0700 (PDT)
+In-Reply-To: <4FE80D05.7010305@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Pankaj Jangra <jangra.pankaj9@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-
---FN+gV9K+162wdwwF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Jun 21, 2012 at 03:38:44PM +0530, Shubhrajyoti D wrote:
-> The various devm_* functions allocate memory that is released when a driv=
+On Mon, Jun 25, 2012 at 12:32 PM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Monday 25 June 2012 11:41 AM, DebBarma, Tarun Kanti wrote:
+>>
+>> On Mon, Jun 25, 2012 at 11:00 AM, Rajendra Nayak<rnayak@ti.com> =A0w=
+rote:
+>>>
+>>> On Saturday 23 June 2012 12:47 AM, Paul Walmsley wrote:
+>>>>
+>>>>
+>>>> Hi
+>>>>
+>>>> On Fri, 22 Jun 2012, Rajendra Nayak wrote:
+>>>>
+>>>>> In preparation of OMAP moving to Common Clk Framework(CCF) add
+>>>>> clk_prepare()
+>>>>> for omap gpio debounce clock.
+>>>>>
+>>>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>>>>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>>>>> ---
+>>>>> =A0drivers/gpio/gpio-omap.c | =A0 =A02 ++
+>>>>> =A01 files changed, 2 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>>> index c4ed172..6a73b01 100644
+>>>>> --- a/drivers/gpio/gpio-omap.c
+>>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>>> @@ -893,6 +893,8 @@ static int gpio_debounce(struct gpio_chip *ch=
+ip,
+>>>>> unsigned offset,
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->dbck =3D clk_get(bank->dev, =
+"dbclk");
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (IS_ERR(bank->dbck))
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(bank->dev,=
+ "Could not get gpio dbck\n");
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_prepare(bank->d=
+bck);
+>>>>> =A0 =A0 =A0 =A0}
+>>>>>
+>>>>> =A0 =A0 =A0 =A0spin_lock_irqsave(&bank->lock, flags);
+>>>>
+>>>>
+>>>>
+>>>> What code unprepares this clock?
+>>>>
+>>>> Put differently, doesn't this driver need at least a platform_driv=
 er
-> detaches. This patch uses devm_kzalloc, devm_request_and_ioremap for data
-> that is allocated in the probe function of a platform device and is only
-> freed in the remove function.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-
-this looks a lot like:
-http://marc.info/?l=3Dlinux-omap&m=3D133969143407572&w=3D2
-
-I wonder why wasn't that one used instead ?
-
-> ---
->  drivers/i2c/busses/i2c-omap.c |   33 +++++++++------------------------
->  1 files changed, 9 insertions(+), 24 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index d704f64..328a022 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -943,7 +943,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  {
->  	struct omap_i2c_dev	*dev;
->  	struct i2c_adapter	*adap;
-> -	struct resource		*mem, *irq, *ioarea;
-> +	struct resource		*mem, *irq;
->  	struct omap_i2c_bus_platform_data *pdata =3D pdev->dev.platform_data;
->  	struct device_node	*node =3D pdev->dev.of_node;
->  	const struct of_device_id *match;
-> @@ -962,17 +962,16 @@ omap_i2c_probe(struct platform_device *pdev)
->  		return -ENODEV;
->  	}
-> =20
-> -	ioarea =3D request_mem_region(mem->start, resource_size(mem),
-> -			pdev->name);
-> -	if (!ioarea) {
-> -		dev_err(&pdev->dev, "I2C region already claimed\n");
-> -		return -EBUSY;
-> +	dev =3D devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNE=
-L);
-> +	if (!dev) {
-> +		dev_err(&pdev->dev, "Menory allocation failed\n");
-> +		return -ENOMEM;
->  	}
-> =20
-> -	dev =3D kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
-> -	if (!dev) {
-> -		r =3D -ENOMEM;
-> -		goto err_release_region;
-> +	dev->base =3D devm_request_and_ioremap(&pdev->dev, mem);
-> +	if (!dev->base) {
-> +		dev_err(&pdev->dev, "I2C region already claimed\n");
-> +		return -ENOMEM;
->  	}
-> =20
->  	match =3D of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
-> @@ -996,11 +995,6 @@ omap_i2c_probe(struct platform_device *pdev)
-> =20
->  	dev->dev =3D &pdev->dev;
->  	dev->irq =3D irq->start;
-> -	dev->base =3D ioremap(mem->start, resource_size(mem));
-> -	if (!dev->base) {
-> -		r =3D -ENOMEM;
-> -		goto err_free_mem;
-> -	}
-> =20
->  	platform_set_drvdata(pdev, dev);
-> =20
-> @@ -1095,13 +1089,9 @@ err_free_irq:
->  err_unuse_clocks:
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  	pm_runtime_put(dev->dev);
-> -	iounmap(dev->base);
->  	pm_runtime_disable(&pdev->dev);
->  err_free_mem:
->  	platform_set_drvdata(pdev, NULL);
-> -	kfree(dev);
-> -err_release_region:
-> -	release_mem_region(mem->start, resource_size(mem));
-> =20
->  	return r;
->  }
-> @@ -1109,7 +1099,6 @@ err_release_region:
->  static int __devexit omap_i2c_remove(struct platform_device *pdev)
->  {
->  	struct omap_i2c_dev	*dev =3D platform_get_drvdata(pdev);
-> -	struct resource		*mem;
->  	int ret;
-> =20
->  	platform_set_drvdata(pdev, NULL);
-> @@ -1123,10 +1112,6 @@ static int __devexit omap_i2c_remove(struct platfo=
-rm_device *pdev)
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  	pm_runtime_put(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
-> -	iounmap(dev->base);
-> -	kfree(dev);
-> -	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	release_mem_region(mem->start, resource_size(mem));
->  	return 0;
->  }
-> =20
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-balbi
-
---FN+gV9K+162wdwwF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJP6DS4AAoJEIaOsuA1yqREdXAP/jB11D/8+Z0E6giAZVLqbHcM
-RHihnu/vuXEq/aqxKw1RJ0k4+hSXPs7ZEPcrXfRHMpVn/+vxOkNP5Zj29enQ5+y/
-CsK6FBg7/GE5MX2MHbfp8Sbg45Jr8kCT5Z+068oY5s0K3FBFlLFo15cEYlXbhC1c
-tjOdAgDRL5DC44OqZMwx7YaMjKQNpFxrsJSfkzXI41zPdFxB5nPFExlZmBB3ZGPn
-g6w0raQt8wQqC8bIss/CgB7PGbe6+R8/Sh4q+BgJQ3qw3ewGkK0viiRIFbUsaKzj
-bsjRqwkmUhqlLgtyqRNN6LeMzimZExVnpWJavxikMVeI6YOPme+hyL3khcn3PKRS
-cINHIIYuLMSyrfNDJ1InlwQ4yTWqDSiTawRiTa3uz9JfvQJwR0AUmgoIwkIFWt5a
-Py1prCZyAhlG/jspfqvuHSWD44IWqZ0+Rhuf1Pu1LcswLLiiv9x2jFPv9rCpD/AI
-Wyp3M12XTVFZh/TiHq4+QVipptn3q0e9KS2rvq/kGI01pZhk0cH+o1yR2n27FRk2
-vi/k6n7Z3x6VIrOTZN84DdQcwdDYIxJSEUFkVnAlfwtOxQ5kFkL8zrLcuErLcXY2
-Q2A4G5qg0lgl4tXWm+vNBYlCLEPcMZ0nzxF48e8ZG7IPRfdT3ROvu3vNRFYfjXxa
-+hSvhUR/kFWN34T5rlKT
-=lgeu
------END PGP SIGNATURE-----
-
---FN+gV9K+162wdwwF--
+>>>> .remove function pointer, that would call clk_unprepare() and clk_=
+put()?
+>>>
+>>>
+>>>
+>>> Maybe because this driver can never be built as a module. It gets
+>>> complied in with CONFIG_ARCH_OMAP=3Dy.
+>>>
+>>> Adding Tarun and Santosh who can comment further.
+>>>
+>>>
+>>>>
+>>>> Also, it looks to me that the bank->dbck init should be in
+>>>> omap_gpio_chip_init(), not gpio_debounce()?
+>>>
+>>>
+>>>
+>>> Tarun, can you comment on why the dbck init is in gpio_debounce
+>>> and not in omap_gpio_chip_init()?
+>>
+>> BTW, bank->dbck is initialized in gpio_debounce() even before the cl=
+eanup
+>> and fixes series. I am not quite sure if there was specific intent f=
+or
+>> keeping
+>> it here. Personally I do not see issues in doing clk_get of bank->db=
+ck in
+>> omap_gpio_chip_init().
+>
+>
+> Care to send a patch to move it into omap_gpio_chip_init() then? Also
+> can you comment on the above point that Paul made, as to why this dri=
+ver
+> has a .remove missing? If adding that is a non-issue, would be great =
+if
+> you can drop in a patch for that too.
+Yes, I will have a re-look before generating the patches.
+--
+Tarun
+>>>>
+>>>>
+>>>> - Paul
+>>>
+>>>
+>>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
