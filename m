@@ -1,52 +1,58 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 0/3] Add device tree support for AM33XX regulators
-Date: Mon, 25 Jun 2012 17:34:35 +0530
-Message-ID: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/3] regulator: tps65217: Add device tree support
+Date: Mon, 25 Jun 2012 13:12:20 +0100
+Message-ID: <20120625121220.GA30406@opensource.wolfsonmicro.com>
+References: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
+ <1340625878-32336-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1340625878-32336-2-git-send-email-anilkumar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sameo@linux.intel.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree support for regulators present on AM33XX family of
-devices like AM335X-EVM and AM335X-Bone. TPS65217 regulator is present
-on AM335X-Bone and TPS65910 on AM335X-EVM.
 
-First patch adds the device tree support to tps65217 regulator so
-that it will take the parameters from am335x-bone.dts file and
-convert to regulator parameters.
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Second patch adds tps65217 device tree data to am335x-bone.dts file
-with i2c salve address. Created seperate file tps65217, which contains
-the generic tps65217 device tree data. 
+On Mon, Jun 25, 2012 at 05:34:36PM +0530, AnilKumar Ch wrote:
+> This commit adds device tree support for tps65217 pmic. And usage
+> details are added to device tree documentation.
+>=20
+> Driver is tested by using kernel module with regulator set and get
+> APIs.
 
-Third patch adds tps65910 device tree data to am335x-evm.dts file
-with i2c salve address. Created seperate file tps65910, which contains
-the generic tps65910 device tree data.
+This needs to be updated for the patches Laxman recently posted for the
+regulator-compatible property (which are currently blocked on review
+=66rom the ST Ericcsson guys but I'll probably apply them in the next
+couple of days if I don't hear back from them).
 
-These patches were tested along with these patches
-* DT addition to AM33XX family
-http://marc.info/?l=linux-omap&m=134035826700991&w=2
+--NzB8fVQJ5HfG6fxh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-AnilKumar Ch (3):
-  regulator: tps65217: Add device tree support
-  ARM: OMAP2+: AM33XX: Add tps65217 device tree data
-  ARM: OMAP2+: AM33XX: Add tps65910 device tree data
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
- .../devicetree/bindings/regulator/tps65217.txt     |   66 +++++++++++++++++
- arch/arm/boot/dts/am335x-bone.dts                  |   10 +++
- arch/arm/boot/dts/am335x-evm.dts                   |   10 +++
- arch/arm/boot/dts/tps65217.dtsi                    |   67 +++++++++++++++++
- arch/arm/boot/dts/tps65910.dtsi                    |   76 ++++++++++++++++++++
- drivers/mfd/tps65217.c                             |   67 ++++++++++++++++-
- drivers/regulator/tps65217-regulator.c             |    1 +
- include/linux/mfd/tps65217.h                       |    3 +-
- 8 files changed, 297 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/tps65217.txt
- create mode 100644 arch/arm/boot/dts/tps65217.dtsi
- create mode 100644 arch/arm/boot/dts/tps65910.dtsi
+iQIcBAEBAgAGBQJP6FSqAAoJEBus8iNuMP3dxIcP/00HGnTnaUH8hckkICDP3Dle
+ry/ohUBRawMEenbnOP7YHF5cr4gMzfSOPNE2jnxYUSXfO8cm1GL0+wTUOr4xtpvr
++u7xMbLyshpyqqUu70P0dBCN3RWEABnuK/Sd7nfHCO+46IUdySLNk+k3++iIERhV
+C9GxDCtyLNa0PDbeoxHl7o2mfaHbYWZ9buYUMOtJP5FRNxs0+eEFe7N39Ip6O6RS
+yGiTeaDUuU9UNjv0ANJBbC59gwH9ESu005N6ZBcsrhZWLzyZ0NXOMoFZmEGhzJLC
+MumnU1OVArqQtAC3uIndqdY4zkXK5bOYoAJyzhwWzk7DEavV3ssU6moLFxX8rBSK
+R1V5T6d4Njrp+V2f0Ji68OWzzao+wL4t4uOY4uKog+BMo3cbpCNMYrHEp06OTxWX
+i77hF0C5NfE9Ij0AUHPWJyiI5f4CIlzPtBVEir3qeMBJ+qcjzEgyRgSN7ILVuzw3
+kwxIY3MTWv0352guk0WvOaYiZEqbrDm4fKzuAAAthXagwJBW3exEwd0Xx7a/UoK5
+lhgN1VIklc/Ibwcz+VnNdgjf6aEmr4gv454ZSbNuAuI9k2JbVC5ocG7gYY9VByx+
+9VyyzbQ+s1+Aofzlg4r8vOGO74l4rSguTwoCTgeorYA7/olGhLyBz1ic7/y5RhK+
+33KMVcyPmzbJizMexD+V
+=eEeF
+-----END PGP SIGNATURE-----
 
--- 
-1.7.9.5
+--NzB8fVQJ5HfG6fxh--
