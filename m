@@ -1,42 +1,60 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Current state of AM33xx patches
-Date: Mon, 25 Jun 2012 20:17:27 +0200
-Message-ID: <4FE8AB37.7030907@gmail.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif
+ driver
+Date: Mon, 25 Jun 2012 11:28:30 -0700
+Message-ID: <20120625182830.GA23850@kroah.com>
+References: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
+ <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
+ <20120614154820.GG17140@kroah.com>
+ <CAMQu2gx5CCDyrvozX06neBnA8J2heg+HL7DOewDm5voxqbpetw@mail.gmail.com>
+ <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36259 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093Ab2FYSRd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 14:17:33 -0400
-Received: by bkcji2 with SMTP id ji2so3460996bkc.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 11:17:31 -0700 (PDT)
-In-Reply-To: <4FE326A8.8090807@gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:46871 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755719Ab2FYS2f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 14:28:35 -0400
+Received: by pbbrp8 with SMTP id rp8so6903805pbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 11:28:34 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>
 
-On 21.06.2012 15:50, Daniel Mack wrote:
-> On 18.06.2012 10:15, Hiremath, Vaibhav wrote:
->> On Mon, Jun 11, 2012 at 19:21:21, Jason Kridner wrote:
->>> From: Daniel Mack <zonque@gmail.com>
->>>> Hey,
->>>>
->>>> can anybody give me a quick wrap-up about the current state of AM33xx
->>>> based SoCs in mainline? What are the next steps to get things merged?
->>>
->>> There is a wiki page [1] that is intended to provide a summary, but I'm
->>> confident it is not up-to-date.  
->>
->> Page updated now...
->>
->> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status#AM335x_Linux_Status
+On Tue, Jun 19, 2012 at 02:33:11PM +0530, Shilimkar, Santosh wrote:
+> @@ -1644,11 +1923,23 @@ static void __attribute__((unused))
+> freq_post_notify_handling(void)
+>  	spin_unlock_irqrestore(&emif_lock, irq_state);
+>  }
 > 
-> Great, thanks. So if things get upstreamed, which is the repo/branch
-> they appear in? In other words: where is the code people should write
-> patches against? I couldn't find an answer to that yet.
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id emif_of_match[] = {
+> +		{ .compatible = "ti,emif-4d" },
+> +		{ .compatible = "ti,emif-4d5" },
+> +		{},
+> +};
+> +MODULE_DEVICE_TABLE(of, emif_of_match);
+> +#endif
+> +
+>  static struct platform_driver emif_driver = {
+>  	.remove		= __exit_p(emif_remove),
+>  	.shutdown	= emif_shutdown,
+>  	.driver = {
+>  		.name = "emif",
+> +#if defined(CONFIG_OF)
+> +		.of_match_table = of_match_ptr(emif_of_match),
+> +#endif
 
-ping?
+Are these two still #if defined needed?
+
+Also, what about the IS_DEFINED macro?
+
+And, if you resend, please resend the whole series, I don't have the old
+ones around anymore.
+
+thanks,
+
+greg k-h
