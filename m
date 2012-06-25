@@ -1,45 +1,44 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v4 1/3] ARM: OMAP2+: nand: unify init functions
-Date: Mon, 25 Jun 2012 10:29:57 -0500
-Message-ID: <4FE883F5.6040806@ti.com>
-References: <cover.1340354985.git.afzal@ti.com> <cdcf19df902fbfa0632371f94309f21544cdad21.1340354986.git.afzal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: HDQ: convert HDQ to runtime PM
+Date: Mon, 25 Jun 2012 08:36:02 -0700
+Message-ID: <20120625153601.GE12766@atomide.com>
+References: <alpine.DEB.2.00.1206220809460.10198@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35403 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820Ab2FYPaD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 11:30:03 -0400
-In-Reply-To: <cdcf19df902fbfa0632371f94309f21544cdad21.1340354986.git.afzal@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14808 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756829Ab2FYPgG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 11:36:06 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1206220809460.10198@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, neilb@suse.de
 
-
-
-On 06/22/2012 04:00 AM, Afzal Mohammed wrote:
-> Helper function for updating nand platform data has been
-> added the capability to take timing structure arguement.
-> Usage of omap_nand_flash_init() has been replaced by modifed
-> one, omap_nand_flash_init was doing things similar to
-> board_nand_init except that NAND CS# were being acquired
-> based on bootloader setting. As CS# is hardwired for a given
-> board, acquiring gpmc CS# has been removed, and updated with
-> the value on board.
+* Paul Walmsley <paul@pwsan.com> [120622 07:16]:
+> Hi Tony
 > 
-> NAND CS# used in beagle board was found to be CS0.
-> Thomas Weber <thomas.weber.linux@googlemail.com> reported
-> that value of devkit8000 to be CS0. Overo board was found
-> to be using CS0 based on u-boot, while google grep says
-> omap3touchbook too has CS0.
+> The following changes since commit 485802a6c524e62b5924849dd727ddbb1497cc71:
 > 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>   Linux 3.5-rc3 (2012-06-16 17:25:17 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.6
+> 
+> for you to fetch changes up to c354a86484b61e32100eb94c1f3f0aa512958cee:
+> 
+>   W1: OMAP HDQ1W: use runtime PM (2012-06-21 21:40:40 -0600)
+> 
+> ----------------------------------------------------------------
+> Convert the OMAP HDQ1W driver to use runtime PM.  Make it available on
+> all OMAP2+ chips that appear to have it integrated.  Fix a problem
+> preventing it from being used on OMAP4.
+> 
+> ----------------------------------------------------------------
 
-Looks good.
+Thanks pulling into devel-driver branch.
 
-Reviewed-by: Jon Hunter <jon-hunter@ti.com>
-
-Cheers
-Jon
+Tony
