@@ -1,62 +1,61 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv10 4/7] I2C: OMAP: Do not initialise the completion
- everytime
-Date: Mon, 25 Jun 2012 15:33:45 +0300
-Message-ID: <20120625123345.GC30463@arwen.pp.htv.fi>
+Subject: Re: [PATCHv10 5/7] I2C: OMAP: Remove the definition of
+ SYSS_RESETDONE_MASK
+Date: Mon, 25 Jun 2012 15:34:20 +0300
+Message-ID: <20120625123419.GD30463@arwen.pp.htv.fi>
 References: <1340622702-21622-1-git-send-email-shubhrajyoti@ti.com>
- <1340622702-21622-5-git-send-email-shubhrajyoti@ti.com>
+ <1340622702-21622-6-git-send-email-shubhrajyoti@ti.com>
 Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
+	protocol="application/pgp-signature"; boundary="48TaNjbzBVislYPb"
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1340622702-21622-5-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1340622702-21622-6-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---Y5rl02BVI9TCfPar
+--48TaNjbzBVislYPb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jun 25, 2012 at 04:41:39PM +0530, Shubhrajyoti D wrote:
-> Use INIT_COMPLETION instead of init_completion in transfer.
+On Mon, Jun 25, 2012 at 04:41:40PM +0530, Shubhrajyoti D wrote:
+> Remove the definition of SYSS_RESETDONE_MASK and use the
+> one in omap_hwmod.h.
+>=20
+> Also fixes the warning
+>  CC      drivers/i2c/busses/i2c-omap.o
+> drivers/i2c/busses/i2c-omap.c:163: warning: "SYSS_RESETDONE_MASK" redefin=
+ed
 >=20
 > Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
 Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
 > ---
->  drivers/i2c/busses/i2c-omap.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+>  drivers/i2c/busses/i2c-omap.c |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
 >=20
 > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index c771c28..f1109f4 100644
+> index f1109f4..8344ad030 100644
 > --- a/drivers/i2c/busses/i2c-omap.c
 > +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -493,7 +493,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  	w |=3D OMAP_I2C_BUF_RXFIF_CLR | OMAP_I2C_BUF_TXFIF_CLR;
->  	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, w);
+> @@ -159,9 +159,6 @@ enum {
+>  #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+>  #endif
 > =20
-> -	init_completion(&dev->cmd_complete);
-> +	INIT_COMPLETION(dev->cmd_complete);
->  	dev->cmd_err =3D 0;
-> =20
->  	w =3D OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
-> @@ -1003,6 +1003,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	}
-> =20
->  	platform_set_drvdata(pdev, dev);
-> +	init_completion(&dev->cmd_complete);
-> =20
->  	dev->reg_shift =3D (dev->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
-> =20
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK		(1 << 0)
+> -
+>  /* OCP_SYSCONFIG bit definitions */
+>  #define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+>  #define SYSC_SIDLEMODE_MASK		(0x3 << 3)
 > --=20
 > 1.7.5.4
 >=20
@@ -68,26 +67,26 @@ Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 --=20
 balbi
 
---Y5rl02BVI9TCfPar
+--48TaNjbzBVislYPb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP6FqpAAoJEIaOsuA1yqREV4IP/Rn9D4amOpWt0DZ2Uek3U0Pz
-6pfT3sHPpiQYsjITXMY/zTErxT5NW3RkHHC6cW80Lkr9OWt7aSLc5cG1wF+O8hir
-Nfhyt5cf8PBsoF22ff9Zy/o3PxQ8iIrsINFIa4R2Sa81GmL/gBV0GY13OKxprPhL
-PeiNox8aAmjbv/XgVyyCaEdaSVjN8U+lHYWdh8dd5vLUN8lYuwK8wHX3emCv2AMv
-mt8qgvK2mtBMLP5E0S1DqnIiDfu4qfD4zf36aNstBw1n7Xest3XMBlhkLvd3Im3G
-YzhsEXNFHhhILUB2K3lEHm9KnfvSkVgQwPUppXEFNI/1HYUdi08iRcuPYWjzK8CE
-DedhwYwlHfO5iyI4RdZ0PN17rWx13ervSFiU7UvV2Ib5utWVoSk5e3MQKJYh5KYr
-h0omMwV/iuKhzkFntBF9EL9cZe0ewIEV+0wRIuq/5egEHkbELGHhmFjH+5F9k3ud
-XSfhnTwnVT+sOvFbd23mGS7Z/Z+pIHuFvL0Nz7l85TnF3yxOMvPNrWKQBVGmwaHS
-O+lRnlDCcDdFWM82mMH638wcRChx0Ss4S8uTQnQg8W3uHVEBllaTUzBT++zsqvVg
-AiljRG5pAlGNeMeBYAd3MSC48mOYpGtRE13evtvf8Q3MAtAmUq6u0O17GpH6SeVP
-uJRd5tA/f8yOd2C3XiRk
-=N8tx
+iQIcBAEBAgAGBQJP6FrLAAoJEIaOsuA1yqREGtcP/AwKPNBc/SN6190cOyRBPUIr
+M+I91uRRBPkicvbEuwHqaiasy4YqcEGb/c07IsmtkFuPcfo7nvXQ1zcZ0RHi5Pvc
+1PsnPT6FMU7ZljpIYLUgW9rS+nFAkXSn8+7rfb0xON0BhrTdV6TkrTUH4OqTD/fy
+ply+pzitdmPkLk3nUPj7LYln7zeY2N5ksan6/YxZQLDY0I+oBM3bfDPHGzJfjwu6
+k+ttdt1WnR+T2ls8PvwnodKVHRU/RXkYiWK+UfILyFE8uxj11/6cYPUzL4Djygkt
+GOY+0sTwdNHPpOUnJSlXx0TAVNh8CfxUu1FDOVeIrr/wIZ9IRSPc5y3YMhzPbQ3p
+rO8ZEK739LVS6eysp7+RekXzk62lFPWvItR0RCegV6Hi+KCwU0VYIN26Ticv+uEo
+24pFufdsqek//Rz77GONA6Cv18M+pGoA26ihj63ueHNc6oZaggWRsmRLiAhxuWtX
+RJnAh2WFelBXDJBKKHBtzdvtMCrjq+5UbR74Je3g2TMqmCcG/VpjEmpt0RVr154l
+j4GPhqYclvIwEEAIWHR/QYDNiEErtRfa9mjPwT+x9O5GJNv0ZE7ssuzsQsdgwIPC
+wRcwsPADowmfpoRlDeDpWZ4gJyoyBNi23XaA4I2fzcUpfmjdZY9SdQyIPg2KypLF
+vYPS/ZyDsxCdib31dnSe
+=/Gna
 -----END PGP SIGNATURE-----
 
---Y5rl02BVI9TCfPar--
+--48TaNjbzBVislYPb--
