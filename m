@@ -1,108 +1,77 @@
-From: "R, Sricharan" <r.sricharan@ti.com>
-Subject: Re: Crash with VMALLOC api
-Date: Mon, 25 Jun 2012 22:53:32 +0530
-Message-ID: <CAJ7qFSdZpXq=s8Kq6x6QxPjYOK6jp-OrPHY_TLJd9tgOuSTRfQ@mail.gmail.com>
-References: <CAJ7qFSdiGw1krDbWg6HvwBymp2gwrYKb8UuA00wSP0rgZi-EMw@mail.gmail.com>
-	<alpine.DEB.2.00.1206241345060.13297@chino.kir.corp.google.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V2] ARM: OMAP4470: Fix OMAP4470 boot failure
+Date: Mon, 25 Jun 2012 12:38:23 -0500
+Message-ID: <1340645903-28550-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:55298 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757253Ab2FYRXf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 13:23:35 -0400
-Received: by lbbgg6 with SMTP id gg6so9117243lbb.22
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 10:23:32 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1206241345060.13297@chino.kir.corp.google.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53376 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751542Ab2FYRi1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 13:38:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Rientjes <rientjes@google.com>
-Cc: linux-mm@kvack.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi David,
+OMAP4470 currently fails to boot, printing various messages such as ...
 
-On Mon, Jun 25, 2012 at 2:17 AM, David Rientjes <rientjes@google.com> w=
-rote:
-> On Sat, 23 Jun 2012, R, Sricharan wrote:
->
->> Hi,
->> =A0 I am observing a below crash with VMALLOC call on mainline kerne=
-l.
->> =A0 The issue happens when there is insufficent vmalloc space.
->> =A0 Isn't it expected that the API should return a NULL instead of c=
-rashing when
->> =A0 there is not enough memory?.
->
-> Yes.
->
->> =A0 This can be reproduced with succesive vmalloc
->> =A0 calls for a size of about say 10MB, without a vfree, thus exhaus=
-ting
->> the memory.
->>
->> =A0Strangely when vmalloc is requested for a large chunk, then at th=
-at time API
->> =A0does not crash instead returns a NULL correctly.
->>
->> =A0 Please correct me if my understanding is not correct..
->>
->> --------------------------------------------------------------------=
-------------------
->>
->> [ =A0345.059841] Unable to handle kernel paging request at virtual
->> address 90011000
->> [ =A0345.067063] pgd =3D ebc34000
->> [ =A0345.069793] [90011000] *pgd=3D00000000
->> [ =A0345.073383] Internal error: Oops: 5 [#1] PREEMPT SMP ARM
->> [ =A0345.078685] Modules linked in: bcmdhd cfg80211 inv_mpu_ak8975
->> inv_mpu_kxtf9 mpu3050
->> [ =A0345.086380] CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0 =A0W =A0 =A0 (=
-3.4.0-rc1-05660-g0d4b175 #1)
->> [ =A0345.093351] PC is at vmap_page_range_noflush+0xf0/0x200
->> [ =A0345.098569] LR is at vmap_page_range+0x14/0x50
->> [ =A0345.103005] pc : [<c01091c8>] =A0 =A0lr : [<c01092ec>] =A0 =A0p=
-sr: 80000013
->> [ =A0345.103009] sp : ebc41e38 =A0ip : fe000fff =A0fp : 00002000
->> [ =A0345.114472] r10: c0a78480 =A0r9 : 90011000 =A0r8 : c096e2ac
->> [ =A0345.119685] r7 : 90011000 =A0r6 : 00000000 =A0r5 : fe000000 =A0=
-r4 : 00000000
->> [ =A0345.126198] r3 : 50011452 =A0r2 : f385c400 =A0r1 : fe000fff =A0=
-r0 : f385c400
->> [ =A0345.132713] Flags: Nzcv =A0IRQs on =A0FIQs on =A0Mode SVC_32 =A0=
-ISA ARM =A0Segment user
->> [ =A0345.139835] Control: 10c5387d =A0Table: abc3404a =A0DAC: 000000=
-15
->
-> Couple requests:
->
-> =A0- since you're already running an -rc kernel, would it be possible=
- to
-> =A0 try 3.5-rc4, which was released today, instead?
->
-> =A0- could you disassemble vmap_page_range_noflush and post the outpu=
-t or
-> =A0 map the offset back to the line in the code?
+omap_hwmod: mpu: cannot clk_get main_clk dpll_mpu_m2_ck
+omap_hwmod: mpu: cannot _init_clocks
+------------[ cut here ]------------
+WARNING: at arch/arm/mach-omap2/omap_hwmod.c:2062 _init+0x2a0/0x2e4()
+omap_hwmod: mpu: couldn't init clocks
+Modules linked in:
+[<c001c7fc>] (unwind_backtrace+0x0/0xf4) from [<c0043c64>] (warn_slowpath_common+0x4c/0x64)
+[<c0043c64>] (warn_slowpath_common+0x4c/0x64) from [<c0043d10>] (warn_slowpath_fmt+0x30/0x40)
+[<c0043d10>] (warn_slowpath_fmt+0x30/0x40) from [<c0674208>] (_init+0x2a0/0x2e4)
+[<c0674208>] (_init+0x2a0/0x2e4) from [<c067428c>] (omap_hwmod_setup_one+0x40/0x60)
+[<c067428c>] (omap_hwmod_setup_one+0x40/0x60) from [<c0674280>] (omap_hwmod_setup_one+0x34/0x60)
+[<c0674280>] (omap_hwmod_setup_one+0x34/0x60) from [<c06726f4>] (omap_dm_timer_init_one+0x30/0x250)
+[<c06726f4>] (omap_dm_timer_init_one+0x30/0x250) from [<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108)
+[<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108) from [<c0672c60>] (omap4_timer_init+0x10/0x5c)
+[<c0672c60>] (omap4_timer_init+0x10/0x5c) from [<c066c418>] (time_init+0x20/0x30)
+[<c066c418>] (time_init+0x20/0x30) from [<c0668814>] (start_kernel+0x1b0/0x304)
+[<c0668814>] (start_kernel+0x1b0/0x304) from [<80008044>] (0x80008044)
+---[ end trace 1b75b31a2719ed1c ]---
 
-      Thanks a lot for the response.
+The problem is that currently none of the clocks are being registered for
+OMAP4470 devices and so on boot-up no clocks can be found and the kernel panics.
 
-      Debugged this further and the real issue was because of
-      static mapping for a 1MB io page and the vmalloc mapping for a
-     1MB dram page falling in to one PGD entry (PGDIR_SHIFT is 0x21).
+This fix allows the kernel to boot without failure using a simple RAMDISK file
+system on OMAP4470 blaze board.
 
-     While trying to setup the pagetables for the dram page,
-     the PGD entry of static io map is used, resulting in the paging fa=
-ult.
+V2:
+- Per feedback from Paul and Benoit the 4470 clock data is incomplete for new
+  modules such as the 2D graphics block that has been added to the 4470.
+  Therefore add a warning to indicate that the clock data is incomplete.
 
-     This was because of a recent change that brought the static io map=
-pings
-    under the vmalloc space.
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 
-Thanks,
- Sricharan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index b825049..de53b70 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3407,9 +3407,12 @@ int __init omap4xxx_clk_init(void)
+ 	if (cpu_is_omap443x()) {
+ 		cpu_mask = RATE_IN_4430;
+ 		cpu_clkflg = CK_443X;
+-	} else if (cpu_is_omap446x()) {
++	} else if (cpu_is_omap446x() || cpu_is_omap447x()) {
+ 		cpu_mask = RATE_IN_4460 | RATE_IN_4430;
+ 		cpu_clkflg = CK_446X | CK_443X;
++
++		if (cpu_is_omap447x())
++			pr_warn("WARNING: OMAP4470 clock data incomplete!\n");
+ 	} else {
+ 		return 0;
+ 	}
+-- 
+1.7.9.5
+
