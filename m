@@ -1,73 +1,101 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
-Date: Mon, 25 Jun 2012 09:07:58 +0300
-Message-ID: <1340604478.12683.25.camel@lappyti>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 06/11] gpio/omap: add clk_prepare and clk_unprepare
+Date: Mon, 25 Jun 2012 11:41:17 +0530
+Message-ID: <CAC83Zv+2B9=fu+YDab62O-WZdJzP8-qddPOZaVKLrqD0vvzCjw@mail.gmail.com>
 References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
-	 <1340372890-10091-6-git-send-email-rnayak@ti.com>
+	<1340372890-10091-7-git-send-email-rnayak@ti.com>
+	<alpine.DEB.2.00.1206221312400.10198@utopia.booyaka.com>
+	<4FE7F765.40405@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-PHQvJXLvB6JEmDiDIp20"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:39117 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753172Ab2FYGIF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 02:08:05 -0400
-Received: by lbbgj10 with SMTP id gj10so7926015lbb.37
-        for <linux-omap@vger.kernel.org>; Sun, 24 Jun 2012 23:08:01 -0700 (PDT)
-In-Reply-To: <1340372890-10091-6-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54760 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754652Ab2FYGLT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 02:11:19 -0400
+Received: by qadz32 with SMTP id z32so1099384qad.7
+        for <linux-omap@vger.kernel.org>; Sun, 24 Jun 2012 23:11:17 -0700 (PDT)
+In-Reply-To: <4FE7F765.40405@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Pankaj Jangra <jangra.pankaj9@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+On Mon, Jun 25, 2012 at 11:00 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Saturday 23 June 2012 12:47 AM, Paul Walmsley wrote:
+>>
+>> Hi
+>>
+>> On Fri, 22 Jun 2012, Rajendra Nayak wrote:
+>>
+>>> In preparation of OMAP moving to Common Clk Framework(CCF) add
+>>> clk_prepare()
+>>> for omap gpio debounce clock.
+>>>
+>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>>> ---
+>>> =A0drivers/gpio/gpio-omap.c | =A0 =A02 ++
+>>> =A01 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index c4ed172..6a73b01 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -893,6 +893,8 @@ static int gpio_debounce(struct gpio_chip *chip=
+,
+>>> unsigned offset,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->dbck =3D clk_get(bank->dev, "d=
+bclk");
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (IS_ERR(bank->dbck))
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(bank->dev, "=
+Could not get gpio dbck\n");
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_prepare(bank->dbc=
+k);
+>>> =A0 =A0 =A0 =A0}
+>>>
+>>> =A0 =A0 =A0 =A0spin_lock_irqsave(&bank->lock, flags);
+>>
+>>
+>> What code unprepares this clock?
+>>
+>> Put differently, doesn't this driver need at least a platform_driver
+>> .remove function pointer, that would call clk_unprepare() and clk_pu=
+t()?
+>
+>
+> Maybe because this driver can never be built as a module. It gets
+> complied in with CONFIG_ARCH_OMAP=3Dy.
+>
+> Adding Tarun and Santosh who can comment further.
+>
+>
+>>
+>> Also, it looks to me that the bank->dbck init should be in
+>> omap_gpio_chip_init(), not gpio_debounce()?
+>
+>
+> Tarun, can you comment on why the dbck init is in gpio_debounce
+> and not in omap_gpio_chip_init()?
+BTW, bank->dbck is initialized in gpio_debounce() even before the clean=
+up
+and fixes series. I am not quite sure if there was specific intent for =
+keeping
+it here. Personally I do not see issues in doing clk_get of bank->dbck =
+in
+omap_gpio_chip_init().
 
---=-PHQvJXLvB6JEmDiDIp20
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Fri, 2012-06-22 at 19:18 +0530, Rajendra Nayak wrote:
-> In preparation of OMAP moving to Common Clk Framework(CCF) add clk_prepar=
-e()
-> and clk_unprepare() for the omapdss clocks.
-
-You used clk_prepare and clk_unprepare instead of clk_prepare_enable and
-clk_disable_unprepare. I didn't check the dss driver yet, but my hunch
-is that the clocks are normally not enabled/disabled from atomic
-context.
-
-What does the prepare/unprepare actually do? Is there any benefit in
-delaying preparing, i.e. is there a difference between prepare right
-after clk_get, or prepare right before clk_enable? (And similarly for
-unprepare)
-
- Tomi
-
-
---=-PHQvJXLvB6JEmDiDIp20
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP6AA+AAoJEPo9qoy8lh71n5EP+gN1Ebrhs8AecEDX61XCmmkQ
-c5QnmMDdhYoad3Gc2OxWDon4FKnjTHwm/OLN5qTr8dKUu7pYI9zsEy41D3cNID1Z
-mf4M8/dXN2TFGNek0ZSImprtpcivSael/KAP7NQTTj1A0P6GACZrdk5DOIGORGvb
-XNTynUnNSZ57q7bJlTngQP+KFOlykqSPlGqSiAKHyZJrW9k383pSxZxeFPcCe6r8
-fl9fhA8PnJ/kFUl5oeczgdgG/1R4qJIiUucY9otyIMLoRXfyO70p7a6mIYZEkI5/
-wh19jItytWQGhVU6YxMZ9pTL6cyHZMgs8BgE2jZohtSi8w5j9dVxAfOFqBKZvet2
-DEsqOC5ahI8yRvyaE9KWqBWA9Be5MmkWS10ya5SzpBSyPNeJsPsgAYrMM7JED6Aj
-Cm+G131ikoCQV6PMvdcpJUYltLyJfl0k00+FpnwX01NYmIbq/Ttyhi4si1k2ANeu
-kd/4S4c2E7PKFXtR+Bw0rTPhfgTboMIGfD+c2+Xdq25v3caBhkPnfen77z7W2i3C
-O/Dhix0g8z5pCwX9RACmOxD58AgKXodlt99ZcpWbQhDJaUaT8pz80N3NzZjF7O0b
-zgsOJdK2zVGYx4OdlyO52if+mQM5R9qnLgK92LRbfM6uK8Mi11MpaOKsgQxeYK5F
-DWksJ7La9TKpIiy0kcOX
-=Kgcs
------END PGP SIGNATURE-----
-
---=-PHQvJXLvB6JEmDiDIp20--
-
+>
+>>
+>>
+>> - Paul
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
