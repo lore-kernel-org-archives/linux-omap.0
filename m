@@ -1,106 +1,94 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix tusb6010 GPIO interrupt for n8x0
-Date: Mon, 25 Jun 2012 12:38:59 +0300
-Message-ID: <20120625093858.GA6468@arwen.pp.htv.fi>
-References: <20120613101303.18645.83320.stgit@muffinssi.local>
- <20120613101512.18645.12865.stgit@muffinssi.local>
+Subject: Re: [PATCH] spi: omap2-mcspi: fix section mismatch regression in
+ probe
+Date: Mon, 25 Jun 2012 12:47:17 +0300
+Message-ID: <20120625094716.GD6468@arwen.pp.htv.fi>
+References: <1340099868-24290-1-git-send-email-svenkatr@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3363193800237930603=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120613101512.18645.12865.stgit@muffinssi.local>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
-
---===============3363193800237930603==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+	protocol="application/pgp-signature"; boundary="WChQLJJJfbwij+9x"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:46462 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753595Ab2FYJtj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 05:49:39 -0400
+Received: by lbon10 with SMTP id n10so10787478lbo.27
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 02:49:36 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <1340099868-24290-1-git-send-email-svenkatr@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, balbi@ti.com
 
 
---pf9I7BMVVzbSWLtt
+--WChQLJJJfbwij+9x
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 13, 2012 at 03:15:12AM -0700, Tony Lindgren wrote:
-> Here's one more gpio_to_irq conversion that we missed
-> earlier. Tested with n800 in gadget mode using USB_ETH.
+On Tue, Jun 19, 2012 at 03:27:48PM +0530, Venkatraman S wrote:
+> Commit 7d6b6d83(make it behave as a module) annotated probe with
+> __devinit, but a referenced function was not.
 >=20
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> This introduced a section mismatch warning:
+> WARNING: vmlinux.o(.devinit.text+0x3eec): Section mismatch in reference
+> from the function omap2_mcspi_probe() to the function
+> .init.text:omap2_mcspi_master_setup()
+>=20
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
 
 Acked-by: Felipe Balbi <balbi@ti.com>
 
+my apologies
+
 > ---
->  arch/arm/mach-omap2/usb-tusb6010.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/spi/spi-omap2-mcspi.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 >=20
-> diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb=
--tusb6010.c
-> index db84a46..805bea6 100644
-> --- a/arch/arm/mach-omap2/usb-tusb6010.c
-> +++ b/arch/arm/mach-omap2/usb-tusb6010.c
-> @@ -300,7 +300,7 @@ tusb6010_setup_interface(struct musb_hdrc_platform_da=
-ta *data,
->  		printk(error, 3, status);
->  		return status;
->  	}
-> -	tusb_resources[2].start =3D irq + IH_GPIO_BASE;
-> +	tusb_resources[2].start =3D gpio_to_irq(irq);
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> index 46ef5fe..1618e89 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -1031,7 +1031,7 @@ static int omap2_mcspi_transfer_one_message(struct =
+spi_master *master,
+>  	return 0;
+>  }
 > =20
->  	/* set up memory timings ... can speed them up later */
->  	if (!ps_refclk) {
+> -static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+> +static int __devinit omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+>  {
+>  	struct spi_master	*master =3D mcspi->master;
+>  	struct omap2_mcspi_regs	*ctx =3D &mcspi->ctx;
+> --=20
+> 1.7.0.4
 >=20
 
 --=20
 balbi
 
---pf9I7BMVVzbSWLtt
+--WChQLJJJfbwij+9x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP6DGxAAoJEIaOsuA1yqREqMIP/012LNrnsyG1QFbEqt2jApjT
-BlLma4IS53eZNFXcIJ3Wm6hoiKq03ihgyYnBouTGoLzVBL47k+E2zTrkqouyzDHK
-ymMjaZPeCgCmEnUEPrd7ukHFxZwvYvpGPSsHYGxWUOXg1JdbAvpPGtIXGzaU5dtm
-hO5/B4H92LVQNOX1ud5GRKJ0mMxEZzcoxReASASxYEpBVLHnGr+xzddXXQ/nuxhY
-D3IQDFTtMiLasheo2ifEllHi4+cWtjIktlHNAQnnGeatbdRk8eksCmBdAMyzSO/y
-p1ZnGRhgd3UOBQt0STIW23JGBITR3gWCCJvclp98FeKmbai+TscN63xG36ZyNfah
-ETtBTDZcpwdVqBoNipJwSfjBZh5IuNUo9NNl9t41AZX8A1v3StlYEiX8kkUfZkNU
-lf6pxS0Vx2X1NlTzJ3PgMSTj+BKIIRdk+w6OZ1grYod15G0B3XY/8XDIK3yO7Zm1
-gwoUeo85IKGSs4UPyikC44n5UCrB32OpPTXHt8t1wRmJ0gtXBa+iUUDJNzTe+wCX
-w9Eg07cC05+to/T8+wNAbSfGM1SAyzurI5EiqANJhoqZtHWveru6+WscwyvV0iUo
-6zBZmiOF6AI3dTaMTEThUAFvkfNhxiXzmGiO3pjD4mDLOb0DKG589C1bfo+wBZqU
-/qU3LJr88OIZnGyfqDuf
-=oTHE
+iQIcBAEBAgAGBQJP6DOkAAoJEIaOsuA1yqREmCwP/2jurFI5oL8qF9y4qlszG1fz
+mehL6UaH9WKC4cvJpA8y72JuZEWMjRuvfYI/ns6aU0uTWHAMwZorP6QDx+wOGBLa
+vI37lnmiWZJ/YQ2hjHqRgh5cjgFFFYkJtVvRVvWLGKGSmGJqNzdFp/RJVIFcQ1Fe
+le+c9qAlGyqPjG7oX/Ej5leBi7lEM10TYBxlt0FLQtwrDtG9cgkS2UrLuczUUPXF
+MgTK/W/Xz072IE+zM9/bLzLXKfWEhwXRF2A7bKWqnj2jp6hoNbBTL6GFcQdEZBwA
+HQZtl37rfK0ZraQtrlMI2OOjxgoaGJEnIQlu2N0ODgu72DAnqWXxfqLuxiVf3lQx
+midfwClxiZmrQHdWq7ZzRPbHGajsmSBgBy3SWcAE4SraQ1fYt9nswHtb+xJNOhxv
+yxgP0XUs/2hF1IIkOfpWoTk0QUa4fnSZAb8JoMAyJ55x5vFPjA6wjM7yHwVML29a
+l+5Ecl0oaJhewWoFma8UWNuzC7VJow3b66c4OY5NTBHuJPcHk9fNMpzzoN4zN0dK
+KFjRy0XS2dtqzDZ5+SXJe4F8qTAefrnbM0APkRIgSJ8ATu+v9gPxBLRYWkSc6osI
+Ue0dTgYbD+FhFC6sGC1xyi5kHHVd5hBwoWUo896M47QdaI9Y1pZH3LpTHkDFpE4l
+qG/U75Bmpk7BzcIXPIuM
+=Pguu
 -----END PGP SIGNATURE-----
 
---pf9I7BMVVzbSWLtt--
-
-
---===============3363193800237930603==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============3363193800237930603==--
+--WChQLJJJfbwij+9x--
