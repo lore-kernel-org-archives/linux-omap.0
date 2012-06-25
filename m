@@ -1,77 +1,106 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Mon, 25 Jun 2012 12:30:43 +0300
-Message-ID: <1340616643.3395.19.camel@deskari>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340605221.12683.30.camel@lappyti>
-	 <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: Fix tusb6010 GPIO interrupt for n8x0
+Date: Mon, 25 Jun 2012 12:38:59 +0300
+Message-ID: <20120625093858.GA6468@arwen.pp.htv.fi>
+References: <20120613101303.18645.83320.stgit@muffinssi.local>
+ <20120613101512.18645.12865.stgit@muffinssi.local>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-MH21gW2nipSS5Z/on5bp"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:44554 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751677Ab2FYJai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 05:30:38 -0400
-Received: by lbgc1 with SMTP id c1so873360lbg.15
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 02:30:35 -0700 (PDT)
-In-Reply-To: <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3363193800237930603=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120613101512.18645.12865.stgit@muffinssi.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
 
---=-MH21gW2nipSS5Z/on5bp
-Content-Type: text/plain; charset="UTF-8"
+--===============3363193800237930603==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Content-Disposition: inline
+
+
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-06-25 at 14:19 +0530, Jassi Brar wrote:
-> On 25 June 2012 11:50, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Sat, 2012-06-23 at 13:36 +0530, jaswinder.singh@linaro.org wrote:
-> ....
-> >>  Currenlty HDMI fails to come up in the suspend-resume path.
-> >> This patch helps that real-world scenario.
-> >
-> > What is the problem there? It'd be good to explain the problem in the
-> > patch description. Does the pm_runtime_get return -EACCES?
-> >
-> Yes, it returns -EACCESS because RPM on devices is disabled during the
-> period from suspend-start to resume-finished.
+On Wed, Jun 13, 2012 at 03:15:12AM -0700, Tony Lindgren wrote:
+> Here's one more gpio_to_irq conversion that we missed
+> earlier. Tested with n800 in gadget mode using USB_ETH.
+>=20
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-So... You didn't answer my first comment, how can the code work? The
-driver needs to enable the HW and the call to pm_runtime_get() is
-skipped. Won't this lead to crash as the DSS registers are accessed
-without the HW in enabled state? And what happens if the
-pm_runtime_get() call is skipped, but pm_runtime_put() is not?
+Acked-by: Felipe Balbi <balbi@ti.com>
 
- Tomi
+> ---
+>  arch/arm/mach-omap2/usb-tusb6010.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb=
+-tusb6010.c
+> index db84a46..805bea6 100644
+> --- a/arch/arm/mach-omap2/usb-tusb6010.c
+> +++ b/arch/arm/mach-omap2/usb-tusb6010.c
+> @@ -300,7 +300,7 @@ tusb6010_setup_interface(struct musb_hdrc_platform_da=
+ta *data,
+>  		printk(error, 3, status);
+>  		return status;
+>  	}
+> -	tusb_resources[2].start =3D irq + IH_GPIO_BASE;
+> +	tusb_resources[2].start =3D gpio_to_irq(irq);
+> =20
+>  	/* set up memory timings ... can speed them up later */
+>  	if (!ps_refclk) {
+>=20
 
+--=20
+balbi
 
---=-MH21gW2nipSS5Z/on5bp
+--pf9I7BMVVzbSWLtt
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJP6C/DAAoJEPo9qoy8lh71E5IP/io1s9Kuyw9PMk1QBBuMyGy5
-3gM88nUpYcSkoTgKDcCZCmZhJU/039Z/0DuVpeJPv91MMjvGI9Snh7YneeYGTPMX
-Ih7jWUij7pvWxbTsVTQPgXKTXy5b0c47XKdWWp0Nw4elElcYPoZHOF7ZciWjUh35
-oLIFv6hRR+0wNFZIuy41LcuFG8VUVvHlziShnuzPCWfTTKfAV+BkjlT/CIjA/ZBe
-x7NDrRTrLh619WeJOaetn5USwlmPE5t7Q8FP5zvTRg1eGCx2oWAwJMkW+174/i6S
-C9oBM9f6qe0E4E43+sayfX/523Y1UzpcjEV80z9Obs2X0fjljhmuZMfAtZ8aIhYC
-tPmrVn71LfHjJm+/6mFjpQkRT2U+Hs+Z1zEPixxyAwwRvWBhBpl/HQy6I0x3oIOD
-+aI4JQJZjDnMO6WBrH4/xJD5nJ3Dc4RJ88cqPo/NKr8TU2gtllgKNDeCmdiB8iJ1
-Mh/ChZI0pJqYt6buv8FqoI4JSSfUfF1rdJDyhdct3BwxWOwBWVmglcpKtiRYxzOI
-jXbtnyOj+80XAyeRFfeKE61Ryy31Kmr1pg40PXL7icBhB2kPmCAu3qgpmaDMNIIv
-rFgearNRgksZeHPQSE944j82sqXnK60Per/SGDyCzoLKQ6O+NwB5U9koQI+YzdNd
-sEsaz3WgcSy8pF+vO+/n
-=u30b
+iQIcBAEBAgAGBQJP6DGxAAoJEIaOsuA1yqREqMIP/012LNrnsyG1QFbEqt2jApjT
+BlLma4IS53eZNFXcIJ3Wm6hoiKq03ihgyYnBouTGoLzVBL47k+E2zTrkqouyzDHK
+ymMjaZPeCgCmEnUEPrd7ukHFxZwvYvpGPSsHYGxWUOXg1JdbAvpPGtIXGzaU5dtm
+hO5/B4H92LVQNOX1ud5GRKJ0mMxEZzcoxReASASxYEpBVLHnGr+xzddXXQ/nuxhY
+D3IQDFTtMiLasheo2ifEllHi4+cWtjIktlHNAQnnGeatbdRk8eksCmBdAMyzSO/y
+p1ZnGRhgd3UOBQt0STIW23JGBITR3gWCCJvclp98FeKmbai+TscN63xG36ZyNfah
+ETtBTDZcpwdVqBoNipJwSfjBZh5IuNUo9NNl9t41AZX8A1v3StlYEiX8kkUfZkNU
+lf6pxS0Vx2X1NlTzJ3PgMSTj+BKIIRdk+w6OZ1grYod15G0B3XY/8XDIK3yO7Zm1
+gwoUeo85IKGSs4UPyikC44n5UCrB32OpPTXHt8t1wRmJ0gtXBa+iUUDJNzTe+wCX
+w9Eg07cC05+to/T8+wNAbSfGM1SAyzurI5EiqANJhoqZtHWveru6+WscwyvV0iUo
+6zBZmiOF6AI3dTaMTEThUAFvkfNhxiXzmGiO3pjD4mDLOb0DKG589C1bfo+wBZqU
+/qU3LJr88OIZnGyfqDuf
+=oTHE
 -----END PGP SIGNATURE-----
 
---=-MH21gW2nipSS5Z/on5bp--
+--pf9I7BMVVzbSWLtt--
 
+
+--===============3363193800237930603==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============3363193800237930603==--
