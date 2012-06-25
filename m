@@ -1,46 +1,44 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 0/3] Add cyclic DMA support to OMAP DMA engine driver
-Date: Mon, 25 Jun 2012 12:18:47 +0100
-Message-ID: <20120625111847.GE19226@n2100.arm.linux.org.uk>
-References: <20120622085911.GA19026@n2100.arm.linux.org.uk> <20120622123013.GA7586@sirena.org.uk> <20120622131750.GB19226@n2100.arm.linux.org.uk> <20120622161155.GM4037@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
+Date: Mon, 25 Jun 2012 12:22:03 +0100
+Message-ID: <20120625112203.GF19226@n2100.arm.linux.org.uk>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1340372890-10091-6-git-send-email-rnayak@ti.com> <1340604478.12683.25.camel@lappyti>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33154 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33164 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755729Ab2FYLS4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 07:18:56 -0400
+	with ESMTP id S1754131Ab2FYLWN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 07:22:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20120622161155.GM4037@opensource.wolfsonmicro.com>
+In-Reply-To: <1340604478.12683.25.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Liam Girdwood <lrg@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@ti.com
 
-On Fri, Jun 22, 2012 at 05:11:56PM +0100, Mark Brown wrote:
-> On Fri, Jun 22, 2012 at 02:17:51PM +0100, Russell King - ARM Linux wrote:
+On Mon, Jun 25, 2012 at 09:07:58AM +0300, Tomi Valkeinen wrote:
+> On Fri, 2012-06-22 at 19:18 +0530, Rajendra Nayak wrote:
+> > In preparation of OMAP moving to Common Clk Framework(CCF) add clk_prepare()
+> > and clk_unprepare() for the omapdss clocks.
 > 
-> > I suspect the key difference is I run the uImage kernels on the SDP4430
-> > without a DT blob.  I suspect it's the DT conversion of sound/soc/omap
-> > that's buggered it up.
+> You used clk_prepare and clk_unprepare instead of clk_prepare_enable and
+> clk_disable_unprepare. I didn't check the dss driver yet, but my hunch
+> is that the clocks are normally not enabled/disabled from atomic
+> context.
 > 
-> This sounds like the most likely explanation.  There's not that many
-> commits, would it be possible for you to try bisecting them (or just
-> reverting them one at a time)?  The most salient ones should be:
-> 
-> 356bccbea17988bd32a016ada867dd6a53ba2796 ASoC: omap-abe-twl6040: Introduce driver data for runtime parameters
-> 7d09f9e98956b29755f20d830252dec9300e7044 ASoC: omap-abe-twl6040: Move Digital Mic widget into dapm table
-> c2f98956e3635a897737cc08a60539752aa00dd7 ASoC: omap-abe-twl6040: Keep only one snd_soc_dai_link structure
-> 
-> though it looks like a bisect of sound/soc/omap should be about as fast.
-> Like I say if we're talking late July or August there's a very good
-> chance that 3.5 will be broken so we should at least revert but it'd be
-> a shame to loose the HDMI stuff, I'd really expect that to be unrelated.
+> What does the prepare/unprepare actually do? Is there any benefit in
+> delaying preparing, i.e. is there a difference between prepare right
+> after clk_get, or prepare right before clk_enable? (And similarly for
+> unprepare)
 
-It appears to be something to do with the jack detection that's going wrong.
-If I start the audio with the jack disconnected, I never get anything out
-of the board.  It requires the jack to be connected before the first use.
-The on-board speakers used to work without the jack plugged in at one time
-but they seem to be completely non-functional now.
+I think you're looking at this the wrong way.
 
-Confused.
+Think of clk_prepare() as the _sleepable_ part of clk_enable().  So, think
+of clk_prepare() as ideally being placed just before clk_enable() with the
+exception that if that's not possible (because you're in a non-atomic
+context) it should be placed in a position as close to clk_enable() as
+possible which is atomic.
+
+Don't think of it as an extra step to be done after clk_get() but as an
+extra step needing to be done before clk_enable().
