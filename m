@@ -1,59 +1,36 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP2+: use proper type for keymap data in boardfiles.
-Date: Mon, 25 Jun 2012 15:56:40 +0530
-Message-ID: <1340620000-27074-2-git-send-email-svenkatr@ti.com>
-References: <1340620000-27074-1-git-send-email-svenkatr@ti.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCHv9 3/8] I2C: OMAP: use devm_* functions
+Date: Mon, 25 Jun 2012 15:57:28 +0530
+Message-ID: <CAM=Q2ctMte0ukkbkry=LofR_GaQdWJZy5kt+4ni3ysjF8gH1=w@mail.gmail.com>
+References: <1340273329-8319-1-git-send-email-shubhrajyoti@ti.com>
+	<1340273329-8319-4-git-send-email-shubhrajyoti@ti.com>
+	<20120625095152.GE6468@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43150 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755054Ab2FYK1P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 06:27:15 -0400
-In-Reply-To: <1340620000-27074-1-git-send-email-svenkatr@ti.com>
+Received: from mail-yw0-f51.google.com ([209.85.213.51]:49473 "EHLO
+	mail-yw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755126Ab2FYK13 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 06:27:29 -0400
+In-Reply-To: <20120625095152.GE6468@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Venkatraman S <svenkatr@ti.com>
+To: balbi@ti.com
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-This fixes the sparse warnings...
-arch/arm/mach-omap2/board-igep0020.c:482:14:
- warning: incorrect type in initializer (different signedness)
-arch/arm/mach-omap2/board-4430sdp.c:200:14:
- warning: incorrect type in initializer (different signedness)
+On Mon, Jun 25, 2012 at 3:21 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Thu, Jun 21, 2012 at 03:38:44PM +0530, Shubhrajyoti D wrote:
+>> The various devm_* functions allocate memory that is released when a driver
+>> detaches. This patch uses devm_kzalloc, devm_request_and_ioremap for data
+>> that is allocated in the probe function of a platform device and is only
+>> freed in the remove function.
+>>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>
+> this looks a lot like:
+> http://marc.info/?l=linux-omap&m=133969143407572&w=2
+>
+> I wonder why wasn't that one used instead ?
 
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c  |    2 +-
- arch/arm/mach-omap2/board-igep0020.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 8e17284..af7be39 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -64,7 +64,7 @@
- #define GPIO_WIFI_PMENA		54
- #define GPIO_WIFI_IRQ		53
- 
--static const int sdp4430_keymap[] = {
-+static const uint32_t sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
- 	KEY(0, 1, KEY_R),
- 	KEY(0, 2, KEY_T),
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 7491529..c138944 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -459,7 +459,7 @@ static struct platform_device *igep_devices[] __initdata = {
- 	&igep_vwlan_device,
- };
- 
--static int igep2_keymap[] = {
-+static const uint32_t igep2_keymap[] = {
- 	KEY(0, 0, KEY_LEFT),
- 	KEY(0, 1, KEY_RIGHT),
- 	KEY(0, 2, KEY_A),
--- 
-1.7.0.4
-
+Indeed will drop this one from the series.
+In fact, missed the irq part.
