@@ -1,122 +1,123 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv10 6/7] I2C: OMAP: Correct I2C revision for OMAP3
-Date: Mon, 25 Jun 2012 15:35:43 +0300
-Message-ID: <20120625123542.GE30463@arwen.pp.htv.fi>
-References: <1340622702-21622-1-git-send-email-shubhrajyoti@ti.com>
- <1340622702-21622-7-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
+ state
+Date: Mon, 25 Jun 2012 15:41:34 +0300
+Message-ID: <1340628094.3395.63.camel@deskari>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	 <1340605221.12683.30.camel@lappyti>
+	 <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
+	 <1340616643.3395.19.camel@deskari>
+	 <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nHwqXXcoX0o6fKCv"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1340622702-21622-7-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-J2QZT5Es6O4qR7j2h87Q"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:49898 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756365Ab2FYMl3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 08:41:29 -0400
+Received: by lbok6 with SMTP id k6so8100015lbo.32
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 05:41:26 -0700 (PDT)
+In-Reply-To: <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
 
---nHwqXXcoX0o6fKCv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-J2QZT5Es6O4qR7j2h87Q
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 25, 2012 at 04:41:41PM +0530, Shubhrajyoti D wrote:
-> From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
->=20
-> The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
-> revision is the same for 3430 and 3530. However, the OMAP3630 device has =
-the
-> same I2C revision as OMAP4. Correct the revision definition to reflect th=
-is.
->=20
-> This patch is based on work done by Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> Changes from his patch
-> - Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
->=20
-> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+On Mon, 2012-06-25 at 17:57 +0530, Jassi Brar wrote:
+> On 25 June 2012 15:00, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > The driver needs to enable the HW and the call to pm_runtime_get() is
+> > skipped. Won't this lead to crash as the DSS registers are accessed
+> > without the HW in enabled state?
+> >
+> Hmm...  how does the extant code in hdmi driver ensures DSS is up and run=
+ning ?
+> While it does sound important even to my limited knowledge of OMAPDSS,
+> I see rpm of HDMI, VENC and RFBI only dependent on DISPC, not DSS.
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 8344ad030..0557b0d 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -50,8 +50,8 @@
-> =20
->  /* I2C controller revisions present on specific hardware */
->  #define OMAP_I2C_REV_ON_2430		0x36
-> -#define OMAP_I2C_REV_ON_3430		0x3C
-> -#define OMAP_I2C_REV_ON_3530_4430	0x40
-> +#define OMAP_I2C_REV_ON_3430_3530	0x3C
-> +#define OMAP_I2C_REV_ON_3630_4430	0x40
-> =20
->  /* timeout waiting for the controller to respond */
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-> @@ -305,7 +305,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
->  					   SYSC_AUTOIDLE_MASK);
-> =20
-> -		} else if (dev->rev >=3D OMAP_I2C_REV_ON_3430) {
-> +		} else if (dev->rev >=3D OMAP_I2C_REV_ON_3430_3530) {
->  			dev->syscstate =3D SYSC_AUTOIDLE_MASK;
->  			dev->syscstate |=3D SYSC_ENAWAKEUP_MASK;
->  			dev->syscstate |=3D (SYSC_IDLEMODE_SMART <<
-> @@ -1021,7 +1021,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->  		dev->errata |=3D I2C_OMAP_ERRATA_I207;
-> =20
-> -	if (dev->rev <=3D OMAP_I2C_REV_ON_3430)
-> +	if (dev->rev <=3D OMAP_I2C_REV_ON_3430_3530)
->  		dev->errata |=3D I2C_OMAP_ERRATA_I462;
-> =20
->  	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
-> @@ -1039,7 +1039,7 @@ omap_i2c_probe(struct platform_device *pdev)
-> =20
->  		dev->fifo_size =3D (dev->fifo_size / 2);
-> =20
-> -		if (dev->rev >=3D OMAP_I2C_REV_ON_3530_4430)
-> +		if (dev->rev >=3D OMAP_I2C_REV_ON_3630_4430)
->  			dev->b_hw =3D 0; /* Disable hardware fixes */
->  		else
->  			dev->b_hw =3D 1; /* Enable hardware fixes */
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DSS device is parent to all the DSS subdevices. So when a subdevice is
+enabled, DSS device is enabled first.
 
---=20
-balbi
+But anyway, I wasn't referring to the DSS part of OMAPDSS, but to
+omapdss generally. If we do this:
 
---nHwqXXcoX0o6fKCv
+/* this is skipped, if runtime PM is disabled */
+dispc_runtime_get();
+
+/* this accesses a register, but the HW is disabled? */
+dispc_read_reg(FOO);
+
+So again, I don't understand how the underlying HW gets enabled. Or does
+hwmod/omap_device code make sure that it's enabled while the board is
+being resumed? If so, what would happen if we continue the above
+scenario as follows:
+
+/* this is skipped, if runtime PM is disabled */
+dispc_runtime_get();
+
+/* this accesses a register, the HW is kept enabled by hwmod */
+dispc_read_reg(FOO);
+
+/* at some time later the resume procedure ends, and hwmod doesn't keep
+the HW enabled any more */
+
+/* this accesses a register, the HW is disabled */
+dispc_read_reg(FOO);
+
+> And for DISPC these drivers already hold a reference in their display
+> enable/resume and keep it until disable/suspend. So we don't lose
+> DISPC anytime it is really required.
+
+If all the displays are disabled, nobody keeps a reference to dispc.
+
+> > And what happens if the pm_runtime_get() call is skipped, but pm_runtim=
+e_put() is not?
+> >
+> Not sure in what newly introduced scenario by this patch, because
+> get/put both check for pm_enabled before proceeding. Am I overlooking
+> something?
+
+Currently (for example) dispc_runtime_get/put call
+pm_runtime_get/put_sync. When somebody uses dispc_runtime_get, the same
+somebody knows it needs to call dispc_runtime_put later.
+
+Now, what happens if dispc_runtime_get is called when runtime PM is
+disabled (i.e. pm_runtime_get_sync is skipped), but runtime PM is
+enabled later when that somebody calls dispc_runtime_put (i.e.
+pm_runtime_put_sync is _not_ skipped)?
+
+ Tomi
+
+
+--=-J2QZT5Es6O4qR7j2h87Q
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP6FseAAoJEIaOsuA1yqRETOoP/ijyohy+I7Fg4lYG3uUusBqx
-4xHT6Z2kFbIK+K8jB4PWCzq9wLhTl3ZXMcQASAWH8sZfJ+H6oS6VuEnD6NRT3/m9
-CIgxVALpUON9ie8gMleFaUI2cmCIdjdkKA+RNSf+cHtj7omXq6K9W6B7vLuS86ZX
-+f1Lx7Gw4m6OuxYjWxvaHZgipGl8i9elWrC+a+C0eeC35Y4jG9E+WAjYoUiqaSxN
-3/vJ8LhtqDP8PgHe36GPntGBLjU2cuek+7aNrn3L3WkbzagsyYZJdlVamv3TVYUZ
-fqaTJ6e+ZFK5CzNC2c6ep+EGnfj5j5OKewhPTB5XZ9k2TPeSUX/CMezXIYr0tgeF
-r/wu9Wku642FEdYOw7o5TB/kvp42IVoboIlmpid1n4pNLPvDIABylvA2119HkhWj
-uMy/YmCONGWoDQ/MWkT+hZjz6yZr4cYGIWmeEqTbY+qY/bwUpU5dsG87+vQJvm6W
-H99um5o5XaVVFPENRuVDAyHt1FVjC0GF07h3EXlM5reT9zKoAwkOE9SziI2v+pkz
-+G3bby0wnlfb2egsClKM43e0999JpAaoSXNJo/CtEz3iiFqfddHoXZJmocj4Pzzn
-iWCY5zg6h7SVcBFcThwprHSPDLnkTwGNOFRAjKUMEz8IjMdB1Vp+sR3LrN6u51j+
-j0fODl8Gp1RtLWSf2/sC
-=RIIj
+iQIcBAABAgAGBQJP6Fx+AAoJEPo9qoy8lh71wwgP/0QrgwiVX5MqD31IOP5rdR9F
+p4AfYwdROE2UoeTCtFm/sPrTmwLTv16kYjO+qV9svpxALbToq5sPdDch7NNjInvW
+usYkerda6mvREaZegZrRi746TO+8oxmxHXGQJcT0H+1JHpsJxV5xe47QkQeBnHZ6
+OImxM6s06knrrKFsLG2ExVmlOb7MvwhI/I/006TK/vAVDpcAd33O+ewI8ruumaB0
+u1DwEfBwYTufoSrspyO6UP6VEs8UiLHPH8hV/NFNNY6KeXfW1XDY21XAk9go4aom
+cou/14kjxZ2mWSQ6w7mOfp7mdL9XAarBItV6wP4Je/YXqZfc68esfwyzqZ9L+7nb
+KMQleB837MBWzXtApckG1W0hCVxhfjzpkU4GRqaZXPANh9oBrKPOru/3IHIAZC7h
+3crBoEOQBWN90fdhs2MhiEWg+5XNLumPsxY+zuqrCtYRbB0TWZdd5F291K7cYqSP
+czaXDIiCNDNZ+UVK48xIbHjQCnIzJbJYuBkkfETIxU9E45TsiQevPlrW/s1+GA/v
+Fhxu7Tq8e1eleBgCsRzM7PjmX4XJU1lqxuhm6C00p/ss6Xq8MxCIaSoHHKaxMhy5
+1tXe70tphyHqfo0DREVDoM5o6XgPQUfTWd+oHlw+RK1GvZNtTWNmaK86kHTfYyha
+6RQBMYNpVduxFkdjzHe2
+=QDFO
 -----END PGP SIGNATURE-----
 
---nHwqXXcoX0o6fKCv--
+--=-J2QZT5Es6O4qR7j2h87Q--
+
