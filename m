@@ -1,94 +1,169 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] spi: omap2-mcspi: fix section mismatch regression in
- probe
-Date: Mon, 25 Jun 2012 12:47:17 +0300
-Message-ID: <20120625094716.GD6468@arwen.pp.htv.fi>
-References: <1340099868-24290-1-git-send-email-svenkatr@ti.com>
+Subject: Re: [PATCHv9 3/8] I2C: OMAP: use devm_* functions
+Date: Mon, 25 Jun 2012 12:51:54 +0300
+Message-ID: <20120625095152.GE6468@arwen.pp.htv.fi>
+References: <1340273329-8319-1-git-send-email-shubhrajyoti@ti.com>
+ <1340273329-8319-4-git-send-email-shubhrajyoti@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WChQLJJJfbwij+9x"
+	protocol="application/pgp-signature"; boundary="FN+gV9K+162wdwwF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:46462 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753595Ab2FYJtj (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57683 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755542Ab2FYJyQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 05:49:39 -0400
-Received: by lbon10 with SMTP id n10so10787478lbo.27
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 02:49:36 -0700 (PDT)
+	Mon, 25 Jun 2012 05:54:16 -0400
+Received: by lbbgj10 with SMTP id gj10so6335529lbb.9
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 02:54:13 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1340099868-24290-1-git-send-email-svenkatr@ti.com>
+In-Reply-To: <1340273329-8319-4-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, balbi@ti.com
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
 
---WChQLJJJfbwij+9x
+--FN+gV9K+162wdwwF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 19, 2012 at 03:27:48PM +0530, Venkatraman S wrote:
-> Commit 7d6b6d83(make it behave as a module) annotated probe with
-> __devinit, but a referenced function was not.
+On Thu, Jun 21, 2012 at 03:38:44PM +0530, Shubhrajyoti D wrote:
+> The various devm_* functions allocate memory that is released when a driv=
+er
+> detaches. This patch uses devm_kzalloc, devm_request_and_ioremap for data
+> that is allocated in the probe function of a platform device and is only
+> freed in the remove function.
 >=20
-> This introduced a section mismatch warning:
-> WARNING: vmlinux.o(.devinit.text+0x3eec): Section mismatch in reference
-> from the function omap2_mcspi_probe() to the function
-> .init.text:omap2_mcspi_master_setup()
->=20
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+this looks a lot like:
+http://marc.info/?l=3Dlinux-omap&m=3D133969143407572&w=3D2
 
-my apologies
+I wonder why wasn't that one used instead ?
 
 > ---
->  drivers/spi/spi-omap2-mcspi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/i2c/busses/i2c-omap.c |   33 +++++++++------------------------
+>  1 files changed, 9 insertions(+), 24 deletions(-)
 >=20
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 46ef5fe..1618e89 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -1031,7 +1031,7 @@ static int omap2_mcspi_transfer_one_message(struct =
-spi_master *master,
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index d704f64..328a022 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -943,7 +943,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_i2c_dev	*dev;
+>  	struct i2c_adapter	*adap;
+> -	struct resource		*mem, *irq, *ioarea;
+> +	struct resource		*mem, *irq;
+>  	struct omap_i2c_bus_platform_data *pdata =3D pdev->dev.platform_data;
+>  	struct device_node	*node =3D pdev->dev.of_node;
+>  	const struct of_device_id *match;
+> @@ -962,17 +962,16 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  	}
+> =20
+> -	ioarea =3D request_mem_region(mem->start, resource_size(mem),
+> -			pdev->name);
+> -	if (!ioarea) {
+> -		dev_err(&pdev->dev, "I2C region already claimed\n");
+> -		return -EBUSY;
+> +	dev =3D devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNE=
+L);
+> +	if (!dev) {
+> +		dev_err(&pdev->dev, "Menory allocation failed\n");
+> +		return -ENOMEM;
+>  	}
+> =20
+> -	dev =3D kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
+> -	if (!dev) {
+> -		r =3D -ENOMEM;
+> -		goto err_release_region;
+> +	dev->base =3D devm_request_and_ioremap(&pdev->dev, mem);
+> +	if (!dev->base) {
+> +		dev_err(&pdev->dev, "I2C region already claimed\n");
+> +		return -ENOMEM;
+>  	}
+> =20
+>  	match =3D of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
+> @@ -996,11 +995,6 @@ omap_i2c_probe(struct platform_device *pdev)
+> =20
+>  	dev->dev =3D &pdev->dev;
+>  	dev->irq =3D irq->start;
+> -	dev->base =3D ioremap(mem->start, resource_size(mem));
+> -	if (!dev->base) {
+> -		r =3D -ENOMEM;
+> -		goto err_free_mem;
+> -	}
+> =20
+>  	platform_set_drvdata(pdev, dev);
+> =20
+> @@ -1095,13 +1089,9 @@ err_free_irq:
+>  err_unuse_clocks:
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>  	pm_runtime_put(dev->dev);
+> -	iounmap(dev->base);
+>  	pm_runtime_disable(&pdev->dev);
+>  err_free_mem:
+>  	platform_set_drvdata(pdev, NULL);
+> -	kfree(dev);
+> -err_release_region:
+> -	release_mem_region(mem->start, resource_size(mem));
+> =20
+>  	return r;
+>  }
+> @@ -1109,7 +1099,6 @@ err_release_region:
+>  static int __devexit omap_i2c_remove(struct platform_device *pdev)
+>  {
+>  	struct omap_i2c_dev	*dev =3D platform_get_drvdata(pdev);
+> -	struct resource		*mem;
+>  	int ret;
+> =20
+>  	platform_set_drvdata(pdev, NULL);
+> @@ -1123,10 +1112,6 @@ static int __devexit omap_i2c_remove(struct platfo=
+rm_device *pdev)
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>  	pm_runtime_put(&pdev->dev);
+>  	pm_runtime_disable(&pdev->dev);
+> -	iounmap(dev->base);
+> -	kfree(dev);
+> -	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	release_mem_region(mem->start, resource_size(mem));
 >  	return 0;
 >  }
 > =20
-> -static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
-> +static int __devinit omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
->  {
->  	struct spi_master	*master =3D mcspi->master;
->  	struct omap2_mcspi_regs	*ctx =3D &mcspi->ctx;
 > --=20
-> 1.7.0.4
+> 1.7.5.4
 >=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 balbi
 
---WChQLJJJfbwij+9x
+--FN+gV9K+162wdwwF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP6DOkAAoJEIaOsuA1yqREmCwP/2jurFI5oL8qF9y4qlszG1fz
-mehL6UaH9WKC4cvJpA8y72JuZEWMjRuvfYI/ns6aU0uTWHAMwZorP6QDx+wOGBLa
-vI37lnmiWZJ/YQ2hjHqRgh5cjgFFFYkJtVvRVvWLGKGSmGJqNzdFp/RJVIFcQ1Fe
-le+c9qAlGyqPjG7oX/Ej5leBi7lEM10TYBxlt0FLQtwrDtG9cgkS2UrLuczUUPXF
-MgTK/W/Xz072IE+zM9/bLzLXKfWEhwXRF2A7bKWqnj2jp6hoNbBTL6GFcQdEZBwA
-HQZtl37rfK0ZraQtrlMI2OOjxgoaGJEnIQlu2N0ODgu72DAnqWXxfqLuxiVf3lQx
-midfwClxiZmrQHdWq7ZzRPbHGajsmSBgBy3SWcAE4SraQ1fYt9nswHtb+xJNOhxv
-yxgP0XUs/2hF1IIkOfpWoTk0QUa4fnSZAb8JoMAyJ55x5vFPjA6wjM7yHwVML29a
-l+5Ecl0oaJhewWoFma8UWNuzC7VJow3b66c4OY5NTBHuJPcHk9fNMpzzoN4zN0dK
-KFjRy0XS2dtqzDZ5+SXJe4F8qTAefrnbM0APkRIgSJ8ATu+v9gPxBLRYWkSc6osI
-Ue0dTgYbD+FhFC6sGC1xyi5kHHVd5hBwoWUo896M47QdaI9Y1pZH3LpTHkDFpE4l
-qG/U75Bmpk7BzcIXPIuM
-=Pguu
+iQIcBAEBAgAGBQJP6DS4AAoJEIaOsuA1yqREdXAP/jB11D/8+Z0E6giAZVLqbHcM
+RHihnu/vuXEq/aqxKw1RJ0k4+hSXPs7ZEPcrXfRHMpVn/+vxOkNP5Zj29enQ5+y/
+CsK6FBg7/GE5MX2MHbfp8Sbg45Jr8kCT5Z+068oY5s0K3FBFlLFo15cEYlXbhC1c
+tjOdAgDRL5DC44OqZMwx7YaMjKQNpFxrsJSfkzXI41zPdFxB5nPFExlZmBB3ZGPn
+g6w0raQt8wQqC8bIss/CgB7PGbe6+R8/Sh4q+BgJQ3qw3ewGkK0viiRIFbUsaKzj
+bsjRqwkmUhqlLgtyqRNN6LeMzimZExVnpWJavxikMVeI6YOPme+hyL3khcn3PKRS
+cINHIIYuLMSyrfNDJ1InlwQ4yTWqDSiTawRiTa3uz9JfvQJwR0AUmgoIwkIFWt5a
+Py1prCZyAhlG/jspfqvuHSWD44IWqZ0+Rhuf1Pu1LcswLLiiv9x2jFPv9rCpD/AI
+Wyp3M12XTVFZh/TiHq4+QVipptn3q0e9KS2rvq/kGI01pZhk0cH+o1yR2n27FRk2
+vi/k6n7Z3x6VIrOTZN84DdQcwdDYIxJSEUFkVnAlfwtOxQ5kFkL8zrLcuErLcXY2
+Q2A4G5qg0lgl4tXWm+vNBYlCLEPcMZ0nzxF48e8ZG7IPRfdT3ROvu3vNRFYfjXxa
++hSvhUR/kFWN34T5rlKT
+=lgeu
 -----END PGP SIGNATURE-----
 
---WChQLJJJfbwij+9x--
+--FN+gV9K+162wdwwF--
