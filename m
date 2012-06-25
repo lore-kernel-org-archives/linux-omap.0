@@ -1,58 +1,71 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/3] regulator: tps65217: Add device tree support
-Date: Mon, 25 Jun 2012 13:12:20 +0100
-Message-ID: <20120625121220.GA30406@opensource.wolfsonmicro.com>
-References: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
- <1340625878-32336-2-git-send-email-anilkumar@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
+Date: Mon, 25 Jun 2012 17:57:31 +0530
+Message-ID: <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340605221.12683.30.camel@lappyti>
+	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
+	<1340616643.3395.19.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1340625878-32336-2-git-send-email-anilkumar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46651 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab2FYM1c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Jun 2012 08:27:32 -0400
+Received: by lbbgm6 with SMTP id gm6so6439175lbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 05:27:31 -0700 (PDT)
+In-Reply-To: <1340616643.3395.19.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
+On 25 June 2012 15:00, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Mon, 2012-06-25 at 14:19 +0530, Jassi Brar wrote:
+>> On 25 June 2012 11:50, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>> > On Sat, 2012-06-23 at 13:36 +0530, jaswinder.singh@linaro.org wrot=
+e:
+>> ....
+>> >> =A0Currenlty HDMI fails to come up in the suspend-resume path.
+>> >> This patch helps that real-world scenario.
+>> >
+>> > What is the problem there? It'd be good to explain the problem in =
+the
+>> > patch description. Does the pm_runtime_get return -EACCES?
+>> >
+>> Yes, it returns -EACCESS because RPM on devices is disabled during t=
+he
+>> period from suspend-start to resume-finished.
+>
+> So... You didn't answer my first comment, how can the code work?
+>
+Sorry, don't know why I thought I didn't miss anything.
 
---NzB8fVQJ5HfG6fxh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> The driver needs to enable the HW and the call to pm_runtime_get() is
+> skipped. Won't this lead to crash as the DSS registers are accessed
+> without the HW in enabled state?
+>
+Hmm...  how does the extant code in hdmi driver ensures DSS is up and r=
+unning ?
+While it does sound important even to my limited knowledge of OMAPDSS,
+I see rpm of HDMI, VENC and RFBI only dependent on DISPC, not DSS.
 
-On Mon, Jun 25, 2012 at 05:34:36PM +0530, AnilKumar Ch wrote:
-> This commit adds device tree support for tps65217 pmic. And usage
-> details are added to device tree documentation.
->=20
-> Driver is tested by using kernel module with regulator set and get
-> APIs.
+And for DISPC these drivers already hold a reference in their display
+enable/resume and keep it until disable/suspend. So we don't lose
+DISPC anytime it is really required.
 
-This needs to be updated for the patches Laxman recently posted for the
-regulator-compatible property (which are currently blocked on review
-=66rom the ST Ericcsson guys but I'll probably apply them in the next
-couple of days if I don't hear back from them).
+> And what happens if the pm_runtime_get() call is skipped, but pm_runt=
+ime_put() is not?
+>
+Not sure in what newly introduced scenario by this patch, because
+get/put both check for pm_enabled before proceeding. Am I overlooking
+something?
 
---NzB8fVQJ5HfG6fxh
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJP6FSqAAoJEBus8iNuMP3dxIcP/00HGnTnaUH8hckkICDP3Dle
-ry/ohUBRawMEenbnOP7YHF5cr4gMzfSOPNE2jnxYUSXfO8cm1GL0+wTUOr4xtpvr
-+u7xMbLyshpyqqUu70P0dBCN3RWEABnuK/Sd7nfHCO+46IUdySLNk+k3++iIERhV
-C9GxDCtyLNa0PDbeoxHl7o2mfaHbYWZ9buYUMOtJP5FRNxs0+eEFe7N39Ip6O6RS
-yGiTeaDUuU9UNjv0ANJBbC59gwH9ESu005N6ZBcsrhZWLzyZ0NXOMoFZmEGhzJLC
-MumnU1OVArqQtAC3uIndqdY4zkXK5bOYoAJyzhwWzk7DEavV3ssU6moLFxX8rBSK
-R1V5T6d4Njrp+V2f0Ji68OWzzao+wL4t4uOY4uKog+BMo3cbpCNMYrHEp06OTxWX
-i77hF0C5NfE9Ij0AUHPWJyiI5f4CIlzPtBVEir3qeMBJ+qcjzEgyRgSN7ILVuzw3
-kwxIY3MTWv0352guk0WvOaYiZEqbrDm4fKzuAAAthXagwJBW3exEwd0Xx7a/UoK5
-lhgN1VIklc/Ibwcz+VnNdgjf6aEmr4gv454ZSbNuAuI9k2JbVC5ocG7gYY9VByx+
-9VyyzbQ+s1+Aofzlg4r8vOGO74l4rSguTwoCTgeorYA7/olGhLyBz1ic7/y5RhK+
-33KMVcyPmzbJizMexD+V
-=eEeF
------END PGP SIGNATURE-----
-
---NzB8fVQJ5HfG6fxh--
+thnx
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
