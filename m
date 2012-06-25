@@ -1,68 +1,148 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: Crash with VMALLOC api
-Date: Sun, 24 Jun 2012 13:47:29 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.1206241345060.13297@chino.kir.corp.google.com>
-References: <CAJ7qFSdiGw1krDbWg6HvwBymp2gwrYKb8UuA00wSP0rgZi-EMw@mail.gmail.com>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH 1/1 v2] ARM: only call smp_send_stop() on SMP
+Date: Mon, 25 Jun 2012 08:51:37 +0800
+Message-ID: <20120625005134.GA2342@S2101-09.ap.freescale.net>
+References: <1340533690-4049-1-git-send-email-javier@dowhile0.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAJ7qFSdiGw1krDbWg6HvwBymp2gwrYKb8UuA00wSP0rgZi-EMw@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: linux-mm@kvack.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:29880
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751537Ab2FYAvr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 24 Jun 2012 20:51:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1340533690-4049-1-git-send-email-javier@dowhile0.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, 23 Jun 2012, R, Sricharan wrote:
+It seems the same patch has been there for a while.
 
-> Hi,
->   I am observing a below crash with VMALLOC call on mainline kernel.
->   The issue happens when there is insufficent vmalloc space.
->   Isn't it expected that the API should return a NULL instead of crashing when
->   there is not enough memory?.
+http://thread.gmane.org/gmane.linux.kernel/1303115
 
-Yes.
+Regards,
+Shawn
 
->   This can be reproduced with succesive vmalloc
->   calls for a size of about say 10MB, without a vfree, thus exhausting
-> the memory.
+On Sun, Jun 24, 2012 at 12:28:10PM +0200, Javier Martinez Canillas wrote:
+> On reboot or poweroff (machine_shutdown()) a call to smp_send_stop() is
+> made (to stop the others CPU's) when CONFIG_SMP=y.
 > 
->  Strangely when vmalloc is requested for a large chunk, then at that time API
->  does not crash instead returns a NULL correctly.
+> arch/arm/kernel/process.c:
 > 
->   Please correct me if my understanding is not correct..
+> void machine_shutdown(void)
+> {
+>  #ifdef CONFIG_SMP
+>        smp_send_stop();
+>  #endif
+> }
 > 
-> --------------------------------------------------------------------------------------
+> smp_send_stop() calls the function pointer smp_cross_call(), which is set
+> on the smp_init_cpus() function for OMAP processors.
 > 
-> [  345.059841] Unable to handle kernel paging request at virtual
-> address 90011000
-> [  345.067063] pgd = ebc34000
-> [  345.069793] [90011000] *pgd=00000000
-> [  345.073383] Internal error: Oops: 5 [#1] PREEMPT SMP ARM
-> [  345.078685] Modules linked in: bcmdhd cfg80211 inv_mpu_ak8975
-> inv_mpu_kxtf9 mpu3050
-> [  345.086380] CPU: 0    Tainted: G        W     (3.4.0-rc1-05660-g0d4b175 #1)
-> [  345.093351] PC is at vmap_page_range_noflush+0xf0/0x200
-> [  345.098569] LR is at vmap_page_range+0x14/0x50
-> [  345.103005] pc : [<c01091c8>]    lr : [<c01092ec>]    psr: 80000013
-> [  345.103009] sp : ebc41e38  ip : fe000fff  fp : 00002000
-> [  345.114472] r10: c0a78480  r9 : 90011000  r8 : c096e2ac
-> [  345.119685] r7 : 90011000  r6 : 00000000  r5 : fe000000  r4 : 00000000
-> [  345.126198] r3 : 50011452  r2 : f385c400  r1 : fe000fff  r0 : f385c400
-> [  345.132713] Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> [  345.139835] Control: 10c5387d  Table: abc3404a  DAC: 00000015
+> arch/arm/mach-omap2/omap-smp.c:
+> 
+> void __init smp_init_cpus(void)
+> {
+> ...
+> 	set_smp_cross_call(gic_raise_softirq);
+> ...
+> }
+> 
+> But the ARM setup_arch() function only calls smp_init_cpus()
+> if CONFIG_SMP=y && is_smp().
+> 
+> arm/kernel/setup.c:
+> 
+> void __init setup_arch(char **cmdline_p)
+> {
+> ...
+>  #ifdef CONFIG_SMP
+> 	if (is_smp())
+> 		smp_init_cpus();
+>  #endif
+> ...
+> }
+> 
+> Newer OMAP CPU's are SMP machines so omap2plus_defconfig sets
+> CONFIG_SMP=y. Unfortunately on an OMAP UP machine is_smp()
+> returns false and smp_init_cpus() is never called and the
+> smp_cross_call() function remains NULL.
+> 
+> If the machine is rebooted or powered off, smp_send_stop() will
+> be called (since CONFIG_SMP=y) leading to the following error:
+> 
+> [   42.815551] Restarting system.
+> [   42.819030] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> [   42.827667] pgd = d7a74000
+> [   42.830566] [00000000] *pgd=96ce7831, *pte=00000000, *ppte=00000000
+> [   42.837249] Internal error: Oops: 80000007 [#1] SMP ARM
+> [   42.842773] Modules linked in:
+> [   42.846008] CPU: 0    Not tainted  (3.5.0-rc3-next-20120622-00002-g62e87ba-dirty #44)
+> [   42.854278] PC is at 0x0
+> [   42.856994] LR is at smp_send_stop+0x4c/0xe4
+> [   42.861511] pc : [<00000000>]    lr : [<c00183a4>]    psr: 60000013
+> [   42.861511] sp : d6c85e70  ip : 00000000  fp : 00000000
+> [   42.873626] r10: 00000000  r9 : d6c84000  r8 : 00000002
+> [   42.879150] r7 : c07235a0  r6 : c06dd2d0  r5 : 000f4241  r4 : d6c85e74
+> [   42.886047] r3 : 00000000  r2 : 00000000  r1 : 00000006  r0 : d6c85e74
+> [   42.892944] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> [   42.900482] Control: 10c5387d  Table: 97a74019  DAC: 00000015
+> [   42.906555] Process reboot (pid: 1166, stack limit = 0xd6c842f8)
+> [   42.912902] Stack: (0xd6c85e70 to 0xd6c86000)
+> [   42.917510] 5e60:                                     c07235a0 00000000 00000000 d6c84000
+> [   42.926177] 5e80: 01234567 c00143d0 4321fedc c00511bc d6c85ebc 00000168 00000460 00000000
+> [   42.934814] 5ea0: c1017950 a0000013 c1017900 d8014390 d7ec3858 c0498e48 c1017950 00000000
+> [   42.943481] 5ec0: d6ddde10 d6c85f78 00000003 00000000 d6ddde10 d6c84000 00000000 00000000
+> [   42.952117] 5ee0: 00000002 00000000 00000000 c0088c88 00000002 00000000 00000000 c00f4b90
+> [   42.960784] 5f00: 00000000 d6c85ebc d8014390 d7e311c8 60000013 00000103 00000002 d6c84000
+> [   42.969421] 5f20: c00f3274 d6e00a00 00000001 60000013 d6c84000 00000000 00000000 c00895d4
+> [   42.978057] 5f40: 00000002 d8007c80 d781f000 c00f6150 d8010cc0 c00f3274 d781f000 d6c84000
+> [   42.986694] 5f60: c0013020 d6e00a00 00000001 20000010 0001257c ef000000 00000000 c00895d4
+> [   42.995361] 5f80: 00000002 00000001 00000003 00000000 00000001 00000003 00000000 00000058
+> [   43.003997] 5fa0: c00130c8 c0012f00 00000001 00000003 fee1dead 28121969 01234567 00000002
+> [   43.012634] 5fc0: 00000001 00000003 00000000 00000058 00012584 0001257c 00000001 00000000
+> [   43.021270] 5fe0: 000124bc bec5cc6c 00008f9c 4a2f7c40 20000010 fee1dead 00000000 00000000
+> [   43.029968] [<c00183a4>] (smp_send_stop+0x4c/0xe4) from [<c00143d0>] (machine_restart+0xc/0x4c)
+> [   43.039154] [<c00143d0>] (machine_restart+0xc/0x4c) from [<c00511bc>] (sys_reboot+0x144/0x1f0)
+> [   43.048278] [<c00511bc>] (sys_reboot+0x144/0x1f0) from [<c0012f00>] (ret_fast_syscall+0x0/0x3c)
+> [   43.057464] Code: bad PC value
+> [   43.060760] ---[ end trace c3988d1dd0b8f0fb ]---
+> 
+> Add a check so smp_cross_call() is only called when there is more than one CPU on-line.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> ---
+> 
+> Changes since v1:
+> 
+> - check for cpumask_empty() on arch/arm/kernel/smp.c instead for
+>   is_smp() on arch/arm/kernel/process.c
+> 
+>  arch/arm/kernel/smp.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+> index 2c7217d..ea73045 100644
+> --- a/arch/arm/kernel/smp.c
+> +++ b/arch/arm/kernel/smp.c
+> @@ -563,7 +563,8 @@ void smp_send_stop(void)
+>  
+>  	cpumask_copy(&mask, cpu_online_mask);
+>  	cpumask_clear_cpu(smp_processor_id(), &mask);
+> -	smp_cross_call(&mask, IPI_CPU_STOP);
+> +	if (!cpumask_empty(&mask))
+> +		smp_cross_call(&mask, IPI_CPU_STOP);
+>  
+>  	/* Wait up to one second for other CPUs to stop */
+>  	timeout = USEC_PER_SEC;
+> -- 
+> 1.7.7.6
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-Couple requests:
-
- - since you're already running an -rc kernel, would it be possible to
-   try 3.5-rc4, which was released today, instead?
-
- - could you disassemble vmap_page_range_noflush and post the output or 
-   map the offset back to the line in the code?
-
-Thanks!
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
