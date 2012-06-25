@@ -1,41 +1,81 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 1/3] regulator: tps65217: Add device tree support
-Date: Mon, 25 Jun 2012 12:28:15 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9DFA80@DBDE01.ent.ti.com>
-References: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
- <1340625878-32336-2-git-send-email-anilkumar@ti.com>
- <20120625121220.GA30406@opensource.wolfsonmicro.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
+ state
+Date: Mon, 25 Jun 2012 15:30:59 +0300
+Message-ID: <1340627459.3395.54.camel@deskari>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	 <1340605221.12683.30.camel@lappyti>
+	 <CANOLnOOodXtqV7Hs-SsEUfB3Uo1PSGb8bkaeN7M48jVpQrb-cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120625121220.GA30406@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-HtSxqepw5ykP22mwMOex"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:54923 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752126Ab2FYMay (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Jun 2012 08:30:54 -0400
+Received: by lbbgj3 with SMTP id gj3so5631639lbb.25
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 05:30:51 -0700 (PDT)
+In-Reply-To: <CANOLnOOodXtqV7Hs-SsEUfB3Uo1PSGb8bkaeN7M48jVpQrb-cA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: jaswinder.singh@linaro.org, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
-Hi Mark,
 
-Thanks for quick reply.
+--=-HtSxqepw5ykP22mwMOex
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 25, 2012 at 17:42:20, Mark Brown wrote:
-> On Mon, Jun 25, 2012 at 05:34:36PM +0530, AnilKumar Ch wrote:
-> > This commit adds device tree support for tps65217 pmic. And usage
-> > details are added to device tree documentation.
-> > 
-> > Driver is tested by using kernel module with regulator set and get
-> > APIs.
-> 
-> This needs to be updated for the patches Laxman recently posted for the
-> regulator-compatible property (which are currently blocked on review
-> from the ST Ericcsson guys but I'll probably apply them in the next
-> couple of days if I don't hear back from them).
-> 
+On Mon, 2012-06-25 at 15:05 +0300, Grazvydas Ignotas wrote:
+> On Mon, Jun 25, 2012 at 9:20 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > On Sat, 2012-06-23 at 13:36 +0530, jaswinder.singh@linaro.org wrote:
+> >>
+> >>  Currenlty HDMI fails to come up in the suspend-resume path.
+> >> This patch helps that real-world scenario.
+> >
+> > What is the problem there? It'd be good to explain the problem in the
+> > patch description. Does the pm_runtime_get return -EACCES?
+>=20
+> On slightly different but related issue, currently OMAPDSS always
+> spits lots of backtraces when it's compiled without CONFIG_PM_RUNTIME,
+> because pm_runtime_put* always return -ENOSYS without
+> CONFIG_PM_RUNTIME. So something like this patch proposes is needed, or
+> maybe WARN_ON should check for -ENOSYS, I don't know..
 
-In that case, I will resubmit the patches once "regulator-compatible
-property" patches are pushed to "linux-next".
+Hmm. I guess I'm missing some understanding about runtime PM. omapdss
+uses runtime PM to enable the underlying DSS hardware. If there's no
+runtime PM, how does the driver work? Or is it the job of
+hwmod/omap_device to keep all the hardware always enabled if runtime PM
+is not compiled in?
 
-Thanks
-AnilKumar
+ Tomi
+
+
+--=-HtSxqepw5ykP22mwMOex
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP6FoDAAoJEPo9qoy8lh71XEgP/2mReCuXJha9NkPJWciOinNV
+WeKabcp+Rbjtlw1Jgn4Brys11r/KVTppVw7BaixR+qay0NCj2fSPZswll0xVEqOF
+9BiYpgM7UjE4XeP57Q+3mFjdxB0BAHfRaljWhtKn7hi/9PJErwJr+7rCkNzrzoH3
+HfP3hzsF5S4WwpOWptXi1u7ROwjIH7c/KTv7PtufDKDeupfneqK/BBsySRZPNTJV
+xNvZzjTY33qoDuMKGl/xMG+Vl52eSSicqM+y+M9ZQPTo7uF62Q0GkS7LG//K6/vp
+DuAO3ThsBGgUdASQYP6dGjy0NiOGRXVlEMNXBIvm8bD75pEn+4nWYVmJQbnlKDBa
+ySembMrKKDb6JpVuEpZxbnLtX+tuIS0ZYqbzxVwyguvJA+tW3dC2ZMmA6uyUyKvl
+IlizPF2aEV+9qFijCDa01JxD/plFrU45OHEKCNGx+LWYG1HgYvUCii+bjXVoqQto
+oadhrC2l6O7Pq161EQWXHbr73j5anCaOwME+q6eRtZV0ODrlmTywDcpJpM90yl/E
+sioZ5rSuIPsfyEIUzR9c4v7DgkaAVdAsmyfobO1wZJ9AjI/SZarTZ+YKuExeJrK/
+XHJh/30s8m2EtNRP7uiUCGNIo9QRrO96SGnUHn/HoiTkefoBClg9/gJhfUAdEm0R
+NMu4UiO+YsTIaSyvLJo2
+=cWRn
+-----END PGP SIGNATURE-----
+
+--=-HtSxqepw5ykP22mwMOex--
+
