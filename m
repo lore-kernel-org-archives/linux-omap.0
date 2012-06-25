@@ -1,81 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Mon, 25 Jun 2012 15:30:59 +0300
-Message-ID: <1340627459.3395.54.camel@deskari>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340605221.12683.30.camel@lappyti>
-	 <CANOLnOOodXtqV7Hs-SsEUfB3Uo1PSGb8bkaeN7M48jVpQrb-cA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv10 1/7] I2C: OMAP: I2C register restore only if context
+ is lost
+Date: Mon, 25 Jun 2012 15:30:01 +0300
+Message-ID: <20120625123000.GB30463@arwen.pp.htv.fi>
+References: <1340622702-21622-1-git-send-email-shubhrajyoti@ti.com>
+ <1340622702-21622-2-git-send-email-shubhrajyoti@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-HtSxqepw5ykP22mwMOex"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:54923 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752126Ab2FYMay (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39654 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756228Ab2FYMcY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 08:30:54 -0400
-Received: by lbbgj3 with SMTP id gj3so5631639lbb.25
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 05:30:51 -0700 (PDT)
-In-Reply-To: <CANOLnOOodXtqV7Hs-SsEUfB3Uo1PSGb8bkaeN7M48jVpQrb-cA@mail.gmail.com>
+	Mon, 25 Jun 2012 08:32:24 -0400
+Received: by lboj14 with SMTP id j14so7396856lbo.35
+        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 05:32:21 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1340622702-21622-2-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: jaswinder.singh@linaro.org, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Kevin Hilman <khilman@ti.com>
 
 
---=-HtSxqepw5ykP22mwMOex
-Content-Type: text/plain; charset="UTF-8"
+--gatW/ieO32f1wygP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-06-25 at 15:05 +0300, Grazvydas Ignotas wrote:
-> On Mon, Jun 25, 2012 at 9:20 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Sat, 2012-06-23 at 13:36 +0530, jaswinder.singh@linaro.org wrote:
-> >>
-> >>  Currenlty HDMI fails to come up in the suspend-resume path.
-> >> This patch helps that real-world scenario.
-> >
-> > What is the problem there? It'd be good to explain the problem in the
-> > patch description. Does the pm_runtime_get return -EACCES?
+Hi,
+
+On Mon, Jun 25, 2012 at 04:41:36PM +0530, Shubhrajyoti D wrote:
+>  Currently i2c register restore is done always.
+>  Adding conditional restore.
+>  The i2c register restore is done only if the context is lost
+>  or in case of error to be on the safe side.
 >=20
-> On slightly different but related issue, currently OMAPDSS always
-> spits lots of backtraces when it's compiled without CONFIG_PM_RUNTIME,
-> because pm_runtime_put* always return -ENOSYS without
-> CONFIG_PM_RUNTIME. So something like this patch proposes is needed, or
-> maybe WARN_ON should check for -ENOSYS, I don't know..
+> Cc: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Hmm. I guess I'm missing some understanding about runtime PM. omapdss
-uses runtime PM to enable the underlying DSS hardware. If there's no
-runtime PM, how does the driver work? Or is it the job of
-hwmod/omap_device to keep all the hardware always enabled if runtime PM
-is not compiled in?
+how will this ever work with DT ? I say we get rid of the OMAP-specific
+API and build this "context lost" status directly on dev_pm_info and
+have something like pm_runtime_lost_context() or something with pm QoS
+tell you if a device has lost its context.
 
- Tomi
+Also, your commit log doesn't really state any problems you might have
+reached before, or any improvements wrt latency coming out of suspend
+and so on.
 
+IMHO, drivers need a generic way to differentiate if they're resuming
+=66rom OFF or RET, otherwise we will end up with a bunch of OMAP-specific
+hackery on all drivers
 
---=-HtSxqepw5ykP22mwMOex
+--=20
+balbi
+
+--gatW/ieO32f1wygP
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJP6FoDAAoJEPo9qoy8lh71XEgP/2mReCuXJha9NkPJWciOinNV
-WeKabcp+Rbjtlw1Jgn4Brys11r/KVTppVw7BaixR+qay0NCj2fSPZswll0xVEqOF
-9BiYpgM7UjE4XeP57Q+3mFjdxB0BAHfRaljWhtKn7hi/9PJErwJr+7rCkNzrzoH3
-HfP3hzsF5S4WwpOWptXi1u7ROwjIH7c/KTv7PtufDKDeupfneqK/BBsySRZPNTJV
-xNvZzjTY33qoDuMKGl/xMG+Vl52eSSicqM+y+M9ZQPTo7uF62Q0GkS7LG//K6/vp
-DuAO3ThsBGgUdASQYP6dGjy0NiOGRXVlEMNXBIvm8bD75pEn+4nWYVmJQbnlKDBa
-ySembMrKKDb6JpVuEpZxbnLtX+tuIS0ZYqbzxVwyguvJA+tW3dC2ZMmA6uyUyKvl
-IlizPF2aEV+9qFijCDa01JxD/plFrU45OHEKCNGx+LWYG1HgYvUCii+bjXVoqQto
-oadhrC2l6O7Pq161EQWXHbr73j5anCaOwME+q6eRtZV0ODrlmTywDcpJpM90yl/E
-sioZ5rSuIPsfyEIUzR9c4v7DgkaAVdAsmyfobO1wZJ9AjI/SZarTZ+YKuExeJrK/
-XHJh/30s8m2EtNRP7uiUCGNIo9QRrO96SGnUHn/HoiTkefoBClg9/gJhfUAdEm0R
-NMu4UiO+YsTIaSyvLJo2
-=cWRn
+iQIcBAEBAgAGBQJP6FnIAAoJEIaOsuA1yqREYJUQAK517FVu8D225pG+CNf3S02R
+DDsF9yJidFvfOmjiJj7MeicudC7KUpxSvFt5uYuxuVmjGcrWRLzlXW9oTgBDhSMd
+ViFkmWYOZGRIZQMqWcX9WateyYlE+4FShduVXoVQ1TzNOdcP+iVG/OaquhI1HD/X
+NY4oEKrIQYYTrAGPbB29bg45zCqz0y64pEKn9cAVkkq9hXPwNX/Fxub1qMoo7WBg
+XhVWa6kMXHB/g6DzLsZy/kwoAxz8bNcOUUxug7zdXXVstGl9tPyjYeeWrYWiIR2E
+IppYD/r4TvIwuq8vN8KU31MoOra7YAtOsr5i7frhch3IfgbKRDL/yaCgFJ5sAq48
+dMQajJfrtdo2rN/i+NGBGlKxzTj5TPWLZIx/mHn8s761UBgxAzlU1EFJGK+AosSS
+RX/3XAcrp/P2qhQCt1jRoXFf+f2PKx5dcNdK1FN4+dqGIl5wmBS4rGlSghHbCcvG
+YXgSb7SKzwOZwCmy10YRCKYDIqJwG9B06mJl7eIzFHAyyDiUiu0eZucM2zVq4DZt
+cvbvnY3FJKBxJww0J7HW9VOZxpM0X4zfVNoAB1Ju5vlMqOja6JdEvyG+BCwh3JCX
+N6oR6Roz9uk2AZ9lhKeMPWDVVEnAP1pJV4qh4M6vGULy2qt4HEtIJc+wbu7NLIIx
+7bBV0X5x9FtHgjv6kyy1
+=n/o1
 -----END PGP SIGNATURE-----
 
---=-HtSxqepw5ykP22mwMOex--
-
+--gatW/ieO32f1wygP--
