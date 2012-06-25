@@ -1,74 +1,243 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
-Date: Mon, 25 Jun 2012 17:18:21 +0530
-Message-ID: <4FE85005.4090303@ti.com>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com>		 <1340372890-10091-6-git-send-email-rnayak@ti.com>	 <1340604478.12683.25.camel@lappyti> <4FE80C43.6090802@ti.com> <1340611133.3395.3.camel@deskari>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH 1/3] regulator: tps65217: Add device tree support
+Date: Mon, 25 Jun 2012 17:34:36 +0530
+Message-ID: <1340625878-32336-2-git-send-email-anilkumar@ti.com>
+References: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:33083 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756114Ab2FYLsc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Jun 2012 07:48:32 -0400
-Received: by obbta14 with SMTP id ta14so9075145obb.18
-        for <linux-omap@vger.kernel.org>; Mon, 25 Jun 2012 04:48:31 -0700 (PDT)
-In-Reply-To: <1340611133.3395.3.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1340625878-32336-1-git-send-email-anilkumar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sameo@linux.intel.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: paul@pwsan.com, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
 
-On Monday 25 June 2012 01:28 PM, Tomi Valkeinen wrote:
-> On Mon, 2012-06-25 at 12:29 +0530, Rajendra Nayak wrote:
->> On Monday 25 June 2012 11:37 AM, Tomi Valkeinen wrote:
->>> Hi,
->>>
->>> On Fri, 2012-06-22 at 19:18 +0530, Rajendra Nayak wrote:
->>>> In preparation of OMAP moving to Common Clk Framework(CCF) add clk_prepare()
->>>> and clk_unprepare() for the omapdss clocks.
->>>
->>> You used clk_prepare and clk_unprepare instead of clk_prepare_enable and
->>> clk_disable_unprepare. I didn't check the dss driver yet, but my hunch
->>> is that the clocks are normally not enabled/disabled from atomic
->>> context.
->>>
->>> What does the prepare/unprepare actually do? Is there any benefit in
->>> delaying preparing, i.e. is there a difference between prepare right
->>> after clk_get, or prepare right before clk_enable? (And similarly for
->>> unprepare)
->>
->> clk_prepare/unprepare are useful for clocks which need the 'enable'
->> logic to be implemented as a slow part (which can sleep) and a fast part
->> (which does not sleep). For all the dss clocks in question we don't need
->> a slow part and hence they do not have a .clk_prepare/unprepare
->> platform hook.
->>
->> The framework however still does prepare usecounting (it has a prepare
->> count and an enable count, and prepare count is expected to be non-zero
->> while the clock is being enabled) and uses a mutex around to guard it.
->> So while the dss driver would do multiple clk_enable/disable while its
->> active, it seems fair to just prepare/unprepare the clocks once just
->> after clk_get() and before clk_put() in this particular case.
->
-> But the driver should not presume anything special about the clocks. In
-> this case the dss driver would presume that the clocks it uses do not
-> have prepare and unprepare hooks.
->
-> If the generally proper way to use prepare/unprepare is in combination
-> of enable/disable, then I think we should try to do that.
+This commit adds device tree support for tps65217 pmic. And usage
+details are added to device tree documentation.
 
-makes sense. Lets see if any of the clk_enable/disable happen in  atomic
-context, if not it would be just a matter of replacing all with a
-clk_prepare_enable/disable_unprepare. Else we might have to find a safe
-place sometime before clk_enable to prepare the clk and after
-clk_disable to unprepare it.
+Driver is tested by using kernel module with regulator set and get
+APIs.
 
->
-> I'll check if any of the dss clocks are enabled or disabled in atomic
-> context.
->
->   Tomi
->
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+These patches were tested along with these patches
+* DT addition to AM33XX family
+http://marc.info/?l=linux-omap&m=134035826700991&w=2
 
+ .../devicetree/bindings/regulator/tps65217.txt     |   66 +++++++++++++++++++
+ drivers/mfd/tps65217.c                             |   67 +++++++++++++++++++-
+ drivers/regulator/tps65217-regulator.c             |    1 +
+ include/linux/mfd/tps65217.h                       |    3 +-
+ 4 files changed, 134 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/regulator/tps65217.txt
+
+diff --git a/Documentation/devicetree/bindings/regulator/tps65217.txt b/Documentation/devicetree/bindings/regulator/tps65217.txt
+new file mode 100644
+index 0000000..e84d26c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/regulator/tps65217.txt
+@@ -0,0 +1,66 @@
++TPS65217 family of regulators
++
++Required properties:
++- compatible: "ti,tps65217"
++- reg: I2C slave address
++- regulators: list of regulators provided by this controller, must be named
++  after their hardware counterparts: dcdc[1-3] and ldo[1-4]
++
++Each regulator is defined using the standard binding for regulators.
++
++Example:
++
++	tps: tps@24 {
++		compatible = "ti,tps65217";
++
++		regulators {
++			dcdc1_reg: dcdc1 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <1800000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			dcdc2_reg: dcdc2 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			dcdc3_reg: dcdc3 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <1500000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo1_reg: ldo1 {
++				regulator-min-microvolt = <1000000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo2_reg: ldo2 {
++				regulator-min-microvolt = <900000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo3_reg: ldo3 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++
++			ldo4_reg: ldo4 {
++				regulator-min-microvolt = <1800000>;
++				regulator-max-microvolt = <3300000>;
++				regulator-boot-on;
++				regulator-always-on;
++			};
++		};
++	};
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index db194e4..61c097a 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -24,6 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/regmap.h>
+ #include <linux/err.h>
++#include <linux/regulator/of_regulator.h>
+ 
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/tps65217.h>
+@@ -132,6 +133,61 @@ int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
+ }
+ EXPORT_SYMBOL_GPL(tps65217_clear_bits);
+ 
++#ifdef CONFIG_OF
++static struct of_regulator_match reg_matches[] = {
++	{ .name = "dcdc1", .driver_data = (void *)TPS65217_DCDC_1 },
++	{ .name = "dcdc2", .driver_data = (void *)TPS65217_DCDC_2 },
++	{ .name = "dcdc3", .driver_data = (void *)TPS65217_DCDC_3 },
++	{ .name = "ldo1", .driver_data = (void *)TPS65217_LDO_1 },
++	{ .name = "ldo2", .driver_data = (void *)TPS65217_LDO_2 },
++	{ .name = "ldo3", .driver_data = (void *)TPS65217_LDO_3 },
++	{ .name = "ldo4", .driver_data = (void *)TPS65217_LDO_4 },
++};
++
++static struct tps65217_board *tps65217_parse_dt(struct i2c_client *client)
++{
++	struct device_node *node = client->dev.of_node;
++	struct tps65217_board *pdata;
++	struct device_node *regs;
++	int count = ARRAY_SIZE(reg_matches);
++	int ret, i;
++
++	regs = of_find_node_by_name(node, "regulators");
++	if (!regs)
++		return NULL;
++
++	ret = of_regulator_match(&client->dev, regs, reg_matches, count);
++	of_node_put(regs);
++	if ((ret < 0) || (ret > count))
++		return NULL;
++
++	count = ret;
++	pdata = devm_kzalloc(&client->dev, count * sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++
++	for (i = 0; i < count; i++) {
++		if (!reg_matches[i].init_data || !reg_matches[i].of_node)
++			continue;
++
++		pdata->tps65217_init_data[i] = reg_matches[i].init_data;
++		pdata->of_node[i] = reg_matches[i].of_node;
++	}
++
++	return pdata;
++}
++
++static struct of_device_id tps65217_of_match[] = {
++	{ .compatible = "ti,tps65217", },
++	{ },
++};
++#else
++static struct tps65217_board *tps65217_parse_dt(struct i2c_client *client)
++{
++	return NULL;
++}
++#endif
++
+ static struct regmap_config tps65217_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+@@ -141,10 +197,14 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *ids)
+ {
+ 	struct tps65217 *tps;
++	struct regulator_init_data *reg_data;
+ 	struct tps65217_board *pdata = client->dev.platform_data;
+ 	int i, ret;
+ 	unsigned int version;
+ 
++	if (!pdata && client->dev.of_node)
++		pdata = tps65217_parse_dt(client);
++
+ 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+ 	if (!tps)
+ 		return -ENOMEM;
+@@ -182,8 +242,9 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 		}
+ 
+ 		pdev->dev.parent = tps->dev;
+-		platform_device_add_data(pdev, &pdata->tps65217_init_data[i],
+-					sizeof(pdata->tps65217_init_data[i]));
++		pdev->dev.of_node = pdata->of_node[i];
++		reg_data = pdata->tps65217_init_data[i];
++		platform_device_add_data(pdev, reg_data, sizeof(*reg_data));
+ 		tps->regulator_pdev[i] = pdev;
+ 
+ 		platform_device_add(pdev);
+@@ -212,6 +273,8 @@ MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+ static struct i2c_driver tps65217_driver = {
+ 	.driver		= {
+ 		.name	= "tps65217",
++		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(tps65217_of_match),
+ 	},
+ 	.id_table	= tps65217_id_table,
+ 	.probe		= tps65217_probe,
+diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+index 9d371d2..75401c7 100644
+--- a/drivers/regulator/tps65217-regulator.c
++++ b/drivers/regulator/tps65217-regulator.c
+@@ -326,6 +326,7 @@ static int __devinit tps65217_regulator_probe(struct platform_device *pdev)
+ 	tps->info[pdev->id] = info;
+ 
+ 	config.dev = &pdev->dev;
++	config.of_node = pdev->dev.of_node;
+ 	config.init_data = pdev->dev.platform_data;
+ 	config.driver_data = tps;
+ 
+diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
+index e030ef9..10e0595 100644
+--- a/include/linux/mfd/tps65217.h
++++ b/include/linux/mfd/tps65217.h
+@@ -217,7 +217,8 @@ enum tps65217_regulator_id {
+  * Board data may be used to initialize regulator.
+  */
+ struct tps65217_board {
+-	struct regulator_init_data *tps65217_init_data;
++	struct regulator_init_data *tps65217_init_data[TPS65217_NUM_REGULATOR];
++	struct device_node *of_node[TPS65217_NUM_REGULATOR];
+ };
+ 
+ /**
+-- 
+1.7.9.5
