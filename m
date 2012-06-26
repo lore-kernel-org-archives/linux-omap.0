@@ -1,99 +1,88 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Tue, 26 Jun 2012 18:11:54 +0300
-Message-ID: <1340723514.24530.70.camel@deskari>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340605221.12683.30.camel@lappyti>
-	 <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	 <1340616643.3395.19.camel@deskari>
-	 <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	 <1340628094.3395.63.camel@deskari>
-	 <CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	 <1340632161.3395.100.camel@deskari>
-	 <CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	 <1340695166.2093.22.camel@lappyti>
-	 <CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	 <1340701660.24530.17.camel@deskari>
-	 <CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	 <1340712213.24530.21.camel@deskari>
-	 <CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-	 <1340723296.24530.68.camel@deskari>
-	 <CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH 0/3] OMAP3 I2C/SCCB support
+Date: Tue, 26 Jun 2012 18:20:33 +0200
+Message-ID: <2898283.yhxlxrlhzg@avalon>
+References: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAGGh5h3WLmQbDyoh8GbydxXQJ81DrVmeZK3Xh13HmHv4cxOs_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-j3/ILLjQocy97i5AyV2l"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58094 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757370Ab2FZPL7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 11:11:59 -0400
-Received: by lbon10 with SMTP id n10so353587lbo.27
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 08:11:56 -0700 (PDT)
-In-Reply-To: <CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37228 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758002Ab2FZQUc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 12:20:32 -0400
+In-Reply-To: <CAGGh5h3WLmQbDyoh8GbydxXQJ81DrVmeZK3Xh13HmHv4cxOs_g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
+Hi Jean-Philippe,
 
---=-j3/ILLjQocy97i5AyV2l
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Tuesday 26 June 2012 16:49:35 jean-philippe francois wrote:
+> 2012/6/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > Hi everybody,
+> > 
+> > While trying to use an OV7725 camera sensor with an OMAP3 system I ran
+> > into a couple of issues related to the sensor communication protocol.
+> > Instead of using the obiquitous I2C protocol, Omnivision invited the SCCB
+> > communication bus, very similar to I2C but different enough not to be
+> > compatible.
+> I have been using omnivision sensor without being aware of this issue,
+> and without any i2c reliability issue either.
+> 
+> Here is typical code I use :
+> 
+> /* This function is used to read value from register for i2c client */
+> static int ov2710_read(struct i2c_client *client, unsigned short reg,
+> unsigned char *val)
+> {
+>     int err = 0;
+>     unsigned char outbuf[] = {(reg>>8)&0xff, reg&0xff};
 
-On Tue, 2012-06-26 at 20:39 +0530, Jassi Brar wrote:
-> On 26 June 2012 20:38, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Tue, 2012-06-26 at 20:19 +0530, Jassi Brar wrote:
-> >> On 26 June 2012 17:33, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >> > On Tue, 2012-06-26 at 15:27 +0530, Jassi Brar wrote:
-> >> >
-> >> >> Seems similar, but I only tested OMAP4 HDMI.
-> >> >
-> >> > Would something like this one below work for you? It fixes the issue=
-s on
-> >> > my overo board.
-> >> >
-> >> I think this should work too (I will get to test it only tomorrow).
-> >>
-> >> Though I don't think it'll fix stack spew when run without
-> >> CONFIG_PM_RUNTIME. Maybe we could simply remove the WARN_ON in the
-> >> xxx_runtime_put() as Alan noted?
-> >
-> > Yes, that's a different issue. I'll look at that also.
-> >
-> Well, my patch took care of that also. But I agree, that could be
-> added separately as well.
+According to the SCCB specification (or at least the version I've found) 
+register addresses are 8-bit. The OV2710 might just be I2C-compatible.
 
-Well, I don't agree that your patch is correct =3D). I don't think it's
-right to skip runtime get and put when pm_runtime_enabled() returns
-false.
+>     unsigned char inbuf[1];
+>     struct i2c_msg msg[] = {
+>         { .addr = client->addr, .flags = 0, .buf = outbuf, .len = 2 },
+>         { .addr = client->addr, .flags = I2C_M_RD, .buf = inbuf, .len = 1 },
+> };
+>     err = i2c_transfer(client->adapter, msg, 2);
+>     /* error handling and pass by ref handling */
+>     ....
+> }
 
- Tomi
+The ov772x driver uses i2c_smbus_write_byte_data() and 
+i2c_smbus_read_byte_data(). The later calls
 
+i2c_smbus_xfer(client->adapter, client->addr, client->flags,
+               I2C_SMBUS_READ, I2C_SMBUS_BYTE_DATA, &data);
 
---=-j3/ILLjQocy97i5AyV2l
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+which calls i2c_smbus_xfer_emulated() for hosts that don't support SMBus 
+transfers natively, and that's pretty much equivalent to your above code 
+(except for the 8/16 bit register address).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+It might be a good idea to implement i2c_smbus_*-like functions for 16-bit 
+register addresses in the I2C core, they could be reused across drivers.
 
-iQIcBAABAgAGBQJP6dE6AAoJEPo9qoy8lh71Je0P+wdrtfhUe5FBhPiQI7KVuwh9
-ATT9ObxqXUlXi6H6MP5lD54P7QYvlvYRT7dtThc9p/yV7axZbpLJkBflAmViKFu+
-igiWY1p3FMc/eYjseQvZootXiLnNLBLS4LkWLpzltL2bCDc+moAgIj7hc7pJeQZ4
-UOWXnd0nYFyeZ6NpPECg29PnnIFEGyIttqKTA3A+6QOjj1VTe9Fc1RuNifPnrPg+
-sTmSb1EjHDm4Y5VedabBttxszd2snl06fqOwP+34J+oF3nAh0feZiA7NzrWlB7sc
-QRNOlgR6EEozwY8O7RsAnzKHI3lwAjbgnKFn+fJ6UDX6l4ZYGD/9FkRlcVtrp3qW
-bHnaQcI+HH7HWXbKvIZQu+9P4WZUZH3E+xWc60KKwGUFmkf7cs0pdADedmYMyheQ
-59Dnpl8qSPbdoHL3USpMzWLWkc9RyZJgZqNpOub0qy1shb0QBS6JQN9nIJnaLUey
-848e2TL9zL1ClTMly/Gcjdj29Gg7gba+x2uGPm+NLXsZwDScjo40mJg3WuVP+zxr
-kNdy8kzvUyqcglLXlU4kwb/qwlvysT+OHsrD/MioRJdQWtipJCAUWamYOXmjwi3D
-xhdr8LRIZubtiUpH59urSqTpCmvOlmHj5IPdk8ai6cGEutCp+VIXP6JxnkadMwVE
-kzC5oQUSnheKkRYSEOOx
-=5pAv
------END PGP SIGNATURE-----
+> Is the point of this patch to avoid writing such functions again and again
+> in every ov driver ?
 
---=-j3/ILLjQocy97i5AyV2l--
+No, but that's a good idea as well :-)
+
+> What is solved in practice by this patch that is not solved by a regular i2c
+> transfer ?
+
+The above code will not ignore acks/nacks and will not generate a stop 
+condition between the two messages. The SCCB specification states that 
+acks/nacks must be ignored and that a stop condition must be generated. The 
+OV7725 handles acks/nacks correctly, but chokes if no stop condition is 
+generated. The point of this patch set is to fix both problems (although the 
+acks/nacks issue might be theoretical only).
+
+-- 
+Regards,
+
+Laurent Pinchart
 
