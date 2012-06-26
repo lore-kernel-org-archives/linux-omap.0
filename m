@@ -1,115 +1,97 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 08/17] OMAPDSS: DISPC: Remove dispc_mgr_set_pol_freq()
-Date: Tue, 26 Jun 2012 15:06:45 +0530
-Message-ID: <1340703414-1915-10-git-send-email-archit@ti.com>
+Subject: [PATCH 09/17] OMAPFB: Map the newly added omap_video_timings fields with fb sync flags
+Date: Tue, 26 Jun 2012 15:06:46 +0530
+Message-ID: <1340703414-1915-11-git-send-email-archit@ti.com>
 References: <1340703414-1915-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43405 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43275 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755877Ab2FZJi4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 05:38:56 -0400
+	id S1755877Ab2FZJjB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jun 2012 05:39:01 -0400
 In-Reply-To: <1340703414-1915-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-dispc_mgr_set_pol_freq() configures the fields in the register DISPC_POL_FREQo.
-All these fields have been moved to omap_video_timings struct, and are now
-programmed in dispc_mgr_set_lcd_timings(). These will be configured when timings
-are applied via dss_mgr_set_timings().
+Use the newly added fields in omap_video_timings(hsync, vsync and data_enable
+logic levels and data, hsync and vsync latching related info) to
+configure/retrieve corresponding sync flags in fb_var_screeninfo and
+fb_videomode.
 
-Remove dispc_mgr_set_pol_freq() and it's calls from the interface drivers.
+Out of the new fields, hsync_level and vsync_level can be mapped to the fb sync
+flags FB_SYNC_HOR_HIGH_ACT and FB_SYNC_VERT_HIGH_ACT.
+
+When converting fb mode to omap_video_timings, the fields which don't have an
+equivalent parameter in fb are set to  the default values.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   29 -----------------------------
- drivers/video/omap2/dss/dpi.c   |    2 --
- drivers/video/omap2/dss/dss.h   |    2 --
- drivers/video/omap2/dss/sdi.c   |    2 --
- 4 files changed, 35 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 184d37b..9b22563 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3113,35 +3113,6 @@ static void dispc_dump_regs(struct seq_file *s)
- #undef DUMPREG
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 1dd8f2c..7c99725 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -733,6 +733,10 @@ int check_fb_var(struct fb_info *fbi, struct fb_var_screeninfo *var)
+ 		var->lower_margin = timings.vfp;
+ 		var->hsync_len = timings.hsw;
+ 		var->vsync_len = timings.vsw;
++		var->sync |= timings.hsync_level == OMAPDSS_SIG_ACTIVE_HIGH ?
++				FB_SYNC_HOR_HIGH_ACT : 0;
++		var->sync |= timings.vsync_level == OMAPDSS_SIG_ACTIVE_HIGH ?
++				FB_SYNC_VERT_HIGH_ACT : 0;
+ 	} else {
+ 		var->pixclock = 0;
+ 		var->left_margin = 0;
+@@ -741,11 +745,11 @@ int check_fb_var(struct fb_info *fbi, struct fb_var_screeninfo *var)
+ 		var->lower_margin = 0;
+ 		var->hsync_len = 0;
+ 		var->vsync_len = 0;
++		var->sync = 0;
+ 	}
+ 
+ 	/* TODO: get these from panel->config */
+ 	var->vmode              = FB_VMODE_NONINTERLACED;
+-	var->sync               = 0;
+ 
+ 	return 0;
+ }
+@@ -2053,6 +2057,15 @@ static int omapfb_mode_to_timings(const char *mode_str,
+ 	timings->vsw = var->vsync_len;
+ 	timings->x_res = var->xres;
+ 	timings->y_res = var->yres;
++	timings->hsync_level = var->sync & FB_SYNC_HOR_HIGH_ACT ?
++				OMAPDSS_SIG_ACTIVE_HIGH :
++				OMAPDSS_SIG_ACTIVE_LOW;
++	timings->vsync_level = var->sync & FB_SYNC_VERT_HIGH_ACT ?
++				OMAPDSS_SIG_ACTIVE_HIGH :
++				OMAPDSS_SIG_ACTIVE_LOW;
++	timings->pclk_edge = OMAPDSS_SIG_ACTIVE_HIGH;
++	timings->de_level = OMAPDSS_SIG_ACTIVE_HIGH;
++	timings->hsync_vsync_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
+ 
+ 	switch (var->bits_per_pixel) {
+ 	case 16:
+@@ -2187,6 +2200,15 @@ static void fb_videomode_to_omap_timings(struct fb_videomode *m,
+ 	t->vsw = m->vsync_len;
+ 	t->vfp = m->lower_margin;
+ 	t->vbp = m->upper_margin;
++	t->hsync_level = m->sync & FB_SYNC_HOR_HIGH_ACT ?
++				OMAPDSS_SIG_ACTIVE_HIGH :
++				OMAPDSS_SIG_ACTIVE_LOW;
++	t->vsync_level = m->sync & FB_SYNC_VERT_HIGH_ACT ?
++				OMAPDSS_SIG_ACTIVE_HIGH :
++				OMAPDSS_SIG_ACTIVE_LOW;
++	t->pclk_edge = OMAPDSS_SIG_ACTIVE_HIGH;
++	t->de_level = OMAPDSS_SIG_ACTIVE_HIGH;
++	t->hsync_vsync_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
  }
  
--static void _dispc_mgr_set_pol_freq(enum omap_channel channel, bool onoff,
--		bool rf, bool ieo, bool ipc, bool ihs, bool ivs)
--{
--	u32 l = 0;
--
--	DSSDBG("onoff %d rf %d ieo %d ipc %d ihs %d ivs %d\n",
--			onoff, rf, ieo, ipc, ihs, ivs);
--
--	l |= FLD_VAL(onoff, 17, 17);
--	l |= FLD_VAL(rf, 16, 16);
--	l |= FLD_VAL(ieo, 15, 15);
--	l |= FLD_VAL(ipc, 14, 14);
--	l |= FLD_VAL(ihs, 13, 13);
--	l |= FLD_VAL(ivs, 12, 12);
--
--	dispc_write_reg(DISPC_POL_FREQ(channel), l);
--}
--
--void dispc_mgr_set_pol_freq(enum omap_channel channel,
--		enum omap_panel_config config)
--{
--	_dispc_mgr_set_pol_freq(channel, (config & OMAP_DSS_LCD_ONOFF) != 0,
--			(config & OMAP_DSS_LCD_RF) != 0,
--			(config & OMAP_DSS_LCD_IEO) != 0,
--			(config & OMAP_DSS_LCD_IPC) != 0,
--			(config & OMAP_DSS_LCD_IHS) != 0,
--			(config & OMAP_DSS_LCD_IVS) != 0);
--}
--
- /* with fck as input clock rate, find dispc dividers that produce req_pck */
- void dispc_find_clk_divs(unsigned long req_pck, unsigned long fck,
- 		struct dispc_clock_info *cinfo)
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index d8cc440..046a6fb 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -148,8 +148,6 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
- 	unsigned long pck;
- 	int r = 0;
- 
--	dispc_mgr_set_pol_freq(dssdev->manager->id, dssdev->panel.config);
--
- 	if (dpi_use_dsi_pll(dssdev))
- 		r = dpi_set_dsi_clk(dssdev, t->pixel_clock * 1000, &fck,
- 				&lck_div, &pck_div);
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index d64f894..3d23a23 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -414,8 +414,6 @@ void dispc_mgr_set_tft_data_lines(enum omap_channel channel, u8 data_lines);
- void dispc_mgr_set_lcd_type_tft(enum omap_channel channel);
- void dispc_mgr_set_timings(enum omap_channel channel,
- 		struct omap_video_timings *timings);
--void dispc_mgr_set_pol_freq(enum omap_channel channel,
--		enum omap_panel_config config);
- unsigned long dispc_mgr_lclk_rate(enum omap_channel channel);
- unsigned long dispc_mgr_pclk_rate(enum omap_channel channel);
- unsigned long dispc_core_clk_rate(void);
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 9330410..264efd5 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -82,8 +82,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 
- 	dssdev->panel.timings.hsync_vsync_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
- 
--	dispc_mgr_set_pol_freq(dssdev->manager->id, dssdev->panel.config);
--
- 	r = dss_calc_clock_div(t->pixel_clock * 1000, &dss_cinfo, &dispc_cinfo);
- 	if (r)
- 		goto err_calc_clock_div;
+ static int omapfb_find_best_mode(struct omap_dss_device *display,
 -- 
 1.7.9.5
 
