@@ -1,29 +1,43 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 08/11] crypto: omap: add clk_prepare and clk_unprepare
-Date: Tue, 26 Jun 2012 16:28:34 +0530
-Message-ID: <4FE995DA.2070001@ti.com>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1340372890-10091-9-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206221257480.10198@utopia.booyaka.com> <4FE7F73D.6090402@ti.com> <alpine.DEB.2.00.1206260433010.12797@utopia.booyaka.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv8 03/13] I2C: OMAP: Remove reset at init
+Date: Tue, 26 Jun 2012 04:15:13 -0700
+Message-ID: <20120626111513.GD31393@atomide.com>
+References: <1340029828-20751-1-git-send-email-shubhrajyoti@ti.com>
+ <1340029828-20751-4-git-send-email-shubhrajyoti@ti.com>
+ <20120620102905.GC12766@atomide.com>
+ <4FE2C750.3020803@ti.com>
+ <20120621071959.GV12766@atomide.com>
+ <4FE2E9D3.5060304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:43070 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046Ab2FZK6l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 06:58:41 -0400
-Received: by ghbf11 with SMTP id f11so4569150ghb.22
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 03:58:40 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1206260433010.12797@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4FE2E9D3.5060304-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Herbert Xu <herbert@gondor.hengli.com.au>
 
-On Tuesday 26 June 2012 04:09 PM, Paul Walmsley wrote:
-> Then at the same time, maybe get the rest of the drivers runtime-PM
-> converted and acked through their respective maintainers.
+* Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120621 02:35]:
+> On Thursday 21 June 2012 12:50 PM, Tony Lindgren wrote:
+> > * Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120621 00:08]:
+> >> On Wednesday 20 June 2012 03:59 PM, Tony Lindgren wrote:
+> >>> See the comments regarding driver specific resets in hwmod code.
+> >> you mean omap_hwmod.c
+> >>> The way to set this up is to have a shared inline function in
+> >>> i2c-omap.h that both the driver and hwmod code can use.
+> >> hwmod reset function uses oh (omap_hwmod).
+> >>
+> >> How could the driver also pass oh ?
+> >> Could we keep a local copy in driver data?
+> >>> Eventually hwmod code will do the reset only in late initcall
+> >>> if no driver is loaded for the device in question.
+> > There's no need for the driver to know anything about oh.
+> > The driver just needs to know the iobase.
+> I will rework to make the hwmod and driver use the same function.
+> In the meanwhile I will send a minimal/ remaining cleanups/ fixes so that
+> it might get some time to bake in the next branch.
 
-So if I read your response correctly, you are saying all OMAP drivers
-being converted to use runtime PM is a pre-requisite for OMAP moving 
-over to use Common Clk framework?
+OK thanks!
+
+Tony
