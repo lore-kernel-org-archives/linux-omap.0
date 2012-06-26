@@ -1,83 +1,53 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
-Date: Tue, 26 Jun 2012 22:31:28 +0530
-Message-ID: <CAJe_ZheXSquxOtOD9iPyQjZ-jxWKzVGZHYkjM=wC37qgMZeJug@mail.gmail.com>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340605221.12683.30.camel@lappyti>
-	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	<1340616643.3395.19.camel@deskari>
-	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	<1340628094.3395.63.camel@deskari>
-	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	<1340632161.3395.100.camel@deskari>
-	<CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	<1340695166.2093.22.camel@lappyti>
-	<CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	<1340701660.24530.17.camel@deskari>
-	<CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	<1340712213.24530.21.camel@deskari>
-	<CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-	<1340723296.24530.68.camel@deskari>
-	<CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
-	<1340723514.24530.70.camel@deskari>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree based
+ pinctrl driver
+Date: Tue, 26 Jun 2012 11:05:48 -0600
+Message-ID: <4FE9EBEC.9040208@wwwdotorg.org>
+References: <20120611135826.GB12766@atomide.com> <4FDA6FCD.1020605@wwwdotorg.org> <20120615094938.GQ12766@atomide.com> <4FDB6000.5080703@wwwdotorg.org> <20120618055036.GU12766@atomide.com> <20120619135600.GX12766@atomide.com> <4FE39C86.5070901@wwwdotorg.org> <20120622083955.GZ12766@atomide.com> <4FE4AC40.8080400@wwwdotorg.org> <20120626134319.GA3483@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:36791 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757809Ab2FZRBb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 13:01:31 -0400
-Received: by lbbgm6 with SMTP id gm6so329703lbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 10:01:29 -0700 (PDT)
-In-Reply-To: <1340723514.24530.70.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120626134319.GA3483@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Olof Johansson <olof@lixom.net>
+Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
-On 26 June 2012 20:41, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Tue, 2012-06-26 at 20:39 +0530, Jassi Brar wrote:
->> On 26 June 2012 20:38, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > On Tue, 2012-06-26 at 20:19 +0530, Jassi Brar wrote:
->> >> On 26 June 2012 17:33, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >> > On Tue, 2012-06-26 at 15:27 +0530, Jassi Brar wrote:
->> >> >
->> >> >> Seems similar, but I only tested OMAP4 HDMI.
->> >> >
->> >> > Would something like this one below work for you? It fixes the issues on
->> >> > my overo board.
->> >> >
->> >> I think this should work too (I will get to test it only tomorrow).
->> >>
->> >> Though I don't think it'll fix stack spew when run without
->> >> CONFIG_PM_RUNTIME. Maybe we could simply remove the WARN_ON in the
->> >> xxx_runtime_put() as Alan noted?
->> >
->> > Yes, that's a different issue. I'll look at that also.
->> >
->> Well, my patch took care of that also. But I agree, that could be
->> added separately as well.
->
-> Well, I don't agree that your patch is correct =). I don't think it's
-> right to skip runtime get and put when pm_runtime_enabled() returns
-> false.
->
-While I think your patch is simpler and achieve the same, I also think
-your fears about this patch are unfounded.
+On 06/26/2012 07:43 AM, Tony Lindgren wrote:
+...
+> Subject: [PATCH] pinctrl: Add one-register-per-pin type device tree based pinctrl driver
+> 
+> Add one-register-per-pin type device tree based pinctrl driver.
+> 
+> This driver has been tested on omap2+ series of processors,
+> where there is either an 8 or 16-bit padconf register for each pin.
+> Support for other similar pinmux controllers can be added.
 
-A quick snack for thought...
->
-> But if pm_runtime_get_sync() returns an error, it means the HW has not
-> been resumed successfully, and is not operational,
->
-Not always. The HW could be in RPM_ACTIVE state while PM on it could
-be disabled, if the returned error is -EACCESS.   And
-pm_runtime_enabled() only catches a potential -EACCESS.
+> diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
 
+> +/* board specific .dts file */
+> +
+> +&pmx_core {
 
-BTW, I just tested your patch and it worked for me as well. But as
-suspected, it doesn't help the stack spew of CONFIG_PM_RUNTIME:=n
+> +	board_pins: pinmux_board_pins {
+> +		pinctrl-single,pins = <
+> +			0x6c 0xf	/* csi21_dx3 OUTPUT | MODE7 */
+> +			0x6e 0xf	/* csi21_dy3 OUTPUT | MODE7 */
+> +			0x70 0xf	/* csi21_dx4 OUTPUT | MODE7 */
+> +			0x72 0xf	/* csi21_dy4 OUTPUT | MODE7 */
 
-So I understand, I only need to resend the other three patches ?
+If you're removing the pinconf mask, I think the comments in the example
+should reflect just setting a particular mux function, and remove any
+references to pinconf settings in that field. While the binding can be
+abused to do that, I think the docs shouldn't encourage it:-)
 
-Thanks.
+Other than that, the binding looks reasonable to me, given what it's
+intended to do.
+
+However, I'd still like Grant and Rob (and any other DT experts) to
+explicitly sign off on this binding, because it's doing exactly
+something that was rejected at Linaro Connect in February (albeit the
+binding is slightly more oriented at specifically being for pinmux
+rather than a fully general "blast in these register values", but that
+distinction seems minor to me).
