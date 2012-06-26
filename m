@@ -1,96 +1,134 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 26 Jun 2012 23:20:19 +0530
-Message-ID: <1340733019.1562.242.camel@vkoul-udesk3>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	 <201206252030.56025.arnd@arndb.de> <1340703613.1562.202.camel@vkoul-udesk3>
-	 <201206261459.40766.arnd@arndb.de>
+From: "Franky Lin" <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Tue, 26 Jun 2012 11:20:39 -0700
+Message-ID: <4FE9FD77.7050807@broadcom.com>
+References: <4FE8CF77.5080400@broadcom.com>
+ <CAC83ZvL2ozQD1DYmtKeFa1PB1pZ1JmBUKFWmDWnbJOCDL3sKNg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44999 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754029Ab2FZR7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 13:59:44 -0400
-In-Reply-To: <201206261459.40766.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary=------------090301060502080703010307
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAC83ZvL2ozQD1DYmtKeFa1PB1pZ1JmBUKFWmDWnbJOCDL3sKNg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>
+Cc: khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 2012-06-26 at 14:59 +0000, Arnd Bergmann wrote:
-> On Tuesday 26 June 2012, Vinod Koul wrote:
-> > Today, we just ask for a channel with specific mask. Further filtering
-> > is done in filter function as we request a channel, not a specific one.
-> > In most slave cases, we need a specific channel from a specific
-> > controller, and that is where DT can play a role. In addition to DMA
-> > resources for dma and client driver, I would expect DT to provide the
-> > channel mapping information, which is anyway known only by platform.
-> 
-> Can you describe what you mean by "channel mapping information"?
-> Is that not what we pass into the filter function?
-Today many dmaengine drivers have a filter function which is exported
-and then used by clients to filter out the channel. That is not a right
-way to do, so any future plan which is based on filter is not correct.
-IMHO dmaengine driver should *not* know anything about mapping. By
-mapping I refer to platform information which tells me which client can
-use which channel from which dmac.
-If the dmaengine hardware has mux then we have flexible mapping, other
-cases would be where request lines are hard wired, so mapping is pretty
-much static.
-This information if provided to dmaengine can result in dmaengine doing
-proper allocation of dma channels.
-One of the proposals we discussed sometime back:
-https://lkml.org/lkml/2012/3/8/26
 
-> > That should be a dmaengine binding and not client or controller
-> > specific. For different platforms this information can come from DT or
-> > something else.
-> > Then, once a channel is requested dmaengine knows what to provide.
-> > And as you see the filter becomes redundant.
-> 
-> But what code interprets the channel mapping then?
-only dmaengine. In this case the mapping comes from DT.
+--------------090301060502080703010307
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I think encoding a description for a dma request in a single number is
-> the last thing we want to do here. We've tried that with IRQ and GPIO
-> numbers and it got us into a huge mess that will need a long time to
-> get out of.
-No i wasn't thinking of a number. The mapping shouldn't be a global
-number at all, though that is a very easy but not very scalable
-solution.
-We need to take care of 1:1 mapping of client and channels as well as
-many:1  cases as well. A single global number cannot represent that
-properly.
+On 06/26/2012 12:21 AM, DebBarma, Tarun Kanti wrote:
+> On Tue, Jun 26, 2012 at 2:22 AM, Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>> Hi Kevin, Tarun,
+>>
+>> We are using the expansion connector A on Panda board to mount a SDIO WiFi
+>> dongle on MMC2 with a level triggered interrupt signal connected to GPIO
+>> 138. It's been working fine until 3.5 rc1. The board hang randomly within 5
+>> mins during a network traffic test. After bisecting we found the culprit is
+>> "[PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()" [1].
+>>
+>> I noticed Kevin raised some similar cases on other platforms and also
+>> provided two patches in the patch mail thread. But unfortunately those two
+>> patches doesn't help in our case. I tested the driver with 3.5-rc3 mainline
+>> kernel and the issue is still there. I can only "fix" the hang by either
+>> reverting the commit or disabling CONFIG_PM_RUNTIME. Also, the hang only
+>> happens on Panda ES board. Old Panda with 4430 works good.
+>>
+>> Any thoughts and suggestions?
+> I just had a quick look at the code. Can you please check if the
+> attached patch solves
+> the issue? I just boot tested on Panda and Blaze.
+> --
+> Tarun
+>
 
-My idea is platform gives this information to dmaengine. Clients and
-dmaengine driver do not worry about it. That also paves way for arch
-independent clients and drivers.
-> 
-> Some platforms actually use IORESOURCE_DMA, which was useful to describe
-> ISA DMA channels, for encoding some form of channel or request number,
-> but this causes all sorts of problems. These are almost exclusively
-> used by those platforms that don't have a dmaengine driver yet, so I'd
-> hope that we can remove this as we convert those platforms over to
-> dmaengine and device tree.
-> 
-> The representation in device tree as we have it now is a combination of
-> a pointer to the dmaengine and a description of the request line in it,
-> typically a single small integer number local to the dmaengine. We should
-> not try to make that a global integer number again that just serves the
-> purpose of looking up the dmaengine and local number again.
-> 
-> IMHO no device driver should be bothered with any artificial resource
-> information, but instead I want all the DT parsing to happen in the
-> dmaengine code (or some wrapper around it) where it gets used. The only
-> thing that a device driver needs to know is that it wants to use a
-> channel based on what is described in the device tree.
-Sure, but I would expect the clients and dmacs to find information about
-their devices from DT?
-dmaengine should get only mapping information used for allocating
-channel to client.
+Thanks for the prompt reply.
 
--- 
-~Vinod
+Booting is fine even without the patch and revert. The wifi dongle 
+generates interrupt whenever there is data packet available for host to 
+read. So during a traffic test a significant numbers of interrupt will 
+be triggered through the GPIO. So I assume it has something to do with 
+the interrupt GPIO.
 
+With the patch, the kernel still crashes. But the symptom is slightly 
+different. Now it has a panic log every time. See attachment.
+
+Regards,
+Franky
+
+--------------090301060502080703010307
+Content-Type: text/plain;
+ name=panic.log
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=panic.log
+
+[  636.143585] Internal error: Oops - undefined instruction: 0 [#1] SMP ARM                                                                                                         
+[  636.150634] Modules linked in: brcmfmac brcmutil cfg80211                                                                                                                        
+[  636.156311] CPU: 0    Not tainted  (3.5.0-rc4+ #3)                                                                                                                               
+[  636.161346] PC is at __lock_acquire+0x65c/0x1d88                                                                                                                                 
+[  636.166198] LR is at 0x60000093                                                                                                                                                  
+[  636.169494] pc : [<c008e670>]    lr : [<60000093>]    psr: 20000093                                                                                                              
+[  636.169494] sp : c06b1e18  ip : 9e370001  fp : c0724f70                                                                                                                          
+[  636.181549] r10: c06b0000  r9 : 0000001e  r8 : c0b92998                                                                                                                          
+[  636.187042] r7 : c06d2cc8  r6 : 00000000  r5 : c0746d64  r4 : c06d2868                                                                                                           
+[  636.193908] r3 : 00003b0e  r2 : ec3b001d  r1 : 0001d870  r0 : 0000001d                                                                                                           
+[  636.200744] Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel                                                                                                 
+[  636.208526] Control: 10c53c7d  Table: ae39c04a  DAC: 00000017                                                                                                                    
+[  636.214569] Process swapper/0 (pid: 0, stack limit = 0xc06b02f8)                                                                                                                 
+[  636.220855] Stack: (0xc06b1e18 to 0xc06b2000)                                                                                                                                    
+[  636.225433] 1e00:                                                       c06d00f8 00000002                                                                                        
+[  636.234039] 1e20: c0807968 00000001 00000000 00000002 0000001d 00000000 00000001 0001d870                                                                                        
+[  636.242614] 1e40: c08070e8 00000001 00000000 00000002 00000002 00000000 00000000 c00903e4                                                                                        
+[  636.251220] 1e60: 00000002 00000080 00000000 c0066838 00000000 00000000 60000093 00000000                                                                                        
+[  636.259796] 1e80: 60000093 00000000 c06b4324 c06b0000 00000000 00000000 00000002 00000000                                                                                        
+[  636.268402] 1ea0: 00000000 c00903e4 00000002 00000080 00000000 c00a3588 00000000 c14b0aa0                                                                                        
+[  636.276977] 1ec0: 60000093 c06adaa0 00000094 c06b4314 00000002 c06b0000 0000002c 00000000                                                                                        
+[  636.285583] 1ee0: 412fc09a c06d3f80 00000000 c04a2914 00000002 00000000 c00a3588 c0048328                                                                                        
+[  636.294189] 1f00: 00000033 c06b42c0 c06b4314 c00a3588 c06d00f8 c06af318 c06b0000 c009ff98                                                                                        
+[  636.302764] 1f20: 000001da c0014c78 fa24010c c06ced30 c06b1f58 fa240100 00000000 c000848c                                                                                        
+[  636.311370] 1f40: c06d2868 c0014f70 20000013 ffffffff c06b1f8c c04a31e4 057b6e56 00000001                                                                                        
+[  636.319946] 1f60: 00000000 c06d2868 c06b0000 c0744308 c04ae350 c06d3d50 00000000 412fc09a                                                                                        
+[  636.328552] 1f80: c06d3f80 00000000 00000001 c06b1fa0 057b6e57 c0014f70 20000013 ffffffff                                                                                        
+[  636.337127] 1fa0: c06d2868 c001519c c071b85c c06cfdf8 c0744240 c0691fdc c14ad080 8000406a                                                                                        
+[  636.345733] 1fc0: 00000000 c06617ac ffffffff ffffffff c0661230 00000000 00000000 c0691fdc                                                                                        
+[  636.354309] 1fe0: 00000000 10c53c7d c06ced08 c0691fac c06d3d44 80008044 00000000 00000000                                                                                        
+[  636.362915] [<c008e670>] (__lock_acquire+0x65c/0x1d88) from [<c00903e4>] (lock_acquire+0x98/0x100)                                                                               
+[  636.372344] [<c00903e4>] (lock_acquire+0x98/0x100) from [<c04a2914>] (_raw_spin_lock+0x2c/0x3c)                                                                                  
+[  636.381500] [<c04a2914>] (_raw_spin_lock+0x2c/0x3c) from [<c00a3588>] (handle_fasteoi_irq+0x14/0x194)                                                                            
+[  636.391174] [<c00a3588>] (handle_fasteoi_irq+0x14/0x194) from [<c009ff98>] (generic_handle_irq+0x30/0x48)                                                                        
+[  636.401245] [<c009ff98>] (generic_handle_irq+0x30/0x48) from [<c0014c78>] (handle_IRQ+0x4c/0xac)                                                                                 
+[  636.410491] [<c0014c78>] (handle_IRQ+0x4c/0xac) from [<c000848c>] (gic_handle_irq+0x28/0x5c)                                                                                     
+[  636.419342] [<c000848c>] (gic_handle_irq+0x28/0x5c) from [<c04a31e4>] (__irq_svc+0x44/0x60)                                                                                      
+[  636.428131] Exception stack(0xc06b1f58 to 0xc06b1fa0)                                                                                                                            
+[  636.433441] 1f40:                                                       057b6e56 00000001                                                                                        
+[  636.442016] 1f60: 00000000 c06d2868 c06b0000 c0744308 c04ae350 c06d3d50 00000000 412fc09a                                                                                        
+[  636.450622] 1f80: c06d3f80 00000000 00000001 c06b1fa0 057b6e57 c0014f70 20000013 ffffffff                                                                                        
+[  636.459228] [<c04a31e4>] (__irq_svc+0x44/0x60) from [<c0014f70>] (default_idle+0x20/0x44)                                                                                        
+[  636.467803] [<c0014f70>] (default_idle+0x20/0x44) from [<c001519c>] (cpu_idle+0x9c/0x114)                                                                                        
+[  636.476409] [<c001519c>] (cpu_idle+0x9c/0x114) from [<c06617ac>] (start_kernel+0x2b0/0x300)                                                                                      
+[  636.485198] Code: e1a02928 e1a0c182 e089800c e58dc024 (e59f98b4)                                                                                                                 
+[  636.491607] ---[ end trace 5e6c69cac2b687b2 ]---                                                                                                                                 
+[  636.496459] Kernel panic - not syncing: Fatal exception in interrupt                                                                                                             
+[  636.503112] CPU1: stopping                                                                                                                                                       
+[  636.505981] [<c001b61c>] (unwind_backtrace+0x0/0xf0) from [<c0019728>] (handle_IPI+0x130/0x15c)                                                                                  
+[  636.515136] [<c0019728>] (handle_IPI+0x130/0x15c) from [<c00084b8>] (gic_handle_irq+0x54/0x5c)                                                                                   
+[  636.524169] [<c00084b8>] (gic_handle_irq+0x54/0x5c) from [<c04a31e4>] (__irq_svc+0x44/0x60)                                                                                      
+[  636.532958] Exception stack(0xee069f88 to 0xee069fd0)                                                                                                                            
+[  636.538269] 9f80:                   c0724f70 c0014f50 00000000 00000000 ee068000 c0744308                                                                                        
+[  636.546844] 9fa0: c04ae350 c06d3d50 00000000 412fc09a c06d3f80 00000000 00000000 ee069fd0                                                                                        
+[  636.555450] 9fc0: c0014f6c c0014f70 60000113 ffffffff                                                                                                                            
+[  636.560760] [<c04a31e4>] (__irq_svc+0x44/0x60) from [<c0014f70>] (default_idle+0x20/0x44)                                                                                        
+[  636.569366] [<c0014f70>] (default_idle+0x20/0x44) from [<c001519c>] (cpu_idle+0x9c/0x114)                                                                                        
+[  636.577941] [<c001519c>] (cpu_idle+0x9c/0x114) from [<8049bdd4>] (0x8049bdd4)
+
+--------------090301060502080703010307--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
