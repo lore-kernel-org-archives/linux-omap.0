@@ -1,96 +1,56 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif driver
-Date: Tue, 26 Jun 2012 13:19:15 +0530
-Message-ID: <CAMQu2gwzFV-79CuEAmOHCZ7XivXrALjXkoB+J-QpgJkZ_PoRVg@mail.gmail.com>
-References: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
- <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
- <20120614154820.GG17140@kroah.com> <CAMQu2gx5CCDyrvozX06neBnA8J2heg+HL7DOewDm5voxqbpetw@mail.gmail.com>
- <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
- <20120625182830.GA23850@kroah.com> <CAMQu2gxDG=69X7UQPUoTLP5h1ZLpHngp=3C4vSDOS6L-N2XZSw@mail.gmail.com>
- <4FE9467A.2050906@ti.com> <CAMQu2gzOszT54ZU0Z3-9k=mMM7yTCH_MCZV=gRKwGoGRj0zjaA@mail.gmail.com>
- <4FE947F7.9030000@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v4 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 26 Jun 2012 08:29:33 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99F002@DBDE01.ent.ti.com>
+References: <cover.1340354985.git.afzal@ti.com>
+ <7a14edf83068261d8c07217873d14fe7f73975bc.1340354986.git.afzal@ti.com>
+ <4FE88DDE.60601@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:54683 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755535Ab2FZHth convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 03:49:37 -0400
-Received: by qadb33 with SMTP id b33so2490345qad.16
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 00:49:36 -0700 (PDT)
-In-Reply-To: <4FE947F7.9030000@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38810 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757191Ab2FZIaF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 04:30:05 -0400
+In-Reply-To: <4FE88DDE.60601@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jun 26, 2012 at 10:56 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> On Tuesday 26 June 2012 10:53 AM, Shilimkar, Santosh wrote:
->>
->> On Tue, Jun 26, 2012 at 10:49 AM, Rajendra Nayak<rnayak@ti.com> =A0w=
-rote:
->>>
->>> On Tuesday 26 June 2012 10:39 AM, Shilimkar, Santosh wrote:
->>>>>>
->>>>>>
->>>>>> +#if defined(CONFIG_OF)
->>>>>>>
->>>>>>> =A0> =A0 =A0+static const struct of_device_id emif_of_match[] =3D=
- {
->>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,emi=
-f-4d" },
->>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,emi=
-f-4d5" },
->>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 {},
->>>>>>> =A0> =A0 =A0+};
->>>>>>> =A0> =A0 =A0+MODULE_DEVICE_TABLE(of, emif_of_match);
->>>>>>> =A0> =A0 =A0+#endif
->>>>>>> =A0> =A0 =A0+
->>>>>>> =A0> =A0 =A0 =A0static struct platform_driver emif_driver =3D {
->>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __exit_p(e=
-mif_remove),
->>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .shutdown =A0 =A0 =A0 =3D emif_shutdow=
-n,
->>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .driver =3D {
->>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "emif",
->>>>>>> =A0> =A0 =A0+#if defined(CONFIG_OF)
->>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 .of_match_table =3D of_ma=
-tch_ptr(emif_of_match),
->>>>>>> =A0> =A0 =A0+#endif
->>>>>
->>>>>
->>>>>>
->>>>>> =A0Are these two still #if defined needed?
->>>>>>
->>>>>> =A0Also, what about the IS_DEFINED macro?
->>>>>>
->>>>
->>>> Yes. To avoid the build break in !DT build.
->>>>
->>>
->>> No, infact of_match_ptr is there just so you can avoid a
->>> #ifdef around and not break !CONFIG_OF.
->>
->>
->> Need to recheck but the build was throwing error becasue of
->> "emif_of_match"
->> mostly.
->
->
-> You still need the first one. I meant the second one around
-> 'of_match_ptr' should be removed.
->
-> With !CONFIG_OF, of_match_ptr(_ptr) is just defined as NULL.
->
-Yep. That make sense too.
-Will drop the second check.
+Hi Jon,
 
-regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Jun 25, 2012 at 21:42:14, Hunter, Jon wrote:
+> On 06/22/2012 04:01 AM, Afzal Mohammed wrote:
+
+> > +static int hf, vhf, sync_read, sync_write, latency;
+> 
+> I am wondering if we can remove hf, vhf, sync_read/write variables
+> completely. We already have flags from sync_read/write and so we could
+> just use the cfg->flags variable and remove sync_read/write variables.
+
+For default frequency, sync_write can get turned off, so flag may or
+may not be same as sync_write
+
+> 
+> At the same time, we could create flags for ONENAND_FREQ_HF and
+> ONENAND_FREQ_VHF or something like that. It could be nice to store the
+> latency in onenand_data too. In other words, keep all the configuration
+> in one place.
+
+I have a feeling as though platform data fields should not be altered once
+platform device is registered (as platform data being specific to the
+board, thinking further, should they be const?, except for a case
+where it is created by a common helper function for multiple boards with
+varying capabilities of peripheral).
+
+Other than sync_read, all others like hf, vhf, latency, sync_write are
+updated during driver callback, so if we are going to put these in
+platform private data fields, platform private data fields has to be
+updated after platform device is registered.
+
+Regards
+Afzal
