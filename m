@@ -1,86 +1,65 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 5/5 V2 RESEND] ARM: OMAP: change the USB TLL clocks device name
-Date: Tue, 26 Jun 2012 16:57:37 +0530
-Message-ID: <1340710057-15887-1-git-send-email-keshava_mgowda@ti.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Subject: Re: Current state of AM33xx patches
+Date: Tue, 26 Jun 2012 17:12:03 +0530
+Message-ID: <4FE9A00B.6010908@ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42656 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756254Ab2FZL1q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 07:27:46 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:49600 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752711Ab2FZLmS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jun 2012 07:42:18 -0400
+In-Reply-To: <4FE8AB37.7030907@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, paul@pwsan.com, b-cousson@ti.com, sshtylyov@mvista.com
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-The platform device name for the functional, interface and
-channel clocks of the TLL module is changed from usbhs device
-to usb tll platform device name.
+Hi Daniel,
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-Reviewed-by: Partha Basak <parthab@india.ti.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c |    8 ++++----
- arch/arm/mach-omap2/clock44xx_data.c |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+On 6/25/2012 11:47 PM, Daniel Mack wrote:
+> On 21.06.2012 15:50, Daniel Mack wrote:
+>> On 18.06.2012 10:15, Hiremath, Vaibhav wrote:
+>>> On Mon, Jun 11, 2012 at 19:21:21, Jason Kridner wrote:
+>>>> From: Daniel Mack <zonque@gmail.com>
+>>>>> Hey,
+>>>>>
+>>>>> can anybody give me a quick wrap-up about the current state of AM33xx
+>>>>> based SoCs in mainline? What are the next steps to get things merged?
+>>>>
+>>>> There is a wiki page [1] that is intended to provide a summary, but I'm
+>>>> confident it is not up-to-date.  
+>>>
+>>> Page updated now...
+>>>
+>>> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status#AM335x_Linux_Status
+>>
+>> Great, thanks. So if things get upstreamed, which is the repo/branch
+>> they appear in? In other words: where is the code people should write
+>> patches against? I couldn't find an answer to that yet.
+> 
+> ping?
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 4e1a3b0..300ca51 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3306,7 +3306,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs_tll",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
- 	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
- 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
-@@ -3342,7 +3342,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
- 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("usbhs_omap",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs_tll",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
- 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
-@@ -3397,9 +3397,9 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK("usbhs_omap",	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
- 	CLK("usbhs_omap",	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK("usbhs_omap",	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
--	CLK("usbhs_omap",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK("usbhs_omap",	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs_tll",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs_tll",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
- 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 2172f66..d60e8d6 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3328,7 +3328,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usb_tll_hs_usb_ch2_clk",	&usb_tll_hs_usb_ch2_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
--	CLK("usbhs_omap",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
-+	CLK("usbhs_tll",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
- 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
- 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
- 	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
-@@ -3378,7 +3378,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
- 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
- 	CLK("usbhs_omap",	"usbhost_ick",		&dummy_ck,		CK_443X),
--	CLK("usbhs_omap",	"usbtll_fck",		&dummy_ck,	CK_443X),
-+	CLK("usbhs_tll",	"usbtll_fck",		&dummy_ck,	CK_443X),
- 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
- 	CLK("omap_timer.1",	"32k_ck",	&sys_32k_ck,	CK_443X),
- 	CLK("omap_timer.2",	"32k_ck",	&sys_32k_ck,	CK_443X),
--- 
-1.7.9.5
+Bug fixes are always accepted against Linus's tree[1].
+
+For features, typically there is a -next branch that each subsystem
+maintainer has against which feature development happens. In case of
+OMAP, feature development happens against master branch of linux-omap
+tree[2]. One way to get to know the -next branches of all subsystem is
+to look at Next/Trees file of linux-next tree[3].
+
+Note that in case of ARM, sub-arch maintainers send the code to arm-soc
+maintainers who in turn have a branch which gets merged to linux-next.
+
+Hope that helps.
+
+Thanks,
+Sekhar
+
+[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git
+[2] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git
+[3] http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git
+
 
