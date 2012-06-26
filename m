@@ -1,15 +1,15 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 02/17] OMAPDSS: Remove passive matrix lcd support (part 2)
-Date: Tue, 26 Jun 2012 15:06:38 +0530
-Message-ID: <1340703414-1915-3-git-send-email-archit@ti.com>
+Subject: [PATCH 02/17] OMAPDSS: Remove passive matrix LCD support (part 2)
+Date: Tue, 26 Jun 2012 15:06:39 +0530
+Message-ID: <1340703414-1915-4-git-send-email-archit@ti.com>
 References: <1340703414-1915-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37149 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486Ab2FZJiP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 05:38:15 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43368 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755171Ab2FZJiU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jun 2012 05:38:20 -0400
 In-Reply-To: <1340703414-1915-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
