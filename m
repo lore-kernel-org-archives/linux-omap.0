@@ -1,56 +1,87 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v4 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Tue, 26 Jun 2012 08:29:33 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99F002@DBDE01.ent.ti.com>
-References: <cover.1340354985.git.afzal@ti.com>
- <7a14edf83068261d8c07217873d14fe7f73975bc.1340354986.git.afzal@ti.com>
- <4FE88DDE.60601@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
+Date: Tue, 26 Jun 2012 14:02:16 +0530
+Message-ID: <CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340605221.12683.30.camel@lappyti>
+	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
+	<1340616643.3395.19.camel@deskari>
+	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
+	<1340628094.3395.63.camel@deskari>
+	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
+	<1340632161.3395.100.camel@deskari>
+	<CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
+	<1340695166.2093.22.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38810 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757191Ab2FZIaF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 04:30:05 -0400
-In-Reply-To: <4FE88DDE.60601@ti.com>
-Content-Language: en-US
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:53154 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758476Ab2FZIcS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 04:32:18 -0400
+Received: by lbbgm6 with SMTP id gm6so7695937lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 01:32:16 -0700 (PDT)
+In-Reply-To: <1340695166.2093.22.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
-Hi Jon,
+On 26 June 2012 12:49, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Mon, 2012-06-25 at 22:36 +0530, Jassi Brar wrote:
 
-On Mon, Jun 25, 2012 at 21:42:14, Hunter, Jon wrote:
-> On 06/22/2012 04:01 AM, Afzal Mohammed wrote:
+>> >
+>> > Normally if the driver does dispc_runtime_get() and dispc_read_reg(),
+>> > the first call will enable the HW so the reg read works.
+>> >
+>> > But if the pm_runtime is disabled, say, during system suspend, with your
+>> > patch dispc_runtime_get() will just return 0 without doing anything, and
+>> > the dispc_read_reg() will crash because the HW is disabled (because
+>> > nobody enabled it).
+>> >
+>> Hmm, I am not sure if new calls would/should be made to dispc.c after
+>> the system has suspended and before resumed. That is, anything other
+>> than from runtime_resume/suspend callbacks of DSS, DISPC, HDMI, VENC
+>> and RFBI, which rightly don't touch any dss reg but only
+>> enable/disable a clock.
+>
+> They do touch the registers. For example, dispc's callbacks save and
+> restore the registers. The HW should be fully functional during the
+> callbacks. The point of the callbacks is to suspend/resume the HW in
+> question, which of course requires accessing the HW.
+>
+DISPC being held by HDMI, VENC and RFBI would be the last to suspend
+and first to resume. And it won't have its registers touched between
+dispc_runtime_suspend() and dispc_runtime_resume(), which seems ok to
+me (?)
+HDMI, VENC and RFBI directly fooling around with DISPC regs would have
+been a problem, which isn't the case.
 
-> > +static int hf, vhf, sync_read, sync_write, latency;
-> 
-> I am wondering if we can remove hf, vhf, sync_read/write variables
-> completely. We already have flags from sync_read/write and so we could
-> just use the cfg->flags variable and remove sync_read/write variables.
+>> As we know, a subsystem should make sure any active work is cleared
+>> out before suspending and set some flag so that nothing runs until it
+>> has resumed. I don't say we can't crash the system with this patch,
+>> but then we would be violating rules of suspend-resume.
+>
+> Let's go back a bit. I feel like I'm missing some pieces of information,
+> as I still don't quite grasp the problem.
+>
+> In the patch you said this fixes an issue with HDMI. Can you tell more
+> about the problem? What code path is being run? Any error messages?
+>
+> I tried system suspend with omap4-sdp and panda, with 3.5-rc2, but
+> neither board seems to wake up from the suspend. Does it work for you?
+>
+Something non-omapdss in vanilla breaks suspend/resume.
+Without this patch I see the upstream's display broken after the
+suspend attempt.
+    $ echo mem > /sys/power/state
 
-For default frequency, sync_write can get turned off, so flag may or
-may not be same as sync_write
+I work on TILT tree, which has suspend/resume working after some more
+local patches.
+    http://git.linaro.org/gitweb?p=people/andygreen/kernel-tilt.git;a=shortlog;h=refs/heads/tilt-3.4
 
-> 
-> At the same time, we could create flags for ONENAND_FREQ_HF and
-> ONENAND_FREQ_VHF or something like that. It could be nice to store the
-> latency in onenand_data too. In other words, keep all the configuration
-> in one place.
+I don't have SDP so not sure, but it should simply be testable with
+Panda4460 and the omap4plus_defconfig there.  Please feel free to ask
+if you have any issue checking that out.
 
-I have a feeling as though platform data fields should not be altered once
-platform device is registered (as platform data being specific to the
-board, thinking further, should they be const?, except for a case
-where it is created by a common helper function for multiple boards with
-varying capabilities of peripheral).
-
-Other than sync_read, all others like hf, vhf, latency, sync_write are
-updated during driver callback, so if we are going to put these in
-platform private data fields, platform private data fields has to be
-updated after platform device is registered.
-
-Regards
-Afzal
+Thanks.
