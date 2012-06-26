@@ -1,54 +1,63 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Tue, 26 Jun 2012 10:34:37 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1206261031450.1636-100000@iolanthe.rowland.org>
-References: <CANOLnOP_z47QCB234y-BOWyRGHeO8u-pJct=Kq6+2XCig-tX=w@mail.gmail.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v4 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 26 Jun 2012 09:39:07 -0500
+Message-ID: <4FE9C98B.2020003@ti.com>
+References: <cover.1340354985.git.afzal@ti.com> <7a14edf83068261d8c07217873d14fe7f73975bc.1340354986.git.afzal@ti.com> <4FE88DDE.60601@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E99F002@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34178 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756863Ab2FZOei (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 10:34:38 -0400
-In-Reply-To: <CANOLnOP_z47QCB234y-BOWyRGHeO8u-pJct=Kq6+2XCig-tX=w@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58518 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757004Ab2FZOjJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jun 2012 10:39:09 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99F002@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, jaswinder.singh@linaro.org, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 26 Jun 2012, Grazvydas Ignotas wrote:
+Hi Afzal,
 
-> CCing some PM people, maybe they can comment?
+On 06/26/2012 03:29 AM, Mohammed, Afzal wrote:
+> Hi Jon,
 > 
-> On Tue, Jun 26, 2012 at 7:51 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> > On Monday 25 June 2012 06:20 PM, Tomi Valkeinen wrote:
-> >>
-> >> Do you know how the drivers should handle CONFIG_PM_RUNTIME=n?
-> >> Are they supposed to handle the error values returned by runtime PM
-> >> functions somehow, or should they use #ifdef CONFIG_PM_RUNTIME?
-> >
-> > hmm, I always though with CONFIG_RUNTIME_PM=n, the functions would
-> > be stubbed to return success and not failure.
+> On Mon, Jun 25, 2012 at 21:42:14, Hunter, Jon wrote:
+>> On 06/22/2012 04:01 AM, Afzal Mohammed wrote:
+> 
+>>> +static int hf, vhf, sync_read, sync_write, latency;
+>>
+>> I am wondering if we can remove hf, vhf, sync_read/write variables
+>> completely. We already have flags from sync_read/write and so we could
+>> just use the cfg->flags variable and remove sync_read/write variables.
+> 
+> For default frequency, sync_write can get turned off, so flag may or
+> may not be same as sync_write
 
-Not exactly.  They are stubbed to indicate that the device cannot be 
-suspended, that it is always active.
+Good point. I missed that.
 
-Failure to suspend a device should not be regarded as particularly bad, 
-because it doesn't affect the device's functionality.  That's true even 
-when CONFIG_RUNTIME_PM is enabled.
+>>
+>> At the same time, we could create flags for ONENAND_FREQ_HF and
+>> ONENAND_FREQ_VHF or something like that. It could be nice to store the
+>> latency in onenand_data too. In other words, keep all the configuration
+>> in one place.
+> 
+> I have a feeling as though platform data fields should not be altered once
+> platform device is registered (as platform data being specific to the
+> board, thinking further, should they be const?, except for a case
+> where it is created by a common helper function for multiple boards with
+> varying capabilities of peripheral).
+> 
+> Other than sync_read, all others like hf, vhf, latency, sync_write are
+> updated during driver callback, so if we are going to put these in
+> platform private data fields, platform private data fields has to be
+> updated after platform device is registered.
 
-> And the _pm_runtime_resume
-> > function indeed seems to return 1, which is not failure but just saying
-> > that your device is already active/enabled.
-> > The _pm_runtime_suspend and _pm_runtime_idle do return a -ENOSYS, which
-> > is something only returned when CONFIG_RUNTIME_PM=n, so if you really
-> > want to handle failing pm_runtime_put_sync cases, maybe you still can.
-> > But then, I don't know if there is anything you can do to recover from
-> > a failing pm_runtime_put_sync, except for warning the user maybe.
+May be this is splitting hairs then but I wonder if we should just have
+a single global variable called onenand_flags for storing the current
+state of sync_read, sync_write, vhf and hf. At least this would be only
+one global instead of 4. Not a big deal.
 
-I don't see much point in warning the user that a device was unable to 
-go to low power.
-
-Alan Stern
-
+Cheers
+Jon
