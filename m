@@ -1,28 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: fix naming collision of variable
- nr_irqs
-Date: Tue, 26 Jun 2012 03:50:36 -0700
-Message-ID: <20120626105035.GC31393@atomide.com>
-References: <1340620000-27074-1-git-send-email-svenkatr@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH v2 00/17] Big OMAP I2C Cleanup
+Date: Tue, 26 Jun 2012 16:21:30 +0530
+Message-ID: <4FE99432.8030300@ti.com>
+References: <1339691067-919-1-git-send-email-balbi@ti.com> <20120614175950.GE14419@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54795 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab2FZKui (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 06:50:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1340620000-27074-1-git-send-email-svenkatr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120614175950.GE14419@pengutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Venkatraman S <svenkatr@ti.com> [120625 03:31]:
-> Using nr_irqs as local variable name triggers the sparse warning..
-> ./arch/arm/mach-omap2/irq.c:265:6: warning: symbol 'nr_irqs' shadows an earlier one
-> ./linux/include/linux/irqnr.h:26:12: originally declared here
+On Thursday 14 June 2012 11:29 PM, Wolfram Sang wrote:
+>> 	- removed dev_err() which was introduced on patch 09/17
+> To prevent the list being flooded, I would appreciate if you could wait
+> a few days to collect reviews before resending. It will take some time
+> until I pick this series anyhow, because I want people to have time to
+> donate Tested-by tags.
+Felipe thats a good cleanup.
+The series look good to me.
 
-Thanks applying both into fixes-non-critical.
+Also draining interrupt I had some queries.
+Looks good to me.
 
-Tony
+I have tested it after rebasing.
+Tested-by : Shubhrajyoti <shubhrajyoti@ti.com>
+
+
+Thanks,
