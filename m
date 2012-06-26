@@ -1,178 +1,156 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
-Date: Tue, 26 Jun 2012 20:19:05 +0530
-Message-ID: <CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340605221.12683.30.camel@lappyti>
-	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	<1340616643.3395.19.camel@deskari>
-	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	<1340628094.3395.63.camel@deskari>
-	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	<1340632161.3395.100.camel@deskari>
-	<CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	<1340695166.2093.22.camel@lappyti>
-	<CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	<1340701660.24530.17.camel@deskari>
-	<CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	<1340712213.24530.21.camel@deskari>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: [RFC/PATCH 0/3] OMAP3 I2C/SCCB support
+Date: Tue, 26 Jun 2012 16:49:35 +0200
+Message-ID: <CAGGh5h3WLmQbDyoh8GbydxXQJ81DrVmeZK3Xh13HmHv4cxOs_g@mail.gmail.com>
+References: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:49994 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757914Ab2FZOtH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 10:49:07 -0400
-Received: by bkcji2 with SMTP id ji2so4257122bkc.19
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 07:49:05 -0700 (PDT)
-In-Reply-To: <1340712213.24530.21.camel@deskari>
+Received: from mail-yw0-f51.google.com ([209.85.213.51]:54394 "EHLO
+	mail-yw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757756Ab2FZOtg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 10:49:36 -0400
+In-Reply-To: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-On 26 June 2012 17:33, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Tue, 2012-06-26 at 15:27 +0530, Jassi Brar wrote:
+2012/6/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi everybody,
 >
->> Seems similar, but I only tested OMAP4 HDMI.
->
-> Would something like this one below work for you? It fixes the issues=
- on
-> my overo board.
->
-I think this should work too (I will get to test it only tomorrow).
-
-Though I don't think it'll fix stack spew when run without
-CONFIG_PM_RUNTIME. Maybe we could simply remove the WARN_ON in the
-xxx_runtime_put() as Alan noted?
-
--j
-
-> Instead of using omapdss device's suspend/resume callbacks, this one
-> uses PM notifier calls which happen before suspend and after resume.
->
-> I still think the suspend handling is wrong, omapdss shouldn't be
-> enabling and disabling panel devices like that, but this one should
-> remove the biggest issues with the current suspend method.
->
-> =C2=A0Tomi
->
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss=
-/core.c
-> index 5066eee..c35a248 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -32,6 +32,7 @@
-> =C2=A0#include <linux/io.h>
-> =C2=A0#include <linux/device.h>
-> =C2=A0#include <linux/regulator/consumer.h>
-> +#include <linux/suspend.h>
->
-> =C2=A0#include <video/omapdss.h>
->
-> @@ -201,6 +202,30 @@ int dss_debugfs_create_file(const char *name, vo=
-id (*write)(struct seq_file *))
-> =C2=A0#endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
->
-> =C2=A0/* PLATFORM DEVICE */
-> +static int omap_dss_pm_notif(struct notifier_block *b, unsigned long=
- v, void *d)
-> +{
-> + =C2=A0 =C2=A0 =C2=A0 DSSDBG("pm notif %lu\n", v);
-> +
-> + =C2=A0 =C2=A0 =C2=A0 switch (v)
-> + =C2=A0 =C2=A0 =C2=A0 {
-> + =C2=A0 =C2=A0 =C2=A0 case PM_SUSPEND_PREPARE:
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DSSDBG("suspending=
- displays\n");
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return dss_suspend=
-_all_devices();
-> +
-> + =C2=A0 =C2=A0 =C2=A0 case PM_POST_SUSPEND:
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 DSSDBG("resuming d=
-isplays\n");
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return dss_resume_=
-all_devices();
-> +
-> + =C2=A0 =C2=A0 =C2=A0 default:
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
-> + =C2=A0 =C2=A0 =C2=A0 }
-> +}
-> +
-> +static struct notifier_block omap_dss_pm_notif_block =3D
-> +{
-> + =C2=A0 =C2=A0 =C2=A0 .notifier_call =3D omap_dss_pm_notif,
-> +};
-> +
-> =C2=A0static int __init omap_dss_probe(struct platform_device *pdev)
-> =C2=A0{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct omap_dss_board_info *pdata =3D pdev=
-->dev.platform_data;
-> @@ -224,6 +249,8 @@ static int __init omap_dss_probe(struct platform_=
-device *pdev)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0else if (pdata->default_device)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0core.default_d=
-isplay_name =3D pdata->default_device->name;
->
-> + =C2=A0 =C2=A0 =C2=A0 register_pm_notifier(&omap_dss_pm_notif_block)=
-;
-> +
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
->
-> =C2=A0err_debugfs:
-> @@ -233,6 +260,8 @@ err_debugfs:
->
-> =C2=A0static int omap_dss_remove(struct platform_device *pdev)
-> =C2=A0{
-> + =C2=A0 =C2=A0 =C2=A0 unregister_pm_notifier(&omap_dss_pm_notif_bloc=
-k);
-> +
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0dss_uninitialize_debugfs();
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0dss_uninit_overlays(pdev);
-> @@ -247,25 +276,9 @@ static void omap_dss_shutdown(struct platform_de=
-vice *pdev)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0dss_disable_all_devices();
-> =C2=A0}
->
-> -static int omap_dss_suspend(struct platform_device *pdev, pm_message=
-_t state)
-> -{
-> - =C2=A0 =C2=A0 =C2=A0 DSSDBG("suspend %d\n", state.event);
-> -
-> - =C2=A0 =C2=A0 =C2=A0 return dss_suspend_all_devices();
-> -}
-> -
-> -static int omap_dss_resume(struct platform_device *pdev)
-> -{
-> - =C2=A0 =C2=A0 =C2=A0 DSSDBG("resume\n");
-> -
-> - =C2=A0 =C2=A0 =C2=A0 return dss_resume_all_devices();
-> -}
-> -
-> =C2=A0static struct platform_driver omap_dss_driver =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0.remove =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D om=
-ap_dss_remove,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0.shutdown =C2=A0 =C2=A0 =C2=A0 =3D omap_ds=
-s_shutdown,
-> - =C2=A0 =C2=A0 =C2=A0 .suspend =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D omap_d=
-ss_suspend,
-> - =C2=A0 =C2=A0 =C2=A0 .resume =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D omap_d=
-ss_resume,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0.driver =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.name =C2=A0 =3D=
- "omapdss",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.owner =C2=A0=3D=
- THIS_MODULE,
+> While trying to use an OV7725 camera sensor with an OMAP3 system I ra=
+n into a
+> couple of issues related to the sensor communication protocol. Instea=
+d of
+> using the obiquitous I2C protocol, Omnivision invited the SCCB commun=
+ication
+> bus, very similar to I2C but different enough not to be compatible.
 >
 
+I have been using omnivision sensor without being aware of this issue,
+and without any i2c reliability issue either.
 
+Here is typical code I use :
 
---=20
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106 =C2=A0-
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+/* This function is used to read value from register for i2c client */
+static int ov2710_read(struct i2c_client *client, unsigned short reg,
+unsigned char *val)
+{
+    int err =3D 0;
+    unsigned char outbuf[] =3D {(reg>>8)&0xff, reg&0xff};
+    unsigned char inbuf[1];
+    struct i2c_msg msg[] =3D {
+        { .addr =3D client->addr, .flags =3D 0, .buf =3D outbuf, .len =3D=
+ 2 },
+        { .addr =3D client->addr, .flags =3D I2C_M_RD, .buf =3D inbuf, =
+=2Elen =3D 1 },
+    };
+    err =3D i2c_transfer(client->adapter, msg, 2);
+    /* error handling and pass by ref handling */
+    ....
+}
+
+Is the point of this patch to avoid writing such functions again and
+again in every ov driver ?
+What is solved in practice by this patch that is not solved by a
+regular i2c transfer ?
+
+Regards,
+Jean-Philippe Fran=E7ois
+
+> SCCB documentation is available at
+> http://www.ovt.com/download_document.php?type=3Ddocument&DID=3D63. SC=
+CB exists in
+> two flavors, 3-wire and 2-wire. The 3-wire version is too different f=
+rom I2C
+> to be of interest here.
+>
+> SCCB is very close to SMBus. It supports two transactions, an 8-bit r=
+egister
+> read and an 8-bit register write. The write transaction transmits a 3=
+-byte
+> message (addr/w, reg, data). The read transaction transmits 2 2-byte =
+messages
+> (addr/w, reg, followed by addr/r, data).
+>
+> The two majors differences between I2C and SCCB are in the acknowledg=
+ment bit
+> and in the stop bit.
+>
+> SCCB devices generate no ack bit and don't take the ack bit generated=
+ by the
+> master into account. The ack bit is thus an unspecified bit, present =
+in the
+> transfer but whose value must be ignored. However, in practice, the S=
+CCB
+> components I've seen implement the ack bit in write transactions.
+>
+> The stop bit is handled as in I2C, except that a stop bit needs to be
+> generated between the two messages that make the read transaction (as=
+ opposed
+> to SMBus, where no stop bit must be present between the two messages)=
+=2E
+>
+> I need SCCB support in the I2C core and in the OMAP3 I2C driver and h=
+ave two
+> options. The OMAP3 I2C controller support SCCB natively. The interfac=
+e exposed
+> by the hardware is at the transaction level (smbus_xfer), while the i=
+2c-omap
+> driver exposes a message level interface (master_xfer). To use the na=
+tive SCCB
+> support, we would thus have to either allow i2c_smbus_xfer() to choos=
+e between
+> smbus_xfer and i2c_smbus_xfer_emulated based on the client type (I2C =
+or SCCB),
+> or export i2c_smbus_xfer_emulated() to use it as a fallback in the i2=
+c-omap
+> driver for I2C clients.
+>
+> Another option is not to use the hardware SCCB support, but to emulat=
+e it
+> through I2C. In that case the i2c-omap driver must generate a stop bi=
+t after
+> the first message of a read transaction, and ignore the ack bit. Two =
+flags
+> would then be necessary, one in the message to force the stop bit, an=
+d one in
+> the i2c_client to mark the device as using SCCB.
+>
+> Implementing support for the second option is required for I2C master=
+s that
+> have no hardware SCCB support. As the first option won't bring much b=
+enefits,
+> I've decided to skip it for now. The following three patches thus imp=
+lement
+> emulated SCCB support in the I2C core, with a small change in the i2c=
+-omap
+> driver to support the new I2C_M_STOP flag.
+>
+> Laurent Pinchart (3):
+> =A0i2c: Add SCCB support
+> =A0i2c: Fall back to emulated SMBus if the operation isn't supported
+> =A0 =A0natively
+> =A0i2c: omap: Add support for I2C_M_STOP message flag
+>
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A02 ++
+> =A0drivers/i2c/i2c-core.c =A0 =A0 =A0 =A0| =A0 22 +++++++++++++++++++=
+---
+> =A0include/linux/i2c.h =A0 =A0 =A0 =A0 =A0 | =A0 =A02 ++
+> =A03 files changed, 23 insertions(+), 3 deletions(-)
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
