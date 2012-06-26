@@ -1,187 +1,116 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 26 Jun 2012 15:10:13 +0530
-Message-ID: <1340703613.1562.202.camel@vkoul-udesk3>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	 <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
-	 <201206252030.56025.arnd@arndb.de>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
+Date: Tue, 26 Jun 2012 15:27:19 +0530
+Message-ID: <CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
+References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340605221.12683.30.camel@lappyti>
+	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
+	<1340616643.3395.19.camel@deskari>
+	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
+	<1340628094.3395.63.camel@deskari>
+	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
+	<1340632161.3395.100.camel@deskari>
+	<CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
+	<1340695166.2093.22.camel@lappyti>
+	<CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
+	<1340701660.24530.17.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51659 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537Ab2FZJtf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 05:49:35 -0400
-In-Reply-To: <201206252030.56025.arnd@arndb.de>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:65115 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449Ab2FZJ5U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 05:57:20 -0400
+Received: by lbbgm6 with SMTP id gm6so7787591lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 02:57:19 -0700 (PDT)
+In-Reply-To: <1340701660.24530.17.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
 
-On Mon, 2012-06-25 at 20:30 +0000, Arnd Bergmann wrote:
-> dma_request_channel is called with some information about the channel
-> provided in its arguments, and the driver might get that from a number
-> of places.
-Today, we just ask for a channel with specific mask. Further filtering
-is done in filter function as we request a channel, not a specific one.
-In most slave cases, we need a specific channel from a specific
-controller, and that is where DT can play a role. In addition to DMA
-resources for dma and client driver, I would expect DT to provide the
-channel mapping information, which is anyway known only by platform.
-That should be a dmaengine binding and not client or controller
-specific. For different platforms this information can come from DT or
-something else.
-Then, once a channel is requested dmaengine knows what to provide.
-And as you see the filter becomes redundant.
-
-> In the case of having a fully populated device tree with this binding,
-> the driver calling (of_)dma_request_channel does not need to know about
-> any of that information because we should be able to encapsulate that
-> completely in device tree data. It does not replace the regular interface
-> but wraps around it to provide a higher abstraction level where possible.
-> 
-> Of course if you think we should not be doing that but instead
-> have of_dma_request_channel() live besides dma_request_channel()
-> rather than calling it, that should be absolutely fine too.
-> 
-> > >    In the case of DMA controllers that are using DMA Engine, requesting a
-> > >    channel is performed by calling the following function.
-> > > 
-> > > 	struct dma_chan *dma_request_channel(dma_cap_mask_t mask,
-> > > 			dma_filter_fn filter_fn,
-> > > 			void *filter_param);
-> > > 
-> > >    The mask variable is used to identify the device controller in a list of
-> > >    controllers. The filter_fn and filter_param are used to identify the
-> > >    required dma channel and return a handle to the dma channel of type
-> > >    dma_chan. From the examples I have seen, the mask and filter_fn are constant
-> > >    for a given DMA controller. Therefore, when registering a DMA controller with
-> > >    device tree we can pass these parameters and store them so that a device can
-> > >    request them when requesting a channel. Hence, based upon this our register
-> > >    function for the DMA controller now looks like this.
-> > > 
-> > > 	int of_dma_controller_register(struct device_node *np,
-> > > 		dma_cap_mask_t *mask, dma_filter_fn fn);
-> > IMO we should do away with filter functions.
-> > If we solve the mapping problem, then we don't need a filer.
-> 
-> The channel data in the device tree is still in a format
-> that is specific to that dmaengine driver and interpreted
-> by it. Using the regular dma_filter_fn prototype is not
-> necessary, but it would be convenient because the dmaengine
-> code already knows how to deal with it. If we don't use this
-> method, how about adding another callback to struct dma_device
-> like
-> 
-> bool (*device_match)(struct dma_chan *chan, struct property *req);
-> 
-> > > 2. Supporting legacy devices not using DMA Engine
-> > > 
-> > >    These devices present a problem, as there may not be a uniform way to easily
-> > >    support them with regard to device tree. However, _IF_ legacy devices that
-> > >    are not using DMA Engine, only have a single DMA controller, then this
-> > >    problem is a lot simpler. For example, if we look at the previously proposed
-> > >    API for registering a DMA controller (where we pass the mask and function
-> > >    pointer to the DMA Engine filter function) we can simply pass NULL and hence,
-> > >    a driver requesting the DMA channel information would receive NULL for the
-> > >    DMA Engine specific parameters. Then for legacy devices we simply need a
-> > >    means to return the channel information (more on this later). If there are
-> > >    legacy devices that do have multiple DMA controllers, then maybe they need to
-> > >    be converted to support DMA Engine. I am not sure if this is unreasonable???
-> >
-> > Why should these be supported? They should be converted to use dmaengine
-> > over a reasonable amount of time.
-> 
-> I agree, at least for the long run. However, that is a separate issue to work on.
-> Right now we need a generic way to represent dma requests independent of how
-> they are used in the kernel. The device tree binding is supposed to be
-> operating system independent so there should be nothing in it that requires
-> the use of the linux dmaengine code.
-> 
-> For drivers that do not use dmaengine, we have to make a decision whether
-> it's worth adding support for the DT binding first and converting the driver
-> and its users to dmaengine later, or whether it's better to use the dmaengine
-> API right away to avoid having to do changes twice.
-Latter please :)
-> 
-> > > 3. Representing and requesting channel information
-> > > 
-> > >    From a hardware perspective, a DMA channel could be represented as ...
-> > > 
-> > >    i. channel index/number
-> > >    ii. channel transfer type (optional)
-> > >    iii. DMA interrupt mapping (optional)
-> > > 
-> > >   Please note that the transfer type is used to indicate if the transfer is to
-> > >   device from memory, to memory from device, to memory from memory, etc. This
-> > >   can be useful when there is a device such as an MMC device that uses two DMA
-> > >   channels, one for reading (RX) and one for writing (TX).
-> > >From a dma controller perspective, it can service both with single
-> > channel.
-> > I have dma controller which can talk to three peripherals on both
-> > transmit and receive direction. The point is that 1:1 mapping of dma
-> > channel does not exist. So any representation which tries to do this may
-> > not work. 
-> 
-> In the device tree, we know both the dmaengine and its slave, so we also know
-> whether to put one or more requests in there.
-> 
-> > > 
-> > > 	struct of_dma_channel_info {
-> > > 		int		dma_channel;
-> > > 		dma_cap_mask_t	dma_cap;
-> > > 		dma_filter_fn	dma_filter_func;
-> > > 	};
-> > > 
-> > >    Here dma_channel will always be valid and the other fields are optional
-> > >    depending on whether DMA Engine is used.
-> > > 
-> > > This implementation has been tested on OMAP4430 using Russell King's latest
-> > > DMA Engine series for OMAP [3] and with Benoit Cousson latest DT changes for
-> > > OMAP4 [4]. I have validated that MMC is working on the PANDA board with this
-> > > implementation. I have not included all the changes for PANDA board here but
-> > > just wished to share the implementation.
-> > I am still unclear on how this attempts to solve mapping problem? Maybe
-> > i need more coffee at midnight break!
-> 
-> I believe we have moved on from this proposal to a simpler one,
-> doing away with the of_dma_channel_info.
+On 26 June 2012 14:37, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Tue, 2012-06-26 at 14:02 +0530, Jassi Brar wrote:
 >
-> > > > On Fri, Jun 22, 2012 at 05:52:08PM -0500, Jon Hunter wrote:
-> > > >>>
-> > > >>> 1. chan = of_dma_request_channel(dev->of_node, 0);
-> > > >>> 2. chan = of_dma_request_channel(dev->of_node, 0);
-> > > >>> 3. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
-> > > >>>    txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
-> > > >>> 4. rxchan = of_dma_request_channel(dev->of_node, DMA_MEM_TO_DEV);
-> > > >>>    txchan = of_dma_request_channel(dev->of_node, DMA_DEV_TO_MEM);
-> > > >>> 5. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
-> > > >>>    auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
-> > > >>> 6. chan = of_dma_request_named_channel(dev->of_node, "rwdata", 0);
-> > > >>>    auxchan = of_dma_request_named_channel(dev->of_node, "status", DMA_DEV_TO_MEM);
-> > > >>
-> > > >> In the above examples, did you imply that the of_dma_request_channel()
-> > > >> function would return a type of "struct dma_chan" and so be calling
-> > > >> dma_request_channel() underneath?
-> > > >>
-> > > >> I am been prototyping something, but wanted to make sure I am completely
-> > > >> aligned on this :-)
-> 
-> This is what I think we need to be heading to.
-I am not sure about this, maybe haven't understood all details yet.
-
-But, I was hoping the DT binding will be "hidden". DMAengine driver will
-get resource information from DT. Clients will get DMA resource
-information from DT. And if possible dmaengine gets mapping information
-from DT.
-So then why should we have xx_dma_xxx apis?
-
-
-> 
-> 	Arnd
-
-
--- 
-~Vinod
-
+>> Something non-omapdss in vanilla breaks suspend/resume.
+>
+> I was able to reproduce (probably) the same issue with omap3 overo. D=
+oes
+> this looks familiar:
+>
+> [ 2267.140197] ------------[ cut here ]------------
+> [ 2267.145172] WARNING: at drivers/video/omap2/dss/dispc.c:377 dispc_=
+runtime_get+0x60/0x7c [omapdss]
+> ()
+> [ 2267.154846] Modules linked in: omapfb panel_generic_dpi omapdss cf=
+bimgblt cfbfillrect cfbcopyarea
+> =A0[last unloaded: omapdss]
+> [ 2267.166595] [<c001b61c>] (unwind_backtrace+0x0/0xf0) from [<c00402=
+38>] (warn_slowpath_common+0x4c
+> /0x64)
+> [ 2267.176605] [<c0040238>] (warn_slowpath_common+0x4c/0x64) from [<c=
+004026c>] (warn_slowpath_null+0
+> x1c/0x24)
+> [ 2267.186859] [<c004026c>] (warn_slowpath_null+0x1c/0x24) from [<bf0=
+d7918>] (dispc_runtime_get+0x60
+> /0x7c [omapdss])
+> [ 2267.197814] [<bf0d7918>] (dispc_runtime_get+0x60/0x7c [omapdss]) f=
+rom [<bf0e3148>] (omapdss_dpi_d
+> isplay_enable+0x48/0x230 [omapdss])
+> [ 2267.210479] [<bf0e3148>] (omapdss_dpi_display_enable+0x48/0x230 [o=
+mapdss]) from [<bf110034>] (gen
+> eric_dpi_panel_check_timings+0x30/0x7c [panel_generic_dpi])
+> [ 2267.225311] [<bf110034>] (generic_dpi_panel_check_timings+0x30/0x7=
+c [panel_generic_dpi]) from [<b
+> f11008c>] (generic_dpi_panel_resume+0xc/0x1c [panel_generic_dpi])
+> [ 2267.240722] [<bf11008c>] (generic_dpi_panel_resume+0xc/0x1c [panel=
+_generic_dpi]) from [<bf0de654>
+> ] (dss_resume_device+0x28/0x40 [omapdss])
+> [ 2267.253936] [<bf0de654>] (dss_resume_device+0x28/0x40 [omapdss]) f=
+rom [<c02bfb94>] (bus_for_each_
+> dev+0x50/0x7c)
+> [ 2267.264678] [<c02bfb94>] (bus_for_each_dev+0x50/0x7c) from [<c02c2=
+87c>] (platform_pm_resume+0x2c/
+> 0x50)
+> [ 2267.274566] [<c02c287c>] (platform_pm_resume+0x2c/0x50) from [<c02=
+c6da8>] (dpm_run_callback.clone
+> .7+0x30/0xb0)
+> [ 2267.285186] [<c02c6da8>] (dpm_run_callback.clone.7+0x30/0xb0) from=
+ [<c02c7b2c>] (device_resume+0x
+> c8/0x188)
+> [ 2267.295471] [<c02c7b2c>] (device_resume+0xc8/0x188) from [<c02c7f5=
+4>] (dpm_resume+0xfc/0x21c)
+> [ 2267.304534] [<c02c7f54>] (dpm_resume+0xfc/0x21c) from [<c02c8208>]=
+ (dpm_resume_end+0xc/0x18)
+> [ 2267.313507] [<c02c8208>] (dpm_resume_end+0xc/0x18) from [<c007fbcc=
+>] (suspend_devices_and_enter+0
+> x15c/0x2d0)
+> [ 2267.323913] [<c007fbcc>] (suspend_devices_and_enter+0x15c/0x2d0) f=
+rom [<c007fecc>] (pm_suspend+0x
+> 18c/0x208)
+> [ 2267.334259] [<c007fecc>] (pm_suspend+0x18c/0x208) from [<c007f170>=
+] (state_store+0x120/0x134)
+> [ 2267.343292] [<c007f170>] (state_store+0x120/0x134) from [<c0262850=
+>] (kobj_attr_store+0x14/0x20)
+> [ 2267.352661] [<c0262850>] (kobj_attr_store+0x14/0x20) from [<c0169b=
+6c>] (sysfs_write_file+0x100/0x
+> 184)
+> [ 2267.362457] [<c0169b6c>] (sysfs_write_file+0x100/0x184) from [<c01=
+09008>] (vfs_write+0xb4/0x148)
+> [ 2267.371795] [<c0109008>] (vfs_write+0xb4/0x148) from [<c0109290>] =
+(sys_write+0x40/0x70)
+> [ 2267.380310] [<c0109290>] (sys_write+0x40/0x70) from [<c0013d60>] (=
+ret_fast_syscall+0x0/0x3c)
+> [ 2267.389282] ---[ end trace 54fe7eea726ac84d ]---
+> [ 2267.394592] dpm_run_callback(): platform_pm_resume+0x0/0x50 return=
+s -13
+> [ 2267.401641] PM: Device omapdss failed to resume: error -13
+>
+Seems similar, but I only tested OMAP4 HDMI.
+thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
