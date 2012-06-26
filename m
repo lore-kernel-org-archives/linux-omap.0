@@ -1,41 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP7XX:  Remove omap730.h and omap850.h
-Date: Tue, 26 Jun 2012 04:25:24 -0700
-Message-ID: <20120626112524.GF31393@atomide.com>
-References: <1340013485.5611.6.camel@x61.thuisdomein>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH 0/5 V2 RESEND] ARM: OMAP: TLL driver implementation for USB host driver
+Date: Tue, 26 Jun 2012 16:56:02 +0530
+Message-ID: <1340709962-15726-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1340013485.5611.6.camel@x61.thuisdomein>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48776 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754247Ab2FZL0Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Jun 2012 07:26:16 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, paul@pwsan.com, b-cousson@ti.com, sshtylyov@mvista.com
 
-* Paul Bolle <pebolle@tiscali.nl> [120618 03:02]:
-> No file includes omap730.h or omap850.h. That's not surprising, as
-> commit e6684f7132c6e6333e96407b06910bebaa4c1935 ("OMAP7XX: Create
-> omap7xx.h") created a header that was "intended to replace omap730.h and
-> omap850.h", while all "values defined [in omap7xx.h] are identical to
-> those in both the old files". So it seems it was just an oversight to
-> keep both the old files after commit
-> 7a8f48f8c611ac8c07023260258e2fec312b9242 ("OMAP7XX: omap_uwire.c:
-> Convert to omap7xx.h") converted the last file still including one of
-> those two old files.
-> 
-> Convert the last reference to omap730.h to a reference to omap7xx.h too.
-> 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> 0) Tested only by using various git commands on the (history of the)
-> tree.
+The TLL configuration is removed from the UHH driver and implemented as
+a seperate platform driver. Now, the UHH driver configures the TLL
+through API's exported by the TLL platform driver. The TLL is an
+has independent hardware mod structure for in OMAP3 and later chips,
+hence an dedicated platform driver is created.
 
-Thanks, nice catch :) I'll apply this into fixes-non-critical.
- 
-> 1) A related cleanup could be to remove cpu_is_omap730 and
-> cpu_is_omap850, as both macros seem unused.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Yes seems like we could do that. Care to do a patch for that?
+In V2:
+    - covered review comments from linux omap and usb community
+    - rebased on top Russ dil's patch
+       'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+       fixes an issue where the ULPI PHYs were not held in reset
+       while initializing the EHCI controller
 
-Tony
+Keshava Munegowda (5):
+  ARM: OMAP: USB: HOST TLL platform driver
+  ARM: OMAP: USB: Build the USB HOST TLL omap device
+  ARM: OMAP: USB: Remove TLL specific code
+  ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+  ARM: OMAP: change the USB TLL clocks device name
+
+ arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+ arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+ arch/arm/mach-omap2/usb-host.c        |   31 ++-
+ arch/arm/plat-omap/include/plat/usb.h |    7 +
+ drivers/mfd/Kconfig                   |    2 +-
+ drivers/mfd/Makefile                  |    2 +-
+ drivers/mfd/omap-usb-host.c           |  238 ++---------------
+ drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+ 8 files changed, 523 insertions(+), 240 deletions(-)
+ create mode 100644 drivers/mfd/omap-usb-tll.c
+
+-- 
+1.7.9.5
+
