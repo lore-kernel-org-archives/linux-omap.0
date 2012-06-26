@@ -1,60 +1,91 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: omap2: Fix redefinition of board_onenand_init
-Date: Tue, 26 Jun 2012 06:46:50 -0700
-Message-ID: <20120626134650.GB3483@atomide.com>
-References: <1340716561-27750-1-git-send-email-waldemar.rymarkiewicz@tieto.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 1/3] i2c: Add SCCB support
+Date: Tue, 26 Jun 2012 16:17:07 +0200
+Message-ID: <1340720229-30356-2-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40456 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757452Ab2FZNqx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 09:46:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1340716561-27750-1-git-send-email-waldemar.rymarkiewicz@tieto.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41561 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757243Ab2FZORJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Jun 2012 10:17:09 -0400
+In-Reply-To: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Waldemar Rymarkiewicz <waldemar.rymarkiewicz@tieto.com>
-Cc: linux-omap@vger.kernel.org, Waldemar Rymarkiewicz <waldemar.rymarkiewicz@gmail.com>
+To: linux-i2c@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-Hi,
+SCCB is a serial communication bus developed by Omnivision. Its 2-wire
+mode is very similar to SMBus byte data transactions, but requires the
+controller to ignore the ACK bit and to insert a stop condition after
+each message.
 
-* Waldemar Rymarkiewicz <waldemar.rymarkiewicz@tieto.com> [120626 06:21]:
-> Initialy defined in arch/arm/mach-omap2/board-flash.h and redefined in
-> arch/arm/mach-omap2/board-flash.c when CONFIG_MTD_ONENAND_OMAP2 were not set.
+Add a device SCCB flag and a message stop flag to be passed to
+controller drivers.
 
-Thanks, but I already have an earlier version from Kevin queued up that
-I forgot to send upstream last week.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/i2c/i2c-core.c |   13 ++++++++++++-
+ include/linux/i2c.h    |    2 ++
+ 2 files changed, 14 insertions(+), 1 deletions(-)
 
-Regards,
-
-Tony
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index feb7dc3..8cfa660 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -1939,6 +1939,12 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 	u8 partial_pec = 0;
+ 	int status;
  
-> Signed-off-by: Waldemar Rymarkiewicz <waldemar.rymarkiewicz@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-flash.c |    5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-> index 70a81f9..53c39d2 100644
-> --- a/arch/arm/mach-omap2/board-flash.c
-> +++ b/arch/arm/mach-omap2/board-flash.c
-> @@ -97,11 +97,6 @@ __init board_onenand_init(struct mtd_partition *onenand_parts,
->  
->  	gpmc_onenand_init(&board_onenand_data);
->  }
-> -#else
-> -void
-> -__init board_onenand_init(struct mtd_partition *nor_parts, u8 nr_parts, u8 cs)
-> -{
-> -}
->  #endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
->  
->  #if defined(CONFIG_MTD_NAND_OMAP2) || \
-> -- 
-> 1.7.10
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
++	if (unlikely(flags & I2C_CLIENT_SCCB) && size != I2C_SMBUS_BYTE_DATA) {
++		dev_err(&adapter->dev,
++			"SCCB devices only support I2C_SMBUS_BYTE_DATA\n");
++		return -EINVAL;
++	}
++
+ 	msgbuf0[0] = command;
+ 	switch (size) {
+ 	case I2C_SMBUS_QUICK:
+@@ -1956,6 +1962,11 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 		}
+ 		break;
+ 	case I2C_SMBUS_BYTE_DATA:
++		if (unlikely(flags & I2C_CLIENT_SCCB)) {
++			msg[0].flags |= I2C_M_IGNORE_NAK | I2C_M_STOP;
++			msg[1].flags |= I2C_M_IGNORE_NAK | I2C_M_STOP;
++		}
++
+ 		if (read_write == I2C_SMBUS_READ)
+ 			msg[1].len = 1;
+ 		else {
+@@ -2105,7 +2116,7 @@ s32 i2c_smbus_xfer(struct i2c_adapter *adapter, u16 addr, unsigned short flags,
+ 	int try;
+ 	s32 res;
+ 
+-	flags &= I2C_M_TEN | I2C_CLIENT_PEC;
++	flags &= I2C_M_TEN | I2C_CLIENT_PEC | I2C_CLIENT_SCCB;
+ 
+ 	if (adapter->algo->smbus_xfer) {
+ 		i2c_lock_adapter(adapter);
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 195d8b3..bd42914 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -420,6 +420,7 @@ void i2c_lock_adapter(struct i2c_adapter *);
+ void i2c_unlock_adapter(struct i2c_adapter *);
+ 
+ /*flags for the client struct: */
++#define I2C_CLIENT_SCCB	0x02		/* Use Omnivision SCCB protocol */
+ #define I2C_CLIENT_PEC	0x04		/* Use Packet Error Checking */
+ #define I2C_CLIENT_TEN	0x10		/* we have a ten bit chip address */
+ 					/* Must equal I2C_M_TEN below */
+@@ -540,6 +541,7 @@ struct i2c_msg {
+ 	__u16 flags;
+ #define I2C_M_TEN		0x0010	/* this is a ten bit chip address */
+ #define I2C_M_RD		0x0001	/* read data, from slave to master */
++#define I2C_M_STOP		0x8000	/* if I2C_FUNC_PROTOCOL_MANGLING */
+ #define I2C_M_NOSTART		0x4000	/* if I2C_FUNC_PROTOCOL_MANGLING */
+ #define I2C_M_REV_DIR_ADDR	0x2000	/* if I2C_FUNC_PROTOCOL_MANGLING */
+ #define I2C_M_IGNORE_NAK	0x1000	/* if I2C_FUNC_PROTOCOL_MANGLING */
+-- 
+1.7.3.4
+
