@@ -1,52 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 0/2] arm: omap3: am35x: Convert emac to hwmod & disable
- hlt when open
-Date: Wed, 27 Jun 2012 15:58:52 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206271556490.27496@utopia.booyaka.com>
-References: <1337105642-22711-1-git-send-email-mgreer@animalcreek.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: omap2plus_defconfig: Enable EXT4 support
+Date: Thu, 28 Jun 2012 00:28:03 +0200
+Message-ID: <CAAwP0s2eTWk2Uf0HZ13Lq5gA0HNp8V87znjd6rX6Uh0ZPy03PA@mail.gmail.com>
+References: <1340489939-5390-1-git-send-email-javier@dowhile0.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48391 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172Ab2F0V6x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 17:58:53 -0400
-In-Reply-To: <1337105642-22711-1-git-send-email-mgreer@animalcreek.com>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:64819 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932165Ab2F0W2Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 18:28:24 -0400
+Received: by gglu4 with SMTP id u4so1380741ggl.19
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 15:28:23 -0700 (PDT)
+In-Reply-To: <1340489939-5390-1-git-send-email-javier@dowhile0.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
+On Sun, Jun 24, 2012 at 12:18 AM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+> On OMAP boards that includes an SD card slot, an EXT4 partition could
+> be used to store the root file system. So, the kernel should have
+> built-in support for EXT4 to be able to mount the VFS root on boot.
+>
+> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> ---
+> =C2=A0arch/arm/configs/omap2plus_defconfig | =C2=A0 =C2=A01 +
+> =C2=A01 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/=
+omap2plus_defconfig
+> index 9854ff4..f3087cb 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -197,6 +197,7 @@ CONFIG_RTC_DRV_TWL4030=3Dy
+> =C2=A0CONFIG_EXT2_FS=3Dy
+> =C2=A0CONFIG_EXT3_FS=3Dy
+> =C2=A0# CONFIG_EXT3_FS_XATTR is not set
+> +CONFIG_EXT4_FS=3Dy
+> =C2=A0CONFIG_QUOTA=3Dy
+> =C2=A0CONFIG_QFMT_V2=3Dy
+> =C2=A0CONFIG_MSDOS_FS=3Dy
+> --
+> 1.7.7.6
+>
 
-On Tue, 15 May 2012, Mark A. Greer wrote:
+Hi,
 
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> These patches convert the davinci emac support for the am35x SoC
-> to use hwmod and add enable_hlt()/disable_hlt() calls to the
-> pm_runtime hooks for that driver.
-> 
-> I have converted the davinci_emac driver to use pm_runtime but I
-> can't formally submit it yet since it requires some changes on the
-> mach-davinci side that haven't happened yet.  I will send it as an
-> RFC in a reply to this thread.
-> 
-> The patches are based on:
->         git://git.pwsan.com/linux-2.6 am35xx_hwmod_data_fixes_a_3.5
-> 
-> Changes from v1:
-> - patch 1/2, "arm: omap3: am35x: Add Davinci EMAC/MDIO hwmod support"
->   is unchanged
-> - patch 2/2, "arm: "omap3: am35x: Disable hlt when using Davinci EMAC"
->   has been reworked to keep the code as simple as possible per
->   http://www.spinics.net/lists/linux-omap/msg70354.html
+any news about this patch?
 
-The updated patches that were just reposted today have been queued for 
-3.6, along with a few comments about the IPSS issue, mentioned earlier. 
-They can be found in the branch am35xx_emac_mdio_devel_3.6 in 
-git://git.pwsan.com/linux-2.6.  Please let me know if you have any 
-comments.
+Is quite annoying to have to enable EXT4 support each time I want to
+try a new kernel on my board.
 
-
-- Paul
+Best regards,
+Javier
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
