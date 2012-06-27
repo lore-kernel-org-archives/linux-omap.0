@@ -1,111 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 17/17] OMAPDSS: DSI: Remove redundant fields in
- omap_dss_dsi_videomode_data
-Date: Wed, 27 Jun 2012 15:05:46 +0300
-Message-ID: <1340798746.2649.51.camel@deskari>
-References: <1340703414-1915-1-git-send-email-archit@ti.com>
-	 <1340703414-1915-19-git-send-email-archit@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Wed, 27 Jun 2012 12:07:58 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com>	<4FD5FD9E.5040203@ti.com>
+ <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-JQAKqyUs8o/52/fHmkuW"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:55735 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755599Ab2F0MFu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 08:05:50 -0400
-Received: by lbon10 with SMTP id n10so1900555lbo.13
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 05:05:47 -0700 (PDT)
-In-Reply-To: <1340703414-1915-19-git-send-email-archit@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42655 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754433Ab2F0MIJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:08:09 -0400
+In-Reply-To: <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Domenico Andreoli <cavokz@gmail.com>
+Cc: Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+On Sat, Jun 23, 2012 at 18:33:13, Domenico Andreoli wrote:
+> Hello,
+> 
+> On Mon, Jun 11, 2012 at 4:15 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+> >
+> > I do maintain wiki page which you should refer for any updates:
+> > http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
+> >
+> > In order to get latest and greatest kernel to boot, you can use my repo:
+> > https://github.com/hvaibhav/am335x-linux
+> 
+> do you have any usable defconfig? I've some trouble with the build of
+> this branch and I'm not sure about the configuration.
+> 
+> > Also, note that, currently there will be very minimal feature-set
+> > supported in the kernel, so not sure how much can be leveraged for
+> > production use-cases.
+> 
+> I need something that boots to userspace, nothing more (but I'm happy
+> to test) :)
+> 
+
+Sorry for delayed response, I went out of station, supposed to come back on 
+Monday itself but due to some known reason couldn't make it. I have just 
+resumed my work today. Sorry for inconvenience...
+
+Coming back to your question,
+
+Omap2plus_defconfig should work for you, you should get linux prompt with 
+ramdisk image (which I use). Just to be more clear, and for your reference I am pasting steps which I use for testing, 
+
+Build Steps:
+============
+ - make ARCH=arm CROSS_COMPILE=<toolchain> distclean
+ - make ARCH=arm CROSS_COMPILE=<toolchain> omap2plus_defconfig
+ - Enable option CONFIG_ARM_APPENDED_DTB and CONFIG_ARM_ATAG_DTB_COMPAT
+ - make ARCH=arm CROSS_COMPILE=<toolchain> uImage-dtb.am335x-evm
+   (Since I am not using DT aware u-boot)
+
+Use the ramdisk image to boot kernel, since we do not have support for any 
+storage devices in the mainline.
+
+U-Boot commands to boot:
+========================
+setenv bootcmd 'mmc rescan 0; fatload mmc 0 81000000 uImage; fatload mmc 0 82000000 ramdisk-pm.gz; bootm 81000000'
+setenv bootargs 'console=ttyO0,115200n8 mem=128M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial'
+boot
 
 
---=-JQAKqyUs8o/52/fHmkuW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hope this will help you to boot the kernel on BeagleBone.
 
-On Tue, 2012-06-26 at 15:06 +0530, Archit Taneja wrote:
-> The struct omap_dss_dsi_videomode_data holds polaritiy/logic level inform=
-ation
-> of the DISPC video port signals DE, HSYNC and VSYNC. This information alr=
-eady
-> exists in the omap_video_timings struct.
->=20
-> Use the fields in omap_video_timings to program VP_DE_POL, VP_HSYNC_POL a=
-nd
-> VP_VSYNC_POL in DSI_CTRL. Remove the redundant fields in
-> omap_dss_dsi_videomode_data.
->=20
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/video/omap2/dss/dsi.c |   11 ++++++++---
->  include/video/omapdss.h       |    3 ---
->  2 files changed, 8 insertions(+), 6 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.=
-c
-> index 061bf53..3844430 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -3628,13 +3628,18 @@ static void dsi_config_vp_num_line_buffers(struct=
- omap_dss_device *dssdev)
->  static void dsi_config_vp_sync_events(struct omap_dss_device *dssdev)
->  {
->  	struct platform_device *dsidev =3D dsi_get_dsidev_from_dssdev(dssdev);
-> -	int de_pol =3D dssdev->panel.dsi_vm_data.vp_de_pol;
-> -	int hsync_pol =3D dssdev->panel.dsi_vm_data.vp_hsync_pol;
-> -	int vsync_pol =3D dssdev->panel.dsi_vm_data.vp_vsync_pol;
-> +	int de_pol, hsync_pol, vsync_pol;
-> +	int de_level =3D dssdev->panel.timings.de_level;
-> +	int hsync_level =3D dssdev->panel.timings.hsync_level;
-> +	int vsync_level =3D dssdev->panel.timings.vsync_level;
->  	bool vsync_end =3D dssdev->panel.dsi_vm_data.vp_vsync_end;
->  	bool hsync_end =3D dssdev->panel.dsi_vm_data.vp_hsync_end;
->  	u32 r;
-> =20
-> +	de_pol =3D de_level =3D=3D OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
-> +	hsync_pol =3D hsync_level =3D=3D OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
-> +	vsync_pol =3D vsync_level =3D=3D OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
-> +
->  	r =3D dsi_read_reg(dsidev, DSI_CTRL);
->  	r =3D FLD_MOD(r, de_pol, 9, 9);		/* VP_DE_POL */
->  	r =3D FLD_MOD(r, hsync_pol, 10, 10);	/* VP_HSYNC_POL */
-
-This patch makes the code cleaner, but I find this DSI sync code a bit
-strange.
-
-The sync polarities between DISPC and DSI do not matter elsewhere, they
-do not affect the DSI output, so why do we have them in the panel data?
-Why doesn't dsi.c just use some hardcoded values for these.
-
- Tomi
-
-
---=-JQAKqyUs8o/52/fHmkuW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP6vcaAAoJEPo9qoy8lh71dRsQAJwvE4Uh55XMgT4LJ+he+4+W
-9d6mjY363QwQu1PYIeO5F2tQBVUycwHgH3ksDXGBCiqaX/Ixhpm2/y6ugh7w9DDn
-zjQNdNdiJP1MNuvJZIZWpRdPjR/LMUR/DWOcKgpX4NBBnsunKekLY3cfBYatwRmF
-HbkpQbiRMH5ifm6ZwHMYk8WZSuzPHTwVM2tdQh1BHQsUVpAUoX3AVV5t1/PBiAOd
-5XQeg1DjO71dsSPfNmELh3BRwT2OPW22U0jl8pKzo0/Wg+twwMgmJ7RqiuIUdoLy
-DvvvL+fM8UbS1pWyvI25t+mh7T7Dgms40u3LMBVMfGFa+mjO7GjsurjKKkWbsGJD
-+EibYqPXsMgXJdyQnHIy1YzjVCKgZGMxtdBKDztCJMCYAwfZ0oPil9nPQAht+nJb
-L1twPyB3cKhc9b+560pRpmRJ5OgKm7E3o1CZ1XLFDZyQec+uKiXSVIc4df8M1AlB
-i6luIcBVuHxYCMw6pTxKIRMp82/X/LCzjQyT/pVWO7Jk1IkdV+galqPBJA7YZAnE
-NGwqTUvJEox16wRFD/o4Kdxvq6A/4D2q7UxGJCL/bP9/kkI5PVBgRNiR+W0e5ORz
-NQ3pC5CwQA/5bbcykKohxF10JPgEDpVs6ti3vthPNjNdQFUTJXxeqgjbUbkpUGAF
-dklxk/w3vX5TePeAiaH6
-=F0xd
------END PGP SIGNATURE-----
-
---=-JQAKqyUs8o/52/fHmkuW--
+Thanks,
+Vaibhav
 
