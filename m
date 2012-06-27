@@ -1,54 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-Date: Wed, 27 Jun 2012 08:14:49 -0700
-Message-ID: <20120627151448.GN3483@atomide.com>
-References: <cover.1339586624.git.afzal@ti.com>
- <1340790002.29342.15.camel@sauron.fi.intel.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E99FA39@DBDE01.ent.ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH 1/2] OMAPDSS: Use PM notifiers for system suspend
+Date: Wed, 27 Jun 2012 20:50:16 +0530
+Message-ID: <CAJe_Zhc3RLWC_rVY74ZBDy9bMa25EmMKWGj5+T61YhtFR58kcg@mail.gmail.com>
+References: <1340807697-24847-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25994 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757564Ab2F0POx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 11:14:53 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E99FA39@DBDE01.ent.ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64517 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932143Ab2F0PUT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 11:20:19 -0400
+Received: by eeit10 with SMTP id t10so419460eei.19
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 08:20:17 -0700 (PDT)
+In-Reply-To: <1340807697-24847-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Mohammed, Afzal <afzal@ti.com> [120627 02:48]:
-> Hi Artem,
-> 
-> On Wed, Jun 27, 2012 at 15:10:02, Artem Bityutskiy wrote:
-> > On Wed, 2012-06-13 at 17:02 +0530, Afzal Mohammed wrote:
-> > > Hi,
-> > > 
-> > > This series cleans up gpmc mtd interactions so that GPMC driver
-> > > conversion which is going to happen shortly would happen smoothly
-> > > by not creating much disturbance outside of arch/arm/*omap*/
-> > 
-> > BTW, be aware that Russel King patched the omap2.c file in patch series
-> > which switches to the DMA engine, so I expect conflicts. You can check
-> > his tree, I guess. The subjects were:
-> > 
-> > [CFT 09/11] mtd: omap2: add DMA engine support
-> > [CFT 10/11] mtd: omap2: remove private DMA API implementation
-> 
-> 
-> Thanks for the information.
-> 
-> Hi Tony,
-> 
-> We have Artem's ack on MTD changes in this series, please let me know whether
-> I need to do anything more to get this series picked up in your tree.
+On 27 June 2012 20:04, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> The current way how omapdss handles system suspend and resume is that
+> omapdss device (a platform device, which is not part of the device
+> hierarchy of the DSS HW devices, like DISPC and DSI, or panels.) uses
+> the suspend and resume callbacks from platform_driver to handle system
+> suspend. It does this by disabling all enabled panels on suspend, and
+> resuming the previously disabled panels on resume.
+>
+> This presents a few problems.
+>
+> One is that as omapdss device is not related to the panel devices or the
+> DSS HW devices, there's no ordering in the suspend process. This means
+> that suspend could be first ran for DSS HW devices and panels, and only
+> then for omapdss device. Currently this is not a problem, as DSS HW
+> devices and panels do not handle suspend.
+>
+> Another, more pressing problem, is that when suspending or resuming, the
+> runtime PM functions return -EACCES as runtime PM is disabled during
+> system suspend. This causes the driver to print warnings, and operations
+> to fail as they think that they failed to bring up the HW.
+>
+> This patch changes the omapdss suspend handling to use PM notifiers,
+> which are called before suspend and after resume. This way we have a
+> normally functioning system when we are suspending and resuming the
+> panels.
+>
+> This patch, I believe, creates a problem that somebody could enable or
+> disable a panel between PM_SUSPEND_PREPARE and the system suspend, and
+> similarly the other way around in resume. I choose to ignore the problem
+> for now, as it sounds rather unlikely, and if it happens, it's not
+> fatal.
+>
+> In the long run the system suspend handling of omapdss and panels should
+> be thought out properly. The current approach feels rather hacky.
+> Perhaps the panel drivers should handle system suspend, or the users of
+> omapdss (omapfb, omapdrm) should handle system suspend.
+>
+> Note that after this patch we could probably revert
+> 0eaf9f52e94f756147dbfe1faf1f77a02378dbf9 (OMAPDSS: use sync versions of
+> pm_runtime_put).
+>
+I would think only DISPC should need the sync version.
 
-This series looks OK to me. As the second series still has at least
-one issue, let's wait a little bit on applying these so we have an
-immutable commit from Russell on the DMA changes.
+> But as I said, this patch may be temporary, so let's
+> leave the sync version still in place.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Reported-by: Jassi Brar <jaswinder.singh@linaro.org>
+>
+Please feel free to add
 
-Regards,
-
-Tony
+  Tested-by: Jassi Brar <jaswinder.singh@linaro.org>
