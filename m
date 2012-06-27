@@ -1,84 +1,108 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 05/17] OMAPDSS: Add some new fields to omap_video_timings
-Date: Wed, 27 Jun 2012 18:17:07 +0530
-Message-ID: <4FEB00CB.4070502@ti.com>
-References: <1340703414-1915-1-git-send-email-archit@ti.com>   <1340703414-1915-7-git-send-email-archit@ti.com>  <1340797733.2649.48.camel@deskari> <4FEAFC02.2070006@ti.com> <1340800933.2649.72.camel@deskari>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
+Date: Wed, 27 Jun 2012 14:50:47 +0200
+Message-ID: <1397795.nxQGnEDtVe@avalon>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40346 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087Ab2F0MsN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:48:13 -0400
-In-Reply-To: <1340800933.2649.72.camel@deskari>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51503 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752855Ab2F0Muo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:50:44 -0400
+In-Reply-To: <1340372890-10091-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: paul@pwsan.com, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 27 June 2012 06:12 PM, Tomi Valkeinen wrote:
-> On Wed, 2012-06-27 at 17:56 +0530, Archit Taneja wrote:
->> On Wednesday 27 June 2012 05:18 PM, Tomi Valkeinen wrote:
->>> On Tue, 2012-06-26 at 15:06 +0530, Archit Taneja wrote:
->>>> Some panel timing related fields are contained in omap_panel_config in the form
->>>> of flags. The fields are:
->>>>
->>>> - Hsync logic level
->>>> - Vsync logic level
->>>> - Data driven on rising/falling edge of pixel clock
->>>> - Output enable/Data enable logic level
->>>> - HSYNC/VSYNC driven on rising/falling edge of pixel clock
->>>>
->>>> Out of these parameters, Hsync and Vsync logic levels are a part of the timings
->>>> in the Xorg modeline configuration. So it makes sense to move the to
->>>> omap_video_timings. The rest aren't a part of modeline, but it still makes
->>>> sense to move these since they are related to panel timings.
->>>>
->>>> These fields stored in omap_panel_config in dssdev are configured for LCD
->>>> panels, and the corresponding LCD managers in the DISPC_POL_FREQo registers.
->>>>
->>>> Add the above fields in omap_video_timings. Represent their state via new enums.
->>>> The parameter pclk_edge is configured via omap_dss_signal_level, however it
->>>> actually configures whether data is driven on the rising or falling edge. This
->>>> is a bit unclean, but it prevents us from creating another enum.
->>>
->>> Hmm, why can't omap_dss_signal_edge be used for pclk_edge? I think it'd
->>> fit fine, except OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES would be an illegal
->>> value for it.
->>
->> I think my paragraph is a bit misleading. The issue is more about the
->> default value. For hsync_vsync_edge(which programs ONOFF and RF), the
->> default value is OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES, and is the case for
->> most panels. But for pclk_edge, the value for most panels is
->> OMAPDSS_DRIVE_SIG_ACTIVE_HIGH.
->>
->> So if I use the same enum for both, I'll need to populate either
->> pclk_edge or hsync_vsync_edge for almost every panel. With my approach,
->> I only need to populate these fields for panels having the non-default
->> requirements. The negative thing is that it's a bit misleading to
->> represent pclk_edge with the omap_dss_signal_level enum.
->
-> Ah, I see.
->
-> I really think using the ACTIVE_LOW/HIGH for pclk_edge is quite ugly =).
->
-> Well, one option is to add new entry for the enums, "UNDEFINED" or
-> perhaps "DEFAULT", which would have value 0. Then omapdss would know
-> that it should use the default value, whatever that is.
->
-> Another option is to have all panels define the pclk_edge, so that
-> there's no default value needed.
+Hi Rajendra,
 
-I think I'll go with this.
+On Friday 22 June 2012 19:17:59 Rajendra Nayak wrote:
+> Hi,
+> 
+> This is a preparatory series for the OMAP Common Clk
+> conversion. They mostly add clk_prepare/clk_unprepare
+> in OMAP drivers and platform code. Also gets
+> rid of omap_clk_get_by_name() and uses clk_get(), and
+> removes all direct 'struct clk' dereferrencing and
+> uses helpers similar to what is provided by Common
+> Clk.
 
->
-> Also, related thing, I see you're writing enum values directly to the
-> registers. If you do that, it'd be good to explicitly set the number
-> value of the enums. Otherwise it's quite easy to add a new enum value
-> later between the old ones, breaking everything (perhaps not a problem
-> here, though).
+I think you've missed drivers/media/video/omap3isp/isp.c. Should I send a 
+patch for that ? Do these changes depend on anything not yet in mainline that 
+I should apply to my tree for testing ?
 
-Yes, that's true. I'll set the numbers anyway, for clarity.
+> Patches are boot tested on OMAP2430sdp, 3630 Beagle-Xm
+> and 4460 Panda.
+> 
+> Some of these patches were earlier posted as part of
+> OMAP2+ Common Clk conversion series [1] which is now
+> split into a preparatory series and actual CCF conversion
+> series.
+> 
+> Patches from this series can be found here
+> git://github.com/rrnayak/linux.git prepare-common-clk-3.5-rc3
+> 
+> regards,
+> Rajendra
+> 
+> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70299.html
+> 
+> Rajendra Nayak (11):
+>   ARM: omap: clk: add clk_prepare and clk_unprepare
+>   mmc: omap: add clk_prepare and clk_unprepare
+>   hwrng: omap: add clk_prepare and clk_unprepare
+>   mfd: omap-usb: add clk_prepare and clk_unprepare
+>   OMAPDSS: add clk_prepare and clk_unprepare
+>   gpio/omap: add clk_prepare and clk_unprepare
+>   w1: omap_hdq: add clk_prepare and clk_unprepare
+>   crypto: omap: add clk_prepare and clk_unprepare
+>   iommu: omap: add clk_prepare and clk_unprepare
+>   ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+>   ARM: omap: clk: Remove all direct dereferencing of struct clk
+> 
+>  arch/arm/mach-omap2/board-apollon.c          |    4 +-
+>  arch/arm/mach-omap2/board-h4.c               |    6 +-
+>  arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+>  arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
+>  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    4 +-
+>  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   18 +++---
+>  arch/arm/mach-omap2/clkt_clksel.c            |   84 ++++++++++++++++-------
+>  arch/arm/mach-omap2/clkt_dpll.c              |   24 ++++---
+>  arch/arm/mach-omap2/clock.c                  |    9 ++-
+>  arch/arm/mach-omap2/clock2420_data.c         |   17 +++++
+>  arch/arm/mach-omap2/clock2430_data.c         |   21 +++++++
+>  arch/arm/mach-omap2/clock3xxx.c              |    8 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c         |   24 +++++++
+>  arch/arm/mach-omap2/clock44xx_data.c         |   17 +++++
+>  arch/arm/mach-omap2/display.c                |    4 +-
+>  arch/arm/mach-omap2/dpll3xxx.c               |   45 ++++++++------
+>  arch/arm/mach-omap2/gpmc.c                   |    2 +-
+>  arch/arm/mach-omap2/omap_hwmod.c             |   21 ++++---
+>  arch/arm/mach-omap2/omap_phy_internal.c      |    3 +
+>  arch/arm/mach-omap2/pm.c                     |    2 +-
+>  arch/arm/mach-omap2/pm24xx.c                 |    2 +
+>  arch/arm/mach-omap2/usb-fs.c                 |    4 +-
+>  arch/arm/plat-omap/include/plat/clock.h      |    4 +
+>  arch/arm/plat-omap/omap_device.c             |    6 +-
+>  drivers/char/hw_random/omap-rng.c            |    6 +-
+>  drivers/crypto/omap-aes.c                    |    2 +
+>  drivers/crypto/omap-sham.c                   |    2 +
+>  drivers/gpio/gpio-omap.c                     |    2 +
+>  drivers/iommu/omap-iommu.c                   |    2 +
+>  drivers/mfd/omap-usb-host.c                  |   20 ++++++
+>  drivers/mmc/host/omap.c                      |    9 ++-
+>  drivers/mmc/host/omap_hsmmc.c                |    6 +-
+>  drivers/video/omap2/dss/dsi.c                |    5 +-
+>  drivers/video/omap2/dss/hdmi.c               |    5 +-
+>  drivers/video/omap2/dss/venc.c               |    5 +-
+>  drivers/w1/masters/omap_hdq.c                |    8 +-
+>  36 files changed, 292 insertions(+), 113 deletions(-)
 
-Archit
+-- 
+Regards,
+
+Laurent Pinchart
+
