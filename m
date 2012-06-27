@@ -1,55 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Wed, 27 Jun 2012 07:58:45 -0700
-Message-ID: <20120627145844.GL3483@atomide.com>
-References: <cover.1340778002.git.afzal@ti.com>
- <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+Subject: Re: [PATCH V2] ARM: OMAP4470: Fix OMAP4470 boot failure
+Date: Wed, 27 Jun 2012 08:12:53 -0700
+Message-ID: <20120627151252.GM3483@atomide.com>
+References: <1340645903-28550-1-git-send-email-jon-hunter@ti.com>
+ <4FE8AACA.5030207@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64137 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757339Ab2F0O6s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 10:58:48 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:21983 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755735Ab2F0PMz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 11:12:55 -0400
 Content-Disposition: inline
-In-Reply-To: <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+In-Reply-To: <4FE8AACA.5030207@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Afzal Mohammed <afzal@ti.com> [120626 23:53]:
-> Reorganize gpmc-onenand initialization so that changes
-> required for gpmc driver migration can be made smooth.
+* Jon Hunter <jon-hunter@ti.com> [120625 11:20]:
+> Adding linux-arm ML.
 > 
-> Ensuring sync read/write are disabled in onenand cannot
-> be expected to work properly unless GPMC is setup, this
-> has been removed.
+> Jon
 > 
-> Refactor set_async_mode & set_sync_mode functions to
-> separate out timing calculation & actual configuration
-> (GPMC & OneNAND side).
+> On 06/25/2012 12:38 PM, Jon Hunter wrote:
+> > OMAP4470 currently fails to boot, printing various messages such as ...
+> > 
+> > omap_hwmod: mpu: cannot clk_get main_clk dpll_mpu_m2_ck
+> > omap_hwmod: mpu: cannot _init_clocks
+> > ------------[ cut here ]------------
+> > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:2062 _init+0x2a0/0x2e4()
+> > omap_hwmod: mpu: couldn't init clocks
+> > Modules linked in:
+> > [<c001c7fc>] (unwind_backtrace+0x0/0xf4) from [<c0043c64>] (warn_slowpath_common+0x4c/0x64)
+> > [<c0043c64>] (warn_slowpath_common+0x4c/0x64) from [<c0043d10>] (warn_slowpath_fmt+0x30/0x40)
+> > [<c0043d10>] (warn_slowpath_fmt+0x30/0x40) from [<c0674208>] (_init+0x2a0/0x2e4)
+> > [<c0674208>] (_init+0x2a0/0x2e4) from [<c067428c>] (omap_hwmod_setup_one+0x40/0x60)
+> > [<c067428c>] (omap_hwmod_setup_one+0x40/0x60) from [<c0674280>] (omap_hwmod_setup_one+0x34/0x60)
+> > [<c0674280>] (omap_hwmod_setup_one+0x34/0x60) from [<c06726f4>] (omap_dm_timer_init_one+0x30/0x250)
+> > [<c06726f4>] (omap_dm_timer_init_one+0x30/0x250) from [<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108)
+> > [<c0672930>] (omap2_gp_clockevent_init+0x1c/0x108) from [<c0672c60>] (omap4_timer_init+0x10/0x5c)
+> > [<c0672c60>] (omap4_timer_init+0x10/0x5c) from [<c066c418>] (time_init+0x20/0x30)
+> > [<c066c418>] (time_init+0x20/0x30) from [<c0668814>] (start_kernel+0x1b0/0x304)
+> > [<c0668814>] (start_kernel+0x1b0/0x304) from [<80008044>] (0x80008044)
+> > ---[ end trace 1b75b31a2719ed1c ]---
+> > 
+> > The problem is that currently none of the clocks are being registered for
+> > OMAP4470 devices and so on boot-up no clocks can be found and the kernel panics.
+> > 
+> > This fix allows the kernel to boot without failure using a simple RAMDISK file
+> > system on OMAP4470 blaze board.
+> > 
+> > V2:
+> > - Per feedback from Paul and Benoit the 4470 clock data is incomplete for new
+> >   modules such as the 2D graphics block that has been added to the 4470.
+> >   Therefore add a warning to indicate that the clock data is incomplete.
 
-The last patch in this series causes onenand not to show
-up on my n900. I believe the problem has been there earlier
-too, but I just did not notice it.
-
-Without the last patch in this series I get:
-
-[    1.650207] OneNAND driver initializing
-[    1.655487] omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base d0880000, freq 83 MHz
-[    1.666931] OneNAND Manufacturer: Numonyx (0x20)
-[    1.671905] Muxed OneNAND 256MB 1.8V 16-bit (0x40)
-[    1.676971] OneNAND version = 0x0031
-[    1.918762] Creating 6 MTD partitions on "omap2-onenand":
-
-And with this patch applied I get:
-
-[    1.634643] OneNAND driver initializing
-[    1.640075] omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base d0880000, freq 54 MHz
-[    1.651519] OneNAND Manufacturer: Unknown (0xa0)
-
-Any ideas?
+Thanks adding into fixes.
 
 Tony
