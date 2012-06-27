@@ -1,33 +1,37 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
-Date: Wed, 27 Jun 2012 10:36:04 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1397795.nxQGnEDtVe@avalon>
+Subject: v3.5-rc4 doesn't wake from dynamic idle on 3530ES3 Beagle
+Date: Wed, 27 Jun 2012 11:03:35 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206271101220.27496@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57686 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55040 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab2F0QgF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 12:36:05 -0400
-In-Reply-To: <1397795.nxQGnEDtVe@avalon>
+	with ESMTP id S1754167Ab2F0RDg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 13:03:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com
 
-Hi Laurent
 
-On Wed, 27 Jun 2012, Laurent Pinchart wrote:
+Looks like something broke between v3.5-rc3 and v3.5-rc4 with dynamic 
+idle on 3530ES3 Beagle.  37xx EVM doesn't seem to be affected.
 
-> I think you've missed drivers/media/video/omap3isp/isp.c. Should I send a 
-> patch for that ? Do these changes depend on anything not yet in mainline that 
-> I should apply to my tree for testing ?
-
-What would be ideal is if omap3isp could be converted to runtime PM for 
-its internal IP block control.  Almost all of the other OMAP on-chip 
-oC drivers have been converted.  Please let us know if more information or 
-assistance is needed with this.
+Taking a closer look now.
 
 
 - Paul
+
+echo mem > /sys/power/state
+#
+echo mem > /sys/power/state
+#
+cat /debug/pm_debug/count
+#
+echo 1000 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
+echo 1000 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
+echo 1000 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
+echo 1000 > /sys/devices/platform/omap_uart.3/power/autosuspend_delay_ms
+
+(hang)
