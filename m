@@ -1,44 +1,47 @@
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: RE: [PATCH v2 08/10] ARM: OMAP2+: gpmc: Modify interrupt handling
-Date: Wed, 27 Jun 2012 12:33:53 +0300
-Message-ID: <1340789633.29342.10.camel@sauron.fi.intel.com>
+Subject: Re: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Wed, 27 Jun 2012 12:35:55 +0300
+Message-ID: <1340789755.29342.12.camel@sauron.fi.intel.com>
 References: <cover.1339586624.git.afzal@ti.com>
-	 <35f198577330e7260ff7e5f1f3ac603372d83589.1339586624.git.afzal@ti.com>
-	 <1339588558.2401.117.camel@sauron.fi.intel.com>
-	 <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
 Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Y+y69xwDoTrr5T8fjzIn"
+	boundary="=-4GCDzgQ5odpj22MrXHe+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45086 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([143.182.124.37]:34616 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750884Ab2F0J3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 05:29:51 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
+	id S1755851Ab2F0Jb5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 05:31:57 -0400
+In-Reply-To: <cover.1339586624.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com
 
 
---=-Y+y69xwDoTrr5T8fjzIn
+--=-4GCDzgQ5odpj22MrXHe+
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-06-13 at 11:56 +0000, Mohammed, Afzal wrote:
-> > I guess "XXX" means "Warning"? Why not to use plain English? :-)
+On Wed, 2012-06-13 at 17:02 +0530, Afzal Mohammed wrote:
+> Hi,
 >=20
-> It was made so that in editor (vim, maybe got biased towards it as I
-> use it) it gets highlighted, do you want me to send an updated series ?
+> This series cleans up gpmc mtd interactions so that GPMC driver
+> conversion which is going to happen shortly would happen smoothly
+> by not creating much disturbance outside of arch/arm/*omap*/
 
-No, thanks.
+Dunno if Tony picked this, but the MTD changes look good an the quick
+glance. Feel free to add
+
+Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+
+Thanks!
 
 --=20
 Best Regards,
 Artem Bityutskiy
 
---=-Y+y69xwDoTrr5T8fjzIn
+--=-4GCDzgQ5odpj22MrXHe+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -46,20 +49,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJP6tOBAAoJECmIfjd9wqK0QEUP/0JsxkjKPm97rodbwa8cjica
-+cH0gf5z2W7t5HlHrAoGE5vGrfWjCz6jP3YD1rcdUUeMq36hXwhanq7+HqNc/IdZ
-MHy7IJxDQ0fqwdhTqzDWoqFATURVLOGjgcrsUy7EbHPo7SLv54g/cBhYAtKo5Ue5
-6hkwZAAMiLl90dpwR8xlNx1BYK+TBPIyGvjSct2iVuulmSySXd1H9uUUbusXM48I
-kyjm0SfV6m8dJvkFSAznWPr/7GzcMk51kvR3kGybcJ1WI5aDMMi9py+jsx2klz7p
-+hzgGpkNJ3zNDlSDxWdSukSYRnveNX/HFXO4pIeNOi1vpMG4RZsMKabj9hyHkvTh
-e2ioWBPtmRcdc3NnwxekGDc9cQ4SAY7Ha7APTnQ8+ZdTEvAY2bXLjBMgQiFmCheF
-cUUvFxLNPw6mqSwoO/bnvKiw4XE2b8p6UvEQKGPUSQmrs+jmfvdeLUTFbuUxy/I+
-hZdrGa3xNn8IDmdc92aNbWb385L/OmgIcGlhV2l1D3beFT4BU4ID8nKGguRMysIZ
-KiQcTZDwIeP6+cbVO+IKEmnONNzLjebLwrZP0p2ytm2D4Wfaqb/M5Vwys6n2Nk3X
-jkCrzYEUlFCJCHyQMSg3mW/ZwEhQBWRo7/8LiWm0X7EJSQUsd7kldcORbZLJaSqD
-a7gYYw9ehsDdckQy4KIu
-=7U8n
+iQIcBAABAgAGBQJP6tP7AAoJECmIfjd9wqK0K3AQAKLLPvG+9gUxV6S1lJBFulDK
+Zxivn4Y2M8+g36ecsZ/a/MqxZXcKefAMwY+ItxBYwJnuDgAsmZUResqLzzA0Uf3y
+whAqnZ7pBy2aPy3nrQT9M0fqx346W4DzRejaSP8QD2KkAxmCWBTgYYbPYb5ndoNm
+mwZYfhH6TkeRvszGbE7ZkFZbveo2GPj8qbcqLeA8UJisH/elTxmJW+SLA4GA3YlM
+acWoxFMzkvyQ44jE3VUvAo4XW6ICtHvGRIM/hpNgqnbPlPxTYOyIhnxR6CHO4ECo
+szx/S1qUj0Ai2tl3BRW5kml48K1mrT+lotr5xFrbgtEO2vp/afLdhvgwxbAqk7+1
+lLnxbKZOx1a/Gk1rdMU1zliqi6zOnCgWxXaLhs/3mybgn8fFJ0GTo5DsyfNMKb/W
+RVme+9pUZNIV1muY+L88B+YQybSqY3nexQ59SDv0aqbICZt20rb9dxDPEHBIqOUG
+KEx2W/56kt805gK/1lERa1RpTp8m6Ap3p743oSyvEkStbDIbUW0pRTHtw03OERci
+G7yQRYbSmYdTdgT8r2mNz0rpeFMHUpZ9asDjm+YfpY31o3UgIxP8PKzbTIvmUSZu
+fEf7jr8qqaLru1e6u62kNxTTsGSdAHXn36EKKtx45vYg5Vmwj5X2oR/1Xwwzzppx
+htGFiOvOO91RkzV44tnv
+=KSDh
 -----END PGP SIGNATURE-----
 
---=-Y+y69xwDoTrr5T8fjzIn--
+--=-4GCDzgQ5odpj22MrXHe+--
 
