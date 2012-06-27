@@ -1,76 +1,65 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 07/11] I2C: OMAP: Handle error check for pm runtime
-Date: Wed, 27 Jun 2012 14:31:45 +0530
-Message-ID: <CAM=Q2cuBh-YT454T7ZtqkcOSCGQLT5Ehp=J8rvj+6=0Gzct84Q@mail.gmail.com>
-References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
-	<1338288983-15026-8-git-send-email-shubhrajyoti@ti.com>
-	<874npxv8aj.fsf@ti.com>
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: RE: [PATCH v2 08/10] ARM: OMAP2+: gpmc: Modify interrupt handling
+Date: Wed, 27 Jun 2012 12:33:53 +0300
+Message-ID: <1340789633.29342.10.camel@sauron.fi.intel.com>
+References: <cover.1339586624.git.afzal@ti.com>
+	 <35f198577330e7260ff7e5f1f3ac603372d83589.1339586624.git.afzal@ti.com>
+	 <1339588558.2401.117.camel@sauron.fi.intel.com>
+	 <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
+Reply-To: artem.bityutskiy@linux.intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <874npxv8aj.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-Y+y69xwDoTrr5T8fjzIn"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:45086 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750884Ab2F0J3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 05:29:51 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E998C70@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On Wed, Jun 27, 2012 at 7:13 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
->
->> If PM runtime get_sync fails return with the error
->> so that no further reads/writes goes through the interface.
->> This will avoid possible abort. Add a error message in case
->> of failure with the cause of the failure.
->>
->> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->
-> This patch introduced a regression where the runtime PM usecount will
-> never reach zero and so CORE retention is prevented after any xfer
-> failures...
->
->> ---
->> -v10 Use IS_ERR_VALUE
->> -v9 Fix the error handling
->>
->> =A0drivers/i2c/busses/i2c-omap.c | =A0 14 +++++++++++---
->> =A01 files changed, 11 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
-omap.c
->> index 44e8cfa..c39b72f 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -585,7 +585,9 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i=
-2c_msg msgs[], int num)
->> =A0 =A0 =A0 int i;
->> =A0 =A0 =A0 int r;
->>
->> - =A0 =A0 pm_runtime_get_sync(dev->dev);
->> + =A0 =A0 r =3D pm_runtime_get_sync(dev->dev);<
->> + =A0 =A0 if (IS_ERR_VALUE(r))
->> + =A0 =A0 =A0 =A0 =A0 =A0 return r;
->
-> This return should be 'goto out' so the runtime PM usecount is
-> decremented by the 'put'. =A0Otherwise, after failure, the usecount
-> remains non-zero, so the device is considered 'active' and keeps the
-> containing power domain active.
->
-> I found this on a 3730/OveroSTORM where the suspend/resume of MMC fai=
-ls
-> because I2C is already suspended. =A0After the suspend though, the CO=
-RE
-> powerdomain never again hits retention, and I tracked it down to this=
-=2E
->
-> I'll send a separate patch to fix this shortly.
 
-Thanks,
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" =
-in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--=-Y+y69xwDoTrr5T8fjzIn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2012-06-13 at 11:56 +0000, Mohammed, Afzal wrote:
+> > I guess "XXX" means "Warning"? Why not to use plain English? :-)
+>=20
+> It was made so that in editor (vim, maybe got biased towards it as I
+> use it) it gets highlighted, do you want me to send an updated series ?
+
+No, thanks.
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-Y+y69xwDoTrr5T8fjzIn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAABAgAGBQJP6tOBAAoJECmIfjd9wqK0QEUP/0JsxkjKPm97rodbwa8cjica
++cH0gf5z2W7t5HlHrAoGE5vGrfWjCz6jP3YD1rcdUUeMq36hXwhanq7+HqNc/IdZ
+MHy7IJxDQ0fqwdhTqzDWoqFATURVLOGjgcrsUy7EbHPo7SLv54g/cBhYAtKo5Ue5
+6hkwZAAMiLl90dpwR8xlNx1BYK+TBPIyGvjSct2iVuulmSySXd1H9uUUbusXM48I
+kyjm0SfV6m8dJvkFSAznWPr/7GzcMk51kvR3kGybcJ1WI5aDMMi9py+jsx2klz7p
++hzgGpkNJ3zNDlSDxWdSukSYRnveNX/HFXO4pIeNOi1vpMG4RZsMKabj9hyHkvTh
+e2ioWBPtmRcdc3NnwxekGDc9cQ4SAY7Ha7APTnQ8+ZdTEvAY2bXLjBMgQiFmCheF
+cUUvFxLNPw6mqSwoO/bnvKiw4XE2b8p6UvEQKGPUSQmrs+jmfvdeLUTFbuUxy/I+
+hZdrGa3xNn8IDmdc92aNbWb385L/OmgIcGlhV2l1D3beFT4BU4ID8nKGguRMysIZ
+KiQcTZDwIeP6+cbVO+IKEmnONNzLjebLwrZP0p2ytm2D4Wfaqb/M5Vwys6n2Nk3X
+jkCrzYEUlFCJCHyQMSg3mW/ZwEhQBWRo7/8LiWm0X7EJSQUsd7kldcORbZLJaSqD
+a7gYYw9ehsDdckQy4KIu
+=7U8n
+-----END PGP SIGNATURE-----
+
+--=-Y+y69xwDoTrr5T8fjzIn--
+
