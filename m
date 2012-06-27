@@ -1,73 +1,40 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
-Date: Wed, 27 Jun 2012 10:49:24 +0530
-Message-ID: <4FEA97DC.4070902@ti.com>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com>	 <1340372890-10091-6-git-send-email-rnayak@ti.com>	 <1340604478.12683.25.camel@lappyti> <4FE80C43.6090802@ti.com>	 <1340611133.3395.3.camel@deskari> <4FE85005.4090303@ti.com>	 <1340630090.3395.85.camel@deskari> <20120627004709.GA22766@gmail.com> <1340770798.1972.4.camel@lappyti>
+From: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Subject: RE: how to specify dma_mask and coherent_dma_mask in hwmod
+Date: Wed, 27 Jun 2012 05:41:32 +0000
+Message-ID: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:42712 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752592Ab2F0FTd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 01:19:33 -0400
-Received: by obfk16 with SMTP id k16so1148525obf.29
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 22:19:31 -0700 (PDT)
-In-Reply-To: <1340770798.1972.4.camel@lappyti>
+Received: from comal.ext.ti.com ([198.47.26.152]:49867 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929Ab2F0Flj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 01:41:39 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Mike Turquette <mturquette@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, "Hilman, Kevin" <khilman@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wednesday 27 June 2012 09:49 AM, Tomi Valkeinen wrote:
-> On Tue, 2012-06-26 at 17:47 -0700, Mike Turquette wrote:
->> On 20120625-16:14, Tomi Valkeinen wrote:
->>> A question about clk_prepare/unprepare, not directly related: let's say
->>> I have a driver for some HW block. The driver doesn't use clk functions,
->>> but uses runtime PM. The driver also sets pm_runtime_irq_safe().
->>>
->>> Now, the driver can call pm_runtime_get_sync() in an atomic context, and
->>> this would lead to the underlying framework (hwmod, omap_device, I don't
->>> know who =) enabling the func clock for that HW. But this would happen
->>> in atomic context, so the underlying framework can't use clk_prepare.
->>>
->>> How does the underlying framework handle that case? (sorry if that's a
->>> stupid question =).
->>>
->>
->> I think it's a good question!
->>
->> If we're going to call clk_prepare_enable from within a runtime pm
->> callback then I think we'll need to check if _irq_safe() is set and
->> conditionally call only clk_enable in such a case.
->>
->> I'm not a runtime pm expert, but if the driver owns the responsibility
->> of calling pm_runtime_irq_safe then the driver has the proper context
->> to know that it should call clk_prepare BEFORE calling
->> pm_runtime_get_sync.
->
-> That's not quite what I meant. If it's the driver that does clk_enable,
-> be it in runtime PM callback or not, it's driver's responsibility.
->
-> But some clocks are not handled by the driver, but the hwmod/omap_device
-> framework. Mainly I think this is for the functional and interface
-> clocks. The driver has no visibility to those, they are implicitly
-> enabled via pm_runtime_get.
+> -----Original Message-----
+> From: N, Mugunthan V
+> Sent: Thursday, June 07, 2012 9:52 PM
+> To: 'linux-omap@vger.kernel.org'
+> Cc: 'linux-arm-kernel@lists.infradead.org'
+> Subject: how to specify dma_mask and coherent_dma_mask in hwmod
+> 
+> Hi
+> 
+> While converting platform device registry to Hwmod for CPSW Ethernet
+> driver which is present in AM335X (OMAP2+), I am not finding a way to
+> specify
+> dma_mask and coherent_dma_mask.
+> Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
 
-yes, thats the tricky part on how would hwmod/omap_device know if the
-driver would use runtime pm within atomic context or non-atomic context.
-The driver does inform the runtime pm framework about this by calling a
-pm_runtime_irq_safe(), which is then used to set the .irq_safe flag 
-telling it to leave the interrupts disabled during callbacks.
-This information however does not flow down to hwmod/omap_device in any
-way. So the way its currently handled is to do an early prepare of all
-hwmod controlled clocks.
+Ping, any one has comment on this?
 
-I have copied Kevin in case he has any better ideas on how this should
-be handled.
-
->
->   Tomi
->
+> 
+> ---
+> Regards,
+> Mugunthan V N.
 
