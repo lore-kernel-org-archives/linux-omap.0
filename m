@@ -1,81 +1,40 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Wed, 27 Jun 2012 18:59:40 +0530
-Message-ID: <CAC83ZvK_ve-d8jZo9mOQ5aidYxFV5r1FUbTqEC3LxvkikOoFHg@mail.gmail.com>
-References: <4FE8CF77.5080400@broadcom.com>
-	<CAC83ZvL2ozQD1DYmtKeFa1PB1pZ1JmBUKFWmDWnbJOCDL3sKNg@mail.gmail.com>
-	<4FE9FD77.7050807@broadcom.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: cpu: Make cpu_class_is_omap2 true for all
+ non-omap1 platforms
+Date: Wed, 27 Jun 2012 06:39:50 -0700
+Message-ID: <20120627133950.GJ3483@atomide.com>
+References: <1339420974-23695-1-git-send-email-hvaibhav@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5096A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:34489 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755759Ab2F0N3m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 09:29:42 -0400
-Received: by qcmv28 with SMTP id v28so541377qcm.39
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 06:29:40 -0700 (PDT)
-In-Reply-To: <4FE9FD77.7050807@broadcom.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40231 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602Ab2F0Njx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 09:39:53 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5096A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Franky Lin <frankyl@broadcom.com>
-Cc: khilman@ti.com, tony@atomide.com, santosh.shilimkar@ti.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jun 26, 2012 at 11:50 PM, Franky Lin <frankyl@broadcom.com> wrote:
-> On 06/26/2012 12:21 AM, DebBarma, Tarun Kanti wrote:
->>
->> On Tue, Jun 26, 2012 at 2:22 AM, Franky Lin <frankyl@broadcom.com> wrote:
->>>
->>> Hi Kevin, Tarun,
->>>
->>> We are using the expansion connector A on Panda board to mount a SDIO
->>> WiFi
->>> dongle on MMC2 with a level triggered interrupt signal connected to GPIO
->>> 138. It's been working fine until 3.5 rc1. The board hang randomly within
->>> 5
->>> mins during a network traffic test. After bisecting we found the culprit
->>> is
->>> "[PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()" [1].
->>>
->>> I noticed Kevin raised some similar cases on other platforms and also
->>> provided two patches in the patch mail thread. But unfortunately those
->>> two
->>> patches doesn't help in our case. I tested the driver with 3.5-rc3
->>> mainline
->>> kernel and the issue is still there. I can only "fix" the hang by either
->>> reverting the commit or disabling CONFIG_PM_RUNTIME. Also, the hang only
->>> happens on Panda ES board. Old Panda with 4430 works good.
->>>
->>> Any thoughts and suggestions?
->>
->> I just had a quick look at the code. Can you please check if the
->> attached patch solves
->> the issue? I just boot tested on Panda and Blaze.
->> --
->> Tarun
->>
->
-> Thanks for the prompt reply.
->
-> Booting is fine even without the patch and revert. The wifi dongle generates
-> interrupt whenever there is data packet available for host to read. So
-> during a traffic test a significant numbers of interrupt will be triggered
-> through the GPIO. So I assume it has something to do with the interrupt
-> GPIO.
->
-> With the patch, the kernel still crashes. But the symptom is slightly
-> different. Now it has a panic log every time. See attachment.
-I tried comparing the present code with older version with regard
-to enabled_non_wakeup_gpios check. The obvious difference I
-observed is that this check is performed after off-mode check,
-unlike the present case where the check is done just prior to
-off-mode check. But then, as Kevin pointed out, we need to understand
-the exact problem. I am trying to have a setup to reproduce the
-problem. BTW, you can ignore my patch because I realized that
-saved_datain is part of the workaround.
----
-Tarun
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120614 07:37]:
+> On Mon, Jun 11, 2012 at 18:52:54, Hiremath, Vaibhav wrote:
+> > As omap1 and omap2 will never be compiled together, due to
+> > different compiler flags, so we can simply make
+> > cpu_class_is_omap2() = true, for all non-omap1 platforms.
+> > 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  arch/arm/plat-omap/include/plat/cpu.h |    3 +--
+> >  1 files changed, 1 insertions(+), 2 deletions(-)
+> > 
+> 
+> Tony,
+> 
+> Ping???
 
->
-> Regards,
-> Franky
+Thanks applying into devel-am33xx branch.
+
+Tony
