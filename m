@@ -1,75 +1,76 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Subject: RE: Current state of AM33xx patches
-Date: Wed, 27 Jun 2012 12:07:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
-References: <4FD5BA4C.9070706@gmail.com>	<4FD5FD9E.5040203@ti.com>
- <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
+Date: Wed, 27 Jun 2012 12:13:18 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
+ <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
+ <4FE9A00B.6010908@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42655 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40030 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754433Ab2F0MIJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:08:09 -0400
-In-Reply-To: <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com>
+	id S1756554Ab2F0MN1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:13:27 -0400
+In-Reply-To: <4FE9A00B.6010908@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Domenico Andreoli <cavokz@gmail.com>
-Cc: Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Nori, Sekhar" <nsekhar@ti.com>, Daniel Mack <zonque@gmail.com>
+Cc: Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-On Sat, Jun 23, 2012 at 18:33:13, Domenico Andreoli wrote:
-> Hello,
+On Tue, Jun 26, 2012 at 17:12:03, Nori, Sekhar wrote:
+> Hi Daniel,
 > 
-> On Mon, Jun 11, 2012 at 4:15 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> >
-> > I do maintain wiki page which you should refer for any updates:
-> > http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
-> >
-> > In order to get latest and greatest kernel to boot, you can use my repo:
-> > https://github.com/hvaibhav/am335x-linux
+> On 6/25/2012 11:47 PM, Daniel Mack wrote:
+> > On 21.06.2012 15:50, Daniel Mack wrote:
+> >> On 18.06.2012 10:15, Hiremath, Vaibhav wrote:
+> >>> On Mon, Jun 11, 2012 at 19:21:21, Jason Kridner wrote:
+> >>>> From: Daniel Mack <zonque@gmail.com>
+> >>>>> Hey,
+> >>>>>
+> >>>>> can anybody give me a quick wrap-up about the current state of AM33xx
+> >>>>> based SoCs in mainline? What are the next steps to get things merged?
+> >>>>
+> >>>> There is a wiki page [1] that is intended to provide a summary, but I'm
+> >>>> confident it is not up-to-date.  
+> >>>
+> >>> Page updated now...
+> >>>
+> >>> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status#AM335x_Linux_Status
+> >>
+> >> Great, thanks. So if things get upstreamed, which is the repo/branch
+> >> they appear in? In other words: where is the code people should write
+> >> patches against? I couldn't find an answer to that yet.
+> > 
+> > ping?
 > 
-> do you have any usable defconfig? I've some trouble with the build of
-> this branch and I'm not sure about the configuration.
+> Bug fixes are always accepted against Linus's tree[1].
 > 
-> > Also, note that, currently there will be very minimal feature-set
-> > supported in the kernel, so not sure how much can be leveraged for
-> > production use-cases.
+> For features, typically there is a -next branch that each subsystem
+> maintainer has against which feature development happens. In case of
+> OMAP, feature development happens against master branch of linux-omap
+> tree[2]. One way to get to know the -next branches of all subsystem is
+> to look at Next/Trees file of linux-next tree[3].
 > 
-> I need something that boots to userspace, nothing more (but I'm happy
-> to test) :)
+> Note that in case of ARM, sub-arch maintainers send the code to arm-soc
+> maintainers who in turn have a branch which gets merged to linux-next.
+> 
+> Hope that helps.
 > 
 
-Sorry for delayed response, I went out of station, supposed to come back on 
-Monday itself but due to some known reason couldn't make it. I have just 
-resumed my work today. Sorry for inconvenience...
+Just to clarify from AM335x perspective,
 
-Coming back to your question,
+In case of AM335x, since the patches and complete BasePort support is still
+not present in the Mainline (neither in Linus's tree not in linux-omap), you 
+need to use my Repo (https://github.com/hvaibhav: Closely follows linux-
+omap/master) in order to test something on BeagleBone platform.
 
-Omap2plus_defconfig should work for you, you should get linux prompt with 
-ramdisk image (which I use). Just to be more clear, and for your reference I am pasting steps which I use for testing, 
+Once we have all bits-n-pieces accepted/merged in the mainline, then all the 
+above process must be followed for patch submission.
 
-Build Steps:
-============
- - make ARCH=arm CROSS_COMPILE=<toolchain> distclean
- - make ARCH=arm CROSS_COMPILE=<toolchain> omap2plus_defconfig
- - Enable option CONFIG_ARM_APPENDED_DTB and CONFIG_ARM_ATAG_DTB_COMPAT
- - make ARCH=arm CROSS_COMPILE=<toolchain> uImage-dtb.am335x-evm
-   (Since I am not using DT aware u-boot)
-
-Use the ramdisk image to boot kernel, since we do not have support for any 
-storage devices in the mainline.
-
-U-Boot commands to boot:
-========================
-setenv bootcmd 'mmc rescan 0; fatload mmc 0 81000000 uImage; fatload mmc 0 82000000 ramdisk-pm.gz; bootm 81000000'
-setenv bootargs 'console=ttyO0,115200n8 mem=128M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial'
-boot
-
-
-Hope this will help you to boot the kernel on BeagleBone.
 
 Thanks,
 Vaibhav
-
