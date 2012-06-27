@@ -1,79 +1,88 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
-Date: Wed, 27 Jun 2012 22:25:53 +0200
-Message-ID: <2172351.1193SiRd5m@avalon>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <2606265.VPQJMxIymh@avalon> <alpine.DEB.2.00.1206271344200.27496@utopia.booyaka.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: cpu: Make cpu_class_is_omap2 true for all
+ non-omap1 platforms
+Date: Wed, 27 Jun 2012 20:33:05 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5C2C4@DBDE01.ent.ti.com>
+References: <1339420974-23695-1-git-send-email-hvaibhav@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5096A@DBDE01.ent.ti.com>
+ <20120627133950.GJ3483@atomide.com> <20120627161745.GO3483@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46376 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753353Ab2F0UZu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 16:25:50 -0400
-In-Reply-To: <alpine.DEB.2.00.1206271344200.27496@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47914 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753427Ab2F0UdP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 16:33:15 -0400
+In-Reply-To: <20120627161745.GO3483@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>, khilman@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
-
-On Wednesday 27 June 2012 13:59:21 Paul Walmsley wrote:
-> + Kevin
+On Wed, Jun 27, 2012 at 21:47:45, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [120627 06:44]:
+> > * Hiremath, Vaibhav <hvaibhav@ti.com> [120614 07:37]:
+> > > On Mon, Jun 11, 2012 at 18:52:54, Hiremath, Vaibhav wrote:
+> > > > As omap1 and omap2 will never be compiled together, due to
+> > > > different compiler flags, so we can simply make
+> > > > cpu_class_is_omap2() = true, for all non-omap1 platforms.
+> > > > 
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > ---
+> > > >  arch/arm/plat-omap/include/plat/cpu.h |    3 +--
+> > > >  1 files changed, 1 insertions(+), 2 deletions(-)
+> > > > 
+> > > 
+> > > Tony,
+> > > 
+> > > Ping???
+> > 
+> > Thanks applying into devel-am33xx branch.
 > 
-> On Wed, 27 Jun 2012, Laurent Pinchart wrote:
-> > OK, I think I've found the information. I'll give this a try.
+> Actually looks like this fails for the dynamic detection
+> case with omap1_defconfig.. Looks like you did not build
+> test your patch with omap1_defconfig? Please do it for
+> every patch!
 > 
-> That sounds great.
-
-I'll repeat here what I've stated in my other mail, as Kevin is CC'ed.
-
-I haven't had much luck, pm_runtime_get_sync() doesn't seem to enable the ISP 
-clocks. I'd like to trace what happens (or rather doesn't happen), but I'm not 
-familiar with runtime PM internals. What's the call stack from 
-pm_runtime_get_sync() to the arch code that's supposed to enable clocks ?
-
-> > What is still not clear to me is how runtime PM and system PM interact.
-> > For instance the OMAP3 ISP driver disables its clocks in the system PM
-> > suspend handler, and restarts them in the system PM resume handler. How do
-> > I port that to runtime PM, can I just call pm_runtime_put() and
-> > pm_runtime_get_sync() in the system PM handlers ?
+> It seems we need something better though for multi zImage
+> too, we can't really rely on CONFIG_ARCH_OMAP1 or
+> CONFIG_ARCH_OMAP2PLUS here to determine anything.
 > 
-> I've lost track of what the official guidance on this is.
-
-That's what has always bothered me with runtime PM, I've never been able to 
-find clear official guidelines (possibly because there are none).
-
-(Along with the fact that, for the OMAP3 ISP, I still don't see what benefits 
-the runtime PM complexity will bring)
-
-> But we have plenty of drivers that do this. A few examples are
-> drivers/mmc/host/omap_hsmmc.c, drivers/spi/spi-omap2-mcspi.c, and the DSS
-> drivers.
+> Anyways, dropping this for now, let's try to come up
+> with something better.
 > 
-> IMHO, if possible, for the driver's system suspend call, the best thing to
-> do is to check to see if the driver is currently doing something. If it is, 
-then ask it to stop. Then wait until it does. When it stops, that other part
-> of the driver is ideally what should do the pm_runtime_put*().
 
-I don't think I can do that. The omap3-isp driver implements a PM prepare 
-operation that stops all device activity, and a PM suspend operation that 
-turns off the clocks. The reason for that split is that the sensor (which has 
-its own device, its own driver and its own PM operations) needs to be 
-suspended after the ISP is stopped, but before the clocks are turned off.
+Yes Tony, you are right I did not test omap1 for this patch. My bad...
 
-My suspend handler thus needs to stop the clocks without performing any other 
-operation. Calling pm_runtime_put() there is an option, I'll try it. It seems 
-to be legal, as the hsmmc driver uses pm_runtime_put_sync() in its suspend 
-handler. Is the _sync required there BTW ? Won't system suspend turn the 
-clocks off anyway ? Or would there be a problem at resume time ?
+How about something like, considering the fact that, omap_type() is the 
+culprit here and is not applicable to omap1 at all. In case of omap1, we 
+don't use omap_type() function.
 
-> It's been a long time since I've looked, but I'd be surprised if we had
-> many drivers that operated like that...
 
--- 
-Regards,
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 6a42558..5900a3d 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -42,7 +42,14 @@
+ #define OMAP2_DEVICE_TYPE_GP           3
+ #define OMAP2_DEVICE_TYPE_BAD          4
 
-Laurent Pinchart
++#ifdef CONFIG_ARCH_OMAP2PLUS
+ int omap_type(void);
++#else
++inline static int omap_type(void)
++{
++	/* Always return GP, since it is not being used anyway for omap1 */
++	return OMAP2_DEVICE_TYPE_GP;
++}
++#endif
+
+ /*
+  * omap_rev bits:
+
+
+Thanks,
+Vaibhav
 
