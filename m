@@ -1,111 +1,137 @@
-From: jean-philippe francois <jp.francois@cynove.com>
-Subject: Re: DM3730 without PMIC oops on idle
-Date: Wed, 27 Jun 2012 14:53:46 +0200
-Message-ID: <CAGGh5h0fXMKQ-gX958BwH+RTsYgOROdmqMYXuCQq3XKBMKLR3Q@mail.gmail.com>
-References: <CAGGh5h2PEpcZc-BRVb9UJD0VKLFBAktQ0r08T-0XAovZ1W7MZw@mail.gmail.com>
-	<87ehp1tq8w.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 05/17] OMAPDSS: Add some new fields to omap_video_timings
+Date: Wed, 27 Jun 2012 16:02:02 +0300
+Message-ID: <1340802122.2649.86.camel@deskari>
+References: <1340703414-1915-1-git-send-email-archit@ti.com>
+	   <1340703414-1915-7-git-send-email-archit@ti.com>
+	  <1340797733.2649.48.camel@deskari> <4FEAFC02.2070006@ti.com>
+	 <1340800933.2649.72.camel@deskari> <4FEB00CB.4070502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-G0c4AYUdfZEaiLtc1Y2r"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f42.google.com ([209.85.213.42]:41554 "EHLO
-	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769Ab2F0Mxr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:53:47 -0400
-Received: by yhfq11 with SMTP id q11so1009770yhf.1
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 05:53:47 -0700 (PDT)
-In-Reply-To: <87ehp1tq8w.fsf@ti.com>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:53792 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750775Ab2F0NCI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 09:02:08 -0400
+Received: by bkcji2 with SMTP id ji2so962238bkc.5
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 06:02:04 -0700 (PDT)
+In-Reply-To: <4FEB00CB.4070502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: Archit Taneja <archit@ti.com>, rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Kevin, thank you for your help.
 
-2012/6/27 Kevin Hilman <khilman@ti.com>:
-> jean-philippe francois <jp.francois@cynove.com> writes:
->
->> Hi,
->>
->> My board does not have any Power Management IC.
->> Without the following patch, the bood ends with an oops.
->> How can I further debug this, ie trace through the assembly
->> in arch/arm/mach-omap2/sleep34xx.S ?
->
-> The assembly code that is faulting has nothing to do with interaction
-> with the PMIC.
->
-> Some more comments below ...
->
->> --
->> Patch needed to boot to userspace :
->>
->> Index: linux-3.4.3/arch/arm/mach-omap2/pm34xx.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- linux-3.4.3.orig/arch/arm/mach-omap2/pm34xx.c =A0 =A0 2012-06-17
->> 20:21:44.000000000 +0200
->> +++ linux-3.4.3/arch/arm/mach-omap2/pm34xx.c =A02012-06-22 16:26:38.=
-000000000 +0200
->> @@ -403,7 +403,7 @@
->> =A0 =A0 =A0 trace_power_start(POWER_CSTATE, 1, smp_processor_id());
->> =A0 =A0 =A0 trace_cpu_idle(1, smp_processor_id());
->>
->> - =A0 =A0 omap_sram_idle();
->> + =A0 =A0 // =A0 =A0 =A0omap_sram_idle();
->
-> FYI... you can get the same effect without patching the kernel by add=
-ing
-> 'nohlt' to the kernel command line. =A0That avoids entering the idle =
-loop
-> alltogether.
->
+--=-G0c4AYUdfZEaiLtc1Y2r
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Good to know :)
+On Wed, 2012-06-27 at 18:17 +0530, Archit Taneja wrote:
+> On Wednesday 27 June 2012 06:12 PM, Tomi Valkeinen wrote:
+> > On Wed, 2012-06-27 at 17:56 +0530, Archit Taneja wrote:
+> >> On Wednesday 27 June 2012 05:18 PM, Tomi Valkeinen wrote:
+> >>> On Tue, 2012-06-26 at 15:06 +0530, Archit Taneja wrote:
+> >>>> Some panel timing related fields are contained in omap_panel_config =
+in the form
+> >>>> of flags. The fields are:
+> >>>>
+> >>>> - Hsync logic level
+> >>>> - Vsync logic level
+> >>>> - Data driven on rising/falling edge of pixel clock
+> >>>> - Output enable/Data enable logic level
+> >>>> - HSYNC/VSYNC driven on rising/falling edge of pixel clock
+> >>>>
+> >>>> Out of these parameters, Hsync and Vsync logic levels are a part of =
+the timings
+> >>>> in the Xorg modeline configuration. So it makes sense to move the to
+> >>>> omap_video_timings. The rest aren't a part of modeline, but it still=
+ makes
+> >>>> sense to move these since they are related to panel timings.
+> >>>>
+> >>>> These fields stored in omap_panel_config in dssdev are configured fo=
+r LCD
+> >>>> panels, and the corresponding LCD managers in the DISPC_POL_FREQo re=
+gisters.
+> >>>>
+> >>>> Add the above fields in omap_video_timings. Represent their state vi=
+a new enums.
+> >>>> The parameter pclk_edge is configured via omap_dss_signal_level, how=
+ever it
+> >>>> actually configures whether data is driven on the rising or falling =
+edge. This
+> >>>> is a bit unclean, but it prevents us from creating another enum.
+> >>>
+> >>> Hmm, why can't omap_dss_signal_edge be used for pclk_edge? I think it=
+'d
+> >>> fit fine, except OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES would be an illegal
+> >>> value for it.
+> >>
+> >> I think my paragraph is a bit misleading. The issue is more about the
+> >> default value. For hsync_vsync_edge(which programs ONOFF and RF), the
+> >> default value is OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES, and is the case for
+> >> most panels. But for pclk_edge, the value for most panels is
+> >> OMAPDSS_DRIVE_SIG_ACTIVE_HIGH.
+> >>
+> >> So if I use the same enum for both, I'll need to populate either
+> >> pclk_edge or hsync_vsync_edge for almost every panel. With my approach=
+,
+> >> I only need to populate these fields for panels having the non-default
+> >> requirements. The negative thing is that it's a bit misleading to
+> >> represent pclk_edge with the omap_dss_signal_level enum.
+> >
+> > Ah, I see.
+> >
+> > I really think using the ACTIVE_LOW/HIGH for pclk_edge is quite ugly =
+=3D).
+> >
+> > Well, one option is to add new entry for the enums, "UNDEFINED" or
+> > perhaps "DEFAULT", which would have value 0. Then omapdss would know
+> > that it should use the default value, whatever that is.
+> >
+> > Another option is to have all panels define the pclk_edge, so that
+> > there's no default value needed.
+>=20
+> I think I'll go with this.
 
->> clock: disabling unused clocks to save power
->> Unable to handle kernel NULL pointer dereference at virtual address =
-00000000
->> pgd =3D c0004000
->> [00000000] *pgd=3D00000000
->> Internal error: Oops: 80000005 [#1] PREEMPT ARM
->> Modules linked in:
->> CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0 =A0W =A0 =A0 (3.4.3 #2)
->> PC is at 0x0
->> LR is at omap34xx_do_sram_idle+0x8/0x10
->
-> This is a branch to 0x0, probably in omap34xx_cpu_suspend (in
-> sleep34xx.S) which was just called by omap34xx_do_sram_idle.
->
-> My first guess would be that the omap3_do_wfi_sram address is zero. =A0=
-Can
-> you dump the value in omap_push_sram_idle()? =A0If that looks good, d=
-o you
-> have a debugger setup so you can single step into omap34xx_cpu_suspen=
-d()
-> to find out where this is failing?
->
-Thank you for pointing me in the right direction.
-My board code was not calling omap_sdrc_init(...),
-which in turns calls omap_sram_init, where all
-the sram pushing takes place.
+Ok. But if you do this, then perhaps you should fill all the other
+properties also. It looks a bit strange to require only one particular
+to be always entered, while the others have default values.
 
-Now I safely boot to userspace, but have random crashes
-when waking up from idle, where random refers to the oops
-log, not the occurence. I suspect memory corruption problem,
-which could be due to ddr going into self refresh, right ?
+But I guess that's not a bad thing at all. If the panel doesn't define
+what kind of signal it wants, and trusts that the defaults are always
+the same, it may break later or perhaps with other platforms.
 
-Currently I call omap_sdrc_init with NULL arguments, but a lot of
-boards do the same thing. How are the omap_sdrc_init args related to
-self refreh ? In other words, if ddr parameters are correctly set in x-=
-loader,
-do I also need omap_sdrc_params in linux for idle to work ?
+So I think the panel drivers should define all the signal properties,
+and not leave them to default values. That's the safest option, although
+a bit verbose.
 
-Regards,
-Jean-Philippe Fran=E7ois
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
+--=-G0c4AYUdfZEaiLtc1Y2r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP6wRKAAoJEPo9qoy8lh71TtUP/jaccSlSApEStbVWhW42bJ0c
+kEcmZkhn0juqNiZh0GX52N1ufh9fx4FQ8dA3EBNZ0c9jT7tgjWto9CkSIo8/ASXj
+eE6oO8ZfFaqoU0GGIfiU+OMBZSKUMubgevYaMvxRCUKX4SQYdRPppqVqp5vlUEV8
+LfpOyCM+RUEQyzRIJEF6S5nY3wccNMtue0CkrTzYWcbuSbkl9NdVmnlYXUNyMeIy
+yFk1yVMk/wJTW0zzLKAfOvRsCpk5K+Xuas8aph029d4fu3oKcQkzs1DIBEIDws8Q
+txo+RIjcn9Cp0Mlgz6CZQ5h5Um/1+dCjDIiHRc/3V9C8ToX0E596OYSq7UAt12eY
+I694b+Cs7hfXc9pndhtk437eoqhE568TDiMRjAYBLpUjsq9f8FnFp/XqrrhJoSFZ
+hBBdx75mDet1qkxwcold85YFtmpuNJqYFOLB56Cn/FgzDCRMPbfOV9wHQkTa8EH7
+rhhXHJBRnc4ZOXjug/jgNjBgyfgHAMU+uNPwsPBQjCiw+/VXh0LnNUzz+PPDZS0L
+xG9xzzGBoAIxfNYasV2jTU5pW4ShK8pxRrwRtnu99TAmI3SNQqbayDCxuJhqE1Ga
+uALP/0Zwj8PVLJInNRfPn+ynaf33w+cPuvv9GnEJPqqVLH1M0Ob8eEyBFTRQx6xR
+e+uj1iZMDHmNXV8jSgbC
+=SquS
+-----END PGP SIGNATURE-----
+
+--=-G0c4AYUdfZEaiLtc1Y2r--
+
