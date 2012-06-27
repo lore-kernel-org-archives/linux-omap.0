@@ -1,74 +1,154 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: EHCI: Fix the hub disconnect after resume
-Date: Wed, 27 Jun 2012 10:24:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1206271020590.1665-100000@iolanthe.rowland.org>
-References: <1340795719-28386-1-git-send-email-keshava_mgowda@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340795719-28386-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: Use PM notifiers for system suspend
+Date: Wed, 27 Jun 2012 17:34:56 +0300
+Message-ID: <1340807697-24847-1-git-send-email-tomi.valkeinen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:51310 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751850Ab2F0OfL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 10:35:11 -0400
+Received: by lboj14 with SMTP id j14so2371737lbo.21
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 07:35:08 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, 27 Jun 2012, Keshava Munegowda wrote:
+The current way how omapdss handles system suspend and resume is that
+omapdss device (a platform device, which is not part of the device
+hierarchy of the DSS HW devices, like DISPC and DSI, or panels.) uses
+the suspend and resume callbacks from platform_driver to handle system
+suspend. It does this by disabling all enabled panels on suspend, and
+resuming the previously disabled panels on resume.
 
-> Its observed that in Beagle XM , during suspend/resume the OMAP
-> EHCI controller losing the register contents. this is causing the
-> hub disconnect after the resume, this is causing failure of
-> device detection after the resume.
-> to avoid the hub disconnect , The ehci config flag register is
-> configured again , reset the phy and issue the port powers during
-> resume.
+This presents a few problems.
 
-The idea is good, but the implementation is wrong.
+One is that as omapdss device is not related to the panel devices or the
+DSS HW devices, there's no ordering in the suspend process. This means
+that suspend could be first ran for DSS HW devices and panels, and only
+then for omapdss device. Currently this is not a problem, as DSS HW
+devices and panels do not handle suspend.
 
-> +static int omap_ehci_bus_resume(struct usb_hcd *hcd)
-> +{
-> +
-> +	struct device				*dev = hcd->self.controller;
-> +	struct ehci_hcd_omap_platform_data	*pdata = dev->platform_data;
-> +	struct resource				*regs = hcd->regs;
-> +
-> +	/* In case , ports are not powered and config flag not set */
-> +	if (~(ehci_read(regs, EHCI_CONFIGFLAG) & 0x01)) {
-> +		ehci_write(regs, EHCI_CONFIGFLAG, 0x1);
-> +
-> +		/*
-> +		 * An undocumented "feature" in the OMAP3 EHCI controller,
-> +		 * causes suspended ports to be taken out of suspend when
-> +		 * the USBCMD.Run/Stop bit is cleared (for example when
-> +		 * we do ehci_bus_suspend).
-> +		 * This breaks suspend-resume if the root-hub is allowed
-> +		 * to suspend. Writing 1 to this undocumented register bit
-> +		 * disables this feature and restores normal behavior.
-> +		 */
-> +		ehci_write(regs, EHCI_INSNREG04,
-> +			   EHCI_INSNREG04_DISABLE_UNSUSPEND);
-> +
-> +		/* Soft reset the PHY using PHY reset command over ULPI */
-> +		if (pdata->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
-> +			omap_ehci_soft_phy_reset(dev, 0);
-> +		if (pdata->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
-> +			omap_ehci_soft_phy_reset(dev, 1);
-> +
-> +		/* root ports should always stay powered */
-> +		ehci_port_power(hcd_to_ehci(hcd), 1);
-> +	}
+Another, more pressing problem, is that when suspending or resuming, the
+runtime PM functions return -EACCES as runtime PM is disabled during
+system suspend. This causes the driver to print warnings, and operations
+to fail as they think that they failed to bring up the HW.
 
-This needs to be done in the resume routine, not the bus_resume 
-routine.  Since ehci-omap doesn't have any suspend or resume routines, 
-it's not surprising that the controller doesn't work correctly after 
-the system is resumed.
+This patch changes the omapdss suspend handling to use PM notifiers,
+which are called before suspend and after resume. This way we have a
+normally functioning system when we are suspending and resuming the
+panels.
 
-In a couple of days I will submit a patch that will make it a lot
-easier to add suspend and resume routines for EHCI platform drivers.  
-Maybe you'd prefer to wait until then to fix this issue.
+This patch, I believe, creates a problem that somebody could enable or
+disable a panel between PM_SUSPEND_PREPARE and the system suspend, and
+similarly the other way around in resume. I choose to ignore the problem
+for now, as it sounds rather unlikely, and if it happens, it's not
+fatal.
 
-Alan Stern
+In the long run the system suspend handling of omapdss and panels should
+be thought out properly. The current approach feels rather hacky.
+Perhaps the panel drivers should handle system suspend, or the users of
+omapdss (omapfb, omapdrm) should handle system suspend.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note that after this patch we could probably revert
+0eaf9f52e94f756147dbfe1faf1f77a02378dbf9 (OMAPDSS: use sync versions of
+pm_runtime_put). But as I said, this patch may be temporary, so let's
+leave the sync version still in place.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Jassi Brar <jaswinder.singh@linaro.org>
+---
+ drivers/video/omap2/dss/core.c |   45 ++++++++++++++++++++++++++--------------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index d9b0bf3..e4fadf9 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -32,6 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/device.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/suspend.h>
+ 
+ #include <video/omapdss.h>
+ 
+@@ -207,6 +208,30 @@ int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *))
+ #endif /* CONFIG_DEBUG_FS && CONFIG_OMAP2_DSS_DEBUG_SUPPORT */
+ 
+ /* PLATFORM DEVICE */
++static int omap_dss_pm_notif(struct notifier_block *b, unsigned long v, void *d)
++{
++	DSSDBG("pm notif %lu\n", v);
++
++	switch (v)
++	{
++	case PM_SUSPEND_PREPARE:
++		DSSDBG("suspending displays\n");
++		return dss_suspend_all_devices();
++
++	case PM_POST_SUSPEND:
++		DSSDBG("resuming displays\n");
++		return dss_resume_all_devices();
++
++	default:
++		return 0;
++	}
++}
++
++static struct notifier_block omap_dss_pm_notif_block =
++{
++	.notifier_call = omap_dss_pm_notif,
++};
++
+ static int __init omap_dss_probe(struct platform_device *pdev)
+ {
+ 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+@@ -230,6 +255,8 @@ static int __init omap_dss_probe(struct platform_device *pdev)
+ 	else if (pdata->default_device)
+ 		core.default_display_name = pdata->default_device->name;
+ 
++	register_pm_notifier(&omap_dss_pm_notif_block);
++
+ 	return 0;
+ 
+ err_debugfs:
+@@ -239,6 +266,8 @@ err_debugfs:
+ 
+ static int omap_dss_remove(struct platform_device *pdev)
+ {
++	unregister_pm_notifier(&omap_dss_pm_notif_block);
++
+ 	dss_uninitialize_debugfs();
+ 
+ 	dss_uninit_overlays(pdev);
+@@ -253,25 +282,9 @@ static void omap_dss_shutdown(struct platform_device *pdev)
+ 	dss_disable_all_devices();
+ }
+ 
+-static int omap_dss_suspend(struct platform_device *pdev, pm_message_t state)
+-{
+-	DSSDBG("suspend %d\n", state.event);
+-
+-	return dss_suspend_all_devices();
+-}
+-
+-static int omap_dss_resume(struct platform_device *pdev)
+-{
+-	DSSDBG("resume\n");
+-
+-	return dss_resume_all_devices();
+-}
+-
+ static struct platform_driver omap_dss_driver = {
+ 	.remove         = omap_dss_remove,
+ 	.shutdown	= omap_dss_shutdown,
+-	.suspend	= omap_dss_suspend,
+-	.resume		= omap_dss_resume,
+ 	.driver         = {
+ 		.name   = "omapdss",
+ 		.owner  = THIS_MODULE,
+-- 
+1.7.9.5
+
