@@ -1,86 +1,73 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change state
-Date: Wed, 27 Jun 2012 10:12:52 +0530
-Message-ID: <CAJe_ZheovnRsJ6opMPkMxwjLSv-OKBPCHu5rsAX_KNz1mb64ZQ@mail.gmail.com>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340605221.12683.30.camel@lappyti>
-	<CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	<1340616643.3395.19.camel@deskari>
-	<CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	<1340628094.3395.63.camel@deskari>
-	<CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	<1340632161.3395.100.camel@deskari>
-	<CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	<1340695166.2093.22.camel@lappyti>
-	<CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	<1340701660.24530.17.camel@deskari>
-	<CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	<1340712213.24530.21.camel@deskari>
-	<CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-	<1340723296.24530.68.camel@deskari>
-	<CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
-	<1340723514.24530.70.camel@deskari>
-	<CAJe_ZheXSquxOtOD9iPyQjZ-jxWKzVGZHYkjM=wC37qgMZeJug@mail.gmail.com>
-	<1340736243.24530.98.camel@deskari>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
+Date: Wed, 27 Jun 2012 10:49:24 +0530
+Message-ID: <4FEA97DC.4070902@ti.com>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com>	 <1340372890-10091-6-git-send-email-rnayak@ti.com>	 <1340604478.12683.25.camel@lappyti> <4FE80C43.6090802@ti.com>	 <1340611133.3395.3.camel@deskari> <4FE85005.4090303@ti.com>	 <1340630090.3395.85.camel@deskari> <20120627004709.GA22766@gmail.com> <1340770798.1972.4.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:38676 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab2F0Emx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 00:42:53 -0400
-Received: by lbbgm6 with SMTP id gm6so1075895lbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 21:42:52 -0700 (PDT)
-In-Reply-To: <1340736243.24530.98.camel@deskari>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:42712 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752592Ab2F0FTd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 01:19:33 -0400
+Received: by obfk16 with SMTP id k16so1148525obf.29
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 22:19:31 -0700 (PDT)
+In-Reply-To: <1340770798.1972.4.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+Cc: Mike Turquette <mturquette@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, "Hilman, Kevin" <khilman@ti.com>
 
-On 27 June 2012 00:14, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Tue, 2012-06-26 at 22:31 +0530, Jassi Brar wrote:
+On Wednesday 27 June 2012 09:49 AM, Tomi Valkeinen wrote:
+> On Tue, 2012-06-26 at 17:47 -0700, Mike Turquette wrote:
+>> On 20120625-16:14, Tomi Valkeinen wrote:
+>>> A question about clk_prepare/unprepare, not directly related: let's say
+>>> I have a driver for some HW block. The driver doesn't use clk functions,
+>>> but uses runtime PM. The driver also sets pm_runtime_irq_safe().
+>>>
+>>> Now, the driver can call pm_runtime_get_sync() in an atomic context, and
+>>> this would lead to the underlying framework (hwmod, omap_device, I don't
+>>> know who =) enabling the func clock for that HW. But this would happen
+>>> in atomic context, so the underlying framework can't use clk_prepare.
+>>>
+>>> How does the underlying framework handle that case? (sorry if that's a
+>>> stupid question =).
+>>>
 >>
->> > But if pm_runtime_get_sync() returns an error, it means the HW has=
- not
->> > been resumed successfully, and is not operational,
->> >
->> Not always. The HW could be in RPM_ACTIVE state while PM on it could
->> be disabled, if the returned error is -EACCESS. =A0 And
->> pm_runtime_enabled() only catches a potential -EACCESS.
->
-> True. But the HW could also be in disabled state. And that would lead=
- to
-> a crash when accessing the registers.
->
-> It is not a fatal error if pm_runtime_get returns -EACCES, but we sur=
-e
-> shouldn't ignore it (or avoid it with pm_runtime_enabled()), but hand=
-le
-> it. In some rare cases it could be ok to get -EACCES, but that's a
-> special case, not standard.
->
-You are mixing up generic concepts with what we have in omapdss.
-Believe me, I do understand it's bad to proceed without caring for
-returned _errors_.
-The way omapdss is organized -EACCESS is _not_ an  error, it just
-denotes PM is disabled on the device and that DISPC is in RPM_ACTIVE
-is backed by the fact that HDMI always hold a reference between
-resume-suspend and DISPC goes to suspend last and resume first.
-
-
->> BTW, I just tested your patch and it worked for me as well. But as
->> suspected, it doesn't help the stack spew of CONFIG_PM_RUNTIME:=3Dn
+>> I think it's a good question!
 >>
->> So I understand, I only need to resend the other three patches ?
+>> If we're going to call clk_prepare_enable from within a runtime pm
+>> callback then I think we'll need to check if _irq_safe() is set and
+>> conditionally call only clk_enable in such a case.
+>>
+>> I'm not a runtime pm expert, but if the driver owns the responsibility
+>> of calling pm_runtime_irq_safe then the driver has the proper context
+>> to know that it should call clk_prepare BEFORE calling
+>> pm_runtime_get_sync.
 >
-> Yes, please.
+> That's not quite what I meant. If it's the driver that does clk_enable,
+> be it in runtime PM callback or not, it's driver's responsibility.
 >
-OK, will do today later.
+> But some clocks are not handled by the driver, but the hwmod/omap_device
+> framework. Mainly I think this is for the functional and interface
+> clocks. The driver has no visibility to those, they are implicitly
+> enabled via pm_runtime_get.
 
-Regards.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+yes, thats the tricky part on how would hwmod/omap_device know if the
+driver would use runtime pm within atomic context or non-atomic context.
+The driver does inform the runtime pm framework about this by calling a
+pm_runtime_irq_safe(), which is then used to set the .irq_safe flag 
+telling it to leave the interrupts disabled during callbacks.
+This information however does not flow down to hwmod/omap_device in any
+way. So the way its currently handled is to do an early prepare of all
+hwmod controlled clocks.
+
+I have copied Kevin in case he has any better ideas on how this should
+be handled.
+
+>
+>   Tomi
+>
+
