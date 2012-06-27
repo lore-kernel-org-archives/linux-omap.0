@@ -1,64 +1,69 @@
-From: Mike Turquette <mturquette@ti.com>
-Subject: Re: [PATCH 05/11] OMAPDSS: add clk_prepare and clk_unprepare
-Date: Tue, 26 Jun 2012 17:47:10 -0700
-Message-ID: <20120627004709.GA22766@gmail.com>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
- <1340372890-10091-6-git-send-email-rnayak@ti.com>
- <1340604478.12683.25.camel@lappyti>
- <4FE80C43.6090802@ti.com>
- <1340611133.3395.3.camel@deskari>
- <4FE85005.4090303@ti.com>
- <1340630090.3395.85.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 07/11] I2C: OMAP: Handle error check for pm runtime
+Date: Tue, 26 Jun 2012 20:43:32 -0500
+Message-ID: <874npxv8aj.fsf@ti.com>
+References: <1338288983-15026-1-git-send-email-shubhrajyoti@ti.com>
+	<1338288983-15026-8-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:55701 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754738Ab2F0ArX (ORCPT
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:53746 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753821Ab2F0Bn0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Jun 2012 20:47:23 -0400
-Received: by pbbro12 with SMTP id ro12so872854pbb.32
-        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 17:47:22 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1340630090.3395.85.camel@deskari>
+	Tue, 26 Jun 2012 21:43:26 -0400
+Received: by yhfq46 with SMTP id q46so39749yhf.35
+        for <linux-omap@vger.kernel.org>; Tue, 26 Jun 2012 18:43:25 -0700 (PDT)
+In-Reply-To: <1338288983-15026-8-git-send-email-shubhrajyoti@ti.com>
+	(Shubhrajyoti D.'s message of "Tue, 29 May 2012 16:26:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-On 20120625-16:14, Tomi Valkeinen wrote:
-> A question about clk_prepare/unprepare, not directly related: let's say
-> I have a driver for some HW block. The driver doesn't use clk functions,
-> but uses runtime PM. The driver also sets pm_runtime_irq_safe().
-> 
-> Now, the driver can call pm_runtime_get_sync() in an atomic context, and
-> this would lead to the underlying framework (hwmod, omap_device, I don't
-> know who =) enabling the func clock for that HW. But this would happen
-> in atomic context, so the underlying framework can't use clk_prepare.
-> 
-> How does the underlying framework handle that case? (sorry if that's a
-> stupid question =).
-> 
+Shubhrajyoti D <shubhrajyoti@ti.com> writes:
 
-I think it's a good question!
+> If PM runtime get_sync fails return with the error
+> so that no further reads/writes goes through the interface.
+> This will avoid possible abort. Add a error message in case
+> of failure with the cause of the failure.
+>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-If we're going to call clk_prepare_enable from within a runtime pm
-callback then I think we'll need to check if _irq_safe() is set and
-conditionally call only clk_enable in such a case.
+This patch introduced a regression where the runtime PM usecount will
+never reach zero and so CORE retention is prevented after any xfer
+failures...
 
-I'm not a runtime pm expert, but if the driver owns the responsibility
-of calling pm_runtime_irq_safe then the driver has the proper context
-to know that it should call clk_prepare BEFORE calling
-pm_runtime_get_sync.
+> ---
+> -v10 Use IS_ERR_VALUE
+> -v9 Fix the error handling
+>
+>  drivers/i2c/busses/i2c-omap.c |   14 +++++++++++---
+>  1 files changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 44e8cfa..c39b72f 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -585,7 +585,9 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>  	int i;
+>  	int r;
+>  
+> -	pm_runtime_get_sync(dev->dev);
+> +	r = pm_runtime_get_sync(dev->dev);<
+> +	if (IS_ERR_VALUE(r))
+> +		return r;
 
-However if some other framework (outside of the driver) calls
-pm_runtime_irq_safe then it will be difficult for the driver to know
-what to do...
+This return should be 'goto out' so the runtime PM usecount is
+decremented by the 'put'.  Otherwise, after failure, the usecount
+remains non-zero, so the device is considered 'active' and keeps the
+containing power domain active.
 
-Regards,
-Mike
+I found this on a 3730/OveroSTORM where the suspend/resume of MMC fails
+because I2C is already suspended.  After the suspend though, the CORE
+powerdomain never again hits retention, and I tracked it down to this.
 
->  Tomi
-> 
+I'll send a separate patch to fix this shortly.
 
-
+Kevin 
