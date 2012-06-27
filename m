@@ -1,109 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: Current state of AM33xx patches
-Date: Wed, 27 Jun 2012 12:31:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206271218540.27496@utopia.booyaka.com>
-References: <4FD5BA4C.9070706@gmail.com> <4FD5FD9E.5040203@ti.com> <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
+Date: Wed, 27 Jun 2012 20:45 +0200
+Message-ID: <2606265.VPQJMxIymh@avalon>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com> <1854687.1eeiLuW4oH@avalon>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52885 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab2F0SbI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 14:31:08 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33422 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080Ab2F0So4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 14:44:56 -0400
+In-Reply-To: <1854687.1eeiLuW4oH@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Domenico Andreoli <cavokz@gmail.com>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-Hi Vaibhav
-
-On Wed, 27 Jun 2012, Hiremath, Vaibhav wrote:
-
-> Build Steps:
-> ============
->  - make ARCH=arm CROSS_COMPILE=<toolchain> distclean
->  - make ARCH=arm CROSS_COMPILE=<toolchain> omap2plus_defconfig
->  - Enable option CONFIG_ARM_APPENDED_DTB and CONFIG_ARM_ATAG_DTB_COMPAT
->  - make ARCH=arm CROSS_COMPILE=<toolchain> uImage-dtb.am335x-evm
->    (Since I am not using DT aware u-boot)
+On Wednesday 27 June 2012 20:05:27 Laurent Pinchart wrote:
+> On Wednesday 27 June 2012 10:36:04 Paul Walmsley wrote:
+> > On Wed, 27 Jun 2012, Laurent Pinchart wrote:
+> > > I think you've missed drivers/media/video/omap3isp/isp.c. Should I send
+> > > a
+> > > patch for that ? Do these changes depend on anything not yet in mainline
+> > > that I should apply to my tree for testing ?
+> > 
+> > What would be ideal is if omap3isp could be converted to runtime PM for
+> > its internal IP block control. Almost all of the other OMAP on-chip oC
+> > drivers have been converted. Please let us know if more information or
+> > assistance is needed with this.
 > 
-> Use the ramdisk image to boot kernel, since we do not have support for any 
-> storage devices in the mainline.
-> 
-> U-Boot commands to boot:
-> ========================
-> setenv bootcmd 'mmc rescan 0; fatload mmc 0 81000000 uImage; fatload mmc 0 82000000 ramdisk-pm.gz; bootm 81000000'
-> setenv bootargs 'console=ttyO0,115200n8 mem=128M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial'
-> boot
-> 
-> 
-> Hope this will help you to boot the kernel on BeagleBone.
+> How does that integrate with the clock framework ?
 
-Was anyone else able to get this to work?
+OK, I think I've found the information. I'll give this a try.
 
-I tried these steps here but with one difference: I put the U-boot 
-commands into the uEnv.txt file:
+What is still not clear to me is how runtime PM and system PM interact. For 
+instance the OMAP3 ISP driver disables its clocks in the system PM suspend 
+handler, and restarts them in the system PM resume handler. How do I port that 
+to runtime PM, can I just call pm_runtime_put() and pm_runtime_get_sync() in 
+the system PM handlers ?
 
-optargs=mem=128M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial ignore_loglevel debug
-uenvcmd=mmc rescan 0; fatload mmc 0 81000000 uImage; fatload mmc 0 82000000 ramdisk-pm.gz; bootm 81000000
+-- 
+Regards,
 
-Unfortunately the kernel did not boot.  The log is at the bottom of this 
-file.  I did verify in U-boot that the commands were being executed 
-correctly by walking through them by hand.
-
-The branch used was your am335x-upstream-staging branch, plus a minor 
-patch to allow the kernel to build on an am335x-only config (although for 
-the purposes of this test, omap2plus_defconfig was used).
-
-This is on a BeagleBone A3, using gcc version 4.5.1 (Sourcery G++ Lite 
-2010.09-50).
-
-Enabling CONFIG_EARLY_PRINTK doesn't make any difference, which isn't too 
-surprising since there's no output from the kernel at all.  
-Unfortunately, I don't have the time to do in-depth troubleshooting here 
-with JTAG.
-
-Any thoughts? 
-
-
-- Paul
-
-
-No daughter card present
-NAND:  HW ECC Hamming Code selected
-nand_get_flash_type: second ID read did not match 10,10 against 00,00
-No NAND device found!!!
-0 MiB
-MMC:   OMAP SD/MMC: 0
-*** Warning - readenv() failed, using default environment
-
-Net:   cpsw
-Hit any key to stop autoboot:  0 
-SD/MMC found on device 0
-reading uEnv.txt
-
-224 bytes read
-Loaded environment from uEnv.txt
-Importing environment from mmc ...
-Running uenvcmd ...
-reading uImage
-
-3819902 bytes read
-reading ramdisk-pm.gz
-
-2013059 bytes read
-## Booting kernel from Legacy Image at 81000000 ...
-   Image Name:   Linux-3.5.0-rc1-11828-ge2b3dd1
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3819838 Bytes = 3.6 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-   Loading Kernel Image ... OK
-OK
-
-Starting kernel ...
-
-
+Laurent Pinchart
 
