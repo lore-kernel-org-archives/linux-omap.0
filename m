@@ -1,115 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: omap: remove unused cpu detection macros
-Date: Wed, 27 Jun 2012 06:10:02 -0700
-Message-ID: <20120627131002.GH3483@atomide.com>
-References: <1340745209.1911.15.camel@x61.thuisdomein>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Wed, 27 Jun 2012 18:59:40 +0530
+Message-ID: <CAC83ZvK_ve-d8jZo9mOQ5aidYxFV5r1FUbTqEC3LxvkikOoFHg@mail.gmail.com>
+References: <4FE8CF77.5080400@broadcom.com>
+	<CAC83ZvL2ozQD1DYmtKeFa1PB1pZ1JmBUKFWmDWnbJOCDL3sKNg@mail.gmail.com>
+	<4FE9FD77.7050807@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36922 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab2F0NKH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 09:10:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1340745209.1911.15.camel@x61.thuisdomein>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:34489 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755759Ab2F0N3m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 09:29:42 -0400
+Received: by qcmv28 with SMTP id v28so541377qcm.39
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 06:29:40 -0700 (PDT)
+In-Reply-To: <4FE9FD77.7050807@broadcom.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Franky Lin <frankyl@broadcom.com>
+Cc: khilman@ti.com, tony@atomide.com, santosh.shilimkar@ti.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
 
-* Paul Bolle <pebolle@tiscali.nl> [120626 14:18]:
-> Now that OMAP730 and OMAP850 support is mostly unified, there's no
-> need for separate cpu detection macros for these architectures. At
-> least, currently there isn't, because both macros are unused.
-> cpu_is_7xx() seems to cover all possible uses.
-> 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> 0) Entirely untested!
+On Tue, Jun 26, 2012 at 11:50 PM, Franky Lin <frankyl@broadcom.com> wrote:
+> On 06/26/2012 12:21 AM, DebBarma, Tarun Kanti wrote:
+>>
+>> On Tue, Jun 26, 2012 at 2:22 AM, Franky Lin <frankyl@broadcom.com> wrote:
+>>>
+>>> Hi Kevin, Tarun,
+>>>
+>>> We are using the expansion connector A on Panda board to mount a SDIO
+>>> WiFi
+>>> dongle on MMC2 with a level triggered interrupt signal connected to GPIO
+>>> 138. It's been working fine until 3.5 rc1. The board hang randomly within
+>>> 5
+>>> mins during a network traffic test. After bisecting we found the culprit
+>>> is
+>>> "[PATCH 8/8] gpio/omap: fix missing check in *_runtime_suspend()" [1].
+>>>
+>>> I noticed Kevin raised some similar cases on other platforms and also
+>>> provided two patches in the patch mail thread. But unfortunately those
+>>> two
+>>> patches doesn't help in our case. I tested the driver with 3.5-rc3
+>>> mainline
+>>> kernel and the issue is still there. I can only "fix" the hang by either
+>>> reverting the commit or disabling CONFIG_PM_RUNTIME. Also, the hang only
+>>> happens on Panda ES board. Old Panda with 4430 works good.
+>>>
+>>> Any thoughts and suggestions?
+>>
+>> I just had a quick look at the code. Can you please check if the
+>> attached patch solves
+>> the issue? I just boot tested on Panda and Blaze.
+>> --
+>> Tarun
+>>
+>
+> Thanks for the prompt reply.
+>
+> Booting is fine even without the patch and revert. The wifi dongle generates
+> interrupt whenever there is data packet available for host to read. So
+> during a traffic test a significant numbers of interrupt will be triggered
+> through the GPIO. So I assume it has something to do with the interrupt
+> GPIO.
+>
+> With the patch, the kernel still crashes. But the symptom is slightly
+> different. Now it has a panic log every time. See attachment.
+I tried comparing the present code with older version with regard
+to enabled_non_wakeup_gpios check. The obvious difference I
+observed is that this check is performed after off-mode check,
+unlike the present case where the check is done just prior to
+off-mode check. But then, as Kevin pointed out, we need to understand
+the exact problem. I am trying to have a setup to reproduce the
+problem. BTW, you can ignore my patch because I realized that
+saved_datain is part of the workaround.
+---
+Tarun
 
-Seems to work :)
- 
-> 1) And now the IS_OMAP_TYPE() macro "calls" for 730 and 850 are unused.
-> Not sure whether they should be removed too.
-
-Yes those can go now too, I've applied the updated patch
-below into fixes-non-critical along with the first patch
-in this series.
- 
-> 2) Note that cpu_is_omap343x(), cpu_is_omap447x(), and cpu_is_omap2423()
-> are all unused too. Reserved for future use, I guess.
-
-It seems that at least 447x will be used soon. The others
-we should be able to remove.
-
-Regards,
-
-Tony
- 
-
-Author: Paul Bolle <pebolle@tiscali.nl>
-Date:   Tue Jun 26 23:13:29 2012 +0200
-
-    ARM: OMAP: remove unused cpu detection macros
-    
-    Now that OMAP730 and OMAP850 support is mostly unified, there's no
-    need for separate cpu detection macros for these architectures. At
-    least, currently there isn't, because both macros are unused.
-    cpu_is_7xx() seems to cover all possible uses.
-    
-    Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-    [tony@atomide.com: updated to also to remove related IS_OMAP_TYPE]
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index f2bdf15..e79e913 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -239,8 +239,6 @@ IS_AM_SUBCLASS(335x, 0x335)
-  * Macros to detect individual cpu types.
-  * These are only rarely needed.
-  * cpu_is_omap310():	True for OMAP310
-- * cpu_is_omap730():	True for OMAP730
-- * cpu_is_omap850():	True for OMAP850
-  * cpu_is_omap1510():	True for OMAP1510
-  * cpu_is_omap1610():	True for OMAP1610
-  * cpu_is_omap1611():	True for OMAP1611
-@@ -264,8 +262,6 @@ static inline int is_omap ##type (void)			\
- }
- 
- IS_OMAP_TYPE(310, 0x0310)
--IS_OMAP_TYPE(730, 0x0730)
--IS_OMAP_TYPE(850, 0x0850)
- IS_OMAP_TYPE(1510, 0x1510)
- IS_OMAP_TYPE(1610, 0x1610)
- IS_OMAP_TYPE(1611, 0x1611)
-@@ -281,8 +277,6 @@ IS_OMAP_TYPE(3505, 0x3517)
- IS_OMAP_TYPE(3517, 0x3517)
- 
- #define cpu_is_omap310()		0
--#define cpu_is_omap730()		0
--#define cpu_is_omap850()		0
- #define cpu_is_omap1510()		0
- #define cpu_is_omap1610()		0
- #define cpu_is_omap5912()		0
-@@ -304,19 +298,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- 
- /*
-  * Whether we have MULTI_OMAP1 or not, we still need to distinguish
-- * between 730 vs 850, 310 vs. 1510 and 1611B/5912 vs. 1710.
-+ * between 310 vs. 1510 and 1611B/5912 vs. 1710.
-  */
- 
--#if defined(CONFIG_ARCH_OMAP730)
--# undef  cpu_is_omap730
--# define cpu_is_omap730()		is_omap730()
--#endif
--
--#if defined(CONFIG_ARCH_OMAP850)
--# undef  cpu_is_omap850
--# define cpu_is_omap850()		is_omap850()
--#endif
--
- #if defined(CONFIG_ARCH_OMAP15XX)
- # undef  cpu_is_omap310
- # undef  cpu_is_omap1510
+>
+> Regards,
+> Franky
