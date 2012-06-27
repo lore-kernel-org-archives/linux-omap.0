@@ -1,160 +1,242 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Wed, 27 Jun 2012 11:13:41 +0300
-Message-ID: <1340784821.2649.17.camel@deskari>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340605221.12683.30.camel@lappyti>
-	 <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	 <1340616643.3395.19.camel@deskari>
-	 <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	 <1340628094.3395.63.camel@deskari>
-	 <CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	 <1340632161.3395.100.camel@deskari>
-	 <CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	 <1340695166.2093.22.camel@lappyti>
-	 <CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	 <1340701660.24530.17.camel@deskari>
-	 <CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	 <1340712213.24530.21.camel@deskari>
-	 <CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-	 <1340723296.24530.68.camel@deskari>
-	 <CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
-	 <1340723514.24530.70.camel@deskari>
-	 <CAJe_ZheXSquxOtOD9iPyQjZ-jxWKzVGZHYkjM=wC37qgMZeJug@mail.gmail.com>
-	 <1340736243.24530.98.camel@deskari>
-	 <CAJe_ZheovnRsJ6opMPkMxwjLSv-OKBPCHu5rsAX_KNz1mb64ZQ@mail.gmail.com>
-	 <1340776683.1972.41.camel@lappyti>
-	 <CAJe_Zhdz5mAZbyer8fL4YfvcQ8xMF31cPG2zr3AbBNWv8nctnw@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 1/3] ARM: omap: clk: add clk_prepare and clk_unprepare
+Date: Wed, 27 Jun 2012 14:18:33 +0530
+Message-ID: <1340786915-29507-2-git-send-email-rnayak@ti.com>
+References: <1340786915-29507-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-1uoi3fgK/Gn5/cy4ErLx"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:33531 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756138Ab2F0INv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 04:13:51 -0400
-Received: by lbbgm6 with SMTP id gm6so1393310lbb.5
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 01:13:47 -0700 (PDT)
-In-Reply-To: <CAJe_Zhdz5mAZbyer8fL4YfvcQ8xMF31cPG2zr3AbBNWv8nctnw@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58056 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754150Ab2F0Iss (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 04:48:48 -0400
+In-Reply-To: <1340786915-29507-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: paul@pwsan.com, mturquette@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
+As part of Common Clk Framework (CCF) the clk_enable() operation
+was split into a clk_prepare() which could sleep, and a clk_enable()
+which should never sleep. Similarly the clk_disable() was
+split into clk_disable() and clk_unprepare(). This was
+needed to handle complex cases where in a clk gate/ungate
+would require a slow and a fast part to be implemented.
+None of the clocks below seem to be in the 'complex' clocks
+category and are just simple clocks which are enabled/disabled
+through simple register writes.
+Most of the instances also seem to be called in non-atomic
+context which means its safe to move all of those from
+using a clk_enable() to clk_prepare_enable() and clk_disable() to
+clk_disable_unprepare().
+For a few others where there is a possibility they get called from
+an interrupt or atomic context, there is an additonal clk_prepare()
+done before a clk_enable() and a clk_unprepare()
+after a clk_disable().
+This is in preparation of OMAP moving to CCF.
 
---=-1uoi3fgK/Gn5/cy4ErLx
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Based on initial changes from Mike turquette.
 
-On Wed, 2012-06-27 at 13:11 +0530, Jassi Brar wrote:
-> On 27 June 2012 11:28, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >
-> > It doesn't matter how omapdss is organized, -EACCES _is_ an error. It
-> > tells us that something unexpected happened, and we should react to it
-> > somehow.
-> >
->   $ git show 5025ce070
-> Exactly how omapdss is organised is the reason -EBUSY isn't an error ther=
-e :)
-> Otherwise, omapdss should panic that somehow 'imbalance' has been
-> introduced in rpm.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/board-apollon.c    |    4 ++--
+ arch/arm/mach-omap2/board-h4.c         |    6 +++---
+ arch/arm/mach-omap2/board-omap4panda.c |    2 +-
+ arch/arm/mach-omap2/clock3xxx.c        |    8 ++++----
+ arch/arm/mach-omap2/display.c          |    4 ++--
+ arch/arm/mach-omap2/gpmc.c             |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c       |    3 +++
+ arch/arm/mach-omap2/pm24xx.c           |    2 ++
+ arch/arm/mach-omap2/usb-fs.c           |    4 ++--
+ 9 files changed, 20 insertions(+), 15 deletions(-)
 
-There's no imbalance there, as each get() is still matched by a put(),
-and the use count is correct. Your patch may cause either get or put to
-be skipped.
-
-In 5025ce070 the function in question is dss_runtime_put(), and -EBUSY
-_is_ an error there. Normally if you call pm_runtime_put_sync() and the
-use count drops to zero, the device should be suspended. In this case,
-however, it won't be suspended as a child device is still enabled. Thus,
-the framework informs about this with -EBUSY.
-
-It's ok to ignore -EBUSY, because we're not really interested about if
-the device is actually suspended or not.
-
-However, dispc_runtime_get() is a different matter, because there we
-_are_ interested about the state of the HW. If we skip
-dispc_runtime_get() because runtime PM is disabled, we don't know
-whether the HW is enabled or not.
-
-And even if your patch was modified to check the HW status after
-pm_runtime_enabled(), and return 0 is HW is enabled and an error if HW
-is disabled, it'd be wrong, because you skip the pm_runtime_get() call.
-This means that the use count is not increased, and there's no guarantee
-that the HW would be functional after dispc_runtime_get() returns.
-
-> > Sure, in the current omapdss neither is a breaking problem, because 1)
-> > the matching dispc_runtime_put() is called also with runtime PM
-> > disabled, and thus we don't decrease the use count, and 2) the HW
-> > happens to be already enabled. But that's just by "luck", and tomorrow
-> > omapdss could be different.
-> >
-> It's no 'luck', but it's because today omapdss takes proper care of PM
-> enable/disable and get/put.
-> Rather, if tomorrow that stops working, it would hint that we managed
-> to screw up the balance.
-> Because if omapdss suspended and disabled PM on DISPC, and still HDMI
-> attempted to access dss regs, that clearly means HDMI hasn't been duly
-> made aware of the DISPC status.
-
-There are two different things here. First one is how
-dispc_runtime_get/put & co. should work. The second is how they are
-used.
-
-As I see, you are arguing that it's ok to have dispc_runtime_get/put
-broken, as long as they are used in a way that causes no problems.
-
-> Just as preemption and suspend/resume don't introduce any race in
-> locking, RPM won't introduce new imbalance in get/put of omapdss.
->=20
-> I am afraid, we won't reach any eureka moment on this, so I would
-> leave us to our conditions. This patch and discussion made me look
-> deep into rpm, I thank you for that and for your patience.
-
-Yes, same here. I think this discussion and related code digging has
-really improved my understanding of runtime PM =3D). Perhaps I'll get it
-correct this time with this new information.
-
-There's still the system suspend, which I think is quite broken. The
-patch I gave fixes it for the time being, but I see it as a temporary
-solution.
-
-I don't like it at all that omapdss disables and enables the panels in
-omapdss's suspend/resume hooks. But I'm not sure how this should work...
-Should panel drivers each have their own suspend/resume hooks, and
-handle it themselves? Or should the call to suspend/resume come from
-upper layers, like omapfb or omapdrm.
-
-I made a prototype patch a few weeks ago to move the suspend to omapfb,
-and it feels better than the current one, but I'm still not sure...
-
- Tomi
-
-
---=-1uoi3fgK/Gn5/cy4ErLx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP6sC1AAoJEPo9qoy8lh71cq4P/3GF3lCSWKZOY7Bo5+gAA4rE
-iagXNvYgg1J5hIjAkAn/leMkCUs0Y35Y7GfdLfJTJ7G6clRV6OB44w7oQuEYcZIT
-xSZpi10BLKbrsAS6t1jofAV0XsJAdxQ5Shkt5wIgCe+w59qH6c/i47hLg2jkp64p
-vZuSt7ww56QJbLFloALgxGhnhyTg6Ylq/qi1Vfb/PIYclvPZqHsm1/h58shEjUI9
-qFKcYAXvB4SLnQjWUmmnTuWAlOq8UrnFS+PoItYP7eJ8FRhKSyCsrLP6zKzf1xRZ
-EYD53R3PHjZZQDDxp0zEZx7nuvse1BHvlw5Vy1rClaEDFQVwLddF9LAa6/LLw5PC
-ga3IV8EZh+JFnknnWZxOft4/kBowj1a3cNZO9mtGZI9QB1izsPe+X/AnBn3oAYZy
-TZS6bdNeM7w3z+SKidX9Syv3dfeMSwVuFnYHUn+J8qoJO/ilfyjF/y7jGX7rvDgW
-1YNcCI7yCxRqjqXfzefgc6MhRPO+Q4a3Z+UlQwneEKm6DxMthicWqQfxb/qi2s+a
-weUgcVM4evB/ZOQq/zypj2gYK9JfFGpN5ojef0yM/YiMi01ixTBUbrza1ReyMAlu
-p3q69aBxF5vidn3MdAx7i9wnNnv5c9vJ6yJBpdgRpkAa8soKlyuWN0zlS43cWxe+
-rPeDxUbmScQu+0mRSzlo
-=b/57
------END PGP SIGNATURE-----
-
---=-1uoi3fgK/Gn5/cy4ErLx--
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 502c31e..1d8c693 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -205,7 +205,7 @@ static inline void __init apollon_init_smc91x(void)
+ 		return;
+ 	}
+ 
+-	clk_enable(gpmc_fck);
++	clk_prepare_enable(gpmc_fck);
+ 	rate = clk_get_rate(gpmc_fck);
+ 
+ 	eth_cs = APOLLON_ETH_CS;
+@@ -249,7 +249,7 @@ static inline void __init apollon_init_smc91x(void)
+ 		gpmc_cs_free(APOLLON_ETH_CS);
+ 	}
+ out:
+-	clk_disable(gpmc_fck);
++	clk_disable_unprepare(gpmc_fck);
+ 	clk_put(gpmc_fck);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 876becf..a273af0 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -267,9 +267,9 @@ static inline void __init h4_init_debug(void)
+ 		return;
+ 	}
+ 
+-	clk_enable(gpmc_fck);
++	clk_prepare_enable(gpmc_fck);
+ 	rate = clk_get_rate(gpmc_fck);
+-	clk_disable(gpmc_fck);
++	clk_disable_unprepare(gpmc_fck);
+ 	clk_put(gpmc_fck);
+ 
+ 	if (is_gpmc_muxed())
+@@ -313,7 +313,7 @@ static inline void __init h4_init_debug(void)
+ 		gpmc_cs_free(eth_cs);
+ 
+ out:
+-	clk_disable(gpmc_fck);
++	clk_disable_unprepare(gpmc_fck);
+ 	clk_put(gpmc_fck);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 982fb26..f0ea558 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -172,7 +172,7 @@ static void __init omap4_ehci_init(void)
+ 		return;
+ 	}
+ 	clk_set_rate(phy_ref_clk, 19200000);
+-	clk_enable(phy_ref_clk);
++	clk_prepare_enable(phy_ref_clk);
+ 
+ 	/* disable the power to the usb hub prior to init and reset phy+hub */
+ 	ret = gpio_request_array(panda_ehci_gpios,
+diff --git a/arch/arm/mach-omap2/clock3xxx.c b/arch/arm/mach-omap2/clock3xxx.c
+index 794d827..4c1591a 100644
+--- a/arch/arm/mach-omap2/clock3xxx.c
++++ b/arch/arm/mach-omap2/clock3xxx.c
+@@ -64,15 +64,15 @@ void __init omap3_clk_lock_dpll5(void)
+ 
+ 	dpll5_clk = clk_get(NULL, "dpll5_ck");
+ 	clk_set_rate(dpll5_clk, DPLL5_FREQ_FOR_USBHOST);
+-	clk_enable(dpll5_clk);
++	clk_prepare_enable(dpll5_clk);
+ 
+ 	/* Program dpll5_m2_clk divider for no division */
+ 	dpll5_m2_clk = clk_get(NULL, "dpll5_m2_ck");
+-	clk_enable(dpll5_m2_clk);
++	clk_prepare_enable(dpll5_m2_clk);
+ 	clk_set_rate(dpll5_m2_clk, DPLL5_FREQ_FOR_USBHOST);
+ 
+-	clk_disable(dpll5_m2_clk);
+-	clk_disable(dpll5_clk);
++	clk_disable_unprepare(dpll5_m2_clk);
++	clk_disable_unprepare(dpll5_clk);
+ 	return;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 5fb47a1..e5f8e48 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -471,7 +471,7 @@ int omap_dss_reset(struct omap_hwmod *oh)
+ 
+ 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
+ 		if (oc->_clk)
+-			clk_enable(oc->_clk);
++			clk_prepare_enable(oc->_clk);
+ 
+ 	dispc_disable_outputs();
+ 
+@@ -498,7 +498,7 @@ int omap_dss_reset(struct omap_hwmod *oh)
+ 
+ 	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++)
+ 		if (oc->_clk)
+-			clk_disable(oc->_clk);
++			clk_disable_unprepare(oc->_clk);
+ 
+ 	r = (c == MAX_MODULE_SOFTRESET_WAIT) ? -ETIMEDOUT : 0;
+ 
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 2286410..a33f89d 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -749,7 +749,7 @@ static int __init gpmc_init(void)
+ 		BUG();
+ 	}
+ 
+-	clk_enable(gpmc_l3_clk);
++	clk_prepare_enable(gpmc_l3_clk);
+ 
+ 	l = gpmc_read_reg(GPMC_REVISION);
+ 	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 7731936..f904993 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -608,6 +608,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
+ 			   oh->name, oh->main_clk);
+ 		return -EINVAL;
+ 	}
++	clk_prepare(oh->_clk);
+ 
+ 	if (!oh->_clk->clkdm)
+ 		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
+@@ -645,6 +646,7 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+ 			ret = -EINVAL;
+ 		}
+ 		os->_clk = c;
++		clk_prepare(os->_clk);
+ 	}
+ 
+ 	return ret;
+@@ -672,6 +674,7 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+ 			ret = -EINVAL;
+ 		}
+ 		oc->_clk = c;
++		clk_prepare(oc->_clk);
+ 	}
+ 
+ 	return ret;
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 2edeffc..8eee8bc 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -340,11 +340,13 @@ int __init omap2_pm_init(void)
+ 		printk(KERN_ERR "could not get osc_ck\n");
+ 		return -ENODEV;
+ 	}
++	clk_prepare(osc_ck);
+ 
+ 	if (cpu_is_omap242x()) {
+ 		emul_ck = clk_get(NULL, "emul_ck");
+ 		if (IS_ERR(emul_ck)) {
+ 			printk(KERN_ERR "could not get emul_ck\n");
++			clk_unprepare(osc_ck);
+ 			clk_put(osc_ck);
+ 			return -ENODEV;
+ 		}
+diff --git a/arch/arm/mach-omap2/usb-fs.c b/arch/arm/mach-omap2/usb-fs.c
+index 1481078..cff7d24 100644
+--- a/arch/arm/mach-omap2/usb-fs.c
++++ b/arch/arm/mach-omap2/usb-fs.c
+@@ -344,7 +344,7 @@ void __init omap2_usbfs_init(struct omap_usb_config *pdata)
+ 	if (IS_ERR(ick))
+ 		return;
+ 
+-	clk_enable(ick);
++	clk_prepare_enable(ick);
+ 	pdata->usb0_init = omap2_usb0_init;
+ 	pdata->usb1_init = omap2_usb1_init;
+ 	pdata->usb2_init = omap2_usb2_init;
+@@ -352,7 +352,7 @@ void __init omap2_usbfs_init(struct omap_usb_config *pdata)
+ 	ohci_device_init(pdata);
+ 	otg_device_init(pdata);
+ 	omap_otg_init(pdata);
+-	clk_disable(ick);
++	clk_disable_unprepare(ick);
+ 	clk_put(ick);
+ }
+ 
+-- 
+1.7.1
 
