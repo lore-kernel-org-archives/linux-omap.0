@@ -1,39 +1,36 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
-Date: Wed, 27 Jun 2012 20:05:27 +0200
-Message-ID: <1854687.1eeiLuW4oH@avalon>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1397795.nxQGnEDtVe@avalon> <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: v3.5-rc4 doesn't wake from dynamic idle on 3530ES3 Beagle
+Date: Wed, 27 Jun 2012 13:26:34 -0500
+Message-ID: <87k3ysr4px.fsf@ti.com>
+References: <alpine.DEB.2.00.1206271101220.27496@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37786 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757719Ab2F0SF3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 14:05:29 -0400
-In-Reply-To: <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:48998 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753386Ab2F0S00 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 14:26:26 -0400
+Received: by yhmm54 with SMTP id m54so1634396yhm.5
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 11:26:24 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1206271101220.27496@utopia.booyaka.com> (Paul
+	Walmsley's message of "Wed, 27 Jun 2012 11:03:35 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org
 
-Hi Paul,
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Wednesday 27 June 2012 10:36:04 Paul Walmsley wrote:
-> On Wed, 27 Jun 2012, Laurent Pinchart wrote:
-> > I think you've missed drivers/media/video/omap3isp/isp.c. Should I send a
-> > patch for that ? Do these changes depend on anything not yet in mainline
-> > that I should apply to my tree for testing ?
-> 
-> What would be ideal is if omap3isp could be converted to runtime PM for its
-> internal IP block control. Almost all of the other OMAP on-chip oC drivers
-> have been converted. Please let us know if more information or assistance is
-> needed with this.
+> Looks like something broke between v3.5-rc3 and v3.5-rc4 with dynamic 
+> idle on 3530ES3 Beagle.  37xx EVM doesn't seem to be affected.
+>
+> Taking a closer look now.
 
-How does that integrate with the clock framework ?
+I don't currently have access to a 3530 Beagle so I couldn't test there,
+but just confirmed that vanilla v3.5-rc4 wakes up from dynamic idle (via
+serial console) on 3430/n900, 3730/OveroSTORM and 3730/Beagle-xM.
 
--- 
-Regards,
+Sounds like it may be something specific to Beagle board changes?
 
-Laurent Pinchart
-
+Kevin
