@@ -1,56 +1,39 @@
-From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: [PATCH v3 7/7] ARM: DT: Add support to system control module for
- OMAP4
-Date: Wed, 27 Jun 2012 22:05:16 +0400
-Message-ID: <4FEB4B5C.5020109@dev.rtsoft.ru>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
+Date: Wed, 27 Jun 2012 20:05:27 +0200
+Message-ID: <1854687.1eeiLuW4oH@avalon>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1397795.nxQGnEDtVe@avalon> <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:52725 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757719Ab2F0SFS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 14:05:18 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37786 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757719Ab2F0SF3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 14:05:29 -0400
+In-Reply-To: <alpine.DEB.2.00.1206271033500.27496@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
-Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-This patch adds device tree entries on OMAP4 based boards
-for System Control Module (SCM).
+Hi Paul,
 
-Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+On Wednesday 27 June 2012 10:36:04 Paul Walmsley wrote:
+> On Wed, 27 Jun 2012, Laurent Pinchart wrote:
+> > I think you've missed drivers/media/video/omap3isp/isp.c. Should I send a
+> > patch for that ? Do these changes depend on anything not yet in mainline
+> > that I should apply to my tree for testing ?
+> 
+> What would be ideal is if omap3isp could be converted to runtime PM for its
+> internal IP block control. Almost all of the other OMAP on-chip oC drivers
+> have been converted. Please let us know if more information or assistance is
+> needed with this.
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 359c497..8ecf80a 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -272,5 +272,20 @@
- 			ti,hwmods = "mmc5";
- 			ti,needs-special-reset;
- 		};
-+
-+		ctrl_module_core: ctrl_module_core@4a002000 {
-+			compatible = "ti,omap4-control";
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+			ranges;
-+			ti,hwmods = "ctrl_module_core";
-+			reg = <0x4a002000 0x1000>;
-+			bandgap@4a002000 {
-+				compatible = "ti,omap4-bandgap";
-+			};
-+			usb@4a002000 {
-+				compatible = "ti,omap4-usb-phy";
-+			};
-+		};
- 	};
- };
+How does that integrate with the clock framework ?
+
 -- 
-1.7.7.6
+Regards,
 
+Laurent Pinchart
 
