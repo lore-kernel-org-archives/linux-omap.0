@@ -1,37 +1,46 @@
 From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-Date: Wed, 27 Jun 2012 09:44:16 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99FA39@DBDE01.ent.ti.com>
-References: <cover.1339586624.git.afzal@ti.com>
- <1340790002.29342.15.camel@sauron.fi.intel.com>
+Subject: RE: [PATCH v5 0/3] Prepare for GPMC driver conversion
+Date: Wed, 27 Jun 2012 10:08:02 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99FA70@DBDE01.ent.ti.com>
+References: <cover.1340778002.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33016 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34184 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754799Ab2F0JoY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 05:44:24 -0400
-In-Reply-To: <1340790002.29342.15.camel@sauron.fi.intel.com>
+	id S1754512Ab2F0KIL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 06:08:11 -0400
+In-Reply-To: <cover.1340778002.git.afzal@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgQXJ0ZW0sDQoNCk9uIFdlZCwgSnVuIDI3LCAyMDEyIGF0IDE1OjEwOjAyLCBBcnRlbSBCaXR5
-dXRza2l5IHdyb3RlOg0KPiBPbiBXZWQsIDIwMTItMDYtMTMgYXQgMTc6MDIgKzA1MzAsIEFmemFs
-IE1vaGFtbWVkIHdyb3RlOg0KPiA+IEhpLA0KPiA+IA0KPiA+IFRoaXMgc2VyaWVzIGNsZWFucyB1
-cCBncG1jIG10ZCBpbnRlcmFjdGlvbnMgc28gdGhhdCBHUE1DIGRyaXZlcg0KPiA+IGNvbnZlcnNp
-b24gd2hpY2ggaXMgZ29pbmcgdG8gaGFwcGVuIHNob3J0bHkgd291bGQgaGFwcGVuIHNtb290aGx5
-DQo+ID4gYnkgbm90IGNyZWF0aW5nIG11Y2ggZGlzdHVyYmFuY2Ugb3V0c2lkZSBvZiBhcmNoL2Fy
-bS8qb21hcCovDQo+IA0KPiBCVFcsIGJlIGF3YXJlIHRoYXQgUnVzc2VsIEtpbmcgcGF0Y2hlZCB0
-aGUgb21hcDIuYyBmaWxlIGluIHBhdGNoIHNlcmllcw0KPiB3aGljaCBzd2l0Y2hlcyB0byB0aGUg
-RE1BIGVuZ2luZSwgc28gSSBleHBlY3QgY29uZmxpY3RzLiBZb3UgY2FuIGNoZWNrDQo+IGhpcyB0
-cmVlLCBJIGd1ZXNzLiBUaGUgc3ViamVjdHMgd2VyZToNCj4gDQo+IFtDRlQgMDkvMTFdIG10ZDog
-b21hcDI6IGFkZCBETUEgZW5naW5lIHN1cHBvcnQNCj4gW0NGVCAxMC8xMV0gbXRkOiBvbWFwMjog
-cmVtb3ZlIHByaXZhdGUgRE1BIEFQSSBpbXBsZW1lbnRhdGlvbg0KDQoNClRoYW5rcyBmb3IgdGhl
-IGluZm9ybWF0aW9uLg0KDQpIaSBUb255LA0KDQpXZSBoYXZlIEFydGVtJ3MgYWNrIG9uIE1URCBj
-aGFuZ2VzIGluIHRoaXMgc2VyaWVzLCBwbGVhc2UgbGV0IG1lIGtub3cgd2hldGhlcg0KSSBuZWVk
-IHRvIGRvIGFueXRoaW5nIG1vcmUgdG8gZ2V0IHRoaXMgc2VyaWVzIHBpY2tlZCB1cCBpbiB5b3Vy
-IHRyZWUuDQoNClJlZ2FyZHMNCkFmemFsDQo=
+Hi Tony,
+
+On Wed, Jun 27, 2012 at 12:03:07, Mohammed, Afzal wrote:
+
+> Objective of this series is to make things easy for GPMC driver
+> conversion series by separating out more things from driver
+> conversion series.
+> 
+> This series,
+> 1. Unifies NAND platform initialization functions
+> 2. Prepares OneNAND platform code for gpmc driver migration
+> 3. Handles additional timings in Kernel
+> 
+> This series is based on 3.5-rc1 & made on top of
+> [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+> {http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html}
+> 
+> These changes has been tested with omap3evm & beagle board. Relevant
+> GPMC peripherals that got tested by this were NAND (beagle) and
+> OneNAND (using local patches for omap3evm)
+
+All of Jon's comments in this series has been taken care and has
+Reviewed-by from him on 2 patches, can you please take this series
+
+Regards
+Afzal
