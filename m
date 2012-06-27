@@ -1,46 +1,182 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 0/3] Prepare for GPMC driver conversion
-Date: Wed, 27 Jun 2012 10:08:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E99FA70@DBDE01.ent.ti.com>
-References: <cover.1340778002.git.afzal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree
+ based pinctrl driver
+Date: Wed, 27 Jun 2012 03:28:52 -0700
+Message-ID: <20120627102851.GC3483@atomide.com>
+References: <4FDA6FCD.1020605@wwwdotorg.org>
+ <20120615094938.GQ12766@atomide.com>
+ <4FDB6000.5080703@wwwdotorg.org>
+ <20120618055036.GU12766@atomide.com>
+ <20120619135600.GX12766@atomide.com>
+ <4FE39C86.5070901@wwwdotorg.org>
+ <20120622083955.GZ12766@atomide.com>
+ <4FE4AC40.8080400@wwwdotorg.org>
+ <20120626134319.GA3483@atomide.com>
+ <4FE9EBEC.9040208@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34184 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754512Ab2F0KIL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 06:08:11 -0400
-In-Reply-To: <cover.1340778002.git.afzal@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4FE9EBEC.9040208@wwwdotorg.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
-
-On Wed, Jun 27, 2012 at 12:03:07, Mohammed, Afzal wrote:
-
-> Objective of this series is to make things easy for GPMC driver
-> conversion series by separating out more things from driver
-> conversion series.
+* Stephen Warren <swarren@wwwdotorg.org> [120626 10:10]:
+> On 06/26/2012 07:43 AM, Tony Lindgren wrote:
+> ...
+> > Subject: [PATCH] pinctrl: Add one-register-per-pin type device tree based pinctrl driver
+> > 
+> > Add one-register-per-pin type device tree based pinctrl driver.
+> > 
+> > This driver has been tested on omap2+ series of processors,
+> > where there is either an 8 or 16-bit padconf register for each pin.
+> > Support for other similar pinmux controllers can be added.
 > 
-> This series,
-> 1. Unifies NAND platform initialization functions
-> 2. Prepares OneNAND platform code for gpmc driver migration
-> 3. Handles additional timings in Kernel
+> > diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
 > 
-> This series is based on 3.5-rc1 & made on top of
-> [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-> {http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html}
+> > +/* board specific .dts file */
+> > +
+> > +&pmx_core {
 > 
-> These changes has been tested with omap3evm & beagle board. Relevant
-> GPMC peripherals that got tested by this were NAND (beagle) and
-> OneNAND (using local patches for omap3evm)
+> > +	board_pins: pinmux_board_pins {
+> > +		pinctrl-single,pins = <
+> > +			0x6c 0xf	/* csi21_dx3 OUTPUT | MODE7 */
+> > +			0x6e 0xf	/* csi21_dy3 OUTPUT | MODE7 */
+> > +			0x70 0xf	/* csi21_dx4 OUTPUT | MODE7 */
+> > +			0x72 0xf	/* csi21_dy4 OUTPUT | MODE7 */
+> 
+> If you're removing the pinconf mask, I think the comments in the example
+> should reflect just setting a particular mux function, and remove any
+> references to pinconf settings in that field. While the binding can be
+>  abused to do that, I think the docs shouldn't encourage it:-)
 
-All of Jon's comments in this series has been taken care and has
-Reviewed-by from him on 2 patches, can you please take this series
+I can certainly leave it out of the binding doc :)
 
-Regards
-Afzal
+The pinconf part is essential for the driver to work at least in
+the omap2/3/4 cases though, so as long as people are OK with that it
+works for me. If people don't like this, then it's probably best to
+just add back the separate pinconf mask.
+
+> Other than that, the binding looks reasonable to me, given what it's
+> intended to do.
+> 
+> However, I'd still like Grant and Rob (and any other DT experts) to
+> explicitly sign off on this binding, because it's doing exactly
+> something that was rejected at Linaro Connect in February (albeit the
+> binding is slightly more oriented at specifically being for pinmux
+> rather than a fully general "blast in these register values", but that
+> distinction seems minor to me).
+
+Just for the record, another alternative I thought about is to
+describe mux register bits a bit like the suggested clock framework
+binding does.
+
+The problem trying to define named pin states is that we need to
+add new column for any pinconf value that may be orred together
+with other pinconf values.
+
+Currently there are pinconf settings for active pin states and off
+mode pin states. And there is wake-up enable setting. So that would
+be a total of five columns already per pin with the offset and mux
+function.. Then if something new gets added, let's say signal
+strength, we'll be needing yet another column.
+
+To me it seem we should rather count on the preprocessor to handle
+cases like this eventually. Otherwise we'll end up with bloated DT
+data that becomes slow to parse.
+
+The analogy here that I think is closest to this binding is the
+keymap binding. In this case the mux data is basically just a map
+of few hundred board specific pin settings.
+
+Just for an example, below is what it would look like for omaps
+using names to map out the register bits. There are eight functions
+for each register. Then there are four active pinconf settings,
+and six off mode pinconf settings that make sense. And then there's
+the wakeup enable setting.
+
+Regards,
+
+Tony
+
+pmx_core: pinmux@4a100040 {
+	compatible = "pinctrl-single";
+	reg = <0x4a100040 0x0196>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-single,register-width = <16>;
+
+	/* 8 available pinmux functions */
+	mode0: pinctrl_mode0 {
+		pinctrl-single,function = <0>;
+		pinctrl-single,mask = <0x7>;
+	};
+
+	mode1: pinctrl_mode1 {
+		pinctrl-single,function = <0x1>;
+		pinctrl-single,mask = <0x7>;
+	};
+
+	mode2: pinctrl_mode2 {
+		pinctrl-single,function = <0x2>;
+		pinctrl-single,mask = <0x7>;
+	};
+	...
+	mode7: pinctrl_mode7 {
+		pinctrl-single,function = <0x7>;
+		pinctrl-single,mask = <0x7>;
+	};
+
+	/* 4 active state pinconf settings */
+	pin_output: pinctrl_pin_output {
+		pinctrl-single,pinconf = <0>;
+		pinctrl-single,mask = <0x1f8>;
+	};
+
+	pin_input: pinctrl_pin_input {
+		pinctrl-single,pinconf = <0x20>;
+		pinctrl-single,mask = <0x1f8>;
+	};
+
+	pin_input_pullup: pinctrl_pin_input_pullup {
+		pinctrl-single,pinconf = <0x23>;
+		pinctrl-single,mask = <0x1f8>;
+	};
+
+	pin_input_pulldown: pinctrl_pin_input_pulldown {
+		pinctrl-single,pinconf = <0x21>;
+		pinctrl-single,mask = <0x1f8>;
+	};
+
+	/* 5 off mode pinconf settings */
+	pin_off_none: pinctrl_pin_off_none {
+		pinctrl-single,pinconf = <0>;
+		pinctrl-single,mask = <0x7e00>;
+	};
+
+	pin_off_output_high: pinctrl_pin_off_output_high {
+		pinctrl-single,pinconf = 0xb;
+		pinctrl-single,mask = <0x7e00>;
+	}
+	...
+
+	/* wake-up capability */
+	pin_off_wakeup_ena: pinctrl_pin_off_wakeup_ena {
+		pinctrl-single,pinconf = 0xb;
+		pinctrl-single,mask = <0x8000>;
+	}
+
+};
+
+&pmx_core {
+	uart2_pins: pinmux_uart2_pins {
+		pinctrl-single,pins = <
+			0xd8 &mode0 &pin_input_pullup &off_mode_none 0
+			0xda &mode0 &pin_output &off_mode_none 0
+			0xdc &mode0 &pin_input_pullup &off_mode_none &pin_off_wakeup_ena
+			0xde &mode0 &pin_output &off_mode_none 0
+		>;
+	};
+};
