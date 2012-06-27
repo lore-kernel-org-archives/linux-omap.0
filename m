@@ -1,52 +1,45 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] staging: drm/omap: update TODO
-Date: Wed, 27 Jun 2012 15:11:38 -0500
-Message-ID: <1340827898-7959-1-git-send-email-rob.clark@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2/3: DSS HWMOD fixes
+Date: Wed, 27 Jun 2012 14:18:33 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206271416420.27496@utopia.booyaka.com>
+References: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:34293 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023Ab2F0ULx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 16:11:53 -0400
-Received: by obbuo13 with SMTP id uo13so1926935obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 13:11:52 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:54130 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753353Ab2F0USe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 16:18:34 -0400
+In-Reply-To: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, archit@ti.com
 
-From: Rob Clark <rob@ti.com>
+Hi Tomi
 
-Update TODO file, which had been neglected.
+On Thu, 10 May 2012, Tomi Valkeinen wrote:
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- drivers/staging/omapdrm/TODO |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+> These patches fix DSS hwmod data related to sysc flags. I haven't seen any
+> problem produced by these missing bits, but by looking at the TRM it's clear
+> that they should be defined.
+> 
+> However, applying these will cause additional warnings to show during boot:
+> 
+> omap_hwmod: dss_dispc: softreset failed (waited 10000 usec)
+> omap_hwmod: dss_rfbi: softreset failed (waited 10000 usec)
+> 
+> Most likely the softreset fails even now, but as there's no check to verify it,
+> no warnings are visible.
+> 
+> I think the reason for the failing softreset is the same problem as we have on
+> OMAP4: dss_core hwmod should be enabled before other dss hwmods can be enabled
+> (and reset).
 
-diff --git a/drivers/staging/omapdrm/TODO b/drivers/staging/omapdrm/TODO
-index 55b1837..938c788 100644
---- a/drivers/staging/omapdrm/TODO
-+++ b/drivers/staging/omapdrm/TODO
-@@ -1,9 +1,7 @@
- TODO
--. check error handling/cleanup paths
--. add drm_plane / overlay support
- . add video decode/encode support (via syslink3 + codec-engine)
--. still some rough edges with flipping.. event back to userspace should
--  really come after VSYNC interrupt
-+  . NOTE: with dmabuf this probably could be split into different driver
-+    so perhaps this TODO doesn't belong here
- . where should we do eviction (detatch_pages())?  We aren't necessarily
-   accessing the pages via a GART, so maybe we need some other threshold
-   to put a cap on the # of pages that can be pin'd.  (It is mostly only
-@@ -27,7 +25,6 @@ TODO
-   CRTC's should be disabled, and on resume the LUT should be reprogrammed
-   before CRTC's are re-enabled, to prevent DSS from trying to DMA from a
-   buffer mapped in DMM/TILER before LUT is reloaded.
--. Add debugfs information for DMM/TILER
- 
- Userspace:
- . git://github.com/robclark/xf86-video-omap.git
--- 
-1.7.9.5
+Thanks, queued for 3.6.
 
+Not sure what to do about the softreset issues at the moment, due to 
+competing priorities.  But for sure the data should match the hardware.
+
+
+- Paul
