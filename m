@@ -1,76 +1,87 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Current state of AM33xx patches
-Date: Wed, 27 Jun 2012 12:13:18 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
- <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
- <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
- <4FE9A00B.6010908@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 17/17] OMAPDSS: DSI: Remove redundant fields in omap_dss_dsi_videomode_data
+Date: Wed, 27 Jun 2012 17:48:32 +0530
+Message-ID: <4FEAFA18.3070908@ti.com>
+References: <1340703414-1915-1-git-send-email-archit@ti.com>  <1340703414-1915-19-git-send-email-archit@ti.com> <1340798746.2649.51.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40030 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42807 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756554Ab2F0MN1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:13:27 -0400
-In-Reply-To: <4FE9A00B.6010908@ti.com>
-Content-Language: en-US
+	id S1752431Ab2F0MTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 08:19:38 -0400
+In-Reply-To: <1340798746.2649.51.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nori, Sekhar" <nsekhar@ti.com>, Daniel Mack <zonque@gmail.com>
-Cc: Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tue, Jun 26, 2012 at 17:12:03, Nori, Sekhar wrote:
-> Hi Daniel,
-> 
-> On 6/25/2012 11:47 PM, Daniel Mack wrote:
-> > On 21.06.2012 15:50, Daniel Mack wrote:
-> >> On 18.06.2012 10:15, Hiremath, Vaibhav wrote:
-> >>> On Mon, Jun 11, 2012 at 19:21:21, Jason Kridner wrote:
-> >>>> From: Daniel Mack <zonque@gmail.com>
-> >>>>> Hey,
-> >>>>>
-> >>>>> can anybody give me a quick wrap-up about the current state of AM33xx
-> >>>>> based SoCs in mainline? What are the next steps to get things merged?
-> >>>>
-> >>>> There is a wiki page [1] that is intended to provide a summary, but I'm
-> >>>> confident it is not up-to-date.  
-> >>>
-> >>> Page updated now...
-> >>>
-> >>> http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status#AM335x_Linux_Status
-> >>
-> >> Great, thanks. So if things get upstreamed, which is the repo/branch
-> >> they appear in? In other words: where is the code people should write
-> >> patches against? I couldn't find an answer to that yet.
-> > 
-> > ping?
-> 
-> Bug fixes are always accepted against Linus's tree[1].
-> 
-> For features, typically there is a -next branch that each subsystem
-> maintainer has against which feature development happens. In case of
-> OMAP, feature development happens against master branch of linux-omap
-> tree[2]. One way to get to know the -next branches of all subsystem is
-> to look at Next/Trees file of linux-next tree[3].
-> 
-> Note that in case of ARM, sub-arch maintainers send the code to arm-soc
-> maintainers who in turn have a branch which gets merged to linux-next.
-> 
-> Hope that helps.
-> 
+On Wednesday 27 June 2012 05:35 PM, Tomi Valkeinen wrote:
+> On Tue, 2012-06-26 at 15:06 +0530, Archit Taneja wrote:
+>> The struct omap_dss_dsi_videomode_data holds polaritiy/logic level information
+>> of the DISPC video port signals DE, HSYNC and VSYNC. This information already
+>> exists in the omap_video_timings struct.
+>>
+>> Use the fields in omap_video_timings to program VP_DE_POL, VP_HSYNC_POL and
+>> VP_VSYNC_POL in DSI_CTRL. Remove the redundant fields in
+>> omap_dss_dsi_videomode_data.
+>>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dsi.c |   11 ++++++++---
+>>   include/video/omapdss.h       |    3 ---
+>>   2 files changed, 8 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+>> index 061bf53..3844430 100644
+>> --- a/drivers/video/omap2/dss/dsi.c
+>> +++ b/drivers/video/omap2/dss/dsi.c
+>> @@ -3628,13 +3628,18 @@ static void dsi_config_vp_num_line_buffers(struct omap_dss_device *dssdev)
+>>   static void dsi_config_vp_sync_events(struct omap_dss_device *dssdev)
+>>   {
+>>   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+>> -	int de_pol = dssdev->panel.dsi_vm_data.vp_de_pol;
+>> -	int hsync_pol = dssdev->panel.dsi_vm_data.vp_hsync_pol;
+>> -	int vsync_pol = dssdev->panel.dsi_vm_data.vp_vsync_pol;
+>> +	int de_pol, hsync_pol, vsync_pol;
+>> +	int de_level = dssdev->panel.timings.de_level;
+>> +	int hsync_level = dssdev->panel.timings.hsync_level;
+>> +	int vsync_level = dssdev->panel.timings.vsync_level;
+>>   	bool vsync_end = dssdev->panel.dsi_vm_data.vp_vsync_end;
+>>   	bool hsync_end = dssdev->panel.dsi_vm_data.vp_hsync_end;
+>>   	u32 r;
+>>
+>> +	de_pol = de_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
+>> +	hsync_pol = hsync_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
+>> +	vsync_pol = vsync_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
+>> +
+>>   	r = dsi_read_reg(dsidev, DSI_CTRL);
+>>   	r = FLD_MOD(r, de_pol, 9, 9);		/* VP_DE_POL */
+>>   	r = FLD_MOD(r, hsync_pol, 10, 10);	/* VP_HSYNC_POL */
+>
+> This patch makes the code cleaner, but I find this DSI sync code a bit
+> strange.
+>
+> The sync polarities between DISPC and DSI do not matter elsewhere, they
+> do not affect the DSI output, so why do we have them in the panel data?
+> Why doesn't dsi.c just use some hardcoded values for these.
 
-Just to clarify from AM335x perspective,
+Ok, are you saying that unlike DPI, where a panel may request for some 
+different polarities. There is no such need for DSI panels, and we can 
+set the polarities of DISPC and DSI always to active high(or any other 
+combination)?
 
-In case of AM335x, since the patches and complete BasePort support is still
-not present in the Mainline (neither in Linus's tree not in linux-omap), you 
-need to use my Repo (https://github.com/hvaibhav: Closely follows linux-
-omap/master) in order to test something on BeagleBone platform.
+Well, we are doing that indirectly in a way, a DSI panel driver would 
+populate a omap_video_timings struct, and would leave hsync_level, 
+vsync_level and de_level empty(i.e, the default values). This would be 
+passed to the DSI driver, and the timings would be applied to DISPC. The 
+function above would just pick up the same default values and program to 
+the DSI registers.
 
-Once we have all bits-n-pieces accepted/merged in the mainline, then all the 
-above process must be followed for patch submission.
+What we could do is ignore these fields in the omap_video_timings when 
+passed from the panel driver to DSI driver, and always use a fixed value 
+for them, and this way we can use the same fixed values for DSI too. Do 
+you think that is better?
 
-
-Thanks,
-Vaibhav
+Archit
