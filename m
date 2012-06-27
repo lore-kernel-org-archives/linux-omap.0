@@ -1,46 +1,55 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] staging: drm/omap: add rotation properties
-Date: Wed, 27 Jun 2012 12:40:22 -0700
-Message-ID: <20120627194022.GA9097@kroah.com>
-References: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
+Date: Wed, 27 Jun 2012 21:56:11 +0200
+Message-ID: <2631798.VQ7ROEf9Xv@avalon>
+References: <1340372890-10091-1-git-send-email-rnayak@ti.com> <1854687.1eeiLuW4oH@avalon> <2606265.VPQJMxIymh@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:42137 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755752Ab2F0TkZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 15:40:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35204 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755752Ab2F0T4I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 15:56:08 -0400
+In-Reply-To: <2606265.VPQJMxIymh@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, cmahapatra@ti.com, s-guiriec@ti.com, archit@ti.com, Rob Clark <rob@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sakari Ailus <sakari.ailus@iki.fi>
 
-On Wed, Jun 27, 2012 at 09:06:26AM -0500, Rob Clark wrote:
-> From: Rob Clark <rob@ti.com>
+On Wednesday 27 June 2012 20:45:00 Laurent Pinchart wrote:
+> On Wednesday 27 June 2012 20:05:27 Laurent Pinchart wrote:
+> > On Wednesday 27 June 2012 10:36:04 Paul Walmsley wrote:
+> > > On Wed, 27 Jun 2012, Laurent Pinchart wrote:
+> > > > I think you've missed drivers/media/video/omap3isp/isp.c. Should I
+> > > > send
+> > > > a
+> > > > patch for that ? Do these changes depend on anything not yet in
+> > > > mainline
+> > > > that I should apply to my tree for testing ?
+> > > 
+> > > What would be ideal is if omap3isp could be converted to runtime PM for
+> > > its internal IP block control. Almost all of the other OMAP on-chip oC
+> > > drivers have been converted. Please let us know if more information or
+> > > assistance is needed with this.
+> > 
+> > How does that integrate with the clock framework ?
 > 
-> Use tiled buffers for rotated/reflected scanout, with CRTC and plane
-> properties as the interface for userspace to configure rotation.
-> 
-> Signed-off-by: Rob Clark <rob@ti.com>
-> ---
->  drivers/staging/omapdrm/omap_crtc.c      |   17 +++++
->  drivers/staging/omapdrm/omap_dmm_tiler.c |   47 ++++++++++++--
->  drivers/staging/omapdrm/omap_dmm_tiler.h |   17 ++++-
->  drivers/staging/omapdrm/omap_drv.c       |   17 +++++
->  drivers/staging/omapdrm/omap_drv.h       |   32 +++++++++-
->  drivers/staging/omapdrm/omap_fb.c        |   99 +++++++++++++++++++++++++-----
->  drivers/staging/omapdrm/omap_gem.c       |   43 ++++++++++++-
->  drivers/staging/omapdrm/omap_plane.c     |   92 ++++++++++++++++++++-------
->  8 files changed, 318 insertions(+), 46 deletions(-)
+> OK, I think I've found the information. I'll give this a try.
 
-That's great you are adding new features, but how goes the progress to
-get this driver out of the drivers/staging/ area and moved to the real
-part of the kernel?  I don't want to keep taking new features without
-seeing some progress on getting the code cleaned up and moved out first.
+Not much luck, pm_runtime_get_sync() doesn't seem to enable the ISP clocks.
 
-thanks,
+I'm not familiar with runtime PM internals, what's the call stack from 
+pm_runtime_get_sync() to the arch code that's supposed to enable clocks ?
 
-greg k-h
+> What is still not clear to me is how runtime PM and system PM interact. For
+> instance the OMAP3 ISP driver disables its clocks in the system PM suspend
+> handler, and restarts them in the system PM resume handler. How do I port
+> that to runtime PM, can I just call pm_runtime_put() and
+> pm_runtime_get_sync() in the system PM handlers ?
+
+-- 
+Regards,
+
+Laurent Pinchart
+
