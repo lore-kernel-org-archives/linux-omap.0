@@ -1,77 +1,82 @@
-From: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
-Date: Wed, 27 Jun 2012 11:41:47 +0530
-Message-ID: <CAM=Q2cuLCT2VzcUgrpyRWiX61t1F+iWchO9iLC=Ka9MFVm4_bQ@mail.gmail.com>
-References: <1340761532-27231-1-git-send-email-khilman@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v5 0/3] Prepare for GPMC driver conversion
+Date: Wed, 27 Jun 2012 12:03:07 +0530
+Message-ID: <cover.1340778002.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340761532-27231-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53960 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750810Ab2F0Gs1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 02:48:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-Hi Kevin,
-Thanks for the patch ,
-a doubt below
 
-On Wed, Jun 27, 2012 at 7:15 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
-> failure.
-So the failure means that the usecount is incremented. However the
-device was not
-enabled. In that case could we consider
+Hi,
 
-   void pm_runtime_put_noidle(struct device *dev);
-    - decrement the device's usage counter
+Objective of this series is to make things easy for GPMC driver
+conversion series by separating out more things from driver
+conversion series.
 
-Which will only decrement the counter and does not try to disable it.
+This series,
+1. Unifies NAND platform initialization functions
+2. Prepares OneNAND platform code for gpmc driver migration
+3. Handles additional timings in Kernel
 
-However I am not sure what happens if you try to disable an already
-disabled device.
+This series is based on 3.5-rc1 & made on top of
+[PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+{http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70096.html}
 
->
-> Without this, after a failed xfer, the runtime PM usecount will have
-> been incremented, but not decremented
+These changes has been tested with omap3evm & beagle board. Relevant
+GPMC peripherals that got tested by this were NAND (beagle) and
+OneNAND (using local patches for omap3evm)
 
-Agree.
+Regards
+Afzal
 
-> causing the usecount to never
-> reach zero after a failure. =A0This keeps the device always runtime P=
-M
-> enabled which keeps the enclosing power domain active, and prevents
-> full-chip retention/off from happening during idle.
->
-> Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> ---
-> This patch applies to current i2c-embedded/for-next branch
->
-> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A02 +-
-> =A01 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index 9895fa7..b105733 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -582,7 +582,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2=
-c_msg msgs[], int num)
->
-> =A0 =A0 =A0 =A0r =3D pm_runtime_get_sync(dev->dev);
-> =A0 =A0 =A0 =A0if (IS_ERR_VALUE(r))
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return r;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->
-> =A0 =A0 =A0 =A0r =3D omap_i2c_wait_for_bb(dev);
-> =A0 =A0 =A0 =A0if (r < 0)
-> --
-> 1.7.9.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+v5:
+1. Use flags for sync_read/write, hv, vhf
+v4:
+1. Reorganize OneNAND set_sync/async functions in a better way
+v3:
+1. Refactor OneNAND set_sync/async functions to separate out timing
+ and configurations
+2. Handle bool type timings too
+3. Swap patches 2 & 3 due to dependency of OneNAND change on  newly
+ added bool type timings
+v2:
+1. Make use of timing api for setting clock activation time, and
+ remove direct writing to register for clock activation. Peripherals
+ making use of it were tusb6010 & onenand
+2. Move ensuring that async mode in OneNAND has been setup from
+ set_sync to setup function, improve commit message
+
+
+Afzal Mohammed (3):
+  ARM: OMAP2+: nand: unify init functions
+  ARM: OMAP2+: gpmc: handle additional timings
+  ARM: OMAP2+: onenand: prepare for gpmc driver migration
+
+ arch/arm/mach-omap2/board-devkit8000.c     |    8 +-
+ arch/arm/mach-omap2/board-flash.c          |   45 ++++---
+ arch/arm/mach-omap2/board-flash.h          |    6 +-
+ arch/arm/mach-omap2/board-igep0020.c       |    2 +-
+ arch/arm/mach-omap2/board-ldp.c            |    4 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |    8 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |    8 +-
+ arch/arm/mach-omap2/board-overo.c          |    7 +-
+ arch/arm/mach-omap2/board-zoom.c           |    5 +-
+ arch/arm/mach-omap2/common-board-devices.c |   46 -------
+ arch/arm/mach-omap2/common-board-devices.h |    1 -
+ arch/arm/mach-omap2/gpmc-onenand.c         |  200 ++++++++++++++++------------
+ arch/arm/mach-omap2/gpmc.c                 |   45 +++++++
+ arch/arm/mach-omap2/usb-tusb6010.c         |    3 +-
+ arch/arm/plat-omap/include/plat/gpmc.h     |   19 +++
+ 15 files changed, 235 insertions(+), 172 deletions(-)
+
+-- 
+1.7.10.2
+
