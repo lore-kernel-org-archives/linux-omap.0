@@ -1,87 +1,61 @@
 From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 17/17] OMAPDSS: DSI: Remove redundant fields in omap_dss_dsi_videomode_data
-Date: Wed, 27 Jun 2012 17:48:32 +0530
-Message-ID: <4FEAFA18.3070908@ti.com>
-References: <1340703414-1915-1-git-send-email-archit@ti.com>  <1340703414-1915-19-git-send-email-archit@ti.com> <1340798746.2649.51.camel@deskari>
+Subject: Re: [PATCH 05/17] OMAPDSS: Add some new fields to omap_video_timings
+Date: Wed, 27 Jun 2012 17:56:42 +0530
+Message-ID: <4FEAFC02.2070006@ti.com>
+References: <1340703414-1915-1-git-send-email-archit@ti.com>  <1340703414-1915-7-git-send-email-archit@ti.com> <1340797733.2649.48.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42807 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43215 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752431Ab2F0MTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Jun 2012 08:19:38 -0400
-In-Reply-To: <1340798746.2649.51.camel@deskari>
+	id S1753605Ab2F0M1s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 08:27:48 -0400
+In-Reply-To: <1340797733.2649.48.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>, rob@ti.com, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wednesday 27 June 2012 05:35 PM, Tomi Valkeinen wrote:
+On Wednesday 27 June 2012 05:18 PM, Tomi Valkeinen wrote:
 > On Tue, 2012-06-26 at 15:06 +0530, Archit Taneja wrote:
->> The struct omap_dss_dsi_videomode_data holds polaritiy/logic level information
->> of the DISPC video port signals DE, HSYNC and VSYNC. This information already
->> exists in the omap_video_timings struct.
+>> Some panel timing related fields are contained in omap_panel_config in the form
+>> of flags. The fields are:
 >>
->> Use the fields in omap_video_timings to program VP_DE_POL, VP_HSYNC_POL and
->> VP_VSYNC_POL in DSI_CTRL. Remove the redundant fields in
->> omap_dss_dsi_videomode_data.
+>> - Hsync logic level
+>> - Vsync logic level
+>> - Data driven on rising/falling edge of pixel clock
+>> - Output enable/Data enable logic level
+>> - HSYNC/VSYNC driven on rising/falling edge of pixel clock
 >>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/video/omap2/dss/dsi.c |   11 ++++++++---
->>   include/video/omapdss.h       |    3 ---
->>   2 files changed, 8 insertions(+), 6 deletions(-)
+>> Out of these parameters, Hsync and Vsync logic levels are a part of the timings
+>> in the Xorg modeline configuration. So it makes sense to move the to
+>> omap_video_timings. The rest aren't a part of modeline, but it still makes
+>> sense to move these since they are related to panel timings.
 >>
->> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
->> index 061bf53..3844430 100644
->> --- a/drivers/video/omap2/dss/dsi.c
->> +++ b/drivers/video/omap2/dss/dsi.c
->> @@ -3628,13 +3628,18 @@ static void dsi_config_vp_num_line_buffers(struct omap_dss_device *dssdev)
->>   static void dsi_config_vp_sync_events(struct omap_dss_device *dssdev)
->>   {
->>   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
->> -	int de_pol = dssdev->panel.dsi_vm_data.vp_de_pol;
->> -	int hsync_pol = dssdev->panel.dsi_vm_data.vp_hsync_pol;
->> -	int vsync_pol = dssdev->panel.dsi_vm_data.vp_vsync_pol;
->> +	int de_pol, hsync_pol, vsync_pol;
->> +	int de_level = dssdev->panel.timings.de_level;
->> +	int hsync_level = dssdev->panel.timings.hsync_level;
->> +	int vsync_level = dssdev->panel.timings.vsync_level;
->>   	bool vsync_end = dssdev->panel.dsi_vm_data.vp_vsync_end;
->>   	bool hsync_end = dssdev->panel.dsi_vm_data.vp_hsync_end;
->>   	u32 r;
+>> These fields stored in omap_panel_config in dssdev are configured for LCD
+>> panels, and the corresponding LCD managers in the DISPC_POL_FREQo registers.
 >>
->> +	de_pol = de_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
->> +	hsync_pol = hsync_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
->> +	vsync_pol = vsync_level == OMAPDSS_SIG_ACTIVE_HIGH ? 1 : 0;
->> +
->>   	r = dsi_read_reg(dsidev, DSI_CTRL);
->>   	r = FLD_MOD(r, de_pol, 9, 9);		/* VP_DE_POL */
->>   	r = FLD_MOD(r, hsync_pol, 10, 10);	/* VP_HSYNC_POL */
+>> Add the above fields in omap_video_timings. Represent their state via new enums.
+>> The parameter pclk_edge is configured via omap_dss_signal_level, however it
+>> actually configures whether data is driven on the rising or falling edge. This
+>> is a bit unclean, but it prevents us from creating another enum.
 >
-> This patch makes the code cleaner, but I find this DSI sync code a bit
-> strange.
->
-> The sync polarities between DISPC and DSI do not matter elsewhere, they
-> do not affect the DSI output, so why do we have them in the panel data?
-> Why doesn't dsi.c just use some hardcoded values for these.
+> Hmm, why can't omap_dss_signal_edge be used for pclk_edge? I think it'd
+> fit fine, except OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES would be an illegal
+> value for it.
 
-Ok, are you saying that unlike DPI, where a panel may request for some 
-different polarities. There is no such need for DSI panels, and we can 
-set the polarities of DISPC and DSI always to active high(or any other 
-combination)?
+I think my paragraph is a bit misleading. The issue is more about the 
+default value. For hsync_vsync_edge(which programs ONOFF and RF), the 
+default value is OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES, and is the case for 
+most panels. But for pclk_edge, the value for most panels is 
+OMAPDSS_DRIVE_SIG_ACTIVE_HIGH.
 
-Well, we are doing that indirectly in a way, a DSI panel driver would 
-populate a omap_video_timings struct, and would leave hsync_level, 
-vsync_level and de_level empty(i.e, the default values). This would be 
-passed to the DSI driver, and the timings would be applied to DISPC. The 
-function above would just pick up the same default values and program to 
-the DSI registers.
-
-What we could do is ignore these fields in the omap_video_timings when 
-passed from the panel driver to DSI driver, and always use a fixed value 
-for them, and this way we can use the same fixed values for DSI too. Do 
-you think that is better?
+So if I use the same enum for both, I'll need to populate either 
+pclk_edge or hsync_vsync_edge for almost every panel. With my approach, 
+I only need to populate these fields for panels having the non-default 
+requirements. The negative thing is that it's a bit misleading to 
+represent pclk_edge with the omap_dss_signal_level enum.
 
 Archit
+
