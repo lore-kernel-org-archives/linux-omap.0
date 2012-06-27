@@ -1,34 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: Current state of AM33xx patches
-Date: Wed, 27 Jun 2012 13:37:26 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206271335280.27496@utopia.booyaka.com>
-References: <4FD5BA4C.9070706@gmail.com> <4FD5FD9E.5040203@ti.com> <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com> <alpine.DEB.2.00.1206271218540.27496@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA5C1AB@DBDE01.ent.ti.com> <alpine.DEB.2.00.1206271306170.27496@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA5C1F7@DBDE01.ent.ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: drm/omap: add rotation properties
+Date: Wed, 27 Jun 2012 12:40:22 -0700
+Message-ID: <20120627194022.GA9097@kroah.com>
+References: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38028 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754852Ab2F0Th2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 15:37:28 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5C1F7@DBDE01.ent.ti.com>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:42137 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755752Ab2F0TkZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 15:40:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Domenico Andreoli <cavokz@gmail.com>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, cmahapatra@ti.com, s-guiriec@ti.com, archit@ti.com, Rob Clark <rob@ti.com>
 
-On Wed, 27 Jun 2012, Hiremath, Vaibhav wrote:
+On Wed, Jun 27, 2012 at 09:06:26AM -0500, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
+> 
+> Use tiled buffers for rotated/reflected scanout, with CRTC and plane
+> properties as the interface for userspace to configure rotation.
+> 
+> Signed-off-by: Rob Clark <rob@ti.com>
+> ---
+>  drivers/staging/omapdrm/omap_crtc.c      |   17 +++++
+>  drivers/staging/omapdrm/omap_dmm_tiler.c |   47 ++++++++++++--
+>  drivers/staging/omapdrm/omap_dmm_tiler.h |   17 ++++-
+>  drivers/staging/omapdrm/omap_drv.c       |   17 +++++
+>  drivers/staging/omapdrm/omap_drv.h       |   32 +++++++++-
+>  drivers/staging/omapdrm/omap_fb.c        |   99 +++++++++++++++++++++++++-----
+>  drivers/staging/omapdrm/omap_gem.c       |   43 ++++++++++++-
+>  drivers/staging/omapdrm/omap_plane.c     |   92 ++++++++++++++++++++-------
+>  8 files changed, 318 insertions(+), 46 deletions(-)
 
-> Shouldn't impact, but  still will apply now...will update you on this.
-> Can you also share me the .config file of yours??
+That's great you are adding new features, but how goes the progress to
+get this driver out of the drivers/staging/ area and moved to the real
+part of the kernel?  I don't want to keep taking new features without
+seeing some progress on getting the code cleaned up and moved out first.
 
-Just sent it to you via private E-mail.  It's just omap2plus_defconfig 
-plus the two DT-related config options that you mentioned.
+thanks,
 
-One other minor comment, the kernel build system wouldn't build a kernel 
-following the exact sequence of steps that you mentioned earlier.  Rather 
-than building uImage-dtb.am335x-evm as a direct target, first I had to 
-build the uImage.
-
-
-- Paul
+greg k-h
