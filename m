@@ -1,108 +1,111 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 00/11] Prepare for OMAP2+ movement to Common Clk
-Date: Wed, 27 Jun 2012 14:50:47 +0200
-Message-ID: <1397795.nxQGnEDtVe@avalon>
-References: <1340372890-10091-1-git-send-email-rnayak@ti.com>
+From: jean-philippe francois <jp.francois@cynove.com>
+Subject: Re: DM3730 without PMIC oops on idle
+Date: Wed, 27 Jun 2012 14:53:46 +0200
+Message-ID: <CAGGh5h0fXMKQ-gX958BwH+RTsYgOROdmqMYXuCQq3XKBMKLR3Q@mail.gmail.com>
+References: <CAGGh5h2PEpcZc-BRVb9UJD0VKLFBAktQ0r08T-0XAovZ1W7MZw@mail.gmail.com>
+	<87ehp1tq8w.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51503 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752855Ab2F0Muo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:50:44 -0400
-In-Reply-To: <1340372890-10091-1-git-send-email-rnayak@ti.com>
+Received: from mail-yw0-f42.google.com ([209.85.213.42]:41554 "EHLO
+	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769Ab2F0Mxr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 08:53:47 -0400
+Received: by yhfq11 with SMTP id q11so1009770yhf.1
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 05:53:47 -0700 (PDT)
+In-Reply-To: <87ehp1tq8w.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: paul@pwsan.com, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Rajendra,
+Hi Kevin, thank you for your help.
 
-On Friday 22 June 2012 19:17:59 Rajendra Nayak wrote:
-> Hi,
-> 
-> This is a preparatory series for the OMAP Common Clk
-> conversion. They mostly add clk_prepare/clk_unprepare
-> in OMAP drivers and platform code. Also gets
-> rid of omap_clk_get_by_name() and uses clk_get(), and
-> removes all direct 'struct clk' dereferrencing and
-> uses helpers similar to what is provided by Common
-> Clk.
+2012/6/27 Kevin Hilman <khilman@ti.com>:
+> jean-philippe francois <jp.francois@cynove.com> writes:
+>
+>> Hi,
+>>
+>> My board does not have any Power Management IC.
+>> Without the following patch, the bood ends with an oops.
+>> How can I further debug this, ie trace through the assembly
+>> in arch/arm/mach-omap2/sleep34xx.S ?
+>
+> The assembly code that is faulting has nothing to do with interaction
+> with the PMIC.
+>
+> Some more comments below ...
+>
+>> --
+>> Patch needed to boot to userspace :
+>>
+>> Index: linux-3.4.3/arch/arm/mach-omap2/pm34xx.c
+>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> --- linux-3.4.3.orig/arch/arm/mach-omap2/pm34xx.c =A0 =A0 2012-06-17
+>> 20:21:44.000000000 +0200
+>> +++ linux-3.4.3/arch/arm/mach-omap2/pm34xx.c =A02012-06-22 16:26:38.=
+000000000 +0200
+>> @@ -403,7 +403,7 @@
+>> =A0 =A0 =A0 trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+>> =A0 =A0 =A0 trace_cpu_idle(1, smp_processor_id());
+>>
+>> - =A0 =A0 omap_sram_idle();
+>> + =A0 =A0 // =A0 =A0 =A0omap_sram_idle();
+>
+> FYI... you can get the same effect without patching the kernel by add=
+ing
+> 'nohlt' to the kernel command line. =A0That avoids entering the idle =
+loop
+> alltogether.
+>
 
-I think you've missed drivers/media/video/omap3isp/isp.c. Should I send a 
-patch for that ? Do these changes depend on anything not yet in mainline that 
-I should apply to my tree for testing ?
+Good to know :)
 
-> Patches are boot tested on OMAP2430sdp, 3630 Beagle-Xm
-> and 4460 Panda.
-> 
-> Some of these patches were earlier posted as part of
-> OMAP2+ Common Clk conversion series [1] which is now
-> split into a preparatory series and actual CCF conversion
-> series.
-> 
-> Patches from this series can be found here
-> git://github.com/rrnayak/linux.git prepare-common-clk-3.5-rc3
-> 
-> regards,
-> Rajendra
-> 
-> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70299.html
-> 
-> Rajendra Nayak (11):
->   ARM: omap: clk: add clk_prepare and clk_unprepare
->   mmc: omap: add clk_prepare and clk_unprepare
->   hwrng: omap: add clk_prepare and clk_unprepare
->   mfd: omap-usb: add clk_prepare and clk_unprepare
->   OMAPDSS: add clk_prepare and clk_unprepare
->   gpio/omap: add clk_prepare and clk_unprepare
->   w1: omap_hdq: add clk_prepare and clk_unprepare
->   crypto: omap: add clk_prepare and clk_unprepare
->   iommu: omap: add clk_prepare and clk_unprepare
->   ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
->   ARM: omap: clk: Remove all direct dereferencing of struct clk
-> 
->  arch/arm/mach-omap2/board-apollon.c          |    4 +-
->  arch/arm/mach-omap2/board-h4.c               |    6 +-
->  arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
->  arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
->  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    4 +-
->  arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   18 +++---
->  arch/arm/mach-omap2/clkt_clksel.c            |   84 ++++++++++++++++-------
->  arch/arm/mach-omap2/clkt_dpll.c              |   24 ++++---
->  arch/arm/mach-omap2/clock.c                  |    9 ++-
->  arch/arm/mach-omap2/clock2420_data.c         |   17 +++++
->  arch/arm/mach-omap2/clock2430_data.c         |   21 +++++++
->  arch/arm/mach-omap2/clock3xxx.c              |    8 +-
->  arch/arm/mach-omap2/clock3xxx_data.c         |   24 +++++++
->  arch/arm/mach-omap2/clock44xx_data.c         |   17 +++++
->  arch/arm/mach-omap2/display.c                |    4 +-
->  arch/arm/mach-omap2/dpll3xxx.c               |   45 ++++++++------
->  arch/arm/mach-omap2/gpmc.c                   |    2 +-
->  arch/arm/mach-omap2/omap_hwmod.c             |   21 ++++---
->  arch/arm/mach-omap2/omap_phy_internal.c      |    3 +
->  arch/arm/mach-omap2/pm.c                     |    2 +-
->  arch/arm/mach-omap2/pm24xx.c                 |    2 +
->  arch/arm/mach-omap2/usb-fs.c                 |    4 +-
->  arch/arm/plat-omap/include/plat/clock.h      |    4 +
->  arch/arm/plat-omap/omap_device.c             |    6 +-
->  drivers/char/hw_random/omap-rng.c            |    6 +-
->  drivers/crypto/omap-aes.c                    |    2 +
->  drivers/crypto/omap-sham.c                   |    2 +
->  drivers/gpio/gpio-omap.c                     |    2 +
->  drivers/iommu/omap-iommu.c                   |    2 +
->  drivers/mfd/omap-usb-host.c                  |   20 ++++++
->  drivers/mmc/host/omap.c                      |    9 ++-
->  drivers/mmc/host/omap_hsmmc.c                |    6 +-
->  drivers/video/omap2/dss/dsi.c                |    5 +-
->  drivers/video/omap2/dss/hdmi.c               |    5 +-
->  drivers/video/omap2/dss/venc.c               |    5 +-
->  drivers/w1/masters/omap_hdq.c                |    8 +-
->  36 files changed, 292 insertions(+), 113 deletions(-)
+>> clock: disabling unused clocks to save power
+>> Unable to handle kernel NULL pointer dereference at virtual address =
+00000000
+>> pgd =3D c0004000
+>> [00000000] *pgd=3D00000000
+>> Internal error: Oops: 80000005 [#1] PREEMPT ARM
+>> Modules linked in:
+>> CPU: 0 =A0 =A0Tainted: G =A0 =A0 =A0 =A0W =A0 =A0 (3.4.3 #2)
+>> PC is at 0x0
+>> LR is at omap34xx_do_sram_idle+0x8/0x10
+>
+> This is a branch to 0x0, probably in omap34xx_cpu_suspend (in
+> sleep34xx.S) which was just called by omap34xx_do_sram_idle.
+>
+> My first guess would be that the omap3_do_wfi_sram address is zero. =A0=
+Can
+> you dump the value in omap_push_sram_idle()? =A0If that looks good, d=
+o you
+> have a debugger setup so you can single step into omap34xx_cpu_suspen=
+d()
+> to find out where this is failing?
+>
+Thank you for pointing me in the right direction.
+My board code was not calling omap_sdrc_init(...),
+which in turns calls omap_sram_init, where all
+the sram pushing takes place.
 
--- 
+Now I safely boot to userspace, but have random crashes
+when waking up from idle, where random refers to the oops
+log, not the occurence. I suspect memory corruption problem,
+which could be due to ddr going into self refresh, right ?
+
+Currently I call omap_sdrc_init with NULL arguments, but a lot of
+boards do the same thing. How are the omap_sdrc_init args related to
+self refreh ? In other words, if ddr parameters are correctly set in x-=
+loader,
+do I also need omap_sdrc_params in linux for idle to work ?
+
 Regards,
-
-Laurent Pinchart
-
+Jean-Philippe Fran=E7ois
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
