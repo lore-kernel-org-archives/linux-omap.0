@@ -1,182 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree
- based pinctrl driver
-Date: Wed, 27 Jun 2012 03:28:52 -0700
-Message-ID: <20120627102851.GC3483@atomide.com>
-References: <4FDA6FCD.1020605@wwwdotorg.org>
- <20120615094938.GQ12766@atomide.com>
- <4FDB6000.5080703@wwwdotorg.org>
- <20120618055036.GU12766@atomide.com>
- <20120619135600.GX12766@atomide.com>
- <4FE39C86.5070901@wwwdotorg.org>
- <20120622083955.GZ12766@atomide.com>
- <4FE4AC40.8080400@wwwdotorg.org>
- <20120626134319.GA3483@atomide.com>
- <4FE9EBEC.9040208@wwwdotorg.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: add clk_prepare and clk_unprepare
+Date: Wed, 27 Jun 2012 13:42:27 +0300
+Message-ID: <1340793747.2649.32.camel@deskari>
+References: <1340787086-29619-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FE9EBEC.9040208@wwwdotorg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Stephen Warren <swarren@nvidia.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-yyNgSXk7Jgw6QdwPiAnW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52670 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753538Ab2F0Kma (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jun 2012 06:42:30 -0400
+Received: by lbok6 with SMTP id k6so1782127lbo.32
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 03:42:27 -0700 (PDT)
+In-Reply-To: <1340787086-29619-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Mike Turquette <mturquette@linaro.org>
 
-* Stephen Warren <swarren@wwwdotorg.org> [120626 10:10]:
-> On 06/26/2012 07:43 AM, Tony Lindgren wrote:
-> ...
-> > Subject: [PATCH] pinctrl: Add one-register-per-pin type device tree based pinctrl driver
-> > 
-> > Add one-register-per-pin type device tree based pinctrl driver.
-> > 
-> > This driver has been tested on omap2+ series of processors,
-> > where there is either an 8 or 16-bit padconf register for each pin.
-> > Support for other similar pinmux controllers can be added.
-> 
-> > diff --git a/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt b/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-> 
-> > +/* board specific .dts file */
-> > +
-> > +&pmx_core {
-> 
-> > +	board_pins: pinmux_board_pins {
-> > +		pinctrl-single,pins = <
-> > +			0x6c 0xf	/* csi21_dx3 OUTPUT | MODE7 */
-> > +			0x6e 0xf	/* csi21_dy3 OUTPUT | MODE7 */
-> > +			0x70 0xf	/* csi21_dx4 OUTPUT | MODE7 */
-> > +			0x72 0xf	/* csi21_dy4 OUTPUT | MODE7 */
-> 
-> If you're removing the pinconf mask, I think the comments in the example
-> should reflect just setting a particular mux function, and remove any
-> references to pinconf settings in that field. While the binding can be
->  abused to do that, I think the docs shouldn't encourage it:-)
 
-I can certainly leave it out of the binding doc :)
+--=-yyNgSXk7Jgw6QdwPiAnW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The pinconf part is essential for the driver to work at least in
-the omap2/3/4 cases though, so as long as people are OK with that it
-works for me. If people don't like this, then it's probably best to
-just add back the separate pinconf mask.
+On Wed, 2012-06-27 at 14:21 +0530, Rajendra Nayak wrote:
+> In preparation of OMAP moving to Common Clk Framework(CCF) add clk_prepar=
+e()
+> and clk_unprepare() for the omapdss clocks.
 
-> Other than that, the binding looks reasonable to me, given what it's
-> intended to do.
-> 
-> However, I'd still like Grant and Rob (and any other DT experts) to
-> explicitly sign off on this binding, because it's doing exactly
-> something that was rejected at Linaro Connect in February (albeit the
-> binding is slightly more oriented at specifically being for pinmux
-> rather than a fully general "blast in these register values", but that
-> distinction seems minor to me).
+Looks fine, and works fine with a quick test.
 
-Just for the record, another alternative I thought about is to
-describe mux register bits a bit like the suggested clock framework
-binding does.
+I'll update the subject and desc to match the use of clk_prepare_enable
+and clk_disable_unprepare, and apply this to omapdss tree.
 
-The problem trying to define named pin states is that we need to
-add new column for any pinconf value that may be orred together
-with other pinconf values.
+ Tomi
 
-Currently there are pinconf settings for active pin states and off
-mode pin states. And there is wake-up enable setting. So that would
-be a total of five columns already per pin with the offset and mux
-function.. Then if something new gets added, let's say signal
-strength, we'll be needing yet another column.
 
-To me it seem we should rather count on the preprocessor to handle
-cases like this eventually. Otherwise we'll end up with bloated DT
-data that becomes slow to parse.
+--=-yyNgSXk7Jgw6QdwPiAnW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-The analogy here that I think is closest to this binding is the
-keymap binding. In this case the mux data is basically just a map
-of few hundred board specific pin settings.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Just for an example, below is what it would look like for omaps
-using names to map out the register bits. There are eight functions
-for each register. Then there are four active pinconf settings,
-and six off mode pinconf settings that make sense. And then there's
-the wakeup enable setting.
+iQIcBAABAgAGBQJP6uOTAAoJEPo9qoy8lh71vIQQAJFS0kgaRaorT2BF/vhCd8j1
+UsEipLqleNCR97qF93ucoYZgU6pa0QL1qlgoyae98XuR1YdvVrjupCLhiyomwqRv
+KGhqT9+4cnjakr/IMfQp/ghHc4BPj+x39A4gH2p/t/knEU/Wr+uUl+ejK0lcrR5j
+lunYlNm0xSEHCwR+icNSerVLuQqS5oxd15kSMhEhHFaTRARmZ7WvGrpEtBN0vr9T
+IAm8SG0HZ2Yc6cIIJCneKcuwvea3Xlx7d657X7ojqBovN5VfZuZaYvtP/rZo3GzR
+sLXxICY3ivggQ8AbY3XuAoUoaPLLq23SnGOHttSuDnpovhlLb0GbDXXocXbcjq1w
+DwR74i/+IG8dDjnnB3JZ1/eJ9n5u21azx3jNKdK7XY1xz408G7QU7LU1BJdKshKC
+g3qgSDXW1bFiYJIgK9SM0HY6A9kjcSc7IsemiYdfCOx+wh/+CzOI8K+Qz5IDLbU7
+LwAWTEUKzcn2Xq8SVyq8de0SXydEVMeC/1jmDmmtZqwjVIds7fRD05ohElnodTcj
+iY0jjy5n7v8pl4xtQK+EdMhlDZtM7LbWeZiM/bh9TX4dn14H//SxxljAj2fyTFXe
+t3Ef33MnenTTcgtwbotulzBheyT3TeDT188LcRI/JbKZQECCz61vVDP5U7ajEjvD
+n3o9Nhftev7/n4l5i3F+
+=mv3c
+-----END PGP SIGNATURE-----
 
-Regards,
+--=-yyNgSXk7Jgw6QdwPiAnW--
 
-Tony
-
-pmx_core: pinmux@4a100040 {
-	compatible = "pinctrl-single";
-	reg = <0x4a100040 0x0196>;
-	#address-cells = <1>;
-	#size-cells = <0>;
-	pinctrl-single,register-width = <16>;
-
-	/* 8 available pinmux functions */
-	mode0: pinctrl_mode0 {
-		pinctrl-single,function = <0>;
-		pinctrl-single,mask = <0x7>;
-	};
-
-	mode1: pinctrl_mode1 {
-		pinctrl-single,function = <0x1>;
-		pinctrl-single,mask = <0x7>;
-	};
-
-	mode2: pinctrl_mode2 {
-		pinctrl-single,function = <0x2>;
-		pinctrl-single,mask = <0x7>;
-	};
-	...
-	mode7: pinctrl_mode7 {
-		pinctrl-single,function = <0x7>;
-		pinctrl-single,mask = <0x7>;
-	};
-
-	/* 4 active state pinconf settings */
-	pin_output: pinctrl_pin_output {
-		pinctrl-single,pinconf = <0>;
-		pinctrl-single,mask = <0x1f8>;
-	};
-
-	pin_input: pinctrl_pin_input {
-		pinctrl-single,pinconf = <0x20>;
-		pinctrl-single,mask = <0x1f8>;
-	};
-
-	pin_input_pullup: pinctrl_pin_input_pullup {
-		pinctrl-single,pinconf = <0x23>;
-		pinctrl-single,mask = <0x1f8>;
-	};
-
-	pin_input_pulldown: pinctrl_pin_input_pulldown {
-		pinctrl-single,pinconf = <0x21>;
-		pinctrl-single,mask = <0x1f8>;
-	};
-
-	/* 5 off mode pinconf settings */
-	pin_off_none: pinctrl_pin_off_none {
-		pinctrl-single,pinconf = <0>;
-		pinctrl-single,mask = <0x7e00>;
-	};
-
-	pin_off_output_high: pinctrl_pin_off_output_high {
-		pinctrl-single,pinconf = 0xb;
-		pinctrl-single,mask = <0x7e00>;
-	}
-	...
-
-	/* wake-up capability */
-	pin_off_wakeup_ena: pinctrl_pin_off_wakeup_ena {
-		pinctrl-single,pinconf = 0xb;
-		pinctrl-single,mask = <0x8000>;
-	}
-
-};
-
-&pmx_core {
-	uart2_pins: pinmux_uart2_pins {
-		pinctrl-single,pins = <
-			0xd8 &mode0 &pin_input_pullup &off_mode_none 0
-			0xda &mode0 &pin_output &off_mode_none 0
-			0xdc &mode0 &pin_input_pullup &off_mode_none &pin_off_wakeup_ena
-			0xde &mode0 &pin_output &off_mode_none 0
-		>;
-	};
-};
