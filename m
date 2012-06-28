@@ -1,113 +1,89 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [PATCH v3 2/7] mfd: omap: control: core system
-	control driver
-Date: Thu, 28 Jun 2012 13:55:13 +0300
-Message-ID: <CAGF5oy-50evWVX8+U6qe0wwA0UXJUAXxXXbwrEkebSVtT8vxRA@mail.gmail.com>
-References: <4FEB4B46.9020904@dev.rtsoft.ru> <20120628045028.GC2471@besouro>
-	<4FEC25CA.10105@dev.rtsoft.ru>
-	<CAGF5oy9heLnjcHj4H=hMK9NAkrDoOocR-Lbv1Z4cQ4G1C5kSeQ@mail.gmail.com>
-	<4FEC2E1D.5040309@dev.rtsoft.ru> <4FEC3154.9050103@dev.rtsoft.ru>
-	<CAGF5oy85XSfBtV_WFwYyWDHYmBbLGHK_9c9XhTFs1CgnSfyMLA@mail.gmail.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
+Date: Thu, 28 Jun 2012 16:28:17 +0530
+Message-ID: <CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
+References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340869729.5037.7.camel@deskari>
+	<CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
+	<1340878461.5037.30.camel@deskari>
+	<CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAGF5oy85XSfBtV_WFwYyWDHYmBbLGHK_9c9XhTFs1CgnSfyMLA@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:34768 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754409Ab2F1K6S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 06:58:18 -0400
+Received: by lbbgm6 with SMTP id gm6so2934402lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 03:58:17 -0700 (PDT)
+In-Reply-To: <CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, patches@linaro.org
 
-Hello again,
-
-On Thu, Jun 28, 2012 at 1:51 PM, Valentin, Eduardo
-<eduardo.valentin@ti.com> wrote:
-> Hello,
+On 28 June 2012 16:17, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+> On 28 June 2012 15:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>> On Thu, 2012-06-28 at 15:18 +0530, Jassi Brar wrote:
 >
-> On Thu, Jun 28, 2012 at 1:26 PM, Konstantin Baydarov
-> <kbaidarov@dev.rtsoft.ru> wrote:
->> On 06/28/2012 02:12 PM, Konstantin Baydarov wrote:
->>> The interface(design) of omap-control-core.c has already been discussed=
- many times :(
->>> Eduardo, in his patch set, suggested following design:
->>> - omap-control-core.c ioremaps SCM window and provide functions to read=
-/write SCP register for bandgap and usb.
->>>
->>> IIRC, this approach didn't satisfy and it was suggested to have private=
- read/write in bandgap and usb.
->>>
->>> So, my patch set introduces following design:
->>> - omap-control-core.c don't provide read/write functions for bandgap an=
-d usb.
->>> - bandgap and usb use their own private read/write functions
->>> - Each omap-control-core.c, bandgap and usb drivers remap SCM window. I=
-t's OK because SCM window is statically mapped to the same virtual address.=
- But the problem is that SMP memory window isn't protected. I'm not sure wh=
-ether it's possible to protect SCM window using this approach.
->> I mean:
+>>> >> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> >> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+>>> >> @@ -243,10 +243,13 @@ static int hdmi_check_hpd_state(struct hdm=
+i_ip_data *ip_data)
+>>> >>
+>>> >> =A0 =A0 =A0 hpd =3D gpio_get_value(ip_data->hpd_gpio);
+>>> >>
+>>> >> - =A0 =A0 if (hpd)
+>>> >> + =A0 =A0 if (hpd) {
+>>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D hdmi_set_phy_pwr(ip_data, HDMI=
+_PHYPWRCMD_TXON);
+>>> >> - =A0 =A0 else
+>>> >> + =A0 =A0 } else {
+>>> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Invalidate EDID Cache */
+>>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ip_data->edid_len =3D 0;
+>>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D hdmi_set_phy_pwr(ip_data, HDMI=
+_PHYPWRCMD_LDOON);
+>>> >> + =A0 =A0 }
+>>> >
+>>> > There's a problem with this patch, which leaves a wrong EDID in t=
+he
+>>> > cache: if you first have the cable connected and hdmi is enabled,=
+ you
+>>> > then turn off the HDMI display device via sysfs, we do not go to
+>>> > hdmi_check_hpd_state at all. The next time hdmi is enabled, we on=
+ly get
+>>> > the plug-in event, and thus EDID cache is never invalidated.
+>>> >
+>>> If the hdmi cable is not replugged during that period, I don't see =
+why
+>>> would you want the EDID invalidated ?
 >>
->> - Each omap-control-core.c, bandgap and usb drivers remap SCM window. It=
-'s OK because SCM window is statically mapped. So each call of ioremap in o=
-map-control-core.c, bandgap and usb drivers returns the same virtual addres=
-s. But the problem is that SCM memory window isn't protected. I'm not sure =
-whether it's possible to protect SCM window using this approach(when each d=
-river remaps the same IOMEM).
+>> I wasn't very clear with my comment.
 >>
->>>
->>> Another possible design is:
->>> - omap-control-core.c ioremaps and reserves SCM IOMEM window
->>> - omap-control-core.c exports omap_control_get_base(virtual base addres=
-s is returned) to use in bandgap and usb_phy driver.
->>> - Bandgap and usb phy uses their own private read/write function.
->>> IIUC, this way was suggested by Tony.
->
-> Well I understood slightly different :-)
->
-> I think the point is not really where to put the access functions, but
-> to have each driver handling a separate part of the the io window. As
-> I said before, so that they don't access each other io area.
->
-> If you have 1 io window, for the above mentioned constraint, you won't
-> protect anything. So, in that sense, it doesn't make much difference
-> if you have access functions in core, or in the children, as they are
-> all sharing the same io window. Of course, in case we put only 1 io
-> window, for me it is safer if that window is managed in only one
-> place, instead of several places.
->
-> The question is then, can we split the io area into smaller windows
-> for each children? Considering the children registers are not
-> contiguous :-(. In theory we can put several entries in the 'reg' DT
-> property, but that becomes a bit messy as it will change depending on
-> OMAP version. Anyways, if we split the scm io window into several io
-> smaller areas/chunks, then it makes sense to have access functions in
-> each children.
->
->>>
->>> I guess It's better to settle the design(interface) of omap-control-cor=
-e.c, bandgap and usb phy and then submit the next version of patch set.
+>> When the display device is disabled, we're not listening to the hpd
+>> interrupt anymore. So when it's disabled, the cable can be replugged=
+ and
+>> the monitor changed, and the driver won't know about it. And so it'l=
+l
+>> return the old EDID for the new monitor.
 >>
+> If that could be a problem, then we already have some problem with
+> current omapdss.
 >
-> Agreed. Here. We need to decide how to have this design and stick to it.
-
-Once the design is agreed, the series can probably be split into
-parts, so we can have the scm core and its children worked separately
-
+> I think among the first things, while enabling HDMI, should be to see
+> if there is really some display connected on the port i.e, HPD
+> asserted. Only if ti_hdmi_4_detect() returned true, should we
+> proceed otherwise wait for HPQ irq.
 >
+> Unconditionally invalidating edid really seems like a regression - we
+> impose atleast 50ms (edid read) as extra cost on
+> hdmi_check_hpd_state(), which kills half the purpose of this patch.
 >
-> --
->
-> Eduardo Valentin
-
-
-
---=20
-
-Eduardo Valentin
+Sorry a correction. Reading detect() won't work. I suggest we keep HPD
+IRQ enabled for the lifetime of the driver.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
