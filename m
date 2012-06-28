@@ -1,51 +1,78 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: New compiler warnings with v3.5-rc
-Date: Thu, 28 Jun 2012 12:05:31 +0300
-Message-ID: <1340874331.2059.86.camel@sokoban>
-References: <alpine.DEB.2.00.1206280244270.2338@utopia.booyaka.com>
-Reply-To: <t-kristo@ti.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH v3 0/2] OMAP:IOMMU:flush L1 and L2 caches
+Date: Thu, 28 Jun 2012 15:01:53 +0530
+Message-ID: <CADysL2b9bTqAZ6f48nGThosYn5mTGiSNFgKLyLROVk4XeDZDCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52513 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755229Ab2F1JFg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 05:05:36 -0400
-In-Reply-To: <alpine.DEB.2.00.1206280244270.2338@utopia.booyaka.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55443 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932524Ab2F1Jb4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 05:31:56 -0400
+Received: by bkcjg15 with SMTP id jg15so1870938bkc.24
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 02:31:53 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: khilman@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
 
-On Thu, 2012-06-28 at 02:47 -0600, Paul Walmsley wrote:
-> Hi Tero,
-> 
-> there are some new compiler warnings added in the v3.5-rc kernels:
-> 
-> arch/arm/mach-omap2/twl-common.c:51:12: warning: 'twl_set_voltage' defined but not used
-> arch/arm/mach-omap2/twl-common.c:57:12: warning: 'twl_get_voltage' defined but not used
-> 
-> They only seem to appear on my N800 builds:
-> 
-> http://www.pwsan.com/omap/testlogs/am35xx_devel_3.6/20120628014213/build/build_20120628011813_log.txt
-> 
-> but it looks like I somehow am not doing a 2430-specific build yet, so 
-> they may be 24xx-common.
-> 
-> Anyway they were probably added by:
-> 
-> commit 49c008ecce1f9a549c12e8957668d60008ab0d79
-> Author: Tero Kristo <t-kristo@ti.com>
-> Date:   Mon Feb 20 12:26:08 2012 +0200
-> 
->     arm: omap3: twl: add external controllers for core voltage regulators
->     
-> 
-> Maybe you can put together a quick patch to fix these?
+>From a5dc6e2ebee40b4f6cf51c1ec3c67476ffb8efc3 Mon Sep 17 00:00:00 2001
+From: Ramesh Gupta G <grgupta@ti.com>
+Date: Thu, 28 Jun 2012 11:53:54 +0530
+Subject: [PATCH v3 0/2] OMAP:IOMMU:flush L1 and L2 caches
 
-Yea, I can do that. Can you provide your .config as reference?
+This patch series is the next version to
+- add a new cache maintenance api to support non-coherent iommu drivers.
+- flush both L1 and L2 caches from OMAP iommu whenever the page table
+  memory is updated.
 
--Tero
+Changes since the previous patch set
+- Renamed the new api to reflect the purpose.
+- Fixed the kernel compilation issues by adding the
+  new api support for all the ARM versions.
+- Validated the changes on the Pandaboard.
+- Compile tested the kernel for all other ARM configurations.
+
+The implementation of the new api is based on
+the approach[1] discussed.
+
+[1]http://marc.info/?l=linux-kernel&m=131316512713815&w=2
+
+Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+
+Ramesh Gupta G (2):
+  ARM: new cache maintenance api for iommu
+  OMAP:IOMMU:flush L1 and L2 caches
+
+ arch/arm/include/asm/cacheflush.h |   26 ++++++++++++++++++++++++++
+ arch/arm/include/asm/glue-cache.h |    1 +
+ arch/arm/mm/cache-fa.S            |   15 +++++++++++++++
+ arch/arm/mm/cache-v3.S            |   14 +++++++++++++-
+ arch/arm/mm/cache-v4.S            |   15 +++++++++++++++
+ arch/arm/mm/cache-v4wb.S          |   21 +++++++++++++++++++++
+ arch/arm/mm/cache-v4wt.S          |   17 +++++++++++++++++
+ arch/arm/mm/cache-v6.S            |   20 ++++++++++++++++++++
+ arch/arm/mm/cache-v7.S            |   21 +++++++++++++++++++++
+ arch/arm/mm/proc-arm1020.S        |   22 ++++++++++++++++++++++
+ arch/arm/mm/proc-arm1020e.S       |   20 ++++++++++++++++++++
+ arch/arm/mm/proc-arm1022.S        |   20 ++++++++++++++++++++
+ arch/arm/mm/proc-arm1026.S        |   20 ++++++++++++++++++++
+ arch/arm/mm/proc-arm920.S         |   17 +++++++++++++++++
+ arch/arm/mm/proc-arm922.S         |   17 +++++++++++++++++
+ arch/arm/mm/proc-arm925.S         |   22 ++++++++++++++++++++++
+ arch/arm/mm/proc-arm926.S         |   22 ++++++++++++++++++++++
+ arch/arm/mm/proc-arm940.S         |   26 ++++++++++++++++++++++++++
+ arch/arm/mm/proc-arm946.S         |   24 ++++++++++++++++++++++++
+ arch/arm/mm/proc-feroceon.S       |   30 ++++++++++++++++++++++++++++++
+ arch/arm/mm/proc-macros.S         |    1 +
+ arch/arm/mm/proc-mohawk.S         |   18 ++++++++++++++++++
+ arch/arm/mm/proc-xsc3.S           |   17 +++++++++++++++++
+ arch/arm/mm/proc-xscale.S         |   19 +++++++++++++++++++
+ drivers/iommu/omap-iommu.c        |   26 +++++++++-----------------
+ 25 files changed, 453 insertions(+), 18 deletions(-)
 
 
+-- 
+regards
+Ramesh Gupta G
