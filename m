@@ -1,50 +1,86 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V3 1/3] ARM: OMAP2+: CLEANUP: All OMAP2PLUS uses omap-device.o target so add one entry
-Date: Thu, 28 Jun 2012 20:29:25 +0530
-Message-ID: <1340895567-22766-2-git-send-email-hvaibhav@ti.com>
-References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH-V3 3/3] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
+ around __omap2_set_globals
+Date: Thu, 28 Jun 2012 17:05:38 +0200
+Message-ID: <4FEC72C2.7010106@ti.com>
+References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com> <1340895567-22766-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43551 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44707 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754936Ab2F1O7q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 10:59:46 -0400
-In-Reply-To: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
+	id S1751733Ab2F1PFs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 11:05:48 -0400
+In-Reply-To: <1340895567-22766-4-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-All OMAP2PLUS based devices, builds omap-device.o target;
-so just add one entry so that there is no need to patch this file
-for any future OMAP2+ devices.
+Hi Vaibhav,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+One small comment.
 
-NOTE: No code change from last version.
----
- arch/arm/plat-omap/Makefile |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+On 06/28/2012 04:59 PM, Vaibhav Hiremath wrote:
+> The function __omap2_set_globals() can be common across all
+> platforms/architectures, even in case of omap4, internally it
+> calls same set of functions as in __omap2_set_globals() function
+> (except for sdrc).
+> This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
+> so that we can reuse same function across omap2/3/4...
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+>
+> Changes from V1:
+> 	- Added Makefile rule to build sdrc.c file for new
+> 	  option SOC_HAS_OMAP2_SDRC (as per Kevin's comment).
+> ---
+>   arch/arm/mach-omap2/Kconfig  |    8 ++++++++
+>   arch/arm/mach-omap2/Makefile |    3 ++-
+>   arch/arm/mach-omap2/common.c |    8 +-------
+>   arch/arm/mach-omap2/common.h |    5 +++++
+>   4 files changed, 16 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 208b950..82d9d18 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -21,12 +21,16 @@ config ARCH_OMAP2PLUS_TYPICAL
+>   	help
+>   	  Compile a kernel suitable for booting most boards
+>
+> +config SOC_HAS_OMAP2_SDRC
+> +	bool "OMAP2 SDRAM Controller support"
+> +
+>   config ARCH_OMAP2
+>   	bool "TI OMAP2"
+>   	depends on ARCH_OMAP2PLUS
+>   	default y
+>   	select CPU_V6
+>   	select MULTI_IRQ_HANDLER
+> +	select SOC_HAS_OMAP2_SDRC
+>
+>   config ARCH_OMAP3
+>   	bool "TI OMAP3"
+> @@ -39,6 +43,7 @@ config ARCH_OMAP3
+>   	select PM_OPP if PM
+>   	select ARM_CPU_SUSPEND if PM
+>   	select MULTI_IRQ_HANDLER
+> +	select SOC_HAS_OMAP2_SDRC
+>
+>   config ARCH_OMAP4
+>   	bool "TI OMAP4"
+> @@ -66,16 +71,19 @@ config SOC_OMAP2420
+>   	depends on ARCH_OMAP2
+>   	default y
+>   	select OMAP_DM_TIMER
+> +	select SOC_HAS_OMAP2_SDRC
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 6d87532..961bf85 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -10,9 +10,7 @@ obj-n :=
- obj-  :=
+OMAP4 does not have the SDRC but the EMIF like TI8XX.
 
- # omap_device support (OMAP2+ only at the moment)
--obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
--obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
--obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
-+obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
-
- obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
- obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
---
-1.7.0.4
-
+Regards,
+Benoit
