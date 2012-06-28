@@ -1,107 +1,158 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH v3 4/7] mfd: omap: control: usb-phy:
- introduce the ctrl-module usb driver
-Date: Thu, 28 Jun 2012 07:58:21 +0300
-Message-ID: <20120628045821.GD2471@besouro>
-References: <4FEB4B4C.9040501@dev.rtsoft.ru>
+Subject: Re: [PATCH v3 5/7] ARM: OMAP4+: thermal: introduce bandgap
+ temperature sensor
+Date: Thu, 28 Jun 2012 08:09:29 +0300
+Message-ID: <20120628050929.GE2471@besouro>
+References: <4FEB4B4F.9040709@dev.rtsoft.ru>
 Reply-To: eduardo.valentin@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35142 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751123Ab2F1FJj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 01:09:39 -0400
+Received: by werc12 with SMTP id c12so1662575wer.22
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 22:09:36 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <4FEB4B4C.9040501@dev.rtsoft.ru>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4FEB4B4F.9040709@dev.rtsoft.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
 Hello,
 
-On Wed, Jun 27, 2012 at 10:05:00PM +0400, Konstantin Baydarov wrote:
-> Created a new platform driver for the platform device created by the
-> control module mfd core, wrt usb. This driver has API's to power on/off
-> the phy and the API's to write to musb mailbox.
+On Wed, Jun 27, 2012 at 10:05:03PM +0400, Konstantin Baydarov wrote:
+> In the System Control Module, OMAP supplies a voltage reference
+> and a temperature sensor feature that are gathered in the band
+> gap voltage and temperature sensor (VBGAPTS) module. The band
+> gap provides current and voltage reference for its internal
+> circuits and other analog IP blocks. The analog-to-digital
+> converter (ADC) produces an output value that is proportional
+> to the silicon temperature.
+> 
+> This patch provides a platform driver which expose this feature.
+> It is moduled as a MFD child of the System Control Module core
+> MFD driver.
+> 
+> This driver provides only APIs to access the device properties,
+> like temperature, thresholds and update rate.
 > 
 > Changes since previous version:
-> - Bandgap and usb phy: drivers are now independent from control module driver, they use
-> their own functions to acess scm registers.
-> - Parent SCM platform device IOMEM resources is used to get the base address of SCM window.
-> - SCM Dependency was removed from Kconfig.
+> - Bandgap and usb phy: drivers are now independent from control module driver,
+> they use their own API functions.
 > - Bandgap and usb phy: Added private spinlocks for bandgap and usb drivers.
+> - Bandgap: Check the type of bandgap dynamically in bandgap driver probe
+> function by reading
+> omap core control module revision register CONTROL_GEN_CORE_REVISION.
+> - Parent SCM platform device IOMEM resources is used to get the base address
+> of SCM window.
+
+Same comment on USB-phy applies here. What do we gain by reusing same ioresource
+from parent on all children for ioremapping?
+
+> - SCM Dependency was removed from Kconfig.
+> - Bandgap masks defines were moved to drivers/thermal/omap-bandgap.c.
 > 
-> (p.s. the mailbox for musb in omap4 is present in system control
-> module)
-> 
-> [kishon@ti.com: wrote the original API's related to USB functions]
 > Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
 > ---
->  drivers/usb/otg/Kconfig           |   12 +++
->  drivers/usb/otg/Makefile          |    1 +
->  drivers/usb/otg/omap4-usb-phy.c   |  170 +++++++++++++++++++++++++++++++++++++
->  include/linux/usb/omap4_usb_phy.h |   53 ++++++++++++
->  4 files changed, 236 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/usb/otg/omap4-usb-phy.c
->  create mode 100644 include/linux/usb/omap4_usb_phy.h
+>  .../devicetree/bindings/thermal/omap_bandgap.txt   |   27 +
+>  drivers/thermal/Kconfig                            |   12 +
+>  drivers/thermal/Makefile                           |    4 +-
+>  drivers/thermal/omap-bandgap.c                     | 1773 ++++++++++++++++++++
+>  drivers/thermal/omap-bandgap.h                     |   64 +
+>  5 files changed, 1879 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/thermal/omap_bandgap.txt
+>  create mode 100644 drivers/thermal/omap-bandgap.c
+>  create mode 100644 drivers/thermal/omap-bandgap.h
 > 
-> diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
-> index 5c87db0..0ed691b 100644
-> --- a/drivers/usb/otg/Kconfig
-> +++ b/drivers/usb/otg/Kconfig
-> @@ -78,6 +78,18 @@ config TWL6030_USB
->  	  are hooked to this driver through platform_data structure.
->  	  The definition of internal PHY APIs are in the mach-omap2 layer.
->  
-> +config OMAP4_USB_PHY
-> +	tristate "Texas Instruments OMAP4+ USB pin control driver"
+> diff --git a/Documentation/devicetree/bindings/thermal/omap_bandgap.txt b/Documentation/devicetree/bindings/thermal/omap_bandgap.txt
+> new file mode 100644
+> index 0000000..430bcf8
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/thermal/omap_bandgap.txt
+> @@ -0,0 +1,27 @@
+> +* Texas Instrument OMAP SCM bandgap bindings
+> +
+> +In the System Control Module, OMAP supplies a voltage reference
+> +and a temperature sensor feature that are gathered in the band
+> +gap voltage and temperature sensor (VBGAPTS) module. The band
+> +gap provides current and voltage reference for its internal
+> +circuits and other analog IP blocks. The analog-to-digital
+> +converter (ADC) produces an output value that is proportional
+> +to the silicon temperature.
+> +
+> +Required properties:
+> +- compatible : Should be:
+> +  - "ti,omap4460-control-bandgap" : for OMAP4460 bandgap
+> +  - "ti,omap5430-control-bandgap" : for OMAP5430 bandgap
+
+Please update documentation.
+
+> +- interrupts : this entry should indicate which interrupt line
+> +the talert signal is routed to;
+> +Specific:
+> +- ti,tshut-gpio : this entry should be used to inform which GPIO
+> +line the tshut signal is routed to;
+> +
+> +Example:
+> +
+> +bandgap {
+> +	compatible = "ti,omap4460-control-bandgap";
+> +	interrupts = <0 126 4>; /* talert */
+> +	ti,tshut-gpio = <86>;
+> +};
+> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+> index 514a691..f9989e8 100644
+> --- a/drivers/thermal/Kconfig
+> +++ b/drivers/thermal/Kconfig
+> @@ -26,3 +26,15 @@ config SPEAR_THERMAL
+>  	help
+>  	  Enable this to plug the SPEAr thermal sensor driver into the Linux
+>  	  thermal framework
+> +
+> +config OMAP_BANDGAP
+> +	tristate "Texas Instruments OMAP4+ temperature sensor driver"
+> +	depends on THERMAL
 > +	help
 > +	  If you say yes here you get support for the Texas Instruments
-> +	  OMAP4+ USB pin control driver. The register set is part of system
-> +	  control module.
+> +	  OMAP4460+ on die bandgap temperature sensor support. The register
+> +	  set is part of system control module.
 > +
-> +	  USB phy in OMAP configures control module register for powering on
-> +	  the phy, configuring VBUSVALID, AVALID, IDDIG and SESSEND. For
-> +	  performing the above mentioned configuration, API's are added in
-> +	  by this children of the control module driver.
+> +	  This includes alert interrupts generation and also the TSHUT
+> +	  support.
 > +
->  config NOP_USB_XCEIV
->  	tristate "NOP USB Transceiver Driver"
->  	select USB_OTG_UTILS
-> diff --git a/drivers/usb/otg/Makefile b/drivers/usb/otg/Makefile
-> index 41aa509..60c8c83 100644
-> --- a/drivers/usb/otg/Makefile
-> +++ b/drivers/usb/otg/Makefile
-> @@ -13,6 +13,7 @@ obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus.o
->  obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
->  obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
->  obj-$(CONFIG_TWL6030_USB)	+= twl6030-usb.o
-> +obj-$(CONFIG_OMAP4_USB_PHY)	+= omap4-usb-phy.o
->  obj-$(CONFIG_NOP_USB_XCEIV)	+= nop-usb-xceiv.o
->  obj-$(CONFIG_USB_ULPI)		+= ulpi.o
->  obj-$(CONFIG_USB_ULPI_VIEWPORT)	+= ulpi_viewport.o
-> diff --git a/drivers/usb/otg/omap4-usb-phy.c b/drivers/usb/otg/omap4-usb-phy.c
+> diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+> index a9fff0b..5ff1af1 100644
+> --- a/drivers/thermal/Makefile
+> +++ b/drivers/thermal/Makefile
+> @@ -3,4 +3,6 @@
+>  #
+>  
+>  obj-$(CONFIG_THERMAL)		+= thermal_sys.o
+> -obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
+> \ No newline at end of file
+> +obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
+> +obj-$(CONFIG_OMAP_BANDGAP)	+= omap-thermal.o
+> +omap-thermal-y			:= omap-bandgap.o
+> diff --git a/drivers/thermal/omap-bandgap.c b/drivers/thermal/omap-bandgap.c
 > new file mode 100644
-> index 0000000..cbea2ea
+> index 0000000..c68fa1a
 > --- /dev/null
-> +++ b/drivers/usb/otg/omap4-usb-phy.c
-> @@ -0,0 +1,170 @@
+> +++ b/drivers/thermal/omap-bandgap.c
+> @@ -0,0 +1,1773 @@
 > +/*
-> + * OMAP4 system control module driver, USB control children
+> + * OMAP4 Bandgap temperature sensor driver
 > + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * Contact:
-> + *    Kishon Vijay Abraham I <kishon@ti.com>
-> + *    Eduardo Valentin <eduardo.valentin@ti.com>
+> + * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
+> + * Author: J Keerthy <j-keerthy@ti.com>
+> + * Author: Moiz Sonasath <m-sonasath@ti.com>
+> + * Couple of fixes, DT and MFD adaptation:
+> + *   Eduardo Valentin <eduardo.valentin@ti.com>
 > + *
 > + * This program is free software; you can redistribute it and/or
 > + * modify it under the terms of the GNU General Public License
@@ -120,173 +171,1799 @@ On Wed, Jun 27, 2012 at 10:05:00PM +0400, Konstantin Baydarov wrote:
 > + */
 > +
 > +#include <linux/module.h>
+> +#include <linux/export.h>
 > +#include <linux/init.h>
+> +#include <linux/kernel.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/clk.h>
 > +#include <linux/gpio.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
 > +#include <linux/platform_device.h>
-> +#include <linux/usb/omap4_usb_phy.h>
+> +#include <linux/err.h>
+> +#include <linux/types.h>
+> +#include <linux/mutex.h>
+> +#include <linux/reboot.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/of_irq.h>
 > +
-> +void __iomem *omap_usb_phy_base;
-> +spinlock_t omap_usb_phy_lock;
+> +#include "omap-bandgap.h"
 > +
-> +static int omap_usb_phy_readl(u32 reg, u32 *val)
+> +/* Offsets from the base of temperature sensor registers */
+> +
+> +#define OMAP4460_TEMP_SENSOR_CTRL_OFFSET	0x32C
+> +#define OMAP4460_BGAP_CTRL_OFFSET		0x378
+> +#define OMAP4460_BGAP_COUNTER_OFFSET		0x37C
+> +#define OMAP4460_BGAP_THRESHOLD_OFFSET		0x380
+> +#define OMAP4460_BGAP_TSHUT_OFFSET		0x384
+> +#define OMAP4460_BGAP_STATUS_OFFSET		0x388
+> +#define OMAP4460_FUSE_OPP_BGAP			0x260
+> +
+> +#define OMAP5430_TEMP_SENSOR_MPU_OFFSET		0x32C
+> +#define OMAP5430_BGAP_CTRL_OFFSET		0x380
+> +#define OMAP5430_BGAP_COUNTER_MPU_OFFSET	0x39C
+> +#define OMAP5430_BGAP_THRESHOLD_MPU_OFFSET	0x384
+> +#define OMAP5430_BGAP_TSHUT_MPU_OFFSET		0x390
+> +#define OMAP5430_BGAP_STATUS_OFFSET		0x3A8
+> +#define OMAP5430_FUSE_OPP_BGAP_MPU		0x1E4
+> +
+> +#define OMAP5430_TEMP_SENSOR_GPU_OFFSET		0x330
+> +#define OMAP5430_BGAP_COUNTER_GPU_OFFSET	0x3A0
+> +#define OMAP5430_BGAP_THRESHOLD_GPU_OFFSET	0x388
+> +#define OMAP5430_BGAP_TSHUT_GPU_OFFSET		0x394
+> +#define OMAP5430_FUSE_OPP_BGAP_GPU		0x1E0
+> +
+> +#define OMAP5430_TEMP_SENSOR_CORE_OFFSET	0x334
+> +#define OMAP5430_BGAP_COUNTER_CORE_OFFSET	0x3A4
+> +#define OMAP5430_BGAP_THRESHOLD_CORE_OFFSET	0x38C
+> +#define OMAP5430_BGAP_TSHUT_CORE_OFFSET		0x398
+> +#define OMAP5430_FUSE_OPP_BGAP_CORE		0x1E8
+> +
+> +#define OMAP4460_TSHUT_HOT		900	/* 122 deg C */
+> +#define OMAP4460_TSHUT_COLD		895	/* 100 deg C */
+> +#define OMAP4460_T_HOT			800	/* 73 deg C */
+> +#define OMAP4460_T_COLD			795	/* 71 deg C */
+> +#define OMAP4460_MAX_FREQ		1500000
+> +#define OMAP4460_MIN_FREQ		1000000
+> +#define OMAP4460_MIN_TEMP		-40000
+> +#define OMAP4460_MAX_TEMP		123000
+> +#define OMAP4460_HYST_VAL		5000
+> +#define OMAP4460_ADC_START_VALUE	530
+> +#define OMAP4460_ADC_END_VALUE		932
+> +
+> +#define OMAP5430_MPU_TSHUT_HOT		915
+> +#define OMAP5430_MPU_TSHUT_COLD		900
+> +#define OMAP5430_MPU_T_HOT		800
+> +#define OMAP5430_MPU_T_COLD		795
+> +#define OMAP5430_MPU_MAX_FREQ		1500000
+> +#define OMAP5430_MPU_MIN_FREQ		1000000
+> +#define OMAP5430_MPU_MIN_TEMP		-40000
+> +#define OMAP5430_MPU_MAX_TEMP		125000
+> +#define OMAP5430_MPU_HYST_VAL		5000
+> +#define OMAP5430_ADC_START_VALUE	532
+> +#define OMAP5430_ADC_END_VALUE		934
+> +
+> +#define OMAP5430_GPU_TSHUT_HOT		915
+> +#define OMAP5430_GPU_TSHUT_COLD		900
+> +#define OMAP5430_GPU_T_HOT		800
+> +#define OMAP5430_GPU_T_COLD		795
+> +#define OMAP5430_GPU_MAX_FREQ		1500000
+> +#define OMAP5430_GPU_MIN_FREQ		1000000
+> +#define OMAP5430_GPU_MIN_TEMP		-40000
+> +#define OMAP5430_GPU_MAX_TEMP		125000
+> +#define OMAP5430_GPU_HYST_VAL		5000
+> +
+> +#define OMAP5430_CORE_TSHUT_HOT		915
+> +#define OMAP5430_CORE_TSHUT_COLD	900
+> +#define OMAP5430_CORE_T_HOT		800
+> +#define OMAP5430_CORE_T_COLD		795
+> +#define OMAP5430_CORE_MAX_FREQ		1500000
+> +#define OMAP5430_CORE_MIN_FREQ		1000000
+> +#define OMAP5430_CORE_MIN_TEMP		-40000
+> +#define OMAP5430_CORE_MAX_TEMP		125000
+> +#define OMAP5430_CORE_HYST_VAL		5000
+> +
+> +/* TEMP_SENSOR OMAP4430 */
+> +#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
+> +#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
+> +#define OMAP4430_BGAP_TSHUT_SHIFT				11
+> +#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
+> +#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
+> +#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
+> +#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
+> +#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
+> +#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
+> +#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
+> +#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
+> +#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
+> +
+> +/* TEMP_SENSOR OMAP4460 */
+> +#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
+> +#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
+> +#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
+> +#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
+> +#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
+> +#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
+> +#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
+> +#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
+> +
+> +/* BANDGAP_CTRL */
+> +#define OMAP4460_SINGLE_MODE_SHIFT			31
+> +#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
+> +#define OMAP4460_MASK_HOT_SHIFT				1
+> +#define OMAP4460_MASK_HOT_MASK				(1 << 1)
+> +#define OMAP4460_MASK_COLD_SHIFT			0
+> +#define OMAP4460_MASK_COLD_MASK				(1 << 0)
+> +
+> +/* BANDGAP_COUNTER */
+> +#define OMAP4460_COUNTER_SHIFT				0
+> +#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
+> +
+> +/* BANDGAP_THRESHOLD */
+> +#define OMAP4460_T_HOT_SHIFT				16
+> +#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
+> +#define OMAP4460_T_COLD_SHIFT				0
+> +#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
+> +
+> +/* TSHUT_THRESHOLD */
+> +#define OMAP4460_TSHUT_HOT_SHIFT			16
+> +#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
+> +#define OMAP4460_TSHUT_COLD_SHIFT			0
+> +#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
+> +
+> +/* BANDGAP_STATUS */
+> +#define OMAP4460_CLEAN_STOP_SHIFT			3
+> +#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
+> +#define OMAP4460_BGAP_ALERT_SHIFT			2
+> +#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
+> +#define OMAP4460_HOT_FLAG_SHIFT				1
+> +#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
+> +#define OMAP4460_COLD_FLAG_SHIFT			0
+> +#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
+> +
+> +/* TEMP_SENSOR OMAP5430 */
+> +#define OMAP5430_BGAP_TEMP_SENSOR_SOC_SHIFT		12
+> +#define OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 12)
+> +#define OMAP5430_BGAP_TEMPSOFF_SHIFT			11
+> +#define OMAP5430_BGAP_TEMPSOFF_MASK			(1 << 11)
+> +#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
+> +#define OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
+> +#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
+> +#define OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
+> +
+> +/* BANDGAP_CTRL */
+> +#define OMAP5430_MASK_HOT_CORE_SHIFT			5
+> +#define OMAP5430_MASK_HOT_CORE_MASK			(1 << 5)
+> +#define OMAP5430_MASK_COLD_CORE_SHIFT			4
+> +#define OMAP5430_MASK_COLD_CORE_MASK			(1 << 4)
+> +#define OMAP5430_MASK_HOT_MM_SHIFT			3
+> +#define OMAP5430_MASK_HOT_MM_MASK			(1 << 3)
+> +#define OMAP5430_MASK_COLD_MM_SHIFT			2
+> +#define OMAP5430_MASK_COLD_MM_MASK			(1 << 2)
+> +#define OMAP5430_MASK_HOT_MPU_SHIFT			1
+> +#define OMAP5430_MASK_HOT_MPU_MASK			(1 << 1)
+> +#define OMAP5430_MASK_COLD_MPU_SHIFT			0
+> +#define OMAP5430_MASK_COLD_MPU_MASK			(1 << 0)
+> +
+> +/* BANDGAP_COUNTER */
+> +#define OMAP5430_REPEAT_MODE_SHIFT			31
+> +#define OMAP5430_REPEAT_MODE_MASK			(1 << 31)
+> +#define OMAP5430_COUNTER_SHIFT				0
+> +#define OMAP5430_COUNTER_MASK				(0xffffff << 0)
+> +
+> +/* BANDGAP_THRESHOLD */
+> +#define OMAP5430_T_HOT_SHIFT				16
+> +#define OMAP5430_T_HOT_MASK				(0x3ff << 16)
+> +#define OMAP5430_T_COLD_SHIFT				0
+> +#define OMAP5430_T_COLD_MASK				(0x3ff << 0)
+> +
+> +/* TSHUT_THRESHOLD */
+> +#define OMAP5430_TSHUT_HOT_SHIFT			16
+> +#define OMAP5430_TSHUT_HOT_MASK				(0x3ff << 16)
+> +#define OMAP5430_TSHUT_COLD_SHIFT			0
+> +#define OMAP5430_TSHUT_COLD_MASK			(0x3ff << 0)
+> +
+> +/* BANDGAP_STATUS */
+> +#define OMAP5430_BGAP_ALERT_SHIFT			31
+> +#define OMAP5430_BGAP_ALERT_MASK			(1 << 31)
+> +#define OMAP5430_HOT_CORE_FLAG_SHIFT			5
+> +#define OMAP5430_HOT_CORE_FLAG_MASK			(1 << 5)
+> +#define OMAP5430_COLD_CORE_FLAG_SHIFT			4
+> +#define OMAP5430_COLD_CORE_FLAG_MASK			(1 << 4)
+> +#define OMAP5430_HOT_MM_FLAG_SHIFT			3
+> +#define OMAP5430_HOT_MM_FLAG_MASK			(1 << 3)
+> +#define OMAP5430_COLD_MM_FLAG_SHIFT			2
+> +#define OMAP5430_COLD_MM_FLAG_MASK			(1 << 2)
+> +#define OMAP5430_HOT_MPU_FLAG_SHIFT			1
+> +#define OMAP5430_HOT_MPU_FLAG_MASK			(1 << 1)
+> +#define OMAP5430_COLD_MPU_FLAG_SHIFT			0
+> +#define OMAP5430_COLD_MPU_FLAG_MASK			(1 << 0)
+> +
+> +
+> +/**
+> + * The register offsets and bit fields might change across
+> + * OMAP versions hence populating them in this structure.
+> + */
+> +
+> +struct temp_sensor_registers {
+> +	u32	temp_sensor_ctrl;
+> +	u32	bgap_tempsoff_mask;
+> +	u32	bgap_soc_mask;
+> +	u32	bgap_eocz_mask;
+> +	u32	bgap_dtemp_mask;
+> +
+> +	u32	bgap_mask_ctrl;
+> +	u32	mask_hot_mask;
+> +	u32	mask_cold_mask;
+> +
+> +	u32	bgap_mode_ctrl;
+> +	u32	mode_ctrl_mask;
+> +
+> +	u32	bgap_counter;
+> +	u32	counter_mask;
+> +
+> +	u32	bgap_threshold;
+> +	u32	threshold_thot_mask;
+> +	u32	threshold_tcold_mask;
+> +
+> +	u32	tshut_threshold;
+> +	u32	tshut_hot_mask;
+> +	u32	tshut_cold_mask;
+> +
+> +	u32	bgap_status;
+> +	u32	status_clean_stop_mask;
+> +	u32	status_bgap_alert_mask;
+> +	u32	status_hot_mask;
+> +	u32	status_cold_mask;
+> +
+> +	u32	bgap_efuse;
+> +	spinlock_t	bg_reg_lock;
+> +};
+> +
+> +/**
+> + * The thresholds and limits for temperature sensors.
+> + */
+> +struct temp_sensor_data {
+> +	u32	tshut_hot;
+> +	u32	tshut_cold;
+> +	u32	t_hot;
+> +	u32	t_cold;
+> +	u32	min_freq;
+> +	u32	max_freq;
+> +	int	max_temp;
+> +	int	min_temp;
+> +	int	hyst_val;
+> +	u32	adc_start_val;
+> +	u32	adc_end_val;
+> +	u32	update_int1;
+> +	u32	update_int2;
+> +};
+> +
+> +/**
+> + * struct temp_sensor_regval - temperature sensor register values
+> + * @bg_mode_ctrl: temp sensor control register value
+> + * @bg_ctrl: bandgap ctrl register value
+> + * @bg_counter: bandgap counter value
+> + * @bg_threshold: bandgap threshold register value
+> + * @tshut_threshold: bandgap tshut register value
+> + */
+> +struct temp_sensor_regval {
+> +	u32			bg_mode_ctrl;
+> +	u32			bg_ctrl;
+> +	u32			bg_counter;
+> +	u32			bg_threshold;
+> +	u32			tshut_threshold;
+> +};
+> +
+> +/**
+> + * struct omap_temp_sensor - bandgap temperature sensor platform data
+> + * @ts_data: pointer to struct with thresholds, limits of temperature sensor
+> + * @registers: pointer to the list of register offsets and bitfields
+> + * @regval: temperature sensor register values
+> + * @domain: the name of the domain where the sensor is located
+> + */
+> +struct omap_temp_sensor {
+> +	struct temp_sensor_data		*ts_data;
+> +	struct temp_sensor_registers	*registers;
+> +	struct temp_sensor_regval	*regval;
+> +	char				*domain;
+> +};
+> +
+> +/**
+> + * struct omap_bandgap_data - bandgap platform data structure
+> + * @has_talert: indicates if the chip has talert output line
+> + * @has_tshut: indicates if the chip has tshut output line
+> + * @conv_table: Pointer to adc to temperature conversion table
+> + * @fclock_name: clock name of the functional clock
+> + * @div_ck_nme: clock name of the clock divisor
+> + * @sensor_count: count of temperature sensor device in scm
+> + * @sensors: array of sensors present in this bandgap instance
+> + * @expose_sensor: callback to export sensor to thermal API
+> + */
+> +struct omap_bandgap_data {
+> +	bool				has_talert;
+> +	bool				has_tshut;
+> +	int				tshut_gpio;
+> +	const int			*conv_table;
+> +	char				*fclock_name;
+> +	char				*div_ck_name;
+> +	int				sensor_count;
+> +	int (*report_temperature)(struct omap_bandgap *bg_ptr, int id);
+> +	int (*expose_sensor)(struct omap_bandgap *bg_ptr, int id, char *domain);
+> +	int				irq;
+> +
+> +	/* this needs to be at the end */
+> +	struct omap_temp_sensor		sensors[];
+> +};
+> +
+> +/* TODO: provide data structures for 4430 */
+> +
+> +/*
+> + * OMAP4460 has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +static struct temp_sensor_registers
+> +omap4460_mpu_temp_sensor_registers = {
+> +	.temp_sensor_ctrl = OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
+> +	.bgap_tempsoff_mask = OMAP4460_BGAP_TEMPSOFF_MASK,
+> +	.bgap_soc_mask = OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
+> +	.bgap_eocz_mask = OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK,
+> +	.bgap_dtemp_mask = OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK,
+> +
+> +	.bgap_mask_ctrl = OMAP4460_BGAP_CTRL_OFFSET,
+> +	.mask_hot_mask = OMAP4460_MASK_HOT_MASK,
+> +	.mask_cold_mask = OMAP4460_MASK_COLD_MASK,
+> +
+> +	.bgap_mode_ctrl = OMAP4460_BGAP_CTRL_OFFSET,
+> +	.mode_ctrl_mask = OMAP4460_SINGLE_MODE_MASK,
+> +
+> +	.bgap_counter = OMAP4460_BGAP_COUNTER_OFFSET,
+> +	.counter_mask = OMAP4460_COUNTER_MASK,
+> +
+> +	.bgap_threshold = OMAP4460_BGAP_THRESHOLD_OFFSET,
+> +	.threshold_thot_mask = OMAP4460_T_HOT_MASK,
+> +	.threshold_tcold_mask = OMAP4460_T_COLD_MASK,
+> +
+> +	.tshut_threshold = OMAP4460_BGAP_TSHUT_OFFSET,
+> +	.tshut_hot_mask = OMAP4460_TSHUT_HOT_MASK,
+> +	.tshut_cold_mask = OMAP4460_TSHUT_COLD_MASK,
+> +
+> +	.bgap_status = OMAP4460_BGAP_STATUS_OFFSET,
+> +	.status_clean_stop_mask = OMAP4460_CLEAN_STOP_MASK,
+> +	.status_bgap_alert_mask = OMAP4460_BGAP_ALERT_MASK,
+> +	.status_hot_mask = OMAP4460_HOT_FLAG_MASK,
+> +	.status_cold_mask = OMAP4460_COLD_FLAG_MASK,
+> +
+> +	.bgap_efuse = OMAP4460_FUSE_OPP_BGAP,
+> +};
+> +
+> +/*
+> + * OMAP4460 has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +static struct temp_sensor_registers
+> +omap5430_mpu_temp_sensor_registers = {
+> +	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_MPU_OFFSET,
+> +	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+> +	.bgap_soc_mask = OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK,
+> +	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+> +	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+> +
+> +	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+> +	.mask_hot_mask = OMAP5430_MASK_HOT_MPU_MASK,
+> +	.mask_cold_mask = OMAP5430_MASK_COLD_MPU_MASK,
+> +
+> +	.bgap_mode_ctrl = OMAP5430_BGAP_COUNTER_MPU_OFFSET,
+> +	.mode_ctrl_mask = OMAP5430_REPEAT_MODE_MASK,
+> +
+> +	.bgap_counter = OMAP5430_BGAP_COUNTER_MPU_OFFSET,
+> +	.counter_mask = OMAP5430_COUNTER_MASK,
+> +
+> +	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_MPU_OFFSET,
+> +	.threshold_thot_mask = OMAP5430_T_HOT_MASK,
+> +	.threshold_tcold_mask = OMAP5430_T_COLD_MASK,
+> +
+> +	.tshut_threshold = OMAP5430_BGAP_TSHUT_MPU_OFFSET,
+> +	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+> +	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+> +
+> +	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+> +	.status_clean_stop_mask = 0x0,
+> +	.status_bgap_alert_mask = OMAP5430_BGAP_ALERT_MASK,
+> +	.status_hot_mask = OMAP5430_HOT_MPU_FLAG_MASK,
+> +	.status_cold_mask = OMAP5430_COLD_MPU_FLAG_MASK,
+> +
+> +	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_MPU,
+> +};
+> +
+> +/*
+> + * OMAP4460 has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +static struct temp_sensor_registers
+> +omap5430_gpu_temp_sensor_registers = {
+> +	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_GPU_OFFSET,
+> +	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+> +	.bgap_soc_mask = OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK,
+> +	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+> +	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+> +
+> +	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+> +	.mask_hot_mask = OMAP5430_MASK_HOT_MM_MASK,
+> +	.mask_cold_mask = OMAP5430_MASK_COLD_MM_MASK,
+> +
+> +	.bgap_mode_ctrl = OMAP5430_BGAP_COUNTER_GPU_OFFSET,
+> +	.mode_ctrl_mask = OMAP5430_REPEAT_MODE_MASK,
+> +
+> +	.bgap_counter = OMAP5430_BGAP_COUNTER_GPU_OFFSET,
+> +	.counter_mask = OMAP5430_COUNTER_MASK,
+> +
+> +	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_GPU_OFFSET,
+> +	.threshold_thot_mask = OMAP5430_T_HOT_MASK,
+> +	.threshold_tcold_mask = OMAP5430_T_COLD_MASK,
+> +
+> +	.tshut_threshold = OMAP5430_BGAP_TSHUT_GPU_OFFSET,
+> +	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+> +	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+> +
+> +	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+> +	.status_clean_stop_mask = 0x0,
+> +	.status_bgap_alert_mask = OMAP5430_BGAP_ALERT_MASK,
+> +	.status_hot_mask = OMAP5430_HOT_MM_FLAG_MASK,
+> +	.status_cold_mask = OMAP5430_COLD_MM_FLAG_MASK,
+> +
+> +	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_GPU,
+> +};
+> +
+> +/*
+> + * OMAP4460 has one instance of thermal sensor for MPU
+> + * need to describe the individual bit fields
+> + */
+> +static struct temp_sensor_registers
+> +omap5430_core_temp_sensor_registers = {
+> +	.temp_sensor_ctrl = OMAP5430_TEMP_SENSOR_CORE_OFFSET,
+> +	.bgap_tempsoff_mask = OMAP5430_BGAP_TEMPSOFF_MASK,
+> +	.bgap_soc_mask = OMAP5430_BGAP_TEMP_SENSOR_SOC_MASK,
+> +	.bgap_eocz_mask = OMAP5430_BGAP_TEMP_SENSOR_EOCZ_MASK,
+> +	.bgap_dtemp_mask = OMAP5430_BGAP_TEMP_SENSOR_DTEMP_MASK,
+> +
+> +	.bgap_mask_ctrl = OMAP5430_BGAP_CTRL_OFFSET,
+> +	.mask_hot_mask = OMAP5430_MASK_HOT_CORE_MASK,
+> +	.mask_cold_mask = OMAP5430_MASK_COLD_CORE_MASK,
+> +
+> +	.bgap_mode_ctrl = OMAP5430_BGAP_COUNTER_CORE_OFFSET,
+> +	.mode_ctrl_mask = OMAP5430_REPEAT_MODE_MASK,
+> +
+> +	.bgap_counter = OMAP5430_BGAP_COUNTER_CORE_OFFSET,
+> +	.counter_mask = OMAP5430_COUNTER_MASK,
+> +
+> +	.bgap_threshold = OMAP5430_BGAP_THRESHOLD_CORE_OFFSET,
+> +	.threshold_thot_mask = OMAP5430_T_HOT_MASK,
+> +	.threshold_tcold_mask = OMAP5430_T_COLD_MASK,
+> +
+> +	.tshut_threshold = OMAP5430_BGAP_TSHUT_CORE_OFFSET,
+> +	.tshut_hot_mask = OMAP5430_TSHUT_HOT_MASK,
+> +	.tshut_cold_mask = OMAP5430_TSHUT_COLD_MASK,
+> +
+> +	.bgap_status = OMAP5430_BGAP_STATUS_OFFSET,
+> +	.status_clean_stop_mask = 0x0,
+> +	.status_bgap_alert_mask = OMAP5430_BGAP_ALERT_MASK,
+> +	.status_hot_mask = OMAP5430_HOT_CORE_FLAG_MASK,
+> +	.status_cold_mask = OMAP5430_COLD_CORE_FLAG_MASK,
+> +
+> +	.bgap_efuse = OMAP5430_FUSE_OPP_BGAP_CORE,
+> +};
+> +
+> +/* Thresholds and limits for OMAP4460 MPU temperature sensor */
+> +static struct temp_sensor_data omap4460_mpu_temp_sensor_data = {
+> +	.tshut_hot = OMAP4460_TSHUT_HOT,
+> +	.tshut_cold = OMAP4460_TSHUT_COLD,
+> +	.t_hot = OMAP4460_T_HOT,
+> +	.t_cold = OMAP4460_T_COLD,
+> +	.min_freq = OMAP4460_MIN_FREQ,
+> +	.max_freq = OMAP4460_MAX_FREQ,
+> +	.max_temp = OMAP4460_MAX_TEMP,
+> +	.min_temp = OMAP4460_MIN_TEMP,
+> +	.hyst_val = OMAP4460_HYST_VAL,
+> +	.adc_start_val = OMAP4460_ADC_START_VALUE,
+> +	.adc_end_val = OMAP4460_ADC_END_VALUE,
+> +	.update_int1 = 1000,
+> +	.update_int2 = 2000,
+> +};
+> +
+> +/* Thresholds and limits for OMAP5430 MPU temperature sensor */
+> +static struct temp_sensor_data omap5430_mpu_temp_sensor_data = {
+> +	.tshut_hot = OMAP5430_MPU_TSHUT_HOT,
+> +	.tshut_cold = OMAP5430_MPU_TSHUT_COLD,
+> +	.t_hot = OMAP5430_MPU_T_HOT,
+> +	.t_cold = OMAP5430_MPU_T_COLD,
+> +	.min_freq = OMAP5430_MPU_MIN_FREQ,
+> +	.max_freq = OMAP5430_MPU_MAX_FREQ,
+> +	.max_temp = OMAP5430_MPU_MAX_TEMP,
+> +	.min_temp = OMAP5430_MPU_MIN_TEMP,
+> +	.hyst_val = OMAP5430_MPU_HYST_VAL,
+> +	.adc_start_val = OMAP5430_ADC_START_VALUE,
+> +	.adc_end_val = OMAP5430_ADC_END_VALUE,
+> +	.update_int1 = 1000,
+> +	.update_int2 = 2000,
+> +};
+> +
+> +/* Thresholds and limits for OMAP5430 GPU temperature sensor */
+> +static struct temp_sensor_data omap5430_gpu_temp_sensor_data = {
+> +	.tshut_hot = OMAP5430_GPU_TSHUT_HOT,
+> +	.tshut_cold = OMAP5430_GPU_TSHUT_COLD,
+> +	.t_hot = OMAP5430_GPU_T_HOT,
+> +	.t_cold = OMAP5430_GPU_T_COLD,
+> +	.min_freq = OMAP5430_GPU_MIN_FREQ,
+> +	.max_freq = OMAP5430_GPU_MAX_FREQ,
+> +	.max_temp = OMAP5430_GPU_MAX_TEMP,
+> +	.min_temp = OMAP5430_GPU_MIN_TEMP,
+> +	.hyst_val = OMAP5430_GPU_HYST_VAL,
+> +	.adc_start_val = OMAP5430_ADC_START_VALUE,
+> +	.adc_end_val = OMAP5430_ADC_END_VALUE,
+> +	.update_int1 = 1000,
+> +	.update_int2 = 2000,
+> +};
+> +
+> +/* Thresholds and limits for OMAP5430 CORE temperature sensor */
+> +static struct temp_sensor_data omap5430_core_temp_sensor_data = {
+> +	.tshut_hot = OMAP5430_CORE_TSHUT_HOT,
+> +	.tshut_cold = OMAP5430_CORE_TSHUT_COLD,
+> +	.t_hot = OMAP5430_CORE_T_HOT,
+> +	.t_cold = OMAP5430_CORE_T_COLD,
+> +	.min_freq = OMAP5430_CORE_MIN_FREQ,
+> +	.max_freq = OMAP5430_CORE_MAX_FREQ,
+> +	.max_temp = OMAP5430_CORE_MAX_TEMP,
+> +	.min_temp = OMAP5430_CORE_MIN_TEMP,
+> +	.hyst_val = OMAP5430_CORE_HYST_VAL,
+> +	.adc_start_val = OMAP5430_ADC_START_VALUE,
+> +	.adc_end_val = OMAP5430_ADC_END_VALUE,
+> +	.update_int1 = 1000,
+> +	.update_int2 = 2000,
+> +};
+> +
+> +/*
+> + * Temperature values in milli degree celsius
+> + * ADC code values from 530 to 923
+> + */
+> +static const int
+> +omap4460_adc_to_temp[OMAP4460_ADC_END_VALUE - OMAP4460_ADC_START_VALUE + 1] = {
+> +	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600, -38200,
+> +	-37800, -37300, -36800, -36400, -36000, -35600, -35200, -34800,
+> +	-34300, -33800, -33400, -33000, -32600, -32200, -31800, -31300,
+> +	-30800, -30400, -30000, -29600, -29200, -28700, -28200, -27800,
+> +	-27400, -27000, -26600, -26200, -25700, -25200, -24800, -24400,
+> +	-24000, -23600, -23200, -22700, -22200, -21800, -21400, -21000,
+> +	-20600, -20200, -19700, -19200, -18800, -18400, -18000, -17600,
+> +	-17200, -16700, -16200, -15800, -15400, -15000, -14600, -14200,
+> +	-13700, -13200, -12800, -12400, -12000, -11600, -11200, -10700,
+> +	-10200, -9800, -9400, -9000, -8600, -8200, -7700, -7200, -6800,
+> +	-6400, -6000, -5600, -5200, -4800, -4300, -3800, -3400, -3000,
+> +	-2600, -2200, -1800, -1300, -800, -400, 0, 400, 800, 1200, 1600,
+> +	2100, 2600, 3000, 3400, 3800, 4200, 4600, 5100, 5600, 6000, 6400,
+> +	6800, 7200, 7600, 8000, 8500, 9000, 9400, 9800, 10200, 10600, 11000,
+> +	11400, 11900, 12400, 12800, 13200, 13600, 14000, 14400, 14800,
+> +	15300, 15800, 16200, 16600, 17000, 17400, 17800, 18200, 18700,
+> +	19200, 19600, 20000, 20400, 20800, 21200, 21600, 22100, 22600,
+> +	23000, 23400, 23800, 24200, 24600, 25000, 25400, 25900, 26400,
+> +	26800, 27200, 27600, 28000, 28400, 28800, 29300, 29800, 30200,
+> +	30600, 31000, 31400, 31800, 32200, 32600, 33100, 33600, 34000,
+> +	34400, 34800, 35200, 35600, 36000, 36400, 36800, 37300, 37800,
+> +	38200, 38600, 39000, 39400, 39800, 40200, 40600, 41100, 41600,
+> +	42000, 42400, 42800, 43200, 43600, 44000, 44400, 44800, 45300,
+> +	45800, 46200, 46600, 47000, 47400, 47800, 48200, 48600, 49000,
+> +	49500, 50000, 50400, 50800, 51200, 51600, 52000, 52400, 52800,
+> +	53200, 53700, 54200, 54600, 55000, 55400, 55800, 56200, 56600,
+> +	57000, 57400, 57800, 58200, 58700, 59200, 59600, 60000, 60400,
+> +	60800, 61200, 61600, 62000, 62400, 62800, 63300, 63800, 64200,
+> +	64600, 65000, 65400, 65800, 66200, 66600, 67000, 67400, 67800,
+> +	68200, 68700, 69200, 69600, 70000, 70400, 70800, 71200, 71600,
+> +	72000, 72400, 72800, 73200, 73600, 74100, 74600, 75000, 75400,
+> +	75800, 76200, 76600, 77000, 77400, 77800, 78200, 78600, 79000,
+> +	79400, 79800, 80300, 80800, 81200, 81600, 82000, 82400, 82800,
+> +	83200, 83600, 84000, 84400, 84800, 85200, 85600, 86000, 86400,
+> +	86800, 87300, 87800, 88200, 88600, 89000, 89400, 89800, 90200,
+> +	90600, 91000, 91400, 91800, 92200, 92600, 93000, 93400, 93800,
+> +	94200, 94600, 95000, 95500, 96000, 96400, 96800, 97200, 97600,
+> +	98000, 98400, 98800, 99200, 99600, 100000, 100400, 100800, 101200,
+> +	101600, 102000, 102400, 102800, 103200, 103600, 104000, 104400,
+> +	104800, 105200, 105600, 106100, 106600, 107000, 107400, 107800,
+> +	108200, 108600, 109000, 109400, 109800, 110200, 110600, 111000,
+> +	111400, 111800, 112200, 112600, 113000, 113400, 113800, 114200,
+> +	114600, 115000, 115400, 115800, 116200, 116600, 117000, 117400,
+> +	117800, 118200, 118600, 119000, 119400, 119800, 120200, 120600,
+> +	121000, 121400, 121800, 122200, 122600, 123000, 123400, 123800, 124200,
+> +	124600, 124900, 125000, 125000, 125000, 125000
+> +};
+> +
+> +static const int
+> +omap5430_adc_to_temp[OMAP5430_ADC_END_VALUE - OMAP5430_ADC_START_VALUE + 1] = {
+> +	-40000, -40000, -40000, -40000, -39800, -39400, -39000, -38600,
+> +	-38200, -37800, -37300, -36800,
+> +	-36400, -36000, -35600, -35200, -34800, -34300, -33800, -33400, -33000,
+> +	-32600,
+> +	-32200, -31800, -31300, -30800, -30400, -30000, -29600, -29200, -28700,
+> +	-28200, -27800, -27400, -27000, -26600, -26200, -25700, -25200, -24800,
+> +	-24400, -24000, -23600, -23200, -22700, -22200, -21800, -21400, -21000,
+> +	-20600, -20200, -19700, -19200, -9300, -18400, -18000, -17600, -17200,
+> +	-16700, -16200, -15800, -15400, -15000, -14600, -14200, -13700, -13200,
+> +	-12800, -12400, -12000, -11600, -11200, -10700, -10200, -9800, -9400,
+> +	-9000,
+> +	-8600, -8200, -7700, -7200, -6800, -6400, -6000, -5600, -5200, -4800,
+> +	-4300,
+> +	-3800, -3400, -3000, -2600, -2200, -1800, -1300, -800, -400, 0, 400,
+> +	800,
+> +	1200, 1600, 2100, 2600, 3000, 3400, 3800, 4200, 4600, 5100, 5600, 6000,
+> +	6400, 6800, 7200, 7600, 8000, 8500, 9000, 9400, 9800, 10200, 10800,
+> +	11100,
+> +	11400, 11900, 12400, 12800, 13200, 13600, 14000, 14400, 14800, 15300,
+> +	15800,
+> +	16200, 16600, 17000, 17400, 17800, 18200, 18700, 19200, 19600, 20000,
+> +	20400,
+> +	20800, 21200, 21600, 22100, 22600, 23000, 23400, 23800, 24200, 24600,
+> +	25000,
+> +	25400, 25900, 26400, 26800, 27200, 27600, 28000, 28400, 28800, 29300,
+> +	29800,
+> +	30200, 30600, 31000, 31400, 31800, 32200, 32600, 33100, 33600, 34000,
+> +	34400,
+> +	34800, 35200, 35600, 36000, 36400, 36800, 37300, 37800, 38200, 38600,
+> +	39000,
+> +	39400, 39800, 40200, 40600, 41100, 41600, 42000, 42400, 42800, 43200,
+> +	43600,
+> +	44000, 44400, 44800, 45300, 45800, 46200, 46600, 47000, 47400, 47800,
+> +	48200,
+> +	48600, 49000, 49500, 50000, 50400, 50800, 51200, 51600, 52000, 52400,
+> +	52800,
+> +	53200, 53700, 54200, 54600, 55000, 55400, 55800, 56200, 56600, 57000,
+> +	57400,
+> +	57800, 58200, 58700, 59200, 59600, 60000, 60400, 60800, 61200, 61600,
+> +	62000,
+> +	62400, 62800, 63300, 63800, 64200, 64600, 65000, 65400, 65800, 66200,
+> +	66600,
+> +	67000, 67400, 67800, 68200, 68700, 69200, 69600, 70000, 70400, 70800,
+> +	71200,
+> +	71600, 72000, 72400, 72800, 73200, 73600, 74100, 74600, 75000, 75400,
+> +	75800,
+> +	76200, 76600, 77000, 77400, 77800, 78200, 78600, 79000, 79400, 79800,
+> +	80300,
+> +	80800, 81200, 81600, 82000, 82400, 82800, 83200, 83600, 84000, 84400,
+> +	84800,
+> +	85200, 85600, 86000, 86400, 86800, 87300, 87800, 88200, 88600, 89000,
+> +	89400,
+> +	89800, 90200, 90600, 91000, 91400, 91800, 92200, 92600, 93000, 93400,
+> +	93800,
+> +	94200, 94600, 95000, 95500, 96000, 96400, 96800, 97200, 97600, 98000,
+> +	98400,
+> +	98800, 99200, 99600, 100000, 100400, 100800, 101200, 101600, 102000,
+> +	102400,
+> +	102800, 103200, 103600, 104000, 104400, 104800, 105200, 105600, 106100,
+> +	106600, 107000, 107400, 107800, 108200, 108600, 109000, 109400, 109800,
+> +	110200, 110600, 111000, 111400, 111800, 112200, 112600, 113000, 113400,
+> +	113800, 114200, 114600, 115000, 115400, 115800, 116200, 116600, 117000,
+> +	117400, 117800, 118200, 118600, 119000, 119400, 119800, 120200, 120600,
+> +	121000, 121400, 121800, 122200, 122600, 123000, 123400, 123800, 124200,
+> +	124600, 124900, 125000, 125000, 125000, 125000,
+> +};
+
+I suppose not all comments on RFC were considered.. Anyways, I have another version
+of this driver which has the data structures in separated files.
+
+> +
+> +/*
+> + * TODO: Get rid from bg_readl() return value -
+> + * It's useless.
+> + */
+> +
+> +static int bg_readl(struct omap_bandgap *bg_ptr, u32 reg, u32 *val)
 > +{
-> +	if (!omap_usb_phy_base)
+> +	if (!bg_ptr)
 > +		return -EINVAL;
 > +
-> +	*val = __raw_readl(omap_usb_phy_base + reg);
+> +	*val = __raw_readl(bg_ptr->bg_base + reg);
 > +	return 0;
 > +}
 > +
 > +/*
-> + * TODO: Get rid from omap_usb_phy_writel() return value -
+> + * TODO: Get rid from bg_writel() return value -
 > + * It's useless.
 
-if you do that remember to keep a WARN_ON in case the base address is not set.
+Same thing as in usb-phy. when removing the return value, remember to leave a WARN_ON at least.
 
 > + */
-> +static int omap_usb_phy_writel(u32 val, u32 reg)
+> +static int bg_writel(struct omap_bandgap *bg_ptr, u32 val, u32 reg, spinlock_t *lock)
 > +{
 > +	unsigned long flags;
 > +
-> +	if (!omap_usb_phy_base)
+> +	if (!bg_ptr)
 > +		return -EINVAL;
 > +
-> +	spin_lock_irqsave(&omap_usb_phy_lock, flags);
-> +	__raw_writel(val, omap_usb_phy_base + reg);
-> +	spin_unlock_irqrestore(&omap_usb_phy_lock, flags);
-
-I think it is better to lock per operation than per write.
-
+> +	spin_lock_irqsave(lock, flags);
+> +	__raw_writel(val, bg_ptr->bg_base + reg);
+> +	spin_unlock_irqrestore(lock, flags);
 > +	return 0;
 > +}
+
+Please use omap_bandgap_[read/write]l. Otherwise this driver starts to have several prefix patterns (or no prefix pattern)
+
 > +
-> +/**
-> + * omap4_usb_phy_power - power on/off the phy using control module reg
-> + * @dev: struct device *
-> + * @on: 0 or 1, based on powering on or off the PHY
-> + *
-> + * omap_usb2 can call this API to power on or off the PHY.
-> + */
-> +int omap4_usb_phy_power(struct device *dev, int on)
+> +static irqreturn_t talert_irq_handler(int irq, void *data)
 > +{
-> +	u32 val;
-> +	int ret;
+> +	struct omap_bandgap *bg_ptr = data;
+> +	struct temp_sensor_registers *tsr;
+> +	u32 t_hot = 0, t_cold = 0, temp, ctrl = 0;
+> +	int i, r;
 > +
-> +	if (on) {
-> +		ret = omap_usb_phy_readl(CONTROL_DEV_CONF, &val);
-> +		if (!ret && (val & PHY_PD)) {
-> +			ret = omap_usb_phy_writel(~PHY_PD,
-> +						  CONTROL_DEV_CONF);
-> +			/* XXX: add proper documentation for this delay */
-> +			mdelay(200);
+> +	bg_ptr = data;
+> +	/* Read the status of t_hot */
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		tsr = bg_ptr->pdata->sensors[i].registers;
+> +		r = bg_readl(bg_ptr, tsr->bgap_status, &t_hot);
+> +		t_hot &= tsr->status_hot_mask;
+> +
+> +		/* Read the status of t_cold */
+> +		r |= bg_readl(bg_ptr, tsr->bgap_status, &t_cold);
+> +		t_cold &= tsr->status_cold_mask;
+> +
+> +		if (!t_cold && !t_hot)
+> +			continue;
+> +
+> +		r |= bg_readl(bg_ptr, tsr->bgap_mask_ctrl, &ctrl);
+> +		/*
+> +		 * One TALERT interrupt: Two sources
+> +		 * If the interrupt is due to t_hot then mask t_hot and
+> +		 * and unmask t_cold else mask t_cold and unmask t_hot
+> +		 */
+> +		if (t_hot) {
+> +			ctrl &= ~tsr->mask_hot_mask;
+> +			ctrl |= tsr->mask_cold_mask;
+> +		} else if (t_cold) {
+> +			ctrl &= ~tsr->mask_cold_mask;
+> +			ctrl |= tsr->mask_hot_mask;
 > +		}
-> +	} else
-> +		ret = omap_usb_phy_writel(PHY_PD, CONTROL_DEV_CONF);
 > +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(omap4_usb_phy_power);
+> +		r |= bg_writel(bg_ptr, ctrl, tsr->bgap_mask_ctrl, &tsr->bg_reg_lock);
 > +
-> +/**
-> + * omap4_usb_phy_mailbox - write to usb otg mailbox
-> + * @dev: struct device *
-> + * @val: the value to be written to the mailbox
-> + *
-> + * On detection of a device (ID pin is grounded), the phy should call this API
-> + * to set AVALID, VBUSVALID and ID pin is grounded.
-> + *
-> + * When OMAP is connected to a host (OMAP in device mode), the phy should call
-> + * this API to set AVALID, VBUSVALID and ID pin in high impedance.
-> + *
-> + * The phy should call this API, if OMAP is disconnected from host or device.
-> + */
-> +int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-> +{
-> +	return omap_usb_phy_writel(val, CONTROL_USBOTGHS_CONTROL);
-> +}
-> +EXPORT_SYMBOL_GPL(omap4_usb_phy_mailbox);
+> +		if (r) {
+> +			dev_err(bg_ptr->dev, "failed to ack talert interrupt\n");
+> +			return IRQ_NONE;
+> +		}
 > +
-> +static int __devinit omap_usb_phy_probe(struct platform_device *pdev)
-> +{
-> +	struct resource *io_res;
-> +	struct platform_device *pparent;
+> +		/* read temperature */
+> +		r = bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +		temp &= tsr->bgap_dtemp_mask;
 > +
-> +	if (!pdev->dev.parent) {
-> +		dev_err(&pdev->dev, "No parent device!\n");
-> +		return -ENOMEM;
+> +		/* report temperature to whom may concern */
+> +		if (bg_ptr->pdata->report_temperature)
+> +			bg_ptr->pdata->report_temperature(bg_ptr, i);
 > +	}
 > +
-> +	pparent = to_platform_device(pdev->dev.parent);
-> +
-> +	io_res = platform_get_resource(pparent, IORESOURCE_MEM, 0);
-
-Can someone please explain me what do we gain by doing this at children code?
-
-> +	if (!io_res)
-> +		return -ENOENT;
-> +
-> +	omap_usb_phy_base = ioremap(io_res->start, resource_size(io_res));
-> +	if (!omap_usb_phy_base)
-> +		return -ENOMEM;
-> +
-> +	/* Initialize register lock */
-> +	spin_lock_init(&omap_usb_phy_lock);
-> +
-> +	return 0;
+> +	return IRQ_HANDLED;
 > +}
 > +
-> +static int __devexit omap_usb_phy_remove(struct platform_device *pdev)
+> +static irqreturn_t omap_bandgap_tshut_irq_handler(int irq, void *data)
 > +{
+> +	orderly_poweroff(true);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static
+> +int adc_to_temp_conversion(struct omap_bandgap *bg_ptr, int id, int adc_val,
+> +			   int *t)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[id].ts_data;
+> +
+> +	/* look up for temperature in the table and return the temperature */
+> +	if (adc_val < ts_data->adc_start_val || adc_val > ts_data->adc_end_val)
+> +		return -ERANGE;
+> +
+> +	*t = bg_ptr->conv_table[adc_val - ts_data->adc_start_val];
+> +
 > +	return 0;
 > +}
 > +
-> +static const struct of_device_id of_omap_usb_phy_match[] = {
-> +	{ .compatible = "ti,omap4-usb-phy", },
+> +static int temp_to_adc_conversion(long temp, struct omap_bandgap *bg_ptr, int i,
+> +				  int *adc)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[i].ts_data;
+> +	int high, low, mid;
+> +
+> +	low = 0;
+> +	high = ts_data->adc_end_val - ts_data->adc_start_val;
+> +	mid = (high + low) / 2;
+> +
+> +	if (temp < bg_ptr->conv_table[high] || temp > bg_ptr->conv_table[high])
+> +		return -EINVAL;
+> +
+> +	while (low < high) {
+> +		if (temp < bg_ptr->conv_table[mid])
+> +			high = mid - 1;
+> +		else
+> +			low = mid + 1;
+> +		mid = (low + high) / 2;
+> +	}
+> +
+> +	*adc = ts_data->adc_start_val + low;
+> +
+> +	return 0;
+> +}
+> +
+> +static int temp_sensor_unmask_interrupts(struct omap_bandgap *bg_ptr, int id,
+> +					 u32 t_hot, u32 t_cold)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 temp = 0, reg_val = 0;
+> +	int err;
+> +
+> +	/* Read the current on die temperature */
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	err = bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +	temp &= tsr->bgap_dtemp_mask;
+> +
+> +	err |= bg_readl(bg_ptr, tsr->bgap_mask_ctrl, &reg_val);
+> +	if (temp < t_hot)
+> +		reg_val |= tsr->mask_hot_mask;
+> +	else
+> +		reg_val &= ~tsr->mask_hot_mask;
+> +
+> +	if (t_cold < temp)
+> +		reg_val |= tsr->mask_cold_mask;
+> +	else
+> +		reg_val &= ~tsr->mask_cold_mask;
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_mask_ctrl, &tsr->bg_reg_lock);
+> +
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to unmask interrupts\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static
+> +int add_hyst(int adc_val, int hyst_val, struct omap_bandgap *bg_ptr, int i,
+> +	     u32 *sum)
+> +{
+> +	int temp, ret;
+> +
+> +	ret = adc_to_temp_conversion(bg_ptr, i, adc_val, &temp);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	temp += hyst_val;
+> +
+> +	return temp_to_adc_conversion(temp, bg_ptr, i, sum);
+> +}
+> +
+> +static
+> +int temp_sensor_configure_thot(struct omap_bandgap *bg_ptr, int id, int t_hot)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[id].ts_data;
+> +	struct temp_sensor_registers *tsr;
+> +	u32 thresh_val = 0, reg_val;
+> +	int cold, err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +
+> +	/* obtain the T cold value */
+> +	err = bg_readl(bg_ptr, tsr->bgap_threshold, &thresh_val);
+> +	cold = (thresh_val & tsr->threshold_tcold_mask) >>
+> +	    __ffs(tsr->threshold_tcold_mask);
+> +	if (t_hot <= cold) {
+> +		/* change the t_cold to t_hot - 5000 millidegrees */
+> +		err |= add_hyst(t_hot, -ts_data->hyst_val, bg_ptr, id, &cold);
+> +		/* write the new t_cold value */
+> +		reg_val = thresh_val & (~tsr->threshold_tcold_mask);
+> +		reg_val |= cold << __ffs(tsr->threshold_tcold_mask);
+> +		err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +		thresh_val = reg_val;
+> +	}
+> +
+> +	/* write the new t_hot value */
+> +	reg_val = thresh_val & ~tsr->threshold_thot_mask;
+> +	reg_val |= (t_hot << __ffs(tsr->threshold_thot_mask));
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram thot threshold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return temp_sensor_unmask_interrupts(bg_ptr, id, t_hot, cold);
+> +}
+> +
+> +static
+> +int temp_sensor_init_talert_thresholds(struct omap_bandgap *bg_ptr, int id,
+> +				       int t_hot, int t_cold)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 reg_val, thresh_val;
+> +	int err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	err = bg_readl(bg_ptr, tsr->bgap_threshold, &thresh_val);
+> +
+> +	/* write the new t_cold value */
+> +	reg_val = thresh_val & ~tsr->threshold_tcold_mask;
+> +	reg_val |= (t_cold << __ffs(tsr->threshold_tcold_mask));
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram tcold threshold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	err = bg_readl(bg_ptr, tsr->bgap_threshold, &thresh_val);
+> +
+> +	/* write the new t_hot value */
+> +	reg_val = thresh_val & ~tsr->threshold_thot_mask;
+> +	reg_val |= (t_hot << __ffs(tsr->threshold_thot_mask));
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram thot threshold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	err = bg_readl(bg_ptr, tsr->bgap_mask_ctrl, &reg_val);
+> +	reg_val |= tsr->mask_hot_mask;
+> +	reg_val |= tsr->mask_cold_mask;
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_mask_ctrl, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram thot threshold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return err;
+> +}
+> +
+> +static
+> +int temp_sensor_configure_tcold(struct omap_bandgap *bg_ptr, int id,
+> +				int t_cold)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[id].ts_data;
+> +	struct temp_sensor_registers *tsr;
+> +	u32 thresh_val = 0, reg_val;
+> +	int hot, err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	/* obtain the T cold value */
+> +	err = bg_readl(bg_ptr, tsr->bgap_threshold, &thresh_val);
+> +	hot = (thresh_val & tsr->threshold_thot_mask) >>
+> +	    __ffs(tsr->threshold_thot_mask);
+> +
+> +	if (t_cold >= hot) {
+> +		/* change the t_hot to t_cold + 5000 millidegrees */
+> +		err |= add_hyst(t_cold, ts_data->hyst_val, bg_ptr, id, &hot);
+> +		/* write the new t_hot value */
+> +		reg_val = thresh_val & (~tsr->threshold_thot_mask);
+> +		reg_val |= hot << __ffs(tsr->threshold_thot_mask);
+> +		err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +		thresh_val = reg_val;
+> +	}
+> +
+> +	/* write the new t_cold value */
+> +	reg_val = thresh_val & ~tsr->threshold_tcold_mask;
+> +	reg_val |= (t_cold << __ffs(tsr->threshold_tcold_mask));
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram tcold threshold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return temp_sensor_unmask_interrupts(bg_ptr, id, hot, t_cold);
+> +}
+> +
+> +static int temp_sensor_configure_tshut_hot(struct omap_bandgap *bg_ptr,
+> +					   int id, int tshut_hot)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 reg_val;
+> +	int err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	err = bg_readl(bg_ptr, tsr->tshut_threshold, &reg_val);
+> +	reg_val &= ~tsr->tshut_hot_mask;
+> +	reg_val |= tshut_hot << __ffs(tsr->tshut_hot_mask);
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->tshut_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram tshut thot\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int temp_sensor_configure_tshut_cold(struct omap_bandgap *bg_ptr,
+> +					    int id, int tshut_cold)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 reg_val;
+> +	int err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	err = bg_readl(bg_ptr, tsr->tshut_threshold, &reg_val);
+> +	reg_val &= ~tsr->tshut_cold_mask;
+> +	reg_val |= tshut_cold << __ffs(tsr->tshut_cold_mask);
+> +	err |= bg_writel(bg_ptr, reg_val, tsr->tshut_threshold, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram tshut tcold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int configure_temp_sensor_counter(struct omap_bandgap *bg_ptr, int id,
+> +					 u32 counter)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 val = 0;
+> +	int err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	err = bg_readl(bg_ptr, tsr->bgap_counter, &val);
+> +	val &= ~tsr->counter_mask;
+> +	val |= counter << __ffs(tsr->counter_mask);
+> +	err |= bg_writel(bg_ptr, val, tsr->bgap_counter, &tsr->bg_reg_lock);
+> +	if (err) {
+> +		dev_err(bg_ptr->dev, "failed to reprogram tshut tcold\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/* Exposed APIs */
+> +/**
+> + * omap_bandgap_read_thot() - reads sensor current thot
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @thot - resulting current thot value
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_read_thot(struct omap_bandgap *bg_ptr, int id,
+> +			      int *thot)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 temp;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	ret = bg_readl(bg_ptr, tsr->bgap_threshold, &temp);
+> +	temp = (temp & tsr->threshold_thot_mask) >>
+> +		__ffs(tsr->threshold_thot_mask);
+> +	ret |= adc_to_temp_conversion(bg_ptr, id, temp, &temp);
+> +	if (ret) {
+> +		dev_err(bg_ptr->dev, "failed to read thot\n");
+> +		return -EIO;
+> +	}
+> +
+> +	*thot = temp;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_write_thot() - sets sensor current thot
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @val - desired thot value
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_write_thot(struct omap_bandgap *bg_ptr, int id, int val)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[id].ts_data;
+> +	struct temp_sensor_registers *tsr;
+> +	u32 t_hot;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +
+> +	if (val < ts_data->min_temp + ts_data->hyst_val)
+> +		return -EINVAL;
+> +	ret = temp_to_adc_conversion(val, bg_ptr, id, &t_hot);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mutex_lock(&bg_ptr->bg_mutex);
+> +	temp_sensor_configure_thot(bg_ptr, id, t_hot);
+> +	mutex_unlock(&bg_ptr->bg_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_read_tcold() - reads sensor current tcold
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @tcold - resulting current tcold value
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_read_tcold(struct omap_bandgap *bg_ptr, int id,
+> +			       int *tcold)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 temp;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	ret = bg_readl(bg_ptr, tsr->bgap_threshold, &temp);
+> +	temp = (temp & tsr->threshold_tcold_mask)
+> +	    >> __ffs(tsr->threshold_tcold_mask);
+> +	ret |= adc_to_temp_conversion(bg_ptr, id, temp, &temp);
+> +	if (ret)
+> +		return -EIO;
+> +
+> +	*tcold = temp;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_write_tcold() - sets the sensor tcold
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @val - desired tcold value
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_write_tcold(struct omap_bandgap *bg_ptr, int id, int val)
+> +{
+> +	struct temp_sensor_data *ts_data = bg_ptr->pdata->sensors[id].ts_data;
+> +	struct temp_sensor_registers *tsr;
+> +	u32 t_cold;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	if (val > ts_data->max_temp + ts_data->hyst_val)
+> +		return -EINVAL;
+> +
+> +	ret = temp_to_adc_conversion(val, bg_ptr, id, &t_cold);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	mutex_lock(&bg_ptr->bg_mutex);
+> +	temp_sensor_configure_tcold(bg_ptr, id, t_cold);
+> +	mutex_unlock(&bg_ptr->bg_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_read_update_interval() - read the sensor update interval
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @interval - resulting update interval in miliseconds
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_read_update_interval(struct omap_bandgap *bg_ptr, int id,
+> +					 int *interval)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 time;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	ret = bg_readl(bg_ptr, tsr->bgap_counter, &time);
+> +	if (ret)
+> +		return ret;
+> +	time = (time & tsr->counter_mask) >> __ffs(tsr->counter_mask);
+> +	time = time * 1000 / bg_ptr->clk_rate;
+> +
+> +	*interval = time;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_write_update_interval() - set the update interval
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @interval - desired update interval in miliseconds
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_write_update_interval(struct omap_bandgap *bg_ptr,
+> +					  int id, u32 interval)
+> +{
+> +	interval = interval * bg_ptr->clk_rate / 1000;
+> +	mutex_lock(&bg_ptr->bg_mutex);
+> +	configure_temp_sensor_counter(bg_ptr, id, interval);
+> +	mutex_unlock(&bg_ptr->bg_mutex);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_bandgap_read_temperature() - report current temperature
+> + * @bg_ptr - pointer to bandgap instance
+> + * @id - sensor id
+> + * @temperature - resulting temperature
+> + *
+> + * returns 0 on success or the proper error code
+> + */
+> +int omap_bandgap_read_temperature(struct omap_bandgap *bg_ptr, int id,
+> +				     int *temperature)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 temp;
+> +	int ret;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	ret = bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +	temp &= tsr->bgap_dtemp_mask;
+> +
+> +	ret |= adc_to_temp_conversion(bg_ptr, id, temp, &temp);
+> +	if (ret)
+> +		return -EIO;
+> +
+> +	*temperature = temp;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * enable_continuous_mode() - One time enabling of continuous conversion mode
+> + * @bg_ptr - pointer to scm instance
+> + */
+> +static int enable_continuous_mode(struct omap_bandgap *bg_ptr)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	int i, r;
+> +	u32 val;
+> +
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		tsr = bg_ptr->pdata->sensors[i].registers;
+> +		r = bg_readl(bg_ptr, tsr->bgap_mode_ctrl, &val);
+> +		val |= 1 << __ffs(tsr->mode_ctrl_mask);
+> +		r |= bg_writel(bg_ptr, val, tsr->bgap_mode_ctrl, &tsr->bg_reg_lock);
+> +		if (r)
+> +			dev_err(bg_ptr->dev, "could not save sensor %d\n", i);
+> +	}
+> +
+> +	return r ? -EIO : 0;
+> +}
+> +
+> +static int omap_bandgap_tshut_init(struct omap_bandgap *bg_ptr,
+> +				      struct platform_device *pdev)
+> +{
+> +	int gpio_nr = bg_ptr->tshut_gpio;
+> +	int status;
+> +
+> +	/* Request for gpio_86 line */
+> +	status = gpio_request(gpio_nr, "tshut");
+> +	if (status < 0) {
+> +		dev_err(bg_ptr->dev,
+> +			"Could not request for TSHUT GPIO:%i\n", 86);
+> +		return status;
+> +	}
+> +	status = gpio_direction_input(gpio_nr);
+> +	if (status) {
+> +		dev_err(bg_ptr->dev,
+> +			"Cannot set input TSHUT GPIO %d\n", gpio_nr);
+> +		return status;
+> +	}
+> +
+> +	status = request_irq(gpio_to_irq(gpio_nr),
+> +			     omap_bandgap_tshut_irq_handler,
+> +			     IRQF_TRIGGER_RISING, "tshut",
+> +			     NULL);
+> +	if (status) {
+> +		gpio_free(gpio_nr);
+> +		dev_err(bg_ptr->dev, "request irq failed for TSHUT");
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_bandgap_talert_init(struct omap_bandgap *bg_ptr,
+> +				       struct platform_device *pdev)
+> +{
+> +	int ret;
+> +
+> +	bg_ptr->irq = platform_get_irq(pdev, 0);
+> +	if (bg_ptr->irq < 0) {
+> +		dev_err(&pdev->dev, "get_irq failed\n");
+> +		return bg_ptr->irq;
+> +	}
+> +	ret = request_threaded_irq(bg_ptr->irq, NULL,
+> +				   talert_irq_handler,
+> +				   IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
+> +				   "talert", bg_ptr);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Request threaded irq failed.\n");
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct omap_bandgap_data omap4460_data = {
+> +	.has_talert = true,
+> +	.has_tshut = true,
+> +	.tshut_gpio = 86,
+> +	.fclock_name = "bandgap_ts_fclk",
+> +	.div_ck_name = "div_ts_ck",
+> +	.conv_table = omap4460_adc_to_temp,
+> +	.irq = 126,
+> +	.sensors = {
+> +		{
+> +			.registers = &omap4460_mpu_temp_sensor_registers,
+> +			.ts_data = &omap4460_mpu_temp_sensor_data,
+> +			.domain = "cpu",
+> +		},
+> +	},
+> +	.sensor_count = 1,
+> +};
+> +
+> +static const struct omap_bandgap_data omap5430_data = {
+> +	.has_talert = true,
+> +	.has_tshut = true,
+> +	.tshut_gpio = 0, /* TODO. Fill correct tshut_gpio */
+> +	.fclock_name = "ts_clk_div_ck",
+> +	.div_ck_name = "ts_clk_div_ck",
+> +	.conv_table = omap5430_adc_to_temp,
+> +	.irq = 0, /* TODO. Fill correct irq */
+> +	.sensors = {
+> +		{
+> +			.registers = &omap5430_mpu_temp_sensor_registers,
+> +			.ts_data = &omap5430_mpu_temp_sensor_data,
+> +			.domain = "cpu",
+> +		},
+> +		{
+> +			.registers = &omap5430_gpu_temp_sensor_registers,
+> +			.ts_data = &omap5430_gpu_temp_sensor_data,
+> +			.domain = "gpu",
+> +		},
+> +		{
+> +			.registers = &omap5430_core_temp_sensor_registers,
+> +			.ts_data = &omap5430_core_temp_sensor_data,
+> +			.domain = "core",
+> +		},
+> +	},
+> +	.sensor_count = 3,
+> +};
+> +
+> +static const struct of_device_id of_omap_bandgap_match[] = {
+> +	/*
+> +	 * TODO: Add support to 4430
+> +	 * { .compatible = "ti,omap4430-bandgap", .data = , },
+> +	 */
+> +	{
+> +		.compatible = "ti,omap4-bandgap",
+
+You didnt update the doc.
+
+> +	},
+> +	/* Sentinel */
 > +	{ },
 > +};
 > +
-> +static struct platform_driver omap_usb_phy_driver = {
-> +	.probe = omap_usb_phy_probe,
-> +	.remove = __devexit_p(omap_usb_phy_remove),
+> +static struct omap_bandgap *omap_bandgap_build(struct platform_device *pdev)
+> +{
+> +	struct device_node *node = pdev->dev.of_node;
+> +	struct omap_bandgap *bg_ptr;
+> +	u32 val;
+> +	struct resource *io_res;
+> +	struct platform_device *pparent;
+> +
+> +	/* just for the sake */
+> +	if (!node) {
+> +		dev_err(&pdev->dev, "No platform information available\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	bg_ptr = devm_kzalloc(&pdev->dev, sizeof(struct omap_bandgap),
+> +				    GFP_KERNEL);
+> +	if (!bg_ptr) {
+> +		dev_err(&pdev->dev, "Unable to allocate mem for driver ref\n");
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	if (!pdev->dev.parent) {
+> +		dev_err(&pdev->dev, "No parent device!\n");
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	pparent = to_platform_device(pdev->dev.parent);
+> +	io_res = platform_get_resource(pparent, IORESOURCE_MEM, 0);
+
+Same question on usbphy applies here. what do we want to achieve by doing this at children code?
+
+> +	if (!io_res) {
+> +		dev_err(&pdev->dev, "Failed to get IO resource\n");
+> +		return ERR_PTR(-ENOENT);
+> +	}
+> +
+> +	bg_ptr->bg_base = ioremap(io_res->start, resource_size(io_res));
+> +	if (!bg_ptr->bg_base)
+> +		return 0;
+> +
+> +	bg_readl(bg_ptr, 0x0, &val);
+
+use a macro for the offset.
+
+> +
+> +	/*
+> +	 * Check omap control core module revision to find out
+> +	 * bandgap type
+> +	 */
+> +	switch ((val & 0x3ff) >> 8) {
+> +	case 1:
+> +		/* 4430 */
+> +		bg_ptr->pdata = &omap4460_data;
+> +		break;
+> +	case 2:
+> +		/* 4460 */
+> +		bg_ptr->pdata = &omap4460_data;
+> +		break;
+
+3 would be 4470.
+
+But O5 has exactly same register value as 4430.
+
+So, I think this won't work just the way it is.
+
+We can either go back to the previous "compatible" approach.
+Or we can have a match function mixed with compatible and register value.
+Meaning, when omap4- is passed in compatible, you match in the above way.
+But when omap5- is passed in compatible, you match in a way which fits to
+o5 register value.
+
+This is getting overcomplicated though...
+
+> +	default:
+> +		/* Unknown omap control core module revision */
+> +		return 0;
+> +	}
+> +
+> +	if (bg_ptr->pdata->has_tshut) {
+> +		bg_ptr->tshut_gpio = bg_ptr->pdata->tshut_gpio;
+> +		if (!gpio_is_valid(bg_ptr->tshut_gpio)) {
+> +			dev_err(&pdev->dev, "invalid gpio for tshut (%d)\n",
+> +				bg_ptr->tshut_gpio);
+> +			return ERR_PTR(-EINVAL);
+> +		}
+> +	}
+> +
+> +	return bg_ptr;
+> +}
+> +
+> +struct resource *platform_get_resource_dbg(struct platform_device *dev,
+> +				       unsigned int type, unsigned int num);
+> +
+> +static
+> +int __devinit omap_bandgap_probe(struct platform_device *pdev)
+> +{
+> +	struct omap_bandgap *bg_ptr;
+> +	int clk_rate, ret = 0, i;
+> +
+> +	bg_ptr = omap_bandgap_build(pdev);
+> +	if (IS_ERR_OR_NULL(bg_ptr)) {
+> +		dev_err(&pdev->dev, "failed to fetch platform data\n");
+> +		return PTR_ERR(bg_ptr);
+> +	}
+> +
+> +	if (bg_ptr->pdata->has_talert) {
+> +		ret = omap_bandgap_talert_init(bg_ptr, pdev);
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "failed to initialize Talert IRQ\n");
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	if (bg_ptr->pdata->has_tshut) {
+> +		ret = omap_bandgap_tshut_init(bg_ptr, pdev);
+> +		if (ret) {
+> +			dev_err(&pdev->dev,
+> +				"failed to initialize system tshut IRQ\n");
+> +			goto free_talert;
+> +		}
+> +	}
+> +
+> +	bg_ptr->fclock = clk_get(NULL, bg_ptr->pdata->fclock_name);
+> +	ret = IS_ERR_OR_NULL(bg_ptr->fclock);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "failed to request fclock reference\n");
+> +		goto free_irqs;
+> +	}
+> +
+> +	bg_ptr->div_clk = clk_get(NULL,  bg_ptr->pdata->div_ck_name);
+> +	ret = IS_ERR_OR_NULL(bg_ptr->div_clk);
+> +	if (ret) {
+> +		dev_err(&pdev->dev,
+> +			"failed to request div_ts_ck clock ref\n");
+> +		goto free_irqs;
+> +	}
+> +
+> +	bg_ptr->conv_table = bg_ptr->pdata->conv_table;
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		struct temp_sensor_registers *tsr;
+> +		u32 val;
+> +
+> +		tsr = bg_ptr->pdata->sensors[i].registers;
+> +		/* Initialize register lock */
+> +		spin_lock_init(&tsr->bg_reg_lock);
+> +
+> +		/*
+> +		 * check if the efuse has a non-zero value if not
+> +		 * it is an untrimmed sample and the temperatures
+> +		 * may not be accurate
+> +		 */
+> +		ret = bg_readl(bg_ptr, tsr->bgap_efuse, &val);
+> +		if (ret || !val)
+> +			dev_info(&pdev->dev,
+> +				 "Non-trimmed BGAP, Temp not accurate\n");
+> +	}
+> +
+> +	clk_rate = clk_round_rate(bg_ptr->div_clk,
+> +				  bg_ptr->pdata->sensors[0].ts_data->max_freq);
+> +	if (clk_rate < bg_ptr->pdata->sensors[0].ts_data->min_freq ||
+> +	    clk_rate == 0xffffffff) {
+> +		ret = -ENODEV;
+> +		goto put_clks;
+> +	}
+> +
+> +	ret = clk_set_rate(bg_ptr->div_clk, clk_rate);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Cannot set clock rate\n");
+> +		goto put_clks;
+> +	}
+> +
+> +	bg_ptr->clk_rate = clk_rate;
+> +	clk_enable(bg_ptr->fclock);
+> +
+> +	mutex_init(&bg_ptr->bg_mutex);
+> +	bg_ptr->dev = &pdev->dev;
+> +	platform_set_drvdata(pdev, bg_ptr);
+> +
+> +	/* 1 clk cycle */
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++)
+> +		configure_temp_sensor_counter(bg_ptr, i, 1);
+> +
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		struct temp_sensor_data *ts_data;
+> +
+> +		ts_data = bg_ptr->pdata->sensors[i].ts_data;
+> +
+> +		temp_sensor_init_talert_thresholds(bg_ptr, i,
+> +						   ts_data->t_hot,
+> +						   ts_data->t_cold);
+> +		temp_sensor_configure_tshut_hot(bg_ptr, i,
+> +						ts_data->tshut_hot);
+> +		temp_sensor_configure_tshut_cold(bg_ptr, i,
+> +						 ts_data->tshut_cold);
+> +	}
+> +
+> +	enable_continuous_mode(bg_ptr);
+> +
+> +	/* Set .250 seconds time as default counter */
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++)
+> +		configure_temp_sensor_counter(bg_ptr, i,
+> +					      bg_ptr->clk_rate / 4);
+> +
+> +	/* Every thing is good? Then expose the sensors */
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		char *domain;
+> +
+> +		domain = bg_ptr->pdata->sensors[i].domain;
+> +		if (bg_ptr->pdata->expose_sensor)
+> +			bg_ptr->pdata->expose_sensor(bg_ptr, i, domain);
+> +	}
+> +
+> +	return 0;
+> +
+> +put_clks:
+> +	clk_disable(bg_ptr->fclock);
+> +	clk_put(bg_ptr->fclock);
+> +	clk_put(bg_ptr->div_clk);
+> +free_irqs:
+> +	free_irq(gpio_to_irq(bg_ptr->tshut_gpio), NULL);
+> +	gpio_free(bg_ptr->tshut_gpio);
+> +free_talert:
+> +	free_irq(bg_ptr->irq, bg_ptr);
+> +
+> +	return ret;
+> +}
+> +
+> +static
+> +int __devexit omap_bandgap_remove(struct platform_device *pdev)
+> +{
+> +	struct omap_bandgap *bg_ptr = platform_get_drvdata(pdev);
+> +
+> +	clk_disable(bg_ptr->fclock);
+> +	clk_put(bg_ptr->fclock);
+> +	clk_put(bg_ptr->div_clk);
+> +	free_irq(bg_ptr->irq, bg_ptr);
+> +	free_irq(gpio_to_irq(bg_ptr->tshut_gpio), NULL);
+> +	gpio_free(bg_ptr->tshut_gpio);
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_PM
+> +static int omap_bandgap_save_ctxt(struct omap_bandgap *bg_ptr)
+> +{
+> +	int err = 0;
+> +	int i;
+> +
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		struct temp_sensor_registers *tsr;
+> +		struct temp_sensor_regval *rval;
+> +
+> +		rval = bg_ptr->pdata->sensors[i].regval;
+> +		tsr = bg_ptr->pdata->sensors[i].registers;
+> +
+> +		err = bg_readl(bg_ptr, tsr->bgap_mode_ctrl,
+> +					 &rval->bg_mode_ctrl);
+> +		err |= bg_readl(bg_ptr, tsr->bgap_mask_ctrl,
+> +					  &rval->bg_ctrl);
+> +		err |= bg_readl(bg_ptr, tsr->bgap_counter,
+> +					  &rval->bg_counter);
+> +		err |= bg_readl(bg_ptr, tsr->bgap_threshold,
+> +					  &rval->bg_threshold);
+> +		err |= bg_readl(bg_ptr, tsr->tshut_threshold,
+> +					  &rval->tshut_threshold);
+> +
+> +		if (err)
+> +			dev_err(bg_ptr->dev, "could not save sensor %d\n", i);
+> +	}
+> +
+> +	return err ? -EIO : 0;
+> +}
+> +
+> +static int
+> +omap_bandgap_force_single_read(struct omap_bandgap *bg_ptr, int id)
+> +{
+> +	struct temp_sensor_registers *tsr;
+> +	u32 temp = 0, counter = 1000;
+> +	int err;
+> +
+> +	tsr = bg_ptr->pdata->sensors[id].registers;
+> +	/* Select single conversion mode */
+> +	err = bg_readl(bg_ptr, tsr->bgap_mode_ctrl, &temp);
+> +	temp &= ~(1 << __ffs(tsr->mode_ctrl_mask));
+> +	bg_writel(bg_ptr, temp, tsr->bgap_mode_ctrl, &tsr->bg_reg_lock);
+> +
+> +	/* Start of Conversion = 1 */
+> +	err |= bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +	temp |= 1 << __ffs(tsr->bgap_soc_mask);
+> +	bg_writel(bg_ptr, temp, tsr->temp_sensor_ctrl, &tsr->bg_reg_lock);
+> +	/* Wait until DTEMP is updated */
+> +	err |= bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +	temp &= (tsr->bgap_dtemp_mask);
+> +	while ((temp == 0) && --counter) {
+> +		err |= bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +		temp &= (tsr->bgap_dtemp_mask);
+> +	}
+> +	/* Start of Conversion = 0 */
+> +	err |= bg_readl(bg_ptr, tsr->temp_sensor_ctrl, &temp);
+> +	temp &= ~(1 << __ffs(tsr->bgap_soc_mask));
+> +	err |= bg_writel(bg_ptr, temp, tsr->temp_sensor_ctrl, &tsr->bg_reg_lock);
+> +
+> +	return err ? -EIO : 0;
+> +}
+> +
+> +static int omap_bandgap_restore_ctxt(struct omap_bandgap *bg_ptr)
+> +{
+> +	int i, err = 0;
+> +	u32 temp = 0;
+> +
+> +	for (i = 0; i < bg_ptr->pdata->sensor_count; i++) {
+> +		struct temp_sensor_registers *tsr;
+> +		struct temp_sensor_regval *rval;
+> +		u32 val = 0;
+> +
+> +		rval = bg_ptr->pdata->sensors[i].regval;
+> +		tsr = bg_ptr->pdata->sensors[i].registers;
+> +
+> +		err = bg_readl(bg_ptr, tsr->bgap_counter, &val);
+> +		if (val == 0) {
+> +			err |= bg_writel(bg_ptr, rval->bg_threshold,
+> +						   tsr->bgap_threshold, &tsr->bg_reg_lock);
+> +			err |= bg_writel(bg_ptr, rval->tshut_threshold,
+> +						   tsr->tshut_threshold, &tsr->bg_reg_lock);
+> +			/* Force immediate temperature measurement and update
+> +			 * of the DTEMP field
+> +			 */
+> +			omap_bandgap_force_single_read(bg_ptr, i);
+> +			err |= bg_writel(bg_ptr, rval->bg_counter,
+> +						   tsr->bgap_counter, &tsr->bg_reg_lock);
+> +			err |= bg_writel(bg_ptr, rval->bg_mode_ctrl,
+> +						   tsr->bgap_mode_ctrl, &tsr->bg_reg_lock);
+> +			err |= bg_writel(bg_ptr, rval->bg_ctrl,
+> +						   tsr->bgap_mask_ctrl, &tsr->bg_reg_lock);
+> +		} else {
+> +			err |= bg_readl(bg_ptr, tsr->temp_sensor_ctrl,
+> +						 &temp);
+> +			temp &= (tsr->bgap_dtemp_mask);
+> +			if (temp == 0) {
+> +				omap_bandgap_force_single_read(bg_ptr, i);
+> +				err |= bg_readl(bg_ptr, tsr->bgap_mask_ctrl,
+> +							  &temp);
+> +				temp |= 1 << __ffs(tsr->mode_ctrl_mask);
+> +				err |= bg_writel(bg_ptr, temp,
+> +							   tsr->bgap_mask_ctrl, &tsr->bg_reg_lock);
+> +			}
+> +		}
+> +		if (err)
+> +			dev_err(bg_ptr->dev, "could not save sensor %d\n", i);
+> +	}
+> +
+> +	return err ? -EIO : 0;
+> +}
+> +
+> +static int omap_bandgap_suspend(struct device *dev)
+> +{
+> +	struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
+> +	int err;
+> +
+> +	err = omap_bandgap_save_ctxt(bg_ptr);
+> +	clk_disable(bg_ptr->fclock);
+> +
+> +	return err;
+> +}
+> +
+> +static int omap_bandgap_resume(struct device *dev)
+> +{
+> +	struct omap_bandgap *bg_ptr = dev_get_drvdata(dev);
+> +
+> +	clk_enable(bg_ptr->fclock);
+> +
+> +	return omap_bandgap_restore_ctxt(bg_ptr);
+> +}
+> +static const struct dev_pm_ops omap_bandgap_dev_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(omap_bandgap_suspend,
+> +				omap_bandgap_resume)
+> +};
+> +
+> +#define DEV_PM_OPS	(&omap_bandgap_dev_pm_ops)
+> +#else
+> +#define DEV_PM_OPS	NULL
+> +#endif
+> +
+> +static struct platform_driver omap_bandgap_sensor_driver = {
+> +	.probe = omap_bandgap_probe,
+> +	.remove = omap_bandgap_remove,
 > +	.driver = {
-> +			.name	= "omap4-usb-phy",
-> +			.owner	= THIS_MODULE,
-> +			.of_match_table	= of_omap_usb_phy_match,
+> +			.name = "omap-bandgap",
+> +			.pm = DEV_PM_OPS,
+> +			.of_match_table	= of_omap_bandgap_match,
 > +	},
 > +};
 > +
-> +static int __init omap_usb_phy_init(void)
-> +{
-> +	return platform_driver_register(&omap_usb_phy_driver);
-> +}
-> +postcore_initcall(omap_usb_phy_init);
+> +module_platform_driver(omap_bandgap_sensor_driver);
+> +early_platform_init("early_omap_temperature", &omap_bandgap_sensor_driver);
 > +
-> +static void __exit omap_usb_phy_exit(void)
+> +static int __init bg_init(void)
 > +{
-> +	platform_driver_unregister(&omap_usb_phy_driver);
+> +	return platform_driver_register(&omap_bandgap_sensor_driver);
 > +}
-> +module_exit(omap_usb_phy_exit);
 > +
-> +MODULE_DESCRIPTION("OMAP4+ USB-phy driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform: omap4-usb-phy");
+> +static void __exit bg_exit(void)
+> +{
+> +	platform_driver_unregister(&omap_bandgap_sensor_driver);
+> +}
+> +
+> +module_init(bg_init);
+> +module_exit(bg_exit);
+> +
+> +MODULE_DESCRIPTION("OMAP4+ bandgap temperature sensor driver");
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_ALIAS("platform:omap-bandgap");
 > +MODULE_AUTHOR("Texas Instrument Inc.");
-> diff --git a/include/linux/usb/omap4_usb_phy.h b/include/linux/usb/omap4_usb_phy.h
+> diff --git a/drivers/thermal/omap-bandgap.h b/drivers/thermal/omap-bandgap.h
 > new file mode 100644
-> index 0000000..b6a4701
+> index 0000000..41f25ff
 > --- /dev/null
-> +++ b/include/linux/usb/omap4_usb_phy.h
-> @@ -0,0 +1,53 @@
+> +++ b/drivers/thermal/omap-bandgap.h
+> @@ -0,0 +1,64 @@
 > +/*
-> + * OMAP4 USB-phy
+> + * OMAP4 Bandgap temperature sensor driver
 > + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-> + *
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
 > + * Contact:
-> + *    Kishon Vijay Abraham I <kishon@ti.com>
-> + *    Eduardo Valentin <eduardo.valentin@ti.com>
+> + *   Eduardo Valentin <eduardo.valentin@ti.com>
 > + *
 > + * This program is free software; you can redistribute it and/or
 > + * modify it under the terms of the GNU General Public License
@@ -303,33 +1980,46 @@ Can someone please explain me what do we gain by doing this at children code?
 > + * 02110-1301 USA
 > + *
 > + */
+> +#ifndef __OMAP_BANDGAP_H
+> +#define __OMAP_BANDGAP_H
 > +
-> +#ifndef __OMAP4_USB_PHY_H
-> +#define __OMAP4_USB_PHY_H
+> +struct omap_bandgap_data;
 > +
-> +#define	PHY_PD				0x1
-> +#define	AVALID				BIT(0)
-> +#define	BVALID				BIT(1)
-> +#define	VBUSVALID			BIT(2)
-> +#define	SESSEND				BIT(3)
-> +#define	IDDIG				BIT(4)
-> +#define	CONTROL_DEV_CONF		0x00000300
-> +#define	CONTROL_USBOTGHS_CONTROL	0x0000033C
+> +/**
+> + * struct omap_bandgap - bandgap device structure
+> + * @dev: device pointer
+> + * @pdata: platform data with sensor data
+> + * @fclock: pointer to functional clock of temperature sensor
+> + * @div_clk: pointer to parent clock of temperature sensor fclk
+> + * @conv_table: Pointer to adc to temperature conversion table
+> + * @bg_mutex: Mutex for sysfs, irq and PM
+> + * @irq: MPU Irq number for thermal alert
+> + * @tshut_gpio: GPIO where Tshut signal is routed
+> + * @clk_rate: Holds current clock rate
+> + */
+> +struct omap_bandgap {
+> +	struct device			*dev;
+> +	const struct omap_bandgap_data	*pdata;
+> +	struct clk			*fclock;
+> +	struct clk			*div_clk;
+> +	const int			*conv_table;
+> +	struct mutex			bg_mutex; /* Mutex for irq and PM */
+> +	int				irq;
+> +	int				tshut_gpio;
+> +	u32				clk_rate;
+> +	void __iomem			*bg_base;
+> +};
 > +
-> +/* USB-PHY helpers */
-> +#if (defined(CONFIG_OMAP4_USB_PHY)) || (defined(CONFIG_OMAP4_USB_PHY_MODULE))
-> +extern int omap4_usb_phy_mailbox(struct device *dev, u32 val);
-> +extern int omap4_usb_phy_power(struct device *dev, int on);
-> +#else
-> +static inline int omap4_usb_phy_mailbox(struct device *dev, u32 val)
-> +{
-> +	return 0;
-> +}
-> +static inline int omap4_usb_phy_power(struct device *dev, int on)
-> +{
-> +	return 0;
-> +}
-> +#endif
+> +int omap_bandgap_read_thot(struct omap_bandgap *bg_ptr, int id, int *thot);
+> +int omap_bandgap_write_thot(struct omap_bandgap *bg_ptr, int id, int val);
+> +int omap_bandgap_read_tcold(struct omap_bandgap *bg_ptr, int id, int *tcold);
+> +int omap_bandgap_write_tcold(struct omap_bandgap *bg_ptr, int id, int val);
+> +int omap_bandgap_read_update_interval(struct omap_bandgap *bg_ptr, int id,
+> +				      int *interval);
+> +int omap_bandgap_write_update_interval(struct omap_bandgap *bg_ptr, int id,
+> +				       u32 interval);
+> +int omap_bandgap_read_temperature(struct omap_bandgap *bg_ptr, int id,
+> +				  int *temperature);
 > +
 > +#endif
 > -- 
