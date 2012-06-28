@@ -1,121 +1,164 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Check if RPM enabled before trying to change
- state
-Date: Thu, 28 Jun 2012 09:41:46 +0300
-Message-ID: <1340865706.2090.27.camel@lappyti>
-References: <1340438771-25587-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340605221.12683.30.camel@lappyti>
-	 <CAJe_Zhf-H0dLtFsFAcryDy3av60RjmWmP+d3GSaxq8dNZKiXWw@mail.gmail.com>
-	 <1340616643.3395.19.camel@deskari>
-	 <CAJe_ZhftuNggxH+269-ZJbWJo5nSzSjo1dDCTQGMbsjPWoUpyg@mail.gmail.com>
-	 <1340628094.3395.63.camel@deskari>
-	 <CAJe_ZhetdEwrgDEfV9rLHU1_fmb3O+954hCKcoENBgQ6Bi6BXQ@mail.gmail.com>
-	 <1340632161.3395.100.camel@deskari>
-	 <CAJe_ZheHoCikVzy6zJoKHuL8_oQ0ZnPASUUWimvbPRr+AZ4zWg@mail.gmail.com>
-	 <1340695166.2093.22.camel@lappyti>
-	 <CAJe_Zhev3V85K1jhj+W+d+0kv132MZ=-7rChhCLgtWO7WN4u1w@mail.gmail.com>
-	 <1340701660.24530.17.camel@deskari>
-	 <CAJe_Zhd-LA67yO-H_7pacB_T8_z6=Zf47QuoHSJcsXDZ9S+byw@mail.gmail.com>
-	 <1340712213.24530.21.camel@deskari>
-	 <CAJe_ZhcxVAUuuMDZ8p1LVae4N2aZb_vFs_nRLfb7atJ2j6j=Sg@mail.gmail.com>
-	 <1340723296.24530.68.camel@deskari>
-	 <CAJe_ZheMN_sqaANSMepmhDDp2a2sQAVPYD1-owBWpwwbxqAtHQ@mail.gmail.com>
-	 <1340723514.24530.70.camel@deskari>
-	 <CAJe_ZheXSquxOtOD9iPyQjZ-jxWKzVGZHYkjM=wC37qgMZeJug@mail.gmail.com>
-	 <1340736243.24530.98.camel@deskari>
-	 <CAJe_ZheovnRsJ6opMPkMxwjLSv-OKBPCHu5rsAX_KNz1mb64ZQ@mail.gmail.com>
-	 <1340776683.1972.41.camel@lappyti>
-	 <CAJe_Zhdz5mAZbyer8fL4YfvcQ8xMF31cPG2zr3AbBNWv8nctnw@mail.gmail.com>
-	 <1340784821.2649.17.camel@deskari>
-	 <CAJe_ZhdOiv8NgMB37h5_X_reK+urxVykW1tHDF9S50VVUvX=4g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-5IVZ6RPea4qwKkWvsJRa"
+From: Pantelis Antoniou <pantelis.antoniou@gmail.com>
+Subject: Re: [PATCH 1/1] ARM: only call smp_send_stop() on SMP
+Date: Thu, 28 Jun 2012 10:06:23 +0300
+Message-ID: <7C9043C3-3C05-4455-9CCF-A08617CA9D77@gmail.com>
+References: <1340511667-4976-1-git-send-email-javier@dowhile0.org> <20120624085943.GC19226@n2100.arm.linux.org.uk>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52198 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750859Ab2F1Glv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:41:51 -0400
-Received: by lbbgj10 with SMTP id gj10so3251451lbb.23
-        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 23:41:49 -0700 (PDT)
-In-Reply-To: <CAJe_ZhdOiv8NgMB37h5_X_reK+urxVykW1tHDF9S50VVUvX=4g@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35164 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754370Ab2F1HGg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 03:06:36 -0400
+Received: by wibhm11 with SMTP id hm11so6137977wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 00:06:35 -0700 (PDT)
+In-Reply-To: <20120624085943.GC19226@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Nicolas Pitre <nicolas.pitre@linaro.org>, Will Deacon <will.deacon@arm.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
+Err,
 
---=-5IVZ6RPea4qwKkWvsJRa
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+There was a patch been sent in response that did exactly as you asked.
 
-On Wed, 2012-06-27 at 20:23 +0530, Jassi Brar wrote:
-> On 27 June 2012 13:43, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >
-> > I don't like it at all that omapdss disables and enables the panels in
-> > omapdss's suspend/resume hooks. But I'm not sure how this should work..=
-.
-> > Should panel drivers each have their own suspend/resume hooks, and
-> > handle it themselves? Or should the call to suspend/resume come from
-> > upper layers, like omapfb or omapdrm.
-> >
-> > I made a prototype patch a few weeks ago to move the suspend to omapfb,
-> > and it feels better than the current one, but I'm still not sure...
-> >
-> IIUC, I have similar opinion.
-> Each panel having its own suspend/resume sounds like inter-dependency tro=
-uble.
+http://lkml.indiana.edu/hypermail/linux/kernel/1205.3/00433.html
 
-What do you mean with that? If we just consider omapdss and the panel
-drivers, I see no dependency trouble. Panels are independent of each
-other, and omapdss is supposed to handle any locking & refcounting
-related to multiple panels already, as from omapdss's point of view
-panel suspend is the same as panel disable.
+Regards
 
-And if we take omapfb/omapdrm into equation, well, in any case it
-couldn't be any worse than the current one where suspend is handled by
-omapdss.
+-- Pantelis
 
-> I too would prefer suspend/resume propagating from omap-fb/drm, which
-> imho fits better with the notion of a linux device(omapdss is only
-> backend). Though I don't have strong feelings about how core then take
-> various panels up/down optimally.
+On Jun 24, 2012, at 11:59 AM, Russell King - ARM Linux wrote:
 
-One one hand, I see the combination of omapdss (or the "output" side of
-omapdss) and a panel as a whole entity. I mean, if you just load omapdss
-and a panel driver, but no omapfb/omapdrm, you already have a working
-panel. You don't _need_ omapfb/omapdrm there. And in that sense it'd
-make sense if the panels did handle their own suspend/resume.
-
-But then, in real life it may be just simpler if omapfb/omapdrm handles
-the suspend.
-
- Tomi
-
-
---=-5IVZ6RPea4qwKkWvsJRa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP6/yqAAoJEPo9qoy8lh71x9AP/RODWP2oBkrabFaE46yVlZ+8
-UxBuDOVE2pLMRTEpQC864K4jjT/zc7Z4CANMKIHfZ9gsr0TSGWh84+OOkawdj75E
-1iOP1l1t6hcQhtpTlIJUaSqkYtr0Lz+sq1hLFAfJ/zH1hhPPso+KGoBIlisth4uw
-qORwn4WGpwRzB4Og0pD5nU5fVvv1yuwCz+Xc6cA60pNJyMonvWhJrDbeYFIKKoGM
-2J0hpfEK/M1agovgBENmulNa2+gK4p7VBvGNJJFCHIyHQEQ3UkrCJ6QdyBXXCKHi
-XXDS2469FBqkcDhj7TphmlBikuUoN1mSZaYzNhyMw8U5qeEbqyKFfQLJnv8tmrSi
-PA7wWLZm71moJg28uqPWV1PYh2GjwRFkt70oLub7WlBUBRffdmsFc42TAE/ChgIE
-l1rdrjpFBeYknK1qYau67vVKGTh7GZCh+WPszyABMLkTAvVXaxDIzLNNg46mNaBP
-RB8l3fuca9SsB7JlrC2ORvmEddnMK/5K7YcWfPa0OGWIDXhwOAM9pCFlvoX3014e
-0aE30ffLbBF1XnuKQZTNHZTHz+aCo55k6jL91npOs04ioF3yOCZo9yl331Dk+huF
-qV/XVK+1/J1IeNzFaHp1CytiZYqOfbv7Tr27g8w8n8TtIsBebvTQ0cOanSxNZ3Kf
-Ik0rPpVlhkORIAVGi5qj
-=/wEc
------END PGP SIGNATURE-----
-
---=-5IVZ6RPea4qwKkWvsJRa--
+> See this thread:
+> 
+> http://lists.arm.linux.org.uk/lurker/thread/20120523.200015.2fdfd505.en.html
+> 
+> There are times when I wonder why I bother replying to email on mailing
+> lists.  No patch ever came from my responses on this subject.  Not going
+> to repeat it again.  Fed up.
+> 
+> On Sun, Jun 24, 2012 at 06:21:07AM +0200, Javier Martinez Canillas wrote:
+>> On reboot or poweroff (machine_shutdown()) a call to smp_send_stop() is
+>> made (to stop the others CPU's) when CONFIG_SMP=y.
+>> 
+>> arch/arm/kernel/process.c:
+>> 
+>> void machine_shutdown(void)
+>> {
+>> #ifdef CONFIG_SMP
+>>       smp_send_stop();
+>> #endif
+>> }
+>> 
+>> smp_send_stop() calls the function pointer smp_cross_call(), which is set
+>> on the smp_init_cpus() function for OMAP processors.
+>> 
+>> arch/arm/mach-omap2/omap-smp.c:
+>> 
+>> void __init smp_init_cpus(void)
+>> {
+>> ...
+>> 	set_smp_cross_call(gic_raise_softirq);
+>> ...
+>> }
+>> 
+>> But the ARM setup_arch() function only calls smp_init_cpus()
+>> if CONFIG_SMP=y && is_smp().
+>> 
+>> arm/kernel/setup.c:
+>> 
+>> void __init setup_arch(char **cmdline_p)
+>> {
+>> ...
+>> #ifdef CONFIG_SMP
+>> 	if (is_smp())
+>> 		smp_init_cpus();
+>> #endif
+>> ...
+>> }
+>> 
+>> Newer OMAP CPU's are SMP machines so omap2plus_defconfig sets
+>> CONFIG_SMP=y. Unfortunately on an OMAP UP machine is_smp()
+>> returns false and smp_init_cpus() is never called and the
+>> smp_cross_call() function remains NULL.
+>> 
+>> If the machine is rebooted or powered off, smp_send_stop() will
+>> be called (since CONFIG_SMP=y) leading to the following error:
+>> 
+>> [   42.815551] Restarting system.
+>> [   42.819030] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+>> [   42.827667] pgd = d7a74000
+>> [   42.830566] [00000000] *pgd=96ce7831, *pte=00000000, *ppte=00000000
+>> [   42.837249] Internal error: Oops: 80000007 [#1] SMP ARM
+>> [   42.842773] Modules linked in:
+>> [   42.846008] CPU: 0    Not tainted  (3.5.0-rc3-next-20120622-00002-g62e87ba-dirty #44)
+>> [   42.854278] PC is at 0x0
+>> [   42.856994] LR is at smp_send_stop+0x4c/0xe4
+>> [   42.861511] pc : [<00000000>]    lr : [<c00183a4>]    psr: 60000013
+>> [   42.861511] sp : d6c85e70  ip : 00000000  fp : 00000000
+>> [   42.873626] r10: 00000000  r9 : d6c84000  r8 : 00000002
+>> [   42.879150] r7 : c07235a0  r6 : c06dd2d0  r5 : 000f4241  r4 : d6c85e74
+>> [   42.886047] r3 : 00000000  r2 : 00000000  r1 : 00000006  r0 : d6c85e74
+>> [   42.892944] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+>> [   42.900482] Control: 10c5387d  Table: 97a74019  DAC: 00000015
+>> [   42.906555] Process reboot (pid: 1166, stack limit = 0xd6c842f8)
+>> [   42.912902] Stack: (0xd6c85e70 to 0xd6c86000)
+>> [   42.917510] 5e60:                                     c07235a0 00000000 00000000 d6c84000
+>> [   42.926177] 5e80: 01234567 c00143d0 4321fedc c00511bc d6c85ebc 00000168 00000460 00000000
+>> [   42.934814] 5ea0: c1017950 a0000013 c1017900 d8014390 d7ec3858 c0498e48 c1017950 00000000
+>> [   42.943481] 5ec0: d6ddde10 d6c85f78 00000003 00000000 d6ddde10 d6c84000 00000000 00000000
+>> [   42.952117] 5ee0: 00000002 00000000 00000000 c0088c88 00000002 00000000 00000000 c00f4b90
+>> [   42.960784] 5f00: 00000000 d6c85ebc d8014390 d7e311c8 60000013 00000103 00000002 d6c84000
+>> [   42.969421] 5f20: c00f3274 d6e00a00 00000001 60000013 d6c84000 00000000 00000000 c00895d4
+>> [   42.978057] 5f40: 00000002 d8007c80 d781f000 c00f6150 d8010cc0 c00f3274 d781f000 d6c84000
+>> [   42.986694] 5f60: c0013020 d6e00a00 00000001 20000010 0001257c ef000000 00000000 c00895d4
+>> [   42.995361] 5f80: 00000002 00000001 00000003 00000000 00000001 00000003 00000000 00000058
+>> [   43.003997] 5fa0: c00130c8 c0012f00 00000001 00000003 fee1dead 28121969 01234567 00000002
+>> [   43.012634] 5fc0: 00000001 00000003 00000000 00000058 00012584 0001257c 00000001 00000000
+>> [   43.021270] 5fe0: 000124bc bec5cc6c 00008f9c 4a2f7c40 20000010 fee1dead 00000000 00000000
+>> [   43.029968] [<c00183a4>] (smp_send_stop+0x4c/0xe4) from [<c00143d0>] (machine_restart+0xc/0x4c)
+>> [   43.039154] [<c00143d0>] (machine_restart+0xc/0x4c) from [<c00511bc>] (sys_reboot+0x144/0x1f0)
+>> [   43.048278] [<c00511bc>] (sys_reboot+0x144/0x1f0) from [<c0012f00>] (ret_fast_syscall+0x0/0x3c)
+>> [   43.057464] Code: bad PC value
+>> [   43.060760] ---[ end trace c3988d1dd0b8f0fb ]---
+>> 
+>> An is_smp() check is also necessary besides shilding the smp_send_stop()
+>> call around CONFIG_SMP.
+>> 
+>> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+>> ---
+>> arch/arm/kernel/process.c |    4 +++-
+>> 1 files changed, 3 insertions(+), 1 deletions(-)
+>> 
+>> diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
+>> index 864580a..a9043b8 100644
+>> --- a/arch/arm/kernel/process.c
+>> +++ b/arch/arm/kernel/process.c
+>> @@ -38,6 +38,7 @@
+>> #include <asm/thread_notify.h>
+>> #include <asm/stacktrace.h>
+>> #include <asm/mach/time.h>
+>> +#include <asm/smp_plat.h>
+>> 
+>> #ifdef CONFIG_CC_STACKPROTECTOR
+>> #include <linux/stackprotector.h>
+>> @@ -240,7 +241,8 @@ __setup("reboot=", reboot_setup);
+>> void machine_shutdown(void)
+>> {
+>> #ifdef CONFIG_SMP
+>> -	smp_send_stop();
+>> +	if (is_smp())
+>> +		smp_send_stop();
+>> #endif
+>> }
+>> 
+>> -- 
+>> 1.7.7.6
+>> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
