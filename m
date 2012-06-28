@@ -1,108 +1,68 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH] ARM: OMAP2PLUS: DSS: Disable LCD3 output when resetting DSS
-Date: Thu, 28 Jun 2012 15:14:02 +0530
-Message-ID: <1340876642-5289-1-git-send-email-cmahapatra@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: New compiler warnings with v3.5-rc
+Date: Thu, 28 Jun 2012 15:15:39 +0530
+Message-ID: <CANfBPZ8axAXpAnOcrDrnbXFwWONsvjFxmCP+eBkv0zb4QKufDA@mail.gmail.com>
+References: <alpine.DEB.2.00.1206280244270.2338@utopia.booyaka.com> <1340874331.2059.86.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46259 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932436Ab2F1JoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 05:44:17 -0400
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47894 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753165Ab2F1JqF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 05:46:05 -0400
+Received: by bkcji2 with SMTP id ji2so1843078bkc.5
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 02:46:01 -0700 (PDT)
+In-Reply-To: <1340874331.2059.86.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com
-Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: t-kristo@ti.com
+Cc: Paul Walmsley <paul@pwsan.com>, khilman@ti.com, linux-omap@vger.kernel.org
 
-The dispc_disable_outputs() function currently disables all LCD managers except
-LCD3. This patch adds disabling functionality for LCD3 manager thereby
-maintaining consistency of Display Subsystem for in case Display Controller is
-reset when LCD3 manager is in use.
-
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- arch/arm/mach-omap2/display.c |   25 +++++++++++++++++++++----
- 1 files changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 5fb47a1..af1ed7d 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -37,6 +37,7 @@
- 
- #define DISPC_CONTROL		0x0040
- #define DISPC_CONTROL2		0x0238
-+#define DISPC_CONTROL3		0x0848
- #define DISPC_IRQSTATUS		0x0018
- 
- #define DSS_SYSCONFIG		0x10
-@@ -52,6 +53,7 @@
- #define EVSYNC_EVEN_IRQ_SHIFT	2
- #define EVSYNC_ODD_IRQ_SHIFT	3
- #define FRAMEDONE2_IRQ_SHIFT	22
-+#define FRAMEDONE3_IRQ_SHIFT	30
- #define FRAMEDONETV_IRQ_SHIFT	24
- 
- /*
-@@ -376,7 +378,7 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- static void dispc_disable_outputs(void)
- {
- 	u32 v, irq_mask = 0;
--	bool lcd_en, digit_en, lcd2_en = false;
-+	bool lcd_en, digit_en, lcd2_en = false, lcd3_en = false;
- 	int i;
- 	struct omap_dss_dispc_dev_attr *da;
- 	struct omap_hwmod *oh;
-@@ -405,7 +407,13 @@ static void dispc_disable_outputs(void)
- 		lcd2_en = v & LCD_EN_MASK;
- 	}
- 
--	if (!(lcd_en | digit_en | lcd2_en))
-+	/* store value of LCDENABLE for LCD3 */
-+	if (da->manager_count > 3) {
-+		v = omap_hwmod_read(oh, DISPC_CONTROL3);
-+		lcd3_en = v & LCD_EN_MASK;
-+	}
-+
-+	if (!(lcd_en | digit_en | lcd2_en | lcd3_en))
- 		return; /* no managers currently enabled */
- 
- 	/*
-@@ -426,10 +434,12 @@ static void dispc_disable_outputs(void)
- 
- 	if (lcd2_en)
- 		irq_mask |= 1 << FRAMEDONE2_IRQ_SHIFT;
-+	if (lcd3_en)
-+		irq_mask |= 1 << FRAMEDONE3_IRQ_SHIFT;
- 
- 	/*
- 	 * clear any previous FRAMEDONE, FRAMEDONETV,
--	 * EVSYNC_EVEN/ODD or FRAMEDONE2 interrupts
-+	 * EVSYNC_EVEN/ODD, FRAMEDONE2 or FRAMEDONE3 interrupts
- 	 */
- 	omap_hwmod_write(irq_mask, oh, DISPC_IRQSTATUS);
- 
-@@ -445,12 +455,19 @@ static void dispc_disable_outputs(void)
- 		omap_hwmod_write(v, oh, DISPC_CONTROL2);
- 	}
- 
-+	/* disable LCD3 manager */
-+	if (da->manager_count > 3) {
-+		v = omap_hwmod_read(oh, DISPC_CONTROL3);
-+		v &= ~LCD_EN_MASK;
-+		omap_hwmod_write(v, oh, DISPC_CONTROL3);
-+	}
-+
- 	i = 0;
- 	while ((omap_hwmod_read(oh, DISPC_IRQSTATUS) & irq_mask) !=
- 	       irq_mask) {
- 		i++;
- 		if (i > FRAMEDONE_IRQ_TIMEOUT) {
--			pr_err("didn't get FRAMEDONE1/2 or TV interrupt\n");
-+			pr_err("didn't get FRAMEDONE1/2/3 or TV interrupt\n");
- 			break;
- 		}
- 		mdelay(1);
--- 
-1.7.1
-
+On Thu, Jun 28, 2012 at 2:35 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> On Thu, 2012-06-28 at 02:47 -0600, Paul Walmsley wrote:
+>> Hi Tero,
+>>
+>> there are some new compiler warnings added in the v3.5-rc kernels:
+>>
+>> arch/arm/mach-omap2/twl-common.c:51:12: warning: 'twl_set_voltage' d=
+efined but not used
+>> arch/arm/mach-omap2/twl-common.c:57:12: warning: 'twl_get_voltage' d=
+efined but not used
+>>
+>> They only seem to appear on my N800 builds:
+>>
+>> http://www.pwsan.com/omap/testlogs/am35xx_devel_3.6/20120628014213/b=
+uild/build_20120628011813_log.txt
+>>
+>> but it looks like I somehow am not doing a 2430-specific build yet, =
+so
+>> they may be 24xx-common.
+>>
+>> Anyway they were probably added by:
+>>
+>> commit 49c008ecce1f9a549c12e8957668d60008ab0d79
+>> Author: Tero Kristo <t-kristo@ti.com>
+>> Date: =A0 Mon Feb 20 12:26:08 2012 +0200
+>>
+>> =A0 =A0 arm: omap3: twl: add external controllers for core voltage r=
+egulators
+>>
+>>
+>> Maybe you can put together a quick patch to fix these?
+>
+> Yea, I can do that. Can you provide your .config as reference?
+>
+You can generate one quickly using these steps..
+make omap2plus_defconfig
+scripts/config --disable ARCH_OMAP4
+scripts/config --disable ARCH_OMAP3
+make oldnoconfig
+make uImage
+=2E.. and it should expose the warning.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
