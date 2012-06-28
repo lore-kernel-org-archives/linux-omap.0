@@ -1,41 +1,111 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Current state of AM33xx patches
-Date: Thu, 28 Jun 2012 17:09:08 +0200
-Message-ID: <4FEC7394.9030208@gmail.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv11 6/6] i2c: omap: Recover from Bus Busy condition
+Date: Thu, 28 Jun 2012 20:41:32 +0530
+Message-ID: <1340896292-12112-7-git-send-email-shubhrajyoti@ti.com>
+References: <1340896292-12112-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:36992 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216Ab2F1PJN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 11:09:13 -0400
-Received: by bkcji2 with SMTP id ji2so2109330bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 08:09:12 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340896292-12112-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-On 27.06.2012 14:13, Hiremath, Vaibhav wrote:
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 
-> Just to clarify from AM335x perspective,
-> 
-> In case of AM335x, since the patches and complete BasePort support is still
-> not present in the Mainline (neither in Linus's tree not in linux-omap), you 
-> need to use my Repo (https://github.com/hvaibhav: Closely follows linux-
-> omap/master) in order to test something on BeagleBone platform.
+In case a peripheral is driving SDA bus low (ie. a start condition), provide
+a constant clock output using the test mode of the OMAP I2C controller to
+try and clear the bus. Soft reset I2C controller after attempting the bus clear
+to ensure that controller is in a good state.
 
-Great, that is the information I've been looking for.
+Based upon Vikram Pandita's patch from TI Android 3.0.
+I acknowledge the contributions and suggestions of Jon and Hemant.
 
-Your am335x-upstream-staging branch works for me on a custom AM335x
-based board using a custom DT config.
+A couple differences from the original patch ...
+1. Add a new function for bus clear
+2. Ensure that the CON.I2C_EN bit is set when using the SYSTEST feature to
+   output a permanent clock. This bit needs to be set and typically it would
+   be set by the unidle function but this is not the case for all OMAP
+   generations.
+3. Program the SYSTEST setting only the bits we care about. However, restore
+   SYSTEST registers to there original state as some OMAP generations do not
+   implement perform a soft-reset.
+4. Clear the CON register after performing the bus clear, so when we call the
+   init function the controller is disabled and the init function will
+   re-enable later.
 
-I'll dig through the sources and come back once I know which parts are
-missing.
+Original patch can be found here:
+http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=a2ab04192ba25e60f95ba1ff3af5601a2d7b5bd1
 
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   30 +++++++++++++++++++++++++++---
+ 1 files changed, 27 insertions(+), 3 deletions(-)
 
-Thanks,
-Daniel
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 5058dfc..2500f19 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -148,16 +148,15 @@ enum {
+ #define OMAP_I2C_SCLH_HSSCLH	8
+ 
+ /* I2C System Test Register (OMAP_I2C_SYSTEST): */
+-#ifdef DEBUG
+ #define OMAP_I2C_SYSTEST_ST_EN		(1 << 15)	/* System test enable */
+ #define OMAP_I2C_SYSTEST_FREE		(1 << 14)	/* Free running mode */
+ #define OMAP_I2C_SYSTEST_TMODE_MASK	(3 << 12)	/* Test mode select */
+-#define OMAP_I2C_SYSTEST_TMODE_SHIFT	(12)		/* Test mode select */
++#define OMAP_I2C_SYSTEST_TMODE_TEST	(2 << 12)	/* Test mode select */
++#define OMAP_I2C_SYSTEST_TMODE_LOOP	(3 << 12)	/* Test mode select */
+ #define OMAP_I2C_SYSTEST_SCL_I		(1 << 3)	/* SCL line sense in */
+ #define OMAP_I2C_SYSTEST_SCL_O		(1 << 2)	/* SCL line drive out */
+ #define OMAP_I2C_SYSTEST_SDA_I		(1 << 1)	/* SDA line sense in */
+ #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+-#endif
+ 
+ /* OCP_SYSCONFIG bit definitions */
+ #define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+@@ -458,6 +457,29 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
+ 
+ 	return 0;
+ }
++/*
++ * Bus Clear
++ */
++static int omap_i2c_bus_clear(struct omap_i2c_dev *dev)
++{
++	u16 w;
++
++	/*
++	 * Per the I2C specification, if we are stuck in a bus busy state
++	 * we can attempt a bus clear to try and recover the bus by sending
++	 * at least 9 clock pulses on SCL. Put the I2C in a test mode so it
++	 * will output a continuous clock on SCL.
++	 */
++	w = omap_i2c_read_reg(dev, OMAP_I2C_SYSTEST_REG);
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, (OMAP_I2C_SYSTEST_ST_EN
++			   | OMAP_I2C_SYSTEST_TMODE_TEST));
++	msleep(1);
++	omap_i2c_write_reg(dev, OMAP_I2C_SYSTEST_REG, w);
++	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++	omap_i2c_init(dev);
++	return omap_i2c_wait_for_bb(dev);
++}
+ 
+ /*
+  * Low level master read/write transaction.
+@@ -584,6 +606,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+ 
+ 	r = omap_i2c_wait_for_bb(dev);
+ 	if (r < 0)
++		r = omap_i2c_bus_clear(dev);
++	if (r < 0)
+ 		goto out;
+ 
+ 	if (dev->set_mpu_wkup_lat != NULL)
+-- 
+1.7.5.4
