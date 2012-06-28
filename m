@@ -1,46 +1,56 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Thu, 28 Jun 2012 21:28:50 +0530
-Message-ID: <CAAe_U6L7hMyxEYTOHShkcivdB91PxKa5OA7Q0w2Lw6zyXjXYXw@mail.gmail.com>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv11 3/6] i2c: omap: Do not initialise the completion everytime
+Date: Thu, 28 Jun 2012 21:33:11 +0530
+Message-ID: <CAAe_U6Jtoj3mixvp+vqNmkr-RC28AfNqZ0syEE5voEr+Odv3zg@mail.gmail.com>
+References: <1340896292-12112-1-git-send-email-shubhrajyoti@ti.com>
+	<1340896292-12112-4-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36020 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753824Ab2F1P6y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:58:54 -0400
-Received: by vcbgb30 with SMTP id gb30so3052924vcb.16
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 08:58:51 -0700 (PDT)
-In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340896292-12112-4-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 Hi,
 
-On Wed, Jun 27, 2012 at 11:11 AM, N, Mugunthan V <mugunthanvnm@ti.com> wrote:
->> -----Original Message-----
->> From: N, Mugunthan V
->> Sent: Thursday, June 07, 2012 9:52 PM
->> To: 'linux-omap@vger.kernel.org'
->> Cc: 'linux-arm-kernel@lists.infradead.org'
->> Subject: how to specify dma_mask and coherent_dma_mask in hwmod
->>
->> Hi
->>
->> While converting platform device registry to Hwmod for CPSW Ethernet
->> driver which is present in AM335X (OMAP2+), I am not finding a way to
->> specify
->> dma_mask and coherent_dma_mask.
->> Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
+On Thu, Jun 28, 2012 at 8:41 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> w=
+rote:
+> Use INIT_COMPLETION instead of init_completion in transfer.
 >
-> Ping, any one has comment on this?
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+> - Add Felipe's reviewed-by tag
 >
-Nope. You can specify dma_mask after creating the device as done in
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/usb-musb.c;h=c4a576856661014ea3bec9acc70f80e32d62c33b;hb=HEAD
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A03 ++-
+> =A01 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> index b9915bb..6d05f18 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -490,7 +490,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *=
+adap,
+> =A0 =A0 =A0 =A0w |=3D OMAP_I2C_BUF_RXFIF_CLR | OMAP_I2C_BUF_TXFIF_CLR=
+;
+> =A0 =A0 =A0 =A0omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, w);
+>
+> - =A0 =A0 =A0 init_completion(&dev->cmd_complete);
+> + =A0 =A0 =A0 INIT_COMPLETION(dev->cmd_complete);
+> =A0 =A0 =A0 =A0dev->cmd_err =3D 0;
+>
+> =A0 =A0 =A0 =A0w =3D OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CO=
+N_STT;
+> @@ -999,6 +999,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, dev);
+> + =A0 =A0 =A0 init_completion(&dev->cmd_complete);
+It should be INIT_COMPLETION here too.
 
-Regards
+Thanks
 Kishon
