@@ -1,86 +1,41 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH-V3 3/3] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
- around __omap2_set_globals
-Date: Thu, 28 Jun 2012 17:05:38 +0200
-Message-ID: <4FEC72C2.7010106@ti.com>
-References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com> <1340895567-22766-4-git-send-email-hvaibhav@ti.com>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: Current state of AM33xx patches
+Date: Thu, 28 Jun 2012 17:09:08 +0200
+Message-ID: <4FEC7394.9030208@gmail.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44707 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751733Ab2F1PFs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:05:48 -0400
-In-Reply-To: <1340895567-22766-4-git-send-email-hvaibhav@ti.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:36992 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216Ab2F1PJN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 11:09:13 -0400
+Received: by bkcji2 with SMTP id ji2so2109330bkc.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 08:09:12 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-Hi Vaibhav,
+On 27.06.2012 14:13, Hiremath, Vaibhav wrote:
 
-One small comment.
+> Just to clarify from AM335x perspective,
+> 
+> In case of AM335x, since the patches and complete BasePort support is still
+> not present in the Mainline (neither in Linus's tree not in linux-omap), you 
+> need to use my Repo (https://github.com/hvaibhav: Closely follows linux-
+> omap/master) in order to test something on BeagleBone platform.
 
-On 06/28/2012 04:59 PM, Vaibhav Hiremath wrote:
-> The function __omap2_set_globals() can be common across all
-> platforms/architectures, even in case of omap4, internally it
-> calls same set of functions as in __omap2_set_globals() function
-> (except for sdrc).
-> This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
-> so that we can reuse same function across omap2/3/4...
->
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
->
-> Changes from V1:
-> 	- Added Makefile rule to build sdrc.c file for new
-> 	  option SOC_HAS_OMAP2_SDRC (as per Kevin's comment).
-> ---
->   arch/arm/mach-omap2/Kconfig  |    8 ++++++++
->   arch/arm/mach-omap2/Makefile |    3 ++-
->   arch/arm/mach-omap2/common.c |    8 +-------
->   arch/arm/mach-omap2/common.h |    5 +++++
->   4 files changed, 16 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 208b950..82d9d18 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -21,12 +21,16 @@ config ARCH_OMAP2PLUS_TYPICAL
->   	help
->   	  Compile a kernel suitable for booting most boards
->
-> +config SOC_HAS_OMAP2_SDRC
-> +	bool "OMAP2 SDRAM Controller support"
-> +
->   config ARCH_OMAP2
->   	bool "TI OMAP2"
->   	depends on ARCH_OMAP2PLUS
->   	default y
->   	select CPU_V6
->   	select MULTI_IRQ_HANDLER
-> +	select SOC_HAS_OMAP2_SDRC
->
->   config ARCH_OMAP3
->   	bool "TI OMAP3"
-> @@ -39,6 +43,7 @@ config ARCH_OMAP3
->   	select PM_OPP if PM
->   	select ARM_CPU_SUSPEND if PM
->   	select MULTI_IRQ_HANDLER
-> +	select SOC_HAS_OMAP2_SDRC
->
->   config ARCH_OMAP4
->   	bool "TI OMAP4"
-> @@ -66,16 +71,19 @@ config SOC_OMAP2420
->   	depends on ARCH_OMAP2
->   	default y
->   	select OMAP_DM_TIMER
-> +	select SOC_HAS_OMAP2_SDRC
+Great, that is the information I've been looking for.
 
-OMAP4 does not have the SDRC but the EMIF like TI8XX.
+Your am335x-upstream-staging branch works for me on a custom AM335x
+based board using a custom DT config.
 
-Regards,
-Benoit
+I'll dig through the sources and come back once I know which parts are
+missing.
+
+
+Thanks,
+Daniel
