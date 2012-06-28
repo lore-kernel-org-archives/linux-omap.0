@@ -1,124 +1,117 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 06/12] OMAPDSS: SDI: Configure dss_lcd_mgr_config struct with lcd manager parameters
-Date: Thu, 28 Jun 2012 20:00:36 +0530
-Message-ID: <1340893842-10626-8-git-send-email-archit@ti.com>
+Subject: [PATCH 08/12] OMAPDSS: MANAGER: Check LCD related overlay manager parameters
+Date: Thu, 28 Jun 2012 20:00:38 +0530
+Message-ID: <1340893842-10626-10-git-send-email-archit@ti.com>
 References: <1340893842-10626-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41724 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60907 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751396Ab2F1Oc2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 10:32:28 -0400
+	id S1752066Ab2F1Och (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 10:32:37 -0400
 In-Reply-To: <1340893842-10626-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Create a dss_lcd_mgr_config struct instance in SDI. Fill up all the parameters
-of the struct with configurations held by the panel, and the configurations
-required by SDI.
+The LCD related manager configurations are a part of the manager's private data
+in APPLY. Pass this to dss_lcd_mgr_config to dss_mgr_check and create a function
+to check the validity of some of the configurations.
 
-Use these to write to the DISPC registers. These direct register writes would be
-later replaced by a function which applies the configuration using the shadow
-register programming model.
-
-Create function sdi_config_lcd_manager() which fills the mgr_config parameters
-and writes to the DISPC registers
+To check some of the configurations, we require information of interface to
+which the manager output is connected. These can be added once interfaces are
+represented as an entity.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/sdi.c |   42 +++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ drivers/video/omap2/dss/apply.c   |    2 +-
+ drivers/video/omap2/dss/dss.h     |    1 +
+ drivers/video/omap2/dss/manager.c |   35 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 0b2659f..f6cd96c 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -32,18 +32,34 @@
- static struct {
- 	bool update_enabled;
- 	struct regulator *vdds_sdi_reg;
--} sdi;
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index bb4ec63..95a6713 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -226,7 +226,7 @@ static int dss_check_settings_low(struct omap_overlay_manager *mgr,
+ 		ois[ovl->id] = oi;
+ 	}
  
--static void sdi_basic_init(struct omap_dss_device *dssdev)
-+	struct dss_lcd_mgr_config mgr_config;
-+} sdi;
- 
-+static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
- {
--	dispc_mgr_set_io_pad_mode(DSS_IO_PAD_MODE_BYPASS);
--	dispc_mgr_enable_stallmode(dssdev->manager->id, false);
-+	sdi.mgr_config.io_pad_mode = DSS_IO_PAD_MODE_BYPASS;
- 
--	dispc_mgr_set_lcd_type_tft(dssdev->manager->id);
-+	sdi.mgr_config.stallmode = false;
-+	sdi.mgr_config.fifohandcheck = false;
-+
-+	sdi.mgr_config.video_port_width = 24;
-+	sdi.mgr_config.lcden_sig_polarity = 1;
-+
-+	dispc_mgr_set_io_pad_mode(sdi.mgr_config.io_pad_mode);
-+	dispc_mgr_enable_stallmode(dssdev->manager->id,
-+			sdi.mgr_config.stallmode);
-+	dispc_mgr_enable_fifohandcheck(dssdev->manager->id,
-+			sdi.mgr_config.fifohandcheck);
- 
--	dispc_mgr_set_tft_data_lines(dssdev->manager->id, 24);
--	dispc_lcd_enable_signal_polarity(1);
-+	dispc_mgr_set_clock_div(dssdev->manager->id,
-+			&sdi.mgr_config.clock_info);
-+
-+	dispc_mgr_set_tft_data_lines(dssdev->manager->id,
-+			sdi.mgr_config.video_port_width);
-+	dispc_lcd_enable_signal_polarity(sdi.mgr_config.lcden_sig_polarity);
-+
-+	dispc_mgr_set_lcd_type_tft(dssdev->manager->id);
+-	return dss_mgr_check(mgr, mi, &mp->timings, ois);
++	return dss_mgr_check(mgr, mi, &mp->timings, &mp->lcd_config, ois);
  }
  
- int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
-@@ -51,8 +67,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 	struct omap_video_timings *t = &dssdev->panel.timings;
- 	struct dss_clock_info dss_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
--	u16 lck_div, pck_div;
--	unsigned long fck;
- 	unsigned long pck;
- 	int r;
+ /*
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index b4c52ec..cb859e3 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -235,6 +235,7 @@ int dss_mgr_check_timings(struct omap_overlay_manager *mgr,
+ int dss_mgr_check(struct omap_overlay_manager *mgr,
+ 		struct omap_overlay_manager_info *info,
+ 		const struct omap_video_timings *mgr_timings,
++		const struct dss_lcd_mgr_config *config,
+ 		struct omap_overlay_info **overlay_infos);
  
-@@ -75,8 +89,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ static inline bool dss_mgr_is_lcd(enum omap_channel id)
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index 0cbcde4..09540bc 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -665,9 +665,40 @@ int dss_mgr_check_timings(struct omap_overlay_manager *mgr,
+ 	return 0;
+ }
+ 
++static int dss_mgr_check_lcd_config(struct omap_overlay_manager *mgr,
++		const struct dss_lcd_mgr_config *config)
++{
++	struct dispc_clock_info cinfo = config->clock_info;
++	int dl = config->video_port_width;
++	bool stallmode = config->stallmode;
++	bool fifohandcheck = config->fifohandcheck;
++
++	if (cinfo.lck_div < 1 || cinfo.lck_div > 255)
++		return -EINVAL;
++
++	if (cinfo.pck_div < 1 || cinfo.pck_div > 255)
++		return -EINVAL;
++
++	if (dl != 12 && dl != 16 && dl != 18 && dl != 24)
++		return -EINVAL;
++
++	/* fifohandcheck should be used only with stallmode */
++	if (stallmode == false && fifohandcheck == true)
++		return -EINVAL;
++
++	/*
++	 * io pad mode can be only checked by using dssdev connected to the
++	 * manager. Ignore checking these for now, add checks when manager
++	 * is capable of holding information related to the connected interface
++	 */
++
++	return 0;
++}
++
+ int dss_mgr_check(struct omap_overlay_manager *mgr,
+ 		struct omap_overlay_manager_info *info,
+ 		const struct omap_video_timings *mgr_timings,
++		const struct dss_lcd_mgr_config *lcd_config,
+ 		struct omap_overlay_info **overlay_infos)
+ {
+ 	struct omap_overlay *ovl;
+@@ -683,6 +714,10 @@ int dss_mgr_check(struct omap_overlay_manager *mgr,
  	if (r)
- 		goto err_get_dispc;
+ 		return r;
  
--	sdi_basic_init(dssdev);
--
- 	/* 15.5.9.1.2 */
- 	dssdev->panel.timings.pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
- 	dssdev->panel.timings.hsync_vsync_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
-@@ -85,11 +97,9 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_calc_clock_div;
- 
--	fck = dss_cinfo.fck;
--	lck_div = dispc_cinfo.lck_div;
--	pck_div = dispc_cinfo.pck_div;
-+	sdi.mgr_config.clock_info = dispc_cinfo;
- 
--	pck = fck / lck_div / pck_div / 1000;
-+	pck = dss_cinfo.fck / dispc_cinfo.lck_div / dispc_cinfo.pck_div / 1000;
- 
- 	if (pck != t->pixel_clock) {
- 		DSSWARN("Could not find exact pixel clock. Requested %d kHz, "
-@@ -106,7 +116,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_set_dss_clock_div;
- 
--	dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
-+	sdi_config_lcd_manager(dssdev);
- 
- 	dss_sdi_init(dssdev->phy.sdi.datapairs);
- 	r = dss_sdi_enable();
++	r = dss_mgr_check_lcd_config(mgr, lcd_config);
++	if (r)
++		return r;
++
+ 	list_for_each_entry(ovl, &mgr->overlays, list) {
+ 		struct omap_overlay_info *oi;
+ 		int r;
 -- 
 1.7.9.5
 
