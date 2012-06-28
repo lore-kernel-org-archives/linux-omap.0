@@ -1,116 +1,97 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
-Date: Thu, 28 Jun 2012 16:55:08 -0500
-Message-ID: <87lij7nltv.fsf@ti.com>
-References: <1340761532-27231-1-git-send-email-khilman@ti.com>
-	<CAM=Q2cuLCT2VzcUgrpyRWiX61t1F+iWchO9iLC=Ka9MFVm4_bQ@mail.gmail.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Thu, 28 Jun 2012 16:55:49 -0500
+Message-ID: <4FECD2E5.1060603@ti.com>
+References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com> <4FECCB91.7090609@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAM=Q2cuLCT2VzcUgrpyRWiX61t1F+iWchO9iLC=Ka9MFVm4_bQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Shubhrajyoti Datta's message of "Wed, 27 Jun 2012 11:41:47 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FECCB91.7090609-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tarun.kanti-l0cyMroinI0@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Shubhrajyoti,
 
-Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
-
-> Hi Kevin,
-> Thanks for the patch ,
-> a doubt below
-
-Thanks for the review.
-
-> On Wed, Jun 27, 2012 at 7:15 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
->> In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
->> failure.
-> So the failure means that the usecount is incremented. However the
-> device was not
-> enabled.=20
-
-Correct.
-
-> In that case could we consider
->
->    void pm_runtime_put_noidle(struct device *dev);
->     - decrement the device's usage counter
->
-> Which will only decrement the counter and does not try to disable it.
-
-No, that is not needed.
-
-> However I am not sure what happens if you try to disable an already
-> disabled device.
-
-The runtime PM core already knows that the device is not enabled so wil=
-l
-not need to call the disable hooks.  It already needs this functionalit=
-y
-to support the _get_noresume() and _put_noidle() calls.
-
-I tested this on 3730/OveroSTORM where I was seeing this i2c xfer
-failure (and thus a failure in MMC suspend, which uses I2C to control
-the regulator.)
-
-Hope that helps clarify,
-
-If so, Wolfram, can you queue this up in your i2c-embedded/for-next
-branch since this problem was introduced there.
-
-Thanks,
-
-Kevin
-
+On 06/28/2012 04:24 PM, Franky Lin wrote:
+> On 06/28/2012 08:42 AM, Jon Hunter wrote:
 >>
->> Without this, after a failed xfer, the runtime PM usecount will have
->> been incremented, but not decremented
->
-> Agree.
->
->> causing the usecount to never
->> reach zero after a failure. =C2=A0This keeps the device always runti=
-me PM
->> enabled which keeps the enclosing power domain active, and prevents
->> full-chip retention/off from happening during idle.
+>> On 06/27/2012 07:41 PM, Franky Lin wrote:
+>>> On 06/26/2012 08:37 PM, Kevin Hilman wrote:
+>>>> "Franky Lin" <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> writes:
+>>>>> I noticed Kevin raised some similar cases on other platforms and also
+>>>>> provided two patches in the patch mail thread. But unfortunately those
+>>>>> two patches doesn't help in our case. I tested the driver with 3.5-rc3
+>>>>> mainline kernel and the issue is still there. I can only "fix" the
+>>>>> hang by either reverting the commit or disabling
+>>>>> CONFIG_PM_RUNTIME. Also, the hang only happens on Panda ES board. Old
+>>>>> Panda with 4430 works good.
+>>>>>
+>>>>> Any thoughts and suggestions?
+>>>>
+>>>> If reverting the patch fixes your problem, can you isolate down to
+>>>> which
+>>>> part of that patch causes the problem?  IOW, can you fix your
+>>>> problem if
+>>>> you undo just the hunk added in runtime_suspend or undo just the moved
+>>>> hunk runtime_resume?  Or is reverting both required?
+>>>>
+>>>> I suspect the added runtime_suspend hunk is causing the problems, so
+>>>> can
+>>>> you see if just undoing that part works[1].  If that works, I will give
+>>>> a bit more of a thinking on it tomorrow.
+>>>
+>>> runtime_suspend hunk is fine. The hang still exist after reverting it.
+>>> The culprit is the moved hunk in runtime_resume. Reverting it makes the
+>>> hang disappear.
 >>
->> Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
->> ---
->> This patch applies to current i2c-embedded/for-next branch
+>> Thanks. From reviewing the code the only thing that appears suspect based
+>> upon your findings is the return if we find the context has not been
+>> lost.
+>> We are not checking if "workaround_enabled" is set before we return.
 >>
->> =C2=A0drivers/i2c/busses/i2c-omap.c | =C2=A0 =C2=A02 +-
->> =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
+>> Could you try the following change on top of v3.5-rc3?
 >>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
-omap.c
->> index 9895fa7..b105733 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -582,7 +582,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i=
-2c_msg msgs[], int num)
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0r =3D pm_runtime_get_sync(dev->dev);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (IS_ERR_VALUE(r))
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return r;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto out;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0r =3D omap_i2c_wait_for_bb(dev);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (r < 0)
->> --
->> 1.7.9.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> The patch doesn't help. And I also managed to probe the signal. It's
+> active when it hung.
+
+Ok. Any way to manually reset the wlan module to deactivate the gpio
+when it is hung? I am wondering if the gpio is deactivated if the board
+comes back to life, indicating it is stuck in the interrupt somewhere.
+
+>> Also, could you add a print in the runtime_suspend/resume() functions so
+>> we can see how often these are being called. In my case, I really
+>> don't see
+>> these being exercised and I am wondering how often you see suspend/resume
+>> being called in your setup.
+> 
+> Well, the runtime_suspend/resume never get called during the test.
+
+Well, at least that is consistent with what I see, but also perplexing
+that it takes sometime to fail. Can you try the following as a debug
+patch to see if it is in the context restore that is the problem. From
+your testing and bisect, the only possible difference in the current
+kernel is that it could perform the context restore when acquiring the gpio.
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index c4ed172..a2401bd 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1341,6 +1341,8 @@ void omap2_gpio_resume_after_idle(void)
+ #if defined(CONFIG_PM_RUNTIME)
+ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ {
++       return;
++
+        __raw_writel(bank->context.wake_en,
+                                bank->base + bank->regs->wkup_en);
+        __raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
+
+Cheers
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
