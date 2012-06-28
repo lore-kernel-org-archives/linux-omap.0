@@ -1,54 +1,55 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
-Date: Thu, 28 Jun 2012 09:17:45 -0700
-Message-ID: <1340900265-11962-1-git-send-email-khilman@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
+Date: Thu, 28 Jun 2012 21:50:58 +0530
+Message-ID: <CAJe_ZhceO8TabHVZZ7BLqYE-EAhtSJxzwWv8eA7KfffSK_dxXQ@mail.gmail.com>
+References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
+	<1340869729.5037.7.camel@deskari>
+	<CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
+	<1340878461.5037.30.camel@deskari>
+	<CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
+	<CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
+	<1340881815.5037.53.camel@deskari>
+	<4FEC47FA.1040801@linaro.org>
+	<CAJe_Zhdkhu4TciiwGJB2Kz8oZp2RQNZfESSr5Cfv0R1MNn=r9A@mail.gmail.com>
+	<1340890278.5037.91.camel@deskari>
+	<CAJe_ZheBbj3qoECDokcxHsB4UOx354G5t_MfYiZ3UEm9xK=tqw@mail.gmail.com>
+	<1340897244.5037.140.camel@deskari>
+	<CAJe_Zhdnc8TOY8hDiuZfjto9fTWnT8piGpjczApzfLVMnCcE7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:40764 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261Ab2F1QVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 12:21:00 -0400
+Received: by lbbgm6 with SMTP id gm6so3300261lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 09:20:58 -0700 (PDT)
+In-Reply-To: <CAJe_Zhdnc8TOY8hDiuZfjto9fTWnT8piGpjczApzfLVMnCcE7w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Andy Green <andy.green@linaro.org>, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, n-dechesne@ti.com, patches@linaro.org
 
-Requesting a threaded interrupt without a primary handler and without
-IRQF_ONESHOT is dangerous, and after commit 1c6c6952 (genirq: Reject
-bogus threaded irq requests), these requests are rejected.  This
-causes ->probe() to fail, and the RTC driver not to be availble.
+On 28 June 2012 21:18, Jassi Brar <jaswinder.singh@linaro.org> wrote:
+> On 28 June 2012 20:57, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-To fix, add IRQF_ONESHOT to the IRQ flags.
+>>> > By the way, when the device is in system suspend, we surely won't detect
+>>> > the HPD even if we kept the HPD always enabled. So there we'll miss the
+>>> > HPD interrupt anyway, and the EDID cache would be invalid.
+>>> >
+>>> If omapdss already handles the possibility of display changed during
+>>> suspend, I think we should be good :)
+>>
+>> Hmm I'm not sure I understand what you mean. I was referring to your
+>> patch, which invalidated the EDID cache only on HPD interrupt when the
+>> cable is unplugged. And we'd miss that interrupt when the board is in
+>> system suspend, even if we otherwise kept the HPD interrupt always
+>> enabled.
+>>
+> I meant before stale-edid, we face potential problem of omapdss
+> behaving badly to the displays switched during suspend ?
+>
+OK, I think I get now what you mean. We do need to invalidate
+edid-cache in the suspend path, irrespective of how omapdss behaves.
 
-Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake
-to wake from system suspend multiple times.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-This fix is needed in v3.5.
-Applies on top of v3.5-rc4.
-
- drivers/rtc/rtc-twl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 258abea..c5d06fe 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
- 	}
- 
- 	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
--				   IRQF_TRIGGER_RISING,
-+				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
- 				   dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ is not free.\n");
--- 
-1.7.9.2
+Thanks.
