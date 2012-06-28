@@ -1,56 +1,59 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
-Date: Thu, 28 Jun 2012 18:01:50 +0530
-Message-ID: <CAJe_ZhfevYJGKEDxmXaBJk3MvvPiFysrvctKqZiD+E1J0DxLsg@mail.gmail.com>
-References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340869729.5037.7.camel@deskari>
-	<CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
-	<1340878461.5037.30.camel@deskari>
-	<CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
-	<CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
-	<1340881815.5037.53.camel@deskari>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Thu, 28 Jun 2012 05:32:07 -0700
+Message-ID: <20120628123207.GG19842@atomide.com>
+References: <cover.1340778002.git.afzal@ti.com>
+ <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+ <20120627145844.GL3483@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:55859 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689Ab2F1Mbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 08:31:52 -0400
-Received: by lbbgm6 with SMTP id gm6so3038469lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 05:31:50 -0700 (PDT)
-In-Reply-To: <1340881815.5037.53.camel@deskari>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56275 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753754Ab2F1McL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 08:32:11 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, patches@linaro.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 28 June 2012 16:40, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Thu, 2012-06-28 at 16:28 +0530, Jassi Brar wrote:
-> >
->> Sorry a correction. Reading detect() won't work. I suggest we keep HPD
->> IRQ enabled for the lifetime of the driver.
->
-> Ok, I see. But that's not acceptable. It would require us to keep the
-> TPD12S015 always powered and enabled. Even if you're not interested in
-> using HDMI at all.
->
- I think we need to differentiate between HDMI PHY enable and HDMI
-5V+,HPD enable [1]... currently they are clubbed together in
-omap_dss_device.platform_enable.  AFAIK, at least with TPD12S015, they
-can be controlled independently and PHY enabling is actually the main
-source of power consumption if no display is connected.
+* Mohammed, Afzal <afzal@ti.com> [120628 02:36]:
+> Hi Tony,
+> 
+> On Wed, Jun 27, 2012 at 20:28:45, Tony Lindgren wrote:
+> 
+> > The last patch in this series causes onenand not to show
+> > up on my n900. I believe the problem has been there earlier
+> > too, but I just did not notice it.
+> 
+> Sorry for the delayed response, could reach workplace a short
+> while ago only
+> 
+> Could the diff [1] be tried and check whether it resolves the issue,
+> 
+> Regards
+> Afzal
+> 
+> [1]
+> diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+> index c8a9487..bbae674 100644
+> --- a/arch/arm/mach-omap2/gpmc-onenand.c
+> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
+> @@ -364,6 +364,8 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
+>         struct gpmc_timings t;
+>         int ret;
+> 
+> +       omap2_onenand_set_async_mode(onenand_base);
+> +
+>         t = omap2_onenand_calc_async_timings();
+> 
+>         ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
 
-By 'lifetime' I mean when the end-user selects some option to the
-effect of "Automatically detect and configure display over HDMI" ....
-and then we simply enable the HDMI 5V+/HPD,   HDMI-PHY would be
-enabled only when we actually detect HPD asserted. If a device doesn't
-have a port or the user doesn't have a display, neither would be ever
-enabled. I mean we should provide a way to make it platform dependent.
+Yes that seems to do the trick, thanks! I can fold that into the
+breaking patch when applying.
 
-
- [1]  Thanks to Andy and his crappy TV, he found clubbing enabling PHY
-with 5V+ application comes in the way of detecting cheapo displays
-that take ~700ms before asserting HPD i.e, making EDID available. See
-how we don't leave it to a HDMI display to take it's own time before
-asserting HPD - omapdss_hdmi_display_enable/disable pairs don't care
-for that.
+Tony
