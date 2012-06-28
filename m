@@ -1,56 +1,54 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv11 3/6] i2c: omap: Do not initialise the completion everytime
-Date: Thu, 28 Jun 2012 21:33:11 +0530
-Message-ID: <CAAe_U6Jtoj3mixvp+vqNmkr-RC28AfNqZ0syEE5voEr+Odv3zg@mail.gmail.com>
-References: <1340896292-12112-1-git-send-email-shubhrajyoti@ti.com>
-	<1340896292-12112-4-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
+Date: Thu, 28 Jun 2012 09:17:45 -0700
+Message-ID: <1340900265-11962-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340896292-12112-4-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: rtc-linux@googlegroups.com, linux-omap@vger.kernel.org
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Requesting a threaded interrupt without a primary handler and without
+IRQF_ONESHOT is dangerous, and after commit 1c6c6952 (genirq: Reject
+bogus threaded irq requests), these requests are rejected.  This
+causes ->probe() to fail, and the RTC driver not to be availble.
 
-On Thu, Jun 28, 2012 at 8:41 PM, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> w=
-rote:
-> Use INIT_COMPLETION instead of init_completion in transfer.
->
-> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
-> - Add Felipe's reviewed-by tag
->
-> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A03 ++-
-> =A01 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index b9915bb..6d05f18 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -490,7 +490,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *=
-adap,
-> =A0 =A0 =A0 =A0w |=3D OMAP_I2C_BUF_RXFIF_CLR | OMAP_I2C_BUF_TXFIF_CLR=
-;
-> =A0 =A0 =A0 =A0omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, w);
->
-> - =A0 =A0 =A0 init_completion(&dev->cmd_complete);
-> + =A0 =A0 =A0 INIT_COMPLETION(dev->cmd_complete);
-> =A0 =A0 =A0 =A0dev->cmd_err =3D 0;
->
-> =A0 =A0 =A0 =A0w =3D OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CO=
-N_STT;
-> @@ -999,6 +999,7 @@ omap_i2c_probe(struct platform_device *pdev)
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, dev);
-> + =A0 =A0 =A0 init_completion(&dev->cmd_complete);
-It should be INIT_COMPLETION here too.
+To fix, add IRQF_ONESHOT to the IRQ flags.
 
-Thanks
-Kishon
+Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake
+to wake from system suspend multiple times.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+This fix is needed in v3.5.
+Applies on top of v3.5-rc4.
+
+ drivers/rtc/rtc-twl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 258abea..c5d06fe 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
+-				   IRQF_TRIGGER_RISING,
++				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+ 				   dev_name(&rtc->dev), rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "IRQ is not free.\n");
+-- 
+1.7.9.2
