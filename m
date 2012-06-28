@@ -1,62 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Bringing back gptimer_wakeup
-Date: Thu, 28 Jun 2012 09:00:34 -0500
-Message-ID: <87pq8jpmd9.fsf@ti.com>
-References: <4FDEF24C.8020305@gmail.com> <87k3z4lcrs.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 0/2] OMAP2+: PANDA: Provide unique-ish MAC addresses for Ethernet and WLAN interfaces
+Date: Thu, 28 Jun 2012 14:18:15 +0000
+Message-ID: <201206281418.16854.arnd@arndb.de>
+References: <20110324211451.14936.39750.stgit@otae.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:34380 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754465Ab2F1OAX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 10:00:23 -0400
-Received: by yhoo21 with SMTP id o21so2649414yho.18
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 07:00:21 -0700 (PDT)
-In-Reply-To: <87k3z4lcrs.fsf@ti.com> (Kevin Hilman's message of "Mon, 18 Jun
-	2012 11:01:59 -0700")
+Received: from moutng.kundenserver.de ([212.227.17.8]:57173 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751322Ab2F1OSe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 10:18:34 -0400
+In-Reply-To: <20110324211451.14936.39750.stgit@otae.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Andy Green <andy@warmcat.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, nicolas.pitre@linaro.org, x0132446@ti.com, s-jan@ti.com, tony@atomide.com, Steven Rostedt <rostedt@goodmis.org>
 
-Kevin Hilman <khilman@ti.com> writes:
+On Thursday 24 March 2011, Andy Green wrote:
+> The following series solves a problem Panda suffers from where
+> because there is no local MAC address storage on the board, a
+> new random MAC address is applied to the onboard Ethernet
+> interface each time, and the wl12xx module's wlan0 interface is
+> always found with an unworkable 00:00:00:00:00:00 MAC.
+> 
+> The series adds an omap id-related API to generate a
+> 6-byte Ethernet MAC address from "hashing" a little the CPU ID
+> registers.  It is understood from TI that these contain data
+> that at least in a subset of the 128 bits of the ID are unique per-CPU.
+> 
+> It then introduces code in the Panda board definition file to
+> watch network interface creation and if the device's path is on
+> a list, set its MAC address to the CPU ID-generated one, plus
+> two bits which differ according to which interface in the list
+> is being changed.  (This scheme was suggested by Alan Cox).
+> 
+> The device paths for the onboard Ethernet smsc95xx, and the
+> onboard WLAN wl12xx are listed, so both of these will get
+> assigned a consistent, unique-ish locally administered MAC
+> address with these patches.
+> 
+> It's beleived the current scheme for MAC generation from ID
+> data captures most of the entropy, but if there is a better scheme
+> more closely mapped to what the unique factory areas are advice
+> is welcome.
+> 
+> The patches are against linux-omap which already has a prerequisite
+> patch that fixes a problem with device ID capture on OMAP4.
 
-> Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
->
->> The support for using a timer to wake from suspend was removed in:
->> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
->>
->> I found an alternative patch
->> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
->> that claimed to keep it working using GPTIMER1 instead, but I haven't
->> been able to make it work (likely because the timer code has changed a
->> good deal since the patch was posted).
->>
->> Anyone got
->> a) a patch that enables this feature on newer kernels, or
->> b) an idea how the patch above can be made to work?
->
-> The branch below (based on v3.4) will work (at least on OMAP3)
->
-> We've been holding off on putting this back becasue the timer interface
-> has been going through some major cleanup/rework, but I would like to
-> see this make it back in soonish.
+It's been a while since we discussed these patches, but Steven Rostedt
+just tripped over the same problem and the patches work for
+him, so he says "Tested-by: Steven Rostedt <rostedt@goodmis.org>".
 
-Note that another feature that can be used for this same feature is
-wakeup using RTC.
+Can we get the patches into linux-3.6 please?
 
-On OMAP3 platoforms with TWL4030 PMIC (which contains an RTC), this is
-successfully working using the 'rtcwake' utility.
-
-E.g., to suspend-to-RAM and trigger an RTC wakeup 4 seconds later, do:
-
-  # rtcwake -m mem -s 4
-
-The RTC timekeeping seems a bit broken and the actual delay seems to be
-about 2x the value passed in here, but otherwise this works.
-
-There are currently some problems with the OMAP4 RTC driver that prevent
-this from working, but they need to be investigated.
-
-Kevin
+	Arnd
