@@ -1,95 +1,131 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 3/3] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
- around __omap2_set_globals
-Date: Thu, 28 Jun 2012 15:36:53 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA5D5F3@DBDE01.ent.ti.com>
-References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
- <1340895567-22766-4-git-send-email-hvaibhav@ti.com> <4FEC72C2.7010106@ti.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Thu, 28 Jun 2012 10:37:05 -0500
+Message-ID: <4FEC7A21.5020409@ti.com>
+References: <4FE8CF77.5080400@broadcom.com> <4FEB9A9D.4080406@ti.com> <4FEBAD7A.5050505@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41015 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177Ab2F1PhA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 11:37:00 -0400
-In-Reply-To: <4FEC72C2.7010106@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FEBAD7A.5050505-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: khilman-l0cyMroinI0@public.gmane.org, tarun.kanti-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Jun 28, 2012 at 20:35:38, Cousson, Benoit wrote:
-> Hi Vaibhav,
+Hi Franky,
+
+On 06/27/2012 08:03 PM, Franky Lin wrote:
+> On 06/27/2012 04:43 PM, Jon Hunter wrote:
+>> Hi Franky,
+>>
+>> On 06/25/2012 03:52 PM, Franky Lin wrote:
+>>> Hi Kevin, Tarun,
+>>>
+>>> We are using the expansion connector A on Panda board to mount a SDIO
+>>> WiFi dongle on MMC2 with a level triggered interrupt signal connected to
+>>> GPIO 138. It's been working fine until 3.5 rc1. The board hang randomly
+>>> within 5 mins during a network traffic test. After bisecting we found
+>>> the culprit is "[PATCH 8/8] gpio/omap: fix missing check in
+>>> *_runtime_suspend()" [1].
+>>
+>> I have been looking into this today to see if I can replicate the
+>> problem that you have reported. However, so far I have not had any luck.
+>> Please note that my test setup is not exactly the same as yours as I
+>> don't have your wlan module. However, I have been using a 2nd board to
+>> generate gpio events to a panda-es to see I can make it lock up. I have
+>> tried mainline kernel 3.5-rc1 and 3.5-rc3 but I have not seen any
+>> problems after sending 100k gpio events (over many minutes). My setup is
+>> as follows ...
+>>
+>> - OMAP4460 panda-es with gpio-138 connected to OMAP3430 beagle gpio-11.
+>> - Mainline kernel 3.5-rc1/3 using omap2plus_defconfig (no changes)
+>> - Created a simple kernel module that acquires gpio-138 and sets up a
+>>    IRQ with flag IRQF_TRIGGER_HIGH (for active high level interrupt).
+>> - GPIO events are triggered roughly every 1ms
 > 
-> One small comment.
+> Don't know if it's related, but we also mux several other pins on
+> connector A:
+>         /* MMC2 Mux for extension board */
+>         /* MMC2 CMD */
+>         OMAP4_MUX(GPMC_NWE, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         /* MMC2 CLK */
+>         OMAP4_MUX(GPMC_NOE, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         /* MMC2 DAT 0-3 */
+>         OMAP4_MUX(GPMC_AD0, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         OMAP4_MUX(GPMC_AD1, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         OMAP4_MUX(GPMC_AD2, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         OMAP4_MUX(GPMC_AD3, OMAP_MUX_MODE1 | OMAP_PIN_INPUT_PULLUP),
+>         /* GPIO MUX for OOB interupt of dongle */
+>         OMAP4_MUX(MCSPI1_CS1, OMAP_MUX_MODE3 | OMAP_PIN_INPUT_PULLDOWN),
+>         /* GPIO MUX for WLAN_ENABLE for dongle */
+>         OMAP4_MUX(MCSPI1_CLK, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
+
+I would not have thought so. However, I will think about that thanks.
+
+>> Can you confirm ...
+>> 1. You are just using omap2plus_defconfig with no changes?
+> No, we enable following options
+> CONFIG_DEVTMPFS=y
+> CONFIG_DEVTMPFS_MOUNT=y
+> CONFIG_USB_OHCI_HCD=y
+
+Ok, thanks.
+
+>> 2. Rough frequency of gpio events?
+> 3367 interrupts were triggered during a 10 secs throughput test.
 > 
-> On 06/28/2012 04:59 PM, Vaibhav Hiremath wrote:
-> > The function __omap2_set_globals() can be common across all
-> > platforms/architectures, even in case of omap4, internally it
-> > calls same set of functions as in __omap2_set_globals() function
-> > (except for sdrc).
-> > This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
-> > so that we can reuse same function across omap2/3/4...
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> >
-> > Changes from V1:
-> > 	- Added Makefile rule to build sdrc.c file for new
-> > 	  option SOC_HAS_OMAP2_SDRC (as per Kevin's comment).
-> > ---
-> >   arch/arm/mach-omap2/Kconfig  |    8 ++++++++
-> >   arch/arm/mach-omap2/Makefile |    3 ++-
-> >   arch/arm/mach-omap2/common.c |    8 +-------
-> >   arch/arm/mach-omap2/common.h |    5 +++++
-> >   4 files changed, 16 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > index 208b950..82d9d18 100644
-> > --- a/arch/arm/mach-omap2/Kconfig
-> > +++ b/arch/arm/mach-omap2/Kconfig
-> > @@ -21,12 +21,16 @@ config ARCH_OMAP2PLUS_TYPICAL
-> >   	help
-> >   	  Compile a kernel suitable for booting most boards
-> >
-> > +config SOC_HAS_OMAP2_SDRC
-> > +	bool "OMAP2 SDRAM Controller support"
-> > +
-> >   config ARCH_OMAP2
-> >   	bool "TI OMAP2"
-> >   	depends on ARCH_OMAP2PLUS
-> >   	default y
-> >   	select CPU_V6
-> >   	select MULTI_IRQ_HANDLER
-> > +	select SOC_HAS_OMAP2_SDRC
-> >
-> >   config ARCH_OMAP3
-> >   	bool "TI OMAP3"
-> > @@ -39,6 +43,7 @@ config ARCH_OMAP3
-> >   	select PM_OPP if PM
-> >   	select ARM_CPU_SUSPEND if PM
-> >   	select MULTI_IRQ_HANDLER
-> > +	select SOC_HAS_OMAP2_SDRC
-> >
-> >   config ARCH_OMAP4
-> >   	bool "TI OMAP4"
-> > @@ -66,16 +71,19 @@ config SOC_OMAP2420
-> >   	depends on ARCH_OMAP2
-> >   	default y
-> >   	select OMAP_DM_TIMER
-> > +	select SOC_HAS_OMAP2_SDRC
+>> 3. Is the gpio configured for active low or high?
+> active high
 > 
-> OMAP4 does not have the SDRC but the EMIF like TI8XX.
+>> 4. When the hang occurs, what is the state of the gpio? Active or
+>>     inactive? Can you probe it with a scope? If it was always active I
+>>     could see that this would lock the device up, but I am not sure how
+>>     that would relate to the results from your bisect???
 > 
+> I dont have a scope nearby. Let me see if I can find one tomorrow.
 
-Good catch :) 
+Great, that would be good.
 
-Will fix it and send next version shortly.
+>>> I noticed Kevin raised some similar cases on other platforms and also
+>>> provided two patches in the patch mail thread. But unfortunately those
+>>> two patches doesn't help in our case. I tested the driver with 3.5-rc3
+>>> mainline kernel and the issue is still there. I can only "fix" the hang
+>>> by either reverting the commit or disabling CONFIG_PM_RUNTIME. Also, the
+>>> hang only happens on Panda ES board. Old Panda with 4430 works good.
+>>
+>> It does not make sense to me yet why this would only impact 4460, but I
+>> will keep this in mind.
+>>
+>> In your wlan driver are you acquiring and freeing the gpio often? Or are
+>> you only acquiring the gpio on boot?
+>>
+>> The reason I ask is because for omap4, it seems that we are not
+>> currently calling omap2_gpio_prepare_for_idle() during idle and so the
+>> only time I see us call the runtime_suspend/resume handlers for omap4 is
+>> during probe and when we acquire and free the gpio.
+>>
+>> So if you were not acquiring and freeing the gpio and are using the
+>> stock kernel, then as far as I can tell, the runtime pm code is not
+>> being exercised much. My test is not acquiring and releasing the gpio
+>> and so I am wondering if that is the secret to reproducing this
+>> problem :-)
+> 
+> We only request the irq once during initialization. But we do frequently
+> disable and re-enable it since we need to access to the module through
+> SDIO to clear the interrupt. Apparently we can't finish all this in irq
+> handler.
 
-Thanks,
-Vaibhav
+Ok, thanks. I don't see why that would cause a problem, but I can try
+that too.
 
+> Hope these could help.
+
+Yes, good info to have.
+
+Thanks
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
