@@ -1,206 +1,163 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 11/11] arm: omap: phy: remove unused functions from omap-phy-internal.c
-Date: Thu, 28 Jun 2012 17:21:07 +0530
-Message-ID: <1340884267-28908-12-git-send-email-kishon@ti.com>
+Subject: [PATCH v1 09/11] drivers: usb: musb: Add device tree support for omap musb glue
+Date: Thu, 28 Jun 2012 17:21:05 +0530
+Message-ID: <1340884267-28908-10-git-send-email-kishon@ti.com>
 References: <1340884267-28908-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1340884267-28908-1-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: kishon@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-All the unnessary functions in omap-phy-internal is removed.
-These functionality are now handled by omap-usb2 phy driver.
+Added device tree support for omap musb driver and updated the
+Documentation with device tree binding information.
 
-Cc: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_phy_internal.c |  138 -------------------------------
- arch/arm/mach-omap2/twl-common.c        |    5 -
- arch/arm/mach-omap2/usb-musb.c          |    3 -
- 3 files changed, 0 insertions(+), 146 deletions(-)
+ Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
+ drivers/usb/musb/omap2430.c                        |   52 ++++++++++++++++++++
+ 2 files changed, 85 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index 4c90477..0c610b4 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -31,144 +31,6 @@
- #include <plat/usb.h>
- #include "control.h"
+diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+index 80a28c9..39cdffb 100644
+--- a/Documentation/devicetree/bindings/usb/omap-usb.txt
++++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+@@ -1,4 +1,4 @@
+-OMAP USB PHY
++OMAP USB PHY AND GLUE
  
--/* OMAP control module register for UTMI PHY */
--#define CONTROL_DEV_CONF		0x300
--#define PHY_PD				0x1
--
--#define USBOTGHS_CONTROL		0x33c
--#define	AVALID				BIT(0)
--#define	BVALID				BIT(1)
--#define	VBUSVALID			BIT(2)
--#define	SESSEND				BIT(3)
--#define	IDDIG				BIT(4)
--
--static struct clk *phyclk, *clk48m, *clk32k;
--static void __iomem *ctrl_base;
--static int usbotghs_control;
--
--int omap4430_phy_init(struct device *dev)
--{
--	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
--	if (!ctrl_base) {
--		pr_err("control module ioremap failed\n");
--		return -ENOMEM;
--	}
--	/* Power down the phy */
--	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
--
--	if (!dev) {
--		iounmap(ctrl_base);
--		return 0;
--	}
--
--	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
--	if (IS_ERR(phyclk)) {
--		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_ick\n");
--		iounmap(ctrl_base);
--		return PTR_ERR(phyclk);
--	}
--
--	clk48m = clk_get(dev, "ocp2scp_usb_phy_phy_48m");
--	if (IS_ERR(clk48m)) {
--		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_phy_48m\n");
--		clk_put(phyclk);
--		iounmap(ctrl_base);
--		return PTR_ERR(clk48m);
--	}
--
--	clk32k = clk_get(dev, "usb_phy_cm_clk32k");
--	if (IS_ERR(clk32k)) {
--		dev_err(dev, "cannot clk_get usb_phy_cm_clk32k\n");
--		clk_put(phyclk);
--		clk_put(clk48m);
--		iounmap(ctrl_base);
--		return PTR_ERR(clk32k);
--	}
--	return 0;
--}
--
--int omap4430_phy_set_clk(struct device *dev, int on)
--{
--	static int state;
--
--	if (on && !state) {
--		/* Enable the phy clocks */
--		clk_enable(phyclk);
--		clk_enable(clk48m);
--		clk_enable(clk32k);
--		state = 1;
--	} else if (state) {
--		/* Disable the phy clocks */
--		clk_disable(phyclk);
--		clk_disable(clk48m);
--		clk_disable(clk32k);
--		state = 0;
--	}
--	return 0;
--}
--
--int omap4430_phy_power(struct device *dev, int ID, int on)
--{
--	if (on) {
--		if (ID)
--			/* enable VBUS valid, IDDIG groung */
--			__raw_writel(AVALID | VBUSVALID, ctrl_base +
--							USBOTGHS_CONTROL);
--		else
--			/*
--			 * Enable VBUS Valid, AValid and IDDIG
--			 * high impedance
--			 */
--			__raw_writel(IDDIG | AVALID | VBUSVALID,
--						ctrl_base + USBOTGHS_CONTROL);
--	} else {
--		/* Enable session END and IDIG to high impedance. */
--		__raw_writel(SESSEND | IDDIG, ctrl_base +
--					USBOTGHS_CONTROL);
--	}
--	return 0;
--}
--
--int omap4430_phy_suspend(struct device *dev, int suspend)
--{
--	if (suspend) {
--		/* Disable the clocks */
--		omap4430_phy_set_clk(dev, 0);
--		/* Power down the phy */
--		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
--
--		/* save the context */
--		usbotghs_control = __raw_readl(ctrl_base + USBOTGHS_CONTROL);
--	} else {
--		/* Enable the internel phy clcoks */
--		omap4430_phy_set_clk(dev, 1);
--		/* power on the phy */
--		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
--			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
--			mdelay(200);
--		}
--
--		/* restore the context */
--		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
--	}
--
--	return 0;
--}
--
--int omap4430_phy_exit(struct device *dev)
--{
--	if (ctrl_base)
--		iounmap(ctrl_base);
--	if (phyclk)
--		clk_put(phyclk);
--	if (clk48m)
--		clk_put(clk48m);
--	if (clk32k)
--		clk_put(clk32k);
--
--	return 0;
--}
--
- void am35x_musb_reset(void)
+ OMAP USB2 PHY
+ 
+@@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
+ 	compatible = "ti,omap-usb2";
+ 	reg = <0x4a0ad080 0x58>;
+ };
++
++OMAP MUSB GLUE
++ - compatible : Should be "ti,musb-omap2430"
++ - ti,hwmods : must be "usb_otg_hs"
++ - multipoint : Should be "1" indicating the musb controller supports
++   multipoint. This is a MUSB configuration-specific setting.
++ - num_eps : Specifies the number of endpoints. This is also a
++   MUSB configuration-specific setting. Should be set to "16"
++ - ram_bits : Specifies the ram address size. Should be set to "12"
++ - interface_type : This is a board specific setting to describe the type of
++   interface between the controller and the phy. It should be "0" or "1"
++   specifying ULPI and UTMI respectively.
++ - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++   represents PERIPHERAL.
++ - power : Should be "50". This signifies the controller can supply upto
++   100mA when operating in host mode.
++
++SOC specific device node entry
++usb_otg_hs: usb_otg_hs@4a0ab000 {
++	compatible = "ti,musb-omap2430";
++	ti,hwmods = "usb_otg_hs";
++	multipoint = <1>;
++	num_eps = <16>;
++	ram_bits = <12>;
++};
++
++Board specific device node entry
++&usb_otg_hs {
++	interface_type = <1>;
++	mode = <3>;
++	power = <50>;
++};
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index a50bd73..c750f11 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -30,6 +30,7 @@
+ #include <linux/init.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/pm_runtime.h>
+@@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+ static int __devinit omap2430_probe(struct platform_device *pdev)
  {
- 	u32	regval;
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 119d5a9..396d189 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -250,11 +250,6 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
++	struct omap_musb_board_data	*data;
+ 	struct platform_device		*musb;
+ 	struct omap2430_glue		*glue;
++	struct device_node		*np = pdev->dev.of_node;
++	struct musb_hdrc_config		*config;
+ 	struct resource			*res;
+ 	int				ret = -ENOMEM;
  
- #if defined(CONFIG_ARCH_OMAP4)
- static struct twl4030_usb_data omap4_usb_pdata = {
--	.phy_init	= omap4430_phy_init,
--	.phy_exit	= omap4430_phy_exit,
--	.phy_power	= omap4430_phy_power,
--	.phy_set_clock	= omap4430_phy_set_clk,
--	.phy_suspend	= omap4430_phy_suspend,
+@@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	if (glue->control_otghs == NULL)
+ 		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
+ 
++	if (np) {
++		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb platfrom data\n");
++			ret = -ENOMEM;
++			goto err1;
++		}
++
++		data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++		if (!data) {
++			dev_err(&pdev->dev,
++					"failed to allocate musb board data\n");
++			ret = -ENOMEM;
++			goto err1;
++		}
++
++		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
++		if (!data) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb hdrc config\n");
++			goto err1;
++		}
++
++		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
++		of_property_read_u32(np, "interface_type",
++						(u32 *)&data->interface_type);
++		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
++		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
++		of_property_read_u32(np, "power", (u32 *)&pdata->power);
++		config->multipoint = of_property_read_bool(np, "multipoint");
++
++		pdata->board_data	= data;
++		pdata->config		= config;
++	}
++
+ 	pdata->platform_ops		= &omap2430_ops;
+ 
+ 	platform_set_drvdata(pdev, glue);
+@@ -597,12 +638,23 @@ static struct dev_pm_ops omap2430_pm_ops = {
+ #define DEV_PM_OPS	NULL
+ #endif
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id omap2430_id_table[] = {
++	{ .compatible = "ti,musb-omap2430" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, omap2430_id_table);
++#else
++#define omap2430_id_table NULL
++#endif
++
+ static struct platform_driver omap2430_driver = {
+ 	.probe		= omap2430_probe,
+ 	.remove		= __devexit_p(omap2430_remove),
+ 	.driver		= {
+ 		.name	= "musb-omap2430",
+ 		.pm	= DEV_PM_OPS,
++		.of_match_table = omap2430_id_table,
+ 	},
  };
  
- static struct regulator_init_data omap4_vdac_idata = {
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index b19d1b4..e87ae49 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -119,7 +119,4 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	dev->dma_mask = &musb_dmamask;
- 	dev->coherent_dma_mask = musb_dmamask;
- 	put_device(dev);
--
--	if (cpu_is_omap44xx())
--		omap4430_phy_init(dev);
- }
 -- 
 1.7.5.4
-
