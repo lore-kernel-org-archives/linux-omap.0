@@ -1,161 +1,123 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v1 09/11] drivers: usb: musb: Add device tree support for omap musb glue
-Date: Thu, 28 Jun 2012 17:21:05 +0530
-Message-ID: <1340884267-28908-10-git-send-email-kishon@ti.com>
+Subject: [PATCH v1 07/11] drivers: usb: twl4030: Add device tree support for
+ twl4030 usb
+Date: Thu, 28 Jun 2012 17:21:03 +0530
+Message-ID: <1340884267-28908-8-git-send-email-kishon@ti.com>
 References: <1340884267-28908-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1340884267-28908-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: kishon@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Added device tree support for omap musb driver and updated the
-Documentation with device tree binding information.
+Add device tree support for twl6030 usb driver.
+Update the Documentation with device tree binding information.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
- drivers/usb/musb/omap2430.c                        |   52 ++++++++++++++++++++
- 2 files changed, 85 insertions(+), 1 deletions(-)
+ .../devicetree/bindings/usb/twlxxxx-usb.txt        |   19 +++++++++++++
+ drivers/usb/otg/twl4030-usb.c                      |   28 +++++++++++++++----
+ 2 files changed, 41 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 80a28c9..39cdffb 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -1,4 +1,4 @@
--OMAP USB PHY
-+OMAP USB PHY AND GLUE
- 
- OMAP USB2 PHY
- 
-@@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
- 	compatible = "ti,omap-usb2";
- 	reg = <0x4a0ad080 0x58>;
+diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+index f293271..2d069e4 100644
+--- a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+@@ -16,3 +16,22 @@ twl6030-usb {
+ 	regulator = "vusb";
+ 	vusb-supply = <&vusb>;
  };
 +
-+OMAP MUSB GLUE
-+ - compatible : Should be "ti,musb-omap2430"
-+ - ti,hwmods : must be "usb_otg_hs"
-+ - multipoint : Should be "1" indicating the musb controller supports
-+   multipoint. This is a MUSB configuration-specific setting.
-+ - num_eps : Specifies the number of endpoints. This is also a
-+   MUSB configuration-specific setting. Should be set to "16"
-+ - ram_bits : Specifies the ram address size. Should be set to "12"
-+ - interface_type : This is a board specific setting to describe the type of
-+   interface between the controller and the phy. It should be "0" or "1"
-+   specifying ULPI and UTMI respectively.
-+ - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
-+   represents PERIPHERAL.
-+ - power : Should be "50". This signifies the controller can supply upto
-+   100mA when operating in host mode.
++TWL4030 USB PHY AND COMPARATOR
++ - compatible : Should be "ti,twl4030-usb"
++ - interrupts : The interrupt numbers to the cpu should be specified. First
++   interrupt number is the otg interrupt number that raises ID interrupts
++   and VBUS interrupts. The second interrupt number is optional.
++ - <supply-name>-supply : phandle to the regulator device tree node.
++   <supply-name> should be vusb1v5, vusb1v8 and vusb3v1
++ - usb_mode : The mode used by the phy to connect to the controller. "1"
++   specifies "ULPI" mode and "2" specifies "CEA2011_3PIN" mode.
 +
-+SOC specific device node entry
-+usb_otg_hs: usb_otg_hs@4a0ab000 {
-+	compatible = "ti,musb-omap2430";
-+	ti,hwmods = "usb_otg_hs";
-+	multipoint = <1>;
-+	num_eps = <16>;
-+	ram_bits = <12>;
++twl4030-usb {
++	compatible = "ti,twl4030-usb";
++	interrupts = < 10 4 >;
++	vusb1v5-supply = <&vusb1v5>;
++	vusb1v8-supply = <&vusb1v8>;
++	vusb3v1-supply = <&vusb3v1>;
++	usb_mode = <1>;
 +};
-+
-+Board specific device node entry
-+&usb_otg_hs {
-+	interface_type = <1>;
-+	mode = <3>;
-+	power = <50>;
-+};
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index a50bd73..c750f11 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -30,6 +30,7 @@
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/io.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/pm_runtime.h>
-@@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
- static int __devinit omap2430_probe(struct platform_device *pdev)
- {
- 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
-+	struct omap_musb_board_data	*data;
- 	struct platform_device		*musb;
- 	struct omap2430_glue		*glue;
-+	struct device_node		*np = pdev->dev.of_node;
-+	struct musb_hdrc_config		*config;
- 	struct resource			*res;
- 	int				ret = -ENOMEM;
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 523cad5..a4e7434 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -585,23 +585,28 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
+ 	struct twl4030_usb	*twl;
+ 	int			status, err;
+ 	struct usb_otg		*otg;
+-
+-	if (!pdata) {
+-		dev_dbg(&pdev->dev, "platform_data not available\n");
+-		return -EINVAL;
+-	}
++	struct device_node	*np = pdev->dev.of_node;
  
-@@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
- 	if (glue->control_otghs == NULL)
- 		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
+ 	twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
+ 	if (!twl)
+ 		return -ENOMEM;
  
-+	if (np) {
-+		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			dev_err(&pdev->dev,
-+				"failed to allocate musb platfrom data\n");
-+			ret = -ENOMEM;
-+			goto err1;
-+		}
-+
-+		data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-+		if (!data) {
-+			dev_err(&pdev->dev,
-+					"failed to allocate musb board data\n");
-+			ret = -ENOMEM;
-+			goto err1;
-+		}
-+
-+		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
-+		if (!data) {
-+			dev_err(&pdev->dev,
-+				"failed to allocate musb hdrc config\n");
-+			goto err1;
-+		}
-+
-+		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
-+		of_property_read_u32(np, "interface_type",
-+						(u32 *)&data->interface_type);
-+		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
-+		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
-+		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
-+		of_property_read_u32(np, "power", (u32 *)&pdata->power);
-+		config->multipoint = of_property_read_bool(np, "multipoint");
-+
-+		pdata->board_data	= data;
-+		pdata->config		= config;
++	if (np)
++		of_property_read_u32(np, "usb_mode",
++				(enum twl4030_usb_mode *)&twl->usb_mode);
++	else if (pdata)
++		twl->usb_mode = pdata->usb_mode;
++	else {
++		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
++		return -EINVAL;
 +	}
 +
- 	pdata->platform_ops		= &omap2430_ops;
+ 	otg = devm_kzalloc(&pdev->dev, sizeof *otg, GFP_KERNEL);
+ 	if (!otg)
+ 		return -ENOMEM;
  
- 	platform_set_drvdata(pdev, glue);
-@@ -597,12 +638,23 @@ static struct dev_pm_ops omap2430_pm_ops = {
- #define DEV_PM_OPS	NULL
- #endif
+ 	twl->dev		= &pdev->dev;
+ 	twl->irq		= platform_get_irq(pdev, 0);
+-	twl->usb_mode		= pdata->usb_mode;
+ 	twl->vbus_supplied	= false;
+ 	twl->asleep		= 1;
+ 	twl->linkstat		= OMAP_MUSB_UNKNOWN;
+@@ -690,12 +695,23 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
 +#ifdef CONFIG_OF
-+static const struct of_device_id omap2430_id_table[] = {
-+	{ .compatible = "ti,musb-omap2430" },
++static const struct of_device_id twl4030_usb_id_table[] = {
++	{ .compatible = "ti,twl4030-usb" },
 +	{}
 +};
-+MODULE_DEVICE_TABLE(of, omap2430_id_table);
++MODULE_DEVICE_TABLE(of, twl4030_usb_id_table);
 +#else
-+#define omap2430_id_table NULL
++#define twl4030_usb_id_table NULL
 +#endif
 +
- static struct platform_driver omap2430_driver = {
- 	.probe		= omap2430_probe,
- 	.remove		= __devexit_p(omap2430_remove),
+ static struct platform_driver twl4030_usb_driver = {
+ 	.probe		= twl4030_usb_probe,
+ 	.remove		= __exit_p(twl4030_usb_remove),
  	.driver		= {
- 		.name	= "musb-omap2430",
- 		.pm	= DEV_PM_OPS,
-+		.of_match_table = omap2430_id_table,
+ 		.name	= "twl4030_usb",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = twl4030_usb_id_table,
  	},
  };
  
