@@ -1,61 +1,49 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv11 2/6] i2c: omap: Use SET_RUNTIME_PM_OPS
-Date: Thu, 28 Jun 2012 20:41:28 +0530
-Message-ID: <1340896292-12112-3-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv11 4/6] i2c: omap: Remove the definition of SYSS_RESETDONE_MASK
+Date: Thu, 28 Jun 2012 20:41:30 +0530
+Message-ID: <1340896292-12112-5-git-send-email-shubhrajyoti@ti.com>
 References: <1340896292-12112-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35301 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754381Ab2F1PM1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:12:27 -0400
-In-Reply-To: <1340896292-12112-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340896292-12112-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Use SET_RUNTIME_PM_OPS macro to set runtime functions.
+Remove the definition of SYSS_RESETDONE_MASK and use the
+one in omap_hwmod.h.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+- Add Felipe's reviewed by tag
+
+ drivers/i2c/busses/i2c-omap.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b086076..b9915bb 100644
+index 6d05f18..4bbf288 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1126,6 +1126,7 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	return 0;
- }
+@@ -43,6 +43,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c-omap.h>
+ #include <linux/pm_runtime.h>
++#include <plat/omap_hwmod.h>
  
-+#ifdef CONFIG_PM
- #ifdef CONFIG_PM_RUNTIME
- static int omap_i2c_runtime_suspend(struct device *dev)
- {
-@@ -1174,15 +1175,16 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ /* I2C controller revisions */
+ #define OMAP_I2C_OMAP1_REV_2		0x20
+@@ -158,9 +159,6 @@ enum {
+ #define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+ #endif
  
- 	return 0;
- }
-+#endif /* CONFIG_PM_RUNTIME */
- 
- static struct dev_pm_ops omap_i2c_pm_ops = {
--	.runtime_suspend = omap_i2c_runtime_suspend,
--	.runtime_resume = omap_i2c_runtime_resume,
-+	SET_RUNTIME_PM_OPS(omap_i2c_runtime_suspend,
-+			   omap_i2c_runtime_resume, NULL)
- };
- #define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
- #else
- #define OMAP_I2C_PM_OPS NULL
--#endif
-+#endif /* CONFIG_PM */
- 
- static struct platform_driver omap_i2c_driver = {
- 	.probe		= omap_i2c_probe,
+-/* OCP_SYSSTATUS bit definitions */
+-#define SYSS_RESETDONE_MASK		(1 << 0)
+-
+ /* OCP_SYSCONFIG bit definitions */
+ #define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+ #define SYSC_SIDLEMODE_MASK		(0x3 << 3)
 -- 
 1.7.5.4
-
