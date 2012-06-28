@@ -1,115 +1,220 @@
-From: "Franky Lin" <frankyl@broadcom.com>
-Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Thu, 28 Jun 2012 16:10:22 -0700
-Message-ID: <4FECE45E.6040506@broadcom.com>
-References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com>
- <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com>
- <4FECCB91.7090609@broadcom.com> <4FECD2E5.1060603@ti.com>
- <4FECE067.7000809@broadcom.com> <4FECE1BD.80906@ti.com>
+From: "Sarashetti, Mantesh" <mantesh-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
+ issues.
+Date: Thu, 28 Jun 2012 23:12:46 +0000
+Message-ID: <393884FF03A1CE4A86A02FC97D0954E73E91F95E@DBDE01.ent.ti.com>
+References: <1339690919-12566-1-git-send-email-Russ.Dill@ti.com>
+ <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mms2.broadcom.com ([216.31.210.18]:3395 "EHLO mms2.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751825Ab2F1XKe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 19:10:34 -0400
-In-Reply-To: <4FECE1BD.80906@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340848783-9480-1-git-send-email-Russ.Dill-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Dill, Russ" <russ.dill-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Setty, Sapna" <s-sapna1-l0cyMroinI0@public.gmane.org>, Russ Dill <Russ.Dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 06/28/2012 03:59 PM, Jon Hunter wrote:
->
-> On 06/28/2012 05:53 PM, Franky Lin wrote:
->> I found one interesting thing. When I added the print info to see when
->> runtime_suspend/resume get called, it seems like the suspend/resume is
->> unbalance during boot. Resume got called more than suspend. So I hack
->> the code to make sure suspend and resume are called in pair. A resume
->> without suspend will do nothing and return immediately. This also makes
->> the hang vanish.
->
-> I am not 100% sure I follow. On boot I would expect to see a
-> resume/suspend due to the probe on the irq bank and then I would expect
-> to see another resume from the acquisition of the gpio, however, I would
-> not expect a suspend until the gpio is freed, which I don't believe you
-> are doing.
->
-> Can you share your hack? Just paste the diff? This may help me
-> understand more.
->
-
-OK.
-This is what I saw in the log:
-[    0.171844] dummy:
-[    0.172912] NET: Registered protocol family 16
-[    0.173431] GPMC revision 6.0
-[    0.173492] gpmc: irq-52 could not claim: err -22
-[    0.177551] ??????omap_gpio_runtime_resume
-[    0.178619] OMAP GPIO hardware version 0.1
-[    0.178649] !!!!!omap_gpio_runtime_suspend
-[    0.178771] ??????omap_gpio_runtime_resume
-[    0.179351] !!!!!omap_gpio_runtime_suspend
-[    0.179504] ??????omap_gpio_runtime_resume
-[    0.180023] !!!!!omap_gpio_runtime_suspend
-[    0.180145] ??????omap_gpio_runtime_resume
-[    0.180694] !!!!!omap_gpio_runtime_suspend
-[    0.180847] ??????omap_gpio_runtime_resume
-[    0.181365] !!!!!omap_gpio_runtime_suspend
-[    0.181518] ??????omap_gpio_runtime_resume
-[    0.182037] !!!!!omap_gpio_runtime_suspend
-[    0.185089] omap_mux_init: Add partition: #1: core, flags: 2
-[    0.186462] omap_mux_init: Add partition: #2: wkup, flags: 2
-[    0.186584] error setting wl12xx data: -38
-[    0.189788] _omap_mux_get_by_name: Could not find signal 
-uart1_rx.uart1_rx
-[    0.189788] _omap_mux_get_by_name: Could not find signal 
-uart1_rx.uart1_rx
-[    0.239501] ??????omap_gpio_runtime_resume
-[    0.239532] ??????omap_gpio_runtime_resume
-[    0.241058]  usbhs_omap: alias fck already exists
-[    0.244781] ??????omap_gpio_runtime_resume
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4ed172..bca3985 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1146,7 +1146,7 @@ static int __devinit omap_gpio_probe(struct 
-platform_device *pdev)
-
-  #if defined(CONFIG_PM_RUNTIME)
-  static void omap_gpio_restore_context(struct gpio_bank *bank);
--
-+static int flag = 0;
-  static int omap_gpio_runtime_suspend(struct device *dev)
-  {
-         struct platform_device *pdev = to_platform_device(dev);
-@@ -1155,6 +1155,8 @@ static int omap_gpio_runtime_suspend(struct device 
-*dev)
-         unsigned long flags;
-         u32 wake_low, wake_hi;
-
-+       flag ++;
-+
-         spin_lock_irqsave(&bank->lock, flags);
-
-         /*
-@@ -1221,6 +1223,11 @@ static int omap_gpio_runtime_resume(struct device 
-*dev)
-         u32 l = 0, gen, gen0, gen1;
-         unsigned long flags;
-
-+       if (flag)
-+               flag--;
-+       else
-+               return 0;
-+
-         spin_lock_irqsave(&bank->lock, flags);
-         _gpio_dbck_enable(bank);
+'Acked-by: mantesh-l0cyMroinI0@public.gmane.org'
+'Tested-by: mantesh-l0cyMroinI0@public.gmane.org'
 
 Regards,
-Franky
+Mantesh
 
+-----Original Message-----
+From: Russ Dill [mailto:russ.dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Dill, Russ
+Sent: Wednesday, June 27, 2012 9:00 PM
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Balbi, Felipe; Munegowda, Keshava; Partha Basak; Igor Grinberg; Samuel Ortiz; Sarashetti, Mantesh; Setty, Sapna; Russ Dill
+Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
+
+From: Russ Dill <Russ.Dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
+an issue where the ULPI PHYs were not held in reset while initializing
+the EHCI controller. However, it also changes behavior in
+omap-usb-host.c omap_usbhs_init by releasing reset while the
+configuration in that function was done.
+
+This change caused a regression on BB-xM where USB would not function
+if 'usb start' had been run from u-boot before booting. A change was
+made to release reset a little bit earlier which fixed the issue on
+BB-xM and did not cause any regressions on 3430 sdp, the board for
+which the fix was originally made.
+
+This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
+before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
+
+The original fix to hold the EHCI controller in reset during
+initialization was correct, however it appears that changing
+omap_usbhs_init to not hold the PHYs in reset during it's
+configuration was incorrect. This patch first reverts both fixes, and
+then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
+reset as the original patch had done. It also is sure to incorporate
+the _cansleep change that has been made in the meantime.
+
+Tested on Beagleboard xM.
+
+v3 - Don't double free gpio
+v2 - Put cansleep gpiolib call outside of spinlock
+
+Signed-off-by: Russ Dill <Russ.Dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/usb/host/ehci-omap.c |   26 +++++++----------------
+ 2 files changed, 55 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 7e96bb2..41088ec 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -25,6 +25,7 @@
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
++#include <linux/gpio.h>
+ #include <plat/cpu.h>
+ #include <plat/usb.h>
+ #include <linux/pm_runtime.h>
+@@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
+ 	dev_dbg(dev, "starting TI HSUSB Controller\n");
+ 
+ 	pm_runtime_get_sync(dev);
+-	spin_lock_irqsave(&omap->lock, flags);
+ 
++	if (pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
++					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
++					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
++
++		/* Hold the PHY in RESET for enough time till DIR is high */
++		udelay(10);
++	}
++
++	spin_lock_irqsave(&omap->lock, flags);
+ 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
+ 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
+ 
+@@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++
++	if (pdata->ehci_data->phy_reset) {
++		/* Hold the PHY in RESET for enough time till
++		 * PHY is settled and ready
++		 */
++		udelay(10);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_set_value_cansleep
++				(pdata->ehci_data->reset_gpio_port[0], 1);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_set_value_cansleep
++				(pdata->ehci_data->reset_gpio_port[1], 1);
++	}
++
+ 	pm_runtime_put_sync(dev);
+ }
+ 
++static void omap_usbhs_deinit(struct device *dev)
++{
++	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
++	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++
++	if (pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	}
++}
++
+ 
+ /**
+  * usbhs_omap_probe - initialize TI-based HCDs
+@@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
+ 	goto end_probe;
+ 
+ err_alloc:
++	omap_usbhs_deinit(&pdev->dev);
+ 	iounmap(omap->tll_base);
+ 
+ err_tll:
+@@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
+ {
+ 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
+ 
++	omap_usbhs_deinit(&pdev->dev);
+ 	iounmap(omap->tll_base);
+ 	iounmap(omap->uhh_base);
+ 	clk_put(omap->init_60m_fclk);
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index a44294d..35f4788 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -192,14 +192,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	/* Hold PHYs in reset while initializing EHCI controller */
+ 	if (pdata->phy_reset) {
+ 		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_request_one(pdata->reset_gpio_port[0],
+-					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
++			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+ 
+ 		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_request_one(pdata->reset_gpio_port[1],
+-					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
++			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+ 
+ 		/* Hold the PHY in RESET for enough time till DIR is high */
+ 		udelay(10);
+@@ -241,6 +240,11 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
+ 
+ 	ehci_reset(omap_ehci);
++	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
++	if (ret) {
++		dev_err(dev, "failed to add hcd with err %d\n", ret);
++		goto err_add_hcd;
++	}
+ 
+ 	if (pdata->phy_reset) {
+ 		/* Hold the PHY in RESET for enough time till
+@@ -255,12 +259,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+ 	}
+ 
+-	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+-	if (ret) {
+-		dev_err(dev, "failed to add hcd with err %d\n", ret);
+-		goto err_add_hcd;
+-	}
+-
+ 	/* root ports should always stay powered */
+ 	ehci_port_power(omap_ehci, 1);
+ 
+@@ -288,7 +286,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev				= &pdev->dev;
+ 	struct usb_hcd *hcd				= dev_get_drvdata(dev);
+-	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
+ 
+ 	usb_remove_hcd(hcd);
+ 	disable_put_regulator(dev->platform_data);
+@@ -297,13 +294,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ 	pm_runtime_put_sync(dev);
+ 	pm_runtime_disable(dev);
+ 
+-	if (pdata->phy_reset) {
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_free(pdata->reset_gpio_port[0]);
