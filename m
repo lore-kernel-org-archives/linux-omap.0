@@ -1,81 +1,58 @@
-From: Jon Hunter <jon-hunter@ti.com>
+From: "Franky Lin" <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Wed, 27 Jun 2012 18:43:25 -0500
-Message-ID: <4FEB9A9D.4080406@ti.com>
-References: <4FE8CF77.5080400@broadcom.com>
+Date: Wed, 27 Jun 2012 17:41:56 -0700
+Message-ID: <4FEBA854.5010508@broadcom.com>
+References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50976 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001Ab2F0XnZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 19:43:25 -0400
-In-Reply-To: <4FE8CF77.5080400@broadcom.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87txxxs9we.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: tarun.kanti-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Franky Lin <frankyl@broadcom.com>
-Cc: khilman@ti.com, tarun.kanti@ti.com, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Franky,
+On 06/26/2012 08:37 PM, Kevin Hilman wrote:
+> "Franky Lin" <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> writes:
+>> I noticed Kevin raised some similar cases on other platforms and also
+>> provided two patches in the patch mail thread. But unfortunately those
+>> two patches doesn't help in our case. I tested the driver with 3.5-rc3
+>> mainline kernel and the issue is still there. I can only "fix" the
+>> hang by either reverting the commit or disabling
+>> CONFIG_PM_RUNTIME. Also, the hang only happens on Panda ES board. Old
+>> Panda with 4430 works good.
+>>
+>> Any thoughts and suggestions?
+>
+> If reverting the patch fixes your problem, can you isolate down to which
+> part of that patch causes the problem?  IOW, can you fix your problem if
+> you undo just the hunk added in runtime_suspend or undo just the moved
+> hunk runtime_resume?  Or is reverting both required?
+>
+> I suspect the added runtime_suspend hunk is causing the problems, so can
+> you see if just undoing that part works[1].  If that works, I will give
+> a bit more of a thinking on it tomorrow.
 
-On 06/25/2012 03:52 PM, Franky Lin wrote:
-> Hi Kevin, Tarun,
-> 
-> We are using the expansion connector A on Panda board to mount a SDIO
-> WiFi dongle on MMC2 with a level triggered interrupt signal connected to
-> GPIO 138. It's been working fine until 3.5 rc1. The board hang randomly
-> within 5 mins during a network traffic test. After bisecting we found
-> the culprit is "[PATCH 8/8] gpio/omap: fix missing check in
-> *_runtime_suspend()" [1].
+runtime_suspend hunk is fine. The hang still exist after reverting it. 
+The culprit is the moved hunk in runtime_resume. Reverting it makes the 
+hang disappear.
 
-I have been looking into this today to see if I can replicate the
-problem that you have reported. However, so far I have not had any luck.
-Please note that my test setup is not exactly the same as yours as I
-don't have your wlan module. However, I have been using a 2nd board to
-generate gpio events to a panda-es to see I can make it lock up. I have
-tried mainline kernel 3.5-rc1 and 3.5-rc3 but I have not seen any
-problems after sending 100k gpio events (over many minutes). My setup is
-as follows ...
+>
+> Thanks for reporting the problem!   Bug reports like this that have
+> clearly been thoroughly researched and bisected are greatly appreciated!
+>
+> Kevin
+>
 
-- OMAP4460 panda-es with gpio-138 connected to OMAP3430 beagle gpio-11.
-- Mainline kernel 3.5-rc1/3 using omap2plus_defconfig (no changes)
-- Created a simple kernel module that acquires gpio-138 and sets up a
-  IRQ with flag IRQF_TRIGGER_HIGH (for active high level interrupt).
-- GPIO events are triggered roughly every 1ms
+You are welcome.
 
-Can you confirm ...
-1. You are just using omap2plus_defconfig with no changes?
-2. Rough frequency of gpio events?
-3. Is the gpio configured for active low or high?
-4. When the hang occurs, what is the state of the gpio? Active or
-   inactive? Can you probe it with a scope? If it was always active I
-   could see that this would lock the device up, but I am not sure how
-   that would relate to the results from your bisect???
+Regards,
+Franky
 
-> I noticed Kevin raised some similar cases on other platforms and also
-> provided two patches in the patch mail thread. But unfortunately those
-> two patches doesn't help in our case. I tested the driver with 3.5-rc3
-> mainline kernel and the issue is still there. I can only "fix" the hang
-> by either reverting the commit or disabling CONFIG_PM_RUNTIME. Also, the
-> hang only happens on Panda ES board. Old Panda with 4430 works good.
-
-It does not make sense to me yet why this would only impact 4460, but I
-will keep this in mind.
-
-In your wlan driver are you acquiring and freeing the gpio often? Or are
-you only acquiring the gpio on boot?
-
-The reason I ask is because for omap4, it seems that we are not
-currently calling omap2_gpio_prepare_for_idle() during idle and so the
-only time I see us call the runtime_suspend/resume handlers for omap4 is
-during probe and when we acquire and free the gpio.
-
-So if you were not acquiring and freeing the gpio and are using the
-stock kernel, then as far as I can tell, the runtime pm code is not
-being exercised much. My test is not acquiring and releasing the gpio
-and so I am wondering if that is the secret to reproducing this problem :-)
-
-Cheers
-Jon
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
