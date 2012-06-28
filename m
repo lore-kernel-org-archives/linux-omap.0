@@ -1,97 +1,104 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH 1/3] OMAP2+: add cpu id register to MAC address helper
-Date: Fri, 29 Jun 2012 17:13:27 +0800
-Message-ID: <4FED71B7.80308@linaro.org>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <20120629055509.11091.2780.stgit@build.warmcat.com> <20120629090515.GA4202@atomide.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
+Date: Thu, 28 Jun 2012 21:26:42 +0530
+Message-ID: <CAAe_U6Jw7WrWRAQrVF0XTwBp+F4Fw0zCFVxoZmWdBLSjUS+_Hw@mail.gmail.com>
+References: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:48285 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751554Ab2F2JNh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 05:13:37 -0400
-In-Reply-To: <20120629090515.GA4202@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============4392300150193289585=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, rostedt@goodmis.org
 
-On 06/29/12 17:05, the mail apparently from Tony Lindgren included:
-> * Andy Green <andy.green@linaro.org> [120628 22:59]:
->>
->> Introduce a generic helper function that can generate a valid MAC
->> address using data from the OMAP unique CPU ID register.
-> ...
+--===============4392300150193289585==
+Content-Type: multipart/alternative; boundary=20cf307c9bd2c07a6504c38a602b
+
+--20cf307c9bd2c07a6504c38a602b
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hi,
+
+On Wed, Jun 27, 2012 at 11:11 AM, N, Mugunthan V <mugunthanvnm@ti.com>wrote:
+
+> > -----Original Message-----
+> > From: N, Mugunthan V
+> > Sent: Thursday, June 07, 2012 9:52 PM
+> > To: 'linux-omap@vger.kernel.org'
+> > Cc: 'linux-arm-kernel@lists.infradead.org'
+> > Subject: how to specify dma_mask and coherent_dma_mask in hwmod
+> >
+> > Hi
+> >
+> > While converting platform device registry to Hwmod for CPSW Ethernet
+> > driver which is present in AM335X (OMAP2+), I am not finding a way to
+> > specify
+> > dma_mask and coherent_dma_mask.
+> > Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
 >
->> --- a/arch/arm/mach-omap2/id.c
->> +++ b/arch/arm/mach-omap2/id.c
->> @@ -530,3 +530,42 @@ void __init omap2_set_globals_tap(struct omap_g=
-lobals *omap2_globals)
->>   	else
->>   		tap_prod_id =3D 0x0208;
->>   }
->> +
->> +/*
->> + * this uses the unique per-cpu info from the cpu fuses set at fact=
-ory to
->> + * generate a 6-byte MAC address.  Two bits in the generated code a=
-re used
->> + * to elaborate the generated address into four, so it can be used =
-on multiple
->> + * network interfaces.
->> + */
->> +
->> +void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype)
->> +{
->> +	struct omap_die_id odi;
->> +	u32 tap =3D read_tap_reg(OMAP_TAP_IDCODE);
->> +
->> +	omap_get_die_id(&odi);
->> +
->> +	mac[0] =3D odi.id_2;
->> +	mac[1] =3D odi.id_2 >> 8;
->> +	mac[2] =3D odi.id_1;
->> +	mac[3] =3D odi.id_1 >> 8;
->> +	mac[4] =3D odi.id_1 >> 16;
->> +	mac[5] =3D odi.id_1 >> 24;
->> +
->> +	/* XOR other chip-specific data with ID */
->> +
->> +	tap ^=3D odi.id_3;
->> +
->> +	mac[0] ^=3D tap;
->> +	mac[1] ^=3D tap >> 8;
->> +	mac[2] ^=3D tap >> 16;
->> +	mac[3] ^=3D tap >> 24;
->> +
->> +	/* allow four MACs from this same basic data */
->> +
->> +	mac[1] =3D (mac[1] & ~0xc0) | ((subtype & 3) << 6);
->> +
->> +	/* mark it as not multicast, and outside official 80211 MAC namesp=
-ace */
->> +
->> +	mac[0] =3D (mac[0] & ~1) | 2;
->> +}
->
-> Let's just make this omap_die_id_to_ethernet_mac, no need to keep the
-> omap2 naming there as this should not conflict with any omap1 stuff.
 
-Okay, will do thanks.
+Nope. You can specify dma_mask after creating the device as done in
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/usb-musb.c;h=c4a576856661014ea3bec9acc70f80e32d62c33b;hb=HEAD
 
--Andy
+Regards
+Kishon
 
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+--20cf307c9bd2c07a6504c38a602b
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<br><br><div class=3D"gmail_quote">On Wed, Jun 27, 2012 at 11:11 AM, N, =
+Mugunthan V <span dir=3D"ltr">&lt;<a href=3D"mailto:mugunthanvnm@ti.com" ta=
+rget=3D"_blank">mugunthanvnm@ti.com</a>&gt;</span> wrote:<br><blockquote cl=
+ass=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;p=
+adding-left:1ex">
+&gt; -----Original Message-----<br>
+&gt; From: N, Mugunthan V<br>
+&gt; Sent: Thursday, June 07, 2012 9:52 PM<br>
+&gt; To: &#39;<a href=3D"mailto:linux-omap@vger.kernel.org">linux-omap@vger=
+.kernel.org</a>&#39;<br>
+&gt; Cc: &#39;<a href=3D"mailto:linux-arm-kernel@lists.infradead.org">linux=
+-arm-kernel@lists.infradead.org</a>&#39;<br>
+&gt; Subject: how to specify dma_mask and coherent_dma_mask in hwmod<br>
+&gt;<br>
+&gt; Hi<br>
+&gt;<br>
+&gt; While converting platform device registry to Hwmod for CPSW Ethernet<b=
+r>
+&gt; driver which is present in AM335X (OMAP2+), I am not finding a way to<=
+br>
+&gt; specify<br>
+&gt; dma_mask and coherent_dma_mask.<br>
+&gt; Is there a way to specify dma_mask and coherent_dma_mask in hwmod?<br>=
+</blockquote><div><br></div><div>Nope. You can specify dma_mask after creat=
+ing the device as done in</div><div><a href=3D"http://git.kernel.org/?p=3Dl=
+inux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Darch/arm/mach-omap2/usb-mus=
+b.c;h=3Dc4a576856661014ea3bec9acc70f80e32d62c33b;hb=3DHEAD">http://git.kern=
+el.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Darch/arm/mach-=
+omap2/usb-musb.c;h=3Dc4a576856661014ea3bec9acc70f80e32d62c33b;hb=3DHEAD</a>
+</div><div><br></div><div>Regards</div><div>Kishon</div></div>
+
+--20cf307c9bd2c07a6504c38a602b--
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--===============4392300150193289585==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============4392300150193289585==--
