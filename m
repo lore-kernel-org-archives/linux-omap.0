@@ -1,76 +1,96 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Thu, 28 Jun 2012 10:42:00 -0500
-Message-ID: <4FEC7B48.8040402@ti.com>
-References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH-V3 3/3] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
+ around __omap2_set_globals
+Date: Thu, 28 Jun 2012 17:41:39 +0200
+Message-ID: <4FEC7B33.5030500@ti.com>
+References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com> <1340895567-22766-4-git-send-email-hvaibhav@ti.com> <4FEC72C2.7010106@ti.com> <79CD15C6BA57404B839C016229A409A83EA5D620@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37219 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37234 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752177Ab2F1Pl5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:41:57 -0400
-In-Reply-To: <4FEBA854.5010508@broadcom.com>
+	id S1754026Ab2F1PmK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 11:42:10 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5D620@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Franky Lin <frankyl@broadcom.com>
-Cc: Kevin Hilman <khilman@ti.com>, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-
-On 06/27/2012 07:41 PM, Franky Lin wrote:
-> On 06/26/2012 08:37 PM, Kevin Hilman wrote:
->> "Franky Lin" <frankyl@broadcom.com> writes:
->>> I noticed Kevin raised some similar cases on other platforms and also
->>> provided two patches in the patch mail thread. But unfortunately those
->>> two patches doesn't help in our case. I tested the driver with 3.5-rc3
->>> mainline kernel and the issue is still there. I can only "fix" the
->>> hang by either reverting the commit or disabling
->>> CONFIG_PM_RUNTIME. Also, the hang only happens on Panda ES board. Old
->>> Panda with 4430 works good.
+On 06/28/2012 05:39 PM, Hiremath, Vaibhav wrote:
+> On Thu, Jun 28, 2012 at 20:35:38, Cousson, Benoit wrote:
+>> Hi Vaibhav,
+>>
+>> One small comment.
+>>
+>> On 06/28/2012 04:59 PM, Vaibhav Hiremath wrote:
+>>> The function __omap2_set_globals() can be common across all
+>>> platforms/architectures, even in case of omap4, internally it
+>>> calls same set of functions as in __omap2_set_globals() function
+>>> (except for sdrc).
+>>> This patch adds new config flag SOC_HAS_OMAP2_SDRC to handle sdrc,
+>>> so that we can reuse same function across omap2/3/4...
 >>>
->>> Any thoughts and suggestions?
+>>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>>> Cc: Tony Lindgren <tony@atomide.com>
+>>> Cc: Kevin Hilman <khilman@ti.com>
+>>> Cc: Paul Walmsley <paul@pwsan.com>
+>>>
+>>> Changes from V1:
+>>> 	- Added Makefile rule to build sdrc.c file for new
+>>> 	  option SOC_HAS_OMAP2_SDRC (as per Kevin's comment).
+>>> ---
+>>>    arch/arm/mach-omap2/Kconfig  |    8 ++++++++
+>>>    arch/arm/mach-omap2/Makefile |    3 ++-
+>>>    arch/arm/mach-omap2/common.c |    8 +-------
+>>>    arch/arm/mach-omap2/common.h |    5 +++++
+>>>    4 files changed, 16 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+>>> index 208b950..82d9d18 100644
+>>> --- a/arch/arm/mach-omap2/Kconfig
+>>> +++ b/arch/arm/mach-omap2/Kconfig
+>>> @@ -21,12 +21,16 @@ config ARCH_OMAP2PLUS_TYPICAL
+>>>    	help
+>>>    	  Compile a kernel suitable for booting most boards
+>>>
+>>> +config SOC_HAS_OMAP2_SDRC
+>>> +	bool "OMAP2 SDRAM Controller support"
+>>> +
+>>>    config ARCH_OMAP2
+>>>    	bool "TI OMAP2"
+>>>    	depends on ARCH_OMAP2PLUS
+>>>    	default y
+>>>    	select CPU_V6
+>>>    	select MULTI_IRQ_HANDLER
+>>> +	select SOC_HAS_OMAP2_SDRC
+>>>
+>>>    config ARCH_OMAP3
+>>>    	bool "TI OMAP3"
+>>> @@ -39,6 +43,7 @@ config ARCH_OMAP3
+>>>    	select PM_OPP if PM
+>>>    	select ARM_CPU_SUSPEND if PM
+>>>    	select MULTI_IRQ_HANDLER
+>>> +	select SOC_HAS_OMAP2_SDRC
+>>>
+>>>    config ARCH_OMAP4
+>>>    	bool "TI OMAP4"
+>>> @@ -66,16 +71,19 @@ config SOC_OMAP2420
+>>>    	depends on ARCH_OMAP2
+>>>    	default y
+>>>    	select OMAP_DM_TIMER
+>>> +	select SOC_HAS_OMAP2_SDRC
 >>
->> If reverting the patch fixes your problem, can you isolate down to which
->> part of that patch causes the problem?  IOW, can you fix your problem if
->> you undo just the hunk added in runtime_suspend or undo just the moved
->> hunk runtime_resume?  Or is reverting both required?
+>> OMAP4 does not have the SDRC but the EMIF like TI8XX.
 >>
->> I suspect the added runtime_suspend hunk is causing the problems, so can
->> you see if just undoing that part works[1].  If that works, I will give
->> a bit more of a thinking on it tomorrow.
-> 
-> runtime_suspend hunk is fine. The hang still exist after reverting it.
-> The culprit is the moved hunk in runtime_resume. Reverting it makes the
-> hang disappear.
+>
+> Benoit,
+>
+> This selection is happening for SOC_OMAP2420 and not for OMAP4.
 
-Thanks. From reviewing the code the only thing that appears suspect based
-upon your findings is the return if we find the context has not been lost.
-We are not checking if "workaround_enabled" is set before we return. 
+Hehe, indeed, I missed the context and was fooled by the config ARCH_OMAP4.
 
-Could you try the following change on top of v3.5-rc3?
+I don't have any comment then :-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4ed172..3b89e85 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1238,12 +1238,8 @@ static int omap_gpio_runtime_resume(struct device *dev)
-        if (bank->get_context_loss_count) {
-                context_lost_cnt_after =
-                        bank->get_context_loss_count(bank->dev);
--               if (context_lost_cnt_after != bank->context_loss_count) {
-+               if (context_lost_cnt_after != bank->context_loss_count)
-                        omap_gpio_restore_context(bank);
--               } else {
--                       spin_unlock_irqrestore(&bank->lock, flags);
--                       return 0;
--               }
-        }
-
-Also, could you add a print in the runtime_suspend/resume() functions so
-we can see how often these are being called. In my case, I really don't see
-these being exercised and I am wondering how often you see suspend/resume
-being called in your setup.
-
-Cheers
-Jon
+Benoit
