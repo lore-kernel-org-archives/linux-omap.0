@@ -1,83 +1,54 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
-Date: Thu, 28 Jun 2012 16:17:07 +0530
-Message-ID: <CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
-References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
-	<1340869729.5037.7.camel@deskari>
-	<CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
-	<1340878461.5037.30.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH] ARM: OMAP2: twl-common: fix compiler warnings
+Date: Thu, 28 Jun 2012 13:49:52 +0300
+Message-ID: <1340880592-21700-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:49087 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817Ab2F1KrJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 06:47:09 -0400
-Received: by bkcji2 with SMTP id ji2so1827544bkc.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 03:47:07 -0700 (PDT)
-In-Reply-To: <1340878461.5037.30.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:52599 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897Ab2F1Kt6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 06:49:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, patches@linaro.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-On 28 June 2012 15:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Thu, 2012-06-28 at 15:18 +0530, Jassi Brar wrote:
+OMAP2 does not use the external voltage controller code for TWL, and
+thus OMAP2 only compilation generates following warnings:
 
->> >> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
->> >> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
->> >> @@ -243,10 +243,13 @@ static int hdmi_check_hpd_state(struct hdmi=
-_ip_data *ip_data)
->> >>
->> >> =A0 =A0 =A0 hpd =3D gpio_get_value(ip_data->hpd_gpio);
->> >>
->> >> - =A0 =A0 if (hpd)
->> >> + =A0 =A0 if (hpd) {
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D hdmi_set_phy_pwr(ip_data, HDMI_=
-PHYPWRCMD_TXON);
->> >> - =A0 =A0 else
->> >> + =A0 =A0 } else {
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Invalidate EDID Cache */
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 ip_data->edid_len =3D 0;
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 r =3D hdmi_set_phy_pwr(ip_data, HDMI_=
-PHYPWRCMD_LDOON);
->> >> + =A0 =A0 }
->> >
->> > There's a problem with this patch, which leaves a wrong EDID in th=
-e
->> > cache: if you first have the cable connected and hdmi is enabled, =
-you
->> > then turn off the HDMI display device via sysfs, we do not go to
->> > hdmi_check_hpd_state at all. The next time hdmi is enabled, we onl=
-y get
->> > the plug-in event, and thus EDID cache is never invalidated.
->> >
->> If the hdmi cable is not replugged during that period, I don't see w=
-hy
->> would you want the EDID invalidated ?
->
-> I wasn't very clear with my comment.
->
-> When the display device is disabled, we're not listening to the hpd
-> interrupt anymore. So when it's disabled, the cable can be replugged =
-and
-> the monitor changed, and the driver won't know about it. And so it'll
-> return the old EDID for the new monitor.
->
-If that could be a problem, then we already have some problem with
-current omapdss.
+arch/arm/mach-omap2/twl-common.c:51: warning: 'twl_set_voltage' defined but not used
+arch/arm/mach-omap2/twl-common.c:57: warning: 'twl_get_voltage' defined but not used
 
-I think among the first things, while enabling HDMI, should be to see
-if there is really some display connected on the port i.e, HPD
-asserted. Only if ti_hdmi_4xxx_detect() returned true, should we
-proceed otherwise wait for HPQ irq.
+This patch moves the code in question behind ARCH specific flags and
+eliminates these warnings.
 
-Unconditionally invalidating edid really seems like a regression - we
-impose atleast 50ms (edid read) as extra cost on
-hdmi_check_hpd_state(), which kills half the purpose of this patch.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/twl-common.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 119d5a9..5447c13 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -48,6 +48,7 @@ static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
+ 	},
+ };
+ 
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static int twl_set_voltage(void *data, int target_uV)
+ {
+ 	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+@@ -59,6 +60,7 @@ static int twl_get_voltage(void *data)
+ 	struct voltagedomain *voltdm = (struct voltagedomain *)data;
+ 	return voltdm_get_voltage(voltdm);
+ }
++#endif
+ 
+ void __init omap_pmic_init(int bus, u32 clkrate,
+ 			   const char *pmic_type, int pmic_irq,
+-- 
+1.7.4.1
+
