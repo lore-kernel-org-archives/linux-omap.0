@@ -1,86 +1,93 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
 Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
-Date: Thu, 28 Jun 2012 18:14:18 +0300
-Message-ID: <1340896458.5037.131.camel@deskari>
+Date: Thu, 28 Jun 2012 20:44:54 +0530
+Message-ID: <CAJe_ZheBbj3qoECDokcxHsB4UOx354G5t_MfYiZ3UEm9xK=tqw@mail.gmail.com>
 References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340869729.5037.7.camel@deskari>
-	 <CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
-	 <1340878461.5037.30.camel@deskari>
-	 <CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
-	 <CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
-	 <1340881815.5037.53.camel@deskari> <4FEC47FA.1040801@linaro.org>
-	 <CAJe_Zhdkhu4TciiwGJB2Kz8oZp2RQNZfESSr5Cfv0R1MNn=r9A@mail.gmail.com>
+	<1340869729.5037.7.camel@deskari>
+	<CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
+	<1340878461.5037.30.camel@deskari>
+	<CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
+	<CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
+	<1340881815.5037.53.camel@deskari>
+	<4FEC47FA.1040801@linaro.org>
+	<CAJe_Zhdkhu4TciiwGJB2Kz8oZp2RQNZfESSr5Cfv0R1MNn=r9A@mail.gmail.com>
+	<1340890278.5037.91.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-96cmH2sjNRqU/YvAHvjR"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33183 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751459Ab2F1POX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 11:14:23 -0400
-Received: by bkcje2 with SMTP id je2so1392224bkc.15
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 08:14:20 -0700 (PDT)
-In-Reply-To: <CAJe_Zhdkhu4TciiwGJB2Kz8oZp2RQNZfESSr5Cfv0R1MNn=r9A@mail.gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61324 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128Ab2F1PO4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 11:14:56 -0400
+Received: by bkcji2 with SMTP id ji2so2115991bkc.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 08:14:55 -0700 (PDT)
+In-Reply-To: <1340890278.5037.91.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: Andy Green <andy.green@linaro.org>, mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, n-dechesne@ti.com, patches@linaro.org
 
+On 28 June 2012 19:01, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Thu, 2012-06-28 at 18:43 +0530, Jassi Brar wrote:
+>> On 28 June 2012 17:33, Andy Green <andy.green@linaro.org> wrote:
+>
+>> > If Jassi's alright with it we might have a go at implementing this, but can
+>> > you define a bit more about how we logically tell DSS that we want to, eg,
+>> > disable HDMI totally?
+>> >
+>> A quick reaction of my guts say, we simply enable 5V/HPD_IRQ during
+>> probe and disable during remove.
+>
+> The problem with this is a feature of omapdss: we can have multiple
+> displays for the same output, of which only one can be enabled at the
+> same time. What this means is that you shouldn't (and in some cases
+> can't) allocate or enable resources in probe that may be shared, because
+> then the driver for both displays would try to allocate the same
+> resource.
+>
+> Sure, this is not a problem for the HDMI configuration we are using now,
+> but it's still against the panel model we have. Thus we should allocate
+> resources only when the panel device is turned on, and release them when
+> it's disabled.
+>
+> I do think the model is slightly broken, but that's what we have now.
+> And I'm also not even sure how it should be fixed...
+>
+I won't press further with my Utopian ideas, but I think we need to
+segregate 5V/HPD enabling from PHY enabling somehow. Because that is
+already failing slow but otherwise perfectly legit displays (like
+Andy's "HPD taking 700ms" TV)
 
---=-96cmH2sjNRqU/YvAHvjR
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2012-06-28 at 18:43 +0530, Jassi Brar wrote:
-
-> A quick reaction of my guts say, we simply enable 5V/HPD_IRQ during
-> probe and disable during remove.
-> HDMI enable/disable via /sysfs/ and HPD (de)assertion, switch only
-> HDMI_PHY on/off.
-> The user selecting "Autodetect and Configure" option would then equate
-> to "(un)loading" of the HDMI driver.
-> Not to mean a trivial job.
-
-One more thing I realized while thinking about this:
-
-While it could be argued that the power draw from having the tpd12s015
-always enabled is very small, I think it could matter. If you consider a
-phone with HDMI output, it's likely that the phone is locked 99% of the
-time. When the phone is locked, there's no need to keep the HDMI HPD
-enabled. So this could add to a considerable amount of power wasted, if
-the HPD was always enabled.
-
-At least I can't figure out a reason why one would want the HPD to work
-when the phone is locked. Also, I have never used the HDMI output on my
-phone, so I'd be glad if it was totally powered off if it gave me more
-standby hours =3D).
-
- Tomi
+> And also, as I said earlier, if you keep it enabled all the time, it'll
+> eat power even if the user is never going to use HDMI.
+>
+> On a desktop I guess the power consumption wouldn't be an issue, but I
+> do feel a bit uneasy about it on an embedded device.
+>
+As I said, it should be platform dependent. If a device doesn't have
+HDMI port, the board file would not even have platform_enable. And if
+it has, some user action should enable it while 'making the device
+ready for new display'.
+IOW, how do you envision an OMAP4 based tablet with HDMI port react to
+display connections ?
 
 
---=-96cmH2sjNRqU/YvAHvjR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+>> HDMI enable/disable via /sysfs/ and HPD (de)assertion, switch only
+>> HDMI_PHY on/off.
+>> The user selecting "Autodetect and Configure" option would then equate
+>> to "(un)loading" of the HDMI driver.
+>
+> HDMI cannot be currently compiled as a separate module. Although I think
+> you can detach a device and a driver, achieving the same. Is that what
+> you meant with unloading?
+>
+Yeah, I meant something to the effect of bringing HDMI driver to life.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJP7HTKAAoJEPo9qoy8lh71deoP/j2uDc8Lt2pcC8bDEFRBPhjR
-+R1f3R1AsMeRe8eods4VOhGbMrI0EbZ2Rw9Qkckmo1cnnsN4zydJy8mAY5bizIx9
-F8R5bH6q5znvd6e2N+NbKhESRCAzA99INQarXJXezCEc277XDrcyvrbkLn+aGBmG
-IuvxBrgI26Ijde0sPd59CwBfnTlZmQojUy1yRP0TmM6PL4folY4j2K8B/jELf1ms
-Zi0BWvBlCL3XOAjMMK88NqVA+9umCA4X13b47duC3s+STaTJuaGZeqZ/RsaLTy+b
-AgZQWMucIbIMegelKUxR4qLwEhuBFOLO+2mDIwRR2DlgOl4DywTBpiBFdbnK0BsJ
-91D+Q8H0pCdmYcrnsi8o64aFXPVDw+6z/6+6L+oy00BBkVWGn127VxnSMh+8i0B8
-3FwZ716ixRin19HUdp5Xymgg7r8WSuWxk21dS04qCzBo99gPHIX7RJWCsBNxjFdR
-FbfLBk2SYr+ddrouzl4avv+5YBwO0ILyQWXPXh+2F9jzykCDZ1TP1SjgfYJUn/MO
-ItSO0vxq2nzAPkbwpLJJofh8OK7EjJuuR+19nhKY2PkKUBnlbGMIF0dt+mIkS0ti
-lOuIeL9Rbjk5/QK2FY/bwRM2IyiaecSC8gXRCYUuBVjq4LqlnZmoOdha4yfHVOao
-0RkdZM2wU7L8HvLrxlMJ
-=ktqH
------END PGP SIGNATURE-----
-
---=-96cmH2sjNRqU/YvAHvjR--
-
+> By the way, when the device is in system suspend, we surely won't detect
+> the HPD even if we kept the HPD always enabled. So there we'll miss the
+> HPD interrupt anyway, and the EDID cache would be invalid.
+>
+If omapdss already handles the possibility of display changed during
+suspend, I think we should be good :)
