@@ -1,135 +1,192 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/3] OMAPDSS: HDMI: Cache EDID
-Date: Thu, 28 Jun 2012 14:10:15 +0300
-Message-ID: <1340881815.5037.53.camel@deskari>
-References: <1340805944-28805-1-git-send-email-jaswinder.singh@linaro.org>
-	 <1340869729.5037.7.camel@deskari>
-	 <CAJe_ZhcWSYhRWSW0v9OqsHRXASsQ8i2P8F8OS+jXkyadoRM9iA@mail.gmail.com>
-	 <1340878461.5037.30.camel@deskari>
-	 <CAJe_Zhc_ye1f=hOVd=AJ7rmCQ_vwDtjQOKsufPYmV1o-58jyAA@mail.gmail.com>
-	 <CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: Re: [PATCH 1/4] OMAPDSS: Cleanup implementation of LCD channels
+Date: Thu, 28 Jun 2012 16:49:05 +0530
+Message-ID: <4FEC3DA9.9010405@ti.com>
+References: <cover.1340874806.git.cmahapatra@ti.com>  <013a8d0a8698b3f971c5963115b03701141a4688.1340874806.git.cmahapatra@ti.com> <1340880649.5037.39.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-sllUbsjyofyMnEOtM3ep"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51306 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752432Ab2F1LK3 (ORCPT
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:54344 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751589Ab2F1LTM (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 07:10:29 -0400
-Received: by lbjn8 with SMTP id n8so3790473lbj.14
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 04:10:17 -0700 (PDT)
-In-Reply-To: <CAJe_ZhfehDquDcyefb7Z9odH+hfQTFiRAux_iyvAycs9Otovtw@mail.gmail.com>
+	Thu, 28 Jun 2012 07:19:12 -0400
+Received: by obbwd20 with SMTP id wd20so4037445obb.37
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 04:19:11 -0700 (PDT)
+In-Reply-To: <1340880649.5037.39.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: mythripk@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, andy.green@linaro.org, n-dechesne@ti.com, patches@linaro.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+On Thursday 28 June 2012 04:20 PM, Tomi Valkeinen wrote:
+> On Thu, 2012-06-28 at 15:10 +0530, Chandrabhanu Mahapatra wrote:
+>> The current implementation of LCD channels and managers consists of a number of
+>> if-else construct which has been replaced by a simpler interface. A constant
+>> structure mgr_desc has been created in Display Controller (DISPC) module. The
+>> mgr_desc contains for each channel its name, irqs and  is initialized one time
+>> with all registers and their corresponding fields to be written to enable
+>> various features of Display Subsystem. This structure is later used by various
+>> functions of DISPC which simplifies the further implementation of LCD channels
+>> and its corresponding managers.
+>>
+>> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+>> ---
+>>  drivers/video/omap2/dss/dispc.c   |  233 +++++++++++++++++--------------------
+>>  drivers/video/omap2/dss/dsi.c     |    6 +-
+>>  drivers/video/omap2/dss/dss.h     |    6 +
+>>  drivers/video/omap2/dss/manager.c |   12 +--
+>>  4 files changed, 121 insertions(+), 136 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+>> index 4749ac3..6c16b81 100644
+>> --- a/drivers/video/omap2/dss/dispc.c
+>> +++ b/drivers/video/omap2/dss/dispc.c
+>> @@ -57,6 +57,8 @@
+>>  
+>>  #define DISPC_MAX_NR_ISRS		8
+>>  
+>> +#define DISPC_MGR_FLD_MAX		9
+> You could have this in the enum mgr_ref_fields, as a last entry. Then
+> it'll automatically have the value 9, and will adjust automatically when
+> we add new fields. And actually "MAX" is not quite right. MAX would be
+> 8, as that's the maximum value for the vields. "NUM" is perhaps more
+> correct.
+Its really a clever idea to have it as the last field of enum
+mgr_ref_fields. To make it distinct from other fields I can add a
+comment on top of it saying its for count of above fields or I am fine
+with names as DISPC_MGR_FLD_COUNT / NUM.
+>  
+>> +
+>>  struct omap_dispc_isr_data {
+>>  	omap_dispc_isr_t	isr;
+>>  	void			*arg;
+>> @@ -119,6 +121,78 @@ enum omap_color_component {
+>>  	DISPC_COLOR_COMPONENT_UV		= 1 << 1,
+>>  };
+>>  
+>> +enum mgr_reg_fields {
+>> +	DISPC_MGR_FLD_ENABLE,
+>> +	DISPC_MGR_FLD_STNTFT,
+>> +	DISPC_MGR_FLD_GO,
+>> +	DISPC_MGR_FLD_TFTDATALINES,
+>> +	DISPC_MGR_FLD_STALLMODE,
+>> +	DISPC_MGR_FLD_TCKENABLE,
+>> +	DISPC_MGR_FLD_TCKSELECTION,
+>> +	DISPC_MGR_FLD_CPR,
+>> +	DISPC_MGR_FLD_FIFOHANDCHECK,
+>> +};
+>> +
+>> +static const struct {
+>> +	const char *name;
+>> +	u32 vsync_irq;
+>> +	u32 framedone_irq;
+>> +	u32 sync_lost_irq;
+>> +	struct reg_field reg_desc[DISPC_MGR_FLD_MAX];
+>> +} mgr_desc[] = {
+>> +	[OMAP_DSS_CHANNEL_LCD] = {
+>> +		.name		= "LCD",
+>> +		.vsync_irq	= DISPC_IRQ_VSYNC,
+>> +		.framedone_irq	= DISPC_IRQ_FRAMEDONE,
+>> +		.sync_lost_irq	= DISPC_IRQ_SYNC_LOST,
+>> +		.reg_desc	= {
+>> +			[DISPC_MGR_FLD_ENABLE]		= { DISPC_CONTROL,  0,  0 },
+>> +			[DISPC_MGR_FLD_STNTFT]		= { DISPC_CONTROL,  3,  3 },
+>> +			[DISPC_MGR_FLD_GO]		= { DISPC_CONTROL,  5,  5 },
+>> +			[DISPC_MGR_FLD_TFTDATALINES]	= { DISPC_CONTROL,  9,  8 },
+>> +			[DISPC_MGR_FLD_STALLMODE]	= { DISPC_CONTROL, 11, 11 },
+>> +			[DISPC_MGR_FLD_TCKENABLE]	= { DISPC_CONFIG,  10, 10 },
+>> +			[DISPC_MGR_FLD_TCKSELECTION]	= { DISPC_CONFIG,  11, 11 },
+>> +			[DISPC_MGR_FLD_CPR]		= { DISPC_CONFIG,  15, 15 },
+>> +			[DISPC_MGR_FLD_FIFOHANDCHECK]	= { DISPC_CONFIG,  16, 16 },
+>> +		},
+>> +	},
+>> +	[OMAP_DSS_CHANNEL_DIGIT] = {
+>> +		.name		= "DIGIT",
+>> +		.vsync_irq	= DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN,
+>> +		.framedone_irq	= DISPC_IRQ_FRAMEDONETV,
+> There's a problem with this one. FRAMEDONETV is a new thing, appeared in
+> omap4. So for this we need a system to select the data depending on the
+> DSS version.
+>
+> I suggest you remove the framedone_irq entry for now, and keep the old
+> code to handle the framedone irq. Let's add it later when we can handle
+> the differences between omap versions.
+>
+> Or actually, looking at the code, perhaps you can keep the framedone_irq
+> field, but set it to 0 for DIGIT mgr. This would keep the functionality
+> the same as it is now, because there's only one place in dispc.c where
+> we use FRAMEDONETV, and your patch doesn't touch it. In other places we
+> presume that TV out does not have FRAMEDONE interrupt (i.e. the irq
+> number is 0).
+The purpose of FRAMEDONETV IRQ as seen from dispc_mgr_enable_digit_out()
+looks as to interrupt when active frame related to HDMI is done and so
+DISPC is disabled. I think I misinterpreted  and used it here. Can
+please explain the exact purpose of DISPC_IRQ_FRAMEDONETV?
+>> +		.sync_lost_irq	= DISPC_IRQ_SYNC_LOST_DIGIT,
+>> +		.reg_desc	= {
+>> +			[DISPC_MGR_FLD_ENABLE]		= { DISPC_CONTROL,  1,  1 },
+>> +			[DISPC_MGR_FLD_STNTFT]		= { },
+>> +			[DISPC_MGR_FLD_GO]		= { DISPC_CONTROL,  6,  6 },
+>> +			[DISPC_MGR_FLD_TFTDATALINES]	= { },
+>> +			[DISPC_MGR_FLD_STALLMODE]	= { },
+>> +			[DISPC_MGR_FLD_TCKENABLE]	= { DISPC_CONFIG,  12, 12 },
+>> +			[DISPC_MGR_FLD_TCKSELECTION]	= { DISPC_CONFIG,  13, 13 },
+>> +			[DISPC_MGR_FLD_CPR]		= { },
+>> +			[DISPC_MGR_FLD_FIFOHANDCHECK]	= { DISPC_CONFIG,  16, 16 },
+>> +		},
+>> +	},
+>> +	[OMAP_DSS_CHANNEL_LCD2] = {
+>> +		.name		= "LCD2",
+>> +		.vsync_irq	= DISPC_IRQ_VSYNC2,
+>> +		.framedone_irq	= DISPC_IRQ_FRAMEDONE2,
+>> +		.sync_lost_irq	= DISPC_IRQ_SYNC_LOST2,
+>> +		.reg_desc	= {
+>> +			[DISPC_MGR_FLD_ENABLE]		= { DISPC_CONTROL2,  0,  0 },
+>> +			[DISPC_MGR_FLD_STNTFT]		= { DISPC_CONTROL2,  3,  3 },
+>> +			[DISPC_MGR_FLD_GO]		= { DISPC_CONTROL2,  5,  5 },
+>> +			[DISPC_MGR_FLD_TFTDATALINES]	= { DISPC_CONTROL2,  9,  8 },
+>> +			[DISPC_MGR_FLD_STALLMODE]	= { DISPC_CONTROL2, 11, 11 },
+>> +			[DISPC_MGR_FLD_TCKENABLE]	= { DISPC_CONFIG2,  10, 10 },
+>> +			[DISPC_MGR_FLD_TCKSELECTION]	= { DISPC_CONFIG2,  11, 11 },
+>> +			[DISPC_MGR_FLD_CPR]		= { DISPC_CONFIG2,  15, 15 },
+>> +			[DISPC_MGR_FLD_FIFOHANDCHECK]	= { DISPC_CONFIG2,  16, 16 },
+>> +		},
+>> +	},
+>> +};
+>> +
+>>  static void _omap_dispc_set_irqs(void);
+>>  
+>>  static inline void dispc_write_reg(const u16 idx, u32 val)
+>> @@ -131,6 +205,19 @@ static inline u32 dispc_read_reg(const u16 idx)
+>>  	return __raw_readl(dispc.base + idx);
+>>  }
+>>  
+>> +static u32 mgr_fld_read(enum omap_channel channel, enum mgr_reg_fields regfld)
+>> +{
+>> +	const struct reg_field rfld = mgr_desc[channel].reg_desc[regfld];
+>> +	return FLD_GET(dispc_read_reg(rfld.reg), rfld.high, rfld.low);
+> This could use REG_GET(), instead of FLD_GET(dispc_read_reg(...))
+ok.
+>
+>> +}
+>> +
+>> +static void mgr_fld_write(enum omap_channel channel,
+>> +					enum mgr_reg_fields regfld, int val) {
+>> +	const struct reg_field rfld = mgr_desc[channel].reg_desc[regfld];
+>> +	dispc_write_reg(rfld.reg, FLD_MOD(dispc_read_reg(rfld.reg), val,
+>> +				rfld.high, rfld.low));
+>> +}
+> And this one could use REG_FLD_MOD().
+>
+> Otherwise, looks good.
+>
+>  Tomi
+>
+ok.
 
---=-sllUbsjyofyMnEOtM3ep
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2012-06-28 at 16:28 +0530, Jassi Brar wrote:
-> On 28 June 2012 16:17, Jassi Brar <jaswinder.singh@linaro.org> wrote:
-> > On 28 June 2012 15:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >> On Thu, 2012-06-28 at 15:18 +0530, Jassi Brar wrote:
-> >
-> >>> >> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-> >>> >> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-> >>> >> @@ -243,10 +243,13 @@ static int hdmi_check_hpd_state(struct hdmi_=
-ip_data *ip_data)
-> >>> >>
-> >>> >>       hpd =3D gpio_get_value(ip_data->hpd_gpio);
-> >>> >>
-> >>> >> -     if (hpd)
-> >>> >> +     if (hpd) {
-> >>> >>               r =3D hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON)=
-;
-> >>> >> -     else
-> >>> >> +     } else {
-> >>> >> +             /* Invalidate EDID Cache */
-> >>> >> +             ip_data->edid_len =3D 0;
-> >>> >>               r =3D hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON=
-);
-> >>> >> +     }
-> >>> >
-> >>> > There's a problem with this patch, which leaves a wrong EDID in the
-> >>> > cache: if you first have the cable connected and hdmi is enabled, y=
-ou
-> >>> > then turn off the HDMI display device via sysfs, we do not go to
-> >>> > hdmi_check_hpd_state at all. The next time hdmi is enabled, we only=
- get
-> >>> > the plug-in event, and thus EDID cache is never invalidated.
-> >>> >
-> >>> If the hdmi cable is not replugged during that period, I don't see wh=
-y
-> >>> would you want the EDID invalidated ?
-> >>
-> >> I wasn't very clear with my comment.
-> >>
-> >> When the display device is disabled, we're not listening to the hpd
-> >> interrupt anymore. So when it's disabled, the cable can be replugged a=
-nd
-> >> the monitor changed, and the driver won't know about it. And so it'll
-> >> return the old EDID for the new monitor.
-> >>
-> > If that could be a problem, then we already have some problem with
-> > current omapdss.
-> >
-> > I think among the first things, while enabling HDMI, should be to see
-> > if there is really some display connected on the port i.e, HPD
-> > asserted. Only if ti_hdmi_4_detect() returned true, should we
-> > proceed otherwise wait for HPQ irq.
-> >
-> > Unconditionally invalidating edid really seems like a regression - we
-> > impose atleast 50ms (edid read) as extra cost on
-> > hdmi_check_hpd_state(), which kills half the purpose of this patch.
-> >
-> Sorry a correction. Reading detect() won't work. I suggest we keep HPD
-> IRQ enabled for the lifetime of the driver.
-
-Ok, I see. But that's not acceptable. It would require us to keep the
-TPD12S015 always powered and enabled. Even if you're not interested in
-using HDMI at all.
-
-For this to work like you want we need a bigger restructuring of HDMI
-and partly omapdss also. Currently we have just one big "enabled" or
-"disabled" state. We need multiple states. Probably something like:
-
-- disabled, everything totally off
-- low power, hotplug detection enabled
-- powered on, but no video
-- video enabled
-
-Been long in my mind, but I'm not very familiar with HDMI so I could get
-my simple prototypes to work when I tried something like this once.
-
- Tomi
-
-
---=-sllUbsjyofyMnEOtM3ep
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP7DuXAAoJEPo9qoy8lh71a4YP/1B0qWGprtPQxPomD+FCk9Bf
-Ugv6IGRHaGoWY5gBxpcZgv5GW9N/oZSMKNKvwxI34UeVMI5tO3hnldSiIdiBU7bm
-fBOv125aqsKbycMjoiCOZQVTZICDZ3ogQC7LJFwsI1kBFbm+bQn3OPHlj/BwofWI
-a6t61OQJIox7oBPt+xNf8t0UycFxaHNZFdqZsWEGbCy1mDbbAhZst/vsHlReCMIn
-SLPqsS4yD/C58jQL7nFbKMo3dYc3DTXifJNd8AmVU+OjuxT6Def0irXe1Wn/ZP1u
-9bUWSbeHnbaeSRfmNjkwxlCVR4JNZRZnJZFDf+69AYbNx7qe7YbIviaJRQIWrf92
-6IQCiXUNPMMbupxpkMfF32VAPN6uKB5SiognXo8FbEdIZqnA/sKzdV/aGd4PV5dU
-7VqMb48LmMqZZx8FS4VkrPPtC4XWj1cwZqjRv3gzPzwiXekUcTbEnpL55l6K6CkZ
-cnwWrlHcL4gPJ2I+ex90DVoyP+oiMBCwvLjd3t4HhPTjfA3fRGDM/bRg3/RmO1vt
-lVRIYJZ+YXy5jTVHgSXmxtVy9xzTuuqIm/jdumYWG++KCuFpPKnUOKjopIYGcfkR
-7UJEiTCZj8KU3gYUslln2+DqL8OAi2Q2rjYk76Ne/ya17Fx4aBchKKeCbZycgolw
-xd7z1ksViP72acdi0vgi
-=DZq7
------END PGP SIGNATURE-----
-
---=-sllUbsjyofyMnEOtM3ep--
+-- 
+Chandrabhanu Mahapatra
+Texas Instruments India Pvt. Ltd.
 
