@@ -1,139 +1,89 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 01/12] OMAPDSS: DISPC: Change return type of dispc_mgr_set_clock_div()
-Date: Thu, 28 Jun 2012 20:00:31 +0530
-Message-ID: <1340893842-10626-3-git-send-email-archit@ti.com>
+Subject: [PATCH 04/12] OMAPDSS: RFBI: Configure dss_lcd_mgr_config struct with lcd manager parameters
+Date: Thu, 28 Jun 2012 20:00:34 +0530
+Message-ID: <1340893842-10626-6-git-send-email-archit@ti.com>
 References: <1340893842-10626-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41698 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751808Ab2F1OcI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 10:32:08 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36396 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216Ab2F1OcU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 10:32:20 -0400
 In-Reply-To: <1340893842-10626-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-dipsc_mgr_set_clock div has an int return type to report errors or success.
-The function doesn't really check for errors and always returns 0. Change
-the return type to void.
+Create a dss_lcd_mgr_config struct instance in RFBI. Fill up all the parameters
+of the struct with configurations held by the panel, and the configurations
+required by RFBI.
 
-Checking for the correct DISPC clock divider ranges will be done when a DSS2
-user does a manager apply. This support will be added later.
+Use these to write to the DISPC registers. These direct register writes would be
+later replaced by a function which applies the configuration using the shadow
+register programming model.
+
+Create function rfbi_config_lcd_manager() which fills up the mgr_config
+parameters and writes to the DISPC regs.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    4 +---
- drivers/video/omap2/dss/dpi.c   |   10 ++--------
- drivers/video/omap2/dss/dsi.c   |    6 +-----
- drivers/video/omap2/dss/dss.h   |    2 +-
- drivers/video/omap2/dss/sdi.c   |    5 +----
- 5 files changed, 6 insertions(+), 21 deletions(-)
+ drivers/video/omap2/dss/rfbi.c |   34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 864adcc..b047fe6 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3184,15 +3184,13 @@ int dispc_calc_clock_rates(unsigned long dispc_fclk_rate,
- 	return 0;
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 45084d8..847f694 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -859,6 +859,33 @@ static void rfbi_dump_regs(struct seq_file *s)
+ #undef DUMPREG
  }
  
--int dispc_mgr_set_clock_div(enum omap_channel channel,
-+void dispc_mgr_set_clock_div(enum omap_channel channel,
- 		struct dispc_clock_info *cinfo)
++static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
++{
++	struct dss_lcd_mgr_config mgr_config;
++
++	mgr_config.io_pad_mode = DSS_IO_PAD_MODE_RFBI;
++
++	mgr_config.stallmode = true;
++	/* Do we need fifohandcheck for RFBI? */
++	mgr_config.fifohandcheck = false;
++
++	mgr_config.video_port_width = dssdev->ctrl.pixel_size;
++	mgr_config.lcden_sig_polarity = 0;
++
++	dispc_mgr_set_io_pad_mode(mgr_config.io_pad_mode);
++
++	dispc_mgr_enable_stallmode(dssdev->manager->id, mgr_config.stallmode);
++	dispc_mgr_enable_fifohandcheck(dssdev->manager->id,
++			mgr_config.fifohandcheck);
++
++	dispc_mgr_set_tft_data_lines(dssdev->manager->id,
++			mgr_config.video_port_width);
++
++	dispc_lcd_enable_signal_polarity(mgr_config.lcden_sig_polarity);
++
++	dispc_mgr_set_lcd_type_tft(dssdev->manager->id);
++}
++
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
  {
- 	DSSDBG("lck = %lu (%u)\n", cinfo->lck, cinfo->lck_div);
- 	DSSDBG("pck = %lu (%u)\n", cinfo->pck, cinfo->pck_div);
- 
- 	dispc_mgr_set_lcd_divisor(channel, cinfo->lck_div, cinfo->pck_div);
--
--	return 0;
- }
- 
- int dispc_mgr_get_clock_div(enum omap_channel channel,
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 046a6fb..af01430 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -100,11 +100,7 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
- 
- 	dss_select_dispc_clk_source(clks->dispc.fclk_src);
- 
--	r = dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
--	if (r) {
--		dss_select_dispc_clk_source(OMAP_DSS_CLK_SRC_FCK);
--		return r;
--	}
-+	dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
- 
- 	*fck = dsi_cinfo.dsi_pll_hsdiv_dispc_clk;
- 	*lck_div = dispc_cinfo.lck_div;
-@@ -129,9 +125,7 @@ static int dpi_set_dispc_clk(struct omap_dss_device *dssdev,
- 	if (r)
- 		return r;
- 
--	r = dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
--	if (r)
--		return r;
-+	dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
- 
- 	*fck = dss_cinfo.fck;
- 	*lck_div = dispc_cinfo.lck_div;
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 9f08787..94ff3aa 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -4456,11 +4456,7 @@ static int dsi_configure_dispc_clocks(struct omap_dss_device *dssdev,
- 		return r;
+ 	int r;
+@@ -885,12 +912,7 @@ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err1;
  	}
  
--	r = dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
--	if (r) {
--		DSSERR("Failed to set dispc clocks\n");
--		return r;
--	}
-+	dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
+-	dispc_mgr_set_lcd_type_tft(dssdev->manager->id);
+-
+-	dispc_mgr_set_io_pad_mode(DSS_IO_PAD_MODE_RFBI);
+-	dispc_mgr_enable_stallmode(dssdev->manager->id, true);
+-
+-	dispc_mgr_set_tft_data_lines(dssdev->manager->id, dssdev->ctrl.pixel_size);
++	rfbi_config_lcd_manager(dssdev);
  
- 	return 0;
- }
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 20151d5..f8289e9 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -416,7 +416,7 @@ void dispc_mgr_set_timings(enum omap_channel channel,
- unsigned long dispc_mgr_lclk_rate(enum omap_channel channel);
- unsigned long dispc_mgr_pclk_rate(enum omap_channel channel);
- unsigned long dispc_core_clk_rate(void);
--int dispc_mgr_set_clock_div(enum omap_channel channel,
-+void dispc_mgr_set_clock_div(enum omap_channel channel,
- 		struct dispc_clock_info *cinfo);
- int dispc_mgr_get_clock_div(enum omap_channel channel,
- 		struct dispc_clock_info *cinfo);
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index b44ab72..0b2659f 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -106,9 +106,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_set_dss_clock_div;
- 
--	r = dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
--	if (r)
--		goto err_set_dispc_clock_div;
-+	dispc_mgr_set_clock_div(dssdev->manager->id, &dispc_cinfo);
- 
- 	dss_sdi_init(dssdev->phy.sdi.datapairs);
- 	r = dss_sdi_enable();
-@@ -125,7 +123,6 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- err_mgr_enable:
- 	dss_sdi_disable();
- err_sdi_enable:
--err_set_dispc_clock_div:
- err_set_dss_clock_div:
- err_calc_clock_div:
- 	dispc_runtime_put();
+ 	rfbi_configure(dssdev->phy.rfbi.channel,
+ 			       dssdev->ctrl.pixel_size,
 -- 
 1.7.9.5
 
