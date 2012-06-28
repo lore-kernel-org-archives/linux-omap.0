@@ -1,55 +1,47 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 2/2] ARM: OMAP4: TWL6030: ensure sys_nirq1 is mux'd and wakeup enabled
-Date: Thu, 28 Jun 2012 10:01:32 -0700
-Message-ID: <1340902892-9542-3-git-send-email-khilman@ti.com>
-References: <1340902892-9542-1-git-send-email-khilman@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44288 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755712Ab2F1RBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 13:01:45 -0400
-Received: by dadz8 with SMTP id z8so3463891dad.7
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 10:01:39 -0700 (PDT)
-In-Reply-To: <1340902892-9542-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH] MAINTAINERS: add OMAP CPUfreq driver to OMAP Power Management
+ section
+Date: Thu, 28 Jun 2012 10:20:21 -0700
+Message-ID: <1340904021-25872-1-git-send-email-khilman@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: arm@kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-The SYS_NIRQ1 pin is the interupt line for the PMIC part of the TWL6030
-and interrupts from the PMIC are needed as wakeup sources.
+Add the OMAP CPUFreq driver to the list of files in the OMAP Power
+Management section.
 
-Ensure this pin is mux'd as input and has wakeup enabled so PMIC
-interupts (e.g. RTC) can be used as wakeup sources.
-
-Tested on OMAP4430/Panda.
+I've already been maintaining this driver, this just makes it
+official.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/twl-common.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 119d5a9..43a9790 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -32,6 +32,7 @@
- #include "twl-common.h"
- #include "pm.h"
- #include "voltage.h"
-+#include "mux.h"
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 55f0fda..bee9d2e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4836,6 +4836,7 @@ M:	Kevin Hilman <khilman@ti.com>
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/*omap*/*pm*
++F:	drivers/cpufreq/omap-cpufreq.c
  
- static struct i2c_board_info __initdata pmic_i2c_board_info = {
- 	.addr		= 0x48,
-@@ -77,6 +78,7 @@ void __init omap4_pmic_init(const char *pmic_type,
- 		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
- {
- 	/* PMIC part*/
-+	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
- 	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
- 		sizeof(omap4_i2c1_board_info[0].type));
- 	omap4_i2c1_board_info[0].irq = OMAP44XX_IRQ_SYS_1N;
+ OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
+ M:	Rajendra Nayak <rnayak@ti.com>
 -- 
 1.7.9.2
-
