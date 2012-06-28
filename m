@@ -1,17 +1,21 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Thu, 28 Jun 2012 18:28:15 -0500
-Message-ID: <4FECE88F.1030303@ti.com>
+Date: Thu, 28 Jun 2012 18:35:12 -0500
+Message-ID: <4FECEA30.5060107@ti.com>
 References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com> <4FECCB91.7090609@broadcom.com> <4FECD2E5.1060603@ti.com> <4FECE067.7000809@broadcom.com> <4FECE1BD.80906@ti.com> <4FECE45E.6040506@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FECE45E.6040506-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tarun.kanti-l0cyMroinI0@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42864 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751968Ab2F1XfM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 19:35:12 -0400
+In-Reply-To: <4FECE45E.6040506@broadcom.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Franky Lin <frankyl@broadcom.com>
+Cc: Kevin Hilman <khilman@ti.com>, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
 On 06/28/2012 06:10 PM, Franky Lin wrote:
@@ -54,10 +58,6 @@ On 06/28/2012 06:10 PM, Franky Lin wrote:
 > [    0.181365] !!!!!omap_gpio_runtime_suspend
 > [    0.181518] ??????omap_gpio_runtime_resume
 > [    0.182037] !!!!!omap_gpio_runtime_suspend
-
-There a 6 resume/suspend pairs here one for probing each of the 6 gpio
-banks. So this makes sense.
-
 > [    0.185089] omap_mux_init: Add partition: #1: core, flags: 2
 > [    0.186462] omap_mux_init: Add partition: #2: wkup, flags: 2
 > [    0.186584] error setting wl12xx data: -38
@@ -70,54 +70,51 @@ banks. So this makes sense.
 > [    0.241058]  usbhs_omap: alias fck already exists
 > [    0.244781] ??????omap_gpio_runtime_resume
 
-Yes, these 3 resumes at the end are most likely caused by calls to
-omap_gpio_request(). In other words, 3 gpios are acquired. So that is
-expected and looks fine to me.
+Sorry, can you do one more test? :-)
 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index c4ed172..bca3985 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1146,7 +1146,7 @@ static int __devinit omap_gpio_probe(struct
-> platform_device *pdev)
-> 
->  #if defined(CONFIG_PM_RUNTIME)
->  static void omap_gpio_restore_context(struct gpio_bank *bank);
-> -
-> +static int flag = 0;
->  static int omap_gpio_runtime_suspend(struct device *dev)
->  {
->         struct platform_device *pdev = to_platform_device(dev);
-> @@ -1155,6 +1155,8 @@ static int omap_gpio_runtime_suspend(struct device
-> *dev)
->         unsigned long flags;
->         u32 wake_low, wake_hi;
-> 
-> +       flag ++;
-> +
->         spin_lock_irqsave(&bank->lock, flags);
-> 
->         /*
-> @@ -1221,6 +1223,11 @@ static int omap_gpio_runtime_resume(struct device
-> *dev)
->         u32 l = 0, gen, gen0, gen1;
->         unsigned long flags;
-> 
-> +       if (flag)
-> +               flag--;
-> +       else
-> +               return 0;
-> +
->         spin_lock_irqsave(&bank->lock, flags);
->         _gpio_dbck_enable(bank);
+Add the following and send me the output?
 
-I guess that this would also avoid the context restore, so I could see
-it would work, but this is definitely not right. Ok, well let me look
-into the restore.
-
-Thanks
+Thanks!
 Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index c4ed172..3aa0f96 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1155,6 +1155,7 @@ static int omap_gpio_runtime_suspend(struct device
+*dev)
+        unsigned long flags;
+        u32 wake_low, wake_hi;
+
++       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
+        spin_lock_irqsave(&bank->lock, flags);
+
+        /*
+@@ -1221,6 +1222,7 @@ static int omap_gpio_runtime_resume(struct device
+*dev)
+        u32 l = 0, gen, gen0, gen1;
+        unsigned long flags;
+
++       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
+        spin_lock_irqsave(&bank->lock, flags);
+        _gpio_dbck_enable(bank);
+
+@@ -1239,6 +1241,7 @@ static int omap_gpio_runtime_resume(struct device
+*dev)
+                context_lost_cnt_after =
+                        bank->get_context_loss_count(bank->dev);
+                if (context_lost_cnt_after != bank->context_loss_count) {
++                       pr_info("%s: count %d, now %d", __func__,
+bank->context_loss_count, context_lost_cnt_after);
+                        omap_gpio_restore_context(bank);
+                } else {
+                        spin_unlock_irqrestore(&bank->lock, flags);
+@@ -1341,6 +1344,7 @@ void omap2_gpio_resume_after_idle(void)
+ #if defined(CONFIG_PM_RUNTIME)
+ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ {
++       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
+        __raw_writel(bank->context.wake_en,
+                                bank->base + bank->regs->wkup_en);
+        __raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
+
