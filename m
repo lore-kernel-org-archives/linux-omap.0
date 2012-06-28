@@ -1,80 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 3/7] OMAP2+: use control module mfd driver
- in omap_type
-Date: Wed, 27 Jun 2012 23:32:36 -0700
-Message-ID: <20120628063235.GA19842@atomide.com>
-References: <4FEB4B4A.1040204@dev.rtsoft.ru>
+Subject: Re: [PATCH 1/1] ARM: OMAP: omap2plus_defconfig: Enable EXT4 support
+Date: Wed, 27 Jun 2012 23:37:34 -0700
+Message-ID: <20120628063734.GB19842@atomide.com>
+References: <1340489939-5390-1-git-send-email-javier@dowhile0.org>
+ <CAAwP0s2eTWk2Uf0HZ13Lq5gA0HNp8V87znjd6rX6Uh0ZPy03PA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42505 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307Ab2F1Ghj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Jun 2012 02:37:39 -0400
 Content-Disposition: inline
-In-Reply-To: <4FEB4B4A.1040204@dev.rtsoft.ru>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: amit.kucheria@linaro.org, kishon@ti.com, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CAAwP0s2eTWk2Uf0HZ13Lq5gA0HNp8V87znjd6rX6Uh0ZPy03PA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Russell King <linux@arm.linux.org.uk>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 Hi,
 
-* Konstantin Baydarov <kbaidarov@dev.rtsoft.ru> [120627 11:09]:
-> OMAP system control module can be probed early, then
-> omap_type is safe to use its APIs.
-> 
-> TODO: add support for other omap versions
-> 
-> Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-> ---
->  arch/arm/mach-omap2/id.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 00486a8..1b0cec8 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -18,6 +18,7 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/io.h>
-> +#include <linux/mfd/omap_control.h>
->  
->  #include <asm/cputype.h>
->  
-> @@ -43,13 +44,13 @@ int omap_type(void)
->  	u32 val = 0;
->  
->  	if (cpu_is_omap24xx()) {
-> -		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
-> +		val = omap_control_status_read(OMAP24XX_CONTROL_STATUS);
->  	} else if (cpu_is_am33xx()) {
-> -		val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
-> +		val = omap_control_status_read(AM33XX_CONTROL_STATUS);
->  	} else if (cpu_is_omap34xx()) {
-> -		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-> +		val = omap_control_status_read(OMAP343X_CONTROL_STATUS);
->  	} else if (cpu_is_omap44xx()) {
-> -		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
-> +		val = omap_control_status_read(OMAP4_CTRL_MODULE_CORE_STATUS);
->  	} else {
->  		pr_err("Cannot detect omap type!\n");
->  		goto out;
+* Javier Martinez Canillas <martinez.javier@gmail.com> [120627 15:32]:
+> On Sun, Jun 24, 2012 at 12:18 AM, Javier Martinez Canillas
+> <javier@dowhile0.org> wrote:
+> > On OMAP boards that includes an SD card slot, an EXT4 partition cou=
+ld
+> > be used to store the root file system. So, the kernel should have
+> > built-in support for EXT4 to be able to mount the VFS root on boot.
+> >
+> > Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> > ---
+> > =C2=A0arch/arm/configs/omap2plus_defconfig | =C2=A0 =C2=A01 +
+> > =C2=A01 files changed, 1 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/config=
+s/omap2plus_defconfig
+> > index 9854ff4..f3087cb 100644
+> > --- a/arch/arm/configs/omap2plus_defconfig
+> > +++ b/arch/arm/configs/omap2plus_defconfig
+> > @@ -197,6 +197,7 @@ CONFIG_RTC_DRV_TWL4030=3Dy
+> > =C2=A0CONFIG_EXT2_FS=3Dy
+> > =C2=A0CONFIG_EXT3_FS=3Dy
+> > =C2=A0# CONFIG_EXT3_FS_XATTR is not set
+> > +CONFIG_EXT4_FS=3Dy
+> > =C2=A0CONFIG_QUOTA=3Dy
+> > =C2=A0CONFIG_QFMT_V2=3Dy
+> > =C2=A0CONFIG_MSDOS_FS=3Dy
+> > --
+> > 1.7.7.6
+> >
+>=20
+> Hi,
+>=20
+> any news about this patch?
+>=20
+> Is quite annoying to have to enable EXT4 support each time I want to
+> try a new kernel on my board.
 
-I think you should keep the CONTROL_STATUS defines private to the
-SCM core driver, there should be no need to pass it here. Just
-make it int omap_control_status_read(void).
-
-Of course that means that the SCM core is initialized to some extent
-to know where to find the CONTROL_STATUS register. That should
-probably be done as part of the set_globals calls done in init_early
-in mach-omap2/io.c file.
+Eventually we'll be moving into omap2plus_defconfig that pretty much
+builds everything as modules and requires use of an initramfs.. But
+until we're there yes I agree this makes life easier for booting beagle
+and panda devices with the omap2plus_defconfig.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
