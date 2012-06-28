@@ -1,47 +1,59 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] MAINTAINERS: add OMAP CPUfreq driver to OMAP Power Management
- section
-Date: Thu, 28 Jun 2012 10:20:21 -0700
-Message-ID: <1340904021-25872-1-git-send-email-khilman@ti.com>
+Subject: Re: Problems in the DaVinci EMAC driver & AM35xx?
+Date: Thu, 28 Jun 2012 12:56:13 -0500
+Message-ID: <87fw9fpbgi.fsf@ti.com>
+References: <1339627132.52592.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+	<1339788533.89799.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+	<1340396573.68079.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+	<1340398244.35574.YahooMailNeo@web125202.mail.ne1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: arm@kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:47539 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755557Ab2F1R4E convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 13:56:04 -0400
+Received: by yhfq11 with SMTP id q11so2926591yhf.1
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 10:56:01 -0700 (PDT)
+In-Reply-To: <1340398244.35574.YahooMailNeo@web125202.mail.ne1.yahoo.com> (CF
+	Adad's message of "Fri, 22 Jun 2012 13:50:44 -0700 (PDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: CF Adad <cfadad@rocketmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "afzal@ti.com" <afzal@ti.com>, "jp.francois@cynove.com" <jp.francois@cynove.com>, "tony@atomide.com" <tony@atomide.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
-Add the OMAP CPUFreq driver to the list of files in the OMAP Power
-Management section.
+CF Adad <cfadad@rocketmail.com> writes:
 
-I've already been maintaining this driver, this just makes it
-official.
+[...]
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+> I bring these questions here, as the crash's call stack shares so man=
+y
+> similarities to the "SLAB crash" discussed
+> "http://thread.gmane.org/gmane.linux.ports.arm.omap/78039/", that I
+> think they're related.=C2=A0 At the very least, the EMAC to EMAC
+> performance issues we have always seen are troubling.=C2=A0 IMHO, cle=
+arly
+> the EMAC driver is doing something a little questionable.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 55f0fda..bee9d2e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4836,6 +4836,7 @@ M:	Kevin Hilman <khilman@ti.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
- F:	arch/arm/*omap*/*pm*
-+F:	drivers/cpufreq/omap-cpufreq.c
- 
- OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
- M:	Rajendra Nayak <rnayak@ti.com>
--- 
-1.7.9.2
+I don't know about the crash, but the EMAC performance issues are known=
+=2E
+
+Basically, the EMAC on the AM3xxx is not wakeup capable.  Meaning that
+if you enter idle, and EMAC interrupt will not wake the system.  The
+system will not wake until another wakeup-capable device (e.g. timer)
+goes off.
+
+To see if this is causing your problems, add 'nohlt' to your kernel
+command line.  This will prevent the SoC from ever entering idle, so
+your EMAC interrupt latency will drop significantly.
+
+Kevin
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
