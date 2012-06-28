@@ -1,99 +1,70 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Thu, 28 Jun 2012 14:00:45 -0500
-Message-ID: <4FECA9DD.8050505@ti.com>
-References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
+From: "Franky Lin" <frankyl@broadcom.com>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Thu, 28 Jun 2012 14:24:33 -0700
+Message-ID: <4FECCB91.7090609@broadcom.com>
+References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com>
+ <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47753 "EHLO arroyo.ext.ti.com"
+Received: from mms3.broadcom.com ([216.31.210.19]:4780 "EHLO mms3.broadcom.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752842Ab2F1TAl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 15:00:41 -0400
-In-Reply-To: <4FEC89B9.3090404@ti.com>
+	id S1751995Ab2F1VYp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 17:24:45 -0400
+In-Reply-To: <4FEC7B48.8040402@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, tarun.kanti@ti.com, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony, Afzal,
-
-On 06/28/2012 11:43 AM, Jon Hunter wrote:
-> Hi Tony, Afzal,
-> 
-> On 06/28/2012 07:32 AM, Tony Lindgren wrote:
->> * Mohammed, Afzal <afzal@ti.com> [120628 02:36]:
->>> Hi Tony,
+On 06/28/2012 08:42 AM, Jon Hunter wrote:
+>
+> On 06/27/2012 07:41 PM, Franky Lin wrote:
+>> On 06/26/2012 08:37 PM, Kevin Hilman wrote:
+>>> "Franky Lin" <frankyl@broadcom.com> writes:
+>>>> I noticed Kevin raised some similar cases on other platforms and also
+>>>> provided two patches in the patch mail thread. But unfortunately those
+>>>> two patches doesn't help in our case. I tested the driver with 3.5-rc3
+>>>> mainline kernel and the issue is still there. I can only "fix" the
+>>>> hang by either reverting the commit or disabling
+>>>> CONFIG_PM_RUNTIME. Also, the hang only happens on Panda ES board. Old
+>>>> Panda with 4430 works good.
+>>>>
+>>>> Any thoughts and suggestions?
 >>>
->>> On Wed, Jun 27, 2012 at 20:28:45, Tony Lindgren wrote:
+>>> If reverting the patch fixes your problem, can you isolate down to which
+>>> part of that patch causes the problem?  IOW, can you fix your problem if
+>>> you undo just the hunk added in runtime_suspend or undo just the moved
+>>> hunk runtime_resume?  Or is reverting both required?
 >>>
->>>> The last patch in this series causes onenand not to show
->>>> up on my n900. I believe the problem has been there earlier
->>>> too, but I just did not notice it.
->>>
->>> Sorry for the delayed response, could reach workplace a short
->>> while ago only
->>>
->>> Could the diff [1] be tried and check whether it resolves the issue,
->>>
->>> Regards
->>> Afzal
->>>
->>> [1]
->>> diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
->>> index c8a9487..bbae674 100644
->>> --- a/arch/arm/mach-omap2/gpmc-onenand.c
->>> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
->>> @@ -364,6 +364,8 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
->>>         struct gpmc_timings t;
->>>         int ret;
->>>
->>> +       omap2_onenand_set_async_mode(onenand_base);
->>> +
->>>         t = omap2_onenand_calc_async_timings();
->>>
->>>         ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
+>>> I suspect the added runtime_suspend hunk is causing the problems, so can
+>>> you see if just undoing that part works[1].  If that works, I will give
+>>> a bit more of a thinking on it tomorrow.
 >>
->> Yes that seems to do the trick, thanks! I can fold that into the
->> breaking patch when applying.
-> 
-> I am not sure what to make of this. Testing Afzal's this series along with the other
-> gpmc-prep series [1], onenand is working fine on my 3430sdp and I see ...
-> 
-> [    2.792510] OneNAND driver initializing
-> [    2.797576] omap2-onenand omap2-onenand: initializing on CS2, phys base 0x20000000, virtual base c88c0000, freq 0 MHz
+>> runtime_suspend hunk is fine. The hang still exist after reverting it.
+>> The culprit is the moved hunk in runtime_resume. Reverting it makes the
+>> hang disappear.
+>
+> Thanks. From reviewing the code the only thing that appears suspect based
+> upon your findings is the return if we find the context has not been lost.
+> We are not checking if "workaround_enabled" is set before we return.
+>
+> Could you try the following change on top of v3.5-rc3?
+>
 
-I realised that the above print showing 0 MHz is another clue as to why
-the above change is needed for the n900. It is printing 0 MHz because
-the OMAP3430 SDP does not support sync read or write. The frequency is
-only queried during the configuration of the sync mode timings and not
-the async. I had just submitted a 2 patch series to fix this so that is
-displays the correct frequency for all boards [1]. If you agree with my
-changes may be we can include them in Afzal's series.
+The patch doesn't help. And I also managed to probe the signal. It's 
+active when it hung.
 
-However, more importantly with my fix, I now see that the frequency
-supporting by the OneNAND on the SDP is 66MHz. On Tony's n900 it shows
-83MHz. The timings for async mode are hard-coded in the gpmc-onenand.c
-and it does not have different timings for different devices and
-different frequencies. Hence, this is probably why the async timings in
-the gpmc-onenand.c do not work for the n900.
+> Also, could you add a print in the runtime_suspend/resume() functions so
+> we can see how often these are being called. In my case, I really don't see
+> these being exercised and I am wondering how often you see suspend/resume
+> being called in your setup.
 
-The problem is that unlike nand, where it is clear which boards were
-dependent on the bootloader timings, for onenand it really is not 100%
-clear. Some boards support ONENAND_SYNC_READWRITE and so these are not
-using the async timings. However, the n8x0 appears only to use sync
-read. Does the n900 use the same settings as the n8x0?
+Well, the runtime_suspend/resume never get called during the test.
 
-Tony, have you tried using any of the mtd kernel tests to verify OneNAND
-read/write is working on your n900? For example ...
+Thanks,
+Franky
 
-# insmod mtd_pagetest.ko dev=<mtd-part-num>
-
-_NOTE_ that above test erases the OneNAND! ;-)
-
-Cheers
-Jon
-
-[1] http://marc.info/?l=linux-omap&m=134090910321284&w=2
