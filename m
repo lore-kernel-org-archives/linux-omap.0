@@ -1,16 +1,16 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Thu, 28 Jun 2012 18:35:12 -0500
-Message-ID: <4FECEA30.5060107@ti.com>
+Date: Thu, 28 Jun 2012 18:54:02 -0500
+Message-ID: <4FECEE9A.5070300@ti.com>
 References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com> <4FECCB91.7090609@broadcom.com> <4FECD2E5.1060603@ti.com> <4FECE067.7000809@broadcom.com> <4FECE1BD.80906@ti.com> <4FECE45E.6040506@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42864 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60200 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968Ab2F1XfM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 19:35:12 -0400
+	id S1751825Ab2F1Xx6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 19:53:58 -0400
 In-Reply-To: <4FECE45E.6040506@broadcom.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -70,51 +70,35 @@ On 06/28/2012 06:10 PM, Franky Lin wrote:
 > [    0.241058]  usbhs_omap: alias fck already exists
 > [    0.244781] ??????omap_gpio_runtime_resume
 
-Sorry, can you do one more test? :-)
+I am wondering if this could be the bug ... on start-up I see that we do
+a context restore on bank1 during the probe which is before we have done
+the first suspend! In other words, we could restore a bad/uninitialised
+context for bank1. In the case of bank1, the loss count starts at 1 and
+not 0 and so we falsely think we need to perform a restore :-(
 
-Add the following and send me the output?
+[    0.176269] omap_gpio_runtime_resume: bank @ 0xfc310000
+[    0.177276] omap_gpio_runtime_resume: count 0, now 1
+[    0.177276] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
+[    0.177642] omap_gpio_runtime_suspend: bank @ 0xfc310000
 
-Thanks!
-Jon
+Can you try ...
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4ed172..3aa0f96 100644
+index c4ed172..9623408 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1155,6 +1155,7 @@ static int omap_gpio_runtime_suspend(struct device
-*dev)
-        unsigned long flags;
-        u32 wake_low, wake_hi;
+@@ -1086,6 +1086,9 @@ static int __devinit omap_gpio_probe(struct
+platform_device *pdev)
+ #ifdef CONFIG_OF_GPIO
+        bank->chip.of_node = of_node_get(node);
+ #endif
++       if (bank->get_context_loss_count)
++               bank->context_loss_count =
++                               bank->get_context_loss_count(bank->dev);
 
-+       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
-        spin_lock_irqsave(&bank->lock, flags);
+        bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
+        if (bank->irq_base < 0) {
 
-        /*
-@@ -1221,6 +1222,7 @@ static int omap_gpio_runtime_resume(struct device
-*dev)
-        u32 l = 0, gen, gen0, gen1;
-        unsigned long flags;
-
-+       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
-        spin_lock_irqsave(&bank->lock, flags);
-        _gpio_dbck_enable(bank);
-
-@@ -1239,6 +1241,7 @@ static int omap_gpio_runtime_resume(struct device
-*dev)
-                context_lost_cnt_after =
-                        bank->get_context_loss_count(bank->dev);
-                if (context_lost_cnt_after != bank->context_loss_count) {
-+                       pr_info("%s: count %d, now %d", __func__,
-bank->context_loss_count, context_lost_cnt_after);
-                        omap_gpio_restore_context(bank);
-                } else {
-                        spin_unlock_irqrestore(&bank->lock, flags);
-@@ -1341,6 +1344,7 @@ void omap2_gpio_resume_after_idle(void)
- #if defined(CONFIG_PM_RUNTIME)
- static void omap_gpio_restore_context(struct gpio_bank *bank)
- {
-+       pr_info("%s: bank @ 0x%x\n", __func__, (u32)bank->base);
-        __raw_writel(bank->context.wake_en,
-                                bank->base + bank->regs->wkup_en);
-        __raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
+Thanks
+Jon
 
