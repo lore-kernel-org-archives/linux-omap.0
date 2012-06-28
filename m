@@ -1,215 +1,87 @@
-From: Russ Dill <Russ.Dill@ti.com>
-Subject: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
-Date: Wed, 27 Jun 2012 18:59:43 -0700
-Message-ID: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
-References: <1339690919-12566-1-git-send-email-Russ.Dill@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58238 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754206Ab2F1B7y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jun 2012 21:59:54 -0400
-In-Reply-To: <1339690919-12566-1-git-send-email-Russ.Dill@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Eduardo Valentin <eduardo.valentin@ti.com>
+Subject: Re: [PATCH v3 0/7] OMAP System Control Module
+Date: Thu, 28 Jun 2012 07:43:43 +0300
+Message-ID: <20120628044343.GA2471@besouro>
+References: <4FEB4B30.2040305@dev.rtsoft.ru>
+Reply-To: eduardo.valentin@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <4FEB4B30.2040305@dev.rtsoft.ru>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
 
-From: Russ Dill <Russ.Dill@gmail.com>
+Hello,
 
-'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
-an issue where the ULPI PHYs were not held in reset while initializing
-the EHCI controller. However, it also changes behavior in
-omap-usb-host.c omap_usbhs_init by releasing reset while the
-configuration in that function was done.
+On Wed, Jun 27, 2012 at 10:04:32PM +0400, Konstantin Baydarov wrote:
+>  Hello.
+> 
+> This is a next version of series of patches(based on Eduardo Valentin's patch set) adding a basic support for system control module, on OMAP4+ context. It is a working in progress.
+> 
+> Main changes since previous patch set version:
+> - Bandgap and usb phy: drivers are now independent from control module driver, they use their own functions to acess scm registers.
 
-This change caused a regression on BB-xM where USB would not function
-if 'usb start' had been run from u-boot before booting. A change was
-made to release reset a little bit earlier which fixed the issue on
-BB-xM and did not cause any regressions on 3430 sdp, the board for
-which the fix was originally made.
+Well, I believe the idea of having them with their own io resource was to avoid
+children drivers accessing each other io areas. Is this now working?
 
-This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
-before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
+> - omap-control-core: resources aren't hardcoded, they are specified in dts file.
+> - omap-control-core: Control module is a built-in driver - added control module select to ARCH_HAS_CONTROL_MODULE and ARCH_OMAP4.
+> Probably, no configuration option is required!
 
-The original fix to hold the EHCI controller in reset during
-initialization was correct, however it appears that changing
-omap_usbhs_init to not hold the PHYs in reset during it's
-configuration was incorrect. This patch first reverts both fixes, and
-then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
-reset as the original patch had done. It also is sure to incorporate
-the _cansleep change that has been made in the meantime.
+Why is this? I suppose the idea is to have the arch config selecting that flag.
 
-Tested on Beagleboard xM.
+> - omap-control-core: Added early init call that ioremaps control module IOMEM window, this allows access of SCM registers very early, for example from omap_type()
 
-v3 - Don't double free gpio
-v2 - Put cansleep gpiolib call outside of spinlock
+Is this going to be reserved as well? if yes, how children are going to have
+their own access functions?
 
-Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
----
- drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
- drivers/usb/host/ehci-omap.c |   26 +++++++----------------
- 2 files changed, 55 insertions(+), 19 deletions(-)
+> - omap-control-core: Removed device pointer from omap-control-core API arguments, becuase there can be only one instance control
+> module device.
+> - omap-control-core: removed omap_control_get, omap_control_readl, omap_control_writel
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 7e96bb2..41088ec 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -25,6 +25,7 @@
- #include <linux/clk.h>
- #include <linux/dma-mapping.h>
- #include <linux/spinlock.h>
-+#include <linux/gpio.h>
- #include <plat/cpu.h>
- #include <plat/usb.h>
- #include <linux/pm_runtime.h>
-@@ -500,8 +501,21 @@ static void omap_usbhs_init(struct device *dev)
- 	dev_dbg(dev, "starting TI HSUSB Controller\n");
- 
- 	pm_runtime_get_sync(dev);
--	spin_lock_irqsave(&omap->lock, flags);
- 
-+	if (pdata->ehci_data->phy_reset) {
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_request_one(pdata->ehci_data->reset_gpio_port[0],
-+					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_request_one(pdata->ehci_data->reset_gpio_port[1],
-+					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
-+
-+		/* Hold the PHY in RESET for enough time till DIR is high */
-+		udelay(10);
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
- 	omap->usbhs_rev = usbhs_read(omap->uhh_base, OMAP_UHH_REVISION);
- 	dev_dbg(dev, "OMAP UHH_REVISION 0x%x\n", omap->usbhs_rev);
- 
-@@ -581,9 +595,39 @@ static void omap_usbhs_init(struct device *dev)
- 	}
- 
- 	spin_unlock_irqrestore(&omap->lock, flags);
-+
-+	if (pdata->ehci_data->phy_reset) {
-+		/* Hold the PHY in RESET for enough time till
-+		 * PHY is settled and ready
-+		 */
-+		udelay(10);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_set_value_cansleep
-+				(pdata->ehci_data->reset_gpio_port[0], 1);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_set_value_cansleep
-+				(pdata->ehci_data->reset_gpio_port[1], 1);
-+	}
-+
- 	pm_runtime_put_sync(dev);
- }
- 
-+static void omap_usbhs_deinit(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+
-+	if (pdata->ehci_data->phy_reset) {
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-+			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
-+
-+		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-+			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
-+	}
-+}
-+
- 
- /**
-  * usbhs_omap_probe - initialize TI-based HCDs
-@@ -767,6 +811,7 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
- 	goto end_probe;
- 
- err_alloc:
-+	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->tll_base);
- 
- err_tll:
-@@ -818,6 +863,7 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
- {
- 	struct usbhs_hcd_omap *omap = platform_get_drvdata(pdev);
- 
-+	omap_usbhs_deinit(&pdev->dev);
- 	iounmap(omap->tll_base);
- 	iounmap(omap->uhh_base);
- 	clk_put(omap->init_60m_fclk);
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index a44294d..35f4788 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -192,14 +192,13 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* Hold PHYs in reset while initializing EHCI controller */
- 	if (pdata->phy_reset) {
- 		if (gpio_is_valid(pdata->reset_gpio_port[0]))
--			gpio_request_one(pdata->reset_gpio_port[0],
--					 GPIOF_OUT_INIT_LOW, "USB1 PHY reset");
-+			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
- 
- 		if (gpio_is_valid(pdata->reset_gpio_port[1]))
--			gpio_request_one(pdata->reset_gpio_port[1],
--					 GPIOF_OUT_INIT_LOW, "USB2 PHY reset");
-+			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
- 
- 		/* Hold the PHY in RESET for enough time till DIR is high */
- 		udelay(10);
-@@ -241,6 +240,11 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
- 
- 	ehci_reset(omap_ehci);
-+	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
-+	if (ret) {
-+		dev_err(dev, "failed to add hcd with err %d\n", ret);
-+		goto err_add_hcd;
-+	}
- 
- 	if (pdata->phy_reset) {
- 		/* Hold the PHY in RESET for enough time till
-@@ -255,12 +259,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
- 	}
- 
--	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
--	if (ret) {
--		dev_err(dev, "failed to add hcd with err %d\n", ret);
--		goto err_add_hcd;
--	}
--
- 	/* root ports should always stay powered */
- 	ehci_port_power(omap_ehci, 1);
- 
-@@ -288,7 +286,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- {
- 	struct device *dev				= &pdev->dev;
- 	struct usb_hcd *hcd				= dev_get_drvdata(dev);
--	struct ehci_hcd_omap_platform_data *pdata	= dev->platform_data;
- 
- 	usb_remove_hcd(hcd);
- 	disable_put_regulator(dev->platform_data);
-@@ -297,13 +294,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	pm_runtime_put_sync(dev);
- 	pm_runtime_disable(dev);
- 
--	if (pdata->phy_reset) {
--		if (gpio_is_valid(pdata->reset_gpio_port[0]))
--			gpio_free(pdata->reset_gpio_port[0]);
--
--		if (gpio_is_valid(pdata->reset_gpio_port[1]))
--			gpio_free(pdata->reset_gpio_port[1]);
--	}
- 	return 0;
- }
- 
--- 
-1.7.10.4
+fine, assuming the io split works...
 
+> - omap-control-core: added omap_control_status_read that is used early in omap_type
+> - Bandgap and usb phy: Added private spinlocks for bandgap and usb drivers.
+> - Bandgap: Check the type of bandgap dynamically in bandgap driver probe function by reading
+> omap core control module revision register CONTROL_GEN_CORE_REVISION.
+
+this has some issue... I will post comment on the patch
+
+> - Bandgap and usb phy: Parent SCM platform device IOMEM resources is used to get the base address of SCM window.
+
+Ohh.. Then what is the point of having them using their own io access functions,
+nothing is again protected as you have only 1 io resource which is shared.
+And now is even worse because you have several io access function..
+I think this is moving backwards.
+
+> - Bandgap masks defines were moved to drivers/thermal/omap-bandgap.c.
+> 
+> TODO list for bandgap driver:
+> - Reserve omap-control-core IOMEM window.
+> - Improve thermal zone definition for OMAP4
+> - Introduce the thermal zones for OMAP5
+
+Based on the review comments on RFC patch series, there are more
+things to be done.
+
+I have the O4 and O5 zone definition ready. But that work depends
+on generic CPU cooling patches. I have also looked the driver support
+for 4430. But the probing and io resource split is still based on
+previous design. I have also a patch which does the remapping in the
+bandgap driver. But really, for this to work it would require to have
+several entries in the reg property. And that is going to change from
+BG version to BG version.
+
+I can prepare some patches for this.
