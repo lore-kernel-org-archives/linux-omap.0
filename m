@@ -1,164 +1,62 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [PATCH v3 0/7] OMAP System Control Module
-Date: Thu, 28 Jun 2012 16:48:54 +0300
-Message-ID: <CAGF5oy8V+RZ=ewQsT==2wRY-BVsxVndEtONrd8a3NtjoGFu4hQ@mail.gmail.com>
-References: <4FEB4B30.2040305@dev.rtsoft.ru>
-	<20120628044343.GA2471@besouro>
-	<CAGF5oy925c96QqwjqMEaUYDon+mSVGd2dtgnWrzwnrq0rN14Ng@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Bringing back gptimer_wakeup
+Date: Thu, 28 Jun 2012 09:00:34 -0500
+Message-ID: <87pq8jpmd9.fsf@ti.com>
+References: <4FDEF24C.8020305@gmail.com> <87k3z4lcrs.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:54496 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733Ab2F1Ns4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Jun 2012 09:48:56 -0400
-Received: by vbip1 with SMTP id p1so1428572vbi.10
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 06:48:54 -0700 (PDT)
-In-Reply-To: <CAGF5oy925c96QqwjqMEaUYDon+mSVGd2dtgnWrzwnrq0rN14Ng@mail.gmail.com>
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:34380 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754465Ab2F1OAX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 10:00:23 -0400
+Received: by yhoo21 with SMTP id o21so2649414yho.18
+        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 07:00:21 -0700 (PDT)
+In-Reply-To: <87k3z4lcrs.fsf@ti.com> (Kevin Hilman's message of "Mon, 18 Jun
+	2012 11:01:59 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hello again,
+Kevin Hilman <khilman@ti.com> writes:
 
-On Thu, Jun 28, 2012 at 9:29 AM, Valentin, Eduardo
-<eduardo.valentin@ti.com> wrote:
-> Hello Konstantin,
+> Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
 >
-> On Thu, Jun 28, 2012 at 7:43 AM, Eduardo Valentin
-> <eduardo.valentin@ti.com> wrote:
->> Hello,
+>> The support for using a timer to wake from suspend was removed in:
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=98e182a26bbbf5575457622337684ef61493e864
 >>
->> On Wed, Jun 27, 2012 at 10:04:32PM +0400, Konstantin Baydarov wrote:
->>> =A0Hello.
->>>
->>> This is a next version of series of patches(based on Eduardo Valent=
-in's patch set) adding a basic support for system control module, on OM=
-AP4+ context. It is a working in progress.
->>>
->>> Main changes since previous patch set version:
->>> - Bandgap and usb phy: drivers are now independent from control mod=
-ule driver, they use their own functions to acess scm registers.
+>> I found an alternative patch
+>> (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg47836.html)
+>> that claimed to keep it working using GPTIMER1 instead, but I haven't
+>> been able to make it work (likely because the timer code has changed a
+>> good deal since the patch was posted).
 >>
->> Well, I believe the idea of having them with their own io resource w=
-as to avoid
->> children drivers accessing each other io areas. Is this now working?
->>
->>> - omap-control-core: resources aren't hardcoded, they are specified=
- in dts file.
->>> - omap-control-core: Control module is a built-in driver - added co=
-ntrol module select to ARCH_HAS_CONTROL_MODULE and ARCH_OMAP4.
->>> Probably, no configuration option is required!
->>
->> Why is this? I suppose the idea is to have the arch config selecting=
- that flag.
->>
->>> - omap-control-core: Added early init call that ioremaps control mo=
-dule IOMEM window, this allows access of SCM registers very early, for =
-example from omap_type()
->>
->> Is this going to be reserved as well? if yes, how children are going=
- to have
->> their own access functions?
->>
->>> - omap-control-core: Removed device pointer from omap-control-core =
-API arguments, becuase there can be only one instance control
->>> module device.
->>> - omap-control-core: removed omap_control_get, omap_control_readl, =
-omap_control_writel
->>
->> fine, assuming the io split works...
->>
->>> - omap-control-core: added omap_control_status_read that is used ea=
-rly in omap_type
->>> - Bandgap and usb phy: Added private spinlocks for bandgap and usb =
-drivers.
->>> - Bandgap: Check the type of bandgap dynamically in bandgap driver =
-probe function by reading
->>> omap core control module revision register CONTROL_GEN_CORE_REVISIO=
-N.
->>
->> this has some issue... I will post comment on the patch
->>
->>> - Bandgap and usb phy: Parent SCM platform device IOMEM resources i=
-s used to get the base address of SCM window.
->>
->> Ohh.. Then what is the point of having them using their own io acces=
-s functions,
->> nothing is again protected as you have only 1 io resource which is s=
-hared.
->> And now is even worse because you have several io access function..
->> I think this is moving backwards.
->>
->>> - Bandgap masks defines were moved to drivers/thermal/omap-bandgap.=
-c.
->>>
->>> TODO list for bandgap driver:
->>> - Reserve omap-control-core IOMEM window.
->>> - Improve thermal zone definition for OMAP4
->>> - Introduce the thermal zones for OMAP5
->>
->> Based on the review comments on RFC patch series, there are more
->> things to be done.
->>
->> I have the O4 and O5 zone definition ready. But that work depends
->> on generic CPU cooling patches. I have also looked the driver suppor=
-t
->> for 4430. But the probing and io resource split is still based on
->> previous design. I have also a patch which does the remapping in the
->> bandgap driver. But really, for this to work it would require to hav=
-e
->> several entries in the reg property. And that is going to change fro=
-m
->> BG version to BG version.
->>
->> I can prepare some patches for this.
+>> Anyone got
+>> a) a patch that enables this feature on newer kernels, or
+>> b) an idea how the patch above can be made to work?
 >
-> You can find the updated patches here:
-> git@gitorious.org:thermal-framework/thermal-framework.git
-> thermal_work/omap/bandgap_clean
+> The branch below (based on v3.4) will work (at least on OMAP3)
 >
-> But, as I said they are based on the generic cpu cooling. And the zon=
-e
-> registration follows the API as in linux-next.
+> We've been holding off on putting this back becasue the timer interface
+> has been going through some major cleanup/rework, but I would like to
+> see this make it back in soonish.
 
-=46YI, I just updated the branches on that repo. The branch
-thermal_work/omap/pu has all required changes in order to get BG
-driver working on 4430/4460/4470 and O5.
+Note that another feature that can be used for this same feature is
+wakeup using RTC.
 
-It relies on Rui's patch set sent to linux-pm, which reorgs the
-thermal fw a bit,  combined with the generic cpu cooling device by
-Amit. I also pushed in the 'pu' branch the APIs changes mentioned by
-Durga on other thread.
+On OMAP3 platoforms with TWL4030 PMIC (which contains an RTC), this is
+successfully working using the 'rtcwake' utility.
 
-While checking the pu branch you should be able to get a thermal zone
-with cpu cooling for OMAP on the mentioned omap versions.
+E.g., to suspend-to-RAM and trigger an RTC wakeup 4 seconds later, do:
 
-Once there is an agreement about the APIs between SCM core driver and
-its children, I can send out the BG driver patches and this initial
-omap thermal support using the generic thermal layer.
+  # rtcwake -m mem -s 4
 
-There are some changes in the core thermal layer in the
-thermal_work/eduardo_thermal_upgrade. But there could be probably some
-extra changes in the core layer to finalize the omap thermal support.
-That's a work in progress :-)
+The RTC timekeeping seems a bit broken and the actual delay seems to be
+about 2x the value passed in here, but otherwise this works.
 
->
->
-> --
->
-> Eduardo Valentin
+There are currently some problems with the OMAP4 RTC driver that prevent
+this from working, but they need to be investigated.
 
-
-
---=20
-
-Eduardo Valentin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
