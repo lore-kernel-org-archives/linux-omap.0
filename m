@@ -1,45 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] arm: omap3: am35x: Fix clockdomain dependencies
-Date: Thu, 28 Jun 2012 00:08:13 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206280007420.2338@utopia.booyaka.com>
-References: <1334866606-8291-1-git-send-email-mgreer@animalcreek.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] omap dss2: fix specification spelling in Kconfig
+Date: Thu, 28 Jun 2012 09:10:30 +0300
+Message-ID: <1340863830.2090.4.camel@lappyti>
+References: <1340827762-27688-1-git-send-email-pmeerw@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1334866606-8291-1-git-send-email-mgreer@animalcreek.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-O/Y28bdkXfUvLYX5SdC7"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:34706 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932523Ab2F1GKn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Jun 2012 02:10:43 -0400
+Received: by lbbgk8 with SMTP id gk8so2895134lbb.12
+        for <linux-omap@vger.kernel.org>; Wed, 27 Jun 2012 23:10:33 -0700 (PDT)
+In-Reply-To: <1340827762-27688-1-git-send-email-pmeerw@pmeerw.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 19 Apr 2012, Mark A. Greer wrote:
 
-> From: "Mark A. Greer" <mgreer@animalcreek.com>
-> 
-> The am35x family of SoCs do not have an IVA so
-> a parallel set of clockdomain dependencies are
-> required that are simililar to OMAP3 but without
-> any IVA dependencies.
-> 
-> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+--=-O/Y28bdkXfUvLYX5SdC7
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2012-06-27 at 22:09 +0200, Peter Meerwald wrote:
+> Signed-off-by: Peter Meerwald <pmeerw@pmeerw.net>
 > ---
-> 
-> Paul, this is a respin of
-> 	"[PATCH 08/12] arm: omap3: am35x: Fix clockdomain dependencies"
-> 
-> with your comments [hopefully] addressed.  I'm breaking that long series
-> into smaller pieces because most of them really weren't related.
+>  drivers/video/omap2/dss/Kconfig |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks, queued for 3.6.
+Thanks, applied to omapdss tree.
+
+ Tomi
 
 
-- Paul
+--=-O/Y28bdkXfUvLYX5SdC7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP6/VWAAoJEPo9qoy8lh71Hb4QAKDrnX5vXGVzMM3p0ZcUd0Mc
+qwZdQJRoG6swcPvVtQSOITMSFWSEya5jqPAgGSBeG4MS2eO91RRyFI3oXRmGRO/7
+QZuCN/pbR8XWbW+SC4WW6dlXNk1dvHGtrrihr8V6sMCfTX99dHrgLDKmwIFCg1WP
+JhTDbwG0LPUmf1eawfcCbkRu0cESgQvBbumZQciy/HjsnB+jdSTc+/w/U7ASDv6b
+N0I0WX53YCxmMTQA+B7LQlQhJdfyuVwibpkJ7p629GPdvP9pDtTnUimJvo1IKEPD
+6JDNnTWkzdyR0a2p9l+aH/FzMMvYInSw8O/cn4v0JCgoVOV1pbY8BFD42k8cScLR
+pckJGkHK/FZtxw02XVzAPAgnsX0vTyqrTY2D8zlxY4x1rDVATQqAnpdB1s8gsEKS
+3ogDRLFpZh9pQv1oSe1G4uUdJhAIon4VusUd92Je2iuIYi+OiY8P1aJYlXTNbrMW
+2TVWAkyGgkaYRHvvWoiiFjJyBgV9xAtk1Xs8LcHGjdrAuHXUXtwpN73mQgrCgqak
+F5QmI9WdBC3ixB9Zb/TQ5gQyleua2/aqW0ucVVVpaUVrBJBKVvkyH8Z26rmEmPG0
+7w3m3CQ3osIvHwTALdL7zTKarBhniXfaQaOdISNRj0P89WHCRoCBjCdb4y6Pu6cd
+Njb99+jTpeaGoZYZpp08
+=oV4s
+-----END PGP SIGNATURE-----
+
+--=-O/Y28bdkXfUvLYX5SdC7--
+
