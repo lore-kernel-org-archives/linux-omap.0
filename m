@@ -1,60 +1,72 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Fri, 29 Jun 2012 11:23:52 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EAEE878@DBDE01.ent.ti.com>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EAED507@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1206280950440.2338@utopia.booyaka.com>
- <B5906170F1614E41A8A28DE3B8D121433EAED713@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1206281031510.2338@utopia.booyaka.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2] ARM: OMAP: cpu: Make cpu_class_is_omap2 true for all non-omap1 platforms
+Date: Fri, 29 Jun 2012 16:58:26 +0530
+Message-ID: <1340969306-28464-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51853 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52685 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754079Ab2F2LYA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 07:24:00 -0400
-In-Reply-To: <alpine.DEB.2.00.1206281031510.2338@utopia.booyaka.com>
-Content-Language: en-US
+	id S1752164Ab2F2LlX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 07:41:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi Paul,
+As omap1 and omap2 will never be compiled together, due to
+different compiler flags, so we can simply make
+cpu_class_is_omap2() = true, for all non-omap1 platforms.
 
-On Thu, Jun 28, 2012 at 22:02:46, Paul Walmsley wrote:
-> On Thu, 28 Jun 2012, Bedia, Vaibhav wrote:
-> 
-> > On Thu, Jun 28, 2012 at 21:22:54, Paul Walmsley wrote:
-> > [...]
-> > > 
-> > > dma_mask and coherent_dma_mask can be specified during 
-> > > device creation.  See usb_musb_init() in arch/arm/mach-omap2/usb-musb.c 
-> > > for an example.
-> > > 
-> > 
-> > Thanks for pointing this out. Should omap_device_build() start handling this
-> > or would that be an overkill?
-> 
-> If both dma_mask and coherent_dma_mask are always 0xffffffff on all OMAPs 
-> and we can set that safely even for devices that don't use it, then yeah 
-> it sounds like we should set it.
-> 
-> Care to send a patch?
-> 
+In order to fix build error from plat-omap/sram.c file,
+omap_type() function is encapsulated under #ifdef CONFIG_ARCH_OMAP2PLUS.
 
-I just grepped for the any other user of this under mach-omap2 and plat-omap
-and there are a few other places where it's getting used. All of them are
-setting it to 0xffffffff and same is the case with the CPSW driver. 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+CC: Tony Lindgren <tony@atomide.com>
+---
+Boot tested on Beable Bone, AM37x EVM and build tested for omap1.
+It would be helpful if someone can test it on omap1 platform.
 
-I don't know much about the dma stuff so I am bit reluctant in setting this
-unconditionally. I looked at setting the mask based on a flag during
-omap_device_build() but an additional flag in the API will cause all the users
-to be changed. We could perhaps extend the omap_hwmod structure for passing on
-this information. Or for CPSW we could stick with approach that's been adopted
-in usb_musb_init(). Which approach sounds better to you?
+Change from V1:
+	- Fix omap1 build failure, by adding inline function
+	  for omap_type().
 
-Regards,
-Vaibhav B.
+ arch/arm/plat-omap/include/plat/cpu.h |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 8c84d05..c3617e2 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -42,7 +42,18 @@
+ #define OMAP2_DEVICE_TYPE_GP		3
+ #define OMAP2_DEVICE_TYPE_BAD		4
+
++#ifdef CONFIG_ARCH_OMAP2PLUS
+ int omap_type(void);
++#else
++static inline int omap_type(void)
++{
++	/*
++	 * Safe to return 0, since this function will not
++	 * be called for omap1.
++	 */
++	return 0;
++}
++#endif
+
+ /*
+  * omap_rev bits:
+@@ -358,8 +369,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ /* Macros to detect if we have OMAP1 or OMAP2 */
+ #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
+ 				cpu_is_omap16xx())
+-#define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
+-				cpu_is_omap44xx())
++#define cpu_class_is_omap2()	!cpu_class_is_omap1()
+
+ /* Various silicon revisions for omap2 */
+ #define OMAP242X_CLASS		0x24200024
+--
+1.7.0.4
+
