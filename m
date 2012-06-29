@@ -1,54 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
-Date: Fri, 29 Jun 2012 14:40:02 +0200
-Message-ID: <20120629144002.3b4a31ee@endymion.delvare>
-References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
-	<1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-V3 3/3] ARM: OMAP2+: CLEANUP: Remove unnecessary ifdef
+ around __omap2_set_globals
+Date: Fri, 29 Jun 2012 05:44:27 -0700
+Message-ID: <20120629124427.GE4202@atomide.com>
+References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
+ <1340895567-22766-4-git-send-email-hvaibhav@ti.com>
+ <4FEC72C2.7010106@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5D620@DBDE01.ent.ti.com>
+ <4FEC7B33.5030500@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:35364 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666Ab2F2MkJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 08:40:09 -0400
-In-Reply-To: <1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64005 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753140Ab2F2Moa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 08:44:30 -0400
+Content-Disposition: inline
+In-Reply-To: <4FEC7B33.5030500@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Fri, 29 Jun 2012 16:35:27 +0530, Shubhrajyoti D wrote:
-> In i2c_smbus_xfer_emulated initialise the actual bytes
-> to zero.
+* Benoit Cousson <b-cousson@ti.com> [120628 08:46]:
+> On 06/28/2012 05:39 PM, Hiremath, Vaibhav wrote:
+> >On Thu, Jun 28, 2012 at 20:35:38, Cousson, Benoit wrote:
+> >>
+> >>OMAP4 does not have the SDRC but the EMIF like TI8XX.
+> >>
+> >
+> >Benoit,
+> >
+> >This selection is happening for SOC_OMAP2420 and not for OMAP4.
 > 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  drivers/i2c/i2c-core.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> Hehe, indeed, I missed the context and was fooled by the config ARCH_OMAP4.
 > 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index a6ad32b..fa7f799 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -1949,8 +1949,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
->  	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX+3];
->  	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX+2];
->  	int num = read_write == I2C_SMBUS_READ ? 2 : 1;
-> -	struct i2c_msg msg[2] = { { addr, flags, 1, msgbuf0 },
-> -	                          { addr, flags | I2C_M_RD, 0, msgbuf1 }
-> +	struct i2c_msg msg[2] = { { addr, flags, 1, 0, msgbuf0 },
-> +				  { addr, flags | I2C_M_RD, 0, 0, msgbuf1 }
->  	                        };
->  	int i;
->  	u8 partial_pec = 0;
+> I don't have any comment then :-)
 
-Please convert to C99-style initialization while you're there. And this
-should be done first. Initializing i2c_msg.actual maybe rather belong
-to i2c_transfer though, so that all callers don't have to care.
+That's very close to Acked-by then?
 
-Are you sure there are no other places that need the same fix in the
-kernel tree?
-
--- 
-Jean Delvare
+Tony
