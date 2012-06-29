@@ -1,12 +1,15 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Thu, 28 Jun 2012 21:26:42 +0530
-Message-ID: <CAAe_U6Jw7WrWRAQrVF0XTwBp+F4Fw0zCFVxoZmWdBLSjUS+_Hw@mail.gmail.com>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register api
+Date: Fri, 29 Jun 2012 02:40:55 -0700
+Message-ID: <20120629094055.GB4202@atomide.com>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com>
+ <20120629055516.11091.82899.stgit@build.warmcat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4392300150193289585=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293E9BDE96@DBDE01.ent.ti.com>
+Content-Disposition: inline
+In-Reply-To: <20120629055516.11091.82899.stgit@build.warmcat.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,89 +19,143 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Andy Green <andy.green@linaro.org>
+Cc: nicolas.pitre@linaro.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, rostedt@goodmis.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============4392300150193289585==
-Content-Type: multipart/alternative; boundary=20cf307c9bd2c07a6504c38a602b
+* Andy Green <andy.green@linaro.org> [120628 22:59]:
+> From: Andy Green <andy@warmcat.com>
+> 
+> This exposes a new API in devices.c that lets a board register
+> a list of device paths representing network devices that have
+> no arrangements for their MAC address to be set by the board.
+> 
+> It watches network device registrations via a notifier and
+> gives the devices requiring them a synthetic - but constant for
+> a given board - MAC address immediately.
+...
 
---20cf307c9bd2c07a6504c38a602b
-Content-Type: text/plain; charset=ISO-8859-1
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -39,6 +42,9 @@
+>  #define L3_MODULES_MAX_LEN 12
+>  #define L3_MODULES 3
+>  
+> +static const char * const *mac_device_fixup_paths;
+> +int count_mac_device_fixup_paths;
 
-Hi,
+This too should be static it seems to me. Or just make the
+paths array NULL terminated to get rid of the count.
 
-On Wed, Jun 27, 2012 at 11:11 AM, N, Mugunthan V <mugunthanvnm@ti.com>wrote:
+>  static int __init omap3_l3_init(void)
+>  {
+>  	struct omap_hwmod *oh;
+> @@ -627,6 +633,89 @@ static void omap_init_vout(void)
+>  static inline void omap_init_vout(void) {}
+>  #endif
+>  
+> +static int omap_device_path_need_mac(struct device *dev)
+> +{
+> +	const char **try = (const char **)mac_device_fixup_paths;
 
-> > -----Original Message-----
-> > From: N, Mugunthan V
-> > Sent: Thursday, June 07, 2012 9:52 PM
-> > To: 'linux-omap@vger.kernel.org'
-> > Cc: 'linux-arm-kernel@lists.infradead.org'
-> > Subject: how to specify dma_mask and coherent_dma_mask in hwmod
-> >
-> > Hi
-> >
-> > While converting platform device registry to Hwmod for CPSW Ethernet
-> > driver which is present in AM335X (OMAP2+), I am not finding a way to
-> > specify
-> > dma_mask and coherent_dma_mask.
-> > Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
->
+This cast you should be able to remove by setting the types right
+to start with?
 
-Nope. You can specify dma_mask after creating the device as done in
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/mach-omap2/usb-musb.c;h=c4a576856661014ea3bec9acc70f80e32d62c33b;hb=HEAD
+> +	const char *path;
+> +	int count = count_mac_device_fixup_paths;
+> +	const char *p;
+> +	int len;
+> +	struct device *devn;
+> +
+> +	while (count--) {
+> +
+> +		p = *try + strlen(*try);
+> +		devn = dev;
+> +
+> +		while (devn) {
+> +
+> +			path = dev_name(devn);
+> +			len = strlen(path);
+> +
+> +			if ((p - *try) < len) {
+> +				devn = NULL;
+> +				continue;
+> +			}
+> +
+> +			p -= len;
+> +
+> +			if (strncmp(path, p, len)) {
+> +				devn = NULL;
+> +				continue;
+> +			}
+> +
+> +			devn = devn->parent;
+> +			if (p == *try)
+> +				return count;
+> +
+> +			if (devn != NULL && (p - *try) < 2)
+> +				devn = NULL;
+> +
+> +			p--;
+> +			if (devn != NULL && *p != '/')
+> +				devn = NULL;
+> +		}
+> +
+> +		try++;
+> +	}
+> +
+> +	return -ENOENT;
+> +}
 
-Regards
-Kishon
+I don't quite like having this device parsing code here. This should
+probably be a generic helper function somewhere under drivers. I would
+assume other SoCs could use it too?
 
---20cf307c9bd2c07a6504c38a602b
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+> +static int omap_panda_netdev_event(struct notifier_block *this,
+> +						unsigned long event, void *ptr)
+> +{
+> +	struct net_device *dev = ptr;
+> +	struct sockaddr sa;
+> +	int n;
+> +
+> +	if (event != NETDEV_REGISTER)
+> +		return NOTIFY_DONE;
+> +
+> +	n = omap_device_path_need_mac(dev->dev.parent);
+> +	if (n < 0)
+> +		return NOTIFY_DONE;
+> +
+> +	sa.sa_family = dev->type;
+> +	omap2_die_id_to_ethernet_mac(sa.sa_data, n);
+> +	dev->netdev_ops->ndo_set_mac_address(dev, &sa);
+> +
+> +	return NOTIFY_DONE;
+> +}
+> +
+> +static struct notifier_block omap_panda_netdev_notifier = {
+> +	.notifier_call = omap_panda_netdev_event,
+> +	.priority = 1,
+> +};
 
-Hi,<br><br><div class=3D"gmail_quote">On Wed, Jun 27, 2012 at 11:11 AM, N, =
-Mugunthan V <span dir=3D"ltr">&lt;<a href=3D"mailto:mugunthanvnm@ti.com" ta=
-rget=3D"_blank">mugunthanvnm@ti.com</a>&gt;</span> wrote:<br><blockquote cl=
-ass=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;p=
-adding-left:1ex">
-&gt; -----Original Message-----<br>
-&gt; From: N, Mugunthan V<br>
-&gt; Sent: Thursday, June 07, 2012 9:52 PM<br>
-&gt; To: &#39;<a href=3D"mailto:linux-omap@vger.kernel.org">linux-omap@vger=
-.kernel.org</a>&#39;<br>
-&gt; Cc: &#39;<a href=3D"mailto:linux-arm-kernel@lists.infradead.org">linux=
--arm-kernel@lists.infradead.org</a>&#39;<br>
-&gt; Subject: how to specify dma_mask and coherent_dma_mask in hwmod<br>
-&gt;<br>
-&gt; Hi<br>
-&gt;<br>
-&gt; While converting platform device registry to Hwmod for CPSW Ethernet<b=
-r>
-&gt; driver which is present in AM335X (OMAP2+), I am not finding a way to<=
-br>
-&gt; specify<br>
-&gt; dma_mask and coherent_dma_mask.<br>
-&gt; Is there a way to specify dma_mask and coherent_dma_mask in hwmod?<br>=
-</blockquote><div><br></div><div>Nope. You can specify dma_mask after creat=
-ing the device as done in</div><div><a href=3D"http://git.kernel.org/?p=3Dl=
-inux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Darch/arm/mach-omap2/usb-mus=
-b.c;h=3Dc4a576856661014ea3bec9acc70f80e32d62c33b;hb=3DHEAD">http://git.kern=
-el.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dblob;f=3Darch/arm/mach-=
-omap2/usb-musb.c;h=3Dc4a576856661014ea3bec9acc70f80e32d62c33b;hb=3DHEAD</a>
-</div><div><br></div><div>Regards</div><div>Kishon</div></div>
+This is a bit similar to platform data callback functions that we are
+trying to get rid of. And as the question "how do we replace platform
+data callback functions" is still open for things like this, few
+questions come to mind that should be discussed:
 
---20cf307c9bd2c07a6504c38a602b--
+1. How is this a better solution to passing the generated mac address in
+   platform data to the driver?
 
+2. Is this really how we want to pass the board generated mac addresses
+   and other dynamically generated data to the drivers that are device
+   tree based?
 
---===============4392300150193289585==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+3. What about mac address in board-generic.c when booting panda with
+   device tree?
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Also, what happens if the user has set the mac address and you replugs the
+cable or device? Do we now overwrite it? Might be worth checking that this
+follows the standard behaviour..
 
---===============4392300150193289585==--
+Regards,
+
+Tony
