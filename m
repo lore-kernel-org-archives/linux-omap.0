@@ -1,90 +1,97 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH 1/2] omap4: control: Add the CONTROL_SMART2IO_PADCONF_2 register definition
-Date: Fri, 29 Jun 2012 12:11:04 +0300
-Message-ID: <1340961065-26938-1-git-send-email-ruslan.bilovol@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 2/2] OMAP4430: USB Host: Implement workaround for Errata i687
+Date: Fri, 29 Jun 2012 12:11:05 +0300
+Message-ID: <1340961065-26938-2-git-send-email-ruslan.bilovol@ti.com>
+References: <1340961065-26938-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57483 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752273Ab2F2JLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 05:11:08 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340961065-26938-1-git-send-email-ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, balbi@ti.com
 
-This patch adds missing CONTROL_SMART2IO_PADCONF_2 register
-definition
+The OMAP4 EHCI controller has the following defect (errata ID i687):
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Title:
+	USB TLL Hold Timing Violation
+
+Description:
+	There is a timing hold violation on an internal logic on
+	the clock USB TLL path resulting in a systematic connection
+	failure on the TLL link
+
+WORKAROUND:
+	As part of workaround, next should be done:
+	Set the I/O drive strength to 1.
+	Depending which USB host subsystem is used,
+	=E2=80=A2 Port B1 used: Set CONTROL.CONTROL_SMART2IO_PADCONF_2[11] USB=
+B1_DR0_DS =3D 0x1
+	=E2=80=A2 Port B2 used: Set CONTROL.CONTROL_SMART2IO_PADCONF_2[12] USB=
+B2_DR0_DS =3D 0x1
+
+All OMAP4430 devices are impacted.
+
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
 ---
- .../include/mach/ctrl_module_pad_core_44xx.h       |   45 ++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-host.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-index c88420d..d512ade 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
-@@ -46,6 +46,7 @@
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART3IO_PADCONF_2	0x05c0
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_USBB_HSIC		0x05c4
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SLIMBUS		0x05c8
-+#define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART2IO_PADCONF_2	0x05cc
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_PBIASLITE		0x0600
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_0		0x0604
- #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX		0x0608
-@@ -764,6 +765,50 @@
- #define OMAP4_HSI_DR0_LB_SHIFT					10
- #define OMAP4_HSI_DR0_LB_MASK					(1 << 10)
- 
-+/* CONTROL_SMART2IO_PADCONF_2 */
-+#define OMAP4_DPM_DR1_DS_SHIFT					31
-+#define OMAP4_DPM_DR1_DS_MASK					(1 << 31)
-+#define OMAP4_DPM_DR2_DS_SHIFT					30
-+#define OMAP4_DPM_DR2_DS_MASK					(1 << 30)
-+#define OMAP4_DPM_DR3_DS_SHIFT					29
-+#define OMAP4_DPM_DR3_DS_MASK					(1 << 29)
-+#define OMAP4_GPIO_DR10_DS_SHIFT				28
-+#define OMAP4_GPIO_DR10_DS_MASK					(1 << 28)
-+#define OMAP4_HSI2_DR0_DS_SHIFT					27
-+#define OMAP4_HSI2_DR0_DS_MASK					(1 << 27)
-+#define OMAP4_HSI2_DR1_DS_SHIFT					26
-+#define OMAP4_HSI2_DR1_DS_MASK					(1 << 26)
-+#define OMAP4_HSI2_DR2_DS_SHIFT					25
-+#define OMAP4_HSI2_DR2_DS_MASK					(1 << 25)
-+#define OMAP4_SDMMC3_DR0_DS_SHIFT				24
-+#define OMAP4_SDMMC3_DR0_DS_MASK				(1 << 24)
-+#define OMAP4_SDMMC4_DR0_DS_SHIFT				23
-+#define OMAP4_SDMMC4_DR0_DS_MASK				(1 << 23)
-+#define OMAP4_SDMMC4_DR1_DS_SHIFT				22
-+#define OMAP4_SDMMC4_DR1_DS_MASK				(1 << 22)
-+#define OMAP4_SPI3_DR0_DS_SHIFT					21
-+#define OMAP4_SPI3_DR0_DS_MASK					(1 << 21)
-+#define OMAP4_SPI3_DR1_DS_SHIFT					20
-+#define OMAP4_SPI3_DR1_DS_MASK					(1 << 20)
-+#define OMAP4_UART3_DR2_DS_SHIFT				19
-+#define OMAP4_UART3_DR2_DS_MASK					(1 << 19)
-+#define OMAP4_UART3_DR3_DS_SHIFT				18
-+#define OMAP4_UART3_DR3_DS_MASK					(1 << 18)
-+#define OMAP4_UART3_DR4_DS_SHIFT				17
-+#define OMAP4_UART3_DR4_DS_MASK					(1 << 17)
-+#define OMAP4_UART3_DR5_DS_SHIFT				16
-+#define OMAP4_UART3_DR5_DS_MASK					(1 << 16)
-+#define OMAP4_USBA0_DR0_DS_SHIFT				15
-+#define OMAP4_USBA0_DR0_DS_MASK					(1 << 15)
-+#define OMAP4_USBA0_DR1_DS_SHIFT				14
-+#define OMAP4_USBA0_DR1_DS_MASK					(1 << 14)
-+#define OMAP4_USBA_DR2_DS_SHIFT					13
-+#define OMAP4_USBA_DR2_DS_MASK					(1 << 13)
-+#define OMAP4_USBB2_DR0_DS_SHIFT				12
-+#define OMAP4_USBB2_DR0_DS_MASK					(1 << 12)
-+#define OMAP4_USBB1_DR0_DS_SHIFT				11
-+#define OMAP4_USBB1_DR0_DS_MASK					(1 << 11)
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-h=
+ost.c
+index dde8a11..3a6f2a2 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -30,6 +30,7 @@
+ #include <plat/usb.h>
+ #include <plat/omap_device.h>
+=20
++#include "control.h"
+ #include "mux.h"
+=20
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+@@ -252,6 +253,14 @@ void __init setup_4430ehci_io_mux(const enum usbhs=
+_omap_port_mode *port_mode)
+ 			OMAP_PIN_INPUT_PULLDOWN);
+ 		omap_mux_init_signal("usbb1_ulpitll_dat7",
+ 			OMAP_PIN_INPUT_PULLDOWN);
 +
- /* CONTROL_USBB_HSIC */
- #define OMAP4_USBB2_DR1_SR_SHIFT				30
- #define OMAP4_USBB2_DR1_SR_MASK					(0x3 << 30)
--- 
++		/* Errata i687: set I/O drive strength to 1 */
++		if (cpu_is_omap443x()) {
++			u32 val;
++			val =3D omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMA=
+RT2IO_PADCONF_2);
++			val |=3D OMAP4_USBB1_DR0_DS_MASK;
++			omap4_ctrl_pad_writel(val, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART=
+2IO_PADCONF_2);
++		}
+ 			break;
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+ 	default:
+@@ -309,6 +318,14 @@ void __init setup_4430ehci_io_mux(const enum usbhs=
+_omap_port_mode *port_mode)
+ 			OMAP_PIN_INPUT_PULLDOWN);
+ 		omap_mux_init_signal("usbb2_ulpitll_dat7",
+ 			OMAP_PIN_INPUT_PULLDOWN);
++
++		/* Errata i687: set I/O drive strength to 1 */
++		if (cpu_is_omap443x()) {
++			u32 val;
++			val =3D omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMA=
+RT2IO_PADCONF_2);
++			val |=3D OMAP4_USBB2_DR0_DS_MASK;
++			omap4_ctrl_pad_writel(val, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART=
+2IO_PADCONF_2);
++		}
+ 			break;
+ 	case OMAP_USBHS_PORT_MODE_UNUSED:
+ 	default:
+--=20
 1.7.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
