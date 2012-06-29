@@ -1,149 +1,88 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 1/2] rpmsg: avoid premature deallocation of endpoints
-Date: Fri, 29 Jun 2012 19:25:19 +0300
-Message-ID: <1340987120-10588-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] gpio/omap: fix invalid context restore of gpio bank-0
+Date: Fri, 29 Jun 2012 12:22:31 -0500
+Message-ID: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38706 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755259Ab2F2RXL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 13:23:11 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Kevin Hilman <khilman@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>
 
-When an inbound message arrives, the rpmsg core looks up its
-associated endpoint and invokes the registered callback.
+Currently the gpio _runtime_resume/suspend functions are calling the
+get_context_loss_count() platform function if the function is populated for
+a gpio bank. This function is used to determine if the gpio bank logic state
+needs to be restored due to a power transition. This function will be populated
+for all banks, but it should only be called for banks that have the
+"loses_context" variable set. It is pointless to call this if loses_context is
+false as we know the context will never be lost and will not need restoring.
 
-If a message arrives while its endpoint is being removed (because
-the rpmsg driver was removed, or a recovery of a remote processor
-has kicked in) we must ensure atomicity, i.e.:
+For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
+never lose context. We found that the get_context_loss_count() was being called
+for bank-0 during the probe and returning 1 instead of 0 indicating that the
+context had been lost. This was causing the context restore function to be
+called at probe time for this bank and because the context had never been saved,
+was restoring an invalid state. This ultimately resulted in a crash [1].
 
-- Either the ept is removed before it is found
+There are multiple bugs here that need to be addressed ...
 
-or
+1. Why the always-on power domain returns a context loss count of 1? This needs
+   to be fixed in the power domain code. However, the gpio driver should not
+   assume the loss count is 0 to begin with.
+2. The omap gpio driver should never be calling get_context_loss_count for a
+   gpio bank in a always-on domain. This is pointless and adds unneccessary
+   overhead.
+3. The OMAP gpio driver assumes that the initial power domain context loss count
+   will be 0 at the time the gpio driver is probed. However, it could be
+   possible that this is not the case and an invalid context restore could be
+   performed during the probe. To avoid this otherwise only populated the
+   get_context_loss_count() function pointer after the initial call to
+   pm_runtime_get() has occurred. This will ensure that the first
+   pm_runtime_put() initialised the loss count correctly.
 
-- The ept is found but will not be freed until the callback returns
+This patch addresses issues 2 and 3 above.
 
-This is achieved by maintaining a per-ept reference count, which,
-when drops to zero, will trigger deallocation of the ept.
+[1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
 
-With this in hand, it is now forbidden to directly deallocate
-epts once they have been added to the endpoints idr.
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Franky Lin <frankyl@broadcom.com>
 
-Reported-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Reported-by: Franky Lin <frankyl@broadcom.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- drivers/rpmsg/virtio_rpmsg_bus.c | 36 ++++++++++++++++++++++++++++++++++--
- include/linux/rpmsg.h            |  3 +++
- 2 files changed, 37 insertions(+), 2 deletions(-)
+ drivers/gpio/gpio-omap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
-index 0af7fd3..d89fbc1 100644
---- a/drivers/rpmsg/virtio_rpmsg_bus.c
-+++ b/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -206,6 +206,26 @@ static int rpmsg_uevent(struct device *dev, struct kobj_uevent_env *env)
- 					rpdev->id.name);
- }
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index c4ed172..f13fc9c 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1081,7 +1081,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->is_mpuio = pdata->is_mpuio;
+ 	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
+ 	bank->loses_context = pdata->loses_context;
+-	bank->get_context_loss_count = pdata->get_context_loss_count;
+ 	bank->regs = pdata->regs;
+ #ifdef CONFIG_OF_GPIO
+ 	bank->chip.of_node = of_node_get(node);
+@@ -1135,6 +1134,9 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	omap_gpio_chip_init(bank);
+ 	omap_gpio_show_rev(bank);
  
-+/**
-+ * __ept_release() - deallocate an rpmsg endpoint
-+ * @kref: the ept's reference count
-+ *
-+ * This function deallocates an ept, and is invoked when its @kref refcount
-+ * drops to zero.
-+ *
-+ * Never invoke this function directly!
-+ */
-+static void __ept_release(struct kref *kref)
-+{
-+	struct rpmsg_endpoint *ept = container_of(kref, struct rpmsg_endpoint,
-+						  refcount);
-+	/*
-+	 * At this point no one holds a reference to ept anymore,
-+	 * so we can directly free it
-+	 */
-+	kfree(ept);
-+}
++	if (bank->loses_context)
++		bank->get_context_loss_count = pdata->get_context_loss_count;
 +
- /* for more info, see below documentation of rpmsg_create_ept() */
- static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
- 		struct rpmsg_channel *rpdev, rpmsg_rx_cb_t cb,
-@@ -224,6 +244,8 @@ static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
- 		return NULL;
- 	}
+ 	pm_runtime_put(bank->dev);
  
-+	kref_init(&ept->refcount);
-+
- 	ept->rpdev = rpdev;
- 	ept->cb = cb;
- 	ept->priv = priv;
-@@ -256,7 +278,7 @@ rem_idr:
- 	idr_remove(&vrp->endpoints, request);
- free_ept:
- 	mutex_unlock(&vrp->endpoints_lock);
--	kfree(ept);
-+	kref_put(&ept->refcount, __ept_release);
- 	return NULL;
- }
- 
-@@ -324,7 +346,7 @@ __rpmsg_destroy_ept(struct virtproc_info *vrp, struct rpmsg_endpoint *ept)
- 	idr_remove(&vrp->endpoints, ept->addr);
- 	mutex_unlock(&vrp->endpoints_lock);
- 
--	kfree(ept);
-+	kref_put(&ept->refcount, __ept_release);
- }
- 
- /**
-@@ -808,7 +830,13 @@ static void rpmsg_recv_done(struct virtqueue *rvq)
- 
- 	/* use the dst addr to fetch the callback of the appropriate user */
- 	mutex_lock(&vrp->endpoints_lock);
-+
- 	ept = idr_find(&vrp->endpoints, msg->dst);
-+
-+	/* let's make sure no one deallocates ept while we use it */
-+	if (ept)
-+		kref_get(&ept->refcount);
-+
- 	mutex_unlock(&vrp->endpoints_lock);
- 
- 	if (ept && ept->cb)
-@@ -816,6 +844,10 @@ static void rpmsg_recv_done(struct virtqueue *rvq)
- 	else
- 		dev_warn(dev, "msg received with no recepient\n");
- 
-+	/* farewell, ept, we don't need you anymore */
-+	if (ept)
-+		kref_put(&ept->refcount, __ept_release);
-+
- 	/* publish the real size of the buffer */
- 	sg_init_one(&sg, msg, RPMSG_BUF_SIZE);
- 
-diff --git a/include/linux/rpmsg.h b/include/linux/rpmsg.h
-index 140fd67..50233e3 100644
---- a/include/linux/rpmsg.h
-+++ b/include/linux/rpmsg.h
-@@ -38,6 +38,7 @@
- #include <linux/types.h>
- #include <linux/device.h>
- #include <linux/mod_devicetable.h>
-+#include <linux/kref.h>
- 
- /* The feature bitmap for virtio rpmsg */
- #define VIRTIO_RPMSG_F_NS	0 /* RP supports name service notifications */
-@@ -120,6 +121,7 @@ typedef void (*rpmsg_rx_cb_t)(struct rpmsg_channel *, void *, int, void *, u32);
- /**
-  * struct rpmsg_endpoint - binds a local rpmsg address to its user
-  * @rpdev: rpmsg channel device
-+ * @refcount: when this drops to zero, the ept is deallocated
-  * @cb: rx callback handler
-  * @addr: local rpmsg address
-  * @priv: private data for the driver's use
-@@ -140,6 +142,7 @@ typedef void (*rpmsg_rx_cb_t)(struct rpmsg_channel *, void *, int, void *, u32);
-  */
- struct rpmsg_endpoint {
- 	struct rpmsg_channel *rpdev;
-+	struct kref refcount;
- 	rpmsg_rx_cb_t cb;
- 	u32 addr;
- 	void *priv;
+ 	list_add_tail(&bank->node, &omap_gpio_list);
 -- 
-1.7.10.rc3.743.gaa3bb87
+1.7.9.5
+
