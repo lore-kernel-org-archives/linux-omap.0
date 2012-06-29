@@ -1,18 +1,20 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] ARM: OMAP2+: Fix Wake-up power domain power status
-Date: Fri, 29 Jun 2012 15:49:11 -0500
-Message-ID: <1341002951-11839-1-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH RESEND] ARM: OMAP2+: Fix Wake-up power domain power status
+Date: Fri, 29 Jun 2012 16:04:52 -0500
+Message-ID: <1341003892-14424-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46485 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47264 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932723Ab2F2UtY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 16:49:24 -0400
+	with ESMTP id S1753894Ab2F2VFO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 17:05:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+
+Note: Re-sending with updated kernel doc.
 
 The wake-up power domain is an alway-on power domain and so this power domain
 does not have a power state status (PM_PWSTST_xxx) register that indicates the
@@ -38,14 +40,24 @@ Testing:
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm/mach-omap2/powerdomain.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index eefe179..8a509b1 100644
+index eefe179..69b36e1 100644
 --- a/arch/arm/mach-omap2/powerdomain.c
 +++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -535,6 +535,9 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+@@ -526,7 +526,8 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
+  *
+  * Return the powerdomain @pwrdm's current power state.	Returns -EINVAL
+  * if the powerdomain pointer is null or returns the current power state
+- * upon success.
++ * upon success. Note that if the power domain only supports the ON state
++ * then just return ON as the current state.
+  */
+ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+ {
+@@ -535,6 +536,9 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
  	if (!pwrdm)
  		return -EINVAL;
  
