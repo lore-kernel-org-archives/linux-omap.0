@@ -1,115 +1,56 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Fri, 29 Jun 2012 09:15:37 -0500
-Message-ID: <4FEDB889.5010503@ti.com>
-References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A0D32@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge
+Date: Fri, 29 Jun 2012 07:20:32 -0700
+Message-ID: <20120629142032.GI4202@atomide.com>
+References: <1340978614-12558-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54296 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887Ab2F2OPn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 10:15:43 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A0D32@DBDE01.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32019 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080Ab2F2OUf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 10:20:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1340978614-12558-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Hi Afzal,
+* Kevin Hilman <khilman@ti.com> [120629 07:08]:
+> commit 99b59df0 (ARM: OMAP3: PM: fix shared PRCM interrupt leave
+> disabled at boot) added IRQ_NOAUTOEN to the PRCM interrupt so it could
+> be enabled later if needed.  However, this commit was partially undone
+> when merging the IO daisy chain rework in 9a17d88e (Merge tag
+> 'omap-devel-c-for-3.6' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into
+> devel-pm
+> 
+> This patch adds back the IRQ_NOAUTOEN fix that was removed by the
+> merge resolution.
+> 
+> This also fixes the following boot-time warning that showed up after
+> merging the IO daisy chain rework:
+> 
+> [    3.849334] WARNING: at kernel/irq/manage.c:436 enable_irq+0x3c/0x78()
+> [    3.856231] Unbalanced enable for IRQ 297
+> [    3.860473] Modules linked in:
+> [    3.863739] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c003c7e8>] (warn_slowpath_common+0x4c/0x64)
+> [    3.873687] [<c003c7e8>] (warn_slowpath_common+0x4c/0x64) from [<c003c894>] (warn_slowpath_fmt+0x30/0x40)
+> [    3.883819] [<c003c894>] (warn_slowpath_fmt+0x30/0x40) from [<c00993e0>] (enable_irq+0x3c/0x78)
+> [    3.893035] [<c00993e0>] (enable_irq+0x3c/0x78) from [<c067b1e8>] (omap3_pm_init+0x328/0x5f4)
+> [    3.902099] [<c067b1e8>] (omap3_pm_init+0x328/0x5f4) from [<c067161c>] (init_machine_late+0x1c/0x28)
+> [    3.911773] [<c067161c>] (init_machine_late+0x1c/0x28) from [<c0008648>] (do_one_initcall+0x34/0x178)
+> [    3.921539] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
+> [    3.930847] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
+> [    3.940246] ---[ end trace 55a0ad32ca2ca682 ]---
+> 
+> Reported-by: Javier Martinez Canillas <javier@dowhile0.org>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Tony, this applies on top of your current devel-pm branch.
 
-On 06/29/2012 01:15 AM, Mohammed, Afzal wrote:
-> Hi Tony, Jon,
-> 
-> On Thu, Jun 28, 2012 at 22:13:37, Hunter, Jon wrote:
->> On 06/28/2012 07:32 AM, Tony Lindgren wrote:
->>> * Mohammed, Afzal <afzal@ti.com> [120628 02:36]:
->>>> On Wed, Jun 27, 2012 at 20:28:45, Tony Lindgren wrote:
-> 
->>>>> The last patch in this series causes onenand not to show
->>>>> up on my n900. I believe the problem has been there earlier
->>>>> too, but I just did not notice it.
-> 
->>> Yes that seems to do the trick, thanks! I can fold that into the
->>> breaking patch when applying.
->>
->> I am not sure what to make of this. Testing Afzal's this series along with the other
->> gpmc-prep series [1], onenand is working fine on my 3430sdp and I see ...
->>
->> [    2.792510] OneNAND driver initializing
->> [    2.797576] omap2-onenand omap2-onenand: initializing on CS2, phys base 0x20000000, virtual base c88c0000, freq 0 MHz
->> [    2.808929] OneNAND Manufacturer: Samsung (0xec)
->> [    2.808990] Muxed OneNAND 256MB 1.8V 16-bit (0x40)
->> [    2.814208] OneNAND version = 0x002c
->>
->> The above change seems to imply that Tony's n900 is dependent on the bootloader settings
->> and not those being set by the kernel. Ideally, we should not need to set the async mode
-> 
-> In one of the Samsumg onenand datasheet, it was mentioned,
-> (seems Numonyx datasheet is under NDA)
-> 
-> [A] "If device is accessed synchronously, while set to asynchronous
-> read mode, it is possible to read out first data without problems"
-> 
-> It seems even though above may not imply the below, chances are that
-> below would be true
-> 
-> [B] "If device is accessed asynchronously, while set to synchronous
-> read mode, it will not be possible to read out data"
-> 
-> And B seems logical(to me); if onenand is set to synchronous mode,
-> it would expect clocks to transfer data which may not happen with
-> asynchronous operation from gpmc.
-> 
-> Here the problem with Tony's n900 (expecting it to use one of mach-id
-> in n8x0, hence flag sync read) board may be that bootloader (could not
-> find uboot handling these machines) before handing over control to
-> Kernel, sets it to synchronous mode. And then if we apply B, we can
-> expect what we are seeing here.
+Thanks applying into devel-pm.
 
-Ok, that is a good point. However, there is also the possibility that
-the OneNAND is in async mode and after changing the gpmc async timings
-writes are no longer working. Although, it that was the case then maybe
-we would never be able to switch to sync mode again. So may be it is
-more likely that it is in sync mode. A dump of the gpmc registers should
-tell us.
-
-> Assuming above is a explanation to what Tony is observing on n900,
-> perhaps, resetting onenand may help Kernel work even without the
-> proposed diff. There is a gpio pin field used in n8x0, if that is
-> connected to reset of onenand, may be it can achieve what we
-> want without the diff.
-> 
->> Numonyx. The gpmc-onenand.c only has one set of settings that it is using for all
->> devices. However, it would appear that at least the async settings are not working for
->> the Numonyx. Therefore, may be we need to get a dump of Tony's n900 settings and make
-> 
-> I have a different opinion, even with the existing code, with the default
-> timings for onenand, Numonyx is working in async mode, reason being that
-> frequency is being obtained with read operation executed in async mode
-> (later based on this frequency, code calculates sync timings & then set
-> to sync mode)
-
-I don't follow "frequency is being obtained with read operation executed
-in async mode". Can you give a code reference?
-
-Frequency of the OneNAND is not important for async mode (as only sync
-mode uses a clock), only the gpmc clock frequency is important for
-calculating the timings. For async mode the OneNAND timings are static.
-
-For configuring the async timings the code does not distinguish between
-different OneNAND devices and therefore, assumes that the async timings
-are the same for all devices. I cannot believe that a Samsung and
-Numonyx device would have identical async timings. However, if the
-timings are not optimal there is a chance they could work for all devices.
-
-> This change indeed has brought to our notice one instance where
-> Kernel can't handle gpmc by itself, may be resetting onenand is
-> a solution, as it seems bootloader is leaving it in sync mode.
-
-It would be an interesting test.
-
-Cheers
-Jon
+Tony
