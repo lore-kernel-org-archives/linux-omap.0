@@ -1,64 +1,61 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge
-Date: Fri, 29 Jun 2012 13:26:09 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206291324270.2338@utopia.booyaka.com>
-References: <1340978614-12558-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH v2 1/3] ARM: omap: clk: add clk_prepare and
+ clk_unprepare
+Date: Fri, 29 Jun 2012 14:19:37 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1206291416180.2338@utopia.booyaka.com>
+References: <1340786915-29507-1-git-send-email-rnayak@ti.com> <1340786915-29507-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58470 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54854 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819Ab2F2T0L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 15:26:11 -0400
-In-Reply-To: <1340978614-12558-1-git-send-email-khilman@ti.com>
+	with ESMTP id S932268Ab2F2UTi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 16:19:38 -0400
+In-Reply-To: <1340786915-29507-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: mturquette@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, 29 Jun 2012, Kevin Hilman wrote:
+Hi
 
-> commit 99b59df0 (ARM: OMAP3: PM: fix shared PRCM interrupt leave
-> disabled at boot) added IRQ_NOAUTOEN to the PRCM interrupt so it could
-> be enabled later if needed.  However, this commit was partially undone
-> when merging the IO daisy chain rework in 9a17d88e (Merge tag
-> 'omap-devel-c-for-3.6' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into
-> devel-pm
+On Wed, 27 Jun 2012, Rajendra Nayak wrote:
+
+> As part of Common Clk Framework (CCF) the clk_enable() operation
+> was split into a clk_prepare() which could sleep, and a clk_enable()
+> which should never sleep. Similarly the clk_disable() was
+> split into clk_disable() and clk_unprepare(). This was
+> needed to handle complex cases where in a clk gate/ungate
+> would require a slow and a fast part to be implemented.
+> None of the clocks below seem to be in the 'complex' clocks
+> category and are just simple clocks which are enabled/disabled
+> through simple register writes.
+> Most of the instances also seem to be called in non-atomic
+> context which means its safe to move all of those from
+> using a clk_enable() to clk_prepare_enable() and clk_disable() to
+> clk_disable_unprepare().
+> For a few others where there is a possibility they get called from
+> an interrupt or atomic context, there is an additonal clk_prepare()
+> done before a clk_enable() and a clk_unprepare()
+> after a clk_disable().
+> This is in preparation of OMAP moving to CCF.
 > 
-> This patch adds back the IRQ_NOAUTOEN fix that was removed by the
-> merge resolution.
+> Based on initial changes from Mike turquette.
 > 
-> This also fixes the following boot-time warning that showed up after
-> merging the IO daisy chain rework:
-> 
-> [    3.849334] WARNING: at kernel/irq/manage.c:436 enable_irq+0x3c/0x78()
-> [    3.856231] Unbalanced enable for IRQ 297
-> [    3.860473] Modules linked in:
-> [    3.863739] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c003c7e8>] (warn_slowpath_common+0x4c/0x64)
-> [    3.873687] [<c003c7e8>] (warn_slowpath_common+0x4c/0x64) from [<c003c894>] (warn_slowpath_fmt+0x30/0x40)
-> [    3.883819] [<c003c894>] (warn_slowpath_fmt+0x30/0x40) from [<c00993e0>] (enable_irq+0x3c/0x78)
-> [    3.893035] [<c00993e0>] (enable_irq+0x3c/0x78) from [<c067b1e8>] (omap3_pm_init+0x328/0x5f4)
-> [    3.902099] [<c067b1e8>] (omap3_pm_init+0x328/0x5f4) from [<c067161c>] (init_machine_late+0x1c/0x28)
-> [    3.911773] [<c067161c>] (init_machine_late+0x1c/0x28) from [<c0008648>] (do_one_initcall+0x34/0x178)
-> [    3.921539] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
-> [    3.930847] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
-> [    3.940246] ---[ end trace 55a0ad32ca2ca682 ]---
-> 
-> Reported-by: Javier Martinez Canillas <javier@dowhile0.org>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+This patch generates quite a few checkpatch warnings:
 
-Looks indeed like I mismerged it.  One thing to note however is that the 
-warning that you quoted didn't show up during any of the boot testing of 
-that branch:
+WARNING: please, no space before tabs
+#294: FILE: arch/arm/mach-omap2/clock3xxx_data.c:3479:
++^ICLK(NULL, ^I"mcbsp4_ick",^I&mcbsp2_ick,^ICK_3XXX),$
 
-http://www.pwsan.com/omap/bootlogs/20120621/io_chain_devel_3.6__fafcdd53220f44d7ae2f06a9ce20c8d550df2d9b/
+etc.  
 
-So I'm guessing that the patch that triggered the warning was something 
-else that got merged in the meantime.
+Please fix these.
+
+The 80 column warnings from checkpatch on the CLK(... lines can be 
+ignored.
 
 
 - Paul
