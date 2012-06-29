@@ -1,63 +1,90 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH] I2C: OMAP: fix runtime PM get/put balance on error
-Date: Fri, 29 Jun 2012 14:37:48 +0530
-Message-ID: <1340960868-7371-1-git-send-email-shubhrajyoti@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [PATCH 1/2] omap4: control: Add the CONTROL_SMART2IO_PADCONF_2 register definition
+Date: Fri, 29 Jun 2012 12:11:04 +0300
+Message-ID: <1340961065-26938-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41924 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57483 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752882Ab2F2JIS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 05:08:18 -0400
+	id S1752273Ab2F2JLI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 05:11:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>, Kevin Hilman <khilman@ti.com>
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, balbi@ti.com
 
-    ensure pm_runtime_put() is called, on pm_runtime_get_sync()
-    failure.
+This patch adds missing CONTROL_SMART2IO_PADCONF_2 register
+definition
 
-    Without this, after a failed call, the runtime PM usecount will have
-    been incremented, but not decremented causing the usecount to never
-    reach zero after a failure. Thanks to Kevin for educating about it. 
-    While at it also fix a missing pm_runtime_disable in the probe error
-    path.
-
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ .../include/mach/ctrl_module_pad_core_44xx.h       |   45 ++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2500f19..c8e5c76 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1113,10 +1113,10 @@ err_free_irq:
- 	free_irq(dev->irq, dev);
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+err_free_mem:
- 	pm_runtime_put(dev->dev);
- 	iounmap(dev->base);
- 	pm_runtime_disable(&pdev->dev);
--err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(dev);
- err_release_region:
-@@ -1136,10 +1136,9 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	ret = pm_runtime_get_sync(&pdev->dev);
--	if (IS_ERR_VALUE(ret))
--		return ret;
-+	if (!IS_ERR_VALUE(ret))
-+		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+index c88420d..d512ade 100644
+--- a/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
++++ b/arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+@@ -46,6 +46,7 @@
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART3IO_PADCONF_2	0x05c0
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_USBB_HSIC		0x05c4
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SLIMBUS		0x05c8
++#define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_SMART2IO_PADCONF_2	0x05cc
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_PBIASLITE		0x0600
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_0		0x0604
+ #define OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX		0x0608
+@@ -764,6 +765,50 @@
+ #define OMAP4_HSI_DR0_LB_SHIFT					10
+ #define OMAP4_HSI_DR0_LB_MASK					(1 << 10)
  
--	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
- 	iounmap(dev->base);
++/* CONTROL_SMART2IO_PADCONF_2 */
++#define OMAP4_DPM_DR1_DS_SHIFT					31
++#define OMAP4_DPM_DR1_DS_MASK					(1 << 31)
++#define OMAP4_DPM_DR2_DS_SHIFT					30
++#define OMAP4_DPM_DR2_DS_MASK					(1 << 30)
++#define OMAP4_DPM_DR3_DS_SHIFT					29
++#define OMAP4_DPM_DR3_DS_MASK					(1 << 29)
++#define OMAP4_GPIO_DR10_DS_SHIFT				28
++#define OMAP4_GPIO_DR10_DS_MASK					(1 << 28)
++#define OMAP4_HSI2_DR0_DS_SHIFT					27
++#define OMAP4_HSI2_DR0_DS_MASK					(1 << 27)
++#define OMAP4_HSI2_DR1_DS_SHIFT					26
++#define OMAP4_HSI2_DR1_DS_MASK					(1 << 26)
++#define OMAP4_HSI2_DR2_DS_SHIFT					25
++#define OMAP4_HSI2_DR2_DS_MASK					(1 << 25)
++#define OMAP4_SDMMC3_DR0_DS_SHIFT				24
++#define OMAP4_SDMMC3_DR0_DS_MASK				(1 << 24)
++#define OMAP4_SDMMC4_DR0_DS_SHIFT				23
++#define OMAP4_SDMMC4_DR0_DS_MASK				(1 << 23)
++#define OMAP4_SDMMC4_DR1_DS_SHIFT				22
++#define OMAP4_SDMMC4_DR1_DS_MASK				(1 << 22)
++#define OMAP4_SPI3_DR0_DS_SHIFT					21
++#define OMAP4_SPI3_DR0_DS_MASK					(1 << 21)
++#define OMAP4_SPI3_DR1_DS_SHIFT					20
++#define OMAP4_SPI3_DR1_DS_MASK					(1 << 20)
++#define OMAP4_UART3_DR2_DS_SHIFT				19
++#define OMAP4_UART3_DR2_DS_MASK					(1 << 19)
++#define OMAP4_UART3_DR3_DS_SHIFT				18
++#define OMAP4_UART3_DR3_DS_MASK					(1 << 18)
++#define OMAP4_UART3_DR4_DS_SHIFT				17
++#define OMAP4_UART3_DR4_DS_MASK					(1 << 17)
++#define OMAP4_UART3_DR5_DS_SHIFT				16
++#define OMAP4_UART3_DR5_DS_MASK					(1 << 16)
++#define OMAP4_USBA0_DR0_DS_SHIFT				15
++#define OMAP4_USBA0_DR0_DS_MASK					(1 << 15)
++#define OMAP4_USBA0_DR1_DS_SHIFT				14
++#define OMAP4_USBA0_DR1_DS_MASK					(1 << 14)
++#define OMAP4_USBA_DR2_DS_SHIFT					13
++#define OMAP4_USBA_DR2_DS_MASK					(1 << 13)
++#define OMAP4_USBB2_DR0_DS_SHIFT				12
++#define OMAP4_USBB2_DR0_DS_MASK					(1 << 12)
++#define OMAP4_USBB1_DR0_DS_SHIFT				11
++#define OMAP4_USBB1_DR0_DS_MASK					(1 << 11)
++
+ /* CONTROL_USBB_HSIC */
+ #define OMAP4_USBB2_DR1_SR_SHIFT				30
+ #define OMAP4_USBB2_DR1_SR_MASK					(0x3 << 30)
 -- 
-1.7.5.4
+1.7.1
 
