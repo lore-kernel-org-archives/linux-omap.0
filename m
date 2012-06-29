@@ -1,119 +1,76 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv3 07/17] i2c: omap: improve i462 errata handling
-Date: Fri, 29 Jun 2012 15:43:27 +0530
-Message-ID: <1340964817-8599-8-git-send-email-shubhrajyoti@ti.com>
-References: <1340964817-8599-1-git-send-email-shubhrajyoti@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 07/12] OMAPDSS: APPLY: Remove DISPC writes to manager's
+ lcd parameters in interface drivers
+Date: Fri, 29 Jun 2012 15:58:08 +0530
+Message-ID: <4FED8338.5060606@ti.com>
+References: <1340893842-10626-1-git-send-email-archit@ti.com>  <1340893842-10626-9-git-send-email-archit@ti.com> <1340964745.1866.26.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48591 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754092Ab2F2KOd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 06:14:33 -0400
-In-Reply-To: <1340964817-8599-1-git-send-email-shubhrajyoti@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43304 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab2F2K3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 06:29:15 -0400
+In-Reply-To: <1340964745.1866.26.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi@ti.com>
+On Friday 29 June 2012 03:42 PM, Tomi Valkeinen wrote:
+> On Thu, 2012-06-28 at 20:00 +0530, Archit Taneja wrote:
+>> Replace the DISPC fuctions used to configure LCD channel related manager
+>> parameters with dss_mgr_set_lcd_config() in APPLY. This function ensures that
+>> the DISPC registers are written at the right time by using the shadow register
+>> programming model.
+>>
+>> The LCD manager configurations is stored as a private data of manager in APPLY.
+>> It is treated as an extra info as it's the panel drivers which trigger this
+>> apply via interface drivers, and not a DSS2 user like omapfb or omapdrm.
+>>
+>> Storing LCD manager related properties in APPLY also prevents the need to refer
+>> to the panel connected to the manager for information. This helps in making the
+>> DSS driver less dependent on panel.
+>>
+>> A helper function is added to check whether the manager is LCD or TV. The direct
+>> DISPC register writes are removed from the interface drivers.
+>
+>
+>
+>> +static void dss_apply_mgr_lcd_config(struct omap_overlay_manager *mgr,
+>> +		struct dss_lcd_mgr_config config)
+>> +{
+>
+> This one should take a pointer to the config, not a copy (and const).
+>
+>> +	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+>> +
+>> +	mp->lcd_config = config;
+>> +	mp->extra_info_dirty = true;
+>> +}
+>> +
+>> +void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+>> +		struct dss_lcd_mgr_config config)
+>
+> And this.
 
-Make it not depend on ISR's local variables
-in order to make it easier to re-factor the
-transmit data loop.
-Also since we are waiting for XUDF just before
-writing data lets not flag the underflow.
-This is anyways going to go once we write
-the data.
+Will fix these.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 13 deletions(-)
+>
+>> +{
+>> +	unsigned long flags;
+>> +	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+>> +
+>> +	mutex_lock(&apply_lock);
+>> +
+>> +	if (mp->enabled)
+>> +		goto out;
+>
+> Hmm. Should we print a warning or such here? Isn't it a bug in the
+> interface driver, if it tries to set the lcd config when the output is
+> enabled?
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 45bd731..870452d 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -744,27 +744,30 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
-  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
-  * them from the memory to the I2C interface.
-  */
--static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
-+static int errata_omap3_i462(struct omap_i2c_dev *dev)
- {
- 	unsigned long timeout = 10000;
-+	u16 stat;
- 
--	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
--		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-+	do {
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		if (stat & OMAP_I2C_STAT_XUDF)
-+			break;
-+
-+		if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
--			return -ETIMEDOUT;
-+			return -EIO;
- 		}
- 
- 		cpu_relax();
--		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
-+	} while (--timeout);
- 
- 	if (!timeout) {
- 		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
- 		return 0;
- 	}
- 
--	*err |= OMAP_I2C_STAT_XUDF;
- 	return 0;
- }
- 
-@@ -926,9 +929,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
-+
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
-+
-+					if (ret < 0)
-+						goto complete;
-+				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
-@@ -966,9 +976,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
-+
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
-+
-+					if (ret < 0)
-+						goto complete;
-+				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
--- 
-1.7.5.4
+Yes, we should add an error here. Will add it.
 
+Archit
