@@ -1,77 +1,124 @@
-From: Mark Jackson <mpfj-list@mimc.co.uk>
-Subject: Re: Current state of AM33xx patches
-Date: Fri, 29 Jun 2012 15:20:45 +0100
-Message-ID: <4FEDB9BD.7060405@mimc.co.uk>
-References: <4FD5BA4C.9070706@gmail.com>	<4FD5FD9E.5040203@ti.com> <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register
+ api
+Date: Fri, 29 Jun 2012 07:52:03 -0700
+Message-ID: <20120629145203.GJ4202@atomide.com>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com>
+ <201206291345.49878.arnd@arndb.de>
+ <20120629135559.GH4202@atomide.com>
+ <201206291433.06718.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:45209
-	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751677Ab2F2Oi4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 10:38:56 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15594 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752937Ab2F2OwH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 10:52:07 -0400
+Content-Disposition: inline
+In-Reply-To: <201206291433.06718.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Domenico Andreoli <cavokz@gmail.com>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
 
-On 27/06/12 13:07, Hiremath, Vaibhav wrote:
+* Arnd Bergmann <arnd@arndb.de> [120629 07:37]:
+> On Friday 29 June 2012, Tony Lindgren wrote:
+> > * Arnd Bergmann <arnd@arndb.de> [120629 06:50]:
+> > > On Friday 29 June 2012, Tony Lindgren wrote:
+> > > > * Andy Green <andy.green@linaro.org> [120629 03:12]:
+> > > > > >2. Is this really how we want to pass the board generated mac addresses
+> > > > > >    and other dynamically generated data to the drivers that are device
+> > > > > >    tree based?
+> > > > > 
+> > > > > The issue is that both these busses have an async probe, in the case
+> > > > > of USB stack the maintainer was not interested last year in adding
+> > > > > platform data.  Maybe it changed but that's my understanding.
+> > > > 
+> > > > OK, I'd like to hear Arnds comments on the #2 above too as this is
+> > > > a more generic issue.
+> > > 
+> > > In case we have a device tree, we should just be using the USB binding
+> > > to find the specific device node, and add the property there. Then
+> > > the device driver can use of_get_mac_address() on the usb device itself.
+> > 
+> > But would you generate the mac address then in the bootloader already?
 > 
-> Omap2plus_defconfig should work for you, you should get linux prompt with 
-> ramdisk image (which I use). Just to be more clear, and for your reference I am pasting steps which I use for testing, 
+> Good question. I think we definitely want to have the option of overiding
+> the mac address from the boot loader or a predefined device tree blob.
 > 
-> Build Steps:
-> ============
->  - make ARCH=arm CROSS_COMPILE=<toolchain> distclean
->  - make ARCH=arm CROSS_COMPILE=<toolchain> omap2plus_defconfig
->  - Enable option CONFIG_ARM_APPENDED_DTB and CONFIG_ARM_ATAG_DTB_COMPAT
->  - make ARCH=arm CROSS_COMPILE=<toolchain> uImage-dtb.am335x-evm
->    (Since I am not using DT aware u-boot)
+> IMHO the precedence should be
 > 
-> Use the ramdisk image to boot kernel, since we do not have support for any 
-> storage devices in the mainline.
+> a) mac-address property from DT if set
+> b) hardcoded address from device EEPROM if present
+> c) platform-provided address, if supported by platform
+> d) random_ether_addr()
+
+And all should be naturally settable with ifconfig too without being
+overwritten by the notifier code :)
+ 
+> A lot of devices already provide the mac address in the device tree,
+> wherever that comes from. Ideally that would always be possible but
+> never necessary.
 > 
-> U-Boot commands to boot:
-> ========================
-> setenv bootcmd 'mmc rescan 0; fatload mmc 0 81000000 uImage; fatload mmc 0 82000000 ramdisk-pm.gz; bootm 81000000'
-> setenv bootargs 'console=ttyO0,115200n8 mem=128M root=/dev/ram rw initrd=0x82000000,16MB ramdisk_size=65536 earlyprintk=serial'
-> boot
+> > > I'm not sure what it takes to add the link for the device node in the
+> > > usb probing code, but my feeling is that it's not too hard.
+> > > 
+> > > Right now, USB is probed entirely without DT, so the patch is about
+> > > the best we can do.
+> > 
+> > Right, but that still assumes a static mac from the bootloader unless
+> > we do a generic driver as below? Or do you have some other ideas?
 > 
-> 
-> Hope this will help you to boot the kernel on BeagleBone.
+> The boot loader could theoretically have the same algorithm that Andy's
+> patch implements, unless it is configured to something else by the
+> user. In many cases, you don't want the boot loader to be that smart,
+> but sometimes it is the right solution.
 
-This does appear to work using the ramdisk, but there seems to be no support for booting off MMC.
+OK that would mean bootloader modifying the .dtb then.
+ 
+> > > Normally USB tends to just work because the device is expected to
+> > > be hot-pluggable anyway. If the USB device is soldered to the
+> > > board, the hardware designers can take some shortcuts
+> > 
+> > But that too still depends on the order of loading of the multiple
+> > host controller modules. Beagle has both EHCI and musb.
 
-Here's a section from my boot log:-
+Sorry I meant Panda instead of Beagle here..
 
-[    1.526156] omap_hsmmc mmc.18: Failed to get debounce clk
-[    1.577266] omap_hsmmc mmc.19: Failed to get debounce clk
-[    1.583961] mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-[    1.600184] mmc0: host doesn't support card's voltages
-[    1.605606] mmc0: error -22 whilst initialising SD card
-[    1.639743] omap_hsmmc mmc.20: Failed to get debounce clk
-[    1.646051] mmc1: mmc_rescan_try_freq: trying to init card at 400000 Hz
-[    1.694232] mmc2: mmc_rescan_try_freq: trying to init card at 400000 Hz
+> In the device tree, we can uniquely identify the USB hosts, that
+> is not a problem here. The problem exists only if you base your
+> path on the linux specific name for the devices.
+> It's definitely ugly to rely on that, but I think we can actually
+> guarantee that it's stable as long as we enforce in the
+> Kconfig/Kbuild that the controller that has the ethernet device
+> is always built-in on Panda and comes before the other one if
+> both are built-in. I would much prefer not to have to rely on
+> those things, but I believe it is actually guaranteed at the
+> moment for the cases that matter. While you could have both
+> controllers as loadable modules and load them in reverse
+> order that would also imply that you cannot actually boot from
+> the network, so you know that you have a file system on which
+> you can set the mac address of the device using udev, before
+> you start using networking.
 
-AFAIKT there's no direct support for the AM335x EVM or BeagleBone, and we're just running off
-existing non-specific code.
+OK. So how about we do the following:
 
-Buildroot currently references koenkooi repo[1], which has a large number of code changes to add
-proper support, and we have a nice working system running on a BeagleBone.
+1. Make Andy's notifier part into a generic mac notifier
+   driver that can take platform data for the driver name
+   mac address pair. Devicetree binding could be added as
+   needed.
 
-But, going back to some other previous emails in this thread, the Wiki[2] states many of the support
-required will only be put into the mainline kernel at 3.7.
+2. Pass the Panda mac information as platform data to this
+   driver for now with a comment on the usb path naming being
+   potentially wrong in the loadable modules case.
 
-Is this still the case ?  Or is it possible that the koenkooi code will be pushed up earlier ?
+3. Add devicetree support to the driver once the USB binding
+   is available.
 
-All in all, the AM335x code does seem to be very fragmented.  Is that just because these are
-non-trivial changes going in ?
+That will make my life much easier as then I'm not stuck with
+more legacy code to deal with ;) Also writing the driver part
+should be trivial as all the code is there already.
 
-Cheers
-Mark Jackson
+Regards,
 
-[1] https://github.com/koenkooi/linux
-[2] http://processors.wiki.ti.com/index.php/Sitara_Linux_Upstream_Status
+Tony
