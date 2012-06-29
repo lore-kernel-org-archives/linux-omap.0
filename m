@@ -1,377 +1,68 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v4 4/4] memory: emif: add device tree support to emif driver
-Date: Fri, 29 Jun 2012 19:13:27 +0530
-Message-ID: <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
-References: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register api
+Date: Fri, 29 Jun 2012 13:45:49 +0000
+Message-ID: <201206291345.49878.arnd@arndb.de>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com> <4FED7E6A.4090207@linaro.org> <20120629120325.GD4202@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55267 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755887Ab2F2Nn4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 09:43:56 -0400
-In-Reply-To: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:56955 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755403Ab2F2Np5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 09:45:57 -0400
+In-Reply-To: <20120629120325.GD4202@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
 
-From: Aneesh V <aneesh@ti.com>
+On Friday 29 June 2012, Tony Lindgren wrote:
+> * Andy Green <andy.green@linaro.org> [120629 03:12]:
+> > >2. Is this really how we want to pass the board generated mac addresses
+> > >    and other dynamically generated data to the drivers that are device
+> > >    tree based?
+> > 
+> > The issue is that both these busses have an async probe, in the case
+> > of USB stack the maintainer was not interested last year in adding
+> > platform data.  Maybe it changed but that's my understanding.
+> 
+> OK, I'd like to hear Arnds comments on the #2 above too as this is
+> a more generic issue.
 
-Device tree support for the EMIF driver.
+In case we have a device tree, we should just be using the USB binding
+to find the specific device node, and add the property there. Then
+the device driver can use of_get_mac_address() on the usb device itself.
 
-Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
-[santosh.shilimkar@ti.com: Rebased against 3.5-rc]
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/memory/emif.c |  291 ++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 290 insertions(+), 1 deletion(-)
+I'm not sure what it takes to add the link for the device node in the
+usb probing code, but my feeling is that it's not too hard.
 
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 33a4396..101997b 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/module.h>
-@@ -49,6 +50,7 @@
-  *				frequency in effect at the moment)
-  * @plat_data:			Pointer to saved platform data.
-  * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-+ * @np_ddr:			Pointer to ddr device tree node
-  */
- struct emif_data {
- 	u8				duplicate;
-@@ -63,6 +65,7 @@ struct emif_data {
- 	struct emif_regs		*curr_regs;
- 	struct emif_platform_data	*plat_data;
- 	struct dentry			*debugfs_root;
-+	struct device_node		*np_ddr;
- };
- 
- static struct emif_data *emif1;
-@@ -1148,6 +1151,278 @@ static int is_custom_config_valid(struct emif_custom_configs *cust_cfgs,
- 	return valid;
- }
- 
-+#if defined(CONFIG_OF)
-+static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
-+		struct emif_data *emif)
-+{
-+	struct emif_custom_configs	*cust_cfgs = NULL;
-+	int				len;
-+	const int			*lpmode, *poll_intvl;
-+
-+	lpmode = of_get_property(np_emif, "low-power-mode", &len);
-+	poll_intvl = of_get_property(np_emif, "temp-alert-poll-interval", &len);
-+
-+	if (lpmode || poll_intvl)
-+		cust_cfgs = devm_kzalloc(emif->dev, sizeof(*cust_cfgs),
-+			GFP_KERNEL);
-+
-+	if (!cust_cfgs)
-+		return;
-+
-+	if (lpmode) {
-+		cust_cfgs->mask |= EMIF_CUSTOM_CONFIG_LPMODE;
-+		cust_cfgs->lpmode = *lpmode;
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-timeout-performance",
-+				&cust_cfgs->lpmode_timeout_performance);
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-timeout-power",
-+				&cust_cfgs->lpmode_timeout_power);
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-freq-threshold",
-+				&cust_cfgs->lpmode_freq_threshold);
-+	}
-+
-+	if (poll_intvl) {
-+		cust_cfgs->mask |=
-+				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL;
-+		cust_cfgs->temp_alert_poll_interval_ms = *poll_intvl;
-+	}
-+
-+	if (!is_custom_config_valid(cust_cfgs, emif->dev)) {
-+		devm_kfree(emif->dev, cust_cfgs);
-+		return;
-+	}
-+
-+	emif->plat_data->custom_configs = cust_cfgs;
-+}
-+
-+static void __init_or_module of_get_min_tck(struct device_node *np,
-+		struct emif_data *emif)
-+{
-+	int			ret = 0;
-+	struct lpddr2_min_tck	*min;
-+
-+	min = devm_kzalloc(emif->dev, sizeof(*min), GFP_KERNEL);
-+	if (!min)
-+		goto default_min_tck;
-+
-+	ret |= of_property_read_u32(np, "tRPab-min-tck", &min->tRPab);
-+	ret |= of_property_read_u32(np, "tRCD-min-tck", &min->tRCD);
-+	ret |= of_property_read_u32(np, "tWR-min-tck", &min->tWR);
-+	ret |= of_property_read_u32(np, "tRASmin-min-tck", &min->tRASmin);
-+	ret |= of_property_read_u32(np, "tRRD-min-tck", &min->tRRD);
-+	ret |= of_property_read_u32(np, "tWTR-min-tck", &min->tWTR);
-+	ret |= of_property_read_u32(np, "tXP-min-tck", &min->tXP);
-+	ret |= of_property_read_u32(np, "tRTP-min-tck", &min->tRTP);
-+	ret |= of_property_read_u32(np, "tCKE-min-tck", &min->tCKE);
-+	ret |= of_property_read_u32(np, "tCKESR-min-tck", &min->tCKESR);
-+	ret |= of_property_read_u32(np, "tFAW-min-tck", &min->tFAW);
-+
-+	if (ret) {
-+		devm_kfree(emif->dev, min);
-+		goto default_min_tck;
-+	}
-+
-+	emif->plat_data->min_tck = min;
-+	return;
-+
-+default_min_tck:
-+	dev_warn(emif->dev, "%s: using default min-tck values\n", __func__);
-+	emif->plat_data->min_tck = &lpddr2_jedec_min_tck;
-+}
-+
-+static int __init_or_module of_do_get_timings(struct device_node *np,
-+		struct lpddr2_timings *tim)
-+{
-+	int ret;
-+
-+	ret = of_property_read_u32(np, "max-freq", &tim->max_freq);
-+	ret |= of_property_read_u32(np, "min-freq", &tim->min_freq);
-+	ret |= of_property_read_u32(np, "tRPab", &tim->tRPab);
-+	ret |= of_property_read_u32(np, "tRCD", &tim->tRCD);
-+	ret |= of_property_read_u32(np, "tWR", &tim->tWR);
-+	ret |= of_property_read_u32(np, "tRAS-min", &tim->tRAS_min);
-+	ret |= of_property_read_u32(np, "tRRD", &tim->tRRD);
-+	ret |= of_property_read_u32(np, "tWTR", &tim->tWTR);
-+	ret |= of_property_read_u32(np, "tXP", &tim->tXP);
-+	ret |= of_property_read_u32(np, "tRTP", &tim->tRTP);
-+	ret |= of_property_read_u32(np, "tCKESR", &tim->tCKESR);
-+	ret |= of_property_read_u32(np, "tDQSCK-max", &tim->tDQSCK_max);
-+	ret |= of_property_read_u32(np, "tFAW", &tim->tFAW);
-+	ret |= of_property_read_u32(np, "tZQCS", &tim->tZQCS);
-+	ret |= of_property_read_u32(np, "tZQCL", &tim->tZQCL);
-+	ret |= of_property_read_u32(np, "tZQinit", &tim->tZQinit);
-+	ret |= of_property_read_u32(np, "tRAS-max-ns", &tim->tRAS_max_ns);
-+	ret |= of_property_read_u32(np, "tDQSCK-max-derated",
-+		&tim->tDQSCK_max_derated);
-+
-+	return ret;
-+}
-+
-+static void __init_or_module of_get_ddr_timings(struct device_node *np_ddr,
-+		struct emif_data *emif)
-+{
-+	struct lpddr2_timings	*timings = NULL;
-+	u32			arr_sz = 0, i = 0;
-+	struct device_node	*np_tim;
-+	char			*tim_compat;
-+
-+	switch (emif->plat_data->device_info->type) {
-+	case DDR_TYPE_LPDDR2_S2:
-+	case DDR_TYPE_LPDDR2_S4:
-+		tim_compat = "jedec,lpddr2-timings";
-+		break;
-+	default:
-+		dev_warn(emif->dev, "%s: un-supported memory type\n", __func__);
-+	}
-+
-+	for_each_child_of_node(np_ddr, np_tim)
-+		if (of_device_is_compatible(np_tim, tim_compat))
-+			arr_sz++;
-+
-+	if (arr_sz)
-+		timings = devm_kzalloc(emif->dev, sizeof(*timings) * arr_sz,
-+			GFP_KERNEL);
-+
-+	if (!timings)
-+		goto default_timings;
-+
-+	for_each_child_of_node(np_ddr, np_tim) {
-+		if (of_device_is_compatible(np_tim, tim_compat)) {
-+			if (of_do_get_timings(np_tim, &timings[i])) {
-+				devm_kfree(emif->dev, timings);
-+				goto default_timings;
-+			}
-+			i++;
-+		}
-+	}
-+
-+	emif->plat_data->timings = timings;
-+	emif->plat_data->timings_arr_size = arr_sz;
-+
-+	return;
-+
-+default_timings:
-+	get_default_timings(emif);
-+
-+	return;
-+}
-+
-+static void __init_or_module of_get_ddr_info(struct device_node *np_emif,
-+		struct device_node *np_ddr,
-+		struct ddr_device_info *dev_info)
-+{
-+	u32 density = 0, io_width = 0;
-+	int len;
-+
-+	if (of_find_property(np_emif, "cs1-used", &len))
-+		dev_info->cs1_used = true;
-+
-+	if (of_find_property(np_emif, "cal-resistor-per-cs", &len))
-+		dev_info->cal_resistors_per_cs = true;
-+
-+	if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s4"))
-+		dev_info->type = DDR_TYPE_LPDDR2_S4;
-+	else if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s2"))
-+		dev_info->type = DDR_TYPE_LPDDR2_S2;
-+
-+	of_property_read_u32(np_ddr, "density", &density);
-+	of_property_read_u32(np_ddr, "io-width", &io_width);
-+
-+	/* Convert from density in Mb to the density encoding in jedc_ddr.h */
-+	if (density & (density - 1))
-+		dev_info->density = 0;
-+	else
-+		dev_info->density = __fls(density) - 5;
-+
-+	/* Convert from io_width in bits to io_width encoding in jedc_ddr.h */
-+	if (io_width & (io_width - 1))
-+		dev_info->io_width = 0;
-+	else
-+		dev_info->io_width = __fls(io_width) - 1;
-+}
-+
-+static struct emif_data * __init_or_module of_get_device_details(
-+		struct device_node *np_emif, struct device *dev)
-+{
-+	struct emif_data		*emif = NULL;
-+	struct ddr_device_info		*dev_info = NULL;
-+	struct emif_platform_data	*pd = NULL;
-+	struct device_node		*np_ddr;
-+	int				len;
-+
-+	np_ddr = of_parse_phandle(np_emif, "device-handle", 0);
-+	if (!np_ddr)
-+		goto error;
-+	emif	= devm_kzalloc(dev, sizeof(struct emif_data), GFP_KERNEL);
-+	pd	= devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
-+	dev_info = devm_kzalloc(dev, sizeof(*dev_info), GFP_KERNEL);
-+
-+	if (!emif || !pd || !dev_info) {
-+		dev_err(dev, "%s: of_get_device_details() failure!!\n",
-+			__func__);
-+		goto error;
-+	}
-+
-+	emif->plat_data		= pd;
-+	pd->device_info		= dev_info;
-+	emif->dev		= dev;
-+	emif->np_ddr		= np_ddr;
-+	emif->temperature_level	= SDRAM_TEMP_NOMINAL;
-+
-+	if (of_device_is_compatible(np_emif, "ti,emif-4d"))
-+		emif->plat_data->ip_rev = EMIF_4D;
-+	else if (of_device_is_compatible(np_emif, "ti,emif-4d5"))
-+		emif->plat_data->ip_rev = EMIF_4D5;
-+
-+	of_property_read_u32(np_emif, "phy-type", &pd->phy_type);
-+
-+	if (of_find_property(np_emif, "hw-caps-ll-interface", &len))
-+		pd->hw_caps |= EMIF_HW_CAPS_LL_INTERFACE;
-+
-+	of_get_ddr_info(np_emif, np_ddr, dev_info);
-+	if (!is_dev_data_valid(pd->device_info->type, pd->device_info->density,
-+			pd->device_info->io_width, pd->phy_type, pd->ip_rev,
-+			emif->dev)) {
-+		dev_err(dev, "%s: invalid device data!!\n", __func__);
-+		goto error;
-+	}
-+	/*
-+	 * For EMIF instances other than EMIF1 see if the devices connected
-+	 * are exactly same as on EMIF1(which is typically the case). If so,
-+	 * mark it as a duplicate of EMIF1. This will save some memory and
-+	 * computation.
-+	 */
-+	if (emif1 && emif1->np_ddr == np_ddr) {
-+		emif->duplicate = true;
-+		goto out;
-+	} else if (emif1) {
-+		dev_warn(emif->dev, "%s: Non-symmetric DDR geometry\n",
-+			__func__);
-+	}
-+
-+
-+	of_get_custom_configs(np_emif, emif);
-+	of_get_ddr_timings(np_ddr, emif);
-+	of_get_min_tck(np_ddr, emif);
-+	goto out;
-+
-+error:
-+	return NULL;
-+out:
-+	return emif;
-+}
-+
-+#else
-+
-+static struct emif_data * __init_or_module of_get_device_details(
-+		struct device_node *np_emif, struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static struct emif_data *__init_or_module get_device_details(
- 		struct platform_device *pdev)
- {
-@@ -1267,7 +1542,11 @@ static int __init_or_module emif_probe(struct platform_device *pdev)
- 	struct resource		*res;
- 	int			irq;
- 
--	emif = get_device_details(pdev);
-+	if (pdev->dev.of_node)
-+		emif = of_get_device_details(pdev->dev.of_node, &pdev->dev);
-+	else
-+		emif = get_device_details(pdev);
-+
- 	if (!emif) {
- 		pr_err("%s: error getting device data\n", __func__);
- 		goto error;
-@@ -1644,11 +1923,21 @@ static void __attribute__((unused)) freq_post_notify_handling(void)
- 	spin_unlock_irqrestore(&emif_lock, irq_state);
- }
- 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id emif_of_match[] = {
-+		{ .compatible = "ti,emif-4d" },
-+		{ .compatible = "ti,emif-4d5" },
-+		{},
-+};
-+MODULE_DEVICE_TABLE(of, emif_of_match);
-+#endif
-+
- static struct platform_driver emif_driver = {
- 	.remove		= __exit_p(emif_remove),
- 	.shutdown	= emif_shutdown,
- 	.driver = {
- 		.name = "emif",
-+		.of_match_table = of_match_ptr(emif_of_match),
- 	},
- };
- 
--- 
-1.7.9.5
+Right now, USB is probed entirely without DT, so the patch is about
+the best we can do.
 
+> > >3. What about mac address in board-generic.c when booting panda with
+> > >    device tree?
+> > 
+> > I don't mind adapting it for that case.
+> 
+> Just to try to think about some alternatives, how about something like
+> this: This all could be a driver called soft-mac or something that does
+> what your patches are doing. Except then it would be completely generic
+> and would be able to take device names and mac addresses from platform
+> data or from devicetree.
+
+That driver would be completely generic to all platforms, but be
+very specific to finding the mac address of a device, as opposed to
+other properties.
+
+I suspect that if we do that, we will still need a way to bind a
+device_node to a usb device for the purpose of finding other
+properties, such as external regulators or clocks that are connected
+to a hardwired USB device.
+
+Normally USB tends to just work because the device is expected to
+be hot-pluggable anyway. If the USB device is soldered to the
+board, the hardware designers can take some shortcuts
+
+	Arnd
