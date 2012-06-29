@@ -1,77 +1,123 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Fri, 29 Jun 2012 10:53:04 -0500
-Message-ID: <4FEDCF60.9020800@ti.com>
-References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com> <4FECCB91.7090609@broadcom.com> <4FECD2E5.1060603@ti.com> <4FECE067.7000809@broadcom.com> <4FECE1BD.80906@ti.com> <4FECE45E.6040506@broadcom.com> <4FECEE9A.5070300@ti.com> <4FECFDD8.5060105@broadcom.com> <CAC83ZvJJw-7Xt4Ey4_OT70D6MGHEfwURYVuj5wYTLe5oYiMuRw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAC83ZvJJw-7Xt4Ey4_OT70D6MGHEfwURYVuj5wYTLe5oYiMuRw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>
-Cc: Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 2/2] rpmsg: make sure inflight messages don't invoke just-removed callbacks
+Date: Fri, 29 Jun 2012 19:25:20 +0300
+Message-ID: <1340987120-10588-2-git-send-email-ohad@wizery.com>
+References: <1340987120-10588-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:43422 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932401Ab2F2QZn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 12:25:43 -0400
+Received: by wibhm11 with SMTP id hm11so1122711wib.1
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 09:25:42 -0700 (PDT)
+In-Reply-To: <1340987120-10588-1-git-send-email-ohad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 
+When inbound messages arrive, rpmsg core looks up their associated
+endpoint (by destination address) and then invokes their callback.
 
-On 06/28/2012 11:07 PM, DebBarma, Tarun Kanti wrote:
-> On Fri, Jun 29, 2012 at 6:29 AM, Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
->> On 06/28/2012 04:54 PM, Jon Hunter wrote:
->>>
->>> I am wondering if this could be the bug ... on start-up I see that we do
->>> a context restore on bank1 during the probe which is before we have done
->>> the first suspend! In other words, we could restore a bad/uninitialised
->>> context for bank1. In the case of bank1, the loss count starts at 1 and
->>> not 0 and so we falsely think we need to perform a restore :-(
->>>
->>> [    0.176269] omap_gpio_runtime_resume: bank @ 0xfc310000
->>> [    0.177276] omap_gpio_runtime_resume: count 0, now 1
->>> [    0.177276] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
->>> [    0.177642] omap_gpio_runtime_suspend: bank @ 0xfc310000
->>>
->>> Can you try ...
->>>
->>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>> index c4ed172..9623408 100644
->>> --- a/drivers/gpio/gpio-omap.c
->>> +++ b/drivers/gpio/gpio-omap.c
->>> @@ -1086,6 +1086,9 @@ static int __devinit omap_gpio_probe(struct
->>> platform_device *pdev)
->>>  #ifdef CONFIG_OF_GPIO
->>>         bank->chip.of_node = of_node_get(node);
->>>  #endif
->>> +       if (bank->get_context_loss_count)
->>> +               bank->context_loss_count =
->>> +                               bank->get_context_loss_count(bank->dev);
->>>
->>>         bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
->>>         if (bank->irq_base < 0) {
->>>
->>
->> Looks like you found the culprit. :) It does fix the problem.
-> So this looks similar to what NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> reported in
-> another thread.
-> The reason was context_loss_count = 1 for GPIO BANK#0 which of course is in the
-> WKUP domain. In fact he tried out with the same fix. Anyways, we
-> should hear from
-> Kevin now whether it is feasible to fix the context_loss_count for the WKUP GPIO
-> bank or to put the workaround here in the gpio driver.
+We've made sure that endpoints will never be de-allocated after they
+were found by rpmsg core, but we also need to protect against the
+(rare) scenario where the rpmsg driver was just removed, and its
+callback function isn't available anymore.
 
-Ok, so I have been looking at this some more today. I believe that the
-actual bug is that we are not checking to see if "loses_context" is true
-before populating "get_context_loss_count" (see omap dmtimer driver).
-For bank0 loses_context is false and so we should never be calling
-"get_context_loss_count" in the first place.
+This is achieved by introducing a callback mutex, which must be taken
+before the callback is invoked, and, obviously, before it is removed.
 
-I will send out a patch to fix this and will copy Kevin and Franky.
+Reported-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/rpmsg/virtio_rpmsg_bus.c | 25 +++++++++++++++++++------
+ include/linux/rpmsg.h            |  3 +++
+ 2 files changed, 22 insertions(+), 6 deletions(-)
 
-Franky, if you can test and confirm it works that would be great.
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index d89fbc1..9057621 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -245,6 +245,7 @@ static struct rpmsg_endpoint *__rpmsg_create_ept(struct virtproc_info *vrp,
+ 	}
+ 
+ 	kref_init(&ept->refcount);
++	mutex_init(&ept->cb_lock);
+ 
+ 	ept->rpdev = rpdev;
+ 	ept->cb = cb;
+@@ -342,10 +343,16 @@ EXPORT_SYMBOL(rpmsg_create_ept);
+ static void
+ __rpmsg_destroy_ept(struct virtproc_info *vrp, struct rpmsg_endpoint *ept)
+ {
++	/* make sure new inbound messages can't find this ept anymore */
+ 	mutex_lock(&vrp->endpoints_lock);
+ 	idr_remove(&vrp->endpoints, ept->addr);
+ 	mutex_unlock(&vrp->endpoints_lock);
+ 
++	/* make sure in-flight inbound messages won't invoke cb anymore */
++	mutex_lock(&ept->cb_lock);
++	ept->cb = NULL;
++	mutex_unlock(&ept->cb_lock);
++
+ 	kref_put(&ept->refcount, __ept_release);
+ }
+ 
+@@ -839,14 +846,20 @@ static void rpmsg_recv_done(struct virtqueue *rvq)
+ 
+ 	mutex_unlock(&vrp->endpoints_lock);
+ 
+-	if (ept && ept->cb)
+-		ept->cb(ept->rpdev, msg->data, msg->len, ept->priv, msg->src);
+-	else
+-		dev_warn(dev, "msg received with no recepient\n");
++	if (ept) {
++		/* make sure ept->cb doesn't go away while we use it */
++		mutex_lock(&ept->cb_lock);
+ 
+-	/* farewell, ept, we don't need you anymore */
+-	if (ept)
++		if (ept->cb)
++			ept->cb(ept->rpdev, msg->data, msg->len, ept->priv,
++				msg->src);
++
++		mutex_unlock(&ept->cb_lock);
++
++		/* farewell, ept, we don't need you anymore */
+ 		kref_put(&ept->refcount, __ept_release);
++	} else
++		dev_warn(dev, "msg received with no recepient\n");
+ 
+ 	/* publish the real size of the buffer */
+ 	sg_init_one(&sg, msg, RPMSG_BUF_SIZE);
+diff --git a/include/linux/rpmsg.h b/include/linux/rpmsg.h
+index 50233e3..05d0bc8 100644
+--- a/include/linux/rpmsg.h
++++ b/include/linux/rpmsg.h
+@@ -39,6 +39,7 @@
+ #include <linux/device.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/kref.h>
++#include <linux/mutex.h>
+ 
+ /* The feature bitmap for virtio rpmsg */
+ #define VIRTIO_RPMSG_F_NS	0 /* RP supports name service notifications */
+@@ -123,6 +124,7 @@ typedef void (*rpmsg_rx_cb_t)(struct rpmsg_channel *, void *, int, void *, u32);
+  * @rpdev: rpmsg channel device
+  * @refcount: when this drops to zero, the ept is deallocated
+  * @cb: rx callback handler
++ * @cb_lock: must be taken before accessing/changing @cb
+  * @addr: local rpmsg address
+  * @priv: private data for the driver's use
+  *
+@@ -144,6 +146,7 @@ struct rpmsg_endpoint {
+ 	struct rpmsg_channel *rpdev;
+ 	struct kref refcount;
+ 	rpmsg_rx_cb_t cb;
++	struct mutex cb_lock;
+ 	u32 addr;
+ 	void *priv;
+ };
+-- 
+1.7.10.rc3.743.gaa3bb87
 
-Kevin, if you can review that would be great too.
-
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
