@@ -1,72 +1,110 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH RESEND] ARM: OMAP2+: Fix Wake-up power domain power status
-Date: Fri, 29 Jun 2012 16:04:52 -0500
-Message-ID: <1341003892-14424-1-git-send-email-jon-hunter@ti.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif
+ driver
+Date: Fri, 29 Jun 2012 17:07:52 -0400
+Message-ID: <20120629210752.GA13859@kroah.com>
+References: <20120614154820.GG17140@kroah.com>
+ <CAMQu2gx5CCDyrvozX06neBnA8J2heg+HL7DOewDm5voxqbpetw@mail.gmail.com>
+ <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
+ <20120625182830.GA23850@kroah.com>
+ <CAMQu2gxDG=69X7UQPUoTLP5h1ZLpHngp=3C4vSDOS6L-N2XZSw@mail.gmail.com>
+ <4FE9467A.2050906@ti.com>
+ <CAMQu2gzOszT54ZU0Z3-9k=mMM7yTCH_MCZV=gRKwGoGRj0zjaA@mail.gmail.com>
+ <4FE947F7.9030000@ti.com>
+ <CAMQu2gwzFV-79CuEAmOHCZ7XivXrALjXkoB+J-QpgJkZ_PoRVg@mail.gmail.com>
+ <CAMQu2gx2RT0iyo+LD1TyTJg9FRSUD8SK2tA=nxAoULzQOa6L7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47264 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab2F2VFO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 17:05:14 -0400
+Received: from mail-yw0-f42.google.com ([209.85.213.42]:39943 "EHLO
+	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932289Ab2F2VIU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 17:08:20 -0400
+Received: by yhfq11 with SMTP id q11so4572215yhf.1
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 14:08:19 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gx2RT0iyo+LD1TyTJg9FRSUD8SK2tA=nxAoULzQOa6L7A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>
 
-Note: Re-sending with updated kernel doc.
-
-The wake-up power domain is an alway-on power domain and so this power domain
-does not have a power state status (PM_PWSTST_xxx) register that indicates the
-current state. However, during the registering of the wake-up power domain the
-state of the domain is queried by calling pwrdm_read_pwrst(). This actually
-tries to read a register that does not exist and returns a value of 0 that
-indicates that the current state is OFF. The OFF state count of the wake-up
-power domain is then set to 1 and the current state to OFF. Both of which are
-incorrect.
-
-To fix this, if a power domain only supports the ON state, do not attempt to
-read the power state status register and simply return ON as the current power
-state.
-
-This is based upon Tony's current linux-omap master branch.
-
-Testing:
-- Boot tested on OMAP4460 panda.
-- Boot tested on OMAP3430 beagle and validated CORE RET still working (using
-  Paul's 32k timer patch [1]).
-
-[1] http://marc.info/?l=linux-omap&m=134000053229888&w=2
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index eefe179..69b36e1 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -526,7 +526,8 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
-  *
-  * Return the powerdomain @pwrdm's current power state.	Returns -EINVAL
-  * if the powerdomain pointer is null or returns the current power state
-- * upon success.
-+ * upon success. Note that if the power domain only supports the ON state
-+ * then just return ON as the current state.
-  */
- int pwrdm_read_pwrst(struct powerdomain *pwrdm)
+On Fri, Jun 29, 2012 at 07:16:19PM +0530, Shilimkar, Santosh wrote:
+> Greg,
+>=20
+> On Tue, Jun 26, 2012 at 1:19 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> >
+> > On Tue, Jun 26, 2012 at 10:56 AM, Rajendra Nayak <rnayak@ti.com> wr=
+ote:
+> > > On Tuesday 26 June 2012 10:53 AM, Shilimkar, Santosh wrote:
+> > >>
+> > >> On Tue, Jun 26, 2012 at 10:49 AM, Rajendra Nayak<rnayak@ti.com> =
+=A0wrote:
+> > >>>
+> > >>> On Tuesday 26 June 2012 10:39 AM, Shilimkar, Santosh wrote:
+> > >>>>>>
+> > >>>>>>
+> > >>>>>> +#if defined(CONFIG_OF)
+> > >>>>>>>
+> > >>>>>>> =A0> =A0 =A0+static const struct of_device_id emif_of_match=
+[] =3D {
+> > >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti=
+,emif-4d" },
+> > >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti=
+,emif-4d5" },
+> > >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 {},
+> > >>>>>>> =A0> =A0 =A0+};
+> > >>>>>>> =A0> =A0 =A0+MODULE_DEVICE_TABLE(of, emif_of_match);
+> > >>>>>>> =A0> =A0 =A0+#endif
+> > >>>>>>> =A0> =A0 =A0+
+> > >>>>>>> =A0> =A0 =A0 =A0static struct platform_driver emif_driver =3D=
  {
-@@ -535,6 +536,9 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
- 	if (!pwrdm)
- 		return -EINVAL;
- 
-+	if (pwrdm->pwrsts == PWRSTS_ON)
-+		return PWRDM_POWER_ON;
-+
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_pwrst)
- 		ret = arch_pwrdm->pwrdm_read_pwrst(pwrdm);
- 
--- 
-1.7.9.5
+> > >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __exit=
+_p(emif_remove),
+> > >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .shutdown =A0 =A0 =A0 =3D emif_shu=
+tdown,
+> > >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .driver =3D {
+> > >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "emif",
+> > >>>>>>> =A0> =A0 =A0+#if defined(CONFIG_OF)
+> > >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 .of_match_table =3D o=
+f_match_ptr(emif_of_match),
+> > >>>>>>> =A0> =A0 =A0+#endif
+> > >>>>>
+> > >>>>>
+> > >>>>>>
+> > >>>>>> =A0Are these two still #if defined needed?
+> > >>>>>>
+> > >>>>>> =A0Also, what about the IS_DEFINED macro?
+> > >>>>>>
+> > >>>>
+> > >>>> Yes. To avoid the build break in !DT build.
+> > >>>>
+> > >>>
+> > >>> No, infact of_match_ptr is there just so you can avoid a
+> > >>> #ifdef around and not break !CONFIG_OF.
+> > >>
+> > >>
+> > >> Need to recheck but the build was throwing error becasue of
+> > >> "emif_of_match"
+> > >> mostly.
+> > >
+> > >
+> > > You still need the first one. I meant the second one around
+> > > 'of_match_ptr' should be removed.
+> > >
+> > > With !CONFIG_OF, of_match_ptr(_ptr) is just defined as NULL.
+> > >
+> > Yep. That make sense too.
+> > Will drop the second check.
+> >
+> Posted the entire series again with updated $subject patch.
+> With your ack, I will ask Tony to pull this series for 3.6.
 
+Sent them where?  I didn't see a copy here :(
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
