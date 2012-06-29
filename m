@@ -1,88 +1,49 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] gpio/omap: fix invalid context restore of gpio bank-0
-Date: Fri, 29 Jun 2012 12:22:31 -0500
-Message-ID: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Fri, 29 Jun 2012 17:33:30 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
+ <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
+ <4FE9A00B.6010908@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+ <4FEC7394.9030208@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38706 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43356 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755259Ab2F2RXL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 13:23:11 -0400
+	id S1751918Ab2F2Rdj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 13:33:39 -0400
+In-Reply-To: <4FEC7394.9030208@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
-Cc: Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Kevin Hilman <khilman@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-Currently the gpio _runtime_resume/suspend functions are calling the
-get_context_loss_count() platform function if the function is populated for
-a gpio bank. This function is used to determine if the gpio bank logic state
-needs to be restored due to a power transition. This function will be populated
-for all banks, but it should only be called for banks that have the
-"loses_context" variable set. It is pointless to call this if loses_context is
-false as we know the context will never be lost and will not need restoring.
+On Thu, Jun 28, 2012 at 20:39:08, Daniel Mack wrote:
+> On 27.06.2012 14:13, Hiremath, Vaibhav wrote:
+> 
+> > Just to clarify from AM335x perspective,
+> > 
+> > In case of AM335x, since the patches and complete BasePort support is still
+> > not present in the Mainline (neither in Linus's tree not in linux-omap), you 
+> > need to use my Repo (https://github.com/hvaibhav: Closely follows linux-
+> > omap/master) in order to test something on BeagleBone platform.
+> 
+> Great, that is the information I've been looking for.
+> 
+> Your am335x-upstream-staging branch works for me on a custom AM335x
+> based board using a custom DT config.
+> 
+> I'll dig through the sources and come back once I know which parts are
+> missing.
+> 
 
-For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
-never lose context. We found that the get_context_loss_count() was being called
-for bank-0 during the probe and returning 1 instead of 0 indicating that the
-context had been lost. This was causing the context restore function to be
-called at probe time for this bank and because the context had never been saved,
-was restoring an invalid state. This ultimately resulted in a crash [1].
+Great to hear that you could able to get this working on your board.
+Please let me know if you need any help.
 
-There are multiple bugs here that need to be addressed ...
-
-1. Why the always-on power domain returns a context loss count of 1? This needs
-   to be fixed in the power domain code. However, the gpio driver should not
-   assume the loss count is 0 to begin with.
-2. The omap gpio driver should never be calling get_context_loss_count for a
-   gpio bank in a always-on domain. This is pointless and adds unneccessary
-   overhead.
-3. The OMAP gpio driver assumes that the initial power domain context loss count
-   will be 0 at the time the gpio driver is probed. However, it could be
-   possible that this is not the case and an invalid context restore could be
-   performed during the probe. To avoid this otherwise only populated the
-   get_context_loss_count() function pointer after the initial call to
-   pm_runtime_get() has occurred. This will ensure that the first
-   pm_runtime_put() initialised the loss count correctly.
-
-This patch addresses issues 2 and 3 above.
-
-[1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
-
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: Franky Lin <frankyl@broadcom.com>
-
-Reported-by: Franky Lin <frankyl@broadcom.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- drivers/gpio/gpio-omap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4ed172..f13fc9c 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1081,7 +1081,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	bank->is_mpuio = pdata->is_mpuio;
- 	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
- 	bank->loses_context = pdata->loses_context;
--	bank->get_context_loss_count = pdata->get_context_loss_count;
- 	bank->regs = pdata->regs;
- #ifdef CONFIG_OF_GPIO
- 	bank->chip.of_node = of_node_get(node);
-@@ -1135,6 +1134,9 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	omap_gpio_chip_init(bank);
- 	omap_gpio_show_rev(bank);
- 
-+	if (bank->loses_context)
-+		bank->get_context_loss_count = pdata->get_context_loss_count;
-+
- 	pm_runtime_put(bank->dev);
- 
- 	list_add_tail(&bank->node, &omap_gpio_list);
--- 
-1.7.9.5
-
+Thanks,
+Vaibhav
