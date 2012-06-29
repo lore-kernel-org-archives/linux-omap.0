@@ -1,72 +1,71 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2] ARM: OMAP: cpu: Make cpu_class_is_omap2 true for all non-omap1 platforms
-Date: Fri, 29 Jun 2012 16:58:26 +0530
-Message-ID: <1340969306-28464-1-git-send-email-hvaibhav@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [PATCH] OMAP4: Clock: Correct OTG clock to use otg_60m_gfclk.
+Date: Fri, 29 Jun 2012 14:53:02 +0300
+Message-ID: <1340970782-30802-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52685 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36421 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752164Ab2F2LlX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 07:41:23 -0400
+	id S1752393Ab2F2LxH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 07:53:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: paul@pwsan.com, tony@atomide.com
 
-As omap1 and omap2 will never be compiled together, due to
-different compiler flags, so we can simply make
-cpu_class_is_omap2() = true, for all non-omap1 platforms.
+From: Wenbiao Wang <wwang@ti.com>
 
-In order to fix build error from plat-omap/sram.c file,
-omap_type() function is encapsulated under #ifdef CONFIG_ARCH_OMAP2PLUS.
+OTG clock usb_otg_hs_ick used a incorrect parent l3_div_ck.
+Correct it to use the right colck otg_60m_gfclk as its
+parent.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-CC: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Wenbiao Wang <wwang@ti.com>
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
 ---
-Boot tested on Beable Bone, AM37x EVM and build tested for omap1.
-It would be helpful if someone can test it on omap1 platform.
+ arch/arm/mach-omap2/clock44xx_data.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-Change from V1:
-	- Fix omap1 build failure, by adding inline function
-	  for omap_type().
-
- arch/arm/plat-omap/include/plat/cpu.h |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 8c84d05..c3617e2 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -42,7 +42,18 @@
- #define OMAP2_DEVICE_TYPE_GP		3
- #define OMAP2_DEVICE_TYPE_BAD		4
-
-+#ifdef CONFIG_ARCH_OMAP2PLUS
- int omap_type(void);
-+#else
-+static inline int omap_type(void)
-+{
-+	/*
-+	 * Safe to return 0, since this function will not
-+	 * be called for omap1.
-+	 */
-+	return 0;
-+}
-+#endif
-
- /*
-  * omap_rev bits:
-@@ -358,8 +369,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- /* Macros to detect if we have OMAP1 or OMAP2 */
- #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
- 				cpu_is_omap16xx())
--#define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
--				cpu_is_omap44xx())
-+#define cpu_class_is_omap2()	!cpu_class_is_omap1()
-
- /* Various silicon revisions for omap2 */
- #define OMAP242X_CLASS		0x24200024
---
-1.7.0.4
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index b825049..fd43214 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -199,12 +199,6 @@ static struct clk tie_low_clock_ck = {
+ 	.ops		= &clkops_null,
+ };
+ 
+-static struct clk utmi_phy_clkout_ck = {
+-	.name		= "utmi_phy_clkout_ck",
+-	.rate		= 60000000,
+-	.ops		= &clkops_null,
+-};
+-
+ static struct clk xclk60mhsp1_ck = {
+ 	.name		= "xclk60mhsp1_ck",
+ 	.rate		= 60000000,
+@@ -992,6 +986,13 @@ static struct clk dpll_usb_clkdcoldo_ck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk utmi_phy_clkout_ck = {
++	.name		= "utmi_phy_clkout_ck",
++	.ops		= &clkops_null,
++	.parent		= &dpll_usb_clkdcoldo_ck,
++	.recalc		= &followparent_recalc,
++};
++
+ static const struct clksel dpll_usb_m2_div[] = {
+ 	{ .parent = &dpll_usb_ck, .rates = div31_1to31_rates },
+ 	{ .parent = NULL },
+@@ -2685,7 +2686,7 @@ static struct clk usb_otg_hs_ick = {
+ 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+ 	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &l3_div_ck,
++	.parent		= &otg_60m_gfclk,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-- 
+1.7.1
 
