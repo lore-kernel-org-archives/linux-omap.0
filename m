@@ -1,52 +1,70 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 3/3] ARM: omap: clk: Remove all direct dereferencing
- of struct clk
-Date: Fri, 29 Jun 2012 14:23:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206291422050.2338@utopia.booyaka.com>
-References: <1340786915-29507-1-git-send-email-rnayak@ti.com> <1340786915-29507-4-git-send-email-rnayak@ti.com>
+From: "Franky Lin" <frankyl@broadcom.com>
+Subject: Re: [PATCH] gpio/omap: fix invalid context restore of gpio
+ bank-0
+Date: Fri, 29 Jun 2012 13:27:42 -0700
+Message-ID: <4FEE0FBE.2010307@broadcom.com>
+References: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41524 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268Ab2F2UXe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 16:23:34 -0400
-In-Reply-To: <1340786915-29507-4-git-send-email-rnayak@ti.com>
+Received: from mms2.broadcom.com ([216.31.210.18]:1046 "EHLO mms2.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932796Ab2F2U1y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 16:27:54 -0400
+In-Reply-To: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: mturquette@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Kevin Hilman <khilman@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi
+On 06/29/2012 10:22 AM, Jon Hunter wrote:
+> Currently the gpio _runtime_resume/suspend functions are calling the
+> get_context_loss_count() platform function if the function is populated for
+> a gpio bank. This function is used to determine if the gpio bank logic state
+> needs to be restored due to a power transition. This function will be populated
+> for all banks, but it should only be called for banks that have the
+> "loses_context" variable set. It is pointless to call this if loses_context is
+> false as we know the context will never be lost and will not need restoring.
+>
+> For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
+> never lose context. We found that the get_context_loss_count() was being called
+> for bank-0 during the probe and returning 1 instead of 0 indicating that the
+> context had been lost. This was causing the context restore function to be
+> called at probe time for this bank and because the context had never been saved,
+> was restoring an invalid state. This ultimately resulted in a crash [1].
+>
+> There are multiple bugs here that need to be addressed ...
+>
+> 1. Why the always-on power domain returns a context loss count of 1? This needs
+>     to be fixed in the power domain code. However, the gpio driver should not
+>     assume the loss count is 0 to begin with.
+> 2. The omap gpio driver should never be calling get_context_loss_count for a
+>     gpio bank in a always-on domain. This is pointless and adds unneccessary
+>     overhead.
+> 3. The OMAP gpio driver assumes that the initial power domain context loss count
+>     will be 0 at the time the gpio driver is probed. However, it could be
+>     possible that this is not the case and an invalid context restore could be
+>     performed during the probe. To avoid this otherwise only populated the
+>     get_context_loss_count() function pointer after the initial call to
+>     pm_runtime_get() has occurred. This will ensure that the first
+>     pm_runtime_put() initialised the loss count correctly.
+>
+> This patch addresses issues 2 and 3 above.
+>
+> [1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
+>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Linus Walleij <linus.walleij@stericsson.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Cc: Franky Lin <frankyl@broadcom.com>
+>
+> Reported-by: Franky Lin <frankyl@broadcom.com>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> ---
 
-On Wed, 27 Jun 2012, Rajendra Nayak wrote:
+Tested-by: Franky Lin <frankyl@broadcom.com>
 
-> While we move to Common Clk Framework (CCF), direct deferencing of struct
-> clk wouldn't be possible anymore. Hence get rid of all such instances
-> in the current clock code and use macros/helpers similar to the ones that
-> are provided by CCF.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-
-This patch generates checkpatch warnings.  Here's a sample:
-
-WARNING: quoted string split across lines
-#479: FILE: arch/arm/mach-omap2/clock.c:109:
- 		pr_debug("clock: could not associate clk %s to "
-+			 "clkdm %s\n", clk_name, clk->clkdm_name);
-
-CHECK: Alignment should match open parenthesis
-#594: FILE: arch/arm/mach-omap2/dpll3xxx.c:455:
-+	if (__clk_get_rate(dd->clk_bypass) == rate &&
- 	    (clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
-
-ERROR: Macros with complex values should be enclosed in parenthesis
-#706: FILE: arch/arm/plat-omap/include/plat/clock.h:22:
-+#define __clk_get_name(clk) clk->name
-
-In the case of the quoted string warnings, please go ahead and
-concatenate those strings while you are there.  That needs to be done
-anyway.
-
-
-- Paul
