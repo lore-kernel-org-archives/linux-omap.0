@@ -1,44 +1,41 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
-Date: Fri, 29 Jun 2012 16:35:27 +0530
-Message-ID: <1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 1/3] i2c: add 'actual' field to struct i2c_msg
+Date: Fri, 29 Jun 2012 16:35:25 +0530
+Message-ID: <1340967927-27354-2-git-send-email-shubhrajyoti@ti.com>
 References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34549 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570Ab2F2LFz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 07:05:55 -0400
-In-Reply-To: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340967927-27354-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-In i2c_smbus_xfer_emulated initialise the actual bytes
-to zero.
+In case of a NACK, it's wise to tell our clients
+drivers about how many bytes were actually transferred.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Support this by adding an extra field to the struct
+i2c_msg which gets incremented the amount of bytes
+actually transferred.
+
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/i2c-core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/i2c.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index a6ad32b..fa7f799 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -1949,8 +1949,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
- 	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX+3];
- 	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX+2];
- 	int num = read_write == I2C_SMBUS_READ ? 2 : 1;
--	struct i2c_msg msg[2] = { { addr, flags, 1, msgbuf0 },
--	                          { addr, flags | I2C_M_RD, 0, msgbuf1 }
-+	struct i2c_msg msg[2] = { { addr, flags, 1, 0, msgbuf0 },
-+				  { addr, flags | I2C_M_RD, 0, 0, msgbuf1 }
- 	                        };
- 	int i;
- 	u8 partial_pec = 0;
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index ddfa041..0cb6b83 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -547,6 +547,7 @@ struct i2c_msg {
+ #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
+ #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
+ 	__u16 len;		/* msg length				*/
++	__u16 actual;		/* actual bytes transferred             */
+ 	__u8 *buf;		/* pointer to msg data			*/
+ };
+ 
 -- 
 1.7.5.4
-
