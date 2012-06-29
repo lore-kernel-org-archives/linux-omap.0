@@ -1,200 +1,113 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register
- api
-Date: Fri, 29 Jun 2012 18:07:38 +0800
-Message-ID: <4FED7E6A.4090207@linaro.org>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <20120629055516.11091.82899.stgit@build.warmcat.com> <20120629094055.GB4202@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 07/12] OMAPDSS: APPLY: Remove DISPC writes to manager's
+ lcd parameters in interface drivers
+Date: Fri, 29 Jun 2012 13:12:25 +0300
+Message-ID: <1340964745.1866.26.camel@lappyti>
+References: <1340893842-10626-1-git-send-email-archit@ti.com>
+	 <1340893842-10626-9-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-IuubvQT4sOKDL0lSxa4u"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:36730 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751554Ab2F2KHt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 06:07:49 -0400
-In-Reply-To: <20120629094055.GB4202@atomide.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:47258 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753217Ab2F2KMd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 06:12:33 -0400
+Received: by lbgc1 with SMTP id c1so5005187lbg.29
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 03:12:28 -0700 (PDT)
+In-Reply-To: <1340893842-10626-9-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, rostedt@goodmis.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 06/29/12 17:40, the mail apparently from Tony Lindgren included:
-> * Andy Green <andy.green@linaro.org> [120628 22:59]:
->> From: Andy Green <andy@warmcat.com>
->>
->> This exposes a new API in devices.c that lets a board register
->> a list of device paths representing network devices that have
->> no arrangements for their MAC address to be set by the board.
->>
->> It watches network device registrations via a notifier and
->> gives the devices requiring them a synthetic - but constant for
->> a given board - MAC address immediately.
-> ...
->
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -39,6 +42,9 @@
->>   #define L3_MODULES_MAX_LEN 12
->>   #define L3_MODULES 3
->>
->> +static const char * const *mac_device_fixup_paths;
->> +int count_mac_device_fixup_paths;
->
-> This too should be static it seems to me. Or just make the
-> paths array NULL terminated to get rid of the count.
->
->>   static int __init omap3_l3_init(void)
->>   {
->>   	struct omap_hwmod *oh;
->> @@ -627,6 +633,89 @@ static void omap_init_vout(void)
->>   static inline void omap_init_vout(void) {}
->>   #endif
->>
->> +static int omap_device_path_need_mac(struct device *dev)
->> +{
->> +	const char **try =3D (const char **)mac_device_fixup_paths;
->
-> This cast you should be able to remove by setting the types right
-> to start with?
 
-I guess so, I recall meddling with it and throwing a cast at it.
+--=-IuubvQT4sOKDL0lSxa4u
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->> +	const char *path;
->> +	int count =3D count_mac_device_fixup_paths;
->> +	const char *p;
->> +	int len;
->> +	struct device *devn;
->> +
->> +	while (count--) {
->> +
->> +		p =3D *try + strlen(*try);
->> +		devn =3D dev;
->> +
->> +		while (devn) {
->> +
->> +			path =3D dev_name(devn);
->> +			len =3D strlen(path);
->> +
->> +			if ((p - *try) < len) {
->> +				devn =3D NULL;
->> +				continue;
->> +			}
->> +
->> +			p -=3D len;
->> +
->> +			if (strncmp(path, p, len)) {
->> +				devn =3D NULL;
->> +				continue;
->> +			}
->> +
->> +			devn =3D devn->parent;
->> +			if (p =3D=3D *try)
->> +				return count;
->> +
->> +			if (devn !=3D NULL && (p - *try) < 2)
->> +				devn =3D NULL;
->> +
->> +			p--;
->> +			if (devn !=3D NULL && *p !=3D '/')
->> +				devn =3D NULL;
->> +		}
->> +
->> +		try++;
->> +	}
->> +
->> +	return -ENOENT;
->> +}
->
-> I don't quite like having this device parsing code here. This should
-> probably be a generic helper function somewhere under drivers. I woul=
-d
-> assume other SoCs could use it too?
+On Thu, 2012-06-28 at 20:00 +0530, Archit Taneja wrote:
+> Replace the DISPC fuctions used to configure LCD channel related manager
+> parameters with dss_mgr_set_lcd_config() in APPLY. This function ensures =
+that
+> the DISPC registers are written at the right time by using the shadow reg=
+ister
+> programming model.
+>=20
+> The LCD manager configurations is stored as a private data of manager in =
+APPLY.
+> It is treated as an extra info as it's the panel drivers which trigger th=
+is
+> apply via interface drivers, and not a DSS2 user like omapfb or omapdrm.
+>=20
+> Storing LCD manager related properties in APPLY also prevents the need to=
+ refer
+> to the panel connected to the manager for information. This helps in maki=
+ng the
+> DSS driver less dependent on panel.
+>=20
+> A helper function is added to check whether the manager is LCD or TV. The=
+ direct
+> DISPC register writes are removed from the interface drivers.
 
-OK... is it a job for drivers/misc or is there a better idea?
 
->> +static int omap_panda_netdev_event(struct notifier_block *this,
->> +						unsigned long event, void *ptr)
->> +{
->> +	struct net_device *dev =3D ptr;
->> +	struct sockaddr sa;
->> +	int n;
->> +
->> +	if (event !=3D NETDEV_REGISTER)
->> +		return NOTIFY_DONE;
->> +
->> +	n =3D omap_device_path_need_mac(dev->dev.parent);
->> +	if (n < 0)
->> +		return NOTIFY_DONE;
->> +
->> +	sa.sa_family =3D dev->type;
->> +	omap2_die_id_to_ethernet_mac(sa.sa_data, n);
->> +	dev->netdev_ops->ndo_set_mac_address(dev, &sa);
->> +
->> +	return NOTIFY_DONE;
->> +}
->> +
->> +static struct notifier_block omap_panda_netdev_notifier =3D {
->> +	.notifier_call =3D omap_panda_netdev_event,
->> +	.priority =3D 1,
->> +};
->
-> This is a bit similar to platform data callback functions that we are
-> trying to get rid of. And as the question "how do we replace platform
-> data callback functions" is still open for things like this, few
-> questions come to mind that should be discussed:
->
-> 1. How is this a better solution to passing the generated mac address=
- in
->     platform data to the driver?
-
-Well, I initially did this over a year ago as a generic way to pass=20
-platform data to devices that are appearing through deferred or async=20
-probing, like USB bus and SDIO bus.  It was not understood what the goa=
-l=20
-was by the people looking after those subsystems.
-
-> 2. Is this really how we want to pass the board generated mac address=
-es
->     and other dynamically generated data to the drivers that are devi=
-ce
->     tree based?
-
-The issue is that both these busses have an async probe, in the case of=
 =20
-USB stack the maintainer was not interested last year in adding platfor=
-m=20
-data.  Maybe it changed but that's my understanding.
+> +static void dss_apply_mgr_lcd_config(struct omap_overlay_manager *mgr,
+> +		struct dss_lcd_mgr_config config)
+> +{
 
-> 3. What about mac address in board-generic.c when booting panda with
->     device tree?
+This one should take a pointer to the config, not a copy (and const).
 
-I don't mind adapting it for that case.
+> +	struct mgr_priv_data *mp =3D get_mgr_priv(mgr);
+> +
+> +	mp->lcd_config =3D config;
+> +	mp->extra_info_dirty =3D true;
+> +}
+> +
+> +void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+> +		struct dss_lcd_mgr_config config)
 
-> Also, what happens if the user has set the mac address and you replug=
-s the
-> cable or device? Do we now overwrite it? Might be worth checking that=
- this
-> follows the standard behaviour..
+And this.
 
-This is only useful for devices that are soldered on your board, and=20
-have deterministic "device paths" as is the case with Panda Ethernet an=
-d=20
-Wlan module that both benefit from this treatment.  If you mean pulling=
-=20
-the RJ45 cable, it doesn't change anything about the MAC I can confirm.
+> +{
+> +	unsigned long flags;
+> +	struct mgr_priv_data *mp =3D get_mgr_priv(mgr);
+> +
+> +	mutex_lock(&apply_lock);
+> +
+> +	if (mp->enabled)
+> +		goto out;
 
--Andy
+Hmm. Should we print a warning or such here? Isn't it a bug in the
+interface driver, if it tries to set the lcd config when the output is
+enabled?
 
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+ Tomi
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-IuubvQT4sOKDL0lSxa4u
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJP7X+JAAoJEPo9qoy8lh71cxIP/1lUH9kwY9X88vO7USYefDHd
+lmIXMqXUVts11Ioiqk1TiyLCwKwhq8XnHuio5zbNS9VWmKfg07cPxldpvQKpvLok
+Ctu0UHhbu7JrKPZMNsdhrixpOsLtE1yzHlFSNAxyH7nrzetTg/6SCaKlmNgENk5N
+27s7gY8axWmXoCCmR4FkAjWE8ZksTEeedKBrlqxM5KbzaTpZNMQYHdWASNdIRR0y
+0T5WpofbGpioK0mjFILoXugQLctNheKN9EDCP1cmOh0iiNbFmWeca0Kqq4sMCW0O
+QJr/hajJSRTxKh4wzY1qj/0/Xs+JUeZnVyB/ZDWJrvFfe2vlhdYtM9tLoE52SMOw
+xgbccTZmFYhg1D2IMBo1G5VQvYFDvFoOOaG04OwSj1S3nUnQ7oeYCp4O+FaxyjUw
+vIVpb6SSFElCoUN1Y1QxOzkJill3a2BtodpvdZHeGrm1kTcuK6luCS3lcP+tadz0
+gKnAh77BDRQBRlcWWI2bGSmqWfwPQ2fyQcCsA54o7WMFCdycerzmUJU5QaP4XFA2
+pXIgxfEtAy1y2N1+KBjAndVVePXsAmlWcoy833imgmRBhs5voeW3z5Ck1KFdmRm8
+H5xU7kLIYCFnWKs6RhAO+UZY7wVUmQjOjophULbRQIwVluz7yfUrDNsGqVf849q3
+7pb9ge3hz0cb/6HWjasO
+=dfs/
+-----END PGP SIGNATURE-----
+
+--=-IuubvQT4sOKDL0lSxa4u--
+
