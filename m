@@ -1,68 +1,65 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH] staging: drm/omap: add rotation properties
-Date: Fri, 29 Jun 2012 07:17:23 -0500
-Message-ID: <CAF6AEGsW158Z1zsTsygmwHfBeLVRdP6zuf06SWvQ=SiRX13X4Q@mail.gmail.com>
-References: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
-	<1340966763.2767.8.camel@deskari>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [RFC PATCH 1/3] i2c: add 'actual' field to struct i2c_msg
+Date: Fri, 29 Jun 2012 14:33:20 +0200
+Message-ID: <20120629143320.42f51c0a@endymion.delvare>
+References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
+	<1340967927-27354-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:57134 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752588Ab2F2MRY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 08:17:24 -0400
-Received: by vbbff1 with SMTP id ff1so2258971vbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 05:17:23 -0700 (PDT)
-In-Reply-To: <1340966763.2767.8.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340967927-27354-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Andy Gross <andy.gross@ti.com>, cmahapatra@ti.com, s-guiriec@ti.com, archit@ti.com
 
-On Fri, Jun 29, 2012 at 5:46 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Wed, 2012-06-27 at 09:06 -0500, Rob Clark wrote:
->> From: Rob Clark <rob@ti.com>
->>
->> Use tiled buffers for rotated/reflected scanout, with CRTC and plane
->> properties as the interface for userspace to configure rotation.
->>
->> Signed-off-by: Rob Clark <rob@ti.com>
->
->> +/* this should probably be in drm-core to standardize amongst drive=
-rs */
->> +#define DRM_ROTATE_0 0
->> +#define DRM_ROTATE_90 =A0 =A0 =A0 =A01
->> +#define DRM_ROTATE_180 =A0 =A0 =A0 2
->> +#define DRM_ROTATE_270 =A0 =A0 =A0 3
->> +#define DRM_REFLECT_X =A0 =A0 =A0 =A04
->> +#define DRM_REFLECT_Y =A0 =A0 =A0 =A05
->
-> Are both reflect X and Y needed? You can get all the possible
-> orientations with just one of the reflects.
->
-> And I think the word "mirror" represents nicely what the reflect does=
-,
-> i.e. if you look at the mirror, the image you see is flipped
-> horizontally.
+On Fri, 29 Jun 2012 16:35:25 +0530, Shubhrajyoti D wrote:
+> In case of a NACK, it's wise to tell our clients
+> drivers about how many bytes were actually transferred.
+> 
+> Support this by adding an extra field to the struct
+> i2c_msg which gets incremented the amount of bytes
+> actually transferred.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+>  include/linux/i2c.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> index ddfa041..0cb6b83 100644
+> --- a/include/linux/i2c.h
+> +++ b/include/linux/i2c.h
+> @@ -547,6 +547,7 @@ struct i2c_msg {
+>  #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
+>  #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
+>  	__u16 len;		/* msg length				*/
+> +	__u16 actual;		/* actual bytes transferred             */
+>  	__u8 *buf;		/* pointer to msg data			*/
+>  };
+>  
 
-fwiw these values are aligned with what is used in userspace xrandr..
-an earlier version of this patch used just 3 bits, which where aligned
-with what the omap hw uses and can describe all possible combinations
-of mirroring and isomorphic rotation (x-invert, y-invert, and
-xy-flip).  But the advantage of the xrandr approach is you can more
-easily leave out bits for rotation/mirroring modes that your hw does
-not support.. for example if some hw supports only certain rotations
-or does not support mirror/reflect.
+David Brownell discussed this a long time ago:
+http://marc.info/?l=linux-i2c&m=121103523020494&w=2
 
-BR,
--R
+This structure is exported to user-space through i2c-dev, so changing
+it is tough if possible at all. You first have to ensure that the
+change doesn't alter the structure size. In other words, the field you
+add must fit in a padding hole the structure had previously. This
+appears to be the case here, but I'm not sure how to prove it for all
+supported architectures.
 
-> =A0Tomi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Then, as you are inserting a field in the middle of the structure, you
+must ensure that every initialization follows C99. And you have to do
+that _before_ the above change, not after as you did in patch 3/3. This
+needs to be done in both the whole kernel tree and as many user-space
+applications as possible. At least i2c-tools is clean, but there must
+be other (possibly unpublished) tools using this API, which your change
+may break. We can't fix them all, but at least we will have to document
+the change clearly and explain how to fix in case of breakage. The i2c
+wiki might be the right place for that.
+
+-- 
+Jean Delvare
