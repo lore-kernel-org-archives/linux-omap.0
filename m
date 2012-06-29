@@ -1,68 +1,106 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register api
-Date: Fri, 29 Jun 2012 13:45:49 +0000
-Message-ID: <201206291345.49878.arnd@arndb.de>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <4FED7E6A.4090207@linaro.org> <20120629120325.GD4202@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif driver
+Date: Fri, 29 Jun 2012 19:16:19 +0530
+Message-ID: <CAMQu2gx2RT0iyo+LD1TyTJg9FRSUD8SK2tA=nxAoULzQOa6L7A@mail.gmail.com>
+References: <1339669764-27244-1-git-send-email-santosh.shilimkar@ti.com>
+ <1339669764-27244-5-git-send-email-santosh.shilimkar@ti.com>
+ <20120614154820.GG17140@kroah.com> <CAMQu2gx5CCDyrvozX06neBnA8J2heg+HL7DOewDm5voxqbpetw@mail.gmail.com>
+ <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
+ <20120625182830.GA23850@kroah.com> <CAMQu2gxDG=69X7UQPUoTLP5h1ZLpHngp=3C4vSDOS6L-N2XZSw@mail.gmail.com>
+ <4FE9467A.2050906@ti.com> <CAMQu2gzOszT54ZU0Z3-9k=mMM7yTCH_MCZV=gRKwGoGRj0zjaA@mail.gmail.com>
+ <4FE947F7.9030000@ti.com> <CAMQu2gwzFV-79CuEAmOHCZ7XivXrALjXkoB+J-QpgJkZ_PoRVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56955 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755403Ab2F2Np5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 09:45:57 -0400
-In-Reply-To: <20120629120325.GD4202@atomide.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:58927 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754411Ab2F2Nqw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 09:46:52 -0400
+Received: by qadz3 with SMTP id z3so663549qad.10
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 06:46:48 -0700 (PDT)
+In-Reply-To: <CAMQu2gwzFV-79CuEAmOHCZ7XivXrALjXkoB+J-QpgJkZ_PoRVg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>
 
-On Friday 29 June 2012, Tony Lindgren wrote:
-> * Andy Green <andy.green@linaro.org> [120629 03:12]:
-> > >2. Is this really how we want to pass the board generated mac addresses
-> > >    and other dynamically generated data to the drivers that are device
-> > >    tree based?
-> > 
-> > The issue is that both these busses have an async probe, in the case
-> > of USB stack the maintainer was not interested last year in adding
-> > platform data.  Maybe it changed but that's my understanding.
-> 
-> OK, I'd like to hear Arnds comments on the #2 above too as this is
-> a more generic issue.
+Greg,
 
-In case we have a device tree, we should just be using the USB binding
-to find the specific device node, and add the property there. Then
-the device driver can use of_get_mac_address() on the usb device itself.
+On Tue, Jun 26, 2012 at 1:19 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+>
+> On Tue, Jun 26, 2012 at 10:56 AM, Rajendra Nayak <rnayak@ti.com> wrot=
+e:
+> > On Tuesday 26 June 2012 10:53 AM, Shilimkar, Santosh wrote:
+> >>
+> >> On Tue, Jun 26, 2012 at 10:49 AM, Rajendra Nayak<rnayak@ti.com> =A0=
+wrote:
+> >>>
+> >>> On Tuesday 26 June 2012 10:39 AM, Shilimkar, Santosh wrote:
+> >>>>>>
+> >>>>>>
+> >>>>>> +#if defined(CONFIG_OF)
+> >>>>>>>
+> >>>>>>> =A0> =A0 =A0+static const struct of_device_id emif_of_match[]=
+ =3D {
+> >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,e=
+mif-4d" },
+> >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,e=
+mif-4d5" },
+> >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 {},
+> >>>>>>> =A0> =A0 =A0+};
+> >>>>>>> =A0> =A0 =A0+MODULE_DEVICE_TABLE(of, emif_of_match);
+> >>>>>>> =A0> =A0 =A0+#endif
+> >>>>>>> =A0> =A0 =A0+
+> >>>>>>> =A0> =A0 =A0 =A0static struct platform_driver emif_driver =3D=
+ {
+> >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __exit_p=
+(emif_remove),
+> >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .shutdown =A0 =A0 =A0 =3D emif_shutd=
+own,
+> >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 .driver =3D {
+> >>>>>>> =A0> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "emif",
+> >>>>>>> =A0> =A0 =A0+#if defined(CONFIG_OF)
+> >>>>>>> =A0> =A0 =A0+ =A0 =A0 =A0 =A0 =A0 =A0 .of_match_table =3D of_=
+match_ptr(emif_of_match),
+> >>>>>>> =A0> =A0 =A0+#endif
+> >>>>>
+> >>>>>
+> >>>>>>
+> >>>>>> =A0Are these two still #if defined needed?
+> >>>>>>
+> >>>>>> =A0Also, what about the IS_DEFINED macro?
+> >>>>>>
+> >>>>
+> >>>> Yes. To avoid the build break in !DT build.
+> >>>>
+> >>>
+> >>> No, infact of_match_ptr is there just so you can avoid a
+> >>> #ifdef around and not break !CONFIG_OF.
+> >>
+> >>
+> >> Need to recheck but the build was throwing error becasue of
+> >> "emif_of_match"
+> >> mostly.
+> >
+> >
+> > You still need the first one. I meant the second one around
+> > 'of_match_ptr' should be removed.
+> >
+> > With !CONFIG_OF, of_match_ptr(_ptr) is just defined as NULL.
+> >
+> Yep. That make sense too.
+> Will drop the second check.
+>
+Posted the entire series again with updated $subject patch.
+With your ack, I will ask Tony to pull this series for 3.6.
 
-I'm not sure what it takes to add the link for the device node in the
-usb probing code, but my feeling is that it's not too hard.
-
-Right now, USB is probed entirely without DT, so the patch is about
-the best we can do.
-
-> > >3. What about mac address in board-generic.c when booting panda with
-> > >    device tree?
-> > 
-> > I don't mind adapting it for that case.
-> 
-> Just to try to think about some alternatives, how about something like
-> this: This all could be a driver called soft-mac or something that does
-> what your patches are doing. Except then it would be completely generic
-> and would be able to take device names and mac addresses from platform
-> data or from devicetree.
-
-That driver would be completely generic to all platforms, but be
-very specific to finding the mac address of a device, as opposed to
-other properties.
-
-I suspect that if we do that, we will still need a way to bind a
-device_node to a usb device for the purpose of finding other
-properties, such as external regulators or clocks that are connected
-to a hardwired USB device.
-
-Normally USB tends to just work because the device is expected to
-be hot-pluggable anyway. If the USB device is soldered to the
-board, the hardware designers can take some shortcuts
-
-	Arnd
+regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
