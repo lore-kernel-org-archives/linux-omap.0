@@ -1,98 +1,75 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register api
-Date: Fri, 29 Jun 2012 15:05:06 +0000
-Message-ID: <201206291505.07249.arnd@arndb.de>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <201206291433.06718.arnd@arndb.de> <20120629145203.GJ4202@atomide.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
+ issues.
+Date: Fri, 29 Jun 2012 11:33:33 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1206291104270.1638-100000@iolanthe.rowland.org>
+References: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54744 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab2F2PFP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 11:05:15 -0400
-In-Reply-To: <20120629145203.GJ4202@atomide.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:36967 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752557Ab2F2Pdf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 11:33:35 -0400
+In-Reply-To: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
+To: Russ Dill <Russ.Dill@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
 
-On Friday 29 June 2012, Tony Lindgren wrote:
-> > A lot of devices already provide the mac address in the device tree,
-> > wherever that comes from. Ideally that would always be possible but
-> > never necessary.
-> > 
-> > > > I'm not sure what it takes to add the link for the device node in the
-> > > > usb probing code, but my feeling is that it's not too hard.
-> > > > 
-> > > > Right now, USB is probed entirely without DT, so the patch is about
-> > > > the best we can do.
-> > > 
-> > > Right, but that still assumes a static mac from the bootloader unless
-> > > we do a generic driver as below? Or do you have some other ideas?
-> > 
-> > The boot loader could theoretically have the same algorithm that Andy's
-> > patch implements, unless it is configured to something else by the
-> > user. In many cases, you don't want the boot loader to be that smart,
-> > but sometimes it is the right solution.
+On Wed, 27 Jun 2012, Russ Dill wrote:
+
+> From: Russ Dill <Russ.Dill@gmail.com>
 > 
-> OK that would mean bootloader modifying the .dtb then.
-
-Right.
-
-> > In the device tree, we can uniquely identify the USB hosts, that
-> > is not a problem here. The problem exists only if you base your
-> > path on the linux specific name for the devices.
-> > It's definitely ugly to rely on that, but I think we can actually
-> > guarantee that it's stable as long as we enforce in the
-> > Kconfig/Kbuild that the controller that has the ethernet device
-> > is always built-in on Panda and comes before the other one if
-> > both are built-in. I would much prefer not to have to rely on
-> > those things, but I believe it is actually guaranteed at the
-> > moment for the cases that matter. While you could have both
-> > controllers as loadable modules and load them in reverse
-> > order that would also imply that you cannot actually boot from
-> > the network, so you know that you have a file system on which
-> > you can set the mac address of the device using udev, before
-> > you start using networking.
+> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
+> an issue where the ULPI PHYs were not held in reset while initializing
+> the EHCI controller. However, it also changes behavior in
+> omap-usb-host.c omap_usbhs_init by releasing reset while the
+> configuration in that function was done.
 > 
-> OK. So how about we do the following:
+> This change caused a regression on BB-xM where USB would not function
+> if 'usb start' had been run from u-boot before booting. A change was
+> made to release reset a little bit earlier which fixed the issue on
+> BB-xM and did not cause any regressions on 3430 sdp, the board for
+> which the fix was originally made.
 > 
-> 1. Make Andy's notifier part into a generic mac notifier
->    driver that can take platform data for the driver name
->    mac address pair. Devicetree binding could be added as
->    needed.
+> This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
+> before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
+> 
+> The original fix to hold the EHCI controller in reset during
+> initialization was correct, however it appears that changing
+> omap_usbhs_init to not hold the PHYs in reset during it's
+> configuration was incorrect. This patch first reverts both fixes, and
+> then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
+> reset as the original patch had done. It also is sure to incorporate
+> the _cansleep change that has been made in the meantime.
+> 
+> Tested on Beagleboard xM.
 
-I don't think the devicetree bindign should be part of that
-driver but instead should go into the individual network
-device drivers, otherwise it sounds ok to me.
-Obviously, this still needs buy-in from the networking
-people.
+Looking at the result of this patch, there seem to be a few mistakes 
+remaining in the probe routine.
 
-> 2. Pass the Panda mac information as platform data to this
->    driver for now with a comment on the usb path naming being
->    potentially wrong in the loadable modules case.
+If the regulator_get() call fails, the failure is logged but ignored.  
+Is that really the right thing to do?
 
-IMHO code outside of the platform driver world would be more
-appropriate here. It's not actually a platform device because
-it's more of an abstract concept to define a mac address than
-physical hardware.
+The pm_runtime_get_sync() call occurs before the probe is finished.  
+This means that ehci-hcd's resume routine will try to power-up the 
+device before its data structures have been initialized.  That can't be 
+right.
 
-A new file with a single global function in net/ethernet/
-that you can use to register a callback sounds like the
-easiest approach to me.
+The "get clocks" section occurs after the call to usb_add_hcd().  This
+means the controller will start running before the clock references are
+acquired -- so the clocks might still be turned off.  That can't be
+right either.
 
-> 3. Add devicetree support to the driver once the USB binding
->    is available.
+If the clk_get(dev, "utmi_p1_gfclk") call fails, the error path never 
+calls usb_remove_hcd().
 
-Here you mean the smsc95xx driver, not the new code, right?
+The "err_add_hcd" pathway never calls usb_put_hcd().
 
-> That will make my life much easier as then I'm not stuck with
-> more legacy code to deal with ;) Also writing the driver part
-> should be trivial as all the code is there already.
+I'm going to resubmit my most recent patch based the current 
+ehci-omap.c, but you or someone else will still have to fix these 
+problems.
 
-Sounds ok to me, if we can get Andy to reshuffle his code once
-more ;-)
+Alan Stern
 
-	Arnd
