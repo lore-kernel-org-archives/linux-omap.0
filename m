@@ -1,83 +1,76 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register
- api
-Date: Fri, 29 Jun 2012 17:03:20 +0800
-Message-ID: <4FED6F58.3090506@linaro.org>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <20120629055516.11091.82899.stgit@build.warmcat.com> <201206290851.47054.arnd@arndb.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] OMAP2+: add cpu id register to MAC address helper
+Date: Fri, 29 Jun 2012 02:05:16 -0700
+Message-ID: <20120629090515.GA4202@atomide.com>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com>
+ <20120629055509.11091.2780.stgit@build.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:35250 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750891Ab2F2JDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 05:03:30 -0400
-In-Reply-To: <201206290851.47054.arnd@arndb.de>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14819 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045Ab2F2JFV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 05:05:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20120629055509.11091.2780.stgit@build.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, tony@atomide.com, rostedt@goodmis.org
+To: Andy Green <andy.green@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, rostedt@goodmis.org
 
-On 06/29/12 16:51, the mail apparently from Arnd Bergmann included:
-> On Friday 29 June 2012, Andy Green wrote:
->> +static int omap_panda_netdev_event(struct notifier_block *this,
->> +                                               unsigned long event,=
- void *ptr)
->> +{
->> +       struct net_device *dev =3D ptr;
->> +       struct sockaddr sa;
->> +       int n;
->> +
->> +       if (event !=3D NETDEV_REGISTER)
->> +               return NOTIFY_DONE;
->> +
->> +       n =3D omap_device_path_need_mac(dev->dev.parent);
->> +       if (n < 0)
->> +               return NOTIFY_DONE;
->> +
->> +       sa.sa_family =3D dev->type;
->> +       omap2_die_id_to_ethernet_mac(sa.sa_data, n);
->> +       dev->netdev_ops->ndo_set_mac_address(dev, &sa);
->> +
->> +       return NOTIFY_DONE;
->> +}
->> +
->> +static struct notifier_block omap_panda_netdev_notifier =3D {
->> +       .notifier_call =3D omap_panda_netdev_event,
->> +       .priority =3D 1,
->> +};
->> +
->> +int omap_register_mac_device_fixup_paths(const char * const *paths,=
- int count)
->> +{
->> +       mac_device_fixup_paths =3D paths;
->> +       count_mac_device_fixup_paths =3D count;
->> +
->> +       return register_netdevice_notifier(&omap_panda_netdev_notifi=
-er);
->> +}
->
-> The omap_panda_netdev_event and omap_panda_netdev_notifier symbols sh=
-ould probably
-> lose the "panda_" part of their names, because they are now located i=
-n a common
-> file and are not panda specific any more.
+* Andy Green <andy.green@linaro.org> [120628 22:59]:
+> 
+> Introduce a generic helper function that can generate a valid MAC
+> address using data from the OMAP unique CPU ID register.
+...
 
-Good point thanks, I'll sort it out after waiting for any more comments=
-=2E
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -530,3 +530,42 @@ void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
+>  	else
+>  		tap_prod_id = 0x0208;
+>  }
+> +
+> +/*
+> + * this uses the unique per-cpu info from the cpu fuses set at factory to
+> + * generate a 6-byte MAC address.  Two bits in the generated code are used
+> + * to elaborate the generated address into four, so it can be used on multiple
+> + * network interfaces.
+> + */
+> +
+> +void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype)
+> +{
+> +	struct omap_die_id odi;
+> +	u32 tap = read_tap_reg(OMAP_TAP_IDCODE);
+> +
+> +	omap_get_die_id(&odi);
+> +
+> +	mac[0] = odi.id_2;
+> +	mac[1] = odi.id_2 >> 8;
+> +	mac[2] = odi.id_1;
+> +	mac[3] = odi.id_1 >> 8;
+> +	mac[4] = odi.id_1 >> 16;
+> +	mac[5] = odi.id_1 >> 24;
+> +
+> +	/* XOR other chip-specific data with ID */
+> +
+> +	tap ^= odi.id_3;
+> +
+> +	mac[0] ^= tap;
+> +	mac[1] ^= tap >> 8;
+> +	mac[2] ^= tap >> 16;
+> +	mac[3] ^= tap >> 24;
+> +
+> +	/* allow four MACs from this same basic data */
+> +
+> +	mac[1] = (mac[1] & ~0xc0) | ((subtype & 3) << 6);
+> +
+> +	/* mark it as not multicast, and outside official 80211 MAC namespace */
+> +
+> +	mac[0] = (mac[0] & ~1) | 2;
+> +}
 
--Andy
+Let's just make this omap_die_id_to_ethernet_mac, no need to keep the
+omap2 naming there as this should not conflict with any omap1 stuff.
 
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
