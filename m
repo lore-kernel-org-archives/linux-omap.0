@@ -1,79 +1,53 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register
- api
-Date: Fri, 29 Jun 2012 21:59:02 +0800
-Message-ID: <4FEDB4A6.7040609@linaro.org>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <4FED7E6A.4090207@linaro.org> <20120629120325.GD4202@atomide.com> <201206291345.49878.arnd@arndb.de> <20120629135559.GH4202@atomide.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP: fix runtime PM get/put balance on error
+Date: Fri, 29 Jun 2012 09:00:48 -0500
+Message-ID: <87395emd4f.fsf@ti.com>
+References: <1340960868-7371-1-git-send-email-shubhrajyoti@ti.com>
+	<874npunx6a.fsf@ti.com> <4FEDA5C2.3000905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:42023 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751653Ab2F2N7N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 09:59:13 -0400
-In-Reply-To: <20120629135559.GH4202@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FEDA5C2.3000905-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Fri,
+	29 Jun 2012 18:25:30 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
 
-On 06/29/12 21:55, the mail apparently from Tony Lindgren included:
-> * Arnd Bergmann <arnd@arndb.de> [120629 06:50]:
->> On Friday 29 June 2012, Tony Lindgren wrote:
->>> * Andy Green <andy.green@linaro.org> [120629 03:12]:
->>>>> 2. Is this really how we want to pass the board generated mac add=
-resses
->>>>>     and other dynamically generated data to the drivers that are =
-device
->>>>>     tree based?
->>>>
->>>> The issue is that both these busses have an async probe, in the ca=
-se
->>>> of USB stack the maintainer was not interested last year in adding
->>>> platform data.  Maybe it changed but that's my understanding.
+Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+
+> On Friday 29 June 2012 05:32 PM, Kevin Hilman wrote:
+>> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>>     ensure pm_runtime_put() is called, on pm_runtime_get_sync()
+>>>     failure.
 >>>
->>> OK, I'd like to hear Arnds comments on the #2 above too as this is
->>> a more generic issue.
+>>>     Without this, after a failed call, the runtime PM usecount will have
+>>>     been incremented, but not decremented causing the usecount to never
+>>>     reach zero after a failure. Thanks to Kevin for educating about it. 
+>>>     While at it also fix a missing pm_runtime_disable in the probe error
+>>>     path.
+>> This is the same subject and changelog as the patch I sent, but is a
+>> different patch.  
 >>
->> In case we have a device tree, we should just be using the USB bindi=
-ng
->> to find the specific device node, and add the property there. Then
->> the device driver can use of_get_mac_address() on the usb device its=
-elf.
->
-> But would you generate the mac address then in the bootloader already=
-?
-
-I'm pretty sure correct answer does not introduce more dependencies on=20
-bootloader code.
-
->> I'm not sure what it takes to add the link for the device node in th=
-e
->> usb probing code, but my feeling is that it's not too hard.
+>> Please write a new subject and a changelog specific to your patch.
+> OK.
+> Actually I did that on purpose your patch fixed the xfer call only.
+> I thought that since get_sync increments the count always we could extend
+> the patch to all the callers.
 >>
->> Right now, USB is probed entirely without DT, so the patch is about
->> the best we can do.
->
-> Right, but that still assumes a static mac from the bootloader unless
-> we do a generic driver as below? Or do you have some other ideas?
+>> As this changes the error/failure path, please be specific about how
+>> the failure modes were tested, and on which platforms.
+> I found and fixed by review only.
+> Didnt really hit the failure case.
 
-What happens without this patch is randomized MAC address assigned by=20
-Linux in smsc Ethernet case.
+Which is why you should't just add stuff to other peoples work.
 
--Andy
+My patch was targetted at the XFER problem during suspend/resume which I
+found by testing and and proved the fix by testing.
 
+Your patch adds several additional functional changes that were not well
+described and not tested.  That calls for a separate patch with seprate
+subject/changelog etc.
 
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
