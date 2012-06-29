@@ -1,78 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] staging: drm/omap: add rotation properties
-Date: Fri, 29 Jun 2012 13:46:03 +0300
-Message-ID: <1340966763.2767.8.camel@deskari>
-References: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [RFC PATCH 0/3] I2C: Report the actual transferred bytes
+Date: Fri, 29 Jun 2012 16:35:24 +0530
+Message-ID: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-TKsBjq9ilEo3nBot3v0F"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:46569 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754211Ab2F2KqJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 06:46:09 -0400
-Received: by lbbgm6 with SMTP id gm6so5405873lbb.33
-        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 03:46:06 -0700 (PDT)
-In-Reply-To: <1340805986-10670-1-git-send-email-rob.clark@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Andy Gross <andy.gross@ti.com>, cmahapatra@ti.com, s-guiriec@ti.com, archit@ti.com, Rob Clark <rob@ti.com>
+
+Currently the I2C core reports only a negative number on errors.
+However some of the users in case of errors want to re-transfer only
+the remaining bytes.
+
+The patch series tries to add a actual field to the msg which
+can be checked by the user.
+
+Also a patch to implement the actual bytes transferred in case of
+i2c-omap.
 
 
---=-TKsBjq9ilEo3nBot3v0F
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Felipe Balbi (1):
+  i2c: omap: implement handling for 'actual' bytes transferred
 
-On Wed, 2012-06-27 at 09:06 -0500, Rob Clark wrote:
-> From: Rob Clark <rob@ti.com>
->=20
-> Use tiled buffers for rotated/reflected scanout, with CRTC and plane
-> properties as the interface for userspace to configure rotation.
->=20
-> Signed-off-by: Rob Clark <rob@ti.com>
+Shubhrajyoti D (2):
+  i2c: add 'actual' field to struct i2c_msg
+  i2c: inititalise the actual transferred to zero
 
-> +/* this should probably be in drm-core to standardize amongst drivers */
-> +#define DRM_ROTATE_0	0
-> +#define DRM_ROTATE_90	1
-> +#define DRM_ROTATE_180	2
-> +#define DRM_ROTATE_270	3
-> +#define DRM_REFLECT_X	4
-> +#define DRM_REFLECT_Y	5
+ drivers/i2c/busses/i2c-omap.c |    5 +++++
+ drivers/i2c/i2c-core.c        |    4 ++--
+ include/linux/i2c.h           |    1 +
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-Are both reflect X and Y needed? You can get all the possible
-orientations with just one of the reflects.
-
-And I think the word "mirror" represents nicely what the reflect does,
-i.e. if you look at the mirror, the image you see is flipped
-horizontally.
-
- Tomi
-
-
---=-TKsBjq9ilEo3nBot3v0F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJP7YdrAAoJEPo9qoy8lh71HqwP/jDVtLsWSFEEw4lxQNF/mTp2
-amokWhiEYge3e+4eMPitk33E7VudxsknsSwxtzD046fBmPAF20GX9NrCmaZ8jFnO
-zD2rneyEyt5j46OHX2pmidf2Vzu/AoB62dTsmJ2wNNLDkL2egWAiCMPMbutx1DXW
-jodYmjaSQi/lg1Gp7on3zu/VbVHCb/p5OqM4eFFdATyIR4xWCEOhImoh0BaIVvLI
-s/MwK7YIDkD8WjiAg6oOX1ckF6olj3aBv66oB0vV+U8J1pdAliTgHOCREX1Ir0cl
-Zz6Ju3DD9LF3NIWaeJ16tfFNXig6DFioXuCvqGZ9fQEqk0XAZ0EGLlw4J/WgVc3N
-Sp3/pDG1tHnkIc6M4+/U9c4/3Rp+/Kufby13dAVNaCThae/MM4Y7tCupS+jXrLtw
-IK8BIuiphTzmEafiwFpG9qsWmrENbvrgRkC8/wLblTeAxkWbjIde1wSJVStuSFTZ
-xkkBrXPwN3hAeOreBNnZ4lwj5iuEQN+nV97/5ElkOGRb7MERDpk7PKitdupamV7x
-+OXgafQ2fro/V29xUk1LawSlC1WaImVWMVpc5TVbYwtzcsIBbuObU+tgYOgMm1cB
-HtSL9ZDP4c/ykgOg0ebI+4zO8+AHbTt2Ok2b8P7kUoamq/ZEh3ejze+IcBt4DV/g
-cSg1r0881rlo/PG2BKMm
-=wdHw
------END PGP SIGNATURE-----
-
---=-TKsBjq9ilEo3nBot3v0F--
-
+-- 
+1.7.5.4
