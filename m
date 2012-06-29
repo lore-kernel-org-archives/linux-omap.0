@@ -1,53 +1,79 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] I2C: OMAP: fix runtime PM get/put balance on error
-Date: Fri, 29 Jun 2012 09:00:48 -0500
-Message-ID: <87395emd4f.fsf@ti.com>
-References: <1340960868-7371-1-git-send-email-shubhrajyoti@ti.com>
-	<874npunx6a.fsf@ti.com> <4FEDA5C2.3000905@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4FEDA5C2.3000905-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Fri,
-	29 Jun 2012 18:25:30 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge
+Date: Fri, 29 Jun 2012 07:03:34 -0700
+Message-ID: <1340978614-12558-1-git-send-email-khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:38288 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751968Ab2F2ODm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 10:03:42 -0400
+Received: by pbcwz7 with SMTP id wz7so4407621pbc.2
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 07:03:36 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>
+Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+commit 99b59df0 (ARM: OMAP3: PM: fix shared PRCM interrupt leave
+disabled at boot) added IRQ_NOAUTOEN to the PRCM interrupt so it could
+be enabled later if needed.  However, this commit was partially undone
+when merging the IO daisy chain rework in 9a17d88e (Merge tag
+'omap-devel-c-for-3.6' of
+git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into
+devel-pm
 
-> On Friday 29 June 2012 05:32 PM, Kevin Hilman wrote:
->> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
->>
->>>     ensure pm_runtime_put() is called, on pm_runtime_get_sync()
->>>     failure.
->>>
->>>     Without this, after a failed call, the runtime PM usecount will have
->>>     been incremented, but not decremented causing the usecount to never
->>>     reach zero after a failure. Thanks to Kevin for educating about it. 
->>>     While at it also fix a missing pm_runtime_disable in the probe error
->>>     path.
->> This is the same subject and changelog as the patch I sent, but is a
->> different patch.  
->>
->> Please write a new subject and a changelog specific to your patch.
-> OK.
-> Actually I did that on purpose your patch fixed the xfer call only.
-> I thought that since get_sync increments the count always we could extend
-> the patch to all the callers.
->>
->> As this changes the error/failure path, please be specific about how
->> the failure modes were tested, and on which platforms.
-> I found and fixed by review only.
-> Didnt really hit the failure case.
+This patch adds back the IRQ_NOAUTOEN fix that was removed by the
+merge resolution.
 
-Which is why you should't just add stuff to other peoples work.
+This also fixes the following boot-time warning that showed up after
+merging the IO daisy chain rework:
 
-My patch was targetted at the XFER problem during suspend/resume which I
-found by testing and and proved the fix by testing.
+[    3.849334] WARNING: at kernel/irq/manage.c:436 enable_irq+0x3c/0x78()
+[    3.856231] Unbalanced enable for IRQ 297
+[    3.860473] Modules linked in:
+[    3.863739] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c003c7e8>] (warn_slowpath_common+0x4c/0x64)
+[    3.873687] [<c003c7e8>] (warn_slowpath_common+0x4c/0x64) from [<c003c894>] (warn_slowpath_fmt+0x30/0x40)
+[    3.883819] [<c003c894>] (warn_slowpath_fmt+0x30/0x40) from [<c00993e0>] (enable_irq+0x3c/0x78)
+[    3.893035] [<c00993e0>] (enable_irq+0x3c/0x78) from [<c067b1e8>] (omap3_pm_init+0x328/0x5f4)
+[    3.902099] [<c067b1e8>] (omap3_pm_init+0x328/0x5f4) from [<c067161c>] (init_machine_late+0x1c/0x28)
+[    3.911773] [<c067161c>] (init_machine_late+0x1c/0x28) from [<c0008648>] (do_one_initcall+0x34/0x178)
+[    3.921539] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
+[    3.930847] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
+[    3.940246] ---[ end trace 55a0ad32ca2ca682 ]---
 
-Your patch adds several additional functional changes that were not well
-described and not tested.  That calls for a separate patch with seprate
-subject/changelog etc.
+Reported-by: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Tony, this applies on top of your current devel-pm branch.
 
-Kevin
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+index e10fd1e..a0309de 100644
+--- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+@@ -351,11 +351,16 @@ static void __init omap3xxx_prm_enable_io_wakeup(void)
+ 
+ static int __init omap3xxx_prcm_init(void)
+ {
++	int ret = 0;
++
+ 	if (cpu_is_omap34xx()) {
+ 		omap3xxx_prm_enable_io_wakeup();
+-		return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
++		ret = omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
++		if (!ret)
++			irq_set_status_flags(omap_prcm_event_to_irq("io"),
++					     IRQ_NOAUTOEN);
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ subsys_initcall(omap3xxx_prcm_init);
+-- 
+1.7.9.2
+
