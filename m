@@ -1,65 +1,54 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [RFC PATCH 1/3] i2c: add 'actual' field to struct i2c_msg
-Date: Fri, 29 Jun 2012 14:33:20 +0200
-Message-ID: <20120629143320.42f51c0a@endymion.delvare>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
+Date: Fri, 29 Jun 2012 14:40:02 +0200
+Message-ID: <20120629144002.3b4a31ee@endymion.delvare>
 References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
-	<1340967927-27354-2-git-send-email-shubhrajyoti@ti.com>
+	<1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1340967927-27354-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:35364 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751666Ab2F2MkJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 08:40:09 -0400
+In-Reply-To: <1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
-On Fri, 29 Jun 2012 16:35:25 +0530, Shubhrajyoti D wrote:
-> In case of a NACK, it's wise to tell our clients
-> drivers about how many bytes were actually transferred.
+On Fri, 29 Jun 2012 16:35:27 +0530, Shubhrajyoti D wrote:
+> In i2c_smbus_xfer_emulated initialise the actual bytes
+> to zero.
 > 
-> Support this by adding an extra field to the struct
-> i2c_msg which gets incremented the amount of bytes
-> actually transferred.
-> 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 > ---
->  include/linux/i2c.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+>  drivers/i2c/i2c-core.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> index ddfa041..0cb6b83 100644
-> --- a/include/linux/i2c.h
-> +++ b/include/linux/i2c.h
-> @@ -547,6 +547,7 @@ struct i2c_msg {
->  #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
->  #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
->  	__u16 len;		/* msg length				*/
-> +	__u16 actual;		/* actual bytes transferred             */
->  	__u8 *buf;		/* pointer to msg data			*/
->  };
->  
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index a6ad32b..fa7f799 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -1949,8 +1949,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+>  	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX+3];
+>  	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX+2];
+>  	int num = read_write == I2C_SMBUS_READ ? 2 : 1;
+> -	struct i2c_msg msg[2] = { { addr, flags, 1, msgbuf0 },
+> -	                          { addr, flags | I2C_M_RD, 0, msgbuf1 }
+> +	struct i2c_msg msg[2] = { { addr, flags, 1, 0, msgbuf0 },
+> +				  { addr, flags | I2C_M_RD, 0, 0, msgbuf1 }
+>  	                        };
+>  	int i;
+>  	u8 partial_pec = 0;
 
-David Brownell discussed this a long time ago:
-http://marc.info/?l=linux-i2c&m=121103523020494&w=2
+Please convert to C99-style initialization while you're there. And this
+should be done first. Initializing i2c_msg.actual maybe rather belong
+to i2c_transfer though, so that all callers don't have to care.
 
-This structure is exported to user-space through i2c-dev, so changing
-it is tough if possible at all. You first have to ensure that the
-change doesn't alter the structure size. In other words, the field you
-add must fit in a padding hole the structure had previously. This
-appears to be the case here, but I'm not sure how to prove it for all
-supported architectures.
-
-Then, as you are inserting a field in the middle of the structure, you
-must ensure that every initialization follows C99. And you have to do
-that _before_ the above change, not after as you did in patch 3/3. This
-needs to be done in both the whole kernel tree and as many user-space
-applications as possible. At least i2c-tools is clean, but there must
-be other (possibly unpublished) tools using this API, which your change
-may break. We can't fix them all, but at least we will have to document
-the change clearly and explain how to fix in case of breakage. The i2c
-wiki might be the right place for that.
+Are you sure there are no other places that need the same fix in the
+kernel tree?
 
 -- 
 Jean Delvare
