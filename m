@@ -1,71 +1,42 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: [PATCH] OMAP4: Clock: Correct OTG clock to use otg_60m_gfclk.
-Date: Fri, 29 Jun 2012 14:53:02 +0300
-Message-ID: <1340970782-30802-1-git-send-email-ruslan.bilovol@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] OMAP4 PANDA register ethernet and wlan for
+ automatic mac allocation
+Date: Fri, 29 Jun 2012 04:55:11 -0700
+Message-ID: <20120629115511.GC4202@atomide.com>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com>
+ <20120629055524.11091.57217.stgit@build.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36421 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752393Ab2F2LxH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 07:53:07 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56722 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252Ab2F2LzO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 07:55:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20120629055524.11091.57217.stgit@build.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, tony@atomide.com
+To: Andy Green <andy.green@linaro.org>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, rostedt@goodmis.org
 
-From: Wenbiao Wang <wwang@ti.com>
+* Andy Green <andy.green@linaro.org> [120628 23:00]:
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -486,6 +486,15 @@ static void omap4_panda_init_rev(void)
+>  	}
+>  }
+>  
+> +/*
+> + * These device paths represent onboard network devices which have
+> + * no MAC address set at boot, and need synthetic ones assigning
+> + */
+> +static const char * const panda_fixup_mac_device_paths[] = {
+> +	"usb1/1-1/1-1.1/1-1.1:1.0",	/* smsc USB <-> Ethernet bridge */
+> +	"wl12xx",			/* wlan0 module */
+> +};
 
-OTG clock usb_otg_hs_ick used a incorrect parent l3_div_ck.
-Correct it to use the right colck otg_60m_gfclk as its
-parent.
+I suspect the "usb1/1-1/1-1.1/1-1.1:1.0" naming is not valid
+if you change the order of loading of musb_hdrc and ehci modules?
+Might be worth checking..
 
-Signed-off-by: Wenbiao Wang <wwang@ti.com>
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
----
- arch/arm/mach-omap2/clock44xx_data.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index b825049..fd43214 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -199,12 +199,6 @@ static struct clk tie_low_clock_ck = {
- 	.ops		= &clkops_null,
- };
- 
--static struct clk utmi_phy_clkout_ck = {
--	.name		= "utmi_phy_clkout_ck",
--	.rate		= 60000000,
--	.ops		= &clkops_null,
--};
--
- static struct clk xclk60mhsp1_ck = {
- 	.name		= "xclk60mhsp1_ck",
- 	.rate		= 60000000,
-@@ -992,6 +986,13 @@ static struct clk dpll_usb_clkdcoldo_ck = {
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk utmi_phy_clkout_ck = {
-+	.name		= "utmi_phy_clkout_ck",
-+	.ops		= &clkops_null,
-+	.parent		= &dpll_usb_clkdcoldo_ck,
-+	.recalc		= &followparent_recalc,
-+};
-+
- static const struct clksel dpll_usb_m2_div[] = {
- 	{ .parent = &dpll_usb_ck, .rates = div31_1to31_rates },
- 	{ .parent = NULL },
-@@ -2685,7 +2686,7 @@ static struct clk usb_otg_hs_ick = {
- 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
- 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
- 	.clkdm_name	= "l3_init_clkdm",
--	.parent		= &l3_div_ck,
-+	.parent		= &otg_60m_gfclk,
- 	.recalc		= &followparent_recalc,
- };
- 
--- 
-1.7.1
-
+Tony
