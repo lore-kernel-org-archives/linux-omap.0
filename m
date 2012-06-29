@@ -1,93 +1,101 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: Panda ES board hang when using GPIO as interrupt
-Date: Fri, 29 Jun 2012 09:37:14 +0530
-Message-ID: <CAC83ZvJJw-7Xt4Ey4_OT70D6MGHEfwURYVuj5wYTLe5oYiMuRw@mail.gmail.com>
-References: <4FE8CF77.5080400@broadcom.com>
-	<87txxxs9we.fsf@ti.com>
-	<4FEBA854.5010508@broadcom.com>
-	<4FEC7B48.8040402@ti.com>
-	<4FECCB91.7090609@broadcom.com>
-	<4FECD2E5.1060603@ti.com>
-	<4FECE067.7000809@broadcom.com>
-	<4FECE1BD.80906@ti.com>
-	<4FECE45E.6040506@broadcom.com>
-	<4FECEE9A.5070300@ti.com>
-	<4FECFDD8.5060105@broadcom.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
+Date: Fri, 29 Jun 2012 11:17:55 +0530
+Message-ID: <4FED418B.8030100@ti.com>
+References: <1340761532-27231-1-git-send-email-khilman@ti.com> <CAM=Q2cuLCT2VzcUgrpyRWiX61t1F+iWchO9iLC=Ka9MFVm4_bQ@mail.gmail.com> <87lij7nltv.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33359 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707Ab2F2EHQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 00:07:16 -0400
-Received: by qcab12 with SMTP id b12so675373qca.32
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 21:07:14 -0700 (PDT)
-In-Reply-To: <4FECFDD8.5060105@broadcom.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87lij7nltv.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Franky Lin <frankyl@broadcom.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Kevin Hilman <khilman@ti.com>, b-cousson@ti.com, tony@atomide.com, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, grant.likely@secretlab.ca, santosh.shilimkar@ti.com, linux-omap@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 29, 2012 at 6:29 AM, Franky Lin <frankyl@broadcom.com> wrot=
-e:
-> On 06/28/2012 04:54 PM, Jon Hunter wrote:
->>
->> I am wondering if this could be the bug ... on start-up I see that w=
-e do
->> a context restore on bank1 during the probe which is before we have =
-done
->> the first suspend! In other words, we could restore a bad/uninitiali=
-sed
->> context for bank1. In the case of bank1, the loss count starts at 1 =
-and
->> not 0 and so we falsely think we need to perform a restore :-(
->>
->> [ =A0 =A00.176269] omap_gpio_runtime_resume: bank @ 0xfc310000
->> [ =A0 =A00.177276] omap_gpio_runtime_resume: count 0, now 1
->> [ =A0 =A00.177276] gpiochip_add: registered GPIOs 0 to 31 on device:=
- gpio
->> [ =A0 =A00.177642] omap_gpio_runtime_suspend: bank @ 0xfc310000
->>
->> Can you try ...
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index c4ed172..9623408 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1086,6 +1086,9 @@ static int __devinit omap_gpio_probe(struct
->> platform_device *pdev)
->> =A0#ifdef CONFIG_OF_GPIO
->> =A0 =A0 =A0 =A0 bank->chip.of_node =3D of_node_get(node);
->> =A0#endif
->> + =A0 =A0 =A0 if (bank->get_context_loss_count)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_count =3D
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->=
-get_context_loss_count(bank->dev);
->>
->> =A0 =A0 =A0 =A0 bank->irq_base =3D irq_alloc_descs(-1, 0, bank->widt=
-h, 0);
->> =A0 =A0 =A0 =A0 if (bank->irq_base < 0) {
->>
+On Friday 29 June 2012 03:25 AM, Kevin Hilman wrote:
+> Hi Shubhrajyoti,
 >
-> Looks like you found the culprit. :) It does fix the problem.
-So this looks similar to what NeilBrown <neilb@suse.de> reported in
-another thread.
-The reason was context_loss_count =3D 1 for GPIO BANK#0 which of course=
- is in the
-WKUP domain. In fact he tried out with the same fix. Anyways, we
-should hear from
-Kevin now whether it is feasible to fix the context_loss_count for the =
-WKUP GPIO
-bank or to put the workaround here in the gpio driver.
---
-Tarun
+> Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
 >
-> Franky
+>> Hi Kevin,
+>> Thanks for the patch ,
+>> a doubt below
+> Thanks for the review.
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> On Wed, Jun 27, 2012 at 7:15 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+>>> In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
+>>> failure.
+>> So the failure means that the usecount is incremented. However the
+>> device was not
+>> enabled. 
+> Correct.
+>
+>> In that case could we consider
+>>
+>>    void pm_runtime_put_noidle(struct device *dev);
+>>     - decrement the device's usage counter
+>>
+>> Which will only decrement the counter and does not try to disable it.
+> No, that is not needed.
+>
+>> However I am not sure what happens if you try to disable an already
+>> disabled device.
+> The runtime PM core already knows that the device is not enabled so will
+> not need to call the disable hooks.  It already needs this functionality
+> to support the _get_noresume() and _put_noidle() calls.
+>
+> I tested this on 3730/OveroSTORM where I was seeing this i2c xfer
+> failure (and thus a failure in MMC suspend, which uses I2C to control
+> the regulator.)
+>
+> Hope that helps clarify,
+Thanks a lot for the clarification.
+> If so, Wolfram, can you queue this up in your i2c-embedded/for-next
+> branch since this problem was introduced there.
+>
+> Thanks,
+>
+> Kevin
+>
+>>> Without this, after a failed xfer, the runtime PM usecount will have
+>>> been incremented, but not decremented
+>> Agree.
+>>
+>>> causing the usecount to never
+>>> reach zero after a failure.  This keeps the device always runtime PM
+>>> enabled which keeps the enclosing power domain active, and prevents
+>>> full-chip retention/off from happening during idle.
+Reviewed-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>> Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>> This patch applies to current i2c-embedded/for-next branch
+>>>
+>>>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>>> index 9895fa7..b105733 100644
+>>> --- a/drivers/i2c/busses/i2c-omap.c
+>>> +++ b/drivers/i2c/busses/i2c-omap.c
+>>> @@ -582,7 +582,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>>>
+>>>        r = pm_runtime_get_sync(dev->dev);
+>>>        if (IS_ERR_VALUE(r))
+>>> -               return r;
+>>> +               goto out;
+>>>
+>>>        r = omap_i2c_wait_for_bb(dev);
+>>>        if (r < 0)
+>>> --
+>>> 1.7.9.2
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
