@@ -1,60 +1,38 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2: Overo: init I2C before MMC to fix MMC
- suspend/resume failure
-Date: Fri, 29 Jun 2012 12:03:18 +0530
-Message-ID: <4FED4C2E.4030309@ti.com>
-References: <1340902892-9542-1-git-send-email-khilman@ti.com> <1340902892-9542-2-git-send-email-khilman@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Fri, 29 Jun 2012 06:38:32 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A0D6B@DBDE01.ent.ti.com>
+References: <cover.1340778002.git.afzal@ti.com>
+ <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+ <20120627145844.GL3483@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
+ <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A0D32@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:60822 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907Ab2F2GdZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 02:33:25 -0400
-Received: by obfk16 with SMTP id k16so9453499obf.1
-        for <linux-omap@vger.kernel.org>; Thu, 28 Jun 2012 23:33:23 -0700 (PDT)
-In-Reply-To: <1340902892-9542-2-git-send-email-khilman@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37263 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750842Ab2F2Gik convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 02:38:40 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A0D32@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hunter, Jon" <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Kevin,
-On Thursday 28 June 2012 10:31 PM, Kevin Hilman wrote:
-> In order for suspend/resume dependencies to work correctly, I2C has to
-> be initialized (more specifically, registered with the driver core)
-> before MMC.
-Agree.
->   Without this, the MMC driver fails to adjust the VMMC
-> regulator (using i2c writes) during the suspend path.
->
-> Problem found testing suspend/resume on 3730/OveroSTORM platform.
-Not related to your patch.
-Was just thinking if
-arch/arm/mach-omap2/board-omap3beagle.c
-arch/arm/mach-omap2/board-3430sdp.c
+Hi,
 
-should also be patched.
+On Fri, Jun 29, 2012 at 11:45:49, Mohammed, Afzal wrote:
 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/board-overo.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index 8fa2fc3..779734d 100644
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -494,8 +494,8 @@ static void __init overo_init(void)
->  
->  	regulator_register_fixed(0, dummy_supplies, ARRAY_SIZE(dummy_supplies));
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> -	omap_hsmmc_init(mmc);
->  	overo_i2c_init();
-> +	omap_hsmmc_init(mmc);
->  	omap_display_init(&overo_dss_data);
->  	omap_serial_init();
->  	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+> Kernel can't handle gpmc by itself, may be resetting onenand is
+> a solution, as it seems bootloader is leaving it in sync mode.
 
+To add, the above solution is made under the assumption that onenand
+after reset will be in async mode (based on Samsung datsheet)
+
+Regards
+Afzal
