@@ -1,37 +1,44 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH 0/3] I2C: Report the actual transferred bytes
-Date: Fri, 29 Jun 2012 16:35:24 +0530
-Message-ID: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
+Date: Fri, 29 Jun 2012 16:35:27 +0530
+Message-ID: <1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34549 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570Ab2F2LFz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 07:05:55 -0400
+In-Reply-To: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Currently the I2C core reports only a negative number on errors.
-However some of the users in case of errors want to re-transfer only
-the remaining bytes.
+In i2c_smbus_xfer_emulated initialise the actual bytes
+to zero.
 
-The patch series tries to add a actual field to the msg which
-can be checked by the user.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/i2c-core.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Also a patch to implement the actual bytes transferred in case of
-i2c-omap.
-
-
-Felipe Balbi (1):
-  i2c: omap: implement handling for 'actual' bytes transferred
-
-Shubhrajyoti D (2):
-  i2c: add 'actual' field to struct i2c_msg
-  i2c: inititalise the actual transferred to zero
-
- drivers/i2c/busses/i2c-omap.c |    5 +++++
- drivers/i2c/i2c-core.c        |    4 ++--
- include/linux/i2c.h           |    1 +
- 3 files changed, 8 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index a6ad32b..fa7f799 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -1949,8 +1949,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
+ 	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX+3];
+ 	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX+2];
+ 	int num = read_write == I2C_SMBUS_READ ? 2 : 1;
+-	struct i2c_msg msg[2] = { { addr, flags, 1, msgbuf0 },
+-	                          { addr, flags | I2C_M_RD, 0, msgbuf1 }
++	struct i2c_msg msg[2] = { { addr, flags, 1, 0, msgbuf0 },
++				  { addr, flags | I2C_M_RD, 0, 0, msgbuf1 }
+ 	                        };
+ 	int i;
+ 	u8 partial_pec = 0;
 -- 
 1.7.5.4
+
