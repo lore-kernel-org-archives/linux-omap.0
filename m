@@ -1,56 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge
-Date: Fri, 29 Jun 2012 07:20:32 -0700
-Message-ID: <20120629142032.GI4202@atomide.com>
-References: <1340978614-12558-1-git-send-email-khilman@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register api
+Date: Fri, 29 Jun 2012 14:33:06 +0000
+Message-ID: <201206291433.06718.arnd@arndb.de>
+References: <20120629054404.11091.31289.stgit@build.warmcat.com> <201206291345.49878.arnd@arndb.de> <20120629135559.GH4202@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32019 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080Ab2F2OUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 10:20:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1340978614-12558-1-git-send-email-khilman@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:60682 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806Ab2F2OdU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 10:33:20 -0400
+In-Reply-To: <20120629135559.GH4202@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
 
-* Kevin Hilman <khilman@ti.com> [120629 07:08]:
-> commit 99b59df0 (ARM: OMAP3: PM: fix shared PRCM interrupt leave
-> disabled at boot) added IRQ_NOAUTOEN to the PRCM interrupt so it could
-> be enabled later if needed.  However, this commit was partially undone
-> when merging the IO daisy chain rework in 9a17d88e (Merge tag
-> 'omap-devel-c-for-3.6' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into
-> devel-pm
+On Friday 29 June 2012, Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [120629 06:50]:
+> > On Friday 29 June 2012, Tony Lindgren wrote:
+> > > * Andy Green <andy.green@linaro.org> [120629 03:12]:
+> > > > >2. Is this really how we want to pass the board generated mac addresses
+> > > > >    and other dynamically generated data to the drivers that are device
+> > > > >    tree based?
+> > > > 
+> > > > The issue is that both these busses have an async probe, in the case
+> > > > of USB stack the maintainer was not interested last year in adding
+> > > > platform data.  Maybe it changed but that's my understanding.
+> > > 
+> > > OK, I'd like to hear Arnds comments on the #2 above too as this is
+> > > a more generic issue.
+> > 
+> > In case we have a device tree, we should just be using the USB binding
+> > to find the specific device node, and add the property there. Then
+> > the device driver can use of_get_mac_address() on the usb device itself.
 > 
-> This patch adds back the IRQ_NOAUTOEN fix that was removed by the
-> merge resolution.
-> 
-> This also fixes the following boot-time warning that showed up after
-> merging the IO daisy chain rework:
-> 
-> [    3.849334] WARNING: at kernel/irq/manage.c:436 enable_irq+0x3c/0x78()
-> [    3.856231] Unbalanced enable for IRQ 297
-> [    3.860473] Modules linked in:
-> [    3.863739] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c003c7e8>] (warn_slowpath_common+0x4c/0x64)
-> [    3.873687] [<c003c7e8>] (warn_slowpath_common+0x4c/0x64) from [<c003c894>] (warn_slowpath_fmt+0x30/0x40)
-> [    3.883819] [<c003c894>] (warn_slowpath_fmt+0x30/0x40) from [<c00993e0>] (enable_irq+0x3c/0x78)
-> [    3.893035] [<c00993e0>] (enable_irq+0x3c/0x78) from [<c067b1e8>] (omap3_pm_init+0x328/0x5f4)
-> [    3.902099] [<c067b1e8>] (omap3_pm_init+0x328/0x5f4) from [<c067161c>] (init_machine_late+0x1c/0x28)
-> [    3.911773] [<c067161c>] (init_machine_late+0x1c/0x28) from [<c0008648>] (do_one_initcall+0x34/0x178)
-> [    3.921539] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
-> [    3.930847] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
-> [    3.940246] ---[ end trace 55a0ad32ca2ca682 ]---
-> 
-> Reported-by: Javier Martinez Canillas <javier@dowhile0.org>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Tony, this applies on top of your current devel-pm branch.
+> But would you generate the mac address then in the bootloader already?
 
-Thanks applying into devel-pm.
+Good question. I think we definitely want to have the option of overiding
+the mac address from the boot loader or a predefined device tree blob.
 
-Tony
+IMHO the precedence should be
+
+a) mac-address property from DT if set
+b) hardcoded address from device EEPROM if present
+c) platform-provided address, if supported by platform
+d) random_ether_addr()
+
+A lot of devices already provide the mac address in the device tree,
+wherever that comes from. Ideally that would always be possible but
+never necessary.
+
+> > I'm not sure what it takes to add the link for the device node in the
+> > usb probing code, but my feeling is that it's not too hard.
+> > 
+> > Right now, USB is probed entirely without DT, so the patch is about
+> > the best we can do.
+> 
+> Right, but that still assumes a static mac from the bootloader unless
+> we do a generic driver as below? Or do you have some other ideas?
+
+The boot loader could theoretically have the same algorithm that Andy's
+patch implements, unless it is configured to something else by the
+user. In many cases, you don't want the boot loader to be that smart,
+but sometimes it is the right solution.
+
+> > Normally USB tends to just work because the device is expected to
+> > be hot-pluggable anyway. If the USB device is soldered to the
+> > board, the hardware designers can take some shortcuts
+> 
+> But that too still depends on the order of loading of the multiple
+> host controller modules. Beagle has both EHCI and musb.
+
+In the device tree, we can uniquely identify the USB hosts, that
+is not a problem here. The problem exists only if you base your
+path on the linux specific name for the devices.
+It's definitely ugly to rely on that, but I think we can actually
+guarantee that it's stable as long as we enforce in the
+Kconfig/Kbuild that the controller that has the ethernet device
+is always built-in on Panda and comes before the other one if
+both are built-in. I would much prefer not to have to rely on
+those things, but I believe it is actually guaranteed at the
+moment for the cases that matter. While you could have both
+controllers as loadable modules and load them in reverse
+order that would also imply that you cannot actually boot from
+the network, so you know that you have a file system on which
+you can set the mac address of the device using udev, before
+you start using networking.
+
+	Arnd
