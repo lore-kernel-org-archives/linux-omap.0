@@ -1,75 +1,77 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix
- issues.
-Date: Fri, 29 Jun 2012 11:33:33 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1206291104270.1638-100000@iolanthe.rowland.org>
-References: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: Panda ES board hang when using GPIO as interrupt
+Date: Fri, 29 Jun 2012 10:53:04 -0500
+Message-ID: <4FEDCF60.9020800@ti.com>
+References: <4FE8CF77.5080400@broadcom.com> <87txxxs9we.fsf@ti.com> <4FEBA854.5010508@broadcom.com> <4FEC7B48.8040402@ti.com> <4FECCB91.7090609@broadcom.com> <4FECD2E5.1060603@ti.com> <4FECE067.7000809@broadcom.com> <4FECE1BD.80906@ti.com> <4FECE45E.6040506@broadcom.com> <4FECEE9A.5070300@ti.com> <4FECFDD8.5060105@broadcom.com> <CAC83ZvJJw-7Xt4Ey4_OT70D6MGHEfwURYVuj5wYTLe5oYiMuRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:36967 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752557Ab2F2Pdf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 11:33:35 -0400
-In-Reply-To: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAC83ZvJJw-7Xt4Ey4_OT70D6MGHEfwURYVuj5wYTLe5oYiMuRw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>
+Cc: Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <Russ.Dill@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
 
-On Wed, 27 Jun 2012, Russ Dill wrote:
 
-> From: Russ Dill <Russ.Dill@gmail.com>
-> 
-> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
-> an issue where the ULPI PHYs were not held in reset while initializing
-> the EHCI controller. However, it also changes behavior in
-> omap-usb-host.c omap_usbhs_init by releasing reset while the
-> configuration in that function was done.
-> 
-> This change caused a regression on BB-xM where USB would not function
-> if 'usb start' had been run from u-boot before booting. A change was
-> made to release reset a little bit earlier which fixed the issue on
-> BB-xM and did not cause any regressions on 3430 sdp, the board for
-> which the fix was originally made.
-> 
-> This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
-> before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
-> 
-> The original fix to hold the EHCI controller in reset during
-> initialization was correct, however it appears that changing
-> omap_usbhs_init to not hold the PHYs in reset during it's
-> configuration was incorrect. This patch first reverts both fixes, and
-> then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
-> reset as the original patch had done. It also is sure to incorporate
-> the _cansleep change that has been made in the meantime.
-> 
-> Tested on Beagleboard xM.
+On 06/28/2012 11:07 PM, DebBarma, Tarun Kanti wrote:
+> On Fri, Jun 29, 2012 at 6:29 AM, Franky Lin <frankyl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org> wrote:
+>> On 06/28/2012 04:54 PM, Jon Hunter wrote:
+>>>
+>>> I am wondering if this could be the bug ... on start-up I see that we do
+>>> a context restore on bank1 during the probe which is before we have done
+>>> the first suspend! In other words, we could restore a bad/uninitialised
+>>> context for bank1. In the case of bank1, the loss count starts at 1 and
+>>> not 0 and so we falsely think we need to perform a restore :-(
+>>>
+>>> [    0.176269] omap_gpio_runtime_resume: bank @ 0xfc310000
+>>> [    0.177276] omap_gpio_runtime_resume: count 0, now 1
+>>> [    0.177276] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
+>>> [    0.177642] omap_gpio_runtime_suspend: bank @ 0xfc310000
+>>>
+>>> Can you try ...
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index c4ed172..9623408 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -1086,6 +1086,9 @@ static int __devinit omap_gpio_probe(struct
+>>> platform_device *pdev)
+>>>  #ifdef CONFIG_OF_GPIO
+>>>         bank->chip.of_node = of_node_get(node);
+>>>  #endif
+>>> +       if (bank->get_context_loss_count)
+>>> +               bank->context_loss_count =
+>>> +                               bank->get_context_loss_count(bank->dev);
+>>>
+>>>         bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
+>>>         if (bank->irq_base < 0) {
+>>>
+>>
+>> Looks like you found the culprit. :) It does fix the problem.
+> So this looks similar to what NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> reported in
+> another thread.
+> The reason was context_loss_count = 1 for GPIO BANK#0 which of course is in the
+> WKUP domain. In fact he tried out with the same fix. Anyways, we
+> should hear from
+> Kevin now whether it is feasible to fix the context_loss_count for the WKUP GPIO
+> bank or to put the workaround here in the gpio driver.
 
-Looking at the result of this patch, there seem to be a few mistakes 
-remaining in the probe routine.
+Ok, so I have been looking at this some more today. I believe that the
+actual bug is that we are not checking to see if "loses_context" is true
+before populating "get_context_loss_count" (see omap dmtimer driver).
+For bank0 loses_context is false and so we should never be calling
+"get_context_loss_count" in the first place.
 
-If the regulator_get() call fails, the failure is logged but ignored.  
-Is that really the right thing to do?
+I will send out a patch to fix this and will copy Kevin and Franky.
 
-The pm_runtime_get_sync() call occurs before the probe is finished.  
-This means that ehci-hcd's resume routine will try to power-up the 
-device before its data structures have been initialized.  That can't be 
-right.
+Franky, if you can test and confirm it works that would be great.
 
-The "get clocks" section occurs after the call to usb_add_hcd().  This
-means the controller will start running before the clock references are
-acquired -- so the clocks might still be turned off.  That can't be
-right either.
+Kevin, if you can review that would be great too.
 
-If the clk_get(dev, "utmi_p1_gfclk") call fails, the error path never 
-calls usb_remove_hcd().
-
-The "err_add_hcd" pathway never calls usb_put_hcd().
-
-I'm going to resubmit my most recent patch based the current 
-ehci-omap.c, but you or someone else will still have to fix these 
-problems.
-
-Alan Stern
-
+Cheers
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
