@@ -1,109 +1,79 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: Re: [PATCH 2/3] OMAP2+ devices add mac address allocation register
- api
-Date: Fri, 29 Jun 2012 22:03:29 +0800
-Message-ID: <4FEDB5B1.8000703@linaro.org>
-References: <20120629054404.11091.31289.stgit@build.warmcat.com> <4FED7E6A.4090207@linaro.org> <20120629120325.GD4202@atomide.com> <201206291345.49878.arnd@arndb.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP3: PM: don't explicitly enable the IO-chain interrupt
+Date: Fri, 29 Jun 2012 09:07:14 -0500
+Message-ID: <87y5n6ky99.fsf@ti.com>
+References: <1340933123-30401-1-git-send-email-javier@dowhile0.org>
+	<87obo2mg61.fsf@ti.com>
+	<CAAwP0s2F2pfBUpMzDaGJvoDNtQ+mFCTMnN43MoYD=k-rRT1mGw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from warmcat.com ([87.106.134.80]:40142 "EHLO warmcat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968Ab2F2ODk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Jun 2012 10:03:40 -0400
-In-Reply-To: <201206291345.49878.arnd@arndb.de>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59180 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752201Ab2F2OHB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Jun 2012 10:07:01 -0400
+Received: by ghbz2 with SMTP id z2so2903574ghb.34
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 07:07:00 -0700 (PDT)
+In-Reply-To: <CAAwP0s2F2pfBUpMzDaGJvoDNtQ+mFCTMnN43MoYD=k-rRT1mGw@mail.gmail.com>
+	(Javier Martinez Canillas's message of "Fri, 29 Jun 2012 15:25:02
+	+0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nicolas.pitre@linaro.org, s-jan@ti.com, patches@linaro.org, rostedt@goodmis.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 06/29/12 21:45, the mail apparently from Arnd Bergmann included:
-> On Friday 29 June 2012, Tony Lindgren wrote:
->> * Andy Green <andy.green@linaro.org> [120629 03:12]:
->>>> 2. Is this really how we want to pass the board generated mac addr=
-esses
->>>>     and other dynamically generated data to the drivers that are d=
-evice
->>>>     tree based?
->>>
->>> The issue is that both these busses have an async probe, in the cas=
-e
->>> of USB stack the maintainer was not interested last year in adding
->>> platform data.  Maybe it changed but that's my understanding.
+Javier Martinez Canillas <martinez.javier@gmail.com> writes:
+
+> On Fri, Jun 29, 2012 at 2:55 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> +Paul
 >>
->> OK, I'd like to hear Arnds comments on the #2 above too as this is
->> a more generic issue.
->
-> In case we have a device tree, we should just be using the USB bindin=
-g
-> to find the specific device node, and add the property there. Then
-> the device driver can use of_get_mac_address() on the usb device itse=
-lf.
->
-> I'm not sure what it takes to add the link for the device node in the
-> usb probing code, but my feeling is that it's not too hard.
->
-> Right now, USB is probed entirely without DT, so the patch is about
-> the best we can do.
-
-Yes none of this was really hard the problem with more generic approach=
-=20
-was getting comprehension and not auto-reject at the other subsystems.=20
-To be fair USB is USB and DT is Arm-specific issue.
-
->>>> 3. What about mac address in board-generic.c when booting panda wi=
-th
->>>>     device tree?
->>>
->>> I don't mind adapting it for that case.
+>> Javier Martinez Canillas <javier@dowhile0.org> writes:
 >>
->> Just to try to think about some alternatives, how about something li=
-ke
->> this: This all could be a driver called soft-mac or something that d=
-oes
->> what your patches are doing. Except then it would be completely gene=
-ric
->> and would be able to take device names and mac addresses from platfo=
-rm
->> data or from devicetree.
+>>> commit 99b59df0 ARM: OMAP3: PM: fix shared PRCM interrupt leave disabled at boot
+>>>
+>>> set the IRQ_NOAUTOEN flag to the PCRM IO-chain irq to avoid this
+>>> interrupt until the PM core code is ready to handle the interrupts.
+>>>
+>>> It seems that this is not needed anymore after the OMAP PRCM I/O chain
+>>> code re-implementation introduced on merge commit:
+>>>
+>>> 9a17d88 Merge tag 'omap-devel-c-for-3.6' of git://git.kernel.org/pub/scm/linux/kernel/
+>>>
+>>> The IRQ_NOAUTOEN flags is not set for the PRCM I/O irq anymore on the
+>>> new implementation. This has the effect that a request_irq() for the
+>>> PRCM I/O chain irq will auto-enable the requested IRQ and a later call
+>>> to enable_irq() will lead to the following warning:
+>>
+>> I noticed that warning too, but I don't think $SUBJECT patch is the
+>> right fix.
+>>
+>> We still need the IRQ_NOAUTOEN so that cases where PM is not enabled,
+>> the IO chain interrupts are not enabled.
+>>
+>> Looking closer, it looks like the merge of omap-devel-c-for-3.6 removed
+>> the IRQ_NOAUTOEN in the merge resolution, which wasn't right.
+>>
+>> I'll cook up a fix for this.
+>>
+>> Kevin
+>>
+>>
 >
-> That driver would be completely generic to all platforms, but be
-> very specific to finding the mac address of a device, as opposed to
-> other properties.
+> Hi Kevin,
 >
-> I suspect that if we do that, we will still need a way to bind a
-> device_node to a usb device for the purpose of finding other
-> properties, such as external regulators or clocks that are connected
-> to a hardwired USB device.
+> Yes, I can confirme you that the IRQ_NOAUTOEN was gone. I didn't know
+> if the right solution was to set that flag again or to just remove the
+> duplicated enable_irq(). I should had tag my patch with RFC instead of
+> PATCH I guess :-)
 
-There's no standardized exposure of logical regulators over USB afaik s=
-o=20
-you won't be able to 'find' them without a VID:PID -bound specific=20
-driver that already knew about them.
+No worries.   I just sent a patch adding back the IRQ_NOAUTOEN.
 
-> Normally USB tends to just work because the device is expected to
-> be hot-pluggable anyway. If the USB device is soldered to the
-> board, the hardware designers can take some shortcuts
+Thanks for reporting the bug.  I had noticed the boot time errors to but
+had not yet got to looking into them.  Your patch made me dig deeper.
 
-Tony's point about modularized host drivers coming in random order seem=
-s=20
-to be a fair one.  We don't build ehci modular so we don't care about i=
-t=20
-but from maintainer pov it's a legit issue.
+Thanks,
 
--Andy
-
---=20
-Andy Green | TI Landing Team Leader
-Linaro.org =E2=94=82 Open source software for ARM SoCs | Follow Linaro
-http://facebook.com/pages/Linaro/155974581091106  -=20
-http://twitter.com/#!/linaroorg - http://linaro.org/linaro-blog
+Kevin
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
