@@ -1,98 +1,119 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv3 15/17] i2c: omap: simplify IRQ exit path
-Date: Fri, 29 Jun 2012 15:43:35 +0530
-Message-ID: <1340964817-8599-16-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv3 05/17] i2c: omap: simplify omap_i2c_ack_stat()
+Date: Fri, 29 Jun 2012 15:43:25 +0530
+Message-ID: <1340964817-8599-6-git-send-email-shubhrajyoti@ti.com>
 References: <1340964817-8599-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42581 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753768Ab2F2KOQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 06:14:16 -0400
-In-Reply-To: <1340964817-8599-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340964817-8599-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-instead of having multiple return points, use
-a goto statement to make that clearer.
+stat & BIT(1) is the same as BIT(1), so let's
+simplify things a bit by removing "stat &" from
+all omap_i2c_ack_stat() calls.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Code snippet (extremely simplified):
+
+if (stat & NACK) {
+        ...
+        omap_i2c_ack_stat(dev, stat & NACK);
+}
+
+if (stat & RDR) {
+        ...
+        omap_i2c_ack_stat(dev, stat & RDR);
+}
+
+and so on. The tricky place is only WRT errata handling, for example:
+
+if (*stat & (NACK | AL)) {
+        omap_i2c_ack_stat(dev, *stat & (XRDY | XDR));
+        ...
+}
+
+but in this case, the errata says we must clear XRDY and XDR if that
+errata triggers, so if they just got enabled or not, it doesn't matter.
+
+Another tricky place is RDR | RRDY (likewise for XDR | XRDY):
+
+if (stat & (RDR | RRDY)) {
+        ...
+        omap_i2c_ack_stat(dev, stat & (RDR | RRDY));
+}
+
+again here there will be no issues because those IRQs never fire
+simultaneously and one will only after after we have handled the
+previous, that's because the same FIFO is used anyway and we won't shift
+data into FIFO until we tell the IP "hey, I'm done with the FIFO, you
+can shift more data"
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Reviewed-by : Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+
+- Added the explaination from the discurssion to the commit logs
+as per Wolfram's suggestion.
+
+ drivers/i2c/busses/i2c-omap.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2cd3b9a..1196417 100644
+index 7be661e..359ee08 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -873,24 +873,21 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
+@@ -750,7 +750,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
+ 
+ 	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
+ 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+-			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
+ 							OMAP_I2C_STAT_XDR));
+ 			return -ETIMEDOUT;
+ 		}
+@@ -811,10 +811,11 @@ complete:
+ 		 */
+ 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+ 					OMAP_I2C_STAT_AL)) {
+-			omap_i2c_ack_stat(dev, stat &
+-				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+-				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
+-				OMAP_I2C_STAT_ARDY));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
++						OMAP_I2C_STAT_RDR |
++						OMAP_I2C_STAT_XRDY |
++						OMAP_I2C_STAT_XDR |
++						OMAP_I2C_STAT_ARDY));
+ 			omap_i2c_complete_cmd(dev, err);
+ 			return IRQ_HANDLED;
+ 		}
+@@ -861,8 +862,8 @@ complete:
+ 					}
+ 				}
+ 			}
+-			omap_i2c_ack_stat(dev,
+-				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
++						OMAP_I2C_STAT_RDR));
+ 			continue;
  		}
  
- complete:
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+@@ -909,8 +910,8 @@ complete:
  
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-			omap_i2c_ack_stat(dev,
+-				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
++			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
++						OMAP_I2C_STAT_XDR));
+ 			continue;
  		}
- 
- 		/*
-@@ -903,8 +900,7 @@ complete:
- 						OMAP_I2C_STAT_XRDY |
- 						OMAP_I2C_STAT_XDR |
- 						OMAP_I2C_STAT_ARDY));
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RDR) {
-@@ -973,19 +969,19 @@ complete:
- 			dev_err(dev->dev, "Receive overrun\n");
- 			err |= OMAP_I2C_STAT_ROVR;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			err |= OMAP_I2C_STAT_XUDF;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 	} while (stat);
- 
-+out:
-+	omap_i2c_complete_cmd(dev, err);
- 	return IRQ_HANDLED;
- }
  
 -- 
 1.7.5.4
-
