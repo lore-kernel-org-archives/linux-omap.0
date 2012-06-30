@@ -1,66 +1,109 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Current state of AM33xx patches
-Date: Fri, 29 Jun 2012 20:11:12 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
- <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v3 4/4] memory: emif: add device tree support to emif
+ driver
+Date: Fri, 29 Jun 2012 22:50:57 -0400
+Message-ID: <20120630025057.GA3482@kroah.com>
+References: <CAMQu2gy7oj-+1qCteAFMXEeOL-Wdrs6e4gKWM=HsOukXcPuv-A@mail.gmail.com>
+ <20120625182830.GA23850@kroah.com>
+ <CAMQu2gxDG=69X7UQPUoTLP5h1ZLpHngp=3C4vSDOS6L-N2XZSw@mail.gmail.com>
+ <4FE9467A.2050906@ti.com>
+ <CAMQu2gzOszT54ZU0Z3-9k=mMM7yTCH_MCZV=gRKwGoGRj0zjaA@mail.gmail.com>
+ <4FE947F7.9030000@ti.com>
+ <CAMQu2gwzFV-79CuEAmOHCZ7XivXrALjXkoB+J-QpgJkZ_PoRVg@mail.gmail.com>
+ <CAMQu2gx2RT0iyo+LD1TyTJg9FRSUD8SK2tA=nxAoULzQOa6L7A@mail.gmail.com>
+ <20120629210752.GA13859@kroah.com>
+ <4FEE1E04.1060600@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35960 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab2F3CLN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 22:11:13 -0400
-In-Reply-To: <4FEDF54D.4030609@gmail.com>
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:36788 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021Ab2F3CvC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 22:51:02 -0400
+Received: by gglu4 with SMTP id u4so3321451ggl.19
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 19:51:01 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4FEE1E04.1060600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Fri, 29 Jun 2012, Daniel Mack wrote:
+On Fri, Jun 29, 2012 at 04:28:36PM -0500, Jon Hunter wrote:
+> 
+> On 06/29/2012 04:07 PM, Greg Kroah-Hartman wrote:
+> > On Fri, Jun 29, 2012 at 07:16:19PM +0530, Shilimkar, Santosh wrote:
+> >> Greg,
+> >>
+> >> On Tue, Jun 26, 2012 at 1:19 PM, Shilimkar, Santosh
+> >> <santosh.shilimkar@ti.com> wrote:
+> >>>
+> >>> On Tue, Jun 26, 2012 at 10:56 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> >>>> On Tuesday 26 June 2012 10:53 AM, Shilimkar, Santosh wrote:
+> >>>>>
+> >>>>> On Tue, Jun 26, 2012 at 10:49 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
+> >>>>>>
+> >>>>>> On Tuesday 26 June 2012 10:39 AM, Shilimkar, Santosh wrote:
+> >>>>>>>>>
+> >>>>>>>>>
+> >>>>>>>>> +#if defined(CONFIG_OF)
+> >>>>>>>>>>
+> >>>>>>>>>>  >    +static const struct of_device_id emif_of_match[] = {
+> >>>>>>>>>>  >    +             { .compatible = "ti,emif-4d" },
+> >>>>>>>>>>  >    +             { .compatible = "ti,emif-4d5" },
+> >>>>>>>>>>  >    +             {},
+> >>>>>>>>>>  >    +};
+> >>>>>>>>>>  >    +MODULE_DEVICE_TABLE(of, emif_of_match);
+> >>>>>>>>>>  >    +#endif
+> >>>>>>>>>>  >    +
+> >>>>>>>>>>  >      static struct platform_driver emif_driver = {
+> >>>>>>>>>>  >           .remove         = __exit_p(emif_remove),
+> >>>>>>>>>>  >           .shutdown       = emif_shutdown,
+> >>>>>>>>>>  >           .driver = {
+> >>>>>>>>>>  >                   .name = "emif",
+> >>>>>>>>>>  >    +#if defined(CONFIG_OF)
+> >>>>>>>>>>  >    +             .of_match_table = of_match_ptr(emif_of_match),
+> >>>>>>>>>>  >    +#endif
+> >>>>>>>>
+> >>>>>>>>
+> >>>>>>>>>
+> >>>>>>>>>  Are these two still #if defined needed?
+> >>>>>>>>>
+> >>>>>>>>>  Also, what about the IS_DEFINED macro?
+> >>>>>>>>>
+> >>>>>>>
+> >>>>>>> Yes. To avoid the build break in !DT build.
+> >>>>>>>
+> >>>>>>
+> >>>>>> No, infact of_match_ptr is there just so you can avoid a
+> >>>>>> #ifdef around and not break !CONFIG_OF.
+> >>>>>
+> >>>>>
+> >>>>> Need to recheck but the build was throwing error becasue of
+> >>>>> "emif_of_match"
+> >>>>> mostly.
+> >>>>
+> >>>>
+> >>>> You still need the first one. I meant the second one around
+> >>>> 'of_match_ptr' should be removed.
+> >>>>
+> >>>> With !CONFIG_OF, of_match_ptr(_ptr) is just defined as NULL.
+> >>>>
+> >>> Yep. That make sense too.
+> >>> Will drop the second check.
+> >>>
+> >> Posted the entire series again with updated $subject patch.
+> >> With your ack, I will ask Tony to pull this series for 3.6.
+> > 
+> > Sent them where?  I didn't see a copy here :(
+> 
+> Hi Greg, should have hit both linux-omap and linux-arm. See:
+> 
+> http://marc.info/?l=linux-omap&m=134097764625471&w=2
 
-> Correct me if I'm mistaken, but this isn't really what DT was designed
-> for. In this context, it is used as a simple list of devices to probe,
-> not as a abstracted description of the hardware resources and their
-> interconnects.
->
-> The question is: is that the way things should be kept for OMAP/AM33xx? 
-> Or should work be done to move all that hwmod stuff to proper 
-> clk/irq/res definitions that can be used from DT generically?
+Ah, two lists I am not on, so how would I know to be able to ack them?
+Please always cc: people you wish to review patches, otherwise it could
+get lost, or as in this case, the people might not even be on the lists
+you send the patches to.
 
-Eventually the MPU address space, MPU interrupt controller IRQ line data, 
-system DMA controller data, and some of the other common resource 
-information are probably going to migrate from the hwmod data into the DT 
-blob.
-
-And probably some of the power management-related data will migrate to the 
-IP block driver code used for a particular SoC.
-
-Probably the best time for this to happen is after the PRM/CM/SCM drivers 
-are written, and an omap_bus layer is created from the existing hwmod 
-code.  The planning that we've done in conjunction with the ARM DT people 
-involves getting DT board file handling done first, which is really what 
-DT makes the most sense for.  Then looking at the on-chip SoC stuff 
-afterwards.
-
-> As there's actually no need to care for legacy users at all (as no board 
-> support for AM33xx is mainline),
-
-The hwmod data is unrelated to the board files.
-
-The "legacy" user here is the hwmod code.  It uses the data to create 
-devices for the IP blocks on the SoC, to reset those IP blocks at kernel 
-init, and to implement IP block power management via the runtime PM layer.
-
-> shouldn't things be done right in the first place?
-
-Well, all this is distinct from what the 'right' thing is or was.
-
-It should be noted that from the power management and multiple bus 
-initiator perspectives, the process of migrating from hwmod data to DT 
-will be lossy.  For example, DT uses a single-root perspective of the 
-device hierarchy, and does not explicitly encode the interconnections 
-between IP blocks.
-
-
-- Paul
+greg k-h
