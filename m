@@ -1,311 +1,484 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP4: hwmod data: temporarily remove data for the
- usb_host_fs and aess IP blocks
-Date: Fri, 29 Jun 2012 21:53:26 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1206292151290.2338@utopia.booyaka.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v4 4/4] memory: emif: add device tree support to emif driver
+Date: Sat, 30 Jun 2012 09:38:41 +0530
+Message-ID: <CAMQu2gz6jdcR4hQPPbmyO8vrkdmppHeCkZmV3_9w27LOzKrUuA@mail.gmail.com>
+References: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com> <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-162668941-1341028406=:2338"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60664 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab2F3Dx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Jun 2012 23:53:27 -0400
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:44064 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750699Ab2F3EJH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 30 Jun 2012 00:09:07 -0400
+Received: by qabj34 with SMTP id j34so1007720qab.4
+        for <linux-omap@vger.kernel.org>; Fri, 29 Jun 2012 21:09:03 -0700 (PDT)
+In-Reply-To: <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: b-cousson@ti.com
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+(+ Greg, By mistake the your name got dropped cc from list)
 
---155748971-162668941-1341028406=:2338
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-The OMAP4 usb_host_fs (OHCI) and AESS IP blocks require some special
-programming for them to enter idle.  Without this programming, they
-will prevent the rest of the chip from entering full chip idle.
-
-To implement the idle programming cleanly, this will take some
-coordination between maintainers.  This is likely to take some time,
-so it is probably best to leave this for 3.6 or 3.7.  So, in the
-meantime, simply remove this data.
-
-Later, once the appropriate support is available, this patch can be
-reverted.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=EEt Cousson <b-cousson@ti.com>
----
-Intended for v3.5-rc.
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  178 ------------------------=
-----
- 1 file changed, 178 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
-p2/omap_hwmod_44xx_data.c
-index f30e861..95cbfe6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -296,60 +296,6 @@ static struct omap_hwmod omap44xx_ocp_wp_noc_hwmod =3D=
- {
-  */
-=20
- /*
-- * 'aess' class
-- * audio engine sub system
-- */
--
--static struct omap_hwmod_class_sysconfig omap44xx_aess_sysc =3D {
--=09.rev_offs=09=3D 0x0000,
--=09.sysc_offs=09=3D 0x0010,
--=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
--=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART |
--=09=09=09   MSTANDBY_SMART_WKUP),
--=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
--};
--
--static struct omap_hwmod_class omap44xx_aess_hwmod_class =3D {
--=09.name=09=3D "aess",
--=09.sysc=09=3D &omap44xx_aess_sysc,
--};
--
--/* aess */
--static struct omap_hwmod_irq_info omap44xx_aess_irqs[] =3D {
--=09{ .irq =3D 99 + OMAP44XX_IRQ_GIC_START },
--=09{ .irq =3D -1 }
--};
--
--static struct omap_hwmod_dma_info omap44xx_aess_sdma_reqs[] =3D {
--=09{ .name =3D "fifo0", .dma_req =3D 100 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo1", .dma_req =3D 101 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo2", .dma_req =3D 102 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo3", .dma_req =3D 103 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo4", .dma_req =3D 104 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo5", .dma_req =3D 105 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo6", .dma_req =3D 106 + OMAP44XX_DMA_REQ_START },
--=09{ .name =3D "fifo7", .dma_req =3D 107 + OMAP44XX_DMA_REQ_START },
--=09{ .dma_req =3D -1 }
--};
--
--static struct omap_hwmod omap44xx_aess_hwmod =3D {
--=09.name=09=09=3D "aess",
--=09.class=09=09=3D &omap44xx_aess_hwmod_class,
--=09.clkdm_name=09=3D "abe_clkdm",
--=09.mpu_irqs=09=3D omap44xx_aess_irqs,
--=09.sdma_reqs=09=3D omap44xx_aess_sdma_reqs,
--=09.main_clk=09=3D "aess_fck",
--=09.prcm =3D {
--=09=09.omap4 =3D {
--=09=09=09.clkctrl_offs =3D OMAP4_CM1_ABE_AESS_CLKCTRL_OFFSET,
--=09=09=09.context_offs =3D OMAP4_RM_ABE_AESS_CONTEXT_OFFSET,
--=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
--=09=09},
--=09},
--};
--
--/*
-  * 'c2c' class
-  * chip 2 chip interface used to plug the ape soc (omap) with an external =
-modem
-  * soc
-@@ -3285,55 +3231,6 @@ static struct omap_hwmod omap44xx_uart4_hwmod =3D {
- };
-=20
- /*
-- * 'usb_host_fs' class
-- * full-speed usb host controller
-- */
--
--/* The IP is not compliant to type1 / type2 scheme */
--static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_usb_host_fs =3D =
-{
--=09.midle_shift=09=3D 4,
--=09.sidle_shift=09=3D 2,
--=09.srst_shift=09=3D 1,
--};
--
--static struct omap_hwmod_class_sysconfig omap44xx_usb_host_fs_sysc =3D {
--=09.rev_offs=09=3D 0x0000,
--=09.sysc_offs=09=3D 0x0210,
--=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
--=09=09=09   SYSC_HAS_SOFTRESET),
--=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--=09=09=09   SIDLE_SMART_WKUP),
--=09.sysc_fields=09=3D &omap_hwmod_sysc_type_usb_host_fs,
--};
--
--static struct omap_hwmod_class omap44xx_usb_host_fs_hwmod_class =3D {
--=09.name=09=3D "usb_host_fs",
--=09.sysc=09=3D &omap44xx_usb_host_fs_sysc,
--};
--
--/* usb_host_fs */
--static struct omap_hwmod_irq_info omap44xx_usb_host_fs_irqs[] =3D {
--=09{ .name =3D "std", .irq =3D 89 + OMAP44XX_IRQ_GIC_START },
--=09{ .name =3D "smi", .irq =3D 90 + OMAP44XX_IRQ_GIC_START },
--=09{ .irq =3D -1 }
--};
--
--static struct omap_hwmod omap44xx_usb_host_fs_hwmod =3D {
--=09.name=09=09=3D "usb_host_fs",
--=09.class=09=09=3D &omap44xx_usb_host_fs_hwmod_class,
--=09.clkdm_name=09=3D "l3_init_clkdm",
--=09.mpu_irqs=09=3D omap44xx_usb_host_fs_irqs,
--=09.main_clk=09=3D "usb_host_fs_fck",
--=09.prcm =3D {
--=09=09.omap4 =3D {
--=09=09=09.clkctrl_offs =3D OMAP4_CM_L3INIT_USB_HOST_FS_CLKCTRL_OFFSET,
--=09=09=09.context_offs =3D OMAP4_RM_L3INIT_USB_HOST_FS_CONTEXT_OFFSET,
--=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
--=09=09},
--=09},
--};
--
--/*
-  * 'usb_host_hs' class
-  * high-speed multi-port usb host controller
-  */
-@@ -3863,14 +3760,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_=
-main_2 =3D {
- =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
--/* usb_host_fs -> l3_main_2 */
--static struct omap_hwmod_ocp_if omap44xx_usb_host_fs__l3_main_2 =3D {
--=09.master=09=09=3D &omap44xx_usb_host_fs_hwmod,
--=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
--=09.clk=09=09=3D "l3_div_ck",
--=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* usb_host_hs -> l3_main_2 */
- static struct omap_hwmod_ocp_if omap44xx_usb_host_hs__l3_main_2 =3D {
- =09.master=09=09=3D &omap44xx_usb_host_hs_hwmod,
-@@ -3921,14 +3810,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_=
-main_3 =3D {
- =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
--/* aess -> l4_abe */
--static struct omap_hwmod_ocp_if omap44xx_aess__l4_abe =3D {
--=09.master=09=09=3D &omap44xx_aess_hwmod,
--=09.slave=09=09=3D &omap44xx_l4_abe_hwmod,
--=09.clk=09=09=3D "ocp_abe_iclk",
--=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* dsp -> l4_abe */
- static struct omap_hwmod_ocp_if omap44xx_dsp__l4_abe =3D {
- =09.master=09=09=3D &omap44xx_dsp_hwmod,
-@@ -4003,42 +3884,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__ocp=
-_wp_noc =3D {
- =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
--static struct omap_hwmod_addr_space omap44xx_aess_addrs[] =3D {
--=09{
--=09=09.pa_start=09=3D 0x401f1000,
--=09=09.pa_end=09=09=3D 0x401f13ff,
--=09=09.flags=09=09=3D ADDR_TYPE_RT
--=09},
--=09{ }
--};
--
--/* l4_abe -> aess */
--static struct omap_hwmod_ocp_if omap44xx_l4_abe__aess =3D {
--=09.master=09=09=3D &omap44xx_l4_abe_hwmod,
--=09.slave=09=09=3D &omap44xx_aess_hwmod,
--=09.clk=09=09=3D "ocp_abe_iclk",
--=09.addr=09=09=3D omap44xx_aess_addrs,
--=09.user=09=09=3D OCP_USER_MPU,
--};
--
--static struct omap_hwmod_addr_space omap44xx_aess_dma_addrs[] =3D {
--=09{
--=09=09.pa_start=09=3D 0x490f1000,
--=09=09.pa_end=09=09=3D 0x490f13ff,
--=09=09.flags=09=09=3D ADDR_TYPE_RT
--=09},
--=09{ }
--};
--
--/* l4_abe -> aess (dma) */
--static struct omap_hwmod_ocp_if omap44xx_l4_abe__aess_dma =3D {
--=09.master=09=09=3D &omap44xx_l4_abe_hwmod,
--=09.slave=09=09=3D &omap44xx_aess_hwmod,
--=09.clk=09=09=3D "ocp_abe_iclk",
--=09.addr=09=09=3D omap44xx_aess_dma_addrs,
--=09.user=09=09=3D OCP_USER_SDMA,
--};
--
- /* l3_main_2 -> c2c */
- static struct omap_hwmod_ocp_if omap44xx_l3_main_2__c2c =3D {
- =09.master=09=09=3D &omap44xx_l3_main_2_hwmod,
-@@ -5847,24 +5692,6 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per__uar=
-t4 =3D {
- =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
--static struct omap_hwmod_addr_space omap44xx_usb_host_fs_addrs[] =3D {
--=09{
--=09=09.pa_start=09=3D 0x4a0a9000,
--=09=09.pa_end=09=09=3D 0x4a0a93ff,
--=09=09.flags=09=09=3D ADDR_TYPE_RT
--=09},
--=09{ }
--};
--
--/* l4_cfg -> usb_host_fs */
--static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_host_fs =3D {
--=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
--=09.slave=09=09=3D &omap44xx_usb_host_fs_hwmod,
--=09.clk=09=09=3D "l4_div_ck",
--=09.addr=09=09=3D omap44xx_usb_host_fs_addrs,
--=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- static struct omap_hwmod_addr_space omap44xx_usb_host_hs_addrs[] =3D {
- =09{
- =09=09.name=09=09=3D "uhh",
-@@ -6014,13 +5841,11 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp=
-_ifs[] __initdata =3D {
- =09&omap44xx_iva__l3_main_2,
- =09&omap44xx_l3_main_1__l3_main_2,
- =09&omap44xx_l4_cfg__l3_main_2,
--=09&omap44xx_usb_host_fs__l3_main_2,
- =09&omap44xx_usb_host_hs__l3_main_2,
- =09&omap44xx_usb_otg_hs__l3_main_2,
- =09&omap44xx_l3_main_1__l3_main_3,
- =09&omap44xx_l3_main_2__l3_main_3,
- =09&omap44xx_l4_cfg__l3_main_3,
--=09&omap44xx_aess__l4_abe,
- =09&omap44xx_dsp__l4_abe,
- =09&omap44xx_l3_main_1__l4_abe,
- =09&omap44xx_mpu__l4_abe,
-@@ -6029,8 +5854,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_i=
-fs[] __initdata =3D {
- =09&omap44xx_l4_cfg__l4_wkup,
- =09&omap44xx_mpu__mpu_private,
- =09&omap44xx_l4_cfg__ocp_wp_noc,
--=09&omap44xx_l4_abe__aess,
--=09&omap44xx_l4_abe__aess_dma,
- =09&omap44xx_l3_main_2__c2c,
- =09&omap44xx_l4_wkup__counter_32k,
- =09&omap44xx_l4_cfg__ctrl_module_core,
-@@ -6136,7 +5959,6 @@ static struct omap_hwmod_ocp_if *omap44xx_hwmod_ocp_i=
-fs[] __initdata =3D {
- =09&omap44xx_l4_per__uart2,
- =09&omap44xx_l4_per__uart3,
- =09&omap44xx_l4_per__uart4,
--=09&omap44xx_l4_cfg__usb_host_fs,
- =09&omap44xx_l4_cfg__usb_host_hs,
- =09&omap44xx_l4_cfg__usb_otg_hs,
- =09&omap44xx_l4_cfg__usb_tll_hs,
---=20
-1.7.10
-
---155748971-162668941-1341028406=:2338--
+On Fri, Jun 29, 2012 at 7:13 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> From: Aneesh V <aneesh@ti.com>
+>
+> Device tree support for the EMIF driver.
+>
+> Reviewed-by: Benoit Cousson <b-cousson@ti.com>
+> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
+> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> Signed-off-by: Aneesh V <aneesh@ti.com>
+> [santosh.shilimkar@ti.com: Rebased against 3.5-rc]
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+> =A0drivers/memory/emif.c | =A0291 +++++++++++++++++++++++++++++++++++=
++++++++++++++-
+> =A01 file changed, 290 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
+> index 33a4396..101997b 100644
+> --- a/drivers/memory/emif.c
+> +++ b/drivers/memory/emif.c
+> @@ -18,6 +18,7 @@
+> =A0#include <linux/platform_device.h>
+> =A0#include <linux/interrupt.h>
+> =A0#include <linux/slab.h>
+> +#include <linux/of.h>
+> =A0#include <linux/debugfs.h>
+> =A0#include <linux/seq_file.h>
+> =A0#include <linux/module.h>
+> @@ -49,6 +50,7 @@
+> =A0* =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 frequenc=
+y in effect at the moment)
+> =A0* @plat_data: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 Pointer to saved pla=
+tform data.
+> =A0* @debugfs_root: =A0 =A0 =A0 =A0 =A0 =A0 =A0dentry to the root fol=
+der for EMIF in debugfs
+> + * @np_ddr: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Pointer to ddr de=
+vice tree node
+> =A0*/
+> =A0struct emif_data {
+> =A0 =A0 =A0 =A0u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0duplicate;
+> @@ -63,6 +65,7 @@ struct emif_data {
+> =A0 =A0 =A0 =A0struct emif_regs =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*curr_=
+regs;
+> =A0 =A0 =A0 =A0struct emif_platform_data =A0 =A0 =A0 *plat_data;
+> =A0 =A0 =A0 =A0struct dentry =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *deb=
+ugfs_root;
+> + =A0 =A0 =A0 struct device_node =A0 =A0 =A0 =A0 =A0 =A0 =A0*np_ddr;
+> =A0};
+>
+> =A0static struct emif_data *emif1;
+> @@ -1148,6 +1151,278 @@ static int is_custom_config_valid(struct emif=
+_custom_configs *cust_cfgs,
+> =A0 =A0 =A0 =A0return valid;
+> =A0}
+>
+> +#if defined(CONFIG_OF)
+> +static void __init_or_module of_get_custom_configs(struct device_nod=
+e *np_emif,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct emif_data *emif)
+> +{
+> + =A0 =A0 =A0 struct emif_custom_configs =A0 =A0 =A0*cust_cfgs =3D NU=
+LL;
+> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 len;
+> + =A0 =A0 =A0 const int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *=
+lpmode, *poll_intvl;
+> +
+> + =A0 =A0 =A0 lpmode =3D of_get_property(np_emif, "low-power-mode", &=
+len);
+> + =A0 =A0 =A0 poll_intvl =3D of_get_property(np_emif, "temp-alert-pol=
+l-interval", &len);
+> +
+> + =A0 =A0 =A0 if (lpmode || poll_intvl)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cust_cfgs =3D devm_kzalloc(emif->dev, s=
+izeof(*cust_cfgs),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GFP_KERNEL);
+> +
+> + =A0 =A0 =A0 if (!cust_cfgs)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> + =A0 =A0 =A0 if (lpmode) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cust_cfgs->mask |=3D EMIF_CUSTOM_CONFIG=
+_LPMODE;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cust_cfgs->lpmode =3D *lpmode;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 of_property_read_u32(np_emif,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "low-po=
+wer-mode-timeout-performance",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &cust_c=
+fgs->lpmode_timeout_performance);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 of_property_read_u32(np_emif,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "low-po=
+wer-mode-timeout-power",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &cust_c=
+fgs->lpmode_timeout_power);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 of_property_read_u32(np_emif,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "low-po=
+wer-mode-freq-threshold",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &cust_c=
+fgs->lpmode_freq_threshold);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (poll_intvl) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cust_cfgs->mask |=3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 EMIF_CU=
+STOM_CONFIG_TEMP_ALERT_POLL_INTERVAL;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cust_cfgs->temp_alert_poll_interval_ms =
+=3D *poll_intvl;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (!is_custom_config_valid(cust_cfgs, emif->dev)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 devm_kfree(emif->dev, cust_cfgs);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 emif->plat_data->custom_configs =3D cust_cfgs;
+> +}
+> +
+> +static void __init_or_module of_get_min_tck(struct device_node *np,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct emif_data *emif)
+> +{
+> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 0;
+> + =A0 =A0 =A0 struct lpddr2_min_tck =A0 *min;
+> +
+> + =A0 =A0 =A0 min =3D devm_kzalloc(emif->dev, sizeof(*min), GFP_KERNE=
+L);
+> + =A0 =A0 =A0 if (!min)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto default_min_tck;
+> +
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRPab-min-tck", &min=
+->tRPab);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRCD-min-tck", &min-=
+>tRCD);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tWR-min-tck", &min->=
+tWR);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRASmin-min-tck", &m=
+in->tRASmin);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRRD-min-tck", &min-=
+>tRRD);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tWTR-min-tck", &min-=
+>tWTR);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tXP-min-tck", &min->=
+tXP);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRTP-min-tck", &min-=
+>tRTP);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tCKE-min-tck", &min-=
+>tCKE);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tCKESR-min-tck", &mi=
+n->tCKESR);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tFAW-min-tck", &min-=
+>tFAW);
+> +
+> + =A0 =A0 =A0 if (ret) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 devm_kfree(emif->dev, min);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto default_min_tck;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 emif->plat_data->min_tck =3D min;
+> + =A0 =A0 =A0 return;
+> +
+> +default_min_tck:
+> + =A0 =A0 =A0 dev_warn(emif->dev, "%s: using default min-tck values\n=
+", __func__);
+> + =A0 =A0 =A0 emif->plat_data->min_tck =3D &lpddr2_jedec_min_tck;
+> +}
+> +
+> +static int __init_or_module of_do_get_timings(struct device_node *np=
+,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct lpddr2_timings *tim)
+> +{
+> + =A0 =A0 =A0 int ret;
+> +
+> + =A0 =A0 =A0 ret =3D of_property_read_u32(np, "max-freq", &tim->max_=
+freq);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "min-freq", &tim->min=
+_freq);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRPab", &tim->tRPab)=
+;
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRCD", &tim->tRCD);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tWR", &tim->tWR);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRAS-min", &tim->tRA=
+S_min);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRRD", &tim->tRRD);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tWTR", &tim->tWTR);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tXP", &tim->tXP);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRTP", &tim->tRTP);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tCKESR", &tim->tCKES=
+R);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tDQSCK-max", &tim->t=
+DQSCK_max);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tFAW", &tim->tFAW);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tZQCS", &tim->tZQCS)=
+;
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tZQCL", &tim->tZQCL)=
+;
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tZQinit", &tim->tZQi=
+nit);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tRAS-max-ns", &tim->=
+tRAS_max_ns);
+> + =A0 =A0 =A0 ret |=3D of_property_read_u32(np, "tDQSCK-max-derated",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 &tim->tDQSCK_max_derated);
+> +
+> + =A0 =A0 =A0 return ret;
+> +}
+> +
+> +static void __init_or_module of_get_ddr_timings(struct device_node *=
+np_ddr,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct emif_data *emif)
+> +{
+> + =A0 =A0 =A0 struct lpddr2_timings =A0 *timings =3D NULL;
+> + =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 arr_sz =3D =
+0, i =3D 0;
+> + =A0 =A0 =A0 struct device_node =A0 =A0 =A0*np_tim;
+> + =A0 =A0 =A0 char =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*tim_compat=
+;
+> +
+> + =A0 =A0 =A0 switch (emif->plat_data->device_info->type) {
+> + =A0 =A0 =A0 case DDR_TYPE_LPDDR2_S2:
+> + =A0 =A0 =A0 case DDR_TYPE_LPDDR2_S4:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tim_compat =3D "jedec,lpddr2-timings";
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 default:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(emif->dev, "%s: un-supported m=
+emory type\n", __func__);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 for_each_child_of_node(np_ddr, np_tim)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (of_device_is_compatible(np_tim, tim=
+_compat))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 arr_sz++;
+> +
+> + =A0 =A0 =A0 if (arr_sz)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 timings =3D devm_kzalloc(emif->dev, siz=
+eof(*timings) * arr_sz,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GFP_KERNEL);
+> +
+> + =A0 =A0 =A0 if (!timings)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto default_timings;
+> +
+> + =A0 =A0 =A0 for_each_child_of_node(np_ddr, np_tim) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (of_device_is_compatible(np_tim, tim=
+_compat)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (of_do_get_timings(n=
+p_tim, &timings[i])) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 devm_kf=
+ree(emif->dev, timings);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto de=
+fault_timings;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 i++;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 emif->plat_data->timings =3D timings;
+> + =A0 =A0 =A0 emif->plat_data->timings_arr_size =3D arr_sz;
+> +
+> + =A0 =A0 =A0 return;
+> +
+> +default_timings:
+> + =A0 =A0 =A0 get_default_timings(emif);
+> +
+> + =A0 =A0 =A0 return;
+> +}
+> +
+> +static void __init_or_module of_get_ddr_info(struct device_node *np_=
+emif,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct device_node *np_ddr,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct ddr_device_info *dev_info)
+> +{
+> + =A0 =A0 =A0 u32 density =3D 0, io_width =3D 0;
+> + =A0 =A0 =A0 int len;
+> +
+> + =A0 =A0 =A0 if (of_find_property(np_emif, "cs1-used", &len))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->cs1_used =3D true;
+> +
+> + =A0 =A0 =A0 if (of_find_property(np_emif, "cal-resistor-per-cs", &l=
+en))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->cal_resistors_per_cs =3D true=
+;
+> +
+> + =A0 =A0 =A0 if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s4")=
+)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->type =3D DDR_TYPE_LPDDR2_S4;
+> + =A0 =A0 =A0 else if (of_device_is_compatible(np_ddr , "jedec,lpddr2=
+-s2"))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->type =3D DDR_TYPE_LPDDR2_S2;
+> +
+> + =A0 =A0 =A0 of_property_read_u32(np_ddr, "density", &density);
+> + =A0 =A0 =A0 of_property_read_u32(np_ddr, "io-width", &io_width);
+> +
+> + =A0 =A0 =A0 /* Convert from density in Mb to the density encoding i=
+n jedc_ddr.h */
+> + =A0 =A0 =A0 if (density & (density - 1))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->density =3D 0;
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->density =3D __fls(density) - =
+5;
+> +
+> + =A0 =A0 =A0 /* Convert from io_width in bits to io_width encoding i=
+n jedc_ddr.h */
+> + =A0 =A0 =A0 if (io_width & (io_width - 1))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->io_width =3D 0;
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info->io_width =3D __fls(io_width) =
+- 1;
+> +}
+> +
+> +static struct emif_data * __init_or_module of_get_device_details(
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct device_node *np_emif, struct dev=
+ice *dev)
+> +{
+> + =A0 =A0 =A0 struct emif_data =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*emif =3D=
+ NULL;
+> + =A0 =A0 =A0 struct ddr_device_info =A0 =A0 =A0 =A0 =A0*dev_info =3D=
+ NULL;
+> + =A0 =A0 =A0 struct emif_platform_data =A0 =A0 =A0 *pd =3D NULL;
+> + =A0 =A0 =A0 struct device_node =A0 =A0 =A0 =A0 =A0 =A0 =A0*np_ddr;
+> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 len;
+> +
+> + =A0 =A0 =A0 np_ddr =3D of_parse_phandle(np_emif, "device-handle", 0=
+);
+> + =A0 =A0 =A0 if (!np_ddr)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
+> + =A0 =A0 =A0 emif =A0 =A0=3D devm_kzalloc(dev, sizeof(struct emif_da=
+ta), GFP_KERNEL);
+> + =A0 =A0 =A0 pd =A0 =A0 =A0=3D devm_kzalloc(dev, sizeof(*pd), GFP_KE=
+RNEL);
+> + =A0 =A0 =A0 dev_info =3D devm_kzalloc(dev, sizeof(*dev_info), GFP_K=
+ERNEL);
+> +
+> + =A0 =A0 =A0 if (!emif || !pd || !dev_info) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "%s: of_get_device_details=
+() failure!!\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 emif->plat_data =A0 =A0 =A0 =A0 =3D pd;
+> + =A0 =A0 =A0 pd->device_info =A0 =A0 =A0 =A0 =3D dev_info;
+> + =A0 =A0 =A0 emif->dev =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D dev;
+> + =A0 =A0 =A0 emif->np_ddr =A0 =A0 =A0 =A0 =A0 =A0=3D np_ddr;
+> + =A0 =A0 =A0 emif->temperature_level =3D SDRAM_TEMP_NOMINAL;
+> +
+> + =A0 =A0 =A0 if (of_device_is_compatible(np_emif, "ti,emif-4d"))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif->plat_data->ip_rev =3D EMIF_4D;
+> + =A0 =A0 =A0 else if (of_device_is_compatible(np_emif, "ti,emif-4d5"=
+))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif->plat_data->ip_rev =3D EMIF_4D5;
+> +
+> + =A0 =A0 =A0 of_property_read_u32(np_emif, "phy-type", &pd->phy_type=
+);
+> +
+> + =A0 =A0 =A0 if (of_find_property(np_emif, "hw-caps-ll-interface", &=
+len))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pd->hw_caps |=3D EMIF_HW_CAPS_LL_INTERF=
+ACE;
+> +
+> + =A0 =A0 =A0 of_get_ddr_info(np_emif, np_ddr, dev_info);
+> + =A0 =A0 =A0 if (!is_dev_data_valid(pd->device_info->type, pd->devic=
+e_info->density,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pd->device_info->io_wid=
+th, pd->phy_type, pd->ip_rev,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif->dev)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "%s: invalid device data!!=
+\n", __func__);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
+> + =A0 =A0 =A0 }
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* For EMIF instances other than EMIF1 see if the dev=
+ices connected
+> + =A0 =A0 =A0 =A0* are exactly same as on EMIF1(which is typically th=
+e case). If so,
+> + =A0 =A0 =A0 =A0* mark it as a duplicate of EMIF1. This will save so=
+me memory and
+> + =A0 =A0 =A0 =A0* computation.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (emif1 && emif1->np_ddr =3D=3D np_ddr) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif->duplicate =3D true;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+> + =A0 =A0 =A0 } else if (emif1) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_warn(emif->dev, "%s: Non-symmetric =
+DDR geometry\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
+> + =A0 =A0 =A0 }
+> +
+> +
+> + =A0 =A0 =A0 of_get_custom_configs(np_emif, emif);
+> + =A0 =A0 =A0 of_get_ddr_timings(np_ddr, emif);
+> + =A0 =A0 =A0 of_get_min_tck(np_ddr, emif);
+> + =A0 =A0 =A0 goto out;
+> +
+> +error:
+> + =A0 =A0 =A0 return NULL;
+> +out:
+> + =A0 =A0 =A0 return emif;
+> +}
+> +
+> +#else
+> +
+> +static struct emif_data * __init_or_module of_get_device_details(
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct device_node *np_emif, struct dev=
+ice *dev)
+> +{
+> + =A0 =A0 =A0 return NULL;
+> +}
+> +#endif
+> +
+> =A0static struct emif_data *__init_or_module get_device_details(
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct platform_device *pdev)
+> =A0{
+> @@ -1267,7 +1542,11 @@ static int __init_or_module emif_probe(struct =
+platform_device *pdev)
+> =A0 =A0 =A0 =A0struct resource =A0 =A0 =A0 =A0 *res;
+> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq;
+>
+> - =A0 =A0 =A0 emif =3D get_device_details(pdev);
+> + =A0 =A0 =A0 if (pdev->dev.of_node)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif =3D of_get_device_details(pdev->de=
+v.of_node, &pdev->dev);
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 emif =3D get_device_details(pdev);
+> +
+> =A0 =A0 =A0 =A0if (!emif) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: error getting device data\=
+n", __func__);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto error;
+> @@ -1644,11 +1923,21 @@ static void __attribute__((unused)) freq_post=
+_notify_handling(void)
+> =A0 =A0 =A0 =A0spin_unlock_irqrestore(&emif_lock, irq_state);
+> =A0}
+>
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id emif_of_match[] =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,emif-4d" },
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 { .compatible =3D "ti,emif-4d5" },
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 {},
+> +};
+> +MODULE_DEVICE_TABLE(of, emif_of_match);
+> +#endif
+> +
+> =A0static struct platform_driver emif_driver =3D {
+> =A0 =A0 =A0 =A0.remove =A0 =A0 =A0 =A0 =3D __exit_p(emif_remove),
+> =A0 =A0 =A0 =A0.shutdown =A0 =A0 =A0 =3D emif_shutdown,
+> =A0 =A0 =A0 =A0.driver =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =3D "emif",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .of_match_table =3D of_match_ptr(emif_o=
+f_match),
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> --
+> 1.7.9.5
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
