@@ -1,301 +1,452 @@
-From: Gama <richardgama097@gmail.com>
-Subject: REPLY
-Date: Sat, 30 Jun 2012 04:16:26 -0700 (PDT)
-Message-ID: <1341054986.94071.YahooMailClassic@web5704.biz.mail.ne1.yahoo.com>
-Reply-To: richardgama309@yahoo.com
+From: "Vutla, Lokesh" <lokeshvutla@ti.com>
+Subject: Re: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
+ getting stuck intransition state.
+Date: Sat, 30 Jun 2012 12:53:14 +0530
+Message-ID: <CAJ1gdcajf5RG7gsMC7V8qsS7KB9bFC_ox5Jj62CRCmmsTOSHhQ@mail.gmail.com>
+References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
+ <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1717290100-328243470-1341054986=:94071"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm14-vm1.bullet.mail.sp2.yahoo.com ([98.139.91.247]:35562 "HELO
-	nm14-vm1.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753484Ab2F3LQ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 30 Jun 2012 07:16:27 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============1687735934677129137=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
----1717290100-328243470-1341054986=:94071
-Content-Type: text/plain; charset=us-ascii
+--===============1687735934677129137==
+Content-Type: multipart/alternative; boundary=00235429cd5050481a04c3ab715e
 
-REPLY
-LETTER FROM RICHARD GAMA
----1717290100-328243470-1341054986=:94071
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name="TO YOUR ATTENTION.docx"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="TO YOUR ATTENTION.docx"
+--00235429cd5050481a04c3ab715e
+Content-Type: text/plain; charset=ISO-8859-1
 
-UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNd
-LnhtbCCiBAIooAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0VMtuwjAQvFfqP0S+Vomh
-h6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2ppsCTFp
-70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ4
-4DzJOViRCh/AUaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1
-fd4qiWASyx63B2uukokQjJYCSSlfOvWDJd8xFNTZnElzHdINyWD8IENdOU6w
-63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLbX6OF6CWkRJ5bU7QV
-K7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
-EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7
-hLT5kz7+wYz9dVF3H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq3
-8wAAAE4CAAALAAgCX3JlbHMvLnJlbHMgogQCKKAAAgAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ
-217m9OfLT9abg5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlu
-b9YvPJGUoTyMMaui4rOGQSQ+ImYzsKNchci+VLqQHEkJU4+RzBv1jKu6vsf0
-VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdhb9kuYipsScZyjWop
-9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
-HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADED
-AAAcAAgBd29yZC9fcmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAA
-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
-AAAAAMMGAAB3b3JkL19yZWxzL2RvY3VtZW50LnhtbC5yZWxzUEsBAi0AFAAG
-AAgAAAAhAK1deEPBCQAAYTYAABEAAAAAAAAAAAAAAAAA/wgAAHdvcmQvZG9j
-dW1lbnQueG1sUEsBAi0AFAAGAAgAAAAhAJa1reKWBgAAUBsAABUAAAAAAAAA
-AAAAAAAA7xIAAHdvcmQvdGhlbWUvdGhlbWUxLnhtbFBLAQItABQABgAIAAAA
-IQAeE7lf2QIAAGQGAAARAAAAAAAAAAAAAAAAALgZAAB3b3JkL3NldHRpbmdz
-LnhtbFBLAQItABQABgAIAAAAIQD8FLBSfAEAAAcEAAASAAAAAAAAAAAAAAAA
-AMAcAAB3b3JkL2ZvbnRUYWJsZS54bWxQSwECLQAUAAYACAAAACEAFY6vKpgB
-AAAfCgAAFAAAAAAAAAAAAAAAAABsHgAAd29yZC93ZWJTZXR0aW5ncy54bWxQ
-SwECLQAUAAYACAAAACEA1t7rsoQBAADTAgAAEAAAAAAAAAAAAAAAAAA2IAAA
-ZG9jUHJvcHMvYXBwLnhtbFBLAQItABQABgAIAAAAIQCcoZuUcwEAAOECAAAR
-AAAAAAAAAAAAAAAAAPAiAABkb2NQcm9wcy9jb3JlLnhtbFBLAQItABQABgAI
-AAAAIQBd7RtCTQcAALQ6AAAPAAAAAAAAAAAAAAAAAJolAAB3b3JkL3N0eWxl
-cy54bWxQSwUGAAAAAAsACwDBAgAAFC0AAAAA
+Gentle ping on this....
 
----1717290100-328243470-1341054986=:94071--
+
+
+Thanks n regards
+Lokesh Vutla
+LDC MPUSS Platform Team
+
+
+
+On Mon, Jun 18, 2012 at 11:11 AM, Shilimkar, Santosh <
+santosh.shilimkar@ti.com> wrote:
+
+> (You should cc linux-omap too.  CC'ing linux-omap)
+>
+> On Mon, Jun 18, 2012 at 10:53 AM, Lokesh Vutla <lokeshvutla@ti.com> wrote:
+> > OMAP watchdong driver is adapted to runtime PM like a general device
+> > driver but it is not appropriate. It is causing couple of functional
+> > issues.
+> >
+> > 1. On OMAP4 SYSCLK can't be gated, because of issue with WDTIMER2 module,
+> > which constantly stays in "in transition" state. Value of register
+> > CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.
+> > Issue occurs immediately after first idle, when hwmod framework tries
+> > to disable WDTIMER2 functional clock - "wd_timer2_fck". After this
+> > module falls to "in transition" state, and SYSCLK gating is blocked.
+> >
+> > 2. Due to runtime PM, watchdog timer may be completely disabled.
+> > In current code base watchdog timer is not disabled only because of
+> > issue 1. Otherwise state of WDTIMER2 module will be "Disabled", and there
+> > will be no interrupts from omap_wdt. In other words watchdog will not
+> > work at all.
+> >
+> > Watchdong is a special IP and it should not be disabled otherwise
+> > purpose of it itself is defeated. Watchdog functional clock should
+> > never be disabled. This patch updates the runtime PM handling in
+> > driver so that runtime PM is limited only during probe/shutdown
+> > and suspend/resume.
+> >
+> > The patch fixes issue 1 and 2
+> >
+> > Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Wim Van Sebroeck <wim@iguana.be>
+> > ---
+> > Tested on OMAP4430SDP.
+> >
+> > Issue #1 can be easily reproduced on mainline kernel.
+> > - Take latest mainline kernel and create uImage using omap2plus_defconfig
+> > - Write a program to open watchdog,like
+> > void main(void)
+> > {
+> >        int fd = open("/dev/watchdog", O_WRONLY);
+> >
+> >        if (fd == -1) {
+> >                perror("Watchdog device interface is not available!\n");
+> >        }
+> > }
+> > - Build with arm compiler and copy it to your file syatem
+> > - Boot the image and run the executable.
+> >
+> >
+> >  drivers/watchdog/omap_wdt.c |   17 -----------------
+> >  1 files changed, 0 insertions(+), 17 deletions(-)
+> >
+> > diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+> > index 8285d65..27ab8db 100644
+> > --- a/drivers/watchdog/omap_wdt.c
+> > +++ b/drivers/watchdog/omap_wdt.c
+> > @@ -126,8 +126,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev
+> *wdev)
+> >        u32 pre_margin = GET_WLDR_VAL(timer_margin);
+> >        void __iomem *base = wdev->base;
+> >
+> > -       pm_runtime_get_sync(wdev->dev);
+> > -
+> >        /* just count up at 32 KHz */
+> >        while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
+> >                cpu_relax();
+> > @@ -135,8 +133,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev
+> *wdev)
+> >        __raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
+> >        while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
+> >                cpu_relax();
+> > -
+> > -       pm_runtime_put_sync(wdev->dev);
+> >  }
+> >
+> >  /*
+> > @@ -166,8 +162,6 @@ static int omap_wdt_open(struct inode *inode, struct
+> file *file)
+> >        omap_wdt_ping(wdev); /* trigger loading of new timeout value */
+> >        omap_wdt_enable(wdev);
+> >
+> > -       pm_runtime_put_sync(wdev->dev);
+> > -
+> >        return nonseekable_open(inode, file);
+> >  }
+> >
+> > @@ -179,8 +173,6 @@ static int omap_wdt_release(struct inode *inode,
+> struct file *file)
+> >         *      Shut off the timer unless NOWAYOUT is defined.
+> >         */
+> >  #ifndef CONFIG_WATCHDOG_NOWAYOUT
+> > -       pm_runtime_get_sync(wdev->dev);
+> > -
+> >        omap_wdt_disable(wdev);
+> >
+> >        pm_runtime_put_sync(wdev->dev);
+> > @@ -199,11 +191,9 @@ static ssize_t omap_wdt_write(struct file *file,
+> const char __user *data,
+> >
+> >        /* Refresh LOAD_TIME. */
+> >        if (len) {
+> > -               pm_runtime_get_sync(wdev->dev);
+> >                spin_lock(&wdt_lock);
+> >                omap_wdt_ping(wdev);
+> >                spin_unlock(&wdt_lock);
+> > -               pm_runtime_put_sync(wdev->dev);
+> >        }
+> >        return len;
+> >  }
+> > @@ -236,18 +226,15 @@ static long omap_wdt_ioctl(struct file *file,
+> unsigned int cmd,
+> >                                        (int __user *)arg);
+> >                return put_user(0, (int __user *)arg);
+> >        case WDIOC_KEEPALIVE:
+> > -               pm_runtime_get_sync(wdev->dev);
+> >                spin_lock(&wdt_lock);
+> >                omap_wdt_ping(wdev);
+> >                spin_unlock(&wdt_lock);
+> > -               pm_runtime_put_sync(wdev->dev);
+> >                return 0;
+> >        case WDIOC_SETTIMEOUT:
+> >                if (get_user(new_margin, (int __user *)arg))
+> >                        return -EFAULT;
+> >                omap_wdt_adjust_timeout(new_margin);
+> >
+> > -               pm_runtime_get_sync(wdev->dev);
+> >                spin_lock(&wdt_lock);
+> >                omap_wdt_disable(wdev);
+> >                omap_wdt_set_timeout(wdev);
+> > @@ -255,7 +242,6 @@ static long omap_wdt_ioctl(struct file *file,
+> unsigned int cmd,
+> >
+> >                omap_wdt_ping(wdev);
+> >                spin_unlock(&wdt_lock);
+> > -               pm_runtime_put_sync(wdev->dev);
+> >                /* Fall */
+> >        case WDIOC_GETTIMEOUT:
+> >                return put_user(timer_margin, (int __user *)arg);
+> > @@ -363,7 +349,6 @@ static void omap_wdt_shutdown(struct platform_device
+> *pdev)
+> >        struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
+> >
+> >        if (wdev->omap_wdt_users) {
+> > -               pm_runtime_get_sync(wdev->dev);
+> >                omap_wdt_disable(wdev);
+> >                pm_runtime_put_sync(wdev->dev);
+> >        }
+> > @@ -403,7 +388,6 @@ static int omap_wdt_suspend(struct platform_device
+> *pdev, pm_message_t state)
+> >        struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
+> >
+> >        if (wdev->omap_wdt_users) {
+> > -               pm_runtime_get_sync(wdev->dev);
+> >                omap_wdt_disable(wdev);
+> >                pm_runtime_put_sync(wdev->dev);
+> >        }
+> > @@ -419,7 +403,6 @@ static int omap_wdt_resume(struct platform_device
+> *pdev)
+> >                pm_runtime_get_sync(wdev->dev);
+> >                omap_wdt_enable(wdev);
+> >                omap_wdt_ping(wdev);
+> > -               pm_runtime_put_sync(wdev->dev);
+> >        }
+> >
+> >        return 0;
+> > --
+> > 1.7.5.4
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+
+--00235429cd5050481a04c3ab715e
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Gentle ping on this....<br clear=3D"all"><br><br><br>Thanks n regards<br>Lo=
+kesh Vutla<div>LDC MPUSS Platform Team</div><br>
+<br><br><div class=3D"gmail_quote">On Mon, Jun 18, 2012 at 11:11 AM, Shilim=
+kar, Santosh <span dir=3D"ltr">&lt;<a href=3D"mailto:santosh.shilimkar@ti.c=
+om" target=3D"_blank">santosh.shilimkar@ti.com</a>&gt;</span> wrote:<br><bl=
+ockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #=
+ccc solid;padding-left:1ex">
+
+(You should cc linux-omap too. =A0CC&#39;ing linux-omap)<br>
+<div><div class=3D"h5"><br>
+On Mon, Jun 18, 2012 at 10:53 AM, Lokesh Vutla &lt;<a href=3D"mailto:lokesh=
+vutla@ti.com">lokeshvutla@ti.com</a>&gt; wrote:<br>
+&gt; OMAP watchdong driver is adapted to runtime PM like a general device<b=
+r>
+&gt; driver but it is not appropriate. It is causing couple of functional<b=
+r>
+&gt; issues.<br>
+&gt;<br>
+&gt; 1. On OMAP4 SYSCLK can&#39;t be gated, because of issue with WDTIMER2 =
+module,<br>
+&gt; which constantly stays in &quot;in transition&quot; state. Value of re=
+gister<br>
+&gt; CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.<br>
+&gt; Issue occurs immediately after first idle, when hwmod framework tries<=
+br>
+&gt; to disable WDTIMER2 functional clock - &quot;wd_timer2_fck&quot;. Afte=
+r this<br>
+&gt; module falls to &quot;in transition&quot; state, and SYSCLK gating is =
+blocked.<br>
+&gt;<br>
+&gt; 2. Due to runtime PM, watchdog timer may be completely disabled.<br>
+&gt; In current code base watchdog timer is not disabled only because of<br=
+>
+&gt; issue 1. Otherwise state of WDTIMER2 module will be &quot;Disabled&quo=
+t;, and there<br>
+&gt; will be no interrupts from omap_wdt. In other words watchdog will not<=
+br>
+&gt; work at all.<br>
+&gt;<br>
+&gt; Watchdong is a special IP and it should not be disabled otherwise<br>
+&gt; purpose of it itself is defeated. Watchdog functional clock should<br>
+&gt; never be disabled. This patch updates the runtime PM handling in<br>
+&gt; driver so that runtime PM is limited only during probe/shutdown<br>
+&gt; and suspend/resume.<br>
+&gt;<br>
+&gt; The patch fixes issue 1 and 2<br>
+&gt;<br>
+&gt; Signed-off-by: Lokesh Vutla &lt;<a href=3D"mailto:lokeshvutla@ti.com">=
+lokeshvutla@ti.com</a>&gt;<br>
+&gt; Acked-by: Santosh Shilimkar &lt;<a href=3D"mailto:santosh.shilimkar@ti=
+.com">santosh.shilimkar@ti.com</a>&gt;<br>
+&gt; Cc: Wim Van Sebroeck &lt;<a href=3D"mailto:wim@iguana.be">wim@iguana.b=
+e</a>&gt;<br>
+&gt; ---<br>
+&gt; Tested on OMAP4430SDP.<br>
+&gt;<br>
+&gt; Issue #1 can be easily reproduced on mainline kernel.<br>
+&gt; - Take latest mainline kernel and create uImage using omap2plus_defcon=
+fig<br>
+&gt; - Write a program to open watchdog,like<br>
+&gt; void main(void)<br>
+&gt; {<br>
+&gt; =A0 =A0 =A0 =A0int fd =3D open(&quot;/dev/watchdog&quot;, O_WRONLY);<b=
+r>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0if (fd =3D=3D -1) {<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0perror(&quot;Watchdog device interface =
+is not available!\n&quot;);<br>
+&gt; =A0 =A0 =A0 =A0}<br>
+&gt; }<br>
+&gt; - Build with arm compiler and copy it to your file syatem<br>
+&gt; - Boot the image and run the executable.<br>
+&gt;<br>
+&gt;<br>
+&gt; =A0drivers/watchdog/omap_wdt.c | =A0 17 -----------------<br>
+&gt; =A01 files changed, 0 insertions(+), 17 deletions(-)<br>
+&gt;<br>
+&gt; diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c=
+<br>
+&gt; index 8285d65..27ab8db 100644<br>
+&gt; --- a/drivers/watchdog/omap_wdt.c<br>
+&gt; +++ b/drivers/watchdog/omap_wdt.c<br>
+&gt; @@ -126,8 +126,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_d=
+ev *wdev)<br>
+&gt; =A0 =A0 =A0 =A0u32 pre_margin =3D GET_WLDR_VAL(timer_margin);<br>
+&gt; =A0 =A0 =A0 =A0void __iomem *base =3D wdev-&gt;base;<br>
+&gt;<br>
+&gt; - =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; -<br>
+&gt; =A0 =A0 =A0 =A0/* just count up at 32 KHz */<br>
+&gt; =A0 =A0 =A0 =A0while (__raw_readl(base + OMAP_WATCHDOG_WPS) &amp; 0x04=
+)<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();<br>
+&gt; @@ -135,8 +133,6 @@ static void omap_wdt_set_timeout(struct omap_wdt_d=
+ev *wdev)<br>
+&gt; =A0 =A0 =A0 =A0__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);<br>
+&gt; =A0 =A0 =A0 =A0while (__raw_readl(base + OMAP_WATCHDOG_WPS) &amp; 0x04=
+)<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();<br>
+&gt; -<br>
+&gt; - =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0}<br>
+&gt;<br>
+&gt; =A0/*<br>
+&gt; @@ -166,8 +162,6 @@ static int omap_wdt_open(struct inode *inode, stru=
+ct file *file)<br>
+&gt; =A0 =A0 =A0 =A0omap_wdt_ping(wdev); /* trigger loading of new timeout =
+value */<br>
+&gt; =A0 =A0 =A0 =A0omap_wdt_enable(wdev);<br>
+&gt;<br>
+&gt; - =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; -<br>
+&gt; =A0 =A0 =A0 =A0return nonseekable_open(inode, file);<br>
+&gt; =A0}<br>
+&gt;<br>
+&gt; @@ -179,8 +173,6 @@ static int omap_wdt_release(struct inode *inode, s=
+truct file *file)<br>
+&gt; =A0 =A0 =A0 =A0 * =A0 =A0 =A0Shut off the timer unless NOWAYOUT is def=
+ined.<br>
+&gt; =A0 =A0 =A0 =A0 */<br>
+&gt; =A0#ifndef CONFIG_WATCHDOG_NOWAYOUT<br>
+&gt; - =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; -<br>
+&gt; =A0 =A0 =A0 =A0omap_wdt_disable(wdev);<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; @@ -199,11 +191,9 @@ static ssize_t omap_wdt_write(struct file *file, =
+const char __user *data,<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0/* Refresh LOAD_TIME. */<br>
+&gt; =A0 =A0 =A0 =A0if (len) {<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&amp;wdt_lock);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&amp;wdt_lock);<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0}<br>
+&gt; =A0 =A0 =A0 =A0return len;<br>
+&gt; =A0}<br>
+&gt; @@ -236,18 +226,15 @@ static long omap_wdt_ioctl(struct file *file, un=
+signed int cmd,<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0(int __user *)arg);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return put_user(0, (int __user *)arg);<=
+br>
+&gt; =A0 =A0 =A0 =A0case WDIOC_KEEPALIVE:<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&amp;wdt_lock);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&amp;wdt_lock);<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;<br>
+&gt; =A0 =A0 =A0 =A0case WDIOC_SETTIMEOUT:<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (get_user(new_margin, (int __user *)=
+arg))<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EFAULT;<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_adjust_timeout(new_margin);<br=
+>
+&gt;<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_lock(&amp;wdt_lock);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_set_timeout(wdev);<br>
+&gt; @@ -255,7 +242,6 @@ static long omap_wdt_ioctl(struct file *file, unsi=
+gned int cmd,<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0spin_unlock(&amp;wdt_lock);<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Fall */<br>
+&gt; =A0 =A0 =A0 =A0case WDIOC_GETTIMEOUT:<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return put_user(timer_margin, (int __us=
+er *)arg);<br>
+&gt; @@ -363,7 +349,6 @@ static void omap_wdt_shutdown(struct platform_devi=
+ce *pdev)<br>
+&gt; =A0 =A0 =A0 =A0struct omap_wdt_dev *wdev =3D platform_get_drvdata(pdev=
+);<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0if (wdev-&gt;omap_wdt_users) {<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0}<br>
+&gt; @@ -403,7 +388,6 @@ static int omap_wdt_suspend(struct platform_device=
+ *pdev, pm_message_t state)<br>
+&gt; =A0 =A0 =A0 =A0struct omap_wdt_dev *wdev =3D platform_get_drvdata(pdev=
+);<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0if (wdev-&gt;omap_wdt_users) {<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_disable(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0}<br>
+&gt; @@ -419,7 +403,6 @@ static int omap_wdt_resume(struct platform_device =
+*pdev)<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_get_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_enable(wdev);<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_wdt_ping(wdev);<br>
+&gt; - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(wdev-&gt;dev);<br>
+&gt; =A0 =A0 =A0 =A0}<br>
+&gt;<br>
+&gt; =A0 =A0 =A0 =A0return 0;<br>
+&gt; --<br>
+&gt; 1.7.5.4<br>
+&gt;<br>
+&gt;<br>
+</div></div>&gt; _______________________________________________<br>
+&gt; linux-arm-kernel mailing list<br>
+&gt; <a href=3D"mailto:linux-arm-kernel@lists.infradead.org">linux-arm-kern=
+el@lists.infradead.org</a><br>
+&gt; <a href=3D"http://lists.infradead.org/mailman/listinfo/linux-arm-kerne=
+l" target=3D"_blank">http://lists.infradead.org/mailman/listinfo/linux-arm-=
+kernel</a><br>
+</blockquote></div><br>
+
+--00235429cd5050481a04c3ab715e--
+
+
+--===============1687735934677129137==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============1687735934677129137==--
