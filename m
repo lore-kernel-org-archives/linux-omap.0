@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/6] omap HDQ1W and smartreflex driver changes for v3.6
- merge window
-Date: Sun, 1 Jul 2012 02:01:16 -0700
-Message-ID: <E1SlGIc-00045S-DH@merlin.infradead.org>
+Subject: [GIT PULL 5/6] omap PM changes for PRCM I/O chain wakeup and cpuidle
+ for v3.6 merge window
+Date: Sun, 1 Jul 2012 02:01:17 -0700
+Message-ID: <E1SlGJB-0004Dl-Dd@merlin.infradead.org>
 References: <pull-1341133277-501333>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -29,67 +29,56 @@ The following changes since commit 6b16351acbd415e66ba16bf7d473ece1574cf0bc:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-driver-for-v3.6
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-pm-for-v3.6
 
-for you to fetch changes up to bb0adf6ca6c78758c12b054fe3f25023033072ab:
+for you to fetch changes up to d660e9b92b44f113c3fc345a8ce66ffa56a3506f:
 
-  ARM: OMAP2+: do not allow SmartReflex to be built as a module (2012-06-29 05:54:31 -0700)
-
-----------------------------------------------------------------
-Here are omap driver changes for v3.6 that were agreed to be merged
-via the omap tree. These changes convert omap HDQ1W driver to use
-runtime PM, and finally move omap SmartReflex driver from arch/arm
-to live under drivers.
+  ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge (2012-06-29 07:19:52 -0700)
 
 ----------------------------------------------------------------
-J Keerthy (1):
-      ARM: OMAP2+: Voltage: Move the omap_volt_data structure to plat
+Here are some omap PM changes that reimplement omap PRCM I/O chain
+code for wake-ups, and improve idle latencies for cpuidle.
 
-Jean Pihet (10):
-      ARM: OMAP2+: SmartReflex: move the smartreflex header to include/linux/power
-      ARM: OMAP3+: SmartReflex: class drivers should use struct omap_sr *
-      ARM: OMAP2+: smartreflex: Use the names from hwmod data instead of voltage domains.
-      ARM: OMAP3: hwmod: rename the smartreflex entries
-      ARM: OMAP2+: SmartReflex: introduce a busy loop condition test macro
-      ARM: OMAP2+: SmartReflex: Use per-OPP data structure
-      ARM: OMAP2+: SmartReflex: Create per-opp debugfs node for errminlimit
-      ARM: OMAP2+: SmartReflex: add POWER_AVS Kconfig options
-      ARM: OMAP: SmartReflex: Move smartreflex driver to drivers/
-      ARM: OMAP2+: do not allow SmartReflex to be built as a module
+----------------------------------------------------------------
+Jean Pihet (3):
+      ARM: OMAP3: PM: cpuidle: default to C1 in next_valid_state
+      ARM: OMAP3: PM: cpuidle: optimize the PER latency in C1 state
+      ARM: OMAP3: PM: cpuidle: optimize the clkdm idle latency in C1 state
 
-Paul Walmsley (4):
-      W1: OMAP HDQ1W: allow driver to be built on all OMAP2+
-      W1: OMAP HDQ1W: use 32-bit register accesses
-      ARM: OMAP2+: HDQ1W: use omap_device
-      W1: OMAP HDQ1W: use runtime PM
+Kevin Hilman (5):
+      ARM: OMAP2+: PRM: fix compile for OMAP4-only build
+      ARM: OMAP2+: powerdomain: allow pre/post transtion to be per pwrdm
+      ARM: OMAP3: PM: call pre/post transition per powerdomain
+      ARM: OMAP3: PM: cleanup cam_pwrdm leftovers
+      ARM: OMAP2+: PM: fix IRQ_NOAUTOEN removal by mis-merge
 
-Tony Lindgren (3):
-      Merge tag 'omap-devel-b-for-3.6' of git://git.kernel.org/.../pjw/omap-pending into devel-driver
-      ARM: OMAP2: Use hwmod to initialize mmc for 2420
-      Merge branch 'for_3.6/pm/sr-move' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-driver
+Mohan V (1):
+      ARM: OMAP3: PM: correct enable/disable of daisy io chain
 
- arch/arm/mach-omap2/Makefile                       |    5 +-
- arch/arm/mach-omap2/devices.c                      |  108 -------------
- arch/arm/mach-omap2/hdq1w.c                        |   26 ++++
- arch/arm/mach-omap2/msdi.c                         |   73 +++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   12 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    3 +-
- arch/arm/mach-omap2/pm.h                           |    2 +-
- arch/arm/mach-omap2/smartreflex-class3.c           |   29 ++--
- arch/arm/mach-omap2/sr_device.c                    |   39 ++++-
- arch/arm/mach-omap2/voltage.h                      |   21 +--
- arch/arm/plat-omap/Kconfig                         |   31 ++--
- arch/arm/plat-omap/include/plat/voltage.h          |   21 ++-
- drivers/power/Kconfig                              |    2 +
- drivers/power/Makefile                             |    1 +
- drivers/power/avs/Kconfig                          |   12 ++
- drivers/power/avs/Makefile                         |    1 +
- .../mach-omap2 => drivers/power/avs}/smartreflex.c |  161 ++++++++------------
- drivers/w1/masters/Kconfig                         |    2 +-
- drivers/w1/masters/omap_hdq.c                      |   86 +++--------
- .../linux/power}/smartreflex.h                     |   74 +++++++--
- 20 files changed, 352 insertions(+), 357 deletions(-)
- create mode 100644 drivers/power/avs/Kconfig
- create mode 100644 drivers/power/avs/Makefile
- rename {arch/arm/mach-omap2 => drivers/power/avs}/smartreflex.c (90%)
- rename {arch/arm/mach-omap2 => include/linux/power}/smartreflex.h (79%)
+Rajendra Nayak (1):
+      ARM: OMAP4: PRM: Add IO Daisychain support
+
+Tero Kristo (1):
+      ARM: OMAP3+: PRM: Enable IO wake up
+
+Tony Lindgren (2):
+      Merge tag 'omap-devel-c-for-3.6' of git://git.kernel.org/.../pjw/omap-pending into devel-pm
+      Merge branch 'for_3.6/pm/performance' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-pm
+
+Vishwanath BS (3):
+      ARM: OMAP3: PM: Move IO Daisychain function to omap3 prm file
+      ARM: OMAP3PLUS: hwmod: reconfigure IO Daisychain during hwmod mux
+      ARM: OMAP3: PM: Remove IO Daisychain control from cpuidle
+
+ arch/arm/mach-omap2/cpuidle34xx.c         |   71 +++++++++++------------------
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c          |   38 ++++++++++++++-
+ arch/arm/mach-omap2/pm34xx.c              |   63 ++++++-------------------
+ arch/arm/mach-omap2/powerdomain.c         |   16 +++++--
+ arch/arm/mach-omap2/powerdomain.h         |    4 +-
+ arch/arm/mach-omap2/prcm-common.h         |    8 ++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.c        |   48 +++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h        |    6 ++-
+ arch/arm/mach-omap2/prm44xx.c             |   63 ++++++++++++++++++++++++-
+ arch/arm/mach-omap2/prm44xx.h             |    2 +
+ 11 files changed, 216 insertions(+), 107 deletions(-)
