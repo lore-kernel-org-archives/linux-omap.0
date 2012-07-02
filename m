@@ -1,105 +1,82 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH V3 2/5] ARM: OMAP: USB: Build the USB HOST TLL omap device
-Date: Mon, 2 Jul 2012 20:32:04 +0530
-Message-ID: <1341241324-479-1-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH V3 4/5] ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+Date: Mon, 2 Jul 2012 20:32:21 +0530
+Message-ID: <1341241341-543-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37295 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755159Ab2GBPCN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 11:02:13 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:36224 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754420Ab2GBPCb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jul 2012 11:02:31 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com, paul@pwsan.com, b-cousson@ti.com, sshtylyov@mvista.com, tony@atomide.com
 
-The hwmod of the usb tll is retrieved and omap device build is
-performed to created the platform device for the usb tll component.
+The usbhs driver invokes the enable/disable APIs of the
+usb tll driver in the runtime resume/suspend callbacks
+of the runtime get sync and put sync of the usbhs driver.
 
 Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 Reviewed-by: Partha Basak <parthab@india.ti.com>
 ---
- arch/arm/mach-omap2/usb-host.c |   31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/include/plat/usb.h |    1 +
+ drivers/mfd/omap-usb-host.c           |    7 +++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index dde8a11..b2a2dd7 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -35,10 +35,12 @@
- #ifdef CONFIG_MFD_OMAP_USB_HOST
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index b8a9d5e..8eac78c 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -4,6 +4,7 @@
+ #define	__ASM_ARCH_OMAP_USB_H
  
- #define OMAP_USBHS_DEVICE	"usbhs_omap"
-+#define OMAP_USBTLL_DEVICE	"usbhs_tll"
- #define	USBHS_UHH_HWMODNAME	"usb_host_hs"
- #define USBHS_TLL_HWMODNAME	"usb_tll_hs"
+ #include <linux/io.h>
++#include <linux/platform_device.h>
+ #include <linux/usb/musb.h>
+ #include <plat/board.h>
  
- static struct usbhs_omap_platform_data		usbhs_data;
-+static struct usbtll_omap_platform_data		usbtll_data;
- static struct ehci_hcd_omap_platform_data	ehci_data;
- static struct ohci_hcd_omap_platform_data	ohci_data;
- 
-@@ -487,13 +489,14 @@ void __init setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- 
- void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- {
--	struct omap_hwmod	*oh[2];
-+	struct omap_hwmod	*uhh_hwm, *tll_hwm;
- 	struct platform_device	*pdev;
- 	int			bus_id = -1;
- 	int			i;
- 
- 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
- 		usbhs_data.port_mode[i] = pdata->port_mode[i];
-+		usbtll_data.port_mode[i] = pdata->port_mode[i];
- 		ohci_data.port_mode[i] = pdata->port_mode[i];
- 		ehci_data.port_mode[i] = pdata->port_mode[i];
- 		ehci_data.reset_gpio_port[i] = pdata->reset_gpio_port[i];
-@@ -512,25 +515,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
- 		setup_4430ohci_io_mux(pdata->port_mode);
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index c1baf20..23cec57 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -21,7 +21,6 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+-#include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+@@ -287,6 +286,7 @@ static int usbhs_runtime_resume(struct device *dev)
+ 		return  -ENODEV;
  	}
  
--	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
--	if (!oh[0]) {
-+	uhh_hwm = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
-+	if (!uhh_hwm) {
- 		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
- 		return;
- 	}
++	omap_tll_enable();
+ 	spin_lock_irqsave(&omap->lock, flags);
  
--	oh[1] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
--	if (!oh[1]) {
-+	tll_hwm = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
-+	if (!tll_hwm) {
- 		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
- 		return;
- 	}
+ 	if (omap->ehci_logic_fck && !IS_ERR(omap->ehci_logic_fck))
+@@ -332,6 +332,7 @@ static int usbhs_runtime_suspend(struct device *dev)
+ 		clk_disable(omap->ehci_logic_fck);
  
--	pdev = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
--				(void *)&usbhs_data, sizeof(usbhs_data),
-+	pdev = omap_device_build(OMAP_USBTLL_DEVICE, bus_id, tll_hwm,
-+				&usbtll_data, sizeof(usbtll_data),
- 				omap_uhhtll_latency,
- 				ARRAY_SIZE(omap_uhhtll_latency), false);
- 	if (IS_ERR(pdev)) {
--		pr_err("Could not build hwmod devices %s,%s\n",
--			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
-+		pr_err("Could not build hwmod device %s\n",
-+		       USBHS_TLL_HWMODNAME);
-+		return;
-+	}
-+
-+	pdev = omap_device_build(OMAP_USBHS_DEVICE, bus_id, uhh_hwm,
-+				&usbhs_data, sizeof(usbhs_data),
-+				omap_uhhtll_latency,
-+				ARRAY_SIZE(omap_uhhtll_latency), false);
-+	if (IS_ERR(pdev)) {
-+		pr_err("Could not build hwmod devices %s\n",
-+		       USBHS_UHH_HWMODNAME);
- 		return;
- 	}
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++	omap_tll_disable();
+ 
+ 	return 0;
  }
+@@ -699,8 +700,10 @@ static int __init omap_usbhs_drvinit(void)
+  * init before ehci and ohci drivers;
+  * The usbhs core driver should be initialized much before
+  * the omap ehci and ohci probe functions are called.
++ * This usbhs core driver should be initialized after
++ * usb tll driver
+  */
+-fs_initcall(omap_usbhs_drvinit);
++fs_initcall_sync(omap_usbhs_drvinit);
+ 
+ static void __exit omap_usbhs_drvexit(void)
+ {
 -- 
 1.7.9.5
 
