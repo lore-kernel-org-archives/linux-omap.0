@@ -1,41 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule
- support
-Date: Mon, 2 Jul 2012 01:00:08 -0700
-Message-ID: <20120702080007.GB1122@atomide.com>
-References: <20120509213156.GZ5140@atomide.com>
- <1337257051-5004-1-git-send-email-uri.y@variscite.com>
- <20120606090931.GV12766@atomide.com>
- <CAHooxd7WG2BrT+dHuuETMUONjbSu3DoVyZ_VW9On-vwCn3rRaA@mail.gmail.com>
+From: Mark Jackson <mpfj-list@mimc.co.uk>
+Subject: Re: Current state of AM33xx patches
+Date: Mon, 02 Jul 2012 09:04:26 +0100
+Message-ID: <4FF1560A.9000805@mimc.co.uk>
+References: <4FD5BA4C.9070706@gmail.com>	<4FD5FD9E.5040203@ti.com> <CADjby3UTVBKWRZUBRNTX9Bh4TqQJsoWQrrBxW6HuqSNZCUcvCw@mail.gmail.com> <79CD15C6BA57404B839C016229A409A83EA5B7DE@DBDE01.ent.ti.com> <4FEDB9BD.7060405@mimc.co.uk> <79CD15C6BA57404B839C016229A409A83EA5FC34@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHooxd7WG2BrT+dHuuETMUONjbSu3DoVyZ_VW9On-vwCn3rRaA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Uri Yosef <uri.y@variscite.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, oren@variscite.com, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 217-155-41-104.dsl.in-addr.zen.co.uk ([217.155.41.104]:50322
+	"EHLO centos1.newflow.co.uk" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751206Ab2GBIE2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 04:04:28 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA5FC34@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Domenico Andreoli <cavokz@gmail.com>, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Uri Yosef <uri.y@variscite.com> [120606 05:13]:
-> CCed devicetree-discuss@lists.ozlabs.org.
+On 29/06/12 18:56, Hiremath, Vaibhav wrote:
+> On Fri, Jun 29, 2012 at 19:50:45, Mark Jackson wrote:
+>>
+>> This does appear to work using the ramdisk, but there seems to be no support for booting off MMC.
+>>
 > 
-> On Wed, Jun 6, 2012 at 12:09 PM, Tony Lindgren <tony@atomide.com> wrote:
+> This is known thing and clearly mentioned/highlighted above.
 > 
-> > Hi,
-> >
-> > * Uri Yosef <uri.y@variscite.com> [120517 05:34]:
-> > > Hi Tony,
-> > >
-> > > This is the updated DTS patch for Vatiscite OMAP4 SOM support
-> >
-> > Looks OK to me, but can you please repost one more time with
-> > devicetree-discuss@lists.ozlabs.org in Cc so people have a chance
-> > to ack this patch there?
+> "Use the ramdisk image to boot kernel, since we do not have support for any 
+> storage devices in the mainline."
 
-Applying into dt branch with disable updated to disabled as was
-done in for other boards.
+Oops ... missed that, sorry !!
 
-Regards,
+<snip>
 
-Tony
+>> All in all, the AM335x code does seem to be very fragmented.  Is that just because these are
+>> non-trivial changes going in ?
+>>
+> 
+> Not really true.
+> 
+> The answer is simple, if you are looking for production quality code then 
+> certainly you should use something based on PSP release (SDK) and if you 
+> want to stay close to Mainline and would like to contribute towards it, you 
+> have to understand the process, dependencies, development and discussions 
+> happening on the list.
+
+Okay.  Thanks for explaining.
+
+Mark
