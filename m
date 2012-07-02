@@ -1,42 +1,48 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] remoteproc: block premature rproc booting
-Date: Mon, 2 Jul 2012 18:19:18 +0300
-Message-ID: <CAK=WgbYG8kuzYUi54Kh4udsrOiX_f1E=1XW+TpeYhoyPtXwq-w@mail.gmail.com>
-References: <1337687472-23009-1-git-send-email-ohad@wizery.com>
- <4FBDFC4A.1060602@codeaurora.org> <CAK=WgbaP5qSso_Eu=Oup4eqLDcorZ-qf=mysMKiEvOS=m7yLmg@mail.gmail.com>
- <4FCD276A.80505@codeaurora.org> <CAK=WgbZo-8GXY9bVYGk0XZvqKrdaJZWeNkK1FhRWnH5doGYLjA@mail.gmail.com>
- <CAK=WgbZb367zq0QCUuwFU+KtBY0gw_+rsN9fm2YnM-heT+54jA@mail.gmail.com> <81C3A93C17462B4BBD7E272753C10579232F86BE4C@EXDCVYMBSTM005.EQ1STM.local>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias
+ on OMAP4
+Date: Mon, 2 Jul 2012 17:45:52 +0200
+Message-ID: <4FF1C230.8030102@ti.com>
+References: <4FDEF7FE.9040202@ti.com> <alpine.DEB.2.00.1206180957250.9031@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:52817 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460Ab2GBPTj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 11:19:39 -0400
-Received: by vbbff1 with SMTP id ff1so3596616vbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 08:19:38 -0700 (PDT)
-In-Reply-To: <81C3A93C17462B4BBD7E272753C10579232F86BE4C@EXDCVYMBSTM005.EQ1STM.local>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48987 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753972Ab2GBPqB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jul 2012 11:46:01 -0400
+In-Reply-To: <alpine.DEB.2.00.1206180957250.9031@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sjur BRENDELAND <sjur.brandeland@stericsson.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>, Ludovic BARRE <ludovic.barre@stericsson.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
 
-On Mon, Jul 2, 2012 at 6:15 PM, Sjur BRENDELAND
-<sjur.brandeland@stericsson.com> wrote:
->> Sjur, Ludovic, Loic - what remoteproc API are you using today?
->>
->> We'd like to get rid of the existing get/put interface and instead
->> have everyone use the boot/shutdown one, just like rpmsg is doing
->> today.
->>
->> Are you ok with this change?
+Hi Paul,
+
+On 06/18/2012 05:57 PM, Paul Walmsley wrote:
+> On Mon, 18 Jun 2012, Cousson, Benoit wrote:
 >
-> Yes, I'm ok with this,
-> but I cannot answer for Loic and Ludovic.
+>> The commit 503d0ea24d1d3dd3db95e5e0edd693da7a2a23eb
+>>    ARM: OMAP4: hwmod data: Add aliases for McBSP fclk clocks
+>>
+>> added a wrong "prcm_clk" alias for PRCM clock whereas the McBSP
+>> driver and previous OMAPs are using "prcm_fck".
+>>
+>> It thus lead to the following warning.
+>>
+>> [   47.409729] omap-mcbsp: clks: could not clk_get() prcm_fck
+>>
+>> Fix that by changing the opt_clk role to prcm_fck.
+>>
+>> Reported-by: Misael Lopez Cruz <misael.lopez@ti.com>
+>> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Tested-by: Sebastien Guiriec <s-guiriec@ti.com>
+>
+> Thanks, will queue this as part of the next 3.5-rc series.
 
-Thanks, Sjur.
+I might be wrong but it seems that this one is not yet in 3.5-rc5.
 
-I think Ludovic and Loic should be ok with this because their use
-cases are very much like OMAP's (mostly rpmsg drivers).
-
-Ohad.
+Thanks,
+Benoit
