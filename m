@@ -1,114 +1,96 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
-Date: Mon, 2 Jul 2012 14:54:23 +0300
-Message-ID: <20120702115422.GC2730@arwen.pp.htv.fi>
-References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
- <1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
- <20120629144002.3b4a31ee@endymion.delvare>
- <20120629145718.697b6955@endymion.delvare>
- <4FEDA9A8.1050504@ti.com>
- <20120629151832.0cb26bea@endymion.delvare>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv3 06/17] i2c: omap: split out [XR]DR and [XR]RDY
+Date: Mon, 2 Jul 2012 14:56:20 +0300
+Message-ID: <20120702115620.GD2730@arwen.pp.htv.fi>
+References: <1340964817-8599-1-git-send-email-shubhrajyoti@ti.com>
+ <1340964817-8599-7-git-send-email-shubhrajyoti@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:45717 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751502Ab2GBL46 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 07:56:58 -0400
-Received: by lboj14 with SMTP id j14so8726624lbo.35
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 04:56:53 -0700 (PDT)
+	protocol="application/pgp-signature"; boundary="MAH+hnPXVZWQ5cD/"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20120629151832.0cb26bea@endymion.delvare>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1340964817-8599-7-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Shubhrajyoti <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
 
---s9fJI615cBHmzTOP
-Content-Type: text/plain; charset=utf-8
+--MAH+hnPXVZWQ5cD/
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Jun 29, 2012 at 03:18:32PM +0200, Jean Delvare wrote:
-> On Fri, 29 Jun 2012 18:42:08 +0530, Shubhrajyoti wrote:
-> > On Friday 29 June 2012 06:27 PM, Jean Delvare wrote:
-> > > drivers/gpu/drm/nouveau/nouveau_bios.c:3535:3: warning: (near initial=
-ization for =E2=80=98msg[1].actual=E2=80=99) [enabled by default]
-> > >
-> > > This needs to be all fixed (converted to C99-style struct
-> > > initialization) before your patch is considered for inclusion. And
-> > > there may be more that my config did not spot.
-> > Yes,agree.
-> >=20
-> > The idea of this patch was if the idea is agreed upon then.
-> > then fixing all the callers could be worked on.
+On Fri, Jun 29, 2012 at 03:43:26PM +0530, Shubhrajyoti D wrote:
+> From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 >=20
-> This is worth fixing anyway, C99-style initialization is always good to
-> move to.
+> While they do pretty much the same thing, there
+> are a few peculiarities. Specially WRT erratas,
+> it's best to split those out and re-factor the
+> read/write loop to another function which both
+> cases call.
 >=20
-> > However do you agree with this approach?
+> This last part will be done on another patch.
 >=20
-> Well you've seen the caveats I mentioned, this will be no easy ride. If
-> you are willing to take the risk, spend the time documenting the
-> change, and help people if there are issues, then I'm OK. At least as
-> long as someone else doesn't come saying it's a very bad idea ;)
+> While at that, also avoid an unncessary register
+> read since dev->fifo_len will always contain the
+> correct amount of data to be transferred.
 
-This approach is a hard-requirement for devices which will pose any
-interface/feedback with user. We have been working with a piezo driver
-=66rom TI (drv2665) and it will be used (in most cases at least) to give
-the user a feedback based on e.g. touchscreen event.
+this statement isn't valid anymore, but I'd like it to be. See below
 
-Imagine drv2665 responds with a NAK while we're in the middle of driving
-a wave through it (keep in mind a wave could take seconds to finish,
-depending on the usecase), if we don't have a way to tell users that we
-have writen X bytes, how should we make sure to continue driving the
-wave from the exact byte where we got a NAK ?
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |  126 ++++++++++++++++++++++++++++++-----=
+-----
+>  1 files changed, 94 insertions(+), 32 deletions(-)
+>=20
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 359ee08..45bd731 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -820,36 +820,64 @@ complete:
+>  			return IRQ_HANDLED;
+>  		}
+> =20
+> -		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> +		if (stat & OMAP_I2C_STAT_RDR) {
+>  			u8 num_bytes =3D 1;
+> =20
+> +			if (dev->fifo_size)
+> +				num_bytes =3D (omap_i2c_read_reg(dev,
+> +						OMAP_I2C_BUFSTAT_REG) >> 8)
+> +						& 0x3F;
 
-If can't make sure that detail is true, then such usecases (as piezo
-drivers) will never work.
-
-Another approach would be to not add any field to struct i2c_msg but
-instead return either the amount of bytes transferred, or an error case.
-This would mean a series that would:
-
-1) fix all users of struct i2c_master_send() and the like to check for
-	errors as if (ret < 0) instead of if (ret);
-2) fix all i2c buses to return the amount of bytes written instead of
-	zero or error case
-3) fix Documentation to state that we're now returning the amount of
-	bytes, instead of zero or errno.
-
-I'm not sure what will have minimum impact to userland, though. What do
-you say Jean ? What would you prefer ?
+I wanted to avoid reading registers if we don't have to. This value will
+be sitting in dev->buf_len.
 
 --=20
 balbi
 
---s9fJI615cBHmzTOP
+--MAH+hnPXVZWQ5cD/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP8YvuAAoJEIaOsuA1yqRExJMQAIh6m7mXG4ZcXuVzQ12PNyQc
-oKMXB/vFXdKTdsDrL7oOKxDViEKNqz/mwkTRLwwyUY1uG4shE90SNzrccj24xxL9
-eJNtbE5UMVT7p0mRciO0tRscmABpwIM3kt90dZzhYdgoB87Cajc9qJUSHvLI545t
-sJJVsxHH+FFYgTrxXLxkFfNSPvUQ1p/XksOr2TnmnNg+Fj9f/cqORvKujDW+qMIi
-kUX1gZWlROpmlZwrirRxe3T5t3PXX9/086TxZKYrl/JiJM20Vu9iMrKpQ4mJzxgj
-2PL9+fqtLcubDM4KkLI15lertJDwjtICOUUFJ1FjNIBSkeKeVxk0plCystjBKVZj
-0ZXObtYG5MtJ+knjSwGOly7thh8850WjgEPZYpSrfr0VhrHIcZkIL0rh6tA2DtC8
-KA15sclN9jNu05WOLsp/KqfA0t61DhnxFgFjQEmvw2SRKYuTlB9Jksk7jG8vG5df
-kXokJDFEr7W4s49+RjLSCC97woa/LFkrCdpeJeL+KbhGnwhzRB4i/CI/HMrMGDsK
-xy3nVjn0BPVat8+U10sdVh6y3UAnYcnS+trF6JutbjeQUKUnUW9Kc81N8pbkCfdj
-fhFpHI9KoG2A/ZdN6wQ4atguQokEad1x93tfEwP2LbxJi5s0M5gSbXjULpoj193p
-JecxhuUTcM52e+kY9G7E
-=apzP
+iQIcBAEBAgAGBQJP8YxkAAoJEIaOsuA1yqREF5sQAJUFfEj1yEwxGviE7ZLdd1mx
+R4MtndOAx638q4lCHaSoUrSIWpCkpfC3Ll6TiaQ6ag6yYZXanjQp7cp/JvoQAS6n
+Gmjizx/8cNhA3Ug2qsJen/kqE1FDYg+UlWv3gWTdp3jG9YLLQHkUoghEW/aldaZj
+n7hHE9mVm07zDyXuPwXtUTKpwtTPEGmtoBXZaet72Be1ziwYKXTYQTy83ilH0JtZ
+rISvn2Cq/Okx6/d4LPli8LYusqOFFp3Ys1AAVdm8k0M2CppTtWMHJwiyZNU+HGsy
+qOw/sc86WTioLeJoP7oeYmpjAz0l57/xsyc4yIu6qr+GU7FaYkOnolaoEfKMj70K
+c7b74UocqN+XVR/RgvaU6FBkZMHtDzrwqdzgCKASdfg44p1uSWegaMDq0c3bdV/A
+pjMfvc6EaOoydqAvAccVppQ0V1MutDgC418Nx1T7h9ilzwiRc+t0nCmgvhI/6c+t
+M3kGlWfYKqqAdrl9W8Zr3RdwTU5RA/9bWPMYZ5Bnwqmlw9wlFfHIs9LhzVkv+Pjp
+punBX/Zf4FmhRvLsdsTAR+tpgiB7R+8kfBt+ZyQtd8B8MXHLzdfU1kqUaEtM4iHh
+LHKehh4JteLRDa/TKRdobn37TwneXjlLn7Jb2dm1/53dK3Lh/J2O2JKMGDLBRwhQ
+xwm5fDmWYGdAyHfFKfMW
+=cIPZ
 -----END PGP SIGNATURE-----
 
---s9fJI615cBHmzTOP--
+--MAH+hnPXVZWQ5cD/--
