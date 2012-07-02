@@ -1,75 +1,97 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 05/17] i2c: omap: split out [XR]DR and [XR]RDY
-Date: Mon, 2 Jul 2012 14:33:15 +0300
-Message-ID: <20120702113314.GA2730@arwen.pp.htv.fi>
+Subject: Re: [PATCH v2 00/17] Big OMAP I2C Cleanup
+Date: Mon, 2 Jul 2012 14:37:13 +0300
+Message-ID: <20120702113712.GB2730@arwen.pp.htv.fi>
 References: <1339691067-919-1-git-send-email-balbi@ti.com>
- <1339691067-919-6-git-send-email-balbi@ti.com>
- <4FE991DA.5070301@ti.com>
+ <20120614175950.GE14419@pengutronix.de>
+ <4FE99432.8030300@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56486 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777Ab2GBLft (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 07:35:49 -0400
-Received: by lbbgk8 with SMTP id gk8so7722492lbb.26
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 04:35:46 -0700 (PDT)
+	protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4FE991DA.5070301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <4FE99432.8030300@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de
+Cc: Wolfram Sang <w.sang@pengutronix.de>, Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
 
---fdj2RfSjLxBAspz7
+--0eh6TmSyL6TZE2Uz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 26, 2012 at 04:11:30PM +0530, Shubhrajyoti wrote:
-> Hi Felipe,
-> On Thursday 14 June 2012 09:54 PM, Felipe Balbi wrote:
-> >  			return IRQ_HANDLED;
-> >  		}
-> > =20
-> > -		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
-> > +		if (stat & OMAP_I2C_STAT_RDR) {
-> >  			u8 num_bytes =3D 1;
-> > =20
-> > +			if (dev->fifo_size)
-> > +				num_bytes =3D dev->fifo_size;
-> In case of a draining interrupt. The byte count may not be the fifo size.
-> Do you agree?
+Hi,
 
-hmm... indeed, that should be dev->buf_len... can you fix that up or
-want me to resend ?
+On Tue, Jun 26, 2012 at 04:21:30PM +0530, Shubhrajyoti wrote:
+> On Thursday 14 June 2012 11:29 PM, Wolfram Sang wrote:
+> >> 	- removed dev_err() which was introduced on patch 09/17
+> > To prevent the list being flooded, I would appreciate if you could wait
+> > a few days to collect reviews before resending. It will take some time
+> > until I pick this series anyhow, because I want people to have time to
+> > donate Tested-by tags.
+> Felipe thats a good cleanup.
+> The series look good to me.
+>=20
+> Also draining interrupt I had some queries.
+> Looks good to me.
+>=20
+> I have tested it after rebasing.
+
+rebasing on top of what ? You should resend the series so that I know
+what changes you have made to my original patchset. Make sure to list on
+the commit log what where the changes you made, so that it looks
+something like this commit below where I changed commit log a bit:
+
+| commit 3daf74d78dfcd552445c35f1b82a271ca305ceb9
+| Author: Pratyush Anand <pratyush.anand@st.com>
+| Date:   Sat Jun 23 02:23:08 2012 +0530
+|=20
+| usb: dwc3: remove WARN_ON from dwc_stop_active_transfer
+|=20
+| Now we are sure that, if res_trans_idx is zero, then endpoint has been
+| stopped. So it's safe to just return if endpoint is already stopped. No
+| need to generate warning anymore.
+|=20
+| While doing so, it's better to return when res_trans_idx is zero and
+| decrease one level of indentation.
+|=20
+| Signed-off-by: Pratyush Anand <pratyush.anand@st.com>
+|=20
+| [ balbi@ti.com: slightly changed commit log ]
+|=20
+| Signed-off-by: Felipe Balbi <balbi@ti.com>
+
+> Tested-by : Shubhrajyoti <shubhrajyoti@ti.com>
+
+since you will send, you should, probably, add your Signed-off-by,
+instead of Tested-by. dunno.
 
 --=20
 balbi
 
---fdj2RfSjLxBAspz7
+--0eh6TmSyL6TZE2Uz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJP8Yb6AAoJEIaOsuA1yqREgQ8P/2uYGAV//NbxcQQbWazMAa82
-npbVy5wChQu/jZyxgn9ExN0Br+tg+anMN7bWLX8ScjqLdOZVJArjEFN258I7xaPV
-Pg19Vm0Bd4xvEQOfAY2k1557WzJcSIfefpcvo/WCv2VTdbKqd6sUdAZDfc1dzmN5
-Hi29hdglFHbUQqGYaLqBla7nANdzjaUviwFj6i8tXHXAx7l/nvbCxBxYCjfvWY++
-n586CVZmB5mmgl1tHXyu7cVSZad43BfoK2Jmann2WcIQjf2ac/TUp6/4WB3zHnIs
-ZA0XtHzcMiXx+W/X+xiXFiieax1YDFY7XlruWeLjEP19pzdekyFxMmgAVzDn8PcC
-CQ65+n0C3kSDSSbFco6uO9sDFYotWOWAvTPZ6YdaD2vS73PVLAB0IDnKdl218D21
-JJer7c+kSnGD020MmzWTs9aR8spOtvYyxuvO5rsNmps2zl8AJ/z99ofKBB2LWgOz
-OrECMZd2QzXaPbNBimqYQ8zloAvjZ2yGXZd9IE4ymTGhrGlPXPBdqxY2k3RCL+dt
-rAsw+XBdE1W2r8rC71w0x+vQ7gpCiaXVtSe3rQuBixZijvBcIMs8xEG/TipsRlX5
-jQP1f36zfrJo6FxyCEyHCQ7mott4t90/6qQrOHZcc3caQj3B78SechUbYfz0OK2/
-WdZ7YAHDEJlkC5EBD1oY
-=heGU
+iQIcBAEBAgAGBQJP8YfoAAoJEIaOsuA1yqREUHQQAKOHfeyMa68loT6jvnm6Dbdw
+e3m/ai6bwnWhFCrImeFY370PuuuC9EX0YuppJHA8OKIfMhEjXoFlNK/AE3I9ROaU
+RVSpu7AVcaWzX3dkLE+KWNlHis/B3X/rdU9no8WhSeeBEqCWVl85s6iP28zZvmby
+ATJ00tmO8pCK8IMiEBa8I+BeYYeceGgKnpU1qd68WGmoyrgl7zcclpCpGdhBvfZE
+QgcpKGEFLGK51AqkIExDQExZkVXzk3JFN3yem3zcTqMB9exMnwdi1rrdEUb2ddYw
+mBfapfAvRSBHpJyKAiBq6NEaEPA588Y1U+A2mHIMLlWA/vDolMebtE5hjnI1TOLZ
+b+1HseBTlOAmW6rlw8S061lEcBhYWLzPiS0C1XUDf4ztKyLGzqcAVteQs6DrZjBJ
+y8CA5TxrCwHwCMW2jjWDfwm9OxCFX7JSurCZt7006V+aikmVhRq678aOsaRPBR1I
++bFeTM6imnzg166feXzSIg1Whhfm7b5EWIcXlP9KrIRw/VtHIPd1hF8DnosJhEvq
+m/MDw8IoGhGdaUPW0mRcPmcbouyeYVG4ar5DPz9a9BLOWuuRr2T7mwEMRWo4rBNh
+PGRAYn7oFFuDWXtUIsJrx6lmEWkZS8BU5PHYSOxV12nayEdvxKmDQYklTsWhlQci
+Q7G+FjVKnEliZLixlQKy
+=3PxV
 -----END PGP SIGNATURE-----
 
---fdj2RfSjLxBAspz7--
+--0eh6TmSyL6TZE2Uz--
