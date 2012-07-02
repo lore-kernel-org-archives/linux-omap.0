@@ -1,68 +1,38 @@
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving dependency
- problem
-Date: Mon, 2 Jul 2012 05:54:57 +0000
-Message-ID: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Sun, 1 Jul 2012 23:26:49 -0700
+Message-ID: <20120702062649.GN4202@atomide.com>
+References: <cover.1340778002.git.afzal@ti.com>
+ <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+ <20120627145844.GL3483@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
+ <20120628123207.GG19842@atomide.com>
+ <4FEC89B9.3090404@ti.com>
+ <4FECA9DD.8050505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47948 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932066Ab2GBFzh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 01:55:37 -0400
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:10420 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006Ab2GBG0w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 02:26:52 -0400
+Content-Disposition: inline
+In-Reply-To: <4FECA9DD.8050505@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "mgreer@animalcreek.com" <mgreer@animalcreek.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-In am35x board , iva2 clock domain doesn't be used.
-So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
-OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
-AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
+* Jon Hunter <jon-hunter@ti.com> [120628 12:05]:
+> 
+> Tony, have you tried using any of the mtd kernel tests to verify OneNAND
+> read/write is working on your n900? For example ...
+> 
+> # insmod mtd_pagetest.ko dev=<mtd-part-num>
+> 
+> _NOTE_ that above test erases the OneNAND! ;-)
 
-For the compatibility with omap3430, this patch has no conflict because mpu_3xxx_clkdm was already defined in clock domains for omap3430.
-So this can be removed from common clock domain.
+Ehh not thanks.
 
-Below error can be fixed with this patch.
-
-[    0.000000] AM3517 ES1.1 (l2cache sgx neon )
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: at arch/arm/mach-omap2/clockdomain.c:237 _resolve_clkdm_deps+0x68/0x108()
-[    0.000000] clockdomain: mpu_clkdm: could not find clkdm iva2_clkdm while resolving dependencies - should never happen
-[    0.000000] Modules linked in:
-[    0.000000] [<c001bd3c>] (unwind_backtrace+0x0/0xf4) from [<c0040c2c>] (warn_slowpath_common+0x4c/0x64)
-[    0.000000] [<c0040c2c>] (warn_slowpath_common+0x4c/0x64) from [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40)
-[    0.000000] [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40) from [<c003256c>] (_resolve_clkdm_deps+0x68/0x108)
-[    0.000000] [<c003256c>] (_resolve_clkdm_deps+0x68/0x108) from [<c0032640>] (clkdm_complete_init+0x34/0x90)
-[    0.000000] [<c0032640>] (clkdm_complete_init+0x34/0x90) from [<c06d7600>] (omap3_init_early+0x20/0x30)
-[    0.000000] [<c06d7600>] (omap3_init_early+0x20/0x30) from [<c06d3230>] (setup_arch+0x834/0x94c)
-[    0.000000] [<c06d3230>] (setup_arch+0x834/0x94c) from [<c06cf6b0>] (start_kernel+0x88/0x2fc)
-[    0.000000] [<c06cf6b0>] (start_kernel+0x88/0x2fc) from [<80008044>] (0x80008044)
-
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
----
- arch/arm/mach-omap2/clockdomains3xxx_data.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-index d625844..56089c4 100644
---- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-@@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
- 
- static struct clockdomain *clockdomains_common[] __initdata = {
- 	&wkup_common_clkdm,
--	&mpu_3xxx_clkdm,
- 	&neon_clkdm,
- 	&core_l3_3xxx_clkdm,
- 	&core_l4_3xxx_clkdm,
--- 
-1.7.2.5
-
-
-Thanks & BR
-Milo -
-
-
+Tony
