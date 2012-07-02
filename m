@@ -1,43 +1,49 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 0/5 V2 RESEND] ARM: OMAP: TLL driver implementation for
- USB host driver
-Date: Mon, 2 Jul 2012 16:31:20 +0200
-Message-ID: <20120702143120.GF22065@sortiz-mobl>
-References: <1340709962-15726-1-git-send-email-keshava_mgowda@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
+Date: Mon, 2 Jul 2012 19:54:41 +0530
+Message-ID: <CAP05o4+jmFba4z5UCoZWTnptnjUcw+OQT_69gxw42=S9zJCVLA@mail.gmail.com>
+References: <CAP05o4JctmjdAk+S--v9T0PM0kabFN50ESyiPiwAYXNUX5yyBg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1207021003050.6472-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:58814 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793Ab2GBOUF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jul 2012 10:20:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1340709962-15726-1-git-send-email-keshava_mgowda@ti.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:54036 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751183Ab2GBOY6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 10:24:58 -0400
+Received: by lbbgk8 with SMTP id gk8so8219099lbb.12
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 07:24:42 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.44L0.1207021003050.6472-100000@netrider.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, parthab@india.ti.com, paul@pwsan.com, b-cousson@ti.com, sshtylyov@mvista.com
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
 
-Hi Keshava,
+On Mon, Jul 2, 2012 at 7:35 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> On Mon, 2 Jul 2012, Munegowda, Keshava wrote:
+>
+>> Hi Samuel
+>>        please drop this patch for now , since Alan stern has mentioned
+>> improvements for this patch and we
+>> need to wait for Alan's new patch on ehci-omap.c and then Rus dill
+>> patch and my usbhs tll
+>> patch series need to be rebased.
+>
+> No, that's okay.  I rebased my patch on top of Russ's; see
+>
+>         http://marc.info/?l=linux-usb&m=134098478928668&w=2
+>
+> so Russ's patch should be kept.  My patch needed other changes also, so
+> this wasn't a big deal.
+>
+> The extra problems I mentioned in an earlier email will still need to
+> be fixed after both Russ's patch and my own are merged.
+>
+> Alan Stern
 
-On Tue, Jun 26, 2012 at 04:56:02PM +0530, Keshava Munegowda wrote:
-> The TLL configuration is removed from the UHH driver and implemented as
-> a seperate platform driver. Now, the UHH driver configures the TLL
-> through API's exported by the TLL platform driver. The TLL is an
-> has independent hardware mod structure for in OMAP3 and later chips,
-> hence an dedicated platform driver is created.
-I'm sort of ok with that split although the new driver is definitely not an
-MFD one, but I guess there's no better place for it.
-Now, a few comments before applying it:
+Thanks Alan,
+            Ok, then I will rebase my TLL driver patch series on top
+of this patch.
 
-- I'd appreciate to get ACKs from e.g. Tony for the OMAP parts.
-- Patch #3 doesn't apply on top of my for-next branch. Would you mind rebasing
-  it properly ?
-- Fix the coypright years to 2012.
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+regards
+keshava
