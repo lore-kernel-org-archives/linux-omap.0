@@ -1,83 +1,140 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH RESEND] ARM: OMAP2+: Fix Wake-up power domain power status
-Date: Mon, 2 Jul 2012 11:17:51 -0500
-Message-ID: <4FF1C9AF.1040802@ti.com>
-References: <1341003892-14424-1-git-send-email-jon-hunter@ti.com> <CAMQu2gxS8+xXUvAqMxcb3sq5dNinEXgtSphJh0TbfAX0uEGvhg@mail.gmail.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: Re: [PATCH] OMAP4: Clock: Correct OTG clock to use otg_60m_gfclk.
+Date: Mon, 2 Jul 2012 19:29:29 +0300
+Message-ID: <CAEa47NpaBfHB_HUvH9CLFUUHR1tNRnPsQMipdFagXWvYpcPuEQ@mail.gmail.com>
+References: <1340970782-30802-1-git-send-email-ruslan.bilovol@ti.com>
+	<alpine.DEB.2.00.1206291434190.2338@utopia.booyaka.com>
+	<4FF1977B.1080002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42736 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab2GBQSa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 12:18:30 -0400
-In-Reply-To: <CAMQu2gxS8+xXUvAqMxcb3sq5dNinEXgtSphJh0TbfAX0uEGvhg@mail.gmail.com>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:43138 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752478Ab2GBQ3a convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jul 2012 12:29:30 -0400
+Received: by vbbfr13 with SMTP id fr13so3957738vbb.34
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 09:29:29 -0700 (PDT)
+In-Reply-To: <4FF1977B.1080002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>, Wenbiao Wang <wwang@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+
+Thanks Benoit for the explanation. It seems you are right.
++ Wenbiao who is the original patch author that may have another point
+of view and some additional explanations.
+
+--
+Best regards,
+Ruslan Bilovol
 
 
-On 06/29/2012 11:27 PM, Shilimkar, Santosh wrote:
-> + Paul, Rajendra,
-> 
-> On Sat, Jun 30, 2012 at 2:34 AM, Jon Hunter <jon-hunter@ti.com> wrote:
->> Note: Re-sending with updated kernel doc.
+On Mon, Jul 2, 2012 at 3:43 PM, Benoit Cousson <b-cousson@ti.com> wrote=
+:
+>
+> On 06/29/2012 10:35 PM, Paul Walmsley wrote:
 >>
->> The wake-up power domain is an alway-on power domain and so this power domain
->> does not have a power state status (PM_PWSTST_xxx) register that indicates the
->> current state. However, during the registering of the wake-up power domain the
->> state of the domain is queried by calling pwrdm_read_pwrst(). This actually
->> tries to read a register that does not exist and returns a value of 0 that
->> indicates that the current state is OFF. The OFF state count of the wake-up
->> power domain is then set to 1 and the current state to OFF. Both of which are
->> incorrect.
+>> + Beno=EEt who is the maintainer of this file
 >>
->> To fix this, if a power domain only supports the ON state, do not attempt to
->> read the power state status register and simply return ON as the current power
->> state.
+>> + the linux-arm-kernel mailing list, which should be cc'ed on all OM=
+AP
+>> patches
 >>
->> This is based upon Tony's current linux-omap master branch.
+>> On Fri, 29 Jun 2012, Ruslan Bilovol wrote:
 >>
->> Testing:
->> - Boot tested on OMAP4460 panda.
->> - Boot tested on OMAP3430 beagle and validated CORE RET still working (using
->>  Paul's 32k timer patch [1]).
+>>> From: Wenbiao Wang <wwang@ti.com>
+>>>
+>>> OTG clock usb_otg_hs_ick used a incorrect parent l3_div_ck.
+>>> Correct it to use the right colck otg_60m_gfclk as its
+>>> parent.
+>
+>
+> Mmm, that does not seems to be correct.
+>
+> otg_60m_gfclk is an optional clock. The interface clock is the main c=
+lock
+> of that module. That's why this is the parent of the fake MODULEMODE =
+clock
+> node.
+>
+> Moreover you are changing as well the utmi_phy_clkout_ck. That's not
+> mentioned at all in the changelog.
+>
+> I know that there are some non standard stuff in this clock scheme.
+> The main reason being the utmi_phy_clkout_ck source is generated from=
+ the
+> usb_phy module. Unfortunately the clock fmwk cannot handle module as =
+a clock
+> node.
+>
+> So, as of today, this only way to get the OTG_60M_FCLK clock availabl=
+e is
+> to ensure that the usb_phy module is enabled before the usb_otg_hs mo=
+dule.
+>
+> Regards,
+> Benoit
+>
+>>>
+>>> Signed-off-by: Wenbiao Wang <wwang@ti.com>
+>>> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/clock44xx_data.c |   15 ++++++++-------
+>>>   1 files changed, 8 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clock44xx_data.c
+>>> b/arch/arm/mach-omap2/clock44xx_data.c
+>>> index b825049..fd43214 100644
+>>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>>> @@ -199,12 +199,6 @@ static struct clk tie_low_clock_ck =3D {
+>>>         .ops            =3D &clkops_null,
+>>>   };
+>>>
+>>> -static struct clk utmi_phy_clkout_ck =3D {
+>>> -       .name           =3D "utmi_phy_clkout_ck",
+>>> -       .rate           =3D 60000000,
+>>> -       .ops            =3D &clkops_null,
+>>> -};
+>>> -
+>>>   static struct clk xclk60mhsp1_ck =3D {
+>>>         .name           =3D "xclk60mhsp1_ck",
+>>>         .rate           =3D 60000000,
+>>> @@ -992,6 +986,13 @@ static struct clk dpll_usb_clkdcoldo_ck =3D {
+>>>         .recalc         =3D &followparent_recalc,
+>>>   };
+>>>
+>>> +static struct clk utmi_phy_clkout_ck =3D {
+>>> +       .name           =3D "utmi_phy_clkout_ck",
+>>> +       .ops            =3D &clkops_null,
+>>> +       .parent         =3D &dpll_usb_clkdcoldo_ck,
+>>> +       .recalc         =3D &followparent_recalc,
+>>> +};
+>>> +
+>>>   static const struct clksel dpll_usb_m2_div[] =3D {
+>>>         { .parent =3D &dpll_usb_ck, .rates =3D div31_1to31_rates },
+>>>         { .parent =3D NULL },
+>>> @@ -2685,7 +2686,7 @@ static struct clk usb_otg_hs_ick =3D {
+>>>         .enable_reg     =3D OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+>>>         .enable_bit     =3D OMAP4430_MODULEMODE_HWCTRL,
+>>>         .clkdm_name     =3D "l3_init_clkdm",
+>>> -       .parent         =3D &l3_div_ck,
+>>> +       .parent         =3D &otg_60m_gfclk,
+>>>         .recalc         =3D &followparent_recalc,
+>>>   };
 >>
->> [1] http://marc.info/?l=linux-omap&m=134000053229888&w=2
 >>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> ---
->>  arch/arm/mach-omap2/powerdomain.c |    6 +++++-
->>  1 file changed, 5 insertions(+), 1 deletion(-)
+>> Beno=EEt should have a look at this one, I think.
 >>
->> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
->> index eefe179..69b36e1 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -526,7 +526,8 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
->>  *
->>  * Return the powerdomain @pwrdm's current power state.        Returns -EINVAL
->>  * if the powerdomain pointer is null or returns the current power state
->> - * upon success.
->> + * upon success. Note that if the power domain only supports the ON state
->> + * then just return ON as the current state.
->>  */
->>  int pwrdm_read_pwrst(struct powerdomain *pwrdm)
->>  {
->> @@ -535,6 +536,9 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
->>        if (!pwrdm)
->>                return -EINVAL;
 >>
->> +       if (pwrdm->pwrsts == PWRSTS_ON)
->> +               return PWRDM_POWER_ON;
->> +
-> The patch as such is correct but just wondering whether we should
-> have some flag rather than above check.
-
-I was wondering that too. I opted not to add a flag because there is
-only one such power domain that needs it. However, I can add a flag if
-it is preferred.
-
-Cheers
-Jon
+>> - Paul
+>>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
