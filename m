@@ -1,96 +1,40 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH] gpio/omap: fix invalid context restore of gpio bank-0
-Date: Mon, 2 Jul 2012 13:26:38 -0500
-Message-ID: <4FF1E7DE.10409@ti.com>
-References: <1340990551-19426-1-git-send-email-jon-hunter@ti.com> <87mx3i595b.fsf@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 1/2] remoteproc: maintain a generic child device for each
+ rproc
+Date: Mon, 02 Jul 2012 12:06:45 -0700
+Message-ID: <4FF1F145.2050408@codeaurora.org>
+References: <1338017791-9442-1-git-send-email-ohad@wizery.com> <4FC5DBFA.2030300@codeaurora.org> <CAK=WgbZJJJPuNWVv8WgL=KKm6Hrx2krDD9gBOTP7sA8p7mh_rA@mail.gmail.com> <CAK=WgbbREXV8nkF4vh9iLUp1WQj2ZLYW6VG8Urmw9=roy63meQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58137 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab2GBS07 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jul 2012 14:26:59 -0400
-In-Reply-To: <87mx3i595b.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbbREXV8nkF4vh9iLUp1WQj2ZLYW6VG8Urmw9=roy63meQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>, NeilBrown <neilb@suse.de>
 
-
-On 07/02/2012 01:07 PM, Kevin Hilman wrote:
-> + Neil Brown
-> 
-> Hi Jon,
-> 
-> Jon Hunter <jon-hunter@ti.com> writes:
-> 
->> Currently the gpio _runtime_resume/suspend functions are calling the
->> get_context_loss_count() platform function if the function is populated for
->> a gpio bank. This function is used to determine if the gpio bank logic state
->> needs to be restored due to a power transition. This function will be populated
->> for all banks, but it should only be called for banks that have the
->> "loses_context" variable set. It is pointless to call this if loses_context is
->> false as we know the context will never be lost and will not need restoring.
+On 06/29/12 01:13, Ohad Ben-Cohen wrote:
+> On Wed, May 30, 2012 at 3:16 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>> In this case, I was more wondering between using a class to a device type.
 >>
->> For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
->> never lose context. We found that the get_context_loss_count() was being called
->> for bank-0 during the probe and returning 1 instead of 0 indicating that the
->> context had been lost. This was causing the context restore function to be
->> called at probe time for this bank and because the context had never been saved,
->> was restoring an invalid state. This ultimately resulted in a crash [1].
->>
->> There are multiple bugs here that need to be addressed ...
->>
->> 1. Why the always-on power domain returns a context loss count of 1? This needs
->>    to be fixed in the power domain code. However, the gpio driver should not
->>    assume the loss count is 0 to begin with.
->> 2. The omap gpio driver should never be calling get_context_loss_count for a
->>    gpio bank in a always-on domain. This is pointless and adds unneccessary
->>    overhead.
->> 3. The OMAP gpio driver assumes that the initial power domain context loss count
->>    will be 0 at the time the gpio driver is probed. However, it could be
->>    possible that this is not the case and an invalid context restore could be
->>    performed during the probe. To avoid this otherwise only populated the
-> 
-> The 'To avoid this...' sentence here doesn't read well.  Looks like you
-> need to:
-> 
-> s/otherwise//
+>>> I recall seeing a thread where
+>>> someone said classes were on the way out and shouldn't be used but I
+>>> can't find it anymore.
+>> I also remembered a similar discussion at a plumbers mini-conf about
+>> 2-3 years ago too, so I looked at device_type as an alternative to
+>> class. The former looks somewhat simpler, but I couldn't find any
+>> major advantage for using one over the other, and both seem to be in
+>> use by many subsystems.
+> Moving to device_type is so trivial that I gave it a spin (and moved
+> to IDA too while at it):
 
-Yes, I meant to have dropped "otherwise" here. Thanks!
+Great! It looks like device_type doesn't have any list iteration support
+though. Is that requirement gone? If that requirement is still there I
+would think we need something like a class or bus still.
 
-> s/populated/populate/
+Will you resend this as part of a series? It will be easier to review then.
 
-Yes that too! I must have re-worded and screwed it up royally :-(
-
-> ?
-> 
->>    get_context_loss_count() function pointer after the initial call to
->>    pm_runtime_get() has occurred. This will ensure that the first
->>    pm_runtime_put() initialised the loss count correctly.
->>
->> This patch addresses issues 2 and 3 above.
->> [1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
->>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Linus Walleij <linus.walleij@stericsson.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Cc: Franky Lin <frankyl@broadcom.com>
->>
->> Reported-by: Franky Lin <frankyl@broadcom.com>
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> 
-> Thanks for digging inot this bug Jon.  The same bug was brought up by
-> Neil Brown (Cc'd) in a different thread.
-> 
-> Neil, it looks to me that this fix will address the problems you were
-> seeing as well.  Care to test, and respond with your ack/tested-by if it
-> works for you?  Thanks.
-
-Neil let me know your thoughts and if you are ok, I can clean-up the
-changelog and re-send.
-
-Cheers
-Jon
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
