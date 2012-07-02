@@ -1,65 +1,117 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] remoteproc: block premature rproc booting
-Date: Mon, 2 Jul 2012 15:25:22 +0300
-Message-ID: <CAK=WgbZb367zq0QCUuwFU+KtBY0gw_+rsN9fm2YnM-heT+54jA@mail.gmail.com>
-References: <1337687472-23009-1-git-send-email-ohad@wizery.com>
- <4FBDFC4A.1060602@codeaurora.org> <CAK=WgbaP5qSso_Eu=Oup4eqLDcorZ-qf=mysMKiEvOS=m7yLmg@mail.gmail.com>
- <4FCD276A.80505@codeaurora.org> <CAK=WgbZo-8GXY9bVYGk0XZvqKrdaJZWeNkK1FhRWnH5doGYLjA@mail.gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP4: Clock: Correct OTG clock to use otg_60m_gfclk.
+Date: Mon, 2 Jul 2012 14:43:39 +0200
+Message-ID: <4FF1977B.1080002@ti.com>
+References: <1340970782-30802-1-git-send-email-ruslan.bilovol@ti.com> <alpine.DEB.2.00.1206291434190.2338@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:64731 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab2GBMZn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 08:25:43 -0400
-Received: by vcbf11 with SMTP id f11so3456938vcb.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 05:25:43 -0700 (PDT)
-In-Reply-To: <CAK=WgbZo-8GXY9bVYGk0XZvqKrdaJZWeNkK1FhRWnH5doGYLjA@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38001 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750752Ab2GBMns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jul 2012 08:43:48 -0400
+In-Reply-To: <alpine.DEB.2.00.1206291434190.2338@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>, Ludovic BARRE <ludovic.barre@stericsson.com>, Loic Pallardy <loic.pallardy@stericsson.com>, =?ISO-8859-1?Q?Sjur_Br=E6ndeland?= <sjur.brandeland@stericsson.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-+ Sjur, Ludovic, Loic
-
-On Tue, Jun 5, 2012 at 1:57 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> On Tue, Jun 5, 2012 at 12:23 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
->> I thought we wanted to allow both calls to proceed in parallel? If we
->> don't care about that
+On 06/29/2012 10:35 PM, Paul Walmsley wrote:
+> + Beno=EEt who is the maintainer of this file
 >
-> Yeah, I don't think we do.
+> + the linux-arm-kernel mailing list, which should be cc'ed on all OMA=
+P
+> patches
 >
->> then "announcing" it once the firmware is found the first time sounds correct.
+> On Fri, 29 Jun 2012, Ruslan Bilovol wrote:
 >
-> I agree. Though this patch may be moot very soon due to:
->
->>> The main reason we kept the get/put interface was to make it easier
->>> for you guys to adopt it, but I've been re-thinking lately whether we
->>> really want that interface. It's a problematic interface with
->>> non-negligible maintenance burden, and the code will be greatly
->>> simplified without it.
+>> From: Wenbiao Wang <wwang@ti.com>
 >>
->> If nobody in the kernel is using it why keep it?
->
-> I was concerned that the non get/put interface might not suit
-> everyone, and I planned to wait for another user or two to show up
-> before I remove that interface.
->
-> Since MSM's PIL is based on a get/put interface, I actually hoped to
-> see if you guys can adopt the new interface before we ditch the
-> get/put one.
->
->> If MSM needs we can add it back when we move to rproc.
->
-> Thanks - that's the kind of feedback I wanted to get.
+>> OTG clock usb_otg_hs_ick used a incorrect parent l3_div_ck.
+>> Correct it to use the right colck otg_60m_gfclk as its
+>> parent.
 
-Sjur, Ludovic, Loic - what remoteproc API are you using today?
+Mmm, that does not seems to be correct.
 
-We'd like to get rid of the existing get/put interface and instead
-have everyone use the boot/shutdown one, just like rpmsg is doing
-today.
+otg_60m_gfclk is an optional clock. The interface clock is the main=20
+clock of that module. That's why this is the parent of the fake=20
+MODULEMODE clock node.
 
-Are you ok with this change?
+Moreover you are changing as well the utmi_phy_clkout_ck. That's not=20
+mentioned at all in the changelog.
 
-Thanks,
-Ohad.
+I know that there are some non standard stuff in this clock scheme.
+The main reason being the utmi_phy_clkout_ck source is generated from=20
+the usb_phy module. Unfortunately the clock fmwk cannot handle module a=
+s=20
+a clock node.
+
+So, as of today, this only way to get the OTG_60M_FCLK clock available=20
+is to ensure that the usb_phy module is enabled before the usb_otg_hs=20
+module.
+
+Regards,
+Benoit
+
+>>
+>> Signed-off-by: Wenbiao Wang <wwang@ti.com>
+>> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/clock44xx_data.c |   15 ++++++++-------
+>>   1 files changed, 8 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-om=
+ap2/clock44xx_data.c
+>> index b825049..fd43214 100644
+>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>> @@ -199,12 +199,6 @@ static struct clk tie_low_clock_ck =3D {
+>>   	.ops		=3D &clkops_null,
+>>   };
+>>
+>> -static struct clk utmi_phy_clkout_ck =3D {
+>> -	.name		=3D "utmi_phy_clkout_ck",
+>> -	.rate		=3D 60000000,
+>> -	.ops		=3D &clkops_null,
+>> -};
+>> -
+>>   static struct clk xclk60mhsp1_ck =3D {
+>>   	.name		=3D "xclk60mhsp1_ck",
+>>   	.rate		=3D 60000000,
+>> @@ -992,6 +986,13 @@ static struct clk dpll_usb_clkdcoldo_ck =3D {
+>>   	.recalc		=3D &followparent_recalc,
+>>   };
+>>
+>> +static struct clk utmi_phy_clkout_ck =3D {
+>> +	.name		=3D "utmi_phy_clkout_ck",
+>> +	.ops		=3D &clkops_null,
+>> +	.parent		=3D &dpll_usb_clkdcoldo_ck,
+>> +	.recalc		=3D &followparent_recalc,
+>> +};
+>> +
+>>   static const struct clksel dpll_usb_m2_div[] =3D {
+>>   	{ .parent =3D &dpll_usb_ck, .rates =3D div31_1to31_rates },
+>>   	{ .parent =3D NULL },
+>> @@ -2685,7 +2686,7 @@ static struct clk usb_otg_hs_ick =3D {
+>>   	.enable_reg	=3D OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+>>   	.enable_bit	=3D OMAP4430_MODULEMODE_HWCTRL,
+>>   	.clkdm_name	=3D "l3_init_clkdm",
+>> -	.parent		=3D &l3_div_ck,
+>> +	.parent		=3D &otg_60m_gfclk,
+>>   	.recalc		=3D &followparent_recalc,
+>>   };
+>
+> Beno=EEt should have a look at this one, I think.
+>
+>
+> - Paul
+>
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
