@@ -1,155 +1,151 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [FYI/RFC] usb: musb: DMA doesn't work with "nop" PHYs
-Date: Mon, 2 Jul 2012 15:38:37 -0700
-Message-ID: <20120702223837.GA31796@animalcreek.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH] gpio/omap: fix invalid context restore of gpio bank-0
+Date: Tue, 3 Jul 2012 09:34:04 +1000
+Message-ID: <20120703093404.2a9b5aba@notabene.brown>
+References: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
+	<87mx3i595b.fsf@ti.com>
+	<4FF1E7DE.10409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/LLY0gEo.a5G.0PGCWaKSzk2"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:45922 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755159Ab2GBWij (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 18:38:39 -0400
-Content-Disposition: inline
+Received: from cantor2.suse.de ([195.135.220.15]:37009 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751130Ab2GBXeO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jul 2012 19:34:14 -0400
+In-Reply-To: <4FF1E7DE.10409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Cc: Felipe Balbi <balbi@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>
 
-[The reason I'm sending this is that there is an issue but I probably
- won't be able to spend much time on it for a while.  So, I'm sending
- it in case a) it helps someone else who bumps into it and b) someone
- else picks up and completes the fix.]
+--Sig_/LLY0gEo.a5G.0PGCWaKSzk2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Hello.
+On Mon, 2 Jul 2012 13:26:38 -0500 Jon Hunter <jon-hunter@ti.com> wrote:
 
-In testing USB OTG Gadget on the am37x EVM with the mainline kernel
-I discovered that DMA doesn't work (but PIO does).  When I tested
-the same kernel on the BeagleBoard-xM (BBxM), which has essentially
-the same SoC, it worked fine.  They do have different OTG PHYs, though.
-The am37x EVM uses an ISP 1507 and the BBxM uses the PHY on the
-TPS65950 (twl4030).  The different PHYs means that they use different
-drivers in drivers/usb/otg.  The am37x EVM uses nop-usb-xceiv.c and
-the BBxM uses twl4030-usb.c.
+>=20
+> On 07/02/2012 01:07 PM, Kevin Hilman wrote:
+> > + Neil Brown
+> >=20
+> > Hi Jon,
+> >=20
+> > Jon Hunter <jon-hunter@ti.com> writes:
+> >=20
+> >> Currently the gpio _runtime_resume/suspend functions are calling the
+> >> get_context_loss_count() platform function if the function is populate=
+d for
+> >> a gpio bank. This function is used to determine if the gpio bank logic=
+ state
+> >> needs to be restored due to a power transition. This function will be =
+populated
+> >> for all banks, but it should only be called for banks that have the
+> >> "loses_context" variable set. It is pointless to call this if loses_co=
+ntext is
+> >> false as we know the context will never be lost and will not need rest=
+oring.
+> >>
+> >> For all OMAP2+ devices gpio bank-0 is in an always-on power domain and=
+ so will
+> >> never lose context. We found that the get_context_loss_count() was bei=
+ng called
+> >> for bank-0 during the probe and returning 1 instead of 0 indicating th=
+at the
+> >> context had been lost. This was causing the context restore function t=
+o be
+> >> called at probe time for this bank and because the context had never b=
+een saved,
+> >> was restoring an invalid state. This ultimately resulted in a crash [1=
+].
+> >>
+> >> There are multiple bugs here that need to be addressed ...
+> >>
+> >> 1. Why the always-on power domain returns a context loss count of 1? T=
+his needs
+> >>    to be fixed in the power domain code. However, the gpio driver shou=
+ld not
+> >>    assume the loss count is 0 to begin with.
+> >> 2. The omap gpio driver should never be calling get_context_loss_count=
+ for a
+> >>    gpio bank in a always-on domain. This is pointless and adds unnecce=
+ssary
+> >>    overhead.
+> >> 3. The OMAP gpio driver assumes that the initial power domain context =
+loss count
+> >>    will be 0 at the time the gpio driver is probed. However, it could =
+be
+> >>    possible that this is not the case and an invalid context restore c=
+ould be
+> >>    performed during the probe. To avoid this otherwise only populated =
+the
+> >=20
+> > The 'To avoid this...' sentence here doesn't read well.  Looks like you
+> > need to:
+> >=20
+> > s/otherwise//
+>=20
+> Yes, I meant to have dropped "otherwise" here. Thanks!
+>=20
+> > s/populated/populate/
+>=20
+> Yes that too! I must have re-worded and screwed it up royally :-(
+>=20
+> > ?
+> >=20
+> >>    get_context_loss_count() function pointer after the initial call to
+> >>    pm_runtime_get() has occurred. This will ensure that the first
+> >>    pm_runtime_put() initialised the loss count correctly.
+> >>
+> >> This patch addresses issues 2 and 3 above.
+> >> [1] http://marc.info/?l=3Dlinux-omap&m=3D134065775323775&w=3D2
+> >>
+> >> Cc: Grant Likely <grant.likely@secretlab.ca>
+> >> Cc: Linus Walleij <linus.walleij@stericsson.com>
+> >> Cc: Kevin Hilman <khilman@ti.com>
+> >> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> >> Cc: Franky Lin <frankyl@broadcom.com>
+> >>
+> >> Reported-by: Franky Lin <frankyl@broadcom.com>
+> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> >=20
+> > Thanks for digging inot this bug Jon.  The same bug was brought up by
+> > Neil Brown (Cc'd) in a different thread.
+> >=20
+> > Neil, it looks to me that this fix will address the problems you were
+> > seeing as well.  Care to test, and respond with your ack/tested-by if it
+> > works for you?  Thanks.
+>=20
+> Neil let me know your thoughts and if you are ok, I can clean-up the
+> changelog and re-send.
 
-After a little digging, the issue appears to be that the generic musb
-code, which uses pm_runtime calls to shut things off when its not busy,
-assumes that PHY code will turn things back on when there is activity.
-For example, on the BBxM (twl4030-usb.c) there is a PHY interrupt that
-is handled by twl4030_usb_irq() which notifies the generic code and
-eventually calls the appropriate pm_runtime call to turn things on again.
-There isn't interrupt support like that in nop-usb-xceiv.c so the IP
-stays off when DMA should be happening.
+Yes, works for me and looks sensible.
 
-There are at least a couple options for fixing this (that I can think of):
-a) Enhance ulip.c to support interrupt generation from the PHY.  IIUC, this
-   will cause a non-dma interrupt so there would be some hacking in the
-   generic musb code required to handle this.
-b) Add pm_runtime hooks to musbhsdma.c since its the DMA driver being used
-   and it probably makes sense for it to be pm_runtime-ized anyway.
-
-I went down the path of b) and added pm_runtime calls to the channel_alloc()
-and channel_release() DMA driver hooks.  The patch is here:
-
-<PATCH>
-
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index 57a6085..8eb13c7 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -76,10 +76,17 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
- {
- 	struct musb_dma_controller *controller = container_of(c,
- 			struct musb_dma_controller, controller);
-+	struct musb *musb = controller->private_data;
- 	struct musb_dma_channel *musb_channel = NULL;
- 	struct dma_channel *channel = NULL;
- 	u8 bit;
- 
-+	if (!controller->used_channels) {
-+		spin_unlock(&musb->lock);
-+		pm_runtime_get_sync(musb->controller);
-+		spin_lock(&musb->lock);
-+	}
-+
- 	for (bit = 0; bit < MUSB_HSDMA_CHANNELS; bit++) {
- 		if (!(controller->used_channels & (1 << bit))) {
- 			controller->used_channels |= (1 << bit);
-@@ -105,15 +112,25 @@ static struct dma_channel *dma_channel_allocate(struct dma_controller *c,
- static void dma_channel_release(struct dma_channel *channel)
- {
- 	struct musb_dma_channel *musb_channel = channel->private_data;
-+	struct musb_dma_controller *controller = musb_channel->controller;
-+	struct musb *musb = controller->private_data;
-+	u8 prev_used_channels;
- 
- 	channel->actual_len = 0;
- 	musb_channel->start_addr = 0;
- 	musb_channel->len = 0;
- 
--	musb_channel->controller->used_channels &=
--		~(1 << musb_channel->idx);
-+	prev_used_channels = controller->used_channels;
-+	controller->used_channels &= ~(1 << musb_channel->idx);
- 
- 	channel->status = MUSB_DMA_STATUS_UNKNOWN;
-+
-+	/* Only _put() when going from 1 channel to 0 channels */
-+	if (prev_used_channels && !controller->used_channels) {
-+		spin_unlock(&musb->lock);
-+		pm_runtime_put(musb->controller);
-+		spin_lock(&musb->lock);
-+	}
- }
- 
- static void configure_channel(struct dma_channel *channel,
-
-</PATCH>
-
-I also have a simpler version that calls pm_runtime every time those
-routines are called.  Either way, the gadget code resets the device
-and it doesn't work.  I don't understand the code well enough to know
-why and I don't have time to pursue it right now.
-
-In the meantime, if pm_runtime calls are added to the start() and stop()
-hooks of the DMA driver, it will work fine.  The problem with putting the
-pm_runtime calls there is that it will stay powered on even when DMA isn't
-being used.  This patch works for me on the am37x EVM:
-
-<PATCH>
-
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index 57a6085..b69e1e1 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -39,7 +39,12 @@
- 
- static int dma_controller_start(struct dma_controller *c)
- {
--	/* nothing to do */
-+	struct musb_dma_controller *controller = container_of(c,
-+			struct musb_dma_controller, controller);
-+	struct musb *musb = controller->private_data;
-+
-+	pm_runtime_get_sync(musb->controller);
-+
- 	return 0;
- }
- 
-@@ -68,6 +73,8 @@ static int dma_controller_stop(struct dma_controller *c)
- 		}
- 	}
- 
-+	pm_runtime_put(musb->controller);
-+
- 	return 0;
- }
-
-</PATCH>
-
-I'm not very familiar with the musb code so I could be way off in the weeds.
-If you have comments or better ideas, please let me know.  If you have
-the time to fix it, even better! :)
+ Tested-by: NeilBrown <neilb@suse.de>
 
 Thanks,
+NeilBrown
 
-Mark
+--Sig_/LLY0gEo.a5G.0PGCWaKSzk2
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT/Iv7Dnsnt1WYoG5AQL9eA//fY1O+QsbjnPvhUWFmBgW2GmTGCiR75tm
++5lzpFt6IOON9eHwTQ0pM6NEvu2UZkalq9jXSOjDc/58T1Fu/84fOT05/NeMle6z
+5NeqcJTDZwCym5/CN3av8fFkcJk7acbD4d8WMCpz77QZ6hnai9jrr7VYhaBYBxkD
+nC98gwPxS84UPtHvyH87Gg3XIoZRpraZl0e+ImtXAUSKRLRQt5yrC4EWn5brRcEw
+7l3ibEsXBwr6AQ/z13fWNDHxfP7X/xk+DY3zWJ4anZH22Ko8O3MlZQUI3qZ8eew7
+tqb8Urbu02mpoFRk4EG5QdqeAGGNkjlbL9U4SsjdEixgdU+3D6y21vh2INFKZ/b4
+nt84Lqup/bOvqWREY7CnB09Zm/MfJ6XtzWL+7w5zCRPm8dHAisroOFdZ5+qFpHLr
+CnhDyRcLddFOg6Zi64TA7HkovNumFiDgZzEkdwB9KQu94B+Q0rxXmtzsBEPFiXdw
+i73eT7VrS0lKXg1BrbVpx9dezbhWiRYdVAvOtySrdQYWNLjTk7kGEvgLcX9XbyJy
+s1uS3Eg8KvsY+FmN9sCUftUrGR5fxqC855rLECPei1XYAs8qqOBSPym7jQqGNqe4
+ueGUO/gR27F7Zd2CQAWBL9QrFYjiHDxAaq0DHyPMe8sZw69nQFJjG3ZVX6ZZlwIL
+1HvGVN0UaQ8=
+=91KR
+-----END PGP SIGNATURE-----
+
+--Sig_/LLY0gEo.a5G.0PGCWaKSzk2--
