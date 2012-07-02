@@ -1,552 +1,100 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 4/4] memory: emif: add device tree support to emif driver
-Date: Mon, 2 Jul 2012 18:48:18 +0530
-Message-ID: <CAMQu2gxZ-tWJXAOeh20NsF1uyvs9fqwYtggFv=d7-qX+WFumRQ@mail.gmail.com>
-References: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com>
- <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
- <CAMQu2gz6jdcR4hQPPbmyO8vrkdmppHeCkZmV3_9w27LOzKrUuA@mail.gmail.com>
- <20120630042356.GC1816@kroah.com> <CAMQu2gy0MmP4JLW4P1FreJqMMEBYSTjkLHJb8WX=aXLA6hxtZg@mail.gmail.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [RFC PATCH 3/3] i2c: inititalise the actual transferred to zero
+Date: Mon, 2 Jul 2012 15:20:58 +0200
+Message-ID: <20120702152058.35fb0bca@endymion.delvare>
+References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
+	<1340967927-27354-4-git-send-email-shubhrajyoti@ti.com>
+	<20120629144002.3b4a31ee@endymion.delvare>
+	<20120629145718.697b6955@endymion.delvare>
+	<4FEDA9A8.1050504@ti.com>
+	<20120629151832.0cb26bea@endymion.delvare>
+	<20120702115422.GC2730@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41266 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750770Ab2GBNSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 09:18:51 -0400
-Received: by qcad1 with SMTP id d1so1894759qca.30
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 06:18:38 -0700 (PDT)
-In-Reply-To: <CAMQu2gy0MmP4JLW4P1FreJqMMEBYSTjkLHJb8WX=aXLA6hxtZg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120702115422.GC2730-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, tony@atomide.com
 
-On Sat, Jun 30, 2012 at 10:12 AM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Sat, Jun 30, 2012 at 9:53 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
->> On Sat, Jun 30, 2012 at 09:38:41AM +0530, Shilimkar, Santosh wrote:
->>> (+ Greg, By mistake the your name got dropped cc from list)
->>>
->>> On Fri, Jun 29, 2012 at 7:13 PM, Santosh Shilimkar
->>> <santosh.shilimkar@ti.com> wrote:
->>> > From: Aneesh V <aneesh@ti.com>
->>> >
->>> > Device tree support for the EMIF driver.
->>> >
->>> > Reviewed-by: Benoit Cousson <b-cousson@ti.com>
->>> > Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
->>> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> > Signed-off-by: Aneesh V <aneesh@ti.com>
->>> > [santosh.shilimkar@ti.com: Rebased against 3.5-rc]
->>> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> > ---
->>> >  drivers/memory/emif.c |  291 ++++++++++++++++++++++++++++++++++++++++++++++++-
->>> >  1 file changed, 290 insertions(+), 1 deletion(-)
->>
->> Wouldn't this just be better off as a separate file that only gets build
->> if CONFIG_OF is set, as I'm sure that other systems are going to want
->> access to these "read the device tree values" functions, right?
->>
-> Probably yes. At least separate the LPDDR2 memory
-> generic parameter DT read code. There are parameters like phy
-> type which is specific to OMAP controllers so that still need to kept
-> inside EMIF driver. So there in driver, few lines of code will be there
-> under CONFIG_OF.
->
-> I can extract those functions which can be commonly used and put them
-> in another file under drivers/memory/
->
-> Is that fine with you ?
->
-To elaborate more, I have created below patch.
-Let me know what do you think ?
+Hi Felipe,
 
------->>
->From 42abb2b29136efb9983abdd203fe1e6bce784715 Mon Sep 17 00:00:00 2001
-From: Aneesh V <aneesh@ti.com>
-Date: Mon, 30 Jan 2012 20:06:30 +0530
-Subject: [PATCH] memory: emif: add device tree support to emif driver
+On Mon, 2 Jul 2012 14:54:23 +0300, Felipe Balbi wrote:
+> On Fri, Jun 29, 2012 at 03:18:32PM +0200, Jean Delvare wrote:
+> > Well you've seen the caveats I mentioned, this will be no easy ride. If
+> > you are willing to take the risk, spend the time documenting the
+> > change, and help people if there are issues, then I'm OK. At least as
+> > long as someone else doesn't come saying it's a very bad idea ;)
+> 
+> This approach is a hard-requirement for devices which will pose any
+> interface/feedback with user. We have been working with a piezo driver
+> from TI (drv2665) and it will be used (in most cases at least) to give
+> the user a feedback based on e.g. touchscreen event.
+> 
+> Imagine drv2665 responds with a NAK while we're in the middle of driving
+> a wave through it (keep in mind a wave could take seconds to finish,
+> depending on the usecase), if we don't have a way to tell users that we
+> have writen X bytes, how should we make sure to continue driving the
+> wave from the exact byte where we got a NAK ?
+> 
+> If can't make sure that detail is true, then such usecases (as piezo
+> drivers) will never work.
+> 
+> Another approach would be to not add any field to struct i2c_msg but
+> instead return either the amount of bytes transferred, or an error case.
+> This would mean a series that would:
+> 
+> 1) fix all users of struct i2c_master_send() and the like to check for
+> 	errors as if (ret < 0) instead of if (ret);
 
-Device tree support for the EMIF driver. LPDDR2 generic timings
-extraction from device is managed using couple of helper
-functions which can be used by other memory controller
-drivers.
+You confuse me here. i2c_master_send is a function, not a structure.
 
-Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
-[santosh.shilimkar@ti.com: Rebased against 3.5-rc]
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
->From last version, the only change is to the lpddr2 dt timings generic
-functions moved to separate file(of_memory.c)  and build it only for
-CONFIG_OF.
+Have you checked the code as it currently exists? i2c_master_send()
+already returns a positive number on success, not 0. I'm not claiming
+this number is necessarily very useful with the current implementation,
+but it's not 0. The API looks sane at least, and with Shubhrajyoti's
+proposed change, we could finally implement it properly.
 
- drivers/memory/Makefile    |    1 +
- drivers/memory/emif.c      |  182 +++++++++++++++++++++++++++++++++++++++++++-
- drivers/memory/of_memory.c |  153 +++++++++++++++++++++++++++++++++++++
- drivers/memory/of_memory.h |   36 +++++++++
- 4 files changed, 371 insertions(+), 1 deletions(-)
- create mode 100644 drivers/memory/of_memory.c
- create mode 100644 drivers/memory/of_memory.h
+And its backend i2c_transfer() also doesn't return 0 on success, but
+the number of transferred messages. The problem at the moment is that
+it's not clear what the bus driver should return in case of partial
+success : a negative error code, or the number of messages successfully
+processed. I suspect implementations are mixed. Plus, as you and
+Shubhrajyoti found out, the caller doesn't know where in the last
+message the problem occurred.
 
-diff --git a/drivers/memory/Makefile b/drivers/memory/Makefile
-index 42b3ce9..cd8486b 100644
---- a/drivers/memory/Makefile
-+++ b/drivers/memory/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for memory devices
- #
+Are you really suggesting that we could change the meaning of the value
+returned by i2c_transfer from "number of messages processed" to "number
+of bytes processed"? This would be a real API change. I'm not claiming
+the current API is very useful, but callers expect it that way, and I
+mean in-tree kernel drivers, out-of-tree kernel drivers, and user-space
+alike. Changing it has a huge risk of breakage (with lots of people mad
+at you.)
 
-+obj-$(CONFIG_OF)		+= of_memory.o
- obj-$(CONFIG_TI_EMIF)		+= emif.o
- obj-$(CONFIG_TEGRA20_MC)	+= tegra20-mc.o
- obj-$(CONFIG_TEGRA30_MC)	+= tegra30-mc.o
-diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-index 33a4396..06b4eb7 100644
---- a/drivers/memory/emif.c
-+++ b/drivers/memory/emif.c
-@@ -18,6 +18,7 @@
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/module.h>
-@@ -25,6 +26,7 @@
- #include <linux/spinlock.h>
- #include <memory/jedec_ddr.h>
- #include "emif.h"
-+#include "of_memory.h"
+> 2) fix all i2c buses to return the amount of bytes written instead of
+> 	zero or error case
 
- /**
-  * struct emif_data - Per device static data for driver's use
-@@ -49,6 +51,7 @@
-  *				frequency in effect at the moment)
-  * @plat_data:			Pointer to saved platform data.
-  * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-+ * @np_ddr:			Pointer to ddr device tree node
-  */
- struct emif_data {
- 	u8				duplicate;
-@@ -63,6 +66,7 @@ struct emif_data {
- 	struct emif_regs		*curr_regs;
- 	struct emif_platform_data	*plat_data;
- 	struct dentry			*debugfs_root;
-+	struct device_node		*np_ddr;
- };
+adap->algo->master_xfer is not returning 0 on success today, so your
+proposal makes little sense to me.
 
- static struct emif_data *emif1;
-@@ -1148,6 +1152,168 @@ static int is_custom_config_valid(struct
-emif_custom_configs *cust_cfgs,
- 	return valid;
- }
+> 3) fix Documentation to state that we're now returning the amount of
+> 	bytes, instead of zero or errno.
+> 
+> I'm not sure what will have minimum impact to userland, though. What do
+> you say Jean ? What would you prefer ?
 
-+#if defined(CONFIG_OF)
-+static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
-+		struct emif_data *emif)
-+{
-+	struct emif_custom_configs	*cust_cfgs = NULL;
-+	int				len;
-+	const int			*lpmode, *poll_intvl;
-+
-+	lpmode = of_get_property(np_emif, "low-power-mode", &len);
-+	poll_intvl = of_get_property(np_emif, "temp-alert-poll-interval", &len);
-+
-+	if (lpmode || poll_intvl)
-+		cust_cfgs = devm_kzalloc(emif->dev, sizeof(*cust_cfgs),
-+			GFP_KERNEL);
-+
-+	if (!cust_cfgs)
-+		return;
-+
-+	if (lpmode) {
-+		cust_cfgs->mask |= EMIF_CUSTOM_CONFIG_LPMODE;
-+		cust_cfgs->lpmode = *lpmode;
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-timeout-performance",
-+				&cust_cfgs->lpmode_timeout_performance);
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-timeout-power",
-+				&cust_cfgs->lpmode_timeout_power);
-+		of_property_read_u32(np_emif,
-+				"low-power-mode-freq-threshold",
-+				&cust_cfgs->lpmode_freq_threshold);
-+	}
-+
-+	if (poll_intvl) {
-+		cust_cfgs->mask |=
-+				EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL;
-+		cust_cfgs->temp_alert_poll_interval_ms = *poll_intvl;
-+	}
-+
-+	if (!is_custom_config_valid(cust_cfgs, emif->dev)) {
-+		devm_kfree(emif->dev, cust_cfgs);
-+		return;
-+	}
-+
-+	emif->plat_data->custom_configs = cust_cfgs;
-+}
-+
-+static void __init_or_module of_get_ddr_info(struct device_node *np_emif,
-+		struct device_node *np_ddr,
-+		struct ddr_device_info *dev_info)
-+{
-+	u32 density = 0, io_width = 0;
-+	int len;
-+
-+	if (of_find_property(np_emif, "cs1-used", &len))
-+		dev_info->cs1_used = true;
-+
-+	if (of_find_property(np_emif, "cal-resistor-per-cs", &len))
-+		dev_info->cal_resistors_per_cs = true;
-+
-+	if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s4"))
-+		dev_info->type = DDR_TYPE_LPDDR2_S4;
-+	else if (of_device_is_compatible(np_ddr , "jedec,lpddr2-s2"))
-+		dev_info->type = DDR_TYPE_LPDDR2_S2;
-+
-+	of_property_read_u32(np_ddr, "density", &density);
-+	of_property_read_u32(np_ddr, "io-width", &io_width);
-+
-+	/* Convert from density in Mb to the density encoding in jedc_ddr.h */
-+	if (density & (density - 1))
-+		dev_info->density = 0;
-+	else
-+		dev_info->density = __fls(density) - 5;
-+
-+	/* Convert from io_width in bits to io_width encoding in jedc_ddr.h */
-+	if (io_width & (io_width - 1))
-+		dev_info->io_width = 0;
-+	else
-+		dev_info->io_width = __fls(io_width) - 1;
-+}
-+
-+static struct emif_data * __init_or_module of_get_device_details(
-+		struct device_node *np_emif, struct device *dev)
-+{
-+	struct emif_data		*emif = NULL;
-+	struct ddr_device_info		*dev_info = NULL;
-+	struct emif_platform_data	*pd = NULL;
-+	struct device_node		*np_ddr;
-+	int				len;
-+
-+	np_ddr = of_parse_phandle(np_emif, "device-handle", 0);
-+	if (!np_ddr)
-+		goto error;
-+	emif	= devm_kzalloc(dev, sizeof(struct emif_data), GFP_KERNEL);
-+	pd	= devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
-+	dev_info = devm_kzalloc(dev, sizeof(*dev_info), GFP_KERNEL);
-+
-+	if (!emif || !pd || !dev_info) {
-+		dev_err(dev, "%s: of_get_device_details() failure!!\n",
-+			__func__);
-+		goto error;
-+	}
-+
-+	emif->plat_data		= pd;
-+	pd->device_info		= dev_info;
-+	emif->dev		= dev;
-+	emif->np_ddr		= np_ddr;
-+	emif->temperature_level	= SDRAM_TEMP_NOMINAL;
-+
-+	if (of_device_is_compatible(np_emif, "ti,emif-4d"))
-+		emif->plat_data->ip_rev = EMIF_4D;
-+	else if (of_device_is_compatible(np_emif, "ti,emif-4d5"))
-+		emif->plat_data->ip_rev = EMIF_4D5;
-+
-+	of_property_read_u32(np_emif, "phy-type", &pd->phy_type);
-+
-+	if (of_find_property(np_emif, "hw-caps-ll-interface", &len))
-+		pd->hw_caps |= EMIF_HW_CAPS_LL_INTERFACE;
-+
-+	of_get_ddr_info(np_emif, np_ddr, dev_info);
-+	if (!is_dev_data_valid(pd->device_info->type, pd->device_info->density,
-+			pd->device_info->io_width, pd->phy_type, pd->ip_rev,
-+			emif->dev)) {
-+		dev_err(dev, "%s: invalid device data!!\n", __func__);
-+		goto error;
-+	}
-+	/*
-+	 * For EMIF instances other than EMIF1 see if the devices connected
-+	 * are exactly same as on EMIF1(which is typically the case). If so,
-+	 * mark it as a duplicate of EMIF1. This will save some memory and
-+	 * computation.
-+	 */
-+	if (emif1 && emif1->np_ddr == np_ddr) {
-+		emif->duplicate = true;
-+		goto out;
-+	} else if (emif1) {
-+		dev_warn(emif->dev, "%s: Non-symmetric DDR geometry\n",
-+			__func__);
-+	}
-+
-+	of_get_custom_configs(np_emif, emif);
-+	emif->plat_data->timings = of_get_ddr_timings(np_ddr, emif->dev,
-+					emif->plat_data->device_info->type,
-+					&emif->plat_data->timings_arr_size);
-+
-+	emif->plat_data->min_tck = of_get_min_tck(np_ddr, emif->dev);
-+	goto out;
-+
-+error:
-+	return NULL;
-+out:
-+	return emif;
-+}
-+
-+#else
-+
-+static struct emif_data * __init_or_module of_get_device_details(
-+		struct device_node *np_emif, struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif
-+
- static struct emif_data *__init_or_module get_device_details(
- 		struct platform_device *pdev)
- {
-@@ -1267,7 +1433,11 @@ static int __init_or_module emif_probe(struct
-platform_device *pdev)
- 	struct resource		*res;
- 	int			irq;
+Shubhrajyoti's proposal (which is much in line with what David Brownell
+proposed 4 years ago) seems at least possible to implement, while so
+far your own proposal is fuzzy at best (an actual patch may make your
+intents clearer.)
 
--	emif = get_device_details(pdev);
-+	if (pdev->dev.of_node)
-+		emif = of_get_device_details(pdev->dev.of_node, &pdev->dev);
-+	else
-+		emif = get_device_details(pdev);
-+
- 	if (!emif) {
- 		pr_err("%s: error getting device data\n", __func__);
- 		goto error;
-@@ -1644,11 +1814,21 @@ static void __attribute__((unused))
-freq_post_notify_handling(void)
- 	spin_unlock_irqrestore(&emif_lock, irq_state);
- }
+What I like about Shubhrajyoti's proposal is that it adds optional
+information for the caller. It isn't changing the values returned, so
+the risk of breaking current driver code is quite low. Actually I think
+the only issue is with i2c_msg structures not being initialized using
+the C99 style. Other than this, it should be pretty safe.
 
-+#if defined(CONFIG_OF)
-+static const struct of_device_id emif_of_match[] = {
-+		{ .compatible = "ti,emif-4d" },
-+		{ .compatible = "ti,emif-4d5" },
-+		{},
-+};
-+MODULE_DEVICE_TABLE(of, emif_of_match);
-+#endif
-+
- static struct platform_driver emif_driver = {
- 	.remove		= __exit_p(emif_remove),
- 	.shutdown	= emif_shutdown,
- 	.driver = {
- 		.name = "emif",
-+		.of_match_table = of_match_ptr(emif_of_match),
- 	},
- };
-
-diff --git a/drivers/memory/of_memory.c b/drivers/memory/of_memory.c
-new file mode 100644
-index 0000000..c16aacc
---- /dev/null
-+++ b/drivers/memory/of_memory.c
-@@ -0,0 +1,153 @@
-+/*
-+ * OpenFirmware helpers for memory drivers
-+ *
-+ * Copyright (C) 2012 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/platform_device.h>
-+#include <linux/list.h>
-+#include <linux/of.h>
-+#include <linux/gfp.h>
-+#include <memory/jedec_ddr.h>
-+#include <linux/export.h>
-+
-+/**
-+ * of_get_min_tck() - extract min timing values for ddr
-+ * @np: pointer to ddr device tree node
-+ * @device: device requesting for min timing values
-+ *
-+ * Populates the lpddr2_min_tck structure by extracting data
-+ * from device tree node. Returns a pointer to the populated
-+ * structure. If any error in populating the structure, returns
-+ * default min timings provided by JEDEC.
-+ */
-+const struct lpddr2_min_tck *of_get_min_tck(struct device_node *np,
-+		struct device *dev)
-+{
-+	int			ret = 0;
-+	struct lpddr2_min_tck	*min;
-+
-+	min = devm_kzalloc(dev, sizeof(*min), GFP_KERNEL);
-+	if (!min)
-+		goto default_min_tck;
-+
-+	ret |= of_property_read_u32(np, "tRPab-min-tck", &min->tRPab);
-+	ret |= of_property_read_u32(np, "tRCD-min-tck", &min->tRCD);
-+	ret |= of_property_read_u32(np, "tWR-min-tck", &min->tWR);
-+	ret |= of_property_read_u32(np, "tRASmin-min-tck", &min->tRASmin);
-+	ret |= of_property_read_u32(np, "tRRD-min-tck", &min->tRRD);
-+	ret |= of_property_read_u32(np, "tWTR-min-tck", &min->tWTR);
-+	ret |= of_property_read_u32(np, "tXP-min-tck", &min->tXP);
-+	ret |= of_property_read_u32(np, "tRTP-min-tck", &min->tRTP);
-+	ret |= of_property_read_u32(np, "tCKE-min-tck", &min->tCKE);
-+	ret |= of_property_read_u32(np, "tCKESR-min-tck", &min->tCKESR);
-+	ret |= of_property_read_u32(np, "tFAW-min-tck", &min->tFAW);
-+
-+	if (ret) {
-+		devm_kfree(dev, min);
-+		goto default_min_tck;
-+	}
-+
-+	return min;
-+
-+default_min_tck:
-+	dev_warn(dev, "%s: using default min-tck values\n", __func__);
-+	return &lpddr2_jedec_min_tck;
-+}
-+EXPORT_SYMBOL(of_get_min_tck);
-+
-+static int of_do_get_timings(struct device_node *np,
-+		struct lpddr2_timings *tim)
-+{
-+	int ret;
-+
-+	ret = of_property_read_u32(np, "max-freq", &tim->max_freq);
-+	ret |= of_property_read_u32(np, "min-freq", &tim->min_freq);
-+	ret |= of_property_read_u32(np, "tRPab", &tim->tRPab);
-+	ret |= of_property_read_u32(np, "tRCD", &tim->tRCD);
-+	ret |= of_property_read_u32(np, "tWR", &tim->tWR);
-+	ret |= of_property_read_u32(np, "tRAS-min", &tim->tRAS_min);
-+	ret |= of_property_read_u32(np, "tRRD", &tim->tRRD);
-+	ret |= of_property_read_u32(np, "tWTR", &tim->tWTR);
-+	ret |= of_property_read_u32(np, "tXP", &tim->tXP);
-+	ret |= of_property_read_u32(np, "tRTP", &tim->tRTP);
-+	ret |= of_property_read_u32(np, "tCKESR", &tim->tCKESR);
-+	ret |= of_property_read_u32(np, "tDQSCK-max", &tim->tDQSCK_max);
-+	ret |= of_property_read_u32(np, "tFAW", &tim->tFAW);
-+	ret |= of_property_read_u32(np, "tZQCS", &tim->tZQCS);
-+	ret |= of_property_read_u32(np, "tZQCL", &tim->tZQCL);
-+	ret |= of_property_read_u32(np, "tZQinit", &tim->tZQinit);
-+	ret |= of_property_read_u32(np, "tRAS-max-ns", &tim->tRAS_max_ns);
-+	ret |= of_property_read_u32(np, "tDQSCK-max-derated",
-+		&tim->tDQSCK_max_derated);
-+
-+	return ret;
-+}
-+
-+/**
-+ * of_get_ddr_timings() - extracts the ddr timings and updates no of
-+ * frequencies available.
-+ * @np_ddr: Pointer to ddr device tree node
-+ * @dev: Device requesting for ddr timings
-+ * @device_type: Type of ddr(LPDDR2 S2/S4)
-+ * @nr_frequencies: No of frequencies available for ddr
-+ * (updated by this function)
-+ *
-+ * Populates lpddr2_timings structure by extracting data from device
-+ * tree node. Returns pointer to populated structure. If any error
-+ * while populating, returns default timings provided by JEDEC.
-+ */
-+const struct lpddr2_timings *of_get_ddr_timings(struct device_node *np_ddr,
-+		struct device *dev, u32 device_type, u32 *nr_frequencies)
-+{
-+	struct lpddr2_timings	*timings = NULL;
-+	u32			arr_sz = 0, i = 0;
-+	struct device_node	*np_tim;
-+	char			*tim_compat;
-+
-+	switch (device_type) {
-+	case DDR_TYPE_LPDDR2_S2:
-+	case DDR_TYPE_LPDDR2_S4:
-+		tim_compat = "jedec,lpddr2-timings";
-+		break;
-+	default:
-+		dev_warn(dev, "%s: un-supported memory type\n", __func__);
-+	}
-+
-+	for_each_child_of_node(np_ddr, np_tim)
-+		if (of_device_is_compatible(np_tim, tim_compat))
-+			arr_sz++;
-+
-+	if (arr_sz)
-+		timings = devm_kzalloc(dev, sizeof(*timings) * arr_sz,
-+			GFP_KERNEL);
-+
-+	if (!timings)
-+		goto default_timings;
-+
-+	for_each_child_of_node(np_ddr, np_tim) {
-+		if (of_device_is_compatible(np_tim, tim_compat)) {
-+			if (of_do_get_timings(np_tim, &timings[i])) {
-+				devm_kfree(dev, timings);
-+				goto default_timings;
-+			}
-+			i++;
-+		}
-+	}
-+
-+	*nr_frequencies = arr_sz;
-+
-+	return timings;
-+
-+default_timings:
-+	dev_warn(dev, "%s: using default timings\n", __func__);
-+	*nr_frequencies = ARRAY_SIZE(lpddr2_jedec_timings);
-+	return lpddr2_jedec_timings;
-+}
-+EXPORT_SYMBOL(of_get_ddr_timings);
-diff --git a/drivers/memory/of_memory.h b/drivers/memory/of_memory.h
-new file mode 100644
-index 0000000..20b496e
---- /dev/null
-+++ b/drivers/memory/of_memory.h
-@@ -0,0 +1,36 @@
-+/*
-+ * OpenFirmware helpers for memory drivers
-+ *
-+ * Copyright (C) 2012 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __LINUX_MEMORY_OF_REG_H
-+#define __LINUX_MEMORY_OF_REG_H
-+
-+#ifdef CONFIG_OF
-+extern const struct lpddr2_min_tck *of_get_min_tck(struct device_node *np,
-+		struct device *dev);
-+extern const struct lpddr2_timings
-+	*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
-+	u32 device_type, u32 *nr_frequencies);
-+#else
-+static inline const struct lpddr2_min_tck
-+	*of_get_min_tck(struct device_node *np, struct device *dev)
-+{
-+	return NULL;
-+}
-+
-+static inline const struct lpddr2_timings
-+	*of_get_ddr_timings(struct device_node *np_ddr, struct device *dev,
-+	u32 device_type, u32 *nr_frequencies)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_OF */
-+
-+#endif /* __LINUX_MEMORY_OF_REG_ */
 -- 
-1.7.5.4
+Jean Delvare
