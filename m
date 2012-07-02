@@ -1,79 +1,75 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
-Date: Mon, 2 Jul 2012 16:51:26 +0530
-Message-ID: <CAP05o4JctmjdAk+S--v9T0PM0kabFN50ESyiPiwAYXNUX5yyBg@mail.gmail.com>
-References: <1339691061-12778-1-git-send-email-Russ.Dill@ti.com>
-	<20120702112217.GD22065@sortiz-mobl>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 05/17] i2c: omap: split out [XR]DR and [XR]RDY
+Date: Mon, 2 Jul 2012 14:33:15 +0300
+Message-ID: <20120702113314.GA2730@arwen.pp.htv.fi>
+References: <1339691067-919-1-git-send-email-balbi@ti.com>
+ <1339691067-919-6-git-send-email-balbi@ti.com>
+ <4FE991DA.5070301@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:37638 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710Ab2GBLVe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 07:21:34 -0400
-Received: by lbbgg6 with SMTP id gg6so8854574lbb.8
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 04:21:27 -0700 (PDT)
-In-Reply-To: <20120702112217.GD22065@sortiz-mobl>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56486 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750777Ab2GBLft (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 07:35:49 -0400
+Received: by lbbgk8 with SMTP id gk8so7722492lbb.26
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 04:35:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4FE991DA.5070301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Alan Stern <stern@rowland.harvard.edu>
-Cc: Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
-
-On Mon, Jul 2, 2012 at 4:52 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> Hi Russ,
->
-> On Thu, Jun 14, 2012 at 09:24:21AM -0700, Russ Dill wrote:
->> From: Russ Dill <Russ.Dill@gmail.com>
->>
->> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
->> an issue where the ULPI PHYs were not held in reset while initializing
->> the EHCI controller. However, it also changes behavior in
->> omap-usb-host.c omap_usbhs_init by releasing reset while the
->> configuration in that function was done.
->>
->> This change caused a regression on BB-xM where USB would not function
->> if 'usb start' had been run from u-boot before booting. A change was
->> made to release reset a little bit earlier which fixed the issue on
->> BB-xM and did not cause any regressions on 3430 sdp, the board for
->> which the fix was originally made.
->>
->> This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
->> before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
->>
->> The original fix to hold the EHCI controller in reset during
->> initialization was correct, however it appears that changing
->> omap_usbhs_init to not hold the PHYs in reset during it's
->> configuration was incorrect. This patch first reverts both fixes, and
->> then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
->> reset as the original patch had done. It also is sure to incorporate
->> the _cansleep change that has been made in the meantime.
->>
->> I've tested this on Beagleboard xM, I'd really like to get an ack from
->> the 3430 sdp and OMAP5 guys before getting this merged.
->>
->> v3 - Brown paper bag its too early in the morning actually run
->>      git commit amend fix
->> v2 - Put cansleep gpiolib call outside of spinlock
->>
->> Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
->> ---
->>  drivers/mfd/omap-usb-host.c  |   48 +++++++++++++++++++++++++++++++++++++++++-
->>  drivers/usb/host/ehci-omap.c |   18 +++++++---------
->>  2 files changed, 55 insertions(+), 11 deletions(-)
-> I applied this one to my for-linus branch, it will be part of my next 3.5 pull
-> request to Linus.
->
-> Cheers,
-> Samuel.
->
-
-Hi Samuel
-       please drop this patch for now , since Alan stern has mentioned
-improvements for this patch and we
-need to wait for Alan's new patch on ehci-omap.c and then Rus dill
-patch and my usbhs tll
-patch series need to be rebased.
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, ben-linux@fluff.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, w.sang@pengutronix.de
 
 
-regards
-keshava
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jun 26, 2012 at 04:11:30PM +0530, Shubhrajyoti wrote:
+> Hi Felipe,
+> On Thursday 14 June 2012 09:54 PM, Felipe Balbi wrote:
+> >  			return IRQ_HANDLED;
+> >  		}
+> > =20
+> > -		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+> > +		if (stat & OMAP_I2C_STAT_RDR) {
+> >  			u8 num_bytes =3D 1;
+> > =20
+> > +			if (dev->fifo_size)
+> > +				num_bytes =3D dev->fifo_size;
+> In case of a draining interrupt. The byte count may not be the fifo size.
+> Do you agree?
+
+hmm... indeed, that should be dev->buf_len... can you fix that up or
+want me to resend ?
+
+--=20
+balbi
+
+--fdj2RfSjLxBAspz7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP8Yb6AAoJEIaOsuA1yqREgQ8P/2uYGAV//NbxcQQbWazMAa82
+npbVy5wChQu/jZyxgn9ExN0Br+tg+anMN7bWLX8ScjqLdOZVJArjEFN258I7xaPV
+Pg19Vm0Bd4xvEQOfAY2k1557WzJcSIfefpcvo/WCv2VTdbKqd6sUdAZDfc1dzmN5
+Hi29hdglFHbUQqGYaLqBla7nANdzjaUviwFj6i8tXHXAx7l/nvbCxBxYCjfvWY++
+n586CVZmB5mmgl1tHXyu7cVSZad43BfoK2Jmann2WcIQjf2ac/TUp6/4WB3zHnIs
+ZA0XtHzcMiXx+W/X+xiXFiieax1YDFY7XlruWeLjEP19pzdekyFxMmgAVzDn8PcC
+CQ65+n0C3kSDSSbFco6uO9sDFYotWOWAvTPZ6YdaD2vS73PVLAB0IDnKdl218D21
+JJer7c+kSnGD020MmzWTs9aR8spOtvYyxuvO5rsNmps2zl8AJ/z99ofKBB2LWgOz
+OrECMZd2QzXaPbNBimqYQ8zloAvjZ2yGXZd9IE4ymTGhrGlPXPBdqxY2k3RCL+dt
+rAsw+XBdE1W2r8rC71w0x+vQ7gpCiaXVtSe3rQuBixZijvBcIMs8xEG/TipsRlX5
+jQP1f36zfrJo6FxyCEyHCQ7mott4t90/6qQrOHZcc3caQj3B78SechUbYfz0OK2/
+WdZ7YAHDEJlkC5EBD1oY
+=heGU
+-----END PGP SIGNATURE-----
+
+--fdj2RfSjLxBAspz7--
