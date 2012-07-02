@@ -1,86 +1,79 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
-Date: Mon, 2 Jul 2012 12:06:08 +0530
-Message-ID: <CAP05o4+NhGgmZkUymmKEGY9szrot6ND_3oDedbMHpc_+sW0HHw@mail.gmail.com>
-References: <1340848783-9480-1-git-send-email-Russ.Dill@ti.com>
-	<Pine.LNX.4.44L0.1206291104270.1638-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Sun, 1 Jul 2012 23:36:51 -0700
+Message-ID: <20120702063651.GO4202@atomide.com>
+References: <cover.1340778002.git.afzal@ti.com>
+ <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
+ <20120627145844.GL3483@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
+ <20120628123207.GG19842@atomide.com>
+ <4FEC89B9.3090404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40711 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750878Ab2GBGgM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 02:36:12 -0400
-Received: by lbjn8 with SMTP id n8so142667lbj.0
-        for <linux-omap@vger.kernel.org>; Sun, 01 Jul 2012 23:36:08 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1206291104270.1638-100000@iolanthe.rowland.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56678 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774Ab2GBGgz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 02:36:55 -0400
+Content-Disposition: inline
+In-Reply-To: <4FEC89B9.3090404@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Russ Dill <Russ.Dill@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Samuel Ortiz <sameo@linux.intel.com>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 29, 2012 at 9:03 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Wed, 27 Jun 2012, Russ Dill wrote:
->
->> From: Russ Dill <Russ.Dill@gmail.com>
->>
->> 'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue' (1fcb57d0) fixes
->> an issue where the ULPI PHYs were not held in reset while initializing
->> the EHCI controller. However, it also changes behavior in
->> omap-usb-host.c omap_usbhs_init by releasing reset while the
->> configuration in that function was done.
->>
->> This change caused a regression on BB-xM where USB would not function
->> if 'usb start' had been run from u-boot before booting. A change was
->> made to release reset a little bit earlier which fixed the issue on
->> BB-xM and did not cause any regressions on 3430 sdp, the board for
->> which the fix was originally made.
->>
->> This new fix, 'USB: EHCI: OMAP: Finish ehci omap phy reset cycle
->> before adding hcd.', (3aa2ae74) caused a regression on OMAP5.
->>
->> The original fix to hold the EHCI controller in reset during
->> initialization was correct, however it appears that changing
->> omap_usbhs_init to not hold the PHYs in reset during it's
->> configuration was incorrect. This patch first reverts both fixes, and
->> then changes ehci_hcd_omap_probe in ehci-omap.c to hold the PHYs in
->> reset as the original patch had done. It also is sure to incorporate
->> the _cansleep change that has been made in the meantime.
->>
->> Tested on Beagleboard xM.
->
-> Looking at the result of this patch, there seem to be a few mistakes
-> remaining in the probe routine.
->
-> If the regulator_get() call fails, the failure is logged but ignored.
-> Is that really the right thing to do?
->
-> The pm_runtime_get_sync() call occurs before the probe is finished.
-> This means that ehci-hcd's resume routine will try to power-up the
-> device before its data structures have been initialized.  That can't be
-> right.
->
-> The "get clocks" section occurs after the call to usb_add_hcd().  This
-> means the controller will start running before the clock references are
-> acquired -- so the clocks might still be turned off.  That can't be
-> right either.
->
-> If the clk_get(dev, "utmi_p1_gfclk") call fails, the error path never
-> calls usb_remove_hcd().
->
-> The "err_add_hcd" pathway never calls usb_put_hcd().
->
-> I'm going to resubmit my most recent patch based the current
-> ehci-omap.c, but you or someone else will still have to fix these
-> problems.
->
-> Alan Stern
->
+* Jon Hunter <jon-hunter@ti.com> [120628 09:48]:
+> 
+> [    2.792510] OneNAND driver initializing
+> [    2.797576] omap2-onenand omap2-onenand: initializing on CS2, phys base 0x20000000, virtual base c88c0000, freq 0 MHz
+> [    2.808929] OneNAND Manufacturer: Samsung (0xec)
+> [    2.808990] Muxed OneNAND 256MB 1.8V 16-bit (0x40)
+> [    2.814208] OneNAND version = 0x002c
+> 
+> The above change seems to imply that Tony's n900 is dependent on the bootloader settings
+> and not those being set by the kernel. Ideally, we should not need to set the async mode
+> in the onenand before we set the onenand timings in the gpmc (per Afzal's changelog
+> comment). This appears backwards.
 
-Hi Rus Dill,
-    once Alan post his changes on ehci-omap.c, please re-base this
-patch on top of it.
-so that, I will rebase UHH-TLL split series on top your patch.
+That should not be the case, I'm more likely to believe in Afzal's explanation.
+ 
+> The other thing to note is that the 3430sdp has samsung onenand where as the n900 has
+> Numonyx. The gpmc-onenand.c only has one set of settings that it is using for all
+> devices. However, it would appear that at least the async settings are not working for
+> the Numonyx. Therefore, may be we need to get a dump of Tony's n900 settings and make
+> sure the right settings are being used for the appropriate board. 
 
-regards
-keshava
+Hmm I would assume the n900 onenand settings are the most tested settings we have.
+And AFAIK have also been tested with L3 frequency scaling. So let's assume they're
+mostly right.
+ 
+> These onenand settings are really killing us. I don't want us to have to spend alot
+> of time re-calculating this stuff but the way it has been written to begin with is not
+> driver friendly. I really wonder if we need to have some sort of callback for the 
+> onenand timings from the driver. It is ugly, but the alternative is that someone needs
+> to sit down and re-calculate all the timings again to get them into a driver friendly
+> format. Furthermore, it seems that onenand is no longer available from the likes of
+> samsung and numonyx (micron) so it is hard to justify re-calculating everything again.
+> I am not even sure if we have all the datasheets!
+> 
+> Let me know your thoughts.
+
+I don't think we should spend much time working on the recalculations. Let's rather
+use these known working cases as examples. If they don't work, it's likely that
+adding any new devices won't work either.
+
+For the timings, we should allow specifying either cycles or time values in the
+data struct. And always just use the cycle value directly if specified, and
+othewise use the time value. We may be able to limit the registers where we need
+to allow either cycle or time value depending on the device futher.
+
+In general, I doubt that we can come up with better calculations. The existing
+code pretty well already follows the device spec timings. And using cycle values
+for some registers is the right thing to do according to the connected device
+specs no matter what the frequency is. In those cases converting from time values
+to cycles does not make sense.
+
+Regards,
+
+Tony
