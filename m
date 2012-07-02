@@ -1,58 +1,49 @@
-From: "Vutla, Lokesh" <lokeshvutla@ti.com>
-Subject: Re: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
- getting stuck intransition state.
-Date: Mon, 2 Jul 2012 10:49:37 +0530
-Message-ID: <CAJ1gdcaJoajaT-74VtbyzmYr3Rb_xYqy8+KULHZkdPj521eHEQ@mail.gmail.com>
-References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
- <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [RFC PATCH 1/3] i2c: add 'actual' field to struct i2c_msg
+Date: Mon, 2 Jul 2012 15:27:10 +0200
+Message-ID: <20120702152710.37af312a@endymion.delvare>
+References: <1340967927-27354-1-git-send-email-shubhrajyoti@ti.com>
+	<1340967927-27354-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1428707384439795444=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340967927-27354-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---===============1428707384439795444==
-Content-Type: multipart/alternative; boundary=002354470cb8fcf89a04c3d1f272
+On Fri, 29 Jun 2012 16:35:25 +0530, Shubhrajyoti D wrote:
+> In case of a NACK, it's wise to tell our clients
+> drivers about how many bytes were actually transferred.
+> 
+> Support this by adding an extra field to the struct
+> i2c_msg which gets incremented the amount of bytes
+> actually transferred.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+>  include/linux/i2c.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> index ddfa041..0cb6b83 100644
+> --- a/include/linux/i2c.h
+> +++ b/include/linux/i2c.h
+> @@ -547,6 +547,7 @@ struct i2c_msg {
+>  #define I2C_M_NO_RD_ACK		0x0800	/* if I2C_FUNC_PROTOCOL_MANGLING */
+>  #define I2C_M_RECV_LEN		0x0400	/* length will be first received byte */
+>  	__u16 len;		/* msg length				*/
+> +	__u16 actual;		/* actual bytes transferred             */
+>  	__u8 *buf;		/* pointer to msg data			*/
+>  };
+>  
 
---002354470cb8fcf89a04c3d1f272
-Content-Type: text/plain; charset=ISO-8859-1
+Oh, as a side note: I don't much like the name "actual". It's not
+really clear what it means. I don't have a perfect name to propose as a
+replacement, but maybe "transferred" or even just "done" would do.
 
-Gentle ping on this......
-
-
-
-Thanks n regards
-Lokesh Vutla
-LDC MPUSS Platform Team
-
---002354470cb8fcf89a04c3d1f272
-Content-Type: text/html; charset=ISO-8859-1
-
-<br><div>Gentle ping on this......</div><div><br></div><div><br></div><div><br></div><div>Thanks n regards<br>Lokesh Vutla<div>LDC MPUSS Platform Team</div></div>
-
---002354470cb8fcf89a04c3d1f272--
-
-
---===============1428707384439795444==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1428707384439795444==--
+-- 
+Jean Delvare
