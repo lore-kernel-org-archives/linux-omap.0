@@ -1,81 +1,169 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving
- dependency problem
-Date: Mon, 2 Jul 2012 10:41:38 -0700
-Message-ID: <20120702174138.GA9669@animalcreek.com>
-References: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] gpio/omap: cleanups for v3.5
+Date: Mon, 02 Jul 2012 10:48:49 -0700
+Message-ID: <4FF1DF01.2050308@ti.com>
+References: <874nrmtf47.fsf@ti.com> <20120614101541.39f50aee@notabene.brown> <CAC83ZvKT+EDRzBWrMbiyqOYqLW7WudOQeAq5Y5ZgXEs2txEPrA@mail.gmail.com> <20120621131616.7ac6426f@notabene.brown> <CAC83ZvLDObTh2MXABObyGCk5M9qdaJm5GqRUUozFrubH1HfNTg@mail.gmail.com> <20120625161845.59d6330b@notabene.brown> <CAC83ZvJWz7tCL9VSQXiLNoYDrg6+=Mkx7xS9hQivKfA_L_4ANw@mail.gmail.com> <87pq8e6p4e.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:55796 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036Ab2GBRlj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 13:41:39 -0400
-Content-Disposition: inline
-In-Reply-To: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:47300 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932220Ab2GBRsp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 13:48:45 -0400
+Received: by ggnp1 with SMTP id p1so4693329ggn.4
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 10:48:43 -0700 (PDT)
+In-Reply-To: <87pq8e6p4e.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kim, Milo" <Milo.Kim@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: NeilBrown <neilb@suse.de>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jul 02, 2012 at 05:54:57AM +0000, Kim, Milo wrote:
-> In am35x board , iva2 clock domain doesn't be used.
-> So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
-> OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
-> AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
-> 
-> For the compatibility with omap3430, this patch has no conflict because mpu_3xxx_clkdm was already defined in clock domains for omap3430.
-> So this can be removed from common clock domain.
-> 
-> Below error can be fixed with this patch.
-> 
-> [    0.000000] AM3517 ES1.1 (l2cache sgx neon )
-> [    0.000000] ------------[ cut here ]------------
-> [    0.000000] WARNING: at arch/arm/mach-omap2/clockdomain.c:237 _resolve_clkdm_deps+0x68/0x108()
-> [    0.000000] clockdomain: mpu_clkdm: could not find clkdm iva2_clkdm while resolving dependencies - should never happen
-> [    0.000000] Modules linked in:
-> [    0.000000] [<c001bd3c>] (unwind_backtrace+0x0/0xf4) from [<c0040c2c>] (warn_slowpath_common+0x4c/0x64)
-> [    0.000000] [<c0040c2c>] (warn_slowpath_common+0x4c/0x64) from [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40)
-> [    0.000000] [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40) from [<c003256c>] (_resolve_clkdm_deps+0x68/0x108)
-> [    0.000000] [<c003256c>] (_resolve_clkdm_deps+0x68/0x108) from [<c0032640>] (clkdm_complete_init+0x34/0x90)
-> [    0.000000] [<c0032640>] (clkdm_complete_init+0x34/0x90) from [<c06d7600>] (omap3_init_early+0x20/0x30)
-> [    0.000000] [<c06d7600>] (omap3_init_early+0x20/0x30) from [<c06d3230>] (setup_arch+0x834/0x94c)
-> [    0.000000] [<c06d3230>] (setup_arch+0x834/0x94c) from [<c06cf6b0>] (start_kernel+0x88/0x2fc)
-> [    0.000000] [<c06cf6b0>] (start_kernel+0x88/0x2fc) from [<80008044>] (0x80008044)
-> 
-> Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-> ---
->  arch/arm/mach-omap2/clockdomains3xxx_data.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> index d625844..56089c4 100644
-> --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> @@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
->  
->  static struct clockdomain *clockdomains_common[] __initdata = {
->  	&wkup_common_clkdm,
-> -	&mpu_3xxx_clkdm,
->  	&neon_clkdm,
->  	&core_l3_3xxx_clkdm,
->  	&core_l4_3xxx_clkdm,
-> -- 
-> 1.7.2.5
+On 07/02/2012 10:37 AM, Kevin Hilman wrote:
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+>
+>> On Mon, Jun 25, 2012 at 11:48 AM, NeilBrown <neilb@suse.de> wrote:
+>>> On Thu, 21 Jun 2012 12:04:26 +0530 "DebBarma, Tarun Kanti"
+>>> <tarun.kanti@ti.com> wrote:
+>>>
+>>>> On Thu, Jun 21, 2012 at 8:46 AM, NeilBrown <neilb@suse.de> wrote:
+>>>>> On Thu, 14 Jun 2012 23:24:10 +0530 "DebBarma, Tarun Kanti"
+>>>>> <tarun.kanti@ti.com> wrote:
+>>>>>
+>>>>>> On Thu, Jun 14, 2012 at 5:45 AM, NeilBrown <neilb@suse.de> wrote:
+>>>>>>> On Fri, 11 May 2012 17:30:48 -0700 Kevin Hilman <khilman@ti.com> wrote:
+>>>>>>>
+>>>>>>>> Hi Grant,
+>>>>>>>>
+>>>>>>>> Here's the final round of GPIO cleanups for v3.5.  This branch is based
+>>>>>>>> on my for_3.5/fixes/gpio branch you just pulled.
+>>>>>>>>
+>>>>>>>> Kevin
+>>>>>>>
+>>>>>>> Hi.
+>>>>>>>
+>>>>>>>   I'm not sure if it was this series or the following cleanups which broke
+>>>>>>>   things for me, but I've been trying 3.5-rc2 on my GTA04 and the serial
+>>>>>>>   console (ttyO2) dies as soon as the omap-gpio driver initialises.
+>>>>>>>
+>>>>>>>   After some digging I came up with this patch to gpio-omap.c
+>>>>>>>
+>>>>>>> @@ -1124,6 +1124,9 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>>>>>>>
+>>>>>>>         platform_set_drvdata(pdev, bank);
+>>>>>>>
+>>>>>>> +       if (bank->get_context_loss_count)
+>>>>>>> +               bank->context_loss_count =
+>>>>>>> +                               bank->get_context_loss_count(bank->dev);
+>>>>>>>         pm_runtime_enable(bank->dev);
+>>>>>>>         pm_runtime_irq_safe(bank->dev);
+>>>>>>>         pm_runtime_get_sync(bank->dev);
+>>>>>>>
+>>>>>>> which fixes it.
+>>>>>>>
+>>>>>>> What was happening  was that when omap_gpio_probe calls pm_runtime_get_sync,
+>>>>>>> it calls
+>>>>>>>   _od_runtime_resume -> pm_generic_runtime_resume -> omap_gpio_runtime_resume
+>>>>>>>   -> omap_gpio_restore_context
+>>>>>>>
+>>>>>>> and then the serial port stops.
+>>>>>>> I reasoned that the context probably hadn't been set up yet, so restoring
+>>>>>>> from it broke things.
+>>>>>>> Initialising bank->context_loss_count seems sensible and would ensure that
+>>>>>>> we didn't try to restore the context until it has actually been lost.
+>>>>>>
+>>>>>> I thought the following code exactly does that. That is context_lost_cnt_after
+>>>>>> would be zero until there is context loss. The bank->context_loss_count is zero
+>>>>>> at the beginning. So, (context_lost_cnt_after != bank->context_loss_count) would
+>>>>>> be false and hence context restore should NOT happen? Not sure if I am
+>>>>>> over looking
+>>>>>> anything here....
+>>>>>>
+>>>>>> omap_gpio_runtime_resume(...)
+>>>>>> {
+>>>>>> ...
+>>>>>>          if (bank->get_context_loss_count) {
+>>>>>>                  context_lost_cnt_after =
+>>>>>>                          bank->get_context_loss_count(bank->dev);
+>>>>>>                  if (context_lost_cnt_after != bank->context_loss_count) {
+>>>>>>                          omap_gpio_restore_context(bank);
+>>>>>>                  } else {
+>>>>>>                          spin_unlock_irqrestore(&bank->lock, flags);
+>>>>>>                          return 0;
+>>>>>>                  }
+>>>>>>          }
+>>>>>> ...
+>>>>>> }
+>>>>>
+>>>>> Hi,
+>>>>>   I've looked more closely at this now.
+>>>>>
+>>>>> The problem is that the initial context loss count is *not* zero.  Not always.
+>>>>> The context loss count is the sum of
+>>>>>
+>>>>>         count = pwrdm->state_counter[PWRDM_POWER_OFF];
+>>>>>         count += pwrdm->ret_logic_off_counter;
+>>>>>
+>>>>>         for (i = 0; i < pwrdm->banks; i++)
+>>>>>                 count += pwrdm->ret_mem_off_counter[i];
+>>>>>
+>>>>> (from  pwrdm_get_context_loss_count()).
+>>>>>
+>>>>> These are initlialised in _pwrdm_register
+>>>>>
+>>>>>         /* Initialize the powerdomain's state counter */
+>>>>>         for (i = 0; i < PWRDM_MAX_PWRSTS; i++)
+>>>>>                 pwrdm->state_counter[i] = 0;
+>>>>>
+>>>>>         pwrdm->ret_logic_off_counter = 0;
+>>>>>         for (i = 0; i < pwrdm->banks; i++)
+>>>>>                 pwrdm->ret_mem_off_counter[i] = 0;
+>>>>>
+>>>>>         pwrdm_wait_transition(pwrdm);
+>>>>>         pwrdm->state = pwrdm_read_pwrst(pwrdm);
+>>>>>         pwrdm->state_counter[pwrdm->state] = 1;
+>>>>>
+>>>>>
+>>>>> What I'm seeing is that for wkup_pwrdm and dpll{3,4,5}_pwrdm,
+>>>>> the state that pwrdm_read_pwrst returns is PWRDM_POWER_OFF.
+>>>>> So that state_counter gets initialised to '1', and so the initial
+>>>>> context_loss_count, which includes that counter, is also '1'.
+>>>>> I think it is the wkup_pwrdm that covers the GPIOs that are causing problems
+>>>>> for me.
+>>>> I just put a log in omap_gpio_probe() to see the value of context_loss_count.
+>>>> GPIO Bank 0 (WKUP Domain) always shows the count as '1'.
+>>>>
+>>>> [    0.169494] omap_gpio omap_gpio.0: context_loss_count=1
+>>>> [    0.170227] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
+>>>> [    0.170471] OMAP GPIO hardware version 0.1
+>>>> [    0.170623] omap_gpio omap_gpio.1: context_loss_count=0
+>>>> [    0.170928] gpiochip_add: registered GPIOs 32 to 63 on device: gpio
+>>>> [    0.171295] omap_gpio omap_gpio.2: context_loss_count=0
+>>>> [    0.171600] gpiochip_add: registered GPIOs 64 to 95 on device: gpio
+>>>> [    0.171936] omap_gpio omap_gpio.3: context_loss_count=0
+>>>> [    0.172241] gpiochip_add: registered GPIOs 96 to 127 on device: gpio
+>>>> [    0.172576] omap_gpio omap_gpio.4: context_loss_count=0
+>>>> [    0.172882] gpiochip_add: registered GPIOs 128 to 159 on device: gpio
+>>>> [    0.173217] omap_gpio omap_gpio.5: context_loss_count=0
+>>>> [    0.173522] gpiochip_add: registered GPIOs 160 to 191 on device: gpio
+>>>
+>>> That's consistent with what I see, and confirm that initialising the
+>>> context_lost_count to zero isn't always correct.
+>> I am just wondering if the context_lost_count = 1 for GPIO in WKUP domain
+>> is expected. In that case we have to add additional logic in runtime callbacks
+>> to skip context restore/save for WKUP domain GPIOs.
+>> But let's hear what Kevin says.
+>
+> I think the original patch from Neil looks right.
+>
+> Note that we would need something like this in the case where we built
+> the GPIO driver as a module and it was unloaded/reloaded where the
+> starting point of the context-loss count would not be zero.
+>
+> Neil, care to send a patch w/changelog?
+>
 
-Hi Milo.
+Nevermind,  this same issue has come up in another thread with a patch 
+proposed.
 
-Thanks for the patch but this issue should already be fixed in a patch
-that Tony just made a pull request for
-(http://www.spinics.net/lists/linux-omap/msg73080.html).
-
->From that email (and branch in the email), look for this patch:
-
-> Mark A. Greer (4):
-
->      ARM: OMAP AM35x: clockdomain data: Fix clockdomain dependencies
-
-Please take a look as another set of eyes never hurts. :)
-
-Mark
---
+Kevin
