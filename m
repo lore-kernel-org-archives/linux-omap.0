@@ -1,55 +1,41 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] da8xx-fb: add missing FB_BLANK operations
-Date: Mon, 2 Jul 2012 07:51:24 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA60AE9@DBDE01.ent.ti.com>
-References: <1341213073-2986-1-git-send-email-yegorslists@googlemail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule
+ support
+Date: Mon, 2 Jul 2012 01:00:08 -0700
+Message-ID: <20120702080007.GB1122@atomide.com>
+References: <20120509213156.GZ5140@atomide.com>
+ <1337257051-5004-1-git-send-email-uri.y@variscite.com>
+ <20120606090931.GV12766@atomide.com>
+ <CAHooxd7WG2BrT+dHuuETMUONjbSu3DoVyZ_VW9On-vwCn3rRaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54743 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298Ab2GBHwS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 03:52:18 -0400
-In-Reply-To: <1341213073-2986-1-git-send-email-yegorslists@googlemail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAHooxd7WG2BrT+dHuuETMUONjbSu3DoVyZ_VW9On-vwCn3rRaA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Uri Yosef <uri.y@variscite.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, oren@variscite.com, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
-To: "yegorslists@googlemail.com" <yegorslists@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-On Mon, Jul 02, 2012 at 12:41:13, yegorslists@googlemail.com wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
+* Uri Yosef <uri.y@variscite.com> [120606 05:13]:
+> CCed devicetree-discuss@lists.ozlabs.org.
 > 
-> add FB_BLANK_NORMAL, FB_BLANK_VSYNC_SUSPEND and FB_BLANK_HSYNC_SUSPEND
-> modes (copy drivers/video/omap2/omapfb/omapfb-main.c implementation).
-> Otherwise X-server will complain about invalid parameter.
+> On Wed, Jun 6, 2012 at 12:09 PM, Tony Lindgren <tony@atomide.com> wrote:
 > 
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
-> ---
->  drivers/video/da8xx-fb.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-> index 29577bf..9879edc 100644
-> --- a/drivers/video/da8xx-fb.c
-> +++ b/drivers/video/da8xx-fb.c
-> @@ -987,6 +987,9 @@ static int cfb_blank(int blank, struct fb_info *info)
->  
->  		lcd_enable_raster();
->  		break;
-> +	case FB_BLANK_NORMAL:
-> +	case FB_BLANK_VSYNC_SUSPEND:
-> +	case FB_BLANK_HSYNC_SUSPEND:
->  	case FB_BLANK_POWERDOWN:
->  		if (par->panel_power_ctrl)
->  			par->panel_power_ctrl(0);
+> > Hi,
+> >
+> > * Uri Yosef <uri.y@variscite.com> [120517 05:34]:
+> > > Hi Tony,
+> > >
+> > > This is the updated DTS patch for Vatiscite OMAP4 SOM support
+> >
+> > Looks OK to me, but can you please repost one more time with
+> > devicetree-discuss@lists.ozlabs.org in Cc so people have a chance
+> > to ack this patch there?
 
+Applying into dt branch with disable updated to disabled as was
+done in for other boards.
 
-+ linux-fbdev & Florian
+Regards,
 
-You should always send Fbdev patches to linux-fbdev list.
-
-
-Thanks,
-Vaibhav
+Tony
