@@ -1,61 +1,72 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Mon, 2 Jul 2012 09:43:21 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A1BB7@DBDE01.ent.ti.com>
-References: <cover.1340778002.git.afzal@ti.com>
- <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
- <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
- <20120702063651.GO4202@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 1/3] ARM: omap: clk: add clk_prepare and clk_unprepare
+Date: Mon, 02 Jul 2012 15:17:45 +0530
+Message-ID: <4FF16E41.8020906@ti.com>
+References: <1340786915-29507-1-git-send-email-rnayak@ti.com> <1340786915-29507-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206291416180.2338@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49401 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932717Ab2GBJnc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 05:43:32 -0400
-In-Reply-To: <20120702063651.GO4202@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:45878 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932717Ab2GBJrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 05:47:55 -0400
+Received: by obbup19 with SMTP id up19so3880441obb.26
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 02:47:51 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1206291416180.2338@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: mturquette@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tony,
+On Saturday 30 June 2012 01:49 AM, Paul Walmsley wrote:
+> Hi
+>
+> On Wed, 27 Jun 2012, Rajendra Nayak wrote:
+>
+>> As part of Common Clk Framework (CCF) the clk_enable() operation
+>> was split into a clk_prepare() which could sleep, and a clk_enable()
+>> which should never sleep. Similarly the clk_disable() was
+>> split into clk_disable() and clk_unprepare(). This was
+>> needed to handle complex cases where in a clk gate/ungate
+>> would require a slow and a fast part to be implemented.
+>> None of the clocks below seem to be in the 'complex' clocks
+>> category and are just simple clocks which are enabled/disabled
+>> through simple register writes.
+>> Most of the instances also seem to be called in non-atomic
+>> context which means its safe to move all of those from
+>> using a clk_enable() to clk_prepare_enable() and clk_disable() to
+>> clk_disable_unprepare().
+>> For a few others where there is a possibility they get called from
+>> an interrupt or atomic context, there is an additonal clk_prepare()
+>> done before a clk_enable() and a clk_unprepare()
+>> after a clk_disable().
+>> This is in preparation of OMAP moving to CCF.
+>>
+>> Based on initial changes from Mike turquette.
+>>
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>
+> This patch generates quite a few checkpatch warnings:
+>
+> WARNING: please, no space before tabs
+> #294: FILE: arch/arm/mach-omap2/clock3xxx_data.c:3479:
+> +^ICLK(NULL, ^I"mcbsp4_ick",^I&mcbsp2_ick,^ICK_3XXX),$
+>
+> etc.
+>
+> Please fix these.
+>
+> The 80 column warnings from checkpatch on the CLK(... lines can be
+> ignored.
 
-On Mon, Jul 02, 2012 at 12:06:51, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [120628 09:48]:
+Sorry, I seemed to have overlooked these thinking all to be 80 column
+warnings. Will fix all the non 80 column warnings and repost.
 
-> > The above change seems to imply that Tony's n900 is dependent on the bootloader settings
-> > and not those being set by the kernel. Ideally, we should not need to set the async mode
-> > in the onenand before we set the onenand timings in the gpmc (per Afzal's changelog
-> > comment). This appears backwards.
-> 
-> That should not be the case, I'm more likely to believe in Afzal's explanation.
+regards,
+Rajendra
 
-Not sure whether you are fine with fixing up this patch with added diff
+>
+>
+> - Paul
 
-Assuming inferences so far is not wrong, right now this patch with the added diff
-would be perfectly fine.
-
-Problem would happen when we are at a stage to do gpmc reset using hwmod [seems
-miles to go before I sleep {or read gpmc hwmod reset} ;)]. If bootloader left
-onenand configured in sync mode, to switch onenand to async mode, first configuring
-gpmc to sync mode would be required & for that we need frequency information
-from onenand and to get that information from onenand, gpmc has to be configured
-for sync mode and to configure gpmc to sync mode ....
-
-Seems like chicken and egg problem.
-
-N900, I believe is board-rx51, could not get proper schematic for onenand
-connections, nor do I have the Numonyx datsheet, or the board, hence not
-sure whether resetting onenand may resolve the issue. But if you feel that
-it is the right solution & it would resolve the issue, and if you can let
-me know gpio connected (if any) to onenand reset or else some pointers to
-achieving it, I can try making a patch to do onenand reset
-
-Regards
-Afzal
