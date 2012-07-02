@@ -1,49 +1,64 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset fix issues.
-Date: Mon, 2 Jul 2012 19:54:41 +0530
-Message-ID: <CAP05o4+jmFba4z5UCoZWTnptnjUcw+OQT_69gxw42=S9zJCVLA@mail.gmail.com>
-References: <CAP05o4JctmjdAk+S--v9T0PM0kabFN50ESyiPiwAYXNUX5yyBg@mail.gmail.com>
-	<Pine.LNX.4.44L0.1207021003050.6472-100000@netrider.rowland.org>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH V3 0/5] ARM: OMAP: TLL driver implementation for USB host driver
+Date: Mon, 2 Jul 2012 20:30:46 +0530
+Message-ID: <1341241246-360-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:54036 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751183Ab2GBOY6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 10:24:58 -0400
-Received: by lbbgk8 with SMTP id gk8so8219099lbb.12
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 07:24:42 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1207021003050.6472-100000@netrider.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Russ Dill <Russ.Dill@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Partha Basak <parthab@india.ti.com>, Igor Grinberg <grinberg@compulab.co.il>, mantesh@ti.com, s-sapna1@ti.com, Russ Dill <Russ.Dill@gmail.com>
 
-On Mon, Jul 2, 2012 at 7:35 PM, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Mon, 2 Jul 2012, Munegowda, Keshava wrote:
->
->> Hi Samuel
->>        please drop this patch for now , since Alan stern has mentioned
->> improvements for this patch and we
->> need to wait for Alan's new patch on ehci-omap.c and then Rus dill
->> patch and my usbhs tll
->> patch series need to be rebased.
->
-> No, that's okay.  I rebased my patch on top of Russ's; see
->
->         http://marc.info/?l=linux-usb&m=134098478928668&w=2
->
-> so Russ's patch should be kept.  My patch needed other changes also, so
-> this wasn't a big deal.
->
-> The extra problems I mentioned in an earlier email will still need to
-> be fixed after both Russ's patch and my own are merged.
->
-> Alan Stern
+he TLL configuration is removed from the UHH driver and implemented as
+a seperate platform driver. Now, the UHH driver configures the TLL
+through API's exported by the TLL platform driver. The TLL is an
+has independent hardware mod structure for in OMAP3 and later chips,
+hence an dedicated platform driver is created.
 
-Thanks Alan,
-            Ok, then I will rebase my TLL driver patch series on top
-of this patch.
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-regards
-keshava
+In v3:
+  - rebased on top V3 of Russ dill's patch
+       'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+       fixes an issue where the ULPI PHYs were not held in reset
+       while initializing the EHCI controller
+	http://permalink.gmane.org/gmane.linux.usb.general/65988
+      
+  - rebased on top of patch 
+    OMAP: USB : Fix the EHCI enumeration and core retention issue
+     http://permalink.gmane.org/gmane.linux.usb.general/66239
+
+In V2:
+    - covered review comments from linux omap and usb community
+    - rebased on top Russ dill's patch
+       'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+       fixes an issue where the ULPI PHYs were not held in reset
+       while initializing the EHCI controller
+
+
+Keshava Munegowda (5):
+  ARM: OMAP: USB: HOST TLL platform driver
+  ARM: OMAP: USB: Build the USB HOST TLL omap device
+  ARM: OMAP: USB: Remove TLL specific code
+  ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+  ARM: OMAP: change the USB TLL clocks device name
+
+ arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+ arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+ arch/arm/mach-omap2/usb-host.c        |   31 ++-
+ arch/arm/plat-omap/include/plat/usb.h |    7 +
+ drivers/mfd/Kconfig                   |    2 +-
+ drivers/mfd/Makefile                  |    2 +-
+ drivers/mfd/omap-usb-host.c           |  238 ++---------------
+ drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+ 8 files changed, 523 insertions(+), 240 deletions(-)
+ create mode 100644 drivers/mfd/omap-usb-tll.c
+
+-- 
+1.7.9.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
