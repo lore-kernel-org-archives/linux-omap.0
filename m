@@ -1,58 +1,66 @@
-From: Russ Dill <russ.dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Mon, 2 Jul 2012 10:05:43 -0700
-Message-ID: <CA+Bv8XaC64NChdcinrxagRYLZyTG7c05nDYy2EbfH-gfZUxnuw@mail.gmail.com>
-References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
-	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
-	<87fw9o32v2.fsf@ti.com>
-	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
-	<20120622103050.GG28472@arwen.pp.htv.fi>
-	<87ehp71liv.fsf@ti.com>
-	<20120622203645.GD29290@arwen.pp.htv.fi>
-	<87d34nfdei.fsf@ti.com>
-	<871uku85o8.fsf@ti.com>
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: Re: [PATCH RESEND] usb: otg: OMAP4: Fix the omap4430_phy_set_clk function
+Date: Mon, 2 Jul 2012 20:10:49 +0300
+Message-ID: <CAEa47NokHNwkpoM-7q1BoxsNw7Cfr+qd7YsvJ2VKriHEU-A+og@mail.gmail.com>
+References: <1339522581-8124-1-git-send-email-ruslan.bilovol@ti.com>
+	<20120702081358.GF16670@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <871uku85o8.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:37373 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751445Ab2GBRKv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 13:10:51 -0400
+Received: by vbbez10 with SMTP id ez10so5041032vbb.3
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 10:10:50 -0700 (PDT)
+In-Reply-To: <20120702081358.GF16670@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Mon, Jul 2, 2012 at 9:54 AM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> Felipe, Keshava,
->
-> Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
->
->> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
->>
->> [...]
->>
->>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
->>> cause regressions. Granted, regression by regression, there's no change,
->>> but I simply can't knowingly cause a regression to the driver just to
->>> have PM working. We need a real fix for this issue.
->>
->> Sure, as long as there is a fix in this -rc cycle.
->>
->> This driver intoduced changes in v3.5 that break PM for the whole SoC
->> (by preventing CORE retention.)  These changes were clearly not tested
->> with PM.
->>
->> If you cannot fix this during the -rc cycle, then you need to revert the
->> driver PM changes that broke PM for the *whole* SoC.
->
-> What's the status of this regression?
->
-> This is still broken in v3.5-rc and is preventing CORE retention for the
-> *whole* SoC.
->
-> Please fix this, either with a proper fix, or a revert for 3.5-rc.
+Hi,
 
-Were you able to merge my patches that at least fix the oops on boot
-and get EHCI working again on omap-3xxx?
+
+On Mon, Jul 2, 2012 at 11:13 AM, Felipe Balbi <balbi@ti.com> wrote:
+>
+> Hi,
+>
+> On Tue, Jun 12, 2012 at 08:36:21PM +0300, Ruslan Bilovol wrote:
+> > If the clocks are enabled and we want to enable them again
+> > omap4430_phy_set_clk disables them.
+> >
+> > Fix this - so now if we try to enable already enabled clocks
+> > it works correctly.
+> >
+> > Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_phy_internal.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c
+> > b/arch/arm/mach-omap2/omap_phy_internal.c
+> > index 4c90477..0196683 100644
+> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> > @@ -97,7 +97,7 @@ int omap4430_phy_set_clk(struct device *dev, int on)
+> >               clk_enable(clk48m);
+> >               clk_enable(clk32k);
+> >               state = 1;
+> > -     } else if (state) {
+> > +     } else if (!on && state) {
+>
+> why don't you let clocks be enabled twice then ? That would cut down the
+> churn.
+
+Currently we have unbalanced call of this function.
+I meet first during musb initialization - it tries to disable the phy
+that leads to disabling already disabled clocks.
+Next goal is to use internal clocks counter and to throw static
+variable 'state'.
+But since this is not investigated fully and work is not finished -
+simple and obvious fix is pushed.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Ruslan Bilovol
