@@ -1,93 +1,54 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: v3.5-rc4 doesn't wake from dynamic idle on 3530ES3 Beagle
-Date: Mon, 02 Jul 2012 15:52:34 +0530
-Message-ID: <4FF1766A.5060605@ti.com>
-References: <alpine.DEB.2.00.1206271101220.27496@utopia.booyaka.com> <alpine.DEB.2.00.1206271318070.27496@utopia.booyaka.com> <CAMQu2gztSV1qtgea9rL46orqTFR-vQkES5fen4GCqEfBh046-Q@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 3/3] ARM: omap: clk: Remove all direct dereferencing
+ of struct clk
+Date: Mon, 02 Jul 2012 15:52:32 +0530
+Message-ID: <4FF17668.2070306@ti.com>
+References: <1340786915-29507-1-git-send-email-rnayak@ti.com> <1340786915-29507-4-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1206291422050.2338@utopia.booyaka.com> <4FF1705B.6070404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:54742 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932938Ab2GBKWl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 06:22:41 -0400
-Received: by obcva7 with SMTP id va7so8061078obc.6
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 03:22:39 -0700 (PDT)
-In-Reply-To: <CAMQu2gztSV1qtgea9rL46orqTFR-vQkES5fen4GCqEfBh046-Q@mail.gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:45724 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932938Ab2GBKWv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 06:22:51 -0400
+Received: by yhr47 with SMTP id 47so5508662yhr.28
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 03:22:37 -0700 (PDT)
+In-Reply-To: <4FF1705B.6070404@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@ti.com, govindraj.raja@ti.com, Felipe Balbi <balbi@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: mturquette@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thursday 28 June 2012 11:45 AM, Shilimkar, Santosh wrote:
-> + Shubro, Felipe,
->
-> On Thu, Jun 28, 2012 at 12:57 AM, Paul Walmsley <paul@pwsan.com> wrote:
->> On Wed, 27 Jun 2012, Paul Walmsley wrote:
 >>
->>> Looks like something broke between v3.5-rc3 and v3.5-rc4 with dynamic
->>> idle on 3530ES3 Beagle.  37xx EVM doesn't seem to be affected.
->>>
->>> Taking a closer look now.
->> Reverting commit 91930652a23de0873a157aa1d9962cb878d64451 ("OMAP2+: UART:
->> Add mechanism to probe uart pins and configure rx wakeup") makes wakeup
->> from dynamic retention idle work again.
->>
-> I suspected this.
-> This could be because, all the board are now expected to setup the pin
-> configurations.
-I do not have access to a 3530 Beagle
-
-Just tried on 3630 beagle that seems to be fine.
-let me see if I can reproduce in other onap3 boards that I have.
-
-Hi Paul,
-
-On my beaglexm 3630
-
-This is with the following steps:
-1. merge your 32k timer fix branch
-2. disable USB host: set CONFIG_MFD_OMAP_USB_HOST=n
-
-Let me know if I missed anything.
-
-# echo 3000 > /sys/devices/platform/omap_uart.0/power/autosuspend_delay_ms
-# echo 3000 > /sys/devices/platform/omap_uart.1/power/autosuspend_delay_ms
-# echo 3000 > /sys/devices/platform/omap_uart.2/power/autosuspend_delay_ms
-#
-# mount -t debugfs debugfs /debug/
-# cat /debug/pm_debug/count | grep per_pwrdm
-per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_clkdm->per_pwrdm (17)
-# echo 1 > /debug/pm_debug/enable_off_mode
-# echo enabled > /sys/devices/platform/omap_uart.2/tty/ttyO2/power/wakeup
-# echo mem > /sys/power/state
-[   12.404083] PM: Syncing filesystems ... done.
-[   12.426055] Freezing user space processes ... (elapsed 0.01 seconds)
-done.
-[   12.452728] Freezing remaining freezable tasks ... (elapsed 0.02
-seconds) done.
-[   12.483795] Suspending console(s) (use no_console_suspend to debug)
-[   12.609039] PM: suspend of devices complete after 115.564 msecs
-[   12.611511] PM: late suspend of devices complete after 2.471 msecs
-[   12.615966] PM: noirq suspend of devices complete after 4.424 msecs
-[   12.616027] Disabling non-boot CPUs ...
-[   13.203704] Successfully put all powerdomains to target state
-[   13.206115] PM: noirq resume of devices complete after 2.135 msecs
-[   13.209228] PM: early resume of devices complete after 1.708 msecs
-[   13.585815] PM: resume of devices complete after 376.464 msecs
-[   13.637603] Restarting tasks ... done.
-#
-# cat /debug/pm_debug/count | grep per_pwrdm
-per_pwrdm (ON),OFF:1,RET:0,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_clkdm->per_pwrdm (17)
-#
-
-
-
-
-
+>> In the case of the quoted string warnings, please go ahead and
+>> concatenate those strings while you are there. That needs to be done
+>> anyway.
 >
-> Regards
-> Santosh
+> Ok, will do. I was able to fix all but one hard to fix CHECK for this
+> patch..
+>
+> ---
+> CHECK: Alignment should match open parenthesis
+> #608: FILE: arch/arm/mach-omap2/dpll3xxx.c:455:
+> + if (__clk_get_rate(dd->clk_bypass) == rate &&
+> (clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+>
+> total: 0 errors, 0 warnings, 1 checks, 608 lines checked
+>
+> 0003-ARM-omap-clk-Remove-all-direct-dereferencing-of-stru.patch has
+> style problems, please review.
+>
+> If any of these errors are false positives, please report
+> ---
+>
+> I could not find anything wrong with the alignment, but checkpatch
+> keeps complaining. It complains for the original code too.
+> Might be a checkpatch bug? Or do you really see anything wrong in
+> the alignment?
+
+Does seem like a checkpatch issue to me, checkpatch -f on the file
+after applying the patch does not throw me the 'CHECK' anymore.
+Will ignore this for now and respin my v3 and report this to the
+checkpatch folks.
 
