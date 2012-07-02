@@ -1,79 +1,54 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
-Date: Mon, 2 Jul 2012 11:50:38 -0500
-Message-ID: <4FF1D15E.7040301@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-2-git-send-email-jon-hunter@ti.com> <20120608094708.GC19062@mudshark.cambridge.arm.com> <4FD21930.4000800@ti.com> <20120611173930.GD28235@mudshark.cambridge.arm.com> <4FD64083.3020800@ti.com> <20120612092842.GA2991@mudshark.cambridge.arm.com> <4FD7B1DC.30108@ti.com> <20120612213150.GC24380@mudshark.cambridge.arm.com> <4FD7C597.7060501@ti.com> <20120702095539.GD22239@mudshark.cambridge.arm.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Mon, 02 Jul 2012 09:54:31 -0700
+Message-ID: <871uku85o8.fsf@ti.com>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
+	<87fw9o32v2.fsf@ti.com>
+	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+	<20120622103050.GG28472@arwen.pp.htv.fi> <87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi> <87d34nfdei.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57139 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751445Ab2GBQuw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jul 2012 12:50:52 -0400
-In-Reply-To: <20120702095539.GD22239@mudshark.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87d34nfdei.fsf-l0cyMroinI0@public.gmane.org> (Kevin Hilman's message of "Mon, 25 Jun
+	2012 13:35:17 -0500")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Will,
+Felipe, Keshava,
 
-On 07/02/2012 04:55 AM, Will Deacon wrote:
-> Hi Jon,
-> 
-> Did you have any luck getting to the bottom of this?
+Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
 
-I am still waiting for feedback from design. They were trying to confirm
-my observations. Unfortunately, it is taking some time. I will ping them
-again.
-
-> It would be good to take your PMU suspend/resume patches once we know that
-> they will get used.
-
-Yes that would be good. I could drop the 4460 specific changes for now
-and make 4460 work in the same way as 4430 (using CTI) for the time
-being and see if we can get these in. However, I recall that was not
-working for you, but it was working fine for me.
-
-> On Tue, Jun 12, 2012 at 11:41:27PM +0100, Jon Hunter wrote:
->> On 06/12/2012 04:31 PM, Will Deacon wrote:
->>> That's understandable -- one of the CPUs is likely more loaded than the
->>> other. However, I'd like to confirm whether or not you see what I see. With
->>> the 4430_init hack on a 4460, if I run:
->>>
->>> # taskset 0x2 perf top
->>>
->>> then I get no samples. If I do:
->>>
->>> # taskset 0x1 perf top
->>>
->>> then I *do* get samples and from *both* CPUs. So it smells more like an
->>> issue poking some configuration registers from CPU1 rather than the IRQ
->>> path being broken. As I said before, if I don't do the extra init hack
->>> then I don't get this problem (but event counters don't tick).
->>
->> In both cases, I see interrupts on both CPUs. However, typically more on
->> the CPU that perf is running on (which is probably to be expected). And
->> I confirm that the only change I made was ...
-> 
+> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+>
 > [...]
-> 
->> When you boot the kernel what 4460 rev does it show (very early in the
->> kernel boot log)? Mine shows ...
->>
->> [    0.000000] OMAP4460 ES1.1
-> 
-> Snap: [    0.000000] OMAP4460 ES1.1
+>
+>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
+>> cause regressions. Granted, regression by regression, there's no change,
+>> but I simply can't knowingly cause a regression to the driver just to
+>> have PM working. We need a real fix for this issue.
+>
+> Sure, as long as there is a fix in this -rc cycle.
+>
+> This driver intoduced changes in v3.5 that break PM for the whole SoC
+> (by preventing CORE retention.)  These changes were clearly not tested
+> with PM.
+>
+> If you cannot fix this during the -rc cycle, then you need to revert the
+> driver PM changes that broke PM for the *whole* SoC.
 
-Ok.
+What's the status of this regression?
 
->> However, the A9 version has not changed between ES1.0 and ES1.1. Both
->> should be r2p10.
-> 
-> Yup, that's what /proc/cpuinfo says.
+This is still broken in v3.5-rc and is preventing CORE retention for the
+*whole* SoC.
 
-Hmmm ... so that does not explain the observation that you made with 4460.
+Please fix this, either with a proper fix, or a revert for 3.5-rc.
 
-Cheers
-Jon
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
