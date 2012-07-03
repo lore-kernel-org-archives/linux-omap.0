@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv4 09/18] i2c: omap: switch over to do {} while loop
-Date: Tue, 3 Jul 2012 20:07:47 +0530
-Message-ID: <1341326276-25434-10-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv4 12/18] i2c: omap: bus: add a receiver flag
+Date: Tue, 3 Jul 2012 20:07:50 +0530
+Message-ID: <1341326276-25434-13-git-send-email-shubhrajyoti@ti.com>
 References: <1341326276-25434-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,61 +14,48 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-this will make sure that we execute at least once.
-No functional changes otherwise.
+that way we can ignore TX IRQs while in receiver
+mode and ignore RX IRQs while in transmitter mode.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+[Trivial formatting changes]
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index dca6d3e..6c8f135 100644
+index 46d099e..0fda3b7 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -846,20 +846,28 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 bits;
- 	u16 stat;
--	int err, count = 0;
-+	int err = 0, count = 0;
+@@ -196,6 +196,7 @@ struct omap_i2c_dev {
+ 						 */
+ 	u8			rev;
+ 	unsigned		b_hw:1;		/* bad h/w fixes */
++	unsigned		receiver:1;	/* true when we're in receiver mode */
+ 	u16			iestate;	/* Saved interrupt register */
+ 	u16			pscstate;
+ 	u16			scllstate;
+@@ -512,6 +513,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
  
- 	if (pm_runtime_suspended(dev->dev))
- 		return IRQ_NONE;
+ 	INIT_COMPLETION(dev->cmd_complete);
+ 	dev->cmd_err = 0;
++	dev->receiver = !!(msg->flags & I2C_M_RD);
  
--	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
-+	do {
-+		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		stat &= bits;
+ 	w = OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
+ 
+@@ -856,6 +858,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 		stat &= bits;
+ 
++		/* If we're in receiver mode, ignore XDR/XRDY */
++		if (dev->receiver)
++			stat &= ~(OMAP_I2C_STAT_XDR | OMAP_I2C_STAT_XRDY);
++		else
++			stat &= ~(OMAP_I2C_STAT_RDR | OMAP_I2C_STAT_RRDY);
 +
-+		if (!stat) {
-+			/* my work here is done */
-+			return IRQ_HANDLED;
-+		}
-+
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			break;
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
- 		}
- 
--		err = 0;
- complete:
- 		/*
- 		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
-@@ -959,7 +967,7 @@ complete:
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
- 		}
--	}
-+	} while (stat);
- 
- 	return count ? IRQ_HANDLED : IRQ_NONE;
- }
+ 		if (!stat) {
+ 			/* my work here is done */
+ 			return IRQ_HANDLED;
 -- 
 1.7.5.4
