@@ -1,45 +1,59 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-Date: Tue, 3 Jul 2012 12:05:46 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A267A@DBDE01.ent.ti.com>
-References: <cover.1339586624.git.afzal@ti.com>
- <1340789755.29342.12.camel@sauron.fi.intel.com>
- <20120702073547.GA1122@atomide.com>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
+Date: Tue, 3 Jul 2012 18:01:42 +0530
+Message-ID: <CAJe_Zhfvf7t3Q1dJ98RhwBVDKCDH7AJdQWtY_LZd0bNLNWqT=Q@mail.gmail.com>
+References: <WC20120618103957.6103F2@terrafix.co.uk>
+	<87zk7h5096.fsf@ti.com>
+	<WC20120703083759.980337@terrafix.co.uk>
+	<4FF2B476.6000900@ti.com>
+	<WC20120703091232.480345@terrafix.co.uk>
+	<4FF2D089.8030507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44396 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751395Ab2GCMGC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 08:06:02 -0400
-In-Reply-To: <20120702073547.GA1122@atomide.com>
-Content-Language: en-US
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:54308 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab2GCMbn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 08:31:43 -0400
+Received: by lbbgm6 with SMTP id gm6so9396050lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jul 2012 05:31:42 -0700 (PDT)
+In-Reply-To: <4FF2D089.8030507@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+To: Archit Taneja <a0393947@ti.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
-Hi Tony,
+On 3 July 2012 16:29, Archit Taneja <a0393947@ti.com> wrote:
+>
+> I was going through Tomi's queue for the 3.6 merge window:
+>
+> git://gitorious.org/linux-omap-dss2/linux.git master
+>
+> There is a commit called:
+>
+> 2b8501d777346ce1d4fe99167e9b3c0e42aae7a8
+>
+> OMAPDSS: Use PM notifiers for system suspend
+>
+> The commit message mentions the issue you see, and seems to resolve it.
+> Could you give this a try?
+>
+> Tomi is out on vacation, and I don't know why this wasn't intended for the
+> 3.5-rcs, maybe there are still some discussion going on about this?
+>
+> Copping Jassi who was involved with this commit.
+>
+I understand, we settled on that patch finally.
 
-On Mon, Jul 02, 2012 at 13:05:47, Tony Lindgren wrote:
-> * Artem Bityutskiy <artem.bityutskiy@linux.intel.com> [120627 02:36]:
-> > On Wed, 2012-06-13 at 17:02 +0530, Afzal Mohammed wrote:
-
-> > > This series cleans up gpmc mtd interactions so that GPMC driver
-> > > conversion which is going to happen shortly would happen smoothly
-> > > by not creating much disturbance outside of arch/arm/*omap*/
-> > 
-> > Dunno if Tony picked this, but the MTD changes look good an the quick
-> > glance. Feel free to add
-> > 
-> > Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-> 
-> Thanks will add to the drivers/mtd touching patches in this series.
-
-Can you please consider this series for inclusion in the coming merge
-window. This series can live by itself and is not dependent on any
-other patches.
-
-Regards
-Afzal
+>>>
+>>> The error returned from the runtime_resume call is -ENOACCES, which by
+>>> looking at the code, is returned by rpm_resume() when:
+>>>
+>>>         dev->power.disable_depth>  0
+>>>
+>>> I don't know what that means, does someone have any idea?
+>>>
+That is because during suspend PM on DISPC is disabled, so any attempt
+to enable it reports ACCESS error. I suggested a mechanism, but Tomi
+instead wanted to suspend early and resume late the panels via
+notifiers to avoid that scenario.
