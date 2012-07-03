@@ -1,97 +1,102 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2] gpio/omap: fix invalid context restore of gpio bank-0
-Date: Tue, 3 Jul 2012 11:05:50 -0500
-Message-ID: <1341331550-21312-1-git-send-email-jon-hunter@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RESEND] usb: otg: OMAP4: Fix the omap4430_phy_set_clk
+ function
+Date: Tue, 3 Jul 2012 19:13:51 +0300
+Message-ID: <20120703161349.GA23380@arwen.pp.htv.fi>
+References: <1339522581-8124-1-git-send-email-ruslan.bilovol@ti.com>
+ <20120702081358.GF16670@arwen.pp.htv.fi>
+ <CAEa47NokHNwkpoM-7q1BoxsNw7Cfr+qd7YsvJ2VKriHEU-A+og@mail.gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36429 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081Ab2GCQG2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jul 2012 12:06:28 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAEa47NokHNwkpoM-7q1BoxsNw7Cfr+qd7YsvJ2VKriHEU-A+og-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, NeilBrown <neilb@suse.de>
 
-Currently the gpio _runtime_resume/suspend functions are calling the
-get_context_loss_count() platform function if the function is populated for
-a gpio bank. This function is used to determine if the gpio bank logic state
-needs to be restored due to a power transition. This function will be populated
-for all banks, but it should only be called for banks that have the
-"loses_context" variable set. It is pointless to call this if loses_context is
-false as we know the context will never be lost and will not need restoring.
 
-For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
-never lose context. We found that the get_context_loss_count() was being called
-for bank-0 during the probe and returning 1 instead of 0 indicating that the
-context had been lost. This was causing the context restore function to be
-called at probe time for this bank and because the context had never been saved,
-was restoring an invalid state. This ultimately resulted in a crash [1].
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This issue is a regression that was exposed by commit 1b1287032 (gpio/omap: fix
-missing check in *_runtime_suspend()).
+Hi,
 
-There are multiple bugs here that need to be addressed ...
+On Mon, Jul 02, 2012 at 08:10:49PM +0300, Ruslan Bilovol wrote:
+> Hi,
+>=20
+>=20
+> On Mon, Jul 2, 2012 at 11:13 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> >
+> > Hi,
+> >
+> > On Tue, Jun 12, 2012 at 08:36:21PM +0300, Ruslan Bilovol wrote:
+> > > If the clocks are enabled and we want to enable them again
+> > > omap4430_phy_set_clk disables them.
+> > >
+> > > Fix this - so now if we try to enable already enabled clocks
+> > > it works correctly.
+> > >
+> > > Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+> > > ---
+> > >  arch/arm/mach-omap2/omap_phy_internal.c |    2 +-
+> > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c
+> > > b/arch/arm/mach-omap2/omap_phy_internal.c
+> > > index 4c90477..0196683 100644
+> > > --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> > > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> > > @@ -97,7 +97,7 @@ int omap4430_phy_set_clk(struct device *dev, int on)
+> > >               clk_enable(clk48m);
+> > >               clk_enable(clk32k);
+> > >               state =3D 1;
+> > > -     } else if (state) {
+> > > +     } else if (!on && state) {
+> >
+> > why don't you let clocks be enabled twice then ? That would cut down the
+> > churn.
+>=20
+> Currently we have unbalanced call of this function.
+> I meet first during musb initialization - it tries to disable the phy
+> that leads to disabling already disabled clocks.
+> Next goal is to use internal clocks counter and to throw static
+> variable 'state'.
 
-1. Why the always-on power domain returns a context loss count of 1? This needs
-   to be fixed in the power domain code [2]. However, the gpio driver should not
-   assume the loss count is 0 to begin with.
-2. The omap gpio driver should never be calling get_context_loss_count for a
-   gpio bank in a always-on domain. This is pointless and adds unneccessary
-   overhead.
-3. The OMAP gpio driver assumes that the initial power domain context loss count
-   will be 0 at the time the gpio driver is probed. However, it could be
-   possible that this is not the case and an invalid context restore could be
-   performed during the probe. To avoid this only populate the
-   get_context_loss_count() function pointer after the initial call to
-   pm_runtime_get() has occurred. This will ensure that the first
-   pm_runtime_put() initialised the loss count correctly.
+don't even go that way... what you need is to fix the unbalanced calls
+instead of hacking around some generic API.
 
-This patch addresses issues 2 and 3 above.
+--=20
+balbi
 
-[1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
-[2] http://marc.info/?l=linux-omap&m=134100413303810&w=2
+--y0ulUmNC+osPPQO6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: Franky Lin <frankyl@broadcom.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: NeilBrown <neilb@suse.de>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Reported-by: Franky Lin <frankyl@broadcom.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested-by: Franky Lin <frankyl@broadcom.com>
-Tested-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- drivers/gpio/gpio-omap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+iQIcBAEBAgAGBQJP8xo9AAoJEIaOsuA1yqREWN8QAJHkZx0F5ms2gxtQ2A33G2xD
+NfoIi1sYqckKxkDyg4Y0n5YONTMTHqwz6kxowwOQC2KcqJJe6Jms6wWJ9/ebY8vT
+6IYZyEpaGZFBJCUCAOjTH32pWXJ1lMMFBABpk0GmZu6pgJv40eTqHVrZv2h96WWS
+vRA2sgKJV40vzQ8Eos4NP36tdo5IFxu0rb10KSNkICVYRZai5rtYZSiAknHafES+
+N4WBNE1ijbSAVAH0Rf96lS1Js2DOqUEaCvf1/XvWmhVasEpcHKARnoKnqRpkgw51
+BvLqKnfPC4t2RLDzwgmAMbiIpbEzcqWt7S2O9eZyIHO7RQcPuxStNMMwFC1g0Gsz
+gZpWZD+qdgAnVb9YrTm7aXghVtrEdhL43a1XaPbpH29rY++GOPOnaIKSKRcWOXdB
+/uG6Vi+6Ay1mIHJr3Q+L9Jk82VTup5Yueb8vSlc8SozCLlR0fmhoKF4MfESj2Utf
+F2F/K/kG52tXWzNYkY11eis+xxqpIppqBOKWr+Qw2ykMu7z5lkbqPAgQYjC5ATMc
+L+jYT/Dv3fTBBpn+JmgSVnPLiKYpC75v4Ut9OelPkLzyV7gWgz8zJcXUpSU4FBro
+MkDCg/n7Hwa9unWmKHMF/N0T+b4yIPY6pZUx2I2gqhilxn6Md9tLvLC9kjXIZOKt
++AB8VeGCQAw61MIiElcl
+=GU0T
+-----END PGP SIGNATURE-----
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c4ed172..f13fc9c 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1081,7 +1081,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	bank->is_mpuio = pdata->is_mpuio;
- 	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
- 	bank->loses_context = pdata->loses_context;
--	bank->get_context_loss_count = pdata->get_context_loss_count;
- 	bank->regs = pdata->regs;
- #ifdef CONFIG_OF_GPIO
- 	bank->chip.of_node = of_node_get(node);
-@@ -1135,6 +1134,9 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	omap_gpio_chip_init(bank);
- 	omap_gpio_show_rev(bank);
- 
-+	if (bank->loses_context)
-+		bank->get_context_loss_count = pdata->get_context_loss_count;
-+
- 	pm_runtime_put(bank->dev);
- 
- 	list_add_tail(&bank->node, &omap_gpio_list);
--- 
-1.7.9.5
-
+--y0ulUmNC+osPPQO6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
