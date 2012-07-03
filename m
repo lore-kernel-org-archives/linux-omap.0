@@ -1,60 +1,63 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
  migration
-Date: Tue, 3 Jul 2012 10:10:03 -0500
-Message-ID: <4FF30B4B.8060203@ti.com>
-References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com> <20120702063651.GO4202@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A1BB7@DBDE01.ent.ti.com> <4FF1DA5F.9000409@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A22B7@DBDE01.ent.ti.com>
+Date: Tue, 3 Jul 2012 10:12:17 -0500
+Message-ID: <4FF30BD1.3040309@ti.com>
+References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com> <20120702063651.GO4202@atomide.com> <4FF1D980.4040100@ti.com> <20120703081746.GJ1122@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55856 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43168 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754992Ab2GCPKI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jul 2012 11:10:08 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A22B7@DBDE01.ent.ti.com>
+	id S1751081Ab2GCPMb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Jul 2012 11:12:31 -0400
+In-Reply-To: <20120703081746.GJ1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Mohammed, Afzal" <afzal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
-On 07/02/2012 11:35 PM, Mohammed, Afzal wrote:
-> Hi Jon,
-> 
-> On Mon, Jul 02, 2012 at 22:59:03, Hunter, Jon wrote:
->> On 07/02/2012 04:43 AM, Mohammed, Afzal wrote:
-> 
->>> Not sure whether you are fine with fixing up this patch with added diff
->>>
->>> Assuming inferences so far is not wrong, right now this patch with the added diff
->>> would be perfectly fine.
->>>
->>> Problem would happen when we are at a stage to do gpmc reset using hwmod [seems
->>> miles to go before I sleep {or read gpmc hwmod reset} ;)]. If bootloader left
->>> onenand configured in sync mode, to switch onenand to async mode, first configuring
->>> gpmc to sync mode would be required & for that we need frequency information
->>> from onenand and to get that information from onenand, gpmc has to be configured
->>> for sync mode and to configure gpmc to sync mode ....
+On 07/03/2012 03:17 AM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120702 10:30]:
 >>
->> You are concerned about hwmod performing a reset of the gpmc during
->> boot? We should be able to use the HWMOD_INIT_NO_RESET flag to prevent
->> this. Would that work?
+>> On 07/02/2012 01:36 AM, Tony Lindgren wrote:
+>>>
+>>> In general, I doubt that we can come up with better calculations. The existing
+>>> code pretty well already follows the device spec timings. And using cycle values
+>>> for some registers is the right thing to do according to the connected device
+>>> specs no matter what the frequency is. In those cases converting from time values
+>>> to cycles does not make sense.
+>>
+>> Ok agree, but the problem here is how to provide the timings to the
+>> driver. The onenand code is doing a lot of rounding based upon the gpmc
+>> clock before it presents the timings (in nano-seconds) to the gpmc
+>> function to calculate the final timings and program the gpmc
+>> chip-select. So therefore I think that we have the following options ...
+>>
+>> 1. The simplest is to continue using a global variable for storing the
+>> gpmc f-clk handle and have the OneNAND timings calculated prior to
+>> probing the gpmc driver.
 > 
-> Yes that will work in the short term, the reason I am trying to avoid no
-> reset flag in the long term is to prevent this board support being broken,
-> please refer Paul's requirement [1] in accepting gpmc hwmod patch
+> Well we should not expose gpmc fck handle to the drivers..
 
-Ok, thanks for the reminder.
+Yes, I was hoping we could avoid continuing to do this.
 
-So we have 2 options here ...
+>> 2. Provide some sort of "retime" callback that the gpmc driver can call
+>> at probe time to calculate the timings.
+> 
+> Yes how about the gpmc using driver code registers itself with the gpmc code
+> and also registers it's retime function with the gpmc? That way the gpmc fck
+> stays inside the gpmc code, and the driver specific retime function should
+> be able to do the calculation based on driver clocks. The retime function
+> needs to have also a pointer to driver private data for it's clocks etc.
+> 
+> It seems this retime function may need to be called by the gpmc code when
+> L3 changes, and the driver code if the driver is switching between runtime
+> and idle clocks like tusb6010 for example does.
 
-1. Use the HWMOD_INIT_NO_RESET for now and your updated version of this
-patch
-2. See if there is a gpio available to control the OneNAND reset on the
-n900.
-
-Do you agree? Any other options?
+Seems fine to me.
 
 Cheers
 Jon
