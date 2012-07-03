@@ -1,175 +1,304 @@
-From: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Subject: Re: [PATCH v3 2/7] mfd: omap: control: core system
-	control driver
-Date: Tue, 3 Jul 2012 14:00:24 +0300
-Message-ID: <CAGF5oy_gR0VRZFs3g+RQPF27pSnGnMOECtF1J6Tt4arFXdU6XQ@mail.gmail.com>
-References: <4FEB4B46.9020904@dev.rtsoft.ru> <20120628045028.GC2471@besouro>
-	<4FEC25CA.10105@dev.rtsoft.ru>
-	<CAGF5oy9heLnjcHj4H=hMK9NAkrDoOocR-Lbv1Z4cQ4G1C5kSeQ@mail.gmail.com>
-	<4FEC2E1D.5040309@dev.rtsoft.ru> <4FEC3154.9050103@dev.rtsoft.ru>
-	<CAGF5oy85XSfBtV_WFwYyWDHYmBbLGHK_9c9XhTFs1CgnSfyMLA@mail.gmail.com>
-	<CAGF5oy-50evWVX8+U6qe0wwA0UXJUAXxXXbwrEkebSVtT8vxRA@mail.gmail.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
+Date: Tue, 3 Jul 2012 16:29:21 +0530
+Message-ID: <4FF2D089.8030507@ti.com>
+References: <WC20120618103957.6103F2@terrafix.co.uk> <87zk7h5096.fsf@ti.com> <WC20120703083759.980337@terrafix.co.uk> <4FF2B476.6000900@ti.com> <WC20120703091232.480345@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAGF5oy-50evWVX8+U6qe0wwA0UXJUAXxXXbwrEkebSVtT8vxRA@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932324Ab2GCLAj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 07:00:39 -0400
+In-Reply-To: <WC20120703091232.480345@terrafix.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Kevin Hilman <khilman@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
 
-Hello,
+Hi,
 
-On Thu, Jun 28, 2012 at 1:55 PM, Valentin, Eduardo
-<eduardo.valentin@ti.com> wrote:
-> Hello again,
+On Tuesday 03 July 2012 02:42 PM, Joe Woodward wrote:
 >
-> On Thu, Jun 28, 2012 at 1:51 PM, Valentin, Eduardo
-> <eduardo.valentin@ti.com> wrote:
->> Hello,
->>
->> On Thu, Jun 28, 2012 at 1:26 PM, Konstantin Baydarov
->> <kbaidarov@dev.rtsoft.ru> wrote:
->>> On 06/28/2012 02:12 PM, Konstantin Baydarov wrote:
->>>> The interface(design) of omap-control-core.c has already been discusse=
-d many times :(
->>>> Eduardo, in his patch set, suggested following design:
->>>> - omap-control-core.c ioremaps SCM window and provide functions to rea=
-d/write SCP register for bandgap and usb.
->>>>
->>>> IIRC, this approach didn't satisfy and it was suggested to have privat=
-e read/write in bandgap and usb.
->>>>
->>>> So, my patch set introduces following design:
->>>> - omap-control-core.c don't provide read/write functions for bandgap a=
-nd usb.
->>>> - bandgap and usb use their own private read/write functions
->>>> - Each omap-control-core.c, bandgap and usb drivers remap SCM window. =
-It's OK because SCM window is statically mapped to the same virtual address=
-. But the problem is that SMP memory window isn't protected. I'm not sure w=
-hether it's possible to protect SCM window using this approach.
->>> I mean:
->>>
->>> - Each omap-control-core.c, bandgap and usb drivers remap SCM window. I=
-t's OK because SCM window is statically mapped. So each call of ioremap in =
-omap-control-core.c, bandgap and usb drivers returns the same virtual addre=
-ss. But the problem is that SCM memory window isn't protected. I'm not sure=
- whether it's possible to protect SCM window using this approach(when each =
-driver remaps the same IOMEM).
->>>
->>>>
->>>> Another possible design is:
->>>> - omap-control-core.c ioremaps and reserves SCM IOMEM window
->>>> - omap-control-core.c exports omap_control_get_base(virtual base addre=
-ss is returned) to use in bandgap and usb_phy driver.
->>>> - Bandgap and usb phy uses their own private read/write function.
->>>> IIUC, this way was suggested by Tony.
->>
->> Well I understood slightly different :-)
->>
->> I think the point is not really where to put the access functions, but
->> to have each driver handling a separate part of the the io window. As
->> I said before, so that they don't access each other io area.
->>
->> If you have 1 io window, for the above mentioned constraint, you won't
->> protect anything. So, in that sense, it doesn't make much difference
->> if you have access functions in core, or in the children, as they are
->> all sharing the same io window. Of course, in case we put only 1 io
->> window, for me it is safer if that window is managed in only one
->> place, instead of several places.
->>
->> The question is then, can we split the io area into smaller windows
->> for each children? Considering the children registers are not
->> contiguous :-(. In theory we can put several entries in the 'reg' DT
->> property, but that becomes a bit messy as it will change depending on
->> OMAP version. Anyways, if we split the scm io window into several io
->> smaller areas/chunks, then it makes sense to have access functions in
->> each children.
->>
->>>>
->>>> I guess It's better to settle the design(interface) of omap-control-co=
-re.c, bandgap and usb phy and then submit the next version of patch set.
->>>
->>
->> Agreed. Here. We need to decide how to have this design and stick to it.
 >
-> Once the design is agreed, the series can probably be split into
-> parts, so we can have the scm core and its children worked separately
+> -----Original Message-----
+> From: Archit Taneja<a0393947@ti.com>
+> To: Joe Woodward<jw@terrafix.co.uk>
+> Cc: Kevin Hilman<khilman@ti.com>,<tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org"<linux-omap@vger.kernel.org>
+> Date: Tue, 3 Jul 2012 14:29:34 +0530
+> Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
+>
+>> On Tuesday 03 July 2012 02:07 PM, Joe Woodward wrote:
+>>> -----Original Message-----
+>>> From: Kevin Hilman<khilman@ti.com>
+>>> To: "Joe Woodward"<jw@terrafix.co.uk>
+>>> Cc: "linux-omap\@vger.kernel.org"<linux-omap@vger.kernel.org>
+>>> Date: Mon, 02 Jul 2012 14:19:49 -0700
+>>> Subject: Re: 3.5-rc3: vdd_mpu_iva warnings
+>>>
+>>>> "Joe Woodward"<jw@terrafix.co.uk>   writes:
+>>>>
+>>>>> I have a GUMSTIX Overo AirSTORM module (AM3703-based).
+>>>>>
+>>>>> When booting the kernel the following features are listed:
+>>>>> OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
+>>>>>
+>>>>> After booting I get the following (repeating every few seconds):
+>>>>>
+>>>>> [   81.122558] voltdm_scale: No voltage scale API registered for
+>>>> vdd_mpu_iva
+>>>>> [   81.130340] platform mpu.0: omap_target: unable to scale voltage
+>>>> up.
+>>>>>
+>>>>
+>>>> BTW, after boot, can you run the shell snippet below.  This should
+>> run
+>>>> the board through MPU DVFS for all the available OPPs:
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Kevin
+>>>>
+>>>
+>>> First, apologies...
+>>>
+>>> I had added a GPIO control to board-overo.c, and after cleaning and
+>>> starting again I realised that in the process I had deleted an
+>>> important line.
+>>>
+>>> So, the warnings I posted are not present (i.e. the power domains
+>>> do get registered), sorry for the noise!
+>>>
+>>> But, I still have problems with 3.5-rc5 with system suspend and DSS.
+>>>
+>>> I've started again with a completely clean area, built using
+>>> omap2plus_defconfig with the following changes (DSS built-in, and
+>>> use of devtmpfs and SquashFS):
+>>> CONFIG_OMAP2_DSS=y
+>>> CONFIG_OMAP2_VRAM_SIZE=4
+>>> CONFIG_FB_OMAP2=y
+>>>
+>>> CONFIG_DEVTMPFS=y
+>>> CONFIG_DEVTMPFS_MOUNT=y
+>>> CONFIG_SQUASHFS=y
+>>>
+>
+> I should add that I also set the generic panel to be built-in:
+> CONFIG_PANEL_GENERIC_DPI=y
+>
+>>> I also modified board-overo.c to switch from DVI to LCD as the
+>> default device:
+>>> static struct omap_dss_board_info overo_dss_data = {
+>>> 	.num_devices	= ARRAY_SIZE(overo_dss_devices),
+>>> 	.devices	= overo_dss_devices,
+>>> //	.default_device	=&overo_dvi_device,
+>>> 	.default_device	=&overo_lcd43_device,
+>>> };
+>>>
+>>> And when suspending I get:
+>>>
+>>> # echo mem>   /sys/power/state
+>>> [   20.138214] PM: Syncing filesystems ... done.
+>>> [   20.158477] Freezing user space processes ... (elapsed 0.01
+>> seconds) done.
+>>> [   20.184509] Freezing remaining freezable tasks ... (elapsed 0.02
+>> seconds) done.
+>>> [   20.215698] Suspending console(s) (use no_console_suspend to
+>> debug)
+>>> [   20.804626] Modules linked in:
+>>> [   20.401611] PM: suspend of devices complete after 175.963 msecs
+>>> [   20.404388] PM: late suspend of devices complete after 2.777 msecs
+>>> [   20.409301] PM: noirq suspend of devices complete after 4.882
+>> msecs
+>>> [   20.409362] Disabling non-boot CPUs ...
+>>> [   20.428527] Powerdomain (core_pwrdm) didn't enter target state 1
+>>> [   20.428558] Could not enter target state in pm_suspend
+>>> [   20.431060] PM: noirq resume of devices complete after 2.319 msecs
+>>> [   20.434173] PM: early resume of devices complete after 1.739 msecs
+>>> [   20.803344] mmc1: error -110 during resume (card was removed?)
+>>> [   20.804595] ------------[ cut here ]------------
+>>> [   20.804626] WARNING: at drivers/video/omap2/dss/dispc.c:376
+>> dispc_runtime_get+0x50/0x64()
+>>> [   20.804687] [<c001b61c>] (unwind_backtrace+0x0/0xf0) from
+>> [<c00401fc>] (warn_slowpath_common+0x4c/0x64)
+>>> [   20.804718] [<c00401fc>] (warn_slowpath_common+0x4c/0x64) from
+>> [<c0040230>] (warn_slowpath_null+0x1c/0x24)
+>>> [   20.804718] [<c0040230>] (warn_slowpath_null+0x1c/0x24) from
+>> [<c02a72d4>] (dispc_runtime_get+0x50/0x64)
+>>> [   20.804748] [<c02a72d4>] (dispc_runtime_get+0x50/0x64) from
+>> [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230)
+>>> [   20.804779] [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230)
+>> from [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78)
+>>> [   20.804779] [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78)
+>> from [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c)
+>>> [   20.804809] [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c) from
+>> [<c02ae28c>] (dss_resume_device+0x28/0x40)
+>>> [   20.804840] [<c02ae28c>] (dss_resume_device+0x28/0x40) from
+>> [<c02fc848>] (bus_for_each_dev+0x50/0x7c)
+>>> [   20.804870] [<c02fc848>] (bus_for_each_dev+0x50/0x7c) from
+>> [<c02ff530>] (platform_pm_resume+0x2c/0x50)
+>>> [   20.804901] [<c02ff530>] (platform_pm_resume+0x2c/0x50) from
+>> [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0)
+>>> [   20.804901] [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0) from
+>> [<c0304828>] (device_resume+0xc8/0x188)
+>>> [   20.804931] [<c0304828>] (device_resume+0xc8/0x188) from
+>> [<c0304c50>] (dpm_resume+0xfc/0x21c)
+>>> [   20.804962] [<c0304c50>] (dpm_resume+0xfc/0x21c) from [<c0304f04>]
+>> (dpm_resume_end+0xc/0x18)
+>>> [   20.804962] [<c0304f04>] (dpm_resume_end+0xc/0x18) from
+>> [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0)
+>>> [   20.804992] [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0)
+>> from [<c00802e4>] (pm_suspend+0x18c/0x208)
+>>> [   20.805023] [<c00802e4>] (pm_suspend+0x18c/0x208) from
+>> [<c007f588>] (state_store+0x120/0x134)
+>>> [   20.805053] [<c007f588>] (state_store+0x120/0x134) from
+>> [<c026800c>] (kobj_attr_store+0x14/0x20)
+>>> [   20.805053] [<c026800c>] (kobj_attr_store+0x14/0x20) from
+>> [<c0169ff4>] (sysfs_write_file+0x100/0x184)
+>>> [   20.805084] [<c0169ff4>] (sysfs_write_file+0x100/0x184) from
+>> [<c01093fc>] (vfs_write+0xb4/0x148)
+>>> [   20.805114] [<c01093fc>] (vfs_write+0xb4/0x148) from [<c0109684>]
+>> (sys_write+0x40/0x70)
+>>> [   20.805145] [<c0109684>] (sys_write+0x40/0x70) from [<c0013d60>]
+>> (ret_fast_syscall+0x0/0x3c)
+>>> [   20.805145] ---[ end trace c7f1420c2bbb60a2 ]---
+>>> [   20.805511] dpm_run_callback(): platform_pm_resume+0x0/0x50
+>> returns -13
+>>> [   20.805541] PM: Device omapdss failed to resume: error -13
+>>> [   20.857238] PM: resume of devices complete after 422.943 msecs
+>>> [   21.162658] Restarting tasks ... done.
+>>> sh: write error: Operation not permitted
+>>>
+>>> This returns immediately.
+>>>
+>>> Any ideas?
+>>
+>> Could you try to just disable/enable the panel and see if you get the
+>> same error? disabling/enabling result in the same code flow from a DSS
+>> point of view:
+>>
+>> echo 0>  /sys/devices/platform/omapdss/display0/enabled
+>> echo 1>  /sys/devices/platform/omapdss/display0/enabled
+>
+> The LCD43 gets registered as display2, so I did:
+> echo 0>  /sys/devices/platform/omapdss/display2/enabled
+> echo 1>  /sys/devices/platform/omapdss/display2/enabled
+>
+> And this gave no warnings at all.
+>
+> If I suspend with the panel disabled then the DSS warnings go away - however the suspend
+> call still returns immediately saying:
+> # echo 0>  /sys/devices/platform/omapdss/display2/enabled
+> # echo mem>  /sys/power/state
+> [  156.381134] PM: Syncing filesystems ... done.
+> [  156.401580] Freezing user space processes ... (elapsed 0.01 seconds) done.
+> [  156.426788] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+> [  156.458038] Suspending console(s) (use no_console_suspend to debug)
+> [  156.636169] PM: suspend of devices complete after 168.090 msecs
+> [  156.639007] PM: late suspend of devices complete after 2.807 msecs
+> [  156.643981] PM: noirq suspend of devices complete after 4.943 msecs
+> [  156.644012] Disabling non-boot CPUs ...
+> [  157.100738] Powerdomain (core_pwrdm) didn't enter target state 1
+> [  157.100738] Could not enter target state in pm_suspend
+> [  157.103271] PM: noirq resume of devices complete after 2.319 msecs
+> [  157.106475] PM: early resume of devices complete after 1.739 msecs
+> [  157.451843] mmc1: error -110 during resume (card was removed?)
+> [  157.505706] PM: resume of devices complete after 399.047 msecs
+> [  157.569976] Restarting tasks ... done.
+> sh: write error: Operation not permitted
+> #
+>
+> If I then re-enable the panel and suspend the warnings come back:
+> # echo 1>  /sys/devices/platform/omapdss/display2/enabled
+> # echo mem>  /sys/power/state
+> [  161.922912] PM: Syncing filesystems ... done.
+> [  161.931243] Freezing user space processes ... (elapsed 0.02 seconds) done.
+> [  161.961486] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+> [  161.992645] Suspending console(s) (use no_console_suspend to debug)
+> [  162.636138] Modules linked in:
+> [  162.170776] PM: suspend of devices complete after 168.089 msecs
+> [  162.173522] PM: late suspend of devices complete after 2.715 msecs
+> [  162.178192] PM: noirq suspend of devices complete after 4.638 msecs
+> [  162.178192] Disabling non-boot CPUs ...
+> [  162.283081] Powerdomain (core_pwrdm) didn't enter target state 1
+> [  162.283081] Could not enter target state in pm_suspend
+> [  162.285583] PM: noirq resume of devices complete after 2.319 msecs
+> [  162.288757] PM: early resume of devices complete after 1.739 msecs
+> [  162.634765] mmc1: error -110 during resume (card was removed?)
+> [  162.636108] ------------[ cut here ]------------
+> [  162.636138] WARNING: at drivers/video/omap2/dss/dispc.c:376 dispc_runtime_get+0x50/0x64()
+> [  162.636199] [<c001b61c>] (unwind_backtrace+0x0/0xf0) from [<c00401fc>] (warn_slowpath_common+0x4c/0x64)
+> [  162.636230] [<c00401fc>] (warn_slowpath_common+0x4c/0x64) from [<c0040230>] (warn_slowpath_null+0x1c/0x24)
+> [  162.636230] [<c0040230>] (warn_slowpath_null+0x1c/0x24) from [<c02a72d4>] (dispc_runtime_get+0x50/0x64)
+> [  162.636260] [<c02a72d4>] (dispc_runtime_get+0x50/0x64) from [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230)
+> [  162.636291] [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230) from [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78)
+> [  162.636291] [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78) from [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c)
+> [  162.636322] [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c) from [<c02ae28c>] (dss_resume_device+0x28/0x40)
+> [  162.636352] [<c02ae28c>] (dss_resume_device+0x28/0x40) from [<c02fc848>] (bus_for_each_dev+0x50/0x7c)
+> [  162.636383] [<c02fc848>] (bus_for_each_dev+0x50/0x7c) from [<c02ff530>] (platform_pm_resume+0x2c/0x50)
+> [  162.636413] [<c02ff530>] (platform_pm_resume+0x2c/0x50) from [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0)
+> [  162.636413] [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0) from [<c0304828>] (device_resume+0xc8/0x188)
+> [  162.636444] [<c0304828>] (device_resume+0xc8/0x188) from [<c0304c50>] (dpm_resume+0xfc/0x21c)
+> [  162.636474] [<c0304c50>] (dpm_resume+0xfc/0x21c) from [<c0304f04>] (dpm_resume_end+0xc/0x18)
+> [  162.636505] [<c0304f04>] (dpm_resume_end+0xc/0x18) from [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0)
+> [  162.636505] [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0) from [<c00802e4>] (pm_suspend+0x18c/0x208)
+> [  162.636535] [<c00802e4>] (pm_suspend+0x18c/0x208) from [<c007f588>] (state_store+0x120/0x134)
+> [  162.636566] [<c007f588>] (state_store+0x120/0x134) from [<c026800c>] (kobj_attr_store+0x14/0x20)
+> [  162.636566] [<c026800c>] (kobj_attr_store+0x14/0x20) from [<c0169ff4>] (sysfs_write_file+0x100/0x184)
+> [  162.636596] [<c0169ff4>] (sysfs_write_file+0x100/0x184) from [<c01093fc>] (vfs_write+0xb4/0x148)
+> [  162.636627] [<c01093fc>] (vfs_write+0xb4/0x148) from [<c0109684>] (sys_write+0x40/0x70)
+> [  162.636657] [<c0109684>] (sys_write+0x40/0x70) from [<c0013d60>] (ret_fast_syscall+0x0/0x3c)
+> [  162.636657] ---[ end trace a8835c35315270a8 ]---
+> [  162.637054] dpm_run_callback(): platform_pm_resume+0x0/0x50 returns -13
+> [  162.637084] PM: Device omapdss failed to resume: error -13
+> [  162.688385] PM: resume of devices complete after 399.505 msecs
+> [  162.993499] Restarting tasks ... done.
+> sh: write error: Operation not permitted
+> #
 
-Just to be clear, what I was proposing is to have each driver taking
-care of its own io window.
+Thanks for testing this out.
 
-For instance, for BG, assuming we have a DT like this:
+I was going through Tomi's queue for the 3.6 merge window:
 
-		ctrl_module_core: ctrl_module_core@4a002000 {
-			compatible =3D "ti,omap4-control";
-			ti,hwmods =3D "ctrl_module_core";
-			#address-cells =3D <1>;
-			#size-cells =3D <1>;
-			ranges;
-			bandgap: bandgap@4a002000 {
-				 reg =3D <0x4a00232C 0x4 0x4a002378 0x18>;
-				 compatible =3D "ti,omap4460-bandgap";
-				 interrupts =3D <0 126 4>; /* talert */
-				 ti,tshut-gpio =3D <86>; /* tshut */
-			 };
-			usb {
-				compatible =3D "ti,omap4-usb-phy";
-			};
-		};
+git://gitorious.org/linux-omap-dss2/linux.git master
 
-then, while probing, it can request those by simply:
+There is a commit called:
 
-	i =3D 0;
-	do {
-		void __iomem *chunk;
+2b8501d777346ce1d4fe99167e9b3c0e42aae7a8
 
-		res =3D platform_get_resource(pdev, IORESOURCE_MEM, i);
-		if (!res)
-			break;
-		chunk =3D devm_request_and_ioremap(&pdev->dev, res);
-		if (i =3D=3D 0)
-			bg_ptr->base =3D chunk;
-		if (!chunk) {
-			dev_err(&pdev->dev,
-				"failed to request the IO (%d:%pR).\n",
-				i, res);
-			return ERR_PTR(-EADDRNOTAVAIL);
-		}
-		i++;
-	} while (res);
+OMAPDSS: Use PM notifiers for system suspend
 
-The driver needs to adapt its reg offsets, of course, it is doable and
-with the current design it is just a matter of redefining the register
-offsets.
+The commit message mentions the issue you see, and seems to resolve it. 
+Could you give this a try?
 
-But for the above to work, the core driver must not request the
-complete IO area.
+Tomi is out on vacation, and I don't know why this wasn't intended for 
+the 3.5-rcs, maybe there are still some discussion going on about this?
+
+Copping Jassi who was involved with this commit.
+
+Archit
 
 >
+> Cheers,
+> Joe
+>
 >>
+>> The error returned from the runtime_resume call is -ENOACCES, which by
+>> looking at the code, is returned by rpm_resume() when:
 >>
+>> 	dev->power.disable_depth>  0
+>>
+>> I don't know what that means, does someone have any idea?
+>>
+>> Archit
 >> --
->>
->> Eduardo Valentin
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 >
 >
-> --
 >
-> Eduardo Valentin
 
-
-
---=20
-
-Eduardo Valentin
