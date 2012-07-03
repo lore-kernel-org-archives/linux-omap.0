@@ -1,65 +1,133 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Tue, 3 Jul 2012 01:17:47 -0700
-Message-ID: <20120703081746.GJ1122@atomide.com>
-References: <cover.1340778002.git.afzal@ti.com>
- <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
- <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com>
- <4FEC89B9.3090404@ti.com>
- <20120702063651.GO4202@atomide.com>
- <4FF1D980.4040100@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
+Date: Tue, 03 Jul 2012 09:37:59 +0100
+Message-ID: <WC20120703083759.980337@terrafix.co.uk>
+References: <WC20120618103957.6103F2@terrafix.co.uk> <87zk7h5096.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57586 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753291Ab2GCIRu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 04:17:50 -0400
-Content-Disposition: inline
-In-Reply-To: <4FF1D980.4040100@ti.com>
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:55975 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1750783Ab2GCIiU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 04:38:20 -0400
+In-Reply-To: <87zk7h5096.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>, tomi.valkeinen@ti.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jon Hunter <jon-hunter@ti.com> [120702 10:30]:
+-----Original Message-----
+From: Kevin Hilman <khilman@ti.com>
+To: "Joe Woodward" <jw@terrafix.co.uk>
+Cc: "linux-omap\@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Mon, 02 Jul 2012 14:19:49 -0700
+Subject: Re: 3.5-rc3: vdd_mpu_iva warnings
+
+> "Joe Woodward" <jw@terrafix.co.uk> writes:
 > 
-> On 07/02/2012 01:36 AM, Tony Lindgren wrote:
-> > 
-> > In general, I doubt that we can come up with better calculations. The existing
-> > code pretty well already follows the device spec timings. And using cycle values
-> > for some registers is the right thing to do according to the connected device
-> > specs no matter what the frequency is. In those cases converting from time values
-> > to cycles does not make sense.
+> > I have a GUMSTIX Overo AirSTORM module (AM3703-based).
+> >
+> > When booting the kernel the following features are listed:
+> > OMAP3630 ES1.2 (l2cache neon isp 192mhz_clk )
+> >
+> > After booting I get the following (repeating every few seconds):
+> >
+> > [   81.122558] voltdm_scale: No voltage scale API registered for
+> vdd_mpu_iva
+> > [   81.130340] platform mpu.0: omap_target: unable to scale voltage
+> up.
+> >
 > 
-> Ok agree, but the problem here is how to provide the timings to the
-> driver. The onenand code is doing a lot of rounding based upon the gpmc
-> clock before it presents the timings (in nano-seconds) to the gpmc
-> function to calculate the final timings and program the gpmc
-> chip-select. So therefore I think that we have the following options ...
+> BTW, after boot, can you run the shell snippet below.  This should run
+> the board through MPU DVFS for all the available OPPs:
 > 
-> 1. The simplest is to continue using a global variable for storing the
-> gpmc f-clk handle and have the OneNAND timings calculated prior to
-> probing the gpmc driver.
+> Thanks,
+> 
+> Kevin
+> 
 
-Well we should not expose gpmc fck handle to the drivers..
- 
-> 2. Provide some sort of "retime" callback that the gpmc driver can call
-> at probe time to calculate the timings.
+First, apologies...
 
-Yes how about the gpmc using driver code registers itself with the gpmc code
-and also registers it's retime function with the gpmc? That way the gpmc fck
-stays inside the gpmc code, and the driver specific retime function should
-be able to do the calculation based on driver clocks. The retime function
-needs to have also a pointer to driver private data for it's clocks etc.
+I had added a GPIO control to board-overo.c, and after cleaning and
+starting again I realised that in the process I had deleted an
+important line.
 
-It seems this retime function may need to be called by the gpmc code when
-L3 changes, and the driver code if the driver is switching between runtime
-and idle clocks like tusb6010 for example does.
+So, the warnings I posted are not present (i.e. the power domains
+do get registered), sorry for the noise!
 
-Regards,
+But, I still have problems with 3.5-rc5 with system suspend and DSS.
 
-Tony
+I've started again with a completely clean area, built using
+omap2plus_defconfig with the following changes (DSS built-in, and
+use of devtmpfs and SquashFS):
+CONFIG_OMAP2_DSS=y
+CONFIG_OMAP2_VRAM_SIZE=4
+CONFIG_FB_OMAP2=y
+
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_SQUASHFS=y
+
+I also modified board-overo.c to switch from DVI to LCD as the default device:
+static struct omap_dss_board_info overo_dss_data = {
+	.num_devices	= ARRAY_SIZE(overo_dss_devices),
+	.devices	= overo_dss_devices,
+//	.default_device	= &overo_dvi_device,
+	.default_device	= &overo_lcd43_device,
+};
+
+And when suspending I get:
+
+# echo mem > /sys/power/state
+[   20.138214] PM: Syncing filesystems ... done.
+[   20.158477] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[   20.184509] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[   20.215698] Suspending console(s) (use no_console_suspend to debug)
+[   20.804626] Modules linked in:
+[   20.401611] PM: suspend of devices complete after 175.963 msecs
+[   20.404388] PM: late suspend of devices complete after 2.777 msecs
+[   20.409301] PM: noirq suspend of devices complete after 4.882 msecs
+[   20.409362] Disabling non-boot CPUs ...
+[   20.428527] Powerdomain (core_pwrdm) didn't enter target state 1
+[   20.428558] Could not enter target state in pm_suspend
+[   20.431060] PM: noirq resume of devices complete after 2.319 msecs
+[   20.434173] PM: early resume of devices complete after 1.739 msecs
+[   20.803344] mmc1: error -110 during resume (card was removed?)
+[   20.804595] ------------[ cut here ]------------
+[   20.804626] WARNING: at drivers/video/omap2/dss/dispc.c:376 dispc_runtime_get+0x50/0x64()
+[   20.804687] [<c001b61c>] (unwind_backtrace+0x0/0xf0) from [<c00401fc>] (warn_slowpath_common+0x4c/0x64)
+[   20.804718] [<c00401fc>] (warn_slowpath_common+0x4c/0x64) from [<c0040230>] (warn_slowpath_null+0x1c/0x24)
+[   20.804718] [<c0040230>] (warn_slowpath_null+0x1c/0x24) from [<c02a72d4>] (dispc_runtime_get+0x50/0x64)
+[   20.804748] [<c02a72d4>] (dispc_runtime_get+0x50/0x64) from [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230)
+[   20.804779] [<c02b2d80>] (omapdss_dpi_display_enable+0x48/0x230) from [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78)
+[   20.804779] [<c02c9a28>] (generic_dpi_panel_power_on+0x2c/0x78) from [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c)
+[   20.804809] [<c02c9a80>] (generic_dpi_panel_resume+0xc/0x1c) from [<c02ae28c>] (dss_resume_device+0x28/0x40)
+[   20.804840] [<c02ae28c>] (dss_resume_device+0x28/0x40) from [<c02fc848>] (bus_for_each_dev+0x50/0x7c)
+[   20.804870] [<c02fc848>] (bus_for_each_dev+0x50/0x7c) from [<c02ff530>] (platform_pm_resume+0x2c/0x50)
+[   20.804901] [<c02ff530>] (platform_pm_resume+0x2c/0x50) from [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0)
+[   20.804901] [<c0303aa4>] (dpm_run_callback.clone.7+0x30/0xb0) from [<c0304828>] (device_resume+0xc8/0x188)
+[   20.804931] [<c0304828>] (device_resume+0xc8/0x188) from [<c0304c50>] (dpm_resume+0xfc/0x21c)
+[   20.804962] [<c0304c50>] (dpm_resume+0xfc/0x21c) from [<c0304f04>] (dpm_resume_end+0xc/0x18)
+[   20.804962] [<c0304f04>] (dpm_resume_end+0xc/0x18) from [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0)
+[   20.804992] [<c007ffe4>] (suspend_devices_and_enter+0x15c/0x2d0) from [<c00802e4>] (pm_suspend+0x18c/0x208)
+[   20.805023] [<c00802e4>] (pm_suspend+0x18c/0x208) from [<c007f588>] (state_store+0x120/0x134)
+[   20.805053] [<c007f588>] (state_store+0x120/0x134) from [<c026800c>] (kobj_attr_store+0x14/0x20)
+[   20.805053] [<c026800c>] (kobj_attr_store+0x14/0x20) from [<c0169ff4>] (sysfs_write_file+0x100/0x184)
+[   20.805084] [<c0169ff4>] (sysfs_write_file+0x100/0x184) from [<c01093fc>] (vfs_write+0xb4/0x148)
+[   20.805114] [<c01093fc>] (vfs_write+0xb4/0x148) from [<c0109684>] (sys_write+0x40/0x70)
+[   20.805145] [<c0109684>] (sys_write+0x40/0x70) from [<c0013d60>] (ret_fast_syscall+0x0/0x3c)
+[   20.805145] ---[ end trace c7f1420c2bbb60a2 ]---
+[   20.805511] dpm_run_callback(): platform_pm_resume+0x0/0x50 returns -13
+[   20.805541] PM: Device omapdss failed to resume: error -13
+[   20.857238] PM: resume of devices complete after 422.943 msecs
+[   21.162658] Restarting tasks ... done.
+sh: write error: Operation not permitted
+
+This returns immediately.
+
+Any ideas?
+
+Cheers,
+Joe Woodward
+
+
