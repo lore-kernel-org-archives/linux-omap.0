@@ -1,44 +1,50 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH] arm: make FORCE_MAX_ZONEORDER configurable for TI AM33XX
-Date: Tue,  3 Jul 2012 16:20:42 +0200
-Message-ID: <1341325242-17638-1-git-send-email-yegorslists@googlemail.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv4 18/18] i2c: omap: remove redundant status read
+Date: Tue, 3 Jul 2012 20:07:56 +0530
+Message-ID: <1341326276-25434-19-git-send-email-shubhrajyoti@ti.com>
+References: <1341326276-25434-1-git-send-email-shubhrajyoti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.visionsystems.de ([62.145.30.242]:51517 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab2GCOVE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 10:21:04 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55869 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756578Ab2GCOks (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 10:40:48 -0400
+In-Reply-To: <1341326276-25434-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Yegor Yefremov <yegorslists@googlemail.com>, Dejan Gacnik <dejan.gacnik@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+Remove the redundant read of the status register.
 
-FORCE_MAX_ZONEORDER of 12 is needed to allocation more than 4MB
-of consistent DMA memory (da8xx frame buffer driver).
-
-Signed-off-by: Dejan Gacnik <dejan.gacnik@gmail.com>
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- arch/arm/Kconfig |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+v4:Patch addition(fixes a review comment)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index e876819..ff14c1e 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1725,8 +1725,9 @@ config HW_PERF_EVENTS
- source "mm/Kconfig"
+ drivers/i2c/busses/i2c-omap.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 8940eb3..b1a32f8 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -965,7 +965,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->buf_len;
  
- config FORCE_MAX_ZONEORDER
--	int "Maximum zone order" if ARCH_SHMOBILE
--	range 11 64 if ARCH_SHMOBILE
-+	int "Maximum zone order"
-+	depends on ARCH_SHMOBILE || SOC_AM33XX
-+	range 11 64 if ARCH_SHMOBILE || SOC_AM33XX
- 	default "9" if SA1111
- 	default "11"
- 	help
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
+ 
+@@ -981,7 +980,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->threshold;
+ 
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
+ 
 -- 
-1.7.7
+1.7.5.4
 
