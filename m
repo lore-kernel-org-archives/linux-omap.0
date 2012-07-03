@@ -1,57 +1,65 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] remoteproc: remove the get_by_name/put API
-Date: Tue, 03 Jul 2012 11:11:47 -0700
-Message-ID: <4FF335E3.5040509@codeaurora.org>
-References: <1341259857-17382-1-git-send-email-ohad@wizery.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 2 2/4] net ethernet introduce mac_la_ap helper
+Date: Tue, 03 Jul 2012 13:02:11 -0700
+Message-ID: <1341345731.2012.19.camel@joe2Laptop>
+References: <20120702063545.26782.98908.stgit@build.warmcat.com>
+	 <20120702064054.26782.79849.stgit@build.warmcat.com>
+	 <201207021612.57028.arnd@arndb.de>
+	 <1341246931.6578.10.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:2005 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755867Ab2GCSLz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jul 2012 14:11:55 -0400
-In-Reply-To: <1341259857-17382-1-git-send-email-ohad@wizery.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:43175 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755521Ab2GCUCN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Jul 2012 16:02:13 -0400
+In-Reply-To: <1341246931.6578.10.camel@gandalf.stny.rr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, =?UTF-8?B?U2p1ciBCcsOmbmRlbGFuZA==?= <sjur.brandeland@stericsson.com>, Loic Pallardy <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Michal Simek <monstr@monstr.eu>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Suman Anna <s-anna@ti.com>, Mark Grosen <mgrosen@ti.com>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Andy Green <andy.green@linaro.org>, s-jan@ti.com, patches@linaro.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07/02/12 13:10, Ohad Ben-Cohen wrote:
-> Remove rproc_get_by_name() and rproc_put(), and the associated
-> remoteproc infrastructure that supports it (i.e. klist and friends),
-> because:
->
-> 1. No one uses them
-> 2. Using them is highly discouraged, and any potential user
->    will be deeply scrutinized and encouraged to move.
->
-> If a user, that absolutely can't live with the direct boot/shutdown
-> model, does show up one day, then bringing this functionality back
-> is going to be trivial.
->
-> At this point though, keeping this functionality around is way too
-> much of a maintenance burden.
->
+On Mon, 2012-07-02 at 12:35 -0400, Steven Rostedt wrote:
+> On Mon, 2012-07-02 at 16:12 +0000, Arnd Bergmann wrote:
+> 
+> > >  include/net/mac-la-ap.h  |   28 ++++++++
+> > >  net/Kconfig              |   14 ++++
+> > >  net/ethernet/Makefile    |    2 +
+> > >  net/ethernet/mac-la-ap.c |  165 ++++++++++++++++++++++++++++++++++++++++++++++
+> > >  4 files changed, 209 insertions(+)
+> > >  create mode 100644 include/net/mac-la-ap.h
+> > >  create mode 100644 net/ethernet/mac-la-ap.c
+> > > diff --git a/include/net/mac-la-ap.h b/include/net/mac-la-ap.h
+> > > new file mode 100644
+> > > index 0000000..d5189b5
+> > > --- /dev/null
+> > > +++ b/include/net/mac-la-ap.h
+> > > @@ -0,0 +1,28 @@
+> > > +/*
+> > > + * mac-la-ap.h:  Locally Administered MAC address for Async probed devices
+> > > + */
+> > 
+> > I find the name a bit non-obvious, not sure if we can come up with the
+> > perfect one.
+> > 
+> > How about mac-platform?
+> 
+> I really find it unfortunate that 'mac' for ethernet has the same name
+> as the Apple box as well. 'mac' in other contexts can usually
+> differentiate these two, but saying 'mac-platform' just screams of
+> forbidden fruit.
+> 
+> mac-probe.h ?
 
-Acked-by: Stephen Boyd <sboyd@codeaurora.org>
+Maybe eth_mac_addr.h?
 
-> Cc: Sjur Br=C3=A6ndeland <sjur.brandeland@stericsson.com>
-> Cc: Loic Pallardy <loic.pallardy@stericsson.com>
-> Cc: Ludovic BARRE <ludovic.barre@stericsson.com>
-> Cc: Michal Simek <monstr@monstr.eu>
-> Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
-> Cc: Suman Anna <s-anna@ti.com>
-> Cc: Mark Grosen <mgrosen@ti.com>
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->
---=20
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora For=
-um.
+underscore filenames outnumber dash filenames ~2:1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+$ git ls-files "*_*" | while read file ; do basename $file; done | grep "_" | wc -l
+11185
+$ git ls-files "*-*" | while read file ; do basename $file; done | grep "-" | wc -l
+6624
+
+
+
