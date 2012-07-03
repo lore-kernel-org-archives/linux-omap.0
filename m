@@ -1,289 +1,60 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv4 08/18] i2c: omap: re-factor receive/transmit data loop
-Date: Tue, 3 Jul 2012 20:07:46 +0530
-Message-ID: <1341326276-25434-9-git-send-email-shubhrajyoti@ti.com>
-References: <1341326276-25434-1-git-send-email-shubhrajyoti@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 3 Jul 2012 10:10:03 -0500
+Message-ID: <4FF30B4B.8060203@ti.com>
+References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com> <20120702063651.GO4202@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A1BB7@DBDE01.ent.ti.com> <4FF1DA5F.9000409@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A22B7@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40931 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55856 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756593Ab2GCOlG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jul 2012 10:41:06 -0400
-In-Reply-To: <1341326276-25434-1-git-send-email-shubhrajyoti@ti.com>
+	id S1754992Ab2GCPKI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Jul 2012 11:10:08 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A22B7@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Felipe Balbi <balbi@ti.com>
 
-re-factor the common parts to a separate function,
-so that code is easier to read and understand.
+On 07/02/2012 11:35 PM, Mohammed, Afzal wrote:
+> Hi Jon,
+> 
+> On Mon, Jul 02, 2012 at 22:59:03, Hunter, Jon wrote:
+>> On 07/02/2012 04:43 AM, Mohammed, Afzal wrote:
+> 
+>>> Not sure whether you are fine with fixing up this patch with added diff
+>>>
+>>> Assuming inferences so far is not wrong, right now this patch with the added diff
+>>> would be perfectly fine.
+>>>
+>>> Problem would happen when we are at a stage to do gpmc reset using hwmod [seems
+>>> miles to go before I sleep {or read gpmc hwmod reset} ;)]. If bootloader left
+>>> onenand configured in sync mode, to switch onenand to async mode, first configuring
+>>> gpmc to sync mode would be required & for that we need frequency information
+>>> from onenand and to get that information from onenand, gpmc has to be configured
+>>> for sync mode and to configure gpmc to sync mode ....
+>>
+>> You are concerned about hwmod performing a reset of the gpmc during
+>> boot? We should be able to use the HWMOD_INIT_NO_RESET flag to prevent
+>> this. Would that work?
+> 
+> Yes that will work in the short term, the reason I am trying to avoid no
+> reset flag in the long term is to prevent this board support being broken,
+> please refer Paul's requirement [1] in accepting gpmc hwmod patch
 
-No functional changes.
+Ok, thanks for the reminder.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |  204 ++++++++++++++++------------------------
- 1 files changed, 82 insertions(+), 122 deletions(-)
+So we have 2 options here ...
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 1715c35..dca6d3e 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -771,12 +771,81 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev)
- 	return 0;
- }
- 
-+static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
-+		bool is_rdr)
-+{
-+	u16		w;
-+
-+	while (num_bytes--) {
-+		if (!dev->buf_len) {
-+			dev_err(dev->dev, "%s without data",
-+					is_rdr ? "RDR" : "RRDY");
-+			break;
-+		}
-+
-+		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-+		*dev->buf++ = w;
-+		dev->buf_len--;
-+
-+		/*
-+		 * Data reg in 2430, omap3 and
-+		 * omap4 is 8 bit wide
-+		 */
-+		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+			if (dev->buf_len) {
-+				*dev->buf++ = w >> 8;
-+				dev->buf_len--;
-+			}
-+		}
-+	}
-+}
-+
-+static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
-+		bool is_xdr)
-+{
-+	u16		w;
-+
-+	while (num_bytes--) {
-+		if (!dev->buf_len) {
-+			dev_err(dev->dev, "%s without data",
-+					is_xdr ? "XDR" : "XRDY");
-+			break;
-+		}
-+
-+		w = *dev->buf++;
-+		dev->buf_len--;
-+
-+		/*
-+		 * Data reg in 2430, omap3 and
-+		 * omap4 is 8 bit wide
-+		 */
-+		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+			if (dev->buf_len) {
-+				w |= *dev->buf++ << 8;
-+				dev->buf_len--;
-+			}
-+		}
-+
-+		if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+			int ret;
-+
-+			ret = errata_omap3_i462(dev);
-+			if (ret < 0)
-+				return ret;
-+		}
-+
-+		omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
-+	}
-+
-+	return 0;
-+}
-+
- static irqreturn_t
- omap_i2c_isr(int this_irq, void *dev_id)
- {
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 bits;
--	u16 stat, w;
-+	u16 stat;
- 	int err, count = 0;
- 
- 	if (pm_runtime_suspended(dev->dev))
-@@ -829,30 +898,7 @@ complete:
- 			if (dev->fifo_size)
- 				num_bytes = dev->buf_len;
- 
--			while (num_bytes--) {
--				if (!dev->buf_len) {
--					dev_err(dev->dev,
--							"RDR IRQ while no data"
--							" requested\n");
--					break;
--				}
--
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				*dev->buf++ = w;
--				dev->buf_len--;
--
--				/*
--				 * Data reg in 2430, omap3 and
--				 * omap4 is 8 bit wide
--				 */
--				if (dev->flags &
--						OMAP_I2C_FLAG_16BIT_DATA_REG) {
--					if (dev->buf_len) {
--						*dev->buf++ = w >> 8;
--						dev->buf_len--;
--					}
--				}
--			}
-+			omap_i2c_receive_data(dev, num_bytes, true);
- 
- 			if (dev->errata & I2C_OMAP_ERRATA_I207)
- 				i2c_omap_errata_i207(dev, stat);
-@@ -867,77 +913,22 @@ complete:
- 			if (dev->fifo_size)
- 				num_bytes = dev->fifo_size;
- 
--			while (num_bytes--) {
--				if (!dev->buf_len) {
--					dev_err(dev->dev,
--							"RRDY IRQ while no data"
--							" requested\n");
--					break;
--				}
--
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				*dev->buf++ = w;
--				dev->buf_len--;
--
--				/*
--				 * Data reg in 2430, omap3 and
--				 * omap4 is 8 bit wide
--				 */
--				if (dev->flags &
--						OMAP_I2C_FLAG_16BIT_DATA_REG) {
--					if (dev->buf_len) {
--						*dev->buf++ = w >> 8;
--						dev->buf_len--;
--					}
--				}
--			}
--
-+			omap_i2c_receive_data(dev, num_bytes, false);
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
- 			continue;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XDR) {
- 			u8 num_bytes = 1;
-+			int ret;
- 
- 			if (dev->fifo_size)
- 				num_bytes = dev->buf_len;
- 
--			while (num_bytes--) {
--				if (!dev->buf_len) {
--					dev_err(dev->dev,
--							"XDR IRQ while no "
--							"data to send\n");
--					break;
--				}
--
--				w = *dev->buf++;
--				dev->buf_len--;
--
--				/*
--				 * Data reg in 2430, omap3 and
--				 * omap4 is 8 bit wide
--				 */
--				if (dev->flags &
--						OMAP_I2C_FLAG_16BIT_DATA_REG) {
--					if (dev->buf_len) {
--						w |= *dev->buf++ << 8;
--						dev->buf_len--;
--					}
--				}
--
--				if (dev->errata & I2C_OMAP_ERRATA_I462) {
--					int ret;
--
--					ret = errata_omap3_i462(dev);
--					stat = omap_i2c_read_reg(dev,
--							OMAP_I2C_STAT_REG);
--
--					if (ret < 0)
--						goto complete;
--				}
--
--				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
--			}
-+			ret = omap_i2c_transmit_data(dev, num_bytes, true);
-+			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+			if (ret < 0)
-+				goto complete;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
- 			continue;
-@@ -945,46 +936,15 @@ complete:
- 
- 		if (stat & OMAP_I2C_STAT_XRDY) {
- 			u8 num_bytes = 1;
-+			int ret;
- 
- 			if (dev->fifo_size)
- 				num_bytes = dev->fifo_size;
- 
--			while (num_bytes--) {
--				if (!dev->buf_len) {
--					dev_err(dev->dev,
--							"XRDY IRQ while no "
--							"data to send\n");
--					break;
--				}
--
--				w = *dev->buf++;
--				dev->buf_len--;
--
--				/*
--				 * Data reg in 2430, omap3 and
--				 * omap4 is 8 bit wide
--				 */
--				if (dev->flags &
--						OMAP_I2C_FLAG_16BIT_DATA_REG) {
--					if (dev->buf_len) {
--						w |= *dev->buf++ << 8;
--						dev->buf_len--;
--					}
--				}
--
--				if (dev->errata & I2C_OMAP_ERRATA_I462) {
--					int ret;
--
--					ret = errata_omap3_i462(dev);
--					stat = omap_i2c_read_reg(dev,
--							OMAP_I2C_STAT_REG);
--
--					if (ret < 0)
--						goto complete;
--				}
--
--				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
--			}
-+			ret = omap_i2c_transmit_data(dev, num_bytes, false);
-+			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+			if (ret < 0)
-+				goto complete;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
- 			continue;
--- 
-1.7.5.4
+1. Use the HWMOD_INIT_NO_RESET for now and your updated version of this
+patch
+2. See if there is a gpio available to control the OneNAND reset on the
+n900.
 
+Do you agree? Any other options?
+
+Cheers
+Jon
