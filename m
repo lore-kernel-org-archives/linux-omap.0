@@ -1,116 +1,69 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] gpio/omap: fix invalid context restore of gpio bank-0
-Date: Mon, 02 Jul 2012 17:05:35 -0700
-Message-ID: <87txxp4skw.fsf@ti.com>
-References: <1340990551-19426-1-git-send-email-jon-hunter@ti.com>
-	<87mx3i595b.fsf@ti.com> <4FF1E7DE.10409@ti.com>
-	<20120703093404.2a9b5aba@notabene.brown>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Mon, 02 Jul 2012 17:14:09 -0700
+Message-ID: <87hatp4s6m.fsf@ti.com>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
+	<87fw9o32v2.fsf@ti.com>
+	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+	<20120622103050.GG28472@arwen.pp.htv.fi> <87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi> <87d34nfdei.fsf@ti.com>
+	<871uku85o8.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:51679 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750944Ab2GCAFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jul 2012 20:05:30 -0400
-Received: by pbbro2 with SMTP id ro2so10449040pbb.27
-        for <linux-omap@vger.kernel.org>; Mon, 02 Jul 2012 17:05:28 -0700 (PDT)
-In-Reply-To: <20120703093404.2a9b5aba@notabene.brown> (NeilBrown's message of
-	"Tue, 3 Jul 2012 09:34:04 +1000")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <871uku85o8.fsf-l0cyMroinI0@public.gmane.org> (Kevin Hilman's message of "Mon, 02 Jul
+	2012 09:54:31 -0700")
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>
 
-NeilBrown <neilb@suse.de> writes:
+Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
 
-> On Mon, 2 Jul 2012 13:26:38 -0500 Jon Hunter <jon-hunter@ti.com> wrote:
+> Felipe, Keshava,
 >
->> 
->> On 07/02/2012 01:07 PM, Kevin Hilman wrote:
->> > + Neil Brown
->> > 
->> > Hi Jon,
->> > 
->> > Jon Hunter <jon-hunter@ti.com> writes:
->> > 
->> >> Currently the gpio _runtime_resume/suspend functions are calling the
->> >> get_context_loss_count() platform function if the function is populated for
->> >> a gpio bank. This function is used to determine if the gpio bank logic state
->> >> needs to be restored due to a power transition. This function will be populated
->> >> for all banks, but it should only be called for banks that have the
->> >> "loses_context" variable set. It is pointless to call this if loses_context is
->> >> false as we know the context will never be lost and will not need restoring.
->> >>
->> >> For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
->> >> never lose context. We found that the get_context_loss_count() was being called
->> >> for bank-0 during the probe and returning 1 instead of 0 indicating that the
->> >> context had been lost. This was causing the context restore function to be
->> >> called at probe time for this bank and because the context had never been saved,
->> >> was restoring an invalid state. This ultimately resulted in a crash [1].
->> >>
->> >> There are multiple bugs here that need to be addressed ...
->> >>
->> >> 1. Why the always-on power domain returns a context loss count of 1? This needs
->> >>    to be fixed in the power domain code. However, the gpio driver should not
->> >>    assume the loss count is 0 to begin with.
->> >> 2. The omap gpio driver should never be calling get_context_loss_count for a
->> >>    gpio bank in a always-on domain. This is pointless and adds unneccessary
->> >>    overhead.
->> >> 3. The OMAP gpio driver assumes that the initial power domain context loss count
->> >>    will be 0 at the time the gpio driver is probed. However, it could be
->> >>    possible that this is not the case and an invalid context restore could be
->> >>    performed during the probe. To avoid this otherwise only populated the
->> > 
->> > The 'To avoid this...' sentence here doesn't read well.  Looks like you
->> > need to:
->> > 
->> > s/otherwise//
->> 
->> Yes, I meant to have dropped "otherwise" here. Thanks!
->> 
->> > s/populated/populate/
->> 
->> Yes that too! I must have re-worded and screwed it up royally :-(
->> 
->> > ?
->> > 
->> >>    get_context_loss_count() function pointer after the initial call to
->> >>    pm_runtime_get() has occurred. This will ensure that the first
->> >>    pm_runtime_put() initialised the loss count correctly.
->> >>
->> >> This patch addresses issues 2 and 3 above.
->> >> [1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
->> >>
->> >> Cc: Grant Likely <grant.likely@secretlab.ca>
->> >> Cc: Linus Walleij <linus.walleij@stericsson.com>
->> >> Cc: Kevin Hilman <khilman@ti.com>
->> >> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> >> Cc: Franky Lin <frankyl@broadcom.com>
->> >>
->> >> Reported-by: Franky Lin <frankyl@broadcom.com>
->> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> > 
->> > Thanks for digging inot this bug Jon.  The same bug was brought up by
->> > Neil Brown (Cc'd) in a different thread.
->> > 
->> > Neil, it looks to me that this fix will address the problems you were
->> > seeing as well.  Care to test, and respond with your ack/tested-by if it
->> > works for you?  Thanks.
->> 
->> Neil let me know your thoughts and if you are ok, I can clean-up the
->> changelog and re-send.
+> Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
 >
-> Yes, works for me and looks sensible.
+>> Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+>>
+>> [...]
+>>
+>>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
+>>> cause regressions. Granted, regression by regression, there's no change,
+>>> but I simply can't knowingly cause a regression to the driver just to
+>>> have PM working. We need a real fix for this issue.
+>>
+>> Sure, as long as there is a fix in this -rc cycle.
+>>
+>> This driver intoduced changes in v3.5 that break PM for the whole SoC
+>> (by preventing CORE retention.)  These changes were clearly not tested
+>> with PM.
+>>
+>> If you cannot fix this during the -rc cycle, then you need to revert the
+>> driver PM changes that broke PM for the *whole* SoC.
 >
->  Tested-by: NeilBrown <neilb@suse.de>
+> What's the status of this regression?
+>
+> This is still broken in v3.5-rc and is preventing CORE retention for the
+> *whole* SoC.
+>
+> Please fix this, either with a proper fix, or a revert for 3.5-rc.
 >
 
-Great!  Thanks for testing.
+BTW, a related issue with this driver (but not sure it's a regression)
+is that USB ethernet does not seem to survive a suspend/resume.
 
-Jon, please make the minor changelog edits, collect the reviewed-by and
-tested-by tags and repost.  I'll then queue this up for Grant.
+If I'm using a NFS rootfs, after suspend/resume, the NFS servers stops
+responding, and I get these errors:
 
-Based on your earlier comments, this only affects v3.5, so no
-need to push it into stable, correct?
+  nfs: server X.X.X.X not responding, still trying
+
+The result is that I have to use an initramfs on BB-xM in order to do
+suspend/resume testing.
 
 Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
