@@ -1,63 +1,97 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Tue, 3 Jul 2012 10:12:17 -0500
-Message-ID: <4FF30BD1.3040309@ti.com>
-References: <cover.1340778002.git.afzal@ti.com> <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com> <20120627145844.GL3483@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com> <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com> <20120702063651.GO4202@atomide.com> <4FF1D980.4040100@ti.com> <20120703081746.GJ1122@atomide.com>
+Subject: [PATCH V2] gpio/omap: fix invalid context restore of gpio bank-0
+Date: Tue, 3 Jul 2012 11:05:50 -0500
+Message-ID: <1341331550-21312-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43168 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36429 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081Ab2GCPMb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jul 2012 11:12:31 -0400
-In-Reply-To: <20120703081746.GJ1122@atomide.com>
+	id S1751081Ab2GCQG2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Jul 2012 12:06:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Franky Lin <frankyl@broadcom.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, NeilBrown <neilb@suse.de>
 
+Currently the gpio _runtime_resume/suspend functions are calling the
+get_context_loss_count() platform function if the function is populated for
+a gpio bank. This function is used to determine if the gpio bank logic state
+needs to be restored due to a power transition. This function will be populated
+for all banks, but it should only be called for banks that have the
+"loses_context" variable set. It is pointless to call this if loses_context is
+false as we know the context will never be lost and will not need restoring.
 
-On 07/03/2012 03:17 AM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [120702 10:30]:
->>
->> On 07/02/2012 01:36 AM, Tony Lindgren wrote:
->>>
->>> In general, I doubt that we can come up with better calculations. The existing
->>> code pretty well already follows the device spec timings. And using cycle values
->>> for some registers is the right thing to do according to the connected device
->>> specs no matter what the frequency is. In those cases converting from time values
->>> to cycles does not make sense.
->>
->> Ok agree, but the problem here is how to provide the timings to the
->> driver. The onenand code is doing a lot of rounding based upon the gpmc
->> clock before it presents the timings (in nano-seconds) to the gpmc
->> function to calculate the final timings and program the gpmc
->> chip-select. So therefore I think that we have the following options ...
->>
->> 1. The simplest is to continue using a global variable for storing the
->> gpmc f-clk handle and have the OneNAND timings calculated prior to
->> probing the gpmc driver.
-> 
-> Well we should not expose gpmc fck handle to the drivers..
+For all OMAP2+ devices gpio bank-0 is in an always-on power domain and so will
+never lose context. We found that the get_context_loss_count() was being called
+for bank-0 during the probe and returning 1 instead of 0 indicating that the
+context had been lost. This was causing the context restore function to be
+called at probe time for this bank and because the context had never been saved,
+was restoring an invalid state. This ultimately resulted in a crash [1].
 
-Yes, I was hoping we could avoid continuing to do this.
+This issue is a regression that was exposed by commit 1b1287032 (gpio/omap: fix
+missing check in *_runtime_suspend()).
 
->> 2. Provide some sort of "retime" callback that the gpmc driver can call
->> at probe time to calculate the timings.
-> 
-> Yes how about the gpmc using driver code registers itself with the gpmc code
-> and also registers it's retime function with the gpmc? That way the gpmc fck
-> stays inside the gpmc code, and the driver specific retime function should
-> be able to do the calculation based on driver clocks. The retime function
-> needs to have also a pointer to driver private data for it's clocks etc.
-> 
-> It seems this retime function may need to be called by the gpmc code when
-> L3 changes, and the driver code if the driver is switching between runtime
-> and idle clocks like tusb6010 for example does.
+There are multiple bugs here that need to be addressed ...
 
-Seems fine to me.
+1. Why the always-on power domain returns a context loss count of 1? This needs
+   to be fixed in the power domain code [2]. However, the gpio driver should not
+   assume the loss count is 0 to begin with.
+2. The omap gpio driver should never be calling get_context_loss_count for a
+   gpio bank in a always-on domain. This is pointless and adds unneccessary
+   overhead.
+3. The OMAP gpio driver assumes that the initial power domain context loss count
+   will be 0 at the time the gpio driver is probed. However, it could be
+   possible that this is not the case and an invalid context restore could be
+   performed during the probe. To avoid this only populate the
+   get_context_loss_count() function pointer after the initial call to
+   pm_runtime_get() has occurred. This will ensure that the first
+   pm_runtime_put() initialised the loss count correctly.
 
-Cheers
-Jon
+This patch addresses issues 2 and 3 above.
+
+[1] http://marc.info/?l=linux-omap&m=134065775323775&w=2
+[2] http://marc.info/?l=linux-omap&m=134100413303810&w=2
+
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Franky Lin <frankyl@broadcom.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: NeilBrown <neilb@suse.de>
+
+Reported-by: Franky Lin <frankyl@broadcom.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Tested-by: Franky Lin <frankyl@broadcom.com>
+Tested-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ drivers/gpio/gpio-omap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index c4ed172..f13fc9c 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1081,7 +1081,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	bank->is_mpuio = pdata->is_mpuio;
+ 	bank->non_wakeup_gpios = pdata->non_wakeup_gpios;
+ 	bank->loses_context = pdata->loses_context;
+-	bank->get_context_loss_count = pdata->get_context_loss_count;
+ 	bank->regs = pdata->regs;
+ #ifdef CONFIG_OF_GPIO
+ 	bank->chip.of_node = of_node_get(node);
+@@ -1135,6 +1134,9 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	omap_gpio_chip_init(bank);
+ 	omap_gpio_show_rev(bank);
+ 
++	if (bank->loses_context)
++		bank->get_context_loss_count = pdata->get_context_loss_count;
++
+ 	pm_runtime_put(bank->dev);
+ 
+ 	list_add_tail(&bank->node, &omap_gpio_list);
+-- 
+1.7.9.5
+
