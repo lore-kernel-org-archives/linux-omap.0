@@ -1,47 +1,68 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: architected timers: Mark the clockevent with the
- C3_STOP feature
-Date: Wed, 4 Jul 2012 16:11:26 +0530
-Message-ID: <CAMQu2gypTXaG7ADEJuKSUq9eBMOUQAoBW5SmUbC4Td4ZxXVFVA@mail.gmail.com>
-References: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com> <20120704102617.GC16639@n2100.arm.linux.org.uk>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Wed, 4 Jul 2012 10:50:20 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
+ <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
+ <4FE9A00B.6010908@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+ <4FEC7394.9030208@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com>
+ <4FEDF54D.4030609@gmail.com>
+ <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com>
+ <4FEEC7F2.8070507@gmail.com>
+ <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:37552 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933181Ab2GDKls (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:41:48 -0400
-Received: by qaat11 with SMTP id t11so3336601qaa.13
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 03:41:47 -0700 (PDT)
-In-Reply-To: <20120704102617.GC16639@n2100.arm.linux.org.uk>
+Received: from comal.ext.ti.com ([198.47.26.152]:46700 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933477Ab2GDKuc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:50:32 -0400
+In-Reply-To: <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Daniel Mack <zonque@gmail.com>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>
 
-On Wed, Jul 4, 2012 at 3:56 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
->
-> On Wed, Jul 04, 2012 at 03:24:33PM +0530, Santosh Shilimkar wrote:
-> > ARM arch timers stop in low power state and hence can not wakeup CPUs in
-> > deeper idle states when used as cloc event devices. Marking these clock
-> > event
-> > devices with C3_STOP so that during lowpower states, the tick is managed
-> > by
-> > wakeup capable broadcast timer.
->
-> Will tells me that the arch timers don't stop in low power modes, they
-> just can't produce wakeup events.  Apparantly the spec says:
->
->    The system counter must be implemented in an always-on power domain.
->    Use of lower-frequency modes must not affect the implemented accuracy.
->
-> Are you sure your above description of the problem is correct?
+On Wed, Jul 04, 2012 at 15:37:31, Paul Walmsley wrote:
+> On Sat, 30 Jun 2012, Daniel Mack wrote:
+> 
+> > Ok, thanks for the explaining this. For now, I'll add hwmod stubs for
+> > the components I need.
+> 
+> Hmm.  Which drivers are you working on?  Vaibhav Hiremath has hwmod data 
+> for the AM33xx.  There might be some missing integration code to build the 
+> devices for the newer IP blocks, though.
+> 
 
-Yes. Will is right.
-The arch timers don't stop with a real time counter implementation.
-The issue is they are not wakeup capable hence you need a broad-cast switching
-which in turn needs C3_STOP.
+I would also be interested to know more here.
 
-Regards
-Santosh
+
+> > Btw, has anyone yet worked on getting the MDIO/EMAC driver merged?
+> 
+> Mainline has:
+> 
+> drivers/net/ethernet/ti/davinci_emac.c
+
+Not required for AM335X.
+
+> drivers/net/ethernet/ti/davinci_mdio.c
+> 
+> Those might work for you.
+> 
+
+Few more files,
+
+drivers/net/ethernet/ti/cpsw.c
+drivers/net/ethernet/ti/davinci_cpdma.c
+
+
+Wanted to highlight one point,
+You still have to add platform device code to get it working.
+
+Thanks,
+Vaibhav
