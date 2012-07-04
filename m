@@ -1,39 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Current state of AM33xx patches
-Date: Wed, 4 Jul 2012 04:07:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
- <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com>
+From: Guillaume Gardet <guillaume.gardet@free.fr>
+Subject: [PATCH] Add missing modules aliases to get sound working on omap
+ devices
+Date: Wed, 04 Jul 2012 12:16:08 +0200
+Message-ID: <4FF417E8.1060008@free.fr>
+Reply-To: guillaume.gardet@free.fr
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------020309020103060300070708"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45400 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932623Ab2GDKHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:07:32 -0400
-In-Reply-To: <4FEEC7F2.8070507@gmail.com>
+Received: from fb2.tech.numericable.fr ([82.216.111.50]:54719 "EHLO
+	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752063Ab2GDK0c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:26:32 -0400
+Received: from smtp3.tech.numericable.fr (smtp3.nc.sdv.fr [10.0.0.48])
+	by fb2.tech.numericable.fr (Postfix) with ESMTP id 1C8D019D106
+	for <linux-omap@vger.kernel.org>; Wed,  4 Jul 2012 12:17:15 +0200 (CEST)
+Received: from [192.168.1.111] (164.60-224-89.dsl.completel.net [89.224.60.164])
+	by smtp3.tech.numericable.fr (Postfix) with ESMTP id C13233E403
+	for <linux-omap@vger.kernel.org>; Wed,  4 Jul 2012 12:16:08 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: linux-omap@vger.kernel.org
 
-On Sat, 30 Jun 2012, Daniel Mack wrote:
+This is a multi-part message in MIME format.
+--------------020309020103060300070708
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Ok, thanks for the explaining this. For now, I'll add hwmod stubs for
-> the components I need.
+This patch add missing modules aliases to get sound working on omap devices.
 
-Hmm.  Which drivers are you working on?  Vaibhav Hiremath has hwmod data 
-for the AM33xx.  There might be some missing integration code to build the 
-devices for the newer IP blocks, though.
+Tested on Beagleboard xM rev. B.
 
-> Btw, has anyone yet worked on getting the MDIO/EMAC driver merged?
+This patch is against 3.5-rc5 vanilla.
 
-Mainline has:
-
-drivers/net/ethernet/ti/davinci_emac.c
-drivers/net/ethernet/ti/davinci_mdio.c
-
-Those might work for you.
+Signed-off-by: Guillaume GARDET <guillaume.gardet@free.fr>
 
 
-- Paul
+
+--------------020309020103060300070708
+Content-Type: text/x-patch;
+ name="add-missing-modules-aliases-to-fix-audio-on-omap-devices.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="add-missing-modules-aliases-to-fix-audio-on-omap-devices.pat";
+ filename*1="ch"
+
+--- ./sound/soc/omap/omap-pcm.c.orig	2012-07-04 10:30:13.611641186 +0200
++++ ./sound/soc/omap/omap-pcm.c	2012-07-04 10:30:38.894034111 +0200
+@@ -441,3 +441,4 @@ module_platform_driver(omap_pcm_driver);
+ MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@bitmer.com>");
+ MODULE_DESCRIPTION("OMAP PCM DMA module");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-pcm-audio");
+--- ./sound/soc/omap/omap-mcbsp.c.orig	2012-07-04 10:29:14.240066817 +0200
++++ ./sound/soc/omap/omap-mcbsp.c	2012-07-04 12:03:28.020756978 +0200
+@@ -820,3 +820,4 @@ module_platform_driver(asoc_mcbsp_driver
+ MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@bitmer.com>");
+ MODULE_DESCRIPTION("OMAP I2S SoC Interface");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-mcbsp-dai");
+
+--------------020309020103060300070708--
