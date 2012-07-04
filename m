@@ -1,33 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Wed, 4 Jul 2012 10:41:40 +0100
-Message-ID: <20120704094140.GB16639@n2100.arm.linux.org.uk>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9AB214@DBDE01.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: architected timers: Mark the clockevent with the C3_STOP feature
+Date: Wed, 4 Jul 2012 15:24:33 +0530
+Message-ID: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37680 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932826Ab2GDJls (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:41:48 -0400
-Content-Disposition: inline
-In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293E9AB214@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59078 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753541Ab2GDJy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:54:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Marc Zyngier <marc.zyngier@arm.com>
 
-On Thu, Jun 07, 2012 at 04:22:17PM +0000, N, Mugunthan V wrote:
-> While converting platform device registry to Hwmod for CPSW Ethernet
-> driver which is present in AM335X (OMAP2+), I am not finding a way
-> to specify dma_mask and coherent_dma_mask.
-> Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
+ARM arch timers stop in low power state and hence can not wakeup CPUs in
+deeper idle states when used as cloc event devices. Marking these clock event
+devices with C3_STOP so that during lowpower states, the tick is managed by
+wakeup capable broadcast timer.
 
-Just remember that we're moving stuff to DMA engine, and that means
-the sDMA device has DMA masks, but none of the peripherals which make
-use of sDMA should have DMA masks set.
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/kernel/arch_timer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The reason for this is because the device responsible for accessing
-memory is sDMA, not the peripheral device, and therefore any memory
-properties for DMA should come from the sDMA device, not the peripheral
-device.
+diff --git a/arch/arm/kernel/arch_timer.c b/arch/arm/kernel/arch_timer.c
+index dd58035..df44c8c 100644
+--- a/arch/arm/kernel/arch_timer.c
++++ b/arch/arm/kernel/arch_timer.c
+@@ -137,7 +137,7 @@ static int __cpuinit arch_timer_setup(struct clock_event_device *clk)
+ 	/* Be safe... */
+ 	arch_timer_disable();
+ 
+-	clk->features = CLOCK_EVT_FEAT_ONESHOT;
++	clk->features = CLOCK_EVT_FEAT_ONESHOT | CLOCK_EVT_FEAT_C3STOP;
+ 	clk->name = "arch_sys_timer";
+ 	clk->rating = 450;
+ 	clk->set_mode = arch_timer_set_mode;
+-- 
+1.7.9.5
+
