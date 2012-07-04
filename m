@@ -1,49 +1,105 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod
- framework
-Date: Wed, 4 Jul 2012 03:13:15 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207040311400.6760@utopia.booyaka.com>
-References: <1340898256-22884-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A83EA624A5@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V3 1/3] ARM: OMAP2+: CLEANUP: All OMAP2PLUS uses
+ omap-device.o target so add one entry
+Date: Wed, 4 Jul 2012 09:16:56 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA632CE@DBDE01.ent.ti.com>
+References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
+ <1340895567-22766-2-git-send-email-hvaibhav@ti.com>
+ <20120704072758.GP1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37576 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029Ab2GDJNQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:13:16 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA624A5@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56931 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753370Ab2GDJSM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:18:12 -0400
+In-Reply-To: <20120704072758.GP1122@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, 3 Jul 2012, Hiremath, Vaibhav wrote:
-
-> On Thu, Jun 28, 2012 at 21:14:16, Hiremath, Vaibhav wrote:
-> > AM33XX PRCM architecture is different that any OMAP family
-> > of devices, so it is required to have separate implementation
-> > to handle AM33XX module enable/disable, reset assert/deassert
-> > functionality.
-> > This patch adds wrapper api's in omap_hwmod framework to
-> > access prm/cm for AM33XX family of devices.
+On Wed, Jul 04, 2012 at 12:57:58, Tony Lindgren wrote:
+> Hi
+> 
+> Applying these, but few comments below to make my life easier..
+> 
+> * Vaibhav Hiremath <hvaibhav@ti.com> [120628 08:04]:
+> > All OMAP2PLUS based devices, builds omap-device.o target;
+> > so just add one entry so that there is no need to patch this file
+> > for any future OMAP2+ devices.
 > > 
 > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
 > > Cc: Tony Lindgren <tony@atomide.com>
-> > ---
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > 
+> > NOTE: No code change from last version.
 > 
-> Ping !!!
+> Extra comments like this should be within the --- sections so they
+> down't show up when applying the patch. Otherwise I have to manually
+> edit every patch, which sucks.
+> 
 
-Doesn't this have a cross-dependency on Kevin's series that is part of 
-this tag:
+Oops...my bad.
 
-http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=tag;h=0c66cfc31db4d4fc97c50ecf96fc5e3807a039ee
-
-?
-
-If so then it probably makes sense for this to wait until 3.7, since 
-Tony's AM33xx devel branch is based on v3.5-rc1.
+These comments I keep deliberately after signoff so that I can move it
+after --- section while submitting, but somehow missed to do it for this 
+patch-series.
+I will take care of it in the future, sorry for inconvenience.
 
 
-- Paul
+> Then, I'm leaving out the CLEANUP part in $Subject, that alone is not
+> a reason to patch anything. The description should say why the patch
+> is needed, which it does. If you want to specify that this should be
+> grouped in the clean-up branch, then that too could be mentioned within
+> the --- sections.
+> 
+
+Point taken, and will follow now.
+
+> > ---
+> >  arch/arm/plat-omap/Makefile |    4 +---
+> >  1 files changed, 1 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> > index 6d87532..961bf85 100644
+> > --- a/arch/arm/plat-omap/Makefile
+> > +++ b/arch/arm/plat-omap/Makefile
+> > @@ -10,9 +10,7 @@ obj-n :=
+> >  obj-  :=
+> > 
+> >  # omap_device support (OMAP2+ only at the moment)
+> > -obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+> > -obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> > -obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+> > +obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
+> > 
+> >  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+> >  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+> > --
+> > 1.7.0.4
+> > 
+> 
+> This patch did not apply for some reason, I got:
+> 
+> patching file arch/arm/plat-omap/Makefile
+> patch: **** malformed patch at line 73: 1.7.0.4
+> 
+> So please tune up your scripts a bit to the patches can be applied
+> as they are without manual editing ;)
+> 
+
+Hmmmm...
+
+I usually submit the patch against linux-omap/master (to handle cross 
+dependencies), which in some cases fails on other branches you maintain. 
+Probably I will make sure that it allies atleast to relevant branches, for 
+example, in this case it should be applied on linux-omap/cleanup branch as 
+well. 
+
+Thanks,
+Vaibhav
+
