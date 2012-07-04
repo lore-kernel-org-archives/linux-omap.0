@@ -1,64 +1,70 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Wed, 4 Jul 2012 05:36:47 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A2B0C@DBDE01.ent.ti.com>
-References: <cover.1340778002.git.afzal@ti.com>
- <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
- <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
- <20120702063651.GO4202@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A1BB7@DBDE01.ent.ti.com>
- <4FF1DA5F.9000409@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A22B7@DBDE01.ent.ti.com>
- <4FF30B4B.8060203@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 2/5] usb: musb: twl: use mailbox API to send VBUS or ID events
+Date: Wed, 4 Jul 2012 11:17:36 +0530
+Message-ID: <CAAe_U6+3sf5Nm5bQeY=Pi=sYMPp3GfXWxfbbbo1mSH2u9xjTyQ@mail.gmail.com>
+References: <1340367055-19835-1-git-send-email-kishon@ti.com>
+	<1340367055-19835-3-git-send-email-kishon@ti.com>
+	<E0D6B3D7803B1A49AC7CEA9958379F630375BD5A@DFLE36.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44828 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932262Ab2GDFhE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 01:37:04 -0400
-In-Reply-To: <4FF30B4B.8060203@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E0D6B3D7803B1A49AC7CEA9958379F630375BD5A-yhyrjsqURdeIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Matcovschi, Oleg" <oleg.matcovschi-l0cyMroinI0@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Jon, Tony,
+Hi Oleg,
 
-On Tue, Jul 03, 2012 at 20:40:03, Hunter, Jon wrote:
+On Tue, Jul 3, 2012 at 11:09 PM, Matcovschi, Oleg
+<oleg.matcovschi-l0cyMroinI0@public.gmane.org> wrote:
+>>From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [linux-omap-owner-u79uwXL29TasMV2rI37PzA@public.gmane.org=
+org] on behalf of ABRAHAM, KISHON VIJAY
+>>Sent: Friday, June 22, 2012 5:10 AM
+>>To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; ABRAHAM, KISHON VIJAY; linux-omap@vge=
+r.kernel.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; =
+Balbi, Felipe
+>>Subject: [PATCH v3 2/5] usb: musb: twl: use mailbox API to send VBUS =
+or ID events
+>
+>>The atomic notifier from twl4030/twl6030 to notifiy VBUS and ID event=
+s,
+>>is replaced by a direct call to omap musb blue.
+>
+>>Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>---
+>> drivers/usb/musb/omap2430.c =A0 | =A0 94 +++++++++++++++++++++++++--=
+-------------
+>> drivers/usb/otg/twl4030-usb.c | =A0 46 ++++++++++----------
+>> drivers/usb/otg/twl6030-usb.c | =A0 47 +++++++++-----------
+>> include/linux/usb/musb-omap.h | =A0 30 +++++++++++++
+>> 4 files changed, 133 insertions(+), 84 deletions(-)
+>> create mode 100644 include/linux/usb/musb-omap.h
+> .....
+> +enum omap_musb_vbus_id_status {
+> + =A0 =A0 =A0 OMAP_MUSB_UNKNOWN =3D 0,
+> + =A0 =A0 =A0 OMAP_MUSB_ID_GROUND,
+> + =A0 =A0 =A0 OMAP_MUSB_ID_FLOAT,
+> + =A0 =A0 =A0 OMAP_MUSB_VBUS_VALID,
+> + =A0 =A0 =A0 OMAP_MUSB_VBUS_OFF,
+> +};
+> +
+>
+> Why did you choose to introduce OMAP_MUSB specific VBUS, ID events?
+> IMHO, it makes more sense to introduce mailbox functionality only wit=
+hout extra translation layer.
+> Same mailbox glue layer could be used for other PHY drivers, not just=
+ twl.
 
-> So we have 2 options here ...
-> 
-> 1. Use the HWMOD_INIT_NO_RESET for now and your updated version of this
-> patch
-> 2. See if there is a gpio available to control the OneNAND reset on the
-> n900.
-> 
-> Do you agree? Any other options?
+We've decided to make twl as a comparator driver since we have a
+separate phy driver (not yet merged). Hence we dint want twl to use
+usb_phy specific events. So if you have other PHY drivers, you can
+still use the OMAP_MUSB specific events.
 
-Yes agree, I am fine either way, unable to see any other option
-
-HWMOD_INIT_NO_RESET is any way required to start driver conversion
-as both new & old interface needs to be supported till all machines
-are converted to use the new driver interface as well as at least
-till all machines are made independent of bootloader w.r.t GPMC
-
-As of now I feel we should go with option 1
-
-If we need to go with option 2, (assuming OneNAND reset is solution
-to the problem) all machines that is configured for sync mode
-presently (n8x0, rx51, rm680) has to be made intelligent to do
-OneNAND reset (provided gpio is connected to reset). And for all
-these machines including N900 (seems rx51), information on gpio pin
-connected to reset (if at all connected) and the way to do reset is
-required, which I am so far unable to get. Once this information
-could be obtained, I can make the patch and then need help from
-someone who has the board to test it
-
-Regards
-Afzal
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
