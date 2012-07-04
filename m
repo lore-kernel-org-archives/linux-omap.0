@@ -1,33 +1,47 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: architected timers: Mark the clockevent with the
-	C3_STOP feature
-Date: Wed, 4 Jul 2012 11:26:17 +0100
-Message-ID: <20120704102617.GC16639@n2100.arm.linux.org.uk>
-References: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RESEND PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate
+ class
+Date: Wed, 4 Jul 2012 10:26:41 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA6354B@DBDE01.ent.ti.com>
+References: <1341320447-18918-1-git-send-email-hvaibhav@ti.com>
+ <1341320447-18918-2-git-send-email-hvaibhav@ti.com>
+ <20120704072454.GO1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37739 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756949Ab2GDK0e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:26:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45661 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756970Ab2GDK1z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:27:55 -0400
+In-Reply-To: <20120704072454.GO1122@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Jul 04, 2012 at 03:24:33PM +0530, Santosh Shilimkar wrote:
-> ARM arch timers stop in low power state and hence can not wakeup CPUs in
-> deeper idle states when used as cloc event devices. Marking these clock event
-> devices with C3_STOP so that during lowpower states, the tick is managed by
-> wakeup capable broadcast timer.
+On Wed, Jul 04, 2012 at 12:54:54, Tony Lindgren wrote:
+> * Vaibhav Hiremath <hvaibhav@ti.com> [120703 06:12]:
+> > Initially, we decided to make am33xx family of device to fall
+> > under omap3 class (cpu_is_omap34xx() = true), since it carries
+> > Cortex-A8 core. But while adding complete baseport support
+> > (like, clock, power and hwmod) support, it is observed that,
+> > we are creating more and more problems by treating am33xx device
+> > as omap3 family, as nothing matches between them
+> > (except cortex-A8 mpu).
+> > 
+> > So,  after long discussion we have came to the conclusion that,
+> > we should not consider am33xx device as omap3 family, instead
+> > create separate class (SOC_AM33XX) under OMAP2PLUS.
+> > This means, for am33xx device, cpu_is_omap34xx() will return false,
+> > and only cpu_is_am33xx() will be true.
+> 
+> Thanks applying both.
+> 
 
-Will tells me that the arch timers don't stop in low power modes, they
-just can't produce wakeup events.  Apparantly the spec says:
+Thanks Tony,
 
-   The system counter must be implemented in an always-on power domain.
-   Use of lower-frequency modes must not affect the implemented accuracy.
 
-Are you sure your above description of the problem is correct?
+Thanks,
+Vaibhav
