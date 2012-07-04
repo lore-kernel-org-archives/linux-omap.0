@@ -1,63 +1,100 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Wed, 4 Jul 2012 14:25:30 +0100
-Message-ID: <20120704132530.GA20496@n2100.arm.linux.org.uk>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9AB214@DBDE01.ent.ti.com> <20120704094140.GB16639@n2100.arm.linux.org.uk> <EB1619762EAF8B4E97A227FB77B7E0293E9C1B55@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Wed, 04 Jul 2012 06:33:35 -0700
+Message-ID: <87k3yj4pn4.fsf@ti.com>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
+	<87fw9o32v2.fsf@ti.com>
+	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+	<20120622103050.GG28472@arwen.pp.htv.fi> <87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi> <87d34nfdei.fsf@ti.com>
+	<871uku85o8.fsf@ti.com>
+	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
+	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37864 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022Ab2GDNZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 09:25:40 -0400
-Content-Disposition: inline
-In-Reply-To: <EB1619762EAF8B4E97A227FB77B7E0293E9C1B55@DBDE01.ent.ti.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:59809 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752140Ab2GDNde (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 09:33:34 -0400
+Received: by pbbrp2 with SMTP id rp2so10326493pbb.28
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 06:33:26 -0700 (PDT)
+In-Reply-To: <CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+	(Keshava Munegowda's message of "Tue, 3 Jul 2012 12:52:32 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, sameo@linux.intel.com, notasas@gmail.com, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Jul 04, 2012 at 11:47:35AM +0000, N, Mugunthan V wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > Sent: Wednesday, July 04, 2012 3:12 PM
-> > To: N, Mugunthan V
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
-> > 
-> > On Thu, Jun 07, 2012 at 04:22:17PM +0000, N, Mugunthan V wrote:
-> > > While converting platform device registry to Hwmod for CPSW Ethernet
-> > > driver which is present in AM335X (OMAP2+), I am not finding a way
-> > > to specify dma_mask and coherent_dma_mask.
-> > > Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
-> > 
-> > Just remember that we're moving stuff to DMA engine, and that means
-> > the sDMA device has DMA masks, but none of the peripherals which make
-> > use of sDMA should have DMA masks set.
-> > 
-> > The reason for this is because the device responsible for accessing
-> > memory is sDMA, not the peripheral device, and therefore any memory
-> > properties for DMA should come from the sDMA device, not the peripheral
-> > device.
-> 
-> I agree that properties of DMA should come from sDMA device. In my case 
-> (CPSW Ethernet) has a peripheral DMA (davinci_cpdma) which takes care of 
-> transferring packet from memory to Ethernet IP and vice versa.
+"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
 
-Right, so you have two devices here.
+> On Tue, Jul 3, 2012 at 12:17 PM, Munegowda, Keshava
+> <keshava_mgowda@ti.com> wrote:
+>> On Mon, Jul 2, 2012 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote:
+>>> Felipe, Keshava,
+>>>
+>>> Kevin Hilman <khilman@ti.com> writes:
+>>>
+>>>> Felipe Balbi <balbi@ti.com> writes:
+>>>>
+>>>> [...]
+>>>>
+>>>>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
+>>>>> cause regressions. Granted, regression by regression, there's no change,
+>>>>> but I simply can't knowingly cause a regression to the driver just to
+>>>>> have PM working. We need a real fix for this issue.
+>>>>
+>>>> Sure, as long as there is a fix in this -rc cycle.
+>>>>
+>>>> This driver intoduced changes in v3.5 that break PM for the whole SoC
+>>>> (by preventing CORE retention.)  These changes were clearly not tested
+>>>> with PM.
+>>>>
+>>>> If you cannot fix this during the -rc cycle, then you need to revert the
+>>>> driver PM changes that broke PM for the *whole* SoC.
+>>>
+>>> What's the status of this regression?
+>>>
+>>> This is still broken in v3.5-rc and is preventing CORE retention for the
+>>> *whole* SoC.
+>>>
+>>> Please fix this, either with a proper fix, or a revert for 3.5-rc.
+>>
+>>
+>> The proper fix for this is implement ion of ehci remote wakeup through
+>> I/O chain handler; it takes time.
+>> As Felipe also mentioned,  This patch is OK for now.
+>
+> Sorry, Felipe still insist not to revert this patch, but to change
+> this patch requires quite more changes in the usbhs core
+> and we need to see the how the hub control changes need to be brought
+> in to usbhs core. so , reverting is the
+> best solution to time being.
+>
+> Its observed that ehci was enabled after linux kernal version 3.3 ;
+> before that even though driver was there
+> the ehci deriver was disabled by defaults; and it is expected the
+> people who want to use NFS then can enable it
+> explicitly.
+>
+> so,  the solution is
+>
+> 1. Use this patch ( reverting the hw errata ) to fix the NFS Boot and
+> suspend/resume crash
 
-You have the Ethernet device, and you have the cpdma device.  The cpdma
-device is the device actually performing the memory accesses on behalf
-of the Ethernet device.
+Or, use the patches from Russ Dill where were more targetted fixes.
+Either way, I'm OK with that.
 
-> For allocating DMA memory space for davinci_cpdma, dma_alloc_coherent is 
-> used which requires dma_masks to be specified for the device.
+> 2. Disable the ehci driver to make the pm work in idle case ;
+>               This configuration should exist till the ehci remote
+> wakeup implementation completes.
 
-So, memory which you allocate for DMA purposes should use the struct
-device associated with the cpdma device, not the struct device associated
-with the Ethernet device.
+Yes.  Please disabled it by default.
 
-That becomes possible when DMA implementations are converted to use the
-DMA engine API, and with proper channel virtualization, device drivers
-can retain their virtual channel handle (and therefore access to the
-DMA engine struct device) indefinitely.
+Until PM in this driver can work without breaking PM for the whole SoC,
+it should remain disabled.
+
+Please queue up all of these fixes ASAP for the v3.5
+
+Kevin
