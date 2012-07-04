@@ -1,62 +1,55 @@
-From: "N, Mugunthan V" <mugunthanvnm@ti.com>
-Subject: RE: how to specify dma_mask and coherent_dma_mask in hwmod
-Date: Wed, 4 Jul 2012 11:47:35 +0000
-Message-ID: <EB1619762EAF8B4E97A227FB77B7E0293E9C1B55@DBDE01.ent.ti.com>
-References: <EB1619762EAF8B4E97A227FB77B7E0293E9AB214@DBDE01.ent.ti.com>
- <20120704094140.GB16639@n2100.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2/3: DSS HWMOD fixes
+Date: Wed, 4 Jul 2012 06:11:38 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207040610310.6760@utopia.booyaka.com>
+References: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com> <alpine.DEB.2.00.1206271416420.27496@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49132 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821Ab2GDLrt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 07:47:49 -0400
-In-Reply-To: <20120704094140.GB16639@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:33584 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874Ab2GDMLj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 08:11:39 -0400
+In-Reply-To: <alpine.DEB.2.00.1206271416420.27496@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, archit@ti.com
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Wednesday, July 04, 2012 3:12 PM
-> To: N, Mugunthan V
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
+Hi Tomi
+
+On Wed, 27 Jun 2012, Paul Walmsley wrote:
+
+> On Thu, 10 May 2012, Tomi Valkeinen wrote:
 > 
-> On Thu, Jun 07, 2012 at 04:22:17PM +0000, N, Mugunthan V wrote:
-> > While converting platform device registry to Hwmod for CPSW Ethernet
-> > driver which is present in AM335X (OMAP2+), I am not finding a way
-> > to specify dma_mask and coherent_dma_mask.
-> > Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
+> > These patches fix DSS hwmod data related to sysc flags. I haven't seen any
+> > problem produced by these missing bits, but by looking at the TRM it's clear
+> > that they should be defined.
+> > 
+> > However, applying these will cause additional warnings to show during boot:
+> > 
+> > omap_hwmod: dss_dispc: softreset failed (waited 10000 usec)
+> > omap_hwmod: dss_rfbi: softreset failed (waited 10000 usec)
+> > 
+> > Most likely the softreset fails even now, but as there's no check to verify it,
+> > no warnings are visible.
+> > 
+> > I think the reason for the failing softreset is the same problem as we have on
+> > OMAP4: dss_core hwmod should be enabled before other dss hwmods can be enabled
+> > (and reset).
 > 
-> Just remember that we're moving stuff to DMA engine, and that means
-> the sDMA device has DMA masks, but none of the peripherals which make
-> use of sDMA should have DMA masks set.
+> Thanks, queued for 3.6.
 > 
-> The reason for this is because the device responsible for accessing
-> memory is sDMA, not the peripheral device, and therefore any memory
-> properties for DMA should come from the sDMA device, not the peripheral
-> device.
+> Not sure what to do about the softreset issues at the moment, due to 
+> competing priorities.  But for sure the data should match the hardware.
 
-I agree that properties of DMA should come from sDMA device. In my case 
-(CPSW Ethernet) has a peripheral DMA (davinci_cpdma) which takes care of 
-transferring packet from memory to Ethernet IP and vice versa.
+I've dropped these for 3.6 since they cause a PM regression during a 
+system suspend test:
 
-For allocating DMA memory space for davinci_cpdma, dma_alloc_coherent is 
-used which requires dma_masks to be specified for the device.
+[   39.721282] Powerdomain (dss_pwrdm) didn't enter target state 1
 
-To pass the dma_masks to the device following ways can be followed.
-1. Extend omap_device_build arguments to hold dma_mask and coherent_dma_mask
-   which will affect all other devices which uses omap_device_build api.
-2. Hardcode the dma_mask and coherent_dma_mask in omap_device_build with 
-   0xffffffff which can harm other devices
-3. Specify the dma_mask and coherent_dma_mask after creating the device as
-   done in musb device.
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/a
-rm/mach-omap2/usb-musb.c;h=c4a576856661014ea3bec9acc70f80e32d62c33b;hb=HEAD
+Probably before we can pull these in, we need to figure out what's going 
+on there.
 
-Regards,
-Mugunthan V N
+
+- Paul
