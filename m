@@ -1,62 +1,62 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Current state of AM33xx patches
-Date: Wed, 04 Jul 2012 13:22:09 +0200
-Message-ID: <4FF42761.2000701@gmail.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com>
+From: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Subject: RE: how to specify dma_mask and coherent_dma_mask in hwmod
+Date: Wed, 4 Jul 2012 11:47:35 +0000
+Message-ID: <EB1619762EAF8B4E97A227FB77B7E0293E9C1B55@DBDE01.ent.ti.com>
+References: <EB1619762EAF8B4E97A227FB77B7E0293E9AB214@DBDE01.ent.ti.com>
+ <20120704094140.GB16639@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47148 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755771Ab2GDLWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 07:22:15 -0400
-Received: by bkwj10 with SMTP id j10so2513128bkw.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 04:22:13 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49132 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751821Ab2GDLrt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 07:47:49 -0400
+In-Reply-To: <20120704094140.GB16639@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>, "N, Mugunthan V" <mugunthanvnm@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 04.07.2012 12:50, Hiremath, Vaibhav wrote:
-> On Wed, Jul 04, 2012 at 15:37:31, Paul Walmsley wrote:
->> On Sat, 30 Jun 2012, Daniel Mack wrote:
->>
->>> Ok, thanks for the explaining this. For now, I'll add hwmod stubs for
->>> the components I need.
->>
->> Hmm.  Which drivers are you working on?  Vaibhav Hiremath has hwmod data 
->> for the AM33xx.  There might be some missing integration code to build the 
->> devices for the newer IP blocks, though.
->>
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Wednesday, July 04, 2012 3:12 PM
+> To: N, Mugunthan V
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: how to specify dma_mask and coherent_dma_mask in hwmod
 > 
-> I would also be interested to know more here.
+> On Thu, Jun 07, 2012 at 04:22:17PM +0000, N, Mugunthan V wrote:
+> > While converting platform device registry to Hwmod for CPSW Ethernet
+> > driver which is present in AM335X (OMAP2+), I am not finding a way
+> > to specify dma_mask and coherent_dma_mask.
+> > Is there a way to specify dma_mask and coherent_dma_mask in hwmod?
 > 
+> Just remember that we're moving stuff to DMA engine, and that means
+> the sDMA device has DMA masks, but none of the peripherals which make
+> use of sDMA should have DMA masks set.
 > 
->>> Btw, has anyone yet worked on getting the MDIO/EMAC driver merged?
->>
->> Mainline has:
->>
->> drivers/net/ethernet/ti/davinci_emac.c
-> 
-> Not required for AM335X.
-> 
->> drivers/net/ethernet/ti/davinci_mdio.c
->>
->> Those might work for you.
->>
-> 
-> Few more files,
-> 
-> drivers/net/ethernet/ti/cpsw.c
-> drivers/net/ethernet/ti/davinci_cpdma.c
-> 
-> 
-> Wanted to highlight one point,
-> You still have to add platform device code to get it working.
+> The reason for this is because the device responsible for accessing
+> memory is sDMA, not the peripheral device, and therefore any memory
+> properties for DMA should come from the sDMA device, not the peripheral
+> device.
 
-Exactly. And a hwmod binding for DT. Do you have patches for that?
+I agree that properties of DMA should come from sDMA device. In my case 
+(CPSW Ethernet) has a peripheral DMA (davinci_cpdma) which takes care of 
+transferring packet from memory to Ethernet IP and vice versa.
 
+For allocating DMA memory space for davinci_cpdma, dma_alloc_coherent is 
+used which requires dma_masks to be specified for the device.
 
-Daniel
+To pass the dma_masks to the device following ways can be followed.
+1. Extend omap_device_build arguments to hold dma_mask and coherent_dma_mask
+   which will affect all other devices which uses omap_device_build api.
+2. Hardcode the dma_mask and coherent_dma_mask in omap_device_build with 
+   0xffffffff which can harm other devices
+3. Specify the dma_mask and coherent_dma_mask after creating the device as
+   done in musb device.
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/a
+rm/mach-omap2/usb-musb.c;h=c4a576856661014ea3bec9acc70f80e32d62c33b;hb=HEAD
+
+Regards,
+Mugunthan V N
