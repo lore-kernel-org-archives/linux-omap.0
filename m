@@ -1,55 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv2 02/12] ARM: OMAP2+: hwmod code/data: fix 32K sync
- timer
-Date: Wed, 4 Jul 2012 13:05:09 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207041302401.6760@utopia.booyaka.com>
-References: <20120611004502.20034.8840.stgit@dusk> <20120611004555.20034.87035.stgit@dusk> <4FDA15AA.6090704@ti.com> <alpine.DEB.2.00.1206141136080.30212@utopia.booyaka.com> <4FDA45F5.9090300@ti.com> <alpine.DEB.2.00.1206141706420.25628@utopia.booyaka.com>
- <4FDB387C.7030003@ti.com> <alpine.DEB.2.00.1207040625090.6760@utopia.booyaka.com> <4FF468DF.10108@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH] omap-rng: Use struct dev_pm_ops for power management
+Date: Thu, 5 Jul 2012 00:00:56 +0200
+Message-ID: <201207050000.56356.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-865564482-1341428709=:6760"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36141 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755690Ab2GDTFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 15:05:10 -0400
-In-Reply-To: <4FF468DF.10108@ti.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:53242 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755800Ab2GDVzY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Jul 2012 17:55:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Deepak Saxena <dsaxena@plexity.net>, linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
---155748971-865564482-1341428709=:6760
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Make the omap-rng driver define its PM callbacks through
+a struct dev_pm_ops object rather than by using legacy PM hooks
+in struct platform_driver.
 
-Hi Beno=EEt
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/char/hw_random/omap-rng.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-On Wed, 4 Jul 2012, Benoit Cousson wrote:
-
-> > From: Paul Walmsley <paul@pwsan.com>
-> > Date: Wed, 4 Jul 2012 05:22:53 -0600
-> > Subject: [PATCH] ARM: OMAP2+: hwmod code/clockdomain data: fix 32K sync=
- timer
->=20
-> [...]
->=20
-> > @@ -1208,8 +1219,13 @@ static void _idle_sysc(struct omap_hwmod *oh)
-> >  =09sf =3D oh->class->sysc->sysc_flags;
-> > =20
-> >  =09if (sf & SYSC_HAS_SIDLEMODE) {
-> > -=09=09idlemode =3D (oh->flags & HWMOD_SWSUP_SIDLE) ?
-> > -=09=09=09HWMOD_IDLEMODE_FORCE : HWMOD_IDLEMODE_SMART;
-> > +=09=09/* XXX What about HWMOD_IDLEMODE_SMART_WKUP? */
->=20
-> What do you mean here?
-
-We're not programming IP block target idle modes to smart idle + wakeup on=
-=20
-OMAP4.  We're only programming them to smart idle :-(
-
-
-- Paul
---155748971-865564482-1341428709=:6760--
+Index: linux/drivers/char/hw_random/omap-rng.c
+===================================================================
+--- linux.orig/drivers/char/hw_random/omap-rng.c
++++ linux/drivers/char/hw_random/omap-rng.c
+@@ -162,22 +162,24 @@ static int __exit omap_rng_remove(struct
+ 
+ #ifdef CONFIG_PM
+ 
+-static int omap_rng_suspend(struct platform_device *pdev, pm_message_t message)
++static int omap_rng_suspend(struct device *dev)
+ {
+ 	omap_rng_write_reg(RNG_MASK_REG, 0x0);
+ 	return 0;
+ }
+ 
+-static int omap_rng_resume(struct platform_device *pdev)
++static int omap_rng_resume(struct device *dev)
+ {
+ 	omap_rng_write_reg(RNG_MASK_REG, 0x1);
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(omap_rng_pm, omap_rng_suspend, omap_rng_resume);
++#define	OMAP_RNG_PM	(&omap_rng_pm)
++
+ #else
+ 
+-#define	omap_rng_suspend	NULL
+-#define	omap_rng_resume		NULL
++#define	OMAP_RNG_PM	NULL
+ 
+ #endif
+ 
+@@ -188,11 +190,10 @@ static struct platform_driver omap_rng_d
+ 	.driver = {
+ 		.name		= "omap_rng",
+ 		.owner		= THIS_MODULE,
++		.pm		= OMAP_RNG_PM,
+ 	},
+ 	.probe		= omap_rng_probe,
+ 	.remove		= __exit_p(omap_rng_remove),
+-	.suspend	= omap_rng_suspend,
+-	.resume		= omap_rng_resume
+ };
+ 
+ static int __init omap_rng_init(void)
