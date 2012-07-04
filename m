@@ -1,18 +1,18 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCHv2 02/12] ARM: OMAP2+: hwmod code/data: fix 32K sync
  timer
-Date: Wed, 4 Jul 2012 06:48:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207040625090.6760@utopia.booyaka.com>
+Date: Wed, 4 Jul 2012 06:53:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207040652240.6760@utopia.booyaka.com>
 References: <20120611004502.20034.8840.stgit@dusk> <20120611004555.20034.87035.stgit@dusk> <4FDA15AA.6090704@ti.com> <alpine.DEB.2.00.1206141136080.30212@utopia.booyaka.com> <4FDA45F5.9090300@ti.com> <alpine.DEB.2.00.1206141706420.25628@utopia.booyaka.com>
- <4FDB387C.7030003@ti.com>
+ <4FDB387C.7030003@ti.com> <alpine.DEB.2.00.1207040625090.6760@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-831221608-1341406128=:6760"
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-173489757-1341406410=:6760"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59455 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33389 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab2GDMst (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 08:48:49 -0400
-In-Reply-To: <4FDB387C.7030003@ti.com>
+	with ESMTP id S1751341Ab2GDMxb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 08:53:31 -0400
+In-Reply-To: <alpine.DEB.2.00.1207040625090.6760@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
@@ -21,29 +21,16 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindg
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-831221608-1341406128=:6760
+--155748971-173489757-1341406410=:6760
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi Beno=EEt,
+On Wed, 4 Jul 2012, Paul Walmsley wrote:
 
-On Fri, 15 Jun 2012, Cousson, Benoit wrote:
+> So the updated patch below uses a clockdomain data flag for this=20
+> instead.
 
-> My point is simple, we should not add any new custom flag when all the=20
-> information to detect such exception are already there in the current=20
-> data and represent accurately what the HW is doing.
-
-This seems like the crux of the issue.  We don't have sufficient=20
-information to detect this exception in our current data, in my view. =20
-The software additionally must know when it can rely on a clockdomain=20
-remaining active when the MPU is active.
-
-Ideally the hardcoded clockdomain sleep dependencies would be encoded, and=
-=20
-we could test the intersection of those and the software-programmable=20
-clockdomain sleep dependencies.  But such a change seems too complex for=20
-the -rc cycle.  So the updated patch below uses a clockdomain data flag=20
-for this instead.
+Here's a version that's a little cleaner.  No functional changes.
 
 
 - Paul
@@ -124,15 +111,15 @@ Cc: Tony Lindgren <tony@atomide.com>
 Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Beno=EEt Cousson <b-cousson@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
  arch/arm/mach-omap2/clockdomain.h                |    4 +++
  arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    1 +
- arch/arm/mach-omap2/clockdomains44xx_data.c      |    4 +--
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
  arch/arm/mach-omap2/omap_hwmod.c                 |   32 ++++++++++++++++--=
 ----
- 4 files changed, 31 insertions(+), 10 deletions(-)
+ 4 files changed, 30 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockd=
 omain.h
@@ -172,18 +159,9 @@ index 839145e..4972219 100644
  };
 diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-om=
 ap2/clockdomains44xx_data.c
-index c534258..6e93d49 100644
+index c534258..7f2133a 100644
 --- a/arch/arm/mach-omap2/clockdomains44xx_data.c
 +++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
-@@ -1,7 +1,7 @@
- /*
-  * OMAP4 Clock domains framework
-  *
-- * Copyright (C) 2009-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2012 Texas Instruments, Inc.
-  * Copyright (C) 2009-2011 Nokia Corporation
-  *
-  * Abhijit Pagare (abhijitpagare@ti.com)
 @@ -381,7 +381,7 @@ static struct clockdomain l4_wkup_44xx_clkdm =3D {
  =09.cm_inst=09  =3D OMAP4430_PRM_WKUP_CM_INST,
  =09.clkdm_offs=09  =3D OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS,
@@ -260,4 +238,4 @@ mpu_rt_addr_space(struct omap
 --=20
 1.7.10
 
---155748971-831221608-1341406128=:6760--
+--155748971-173489757-1341406410=:6760--
