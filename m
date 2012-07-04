@@ -1,89 +1,108 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
-Date: Wed, 04 Jul 2012 07:01:39 -0700
-Message-ID: <87vci339rw.fsf@ti.com>
-References: <WC20120618103957.6103F2@terrafix.co.uk> <87zk7h5096.fsf@ti.com>
-	<WC20120703083759.980337@terrafix.co.uk> <4FF2B476.6000900@ti.com>
-	<WC20120703091232.480345@terrafix.co.uk> <4FF2D089.8030507@ti.com>
-	<WC20120703135255.990389@terrafix.co.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP2+: more fixes intended for 3.5-rc
+Date: Wed, 4 Jul 2012 08:08:35 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207040806270.6760@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:57336 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750917Ab2GDOBb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 10:01:31 -0400
-Received: by pbbrq13 with SMTP id rq13so11824987pbb.8
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 07:01:29 -0700 (PDT)
-In-Reply-To: <WC20120703135255.990389@terrafix.co.uk> (Joe Woodward's message
-	of "Tue, 03 Jul 2012 14:52:55 +0100")
+Received: from utopia.booyaka.com ([72.9.107.138]:49936 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751396Ab2GDOIf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 10:08:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Archit Taneja <a0393947@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> ...snip...
->
->> > #
->> 
->> Thanks for testing this out.
->> 
->> I was going through Tomi's queue for the 3.6 merge window:
->> 
->> git://gitorious.org/linux-omap-dss2/linux.git master
->> 
->> There is a commit called:
->> 
->> 2b8501d777346ce1d4fe99167e9b3c0e42aae7a8
->> 
->> OMAPDSS: Use PM notifiers for system suspend
->> 
->> The commit message mentions the issue you see, and seems to resolve it.
->> Could you give this a try?
->> 
->> Tomi is out on vacation, and I don't know why this wasn't intended for 
->> the 3.5-rcs, maybe there are still some discussion going on about this?
->> 
->
-> Thanks, this did remove the DSS warnings when suspending.
->
-> Is there any chance this patch will make 3.5, or is it far too late now?
->
-> However, core still fails to power down:
-> # echo mem > /sys/power/state
-> [   64.905975] PM: Syncing filesystems ... done.
-> [   64.926879] Freezing user space processes ... (elapsed 0.01 seconds) done.
-> [   64.952697] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-> [   64.983947] Suspending console(s) (use no_console_suspend to debug)
-> [   65.115112] PM: suspend of devices complete after 121.215 msecs
-> [   65.117797] PM: late suspend of devices complete after 2.655 msecs
-> [   65.122314] PM: noirq suspend of devices complete after 4.486 msecs
-> [   65.122344] Disabling non-boot CPUs ...
-> [   66.095733] Powerdomain (core_pwrdm) didn't enter target state 1
-> [   66.095733] Could not enter target state in pm_suspend
-> [   66.098236] PM: noirq resume of devices complete after 2.319 msecs
-> [   66.101409] PM: early resume of devices complete after 1.770 msecs
-> [   66.471008] mmc1: error -110 during resume (card was removed?)
-> [   66.516784] PM: resume of devices complete after 415.252 msecs
-> [   66.580841] Restarting tasks ... done.
-> sh: write error: Operation not permitted
->
-> I'm guessing this is a question for Kevin, any idea how to debug this?
+Hi Tony
 
-Already debugged and fixed. The exact solution is still under
-discussion, but while waiting for the right fix, you can use this patch
-and you should see CORE hitting retention:
+The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
 
-   http://marc.info/?l=linux-omap&m=134000053229888&w=2
+  Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
 
->
-> Also, why is it now saing "sh: write error: Operation not permitted" after waking, this never happened with 3.4?
+are available in the git repository at:
 
-I have seen this here and there and have never looked into why that is
-happening.  Clearly the write actually worked because the suspend
-happened, so I'm not sure what's going on there.
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-3.5rc
 
-Kevin
+for you to fetch changes up to d7a0b5133f6b1d53d693b9b9873e64e3c8f0db0e:
 
+  ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on OMAP4 (2012-07-04 06:55:29 -0600)
+
+- ----------------------------------------------------------------
+A few more OMAP fixes for 3.5-rc.  These fix some bugs with power
+management and McBSP.
+
+- ----------------------------------------------------------------
+
+object size (delta in bytes from test_v3.5-rc5 (6887a4131da3adaab011613776d865f4bcfb5678)):
+  text 	  data 	   bss 	 total 	kernel
+     0 	     0 	     0 	     0 	2430_testconfig/vmlinux
+     0 	     0 	     0 	     0 	5912osk_testconfig/vmlinux
+     0 	  -800 	     0 	  -800 	am33xx_testconfig/vmlinux
+     0 	     0 	     0 	     0 	n800_b_testconfig/vmlinux
+     0 	     0 	     0 	     0 	n800_multi_omap2xxx/vmlinux
+     0 	     0 	     0 	     0 	n800_testconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1510_defconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1_defconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2_4_testconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2plus_defconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2plus_no_pm/vmlinux
+     0 	  -736 	     0 	  -736 	omap3_4_testconfig/vmlinux
+     0 	     0 	     0 	     0 	omap3_testconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap4_testconfig/vmlinux
+
+Test logs are here:
+
+http://www.pwsan.com/omap/testlogs/omap_fixes_b_3.5rc/20120704065841/
+
+3530ES3 Beagle doesn't wake up from dynamic idle.  CORE powerdomain on
+3530ES3 Beagle and 37xx EVM doesn't enter low-power states.  AM35xx
+boards have the usual boot-time warnings.  All of these issues existed
+on v3.5-rc5.
+
+object size (delta in bytes from test_v3.5-rc5 (6887a4131da3adaab011613776d865f4bcfb5678)):
+  text 	  data 	   bss 	 total 	kernel
+     0 	     0 	     0 	     0 	2430_testconfig/vmlinux
+     0 	     0 	     0 	     0 	5912osk_testconfig/vmlinux
+     0 	  -800 	     0 	  -800 	am33xx_testconfig/vmlinux
+     0 	     0 	     0 	     0 	n800_b_testconfig/vmlinux
+     0 	     0 	     0 	     0 	n800_multi_omap2xxx/vmlinux
+     0 	     0 	     0 	     0 	n800_testconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1510_defconfig/vmlinux
+     0 	     0 	     0 	     0 	omap1_defconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2_4_testconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2plus_defconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap2plus_no_pm/vmlinux
+     0 	  -736 	     0 	  -736 	omap3_4_testconfig/vmlinux
+     0 	     0 	     0 	     0 	omap3_testconfig/vmlinux
+     0 	  -736 	     0 	  -736 	omap4_testconfig/vmlinux
+
+Benoit Cousson (1):
+      ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on OMAP4
+
+Paul Walmsley (1):
+      ARM: OMAP4: hwmod data: temporarily comment out data for the usb_host_fs and aess IP blocks
+
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP9E4TAAoJEMePsQ0LvSpLtrMP/1oQH3zcKGbWRZOZto0RuK4O
+MbBFlnkJXXSlcNMhW5KNhQzROLrSltA7hv8Y4eVtpCDKYjdvpWGCdfuEn6H3mrYV
+Dhq8Uk7oB46PX95s76coQOPnegocrAJmHc+stokaVB5KxwqxC6k/C/A9fAAuG3Uf
+aR2+Rfv80AW66ZjgrCYbsMFrXUrzXPTIvEXNtmPrO+KXa10rthcVFUmW8OKHj9Kg
+p97pTfEK9Xtmat6m6E57yE3qao3osp/FPtpAhxzc+xbs4BlArhrxPfru2KJwgquu
+gzmwsE8xeVJYOz3+9Fpe7G7XZ1Lwt6+L8X0HrWXBC6R9dbeu54GwmLuflTNbR6Kd
+BtZw47rYFQSqyCqtpr2bJX61tOe/jRCoo17ANkMUKroz1MdnV9Q/QTauuphrLwPr
+DSFkWPkwGLtt8FI1pH9HvjWxVpcVAouJOdTHwysKx35J5gXLw2pC9Cmu1GTqEVav
+aZIZdcaoLkgJ7Y2m0UouUEAXXWAN8pJ0yOlHEwXJquPkYTmd1pJFFJI3EbxRZbb6
+rix2Nx/J+560orfDl1nuLGGMPU/2iMb0H9eLDhn+zdnQTuneklen8bNfTr2DEev3
+A4urjs9iY8fRQmzB29A9qjIL+NnMTS8ofHkrhJLCftsbWL50shDHxAuq+geWhqgR
+PGrKH29yL9HtGiY2hGYO
+=KKTu
+-----END PGP SIGNATURE-----
