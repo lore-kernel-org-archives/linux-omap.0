@@ -1,8 +1,8 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Hook-up am33xx support in
  omap_hwmod framework
-Date: Wed, 4 Jul 2012 09:26:14 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA6334A@DBDE01.ent.ti.com>
+Date: Wed, 4 Jul 2012 09:28:02 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA63362@DBDE01.ent.ti.com>
 References: <1340898256-22884-1-git-send-email-hvaibhav@ti.com>
  <79CD15C6BA57404B839C016229A409A83EA624A5@DBDE01.ent.ti.com>
  <alpine.DEB.2.00.1207040311400.6760@utopia.booyaka.com>
@@ -10,10 +10,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55453 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52104 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755850Ab2GDJ0t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:26:49 -0400
+	id S1752947Ab2GDJ2S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 05:28:18 -0400
 In-Reply-To: <alpine.DEB.2.00.1207040311400.6760@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
@@ -47,8 +47,19 @@ On Wed, Jul 04, 2012 at 14:43:15, Paul Walmsley wrote:
 > 
 > ?
 > 
+> If so then it probably makes sense for this to wait until 3.7, since 
+> Tony's AM33xx devel branch is based on v3.5-rc1.
+> 
+> 
 
-Yes it does, and was expecting it to go along with Kevin's series.
+Paul,
+
+Two more patches got missed last time,
+
+ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod required for am33xx
+ARM: OMAP3/4: omap_hwmod: Add rstst_off field to struct omap_hwmod_omap4_prcm
+
+Can this also be merged into your pull request?
 
 Thanks,
 Vaibhav
