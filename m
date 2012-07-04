@@ -1,100 +1,277 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Wed, 04 Jul 2012 06:33:35 -0700
-Message-ID: <87k3yj4pn4.fsf@ti.com>
-References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
-	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
-	<87fw9o32v2.fsf@ti.com>
-	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
-	<20120622103050.GG28472@arwen.pp.htv.fi> <87ehp71liv.fsf@ti.com>
-	<20120622203645.GD29290@arwen.pp.htv.fi> <87d34nfdei.fsf@ti.com>
-	<871uku85o8.fsf@ti.com>
-	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
-	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH] remoteproc: adopt the driver core's alloc/add/del/put naming
+Date: Wed,  4 Jul 2012 16:36:59 +0300
+Message-ID: <1341409019-32166-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:59809 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752140Ab2GDNde (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 09:33:34 -0400
-Received: by pbbrp2 with SMTP id rp2so10326493pbb.28
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 06:33:26 -0700 (PDT)
-In-Reply-To: <CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
-	(Keshava Munegowda's message of "Tue, 3 Jul 2012 12:52:32 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Stephen Boyd <sboyd@codeaurora.org>, Fernando Guzman Lugo <fernando.lugo@ti.com>, =?UTF-8?q?Sjur=20Br=C3=A6ndeland?= <sjur.brandeland@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, sameo@linux.intel.com, notasas@gmail.com, Paul Walmsley <paul@pwsan.com>
 
-"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+To make remoteproc's API more intuitive for developers, we adopt
+the driver core's naming, i.e. alloc -> add -> del -> put. We'll also
+add register/unregister when their first user shows up.
 
-> On Tue, Jul 3, 2012 at 12:17 PM, Munegowda, Keshava
-> <keshava_mgowda@ti.com> wrote:
->> On Mon, Jul 2, 2012 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote:
->>> Felipe, Keshava,
->>>
->>> Kevin Hilman <khilman@ti.com> writes:
->>>
->>>> Felipe Balbi <balbi@ti.com> writes:
->>>>
->>>> [...]
->>>>
->>>>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
->>>>> cause regressions. Granted, regression by regression, there's no change,
->>>>> but I simply can't knowingly cause a regression to the driver just to
->>>>> have PM working. We need a real fix for this issue.
->>>>
->>>> Sure, as long as there is a fix in this -rc cycle.
->>>>
->>>> This driver intoduced changes in v3.5 that break PM for the whole SoC
->>>> (by preventing CORE retention.)  These changes were clearly not tested
->>>> with PM.
->>>>
->>>> If you cannot fix this during the -rc cycle, then you need to revert the
->>>> driver PM changes that broke PM for the *whole* SoC.
->>>
->>> What's the status of this regression?
->>>
->>> This is still broken in v3.5-rc and is preventing CORE retention for the
->>> *whole* SoC.
->>>
->>> Please fix this, either with a proper fix, or a revert for 3.5-rc.
->>
->>
->> The proper fix for this is implement ion of ehci remote wakeup through
->> I/O chain handler; it takes time.
->> As Felipe also mentioned,  This patch is OK for now.
->
-> Sorry, Felipe still insist not to revert this patch, but to change
-> this patch requires quite more changes in the usbhs core
-> and we need to see the how the hub control changes need to be brought
-> in to usbhs core. so , reverting is the
-> best solution to time being.
->
-> Its observed that ehci was enabled after linux kernal version 3.3 ;
-> before that even though driver was there
-> the ehci deriver was disabled by defaults; and it is expected the
-> people who want to use NFS then can enable it
-> explicitly.
->
-> so,  the solution is
->
-> 1. Use this patch ( reverting the hw errata ) to fix the NFS Boot and
-> suspend/resume crash
+Otherwise - there's no functional change here.
 
-Or, use the patches from Russ Dill where were more targetted fixes.
-Either way, I'm OK with that.
+Suggested by Russell King <linux@arm.linux.org.uk>.
 
-> 2. Disable the ehci driver to make the pm work in idle case ;
->               This configuration should exist till the ehci remote
-> wakeup implementation completes.
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Cc: Sjur Br=C3=A6ndeland <sjur.brandeland@stericsson.com>
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ Documentation/remoteproc.txt         | 18 +++++++++---------
+ drivers/remoteproc/omap_remoteproc.c |  8 ++++----
+ drivers/remoteproc/remoteproc_core.c | 32 ++++++++++++++++------------=
+----
+ include/linux/remoteproc.h           |  6 +++---
+ 4 files changed, 32 insertions(+), 32 deletions(-)
 
-Yes.  Please disabled it by default.
-
-Until PM in this driver can work without breaking PM for the whole SoC,
-it should remain disabled.
-
-Please queue up all of these fixes ASAP for the v3.5
-
-Kevin
+diff --git a/Documentation/remoteproc.txt b/Documentation/remoteproc.tx=
+t
+index f33c3bb..23a09b8 100644
+--- a/Documentation/remoteproc.txt
++++ b/Documentation/remoteproc.txt
+@@ -90,21 +90,21 @@ int dummy_rproc_example(struct rproc *my_rproc)
+       This function should be used by rproc implementations during
+       initialization of the remote processor.
+       After creating an rproc handle using this function, and when rea=
+dy,
+-      implementations should then call rproc_register() to complete
++      implementations should then call rproc_add() to complete
+       the registration of the remote processor.
+       On success, the new rproc is returned, and on failure, NULL.
+=20
+       Note: _never_ directly deallocate @rproc, even if it was not reg=
+istered
+-      yet. Instead, when you need to unroll rproc_alloc(), use rproc_f=
+ree().
++      yet. Instead, when you need to unroll rproc_alloc(), use rproc_p=
+ut().
+=20
+-  void rproc_free(struct rproc *rproc)
++  void rproc_put(struct rproc *rproc)
+     - Free an rproc handle that was allocated by rproc_alloc.
+       This function essentially unrolls rproc_alloc(), by decrementing=
+ the
+       rproc's refcount. It doesn't directly free rproc; that would hap=
+pen
+       only if there are no other references to rproc and its refcount =
+now
+       dropped to zero.
+=20
+-  int rproc_register(struct rproc *rproc)
++  int rproc_add(struct rproc *rproc)
+     - Register @rproc with the remoteproc framework, after it has been
+       allocated with rproc_alloc().
+       This is called by the platform-specific rproc implementation, wh=
+enever
+@@ -117,15 +117,15 @@ int dummy_rproc_example(struct rproc *my_rproc)
+       of registering this remote processor, additional virtio drivers =
+might get
+       probed.
+=20
+-  int rproc_unregister(struct rproc *rproc)
+-    - Unroll rproc_register().
++  int rproc_del(struct rproc *rproc)
++    - Unroll rproc_add().
+       This function should be called when the platform specific rproc
+       implementation decides to remove the rproc device. it should
+-      _only_ be called if a previous invocation of rproc_register()
++      _only_ be called if a previous invocation of rproc_add()
+       has completed successfully.
+=20
+-      After rproc_unregister() returns, @rproc is still valid, and its
+-      last refcount should be decremented by calling rproc_free().
++      After rproc_del() returns, @rproc is still valid, and its
++      last refcount should be decremented by calling rproc_put().
+=20
+       Returns 0 on success and -EINVAL if @rproc isn't valid.
+=20
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/=
+omap_remoteproc.c
+index 0f1afc9..a1f7ac1 100644
+--- a/drivers/remoteproc/omap_remoteproc.c
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -199,14 +199,14 @@ static int __devinit omap_rproc_probe(struct plat=
+form_device *pdev)
+=20
+ 	platform_set_drvdata(pdev, rproc);
+=20
+-	ret =3D rproc_register(rproc);
++	ret =3D rproc_add(rproc);
+ 	if (ret)
+ 		goto free_rproc;
+=20
+ 	return 0;
+=20
+ free_rproc:
+-	rproc_free(rproc);
++	rproc_put(rproc);
+ 	return ret;
+ }
+=20
+@@ -214,8 +214,8 @@ static int __devexit omap_rproc_remove(struct platf=
+orm_device *pdev)
+ {
+ 	struct rproc *rproc =3D platform_get_drvdata(pdev);
+=20
+-	rproc_unregister(rproc);
+-	rproc_free(rproc);
++	rproc_del(rproc);
++	rproc_put(rproc);
+=20
+ 	return 0;
+ }
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/=
+remoteproc_core.c
+index cbe4f7a..c0a701d 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -1102,7 +1102,7 @@ static void rproc_fw_config_virtio(const struct f=
+irmware *fw, void *context)
+ out:
+ 	if (fw)
+ 		release_firmware(fw);
+-	/* allow rproc_unregister() contexts, if any, to proceed */
++	/* allow rproc_del() contexts, if any, to proceed */
+ 	complete_all(&rproc->firmware_loading_complete);
+ }
+=20
+@@ -1251,7 +1251,7 @@ out:
+ EXPORT_SYMBOL(rproc_shutdown);
+=20
+ /**
+- * rproc_register() - register a remote processor
++ * rproc_add() - register a remote processor
+  * @rproc: the remote processor handle to register
+  *
+  * Registers @rproc with the remoteproc framework, after it has been
+@@ -1270,7 +1270,7 @@ EXPORT_SYMBOL(rproc_shutdown);
+  * of registering this remote processor, additional virtio drivers mig=
+ht be
+  * probed.
+  */
+-int rproc_register(struct rproc *rproc)
++int rproc_add(struct rproc *rproc)
+ {
+ 	struct device *dev =3D &rproc->dev;
+ 	int ret =3D 0;
+@@ -1287,7 +1287,7 @@ int rproc_register(struct rproc *rproc)
+ 	/* create debugfs entries */
+ 	rproc_create_debug_dir(rproc);
+=20
+-	/* rproc_unregister() calls must wait until async loader completes */
++	/* rproc_del() calls must wait until async loader completes */
+ 	init_completion(&rproc->firmware_loading_complete);
+=20
+ 	/*
+@@ -1308,7 +1308,7 @@ int rproc_register(struct rproc *rproc)
+=20
+ 	return ret;
+ }
+-EXPORT_SYMBOL(rproc_register);
++EXPORT_SYMBOL(rproc_add);
+=20
+ /**
+  * rproc_type_release() - release a remote processor instance
+@@ -1356,13 +1356,13 @@ static struct device_type rproc_type =3D {
+  * of the remote processor.
+  *
+  * After creating an rproc handle using this function, and when ready,
+- * implementations should then call rproc_register() to complete
++ * implementations should then call rproc_add() to complete
+  * the registration of the remote processor.
+  *
+  * On success the new rproc is returned, and on failure, NULL.
+  *
+  * Note: _never_ directly deallocate @rproc, even if it was not regist=
+ered
+- * yet. Instead, when you need to unroll rproc_alloc(), use rproc_free=
+().
++ * yet. Instead, when you need to unroll rproc_alloc(), use rproc_put(=
+).
+  */
+ struct rproc *rproc_alloc(struct device *dev, const char *name,
+ 				const struct rproc_ops *ops,
+@@ -1416,7 +1416,7 @@ struct rproc *rproc_alloc(struct device *dev, con=
+st char *name,
+ EXPORT_SYMBOL(rproc_alloc);
+=20
+ /**
+- * rproc_free() - unroll rproc_alloc()
++ * rproc_put() - unroll rproc_alloc()
+  * @rproc: the remote processor handle
+  *
+  * This function decrements the rproc dev refcount.
+@@ -1424,28 +1424,28 @@ EXPORT_SYMBOL(rproc_alloc);
+  * If no one holds any reference to rproc anymore, then its refcount w=
+ould
+  * now drop to zero, and it would be freed.
+  */
+-void rproc_free(struct rproc *rproc)
++void rproc_put(struct rproc *rproc)
+ {
+ 	put_device(&rproc->dev);
+ }
+-EXPORT_SYMBOL(rproc_free);
++EXPORT_SYMBOL(rproc_put);
+=20
+ /**
+- * rproc_unregister() - unregister a remote processor
++ * rproc_del() - unregister a remote processor
+  * @rproc: rproc handle to unregister
+  *
+  * This function should be called when the platform specific rproc
+  * implementation decides to remove the rproc device. it should
+- * _only_ be called if a previous invocation of rproc_register()
++ * _only_ be called if a previous invocation of rproc_add()
+  * has completed successfully.
+  *
+- * After rproc_unregister() returns, @rproc isn't freed yet, because
++ * After rproc_del() returns, @rproc isn't freed yet, because
+  * of the outstanding reference created by rproc_alloc. To decrement t=
+hat
+- * one last refcount, one still needs to call rproc_free().
++ * one last refcount, one still needs to call rproc_put().
+  *
+  * Returns 0 on success and -EINVAL if @rproc isn't valid.
+  */
+-int rproc_unregister(struct rproc *rproc)
++int rproc_del(struct rproc *rproc)
+ {
+ 	struct rproc_vdev *rvdev, *tmp;
+=20
+@@ -1463,7 +1463,7 @@ int rproc_unregister(struct rproc *rproc)
+=20
+ 	return 0;
+ }
+-EXPORT_SYMBOL(rproc_unregister);
++EXPORT_SYMBOL(rproc_del);
+=20
+ static int __init remoteproc_init(void)
+ {
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index b88d6af..eea3ac8 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -452,9 +452,9 @@ struct rproc_vdev {
+ struct rproc *rproc_alloc(struct device *dev, const char *name,
+ 				const struct rproc_ops *ops,
+ 				const char *firmware, int len);
+-void rproc_free(struct rproc *rproc);
+-int rproc_register(struct rproc *rproc);
+-int rproc_unregister(struct rproc *rproc);
++void rproc_put(struct rproc *rproc);
++int rproc_add(struct rproc *rproc);
++int rproc_del(struct rproc *rproc);
+=20
+ int rproc_boot(struct rproc *rproc);
+ void rproc_shutdown(struct rproc *rproc);
+--=20
+1.7.10.rc3.1067.gb129051
