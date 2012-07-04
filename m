@@ -1,47 +1,54 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RESEND PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate
- class
-Date: Wed, 4 Jul 2012 10:26:41 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA6354B@DBDE01.ent.ti.com>
-References: <1341320447-18918-1-git-send-email-hvaibhav@ti.com>
- <1341320447-18918-2-git-send-email-hvaibhav@ti.com>
- <20120704072454.GO1122@atomide.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
+Date: Wed, 4 Jul 2012 16:08:05 +0530
+Message-ID: <4FF41D0D.20403@ti.com>
+References: <WC20120618103957.6103F2@terrafix.co.uk> <87zk7h5096.fsf@ti.com>  <WC20120703083759.980337@terrafix.co.uk> <4FF2B476.6000900@ti.com>  <WC20120703091232.480345@terrafix.co.uk> <4FF2D089.8030507@ti.com> <1341383330.9066.7.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45661 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55500 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756970Ab2GDK1z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:27:55 -0400
-In-Reply-To: <20120704072454.GO1122@atomide.com>
-Content-Language: en-US
+	id S933477Ab2GDKjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Jul 2012 06:39:23 -0400
+In-Reply-To: <1341383330.9066.7.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
 
-On Wed, Jul 04, 2012 at 12:54:54, Tony Lindgren wrote:
-> * Vaibhav Hiremath <hvaibhav@ti.com> [120703 06:12]:
-> > Initially, we decided to make am33xx family of device to fall
-> > under omap3 class (cpu_is_omap34xx() = true), since it carries
-> > Cortex-A8 core. But while adding complete baseport support
-> > (like, clock, power and hwmod) support, it is observed that,
-> > we are creating more and more problems by treating am33xx device
-> > as omap3 family, as nothing matches between them
-> > (except cortex-A8 mpu).
-> > 
-> > So,  after long discussion we have came to the conclusion that,
-> > we should not consider am33xx device as omap3 family, instead
-> > create separate class (SOC_AM33XX) under OMAP2PLUS.
-> > This means, for am33xx device, cpu_is_omap34xx() will return false,
-> > and only cpu_is_am33xx() will be true.
-> 
-> Thanks applying both.
-> 
+On Wednesday 04 July 2012 11:58 AM, Tomi Valkeinen wrote:
+> On Tue, 2012-07-03 at 16:29 +0530, Archit Taneja wrote:
+>
+>> Thanks for testing this out.
+>>
+>> I was going through Tomi's queue for the 3.6 merge window:
+>>
+>> git://gitorious.org/linux-omap-dss2/linux.git master
+>>
+>> There is a commit called:
+>>
+>> 2b8501d777346ce1d4fe99167e9b3c0e42aae7a8
+>>
+>> OMAPDSS: Use PM notifiers for system suspend
+>>
+>> The commit message mentions the issue you see, and seems to resolve it.
+>> Could you give this a try?
+>>
+>> Tomi is out on vacation, and I don't know why this wasn't intended for
+>> the 3.5-rcs, maybe there are still some discussion going on about this?
+>
+> I just missed it due to the pre-vacation hassle, I was so focused on
+> getting the stuff ready for next merge window.
+>
+> With a quick glance to my master branch, the "OMAPDSS: Use PM notifiers
+> for system suspend" looks like it could go for 3.5-rc, and also
+> "OMAPDSS: fix warnings if CONFIG_PM_RUNTIME=n".
+>
+> Archit, can you check that both apply fine to mainline, and send them to
+> Florian for 3.5-rc. And make clear they are for him, so that he doesn't
+> think I'll handle them =).
 
-Thanks Tony,
+Sure, will do.
 
-
-Thanks,
-Vaibhav
+Archit
