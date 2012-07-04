@@ -1,54 +1,47 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: 3.5-rc3: PM/DSS broken (was vdd_mpu_iva warnings)
-Date: Wed, 4 Jul 2012 16:08:05 +0530
-Message-ID: <4FF41D0D.20403@ti.com>
-References: <WC20120618103957.6103F2@terrafix.co.uk> <87zk7h5096.fsf@ti.com>  <WC20120703083759.980337@terrafix.co.uk> <4FF2B476.6000900@ti.com>  <WC20120703091232.480345@terrafix.co.uk> <4FF2D089.8030507@ti.com> <1341383330.9066.7.camel@lappyti>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: architected timers: Mark the clockevent with the
+ C3_STOP feature
+Date: Wed, 4 Jul 2012 16:11:26 +0530
+Message-ID: <CAMQu2gypTXaG7ADEJuKSUq9eBMOUQAoBW5SmUbC4Td4ZxXVFVA@mail.gmail.com>
+References: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com> <20120704102617.GC16639@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55500 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933477Ab2GDKjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Jul 2012 06:39:23 -0400
-In-Reply-To: <1341383330.9066.7.camel@lappyti>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:37552 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933181Ab2GDKls (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:41:48 -0400
+Received: by qaat11 with SMTP id t11so3336601qaa.13
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jul 2012 03:41:47 -0700 (PDT)
+In-Reply-To: <20120704102617.GC16639@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, jaswinder.singh@linaro.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org
 
-On Wednesday 04 July 2012 11:58 AM, Tomi Valkeinen wrote:
-> On Tue, 2012-07-03 at 16:29 +0530, Archit Taneja wrote:
+On Wed, Jul 4, 2012 at 3:56 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
 >
->> Thanks for testing this out.
->>
->> I was going through Tomi's queue for the 3.6 merge window:
->>
->> git://gitorious.org/linux-omap-dss2/linux.git master
->>
->> There is a commit called:
->>
->> 2b8501d777346ce1d4fe99167e9b3c0e42aae7a8
->>
->> OMAPDSS: Use PM notifiers for system suspend
->>
->> The commit message mentions the issue you see, and seems to resolve it.
->> Could you give this a try?
->>
->> Tomi is out on vacation, and I don't know why this wasn't intended for
->> the 3.5-rcs, maybe there are still some discussion going on about this?
+> On Wed, Jul 04, 2012 at 03:24:33PM +0530, Santosh Shilimkar wrote:
+> > ARM arch timers stop in low power state and hence can not wakeup CPUs in
+> > deeper idle states when used as cloc event devices. Marking these clock
+> > event
+> > devices with C3_STOP so that during lowpower states, the tick is managed
+> > by
+> > wakeup capable broadcast timer.
 >
-> I just missed it due to the pre-vacation hassle, I was so focused on
-> getting the stuff ready for next merge window.
+> Will tells me that the arch timers don't stop in low power modes, they
+> just can't produce wakeup events.  Apparantly the spec says:
 >
-> With a quick glance to my master branch, the "OMAPDSS: Use PM notifiers
-> for system suspend" looks like it could go for 3.5-rc, and also
-> "OMAPDSS: fix warnings if CONFIG_PM_RUNTIME=n".
+>    The system counter must be implemented in an always-on power domain.
+>    Use of lower-frequency modes must not affect the implemented accuracy.
 >
-> Archit, can you check that both apply fine to mainline, and send them to
-> Florian for 3.5-rc. And make clear they are for him, so that he doesn't
-> think I'll handle them =).
+> Are you sure your above description of the problem is correct?
 
-Sure, will do.
+Yes. Will is right.
+The arch timers don't stop with a real time counter implementation.
+The issue is they are not wakeup capable hence you need a broad-cast switching
+which in turn needs C3_STOP.
 
-Archit
+Regards
+Santosh
