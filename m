@@ -1,63 +1,33 @@
-From: Guillaume Gardet <guillaume.gardet@free.fr>
-Subject: [PATCH] Add missing modules aliases to get sound working on omap
- devices
-Date: Wed, 04 Jul 2012 12:16:08 +0200
-Message-ID: <4FF417E8.1060008@free.fr>
-Reply-To: guillaume.gardet@free.fr
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: architected timers: Mark the clockevent with the
+	C3_STOP feature
+Date: Wed, 4 Jul 2012 11:26:17 +0100
+Message-ID: <20120704102617.GC16639@n2100.arm.linux.org.uk>
+References: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020309020103060300070708"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fb2.tech.numericable.fr ([82.216.111.50]:54719 "EHLO
-	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063Ab2GDK0c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:26:32 -0400
-Received: from smtp3.tech.numericable.fr (smtp3.nc.sdv.fr [10.0.0.48])
-	by fb2.tech.numericable.fr (Postfix) with ESMTP id 1C8D019D106
-	for <linux-omap@vger.kernel.org>; Wed,  4 Jul 2012 12:17:15 +0200 (CEST)
-Received: from [192.168.1.111] (164.60-224-89.dsl.completel.net [89.224.60.164])
-	by smtp3.tech.numericable.fr (Postfix) with ESMTP id C13233E403
-	for <linux-omap@vger.kernel.org>; Wed,  4 Jul 2012 12:16:08 +0200 (CEST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37739 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756949Ab2GDK0e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jul 2012 06:26:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1341395673-29660-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Marc Zyngier <marc.zyngier@arm.com>, linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020309020103060300070708
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wed, Jul 04, 2012 at 03:24:33PM +0530, Santosh Shilimkar wrote:
+> ARM arch timers stop in low power state and hence can not wakeup CPUs in
+> deeper idle states when used as cloc event devices. Marking these clock event
+> devices with C3_STOP so that during lowpower states, the tick is managed by
+> wakeup capable broadcast timer.
 
-This patch add missing modules aliases to get sound working on omap devices.
+Will tells me that the arch timers don't stop in low power modes, they
+just can't produce wakeup events.  Apparantly the spec says:
 
-Tested on Beagleboard xM rev. B.
+   The system counter must be implemented in an always-on power domain.
+   Use of lower-frequency modes must not affect the implemented accuracy.
 
-This patch is against 3.5-rc5 vanilla.
-
-Signed-off-by: Guillaume GARDET <guillaume.gardet@free.fr>
-
-
-
---------------020309020103060300070708
-Content-Type: text/x-patch;
- name="add-missing-modules-aliases-to-fix-audio-on-omap-devices.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="add-missing-modules-aliases-to-fix-audio-on-omap-devices.pat";
- filename*1="ch"
-
---- ./sound/soc/omap/omap-pcm.c.orig	2012-07-04 10:30:13.611641186 +0200
-+++ ./sound/soc/omap/omap-pcm.c	2012-07-04 10:30:38.894034111 +0200
-@@ -441,3 +441,4 @@ module_platform_driver(omap_pcm_driver);
- MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@bitmer.com>");
- MODULE_DESCRIPTION("OMAP PCM DMA module");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap-pcm-audio");
---- ./sound/soc/omap/omap-mcbsp.c.orig	2012-07-04 10:29:14.240066817 +0200
-+++ ./sound/soc/omap/omap-mcbsp.c	2012-07-04 12:03:28.020756978 +0200
-@@ -820,3 +820,4 @@ module_platform_driver(asoc_mcbsp_driver
- MODULE_AUTHOR("Jarkko Nikula <jarkko.nikula@bitmer.com>");
- MODULE_DESCRIPTION("OMAP I2S SoC Interface");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap-mcbsp-dai");
-
---------------020309020103060300070708--
+Are you sure your above description of the problem is correct?
