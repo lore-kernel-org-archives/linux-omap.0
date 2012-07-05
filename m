@@ -1,124 +1,142 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v1 00/14] ARM: OMAP5: Add minimal OMAP5 SOC support
-Date: Thu, 5 Jul 2012 17:38:38 +0530
-Message-ID: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v1 09/14] ARM: OMAP5: Add SMP support.
+Date: Thu, 5 Jul 2012 17:38:51 +0530
+Message-ID: <1341490136-25901-14-git-send-email-santosh.shilimkar@ti.com>
+References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33877 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753655Ab2GEMKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Jul 2012 08:10:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41014 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753772Ab2GEMKi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 08:10:38 -0400
+In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, R Sricharan <r.sricharan@ti.com>
 
-Tony,
+Add OMAP5 SMP boot support using OMAP4 SMP code. The relevant code paths
+are runtime checked using cpu id
 
-The series adds minimal OMAP5 support. OMAP5430 has a dual core Cortex-A15
-based MPU subsystem with 2MB L2 cache. The SOC has many compatible blocks
-with OMAP4 SOCS and hence large part of the peripherals are re-used.
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/common.h       |    1 +
+ arch/arm/mach-omap2/omap-headsmp.S |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap-smp.c     |   35 +++++++++++++++++++++++------------
+ 3 files changed, 45 insertions(+), 12 deletions(-)
 
-OMAP5432 is another variant of OMAP5430, with a memory controller supporting
-DDR3 and SATA.
-
-Series is generated against cleanup-part2 branch at commit 74dd9ec6.
-
-BOOT tested:
-- OMAP4430 SDP
-- OMAP3430 SDP
-- OMAP3430 SDP
-- OMAP5430 EVM with OMAP5 hwmod/PRM?CM data files.
-
-Build testd:
-- OMAP1 only build, OMAP[2/3/4/5] Only builds.
-
-The following changes since commit 74dd9ec627582bfd4477f01ceeaaa3f54e3748b8:
-
-  ARM: OMAP: dmtimer: use devm_ API and do some cleanup in probe() (2012-07-05 02:15:55 -0700)
-
-are available in the git repository at:
-
-  git://github.com/SantoshShilimkar/linux.git for_3.6/omap5_minimal_support
-
-for you to fetch changes up to c78c1186f5c88fe16070a6860d4843ce74200bcd:
-
-  ARM: Kconfig update to support additional GPIOs in OMAP5 (2012-07-05 16:18:44 +0530)
-
-----------------------------------------------------------------
-
-R Sricharan (11):
-  ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c
-    and call it __weak
-  ARM: OMAP: counter-32k: Select the CR register offset using the IP
-    scheme.
-  ARM: OMAP5: id: Add cpu id for ES versions
-  ARM: OMAP5: Add minimal support for OMAP5430 SOC
-  ARM: OMAP5: timer: Add clocksource, clockevent support
-  ARM: OMAP5: gpmc: Update gpmc_init()
-  ARM: OMAP5: l3: Add l3 error handler support for omap5.
-  ARM: omap2+: board-generic: clean up the irq data from board file.
-  ARM: OMAP5: board-generic: Add device tree support.
-  arm/dts: OMAP5: Add omap5 dts files
-  ARM: OMAP5: Add the build support
-
-Santosh Shilimkar (2):
-  ARM: OMAP5: Add the WakeupGen IP updates
-  ARM: OMAP5: Add SMP support.
-
-Tarun Kanti DebBarma (1):
-  ARM: Kconfig update to support additional GPIOs in OMAP5
-
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- arch/arm/Kconfig                                   |    1 +
- arch/arm/boot/dts/omap5-evm.dts                    |   20 +++
- arch/arm/boot/dts/omap5.dtsi                       |  184 ++++++++++++++++++++
- arch/arm/configs/omap2plus_defconfig               |    1 +
- arch/arm/mach-omap2/Kconfig                        |    6 +
- arch/arm/mach-omap2/Makefile                       |   24 ++-
- arch/arm/mach-omap2/board-generic.c                |   42 +++--
- arch/arm/mach-omap2/common.c                       |   24 +++
- arch/arm/mach-omap2/common.h                       |   19 +-
- arch/arm/mach-omap2/control.h                      |    4 +
- arch/arm/mach-omap2/devices.c                      |    2 +-
- arch/arm/mach-omap2/gpmc.c                         |    3 +-
- arch/arm/mach-omap2/id.c                           |   42 ++++-
- arch/arm/mach-omap2/include/mach/debug-macro.S     |    8 +-
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |    7 +
- arch/arm/mach-omap2/io.c                           |   44 +++++
- arch/arm/mach-omap2/iomap.h                        |   27 +++
- arch/arm/mach-omap2/irq.c                          |   13 +-
- arch/arm/mach-omap2/omap-headsmp.S                 |   21 +++
- arch/arm/mach-omap2/omap-hotplug.c                 |   24 ++-
- arch/arm/mach-omap2/omap-smp.c                     |   52 ++++--
- arch/arm/mach-omap2/omap-wakeupgen.c               |  114 +++++++++---
- arch/arm/mach-omap2/omap4-common.c                 |   14 ++
- arch/arm/mach-omap2/omap4-sar-layout.h             |   12 +-
- arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
- arch/arm/mach-omap2/omap_l3_noc.h                  |   22 ++-
- arch/arm/mach-omap2/prcm-common.h                  |    2 +-
- arch/arm/mach-omap2/prcm.c                         |    2 +-
- arch/arm/mach-omap2/timer.c                        |    5 +
- arch/arm/plat-omap/Kconfig                         |    4 +-
- arch/arm/plat-omap/Makefile                        |    4 +-
- arch/arm/plat-omap/common.c                        |    9 +
- arch/arm/plat-omap/counter_32k.c                   |   16 +-
- arch/arm/plat-omap/include/plat/clkdev_omap.h      |    1 +
- arch/arm/plat-omap/include/plat/clock.h            |    1 +
- arch/arm/plat-omap/include/plat/cpu.h              |   22 ++-
- arch/arm/plat-omap/include/plat/hardware.h         |    1 +
- arch/arm/plat-omap/include/plat/multi.h            |    9 +
- arch/arm/plat-omap/include/plat/omap-secure.h      |    5 -
- arch/arm/plat-omap/include/plat/omap54xx.h         |   32 ++++
- arch/arm/plat-omap/include/plat/serial.h           |   10 ++
- arch/arm/plat-omap/include/plat/uncompress.h       |    6 +
- arch/arm/plat-omap/sram.c                          |   11 +-
- 44 files changed, 775 insertions(+), 100 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap5-evm.dts
- create mode 100644 arch/arm/boot/dts/omap5.dtsi
- create mode 100644 arch/arm/plat-omap/include/plat/omap54xx.h
-
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 53c87ab..367e1fe 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -271,6 +271,7 @@ extern void omap_secondary_startup(void);
+ extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+ extern void omap_auxcoreboot_addr(u32 cpu_addr);
+ extern u32 omap_read_auxcoreboot0(void);
++extern void omap5_secondary_startup(void);
+ #endif
+ 
+ #if defined(CONFIG_SMP) && defined(CONFIG_PM)
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index 503ac77..502e313 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -19,6 +19,27 @@
+ #include <linux/init.h>
+ 
+ 	__CPUINIT
++
++/* Physical address needed since MMU not enabled yet on secondary core */
++#define AUX_CORE_BOOT0_PA			0x48281800
++
++/*
++ * OMAP5 specific entry point for secondary CPU to jump from ROM
++ * code.  This routine also provides a holding flag into which
++ * secondary core is held until we're ready for it to initialise.
++ * The primary core will update this flag using a hardware
+++ * register AuxCoreBoot0.
++ */
++ENTRY(omap5_secondary_startup)
++wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
++	ldr	r0, [r2]
++	mov	r0, r0, lsr #5
++	mrc	p15, 0, r4, c0, c0, 5
++	and	r4, r4, #0x0f
++	cmp	r0, r4
++	bne	wait
++	b	secondary_startup
++END(omap5_secondary_startup)
+ /*
+  * OMAP4 specific entry point for secondary CPU to jump from ROM
+  * code.  This routine also provides a holding flag into which
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index badfe39..7d118b9 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -33,6 +33,12 @@
+ #include "common.h"
+ #include "clockdomain.h"
+ 
++#define CPU_MASK		0xff0ffff0
++#define CPU_CORTEX_A9		0x410FC090
++#define CPU_CORTEX_A15		0x410FC0F0
++
++#define OMAP5_CORE_COUNT	0x2
++
+ /* SCU base address */
+ static void __iomem *scu_base;
+ 
+@@ -133,7 +139,6 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ static void __init wakeup_secondary(void)
+ {
+ 	void __iomem *base = omap_get_wakeupgen_base();
+-
+ 	/*
+ 	 * Write the address of secondary startup routine into the
+ 	 * AuxCoreBoot1 where ROM code will jump and start executing
+@@ -162,16 +167,21 @@ static void __init wakeup_secondary(void)
+  */
+ void __init smp_init_cpus(void)
+ {
+-	unsigned int i, ncores;
+-
+-	/*
+-	 * Currently we can't call ioremap here because
+-	 * SoC detection won't work until after init_early.
+-	 */
+-	scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
+-	BUG_ON(!scu_base);
+-
+-	ncores = scu_get_core_count(scu_base);
++	unsigned int i = 0, ncores = 1, cpu_id;
++
++	/* Use ARM cpuid check here, as SoC detection will not work so early */
++	cpu_id = read_cpuid(CPUID_ID) & CPU_MASK;
++	if (cpu_id == CPU_CORTEX_A9) {
++		/*
++		 * Currently we can't call ioremap here because
++		 * SoC detection won't work until after init_early.
++		 */
++		scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
++		BUG_ON(!scu_base);
++		ncores = scu_get_core_count(scu_base);
++	} else if (cpu_id == CPU_CORTEX_A15) {
++		ncores = OMAP5_CORE_COUNT;
++	}
+ 
+ 	/* sanity check */
+ 	if (ncores > nr_cpu_ids) {
+@@ -193,6 +203,7 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+ 	 * Initialise the SCU and wake up the secondary core using
+ 	 * wakeup_secondary().
+ 	 */
+-	scu_enable(scu_base);
++	if (scu_base)
++		scu_enable(scu_base);
+ 	wakeup_secondary();
+ }
 -- 
 1.7.9.5
 
