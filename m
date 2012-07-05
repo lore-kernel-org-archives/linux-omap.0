@@ -1,15 +1,15 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v1 01/14] ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c and call it __weak
-Date: Thu, 5 Jul 2012 17:38:39 +0530
-Message-ID: <1341490136-25901-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v1 07/14] ARM: OMAP5: l3: Add l3 error handler support for omap5.
+Date: Thu, 5 Jul 2012 17:38:49 +0530
+Message-ID: <1341490136-25901-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33856 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751400Ab2GEMKK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Jul 2012 08:10:10 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40987 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab2GEMKL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 08:10:11 -0400
 In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,52 +18,110 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Srichara
 
 From: R Sricharan <r.sricharan@ti.com>
 
-omap_secure_ram_reserve_memblock is stubbed for OMAP1,2 only builds using a
- ifdef check. But this results in adding CONFIG_ARCH_OMAPxx checks for
-future socs that use the real function. So move this to common.c file and
-call it __weak.
+The l3 interconnect ip is same for OMAP4 and OMAP5.
+So reuse the l3 error handler error code for OMAP5
+as well. Also a few targets has been newly added for
+OMAP5. So updating the driver for that here.
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/common.c                   |    9 +++++++++
- arch/arm/plat-omap/include/plat/omap-secure.h |    5 -----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    1 +
+ arch/arm/mach-omap2/devices.c     |    2 +-
+ arch/arm/mach-omap2/omap_l3_noc.h |   22 ++++++++++++++++++----
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 0a9b9a9..89a3723 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -77,3 +77,12 @@ void __init omap_init_consistent_dma_size(void)
- 	init_consistent_dma_size(CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE << 20);
- #endif
- }
-+
-+/*
-+ * Stub function for OMAP2 so that common files
-+ * continue to build when custom builds are used
-+ */
-+int __weak omap_secure_ram_reserve_memblock(void)
-+{
-+	return 0;
-+}
-diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h b/arch/arm/plat-omap/include/plat/omap-secure.h
-index 8c7994c..0e4acd2 100644
---- a/arch/arm/plat-omap/include/plat/omap-secure.h
-+++ b/arch/arm/plat-omap/include/plat/omap-secure.h
-@@ -3,12 +3,7 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bb6b364..365421d 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -191,6 +191,7 @@ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ # L3 interconnect
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_l3_smx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_l3_noc.o
++obj-$(CONFIG_SOC_OMAP5)			+= omap_l3_noc.o
  
- #include <linux/types.h>
+ obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
+ mailbox_mach-objs			:= mailbox.o
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 7b4b932..f443f24 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -84,7 +84,7 @@ static int __init omap4_l3_init(void)
+ 	 * To avoid code running on other OMAPs in
+ 	 * multi-omap builds
+ 	 */
+-	if (!(cpu_is_omap44xx()))
++	if (!cpu_is_omap44xx() && !cpu_is_omap54xx())
+ 		return -ENODEV;
  
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- extern int omap_secure_ram_reserve_memblock(void);
--#else
--static inline void omap_secure_ram_reserve_memblock(void)
--{ }
--#endif
+ 	for (i = 0; i < L3_MODULES; i++) {
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.h b/arch/arm/mach-omap2/omap_l3_noc.h
+index 90b5098..a6ce34d 100644
+--- a/arch/arm/mach-omap2/omap_l3_noc.h
++++ b/arch/arm/mach-omap2/omap_l3_noc.h
+@@ -51,7 +51,9 @@ static u32 l3_targ_inst_clk1[] = {
+ 	0x200, /* DMM2 */
+ 	0x300, /* ABE */
+ 	0x400, /* L4CFG */
+-	0x600  /* CLK2 PWR DISC */
++	0x600,  /* CLK2 PWR DISC */
++	0x0,	/* Host CLK1 */
++	0x900	/* L4 Wakeup */
+ };
  
- #ifdef CONFIG_OMAP4_ERRATA_I688
- extern int omap_barrier_reserve_memblock(void);
+ static u32 l3_targ_inst_clk2[] = {
+@@ -72,11 +74,16 @@ static u32 l3_targ_inst_clk2[] = {
+ 	0xE00, /* missing in TRM corresponds to AES2*/
+ 	0xC00, /* L4 PER3 */
+ 	0xA00, /* L4 PER1*/
+-	0xB00 /* L4 PER2*/
++	0xB00, /* L4 PER2*/
++	0x0, /* HOST CLK2 */
++	0x1800, /* CAL */
++	0x1700 /* LLI */
+ };
+ 
+ static u32 l3_targ_inst_clk3[] = {
+-	0x0100	/* EMUSS */
++	0x0100	/* EMUSS */,
++	0x0300, /* DEBUGSS_CT_TBR */
++	0x0 /* HOST CLK3 */
+ };
+ 
+ static struct l3_masters_data {
+@@ -110,13 +117,15 @@ static struct l3_masters_data {
+ 	{ 0xC8, "USBHOSTFS"}
+ };
+ 
+-static char *l3_targ_inst_name[L3_MODULES][18] = {
++static char *l3_targ_inst_name[L3_MODULES][21] = {
+ 	{
+ 		"DMM1",
+ 		"DMM2",
+ 		"ABE",
+ 		"L4CFG",
+ 		"CLK2 PWR DISC",
++		"HOST CLK1",
++		"L4 WAKEUP"
+ 	},
+ 	{
+ 		"CORTEX M3" ,
+@@ -137,9 +146,14 @@ static char *l3_targ_inst_name[L3_MODULES][18] = {
+ 		"L4 PER3",
+ 		"L4 PER1",
+ 		"L4 PER2",
++		"HOST CLK2",
++		"CAL",
++		"LLI"
+ 	},
+ 	{
+ 		"EMUSS",
++		"DEBUG SOURCE",
++		"HOST CLK3"
+ 	},
+ };
+ 
 -- 
 1.7.9.5
 
