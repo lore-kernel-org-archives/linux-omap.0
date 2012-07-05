@@ -1,43 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v1 04/14] ARM: OMAP5: Add minimal support for OMAP5430
- SOC
-Date: Thu, 5 Jul 2012 07:33:34 -0700
-Message-ID: <20120705143333.GE1122@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v1 04/14] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Thu, 5 Jul 2012 20:06:40 +0530
+Message-ID: <CAMQu2gwD9wXgs0b1OnSmimgXbpG4YU3i2uZs=kGr08kA3AOJZw@mail.gmail.com>
 References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
- <1341490136-25901-7-git-send-email-santosh.shilimkar@ti.com>
+ <1341490136-25901-7-git-send-email-santosh.shilimkar@ti.com> <20120705143333.GE1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:11182 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab2GEOdh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 10:33:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1341490136-25901-7-git-send-email-santosh.shilimkar@ti.com>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:49832 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933102Ab2GEOhD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 10:37:03 -0400
+Received: by qadb17 with SMTP id b17so4675349qad.5
+        for <linux-omap@vger.kernel.org>; Thu, 05 Jul 2012 07:37:01 -0700 (PDT)
+In-Reply-To: <20120705143333.GE1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Sricharan <r.sricharan@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [120705 05:13]:
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -10,9 +10,7 @@ obj-n :=
->  obj-  :=
->  
->  # omap_device support (OMAP2+ only at the moment)
-> -obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
-> -obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
-> -obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
-> +obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
->  
->  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
->  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+On Thu, Jul 5, 2012 at 8:03 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120705 05:13]:
+>> --- a/arch/arm/plat-omap/Makefile
+>> +++ b/arch/arm/plat-omap/Makefile
+>> @@ -10,9 +10,7 @@ obj-n :=
+>>  obj-  :=
+>>
+>>  # omap_device support (OMAP2+ only at the moment)
+>> -obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+>> -obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+>> -obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+>> +obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
+>>
+>>  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+>>  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+>
+> FYI, this we already have as commit b4cb410d in devel-am33xx-part2.
+> I can merge first few patches in devel-am33xx-part2 branch into
+> cleanup-part2 so this part can be just left out.
+>
+Ok. Once you update the branch this can be easily dropped.
 
-FYI, this we already have as commit b4cb410d in devel-am33xx-part2.
-I can merge first few patches in devel-am33xx-part2 branch into
-cleanup-part2 so this part can be just left out.
-
-Regards,
-
-Tony
+regards
+santosh
