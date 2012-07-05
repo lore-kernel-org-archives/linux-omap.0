@@ -1,15 +1,15 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v1 05/14] ARM: OMAP5: timer: Add clocksource, clockevent support
-Date: Thu, 5 Jul 2012 17:38:47 +0530
-Message-ID: <1341490136-25901-10-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v1 11/14] ARM: OMAP5: board-generic: Add device tree support.
+Date: Thu, 5 Jul 2012 17:38:53 +0530
+Message-ID: <1341490136-25901-16-git-send-email-santosh.shilimkar@ti.com>
 References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33875 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56051 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753560Ab2GEMKh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Jul 2012 08:10:37 -0400
+	id S1753737Ab2GEMKt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jul 2012 08:10:49 -0400
 In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,44 +18,68 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Srichara
 
 From: R Sricharan <r.sricharan@ti.com>
 
-Adding the Initialisaton for clocksource and clockevent device
-on OMAP5 Socs.
+Adding the minimal support for OMAP5 evm board
+with device tree.
 
+Reviewed-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/common.h |    1 +
- arch/arm/mach-omap2/timer.c  |    5 +++++
- 2 files changed, 6 insertions(+)
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +++
+ arch/arm/mach-omap2/board-generic.c                |   19 +++++++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c                 |    1 +
+ 3 files changed, 23 insertions(+)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 9f9a4aa..53c87ab 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -130,6 +130,7 @@ extern struct sys_timer omap3_timer;
- extern struct sys_timer omap3_secure_timer;
- extern struct sys_timer omap3_am33xx_timer;
- extern struct sys_timer omap4_timer;
-+extern struct sys_timer omap5_timer;
+diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
+index e78e8bc..3d450f6 100644
+--- a/Documentation/devicetree/bindings/arm/omap/omap.txt
++++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
+@@ -47,3 +47,6 @@ Boards:
  
- void omap2420_init_early(void);
- void omap2430_init_early(void);
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index b5b5d92..280b8de 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -394,6 +394,11 @@ static void __init omap4_timer_init(void)
- OMAP_SYS_TIMER(4)
- #endif
- 
-+#ifdef CONFIG_SOC_OMAP5
-+OMAP_SYS_TIMER_INIT(5, 1, OMAP4_CLKEV_SOURCE, 2, OMAP4_MPU_SOURCE)
-+OMAP_SYS_TIMER(5)
-+#endif
+ - AM335X EVM : Software Developement Board for AM335x
+   compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
 +
- /**
-  * omap_timer_init - build and register timer device with an
-  * associated timer hwmod
++- OMAP5 EVM : Evaluation Module
++  compatible = "ti,omap5-evm", "ti,omap5"
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 716e6b1..6f93a20 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -138,3 +138,22 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.restart	= omap_prcm_restart,
+ MACHINE_END
+ #endif
++
++#ifdef CONFIG_SOC_OMAP5
++static const char *omap5_boards_compat[] __initdata = {
++	"ti,omap5",
++	NULL,
++};
++
++DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
++	.reserve	= omap_reserve,
++	.map_io		= omap5_map_io,
++	.init_early	= omap5_init_early,
++	.init_irq	= omap_gic_of_init,
++	.handle_irq	= gic_handle_irq,
++	.init_machine	= omap_generic_init,
++	.timer		= &omap5_timer,
++	.dt_compat	= omap5_boards_compat,
++	.restart	= omap_prcm_restart,
++MACHINE_END
++#endif
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index f38d659..c29dee9 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -214,6 +214,7 @@ early_initcall(omap4_sar_ram_init);
+ 
+ static struct of_device_id irq_match[] __initdata = {
+ 	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
++	{ .compatible = "arm,cortex-a15-gic", .data = gic_of_init, },
+ 	{ }
+ };
+ 
 -- 
 1.7.9.5
 
