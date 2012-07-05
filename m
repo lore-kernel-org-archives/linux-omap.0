@@ -1,108 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Thu, 5 Jul 2012 03:55:35 -0700
-Message-ID: <20120705105535.GB1122@atomide.com>
-References: <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com>
- <4FEC89B9.3090404@ti.com>
- <20120702063651.GO4202@atomide.com>
- <4FF1D980.4040100@ti.com>
- <20120703081746.GJ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
- <20120704075158.GQ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
+ issue
+Date: Thu, 5 Jul 2012 13:19:01 +0200
+Message-ID: <20120705111901.GR22065@sortiz-mobl>
+References: <87fw9o32v2.fsf@ti.com>
+ <CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+ <20120622103050.GG28472@arwen.pp.htv.fi>
+ <87ehp71liv.fsf@ti.com>
+ <20120622203645.GD29290@arwen.pp.htv.fi>
+ <87d34nfdei.fsf@ti.com>
+ <871uku85o8.fsf@ti.com>
+ <CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
+ <CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+ <87k3yj4pn4.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14723 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754168Ab2GEKzj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 06:55:39 -0400
+Received: from mga02.intel.com ([134.134.136.20]:10262 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752778Ab2GELHj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jul 2012 07:07:39 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+In-Reply-To: <87k3yj4pn4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, notasas@gmail.com, Paul Walmsley <paul@pwsan.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120705 03:29]:
+Hi Kevin, Keshava,
+
+On Wed, Jul 04, 2012 at 06:33:35AM -0700, Kevin Hilman wrote:
+> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
 > 
-> I have a doubt whether we are talking about the same thing, presently
-> our main issue is in eliminating the necessity of peripheral specific
-> functions like gpmc_onenand_init, tusb_setup_interface (which calls
-> tusb6010_platform_retime), etc., which calculate gpmc timings by
-> processing peripheral specific timings over gpmc clock period and
-> these processing were required before gpmc driver probe gets invoked
-> as gpmc driver needed timings which gpmc can understand to configure
-> gpmc.
-
-Right. The issue is that both the gpmc clock and the peripheral clock
-may change, and both cause the need to reprogram the gpmc timings.
- 
-> During boot time, gpmc driver needs to know timings in terms of gpmc
-> parameters to configure gpmc, what I unable to understand from your
-> proposal is how gpmc driver knows which retime function to invoke (so
-> that gpmc timings can be calculated based on the type of peripheral)
-> to calculate gpmc timings. Or do you want a DT field specifying type
-> of peripheral connected and so that at probe time the relevant retime
-> can be invoked ?
-
-The peripheral init code should register it's timings with gpmc,
-and also register a retime function for the gpmc code to use. Then
-the timings can eventually come from DT.
- 
-> Initially I thought you were suggesting that all peripheral drivers
-> connected to gpmc should register their retime function (where
-> function will be an exported symbol - part of gpmc code) and
-> invoke the respective retime as part of peripheral driver probe,
-> hence relieve gpmc driver of doing it, even though retime would be
-> present as part of gpmc code. But seems that is not what you were
-> suggesting.
-
-Yes that's what I was suggesting.
- 
-> By "we should be able to do it at gpmc level", I am unable to
-> understand what you are suggesting.
-
-Right, gpmc should be able to handle things alone with the registered
-retime function for smsc911x, where the driver does not even know about
-the bus. With DT, the platform init code gpmc-smsc911x.c should become
-a driver that registers with gpmc and provides the retime function.
-
-For some drivers, like  tusb6010, also the peripheral clock affects the
-timings. So both gpmc and the driver may need to be able to call the
-retime function.
- 
-> > > In that case gpmc driver probe would have to be relieved of the task of
-> > > setting up gpmc timings as we have to wait till peripheral drivers
-> > > register their callback, right ?, seems in that case no timing information
-> > > needs (or can be) to be passed from DT
-> > 
-> > Well we should pass all the gpmc timing information from DT. And then the
-> > driver also still needs to register it's retime function with gpmc.
+> > On Tue, Jul 3, 2012 at 12:17 PM, Munegowda, Keshava
+> > <keshava_mgowda@ti.com> wrote:
+> >> On Mon, Jul 2, 2012 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote:
+> >>> Felipe, Keshava,
+> >>>
+> >>> Kevin Hilman <khilman@ti.com> writes:
+> >>>
+> >>>> Felipe Balbi <balbi@ti.com> writes:
+> >>>>
+> >>>> [...]
+> >>>>
+> >>>>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
+> >>>>> cause regressions. Granted, regression by regression, there's no change,
+> >>>>> but I simply can't knowingly cause a regression to the driver just to
+> >>>>> have PM working. We need a real fix for this issue.
+> >>>>
+> >>>> Sure, as long as there is a fix in this -rc cycle.
+> >>>>
+> >>>> This driver intoduced changes in v3.5 that break PM for the whole SoC
+> >>>> (by preventing CORE retention.)  These changes were clearly not tested
+> >>>> with PM.
+> >>>>
+> >>>> If you cannot fix this during the -rc cycle, then you need to revert the
+> >>>> driver PM changes that broke PM for the *whole* SoC.
+> >>>
+> >>> What's the status of this regression?
+> >>>
+> >>> This is still broken in v3.5-rc and is preventing CORE retention for the
+> >>> *whole* SoC.
+> >>>
+> >>> Please fix this, either with a proper fix, or a revert for 3.5-rc.
+> >>
+> >>
+> >> The proper fix for this is implement ion of ehci remote wakeup through
+> >> I/O chain handler; it takes time.
+> >> As Felipe also mentioned,  This patch is OK for now.
+> >
+> > Sorry, Felipe still insist not to revert this patch, but to change
+> > this patch requires quite more changes in the usbhs core
+> > and we need to see the how the hub control changes need to be brought
+> > in to usbhs core. so , reverting is the
+> > best solution to time being.
+> >
+> > Its observed that ehci was enabled after linux kernal version 3.3 ;
+> > before that even though driver was there
+> > the ehci deriver was disabled by defaults; and it is expected the
+> > people who want to use NFS then can enable it
+> > explicitly.
+> >
+> > so,  the solution is
+> >
+> > 1. Use this patch ( reverting the hw errata ) to fix the NFS Boot and
+> > suspend/resume crash
 > 
-> So timing information that would be passed from DT should be for
-> exact gpmc timings like cs_on, cs_off etc., right ?, in that case
-> should we manually calculate (like as now done by Kernel in
-> gpmc-onenand.c etc) it by having the knowledge of connected
-> peripheral & gpmc frequency at boot time and update it in DT ?, as
-> we can't apply retime on it as we don't know the connected
-> peripheral in gpmc driver. Or do you want another field through DT
-> to decide retime that is to be used, then I think passing timing
-> from DT would not be needed
+> Or, use the patches from Russ Dill where were more targetted fixes.
+> Either way, I'm OK with that.
+Keshava, I'll wait for your decision here to know which patch you want me to
+take.
 
-The timings values should be passed to gpmc from DT. We need to
-be able to pass both cycle and time based values. If no cycle based
-value is passed, the time based value should be used. This is because
-some peripheral timings can be cycle based, while others can be time
-based.
 
-The peripheral driver can register it's retime function with gpmc and
-get a cookie back that allows getting the DT provided timings from gpmc.
-And after that the initial timings can be set.
 
-Regards,
+> > 2. Disable the ehci driver to make the pm work in idle case ;
+> >               This configuration should exist till the ehci remote
+> > wakeup implementation completes.
+> 
+> Yes.  Please disabled it by default.
+> 
+> Until PM in this driver can work without breaking PM for the whole SoC,
+> it should remain disabled.
+So, I should expect another patch here as well.
+FYI, I was planning to send a pull request for MFD 3.5 fixes to Linus
+tomorrow, but I'll wait for you. Hopefully I should be able to send it on
+Monday.
 
-Tony
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
