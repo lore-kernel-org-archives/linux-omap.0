@@ -1,128 +1,54 @@
-From: "zumeng.chen" <zchen@windriver.com>
-Subject: Re: [PATCH 1/1] Watchdog: OMAP3: fix wrong boot status from wdt reboot
-Date: Thu, 5 Jul 2012 23:03:05 +0800
-Message-ID: <4FF5ACA9.3090903@windriver.com>
-References: <1341417241-11563-1-git-send-email-zumeng.chen@windriver.com> <B5906170F1614E41A8A28DE3B8D121433EAF8359@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate
+ class
+Date: Thu, 5 Jul 2012 08:27:43 -0700
+Message-ID: <20120705152743.GG1122@atomide.com>
+References: <1341320447-18918-1-git-send-email-hvaibhav@ti.com>
+ <1341320447-18918-2-git-send-email-hvaibhav@ti.com>
+ <20120704072454.GO1122@atomide.com>
+ <20120704081546.GR1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:65309 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752900Ab2GEPDW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 11:03:22 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EAF8359@DBDE01.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58176 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933177Ab2GEP1q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 11:27:46 -0400
+Content-Disposition: inline
+In-Reply-To: <20120704081546.GR1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: Zumeng Chen <zumeng.chen@windriver.com>, "hubhrajyoti@ti.com" <hubhrajyoti@ti.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 2012=E5=B9=B407=E6=9C=8805=E6=97=A5 21:05, Bedia, Vaibhav wrote:
-> Hello,
->
-> On Wed, Jul 04, 2012 at 21:24:01, Zumeng Chen wrote:
->> Does the following fix make sense?
->>
->> WDIOC_GETBOOTSTATUS always return 0 even if the machine
->> comes from omap-wdt reboot. Because WKUP_MOD is not right
->> for OMAP3, so give the right addr 0xA00 of PRM_RSTST for
->> get_reset_sources, which inputs the signal from omap-wdt
->> reboot, and return 1 when coming from omap-wdt reboot for
->> WDIOC_GETBOOTSTATUS.
->>
->> Signed-off-by: Zumeng Chen<zumeng.chen@windriver.com>
->> ---
->>   arch/arm/mach-omap2/prcm.c  |    4 +++-
->>   drivers/watchdog/omap_wdt.c |    3 +++
->>   drivers/watchdog/omap_wdt.h |    3 +++
->>   3 files changed, 9 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
->> index 480f40a..43f3feb 100644
->> --- a/arch/arm/mach-omap2/prcm.c
->> +++ b/arch/arm/mach-omap2/prcm.c
->> @@ -49,8 +49,10 @@ void __iomem *prcm_mpu_base;
->>   u32 omap_prcm_get_reset_sources(void)
->>   {
->>   	/* XXX This presumably needs modification for 34XX */
->> -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
->> +	if (cpu_is_omap24xx())
->>   		return omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST)&  0x7f;
->> +	if (cpu_is_omap34xx())
->> +		return omap2_prm_read_mod_reg(0xA00, OMAP2_RM_RSTST)&  0x7f;
->>   	if (cpu_is_omap44xx())
->>   		return omap2_prm_read_mod_reg(WKUP_MOD, OMAP4_RM_RSTST)&  0x7f;
-> Instead of adding more cpu_is_* checks maybe you could switch to a
-> function pointers based approach here?
-I don't see any more checks VS before like ( cpu_is_omap24xx() ||=20
-cpu_is_omap34xx())
+* Tony Lindgren <tony@atomide.com> [120704 01:20]:
+> * Tony Lindgren <tony@atomide.com> [120704 00:29]:
+> > * Vaibhav Hiremath <hvaibhav@ti.com> [120703 06:12]:
+> > > Initially, we decided to make am33xx family of device to fall
+> > > under omap3 class (cpu_is_omap34xx() = true), since it carries
+> > > Cortex-A8 core. But while adding complete baseport support
+> > > (like, clock, power and hwmod) support, it is observed that,
+> > > we are creating more and more problems by treating am33xx device
+> > > as omap3 family, as nothing matches between them
+> > > (except cortex-A8 mpu).
+> > > 
+> > > So,  after long discussion we have came to the conclusion that,
+> > > we should not consider am33xx device as omap3 family, instead
+> > > create separate class (SOC_AM33XX) under OMAP2PLUS.
+> > > This means, for am33xx device, cpu_is_omap34xx() will return false,
+> > > and only cpu_is_am33xx() will be true.
+> > 
+> > Thanks applying both.
+> 
+> I believe all your patches are now applied. I've pushed them out
+> into devel-am33xx-part2 branch. Can you please check and send
+> additional patches as needed?
 
-Actually what we want is just to read a register with different offset
-responding to the different SOC.
->>
->> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt=
-=2Ec
->> index 8285d65..ea57078 100644
->> --- a/drivers/watchdog/omap_wdt.c
->> +++ b/drivers/watchdog/omap_wdt.c
->> @@ -234,6 +234,9 @@ static long omap_wdt_ioctl(struct file *file, un=
-signed int cmd,
->>   		if (cpu_is_omap24xx())
->>   			return put_user(omap_prcm_get_reset_sources(),
->>   					(int __user *)arg);
->> +		if (cpu_is_omap34xx())
->> +			return put_user(omap_prcm_get_reset_sources()&  0x10>>
->> +				OMAP3_PRM_RSTST_BIT, (int __user *)arg);
->>   		return put_user(0, (int __user *)arg);
-> Usage of PRCM bit masks in the driver looks wrong. Why not
-Maybe the not proper definition causes "looks wrong".
-It should be MPU_WD_RST_BIT, so you see, it is about
-watchdog bit.
-
-Anyway, I'll try to send V2 patch with Hubhrajyoti's and your
-comments
+I ended up moving some patches into cleanup-part2 branch as omap5
+patches also need those. So the new branch for am33xx is called
+devel-am33xx-data at commit 79ab2664. The old devel-am33xx-part2
+branch should be ignored now.
 
 Regards,
-Zumeng
-> introduce an API like omap_prcm_check_reset_reason() which
-> returns true or false based on the reset reason being checked?
->
-> In case of WDT, the driver can then pass the right flag to
-> userspace.
->
-> Regards,
-> Vaibhav B.
->
->>   	case WDIOC_KEEPALIVE:
->>   		pm_runtime_get_sync(wdev->dev);
->> diff --git a/drivers/watchdog/omap_wdt.h b/drivers/watchdog/omap_wdt=
-=2Eh
->> index 09b774c..d8d5daa 100644
->> --- a/drivers/watchdog/omap_wdt.h
->> +++ b/drivers/watchdog/omap_wdt.h
->> @@ -40,6 +40,9 @@
->>   #define OMAP_WATCHDOG_WPS		(0x34)
->>   #define OMAP_WATCHDOG_SPR		(0x48)
->>
->> +/* PRM_RSTST MPU_WD_RST bit */
->> +#define OMAP3_PRM_RSTST_BIT		4
->> +
->>   /* Using the prescaler, the OMAP watchdog could go for many
->>    * months before firing.  These limits work without scaling,
->>    * with the 60 second default assumed by most tools and docs.
->> --=20
->> 1.7.5.4
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
