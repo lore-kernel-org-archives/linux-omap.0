@@ -1,50 +1,49 @@
-From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] OMAP4: otg: phy: remove uggly mdelay(200)
-Date: Thu, 5 Jul 2012 11:42:19 +0300
-Message-ID: <1341477739-6801-1-git-send-email-ruslan.bilovol@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: more fixes intended for 3.5-rc
+Date: Thu, 5 Jul 2012 01:52:30 -0700
+Message-ID: <20120705085229.GV1122@atomide.com>
+References: <alpine.DEB.2.00.1207040806270.6760@utopia.booyaka.com>
+ <20120705081520.GT1122@atomide.com>
+ <201207050836.12180.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12788 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab2GEIwe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 04:52:34 -0400
+Content-Disposition: inline
+In-Reply-To: <201207050836.12180.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-The original issue with powering on the PHY (and using
-200 ms delay after this) is not related to internal
-processes in the PHY but is in the incorrect charger
-detection feature usage.
+* Arnd Bergmann <arnd@arndb.de> [120705 01:41]:
+> On Thursday 05 July 2012, Tony Lindgren wrote:
+> > * Paul Walmsley <paul@pwsan.com> [120704 07:13]:
+> > > Hi Tony
+> > > 
+> > > The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+> > > 
+> > >   Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-3.5rc
+> > > 
+> > > for you to fetch changes up to d7a0b5133f6b1d53d693b9b9873e64e3c8f0db0e:
+> > > 
+> > >   ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on OMAP4 (2012-07-04 06:55:29 -0600)
+> > > 
+> > Thanks pulling into fixes.
+> 
+> I'm planning to send a set of fixes upstream to Linus today. Should I
+> pull your fixes branch before that?
 
-Now when it is fixed, we can safely remove this uggly
-mdelay that sometimes was called in atomic context and
-leads to unacceptable system freezing
+It seems it should be safe to do, I'll take one more look and send
+a separate pull request shortly.
 
-Tested with different hubs, devices, and booting scenarios.
+Regards,
 
-Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/omap_phy_internal.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index a13a37c..0a59268 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -152,10 +152,8 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
- 		/* Enable the internel phy clcoks */
- 		omap4430_phy_set_clk(dev, 1);
- 		/* power on the phy */
--		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
-+		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD)
- 			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
--			mdelay(200);
--		}
- 
- 		/* restore the context */
- 		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
--- 
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
