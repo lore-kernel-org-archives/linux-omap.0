@@ -1,46 +1,83 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Thu, 5 Jul 2012 11:58:44 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A36C6@DBDE01.ent.ti.com>
-References: <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
- <20120702063651.GO4202@atomide.com> <4FF1D980.4040100@ti.com>
- <20120703081746.GJ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
- <20120704075158.GQ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
- <20120705105535.GB1122@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 4/5] ARM: OMAP5: Add the build support
+Date: Thu, 5 Jul 2012 17:38:45 +0530
+Message-ID: <1341490136-25901-8-git-send-email-santosh.shilimkar@ti.com>
+References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40436 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727Ab2GEL7e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 07:59:34 -0400
-In-Reply-To: <20120705105535.GB1122@atomide.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:33824 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400Ab2GEMJr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jul 2012 08:09:47 -0400
+In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Tony,
+From: R Sricharan <r.sricharan@ti.com>
 
-On Thu, Jul 05, 2012 at 16:25:35, Tony Lindgren wrote:
-> * Mohammed, Afzal <afzal@ti.com> [120705 03:29]:
+Adding the build support required for OMAP5 soc
+in to omap2+ config.
 
-> > Initially I thought you were suggesting that all peripheral drivers
-> > connected to gpmc should register their retime function (where
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    1 +
+ arch/arm/mach-omap2/Kconfig          |    6 ++++++
+ arch/arm/plat-omap/Kconfig           |    4 ++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-> Yes that's what I was suggesting.
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 9854ff4..5c90370 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -236,3 +236,4 @@ CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=y
+ CONFIG_CRC7=y
+ CONFIG_LIBCRC32C=y
++CONFIG_SOC_OMAP5=y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 042f157..21ef501 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -56,6 +56,12 @@ config ARCH_OMAP4
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARM_CPU_SUSPEND if PM
+ 
++config SOC_OMAP5
++	bool "TI OMAP5"
++	select CPU_V7
++	select ARM_GIC
++	select HAVE_SMP
++
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+ 
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ad95c7a..dcfb506 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -29,7 +29,7 @@ config ARCH_OMAP2PLUS
+ 	select USE_OF
+ 	select PROC_DEVICETREE if PROC_FS
+ 	help
+-	  "Systems based on OMAP2, OMAP3 or OMAP4"
++	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
+ 
+ endchoice
+ 
+@@ -150,7 +150,7 @@ config OMAP_32K_TIMER
+ 	  This timer saves power compared to the OMAP_MPU_TIMER, and has
+ 	  support for no tick during idle. The 32KHz timer provides less
+ 	  intra-tick resolution than OMAP_MPU_TIMER. The 32KHz timer is
+-	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4.
++	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4/5.
+ 
+ config OMAP3_L2_AUX_SECURE_SAVE_RESTORE
+ 	bool "OMAP3 HS/EMU save and restore for L2 AUX control register"
+-- 
+1.7.9.5
 
-To understand you better, peripheral drivers above refers to
-driver created out of present gpmc platform init code like
-gpmc-smsc911x.c. You were not referring to
-drivers/net/ethernet/smsc/smsc911x.c, right ?
-
-Regards
-Afzal
