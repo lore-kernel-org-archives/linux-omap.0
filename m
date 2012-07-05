@@ -1,83 +1,62 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC] spi: omap2-mcspi: Fix the dma_unmap warning
-Date: Thu, 5 Jul 2012 14:53:27 +0530
-Message-ID: <1341480207-5651-1-git-send-email-shubhrajyoti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.5-rc5
+Date: Thu, 5 Jul 2012 02:27:10 -0700
+Message-ID: <20120705092709.GW1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36496 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab2GEJ1O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 05:27:14 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-The dma_map and dma_unmap should have same parameter
-passed otherwise we get the below warn.
+Hi Arnd & Olof,
 
-ks8851 spi1.0: DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x000000009f22]
+Here are few more PM related fixes for the -rc series. If you think
+these are too intrusive at this point, let me know.
 
-[    2.066925] Modules linked in:
-[    2.070312]
-[    2.071929] [<c001c250>] (unwind_backtrace+0x0/0x130) from [<c0043d84>] (warn_slowpath_common+0x4c/0x64)
-[    2.081909] [<c0043d84>] (warn_slowpath_common+0x4c/0x64) from [<c0043e30>] (warn_slowpath_fmt+0x30/0x40)
-[    2.091949] [<c0043e30>] (warn_slowpath_fmt+0x30/0x40) from [<c0293824>] (check_unmap+0x6d0/0x7b0)
-[    2.101348] [<c0293824>] (check_unmap+0x6d0/0x7b0) from [<c02939cc>] (debug_dma_unmap_page+0x64/0x70)
-[    2.111053] [<c02939cc>] (debug_dma_unmap_page+0x64/0x70) from [<c03519a4>] (omap2_mcspi_txrx_dma+0x2d8/0x4fc)
-[    2.121582] [<c03519a4>] (omap2_mcspi_txrx_dma+0x2d8/0x4fc) from [<c03524d8>] (omap2_mcspi_work.clone.4+0xf0/0x290)
-[    2.132537] [<c03524d8>] (omap2_mcspi_work.clone.4+0xf0/0x290) from [<c0352900>] (omap2_mcspi_transfer_one_message+0x288/0x438)
-[    2.144592] [<c0352900>] (omap2_mcspi_transfer_one_message+0x288/0x438) from [<c03503bc>] (spi_pump_messages+0x100/0x160)
-[    2.156127] [<c03503bc>] (spi_pump_messages+0x100/0x160) from [<c006635c>] (kthread_worker_fn+0xac/0x180)
-[    2.166168] [<c006635c>] (kthread_worker_fn+0xac/0x180) from [<c0066578>] (kthread+0x90/0x9c)
-[    2.175140] [<c0066578>] (kthread+0x90/0x9c) from [<c00157fc>] (kernel_thread_exit+0x0/0x8)
-[    2.183898] ---[ end trace d1830ce6e44292f2 ]---
+Regards,
 
-Fix the warn by changing the unmap parameter to the one used while doing
-dma_map.
-
-Reported-by: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 0c73dd4..37ccdb7 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -388,7 +388,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 
- 	if (tx != NULL) {
- 		wait_for_completion(&mcspi_dma->dma_tx_completion);
--		dma_unmap_single(&spi->dev, xfer->tx_dma, count, DMA_TO_DEVICE);
-+		dma_unmap_single(mcspi->dev, xfer->tx_dma, count,
-+				 DMA_TO_DEVICE);
- 
- 		/* for TX_ONLY mode, be sure all words have shifted out */
- 		if (rx == NULL) {
-@@ -403,7 +404,8 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 
- 	if (rx != NULL) {
- 		wait_for_completion(&mcspi_dma->dma_rx_completion);
--		dma_unmap_single(&spi->dev, xfer->rx_dma, count, DMA_FROM_DEVICE);
-+		dma_unmap_single(mcspi->dev, xfer->rx_dma, count,
-+				 DMA_FROM_DEVICE);
- 		omap2_mcspi_set_enable(spi, 0);
- 
- 		if (l & OMAP2_MCSPI_CHCONF_TURBO) {
--- 
-1.7.5.4
+Tony
 
 
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+
+  Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.5-rc5
+
+for you to fetch changes up to fa2976a811a764573b2a9c79126d4d66f1f16268:
+
+  Merge tag 'omap-fixes-b-for-3.5rc' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into fixes (2012-07-05 01:12:08 -0700)
+
+----------------------------------------------------------------
+
+PM related fixes for omaps mostly to get suspend/resume
+working again.
+
+----------------------------------------------------------------
+Benoit Cousson (1):
+      ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on OMAP4
+
+Kevin Hilman (2):
+      ARM: OMAP2: Overo: init I2C before MMC to fix MMC suspend/resume failure
+      ARM: OMAP4: TWL6030: ensure sys_nirq1 is mux'd and wakeup enabled
+
+Paul Walmsley (1):
+      ARM: OMAP4: hwmod data: temporarily comment out data for the usb_host_fs and aess IP blocks
+
+Tony Lindgren (1):
+      Merge tag 'omap-fixes-b-for-3.5rc' of git://git.kernel.org/.../pjw/omap-pending into fixes
+
+ arch/arm/mach-omap2/board-overo.c          |  2 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 28 ++++++++++++++--------------
+ arch/arm/mach-omap2/twl-common.c           |  2 ++
+ 3 files changed, 17 insertions(+), 15 deletions(-)
