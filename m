@@ -1,85 +1,35 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2 REPOST 4/4] ARM: OMAP2+: dmtimer: cleanup fclk usage
-Date: Thu, 5 Jul 2012 18:10:59 +0530
-Message-ID: <1341492059-5544-1-git-send-email-tarun.kanti@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: Help required on N900
+Date: Thu, 5 Jul 2012 12:46:40 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A37BB@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A93E9A3446@DBDE01.ent.ti.com>
+ <CANOLnOM6OaqQ-t8+BiuAPvT_MvfH9NvEUPMOpMPZh2n5uDxpuw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:58188 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751486Ab2GEMq4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jul 2012 08:46:56 -0400
+In-Reply-To: <CANOLnOM6OaqQ-t8+BiuAPvT_MvfH9NvEUPMOpMPZh2n5uDxpuw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-With omap_hwmod_get_main_clk() now available, this can be passed to
-clk_get() to extract the fclk and thus avoid construction of fclk name.
-Corrected the timer fck name mis-match between clock44xx_data.c and
-omap_hwmod_44xx_data.c. For other platforms this is already taken care.
-
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
----
-Reference:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-Branch: cleanup-part2
-
-Tested on ZOOM3, BLAZE, PANDA.
-
- arch/arm/mach-omap2/clock44xx_data.c |   22 +++++++++++-----------
- arch/arm/mach-omap2/timer.c          |    3 +--
- 2 files changed, 12 insertions(+), 13 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index ba6f9a0..f9d4f58 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3299,17 +3299,17 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
- 	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
- 	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
--	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_443X),
--	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_443X),
--	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_443X),
--	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_443X),
--	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_443X),
--	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_443X),
--	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_443X),
--	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_443X),
--	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_443X),
--	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_443X),
--	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_443X),
-+	CLK(NULL,	"timer1_fck",			&timer1_fck,	CK_443X),
-+	CLK(NULL,	"timer10_fck",			&timer10_fck,	CK_443X),
-+	CLK(NULL,	"timer11_fck",			&timer11_fck,	CK_443X),
-+	CLK(NULL,	"timer2_fck",			&timer2_fck,	CK_443X),
-+	CLK(NULL,	"timer3_fck",			&timer3_fck,	CK_443X),
-+	CLK(NULL,	"timer4_fck",			&timer4_fck,	CK_443X),
-+	CLK(NULL,	"timer5_fck",			&timer5_fck,	CK_443X),
-+	CLK(NULL,	"timer6_fck",			&timer6_fck,	CK_443X),
-+	CLK(NULL,	"timer7_fck",			&timer7_fck,	CK_443X),
-+	CLK(NULL,	"timer8_fck",			&timer8_fck,	CK_443X),
-+	CLK(NULL,	"timer9_fck",			&timer9_fck,	CK_443X),
- 	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_443X),
- 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
- 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 840929b..4c9ef35 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -173,8 +173,7 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 		return -ENXIO;
- 
- 	/* After the dmtimer is using hwmod these clocks won't be needed */
--	sprintf(name, "gpt%d_fck", gptimer_id);
--	timer->fclk = clk_get(NULL, name);
-+	timer->fclk = clk_get(NULL, omap_hwmod_get_main_clk(oh));
- 	if (IS_ERR(timer->fclk))
- 		return -ENODEV;
- 
--- 
-1.7.0.4
+SGkgR3JhenZ5ZGFzLA0KDQpPbiBUaHUsIEp1bCAwNSwgMjAxMiBhdCAxNzo1ODo1NSwgR3JhenZ5
+ZGFzIElnbm90YXMgd3JvdGU6DQo+IE9uIFRodSwgSnVsIDUsIDIwMTIgYXQgMTA6MjEgQU0sIE1v
+aGFtbWVkLCBBZnphbCA8YWZ6YWxAdGkuY29tPiB3cm90ZToNCg0KPiA+IENhbiBzb21lb25lIHBs
+ZWFzZSBwcm92aWRlIG1lIHdpdGggYSBsaW5rIHRvIE45MDAgYm9hcmQgc2NoZW1hdGljcy4NCj4g
+Pg0KPiA+IEl0IHdvdWxkIGJlIHJlYWxseSBoZWxwZnVsIGlmIGluZm9ybWF0aW9uIG9uIGhvdyB0
+byBkbyBOdW1vbnl4DQo+ID4gT25lTkFORCByZXNldCBvbiBOOTAwIChpLmUuIGxpa2UgaG93IGxv
+bmcgcmVzZXQgc2lnbmFsIHNob3VsZA0KPiA+IGJlIGFzc2VydGVkKSwgYW5kIGdwaW8gcGluIG51
+bWJlciBjb25uZWN0ZWQgKGlmIGNvbm5lY3RlZCkgdG8NCj4gPiBPbmVOQU5EIHJlc2V0IHBpbiBj
+YW4gYmUgcHJvdmlkZWQuDQo+IA0KPiBJIGd1ZXNzIHRoaXMgc2hvdWxkIGhlbHA6DQo+IGh0dHA6
+Ly9tYWVtby5qYWNla293c2tpLm9yZy9kb2NzLw0KDQpJIGRpZCBjb21lIGFjcm9zcyB0aGlzLCBi
+dXQgY291bGQgbm90IGZpZ3VyZSBvdXQgZnJvbSBpdCB0aGUNCnJlc2V0IHBpbiB1c2VkLCBvbmUg
+cGluIHdhcyBtYXJrZWQgUE9QX1JFU0VUX1JQX0ZULCBJIGFzc3VtZQ0KaXMgY29ubmVjdGVkIHRv
+IHJlc2V0IG9mIE9uZU5BTkQsIGJ1dCBjb3VsZCBub3QgZmlndXJlIG91dA0KdGhlIGdwaW8gcGlu
+Lg0KDQpUaGFua3MgZm9yIHlvdXIgaGVscC4NCg0KUmVnYXJkcw0KQWZ6YWwNCg==
