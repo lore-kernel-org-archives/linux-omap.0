@@ -1,14 +1,14 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/5] ARM: OMAP5: board-generic: Add device tree support.
-Date: Thu, 5 Jul 2012 17:38:40 +0530
-Message-ID: <1341490136-25901-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v1 02/14] ARM: OMAP: counter-32k: Select the CR register offset using the IP scheme.
+Date: Thu, 5 Jul 2012 17:38:41 +0530
+Message-ID: <1341490136-25901-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33876 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56040 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753607Ab2GEMKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753630Ab2GEMKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 5 Jul 2012 08:10:38 -0400
 In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,68 +18,53 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Srichara
 
 From: R Sricharan <r.sricharan@ti.com>
 
-Adding the minimal support for OMAP5 evm board
-with device tree.
+OMAP socs has a legacy and a highlander version of the
+32k sync counter IP. The register offsets vary between the
+highlander and the legacy scheme. So use the 'SCHEME'
+bits(30-31) of the revision register to distinguish between
+the two versions and choose the CR register offset accordingly.
 
-Reviewed-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +++
- arch/arm/mach-omap2/board-generic.c                |   19 +++++++++++++++++++
- arch/arm/mach-omap2/omap4-common.c                 |    1 +
- 3 files changed, 23 insertions(+)
+ arch/arm/plat-omap/counter_32k.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index e78e8bc..3d450f6 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -47,3 +47,6 @@ Boards:
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 2132c4f..dbf1e03 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -29,7 +29,10 @@
+ #include <plat/clock.h>
  
- - AM335X EVM : Software Developement Board for AM335x
-   compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
-+
-+- OMAP5 EVM : Evaluation Module
-+  compatible = "ti,omap5-evm", "ti,omap5"
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 716e6b1..6f93a20 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -138,3 +138,22 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
- 	.restart	= omap_prcm_restart,
- MACHINE_END
- #endif
-+
-+#ifdef CONFIG_SOC_OMAP5
-+static const char *omap5_boards_compat[] __initdata = {
-+	"ti,omap5",
-+	NULL,
-+};
-+
-+DT_MACHINE_START(OMAP5_DT, "Generic OMAP5 (Flattened Device Tree)")
-+	.reserve	= omap_reserve,
-+	.map_io		= omap5_map_io,
-+	.init_early	= omap5_init_early,
-+	.init_irq	= omap_gic_of_init,
-+	.handle_irq	= gic_handle_irq,
-+	.init_machine	= omap_generic_init,
-+	.timer		= &omap5_timer,
-+	.dt_compat	= omap5_boards_compat,
-+	.restart	= omap_prcm_restart,
-+MACHINE_END
-+#endif
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index f38d659..c29dee9 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -214,6 +214,7 @@ early_initcall(omap4_sar_ram_init);
+ /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
+-#define OMAP2_32KSYNCNT_CR_OFF		0x10
++#define OMAP2_32KSYNCNT_REV_OFF		0x0
++#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
++#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
++#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
  
- static struct of_device_id irq_match[] __initdata = {
- 	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
-+	{ .compatible = "arm,cortex-a15-gic", .data = gic_of_init, },
- 	{ }
- };
+ /*
+  * 32KHz clocksource ... always available, on pretty most chips except
+@@ -84,9 +87,16 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
+ 	int ret;
  
+ 	/*
+-	 * 32k sync Counter register offset is at 0x10
++	 * 32k sync Counter IP register offsets vary between the
++	 * highlander version and the legacy ones.
++	 * The 'SCHEME' bits(30-31) of the revision register is used
++	 * to identify the version.
+ 	 */
+-	sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF;
++	if (__raw_readl(vbase + OMAP2_32KSYNCNT_REV_OFF) &
++						OMAP2_32KSYNCNT_REV_SCHEME)
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
++	else
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
+ 
+ 	/*
+ 	 * 120000 rough estimate from the calculations in
 -- 
 1.7.9.5
 
