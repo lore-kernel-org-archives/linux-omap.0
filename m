@@ -1,74 +1,46 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2 0/4] ARM: OMAP2+: dmtimer: cleanup related to devm API
- and clk usage
-Date: Thu, 5 Jul 2012 17:11:27 +0530
-Message-ID: <CAC83ZvKO22JZ59VLdykEjRNDqK_FmGLtC=1y8OEfP88Ef9jBSA@mail.gmail.com>
-References: <1334925563-20768-1-git-send-email-tarun.kanti@ti.com>
-	<CAC83ZvLOoUwthcv0seXeqJcuvxvhP7P500T66RHCCWvrsaPr2A@mail.gmail.com>
-	<CAMQu2gxDbi191EdA0_acaJwhuAddXJ44FzVQJ=5c1Fh0PFDG4w@mail.gmail.com>
-	<CAC83ZvLcyRSc-X2o_05tS7R3S1s190ejDQaBOYHOK1JuknrAxA@mail.gmail.com>
-	<20120705092809.GY1122@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Thu, 5 Jul 2012 11:58:44 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A36C6@DBDE01.ent.ti.com>
+References: <20120627145844.GL3483@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
+ <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
+ <20120702063651.GO4202@atomide.com> <4FF1D980.4040100@ti.com>
+ <20120703081746.GJ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
+ <20120704075158.GQ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+ <20120705105535.GB1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:40191 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754671Ab2GELla (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 07:41:30 -0400
-Received: by qcpx40 with SMTP id x40so5456935qcp.40
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jul 2012 04:41:28 -0700 (PDT)
-In-Reply-To: <20120705092809.GY1122@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40436 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754727Ab2GEL7e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 07:59:34 -0400
+In-Reply-To: <20120705105535.GB1122@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 Hi Tony,
 
-On Thu, Jul 5, 2012 at 2:58 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120704 21:07]:
->> On Thu, Jun 14, 2012 at 4:28 PM, Shilimkar, Santosh <santosh.shilimkar@ti.com> wrote:
->> >
->> > Just to let you know that this cleanup is essential for Benoit's OMAP4
->> > hwmod cleanup
->> > and OMAP5 minimal support series.
->>
->> This is a gentle reminder in case you have missed somehow!!
->> Let me know if anything else needs to be done.
->
-> Now with the hwmod patch 2/4 pulled into cleanup-part2 from Paul,
-> I've also applied patch 1/4 there. Patches 3 and 4 have still some pending
-> comments from Kevin it seems?
-Yes....
+On Thu, Jul 05, 2012 at 16:25:35, Tony Lindgren wrote:
+> * Mohammed, Afzal <afzal@ti.com> [120705 03:29]:
 
->
-> Also at least patch 3 won't apply, so please check Kevin's comments
-> and repost patches 3 and 4 on top of cleanup-part2 at commit 74dd9ec62.
-Patch 3: Comment was about adding summary in patch 0/x why we have
-not removed iclk in OMAP2/3 platform. In other words there was no
-specific changes needed on patch 3 as such. BTW, patch 3 is already merged.
+> > Initially I thought you were suggesting that all peripheral drivers
+> > connected to gpmc should register their retime function (where
 
-Patch 4:
---- [Kevin's comment] ---
->>
->> Comment applies to PATCH 4/4 also.
-> You mean removing iclk from clkdev table? That is already done in this patch!!
-I meant why can't OMAP2/3 data be removed in PATCH 4/4 also, which only
-touches OMAP4.
---- [end] -----------------------
-In patch 4 the only change done in the clock table was to correct the
-name mis-match
-of functional clock names for OMAP4 between clock data and hwmod data.
-For OMAP2/3 the names are already matching. As the comment was given in patch 3
-where iclk entries got removed for OMAP4, he must have expected similar cleanup
-is done for fclk in patch 4. But as I said, only the name mis-match is
-corrected.
-In summary, there is no specific changes needed in the patch.
+> Yes that's what I was suggesting.
 
-I will rebase on top of cleanup-part2 are repost patch 4.
---
-Tarun
->
-> Regards,
->
-> Tony
+To understand you better, peripheral drivers above refers to
+driver created out of present gpmc platform init code like
+gpmc-smsc911x.c. You were not referring to
+drivers/net/ethernet/smsc/smsc911x.c, right ?
+
+Regards
+Afzal
