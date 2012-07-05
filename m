@@ -1,49 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP2+: more fixes intended for 3.5-rc
-Date: Thu, 5 Jul 2012 01:52:30 -0700
-Message-ID: <20120705085229.GV1122@atomide.com>
-References: <alpine.DEB.2.00.1207040806270.6760@utopia.booyaka.com>
- <20120705081520.GT1122@atomide.com>
- <201207050836.12180.arnd@arndb.de>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH 2/2] arm/dts: Configure pinmuxs for user leds control on Bone
+Date: Thu, 5 Jul 2012 14:43:36 +0530
+Message-ID: <1341479616-18630-3-git-send-email-anilkumar@ti.com>
+References: <1341479616-18630-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:12788 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab2GEIwe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 04:52:34 -0400
-Content-Disposition: inline
-In-Reply-To: <201207050836.12180.arnd@arndb.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:53154 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750770Ab2GEJOB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Jul 2012 05:14:01 -0400
+In-Reply-To: <1341479616-18630-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 
-* Arnd Bergmann <arnd@arndb.de> [120705 01:41]:
-> On Thursday 05 July 2012, Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [120704 07:13]:
-> > > Hi Tony
-> > > 
-> > > The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
-> > > 
-> > >   Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
-> > > 
-> > > are available in the git repository at:
-> > > 
-> > >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-b-for-3.5rc
-> > > 
-> > > for you to fetch changes up to d7a0b5133f6b1d53d693b9b9873e64e3c8f0db0e:
-> > > 
-> > >   ARM: OMAP2+: hwmod data: Fix wrong McBSP clock alias on OMAP4 (2012-07-04 06:55:29 -0600)
-> > > 
-> > Thanks pulling into fixes.
-> 
-> I'm planning to send a set of fixes upstream to Linus today. Should I
-> pull your fixes branch before that?
+Adds GPIO pinctrl nodes to am3358_pinmux master node to control
+user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
 
-It seems it should be safe to do, I'll take one more look and send
-a separate pull request shortly.
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-bone.dts |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-Regards,
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index a9af4db..c3810b7 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -18,3 +18,27 @@
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
+ };
++
++&am3358_pinmux {
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&userled_pins>;
++
++	userled_pins: pinmux_userled_pins {
++		gpmc_a5.gpio1_21 {
++			pinctrl-simple,cells = <0x54 0x7>;	/* OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
++		};
++
++		gpmc_a6.gpio1_22 {
++			pinctrl-simple,cells = <0x58 0x17>;	/* OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
++		};
++
++		gpmc_a7.gpio1_23 {
++			pinctrl-simple,cells = <0x5C 0x7>;	/* OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
++		};
++
++		gpmc_a8.gpio1_24 {
++			pinctrl-simple,cells = <0x60 0x17>;	/* OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
++		};
++	};
++};
+-- 
+1.7.9.5
 
-Tony
