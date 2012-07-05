@@ -1,53 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate
- class
-Date: Thu, 5 Jul 2012 08:27:43 -0700
-Message-ID: <20120705152743.GG1122@atomide.com>
-References: <1341320447-18918-1-git-send-email-hvaibhav@ti.com>
- <1341320447-18918-2-git-send-email-hvaibhav@ti.com>
- <20120704072454.GO1122@atomide.com>
- <20120704081546.GR1122@atomide.com>
+Subject: Re: [PATCH v1 04/14] ARM: OMAP5: Add minimal support for OMAP5430
+ SOC
+Date: Thu, 5 Jul 2012 09:02:22 -0700
+Message-ID: <20120705160222.GH1122@atomide.com>
+References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
+ <1341490136-25901-7-git-send-email-santosh.shilimkar@ti.com>
+ <20120705143333.GE1122@atomide.com>
+ <CAMQu2gwD9wXgs0b1OnSmimgXbpG4YU3i2uZs=kGr08kA3AOJZw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58176 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19418 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933177Ab2GEP1q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 11:27:46 -0400
+	with ESMTP id S1755409Ab2GEQC0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 12:02:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20120704081546.GR1122@atomide.com>
+In-Reply-To: <CAMQu2gwD9wXgs0b1OnSmimgXbpG4YU3i2uZs=kGr08kA3AOJZw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, R Sricharan <r.sricharan@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [120704 01:20]:
-> * Tony Lindgren <tony@atomide.com> [120704 00:29]:
-> > * Vaibhav Hiremath <hvaibhav@ti.com> [120703 06:12]:
-> > > Initially, we decided to make am33xx family of device to fall
-> > > under omap3 class (cpu_is_omap34xx() = true), since it carries
-> > > Cortex-A8 core. But while adding complete baseport support
-> > > (like, clock, power and hwmod) support, it is observed that,
-> > > we are creating more and more problems by treating am33xx device
-> > > as omap3 family, as nothing matches between them
-> > > (except cortex-A8 mpu).
-> > > 
-> > > So,  after long discussion we have came to the conclusion that,
-> > > we should not consider am33xx device as omap3 family, instead
-> > > create separate class (SOC_AM33XX) under OMAP2PLUS.
-> > > This means, for am33xx device, cpu_is_omap34xx() will return false,
-> > > and only cpu_is_am33xx() will be true.
-> > 
-> > Thanks applying both.
-> 
-> I believe all your patches are now applied. I've pushed them out
-> into devel-am33xx-part2 branch. Can you please check and send
-> additional patches as needed?
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120705 07:41]:
+> On Thu, Jul 5, 2012 at 8:03 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [120705 05:13]:
+> >> --- a/arch/arm/plat-omap/Makefile
+> >> +++ b/arch/arm/plat-omap/Makefile
+> >> @@ -10,9 +10,7 @@ obj-n :=
+> >>  obj-  :=
+> >>
+> >>  # omap_device support (OMAP2+ only at the moment)
+> >> -obj-$(CONFIG_ARCH_OMAP2) += omap_device.o
+> >> -obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
+> >> -obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+> >> +obj-$(CONFIG_ARCH_OMAP2PLUS) += omap_device.o
+> >>
+> >>  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+> >>  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+> >
+> > FYI, this we already have as commit b4cb410d in devel-am33xx-part2.
+> > I can merge first few patches in devel-am33xx-part2 branch into
+> > cleanup-part2 so this part can be just left out.
+> >
+> Ok. Once you update the branch this can be easily dropped.
 
-I ended up moving some patches into cleanup-part2 branch as omap5
-patches also need those. So the new branch for am33xx is called
-devel-am33xx-data at commit 79ab2664. The old devel-am33xx-part2
-branch should be ignored now.
+Updated cleanup-part2 at commit ecc46cfd now has it.
 
 Regards,
 
