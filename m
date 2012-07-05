@@ -1,90 +1,47 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC] ARM: OMAP: Remove nodes dynamically at runtime
-Date: Thu, 5 Jul 2012 13:21:14 -0500
-Message-ID: <4FF5DB1A.5080106@ti.com>
-References: <4FE372CA.7020008@ti.com> <4FE3B328.8060805@ti.com> <4FECF376.3010001@ti.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 1/2] remoteproc: maintain a generic child device for each
+ rproc
+Date: Thu, 05 Jul 2012 13:35:39 -0700
+Message-ID: <4FF5FA9B.4070003@codeaurora.org>
+References: <1338017791-9442-1-git-send-email-ohad@wizery.com> <4FC5DBFA.2030300@codeaurora.org> <CAK=WgbZJJJPuNWVv8WgL=KKm6Hrx2krDD9gBOTP7sA8p7mh_rA@mail.gmail.com> <CAK=WgbbREXV8nkF4vh9iLUp1WQj2ZLYW6VG8Urmw9=roy63meQ@mail.gmail.com> <4FF1F145.2050408@codeaurora.org> <CAK=WgbZ+=MGU5juuOP+_vtUe4d_46j=Rd0cqYi7q2i-9T35R5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58030 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752644Ab2GESVM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Jul 2012 14:21:12 -0400
-In-Reply-To: <4FECF376.3010001@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbZ+=MGU5juuOP+_vtUe4d_46j=Rd0cqYi7q2i-9T35R5w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: device-tree <devicetree-discuss@lists.ozlabs.org>, robherring2@gmail.com, Grant Likely <grant.likely@secretlab.ca>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Rob,
-
-Thanks for the feedback. Some how our mail server appeared to filter out your
-response!
-
-> On 06/21/2012 06:50 PM, Jon Hunter wrote:
->> 
->> On 06/21/2012 02:15 PM, Jon Hunter wrote:
->>> Hi all,
->>>
->>> I am in the process of adding a device-tree binding for OMAP timers and
->>> I have encountered a scenario where ideally it would be useful to remove
->>> a device-tree node at runtime.
->>>
->>> The scenario is this ...
->>>
->>> 1. OMAP3 devices may or may not have security features enabled. Security
->>>    enabled devices are known as high-secure (HS) and devices without 
->>>    security are known as general purpose (GP).
->>> 2. For OMAP3 devices there are 12 general purpose timers available.
->>> 3. On secure devices the 12th timer is reserved for secure usage and so
->>>    cannot be used by the kernel, where as for a GP device it is available.
->>> 4. We can detect the OMAP device type, secure or GP, at runtime via an
->>>    on-chip register.
->>> 5. Today, when not using DT, we do not register the 12th timer as a linux
->>>    device if the device is secure.
->>>
->>> When migrating the timers to DT, I need a way to prevent this 12th timer
->>> from being registered as a device on a secure device. The options I have
->>> considered are ...
->>>
->>> a. Have separate a omap3.dtsi for GP and secure devices or place the
->>>    node for the 12th timer in a omap3-gp.dtsi that is only used for
->>>    boards with GP devices. The downside of this is that for boards
->>>    that can support GP and secure device (such as the omap3 SDP) we
->>>    require a separate dtb blob.
+On 07/02/12 12:54, Ohad Ben-Cohen wrote:
+> On Mon, Jul 2, 2012 at 10:06 PM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+>> Great! It looks like device_type doesn't have any list iteration support
+>> though. Is that requirement gone?
+> Pretty much, yeah. I'll soon post a separate patch which removes the
+> get_by_name functionality (together with its related klist).
 >
-> That's certainly not ideal since you can distinguish which device you
-> are on. Does omap have a custom register for this because determining
-> secure vs. non-secure mode is a common problem without a standard way to
-> determine it.
-
-Yes, unfortunately the register I was referring to is a custom OMAP register. 
-
->>>
->>> b. Remove the timer node dynamically at runtime using the
->>>    of_node_detach() API. In this solution we define a "ti,timer-secure"
->>>    property that the 12th timer on omap3 devices would have and at
->>>    runtime if we are a secure omap3 device, we search the timer nodes
->>>    for any nodes with this property and remove them.
->>>
->>> Option B, seems to be the better option but requires me to enable 
->>> CONFIG_OF_DYNAMIC for all omap devices and I was not sure if there is any
->>> downside to doing so. Enabling this feature does not seem to add much code
->>> as far as I can tell, however, I  wanted to get some feedback before
->>> proposing this. Also if there are any other options I should consider then
->>> please let me know.
->>>
+>> Will you resend this as part of a series? It will be easier to review then.
+> Not sure. There's a collection of discrete patches that I've been
+> posting, but they really aren't an organic series: as long as the
+> dependencies are met, each and every one of them is applicable even if
+> applied alone.
 >
-> I would wonder if of_node_get/put calls are all properly implemented.
-> They don't really matter until OF_DYNAMIC is enabled, but it would
-> affect all ARM DT platforms once we enable multi-platform support.
+> So I'd prefer (when possible) to treat patches in a discrete fashion
+> so we can start applying them and unblock others who depend on them
+> (e.g. Fernando's runtime PM work depends on this one).
 >
-> Option C - have the bootloader set nodes status property to disabled.
-> 
-> Option D - same as C, but do it in the kernel with prom_add_property.
+> But if you prefer me to send this one patch differently to make it
+> easier to review, let me know!
+>
 
-Option D, sounds good to me. I will look into this.
+Ok then. Please add
 
-Thanks
-Jon
+Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
+
+It would be nice if you got an ack from Greg or Kay on the device_type
+usage too.
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
