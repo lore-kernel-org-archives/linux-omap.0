@@ -1,14 +1,14 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/5] arm/dts: OMAP5: Add omap5 dts files
-Date: Thu, 5 Jul 2012 17:38:42 +0530
-Message-ID: <1341490136-25901-5-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v1 12/14] arm/dts: OMAP5: Add omap5 dts files
+Date: Thu, 5 Jul 2012 17:38:54 +0530
+Message-ID: <1341490136-25901-17-git-send-email-santosh.shilimkar@ti.com>
 References: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33879 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34054 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753780Ab2GEMKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753725Ab2GEMKi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 5 Jul 2012 08:10:38 -0400
 In-Reply-To: <1341490136-25901-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
