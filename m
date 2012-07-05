@@ -1,49 +1,48 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH RFC] spi: omap2-mcspi: Fix the dma_unmap warning
-Date: Thu, 5 Jul 2012 14:58:20 +0530
-Message-ID: <CAMQu2gzJgkGk5VCkUc1o7oxRhzSY1=Qp0HNR5jt0YFKzwsB10w@mail.gmail.com>
-References: <1341480207-5651-1-git-send-email-shubhrajyoti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-V3 1/3] ARM: OMAP2+: CLEANUP: All OMAP2PLUS uses
+ omap-device.o target so add one entry
+Date: Thu, 5 Jul 2012 02:53:51 -0700
+Message-ID: <20120705095351.GA1122@atomide.com>
+References: <1340895567-22766-1-git-send-email-hvaibhav@ti.com>
+ <1340895567-22766-2-git-send-email-hvaibhav@ti.com>
+ <20120704072758.GP1122@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EA632CE@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60087 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755296Ab2GEJ2l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 05:28:41 -0400
-Received: by qadb33 with SMTP id b33so4064874qad.9
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jul 2012 02:28:40 -0700 (PDT)
-In-Reply-To: <1341480207-5651-1-git-send-email-shubhrajyoti@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:17298 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755240Ab2GEJxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jul 2012 05:53:54 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA632CE@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Jul 5, 2012 at 2:53 PM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
-> The dma_map and dma_unmap should have same parameter
-> passed otherwise we get the below warn.
->
-> ks8851 spi1.0: DMA-API: device driver tries to free DMA memory it has not allocated [device address=0x000000009f22]
->
-> [    2.066925] Modules linked in:
-> [    2.070312]
-> [    2.071929] [<c001c250>] (unwind_backtrace+0x0/0x130) from [<c0043d84>] (warn_slowpath_common+0x4c/0x64)
-> [    2.081909] [<c0043d84>] (warn_slowpath_common+0x4c/0x64) from [<c0043e30>] (warn_slowpath_fmt+0x30/0x40)
-> [    2.091949] [<c0043e30>] (warn_slowpath_fmt+0x30/0x40) from [<c0293824>] (check_unmap+0x6d0/0x7b0)
-> [    2.101348] [<c0293824>] (check_unmap+0x6d0/0x7b0) from [<c02939cc>] (debug_dma_unmap_page+0x64/0x70)
-> [    2.111053] [<c02939cc>] (debug_dma_unmap_page+0x64/0x70) from [<c03519a4>] (omap2_mcspi_txrx_dma+0x2d8/0x4fc)
-> [    2.121582] [<c03519a4>] (omap2_mcspi_txrx_dma+0x2d8/0x4fc) from [<c03524d8>] (omap2_mcspi_work.clone.4+0xf0/0x290)
-> [    2.132537] [<c03524d8>] (omap2_mcspi_work.clone.4+0xf0/0x290) from [<c0352900>] (omap2_mcspi_transfer_one_message+0x288/0x438)
-> [    2.144592] [<c0352900>] (omap2_mcspi_transfer_one_message+0x288/0x438) from [<c03503bc>] (spi_pump_messages+0x100/0x160)
-> [    2.156127] [<c03503bc>] (spi_pump_messages+0x100/0x160) from [<c006635c>] (kthread_worker_fn+0xac/0x180)
-> [    2.166168] [<c006635c>] (kthread_worker_fn+0xac/0x180) from [<c0066578>] (kthread+0x90/0x9c)
-> [    2.175140] [<c0066578>] (kthread+0x90/0x9c) from [<c00157fc>] (kernel_thread_exit+0x0/0x8)
-> [    2.183898] ---[ end trace d1830ce6e44292f2 ]---
->
-> Fix the warn by changing the unmap parameter to the one used while doing
-> dma_map.
->
-> Reported-by: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-Looks fine to me.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120704 02:21]:
+> On Wed, Jul 04, 2012 at 12:57:58, Tony Lindgren wrote:
+> >
+> > This patch did not apply for some reason, I got:
+> > 
+> > patching file arch/arm/plat-omap/Makefile
+> > patch: **** malformed patch at line 73: 1.7.0.4
+> > 
+> > So please tune up your scripts a bit to the patches can be applied
+> > as they are without manual editing ;)
+> > 
+> 
+> Hmmmm...
+> 
+> I usually submit the patch against linux-omap/master (to handle cross 
+> dependencies), which in some cases fails on other branches you maintain. 
+> Probably I will make sure that it allies atleast to relevant branches, for 
+> example, in this case it should be applied on linux-omap/cleanup branch as 
+> well. 
+
+The malformed patch error usually means that something messed up
+the patch, like the mail server.. Maybe tabs got replaced with spaces
+or something?
+
+Tony
