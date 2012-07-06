@@ -1,117 +1,82 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Sat, 7 Jul 2012 00:49:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1207070019510.29809@axis700.grange>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
- <201206252030.56025.arnd@arndb.de> <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
- <20120706205731.GA31585@n2100.arm.linux.org.uk>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] MFD: twl-core: move device_init_wakeup to after
+ platform_device_add.
+Date: Sat, 7 Jul 2012 08:51:03 +1000
+Message-ID: <20120707085103.7b1a51ec@notabene.brown>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:59844 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756257Ab2GFWt3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 18:49:29 -0400
-In-Reply-To: <20120706205731.GA31585@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/FzB3P.31BHtTq=w7qVSh96N"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 6 Jul 2012, Russell King - ARM Linux wrote:
+--Sig_/FzB3P.31BHtTq=w7qVSh96N
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On Fri, Jul 06, 2012 at 01:36:32PM +0200, Guennadi Liakhovetski wrote:
-> > I like this idea, but why don't we extend it to also cover the non-DT 
-> > case? I.e., why don't we add the above callback (call it "match" or 
-> > "filter" or anything else) to dmaengine operations and inside (the 
-> > extended) dma_request_channel(), instead of calling the filter function, 
-> > passed as a parameter, we loop over all registered DMAC devices and call 
-> > their filter callbacks, until one of them returns true? In fact, it goes 
-> > back to my earlier proposal from 
-> > http://thread.gmane.org/gmane.linux.kernel/1246957
-> > which I, possibly, failed to explain properly. So, the transformation 
-> > chain from today's API would be (all code is approximate):
-> > 
-> > (today)
-> > 
-> > <client driver>
-> > 	dma_request_channel(mask, filter, filter_arg);
-> > 
-> > <dmaengine_core>
-> > 	for_each_channel() {
-> > 		ret = (*filter)(chan, filter_arg);
-> > 		if (ret) {
-> > 			ret = chan->device->device_alloc_chan_resources(chan);
-> > 			if (!ret)
-> > 				return chan;
-> > 			else
-> > 				return NULL;
-> > 		}
-> > 	}
-> > 
-> > (can be transformed to)
-> > 
-> > <client driver>
-> > 	dma_request_channel(mask, filter_arg);
-> > 
-> > <dmaengine_core>
-> > 	for_each_channel() {
-> > 		ret = chan->device->filter(chan, filter_arg);
-> > 		if (ret) {
-> > 			<same as above>
-> > 		}
-> > 	}
-> > 
-> > (which further could be simplified to)
-> > 
-> > <client driver>
-> > 	dma_request_channel(mask, filter_arg);
-> > 
-> > <dmaengine_core>
-> > 	for_each_channel() {
-> > 		ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
-> 
-> This looks like you're re-purposing a perfectly good API for something that
-> it wasn't designed to do, namely providing a channel selection mechanism,
-> rather than "allocating channel resources".  The hint is in the bloody
-> name, please take a look sometime!
-> 
-> If you want to call into the DMA engine driver for channel selection,
-> then create an _explicit_ API for it.  Don't bugger around with existing
-> APIs.
 
-Sure, it's better to create a new call-back.
 
-> Moreover, the *big* problem that your proposal above creates is this.
-> What _type_ is filter_arg?  If it's void *, then your suggestion is
-> nonsense, even if you associate it with a size argument.  You have no
-> idea what the bytestream that would be passed via that pointer means,
-> even if the size just happens to look like it's what you expect.
+device_init_wakeup uses the dev_name() of the device to set the
+name of the wakeup_source which appears in
+/sys/kernel/debug/wakeup_sources.
 
-Right, thanks to you and Arnd, who has pointed this out too.
+For a platform device, that name is not set until platform_device_add
+calls dev_set_name.
 
-Then it seems to me, that we need to introduce a notion of a mux device. 
-We could of course try to just use some strings instead, arrays of 
-acceptable DMA devices and channels, and most likely we would even be able 
-to find such an approach, that would work for all existing configurations. 
-But it still wouldn't be really fully generic, right? Whereas creating a 
-mux driver we really could cover all possible cases. DMA clients in this 
-case would always be hard wired to only one pin of such a mux, the DMA 
-device on the other side also only has to care about its physical 
-channels. The dmaengine core would then query the mux driver, where it can 
-route specific client request lines?
+So the call to device_init_wakeup() must be after the call to
+platform_device_add().
+Making this change causes correct names to appear in the
+wakeup_sources file.
 
-A separate mux is needed, because several clients can have their DMA 
-handshake lines routed to several DMAC instances, so, this muxing 
-functionality can neither reside on the client nor on the CMAC.
 
-Is this a right direction now? Shall I try to prototype such a DMA mux 
-API?
+Signed-off-by: NeilBrown <neilb@suse.de>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 6fc90be..b012efd 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -568,7 +568,6 @@ add_numbered_child(unsigned chip, const char *name, int=
+ num,
+ 		goto err;
+ 	}
+=20
+-	device_init_wakeup(&pdev->dev, can_wakeup);
+ 	pdev->dev.parent =3D &twl->client->dev;
+=20
+ 	if (pdata) {
+@@ -593,6 +592,8 @@ add_numbered_child(unsigned chip, const char *name, int=
+ num,
+ 	}
+=20
+ 	status =3D platform_device_add(pdev);
++	if (status =3D=3D 0)
++		device_init_wakeup(&pdev->dev, can_wakeup);
+=20
+ err:
+ 	if (status < 0) {
+
+--Sig_/FzB3P.31BHtTq=w7qVSh96N
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT/dr1znsnt1WYoG5AQJBlQ//Tr7CxCNid9BXVqBxbJWQdDzEpXJ7bvt+
+oRFA9lRidhHrQtXfH4eaeBfvQv5PIj3goktfWXAt8D/ZbNDNsBoDL/WfWI1IxDnw
+1G3pmLlC2LbhYRd3/iYhF6um00WZ2MKBmTqgrLLeX/FQAywdhC/WtW+b7+NfEKjb
+iOb6NoqITaCV4ZHazoiW0SjeHb8o0pzYWw7OQCJTWB4rd1S7x2sXHmhBwD6hM6RK
+/cn10pmNMvi6J4R74WgfVDnpzFexd5HLQtjinz308K/vIpUc5VDq0r549xa9qWfB
+U/+I+lwaO51046ISKfbzaBfTpqaiqTb4plmu0rAtgsS1ha8ZXfr/KKpeXYkFTsUE
+Th7jF6CMU2H2SBJAbZQ+jfg/cpVzpAnkL/drP0/WFTqzS/xLiOLIK0Sdu1mwcntb
+9b4TSVDr6TuKiQHlKh1a9RTYSvdgv6leqqZMoI1LwVzfTtQJzYir+kncfuxE5iK6
+SF+ws2EtpaWcrwaIdy5elleUDY+oVSKn6VTJNrbylmdRjRMUnUj2yVQPoQTC99Qw
+RZOZhVjnBWs+gzWZL9iOcobUFyi6xK8iw5n6E1uiu3wu/t3GBXmJ2nj/yO+Jk6N3
+5eIV6xMAWuH2JeGkOjWGHo1ECQjo3nXNyfUmIY4LjCRFzo0KN+x3bKHQKXL26ZWb
+dEFQ/+bMv5k=
+=0/8b
+-----END PGP SIGNATURE-----
+
+--Sig_/FzB3P.31BHtTq=w7qVSh96N--
