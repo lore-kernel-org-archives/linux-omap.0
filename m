@@ -1,44 +1,105 @@
-From: yegorslists@googlemail.com
-Subject: [PATCH v2] da8xx-fb: add missing FB_BLANK operations
-Date: Fri,  6 Jul 2012 16:01:28 +0200
-Message-ID: <1341583288-30281-1-git-send-email-yegorslists@googlemail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: config : disable the usb host configuration in omap2plus_defconfig
+Date: Fri, 06 Jul 2012 07:13:06 -0700
+Message-ID: <87d349c70t.fsf@ti.com>
+References: <1341575380-11972-1-git-send-email-keshava_mgowda@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.vscom.de ([62.145.30.242]:58000 "EHLO mail.visionsystems.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335Ab2GFOBn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jul 2012 10:01:43 -0400
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:60642 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752839Ab2GFONB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 10:13:01 -0400
+Received: by pbbro12 with SMTP id ro12so17688665pbb.18
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 07:12:53 -0700 (PDT)
+In-Reply-To: <1341575380-11972-1-git-send-email-keshava_mgowda@ti.com>
+	(Keshava Munegowda's message of "Fri, 6 Jul 2012 17:19:40 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, FlorianSchandinat@gmx.de, tomi.valkeinen@ti.com, Yegor Yefremov <yegorslists@googlemail.com>
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 
-From: Yegor Yefremov <yegorslists@googlemail.com>
+Keshava Munegowda <keshava_mgowda@ti.com> writes:
 
-add FB_BLANK_NORMAL, FB_BLANK_VSYNC_SUSPEND and FB_BLANK_HSYNC_SUSPEND
-modes (copy drivers/video/omap2/omapfb/omapfb-main.c implementation).
-Otherwise X-server will complain about invalid parameter.
+> The usb host is disabled in the omap2 build; This is because
+> usb host is causing the retention to break in cpu idle.
 
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
-v2: add linux-fbdev as recipient 
+... and causes warnings during boot, and hangs in suspend, can't suspend
+using NFSroot, etc. etc.
 
- drivers/video/da8xx-fb.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Thank you for disabling this by default, But I don't think this fix
+is targetted enough (more below.)
 
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 47118c7..8d745bf 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -1026,6 +1026,9 @@ static int cfb_blank(int blank, struct fb_info *info)
- 
- 		lcd_enable_raster();
- 		break;
-+	case FB_BLANK_NORMAL:
-+	case FB_BLANK_VSYNC_SUSPEND:
-+	case FB_BLANK_HSYNC_SUSPEND:
- 	case FB_BLANK_POWERDOWN:
- 		if (par->panel_power_ctrl)
- 			par->panel_power_ctrl(0);
--- 
-1.7.7
+Tony, when v3.5 came out, I asked them to fix this properly, but nothing
+was done.  So I've resorted to requesting that this feature be disabled
+by default since it introduced PM regressions.  Of course, I'd like to
+see this fixed properly instead, but we've run out of time for v3.5 and
+IMO, this PM regression needs to be fixed for v3.5.  See my more
+targetted patches below.
 
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |   11 -----------
+>  1 file changed, 11 deletions(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 9854ff4..7b32da6 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -170,17 +170,6 @@ CONFIG_SND_USB_AUDIO=m
+>  CONFIG_SND_SOC=m
+>  CONFIG_SND_OMAP_SOC=m
+>  CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=m
+> -CONFIG_USB=y
+> -CONFIG_USB_DEBUG=y
+> -CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+> -CONFIG_USB_DEVICEFS=y
+> -CONFIG_USB_SUSPEND=y
+> -CONFIG_USB_MON=y
+> -CONFIG_USB_EHCI_HCD=y
+> -CONFIG_USB_WDM=y
+> -CONFIG_USB_STORAGE=y
+> -CONFIG_USB_LIBUSUAL=y
+> -CONFIG_USB_TEST=y
+
+Why disable all of these?  With that, it's not terribly clear what is
+going on, or why.
+
+Instead, what you need is a targetted fix to just disable the problem
+driver by default:
+
+Either this:
+
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 9854ff4..11828e6 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -176,7 +176,6 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+ CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_SUSPEND=y
+ CONFIG_USB_MON=y
+-CONFIG_USB_EHCI_HCD=y
+ CONFIG_USB_WDM=y
+ CONFIG_USB_STORAGE=y
+ CONFIG_USB_LIBUSUAL=y
+
+or this:
+
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index e129c82..3747826 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -825,7 +825,7 @@ config MFD_WL1273_CORE
+ config MFD_OMAP_USB_HOST
+ 	bool "Support OMAP USBHS core driver"
+ 	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
+-	default y
++	default n
+ 	help
+ 	  This is the core driver for the OAMP EHCI and OHCI drivers.
+ 	  This MFD driver does the required setup functionalities for
+
+Will have the inteded affect with the benefit of being much clearer
+about what is actually being disabled, and why.
+
+Kevin
