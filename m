@@ -1,32 +1,127 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: board-omap4panda: MUX configuration for
- sys_nirq2
-Date: Fri, 6 Jul 2012 14:33:43 +0530
-Message-ID: <CAMQu2gzr6jGG3x1E4RQL_D+AJU19-MbsjLVWwjiWGZswfWmvPg@mail.gmail.com>
-References: <1341564590-14024-1-git-send-email-peter.ujfalusi@ti.com>
- <1341564590-14024-2-git-send-email-peter.ujfalusi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2 07/14] ARM: OMAP5: l3: Add l3 error handler support for omap5.
+Date: Fri, 6 Jul 2012 14:51:48 +0530
+Message-ID: <1341566515-22665-8-git-send-email-santosh.shilimkar@ti.com>
+References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1341564590-14024-2-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50540 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755651Ab2GFJWd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 05:22:33 -0400
+In-Reply-To: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Fri, Jul 6, 2012 at 2:19 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> The sys_nirq2 is used for twl6040, make sure the pin is configured
-> correctly.
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: R Sricharan <r.sricharan@ti.com>
+
+The l3 interconnect ip is same for OMAP4 and OMAP5.
+So reuse the l3 error handler error code for OMAP5
+as well. Also a few targets has been newly added for
+OMAP5. So updating the driver for that here.
+
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/Makefile      |    1 +
+ arch/arm/mach-omap2/devices.c     |    2 +-
+ arch/arm/mach-omap2/omap_l3_noc.h |   22 ++++++++++++++++++----
+ 3 files changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 085e171..238c5a3 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -197,6 +197,7 @@ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ # L3 interconnect
+ obj-$(CONFIG_ARCH_OMAP3)		+= omap_l3_smx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap_l3_noc.o
++obj-$(CONFIG_SOC_OMAP5)			+= omap_l3_noc.o
+ 
+ obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
+ mailbox_mach-objs			:= mailbox.o
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 7b4b932..be3e059 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -84,7 +84,7 @@ static int __init omap4_l3_init(void)
+ 	 * To avoid code running on other OMAPs in
+ 	 * multi-omap builds
+ 	 */
+-	if (!(cpu_is_omap44xx()))
++	if (!cpu_is_omap44xx() && !soc_is_omap54xx())
+ 		return -ENODEV;
+ 
+ 	for (i = 0; i < L3_MODULES; i++) {
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.h b/arch/arm/mach-omap2/omap_l3_noc.h
+index 90b5098..a6ce34d 100644
+--- a/arch/arm/mach-omap2/omap_l3_noc.h
++++ b/arch/arm/mach-omap2/omap_l3_noc.h
+@@ -51,7 +51,9 @@ static u32 l3_targ_inst_clk1[] = {
+ 	0x200, /* DMM2 */
+ 	0x300, /* ABE */
+ 	0x400, /* L4CFG */
+-	0x600  /* CLK2 PWR DISC */
++	0x600,  /* CLK2 PWR DISC */
++	0x0,	/* Host CLK1 */
++	0x900	/* L4 Wakeup */
+ };
+ 
+ static u32 l3_targ_inst_clk2[] = {
+@@ -72,11 +74,16 @@ static u32 l3_targ_inst_clk2[] = {
+ 	0xE00, /* missing in TRM corresponds to AES2*/
+ 	0xC00, /* L4 PER3 */
+ 	0xA00, /* L4 PER1*/
+-	0xB00 /* L4 PER2*/
++	0xB00, /* L4 PER2*/
++	0x0, /* HOST CLK2 */
++	0x1800, /* CAL */
++	0x1700 /* LLI */
+ };
+ 
+ static u32 l3_targ_inst_clk3[] = {
+-	0x0100	/* EMUSS */
++	0x0100	/* EMUSS */,
++	0x0300, /* DEBUGSS_CT_TBR */
++	0x0 /* HOST CLK3 */
+ };
+ 
+ static struct l3_masters_data {
+@@ -110,13 +117,15 @@ static struct l3_masters_data {
+ 	{ 0xC8, "USBHOSTFS"}
+ };
+ 
+-static char *l3_targ_inst_name[L3_MODULES][18] = {
++static char *l3_targ_inst_name[L3_MODULES][21] = {
+ 	{
+ 		"DMM1",
+ 		"DMM2",
+ 		"ABE",
+ 		"L4CFG",
+ 		"CLK2 PWR DISC",
++		"HOST CLK1",
++		"L4 WAKEUP"
+ 	},
+ 	{
+ 		"CORTEX M3" ,
+@@ -137,9 +146,14 @@ static char *l3_targ_inst_name[L3_MODULES][18] = {
+ 		"L4 PER3",
+ 		"L4 PER1",
+ 		"L4 PER2",
++		"HOST CLK2",
++		"CAL",
++		"LLI"
+ 	},
+ 	{
+ 		"EMUSS",
++		"DEBUG SOURCE",
++		"HOST CLK3"
+ 	},
+ };
+ 
+-- 
+1.7.9.5
+
