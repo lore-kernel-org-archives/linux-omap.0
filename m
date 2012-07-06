@@ -1,93 +1,99 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [PATCH 1/1] ARM: add PROC_DEVICETREE support in Kconfig
-Date: Fri, 6 Jul 2012 13:28:34 +0200
-Message-ID: <20120706112834.GA4450@game.jcrosoft.org>
-References: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 6 Jul 2012 13:36:32 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+ <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
+ <201206252030.56025.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: jgq516@gmail.com
-Cc: linux@arm.linux.org.uk, arnd@arndb.de, tony@atomide.com, nicolas.ferre@atmel.com, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, olof@lixom.net, swarren@nvidia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hdoyu@nvidia.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:54514 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932632Ab2GFLhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 07:37:09 -0400
+In-Reply-To: <201206252030.56025.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 18:38 Fri 06 Jul     , jgq516@gmail.com wrote:
-> From: Xiao Jiang <jgq516@gmail.com>
-> 
-> Since more and more arm chips support device tree, it'd be better add PROC_DEVICETREE
-> in arch/arm/Kconfig to avoid duplicate code.
-> 
-Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+On Mon, 25 Jun 2012, Arnd Bergmann wrote:
 
-Best Regards,
-J.
-> Signed-off-by: Xiao Jiang <jgq516@gmail.com>
-> ---
->  arch/arm/Kconfig                   |    1 +
->  arch/arm/configs/at91_dt_defconfig |    1 -
->  arch/arm/configs/tegra_defconfig   |    1 -
->  arch/arm/plat-omap/Kconfig         |    1 -
->  4 files changed, 1 insertions(+), 3 deletions(-)
+[snip]
+
+> The channel data in the device tree is still in a format
+> that is specific to that dmaengine driver and interpreted
+> by it. Using the regular dma_filter_fn prototype is not
+> necessary, but it would be convenient because the dmaengine
+> code already knows how to deal with it. If we don't use this
+> method, how about adding another callback to struct dma_device
+> like
 > 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index a91009c..f68896e 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -1864,6 +1864,7 @@ config USE_OF
->  	select OF
->  	select OF_EARLY_FLATTREE
->  	select IRQ_DOMAIN
-> +	select PROC_DEVICETREE if PROC_FS
->  	help
->  	  Include support for flattened device tree machine descriptions.
->  
-> diff --git a/arch/arm/configs/at91_dt_defconfig b/arch/arm/configs/at91_dt_defconfig
-> index 67bc571..b856cb6 100644
-> --- a/arch/arm/configs/at91_dt_defconfig
-> +++ b/arch/arm/configs/at91_dt_defconfig
-> @@ -64,7 +64,6 @@ CONFIG_MTD_NAND=y
->  CONFIG_MTD_NAND_ATMEL=y
->  CONFIG_MTD_UBI=y
->  CONFIG_MTD_UBI_GLUEBI=y
-> -CONFIG_PROC_DEVICETREE=y
->  CONFIG_BLK_DEV_LOOP=y
->  CONFIG_BLK_DEV_RAM=y
->  CONFIG_BLK_DEV_RAM_COUNT=4
-> diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
-> index 1198dd6..43e7b65 100644
-> --- a/arch/arm/configs/tegra_defconfig
-> +++ b/arch/arm/configs/tegra_defconfig
-> @@ -72,7 +72,6 @@ CONFIG_IPV6_TUNNEL=y
->  CONFIG_IPV6_MULTIPLE_TABLES=y
->  # CONFIG_WIRELESS is not set
->  # CONFIG_FIRMWARE_IN_KERNEL is not set
-> -CONFIG_PROC_DEVICETREE=y
->  CONFIG_BLK_DEV_LOOP=y
->  CONFIG_AD525X_DPOT=y
->  CONFIG_AD525X_DPOT_I2C=y
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index ad95c7a..4e2cb17 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -27,7 +27,6 @@ config ARCH_OMAP2PLUS
->  	select GENERIC_IRQ_CHIP
->  	select OMAP_DM_TIMER
->  	select USE_OF
-> -	select PROC_DEVICETREE if PROC_FS
->  	help
->  	  "Systems based on OMAP2, OMAP3 or OMAP4"
->  
-> -- 
-> 1.7.3
-> 
+> bool (*device_match)(struct dma_chan *chan, struct property *req);
+
+I like this idea, but why don't we extend it to also cover the non-DT 
+case? I.e., why don't we add the above callback (call it "match" or 
+"filter" or anything else) to dmaengine operations and inside (the 
+extended) dma_request_channel(), instead of calling the filter function, 
+passed as a parameter, we loop over all registered DMAC devices and call 
+their filter callbacks, until one of them returns true? In fact, it goes 
+back to my earlier proposal from 
+http://thread.gmane.org/gmane.linux.kernel/1246957
+which I, possibly, failed to explain properly. So, the transformation 
+chain from today's API would be (all code is approximate):
+
+(today)
+
+<client driver>
+	dma_request_channel(mask, filter, filter_arg);
+
+<dmaengine_core>
+	for_each_channel() {
+		ret = (*filter)(chan, filter_arg);
+		if (ret) {
+			ret = chan->device->device_alloc_chan_resources(chan);
+			if (!ret)
+				return chan;
+			else
+				return NULL;
+		}
+	}
+
+(can be transformed to)
+
+<client driver>
+	dma_request_channel(mask, filter_arg);
+
+<dmaengine_core>
+	for_each_channel() {
+		ret = chan->device->filter(chan, filter_arg);
+		if (ret) {
+			<same as above>
+		}
+	}
+
+(which further could be simplified to)
+
+<client driver>
+	dma_request_channel(mask, filter_arg);
+
+<dmaengine_core>
+	for_each_channel() {
+		ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
+		if (!ret)
+			return chan;
+		else if (ret != -ENODEV)
+			return ret;
+		/* -ENODEV - try the next channel */
+	}
+
+Which is quite similar to my above mentioned proposal. Wouldn't this both 
+improve the present API and prepare it for DT?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
