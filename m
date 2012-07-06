@@ -1,53 +1,117 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 6 Jul 2012 22:01:30 +0100
-Message-ID: <20120706210130.GB31585@n2100.arm.linux.org.uk>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206252030.56025.arnd@arndb.de> <Pine.LNX.4.64.1207061315470.29809@axis700.grange> <201207061528.58291.arnd@arndb.de> <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
+From: NeilBrown <neilb@suse.de>
+Subject: Infinite looping in omap2430.c USB driver
+Date: Sat, 7 Jul 2012 08:39:49 +1000
+Message-ID: <20120707083949.2cf91eeb@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39885 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755224Ab2GFVCN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 17:02:13 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/yR=1B6Ogzk8zow3DNyGpywg"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jul 06, 2012 at 05:43:38PM +0200, Guennadi Liakhovetski wrote:
-> Hi Arnd
-> 
-> On Fri, 6 Jul 2012, Arnd Bergmann wrote:
-> > How would the individual driver know the size of the filter_arg?
-> 
-> In exactly the same way as most dmaengine drivers do it today: they don't 
-> touch filter_arg until they're sure this is one of their channels. And 
-> this they typically do by comparing the driver pointer, e.g.:
-> 
-> bool sa11x0_dma_filter_fn(struct dma_chan *chan, void *param)
-> {
-> 	if (chan->device->dev->driver == &sa11x0_dma_driver.driver) {
+--Sig_/yR=1B6Ogzk8zow3DNyGpywg
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-That's utter rubbish, I'm afraid.
 
-Let's say you move that code into sa11x0's alloc_chan_resources() function.
-It will _never_ be called for a channel which isn't owned by the sa11x0
-DMA driver - look at what __dma_request_channel() does:
+Hello `./scripts/get_maintainer.pl -f drivers/usb/musb/omap2430.c`
 
-        list_for_each_entry_safe(device, _d, &dma_device_list, global_node) {
+omap2430_musb_set_vbus in omap2430.c contains:
 
-This walks the list of DMA devices.
+			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
 
-                chan = private_candidate(mask, device, fn, fn_param);
+				cpu_relax();
 
-This walks the channels _on_ _that_ dma device.  Those channels can only
-be owned by the DMA device, which is in turn owned by the driver, which
-in turn is owned by the struct driver that the above filter function
-is checking.
+				if (time_after(jiffies, timeout)) {
+					dev_err(musb->controller,
+					"configured as A device timeout");
+					ret =3D -EINVAL;
+					break;
+				}
+			}
 
-So, all in all, this check inside chan_alloc_resources() tells you
-absolutely _nothing_ about the suitability of dereferencing your
-filter_arg data.  At all.
+having set
+	unsigned long timeout =3D jiffies + msecs_to_jiffies(1000);
+
+so it can busy-loop for up to 1 second.  Probably not ideal, but if it works
+I wouldn't complain.
+
+The
+	if (int_usb & MUSB_INTR_SESSREQ) {
+branch of musb_stage0_irq() called from musb_interrupt (from
+generic_interrupt) calls this:
+
+	if (musb->int_usb)
+		retval |=3D musb_stage0_irq(musb, musb->int_usb,
+				devctl, power);
+
+so the busy loop can happen in an interrupt handler (not a threaded interru=
+pt
+handler), which is probably less ideal.
+
+However this can be called with interrupt disabled, as happens at least
+during resume when resume_irqs() calls:
+
+		raw_spin_lock_irqsave(&desc->lock, flags);
+		__enable_irq(desc, irq, true);
+		raw_spin_unlock_irqrestore(&desc->lock, flags);
+
+and an interrupt is found to be IRQS_PENDING.
+
+In this case interrupts are disabled so 'jiffies' never changes so this loop
+can continue forever.
+
+This happens on my (GTA04) phone fairly regularly - between 1 in 10 and 1 in
+30 resumes. The musb-hdrc interrupt is pending and reports
+
+[ 4957.624176] musb-hdrc musb-hdrc: ** IRQ peripheral usb0040 tx0000 rx0000
+
+'usb0040' is MUSB_INTR_SESSREQ.  I think this is triggered by detecting a
+voltage change on the USB ID pin - is that right?  A short-to-earth would be
+a request to switch to host mode, which is why it tries to enable VBUS.
+Maybe there is some electrical noise which is being picked up?
+
+In any case I get the interrupt despite nothing being plugged in, and the 0=
+x80
+bit of MUSB_DEVCTL never gets cleared.
+
+I've added a simple loop counter which aborts the loop after 1000 loops -
+this takes about 5 seconds, but includes some printks which probably slow it
+down.
+
+In 2 out of 2 cases, subsequent messages show that the hsmmc driver for the
+uSD card that holds my root filesystem is messed up.  It seems to be waiting
+for a request that is never going to complete.
+So maybe the hsmmc is causing the noise that triggers the musb issue.
+
+I can send a patch which add a loop count if you like, but I suspect you can
+come up with a much better approach.
+
+Thanks,
+NeilBrown
+
+--Sig_/yR=1B6Ogzk8zow3DNyGpywg
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBT/dpNTnsnt1WYoG5AQIrPhAAlRtFq4/z2NXrHOPKZ/CP+g8M2BAgtz9D
+pND5j4NTw7DPuq3q0XV/PANfME7X+Szyv/g1wz0kVgg9iDiCgzpHydTTIv+XVPcS
+saq011IrhwV6YwEWh/faY4n6A/5sBJOj6vzDRHRTOUrWNXkd2BxROe1lsWPoS9ib
+8Bj2dZjO3uggWbb+AUj+VoRpuqZMJ1rpzwNY4bLyPebPOT2pzNeby7o+q1NKzPnP
+gHR4eZGvyToJW8w9dXix9iJM9kogQGJO7MnD7cRGyL3kVzM4/ODNmWSKQhy5Pe+2
+b9DmAbD0Vf/4mI1WpGwJNG2MQtw28kUJxT2+Jy8UgBNb16gwPR+NsbdfGp5Oxhqd
+ZIE0mlNb6FCu4jz3qEsc2hYK4xf+hyvosBV/pZISZGjSr2IFYoPf2JLin91XetjV
+WxHG5Up12quwRMZ4OBoz4r8ipA6IrX51s+3xlObncZAugEtSxGpI9f1zHbhJKALo
+Mmpzdd0/9CojZcXgcZSo+aGMC8/+yrr2qXjdhubB6TvJwkr8N4UzhuEY4/GWQj6W
+NApLO0YNkqDhSxzAvzNdugHiFMXLXpVZdzlxtZ95FgOZGvuYyeMccxTy/8OcUOBx
+B2Al6z+6bHH0AxT04zRFfzsUOUoBKCjb012vjmlIlViz1L/y7pbsQNGlFErVfxzR
+ILkXYi+Q2zk=
+=9FWw
+-----END PGP SIGNATURE-----
+
+--Sig_/yR=1B6Ogzk8zow3DNyGpywg--
