@@ -1,92 +1,48 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 13/14] ARM: OMAP5: Add the build support
-Date: Fri, 6 Jul 2012 14:51:54 +0530
-Message-ID: <1341566515-22665-14-git-send-email-santosh.shilimkar@ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: board-4430sdp: MUX configuration for sys_nirq2
+Date: Fri, 6 Jul 2012 14:54:49 +0530
+Message-ID: <CAMQu2gw9ccxk3KL8KUVxnLX8nTsDMSWyokHVMqR8Feo6DyrNWA@mail.gmail.com>
+References: <1341564590-14024-1-git-send-email-peter.ujfalusi@ti.com>
+ <CAMQu2gyZQGGVQQtidGwOCux-0hX=FmPVP+9Sej_VRrQMurd=mw@mail.gmail.com> <4FF6AE6F.4000808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43794 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932429Ab2GFJXL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jul 2012 05:23:11 -0400
-In-Reply-To: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57408 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754906Ab2GFJZL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 05:25:11 -0400
+Received: by qcmv28 with SMTP id v28so6627430qcm.39
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 02:25:09 -0700 (PDT)
+In-Reply-To: <4FF6AE6F.4000808@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-From: R Sricharan <r.sricharan@ti.com>
++ Russell
 
-Adding the build support required for OMAP5 soc
-in to omap2+ config.
+On Fri, Jul 6, 2012 at 2:52 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> On 07/06/2012 11:02 AM, Shilimkar, Santosh wrote:
+>> On Fri, Jul 6, 2012 at 2:19 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+>>> The sys_nirq2 is used for twl6040, make sure the pin is configured
+>>> correctly.
+>>>
+>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>> ---
+>> Should remove the boot-loader pin-muxing dependency.
+>> Was this the reason, Audio had some issues on OMAP4430
+>> SDP as reported by Russell ?
+>
+> The boot loader never configured the sys_nirq2, I have sent a patch for u-boot
+> to do this, but it is said that the kernel should take care of this.
+>
+> We did not had jack detection working with upstream u-boot, kernel (I have
+> patched u-boot so I have not seen this issue).
+> Now if the board is booted without HS connected, upon connecting the HS we
+> will recognize it and it should be all fine.
+> So yes this was the reason why Russell had issues with audio.
+>
+Thanks Peter for tracking it down.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/configs/omap2plus_defconfig |    1 +
- arch/arm/mach-omap2/Kconfig          |    8 +++++++-
- arch/arm/plat-omap/Kconfig           |    4 ++--
- 3 files changed, 10 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 9854ff4..5c90370 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -236,3 +236,4 @@ CONFIG_CRC_T10DIF=y
- CONFIG_CRC_ITU_T=y
- CONFIG_CRC7=y
- CONFIG_LIBCRC32C=y
-+CONFIG_SOC_OMAP5=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 6c93477..90d0f85 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -9,7 +9,7 @@ config ARCH_OMAP2PLUS_TYPICAL
- 	select REGULATOR
- 	select PM_RUNTIME
- 	select VFP
--	select NEON if ARCH_OMAP3 || ARCH_OMAP4
-+	select NEON if ARCH_OMAP3 || ARCH_OMAP4 || SOC_OMAP5
- 	select SERIAL_OMAP
- 	select SERIAL_OMAP_CONSOLE
- 	select I2C
-@@ -61,6 +61,12 @@ config ARCH_OMAP4
- 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
- 	select ARM_CPU_SUSPEND if PM
- 
-+config SOC_OMAP5
-+	bool "TI OMAP5"
-+	select CPU_V7
-+	select ARM_GIC
-+	select HAVE_SMP
-+
- comment "OMAP Core Type"
- 	depends on ARCH_OMAP2
- 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index ad95c7a..dcfb506 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -29,7 +29,7 @@ config ARCH_OMAP2PLUS
- 	select USE_OF
- 	select PROC_DEVICETREE if PROC_FS
- 	help
--	  "Systems based on OMAP2, OMAP3 or OMAP4"
-+	  "Systems based on OMAP2, OMAP3, OMAP4 or OMAP5"
- 
- endchoice
- 
-@@ -150,7 +150,7 @@ config OMAP_32K_TIMER
- 	  This timer saves power compared to the OMAP_MPU_TIMER, and has
- 	  support for no tick during idle. The 32KHz timer provides less
- 	  intra-tick resolution than OMAP_MPU_TIMER. The 32KHz timer is
--	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4.
-+	  currently only available for OMAP16XX, 24XX, 34XX and OMAP4/5.
- 
- config OMAP3_L2_AUX_SECURE_SAVE_RESTORE
- 	bool "OMAP3 HS/EMU save and restore for L2 AUX control register"
--- 
-1.7.9.5
-
+Regards
+santosh
