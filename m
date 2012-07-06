@@ -1,59 +1,63 @@
-From: "Hilman, Kevin" <khilman@ti.com>
-Subject: Re: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
-Date: Fri, 6 Jul 2012 07:25:32 -0700
-Message-ID: <CALyTGOCYJX1St+0XsGujovOn-xFmBVFNpFRzzM9KrL-0qcObqg@mail.gmail.com>
-References: <1340900265-11962-1-git-send-email-khilman@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 1/2] ARM: OMAP: board-4430sdp: MUX configuration for sys_nirq2
+Date: Fri, 6 Jul 2012 20:03:50 +0530
+Message-ID: <CAMQu2gx4927Ze9tRUFq9QPubGFWfK9bHqZhVCb7c39O=WeWA3Q@mail.gmail.com>
+References: <1341580752-5501-1-git-send-email-peter.ujfalusi@ti.com>
+ <1341580752-5501-2-git-send-email-peter.ujfalusi@ti.com> <874nplc6va.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:53978 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756338Ab2GFO03 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 10:26:29 -0400
-Received: by qcsu28 with SMTP id u28so6347305qcs.8
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 07:25:32 -0700 (PDT)
-In-Reply-To: <1340900265-11962-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:33734 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752834Ab2GFOeZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 10:34:25 -0400
+Received: by qabj34 with SMTP id j34so535001qab.18
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 07:34:10 -0700 (PDT)
+In-Reply-To: <874nplc6va.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com
-Cc: linux-arm-kernel@lists.infradead.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Alessandro,
+On Fri, Jul 6, 2012 at 7:46 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
+>
+>> The sys_nirq2 is used for twl6040, make sure the pin is configured
+>> correctly.
+>>
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-4430sdp.c |    3 +++
+>>  1 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+>> index c4e17641..72cd206 100644
+>> --- a/arch/arm/mach-omap2/board-4430sdp.c
+>> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+>> @@ -827,6 +827,9 @@ static void __init omap_4430sdp_display_init(void)
+>>  #ifdef CONFIG_OMAP_MUX
+>>  static struct omap_board_mux board_mux[] __initdata = {
+>>       OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+>> +     /* NIRQ2 for twl6040 */
+>> +     OMAP4_MUX(SYS_NIRQ2, OMAP_MUX_MODE0 |
+>> +               OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE),
+>
+> Since this is TWL6030 specific, it should rather be done in TWL code
+> like I did for sys_nirq1:
+>
+>    http://marc.info/?l=linux-omap&m=134090312118873&w=2
+>
+> That would avoid having to do this in both board files.
+>
+Though the pin is TWL specific, it need not be same on
+different board with different SOCs. Especially when you need to
+set MUX mode etc. So doing from board file is still better
+since TWL6030/40 can be connected to non OMAP4 devices
+where the muxing can be different.
 
-Gentle reminder ping on this one so it can make it in for v3.5-rc.   Thanks.
+With current know boards with TWL6030/40, this is not
+a strong requirement though.
 
-On Thu, Jun 28, 2012 at 9:17 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Requesting a threaded interrupt without a primary handler and without
-> IRQF_ONESHOT is dangerous, and after commit 1c6c6952 (genirq: Reject
-> bogus threaded irq requests), these requests are rejected.  This
-> causes ->probe() to fail, and the RTC driver not to be availble.
->
-> To fix, add IRQF_ONESHOT to the IRQ flags.
->
-> Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake
-> to wake from system suspend multiple times.
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> This fix is needed in v3.5.
-> Applies on top of v3.5-rc4.
->
->  drivers/rtc/rtc-twl.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-> index 258abea..c5d06fe 100644
-> --- a/drivers/rtc/rtc-twl.c
-> +++ b/drivers/rtc/rtc-twl.c
-> @@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
->         }
->
->         ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
-> -                                  IRQF_TRIGGER_RISING,
-> +                                  IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->                                    dev_name(&rtc->dev), rtc);
->         if (ret < 0) {
->                 dev_err(&pdev->dev, "IRQ is not free.\n");
-> --
-> 1.7.9.2
->
+Regards
+Santosh
