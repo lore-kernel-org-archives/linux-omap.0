@@ -1,48 +1,46 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: board-4430sdp: MUX configuration for sys_nirq2
-Date: Fri, 6 Jul 2012 14:54:49 +0530
-Message-ID: <CAMQu2gw9ccxk3KL8KUVxnLX8nTsDMSWyokHVMqR8Feo6DyrNWA@mail.gmail.com>
-References: <1341564590-14024-1-git-send-email-peter.ujfalusi@ti.com>
- <CAMQu2gyZQGGVQQtidGwOCux-0hX=FmPVP+9Sej_VRrQMurd=mw@mail.gmail.com> <4FF6AE6F.4000808@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [cleanup-part2 PATCH] ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds.
+Date: Fri, 6 Jul 2012 14:55:42 +0530
+Message-ID: <1341566742-22734-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57408 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754906Ab2GFJZL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 05:25:11 -0400
-Received: by qcmv28 with SMTP id v28so6627430qcm.39
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 02:25:09 -0700 (PDT)
-In-Reply-To: <4FF6AE6F.4000808@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43937 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754607Ab2GFJ0C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Jul 2012 05:26:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-+ Russell
+OMAP4 only build breaks with below error
 
-On Fri, Jul 6, 2012 at 2:52 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> On 07/06/2012 11:02 AM, Shilimkar, Santosh wrote:
->> On Fri, Jul 6, 2012 at 2:19 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
->>> The sys_nirq2 is used for twl6040, make sure the pin is configured
->>> correctly.
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>> ---
->> Should remove the boot-loader pin-muxing dependency.
->> Was this the reason, Audio had some issues on OMAP4430
->> SDP as reported by Russell ?
->
-> The boot loader never configured the sys_nirq2, I have sent a patch for u-boot
-> to do this, but it is said that the kernel should take care of this.
->
-> We did not had jack detection working with upstream u-boot, kernel (I have
-> patched u-boot so I have not seen this issue).
-> Now if the board is booted without HS connected, upon connecting the HS we
-> will recognize it and it should be all fine.
-> So yes this was the reason why Russell had issues with audio.
->
-Thanks Peter for tracking it down.
+arch/arm/mach-omap2/sdrc.c:135: error: redefinition of 'omap2_sdrc_init'
+arch/arm/plat-omap/include/plat/sdrc.h:130: note: previous definition of 'omap2_sdrc_init' was here
+make[1]: *** [arch/arm/mach-omap2/sdrc.o] Error 1
 
-Regards
-santosh
+Fix the same by using newly introduced CONFIG_SOC_HAS_OMAP2_SDRC marco.
+
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/include/plat/sdrc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
+index 9bb978e..36d6a76 100644
+--- a/arch/arm/plat-omap/include/plat/sdrc.h
++++ b/arch/arm/plat-omap/include/plat/sdrc.h
+@@ -123,7 +123,7 @@ struct omap_sdrc_params {
+ 	u32 mr;
+ };
+ 
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
++#ifdef CONFIG_SOC_HAS_OMAP2_SDRC
+ void omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 			    struct omap_sdrc_params *sdrc_cs1);
+ #else
+-- 
+1.7.9.5
+
