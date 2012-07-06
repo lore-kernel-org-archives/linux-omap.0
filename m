@@ -1,14 +1,15 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: board-4430sdp: MUX configuration for
+Subject: Re: [PATCH 2/2] ARM: OMAP: board-omap4panda: MUX configuration for
  sys_nirq2
-Date: Fri, 6 Jul 2012 14:32:44 +0530
-Message-ID: <CAMQu2gyZQGGVQQtidGwOCux-0hX=FmPVP+9Sej_VRrQMurd=mw@mail.gmail.com>
+Date: Fri, 6 Jul 2012 14:33:43 +0530
+Message-ID: <CAMQu2gzr6jGG3x1E4RQL_D+AJU19-MbsjLVWwjiWGZswfWmvPg@mail.gmail.com>
 References: <1341564590-14024-1-git-send-email-peter.ujfalusi@ti.com>
+ <1341564590-14024-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1341564590-14024-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1341564590-14024-2-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -28,9 +29,4 @@ On Fri, Jul 6, 2012 at 2:19 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 >
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 > ---
-Should remove the boot-loader pin-muxing dependency.
-Was this the reason, Audio had some issues on OMAP4430
-SDP as reported by Russell ?
-
-FWIW:
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
