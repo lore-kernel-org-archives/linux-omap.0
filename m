@@ -1,96 +1,42 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
- getting stuck intransition state.
-Date: Fri, 6 Jul 2012 12:29:03 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EAFA5B7@DBDE01.ent.ti.com>
-References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EAF87AB@DBDE01.ent.ti.com>
- <CAMQu2gwDdonnvFuDpy06aRA2O4Sj1Jh+pEWAGQV3az6BHQKf4w@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 00/14] ARM: OMAP5: Add minimal OMAP5 SOC support
+Date: Fri, 6 Jul 2012 05:36:11 -0700
+Message-ID: <20120706123611.GW1122@atomide.com>
+References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58884 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883Ab2GFM3S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 08:29:18 -0400
-In-Reply-To: <CAMQu2gwDdonnvFuDpy06aRA2O4Sj1Jh+pEWAGQV3az6BHQKf4w@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37312 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751536Ab2GFMgQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 08:36:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Vutla, Lokesh" <lokeshvutla@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Wim Van Sebroeck <wim@iguana.be>, linux-omap <linux-omap@vger.kernel.org>, linux-watchdog <linux-watchdog@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Santosh,
-
-On Fri, Jul 06, 2012 at 12:51:03, Shilimkar, Santosh wrote:
-[...]
-> >
-> > A few questions based on the description given in the commit message.
-> >
-> >> 1. On OMAP4 SYSCLK can't be gated, because of issue with WDTIMER2 module,
-> >> which constantly stays in "in transition" state. Value of register
-> >> CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.
-> >> Issue occurs immediately after first idle, when hwmod framework tries
-> >> to disable WDTIMER2 functional clock - "wd_timer2_fck". After this
-> >> module falls to "in transition" state, and SYSCLK gating is blocked.
-> >>
-> >
-> > From what I know, a value of 0x00010000 for timers (WDT or DMTIMERs)
-> > indicates that the iclk is gated but the fclk is running. In fact,
-> > if the IP supports swakeup mechanism this is the value expected in the
-> > *_CLKCTRL registers of the timers for the swakeup to work.
-> >
-> Nope. That case will be 0x00020000
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [120706 02:26]:
+> Tony,
 > 
-> Read 0x1: Module is performing transition: wakeup, or
-> sleep, or sleep abortion
-> Read 0x2: Module is in idle mode (only INTRCONN part).
-> It is functional if using separate functional clock
-> Read 0x3: Module is disabled and cannot be accessed
-> 
+> Here is the updated series with suggested corrections and generated against
+> the latest cleanup-part2 at commit ae6df418. The series adds minimal OMAP5
+> support. OMAP5430 has a dual core Cortex-A15 based MPU subsystem with 2MB
+> L2 cache. The SOC has many compatible blocks with OMAP4 SOCS and hence
+> large part of the peripherals are re-used.
 
-What you mentioned is obviously correct :)
-I somehow recall seeing something else but mostly likely I am wrong here.
+Looking good to me, just one cosmetic comment below:
+ 
+>   ARM: OMAP: counter-32k: Select the CR register offset using the IP scheme.
+>   ARM: OMAP5: l3: Add l3 error handler support for omap5.
+>   ARM: omap2+: board-generic: clean up the irq data from board file.
+>   ARM: OMAP5: board-generic: Add device tree support.
+>   ARM: OMAP5: Add SMP support.
 
-> > Sounds like on OMAP4 the WDT needs to be stopped first and then the
-> > PRCM idle request sent otherwise SYSCLK gating will be blocked.
-> >
-> Any module stuck in-transition will get the clock-domain from idle.
-> 
+Can you please remove the trailing period from the patch title lines?
+That's not typically used..
 
-Yes agreed.
+Thanks,
 
-> >> 2. Due to runtime PM, watchdog timer may be completely disabled.
-> >> In current code base watchdog timer is not disabled only because of
-> >> issue 1. Otherwise state of WDTIMER2 module will be "Disabled", and there
-> >> will be no interrupts from omap_wdt. In other words watchdog will not
-> >> work at all.
-> >
-> > But the current driver doesn't make use of any interrupts, right?
-> >
-> How is the interrupt related. You enable that when you enable WDT
-> petting using delay_interrupt()
-> 
-
-Even I don't understand the interrupt part here.
-
-> > If the WDT was never started, runtime PM handling for the WDT should be
-> > able to get the IP to a "disabled" state. Is the issue over here due
-> > to the WDT counter incrementing and still the PRCM idle request being
-> > sent for disabling it? If so, perhaps a better solution would be have
-> > a custom runtime PM handling for WDT which checks if the counter
-> > is incrementing or not. If it is not incrementing then it can just
-> > go ahead and disable the clocks. However, if the counter is incrementing
-> > then the runtime PM activities on the driver should be forbidden till
-> > an entry to a low power state where SYSCLK needs to be gated is required.
-> >
-> If you look at the test case mentioned, the watchdong is started. Your
-> first observation is not as per the hardware behavior, so other points
-> becomes not relevant.
-> 
-
-Ok. I'll double-check my observations on AM335x on Monday.
-
-Regards,
-Vaibhav B.
+Tony
