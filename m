@@ -1,205 +1,142 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 03/14] ARM: OMAP5: id: Add cpu id for ES versions
-Date: Fri, 6 Jul 2012 14:51:44 +0530
-Message-ID: <1341566515-22665-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 09/14] ARM: OMAP5: Add SMP support.
+Date: Fri, 6 Jul 2012 14:51:50 +0530
+Message-ID: <1341566515-22665-10-git-send-email-santosh.shilimkar@ti.com>
 References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38297 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38295 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932263Ab2GFJWn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932083Ab2GFJWn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 6 Jul 2012 05:22:43 -0400
 In-Reply-To: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, R Sricharan <r.sricharan@ti.com>
 
-From: R Sricharan <r.sricharan@ti.com>
-
-Adding the OMAP5 ES1.0, 2.0 and OMAP5432 cpu revision
-detection support.
+Add OMAP5 SMP boot support using OMAP4 SMP code. The relevant code paths
+are runtime checked using cpu id
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/control.h         |    4 ++++
- arch/arm/mach-omap2/id.c              |   42 ++++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/cpu.h |   22 +++++++++++++++--
- 3 files changed, 65 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/common.h       |    1 +
+ arch/arm/mach-omap2/omap-headsmp.S |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap-smp.c     |   35 +++++++++++++++++++++++------------
+ 3 files changed, 45 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 295b390..b8cdc85 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -253,6 +253,10 @@
- /* TI81XX CONTROL_DEVCONF register offsets */
- #define TI81XX_CONTROL_DEVICE_ID	(TI81XX_CONTROL_DEVCONF + 0x000)
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 97e8792..960f984 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -276,6 +276,7 @@ extern void omap_secondary_startup(void);
+ extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+ extern void omap_auxcoreboot_addr(u32 cpu_addr);
+ extern u32 omap_read_auxcoreboot0(void);
++extern void omap5_secondary_startup(void);
+ #endif
  
-+/* OMAP54XX CONTROL STATUS register */
-+#define OMAP5XXX_CONTROL_STATUS                0x134
-+#define OMAP5_DEVICETYPE_MASK          (0x7 << 6)
+ #if defined(CONFIG_SMP) && defined(CONFIG_PM)
+diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
+index 503ac77..502e313 100644
+--- a/arch/arm/mach-omap2/omap-headsmp.S
++++ b/arch/arm/mach-omap2/omap-headsmp.S
+@@ -19,6 +19,27 @@
+ #include <linux/init.h>
+ 
+ 	__CPUINIT
 +
++/* Physical address needed since MMU not enabled yet on secondary core */
++#define AUX_CORE_BOOT0_PA			0x48281800
++
++/*
++ * OMAP5 specific entry point for secondary CPU to jump from ROM
++ * code.  This routine also provides a holding flag into which
++ * secondary core is held until we're ready for it to initialise.
++ * The primary core will update this flag using a hardware
+++ * register AuxCoreBoot0.
++ */
++ENTRY(omap5_secondary_startup)
++wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
++	ldr	r0, [r2]
++	mov	r0, r0, lsr #5
++	mrc	p15, 0, r4, c0, c0, 5
++	and	r4, r4, #0x0f
++	cmp	r0, r4
++	bne	wait
++	b	secondary_startup
++END(omap5_secondary_startup)
  /*
-  * REVISIT: This list of registers is not comprehensive - there are more
-  * that should be added.
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37eb95a..40373db 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -50,6 +50,11 @@ int omap_type(void)
- 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
- 	} else if (cpu_is_omap44xx()) {
- 		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
-+	} else if (soc_is_omap54xx()) {
-+		val = omap_ctrl_readl(OMAP5XXX_CONTROL_STATUS);
-+		val &= OMAP5_DEVICETYPE_MASK;
-+		val >>= 6;
-+		goto out;
- 	} else {
- 		pr_err("Cannot detect omap type!\n");
- 		goto out;
-@@ -100,7 +105,7 @@ static u16 tap_prod_id;
+  * OMAP4 specific entry point for secondary CPU to jump from ROM
+  * code.  This routine also provides a holding flag into which
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index badfe39..7d118b9 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -33,6 +33,12 @@
+ #include "common.h"
+ #include "clockdomain.h"
  
- void omap_get_die_id(struct omap_die_id *odi)
++#define CPU_MASK		0xff0ffff0
++#define CPU_CORTEX_A9		0x410FC090
++#define CPU_CORTEX_A15		0x410FC0F0
++
++#define OMAP5_CORE_COUNT	0x2
++
+ /* SCU base address */
+ static void __iomem *scu_base;
+ 
+@@ -133,7 +139,6 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ static void __init wakeup_secondary(void)
  {
--	if (cpu_is_omap44xx()) {
-+	if (cpu_is_omap44xx() || soc_is_omap54xx()) {
- 		odi->id_0 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_0);
- 		odi->id_1 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_1);
- 		odi->id_2 = read_tap_reg(OMAP_TAP_DIE_ID_44XX_2);
-@@ -513,6 +518,41 @@ void __init omap4xxx_check_revision(void)
- 		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
- }
- 
-+void __init omap5xxx_check_revision(void)
-+{
-+	u32 idcode;
-+	u16 hawkeye;
-+	u8 rev;
-+
-+	idcode = read_tap_reg(OMAP_TAP_IDCODE);
-+	hawkeye = (idcode >> 12) & 0xffff;
-+	rev = (idcode >> 28) & 0xff;
-+	switch (hawkeye) {
-+	case 0xb942:
-+		switch (rev) {
-+		case 0:
-+		default:
-+			omap_revision = OMAP5430_REV_ES1_0;
-+		}
-+		break;
-+
-+	case 0xb998:
-+		switch (rev) {
-+		case 0:
-+		default:
-+			omap_revision = OMAP5432_REV_ES1_0;
-+		}
-+		break;
-+
-+	default:
-+		/* Unknown default to latest silicon rev as default*/
-+		omap_revision = OMAP5430_REV_ES1_0;
-+	}
-+
-+	pr_info("OMAP%04x ES%d.0\n",
-+			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf));
-+}
-+
- /*
-  * Set up things for map_io and processor detection later on. Gets called
-  * pretty much first thing from board init. For multi-omap, this gets
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 14f050f..e2d911d 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -9,7 +9,7 @@
-  *
-  * Written by Tony Lindgren <tony.lindgren@nokia.com>
-  *
-- * Added OMAP4 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
-+ * Added OMAP4/5 specific defines - Santosh Shilimkar<santosh.shilimkar@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -70,6 +70,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap443x():	True for OMAP4430
-  * cpu_is_omap446x():	True for OMAP4460
-  * cpu_is_omap447x():	True for OMAP4470
-+ * soc_is_omap543x():	True for OMAP5430, OMAP5432
+ 	void __iomem *base = omap_get_wakeupgen_base();
+-
+ 	/*
+ 	 * Write the address of secondary startup routine into the
+ 	 * AuxCoreBoot1 where ROM code will jump and start executing
+@@ -162,16 +167,21 @@ static void __init wakeup_secondary(void)
   */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
- 
-@@ -122,6 +123,7 @@ IS_OMAP_CLASS(24xx, 0x24)
- IS_OMAP_CLASS(34xx, 0x34)
- IS_OMAP_CLASS(44xx, 0x44)
- IS_AM_CLASS(35xx, 0x35)
-+IS_OMAP_CLASS(54xx, 0x54)
- IS_AM_CLASS(33xx, 0x33)
- 
- IS_TI_CLASS(81xx, 0x81)
-@@ -133,6 +135,7 @@ IS_OMAP_SUBCLASS(363x, 0x363)
- IS_OMAP_SUBCLASS(443x, 0x443)
- IS_OMAP_SUBCLASS(446x, 0x446)
- IS_OMAP_SUBCLASS(447x, 0x447)
-+IS_OMAP_SUBCLASS(543x, 0x543)
- 
- IS_TI_SUBCLASS(816x, 0x816)
- IS_TI_SUBCLASS(814x, 0x814)
-@@ -156,6 +159,8 @@ IS_AM_SUBCLASS(335x, 0x335)
- #define cpu_is_omap443x()		0
- #define cpu_is_omap446x()		0
- #define cpu_is_omap447x()		0
-+#define soc_is_omap54xx()		0
-+#define soc_is_omap543x()		0
- 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -291,6 +296,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define cpu_is_omap2430()		0
- #define cpu_is_omap3430()		0
- #define cpu_is_omap3630()		0
-+#define soc_is_omap5430()		0
- 
- /*
-  * Whether we have MULTI_OMAP1 or not, we still need to distinguish
-@@ -371,11 +377,18 @@ IS_OMAP_TYPE(3430, 0x3430)
- # define cpu_is_omap447x()		is_omap447x()
- # endif
- 
-+# if defined(CONFIG_SOC_OMAP5)
-+# undef soc_is_omap54xx
-+# undef soc_is_omap543x
-+# define soc_is_omap54xx()		is_omap54xx()
-+# define soc_is_omap543x()		is_omap543x()
-+#endif
+ void __init smp_init_cpus(void)
+ {
+-	unsigned int i, ncores;
+-
+-	/*
+-	 * Currently we can't call ioremap here because
+-	 * SoC detection won't work until after init_early.
+-	 */
+-	scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
+-	BUG_ON(!scu_base);
+-
+-	ncores = scu_get_core_count(scu_base);
++	unsigned int i = 0, ncores = 1, cpu_id;
 +
- /* Macros to detect if we have OMAP1 or OMAP2 */
- #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
- 				cpu_is_omap16xx())
- #define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
--				cpu_is_omap44xx())
-+				cpu_is_omap44xx() || soc_is_omap54xx())
++	/* Use ARM cpuid check here, as SoC detection will not work so early */
++	cpu_id = read_cpuid(CPUID_ID) & CPU_MASK;
++	if (cpu_id == CPU_CORTEX_A9) {
++		/*
++		 * Currently we can't call ioremap here because
++		 * SoC detection won't work until after init_early.
++		 */
++		scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
++		BUG_ON(!scu_base);
++		ncores = scu_get_core_count(scu_base);
++	} else if (cpu_id == CPU_CORTEX_A15) {
++		ncores = OMAP5_CORE_COUNT;
++	}
  
- /* Various silicon revisions for omap2 */
- #define OMAP242X_CLASS		0x24200024
-@@ -428,9 +441,14 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP447X_CLASS		0x44700044
- #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
- 
-+#define OMAP54XX_CLASS		0x54000054
-+#define OMAP5430_REV_ES1_0	(OMAP54XX_CLASS | (0x30 << 16) | (0x10 << 8))
-+#define OMAP5432_REV_ES1_0	(OMAP54XX_CLASS | (0x32 << 16) | (0x10 << 8))
-+
- void omap2xxx_check_revision(void);
- void omap3xxx_check_revision(void);
- void omap4xxx_check_revision(void);
-+void omap5xxx_check_revision(void);
- void omap3xxx_check_features(void);
- void ti81xx_check_features(void);
- void omap4xxx_check_features(void);
+ 	/* sanity check */
+ 	if (ncores > nr_cpu_ids) {
+@@ -193,6 +203,7 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
+ 	 * Initialise the SCU and wake up the secondary core using
+ 	 * wakeup_secondary().
+ 	 */
+-	scu_enable(scu_base);
++	if (scu_base)
++		scu_enable(scu_base);
+ 	wakeup_secondary();
+ }
 -- 
 1.7.9.5
 
