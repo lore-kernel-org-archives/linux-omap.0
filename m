@@ -1,46 +1,75 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [cleanup-part2 PATCH] ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds.
-Date: Fri, 6 Jul 2012 14:55:42 +0530
-Message-ID: <1341566742-22734-1-git-send-email-santosh.shilimkar@ti.com>
+From: <jgq516@gmail.com>
+Subject: [PATCH 1/1] ARM: add PROC_DEVICETREE support in Kconfig
+Date: Fri, 6 Jul 2012 18:38:47 +0800
+Message-ID: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43937 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754607Ab2GFJ0C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jul 2012 05:26:02 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux@arm.linux.org.uk, tony@atomide.com, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, arnd@arndb.de, swarren@nvidia.com, olof@lixom.net, ldewangan@nvidia.com, hdoyu@nvidia.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP4 only build breaks with below error
+From: Xiao Jiang <jgq516@gmail.com>
 
-arch/arm/mach-omap2/sdrc.c:135: error: redefinition of 'omap2_sdrc_init'
-arch/arm/plat-omap/include/plat/sdrc.h:130: note: previous definition of 'omap2_sdrc_init' was here
-make[1]: *** [arch/arm/mach-omap2/sdrc.o] Error 1
+Since more and more arm chips support device tree, it'd be better add PROC_DEVICETREE
+in arch/arm/Kconfig to avoid duplicate code.
 
-Fix the same by using newly introduced CONFIG_SOC_HAS_OMAP2_SDRC marco.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Xiao Jiang <jgq516@gmail.com>
 ---
- arch/arm/plat-omap/include/plat/sdrc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/Kconfig                   |    1 +
+ arch/arm/configs/at91_dt_defconfig |    1 -
+ arch/arm/configs/tegra_defconfig   |    1 -
+ arch/arm/plat-omap/Kconfig         |    1 -
+ 4 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
-index 9bb978e..36d6a76 100644
---- a/arch/arm/plat-omap/include/plat/sdrc.h
-+++ b/arch/arm/plat-omap/include/plat/sdrc.h
-@@ -123,7 +123,7 @@ struct omap_sdrc_params {
- 	u32 mr;
- };
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index a91009c..f68896e 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1864,6 +1864,7 @@ config USE_OF
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select IRQ_DOMAIN
++	select PROC_DEVICETREE if PROC_FS
+ 	help
+ 	  Include support for flattened device tree machine descriptions.
  
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#ifdef CONFIG_SOC_HAS_OMAP2_SDRC
- void omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 			    struct omap_sdrc_params *sdrc_cs1);
- #else
+diff --git a/arch/arm/configs/at91_dt_defconfig b/arch/arm/configs/at91_dt_defconfig
+index 67bc571..b856cb6 100644
+--- a/arch/arm/configs/at91_dt_defconfig
++++ b/arch/arm/configs/at91_dt_defconfig
+@@ -64,7 +64,6 @@ CONFIG_MTD_NAND=y
+ CONFIG_MTD_NAND_ATMEL=y
+ CONFIG_MTD_UBI=y
+ CONFIG_MTD_UBI_GLUEBI=y
+-CONFIG_PROC_DEVICETREE=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_COUNT=4
+diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
+index 1198dd6..43e7b65 100644
+--- a/arch/arm/configs/tegra_defconfig
++++ b/arch/arm/configs/tegra_defconfig
+@@ -72,7 +72,6 @@ CONFIG_IPV6_TUNNEL=y
+ CONFIG_IPV6_MULTIPLE_TABLES=y
+ # CONFIG_WIRELESS is not set
+ # CONFIG_FIRMWARE_IN_KERNEL is not set
+-CONFIG_PROC_DEVICETREE=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_AD525X_DPOT=y
+ CONFIG_AD525X_DPOT_I2C=y
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ad95c7a..4e2cb17 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -27,7 +27,6 @@ config ARCH_OMAP2PLUS
+ 	select GENERIC_IRQ_CHIP
+ 	select OMAP_DM_TIMER
+ 	select USE_OF
+-	select PROC_DEVICETREE if PROC_FS
+ 	help
+ 	  "Systems based on OMAP2, OMAP3 or OMAP4"
+ 
 -- 
-1.7.9.5
-
+1.7.3
