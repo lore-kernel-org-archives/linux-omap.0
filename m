@@ -1,101 +1,117 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [PATCH 4 2/4] NET ethernet introduce mac_platform helper
-Date: Fri, 6 Jul 2012 23:40:31 +0100
-Message-ID: <1341614431.2923.13.camel@bwh-desktop.uk.solarflarecom.com>
-References: <20120705024259.26317.16000.stgit@build.warmcat.com>
-	 <20120705024446.26317.49693.stgit@build.warmcat.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Sat, 7 Jul 2012 00:49:05 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1207070019510.29809@axis700.grange>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+ <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
+ <201206252030.56025.arnd@arndb.de> <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
+ <20120706205731.GA31585@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120705024446.26317.49693.stgit@build.warmcat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Green <andy.green@linaro.org>
-Cc: linux-omap@vger.kernel.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, tony@atomide.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:59844 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756257Ab2GFWt3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 18:49:29 -0400
+In-Reply-To: <20120706205731.GA31585@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thu, 2012-07-05 at 10:44 +0800, Andy Green wrote:
-[...]
-> To make use of this safely you also need to make sure that any drivers that
-> may compete for the bus ordinal you are using (eg, mUSB and ehci in Panda
-> case) are loaded in a deterministic order.
-[...]
+On Fri, 6 Jul 2012, Russell King - ARM Linux wrote:
 
-This seems very restrictive... would it be practical to also allow a
-driver name as a path component?
+> On Fri, Jul 06, 2012 at 01:36:32PM +0200, Guennadi Liakhovetski wrote:
+> > I like this idea, but why don't we extend it to also cover the non-DT 
+> > case? I.e., why don't we add the above callback (call it "match" or 
+> > "filter" or anything else) to dmaengine operations and inside (the 
+> > extended) dma_request_channel(), instead of calling the filter function, 
+> > passed as a parameter, we loop over all registered DMAC devices and call 
+> > their filter callbacks, until one of them returns true? In fact, it goes 
+> > back to my earlier proposal from 
+> > http://thread.gmane.org/gmane.linux.kernel/1246957
+> > which I, possibly, failed to explain properly. So, the transformation 
+> > chain from today's API would be (all code is approximate):
+> > 
+> > (today)
+> > 
+> > <client driver>
+> > 	dma_request_channel(mask, filter, filter_arg);
+> > 
+> > <dmaengine_core>
+> > 	for_each_channel() {
+> > 		ret = (*filter)(chan, filter_arg);
+> > 		if (ret) {
+> > 			ret = chan->device->device_alloc_chan_resources(chan);
+> > 			if (!ret)
+> > 				return chan;
+> > 			else
+> > 				return NULL;
+> > 		}
+> > 	}
+> > 
+> > (can be transformed to)
+> > 
+> > <client driver>
+> > 	dma_request_channel(mask, filter_arg);
+> > 
+> > <dmaengine_core>
+> > 	for_each_channel() {
+> > 		ret = chan->device->filter(chan, filter_arg);
+> > 		if (ret) {
+> > 			<same as above>
+> > 		}
+> > 	}
+> > 
+> > (which further could be simplified to)
+> > 
+> > <client driver>
+> > 	dma_request_channel(mask, filter_arg);
+> > 
+> > <dmaengine_core>
+> > 	for_each_channel() {
+> > 		ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
+> 
+> This looks like you're re-purposing a perfectly good API for something that
+> it wasn't designed to do, namely providing a channel selection mechanism,
+> rather than "allocating channel resources".  The hint is in the bloody
+> name, please take a look sometime!
+> 
+> If you want to call into the DMA engine driver for channel selection,
+> then create an _explicit_ API for it.  Don't bugger around with existing
+> APIs.
 
-[...]
-> --- /dev/null
-> +++ b/include/net/mac-platform.h
-> @@ -0,0 +1,39 @@
-> +/*
-> + * mac-platform.h:  Enforces platform-defined MAC for Async probed devices
-> + */
-> +
-> +#ifndef __NET_MAC_PLATFORM_H__
-> +#define __NET_MAC_PLATFORM_H__
-> +
-> +#include <linux/if_ether.h>
-> +
-> +/**
-> + * struct mac_platform - associates asynchronously probed device path with
-> + *			 MAC address to be assigned to the device when it
-> + *			 is created
+Sure, it's better to create a new call-back.
 
-A kernel-doc summary is strictly limited to one line.  The longer
-explanation can go in a paragraph under the field descriptions.
+> Moreover, the *big* problem that your proposal above creates is this.
+> What _type_ is filter_arg?  If it's void *, then your suggestion is
+> nonsense, even if you associate it with a size argument.  You have no
+> idea what the bytestream that would be passed via that pointer means,
+> even if the size just happens to look like it's what you expect.
 
-> + * @device_path: device path name of network device
-> + * @mac: MAC address to assign to network device matching device path
-> + * @list: can be left uninitialized when passing from platform
-> + */
-> +
-> +struct mac_platform {
-> +	char *device_path;
-> +	u8 mac[ETH_ALEN];
-> +	struct list_head list; /* unused in platform data usage */
-> +};
-[...]
-> --- /dev/null
-> +++ b/net/ethernet/mac-platform.c
-[...]
-> +static struct mac_platform *__mac_platform_check(struct device *dev)
-> +{
-> +	const char *path;
-> +	const char *p;
-> +	const char *try;
-> +	int len;
-> +	struct device *devn;
-> +	struct mac_platform *tmp;
-> +	struct list_head *pos;
-> +
-> +	list_for_each(pos, &mac_platform_list) {
-> +
-> +		tmp = list_entry(pos, struct mac_platform, list);
-> +
-> +		try = tmp->device_path;
-> +
-> +		p = try + strlen(try);
-> +		devn = dev;
-> +
-> +		while (devn) {
-> +
-> +			path = dev_name(devn);
-> +			len = strlen(path);
-> +
-> +			if ((p - try) < len) {
-> +				devn = NULL;
-> +				continue;
-> +			}
-> +
-> +			p -= len;
-[...]
+Right, thanks to you and Arnd, who has pointed this out too.
 
-There are so many blank lines here, it's hard to see much code at once.
+Then it seems to me, that we need to introduce a notion of a mux device. 
+We could of course try to just use some strings instead, arrays of 
+acceptable DMA devices and channels, and most likely we would even be able 
+to find such an approach, that would work for all existing configurations. 
+But it still wouldn't be really fully generic, right? Whereas creating a 
+mux driver we really could cover all possible cases. DMA clients in this 
+case would always be hard wired to only one pin of such a mux, the DMA 
+device on the other side also only has to care about its physical 
+channels. The dmaengine core would then query the mux driver, where it can 
+route specific client request lines?
 
-Ben.
+A separate mux is needed, because several clients can have their DMA 
+handshake lines routed to several DMAC instances, so, this muxing 
+functionality can neither reside on the client nor on the CMAC.
 
--- 
-Ben Hutchings, Staff Engineer, Solarflare
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+Is this a right direction now? Shall I try to prototype such a DMA mux 
+API?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
