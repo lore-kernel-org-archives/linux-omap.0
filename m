@@ -1,72 +1,52 @@
-From: Tero Kristo <t-kristo@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: [PATCH] ARM: OMAP2: twl-common: fix compiler warnings
-Date: Fri, 6 Jul 2012 13:02:34 +0300
-Message-ID: <1341568954.2059.214.camel@sokoban>
+Date: Fri, 06 Jul 2012 12:07:47 +0200
+Message-ID: <4FF6B8F3.8010501@ti.com>
 References: <1340880592-21700-1-git-send-email-t-kristo@ti.com>
-	 <20120706085357.GS1122@atomide.com>
-Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41743 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042Ab2GFKCs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Jul 2012 06:02:48 -0400
-In-Reply-To: <20120706085357.GS1122@atomide.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:36557 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756525Ab2GFKHc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 06:07:32 -0400
+Received: by obbup19 with SMTP id up19so10999825obb.26
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 03:07:30 -0700 (PDT)
+In-Reply-To: <1340880592-21700-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-On Fri, 2012-07-06 at 01:53 -0700, Tony Lindgren wrote:
-> * Tero Kristo <t-kristo@ti.com> [120628 03:54]:
-> > OMAP2 does not use the external voltage controller code for TWL, and
-> > thus OMAP2 only compilation generates following warnings:
-> 
-> Hmm well omap2420 does not have twl, but 2430 usually has. So do you
-> mean that 2430 does not use the external voltage controller code?
+Hi Tero,
 
-Well, at least currently the external controller code is not used on any
-omap2xxx chip. I guess it might be possible to extend the support for
-omap2 also, but I don't know who can do that (personally I have no
-access to omap2 hw.)
+On 06/28/2012 12:49 PM, Tero Kristo wrote:
+> OMAP2 does not use the external voltage controller code for TWL, and
+> thus OMAP2 only compilation generates following warnings:
+>=20
+> arch/arm/mach-omap2/twl-common.c:51: warning: 'twl_set_voltage' defin=
+ed but not used
+> arch/arm/mach-omap2/twl-common.c:57: warning: 'twl_get_voltage' defin=
+ed but not used
+>=20
+> This patch moves the code in question behind ARCH specific flags and
+> eliminates these warnings.
+>=20
+> Reported-by: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-> 
-> > arch/arm/mach-omap2/twl-common.c:51: warning: 'twl_set_voltage' defined but not used
-> > arch/arm/mach-omap2/twl-common.c:57: warning: 'twl_get_voltage' defined but not used
-> > 
-> > This patch moves the code in question behind ARCH specific flags and
-> > eliminates these warnings.
-> ...
-> 
-> > --- a/arch/arm/mach-omap2/twl-common.c
-> > +++ b/arch/arm/mach-omap2/twl-common.c
-> > @@ -48,6 +48,7 @@ static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
-> >  	},
-> >  };
-> >  
-> > +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> >  static int twl_set_voltage(void *data, int target_uV)
-> >  {
-> >  	struct voltagedomain *voltdm = (struct voltagedomain *)data;
-> > @@ -59,6 +60,7 @@ static int twl_get_voltage(void *data)
-> >  	struct voltagedomain *voltdm = (struct voltagedomain *)data;
-> >  	return voltdm_get_voltage(voltdm);
-> >  }
-> > +#endif
-> 
-> To avoid patching this piece of code for new SoCs, can we make it
-> ifndef CONFIG_ARCH_OMAP2? Also in the makefile we should not even
-> build twl-common.o for 2420 only builds..
+I did sent similar patch:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70432.html
 
-Can't make it ifndef CONFIG_ARCH_OMAP2, as this would break on
-omap2plus_defconfig then... as it defines all ARCH_OMAP2...ARCH_OMAP4.
+Tony applied it to fixes I think already.
 
-And... can't drop it from makefile either, as parts of the code from
-twl-common.c are still used with omap2 (omap_pmic_init &
-omap_pmic_late_init). These would need to be moved elsewhere first.
-
--Tero
+--=20
+P=E9ter
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
