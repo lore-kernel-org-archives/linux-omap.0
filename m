@@ -1,51 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
-Date: Fri, 6 Jul 2012 00:13:35 -0700
-Message-ID: <20120706071335.GJ1122@atomide.com>
-References: <cover.1339586624.git.afzal@ti.com>
- <1340789755.29342.12.camel@sauron.fi.intel.com>
- <20120702073547.GA1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A267A@DBDE01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
+ getting stuck intransition state.
+Date: Fri, 6 Jul 2012 12:51:03 +0530
+Message-ID: <CAMQu2gwDdonnvFuDpy06aRA2O4Sj1Jh+pEWAGQV3az6BHQKf4w@mail.gmail.com>
+References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433EAF87AB@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:20899 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431Ab2GFHNj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 03:13:39 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A267A@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EAF87AB@DBDE01.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "Vutla, Lokesh" <lokeshvutla@ti.com>, Wim Van Sebroeck <wim@iguana.be>, linux-omap <linux-omap@vger.kernel.org>, linux-watchdog <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120703 05:10]:
-> Hi Tony,
-> 
-> On Mon, Jul 02, 2012 at 13:05:47, Tony Lindgren wrote:
-> > * Artem Bityutskiy <artem.bityutskiy@linux.intel.com> [120627 02:36]:
-> > > On Wed, 2012-06-13 at 17:02 +0530, Afzal Mohammed wrote:
-> 
-> > > > This series cleans up gpmc mtd interactions so that GPMC driver
-> > > > conversion which is going to happen shortly would happen smoothly
-> > > > by not creating much disturbance outside of arch/arm/*omap*/
-> > > 
-> > > Dunno if Tony picked this, but the MTD changes look good an the quick
-> > > glance. Feel free to add
-> > > 
-> > > Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-> > 
-> > Thanks will add to the drivers/mtd touching patches in this series.
-> 
-> Can you please consider this series for inclusion in the coming merge
-> window. This series can live by itself and is not dependent on any
-> other patches.
+(+ linux-omap, linux-watchdog)
 
-Yes I have some of the gpmc patches applied locally on top of the
-dmaengine changes from Russell. Will update and push out once we have
-an immutable commit for the dmaengine changes available.
+Vaibhav,
 
-Regards,
+On Thu, Jul 5, 2012 at 8:06 PM, Bedia, Vaibhav <vaibhav.bedia@ti.com> wrote:
+> Hi,
+>
+> On Mon, Jun 18, 2012 at 10:53:16, Vutla, Lokesh wrote:
+>> OMAP watchdong driver is adapted to runtime PM like a general device
+>> driver but it is not appropriate. It is causing couple of functional
+>> issues.
+>>
+>
+> A few questions based on the description given in the commit message.
+>
+>> 1. On OMAP4 SYSCLK can't be gated, because of issue with WDTIMER2 module,
+>> which constantly stays in "in transition" state. Value of register
+>> CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.
+>> Issue occurs immediately after first idle, when hwmod framework tries
+>> to disable WDTIMER2 functional clock - "wd_timer2_fck". After this
+>> module falls to "in transition" state, and SYSCLK gating is blocked.
+>>
+>
+> From what I know, a value of 0x00010000 for timers (WDT or DMTIMERs)
+> indicates that the iclk is gated but the fclk is running. In fact,
+> if the IP supports swakeup mechanism this is the value expected in the
+> *_CLKCTRL registers of the timers for the swakeup to work.
+>
+Nope. That case will be 0x00020000
 
-Tony
+Read 0x1: Module is performing transition: wakeup, or
+sleep, or sleep abortion
+Read 0x2: Module is in idle mode (only INTRCONN part).
+It is functional if using separate functional clock
+Read 0x3: Module is disabled and cannot be accessed
+
+> Sounds like on OMAP4 the WDT needs to be stopped first and then the
+> PRCM idle request sent otherwise SYSCLK gating will be blocked.
+>
+Any module stuck in-transition will get the clock-domain from idle.
+
+>> 2. Due to runtime PM, watchdog timer may be completely disabled.
+>> In current code base watchdog timer is not disabled only because of
+>> issue 1. Otherwise state of WDTIMER2 module will be "Disabled", and there
+>> will be no interrupts from omap_wdt. In other words watchdog will not
+>> work at all.
+>
+> But the current driver doesn't make use of any interrupts, right?
+>
+How is the interrupt related. You enable that when you enable WDT
+petting using delay_interrupt()
+
+> If the WDT was never started, runtime PM handling for the WDT should be
+> able to get the IP to a "disabled" state. Is the issue over here due
+> to the WDT counter incrementing and still the PRCM idle request being
+> sent for disabling it? If so, perhaps a better solution would be have
+> a custom runtime PM handling for WDT which checks if the counter
+> is incrementing or not. If it is not incrementing then it can just
+> go ahead and disable the clocks. However, if the counter is incrementing
+> then the runtime PM activities on the driver should be forbidden till
+> an entry to a low power state where SYSCLK needs to be gated is required.
+>
+If you look at the test case mentioned, the watchdong is started. Your
+first observation is not as per the hardware behavior, so other points
+becomes not relevant.
+
+Regards
+Santosh
