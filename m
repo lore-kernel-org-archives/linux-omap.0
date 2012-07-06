@@ -1,37 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/4] ARM: OMAP2+: dmtimer: cleanup related to devm
- API and clk usage
-Date: Fri, 6 Jul 2012 00:09:00 -0700
-Message-ID: <20120706070900.GI1122@atomide.com>
-References: <1334925563-20768-1-git-send-email-tarun.kanti@ti.com>
- <CAC83ZvLOoUwthcv0seXeqJcuvxvhP7P500T66RHCCWvrsaPr2A@mail.gmail.com>
- <CAMQu2gxDbi191EdA0_acaJwhuAddXJ44FzVQJ=5c1Fh0PFDG4w@mail.gmail.com>
- <CAC83ZvLcyRSc-X2o_05tS7R3S1s190ejDQaBOYHOK1JuknrAxA@mail.gmail.com>
- <20120705092809.GY1122@atomide.com>
- <CAC83ZvKO22JZ59VLdykEjRNDqK_FmGLtC=1y8OEfP88Ef9jBSA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Fri, 6 Jul 2012 00:13:35 -0700
+Message-ID: <20120706071335.GJ1122@atomide.com>
+References: <cover.1339586624.git.afzal@ti.com>
+ <1340789755.29342.12.camel@sauron.fi.intel.com>
+ <20120702073547.GA1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A267A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62131 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:20899 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460Ab2GFHJE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 03:09:04 -0400
+	with ESMTP id S1752431Ab2GFHNj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 03:13:39 -0400
 Content-Disposition: inline
-In-Reply-To: <CAC83ZvKO22JZ59VLdykEjRNDqK_FmGLtC=1y8OEfP88Ef9jBSA@mail.gmail.com>
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A267A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [120705 04:46]:
->
-> Patch 3: Comment was about adding summary in patch 0/x why we have
-> not removed iclk in OMAP2/3 platform. In other words there was no
-> specific changes needed on patch 3 as such. BTW, patch 3 is already merged.
-...
+* Mohammed, Afzal <afzal@ti.com> [120703 05:10]:
+> Hi Tony,
+> 
+> On Mon, Jul 02, 2012 at 13:05:47, Tony Lindgren wrote:
+> > * Artem Bityutskiy <artem.bityutskiy@linux.intel.com> [120627 02:36]:
+> > > On Wed, 2012-06-13 at 17:02 +0530, Afzal Mohammed wrote:
+> 
+> > > > This series cleans up gpmc mtd interactions so that GPMC driver
+> > > > conversion which is going to happen shortly would happen smoothly
+> > > > by not creating much disturbance outside of arch/arm/*omap*/
+> > > 
+> > > Dunno if Tony picked this, but the MTD changes look good an the quick
+> > > glance. Feel free to add
+> > > 
+> > > Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+> > 
+> > Thanks will add to the drivers/mtd touching patches in this series.
+> 
+> Can you please consider this series for inclusion in the coming merge
+> window. This series can live by itself and is not dependent on any
+> other patches.
 
-> I will rebase on top of cleanup-part2 are repost patch 4.
+Yes I have some of the gpmc patches applied locally on top of the
+dmaengine changes from Russell. Will update and push out once we have
+an immutable commit for the dmaengine changes available.
 
-OK thanks!
+Regards,
 
 Tony
