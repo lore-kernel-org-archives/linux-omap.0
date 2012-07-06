@@ -1,109 +1,93 @@
-From: Andy Green <andy.green@linaro.org>
-Subject: [PATCH 5 2/2] OMAP4 PANDA register ethernet and wlan for automatic
- mac allocation
-Date: Fri, 06 Jul 2012 12:09:48 +0800
-Message-ID: <20120706040946.6669.1040.stgit@build.warmcat.com>
-References: <20120706040938.6669.77083.stgit@build.warmcat.com>
+From: "Matcovschi, Oleg" <oleg.matcovschi-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3 2/5] usb: musb: twl: use mailbox API to send VBUS or
+ ID events
+Date: Fri, 6 Jul 2012 05:52:42 +0000
+Message-ID: <E0D6B3D7803B1A49AC7CEA9958379F630375C1E7@DFLE36.ent.ti.com>
+References: <1340367055-19835-1-git-send-email-kishon@ti.com>
+	<1340367055-19835-3-git-send-email-kishon@ti.com>
+	<E0D6B3D7803B1A49AC7CEA9958379F630375BD5A@DFLE36.ent.ti.com>
+ <CAAe_U6+3sf5Nm5bQeY=Pi=sYMPp3GfXWxfbbbo1mSH2u9xjTyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20120706040938.6669.77083.stgit@build.warmcat.com>
-Sender: netdev-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: s-jan@ti.com, arnd@arndb.de, patches@linaro.org, tony@atomide.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAe_U6+3sf5Nm5bQeY=Pi=sYMPp3GfXWxfbbbo1mSH2u9xjTyQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Andy Green <andy@warmcat.com>
+Hi Kishon,
 
-This provides the board-specific device paths needed to get
-the panda boardfile working with the eth-mac-platform api.
 
-On Pandaboard / ES, neither the onboard Ethernet or onboard WLAN
-module have onboard arrangements for MAC storage, without this
-series yielding randomized MAC per-boot and consequent DHCP problems,
-or in the case of wlan0 a MAC set by a firmware file in the rootfs
-which unless customized yields a MAC of 00:00:00:00:00:00.  No
-official MAC is reserved for either network device even if you do
-take the approach to customize the firmware file.
+>-----Original Message-----
+>From: ABRAHAM, KISHON VIJAY=20
+>Sent: Tuesday, July 03, 2012 10:48 PM
+>To: Matcovschi, Oleg
+>Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kern=
+el-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; >Balbi, Felipe
+>Subject: Re: [PATCH v3 2/5] usb: musb: twl: use mailbox API to send VB=
+US or ID events
 
-This gets sane, consistent MAC addresses on both devices which
-should stand a good probability of differing between PandaBoards.
+>Hi Oleg,
 
-Signed-off-by: Andy Green <andy.green@linaro.org>
----
- arch/arm/mach-omap2/Kconfig            |    1 +
- arch/arm/mach-omap2/board-omap4panda.c |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+>On Tue, Jul 3, 2012 at 11:09 PM, Matcovschi, Oleg <oleg.matcovschi@ti.=
+com> wrote:
+>>>From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
+>>>[linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] on behalf of ABRAHAM, KISHON VIJA=
+Y
+>>>Sent: Friday, June 22, 2012 5:10 AM
+>>>To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org; ABRAHAM, KISHON VIJAY;=20
+>>>linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;=20
+>>>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe
+>>>Subject: [PATCH v3 2/5] usb: musb: twl: use mailbox API to send VBUS=
+=20
+>>>or ID events
+>>
+>>>The atomic notifier from twl4030/twl6030 to notifiy VBUS and ID=20
+>>>events, is replaced by a direct call to omap musb blue.
+>>
+>>>Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>>>---
+>>> drivers/usb/musb/omap2430.c =A0 | =A0 94=20
+>>>+++++++++++++++++++++++++---------------
+>>> drivers/usb/otg/twl4030-usb.c | =A0 46 ++++++++++---------- =20
+>>>drivers/usb/otg/twl6030-usb.c | =A0 47 +++++++++----------- =20
+>>>include/linux/usb/musb-omap.h | =A0 30 +++++++++++++
+>>> 4 files changed, 133 insertions(+), 84 deletions(-)  create mode=20
+>>>100644 include/linux/usb/musb-omap.h
+>> .....
+>> +enum omap_musb_vbus_id_status {
+>> + =A0 =A0 =A0 OMAP_MUSB_UNKNOWN =3D 0,
+>> + =A0 =A0 =A0 OMAP_MUSB_ID_GROUND,
+>> + =A0 =A0 =A0 OMAP_MUSB_ID_FLOAT,
+>> + =A0 =A0 =A0 OMAP_MUSB_VBUS_VALID,
+>> + =A0 =A0 =A0 OMAP_MUSB_VBUS_OFF,
+>> +};
+>> +
+>>
+>> Why did you choose to introduce OMAP_MUSB specific VBUS, ID events?
+>> IMHO, it makes more sense to introduce mailbox functionality only wi=
+thout extra translation layer.
+>> Same mailbox glue layer could be used for other PHY drivers, not jus=
+t twl.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 83fb31c..61c6a3d 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -358,6 +358,7 @@ config MACH_OMAP4_PANDA
- 	select OMAP_PACKAGE_CBL
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
-+	select ETH_MAC_PLATFORM
- 
- config MACH_PCM049
- 	bool "OMAP4 based phyCORE OMAP4"
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 982fb26..75d93cc 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -32,7 +32,10 @@
- #include <linux/wl12xx.h>
- #include <linux/platform_data/omap-abe-twl6040.h>
- 
-+#include <net/eth-mac-platform.h>
-+
- #include <mach/hardware.h>
-+#include <mach/id.h>
- #include <asm/hardware/gic.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -486,16 +489,43 @@ static void omap4_panda_init_rev(void)
- 	}
- }
- 
-+/*
-+ * These device paths represent onboard network devices which have
-+ * no MAC address set at boot, and need synthetic ones assigning
-+ */
-+static __initdata struct eth_mac_platform panda_eth_mac_platform[] = {
-+
-+	{ /* smsc USB <-> Ethernet bridge */
-+		.device_path = "usb1/1-1/1-1.1/1-1.1:1.0",
-+	},
-+	{ /* wlan0 module */
-+		.device_path = "wl12xx",
-+	},
-+	{ /* terminator */
-+	}
-+};
-+
- static void __init omap4_panda_init(void)
- {
- 	int package = OMAP_PACKAGE_CBS;
- 	int ret;
-+	int n;
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		package = OMAP_PACKAGE_CBL;
- 	omap4_mux_init(board_mux, NULL, package);
- 
- 	omap_panda_wlan_data.irq = gpio_to_irq(GPIO_WIFI_IRQ);
-+
-+	/*
-+	 * provide MAC addresses computed from device ID for network
-+	 * devices that have no MAC address otherwise on Panda
-+	 */
-+	for (n = 0; n < ARRAY_SIZE(panda_eth_mac_platform) - 1; n++)
-+		omap_die_id_to_ethernet_mac(panda_eth_mac_platform[n].mac, n);
-+	if (eth_mac_platform_register_device_macs(panda_eth_mac_platform))
-+		pr_err("Unable to register eth_mac_platform devices\n");
-+
- 	ret = wl12xx_set_platform_data(&omap_panda_wlan_data);
- 	if (ret)
- 		pr_err("error setting wl12xx data: %d\n", ret);
+>We've decided to make twl as a comparator driver since we have a separ=
+ate phy driver (not yet merged). Hence we dint >want twl to use usb_phy=
+ specific events. So if you have other PHY drivers, you can still use t=
+he OMAP_MUSB specific >events.
+>Thanks
+>Kishon
+
+In other words: you are proposing to have 2 flavors of other phy driver=
+s(OMAP and not-OMAP platform specific)...
+Do you think it is necessary?
+Could you please provide full description of your original problem?
+
+Regards,
+ Oleg
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
