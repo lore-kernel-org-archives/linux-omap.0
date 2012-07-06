@@ -1,75 +1,119 @@
-From: <jgq516@gmail.com>
-Subject: [PATCH 1/1] ARM: add PROC_DEVICETREE support in Kconfig
-Date: Fri, 6 Jul 2012 18:38:47 +0800
-Message-ID: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Fri, 6 Jul 2012 15:30:44 +0530
+Message-ID: <CAP05o4JEx0uSCH+mZzLhoV479A00uUumvYY_-b8dQ9j_5Awumw@mail.gmail.com>
+References: <87fw9o32v2.fsf@ti.com>
+	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+	<20120622103050.GG28472@arwen.pp.htv.fi>
+	<87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi>
+	<87d34nfdei.fsf@ti.com>
+	<871uku85o8.fsf@ti.com>
+	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
+	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+	<87k3yj4pn4.fsf@ti.com>
+	<20120705111901.GR22065@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, tony@atomide.com, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, arnd@arndb.de, swarren@nvidia.com, olof@lixom.net, ldewangan@nvidia.com, hdoyu@nvidia.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:51821 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751309Ab2GFKAs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 06:00:48 -0400
+Received: by lbbgg6 with SMTP id gg6so13716452lbb.36
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 03:00:44 -0700 (PDT)
+In-Reply-To: <20120705111901.GR22065@sortiz-mobl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Kevin Hilman <khilman@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, notasas@gmail.com, Paul Walmsley <paul@pwsan.com>
 
-From: Xiao Jiang <jgq516@gmail.com>
+On Thu, Jul 5, 2012 at 4:49 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
+> Hi Kevin, Keshava,
+>
+> On Wed, Jul 04, 2012 at 06:33:35AM -0700, Kevin Hilman wrote:
+>> "Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
+>>
+>> > On Tue, Jul 3, 2012 at 12:17 PM, Munegowda, Keshava
+>> > <keshava_mgowda@ti.com> wrote:
+>> >> On Mon, Jul 2, 2012 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> >>> Felipe, Keshava,
+>> >>>
+>> >>> Kevin Hilman <khilman@ti.com> writes:
+>> >>>
+>> >>>> Felipe Balbi <balbi@ti.com> writes:
+>> >>>>
+>> >>>> [...]
+>> >>>>
+>> >>>>> Keshava is reverting a fix for a HW errata. I can't accept it as it will
+>> >>>>> cause regressions. Granted, regression by regression, there's no change,
+>> >>>>> but I simply can't knowingly cause a regression to the driver just to
+>> >>>>> have PM working. We need a real fix for this issue.
+>> >>>>
+>> >>>> Sure, as long as there is a fix in this -rc cycle.
+>> >>>>
+>> >>>> This driver intoduced changes in v3.5 that break PM for the whole SoC
+>> >>>> (by preventing CORE retention.)  These changes were clearly not tested
+>> >>>> with PM.
+>> >>>>
+>> >>>> If you cannot fix this during the -rc cycle, then you need to revert the
+>> >>>> driver PM changes that broke PM for the *whole* SoC.
+>> >>>
+>> >>> What's the status of this regression?
+>> >>>
+>> >>> This is still broken in v3.5-rc and is preventing CORE retention for the
+>> >>> *whole* SoC.
+>> >>>
+>> >>> Please fix this, either with a proper fix, or a revert for 3.5-rc.
+>> >>
+>> >>
+>> >> The proper fix for this is implement ion of ehci remote wakeup through
+>> >> I/O chain handler; it takes time.
+>> >> As Felipe also mentioned,  This patch is OK for now.
+>> >
+>> > Sorry, Felipe still insist not to revert this patch, but to change
+>> > this patch requires quite more changes in the usbhs core
+>> > and we need to see the how the hub control changes need to be brought
+>> > in to usbhs core. so , reverting is the
+>> > best solution to time being.
+>> >
+>> > Its observed that ehci was enabled after linux kernal version 3.3 ;
+>> > before that even though driver was there
+>> > the ehci deriver was disabled by defaults; and it is expected the
+>> > people who want to use NFS then can enable it
+>> > explicitly.
+>> >
+>> > so,  the solution is
+>> >
+>> > 1. Use this patch ( reverting the hw errata ) to fix the NFS Boot and
+>> > suspend/resume crash
+>>
+>> Or, use the patches from Russ Dill where were more targetted fixes.
+>> Either way, I'm OK with that.
+> Keshava, I'll wait for your decision here to know which patch you want me to
+> take.
+>
+>
+>
+>> > 2. Disable the ehci driver to make the pm work in idle case ;
+>> >               This configuration should exist till the ehci remote
+>> > wakeup implementation completes.
+>>
+>> Yes.  Please disabled it by default.
+>>
+>> Until PM in this driver can work without breaking PM for the whole SoC,
+>> it should remain disabled.
+> So, I should expect another patch here as well.
+> FYI, I was planning to send a pull request for MFD 3.5 fixes to Linus
+> tomorrow, but I'll wait for you. Hopefully I should be able to send it on
+> Monday.
+>
+> Cheers,
+> Samuel.
 
-Since more and more arm chips support device tree, it'd be better add PROC_DEVICETREE
-in arch/arm/Kconfig to avoid duplicate code.
+Thanks Samuel
 
-Signed-off-by: Xiao Jiang <jgq516@gmail.com>
----
- arch/arm/Kconfig                   |    1 +
- arch/arm/configs/at91_dt_defconfig |    1 -
- arch/arm/configs/tegra_defconfig   |    1 -
- arch/arm/plat-omap/Kconfig         |    1 -
- 4 files changed, 1 insertions(+), 3 deletions(-)
+I will send the patches today.
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index a91009c..f68896e 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1864,6 +1864,7 @@ config USE_OF
- 	select OF
- 	select OF_EARLY_FLATTREE
- 	select IRQ_DOMAIN
-+	select PROC_DEVICETREE if PROC_FS
- 	help
- 	  Include support for flattened device tree machine descriptions.
- 
-diff --git a/arch/arm/configs/at91_dt_defconfig b/arch/arm/configs/at91_dt_defconfig
-index 67bc571..b856cb6 100644
---- a/arch/arm/configs/at91_dt_defconfig
-+++ b/arch/arm/configs/at91_dt_defconfig
-@@ -64,7 +64,6 @@ CONFIG_MTD_NAND=y
- CONFIG_MTD_NAND_ATMEL=y
- CONFIG_MTD_UBI=y
- CONFIG_MTD_UBI_GLUEBI=y
--CONFIG_PROC_DEVICETREE=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_BLK_DEV_RAM=y
- CONFIG_BLK_DEV_RAM_COUNT=4
-diff --git a/arch/arm/configs/tegra_defconfig b/arch/arm/configs/tegra_defconfig
-index 1198dd6..43e7b65 100644
---- a/arch/arm/configs/tegra_defconfig
-+++ b/arch/arm/configs/tegra_defconfig
-@@ -72,7 +72,6 @@ CONFIG_IPV6_TUNNEL=y
- CONFIG_IPV6_MULTIPLE_TABLES=y
- # CONFIG_WIRELESS is not set
- # CONFIG_FIRMWARE_IN_KERNEL is not set
--CONFIG_PROC_DEVICETREE=y
- CONFIG_BLK_DEV_LOOP=y
- CONFIG_AD525X_DPOT=y
- CONFIG_AD525X_DPOT_I2C=y
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index ad95c7a..4e2cb17 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -27,7 +27,6 @@ config ARCH_OMAP2PLUS
- 	select GENERIC_IRQ_CHIP
- 	select OMAP_DM_TIMER
- 	select USE_OF
--	select PROC_DEVICETREE if PROC_FS
- 	help
- 	  "Systems based on OMAP2, OMAP3 or OMAP4"
- 
--- 
-1.7.3
+regards
+keshava
