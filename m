@@ -1,82 +1,49 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] MFD: twl-core: move device_init_wakeup to after
- platform_device_add.
-Date: Sat, 7 Jul 2012 08:51:03 +1000
-Message-ID: <20120707085103.7b1a51ec@notabene.brown>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 1/1] ARM: add PROC_DEVICETREE support in Kconfig
+Date: Fri, 6 Jul 2012 16:24:32 -0700
+Message-ID: <CAOesGMjmeXVx2MR7GGux9Cztkf-C3cBqpBW1_PW75D_Gk0GHiA@mail.gmail.com>
+References: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
+	<4FF6DCCA.2080509@gmail.com>
+	<CAERv70uZMEoX4OcECssOrktVzC911tiSLXRH56TjyhQqVgNwBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/FzB3P.31BHtTq=w7qVSh96N"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:53557 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756537Ab2GFXYc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 19:24:32 -0400
+Received: by pbbrp8 with SMTP id rp8so15347365pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 16:24:32 -0700 (PDT)
+In-Reply-To: <CAERv70uZMEoX4OcECssOrktVzC911tiSLXRH56TjyhQqVgNwBA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Xiao Jiang <jgq516@gmail.com>
+Cc: Rob Herring <robherring2@gmail.com>, linux@arm.linux.org.uk, tony@atomide.com, plagnioj@jcrosoft.com, nicolas.ferre@atmel.com, arnd@arndb.de, swarren@nvidia.com, ldewangan@nvidia.com, hdoyu@nvidia.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
---Sig_/FzB3P.31BHtTq=w7qVSh96N
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Fri, Jul 6, 2012 at 4:15 PM, Xiao Jiang <jgq516@gmail.com> wrote:
+> 2012/7/6 Rob Herring <robherring2@gmail.com>
+>>
+>> On 07/06/2012 05:38 AM, jgq516@gmail.com wrote:
+>> > From: Xiao Jiang <jgq516@gmail.com>
+>> >
+>> > Since more and more arm chips support device tree, it'd be better add
+>> > PROC_DEVICETREE
+>> > in arch/arm/Kconfig to avoid duplicate code.
+>>
+>> I think this should remain user choice. If its going to be selected,
+>> then you might as well just remove the option altogether. Perhaps just
+>> make the option default to yes.
+>>
+> Hmm, sounds reasonable from your point. So the better choice is to set the
+> option default to Y if the board has dt support just like tegra_defconfig
+> and at91_dt_defconfig,  right? thanks.
+
+Why bother? If the defconfigs select it then most users basing their
+config from that will be just fine.
+
+PROC_DEVICETREE is 100% optional, it's useful to get runtime access to
+the contents of the device tree but it's not required for the kernel
+to boot.
 
 
-
-device_init_wakeup uses the dev_name() of the device to set the
-name of the wakeup_source which appears in
-/sys/kernel/debug/wakeup_sources.
-
-For a platform device, that name is not set until platform_device_add
-calls dev_set_name.
-
-So the call to device_init_wakeup() must be after the call to
-platform_device_add().
-Making this change causes correct names to appear in the
-wakeup_sources file.
-
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 6fc90be..b012efd 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -568,7 +568,6 @@ add_numbered_child(unsigned chip, const char *name, int=
- num,
- 		goto err;
- 	}
-=20
--	device_init_wakeup(&pdev->dev, can_wakeup);
- 	pdev->dev.parent =3D &twl->client->dev;
-=20
- 	if (pdata) {
-@@ -593,6 +592,8 @@ add_numbered_child(unsigned chip, const char *name, int=
- num,
- 	}
-=20
- 	status =3D platform_device_add(pdev);
-+	if (status =3D=3D 0)
-+		device_init_wakeup(&pdev->dev, can_wakeup);
-=20
- err:
- 	if (status < 0) {
-
---Sig_/FzB3P.31BHtTq=w7qVSh96N
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT/dr1znsnt1WYoG5AQJBlQ//Tr7CxCNid9BXVqBxbJWQdDzEpXJ7bvt+
-oRFA9lRidhHrQtXfH4eaeBfvQv5PIj3goktfWXAt8D/ZbNDNsBoDL/WfWI1IxDnw
-1G3pmLlC2LbhYRd3/iYhF6um00WZ2MKBmTqgrLLeX/FQAywdhC/WtW+b7+NfEKjb
-iOb6NoqITaCV4ZHazoiW0SjeHb8o0pzYWw7OQCJTWB4rd1S7x2sXHmhBwD6hM6RK
-/cn10pmNMvi6J4R74WgfVDnpzFexd5HLQtjinz308K/vIpUc5VDq0r549xa9qWfB
-U/+I+lwaO51046ISKfbzaBfTpqaiqTb4plmu0rAtgsS1ha8ZXfr/KKpeXYkFTsUE
-Th7jF6CMU2H2SBJAbZQ+jfg/cpVzpAnkL/drP0/WFTqzS/xLiOLIK0Sdu1mwcntb
-9b4TSVDr6TuKiQHlKh1a9RTYSvdgv6leqqZMoI1LwVzfTtQJzYir+kncfuxE5iK6
-SF+ws2EtpaWcrwaIdy5elleUDY+oVSKn6VTJNrbylmdRjRMUnUj2yVQPoQTC99Qw
-RZOZhVjnBWs+gzWZL9iOcobUFyi6xK8iw5n6E1uiu3wu/t3GBXmJ2nj/yO+Jk6N3
-5eIV6xMAWuH2JeGkOjWGHo1ECQjo3nXNyfUmIY4LjCRFzo0KN+x3bKHQKXL26ZWb
-dEFQ/+bMv5k=
-=0/8b
------END PGP SIGNATURE-----
-
---Sig_/FzB3P.31BHtTq=w7qVSh96N--
+-Olof
