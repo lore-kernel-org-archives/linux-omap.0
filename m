@@ -1,142 +1,70 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 09/14] ARM: OMAP5: Add SMP support.
-Date: Fri, 6 Jul 2012 14:51:50 +0530
-Message-ID: <1341566515-22665-10-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register offset using the IP scheme.
+Date: Fri, 6 Jul 2012 14:51:43 +0530
+Message-ID: <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
 References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38295 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38296 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932083Ab2GFJWn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932123Ab2GFJWn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 6 Jul 2012 05:22:43 -0400
 In-Reply-To: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, R Sricharan <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Add OMAP5 SMP boot support using OMAP4 SMP code. The relevant code paths
-are runtime checked using cpu id
+From: R Sricharan <r.sricharan@ti.com>
+
+OMAP socs has a legacy and a highlander version of the
+32k sync counter IP. The register offsets vary between the
+highlander and the legacy scheme. So use the 'SCHEME'
+bits(30-31) of the revision register to distinguish between
+the two versions and choose the CR register offset accordingly.
 
 Signed-off-by: R Sricharan <r.sricharan@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/common.h       |    1 +
- arch/arm/mach-omap2/omap-headsmp.S |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/omap-smp.c     |   35 +++++++++++++++++++++++------------
- 3 files changed, 45 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/counter_32k.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 97e8792..960f984 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -276,6 +276,7 @@ extern void omap_secondary_startup(void);
- extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
- extern void omap_auxcoreboot_addr(u32 cpu_addr);
- extern u32 omap_read_auxcoreboot0(void);
-+extern void omap5_secondary_startup(void);
- #endif
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index 2132c4f..dbf1e03 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -29,7 +29,10 @@
+ #include <plat/clock.h>
  
- #if defined(CONFIG_SMP) && defined(CONFIG_PM)
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 503ac77..502e313 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -19,6 +19,27 @@
- #include <linux/init.h>
+ /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
+-#define OMAP2_32KSYNCNT_CR_OFF		0x10
++#define OMAP2_32KSYNCNT_REV_OFF		0x0
++#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
++#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
++#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
  
- 	__CPUINIT
-+
-+/* Physical address needed since MMU not enabled yet on secondary core */
-+#define AUX_CORE_BOOT0_PA			0x48281800
-+
-+/*
-+ * OMAP5 specific entry point for secondary CPU to jump from ROM
-+ * code.  This routine also provides a holding flag into which
-+ * secondary core is held until we're ready for it to initialise.
-+ * The primary core will update this flag using a hardware
-++ * register AuxCoreBoot0.
-+ */
-+ENTRY(omap5_secondary_startup)
-+wait:	ldr	r2, =AUX_CORE_BOOT0_PA	@ read from AuxCoreBoot0
-+	ldr	r0, [r2]
-+	mov	r0, r0, lsr #5
-+	mrc	p15, 0, r4, c0, c0, 5
-+	and	r4, r4, #0x0f
-+	cmp	r0, r4
-+	bne	wait
-+	b	secondary_startup
-+END(omap5_secondary_startup)
  /*
-  * OMAP4 specific entry point for secondary CPU to jump from ROM
-  * code.  This routine also provides a holding flag into which
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index badfe39..7d118b9 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -33,6 +33,12 @@
- #include "common.h"
- #include "clockdomain.h"
+  * 32KHz clocksource ... always available, on pretty most chips except
+@@ -84,9 +87,16 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
+ 	int ret;
  
-+#define CPU_MASK		0xff0ffff0
-+#define CPU_CORTEX_A9		0x410FC090
-+#define CPU_CORTEX_A15		0x410FC0F0
-+
-+#define OMAP5_CORE_COUNT	0x2
-+
- /* SCU base address */
- static void __iomem *scu_base;
- 
-@@ -133,7 +139,6 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- static void __init wakeup_secondary(void)
- {
- 	void __iomem *base = omap_get_wakeupgen_base();
--
  	/*
- 	 * Write the address of secondary startup routine into the
- 	 * AuxCoreBoot1 where ROM code will jump and start executing
-@@ -162,16 +167,21 @@ static void __init wakeup_secondary(void)
-  */
- void __init smp_init_cpus(void)
- {
--	unsigned int i, ncores;
--
--	/*
--	 * Currently we can't call ioremap here because
--	 * SoC detection won't work until after init_early.
--	 */
--	scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
--	BUG_ON(!scu_base);
--
--	ncores = scu_get_core_count(scu_base);
-+	unsigned int i = 0, ncores = 1, cpu_id;
-+
-+	/* Use ARM cpuid check here, as SoC detection will not work so early */
-+	cpu_id = read_cpuid(CPUID_ID) & CPU_MASK;
-+	if (cpu_id == CPU_CORTEX_A9) {
-+		/*
-+		 * Currently we can't call ioremap here because
-+		 * SoC detection won't work until after init_early.
-+		 */
-+		scu_base =  OMAP2_L4_IO_ADDRESS(OMAP44XX_SCU_BASE);
-+		BUG_ON(!scu_base);
-+		ncores = scu_get_core_count(scu_base);
-+	} else if (cpu_id == CPU_CORTEX_A15) {
-+		ncores = OMAP5_CORE_COUNT;
-+	}
- 
- 	/* sanity check */
- 	if (ncores > nr_cpu_ids) {
-@@ -193,6 +203,7 @@ void __init platform_smp_prepare_cpus(unsigned int max_cpus)
- 	 * Initialise the SCU and wake up the secondary core using
- 	 * wakeup_secondary().
+-	 * 32k sync Counter register offset is at 0x10
++	 * 32k sync Counter IP register offsets vary between the
++	 * highlander version and the legacy ones.
++	 * The 'SCHEME' bits(30-31) of the revision register is used
++	 * to identify the version.
  	 */
--	scu_enable(scu_base);
-+	if (scu_base)
-+		scu_enable(scu_base);
- 	wakeup_secondary();
- }
+-	sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF;
++	if (__raw_readl(vbase + OMAP2_32KSYNCNT_REV_OFF) &
++						OMAP2_32KSYNCNT_REV_SCHEME)
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
++	else
++		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
+ 
+ 	/*
+ 	 * 120000 rough estimate from the calculations in
 -- 
 1.7.9.5
 
