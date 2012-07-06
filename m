@@ -1,52 +1,98 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
 Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 6 Jul 2012 17:31:19 +0000
-Message-ID: <201207061731.20271.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201207061528.58291.arnd@arndb.de> <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
+Date: Fri, 6 Jul 2012 21:57:31 +0100
+Message-ID: <20120706205731.GA31585@n2100.arm.linux.org.uk>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+ <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
+ <201206252030.56025.arnd@arndb.de>
+ <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58533 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290Ab2GFTP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 15:15:29 -0400
-In-Reply-To: <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1207061315470.29809-0199iw4Nj15frtckUFj5Ag@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
+Cc: Vinod Koul <vinod.koul-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Friday 06 July 2012, Guennadi Liakhovetski wrote:
-> > > <dmaengine_core>
-> > >     for_each_channel() {
-> > >             ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
-> > >             if (!ret)
-> > >                     return chan;
-> > >             else if (ret != -ENODEV)
-> > >                     return ret;
-> > >             /* -ENODEV - try the next channel */
-> > >     }
-> > > 
-> > > Which is quite similar to my above mentioned proposal. Wouldn't this both 
-> > > improve the present API and prepare it for DT?
-> > 
-> > How would the individual driver know the size of the filter_arg?
+On Fri, Jul 06, 2012 at 01:36:32PM +0200, Guennadi Liakhovetski wrote:
+> I like this idea, but why don't we extend it to also cover the non-DT 
+> case? I.e., why don't we add the above callback (call it "match" or 
+> "filter" or anything else) to dmaengine operations and inside (the 
+> extended) dma_request_channel(), instead of calling the filter function, 
+> passed as a parameter, we loop over all registered DMAC devices and call 
+> their filter callbacks, until one of them returns true? In fact, it goes 
+> back to my earlier proposal from 
+> http://thread.gmane.org/gmane.linux.kernel/1246957
+> which I, possibly, failed to explain properly. So, the transformation 
+> chain from today's API would be (all code is approximate):
 > 
-> In exactly the same way as most dmaengine drivers do it today: they don't 
-> touch filter_arg until they're sure this is one of their channels. And 
-> this they typically do by comparing the driver pointer, e.g.:
+> (today)
 > 
-> bool sa11x0_dma_filter_fn(struct dma_chan *chan, void *param)
-> {
->         if (chan->device->dev->driver == &sa11x0_dma_driver.driver) {
+> <client driver>
+> 	dma_request_channel(mask, filter, filter_arg);
+> 
+> <dmaengine_core>
+> 	for_each_channel() {
+> 		ret = (*filter)(chan, filter_arg);
+> 		if (ret) {
+> 			ret = chan->device->device_alloc_chan_resources(chan);
+> 			if (!ret)
+> 				return chan;
+> 			else
+> 				return NULL;
+> 		}
+> 	}
+> 
+> (can be transformed to)
+> 
+> <client driver>
+> 	dma_request_channel(mask, filter_arg);
+> 
+> <dmaengine_core>
+> 	for_each_channel() {
+> 		ret = chan->device->filter(chan, filter_arg);
+> 		if (ret) {
+> 			<same as above>
+> 		}
+> 	}
+> 
+> (which further could be simplified to)
+> 
+> <client driver>
+> 	dma_request_channel(mask, filter_arg);
+> 
+> <dmaengine_core>
+> 	for_each_channel() {
+> 		ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
 
-I don't understand. This already matches because we're calling the
-device_alloc_chan_resources() function of the specific device that
-matches the channel. However, we do the same for each channel, with the
-same data, but different controllers, each of which will think they match
-the channel.
+This looks like you're re-purposing a perfectly good API for something that
+it wasn't designed to do, namely providing a channel selection mechanism,
+rather than "allocating channel resources".  The hint is in the bloody
+name, please take a look sometime!
 
-	Arnd
+If you want to call into the DMA engine driver for channel selection,
+then create an _explicit_ API for it.  Don't bugger around with existing
+APIs.
 
+Moreover, the *big* problem that your proposal above creates is this.
+What _type_ is filter_arg?  If it's void *, then your suggestion is
+nonsense, even if you associate it with a size argument.  You have no
+idea what the bytestream that would be passed via that pointer means,
+even if the size just happens to look like it's what you expect.
+
+If it's something else, then your mistake above was not defining it, so
+there's no way to evaluate your proposal given that lack of critical
+information.  And if you define it, whatever you come up with _must_
+be suitable for every single DMA engine driver we have today.
