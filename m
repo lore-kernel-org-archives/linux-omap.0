@@ -1,54 +1,52 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not stable, disable it
-Date: Fri,  6 Jul 2012 11:20:28 -0700
-Message-ID: <1341598828-31410-1-git-send-email-khilman@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 6 Jul 2012 17:31:19 +0000
+Message-ID: <201207061731.20271.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201207061528.58291.arnd@arndb.de> <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:33578 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754180Ab2GFSUb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 14:20:31 -0400
-Received: by pbbrp12 with SMTP id rp12so16239774pbb.29
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jul 2012 11:20:30 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.187]:58533 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755290Ab2GFTP3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jul 2012 15:15:29 -0400
+In-Reply-To: <Pine.LNX.4.64.1207061737410.29809@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-The EHCI driver is not stable enough to be enabled by default.  In v3.5,
-it has at least the following problems:
+On Friday 06 July 2012, Guennadi Liakhovetski wrote:
+> > > <dmaengine_core>
+> > >     for_each_channel() {
+> > >             ret = chan->device->device_alloc_chan_resources(chan, filter_arg);
+> > >             if (!ret)
+> > >                     return chan;
+> > >             else if (ret != -ENODEV)
+> > >                     return ret;
+> > >             /* -ENODEV - try the next channel */
+> > >     }
+> > > 
+> > > Which is quite similar to my above mentioned proposal. Wouldn't this both 
+> > > improve the present API and prepare it for DT?
+> > 
+> > How would the individual driver know the size of the filter_arg?
+> 
+> In exactly the same way as most dmaengine drivers do it today: they don't 
+> touch filter_arg until they're sure this is one of their channels. And 
+> this they typically do by comparing the driver pointer, e.g.:
+> 
+> bool sa11x0_dma_filter_fn(struct dma_chan *chan, void *param)
+> {
+>         if (chan->device->dev->driver == &sa11x0_dma_driver.driver) {
 
-- warning dump during bootup
-- hang during suspend
-- prevents CORE powerdomain from entering retention during idle (even
-  when no USB devices connected.)
+I don't understand. This already matches because we're calling the
+device_alloc_chan_resources() function of the specific device that
+matches the channel. However, we do the same for each channel, with the
+same data, but different controllers, each of which will think they match
+the channel.
 
-This demonstrates that this driver has not been thoroughly tested and
-therfore should not be enabled in the default defconfig.
-
-In addition, the problems above cause new PM regressions which need be
-addressed before this driver should be enabled in the default
-defconfig.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Tony, this applies to your current fixes branch.   Please queue up for v3.5-rc
-so this PM regression is fixed in v3.5.  Thanks.
-
- arch/arm/configs/omap2plus_defconfig |    1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 9854ff4..11828e6 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -176,7 +176,6 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
- CONFIG_USB_DEVICEFS=y
- CONFIG_USB_SUSPEND=y
- CONFIG_USB_MON=y
--CONFIG_USB_EHCI_HCD=y
- CONFIG_USB_WDM=y
- CONFIG_USB_STORAGE=y
- CONFIG_USB_LIBUSUAL=y
--- 
-1.7.9.2
+	Arnd
 
