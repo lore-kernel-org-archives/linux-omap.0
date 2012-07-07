@@ -1,91 +1,63 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving
- dependency problem
-Date: Sat, 7 Jul 2012 14:41:31 +0200
-Message-ID: <20120707124131.GA9034@localhost.localdomain>
-References: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
- <20120702174138.GA9669@animalcreek.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] MFD: twl-core: move device_init_wakeup to after platform_device_add.
+Date: Sat, 7 Jul 2012 22:55:03 +0200
+Message-ID: <201207072255.03300.rjw@sisk.pl>
+References: <20120707085103.7b1a51ec@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eddie.linux-mips.org ([78.24.191.182]:55708 "EHLO
-	cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab2GGMlo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jul 2012 08:41:44 -0400
-Received: (from localhost user: 'ladis' uid#521 fake: STDIN
-        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
-        id S1903526Ab2GGMll (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-        Sat, 7 Jul 2012 14:41:41 +0200
-Content-Disposition: inline
-In-Reply-To: <20120702174138.GA9669@animalcreek.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:57611 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751390Ab2GGUtd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 7 Jul 2012 16:49:33 -0400
+In-Reply-To: <20120707085103.7b1a51ec@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: "Kim, Milo" <Milo.Kim@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Mon, Jul 02, 2012 at 10:41:38AM -0700, Mark A. Greer wrote:
-> On Mon, Jul 02, 2012 at 05:54:57AM +0000, Kim, Milo wrote:
-> > In am35x board , iva2 clock domain doesn't be used.
-> > So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
-> > OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
-> > AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
-> > 
-> > For the compatibility with omap3430, this patch has no conflict because mpu_3xxx_clkdm was already defined in clock domains for omap3430.
-> > So this can be removed from common clock domain.
-> > 
-> > Below error can be fixed with this patch.
-> > 
-> > [    0.000000] AM3517 ES1.1 (l2cache sgx neon )
-> > [    0.000000] ------------[ cut here ]------------
-> > [    0.000000] WARNING: at arch/arm/mach-omap2/clockdomain.c:237 _resolve_clkdm_deps+0x68/0x108()
-> > [    0.000000] clockdomain: mpu_clkdm: could not find clkdm iva2_clkdm while resolving dependencies - should never happen
-> > [    0.000000] Modules linked in:
-> > [    0.000000] [<c001bd3c>] (unwind_backtrace+0x0/0xf4) from [<c0040c2c>] (warn_slowpath_common+0x4c/0x64)
-> > [    0.000000] [<c0040c2c>] (warn_slowpath_common+0x4c/0x64) from [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40)
-> > [    0.000000] [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40) from [<c003256c>] (_resolve_clkdm_deps+0x68/0x108)
-> > [    0.000000] [<c003256c>] (_resolve_clkdm_deps+0x68/0x108) from [<c0032640>] (clkdm_complete_init+0x34/0x90)
-> > [    0.000000] [<c0032640>] (clkdm_complete_init+0x34/0x90) from [<c06d7600>] (omap3_init_early+0x20/0x30)
-> > [    0.000000] [<c06d7600>] (omap3_init_early+0x20/0x30) from [<c06d3230>] (setup_arch+0x834/0x94c)
-> > [    0.000000] [<c06d3230>] (setup_arch+0x834/0x94c) from [<c06cf6b0>] (start_kernel+0x88/0x2fc)
-> > [    0.000000] [<c06cf6b0>] (start_kernel+0x88/0x2fc) from [<80008044>] (0x80008044)
-> > 
-> > Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/clockdomains3xxx_data.c |    1 -
-> >  1 files changed, 0 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > index d625844..56089c4 100644
-> > --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > @@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
-> >  
-> >  static struct clockdomain *clockdomains_common[] __initdata = {
-> >  	&wkup_common_clkdm,
-> > -	&mpu_3xxx_clkdm,
-> >  	&neon_clkdm,
-> >  	&core_l3_3xxx_clkdm,
-> >  	&core_l4_3xxx_clkdm,
-> > -- 
-> > 1.7.2.5
+On Saturday, July 07, 2012, NeilBrown wrote:
 > 
-> Hi Milo.
+> device_init_wakeup uses the dev_name() of the device to set the
+> name of the wakeup_source which appears in
+> /sys/kernel/debug/wakeup_sources.
 > 
-> Thanks for the patch but this issue should already be fixed in a patch
-> that Tony just made a pull request for
-> (http://www.spinics.net/lists/linux-omap/msg73080.html).
+> For a platform device, that name is not set until platform_device_add
+> calls dev_set_name.
 > 
-> >From that email (and branch in the email), look for this patch:
+> So the call to device_init_wakeup() must be after the call to
+> platform_device_add().
+> Making this change causes correct names to appear in the
+> wakeup_sources file.
 > 
-> > Mark A. Greer (4):
 > 
-> >      ARM: OMAP AM35x: clockdomain data: Fix clockdomain dependencies
-> 
-> Please take a look as another set of eyes never hurts. :)
+> Signed-off-by: NeilBrown <neilb@suse.de>
 
-Hi Mark,
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-just tested above patch on Technexion's TAM-3517 and it indeed fixes above
-warning. Without patch, warning is generated. Tested on Tony's master branch.
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 6fc90be..b012efd 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -568,7 +568,6 @@ add_numbered_child(unsigned chip, const char *name, int num,
+>  		goto err;
+>  	}
+>  
+> -	device_init_wakeup(&pdev->dev, can_wakeup);
+>  	pdev->dev.parent = &twl->client->dev;
+>  
+>  	if (pdata) {
+> @@ -593,6 +592,8 @@ add_numbered_child(unsigned chip, const char *name, int num,
+>  	}
+>  
+>  	status = platform_device_add(pdev);
+> +	if (status == 0)
+> +		device_init_wakeup(&pdev->dev, can_wakeup);
+>  
+>  err:
+>  	if (status < 0) {
+> 
 
-	ladis
