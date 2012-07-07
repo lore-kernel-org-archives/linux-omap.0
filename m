@@ -1,15 +1,12 @@
-From: Xiao Jiang <jgq516@gmail.com>
-Subject: Re: [PATCH 1/1] ARM: add PROC_DEVICETREE support in Kconfig
-Date: Sat, 7 Jul 2012 08:10:57 +0800
-Message-ID: <CAERv70vi6-OanH2p9Db0jy-zLVVeNa+dfC04aYrsd_3m7OydLQ@mail.gmail.com>
-References: <1341571127-14461-1-git-send-email-jgq516@gmail.com>
- <4FF6DCCA.2080509@gmail.com>
- <CAERv70uZMEoX4OcECssOrktVzC911tiSLXRH56TjyhQqVgNwBA@mail.gmail.com>
- <CAOesGMjmeXVx2MR7GGux9Cztkf-C3cBqpBW1_PW75D_Gk0GHiA@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [GIT PULL] gpio/omap: final fixes for v3.5
+Date: Fri, 6 Jul 2012 18:29:45 -0600
+Message-ID: <CACxGe6v+67PEJrOk6K86WjcU055U_QrPU8e21ppKyn9Rfq36tQ@mail.gmail.com>
+References: <87vci08npt.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3033496832178948443=="
+Content-Type: multipart/mixed; boundary="===============6147868586886055180=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAOesGMjmeXVx2MR7GGux9Cztkf-C3cBqpBW1_PW75D_Gk0GHiA@mail.gmail.com>
+In-Reply-To: <87vci08npt.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,110 +16,116 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux@arm.linux.org.uk, arnd@arndb.de, tony@atomide.com, nicolas.ferre@atmel.com, linux-kernel@vger.kernel.org, ldewangan@nvidia.com, swarren@nvidia.com, linux-omap@vger.kernel.org, plagnioj@jcrosoft.com, linux-arm-kernel@lists.infradead.org, hdoyu@nvidia.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: Linus Walleij <linus.ml.walleij@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
---===============3033496832178948443==
-Content-Type: multipart/alternative; boundary=90e6ba6134f40b4e3b04c4323702
+--===============6147868586886055180==
+Content-Type: multipart/alternative; boundary=047d7b2ee2e949a3c704c4327a53
 
---90e6ba6134f40b4e3b04c4323702
+--047d7b2ee2e949a3c704c4327a53
 Content-Type: text/plain; charset=ISO-8859-1
 
-2012/7/7 Olof Johansson <olof@lixom.net>
+Hi Kevin,
 
-> On Fri, Jul 6, 2012 at 4:15 PM, Xiao Jiang <jgq516@gmail.com> wrote:
-> > 2012/7/6 Rob Herring <robherring2@gmail.com>
-> >>
-> >> On 07/06/2012 05:38 AM, jgq516@gmail.com wrote:
-> >> > From: Xiao Jiang <jgq516@gmail.com>
-> >> >
-> >> > Since more and more arm chips support device tree, it'd be better add
-> >> > PROC_DEVICETREE
-> >> > in arch/arm/Kconfig to avoid duplicate code.
-> >>
-> >> I think this should remain user choice. If its going to be selected,
-> >> then you might as well just remove the option altogether. Perhaps just
-> >> make the option default to yes.
-> >>
-> > Hmm, sounds reasonable from your point. So the better choice is to set
-> the
-> > option default to Y if the board has dt support just like tegra_defconfig
-> > and at91_dt_defconfig,  right? thanks.
->
-> Why bother? If the defconfigs select it then most users basing their
-> config from that will be just fine.
->
-> PROC_DEVICETREE is 100% optional, it's useful to get runtime access to
-> the contents of the device tree but it's not required for the kernel
-> to boot.
->
-> Got it, thanks.
+Linus W. is handling picking up gpio stuff for me while I'm overloaded with
+moving to the UK.
 
-Regards,
-Xiao
+Linus, I typically pull from Kevin instead of applying the patches myself.
 
+g.
+ On Jul 6, 2012 5:38 PM, "Kevin Hilman" <khilman@ti.com> wrote:
+
+> Hi Grant,
 >
-> -Olof
+> Here's a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.
+>
+> Thanks,
+>
+> Kevin
+>
+>
+> The following changes since commit
+> 6b16351acbd415e66ba16bf7d473ece1574cf0bc:
+>
+>   Linux 3.5-rc4 (2012-06-24 12:53:04 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.gitfor_3.5/fixes/gpio-3
+>
+> for you to fetch changes up to 7b86cef34afceeecf57d4d07f3cfab06f8b60b13:
+>
+>   gpio/omap: fix invalid context restore of gpio bank-0 (2012-07-03
+> 09:41:39 -0700)
+>
+> ----------------------------------------------------------------
+> Grazvydas Ignotas (1):
+>       gpio/omap: fix irq loss while in idle with debounce on
+>
+> Jon Hunter (1):
+>       gpio/omap: fix invalid context restore of gpio bank-0
+>
+>  drivers/gpio/gpio-omap.c |   14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
 >
 
---90e6ba6134f40b4e3b04c4323702
+--047d7b2ee2e949a3c704c4327a53
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-2012/7/7 Olof Johansson <span dir=3D"ltr">&lt;<a href=3D"mailto:olof@lixom.=
-net" target=3D"_blank">olof@lixom.net</a>&gt;</span><br><div class=3D"gmail=
-_quote"><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border=
--left:1px #ccc solid;padding-left:1ex">
-<div class=3D"im">On Fri, Jul 6, 2012 at 4:15 PM, Xiao Jiang &lt;<a href=3D=
-"mailto:jgq516@gmail.com">jgq516@gmail.com</a>&gt; wrote:<br>
-&gt; 2012/7/6 Rob Herring &lt;<a href=3D"mailto:robherring2@gmail.com">robh=
-erring2@gmail.com</a>&gt;<br>
-&gt;&gt;<br>
-&gt;&gt; On 07/06/2012 05:38 AM, <a href=3D"mailto:jgq516@gmail.com">jgq516=
-@gmail.com</a> wrote:<br>
-&gt;&gt; &gt; From: Xiao Jiang &lt;<a href=3D"mailto:jgq516@gmail.com">jgq5=
-16@gmail.com</a>&gt;<br>
-&gt;&gt; &gt;<br>
-&gt;&gt; &gt; Since more and more arm chips support device tree, it&#39;d b=
-e better add<br>
-&gt;&gt; &gt; PROC_DEVICETREE<br>
-&gt;&gt; &gt; in arch/arm/Kconfig to avoid duplicate code.<br>
-&gt;&gt;<br>
-&gt;&gt; I think this should remain user choice. If its going to be selecte=
-d,<br>
-&gt;&gt; then you might as well just remove the option altogether. Perhaps =
-just<br>
-&gt;&gt; make the option default to yes.<br>
-&gt;&gt;<br>
-&gt; Hmm, sounds reasonable from your point. So the better choice is to set=
- the<br>
-&gt; option default to Y if the board has dt support just like tegra_defcon=
-fig<br>
-&gt; and at91_dt_defconfig, =A0right? thanks.<br>
+<p>Hi Kevin,</p>
+<p>Linus W. is handling picking up gpio stuff for me while I&#39;m overload=
+ed with moving to the UK.</p>
+<p>Linus, I typically pull from Kevin instead of applying the patches mysel=
+f.</p>
+<p>g.<br>
+</p>
+<div class=3D"gmail_quote">On Jul 6, 2012 5:38 PM, &quot;Kevin Hilman&quot;=
+ &lt;<a href=3D"mailto:khilman@ti.com">khilman@ti.com</a>&gt; wrote:<br typ=
+e=3D"attribution"><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .=
+8ex;border-left:1px #ccc solid;padding-left:1ex">
+Hi Grant,<br>
 <br>
-</div>Why bother? If the defconfigs select it then most users basing their<=
-br>
-config from that will be just fine.<br>
+Here&#39;s a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.<br>
 <br>
-PROC_DEVICETREE is 100% optional, it&#39;s useful to get runtime access to<=
-br>
-the contents of the device tree but it&#39;s not required for the kernel<br=
+Thanks,<br>
+<br>
+Kevin<br>
+<br>
+<br>
+The following changes since commit 6b16351acbd415e66ba16bf7d473ece1574cf0bc=
+:<br>
+<br>
+=A0 Linux 3.5-rc4 (2012-06-24 12:53:04 -0700)<br>
+<br>
+are available in the git repository at:<br>
+<br>
+=A0 git://<a href=3D"http://git.kernel.org/pub/scm/linux/kernel/git/khilman=
+/linux-omap-pm.git" target=3D"_blank">git.kernel.org/pub/scm/linux/kernel/g=
+it/khilman/linux-omap-pm.git</a> for_3.5/fixes/gpio-3<br>
+<br>
+for you to fetch changes up to 7b86cef34afceeecf57d4d07f3cfab06f8b60b13:<br=
 >
-to boot.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br></font></span></blockquo=
-te><div>Got it, thanks.<br><br>Regards,<br>Xiao <br></div><blockquote class=
-=3D"gmail_quote" style=3D"margin:0px 0px 0px 0.8ex;border-left:1px solid rg=
-b(204,204,204);padding-left:1ex">
-<span class=3D"HOEnZb"><font color=3D"#888888">
 <br>
--Olof<br>
-</font></span></blockquote></div><br>
+=A0 gpio/omap: fix invalid context restore of gpio bank-0 (2012-07-03 09:41=
+:39 -0700)<br>
+<br>
+----------------------------------------------------------------<br>
+Grazvydas Ignotas (1):<br>
+=A0 =A0 =A0 gpio/omap: fix irq loss while in idle with debounce on<br>
+<br>
+Jon Hunter (1):<br>
+=A0 =A0 =A0 gpio/omap: fix invalid context restore of gpio bank-0<br>
+<br>
+=A0drivers/gpio/gpio-omap.c | =A0 14 +++++++++++++-<br>
+=A01 file changed, 13 insertions(+), 1 deletion(-)<br>
+</blockquote></div>
 
---90e6ba6134f40b4e3b04c4323702--
+--047d7b2ee2e949a3c704c4327a53--
 
 
---===============3033496832178948443==
+--===============6147868586886055180==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -133,4 +136,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============3033496832178948443==--
+--===============6147868586886055180==--
