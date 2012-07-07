@@ -1,70 +1,91 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] Watchdog: OMAP: Fix the runtime pm code to avoid module
- getting stuck intransition state.
-Date: Sat, 7 Jul 2012 17:58:40 +0530
-Message-ID: <CAMQu2gxaaBbragTH-=XJYhXsHrsRO4VTZTY9uv4PfSsp5ThQaQ@mail.gmail.com>
-References: <1339996996-3257-1-git-send-email-lokeshvutla@ti.com>
- <CAMQu2gwUgPewy98L+yF5bcdrqXRLZftb3utLNg5HV1jBscGpTQ@mail.gmail.com>
- <CAMQu2gy9pe-t9ik+v01Zz3oN6eRZ27+pxom+ECy4491Fvah=SA@mail.gmail.com> <20120707122725.GY735@spo001.leaseweb.com>
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving
+ dependency problem
+Date: Sat, 7 Jul 2012 14:41:31 +0200
+Message-ID: <20120707124131.GA9034@localhost.localdomain>
+References: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
+ <20120702174138.GA9669@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:49122 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013Ab2GGM3D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jul 2012 08:29:03 -0400
-Received: by qaea16 with SMTP id a16so967539qae.3
-        for <linux-omap@vger.kernel.org>; Sat, 07 Jul 2012 05:29:01 -0700 (PDT)
-In-Reply-To: <20120707122725.GY735@spo001.leaseweb.com>
+Received: from eddie.linux-mips.org ([78.24.191.182]:55708 "EHLO
+	cvs.linux-mips.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab2GGMlo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Jul 2012 08:41:44 -0400
+Received: (from localhost user: 'ladis' uid#521 fake: STDIN
+        (ladis@eddie.linux-mips.org)) by eddie.linux-mips.org
+        id S1903526Ab2GGMll (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+        Sat, 7 Jul 2012 14:41:41 +0200
+Content-Disposition: inline
+In-Reply-To: <20120702174138.GA9669@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: Lokesh Vutla <lokeshvutla@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, linux-watchdog@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: "Kim, Milo" <Milo.Kim@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, Jul 7, 2012 at 5:57 PM, Wim Van Sebroeck <wim@iguana.be> wrote:
->
-> Hi All,
->
-> > > On Mon, Jun 18, 2012 at 10:53 AM, Lokesh Vutla <lokeshvutla@ti.com>
-> > > wrote:
-> > >> OMAP watchdong driver is adapted to runtime PM like a general device
-> > >> driver but it is not appropriate. It is causing couple of functional
-> > >> issues.
-> > >>
-> > >> 1. On OMAP4 SYSCLK can't be gated, because of issue with WDTIMER2
-> > >> module,
-> > >> which constantly stays in "in transition" state. Value of register
-> > >> CM_WKUP_WDTIMER2_CLKCTRL is always 0x00010000 in this case.
-> > >> Issue occurs immediately after first idle, when hwmod framework tries
-> > >> to disable WDTIMER2 functional clock - "wd_timer2_fck". After this
-> > >> module falls to "in transition" state, and SYSCLK gating is blocked.
-> > >>
-> > >> 2. Due to runtime PM, watchdog timer may be completely disabled.
-> > >> In current code base watchdog timer is not disabled only because of
-> > >> issue 1. Otherwise state of WDTIMER2 module will be "Disabled", and
-> > >> there
-> > >> will be no interrupts from omap_wdt. In other words watchdog will not
-> > >> work at all.
-> > >>
-> > >> Watchdong is a special IP and it should not be disabled otherwise
-> > >> purpose of it itself is defeated. Watchdog functional clock should
-> > >> never be disabled. This patch updates the runtime PM handling in
-> > >> driver so that runtime PM is limited only during probe/shutdown
-> > >> and suspend/resume.
-> > >>
-> > >> The patch fixes issue 1 and 2
-> > >>
-> > >> Signed-off-by: Lokesh Vutla <lokeshvutla@ti.com>
-> > >> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > >> Cc: Wim Van Sebroeck <wim@iguana.be>
-> > >> ---
-> >
-> > Any comments on this patch ? If not, can you please
-> > queue this up for the 3.5-rc?
->
-> Added to linux-watchdog-next.
->
-Thanks Wim.
+On Mon, Jul 02, 2012 at 10:41:38AM -0700, Mark A. Greer wrote:
+> On Mon, Jul 02, 2012 at 05:54:57AM +0000, Kim, Milo wrote:
+> > In am35x board , iva2 clock domain doesn't be used.
+> > So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
+> > OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
+> > AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
+> > 
+> > For the compatibility with omap3430, this patch has no conflict because mpu_3xxx_clkdm was already defined in clock domains for omap3430.
+> > So this can be removed from common clock domain.
+> > 
+> > Below error can be fixed with this patch.
+> > 
+> > [    0.000000] AM3517 ES1.1 (l2cache sgx neon )
+> > [    0.000000] ------------[ cut here ]------------
+> > [    0.000000] WARNING: at arch/arm/mach-omap2/clockdomain.c:237 _resolve_clkdm_deps+0x68/0x108()
+> > [    0.000000] clockdomain: mpu_clkdm: could not find clkdm iva2_clkdm while resolving dependencies - should never happen
+> > [    0.000000] Modules linked in:
+> > [    0.000000] [<c001bd3c>] (unwind_backtrace+0x0/0xf4) from [<c0040c2c>] (warn_slowpath_common+0x4c/0x64)
+> > [    0.000000] [<c0040c2c>] (warn_slowpath_common+0x4c/0x64) from [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40)
+> > [    0.000000] [<c0040cd8>] (warn_slowpath_fmt+0x30/0x40) from [<c003256c>] (_resolve_clkdm_deps+0x68/0x108)
+> > [    0.000000] [<c003256c>] (_resolve_clkdm_deps+0x68/0x108) from [<c0032640>] (clkdm_complete_init+0x34/0x90)
+> > [    0.000000] [<c0032640>] (clkdm_complete_init+0x34/0x90) from [<c06d7600>] (omap3_init_early+0x20/0x30)
+> > [    0.000000] [<c06d7600>] (omap3_init_early+0x20/0x30) from [<c06d3230>] (setup_arch+0x834/0x94c)
+> > [    0.000000] [<c06d3230>] (setup_arch+0x834/0x94c) from [<c06cf6b0>] (start_kernel+0x88/0x2fc)
+> > [    0.000000] [<c06cf6b0>] (start_kernel+0x88/0x2fc) from [<80008044>] (0x80008044)
+> > 
+> > Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/clockdomains3xxx_data.c |    1 -
+> >  1 files changed, 0 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > index d625844..56089c4 100644
+> > --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > @@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
+> >  
+> >  static struct clockdomain *clockdomains_common[] __initdata = {
+> >  	&wkup_common_clkdm,
+> > -	&mpu_3xxx_clkdm,
+> >  	&neon_clkdm,
+> >  	&core_l3_3xxx_clkdm,
+> >  	&core_l4_3xxx_clkdm,
+> > -- 
+> > 1.7.2.5
+> 
+> Hi Milo.
+> 
+> Thanks for the patch but this issue should already be fixed in a patch
+> that Tony just made a pull request for
+> (http://www.spinics.net/lists/linux-omap/msg73080.html).
+> 
+> >From that email (and branch in the email), look for this patch:
+> 
+> > Mark A. Greer (4):
+> 
+> >      ARM: OMAP AM35x: clockdomain data: Fix clockdomain dependencies
+> 
+> Please take a look as another set of eyes never hurts. :)
 
-Regards
-Santosh
+Hi Mark,
+
+just tested above patch on Technexion's TAM-3517 and it indeed fixes above
+warning. Without patch, warning is generated. Tested on Tony's master branch.
+
+	ladis
