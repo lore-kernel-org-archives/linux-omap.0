@@ -1,38 +1,63 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] remoteproc fixes for 3.5
-Date: Sun, 8 Jul 2012 22:23:13 +0300
-Message-ID: <CAK=WgbZsCy7ZaMATbyTtZvP6bHCLfroth0z=wFOZhtmMWBFAhg@mail.gmail.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH 0/2] OMAPDSS: PM runtime fixes for 3.5-rc
+Date: Sun, 08 Jul 2012 22:10:17 +0000
+Message-ID: <4FFA0549.9020802@gmx.de>
+References: <1341405829-16964-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Grosen, Mark" <mgrosen@ti.com>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:48964 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752534Ab2GHWKO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jul 2012 18:10:14 -0400
+In-Reply-To: <1341405829-16964-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, jaswinder.singh@linaro.org, jw@terrafix.co.uk, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Linus,
+Hi Archit,
 
-The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+On 07/04/2012 12:43 PM, Archit Taneja wrote:
+> Hi Florian,
+> 
+> These are 2 fixes which Tomi had intended to push for the coming rcs. He is
+> currently on vacation and asked me to post the patches on his behalf.
+> 
+> The first patch ensures that system suspend doesn't break on OMAP if DSS is
+> enabled. The second patch prevents some warning backtraces when the kernel is
+> not built with PM runtime.
+> 
+> Could you please queue these for the upcoming rc?
 
-  Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+as you sent me those patches you should have added your Signed-off-by as
+well, I added it.
+Also the first patch of this series contained 2 coding style issues
+related to braces that checkpatch complained about and also differed
+from the coding style used in those files, I fixed those as well.
+I applied both patches.
 
-are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-tags/remoteproc-3.5-fixes
+Thanks,
 
-for you to fetch changes up to e121aefa7d9f10eee5cf26ed47129237a05d940b:
+Florian Tobias Schandinat
 
-  remoteproc: fix missing CONFIG_FW_LOADER configurations (2012-07-04
-11:01:12 +0300)
+> 
+> Thanks,
+> Archit
+> 
+> Tomi Valkeinen (2):
+>   OMAPDSS: Use PM notifiers for system suspend
+>   OMAPDSS: fix warnings if CONFIG_PM_RUNTIME=n
+> 
+>  drivers/video/omap2/dss/core.c  |   45 +++++++++++++++++++++++++--------------
+>  drivers/video/omap2/dss/dispc.c |    2 +-
+>  drivers/video/omap2/dss/dsi.c   |    2 +-
+>  drivers/video/omap2/dss/dss.c   |    2 +-
+>  drivers/video/omap2/dss/hdmi.c  |    2 +-
+>  drivers/video/omap2/dss/rfbi.c  |    2 +-
+>  drivers/video/omap2/dss/venc.c  |    2 +-
+>  7 files changed, 35 insertions(+), 22 deletions(-)
+> 
 
-----------------------------------------------------------------
-Two build-related remoteproc fixes for 3.5.
-
-----------------------------------------------------------------
-Ohad Ben-Cohen (2):
-      remoteproc/omap: fix randconfig unmet direct dependencies
-      remoteproc: fix missing CONFIG_FW_LOADER configurations
-
- drivers/remoteproc/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
