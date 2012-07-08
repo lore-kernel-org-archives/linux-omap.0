@@ -1,63 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] MFD: twl-core: move device_init_wakeup to after platform_device_add.
-Date: Sat, 7 Jul 2012 22:55:03 +0200
-Message-ID: <201207072255.03300.rjw@sisk.pl>
-References: <20120707085103.7b1a51ec@notabene.brown>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH 3/5] ARM: omap3evm: enable VBUS switch for EHCI tranceiver
+Date: Sun, 8 Jul 2012 15:50:57 +0800
+Message-ID: <4FF93BE1.1000209@windriver.com>
+References: <1340183693-3195-1-git-send-email-zumeng.chen@windriver.com> <1340183693-3195-4-git-send-email-zumeng.chen@windriver.com> <4FE1BC98.7050607@mvista.com> <20120706084105.GR1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:57611 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390Ab2GGUtd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 7 Jul 2012 16:49:33 -0400
-In-Reply-To: <20120707085103.7b1a51ec@notabene.brown>
+Received: from mail.windriver.com ([147.11.1.11]:45590 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab2GHHym (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jul 2012 03:54:42 -0400
+In-Reply-To: <20120706084105.GR1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, jon-hunter@ti.com, mike@compulab.co.il, linux-omap@vger.kernel.org, khilman@ti.com, hvaibhav@ti.com, linux-arm-kernel@lists.infradead.org, ajay.gupta@ti.com
 
-On Saturday, July 07, 2012, NeilBrown wrote:
-> 
-> device_init_wakeup uses the dev_name() of the device to set the
-> name of the wakeup_source which appears in
-> /sys/kernel/debug/wakeup_sources.
-> 
-> For a platform device, that name is not set until platform_device_add
-> calls dev_set_name.
-> 
-> So the call to device_init_wakeup() must be after the call to
-> platform_device_add().
-> Making this change causes correct names to appear in the
-> wakeup_sources file.
-> 
-> 
-> Signed-off-by: NeilBrown <neilb@suse.de>
+=E4=BA=8E 2012=E5=B9=B407=E6=9C=8806=E6=97=A5 16:41, Tony Lindgren =E5=86=
+=99=E9=81=93:
+> * Sergei Shtylyov<sshtylyov@mvista.com>  [120620 05:10]:
+>> On 20-06-2012 13:14, Zumeng Chen wrote:
+>>> This will set TWL4030.GPIO2 as output pin to drive EHCI tranceiver.
+> ...
+>
+>>> +	/* Enable VBUS switch by setting TWL4030.GPIO2DIR as output
+>>> +	 * for starting USB tranceiver
+>>> +	 */
+>>> +	if (get_omap3_evm_rev()>=3D OMAP3EVM_BOARD_GEN_2) {
+>>> +		u8 val;
+>>     Empty line after declaration block wouldn't hurt...
+>>
+> I'll apply these into devel-board branch with the extra line
+> added. Not taking the clock related patch 4/5 as that's something
+> Paul should queue.
+>
+> Also note that the board-*.c files are being phased out with
+> devicetree support.
+Thanks Tony for your comments, I understand all of them.
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Regards,
+Zumeng
+>
+> Regards,
+>
+> Tony
 
-> 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 6fc90be..b012efd 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -568,7 +568,6 @@ add_numbered_child(unsigned chip, const char *name, int num,
->  		goto err;
->  	}
->  
-> -	device_init_wakeup(&pdev->dev, can_wakeup);
->  	pdev->dev.parent = &twl->client->dev;
->  
->  	if (pdata) {
-> @@ -593,6 +592,8 @@ add_numbered_child(unsigned chip, const char *name, int num,
->  	}
->  
->  	status = platform_device_add(pdev);
-> +	if (status == 0)
-> +		device_init_wakeup(&pdev->dev, can_wakeup);
->  
->  err:
->  	if (status < 0) {
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
