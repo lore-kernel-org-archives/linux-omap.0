@@ -1,48 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dtb for pandaboard
-Date: Mon, 9 Jul 2012 02:08:49 -0700
-Message-ID: <20120709090848.GD1122@atomide.com>
-References: <20120708173259.592552c1@pegasus.ausil.us>
+Subject: Re: [PATCH] arm/dts: remove MMC/SD and SPI related entries from
+ am33xx.dtsi
+Date: Mon, 9 Jul 2012 02:14:31 -0700
+Message-ID: <20120709091431.GE1122@atomide.com>
+References: <1341815049-3947-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47204 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54443 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab2GIJIw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 05:08:52 -0400
+	with ESMTP id S1752546Ab2GIJOf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 05:14:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20120708173259.592552c1@pegasus.ausil.us>
+In-Reply-To: <1341815049-3947-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dennis Gilmore <dennis@ausil.us>
-Cc: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Dennis Gilmore <dennis@ausil.us> [120708 16:11]:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+* AnilKumar Ch <anilkumar@ti.com> [120708 23:29]:
+> The MMC/SD and SPI entries in this file are not tested yet. They
+> inadvertently came into the patch because of some work in progress
+> stuff I had in my repo.
 > 
-> Hi does anyone happen to have a working dtb file for the pandaboard?
-> trying to test booting the fedora rawhide kernel which is
-> 3.5.0-rc5 with a dtb file I made from the matching sources I dont get
-> past decompressing the kernel. if i dont use a dtb file the system
-> boots further but it i'm unable to find the root filesystem since it
-> seems that the platform data has been messed up. modprobing omap
-> results in no registration of the mmc block devices. 
+> These entries should not have been sent out in the first place and
+> I am sorry for the trouble and will be extra careful in future.
 > 
-> i've not tested on a pandaboard ES or beagleboard yet  or any other
-> type of omap system. 
+> Since the offending commit is not sent upstream yet, I hope this can
+> be merged into the commit 5fc0b42a98556bd9f01cecc6a64fcbd15ec363f0
+> (arm/dts: Add initial DT support for AM33XX SoC family) on the devel-dt
+> branch of linux-omap tree.
 
-FYI, I booted my panda es recently just fine with dtb append support
-and the following .config addition using the plain
-arch/arm/boot/dts/omap4-panda.dts file:
-
-CONFIG_ARM_APPENDED_DTB=y
-CONFIG_ARM_ATAG_DTB_COMPAT=y
-CONFIG_EXT4_FS=y
-
-Can you please enable DEBUG_LL, EARLY_PRINTK and add earlyprintk to
-your cmdline and post what you get?
-
-Regards,
+Thanks applying into omap devel-dt branch.
 
 Tony
