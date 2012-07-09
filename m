@@ -1,67 +1,69 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving
- dependency problem
-Date: Mon, 9 Jul 2012 09:16:23 -0700
-Message-ID: <20120709161623.GA17180@animalcreek.com>
-References: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
- <20120702174138.GA9669@animalcreek.com>
- <20120707124131.GA9034@localhost.localdomain>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not stable, disable it
+Date: Mon, 09 Jul 2012 09:36:03 -0700
+Message-ID: <87obnox570.fsf@ti.com>
+References: <1341598828-31410-1-git-send-email-khilman@ti.com>
+	<20120709084032.GZ1122@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:53734 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab2GIQQ0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 12:16:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20120707124131.GA9034@localhost.localdomain>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:32981 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752131Ab2GIQgI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 12:36:08 -0400
+Received: by pbbro8 with SMTP id ro8so21387487pbb.11
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 09:36:06 -0700 (PDT)
+In-Reply-To: <20120709084032.GZ1122@atomide.com> (Tony Lindgren's message of
+	"Mon, 9 Jul 2012 01:40:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
-Cc: "Kim, Milo" <Milo.Kim@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Jul 07, 2012 at 02:41:31PM +0200, Ladislav Michl wrote:
-> On Mon, Jul 02, 2012 at 10:41:38AM -0700, Mark A. Greer wrote:
-> > On Mon, Jul 02, 2012 at 05:54:57AM +0000, Kim, Milo wrote:
-> > > In am35x board , iva2 clock domain doesn't be used.
-> > > So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
-> > > OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
-> > > AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
+Tony Lindgren <tony@atomide.com> writes:
 
-> > > diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > > index d625844..56089c4 100644
-> > > --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > > +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > > @@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
-> > >  
-> > >  static struct clockdomain *clockdomains_common[] __initdata = {
-> > >  	&wkup_common_clkdm,
-> > > -	&mpu_3xxx_clkdm,
-> > >  	&neon_clkdm,
-> > >  	&core_l3_3xxx_clkdm,
-> > >  	&core_l4_3xxx_clkdm,
-> > > -- 
-> > > 1.7.2.5
-> > 
-> > Hi Milo.
-> > 
-> > Thanks for the patch but this issue should already be fixed in a patch
-> > that Tony just made a pull request for
-> > (http://www.spinics.net/lists/linux-omap/msg73080.html).
-> > 
-> > >From that email (and branch in the email), look for this patch:
-> > 
-> > > Mark A. Greer (4):
-> > 
-> > >      ARM: OMAP AM35x: clockdomain data: Fix clockdomain dependencies
-> > 
-> > Please take a look as another set of eyes never hurts. :)
-> 
-> Hi Mark,
-> 
-> just tested above patch on Technexion's TAM-3517 and it indeed fixes above
-> warning. Without patch, warning is generated. Tested on Tony's master branch.
+> * Kevin Hilman <khilman@ti.com> [120706 11:25]:
+>> The EHCI driver is not stable enough to be enabled by default.  In v3.5,
+>> it has at least the following problems:
+>> 
+>> - warning dump during bootup
+>> - hang during suspend
+>> - prevents CORE powerdomain from entering retention during idle (even
+>>   when no USB devices connected.)
+>> 
+>> This demonstrates that this driver has not been thoroughly tested and
+>> therfore should not be enabled in the default defconfig.
+>> 
+>> In addition, the problems above cause new PM regressions which need be
+>> addressed before this driver should be enabled in the default
+>> defconfig.
+>> 
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>> Tony, this applies to your current fixes branch.   Please queue up for v3.5-rc
+>> so this PM regression is fixed in v3.5.  Thanks.
+>
+> OK adding, 
 
-Great, thanks for the follow up, Ladis.
+Thanks.
 
-Mark
+> although I don't like the idea of having to disable drivers in the
+> defconfig to fix issues :(
+
+Neither do I, that's why I've been complaining about it since v3.5 came
+out so it would be properly addressed by the driver writers.  It hasn't,
+so this is the last resort.
+
+> The hang during suspend case would
+> be potentially hit by many people.. Should the driver/usb/host/ehci-omap.c
+> be patched to disable suspend or at least warn about it?
+
+Russ Dill has posted fixes already for several of the problems, and
+Keshava has posted a revert, but I don't see them beling addressed for
+v3.5. 
+
+However, those fixes still don't address the CORE retention in idle
+issue which breaks PM for the whole SoC, so IMO this driver is still not
+ready to be enabled by default.
+
+Kevin
