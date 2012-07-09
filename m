@@ -1,70 +1,83 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 1/2] arm/dts: Add AM33XX basic pinctrl support
-Date: Mon, 9 Jul 2012 13:37:32 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9F3195@DBDE01.ent.ti.com>
-References: <1341479616-18630-1-git-send-email-anilkumar@ti.com>
- <1341479616-18630-2-git-send-email-anilkumar@ti.com>
- <20120706082343.GN1122@atomide.com>
+From: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/3] usb: musb: dsps: enable phy control for am335x
+Date: Mon, 9 Jul 2012 19:18:10 +0530
+Message-ID: <1341841690-23899-3-git-send-email-x0132156@ti.com>
+References: <1341841690-23899-1-git-send-email-x0132156@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43963 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753989Ab2GINiJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 09:38:09 -0400
-In-Reply-To: <20120706082343.GN1122@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1341841690-23899-1-git-send-email-x0132156-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-Hi Tony,
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Thanks for reviewing.
+Enabled the phy control logic for am335x also based on usbss
+revision register.
 
-On Fri, Jul 06, 2012 at 13:53:44, Tony Lindgren wrote:
-> * AnilKumar Ch <anilkumar@ti.com> [120705 02:18]:
-> > Adds basic pinctrl support for AM33XX family of devices. This patch
-> > is based on the pinctrl-simple driver submitted by Tony Lindgren's
-> > here: http://lwn.net/Articles/496075/
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> > ---
-> >  arch/arm/boot/dts/am33xx.dtsi |   12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index 59509c4..85def31 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -40,6 +40,18 @@
-> >  		};
-> >  	};
-> >  
-> > +	am3358_pinmux: pinmux@44E10800 {
-> > +		compatible = "ti,omap4-padconf";
-> > +		reg = <0x44E10800 0x0338>;
-> > +		#address-cells = <1>;
-> > +		#size-cells = <0>;
-> > +		#pinctrl-cells = <2>;
-> > +		pinctrl-simple,register-width = <32>;
-> > +		pinctrl-simple,function-mask = <0x7>;
-> > +		pinctrl-simple,function-off = <0xffffffff>;
-> > +		pinctrl-simple,pinconf-mask = <0x78>;
-> > +	};
-> > +
-> 
-> You might want to update to the latest version, which is now called
-> pinctrl-single instead of pinctrl-simple. Should be easy to update,
-> note that we're still waiting on people to comment on the binding,
-> so you might want to wait a bit before reposting so we have the
-> driver merged.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+---
+Earlier version of this patch based on function pointer was submitted at
+http://marc.info/?l=linux-usb&m=133583281512646&w=2
 
-In that case, I will submit the patches with respect to pinctrl-single
-after it is available in linux-next tree.
+and was not accepted as Felipe wanted this to be done through
+system conrol module driver.
 
-Thanks
-AnilKumar
+ arch/arm/plat-omap/include/plat/usb.h |    1 +
+ drivers/usb/musb/musb_dsps.c          |   17 +++++++++++------
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index c2aa4ae..6459b10 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -121,6 +121,7 @@ extern void am35x_set_mode(u8 musb_mode);
+ /* TI81XX specific definitions */
+ #define MUSB_USBSS_REV_816X	0x9
+ #define MUSB_USBSS_REV_814X	0xb
++#define MUSB_USBSS_REV_33XX	0xd
+ 
+ /* TI816X PHY controls bits */
+ #define TI816X_USBPHY0_NORMAL_MODE	(1 << 0)
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index f7271c3..171352c 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -140,16 +140,21 @@ static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
+ 		if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
+ 			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
+ 			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
+-		} else if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
+-			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
+-				| USBPHY_DPINPUT | USBPHY_DMINPUT);
+-			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
+-				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
++		} else if (glue->usbss_rev == MUSB_USBSS_REV_814X ||
++				glue->usbss_rev == MUSB_USBSS_REV_33XX) {
++			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
++			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
++			if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
++				usbphycfg &= ~(USBPHY_DPINPUT | USBPHY_DMINPUT);
++				usbphycfg |= USBPHY_DPOPBUFCTL
++						| USBPHY_DMOPBUFCTL;
++			}
+ 		}
+ 	} else {
+ 		if (glue->usbss_rev == MUSB_USBSS_REV_816X)
+ 			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
+-		else if (glue->usbss_rev == MUSB_USBSS_REV_814X)
++		else if (glue->usbss_rev == MUSB_USBSS_REV_814X ||
++				glue->usbss_rev == MUSB_USBSS_REV_33XX)
+ 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+ 	}
+ 	__raw_writel(usbphycfg, glue->usb_ctrl);
+-- 
+1.7.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
