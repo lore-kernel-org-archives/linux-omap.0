@@ -1,57 +1,81 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 1/2] ARM: OMAP: board-4430sdp: MUX configuration for
- sys_nirq2
-Date: Mon, 09 Jul 2012 11:38:55 +0200
-Message-ID: <4FFAA6AF.2010004@ti.com>
-References: <1341580752-5501-1-git-send-email-peter.ujfalusi@ti.com> <1341580752-5501-2-git-send-email-peter.ujfalusi@ti.com> <874nplc6va.fsf@ti.com> <CAMQu2gx4927Ze9tRUFq9QPubGFWfK9bHqZhVCb7c39O=WeWA3Q@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct
+ gpio_bank
+Date: Mon, 9 Jul 2012 12:43:15 +0300
+Message-ID: <4FFAA7B3.6020009@ti.com>
+References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com> <1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:33494 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751764Ab2GIJil (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 05:38:41 -0400
-Received: by obbuo13 with SMTP id uo13so23058784obb.5
-        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 02:38:40 -0700 (PDT)
-In-Reply-To: <CAMQu2gx4927Ze9tRUFq9QPubGFWfK9bHqZhVCb7c39O=WeWA3Q@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45270 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752414Ab2GIJnY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jul 2012 05:43:24 -0400
+In-Reply-To: <1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-On 07/06/2012 04:33 PM, Shilimkar, Santosh wrote:
->> Since this is TWL6030 specific, it should rather be done in TWL code
->> like I did for sys_nirq1:
->>
->>    http://marc.info/?l=3Dlinux-omap&m=3D134090312118873&w=3D2
->>
->> That would avoid having to do this in both board files.
->>
-> Though the pin is TWL specific, it need not be same on
-> different board with different SOCs. Especially when you need to
-> set MUX mode etc. So doing from board file is still better
-> since TWL6030/40 can be connected to non OMAP4 devices
-> where the muxing can be different.
->=20
-> With current know boards with TWL6030/40, this is not
-> a strong requirement though.
+Hi,
 
-There can be board which has twl6030 but does not have twl6040.
-The twl6040 is the recommended audio solution for OMAP4+ systems but it=
- can be
-replaced by other codec on some boards.
-This is the reason I have put the mux configuration into the board file=
-s for
-sys_nirq2 (which is in these cases are used to handle the interrupt fro=
-m twl6040).
+Just bumped across this patch and have a query.
 
---=20
-P=E9ter
+On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
+> There is no more need to have saved_wakeup because bank->context.wake_en
+> already holds that value. So getting rid of read/write operation associated
+> with this field.
+> 
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/gpio/gpio-omap.c |   12 +++---------
+>  1 files changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 3a4f151..3b91ade 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -57,7 +57,6 @@ struct gpio_bank {
+>  	u16 irq;
+>  	int irq_base;
+>  	struct irq_domain *domain;
+> -	u32 saved_wakeup;
+>  	u32 non_wakeup_gpios;
+>  	u32 enabled_non_wakeup_gpios;
+>  	struct gpio_regs context;
+> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>  	unsigned long		flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -	bank->saved_wakeup = __raw_readl(mask_reg);
+>  	__raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
+
+OK, here you are overwriting the mask_reg with the wakeup bitmask
+without saving the mask_reg's original content.
+
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
+> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+>  	unsigned long		flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -	__raw_writel(bank->saved_wakeup, mask_reg);
+> +	__raw_writel(bank->context.wake_en, mask_reg);
+
+Now you are restoring nothing but the same content that you stored
+during suspend. This will cause the non-wakeup gpio interrupts to get
+masked between a suspend/resume. So isn't this a bug?
+
+Proper solution would be to save the mask_reg context into another
+register than context.wake_en during suspend.
+
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
+>  	return 0;
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cheers,
+-roger
