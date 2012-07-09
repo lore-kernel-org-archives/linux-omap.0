@@ -1,24 +1,23 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register
  offset using the IP scheme.
-Date: Mon, 9 Jul 2012 18:21:45 -0500
-Message-ID: <4FFB6789.2000100@ti.com>
+Date: Mon, 9 Jul 2012 18:52:21 -0500
+Message-ID: <4FFB6EB5.8020306@ti.com>
 References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com> <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com> <873950x4ng.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44726 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:46223 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab2GIXVx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 19:21:53 -0400
+	with ESMTP id S1752342Ab2GIXw1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 19:52:27 -0400
 In-Reply-To: <873950x4ng.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tony@atomide.com, R Sricharan <r.sricharan@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
 
 On 07/09/2012 11:47 AM, Kevin Hilman wrote:
 > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
@@ -32,18 +31,10 @@ On 07/09/2012 11:47 AM, Kevin Hilman wrote:
 >> the two versions and choose the CR register offset accordingly.
 > 
 > Do these scheme bits exist on *all* OMAPs?  including OMAP1?
-> 
-> This driver is used on OMAP1 as well as OMAP2+.  
-> 
-> The cover letter says this was only build tested on OMAP1 so I suggest
-> this actually be tested on OMAP1 before merging.
 
-I have tested this on an omap5912 osk. I booted and verified that the
-offset is good.
-
-Santosh, add my tested-by for OMAP1 ...
-
-Tested-by: Jon Hunter <jon-hunter@ti.com>
+By the way, I believe that for early devices only the lower 8-bits were
+used and the upper bits return 0. For OMAP5912 I read 0x00000010 from
+the REV register and so this change should be safe for OMAP1 devices.
 
 Cheers
 Jon
