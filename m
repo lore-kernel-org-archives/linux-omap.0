@@ -1,51 +1,48 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: [PATCH v2 3/3] Watchdog: Omap: get the bootstatus for OMAP2Plus
-Date: Mon, 9 Jul 2012 15:35:28 +0800
-Message-ID: <1341819328-3514-4-git-send-email-zumeng.chen@windriver.com>
-References: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 0/2] OMAPDSS: PM runtime fixes for 3.5-rc
+Date: Mon, 9 Jul 2012 13:17:40 +0530
+Message-ID: <4FFA8C9C.2080303@ti.com>
+References: <1341405829-16964-1-git-send-email-archit@ti.com> <4FFA0549.9020802@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:33292 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433Ab2GIHgL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 03:36:11 -0400
-In-Reply-To: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54905 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752421Ab2GIHs5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jul 2012 03:48:57 -0400
+In-Reply-To: <4FFA0549.9020802@gmx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shubhrajyoti@ti.com, hvaibhav@ti.com, wim@iguana.be
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul.gortmaker@windriver.com, tony@atomide.com
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: tomi.valkeinen@ti.com, jaswinder.singh@linaro.org, jw@terrafix.co.uk, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-The offset of WKUP_MOD is not right for the PRM_RSTST of OMAP3. So here
-put the right one to match to the actual physical addr 0x48307258, which
-defined in PRCM Registers section named as Global_Reg_PRM.
+Hi Florian,
 
-And there is a MPU_WD_RST bit in PRM_RSTST(0x48307258) holding the signal
-from omap-wdt reboot, so that we can return WDIOF_CARDRESET if the board
-wakes up from omap-wdt reboot for WDIOC_GETBOOTSTATUS ioctl.
+On Monday 09 July 2012 03:40 AM, Florian Tobias Schandinat wrote:
+> Hi Archit,
+>
+> On 07/04/2012 12:43 PM, Archit Taneja wrote:
+>> Hi Florian,
+>>
+>> These are 2 fixes which Tomi had intended to push for the coming rcs. He is
+>> currently on vacation and asked me to post the patches on his behalf.
+>>
+>> The first patch ensures that system suspend doesn't break on OMAP if DSS is
+>> enabled. The second patch prevents some warning backtraces when the kernel is
+>> not built with PM runtime.
+>>
+>> Could you please queue these for the upcoming rc?
+>
+> as you sent me those patches you should have added your Signed-off-by as
+> well, I added it.
+> Also the first patch of this series contained 2 coding style issues
+> related to braces that checkpatch complained about and also differed
+> from the coding style used in those files, I fixed those as well.
+> I applied both patches.
+>
 
-Signed-off-by: Zumeng Chen <zumeng.chen@windriver.com>
----
- arch/arm/mach-omap2/prcm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+Thanks for the fixes and the pull. I'll be more careful the next time.
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 480f40a..4dcc706 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -49,8 +49,11 @@ void __iomem *prcm_mpu_base;
- u32 omap_prcm_get_reset_sources(void)
- {
- 	/* XXX This presumably needs modification for 34XX */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (cpu_is_omap24xx())
- 		return omap2_prm_read_mod_reg(WKUP_MOD, OMAP2_RM_RSTST) & 0x7f;
-+	if (cpu_is_omap34xx())
-+		return omap2_prm_read_mod_reg(OMAP3430_GR_MOD, OMAP2_RM_RSTST) &
-+		       0x7f;
- 	if (cpu_is_omap44xx())
- 		return omap2_prm_read_mod_reg(WKUP_MOD, OMAP4_RM_RSTST) & 0x7f;
- 
--- 
-1.7.5.4
-
+Thanks,
+Archit
