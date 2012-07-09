@@ -1,81 +1,113 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/7] arm/dts: Audio support for OMAP4 devices (SDP,
- PandaBoard)
-Date: Mon, 09 Jul 2012 14:19:33 +0200
-Message-ID: <4FFACC55.4060106@ti.com>
-References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct gpio_bank
+Date: Mon, 9 Jul 2012 18:00:46 +0530
+Message-ID: <CAC83ZvL0mjVEE4DDd2gPb7Du5YyEbJ46yMZ4Yg1_oupS8rz7jg@mail.gmail.com>
+References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
+	<1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
+	<4FFAA7B3.6020009@ti.com>
+	<CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com>
+	<4FFAC5D6.4090306@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1339164125-32534-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:46227 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753409Ab2GIMas (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 08:30:48 -0400
+Received: by qaeb19 with SMTP id b19so1452166qae.4
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 05:30:46 -0700 (PDT)
+In-Reply-To: <4FFAC5D6.4090306@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-Hello,
-
-On 06/08/2012 04:01 PM, Peter Ujfalusi wrote:
-> Hello,
-> =
-
-> The following series enable the audio functionality on OMAP4 based device=
-s using
-> twl6040 as audio codec.
-> =
-
-> The series adds the needed bindings in the dts for the OMAP IPs, twl6040 =
-MFD
-> device and for the audio connection on the board.
-> =
-
-> To be able to differentiate between PandaBoard and PandaBoardES (they hav=
-e a bit
-> different audio configuration) a new dts file has been created which only
-> changes the audio properties different between the two boards.
-> =
-
-> Patches for the drivers involved and the documentation related to dts sec=
-tions
-> has been either in 3.5 or heading for 3.6.
-
-Probably this series has been overlooked, since I have not received feedback
-on it.
-Should I resend the series? Which tree should I use to rebase it?
-
-Thank you,
-P=E9ter
-
-> =
-
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (7):
->   arm/dts: omap4: Add entry for OMAP McPDM IP
->   arm/dts: omap4: Add entry for OMAP DMIC IP
->   arm/dts: omap4-sdp: Add fixed regulator to represent VBAT
->   arm/dts: omap4-sdp: Add support for twl6040
->   arm/dts: omap4-sdp: Enable audio support via device tree
->   arm/dts: omap4-panda: Audio support for PandaBoard 4430
->   arm/dts: New dts file for PandaBoardES (4460)
-> =
-
->  arch/arm/boot/dts/omap4-panda.dts   |   37 +++++++++++++++++++
->  arch/arm/boot/dts/omap4-pandaES.dts |   24 ++++++++++++
->  arch/arm/boot/dts/omap4-sdp.dts     |   68 +++++++++++++++++++++++++++++=
-++++++
->  arch/arm/boot/dts/omap4.dtsi        |   18 +++++++++
->  4 files changed, 147 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
-> =
+On Mon, Jul 9, 2012 at 5:21 PM, Roger Quadros <rogerq@ti.com> wrote:
+> Tarun,
+>
+> On 07/09/2012 02:16 PM, DebBarma, Tarun Kanti wrote:
+>> Hi Roger,
+>>
+>> On Mon, Jul 9, 2012 at 3:13 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>> Hi,
+>>>
+>>> Just bumped across this patch and have a query.
+>>>
+>>> On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
+>>>> There is no more need to have saved_wakeup because bank->context.wake_en
+>>>> already holds that value. So getting rid of read/write operation associated
+>>>> with this field.
+>>>>
+>>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>>> ---
+>>>>  drivers/gpio/gpio-omap.c |   12 +++---------
+>>>>  1 files changed, 3 insertions(+), 9 deletions(-)
+>>>>
+>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>> index 3a4f151..3b91ade 100644
+>>>> --- a/drivers/gpio/gpio-omap.c
+>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>> @@ -57,7 +57,6 @@ struct gpio_bank {
+>>>>       u16 irq;
+>>>>       int irq_base;
+>>>>       struct irq_domain *domain;
+>>>> -     u32 saved_wakeup;
+>>>>       u32 non_wakeup_gpios;
+>>>>       u32 enabled_non_wakeup_gpios;
+>>>>       struct gpio_regs context;
+>>>> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>>>>       unsigned long           flags;
+>>>>
+>>>>       spin_lock_irqsave(&bank->lock, flags);
+>>>> -     bank->saved_wakeup = __raw_readl(mask_reg);
+>>>>       __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
+>>>
+>>> OK, here you are overwriting the mask_reg with the wakeup bitmask
+>>> without saving the mask_reg's original content.
+>> This is based upon understanding that set_gpio_trigger() is the common
+>> function where update of wake_en register takes place. Unless, mask_reg
+>> in this case refers to something else, effectively we would be saving the
+>> same value to saved_wakeup what is already present in wake_en.
+>> I will verify this specific to this function.
+>>
+>>>
+>>>>       spin_unlock_irqrestore(&bank->lock, flags);
+>>>>
+>>>> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+>>>>       unsigned long           flags;
+>>>>
+>>>>       spin_lock_irqsave(&bank->lock, flags);
+>>>> -     __raw_writel(bank->saved_wakeup, mask_reg);
+>>>> +     __raw_writel(bank->context.wake_en, mask_reg);
+>>>
+>>> Now you are restoring nothing but the same content that you stored
+>>> during suspend. This will cause the non-wakeup gpio interrupts to get
+>>> masked between a suspend/resume. So isn't this a bug?
+>> That's right, the same value is restored back which was last updated in
+>> set_gpio_trigger() that got stored in wake_en register. Let me know if
+>> I am missing your points here.
+>
+> If it is writing the same thing then isn't this write redundant?
+Not, really. During suspend if the register has lost the context
+we need to restore the value from wake_en.
+--
+Tarun
+>
+>>
+>>>
+>>> Proper solution would be to save the mask_reg context into another
+>>> register than context.wake_en during suspend.
+>> As I said, this would make sense if mask_reg is referring to different
+>> register than what is used in set_gpio_trigger(). I will have a look.
+>
+> OK thanks.
+>
+>>
+>> BTW, did you observe anything unusual during some testing?
+>
+> No, I haven't done any tests.
+>
+> cheers,
+> -roger
