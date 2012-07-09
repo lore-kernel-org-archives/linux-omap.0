@@ -1,66 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm/dts: am33xx wdt node
-Date: Mon, 9 Jul 2012 01:59:44 -0700
-Message-ID: <20120709085944.GC1122@atomide.com>
-References: <1341405037-16391-1-git-send-email-afzal@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A2FE9@DBDE01.ent.ti.com>
+Subject: Re: dtb for pandaboard
+Date: Mon, 9 Jul 2012 02:08:49 -0700
+Message-ID: <20120709090848.GD1122@atomide.com>
+References: <20120708173259.592552c1@pegasus.ausil.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:22203 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab2GII7q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 04:59:46 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47204 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab2GIJIw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 05:08:52 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A2FE9@DBDE01.ent.ti.com>
+In-Reply-To: <20120708173259.592552c1@pegasus.ausil.us>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+To: Dennis Gilmore <dennis@ausil.us>
+Cc: linux-omap@vger.kernel.org
 
-* Mohammed, Afzal <afzal@ti.com> [120704 06:44]:
-> + Grant and device tree, watchdog lists
+* Dennis Gilmore <dennis@ausil.us> [120708 16:11]:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> On Wed, Jul 04, 2012 at 18:00:37, Mohammed, Afzal wrote:
-> > Add am33xx wdt node.
-> > 
-> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > ---
-> > 
-> > Hi,
-> > 
-> > This was tested on AM335X EVM. This depends on,
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69424.html
+> Hi does anyone happen to have a working dtb file for the pandaboard?
+> trying to test booting the fedora rawhide kernel which is
+> 3.5.0-rc5 with a dtb file I made from the matching sources I dont get
+> past decompressing the kernel. if i dont use a dtb file the system
+> boots further but it i'm unable to find the root filesystem since it
+> seems that the platform data has been messed up. modprobing omap
+> results in no registration of the mmc block devices. 
+> 
+> i've not tested on a pandaboard ES or beagleboard yet  or any other
+> type of omap system. 
 
-Thanks I'll apply this into omap devel-dt branch now that we have
-an ack from Wim on the wdt changes.
+FYI, I booted my panda es recently just fine with dtb append support
+and the following .config addition using the plain
+arch/arm/boot/dts/omap4-panda.dts file:
+
+CONFIG_ARM_APPENDED_DTB=y
+CONFIG_ARM_ATAG_DTB_COMPAT=y
+CONFIG_EXT4_FS=y
+
+Can you please enable DEBUG_LL, EARLY_PRINTK and add earlyprintk to
+your cmdline and post what you get?
+
+Regards,
 
 Tony
-
-> > Regards
-> > Afzal
-> > 
-> > 
-> >  arch/arm/boot/dts/am33xx.dtsi | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index f46e353..08b2a5b 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -185,5 +185,10 @@
-> >  			compatible = "ti,omap3-hsmmc";
-> >  			ti,hwmods = "mmc3";
-> >  		};
-> > +
-> > +		wdt2: wdt@44e35000 {
-> > +			compatible = "ti,omap3-wdt";
-> > +			ti,hwmods = "wd_timer2";
-> > +		};
-> >  	};
-> >  };
-> > -- 
-> > 1.7.11.1
-> > 
-> > 
-> 
