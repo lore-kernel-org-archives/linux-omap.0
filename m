@@ -1,57 +1,165 @@
-From: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] arm: omap: hwmod: add new memory resource for usb phy cont
-Date: Mon, 9 Jul 2012 19:18:08 +0530
-Message-ID: <1341841690-23899-1-git-send-email-x0132156@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 3/6] ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+Date: Mon, 9 Jul 2012 08:50:02 -0500
+Message-ID: <CALLhW=6-Yn=X04nVe6FXXW5JE_t1DVSOvKjocfjYEtxvzkFerg@mail.gmail.com>
+References: <1339811764-5337-1-git-send-email-omar.luna@linaro.org>
+	<1339811764-5337-4-git-send-email-omar.luna@linaro.org>
+	<4FE07268.7040606@ti.com>
+	<CALLhW=67d7=4Jx1T4Kn5ddNz7vQ5YeN4AzuOuXrW1_UGYwpG2A@mail.gmail.com>
+	<4FE0BB57.3080403@ti.com>
+	<CALLhW=4rnUFVciYe8OD+HaUr21qWy+8viJru3VKg1QEgXxofAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:54997 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753197Ab2GINuD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 09:50:03 -0400
+Received: by vcbf11 with SMTP id f11so7296207vcb.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 06:50:02 -0700 (PDT)
+In-Reply-To: <CALLhW=4rnUFVciYe8OD+HaUr21qWy+8viJru3VKg1QEgXxofAQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Hi Paul,
 
-Added usb_ctrl0 and usb_ctrl1 base address as new memory resources
-which will be used at am335x musb driver glue layer to turn on or
-off builin PHY. This is needed untill we have a separate system
-control module driver.
+On 27 June 2012 20:27, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+> On 19 June 2012 12:48, Cousson, Benoit <b-cousson@ti.com> wrote:
+>> On 6/19/2012 6:39 PM, Omar Ramirez Luna wrote:
+>>>
+>>> Hi Benoit,
+>>>
+>>> On 19 June 2012 07:36, Cousson, Benoit <b-cousson@ti.com> wrote:
+>>>>
+>>>> On 6/16/2012 3:56 AM, Omar Ramirez Luna wrote:
+>>>
+>>> ...
+>>>>>
+>>>>> +static struct omap_hwmod omap44xx_ipu_mmu_hwmod = {
+>>>>> +     .name           = "ipu_mmu",
+>>>>> +     .class          = &omap44xx_mmu_hwmod_class,
+>>>>> +     .clkdm_name     = "ducati_clkdm",
+>>>>> +     .mpu_irqs       = omap44xx_ipu_mmu_irqs,
+>>>>> +     .rst_lines      = omap44xx_ipu_mmu_resets,
+>>>>> +     .rst_lines_cnt  = ARRAY_SIZE(omap44xx_ipu_mmu_resets),
+>>>>> +     .main_clk       = "ipu_fck",
+>>>>> +     .prcm = {
+>>>>> +             .omap4 = {
+>>>>> +                     .clkctrl_offs =
+>>>>> OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
+>>>>> +                     .rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
+>>>>> +                     .context_offs =
+>>>>> OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET,
+>>>>> +                     .modulemode   = MODULEMODE_HWCTRL,
+>>>>> +             },
+>>>>> +     },
+>>>>> +     .dev_attr       = &ipu_mmu_dev_attr,
+>>>>> +};
+>>>>
+>>>>
+>>>> In fact, the MMU_IPU hwmod is now almost the same one than the previous
+>>>> IPU one...
+>>>> If we do that we should maybe just rename the IPU -> MMU_IPU and DSP ->
+>>>> MMU_DSP.
+>>>>
+>>>> But by doing that we will assume that the MMU does represent the
+>>>> subsystem, which is not necessarily super nice.
+>>>>
+>>>> I guess that a much better representation will be to keep the subsystem
+>>>> (IPU) to handle the PRCM part:
+>>>>
+>>>> +       .main_clk       = "ipu_fck",
+>>>> +       .prcm = {
+>>>> +               .clkctrl_offs = OMAP4_CM_DUCATI_DUCATI_CLKCTRL_OFFSET,
+>>>> +               .rstctrl_offs = OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
+>>>> +               .context_offs = OMAP4_RM_DUCATI_DUCATI_CONTEXT_OFFSET,
+>>>> +               .modulemode   = MODULEMODE_HWCTRL,
+>>>>
+>>>> And then the MMU_IPU will handle the configuration registers part and the
+>>>> reset + irq.
+>>>>
+>>>> But then, you will have to create a parent child dependency between your
+>>>> devices to ensure that the IPU subsystem device will be enabled before
+>>>> trying to access the MMU_IPU.
+>>>>
+>>>> This is what the DSS is about to do to handle the same kind of power
+>>>> dependency. The DSS device is the parent of all the DSS IPs (DISPC, HDMI...)
+>>>> and thus pm_runtime will ensure that the parent is enabled before trying to
+>>>> enable the children.
+>>>>
+>>>> In term of DT, just to illustrate the situation, it will be something
+>>>> like that:
+>>>>
+>>>> ipu {
+>>>>        compatible = "simple-bus";
+>>>>        ti,hwmods = "ipu";
+>>>>
+>>>>        ipu_mmu: mmu@4a066000 {
+>>>>                compatible = "omap-mmu";
+>>>>                ti,hwmods = "mmu_ipu";
+>>>>                reg...;
+>>>>                irqs...;
+>>>>        }
+>>>> }
+>>>>
+>>>> Is it something you can handle with your current framework?
+>>>
+>>>
+>>> I agree it would be nice only IPU managed the prcm, however we can't
+>>> do that right now because hwmod expects the IP block to be out of
+>>> reset to continue the _enable sequence. On IPU both reset lines are
+>>> asserted at that point and hence _are_any_hardreset_lines_asserted
+>>> check will bail out, and ipu resets can't be lifted without a
+>>> configured iommu otherwise it might execute random garbage.
+>>
+>>
+>> That's a good point, but like Paul said, the hard reset was removed outside
+>> of the fmwk due to the lack of understanding about the real usage / need for
+>> it.
+>>
+>> If we do have a better understanding, we might add some more support in the
+>> fmwk or at least improve it.
+>>
+>> I'm now realizing that aborting the init if some reset lines are asserted is
+>> not what we want to do for the IPU SS hwmod that will contain the IPU
+>> (processor) reset control.
+>> In fact the previous approach with a fake hwmod for the ipu_c0 processor
+>> would have been avoided that issue.
+>>
+>> If we do not want to go back with that, we should clearly revise the
+>> _are_any_hardreset_lines_asserted approach and not prevent the init in such
+>> case since it will prevent all the subsystem to start properly.
+>>
+>>
+>>> So, for IPU and DSP the mmu must be deasserted and configured before
+>>> the processor reset line (which is more like a parking brake) is
+>>> deasserted, and the latter should be made before _enable is called so
+>>> it can fully execute the enable sequence.
+>>
+>>
+>> Yep, so we have to change the way it is handled today.
+>>
+>>
+>> Paul,
+>>
+>> If we consider that the reset lines are stored in the subsystem hwmod (IPU,
+>> DSP or IVA), we cannot prevent the init phase because some line are
+>> asserted. Otherwise we will never allow the MMU or processor to be enabled
+>> later.
+>> We might have to remove that check, maybe based on flag if we want to keep
+>> that functionality or do an explicit reset control like we use to do.
+>>
+>> What do you think?
+>
+> I was waiting for some comments then I realized Paul wasn't actually
+> in the list of recipients for this email.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
----
-This patch set applies to 'xceiv' branch on Felipe's tree.
+Any chance you had time to check on this? While at it, could you please check:
 
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70443.html
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index df888fe..7dfb61e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -3274,6 +3274,18 @@ static struct omap_hwmod_addr_space am33xx_usbss_addr_space[] = {
- 		.pa_end		= 0x47401800 + SZ_2K - 1,
- 		.flags		= ADDR_TYPE_RT
- 	},
-+	{
-+		.name		= "usb_ctrl0",
-+		.pa_start	= 0x44E10620,
-+		.pa_end		= 0x44E10624,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+		.name		= "usb_ctrl1",
-+		.pa_start	= 0x44E10628,
-+		.pa_end		= 0x44E1062c,
-+		.flags		= ADDR_TYPE_RT
-+	},
- 	{ }
- };
- 
--- 
-1.7.0.4
+Thanks,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Omar
