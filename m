@@ -1,81 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/7] arm/dts: Audio support for OMAP4 devices (SDP,
- PandaBoard)
-Date: Mon, 9 Jul 2012 05:50:25 -0700
-Message-ID: <20120709125025.GG1122@atomide.com>
-References: <1339164125-32534-1-git-send-email-peter.ujfalusi@ti.com>
- <4FFACC55.4060106@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/2] OMAP4: DT update for L2 controller and local timers
+Date: Mon, 9 Jul 2012 18:41:08 +0530
+Message-ID: <1341839470-5586-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4FFACC55.4060106@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Liam Girdwood <lrg@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42572 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753705Ab2GINL3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jul 2012 09:11:29 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120709 05:24]:
-> Hello,
->=20
-> On 06/08/2012 04:01 PM, Peter Ujfalusi wrote:
-> > Hello,
-> >=20
-> > The following series enable the audio functionality on OMAP4 based =
-devices using
-> > twl6040 as audio codec.
-> >=20
-> > The series adds the needed bindings in the dts for the OMAP IPs, tw=
-l6040 MFD
-> > device and for the audio connection on the board.
-> >=20
-> > To be able to differentiate between PandaBoard and PandaBoardES (th=
-ey have a bit
-> > different audio configuration) a new dts file has been created whic=
-h only
-> > changes the audio properties different between the two boards.
-> >=20
-> > Patches for the drivers involved and the documentation related to d=
-ts sections
-> > has been either in 3.5 or heading for 3.6.
->=20
-> Probably this series has been overlooked, since I have not received f=
-eedback
-> on it.
-> Should I resend the series? Which tree should I use to rebase it?
+Couple of patches which updates the device tree support for OMAP4.
+- Pl310 L2 cache controller DT support
+- ARM cortex-A9 local timer DT support
 
-Hmm yeah looks good to me. I guess I was waiting for Benoit to apply or=
- ack
-them. I'll apply them into devel-dt branch.
+Tested on OMAP4430 SDP. 
 
-Regards,
+Santosh Shilimkar (2):
+  ARM: OMAP4: Add L2 Cache Controller in Device Tree
+  ARM: OMAP4: Add local timer support for Device Tree
 
-Tony
-=20
-> Thank you,
-> P=C3=A9ter
->=20
-> >=20
-> > Regards,
-> > Peter
-> > ---
-> > Peter Ujfalusi (7):
-> >   arm/dts: omap4: Add entry for OMAP McPDM IP
-> >   arm/dts: omap4: Add entry for OMAP DMIC IP
-> >   arm/dts: omap4-sdp: Add fixed regulator to represent VBAT
-> >   arm/dts: omap4-sdp: Add support for twl6040
-> >   arm/dts: omap4-sdp: Enable audio support via device tree
-> >   arm/dts: omap4-panda: Audio support for PandaBoard 4430
-> >   arm/dts: New dts file for PandaBoardES (4460)
-> >=20
-> >  arch/arm/boot/dts/omap4-panda.dts   |   37 +++++++++++++++++++
-> >  arch/arm/boot/dts/omap4-pandaES.dts |   24 ++++++++++++
-> >  arch/arm/boot/dts/omap4-sdp.dts     |   68 +++++++++++++++++++++++=
-++++++++++++
-> >  arch/arm/boot/dts/omap4.dtsi        |   18 +++++++++
-> >  4 files changed, 147 insertions(+), 0 deletions(-)
-> >  create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
-> >=20
->=20
->=20
+ arch/arm/boot/dts/omap4.dtsi       |   13 +++++++++++++
+ arch/arm/mach-omap2/omap4-common.c |    6 +++++-
+ arch/arm/mach-omap2/timer.c        |   11 ++++++++---
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+
+-- 
+1.7.9.5
+
