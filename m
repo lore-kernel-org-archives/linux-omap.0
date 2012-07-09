@@ -1,83 +1,48 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register
- offset using the IP scheme.
-Date: Mon, 9 Jul 2012 14:20:52 +0530
-Message-ID: <4FFA9B6C.7050003@ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com> <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCHv2 3/3] watchdog: omap_wdt: add device tree support
+Date: Mon, 9 Jul 2012 01:57:36 -0700
+Message-ID: <20120709085735.GB1122@atomide.com>
+References: <1338525856-4359-1-git-send-email-jgq516@gmail.com>
+ <1338525856-4359-4-git-send-email-jgq516@gmail.com>
+ <20120706082801.GO1122@atomide.com>
+ <20120707120709.GW735@spo001.leaseweb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54184 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751619Ab2GIIvB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 04:51:01 -0400
-In-Reply-To: <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120707120709.GW735-1F/o1hAF34+bEvaWgpTR7kEOCMrvLtNR@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, jgq516-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
 
-
-
-On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
-> From: R Sricharan <r.sricharan@ti.com>
+* Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org> [120707 05:11]:
+> Hi Tony,
 > 
-> OMAP socs has a legacy and a highlander version of the
-> 32k sync counter IP. The register offsets vary between the
-> highlander and the legacy scheme. So use the 'SCHEME'
-> bits(30-31) of the revision register to distinguish between
-
-
-Just for my understanding, can we get further information on SCHEME
-bit-fields? What kind of information we have it here.
-
-I may need this info to pass on to design team here.
-
-Thanks,
-Vaibhav
-> the two versions and choose the CR register offset accordingly.
+> > Hi Wim,
+> > 
+> > * jgq516-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org <jgq516-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [120531 20:56]:
+> > > From: Xiao Jiang <jgq516-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > > 
+> > > Add device table for omap_wdt to support dt.
+> > 
+> > Care to ack this patch in the series?
 > 
-> Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/counter_32k.c |   16 +++++++++++++---
->  1 file changed, 13 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-> index 2132c4f..dbf1e03 100644
-> --- a/arch/arm/plat-omap/counter_32k.c
-> +++ b/arch/arm/plat-omap/counter_32k.c
-> @@ -29,7 +29,10 @@
->  #include <plat/clock.h>
->  
->  /* OMAP2_32KSYNCNT_CR_OFF: offset of 32ksync counter register */
-> -#define OMAP2_32KSYNCNT_CR_OFF		0x10
-> +#define OMAP2_32KSYNCNT_REV_OFF		0x0
-> +#define OMAP2_32KSYNCNT_REV_SCHEME	(0x3 << 30)
-> +#define OMAP2_32KSYNCNT_CR_OFF_LOW	0x10
-> +#define OMAP2_32KSYNCNT_CR_OFF_HIGH	0x30
->  
->  /*
->   * 32KHz clocksource ... always available, on pretty most chips except
-> @@ -84,9 +87,16 @@ int __init omap_init_clocksource_32k(void __iomem *vbase)
->  	int ret;
->  
->  	/*
-> -	 * 32k sync Counter register offset is at 0x10
-> +	 * 32k sync Counter IP register offsets vary between the
-> +	 * highlander version and the legacy ones.
-> +	 * The 'SCHEME' bits(30-31) of the revision register is used
-> +	 * to identify the version.
->  	 */
-> -	sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF;
-> +	if (__raw_readl(vbase + OMAP2_32KSYNCNT_REV_OFF) &
-> +						OMAP2_32KSYNCNT_REV_SCHEME)
-> +		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_HIGH;
-> +	else
-> +		sync32k_cnt_reg = vbase + OMAP2_32KSYNCNT_CR_OFF_LOW;
->  
->  	/*
->  	 * 120000 rough estimate from the calculations in
-> 
+> Yep.
+> Acked-by: Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>
 
+Thanks, I'll apply all three into omap devel-dt branch.
+
+Regards,
+
+Tony
