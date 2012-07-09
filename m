@@ -1,223 +1,107 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/3] usb: musb: dsps: add phy control logic to glue
-Date: Mon, 9 Jul 2012 20:16:10 +0530
-Message-ID: <CAAe_U6+wYsiVOvYm8t4g8P5R4jWzBCQhC-XBfNVgM4GqWi-JLQ@mail.gmail.com>
-References: <1341841690-23899-1-git-send-email-x0132156@ti.com>
-	<1341841690-23899-2-git-send-email-x0132156@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [GIT PULL] ARM: OMAP5: Add minimal OMAP5 SOC support for 3.6
+Date: Mon, 9 Jul 2012 20:32:23 +0530
+Message-ID: <1341846143-11137-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1341841690-23899-2-git-send-email-x0132156-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49297 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755145Ab2GIPDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jul 2012 11:03:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
+Tony,
 
-On Mon, Jul 9, 2012 at 7:18 PM, Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org> wrote:
-> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
->
-> AM335x uses NOP transceiver driver and need to enable builtin PHY
-> by writing into usb_ctrl register available in system control
-> module register space. This is being added at musb glue driver
-> layer untill a separate system control module driver is available.
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/board-ti8168evm.c   |    1 -
->  arch/arm/mach-omap2/omap_phy_internal.c |   35 ------------
->  arch/arm/plat-omap/include/plat/usb.h   |    5 +-
->  drivers/usb/musb/musb_dsps.c            |   88 +++++++++++++++++++++++++------
->  4 files changed, 74 insertions(+), 55 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-> index d4c8392..0c7c098 100644
-> --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> @@ -26,7 +26,6 @@
->  #include <plat/usb.h>
->
->  static struct omap_musb_board_data musb_board_data = {
-> -       .set_phy_power  = ti81xx_musb_phy_power,
->         .interface_type = MUSB_INTERFACE_ULPI,
->         .mode           = MUSB_OTG,
->         .power          = 500,
-> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-> index d52651a..d80bb16 100644
-> --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> @@ -254,38 +254,3 @@ void am35x_set_mode(u8 musb_mode)
->
->         omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
->  }
-> -
-> -void ti81xx_musb_phy_power(u8 on)
-> -{
-> -       void __iomem *scm_base = NULL;
-> -       u32 usbphycfg;
-> -
-> -       scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> -       if (!scm_base) {
-> -               pr_err("system control module ioremap failed\n");
-> -               return;
-> -       }
-> -
-> -       usbphycfg = __raw_readl(scm_base + USBCTRL0);
-> -
-> -       if (on) {
-> -               if (cpu_is_ti816x()) {
-> -                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> -                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> -               } else if (cpu_is_ti814x()) {
-> -                       usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
-> -                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
-> -                       usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
-> -                               | USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-> -               }
-> -       } else {
-> -               if (cpu_is_ti816x())
-> -                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> -               else if (cpu_is_ti814x())
-> -                       usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
-> -
-> -       }
-> -       __raw_writel(usbphycfg, scm_base + USBCTRL0);
-> -
-> -       iounmap(scm_base);
-> -}
-> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-> index 548a4c8..c2aa4ae 100644
-> --- a/arch/arm/plat-omap/include/plat/usb.h
-> +++ b/arch/arm/plat-omap/include/plat/usb.h
-> @@ -95,7 +95,6 @@ extern void am35x_musb_reset(void);
->  extern void am35x_musb_phy_power(u8 on);
->  extern void am35x_musb_clear_irq(void);
->  extern void am35x_set_mode(u8 musb_mode);
-> -extern void ti81xx_musb_phy_power(u8 on);
->
->  /* AM35x */
->  /* USB 2.0 PHY Control */
-> @@ -120,8 +119,8 @@ extern void ti81xx_musb_phy_power(u8 on);
->  #define CONF2_DATPOL           (1 << 1)
->
->  /* TI81XX specific definitions */
-> -#define USBCTRL0       0x620
-> -#define USBSTAT0       0x624
-> +#define MUSB_USBSS_REV_816X    0x9
-> +#define MUSB_USBSS_REV_814X    0xb
->
->  /* TI816X PHY controls bits */
->  #define TI816X_USBPHY0_NORMAL_MODE     (1 << 0)
-> diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-> index 494772f..f7271c3 100644
-> --- a/drivers/usb/musb/musb_dsps.c
-> +++ b/drivers/usb/musb/musb_dsps.c
-> @@ -115,9 +115,46 @@ struct dsps_glue {
->         struct platform_device *musb;   /* child musb pdev */
->         const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
->         struct timer_list timer;        /* otg_workaround timer */
-> +       u32 __iomem *usb_ctrl;
-> +       u8      usbss_rev;
->  };
->
->  /**
-> + * musb_dsps_phy_control - phy on/off
-> + * @glue: struct dsps_glue *
-> + * @on: flag for phy to be switched on or off
-> + *
-> + * This is to enable the PHY using usb_ctrl register in system control
-> + * module space.
-> + *
-> + * XXX: This function will be removed once we have a seperate driver for
-%s/seperate/separate
-> + * control module
-> + */
-> +static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
-> +{
-> +       u32 usbphycfg;
-> +
-> +       usbphycfg = __raw_readl(glue->usb_ctrl);
+Please pull below OMAP5 SOC minimal support. It is generated against the
+cleanup-part2 branch of yours. As you suggested, I have dropped CK_54XX
+flag changes to avoid conflicts.
 
-How about using readl instead of __raw_readl here and below?
-> +
-> +       if (on) {
-> +               if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
-> +                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> +                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> +               } else if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
-> +                       usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
-> +                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
-> +                       usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
-> +                               | USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-> +               }
-> +       } else {
-> +               if (glue->usbss_rev == MUSB_USBSS_REV_816X)
-> +                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> +               else if (glue->usbss_rev == MUSB_USBSS_REV_814X)
-> +                       usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
-> +       }
-> +       __raw_writel(usbphycfg, glue->usb_ctrl);
-only writel()?
-> +}
-> +/**
->   * dsps_musb_enable - enable interrupts
->   */
->  static void dsps_musb_enable(struct musb *musb)
-> @@ -363,11 +400,9 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
->  static int dsps_musb_init(struct musb *musb)
->  {
->         struct device *dev = musb->controller;
-> -       struct musb_hdrc_platform_data *plat = dev->platform_data;
->         struct platform_device *pdev = to_platform_device(dev->parent);
->         struct dsps_glue *glue = platform_get_drvdata(pdev);
->         const struct dsps_musb_wrapper *wrp = glue->wrp;
-> -       struct omap_musb_board_data *data = plat->board_data;
->         void __iomem *reg_base = musb->ctrl_base;
->         u32 rev, val;
->         int status;
-> @@ -395,8 +430,7 @@ static int dsps_musb_init(struct musb *musb)
->         dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
->
->         /* Start the on-chip PHY and its PLL. */
-> -       if (data->set_phy_power)
-> -               data->set_phy_power(1);
-> +       musb_dsps_phy_control(glue, 1);
->
->         musb->isr = dsps_interrupt;
->
-> @@ -418,8 +452,6 @@ err0:
->  static int dsps_musb_exit(struct musb *musb)
->  {
->         struct device *dev = musb->controller;
-> -       struct musb_hdrc_platform_data *plat = dev->platform_data;
-> -       struct omap_musb_board_data *data = plat->board_data;
->         struct platform_device *pdev = to_platform_device(dev->parent);
->         struct dsps_glue *glue = platform_get_drvdata(pdev);
->
-> @@ -427,8 +459,7 @@ static int dsps_musb_exit(struct musb *musb)
->                 del_timer_sync(&glue->timer);
->
->         /* Shutdown the on-chip PHY and its PLL. */
-> -       if (data->set_phy_power)
-> -               data->set_phy_power(0);
-> +       musb_dsps_phy_control(glue, 0);
->
->         /* NOP driver needs change if supporting dual instance */
->         usb_put_phy(musb->xceiv);
-> @@ -460,6 +491,22 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
->         char res_name[10];
->         int ret;
->
-> +       /* get memory resource for usb control register */
-> +       sprintf(res_name, "usb_ctrl%d", id);
-> +       res = platform_get_resource_byname(pdev, IORESOURCE_MEM, res_name);
-Avoid getting resource by name.. With dt, you wont be able to do those..
+The following changes since commit fb584511c4664573097ece7df0de06ad00b713a2:
 
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds (2012-07-09 01:44:11 -0700)
+
+are available in the git repository at:
+
+  git://github.com/SantoshShilimkar/linux.git for_3.6/omap5_minimal_support
+
+for you to fetch changes up to 39f47d9f437fa94622bf51d7b18b42b3336ad9ac:
+
+  ARM: Kconfig update to support additional GPIOs in OMAP5 (2012-07-09 19:14:40 +0530)
+
+----------------------------------------------------------------
+
+R Sricharan (11):
+  ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c
+    and call it __weak
+  ARM: OMAP: counter-32k: Select the CR register offset using the IP
+    scheme
+  ARM: OMAP5: id: Add cpu id for ES versions
+  ARM: OMAP5: Add minimal support for OMAP5430 SOC
+  ARM: OMAP5: timer: Add clocksource, clockevent support
+  ARM: OMAP5: gpmc: Update gpmc_init()
+  ARM: OMAP5: l3: Add l3 error handler support for omap5
+  ARM: omap2+: board-generic: clean up the irq data from board file
+  ARM: OMAP5: board-generic: Add device tree support
+  arm/dts: OMAP5: Add omap5 dts files
+  ARM: OMAP5: Add the build support
+
+Santosh Shilimkar (2):
+  ARM: OMAP5: Add the WakeupGen IP updates
+  ARM: OMAP5: Add SMP support
+
+Tarun Kanti DebBarma (1):
+  ARM: Kconfig update to support additional GPIOs in OMAP5
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +
+ arch/arm/Kconfig                                   |    1 +
+ arch/arm/boot/dts/omap5-evm.dts                    |   20 +++
+ arch/arm/boot/dts/omap5.dtsi                       |  184 ++++++++++++++++++++
+ arch/arm/configs/omap2plus_defconfig               |    1 +
+ arch/arm/mach-omap2/Kconfig                        |    8 +-
+ arch/arm/mach-omap2/Makefile                       |   24 ++-
+ arch/arm/mach-omap2/board-generic.c                |   42 +++--
+ arch/arm/mach-omap2/common.c                       |   24 +++
+ arch/arm/mach-omap2/common.h                       |   19 +-
+ arch/arm/mach-omap2/control.h                      |    4 +
+ arch/arm/mach-omap2/devices.c                      |    2 +-
+ arch/arm/mach-omap2/gpmc.c                         |    3 +-
+ arch/arm/mach-omap2/id.c                           |   42 ++++-
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |    8 +-
+ arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |    7 +
+ arch/arm/mach-omap2/io.c                           |   44 +++++
+ arch/arm/mach-omap2/iomap.h                        |   27 +++
+ arch/arm/mach-omap2/irq.c                          |   13 +-
+ arch/arm/mach-omap2/omap-headsmp.S                 |   21 +++
+ arch/arm/mach-omap2/omap-hotplug.c                 |   24 ++-
+ arch/arm/mach-omap2/omap-smp.c                     |   52 ++++--
+ arch/arm/mach-omap2/omap-wakeupgen.c               |  114 +++++++++---
+ arch/arm/mach-omap2/omap4-common.c                 |   14 ++
+ arch/arm/mach-omap2/omap4-sar-layout.h             |   12 +-
+ arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
+ arch/arm/mach-omap2/omap_l3_noc.h                  |   22 ++-
+ arch/arm/mach-omap2/prcm-common.h                  |    2 +-
+ arch/arm/mach-omap2/prcm.c                         |    2 +-
+ arch/arm/mach-omap2/timer.c                        |    5 +
+ arch/arm/plat-omap/Kconfig                         |    4 +-
+ arch/arm/plat-omap/common.c                        |    9 +
+ arch/arm/plat-omap/counter_32k.c                   |   16 +-
+ arch/arm/plat-omap/include/plat/cpu.h              |   22 ++-
+ arch/arm/plat-omap/include/plat/hardware.h         |    1 +
+ arch/arm/plat-omap/include/plat/multi.h            |    9 +
+ arch/arm/plat-omap/include/plat/omap-secure.h      |    5 -
+ arch/arm/plat-omap/include/plat/omap54xx.h         |   32 ++++
+ arch/arm/plat-omap/include/plat/serial.h           |   10 ++
+ arch/arm/plat-omap/include/plat/uncompress.h       |    6 +
+ arch/arm/plat-omap/sram.c                          |   11 +-
+ 41 files changed, 773 insertions(+), 98 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap5-evm.dts
+ create mode 100644 arch/arm/boot/dts/omap5.dtsi
+ create mode 100644 arch/arm/plat-omap/include/plat/omap54xx.h
+
+-- 
+1.7.9.5
+
