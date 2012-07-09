@@ -1,107 +1,67 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [GIT PULL] ARM: OMAP5: Add minimal OMAP5 SOC support for 3.6
-Date: Mon, 9 Jul 2012 20:32:23 +0530
-Message-ID: <1341846143-11137-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] ARM: OMAP AM35x: clockdomain data: fix resolving
+ dependency problem
+Date: Mon, 9 Jul 2012 09:16:23 -0700
+Message-ID: <20120709161623.GA17180@animalcreek.com>
+References: <A874F61F95741C4A9BA573A70FE3998FCB33@DQHE02.ent.ti.com>
+ <20120702174138.GA9669@animalcreek.com>
+ <20120707124131.GA9034@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49297 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755145Ab2GIPDR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Jul 2012 11:03:17 -0400
+Received: from mail20.dotsterhost.com ([66.11.232.73]:53734 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab2GIQQ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 12:16:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20120707124131.GA9034@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: "Kim, Milo" <Milo.Kim@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
+On Sat, Jul 07, 2012 at 02:41:31PM +0200, Ladislav Michl wrote:
+> On Mon, Jul 02, 2012 at 10:41:38AM -0700, Mark A. Greer wrote:
+> > On Mon, Jul 02, 2012 at 05:54:57AM +0000, Kim, Milo wrote:
+> > > In am35x board , iva2 clock domain doesn't be used.
+> > > So mpu_am35x_clkdm should be used rather than mpu_3xxx_clkdm.
+> > > OMAP3430 : mpu_3xxx_clkdm (with iva2 clkdm)
+> > > AM35x    : mpu_am35x_clkdm (without iva2 clkdm)
 
-Please pull below OMAP5 SOC minimal support. It is generated against the
-cleanup-part2 branch of yours. As you suggested, I have dropped CK_54XX
-flag changes to avoid conflicts.
+> > > diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > > index d625844..56089c4 100644
+> > > --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > > +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > > @@ -454,7 +454,6 @@ static struct clkdm_autodep clkdm_am35x_autodeps[] = {
+> > >  
+> > >  static struct clockdomain *clockdomains_common[] __initdata = {
+> > >  	&wkup_common_clkdm,
+> > > -	&mpu_3xxx_clkdm,
+> > >  	&neon_clkdm,
+> > >  	&core_l3_3xxx_clkdm,
+> > >  	&core_l4_3xxx_clkdm,
+> > > -- 
+> > > 1.7.2.5
+> > 
+> > Hi Milo.
+> > 
+> > Thanks for the patch but this issue should already be fixed in a patch
+> > that Tony just made a pull request for
+> > (http://www.spinics.net/lists/linux-omap/msg73080.html).
+> > 
+> > >From that email (and branch in the email), look for this patch:
+> > 
+> > > Mark A. Greer (4):
+> > 
+> > >      ARM: OMAP AM35x: clockdomain data: Fix clockdomain dependencies
+> > 
+> > Please take a look as another set of eyes never hurts. :)
+> 
+> Hi Mark,
+> 
+> just tested above patch on Technexion's TAM-3517 and it indeed fixes above
+> warning. Without patch, warning is generated. Tested on Tony's master branch.
 
-The following changes since commit fb584511c4664573097ece7df0de06ad00b713a2:
+Great, thanks for the follow up, Ladis.
 
-  ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds (2012-07-09 01:44:11 -0700)
-
-are available in the git repository at:
-
-  git://github.com/SantoshShilimkar/linux.git for_3.6/omap5_minimal_support
-
-for you to fetch changes up to 39f47d9f437fa94622bf51d7b18b42b3336ad9ac:
-
-  ARM: Kconfig update to support additional GPIOs in OMAP5 (2012-07-09 19:14:40 +0530)
-
-----------------------------------------------------------------
-
-R Sricharan (11):
-  ARM: OMAP2+: Move stubbed secure_sram_reserve function to a common.c
-    and call it __weak
-  ARM: OMAP: counter-32k: Select the CR register offset using the IP
-    scheme
-  ARM: OMAP5: id: Add cpu id for ES versions
-  ARM: OMAP5: Add minimal support for OMAP5430 SOC
-  ARM: OMAP5: timer: Add clocksource, clockevent support
-  ARM: OMAP5: gpmc: Update gpmc_init()
-  ARM: OMAP5: l3: Add l3 error handler support for omap5
-  ARM: omap2+: board-generic: clean up the irq data from board file
-  ARM: OMAP5: board-generic: Add device tree support
-  arm/dts: OMAP5: Add omap5 dts files
-  ARM: OMAP5: Add the build support
-
-Santosh Shilimkar (2):
-  ARM: OMAP5: Add the WakeupGen IP updates
-  ARM: OMAP5: Add SMP support
-
-Tarun Kanti DebBarma (1):
-  ARM: Kconfig update to support additional GPIOs in OMAP5
-
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- arch/arm/Kconfig                                   |    1 +
- arch/arm/boot/dts/omap5-evm.dts                    |   20 +++
- arch/arm/boot/dts/omap5.dtsi                       |  184 ++++++++++++++++++++
- arch/arm/configs/omap2plus_defconfig               |    1 +
- arch/arm/mach-omap2/Kconfig                        |    8 +-
- arch/arm/mach-omap2/Makefile                       |   24 ++-
- arch/arm/mach-omap2/board-generic.c                |   42 +++--
- arch/arm/mach-omap2/common.c                       |   24 +++
- arch/arm/mach-omap2/common.h                       |   19 +-
- arch/arm/mach-omap2/control.h                      |    4 +
- arch/arm/mach-omap2/devices.c                      |    2 +-
- arch/arm/mach-omap2/gpmc.c                         |    3 +-
- arch/arm/mach-omap2/id.c                           |   42 ++++-
- arch/arm/mach-omap2/include/mach/debug-macro.S     |    8 +-
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |    7 +
- arch/arm/mach-omap2/io.c                           |   44 +++++
- arch/arm/mach-omap2/iomap.h                        |   27 +++
- arch/arm/mach-omap2/irq.c                          |   13 +-
- arch/arm/mach-omap2/omap-headsmp.S                 |   21 +++
- arch/arm/mach-omap2/omap-hotplug.c                 |   24 ++-
- arch/arm/mach-omap2/omap-smp.c                     |   52 ++++--
- arch/arm/mach-omap2/omap-wakeupgen.c               |  114 +++++++++---
- arch/arm/mach-omap2/omap4-common.c                 |   14 ++
- arch/arm/mach-omap2/omap4-sar-layout.h             |   12 +-
- arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
- arch/arm/mach-omap2/omap_l3_noc.h                  |   22 ++-
- arch/arm/mach-omap2/prcm-common.h                  |    2 +-
- arch/arm/mach-omap2/prcm.c                         |    2 +-
- arch/arm/mach-omap2/timer.c                        |    5 +
- arch/arm/plat-omap/Kconfig                         |    4 +-
- arch/arm/plat-omap/common.c                        |    9 +
- arch/arm/plat-omap/counter_32k.c                   |   16 +-
- arch/arm/plat-omap/include/plat/cpu.h              |   22 ++-
- arch/arm/plat-omap/include/plat/hardware.h         |    1 +
- arch/arm/plat-omap/include/plat/multi.h            |    9 +
- arch/arm/plat-omap/include/plat/omap-secure.h      |    5 -
- arch/arm/plat-omap/include/plat/omap54xx.h         |   32 ++++
- arch/arm/plat-omap/include/plat/serial.h           |   10 ++
- arch/arm/plat-omap/include/plat/uncompress.h       |    6 +
- arch/arm/plat-omap/sram.c                          |   11 +-
- 41 files changed, 773 insertions(+), 98 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap5-evm.dts
- create mode 100644 arch/arm/boot/dts/omap5.dtsi
- create mode 100644 arch/arm/plat-omap/include/plat/omap54xx.h
-
--- 
-1.7.9.5
-
+Mark
