@@ -1,67 +1,48 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Subject: Re: dtb for pandaboard
-Date: Tue, 10 Jul 2012 18:11:19 -0500
-Message-ID: <20120710181119.27faf235@pegasus.ausil.us>
-References: <20120708173259.592552c1@pegasus.ausil.us>
-	<20120709090848.GD1122@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ausil.us ([74.119.218.133]:43837 "EHLO mail.ausil.us"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754764Ab2GJXLa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 19:11:30 -0400
-In-Reply-To: <20120709090848.GD1122@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: ensure probe returns error upon resource failure
+Date: Tue, 10 Jul 2012 16:40:56 -0700
+Message-ID: <1341963658-20896-1-git-send-email-khilman@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBNb24s
-IDkgSnVsIDIwMTIgMDI6MDg6NDkgLTA3MDANClRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
-b20+IHdyb3RlOg0KDQo+ICogRGVubmlzIEdpbG1vcmUgPGRlbm5pc0BhdXNpbC51cz4gWzEyMDcw
-OCAxNjoxMV06DQo+ID4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KPiA+IEhh
-c2g6IFNIQTENCj4gPiANCj4gPiBIaSBkb2VzIGFueW9uZSBoYXBwZW4gdG8gaGF2ZSBhIHdvcmtp
-bmcgZHRiIGZpbGUgZm9yIHRoZSBwYW5kYWJvYXJkPw0KPiA+IHRyeWluZyB0byB0ZXN0IGJvb3Rp
-bmcgdGhlIGZlZG9yYSByYXdoaWRlIGtlcm5lbCB3aGljaCBpcw0KPiA+IDMuNS4wLXJjNSB3aXRo
-IGEgZHRiIGZpbGUgSSBtYWRlIGZyb20gdGhlIG1hdGNoaW5nIHNvdXJjZXMgSSBkb250DQo+ID4g
-Z2V0IHBhc3QgZGVjb21wcmVzc2luZyB0aGUga2VybmVsLiBpZiBpIGRvbnQgdXNlIGEgZHRiIGZp
-bGUgdGhlDQo+ID4gc3lzdGVtIGJvb3RzIGZ1cnRoZXIgYnV0IGl0IGknbSB1bmFibGUgdG8gZmlu
-ZCB0aGUgcm9vdCBmaWxlc3lzdGVtDQo+ID4gc2luY2UgaXQgc2VlbXMgdGhhdCB0aGUgcGxhdGZv
-cm0gZGF0YSBoYXMgYmVlbiBtZXNzZWQgdXAuDQo+ID4gbW9kcHJvYmluZyBvbWFwIHJlc3VsdHMg
-aW4gbm8gcmVnaXN0cmF0aW9uIG9mIHRoZSBtbWMgYmxvY2sNCj4gPiBkZXZpY2VzLiANCj4gPiAN
-Cj4gPiBpJ3ZlIG5vdCB0ZXN0ZWQgb24gYSBwYW5kYWJvYXJkIEVTIG9yIGJlYWdsZWJvYXJkIHll
-dCAgb3IgYW55IG90aGVyDQo+ID4gdHlwZSBvZiBvbWFwIHN5c3RlbS4gDQo+IA0KPiBGWUksIEkg
-Ym9vdGVkIG15IHBhbmRhIGVzIHJlY2VudGx5IGp1c3QgZmluZSB3aXRoIGR0YiBhcHBlbmQgc3Vw
-cG9ydA0KPiBhbmQgdGhlIGZvbGxvd2luZyAuY29uZmlnIGFkZGl0aW9uIHVzaW5nIHRoZSBwbGFp
-bg0KPiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1wYW5kYS5kdHMgZmlsZToNCj4gDQo+IENPTkZJ
-R19BUk1fQVBQRU5ERURfRFRCPXkNCj4gQ09ORklHX0FSTV9BVEFHX0RUQl9DT01QQVQ9eQ0KPiBD
-T05GSUdfRVhUNF9GUz15DQo+IA0KPiBDYW4geW91IHBsZWFzZSBlbmFibGUgREVCVUdfTEwsIEVB
-UkxZX1BSSU5USyBhbmQgYWRkIGVhcmx5cHJpbnRrIHRvDQo+IHlvdXIgY21kbGluZSBhbmQgcG9z
-dCB3aGF0IHlvdSBnZXQ/DQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0KDQpMb2FkZWQgZW52
-aXJvbm1lbnQgZnJvbSB1RW52LnR4dA0KSW1wb3J0aW5nIGVudmlyb25tZW50IGZyb20gbW1jIC4u
-Lg0KcmVhZGluZyB1SW1hZ2Utb21hcA0KDQozOTg4MDQwIGJ5dGVzIHJlYWQNCnJlYWRpbmcgdUlu
-aXRyZC1vbWFwDQoNCjExOTAgYnl0ZXMgcmVhZA0KcmVhZGluZyBvbWFwNC1wYW5kYS5kdGINCg0K
-NTQ4MyBieXRlcyByZWFkDQpCb290aW5nIGZyb20gbW1jIC4uLg0KIyMgQm9vdGluZyBrZXJuZWwg
-ZnJvbSBMZWdhY3kgSW1hZ2UgYXQgODAzMDAwMDAgLi4uDQogICBJbWFnZSBOYW1lOiAgIDMuNS4w
-LTAucmM2LmdpdDAuMy5mYzE4LmFybXY3aGwuDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBL
-ZXJuZWwgSW1hZ2UgKHVuY29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMzk4Nzk3NiBCeXRl
-cyA9IDMuOCBNaUINCiAgIExvYWQgQWRkcmVzczogODAwMDgwMDANCiAgIEVudHJ5IFBvaW50OiAg
-ODAwMDgwMDANCiAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCiMjIExvYWRpbmcgaW5pdCBS
-YW1kaXNrIGZyb20gTGVnYWN5IEltYWdlIGF0IDgxNjAwMDAwIC4uLg0KICAgSW1hZ2UgTmFtZTog
-ICBpbml0cmFtZnMNCiAgIEltYWdlIFR5cGU6ICAgQVJNIExpbnV4IFJBTURpc2sgSW1hZ2UgKHVu
-Y29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMTEyNiBCeXRlcyA9IDEuMSBLaUINCiAgIExv
-YWQgQWRkcmVzczogMDAwMDAwMDANCiAgIEVudHJ5IFBvaW50OiAgMDAwMDAwMDANCiAgIFZlcmlm
-eWluZyBDaGVja3N1bSAuLi4gT0sNCiMjIEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSBibG9iIGF0IDgy
-NjAwMDAwDQogICBCb290aW5nIHVzaW5nIHRoZSBmZHQgYmxvYiBhdCAweDgyNjAwMDAwDQogICBM
-b2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4gT0sNCk9LDQogICByZXNlcnZpbmcgZmR0IG1lbW9yeSBy
-ZWdpb246IGFkZHI9OWQwMDAwMDAgc2l6ZT0zMDAwMDAwDQogICBMb2FkaW5nIFJhbWRpc2sgdG8g
-YmZlZmEwMDAsIGVuZCBiZmVmYTQ2NiAuLi4gT0sNCiAgIExvYWRpbmcgRGV2aWNlIFRyZWUgdG8g
-YmZlZjUwMDAsIGVuZCBiZmVmOTU2YSAuLi4gT0sNCg0KU3RhcnRpbmcga2VybmVsIC4uLg0KDQpV
-bmNvbXByZXNzaW5nIExpbnV4Li4uIGRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4NCldhcm5pbmc6
-IE5laXRoZXIgYXRhZ3Mgbm9yIGR0YiBmb3VuZA0KDQppcyBhcyBmYXIgYXMgaSBhbSBnZXR0aW5n
-Lg0KDQpEZW5uaXMNCi0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQ
-RyB2Mi4wLjE4IChHTlUvTGludXgpDQoNCmlFWUVBUkVDQUFZRkFrLzh0cDBBQ2drUWtTeG00N0Jh
-V2ZmTkJnQ2NDR1dFWEU0MHVsY1ZhM25CM0FQdW5aUGgNClRqQUFuak5KVjVlVnQvRVZZZTZNZ21I
-NG9rRTZpQkNHDQo9MUUvcQ0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
+If platform_get_resource_by_name() fails, driver probe is aborted an
+should return an error so the driver is not bound to the device.
+
+However, in the current error path of platform_get_resource_by_name(),
+probe returns zero since the return value (ret) is not properly set.
+With a zero return value, the driver core assumes probe was successful
+and will bind the driver to the device.
+
+Fix this by ensuring that probe returns an error code in this failure
+path.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 389a3ee..19e60e9 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1931,6 +1931,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+ 	if (!res) {
+ 		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
++		ret = -ENXIO;
+ 		goto err_irq;
+ 	}
+ 	host->dma_line_tx = res->start;
+@@ -1938,6 +1939,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (!res) {
+ 		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
++		ret = -ENXIO;
+ 		goto err_irq;
+ 	}
+ 	host->dma_line_rx = res->start;
+-- 
+1.7.9.2
