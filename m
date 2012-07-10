@@ -1,174 +1,42 @@
-From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 2/3] ARM: OMAP2+: AM33XX: Add tps65910 device tree data
-Date: Tue, 10 Jul 2012 16:39:43 +0530
-Message-ID: <1341918584-28004-3-git-send-email-anilkumar@ti.com>
-References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use
+ IRQF_ONESHOT
+Date: Tue, 10 Jul 2012 12:54:19 +0100
+Message-ID: <20120710115418.GA2280@sirena.org.uk>
+References: <1341592434-4207-1-git-send-email-khilman@ti.com>
+ <20120709151527.58f44c3a.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1341918584-28004-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120709151527.58f44c3a.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kevin Hilman <khilman@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree data for tps65910 regulator by adding all the
-consumers necessary for AM335X-EVM. The data will be map to a
-regulator constraints which is required for regulator set_voltage
-and get_voltage calls.
+On Mon, Jul 09, 2012 at 03:15:27PM -0700, Andrew Morton wrote:
 
-All tps65910 PMIC regulator constraints are placed in a seperate
-device tree include file (tps65910.dtsi).
+> OK, this is the second such patch I've seen and it's time to wonder if
+> we should get grumpy at tglx.  afacit 1c6c6952 broke the following
+> drivers:
 
-This patch is tested by adding the I2C slave address of TPS65910
-pmic to am335x-evm.dts file (Not included in this, I2C slave
-addition patch will be submitted to linux-omap, where am335x-evm.dts
-binding file is available).
+> sound/soc/codecs/wm8994.c
+> drivers/mfd/wm831x-auxadc.c
+> drivers/mfd/wm8350-core.c
+> drivers/regulator/wm831x-isink.c
+> drivers/regulator/wm831x-ldo.c
+> drivers/regulator/wm831x-dcdc.c
+> drivers/input/misc/wm831x-on.c
 
-Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/tps65910.dtsi |  123 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 123 insertions(+)
- create mode 100644 arch/arm/boot/dts/tps65910.dtsi
+> what am I missing here?
 
-diff --git a/arch/arm/boot/dts/tps65910.dtsi b/arch/arm/boot/dts/tps65910.dtsi
-new file mode 100644
-index 0000000..b185235
---- /dev/null
-+++ b/arch/arm/boot/dts/tps65910.dtsi
-@@ -0,0 +1,123 @@
-+/*
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Integrated Power Management Chip
-+ * http://www.ti.com/lit/ds/symlink/tps65910.pdf
-+ */
-+
-+&tps {
-+	compatible = "ti,tps65910";
-+
-+	regulators {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vrtc_reg: regulator@0 {
-+			reg = <0>;
-+			regulator-compatible = "vrtc";
-+			regulator-always-on;
-+		};
-+
-+		vio_reg: regulator@1 {
-+			reg = <1>;
-+			regulator-compatible = "vio";
-+			regulator-min-microvolt = <1500000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		vdd1_reg: regulator@2 {
-+			reg = <2>;
-+			regulator-compatible = "vdd1";
-+			regulator-min-microvolt = <600000>;
-+			regulator-max-microvolt = <1500000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd2_reg: regulator@3 {
-+			reg = <3>;
-+			regulator-compatible = "vdd2";
-+			regulator-min-microvolt = <600000>;
-+			regulator-max-microvolt = <1500000>;
-+			regulator-boot-on;
-+			regulator-always-on;
-+		};
-+
-+		vdd3_reg: regulator@4 {
-+			reg = <4>;
-+			regulator-compatible = "vdd3";
-+			regulator-always-on;
-+		};
-+
-+		vdig1_reg: regulator@5 {
-+			reg = <5>;
-+			regulator-compatible = "vdig1";
-+			regulator-min-microvolt = <1200000>;
-+			regulator-max-microvolt = <2700000>;
-+			regulator-always-on;
-+		};
-+
-+		vdig2_reg: regulator@6 {
-+			reg = <6>;
-+			regulator-compatible = "vdig2";
-+			regulator-min-microvolt = <1000000>;
-+			regulator-max-microvolt = <1800000>;
-+			regulator-always-on;
-+		};
-+
-+		vpll_reg: regulator@7 {
-+			reg = <7>;
-+			regulator-compatible = "vpll";
-+			regulator-min-microvolt = <1000000>;
-+			regulator-max-microvolt = <2500000>;
-+			regulator-always-on;
-+		};
-+
-+		vdac_reg: regulator@8 {
-+			reg = <8>;
-+			regulator-compatible = "vdac";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <2850000>;
-+			regulator-always-on;
-+		};
-+
-+		vaux1_reg: regulator@9 {
-+			reg = <9>;
-+			regulator-compatible = "vaux1";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <2850000>;
-+			regulator-always-on;
-+		};
-+
-+		vaux2_reg: regulator@10 {
-+			reg = <10>;
-+			regulator-compatible = "vaux2";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		vaux33_reg: regulator@11 {
-+			reg = <11>;
-+			regulator-compatible = "vaux33";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+
-+		vmmc_reg: regulator@12 {
-+			reg = <12>;
-+			regulator-compatible = "vmmc";
-+			regulator-min-microvolt = <1800000>;
-+			regulator-max-microvolt = <3300000>;
-+			regulator-always-on;
-+		};
-+	};
-+};
--- 
-1.7.9.5
+At least the above (and possibly a good proportion of the others from
+the looks of things) aren't affected by this change because they are
+nested IRQs for MFDs where we can guarantee that there will never be a
+primary IRQ.  _ONESHOT shouldn't make any odds in these situations.
+
+> drivers/base/regmap/regmap-irq.c
+
+This is using irq_flags passed in by the caller so should be unaffected,
+it's always been the responsibility of the caller to set the flags.
