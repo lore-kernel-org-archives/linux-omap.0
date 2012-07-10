@@ -1,119 +1,175 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430
- SOC
-Date: Tue, 10 Jul 2012 05:57:08 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA69474@DBDE01.ent.ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
- <1341566515-22665-5-git-send-email-santosh.shilimkar@ti.com>
- <4FFA9B61.8030808@ti.com>
- <CAMQu2gwGzK4dt0VW19LhQK_tjGgY6C4b628M3dNi5xP_hYFPhg@mail.gmail.com>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v1 05/11] drivers: usb: twl6030: Add dt support for twl6030
+ usb
+Date: Tue, 10 Jul 2012 11:28:16 +0530
+Message-ID: <4FFBC478.4060308@ti.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>
+ <1340884267-28908-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46704 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752442Ab2GJF5i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 01:57:38 -0400
-In-Reply-To: <CAMQu2gwGzK4dt0VW19LhQK_tjGgY6C4b628M3dNi5xP_hYFPhg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1340884267-28908-6-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-On Mon, Jul 09, 2012 at 16:09:59, Shilimkar, Santosh wrote:
-> On Mon, Jul 9, 2012 at 2:20 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> >
-> >
-> >
-> > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
-> > > From: R Sricharan <r.sricharan@ti.com>
-> > >
-> > > OMAP5430 is Texas Instrument's SOC based on ARM Cortex-A15 SMP
-> > > architecture. It's a dual core SOC with GIC used for interrupt
-> > > handling and with an integrated L2 cache controller.
-> > >
-> > > OMAP5432 is another variant of OMAP5430, with a
-> > > memory controller supporting DDR3 and SATA.
-> > >
-> > > Patch includes:
-> > >  - The machine specific headers and sources updates.
-> > >  - Platform header updates.
-> > >  - Minimum initialisation support for serial.
-> > >  - IO table init
-> > >
-> > > Signed-off-by: R Sricharan <r.sricharan@ti.com>
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > ---
-> 
-> [..]
-> 
-> > >
-> > > +#if defined(CONFIG_SOC_OMAP5)
-> > > +static struct omap_globals omap5_globals = {
-> > > +     .class  = OMAP54XX_CLASS,
-> > > +     .tap    = OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
-> > > +     .ctrl   = OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
-> > > +     .ctrl_pad       = OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE),
-> > > +     .prm    = OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE),
-> > > +     .cm     = OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_AON_BASE),
-> > > +     .cm2    = OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE),
-> > > +     .prcm_mpu = OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE),
-> >
-> > I am not sure whether we had discussed on this before, couldn't find it.
-> >
-> > Why don't we reuse OMAP4 data here and elsewhere??
-> >
-> Because data is not same between OMAP4 and OMAP5.
-> Wherever it is same, it is taken care.
-> 
+On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
+> Add device tree support for twl6030 usb driver.
+> Update the Documentation with device tree binding information.
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>   .../devicetree/bindings/usb/twlxxxx-usb.txt        |   18 ++++++++
+>   drivers/usb/otg/twl6030-usb.c                      |   45 ++++++++++++++------
+>   2 files changed, 50 insertions(+), 13 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>
+> diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+> new file mode 100644
+> index 0000000..f293271
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+> @@ -0,0 +1,18 @@
+> +USB COMPARATOR OF TWL CHIPS
+> +
+> +TWL6030 USB COMPARATOR
+> + - compatible : Should be "ti,twl6030-usb"
+> + - interrupts : Two interrupt numbers to the cpu should be specified. First
+> +   interrupt number is the otg interrupt number that raises ID interrupts when
+> +   the controller has to act as host and the second interrupt number is the
+> +   usb interrupt number that raises VBUS interrupts when the controller has to
+> +   act as device
+> + - regulator :<supply-name>  can be "vusb" or "ldousb"
+> + -<supply-name>-supply : phandle to the regulator device tree node
+> +
+> +twl6030-usb {
+> +	compatible = "ti,twl6030-usb";
+> +	interrupts =<  4 10>;
+> +	regulator = "vusb";
+> +	vusb-supply =<&vusb>;
 
-Above most of the base-addresses are same as omap4.
+This doesn't seem right. Why do you ned a 'regulator' string along
+with the phandle?
 
-And what about clocktree and hwmod? Is it going tobe same as omap4? 
-Or we have separate data generated?
+> +};
+> diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+> index 6a361d2..20b7abe 100644
+> --- a/drivers/usb/otg/twl6030-usb.c
+> +++ b/drivers/usb/otg/twl6030-usb.c
+> @@ -105,7 +105,7 @@ struct twl6030_usb {
+>   	u8			asleep;
+>   	bool			irq_enabled;
+>   	bool			vbus_enable;
+> -	unsigned long		features;
+> +	const char		*regulator;
+>   };
+>
+>   #define	comparator_to_twl(x) container_of((x), struct twl6030_usb, comparator)
+> @@ -153,13 +153,6 @@ static int twl6030_start_srp(struct phy_companion *comparator)
+>
+>   static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
+>   {
+> -	char *regulator_name;
+> -
+> -	if (twl->features&  TWL6025_SUBCLASS)
+> -		regulator_name = "ldousb";
+> -	else
+> -		regulator_name = "vusb";
+> -
+>   	/* Set to OTG_REV 1.3 and turn on the ID_WAKEUP_COMP */
+>   	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x1, TWL6030_BACKUP_REG);
+>
+> @@ -169,7 +162,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
+>   	/* Program MISC2 register and set bit VUSB_IN_VBAT */
+>   	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
+>
+> -	twl->usb3v3 = regulator_get(twl->dev, regulator_name);
+> +	twl->usb3v3 = regulator_get(twl->dev, twl->regulator);
+>   	if (IS_ERR(twl->usb3v3))
+>   		return -ENODEV;
+>
+> @@ -324,9 +317,9 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+>   {
+>   	struct twl6030_usb	*twl;
+>   	int			status, err;
+> -	struct twl4030_usb_data *pdata;
+> -	struct device *dev =&pdev->dev;
+> -	pdata = dev->platform_data;
+> +	struct device_node	*np = pdev->dev.of_node;
+> +	struct device		*dev =&pdev->dev;
+> +	struct twl4030_usb_data	*pdata = dev->platform_data;
+>
+>   	twl = devm_kzalloc(dev, sizeof *twl, GFP_KERNEL);
+>   	if (!twl)
+> @@ -335,13 +328,28 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+>   	twl->dev		=&pdev->dev;
+>   	twl->irq1		= platform_get_irq(pdev, 0);
+>   	twl->irq2		= platform_get_irq(pdev, 1);
+> -	twl->features		= pdata->features;
+>   	twl->linkstat		= OMAP_MUSB_UNKNOWN;
+>
+>   	twl->comparator.set_vbus	= twl6030_set_vbus;
+>   	twl->comparator.start_srp	= twl6030_start_srp;
+>   	omap_usb2_set_comparator(&twl->comparator);
+>
+> +	if (np) {
+> +		err = of_property_read_string(np, "regulator",&twl->regulator);
+> +		if (err<  0) {
+> +			dev_err(&pdev->dev, "unable to get regulator\n");
+> +			return err;
+> +		}
 
+Isn't there a better way for the driver to know which supply to use 
+instead of DT passing the supply name?
 
-> [..]
-> 
-> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> > > index 70cf825..766181c 100644
-> > > --- a/arch/arm/plat-omap/sram.c
-> > > +++ b/arch/arm/plat-omap/sram.c
-> > > @@ -6,8 +6,8 @@
-> > >   * Copyright (C) 2005 Nokia Corporation
-> > >   * Written by Tony Lindgren <tony@atomide.com>
-> > >   *
-> > > - * Copyright (C) 2009 Texas Instruments
-> > > - * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > + * Copyright (C) 2009-2012 Texas Instruments
-> > > + * Added OMAP4/5 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > >   *
-> > >   * This program is free software; you can redistribute it and/or modify
-> > >   * it under the terms of the GNU General Public License version 2 as
-> > > @@ -44,6 +44,7 @@
-> > >  #else
-> > >  #define OMAP4_SRAM_PUB_PA    (OMAP4_SRAM_PA + 0x4000)
-> > >  #endif
-> > > +#define OMAP5_SRAM_PA                0x40300000
-> > >
-> >
-> > We have mix of such definitions here, for example,
-> >
-> > "arch/arm/plat-omap/include/plat/sram.h"
-> > and now in arch/arm/plat-omap/sram.c here itself.
-> >
-> >
-> > May be right time to clean it up now.
-> >
-> Thats because of an interconnect BUG which needed it exported
-> at plat level in case of OMAP4.
-> 
+regards,
+Rajendra
 
-Not only omap4, but we have 2, 3, 4 and AM33xx definitions present there
-at plat/sram.h and public PA (SRAM_PUB_PA) address is defined in sram.c file.
-
-
-Thanks,
-Vaibhav
+> +	} else if (pdata) {
+> +		if (pdata->features&  TWL6025_SUBCLASS)
+> +			twl->regulator = "ldousb";
+> +		else
+> +			twl->regulator = "vusb";
+> +	} else {
+> +		dev_err(&pdev->dev, "twl6030 initialized without pdata\n");
+> +		return -EINVAL;
+> +	}
+> +
+>   	/* init spinlock for workqueue */
+>   	spin_lock_init(&twl->lock);
+>
+> @@ -403,12 +411,23 @@ static int __exit twl6030_usb_remove(struct platform_device *pdev)
+>   	return 0;
+>   }
+>
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id twl6030_usb_id_table[] = {
+> +	{ .compatible = "ti,twl6030-usb" },
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(of, twl6030_usb_id_table);
+> +#else
+> +#define twl6030_usb_id_table NULL
+> +#endif
+> +
+>   static struct platform_driver twl6030_usb_driver = {
+>   	.probe		= twl6030_usb_probe,
+>   	.remove		= __exit_p(twl6030_usb_remove),
+>   	.driver		= {
+>   		.name	= "twl6030_usb",
+>   		.owner	= THIS_MODULE,
+> +		.of_match_table = twl6030_usb_id_table,
+>   	},
+>   };
+>
