@@ -1,78 +1,93 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH 1/1] ARM: OMAP3: igep0020: set GPIO mode for mux mcspi1_cs2 pin
-Date: Tue, 10 Jul 2012 03:57:32 +0200
-Message-ID: <1341885452-5372-1-git-send-email-javier@dowhile0.org>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH v2 RESEND 0/3] Watchdog: OMAP: bootstatus fix for omap3
+ and changes for the current watchdog framework
+Date: Tue, 10 Jul 2012 12:17:40 +0800
+Message-ID: <4FFBACE4.80901@windriver.com>
+References: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45919 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952Ab2GJB5u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 21:57:50 -0400
-Received: by weyx8 with SMTP id x8so1714881wey.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 18:57:48 -0700 (PDT)
+Received: from mail.windriver.com ([147.11.1.11]:58930 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198Ab2GJESG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 00:18:06 -0400
+In-Reply-To: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?q?Enric=20Balletb=C3=B2=20i=20Serra?= <eballetbo@gmail.com>
-Cc: Tom Rini <trini@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>
+To: shubhrajyoti@ti.com, hvaibhav@ti.com, wim@iguana.be, "Hilman, Kevin" <khilman@ti.com>
+Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul.gortmaker@windriver.com, tony@atomide.com
 
-According to the IGEPv2 Rev.C data-sheet the LAN9221i pin 14 (IRQ) is
-connected to the OMAP3730 mcspi1_cs2 pin. Since this omap mux pin acts
-as an IRQ line, it has to be configured as an input GPIO.
+=D3=DA 2012=C4=EA07=D4=C209=C8=D5 15:35, Zumeng Chen =D0=B4=B5=C0:
+> Hello,
+>
+> The following patches based on the 3.5-rc6 from Wim, which
+> focus on:
+>
+> 1 ) bootstatus fix for omap3,
+>
+> 2 ) omap-wdt framework update cater for the current framework
+>     as Shubhrajyoti comments mentioned.
 
-IGEPv2 platform code sets the smsc911x_cfg->gpio_irq to GPIO 176 but
-since the mux pin default mode is MODE7 (safe_mode) the driver fails
-when trying to register the IRQ with the following error message:
+I compiled a test case from the following website,
+http://www.lpclinux.com/Blogs/Testing_LPC313x_Linux_Watchdog_Driver
 
-[    1.994598] smsc911x: Driver version 2008-10-21
-[    3.704162] irq 272: nobody cared (try booting with the "irqpoll" option)
-[    3.711364] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c009a0d4>] (__report_bad_irq+0x20/0xbc)
-[    3.720916] [<c009a0d4>] (__report_bad_irq+0x20/0xbc) from [<c009a41c>] (note_interrupt+0x1d8/0x238)
-[    3.730560] [<c009a41c>] (note_interrupt+0x1d8/0x238) from [<c0098234>] (handle_irq_event_percpu+0xc0/0x260)
-[    3.740936] [<c0098234>] (handle_irq_event_percpu+0xc0/0x260) from [<c0098410>] (handle_irq_event+0x3c/0x5c)
-[    3.751312] [<c0098410>] (handle_irq_event+0x3c/0x5c) from [<c009abe0>] (handle_level_irq+0xac/0x10c)
-[    3.761047] [<c009abe0>] (handle_level_irq+0xac/0x10c) from [<c0097a34>] (generic_handle_irq+0x30/0x48)
-[    3.770935] [<c0097a34>] (generic_handle_irq+0x30/0x48) from [<c02a6b74>] (gpio_irq_handler+0x180/0x1d4)
-[    3.780944] [<c02a6b74>] (gpio_irq_handler+0x180/0x1d4) from [<c0097a34>] (generic_handle_irq+0x30/0x48)
-[    3.790954] [<c0097a34>] (generic_handle_irq+0x30/0x48) from [<c0013e18>] (handle_IRQ+0x4c/0xac)
-[    3.800231] [<c0013e18>] (handle_IRQ+0x4c/0xac) from [<c000858c>] (omap3_intc_handle_irq+0x60/0x74)
-[    3.809783] [<c000858c>] (omap3_intc_handle_irq+0x60/0x74) from [<c04979e4>] (__irq_svc+0x44/0x60)
-[    3.819213] Exception stack(0xee42fde0 to 0xee42fe28)
-[    3.824554] fde0: 00000001 00000001 00000000 00000000 60000013 c06cce14 c06cce14 00000110
-[    3.833190] fe00: 00000000 c06ccdf4 60000013 ee41d000 fb058064 ee42fe28 c0089e08 c04976b4
-[    3.841796] fe20: 20000013 ffffffff
-[    3.845489] [<c04979e4>] (__irq_svc+0x44/0x60) from [<c04976b4>] (_raw_spin_unlock_irqrestore+0x34/0x44)
-[    3.855499] [<c04976b4>] (_raw_spin_unlock_irqrestore+0x34/0x44) from [<c0099744>] (__setup_irq+0x1b8/0x3f0)
-[    3.865875] [<c0099744>] (__setup_irq+0x1b8/0x3f0) from [<c0099a34>] (request_threaded_irq+0xb8/0x140)
-[    3.875701] [<c0099a34>] (request_threaded_irq+0xb8/0x140) from [<c0487950>] (smsc911x_drv_probe+0x75c/0x11a4)
-[    3.886260] [<c0487950>] (smsc911x_drv_probe+0x75c/0x11a4) from [<c02e9bcc>] (platform_drv_probe+0x18/0x1c)
-[    3.906707] [<c02e89b8>] (driver_probe_device+0x90/0x210) from [<c02e8bcc>] (__driver_attach+0x94/0x98)
-[    3.916625] [<c02e8bcc>] (__driver_attach+0x94/0x98) from [<c02e7298>] (bus_for_each_dev+0x50/0x7c)
-[    3.926177] [<c02e7298>] (bus_for_each_dev+0x50/0x7c) from [<c02e81d4>] (bus_add_driver+0x184/0x248)
-[    3.935821] [<c02e81d4>] (bus_add_driver+0x184/0x248) from [<c02e909c>] (driver_register+0x78/0x12c)
-[    3.945465] [<c02e909c>] (driver_register+0x78/0x12c) from [<c0008648>] (do_one_initcall+0x34/0x178)
-[    3.955108] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
-[    3.964385] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
-[    3.973632] handlers:
-[    3.976043] [<c034e2cc>] smsc911x_irqhandler
-[    3.980560] Disabling IRQ #272
+It works well.
 
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
----
- arch/arm/mach-omap2/board-igep0020.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+root@ti-omap3:/tmp# ./a.out -h
+Usage: ./a.out [options]
+-h --help Display this usage information.
+-d --dev <device_file> Use <device_file> as watchdog device file.
+The default device file is '/dev/watchdog'
+-i --interval <interval> Change the watchdog interval time
+root@ti-omap3:/tmp# ./a.out -i 40;
+Set watchdog interval to 40
+Current watchdog interval is 40
+Last boot is caused by : Watchdog
+Use:
+<w> to kick through writing over device file
+<i> to kick through IOCTL
+<x> to exit the program
+x
+Goodbye !
+watchdog: Omap Watchdog: nowayout prevents watchdog to be stopped!
+watchdog: Omap Watchdog: watchdog did not stop!
+root@ti-omap3:/tmp# for i in `seq 1 30`; do echo $i; sleep 1;done
+1
+2
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 7491529..2821448 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -554,6 +554,8 @@ static const struct usbhs_omap_board_data igep3_usbhs_bdata __initconst = {
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* SMSC9221 LAN Controller ETH IRQ (GPIO_176) */
-+	OMAP3_MUX(MCSPI1_CS2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #endif
--- 
-1.7.7.6
+[snip]
 
+I built NOWAYOUT in driver, so it doesn't stop, still going until the
+following
+information:
+
+Texas Instruments X-Loader 1.42
+Starting OS Bootloader...
+No OOB scheme defined for oobsize 0
+OneNAND: 0 kB
+256 MiB
+
+Regards,
+Zumeng
+>
+> Regards,
+>
+> Zumeng Chen (3):
+>   Watchdog: Omap: Changes for the new watchdog framework
+>   Watchdog: Omap: select watchdog core for framework change
+>   Watchdog: Omap: get the bootstatus for OMAP2Plus
+>
+>  arch/arm/mach-omap2/prcm.c  |    5 +-
+>  drivers/watchdog/Kconfig    |    1 +
+>  drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++-----------------=
+----------
+>  drivers/watchdog/omap_wdt.h |    5 +
+>  4 files changed, 133 insertions(+), 220 deletions(-)
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
