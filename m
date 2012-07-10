@@ -1,68 +1,100 @@
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: RE: [PATCH v1 01/11] drivers: usb: otg: add a new driver for omap
- usb2 phy
-Date: Tue, 10 Jul 2012 12:35:38 +0530
-Message-ID: <D958900912E20642BCBC71664EFECE3E6DDAD9FFC1@BGMAIL02.nvidia.com>
-References: <1340884267-28908-1-git-send-email-kishon@ti.com>
-	<1340884267-28908-2-git-send-email-kishon@ti.com>	<4FFBC1D0.5030506@ti.com>
-	<D958900912E20642BCBC71664EFECE3E6DDAD9FF96@BGMAIL02.nvidia.com>
- <CAAe_U6Kx8o6sHgpev3UEAou7tuNDt9iL0+hcyOVDb0WsCsSwKg@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register
+ offset using the IP scheme.
+Date: Tue, 10 Jul 2012 12:42:46 +0530
+Message-ID: <CAMQu2gzubK7r4OEsusXBSGEW5YLWeMkt0tp8X9ERBLjse_5=MA@mail.gmail.com>
+References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
+ <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
+ <4FFA9B6C.7050003@ti.com> <CAMQu2gz0UU_RCFSvxo1s_XwDAmTtL4NadsFTg8qL7PtGwPqKtQ@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA695E6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAe_U6Kx8o6sHgpev3UEAou7tuNDt9iL0+hcyOVDb0WsCsSwKg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "balbi@ti.com" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "hvaibhav@ti.com" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51907 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752152Ab2GJHNI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 03:13:08 -0400
+Received: by qaas11 with SMTP id s11so2143114qaa.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jul 2012 00:13:07 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA695E6@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-> Hi,
-> 
-> On Tue, Jul 10, 2012 at 11:33 AM, Venu Byravarasu
-> <vbyravarasu@nvidia.com> wrote:
-> >> > +
-> >> > +#ifdef CONFIG_PM
-> >
-> > Should it not be CONFIG_PM_SLEEP instead of just CONFIG_PM?
-> 
-> Why? I think we should have CONFIG_PM_SLEEP only when we have
-> *suspend*, *resume* hooks. But this driver has only *runtime_suspend*
-> and *runtime_resume* hooks.
+On Tue, Jul 10, 2012 at 12:11 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> On Mon, Jul 09, 2012 at 16:12:15, Shilimkar, Santosh wrote:
+>> On Mon, Jul 9, 2012 at 2:20 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>> >
+>> >
+>> > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
+>> >> From: R Sricharan <r.sricharan@ti.com>
+>> >>
+>> >> OMAP socs has a legacy and a highlander version of the
+>> >> 32k sync counter IP. The register offsets vary between the
+>> >> highlander and the legacy scheme. So use the 'SCHEME'
+>> >> bits(30-31) of the revision register to distinguish between
+>> >
+>> >
+>> > Just for my understanding, can we get further information on SCHEME
+>> > bit-fields? What kind of information we have it here.
+>> >
+>> > I may need this info to pass on to design team here.
+>> >
+>> Sure. You can refer to the OMAP4 TRM for the bit builds.
+>> SCHEME bit field tell you difference between a highlander
+>> and legacy IP as the patch says.
+>>
+>
+> Santosh,
+>
+> Can you point to the section of OMAP4 TRM?
+>
+> I referred to both Public TRM and internal TRM, but both only did mention
+> "TI internal Data".
+>
+Last time I refereed the internal TRM version. Public TRM doesn't
+carry that information
+for some reason.
 
-Yes, you are right. CONFIG_PM_SLEEP is not needed for runtime.
+> And as per code, we are not checking any value in 31-30 bit-fields, code
+> just assumes that, non-zero value would be highlander IP.
+>
+There are only two types of IP's today and hence it will be either
+0x0 or 0x1. So that check if just fine. The highlander IP may have
+more versions but for known OMAPs and upcoming OMAP, this is
+the only one supported version.
 
-> >
-> >> > +
-> >> > +static int omap_usb2_runtime_suspend(struct device *dev)
-> >> > +{
-> >> > +   struct platform_device  *pdev = to_platform_device(dev);
-> >> > +   struct omap_usb *phy = platform_get_drvdata(pdev);
-> >> > +
-> >
-> >
-> >> > +static int __init usb2_omap_init(void)
-> >> > +{
-> >> > +   return platform_driver_register(&omap_usb2_driver);
-> >> > +}
-> >> > +arch_initcall(usb2_omap_init);
-> >> > +
-> >> > +static void __exit usb2_omap_exit(void)
-> >> > +{
-> >> > +   platform_driver_unregister(&omap_usb2_driver);
-> >> > +}
-> >> > +module_exit(usb2_omap_exit);
-> >> > +
-> >
-> > Do you really need arch_initcall here?
-> > If not, then you can replace above two function calls with
-> module_platform_driver().
-> 
-> I indeed want it to be arch_initcall. When the module is built-in, I
-> want this module to loaded before twl6030-usb.c
+Some more information on the SCHEME bit field.
+-----------------
+31:30
+SCHEME
+Used to distinguish between old scheme and current.
 
-Should be fine.
+RO Read Only
 
-> Thanks
-> Kishon
+0x0 -  LEGACY
+
+0x1 - Highlander 0.8 scheme
+--------------------------------
+
+Regards
+Santosh
+
+
+
+
+
+
+
+	
+
+
+	
+
+Read 0x1
+	
+
+HL08
+Highlander 0.8 scheme
