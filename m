@@ -1,70 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Tue, 10 Jul 2012 06:17:34 -0700
-Message-ID: <20120710131734.GV1122@atomide.com>
-References: <20120703081746.GJ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
- <20120704075158.GQ1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
- <20120705105535.GB1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A39DF@DBDE01.ent.ti.com>
- <20120706120533.GU1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A622E@DBDE01.ent.ti.com>
- <20120710094538.GT1122@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A64D0@DBDE01.ent.ti.com>
+Subject: [GIT PULL] two omap fixes for v3.5-rc6
+Date: Tue, 10 Jul 2012 06:36:22 -0700
+Message-ID: <20120710133621.GW1122@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:35334 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19537 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab2GJNRi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 09:17:38 -0400
+	with ESMTP id S1755812Ab2GJNg0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 09:36:26 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A64D0@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Mohammed, Afzal <afzal@ti.com> [120710 03:09]:
-> Hi Tony,
-> 
-> On Tue, Jul 10, 2012 at 15:15:38, Tony Lindgren wrote:
-> > * Mohammed, Afzal <afzal@ti.com> [120709 23:24]:
-> > > On Fri, Jul 06, 2012 at 17:35:33, Tony Lindgren wrote:
-> 
-> > > > format. But the peripheral specific retime function still needs to be
-> > > > also registered for peripherals that need it.
-> > > 
-> > > For the peripherals requiring retime, we cannot (as otherwise whatever
-> > > retime does would have to be manually done based on the knowledge of
-> > > boot time gpmc clock period to calculate gpmc timings to be fed to DT)
-> > > pass gpmc timings via device tree, right ?
-> > 
-> > We can still do it when the connected peripheral probe registers with
-> > gpmc.
-> 
-> We can, but would it be feasible practically ?, gpmc timings to update in
-> DT for a such a peripheral (requiring retime) can be found out only by
-> manual calculation similar to the way done in retime function (based on
-> peripheral's timings and boot time gpmc clock period), correct ?, Also
-> wouldn't this make it necessary to know gpmc clock period at boot time
-> for properly updating gpmc timing entry in DT ?
+The following changes since commit fa2976a811a764573b2a9c79126d4d66f1f16268:
 
-The gpmc clock period can be returned to the connected peripheral when
-it's registering. Well basically we can call the retime function upon
-registering and pass the gpmc clock period.
- 
-> And in this case, we are going to register retime function, so instead of
-> relying on DT to provide gpmc timings for such a peripheral, won't it
-> be better to make use of retime that is already registered ?
+  Merge tag 'omap-fixes-b-for-3.5rc' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into fixes (2012-07-05 01:12:08 -0700)
 
-No we need to pass the timings from device tree as they may be different
-for similar boards. For example, different level shifters used on
-similar boards may affect the timings, although the retime function
-can be the same.
+are available in the git repository at:
 
-Regards,
 
-Tony
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+
+for you to fetch changes up to 06b4ba529528fbf9c24ce37b7618f4b0264750e2:
+
+  ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not stable, disable it (2012-07-09 01:15:07 -0700)
+
+----------------------------------------------------------------
+Here is one PM regression fix and a defconfig change to disable
+echi-omap because the driver currently causes issues with PM.
+This annoys Kevin as it makes it harder for him to validate that
+PM is working. The proper fixes for the echi-omap are being
+discussed, but looks like it will not be properly working with PM
+until in v3.7.
+
+----------------------------------------------------------------
+Kevin Hilman (1):
+      ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not stable, disable it
+
+Paul Walmsley (1):
+      ARM: OMAP2+: hwmod code/clockdomain data: fix 32K sync timer
+
+Tony Lindgren (1):
+      Merge branch 'for_3.5/fixes/pm-3' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
+
+ arch/arm/configs/omap2plus_defconfig             |    1 -
+ arch/arm/mach-omap2/clockdomain.h                |    4 +++
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    1 +
+ arch/arm/mach-omap2/clockdomains44xx_data.c      |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c                 |   32 ++++++++++++++++------
+ 5 files changed, 30 insertions(+), 10 deletions(-)
