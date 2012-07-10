@@ -1,52 +1,113 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Tue, 10 Jul 2012 16:58:18 -0700
-Message-ID: <87zk77p3s5.fsf@ti.com>
-References: <WC20120705150314.450045@terrafix.co.uk>
+From: Dennis Gilmore <dgilmore@fedoraproject.org>
+Subject: Re: dtb for pandaboard
+Date: Tue, 10 Jul 2012 18:25:43 -0500
+Message-ID: <20120710182543.34068bca@pegasus.ausil.us>
+References: <20120708173259.592552c1@pegasus.ausil.us>
+	<20120709090848.GD1122@atomide.com>
+	<20120710181119.27faf235@pegasus.ausil.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:48582 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755384Ab2GJX6V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 19:58:21 -0400
-Received: by pbbro8 with SMTP id ro8so1012904pbb.25
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jul 2012 16:58:19 -0700 (PDT)
-In-Reply-To: <WC20120705150314.450045@terrafix.co.uk> (Joe Woodward's message
-	of "Thu, 05 Jul 2012 16:03:14 +0100")
+Received: from mail.ausil.us ([74.119.218.133]:44278 "EHLO mail.ausil.us"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756026Ab2GJX7D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 19:59:03 -0400
+In-Reply-To: <20120710181119.27faf235@pegasus.ausil.us>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Dennis Gilmore <dennis@ausil.us>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
-
-> I've got 3.5-rc5 with the following patches applied to get system suspend working on OMAP3:
->   - fix the DSS: OMAPDSS: Use PM notifiers for system suspend
->   - fix the 32KHz clock: ARM: OMAP2+: hwmod code/clockdomain data: fix 32K sync timer
->
-> This has been built with the omap2plus_defconfig.
->
-> However, If I disable the RTC (i.e. CONFIG_RTC_CLASS/CONFIG_RTC_DRV_TWL4030) and rebuild then when suspending the device never wakes up.
->
-> That is, I can't get any wakeups to happen (either through the console, or GPIO buttons) hence I'm assuming the kernel has crashed...
->
-> Any ideas?
->
-> As far as I know there is no dependency on the RTC in 3.4, and with the RTC compiled in I never see a problem on 3.5-rc5.
-
-There is definitely a bug in the EHCI driver in v3.5 that cause a hang
-in suspend, but the RTC connection is very strange.
-
-I was not able to reproduce this.
-
-Can you try the same with my current 'pm' branch[1].  I've got a handful
-of additional fixes there for various other problems where both MMC and
-EHCI are preventing sucessful suspend with the default
-omap2plus_defconfig.  (note the EHCI fix is simply diabling it in the
-defconfig.)
-
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUdWUs
+IDEwIEp1bCAyMDEyIDE4OjExOjE5IC0wNTAwDQpEZW5uaXMgR2lsbW9yZSA8ZGVubmlzQGF1c2ls
+LnVzPiB3cm90ZToNCg0KPiAtLS0tLUJFR0lOIFBHUCBTSUdORUQgTUVTU0FHRS0tLS0tDQo+IEhh
+c2g6IFNIQTENCj4gDQo+IE9uIE1vbiwgOSBKdWwgMjAxMiAwMjowODo0OSAtMDcwMA0KPiBUb255
+IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToNCj4gDQo+ID4gKiBEZW5uaXMgR2ls
+bW9yZSA8ZGVubmlzQGF1c2lsLnVzPiBbMTIwNzA4IDE2OjExXToNCj4gPiA+IC0tLS0tQkVHSU4g
+UEdQIFNJR05FRCBNRVNTQUdFLS0tLS0NCj4gPiA+IEhhc2g6IFNIQTENCj4gPiA+IA0KPiA+ID4g
+SGkgZG9lcyBhbnlvbmUgaGFwcGVuIHRvIGhhdmUgYSB3b3JraW5nIGR0YiBmaWxlIGZvciB0aGUN
+Cj4gPiA+IHBhbmRhYm9hcmQ/IHRyeWluZyB0byB0ZXN0IGJvb3RpbmcgdGhlIGZlZG9yYSByYXdo
+aWRlIGtlcm5lbA0KPiA+ID4gd2hpY2ggaXMgMy41LjAtcmM1IHdpdGggYSBkdGIgZmlsZSBJIG1h
+ZGUgZnJvbSB0aGUgbWF0Y2hpbmcNCj4gPiA+IHNvdXJjZXMgSSBkb250IGdldCBwYXN0IGRlY29t
+cHJlc3NpbmcgdGhlIGtlcm5lbC4gaWYgaSBkb250IHVzZSBhDQo+ID4gPiBkdGIgZmlsZSB0aGUg
+c3lzdGVtIGJvb3RzIGZ1cnRoZXIgYnV0IGl0IGknbSB1bmFibGUgdG8gZmluZCB0aGUNCj4gPiA+
+IHJvb3QgZmlsZXN5c3RlbSBzaW5jZSBpdCBzZWVtcyB0aGF0IHRoZSBwbGF0Zm9ybSBkYXRhIGhh
+cyBiZWVuDQo+ID4gPiBtZXNzZWQgdXAuIG1vZHByb2Jpbmcgb21hcCByZXN1bHRzIGluIG5vIHJl
+Z2lzdHJhdGlvbiBvZiB0aGUgbW1jDQo+ID4gPiBibG9jayBkZXZpY2VzLiANCj4gPiA+IA0KPiA+
+ID4gaSd2ZSBub3QgdGVzdGVkIG9uIGEgcGFuZGFib2FyZCBFUyBvciBiZWFnbGVib2FyZCB5ZXQg
+IG9yIGFueQ0KPiA+ID4gb3RoZXIgdHlwZSBvZiBvbWFwIHN5c3RlbS4gDQo+ID4gDQo+ID4gRllJ
+LCBJIGJvb3RlZCBteSBwYW5kYSBlcyByZWNlbnRseSBqdXN0IGZpbmUgd2l0aCBkdGIgYXBwZW5k
+IHN1cHBvcnQNCj4gPiBhbmQgdGhlIGZvbGxvd2luZyAuY29uZmlnIGFkZGl0aW9uIHVzaW5nIHRo
+ZSBwbGFpbg0KPiA+IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLmR0cyBmaWxlOg0KPiA+
+IA0KPiA+IENPTkZJR19BUk1fQVBQRU5ERURfRFRCPXkNCj4gPiBDT05GSUdfQVJNX0FUQUdfRFRC
+X0NPTVBBVD15DQo+ID4gQ09ORklHX0VYVDRfRlM9eQ0KPiA+IA0KPiA+IENhbiB5b3UgcGxlYXNl
+IGVuYWJsZSBERUJVR19MTCwgRUFSTFlfUFJJTlRLIGFuZCBhZGQgZWFybHlwcmludGsgdG8NCj4g
+PiB5b3VyIGNtZGxpbmUgYW5kIHBvc3Qgd2hhdCB5b3UgZ2V0Pw0KPiA+IA0KPiA+IFJlZ2FyZHMs
+DQo+ID4gDQo+ID4gVG9ueQ0KPiANCj4gTG9hZGVkIGVudmlyb25tZW50IGZyb20gdUVudi50eHQN
+Cj4gSW1wb3J0aW5nIGVudmlyb25tZW50IGZyb20gbW1jIC4uLg0KPiByZWFkaW5nIHVJbWFnZS1v
+bWFwDQo+IA0KPiAzOTg4MDQwIGJ5dGVzIHJlYWQNCj4gcmVhZGluZyB1SW5pdHJkLW9tYXANCj4g
+DQo+IDExOTAgYnl0ZXMgcmVhZA0KPiByZWFkaW5nIG9tYXA0LXBhbmRhLmR0Yg0KPiANCj4gNTQ4
+MyBieXRlcyByZWFkDQo+IEJvb3RpbmcgZnJvbSBtbWMgLi4uDQo+ICMjIEJvb3Rpbmcga2VybmVs
+IGZyb20gTGVnYWN5IEltYWdlIGF0IDgwMzAwMDAwIC4uLg0KPiAgICBJbWFnZSBOYW1lOiAgIDMu
+NS4wLTAucmM2LmdpdDAuMy5mYzE4LmFybXY3aGwuDQo+ICAgIEltYWdlIFR5cGU6ICAgQVJNIExp
+bnV4IEtlcm5lbCBJbWFnZSAodW5jb21wcmVzc2VkKQ0KPiAgICBEYXRhIFNpemU6ICAgIDM5ODc5
+NzYgQnl0ZXMgPSAzLjggTWlCDQo+ICAgIExvYWQgQWRkcmVzczogODAwMDgwMDANCj4gICAgRW50
+cnkgUG9pbnQ6ICA4MDAwODAwMA0KPiAgICBWZXJpZnlpbmcgQ2hlY2tzdW0gLi4uIE9LDQo+ICMj
+IExvYWRpbmcgaW5pdCBSYW1kaXNrIGZyb20gTGVnYWN5IEltYWdlIGF0IDgxNjAwMDAwIC4uLg0K
+PiAgICBJbWFnZSBOYW1lOiAgIGluaXRyYW1mcw0KPiAgICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51
+eCBSQU1EaXNrIEltYWdlICh1bmNvbXByZXNzZWQpDQo+ICAgIERhdGEgU2l6ZTogICAgMTEyNiBC
+eXRlcyA9IDEuMSBLaUINCj4gICAgTG9hZCBBZGRyZXNzOiAwMDAwMDAwMA0KPiAgICBFbnRyeSBQ
+b2ludDogIDAwMDAwMDAwDQo+ICAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCj4gIyMgRmxh
+dHRlbmVkIERldmljZSBUcmVlIGJsb2IgYXQgODI2MDAwMDANCj4gICAgQm9vdGluZyB1c2luZyB0
+aGUgZmR0IGJsb2IgYXQgMHg4MjYwMDAwMA0KPiAgICBMb2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4g
+T0sNCj4gT0sNCj4gICAgcmVzZXJ2aW5nIGZkdCBtZW1vcnkgcmVnaW9uOiBhZGRyPTlkMDAwMDAw
+IHNpemU9MzAwMDAwMA0KPiAgICBMb2FkaW5nIFJhbWRpc2sgdG8gYmZlZmEwMDAsIGVuZCBiZmVm
+YTQ2NiAuLi4gT0sNCj4gICAgTG9hZGluZyBEZXZpY2UgVHJlZSB0byBiZmVmNTAwMCwgZW5kIGJm
+ZWY5NTZhIC4uLiBPSw0KPiANCj4gU3RhcnRpbmcga2VybmVsIC4uLg0KPiANCj4gVW5jb21wcmVz
+c2luZyBMaW51eC4uLiBkb25lLCBib290aW5nIHRoZSBrZXJuZWwuDQo+IFdhcm5pbmc6IE5laXRo
+ZXIgYXRhZ3Mgbm9yIGR0YiBmb3VuZA0KPiANCj4gaXMgYXMgZmFyIGFzIGkgYW0gZ2V0dGluZy4N
+Cj4gDQo+IERlbm5pcw0KPiAtLS0tLUJFR0lOIFBHUCBTSUdOQVRVUkUtLS0tLQ0KPiBWZXJzaW9u
+OiBHbnVQRyB2Mi4wLjE4IChHTlUvTGludXgpDQo+IA0KPiBpRVlFQVJFQ0FBWUZBay84dHAwQUNn
+a1FrU3htNDdCYVdmZk5CZ0NjQ0dXRVhFNDB1bGNWYTNuQjNBUHVuWlBoDQo+IFRqQUFuak5KVjVl
+VnQvRVZZZTZNZ21ING9rRTZpQkNHDQo+ID0xRS9xDQo+IC0tLS0tRU5EIFBHUCBTSUdOQVRVUkUt
+LS0tLQ0KDQpib290aW5nIHdpdGhvdXQgdXNpbmcgdGhlIGR0YiBmaWxlIGkgZ2V0DQoNClsgICAg
+Mi43NzQ2MjddID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NClsgICAgMi43NzQ2NThd
+IFsgSU5GTzogc3VzcGljaW91cyBSQ1UgdXNhZ2UuIF0NClsgICAgMi43NzQ2NThdIDMuNS4wLTAu
+cmM2LmdpdDAuMy5mYzE4LmFybXY3aGwub21hcCAjMSBOb3QgdGFpbnRlZA0KWyAgICAyLjc3NDY1
+OF0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KWyAgICAyLjc3NDY1OF0gZHJpdmVy
+cy9iYXNlL3Bvd2VyL29wcC5jOjE1NCBzdXNwaWNpb3VzIHJjdV9kZXJlZmVyZW5jZV9jaGVjaygp
+IHVzYWdlIQ0KWyAgICAyLjc3NDY1OF0NClsgICAgMi43NzQ2NThdIG90aGVyIGluZm8gdGhhdCBt
+aWdodCBoZWxwIHVzIGRlYnVnIHRoaXM6DQpbICAgIDIuNzc0NjU4XQ0KWyAgICAyLjc3NDY1OF0N
+ClsgICAgMi43NzQ2NThdIHJjdV9zY2hlZHVsZXJfYWN0aXZlID0gMSwgZGVidWdfbG9ja3MgPSAw
+DQpbICAgIDIuNzc0NjU4XSAzIGxvY2tzIGhlbGQgYnkga3dvcmtlci8wOjAvNDoNClsgICAgMi43
+NzQ3MTldICAjMToNClsgICAgMi43NzQ3MTldICAoDQpbICAgIDIuNzc0NzE5XSAoJigmZGJzX2lu
+Zm8tPndvcmspLT53b3JrKQ0KWyAgICAyLjc3NDcxOV0gKXsrLisuLi59DQpbICAgIDIuNzc0NzE5
+XSAsIGF0Og0KWyAgICAyLjc3NDcxOV0gWzxjMDA1YmVlND5dIHByb2Nlc3Nfb25lX3dvcmsrMHgx
+ZTgvMHg2OGMNClsgICAgMi43NzQ3MTldICAjMjoNClsgICAgMi43NzQ3MTldICAoDQpbICAgIDIu
+Nzc0NzQ5XSAmdGhpc19kYnNfaW5mby0+dGltZXJfbXV0ZXgNClsgICAgMi43NzQ3NDldICl7Ky4r
+Li4ufQ0KWyAgICAyLjc3NDc0OV0gLCBhdDoNClsgICAgMi43NzQ3NDldIFs8YzAzZDNhNjg+XSBk
+b19kYnNfdGltZXIrMHgzNC8weDQzOA0KWyAgICAyLjc3NDc0OV0NClsgICAgMi43NzQ3NDldIHN0
+YWNrIGJhY2t0cmFjZToNClsgICAgMi43NzQ4MTBdIFs8YzAwMTY3OTA+XSAodW53aW5kX2JhY2t0
+cmFjZSsweDAvMHgxMjQpIGZyb20gWzxjMDMxMDY0MD5dIChvcHBfZ2V0X3ZvbHRhZ2UrMHg4MC8w
+eGQwKQ0KWyAgICAyLjc3NDgxMF0gWzxjMDMxMDY0MD5dIChvcHBfZ2V0X3ZvbHRhZ2UrMHg4MC8w
+eGQwKSBmcm9tIFs8YzAzZDUzNDg+XSAob21hcF90YXJnZXQrMHgxODAvMHg0NzApDQpbICAgIDIu
+Nzc0ODQxXSBbPGMwM2Q1MzQ4Pl0gKG9tYXBfdGFyZ2V0KzB4MTgwLzB4NDcwKSBmcm9tIFs8YzAz
+Y2ZmYjA+XSAoX19jcHVmcmVxX2RyaXZlcl90YXJnZXQrMHhhMC8weGM4KQ0KWyAgICAyLjc3NDg0
+MV0gWzxjMDNjZmZiMD5dIChfX2NwdWZyZXFfZHJpdmVyX3RhcmdldCsweGEwLzB4YzgpIGZyb20g
+WzxjMDNkM2RiND5dIChkb19kYnNfdGltZXIrMHgzODAvMHg0MzgpDQpbICAgIDIuNzc0ODcxXSBb
+PGMwM2QzZGI0Pl0gKGRvX2Ric190aW1lcisweDM4MC8weDQzOCkgZnJvbSBbPGMwMDVjMDJjPl0g
+KHByb2Nlc3Nfb25lX3dvcmsrMHgzMzAvMHg2OGMpDQpbICAgIDIuNzc0ODcxXSBbPGMwMDVjMDJj
+Pl0gKHByb2Nlc3Nfb25lX3dvcmsrMHgzMzAvMHg2OGMpIGZyb20gWzxjMDA1YzU1Yz5dICh3b3Jr
+ZXJfdGhyZWFkKzB4MWEwLzB4MmMwKQ0KWyAgICAyLjc3NDg3MV0gWzxjMDA1YzU1Yz5dICh3b3Jr
+ZXJfdGhyZWFkKzB4MWEwLzB4MmMwKSBmcm9tIFs8YzAwNjI1N2M+XSAoa3RocmVhZCsweDk4LzB4
+YWMpDQpbICAgIDIuNzc0OTAyXSBbPGMwMDYyNTdjPl0gKGt0aHJlYWQrMHg5OC8weGFjKSBmcm9t
+IFs8YzAwMGY3MTQ+XSAoa2VybmVsX3RocmVhZF9leGl0KzB4MC8weDgpDQpbICAgIDIuNzc0OTMy
+XSB2b2x0ZG1fc2NhbGU6IE5vIHZvbHRhZ2Ugc2NhbGUgQVBJIHJlZ2lzdGVyZWQgZm9yIHZkZF9t
+cHUNClsgICAgMi43NzQ5MzJdIHBsYXRmb3JtIG1wdS4wOiBvbWFwX3RhcmdldDogdW5hYmxlIHRv
+IHNjYWxlIHZvbHRhZ2UgdXAuDQpbICAgIDIuNzc0Njg4XSAgIzA6ICAoZXZlbnRzKXsuKy4rLi59
+LCBhdDogWzxjMDA1YmVlND5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxZTgvMHg2OGMNCg0KDQpEZW5u
+aXMNCi0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjE4
+IChHTlUvTGludXgpDQoNCmlFWUVBUkVDQUFZRkFrLzh1ZmNBQ2drUWtTeG00N0JhV2ZlWnN3Q2ZX
+a1hqKzhzd3grOWgyOEdQeXQ0aC8rV2wNCnhsb0FuMExqR0JLUHNCTndmZ0I0cGV0YmlqU1RwL0JM
+DQo9bm54Vg0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
