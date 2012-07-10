@@ -1,194 +1,148 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1 01/11] drivers: usb: otg: add a new driver for omap
- usb2 phy
-Date: Tue, 10 Jul 2012 12:19:04 +0530
-Message-ID: <4FFBD060.5010903@ti.com>
-References: <1340884267-28908-1-git-send-email-kishon@ti.com>	<1340884267-28908-2-git-send-email-kishon@ti.com>	<4FFBC1D0.5030506@ti.com>
- <CAAe_U6L9qiBMXWeS2POeBod8uASCtmqDc4DigwBx1bJ-hhaNRQ@mail.gmail.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v1 07/11] drivers: usb: twl4030: Add device tree support
+ for twl4030 usb
+Date: Tue, 10 Jul 2012 12:22:57 +0530
+Message-ID: <CAAe_U6JhMWzsZ_XZzO0gt=g9fufL-urCLEC0nWfa8vk-9x6F_w@mail.gmail.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>
+	<1340884267-28908-8-git-send-email-kishon@ti.com>
+	<4FFBC56F.7080007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CAAe_U6L9qiBMXWeS2POeBod8uASCtmqDc4DigwBx1bJ-hhaNRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FFBC56F.7080007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
 
->>
->>> +
->>> +static int __devinit omap_usb2_probe(struct platform_device *pdev)
->>> +{
->>> +       struct omap_usb                 *phy;
->>> +       struct usb_otg                  *otg;
->>> +       struct resource                 *res;
->>> +
->>> +       phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->>> +       if (!phy) {
->>> +               dev_err(&pdev->dev, "unable to allocate memory for USB2
->>> PHY\n");
->>> +               return -ENOMEM;
->>> +       }
->>> +
->>> +       otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
->>> +       if (!otg) {
->>> +               dev_err(&pdev->dev, "unable to allocate memory for USB
->>> OTG\n");
->>> +               return -ENOMEM;
->>> +       }
->>> +
->>> +       phy->dev                =&pdev->dev;
->>>
->>> +
->>> +       phy->phy.dev            = phy->dev;
->>> +       phy->phy.label          = "omap-usb2";
->>> +       phy->phy.set_suspend    = omap_usb2_suspend;
->>> +       phy->phy.otg            = otg;
->>> +
->>> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
->>> +
->>> +       phy->control_dev_conf = devm_request_and_ioremap(&pdev->dev, res);
->>> +       if (phy->control_dev_conf == NULL) {
->>> +               dev_err(&pdev->dev, "Failed to obtain io memory\n");
->>> +               return -ENXIO;
->>> +       }
->>> +
->>> +       phy->is_suspended       = 1;
->>> +       omap_usb_phy_power(phy, 0);
->>> +
->>> +       otg->set_host           = omap_usb_set_host;
->>> +       otg->set_peripheral     = omap_usb_set_peripheral;
->>> +       otg->set_vbus           = omap_usb_set_vbus;
->>> +       otg->start_srp          = omap_usb_start_srp;
->>> +       otg->phy                =&phy->phy;
->>>
->>> +
->>> +       phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
->>
->>
->> Why not just use clk_get()? What does devm_clk_get() do?
-> It just associates the clk with the device. So whenever the the driver
-> gets detached, the devres will take care to do a clk_put() of the
-> clock.
+Hi,
 
-ok, makes sense.
-
+On Tue, Jul 10, 2012 at 11:32 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
 >>
->>
->>> +       if (IS_ERR(phy->wkupclk)) {
->>> +               dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
->>> +               return PTR_ERR(phy->wkupclk);
->>> +       }
->>> +       clk_prepare(phy->wkupclk);
->>
->>
->> Ideally clk_prepare() is an extension of clk_enable() and is expected
->> to be used that way. Not to be clubbed with clk_get(). Same with
->> clk_unprepare(). Do you do a clk_enable()/_disable() in interrupt/
->> atomic context?
+>> Add device tree support for twl6030 usb driver.
 >
-> Currently it is called from a work queue. But Felipe wanted to remove
-> those work_queue from omap2430 glue. Then this would be called from
-> atomic context.
-> A query for you here. If pm_runtime_get_sync() is called in interrupt
-> context, will runtime resume of that device will also be called in the
-> same context?
-
-Yes, it would. You also need to then tell the runtime pm framework about
-it by calling a pm_runtime_irq_safe() api I guess.
-
-regards,
-Rajendra
-
 >
->>
->>
->>> +
->>> +       usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
->>> +
->>> +       platform_set_drvdata(pdev, phy);
->>> +
->>> +       pm_runtime_enable(phy->dev);
->>> +
->>> +       return 0;
->>> +}
->>> +
->>> +static int __devexit omap_usb2_remove(struct platform_device *pdev)
->>> +{
->>> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->>> +
->>> +       clk_unprepare(phy->wkupclk);
->>> +       usb_remove_phy(&phy->phy);
->>> +       platform_set_drvdata(pdev, NULL);
->>> +
->>> +       return 0;
->>> +}
->>> +
->>> +#ifdef CONFIG_PM
->>> +
->>> +static int omap_usb2_runtime_suspend(struct device *dev)
->>> +{
->>> +       struct platform_device  *pdev = to_platform_device(dev);
->>> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->>> +
->>> +       clk_disable(phy->wkupclk);
->>> +
->>> +       return 0;
->>> +}
->>> +
->>> +static int omap_usb2_runtime_resume(struct device *dev)
->>> +{
->>> +       struct platform_device  *pdev = to_platform_device(dev);
->>> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->>> +
->>> +       clk_enable(phy->wkupclk);
->>> +
->>> +       return 0;
->>> +}
->>> +
->>> +static const struct dev_pm_ops omap_usb2_pm_ops = {
->>> +       SET_RUNTIME_PM_OPS(omap_usb2_runtime_suspend,
->>> omap_usb2_runtime_resume,
->>> +               NULL)
->>> +};
->>> +
->>> +#define DEV_PM_OPS     (&omap_usb2_pm_ops)
->>> +#else
->>> +#define DEV_PM_OPS     NULL
->>> +#endif
->>> +
->>> +#ifdef CONFIG_OF
->>> +static const struct of_device_id omap_usb2_id_table[] = {
->>> +       { .compatible = "ti,omap-usb2" },
->>> +       {}
->>> +};
->>> +MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
->>> +#else
->>> +#define omap_usb2_id_table NULL;
->>> +#endif
->>> +
->>> +static struct platform_driver omap_usb2_driver = {
->>> +       .probe          = omap_usb2_probe,
->>> +       .remove         = __devexit_p(omap_usb2_remove),
->>> +       .driver         = {
->>> +               .name   = "omap-usb2",
->>> +               .owner  = THIS_MODULE,
->>> +               .pm     = DEV_PM_OPS,
->>> +               .of_match_table = omap_usb2_id_table,
->>
->>
->> Use of_match_ptr() instead.
+> twl4030?
+My bad. Will fix it.
 >
-> Ok. And I'll remove #define omap_usb2_id_table NULL;.
 >
-> Thanks
-> Kishon
+>> Update the Documentation with device tree binding information.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>> ---
+>>   .../devicetree/bindings/usb/twlxxxx-usb.txt        |   19 +++++++++++++
+>>   drivers/usb/otg/twl4030-usb.c                      |   28
+>> +++++++++++++++----
+>>   2 files changed, 41 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> index f293271..2d069e4 100644
+>> --- a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> +++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> @@ -16,3 +16,22 @@ twl6030-usb {
+>>         regulator = "vusb";
+>>         vusb-supply =<&vusb>;
+>>   };
+>> +
+>> +TWL4030 USB PHY AND COMPARATOR
+>> + - compatible : Should be "ti,twl4030-usb"
+>> + - interrupts : The interrupt numbers to the cpu should be specified.
+>> First
+>> +   interrupt number is the otg interrupt number that raises ID interrupts
+>> +   and VBUS interrupts. The second interrupt number is optional.
+>> + -<supply-name>-supply : phandle to the regulator device tree node.
+>> +<supply-name>  should be vusb1v5, vusb1v8 and vusb3v1
+>> + - usb_mode : The mode used by the phy to connect to the controller. "1"
+>> +   specifies "ULPI" mode and "2" specifies "CEA2011_3PIN" mode.
+>
+>
+> Are these standard usb phy modes or something specific to the twl4030
+> usb phy?
+
+These are standard modes used to connect the phy to the controller. I
+think it's used by other chips other than twl4030 (Something in
+am35xx??).
+>
+>> +
+>> +twl4030-usb {
+>> +       compatible = "ti,twl4030-usb";
+>> +       interrupts =<  10 4>;
+>> +       vusb1v5-supply =<&vusb1v5>;
+>> +       vusb1v8-supply =<&vusb1v8>;
+>> +       vusb3v1-supply =<&vusb3v1>;
+>> +       usb_mode =<1>;
+>> +};
+>> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+>> index 523cad5..a4e7434 100644
+>> --- a/drivers/usb/otg/twl4030-usb.c
+>> +++ b/drivers/usb/otg/twl4030-usb.c
+>> @@ -585,23 +585,28 @@ static int __devinit twl4030_usb_probe(struct
+>> platform_device *pdev)
+>>         struct twl4030_usb      *twl;
+>>         int                     status, err;
+>>         struct usb_otg          *otg;
+>> -
+>> -       if (!pdata) {
+>> -               dev_dbg(&pdev->dev, "platform_data not available\n");
+>> -               return -EINVAL;
+>> -       }
+>> +       struct device_node      *np = pdev->dev.of_node;
+>>
+>>         twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
+>>         if (!twl)
+>>                 return -ENOMEM;
+>>
+>> +       if (np)
+>> +               of_property_read_u32(np, "usb_mode",
+>> +                               (enum twl4030_usb_mode *)&twl->usb_mode);
+>> +       else if (pdata)
+>> +               twl->usb_mode = pdata->usb_mode;
+>> +       else {
+>> +               dev_err(&pdev->dev, "twl4030 initialized without
+>> pdata\n");
+>> +               return -EINVAL;
+>> +       }
+>> +
+>>         otg = devm_kzalloc(&pdev->dev, sizeof *otg, GFP_KERNEL);
+>>         if (!otg)
+>>                 return -ENOMEM;
+>>
+>>         twl->dev                =&pdev->dev;
+>>
+>>         twl->irq                = platform_get_irq(pdev, 0);
+>> -       twl->usb_mode           = pdata->usb_mode;
+>>         twl->vbus_supplied      = false;
+>>         twl->asleep             = 1;
+>>         twl->linkstat           = OMAP_MUSB_UNKNOWN;
+>> @@ -690,12 +695,23 @@ static int __exit twl4030_usb_remove(struct
+>> platform_device *pdev)
+>>         return 0;
+>>   }
+>>
+>> +#ifdef CONFIG_OF
+>> +static const struct of_device_id twl4030_usb_id_table[] = {
+>> +       { .compatible = "ti,twl4030-usb" },
+>> +       {}
+>> +};
+>> +MODULE_DEVICE_TABLE(of, twl4030_usb_id_table);
+>> +#else
+>> +#define twl4030_usb_id_table NULL
+>> +#endif
+>> +
+>>   static struct platform_driver twl4030_usb_driver = {
+>>         .probe          = twl4030_usb_probe,
+>>         .remove         = __exit_p(twl4030_usb_remove),
+>>         .driver         = {
+>>                 .name   = "twl4030_usb",
+>>                 .owner  = THIS_MODULE,
+>> +               .of_match_table = twl4030_usb_id_table,
+>
+>
+> use of_match_ptr().
+
+Ok. Will change it that way.
+
+Thanks
+Kishon
