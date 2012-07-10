@@ -1,93 +1,48 @@
-From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: Re: [PATCH v2 RESEND 0/3] Watchdog: OMAP: bootstatus fix for omap3
- and changes for the current watchdog framework
-Date: Tue, 10 Jul 2012 12:17:40 +0800
-Message-ID: <4FFBACE4.80901@windriver.com>
-References: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix runtime suspend crash: add host
+ checks in callbacks
+Date: Tue, 10 Jul 2012 09:55:47 +0530
+Message-ID: <CANfBPZ-ucJkgJLt4eXRvfGTCJnWTxHUuL9Cnp9GoaQq7keHGqg@mail.gmail.com>
+References: <1341620786-13598-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:58930 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751198Ab2GJESG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 00:18:06 -0400
-In-Reply-To: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50421 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751083Ab2GJE0K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 00:26:10 -0400
+Received: by bkcjk13 with SMTP id jk13so4313410bkc.24
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 21:26:07 -0700 (PDT)
+In-Reply-To: <1341620786-13598-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: shubhrajyoti@ti.com, hvaibhav@ti.com, wim@iguana.be, "Hilman, Kevin" <khilman@ti.com>
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul.gortmaker@windriver.com, tony@atomide.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, "open list:MULTIMEDIA CARD (...), linux-kernel@vger.kernel.org (open
+	list)" <linux-mmc@vger.kernel.org>
 
-=D3=DA 2012=C4=EA07=D4=C209=C8=D5 15:35, Zumeng Chen =D0=B4=B5=C0:
-> Hello,
+On Sat, Jul 7, 2012 at 5:56 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Due to the way the driver core takes runtime PM references during
+> probe, a driver's runtime PM callbacks may not be called until probe
+> returns.  During probe, drvdata is set to the 'host' pointer but if
+> probe fails, drvdata is set to NULL.
 >
-> The following patches based on the 3.5-rc6 from Wim, which
-> focus on:
+> The runtime PM callbacks currently blindly dereference this host
+> pointer, but if probe fails, and the runtime PM callbacks are called
+> after probe returns, a NULL pointer dereference will result.
 >
-> 1 ) bootstatus fix for omap3,
+Pardon my ignorance, but why would runtime suspend be called for a
+device whose probe has failed ? AFAIK, MMC stack wouldn't make
+the _enable()/disable() calls, which call runtime PM APIs, unless the
+probe is successful.
+ Is there a stacktrace for the offending caller ?
+
+> Fix this by simply checking to be sure the host pointer is non-NULL.
 >
-> 2 ) omap-wdt framework update cater for the current framework
->     as Shubhrajyoti comments mentioned.
-
-I compiled a test case from the following website,
-http://www.lpclinux.com/Blogs/Testing_LPC313x_Linux_Watchdog_Driver
-
-It works well.
-
-root@ti-omap3:/tmp# ./a.out -h
-Usage: ./a.out [options]
--h --help Display this usage information.
--d --dev <device_file> Use <device_file> as watchdog device file.
-The default device file is '/dev/watchdog'
--i --interval <interval> Change the watchdog interval time
-root@ti-omap3:/tmp# ./a.out -i 40;
-Set watchdog interval to 40
-Current watchdog interval is 40
-Last boot is caused by : Watchdog
-Use:
-<w> to kick through writing over device file
-<i> to kick through IOCTL
-<x> to exit the program
-x
-Goodbye !
-watchdog: Omap Watchdog: nowayout prevents watchdog to be stopped!
-watchdog: Omap Watchdog: watchdog did not stop!
-root@ti-omap3:/tmp# for i in `seq 1 30`; do echo $i; sleep 1;done
-1
-2
-
-[snip]
-
-I built NOWAYOUT in driver, so it doesn't stop, still going until the
-following
-information:
-
-Texas Instruments X-Loader 1.42
-Starting OS Bootloader...
-No OOB scheme defined for oobsize 0
-OneNAND: 0 kB
-256 MiB
-
-Regards,
-Zumeng
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Applies to v3.5-rc5.  Fix is needed for v3.5-rc.
 >
-> Regards,
->
-> Zumeng Chen (3):
->   Watchdog: Omap: Changes for the new watchdog framework
->   Watchdog: Omap: select watchdog core for framework change
->   Watchdog: Omap: get the bootstatus for OMAP2Plus
->
->  arch/arm/mach-omap2/prcm.c  |    5 +-
->  drivers/watchdog/Kconfig    |    1 +
->  drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++-----------------=
-----------
->  drivers/watchdog/omap_wdt.h |    5 +
->  4 files changed, 133 insertions(+), 220 deletions(-)
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can you please let me know which commit introduced this problem
+in the first place ? There were not many changes in MMC PM code
+in this merge window.
