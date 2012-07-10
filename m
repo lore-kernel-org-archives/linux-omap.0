@@ -1,35 +1,42 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: Add minimal OMAP5 SOC support for 3.6
-Date: Tue, 10 Jul 2012 14:13:14 +0530
-Message-ID: <CAMQu2gy-+46qJxkK9kxJhy8dd=pdENT_MXFLePUnPcgoLUYUYQ@mail.gmail.com>
-References: <1341846143-11137-1-git-send-email-santosh.shilimkar@ti.com> <20120710083354.GM1122@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH] ARM: OMAP2+: am33xx: Make am33xx as a separate
+ class
+Date: Tue, 10 Jul 2012 01:43:35 -0700
+Message-ID: <20120710084335.GP1122@atomide.com>
+References: <1341320447-18918-1-git-send-email-hvaibhav@ti.com>
+ <1341320447-18918-2-git-send-email-hvaibhav@ti.com>
+ <20120704072454.GO1122@atomide.com>
+ <20120704081546.GR1122@atomide.com>
+ <20120705152743.GG1122@atomide.com>
+ <79CD15C6BA57404B839C016229A409A83EA699EE@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:39975 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753864Ab2GJIng (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 04:43:36 -0400
-Received: by qcse14 with SMTP id e14so6592204qcs.10
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jul 2012 01:43:35 -0700 (PDT)
-In-Reply-To: <20120710083354.GM1122@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53587 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753864Ab2GJIni (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 04:43:38 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA699EE@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, Jul 10, 2012 at 2:03 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120709 08:07]:
->> Tony,
->>
->> Please pull below OMAP5 SOC minimal support. It is generated against the
->> cleanup-part2 branch of yours. As you suggested, I have dropped CK_54XX
->> flag changes to avoid conflicts.
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120710 01:43]:
 >
-> OK seems to merge fine now, pulled into devel-omap5.
->
-Thanks Tony.
+> Can we clean these branches; it is very confusing to track with so many 
+> multiple versions?
 
-Regards
-Santosh
+Yeah I'll drop some after the merge window..
+ 
+> Also, One patch still has not merged is,
+> 
+> [PATCH-V2] ARM: OMAP: cpu: Make cpu_class_is_omap2 true for all non-omap1 platforms
+> 
+> Do you have any comments on this? If not, can you merge it?
+
+Posted some comments on it, we need to fix that properly for v3.7
+merge window.
+
+Tony
