@@ -1,57 +1,67 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
-Date: Tue, 10 Jul 2012 16:02:03 -0700
-Message-ID: <1341961324-19657-2-git-send-email-khilman@ti.com>
-References: <1341961324-19657-1-git-send-email-khilman@ti.com>
+From: Dennis Gilmore <dennis@ausil.us>
+Subject: Re: dtb for pandaboard
+Date: Tue, 10 Jul 2012 18:11:19 -0500
+Message-ID: <20120710181119.27faf235@pegasus.ausil.us>
+References: <20120708173259.592552c1@pegasus.ausil.us>
+	<20120709090848.GD1122@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:56301 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754703Ab2GJXCK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 19:02:10 -0400
-Received: by yenr5 with SMTP id r5so694558yen.0
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jul 2012 16:02:09 -0700 (PDT)
-In-Reply-To: <1341961324-19657-1-git-send-email-khilman@ti.com>
+Received: from mail.ausil.us ([74.119.218.133]:43837 "EHLO mail.ausil.us"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754764Ab2GJXLa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 19:11:30 -0400
+In-Reply-To: <20120709090848.GD1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Currently, the omap_device PM domain layer uses the late suspend and
-early resume callbacks to ensure devices are in their low power
-states.
-
-However, this is attempted even in cases where a driver probe has
-failed.  If a driver's ->probe() method fails, the driver is likely in
-a state where it is not expecting its runtime PM callbacks to be
-called, yet currently the omap_device PM domain code attempts to call
-the drivers callbacks.
-
-To fix, use the omap_device driver_status field to check whether a
-driver is bound to the omap_device before attempting to trigger driver
-callbacks.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/plat-omap/omap_device.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 1d1b5ff..150112e 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -756,6 +756,10 @@ static int _od_suspend_noirq(struct device *dev)
- 	struct omap_device *od = to_omap_device(pdev);
- 	int ret;
- 
-+	/* Don't attempt late suspend on a driver that is not bound */
-+	if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER)
-+		return 0;
-+
- 	ret = pm_generic_suspend_noirq(dev);
- 
- 	if (!ret && !pm_runtime_status_suspended(dev)) {
--- 
-1.7.9.2
-
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBNb24s
+IDkgSnVsIDIwMTIgMDI6MDg6NDkgLTA3MDANClRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5j
+b20+IHdyb3RlOg0KDQo+ICogRGVubmlzIEdpbG1vcmUgPGRlbm5pc0BhdXNpbC51cz4gWzEyMDcw
+OCAxNjoxMV06DQo+ID4gLS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KPiA+IEhh
+c2g6IFNIQTENCj4gPiANCj4gPiBIaSBkb2VzIGFueW9uZSBoYXBwZW4gdG8gaGF2ZSBhIHdvcmtp
+bmcgZHRiIGZpbGUgZm9yIHRoZSBwYW5kYWJvYXJkPw0KPiA+IHRyeWluZyB0byB0ZXN0IGJvb3Rp
+bmcgdGhlIGZlZG9yYSByYXdoaWRlIGtlcm5lbCB3aGljaCBpcw0KPiA+IDMuNS4wLXJjNSB3aXRo
+IGEgZHRiIGZpbGUgSSBtYWRlIGZyb20gdGhlIG1hdGNoaW5nIHNvdXJjZXMgSSBkb250DQo+ID4g
+Z2V0IHBhc3QgZGVjb21wcmVzc2luZyB0aGUga2VybmVsLiBpZiBpIGRvbnQgdXNlIGEgZHRiIGZp
+bGUgdGhlDQo+ID4gc3lzdGVtIGJvb3RzIGZ1cnRoZXIgYnV0IGl0IGknbSB1bmFibGUgdG8gZmlu
+ZCB0aGUgcm9vdCBmaWxlc3lzdGVtDQo+ID4gc2luY2UgaXQgc2VlbXMgdGhhdCB0aGUgcGxhdGZv
+cm0gZGF0YSBoYXMgYmVlbiBtZXNzZWQgdXAuDQo+ID4gbW9kcHJvYmluZyBvbWFwIHJlc3VsdHMg
+aW4gbm8gcmVnaXN0cmF0aW9uIG9mIHRoZSBtbWMgYmxvY2sNCj4gPiBkZXZpY2VzLiANCj4gPiAN
+Cj4gPiBpJ3ZlIG5vdCB0ZXN0ZWQgb24gYSBwYW5kYWJvYXJkIEVTIG9yIGJlYWdsZWJvYXJkIHll
+dCAgb3IgYW55IG90aGVyDQo+ID4gdHlwZSBvZiBvbWFwIHN5c3RlbS4gDQo+IA0KPiBGWUksIEkg
+Ym9vdGVkIG15IHBhbmRhIGVzIHJlY2VudGx5IGp1c3QgZmluZSB3aXRoIGR0YiBhcHBlbmQgc3Vw
+cG9ydA0KPiBhbmQgdGhlIGZvbGxvd2luZyAuY29uZmlnIGFkZGl0aW9uIHVzaW5nIHRoZSBwbGFp
+bg0KPiBhcmNoL2FybS9ib290L2R0cy9vbWFwNC1wYW5kYS5kdHMgZmlsZToNCj4gDQo+IENPTkZJ
+R19BUk1fQVBQRU5ERURfRFRCPXkNCj4gQ09ORklHX0FSTV9BVEFHX0RUQl9DT01QQVQ9eQ0KPiBD
+T05GSUdfRVhUNF9GUz15DQo+IA0KPiBDYW4geW91IHBsZWFzZSBlbmFibGUgREVCVUdfTEwsIEVB
+UkxZX1BSSU5USyBhbmQgYWRkIGVhcmx5cHJpbnRrIHRvDQo+IHlvdXIgY21kbGluZSBhbmQgcG9z
+dCB3aGF0IHlvdSBnZXQ/DQo+IA0KPiBSZWdhcmRzLA0KPiANCj4gVG9ueQ0KDQpMb2FkZWQgZW52
+aXJvbm1lbnQgZnJvbSB1RW52LnR4dA0KSW1wb3J0aW5nIGVudmlyb25tZW50IGZyb20gbW1jIC4u
+Lg0KcmVhZGluZyB1SW1hZ2Utb21hcA0KDQozOTg4MDQwIGJ5dGVzIHJlYWQNCnJlYWRpbmcgdUlu
+aXRyZC1vbWFwDQoNCjExOTAgYnl0ZXMgcmVhZA0KcmVhZGluZyBvbWFwNC1wYW5kYS5kdGINCg0K
+NTQ4MyBieXRlcyByZWFkDQpCb290aW5nIGZyb20gbW1jIC4uLg0KIyMgQm9vdGluZyBrZXJuZWwg
+ZnJvbSBMZWdhY3kgSW1hZ2UgYXQgODAzMDAwMDAgLi4uDQogICBJbWFnZSBOYW1lOiAgIDMuNS4w
+LTAucmM2LmdpdDAuMy5mYzE4LmFybXY3aGwuDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBL
+ZXJuZWwgSW1hZ2UgKHVuY29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMzk4Nzk3NiBCeXRl
+cyA9IDMuOCBNaUINCiAgIExvYWQgQWRkcmVzczogODAwMDgwMDANCiAgIEVudHJ5IFBvaW50OiAg
+ODAwMDgwMDANCiAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCiMjIExvYWRpbmcgaW5pdCBS
+YW1kaXNrIGZyb20gTGVnYWN5IEltYWdlIGF0IDgxNjAwMDAwIC4uLg0KICAgSW1hZ2UgTmFtZTog
+ICBpbml0cmFtZnMNCiAgIEltYWdlIFR5cGU6ICAgQVJNIExpbnV4IFJBTURpc2sgSW1hZ2UgKHVu
+Y29tcHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMTEyNiBCeXRlcyA9IDEuMSBLaUINCiAgIExv
+YWQgQWRkcmVzczogMDAwMDAwMDANCiAgIEVudHJ5IFBvaW50OiAgMDAwMDAwMDANCiAgIFZlcmlm
+eWluZyBDaGVja3N1bSAuLi4gT0sNCiMjIEZsYXR0ZW5lZCBEZXZpY2UgVHJlZSBibG9iIGF0IDgy
+NjAwMDAwDQogICBCb290aW5nIHVzaW5nIHRoZSBmZHQgYmxvYiBhdCAweDgyNjAwMDAwDQogICBM
+b2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4gT0sNCk9LDQogICByZXNlcnZpbmcgZmR0IG1lbW9yeSBy
+ZWdpb246IGFkZHI9OWQwMDAwMDAgc2l6ZT0zMDAwMDAwDQogICBMb2FkaW5nIFJhbWRpc2sgdG8g
+YmZlZmEwMDAsIGVuZCBiZmVmYTQ2NiAuLi4gT0sNCiAgIExvYWRpbmcgRGV2aWNlIFRyZWUgdG8g
+YmZlZjUwMDAsIGVuZCBiZmVmOTU2YSAuLi4gT0sNCg0KU3RhcnRpbmcga2VybmVsIC4uLg0KDQpV
+bmNvbXByZXNzaW5nIExpbnV4Li4uIGRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4NCldhcm5pbmc6
+IE5laXRoZXIgYXRhZ3Mgbm9yIGR0YiBmb3VuZA0KDQppcyBhcyBmYXIgYXMgaSBhbSBnZXR0aW5n
+Lg0KDQpEZW5uaXMNCi0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQ
+RyB2Mi4wLjE4IChHTlUvTGludXgpDQoNCmlFWUVBUkVDQUFZRkFrLzh0cDBBQ2drUWtTeG00N0Jh
+V2ZmTkJnQ2NDR1dFWEU0MHVsY1ZhM25CM0FQdW5aUGgNClRqQUFuak5KVjVlVnQvRVZZZTZNZ21I
+NG9rRTZpQkNHDQo9MUUvcQ0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
