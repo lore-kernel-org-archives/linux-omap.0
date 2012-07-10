@@ -1,81 +1,66 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix runtime suspend crash: add host
- checks in callbacks
-Date: Tue, 10 Jul 2012 20:17:45 +0530
-Message-ID: <CANfBPZ8i-N-0=GMk5OZ+oLipCv3fihHd3N1gYp_F94PE5LM5rg@mail.gmail.com>
-References: <1341620786-13598-1-git-send-email-khilman@ti.com>
- <CANfBPZ-ucJkgJLt4eXRvfGTCJnWTxHUuL9Cnp9GoaQq7keHGqg@mail.gmail.com> <871ukjvgyg.fsf@ti.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH 4 0/4] Add ability to set defaultless network device MAC
+ addresses to deterministic computed locally administered values
+Date: Tue, 10 Jul 2012 16:20:26 +0100
+Message-ID: <20120710162026.71534607@pyramind.ukuu.org.uk>
+References: <20120705024259.26317.16000.stgit@build.warmcat.com>
+	<201207101437.54877.florian@openwrt.org>
+	<4FFC2712.9020208@warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <871ukjvgyg.fsf@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, "open list:MULTIMEDIA CARD (...), linux-kernel@vger.kernel.org (open
-	list)" <linux-mmc@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FFC2712.9020208@warmcat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Andy Green (=?UTF-8?B?5p6X5a6J5bu4?=)" <andy@warmcat.com>
+Cc: Florian Fainelli <florian@openwrt.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, tony@atomide.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 10, 2012 at 7:47 PM, Kevin Hilman <khilman@ti.com> wrote:
-> "S, Venkatraman" <svenkatr@ti.com> writes:
->
->> On Sat, Jul 7, 2012 at 5:56 AM, Kevin Hilman <khilman@ti.com> wrote:
->>> Due to the way the driver core takes runtime PM references during
->>> probe, a driver's runtime PM callbacks may not be called until probe
->>> returns.  During probe, drvdata is set to the 'host' pointer but if
->>> probe fails, drvdata is set to NULL.
->>>
->>> The runtime PM callbacks currently blindly dereference this host
->>> pointer, but if probe fails, and the runtime PM callbacks are called
->>> after probe returns, a NULL pointer dereference will result.
->>>
->> Pardon my ignorance, but why would runtime suspend be called for a
->> device whose probe has failed ? AFAIK, MMC stack wouldn't make the
->> _enable()/disable() calls, which call runtime PM APIs, unless the
->> probe is successful.  Is there a stacktrace for the offending caller ?
->
-> First thing to note: there are several error conditions *after*
-> pm_runtime_enable() and the first _get_sync() are called.
->
-> So here's what can happen:
->
-> The driver core does a _get_noresume() before calling the driver's
-> probe, so the runtime PM usecount is already 1 when the driver is
-> called.  The _get_sync() in _probe enables the device and increases the
-> usecount to 2.  The _put_sync() at the end of ->probe() will decrease
-> the usecount to 1, but since the usecount is still non-zero, the
-> driver's callbacks are still not called.  It's not until the driver core
-> does its _put_sync (to balance the _get_noresume() that the usecount
-> goes to zero and the driver's callbacks are called.
->
-Thanks for the detailed explanation.
-But pm_runtime_disable() is called in the error path, so shouldn't
-it prevent the driver callbacks from being called ? (The docuementation
-talks about disable_depth field, but it doesn't sound right that runtime
-pm would be enabled before _probe() is called. So disable_depth should
-be 1 when pm_runtime_disable is called in _probe error path, right ?)
+> Why should Ubuntu, Fedora etc stink up their OSes with Panda-specific 
+> workarounds?  And Panda is not the only device with this issue.
 
-> When probe succeeds, this all works fine.  However, if probe fails the
-> host pointer is set to NULL, but the runtime PM callbacks are still
-> called and attempt to dereference a NULL pointer.
->
->>> Fix this by simply checking to be sure the host pointer is non-NULL.
->>>
->>> Signed-off-by: Kevin Hilman <khilman@ti.com>
->>> ---
->>> Applies to v3.5-rc5.  Fix is needed for v3.5-rc.
->>>
->> Can you please let me know which commit introduced this problem
->> in the first place ? There were not many changes in MMC PM code
->> in this merge window.
->
-> I guess this problem is probably not a regression and has been around
-> for some time.  It has not been seen because probe has not failed.
->
-> In using recent l-o master though, with Russell's dmaengine changes
-> merged, probe is failing for me becasue it can't allocate a DMA channel,
-> and then I'm seeing this problem.
->
-> Kevin
+Why should we crap all over the kernel for all these board specific
+problems ? Userspace code is at least pageable and generally less
+security critical.
 
-Ok. I'll let Chris decide on this - DMA engine is not yet in Linus's tree
-though.
+So your argument from that point of view is bunk. There are tons and tons
+of boards doing tons of horrible hacks. If we mangled the generic code
+for all of them the result would be a complete unmanagable pile of turd.
+
+The use of locally administered MAC addressing is policy. The helper
+belongs in userspace as it's clearly part of what udev is supposed to be
+doing via device notifications, instead of your custom mini kernel-udev
+hack which is what you've basically created.
+
+We've said no to lots of people (several a year). We've done so for good
+reasons. Most of them had more taste than your hack too (ok except the Pi
+which was even more broken)
+
+You need a udev rule, one single tiddly udev rule, and perhaps to expose a
+sysfs node somewhere if the required generation data is on the board.
+Hardly stinking up the userspace is it.
+
+That would also then fix any races with userspace trying to set the MAC,
+it would remove the need for the helper. It will avoid encoding
+ultra-crappy assumptions like
+
+"To make use of this safely you also need to make sure that any drivers
+that may compete for the bus ordinal you are using (eg, mUSB and ehci in
+Panda case) are loaded in a deterministic order."
+
+What are you going to do when speeding up booting by parallelising
+more probes breaks this kind of garbage assumption ?
+
+To be honest if Fedora needs to deal with an army of craptastic devices
+whose vendors can't get a MAC address on the board then they probably
+need a single common change to ifup so that if you ifup an interface that
+has no MAC it generates a local one. Thats about 6 lines of userspace
+code in the config scripts. It's also probably a good default end user
+behaviour.
+
+And if you have a real MAC but it's not loaded into the device you can
+just shove it into the platform device.
+
+End of problem.
+
+Alan
