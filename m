@@ -1,48 +1,52 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: ensure probe returns error upon resource failure
-Date: Tue, 10 Jul 2012 16:40:56 -0700
-Message-ID: <1341963658-20896-1-git-send-email-khilman@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, open list <linux-kernel@vger.kernel.org>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Tue, 10 Jul 2012 16:58:18 -0700
+Message-ID: <87zk77p3s5.fsf@ti.com>
+References: <WC20120705150314.450045@terrafix.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:48582 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755384Ab2GJX6V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 19:58:21 -0400
+Received: by pbbro8 with SMTP id ro8so1012904pbb.25
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jul 2012 16:58:19 -0700 (PDT)
+In-Reply-To: <WC20120705150314.450045@terrafix.co.uk> (Joe Woodward's message
+	of "Thu, 05 Jul 2012 16:03:14 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-If platform_get_resource_by_name() fails, driver probe is aborted an
-should return an error so the driver is not bound to the device.
+"Joe Woodward" <jw@terrafix.co.uk> writes:
 
-However, in the current error path of platform_get_resource_by_name(),
-probe returns zero since the return value (ret) is not properly set.
-With a zero return value, the driver core assumes probe was successful
-and will bind the driver to the device.
+> I've got 3.5-rc5 with the following patches applied to get system suspend working on OMAP3:
+>   - fix the DSS: OMAPDSS: Use PM notifiers for system suspend
+>   - fix the 32KHz clock: ARM: OMAP2+: hwmod code/clockdomain data: fix 32K sync timer
+>
+> This has been built with the omap2plus_defconfig.
+>
+> However, If I disable the RTC (i.e. CONFIG_RTC_CLASS/CONFIG_RTC_DRV_TWL4030) and rebuild then when suspending the device never wakes up.
+>
+> That is, I can't get any wakeups to happen (either through the console, or GPIO buttons) hence I'm assuming the kernel has crashed...
+>
+> Any ideas?
+>
+> As far as I know there is no dependency on the RTC in 3.4, and with the RTC compiled in I never see a problem on 3.5-rc5.
 
-Fix this by ensuring that probe returns an error code in this failure
-path.
+There is definitely a bug in the EHCI driver in v3.5 that cause a hang
+in suspend, but the RTC connection is very strange.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |    2 ++
- 1 file changed, 2 insertions(+)
+I was not able to reproduce this.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 389a3ee..19e60e9 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1931,6 +1931,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
- 	if (!res) {
- 		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
-+		ret = -ENXIO;
- 		goto err_irq;
- 	}
- 	host->dma_line_tx = res->start;
-@@ -1938,6 +1939,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
- 	if (!res) {
- 		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
-+		ret = -ENXIO;
- 		goto err_irq;
- 	}
- 	host->dma_line_rx = res->start;
--- 
-1.7.9.2
+Can you try the same with my current 'pm' branch[1].  I've got a handful
+of additional fixes there for various other problems where both MMC and
+EHCI are preventing sucessful suspend with the default
+omap2plus_defconfig.  (note the EHCI fix is simply diabling it in the
+defconfig.)
+
+Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm
