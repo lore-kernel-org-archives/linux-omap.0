@@ -1,11 +1,13 @@
 From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/3] Add device tree support for AM33XX regulators
-Date: Tue, 10 Jul 2012 16:39:41 +0530
-Message-ID: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
+Subject: [PATCH v2 2/3] ARM: OMAP2+: AM33XX: Add tps65910 device tree data
+Date: Tue, 10 Jul 2012 16:39:43 +0530
+Message-ID: <1341918584-28004-3-git-send-email-anilkumar@ti.com>
+References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1341918584-28004-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -20,45 +22,153 @@ To: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree support for regulators present on AM33XX family
-of devices like AM335X-EVM and AM335X-Bone. TPS65217 regulator
-is present on AM335X-Bone and TPS65910 on AM335X-EVM.
+Add device tree data for tps65910 regulator by adding all the
+consumers necessary for AM335X-EVM. The data will be map to a
+regulator constraints which is required for regulator set_voltage
+and get_voltage calls.
 
-First patch adds the device tree support to tps65217 regulator
-so that it will take the parameters from tps65217.dtsi file and
-convert to tps65217 regulator parameters.
+All tps65910 PMIC regulator constraints are placed in a seperate
+device tree include file (tps65910.dtsi).
 
-Second patch adds tps65910 device tree data by adding separate
-DT tps65910.dtsi file, which contains the generic tps65910 PMIC
-DT data.
+This patch is tested by adding the I2C slave address of TPS65910
+pmic to am335x-evm.dts file (Not included in this, I2C slave
+addition patch will be submitted to linux-omap, where am335x-evm.dts
+binding file is available).
 
-Third patch adds tps65217 device tree data by adding separate
-tps65910.dtsi file, which contains the generic tps65910 PMIC
-DT data.
-
-This patch series was tested by adding the I2C slave address to
-corresponding .dts files.
-
-Changes form V1:
-        - Add regulator-compatible data to dt files.
-        - Separated device tree data addition to am335x-evm/bone dts
-          from the regulator patches
-
-AnilKumar Ch (3):
-  regulator: tps65217: Add device tree support
-  ARM: OMAP2+: AM33XX: Add tps65910 device tree data
-  ARM: OMAP2+: AM33XX: Add tps65217 device tree data
-
- .../devicetree/bindings/regulator/tps65217.txt     |   91 +++++++++++++++
- arch/arm/boot/dts/tps65217.dtsi                    |   84 +++++++++++++
- arch/arm/boot/dts/tps65910.dtsi                    |  123 ++++++++++++++++++++
- drivers/mfd/tps65217.c                             |   67 ++++++++++-
- drivers/regulator/tps65217-regulator.c             |    1 +
- include/linux/mfd/tps65217.h                       |    3 +-
- 6 files changed, 366 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/tps65217.txt
- create mode 100644 arch/arm/boot/dts/tps65217.dtsi
+Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/tps65910.dtsi |  123 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 123 insertions(+)
  create mode 100644 arch/arm/boot/dts/tps65910.dtsi
 
+diff --git a/arch/arm/boot/dts/tps65910.dtsi b/arch/arm/boot/dts/tps65910.dtsi
+new file mode 100644
+index 0000000..b185235
+--- /dev/null
++++ b/arch/arm/boot/dts/tps65910.dtsi
+@@ -0,0 +1,123 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * Integrated Power Management Chip
++ * http://www.ti.com/lit/ds/symlink/tps65910.pdf
++ */
++
++&tps {
++	compatible = "ti,tps65910";
++
++	regulators {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vrtc_reg: regulator@0 {
++			reg = <0>;
++			regulator-compatible = "vrtc";
++			regulator-always-on;
++		};
++
++		vio_reg: regulator@1 {
++			reg = <1>;
++			regulator-compatible = "vio";
++			regulator-min-microvolt = <1500000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		vdd1_reg: regulator@2 {
++			reg = <2>;
++			regulator-compatible = "vdd1";
++			regulator-min-microvolt = <600000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd2_reg: regulator@3 {
++			reg = <3>;
++			regulator-compatible = "vdd2";
++			regulator-min-microvolt = <600000>;
++			regulator-max-microvolt = <1500000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
++		vdd3_reg: regulator@4 {
++			reg = <4>;
++			regulator-compatible = "vdd3";
++			regulator-always-on;
++		};
++
++		vdig1_reg: regulator@5 {
++			reg = <5>;
++			regulator-compatible = "vdig1";
++			regulator-min-microvolt = <1200000>;
++			regulator-max-microvolt = <2700000>;
++			regulator-always-on;
++		};
++
++		vdig2_reg: regulator@6 {
++			reg = <6>;
++			regulator-compatible = "vdig2";
++			regulator-min-microvolt = <1000000>;
++			regulator-max-microvolt = <1800000>;
++			regulator-always-on;
++		};
++
++		vpll_reg: regulator@7 {
++			reg = <7>;
++			regulator-compatible = "vpll";
++			regulator-min-microvolt = <1000000>;
++			regulator-max-microvolt = <2500000>;
++			regulator-always-on;
++		};
++
++		vdac_reg: regulator@8 {
++			reg = <8>;
++			regulator-compatible = "vdac";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <2850000>;
++			regulator-always-on;
++		};
++
++		vaux1_reg: regulator@9 {
++			reg = <9>;
++			regulator-compatible = "vaux1";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <2850000>;
++			regulator-always-on;
++		};
++
++		vaux2_reg: regulator@10 {
++			reg = <10>;
++			regulator-compatible = "vaux2";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		vaux33_reg: regulator@11 {
++			reg = <11>;
++			regulator-compatible = "vaux33";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		vmmc_reg: regulator@12 {
++			reg = <12>;
++			regulator-compatible = "vmmc";
++			regulator-min-microvolt = <1800000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++	};
++};
 -- 
 1.7.9.5
