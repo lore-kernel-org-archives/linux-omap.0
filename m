@@ -1,91 +1,130 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register
- offset using the IP scheme.
-Date: Tue, 10 Jul 2012 07:25:07 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA6974A@DBDE01.ent.ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
- <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
- <4FFA9B6C.7050003@ti.com>
- <CAMQu2gz0UU_RCFSvxo1s_XwDAmTtL4NadsFTg8qL7PtGwPqKtQ@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83EA695E6@DBDE01.ent.ti.com>
- <CAMQu2gzubK7r4OEsusXBSGEW5YLWeMkt0tp8X9ERBLjse_5=MA@mail.gmail.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
+Date: Tue, 10 Jul 2012 09:32:21 +0200
+Message-ID: <4FFBDA85.8070708@metafoo.de>
+References: <1341592434-4207-1-git-send-email-khilman@ti.com> <20120709151527.58f44c3a.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51260 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab2GJHZ2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 03:25:28 -0400
-In-Reply-To: <CAMQu2gzubK7r4OEsusXBSGEW5YLWeMkt0tp8X9ERBLjse_5=MA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120709151527.58f44c3a.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kevin Hilman <khilman@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-On Tue, Jul 10, 2012 at 12:42:46, Shilimkar, Santosh wrote:
-> On Tue, Jul 10, 2012 at 12:11 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
-> > On Mon, Jul 09, 2012 at 16:12:15, Shilimkar, Santosh wrote:
-> >> On Mon, Jul 9, 2012 at 2:20 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> >> >
-> >> >
-> >> > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
-> >> >> From: R Sricharan <r.sricharan@ti.com>
-> >> >>
-> >> >> OMAP socs has a legacy and a highlander version of the
-> >> >> 32k sync counter IP. The register offsets vary between the
-> >> >> highlander and the legacy scheme. So use the 'SCHEME'
-> >> >> bits(30-31) of the revision register to distinguish between
-> >> >
-> >> >
-> >> > Just for my understanding, can we get further information on SCHEME
-> >> > bit-fields? What kind of information we have it here.
-> >> >
-> >> > I may need this info to pass on to design team here.
-> >> >
-> >> Sure. You can refer to the OMAP4 TRM for the bit builds.
-> >> SCHEME bit field tell you difference between a highlander
-> >> and legacy IP as the patch says.
-> >>
-> >
-> > Santosh,
-> >
-> > Can you point to the section of OMAP4 TRM?
-> >
-> > I referred to both Public TRM and internal TRM, but both only did mention
-> > "TI internal Data".
-> >
-> Last time I refereed the internal TRM version. Public TRM doesn't
-> carry that information
-> for some reason.
+On 07/10/2012 12:15 AM, Andrew Morton wrote:
+> On Fri,  6 Jul 2012 09:33:54 -0700
+> Kevin Hilman <khilman@ti.com> wrote:
 > 
-> > And as per code, we are not checking any value in 31-30 bit-fields, code
-> > just assumes that, non-zero value would be highlander IP.
-> >
-> There are only two types of IP's today and hence it will be either
-> 0x0 or 0x1. So that check if just fine. The highlander IP may have
-> more versions but for known OMAPs and upcoming OMAP, this is
-> the only one supported version.
+>> Requesting a threaded interrupt without a primary handler and without
+>> IRQF_ONESHOT is dangerous, and after commit 1c6c6952 (genirq: Reject
+>> bogus threaded irq requests), these requests are rejected.  This
+>> causes ->probe() to fail, and the RTC driver not to be availble.
+>>
+>> To fix, add IRQF_ONESHOT to the IRQ flags.
+>>
+>> Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake
+>> to wake from system suspend multiple times.
+>>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>> Resending to broader audience and including Andrew.  Since, I understand
+>> that drivers/rtc is somewhat orphaned, Andrew, can you queue this fix for
+>> v3.5.  Thanks.
+>>
+>>  drivers/rtc/rtc-twl.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+>> index 258abea..c5d06fe 100644
+>> --- a/drivers/rtc/rtc-twl.c
+>> +++ b/drivers/rtc/rtc-twl.c
+>> @@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+>>  	}
+>>  
+>>  	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
+>> -				   IRQF_TRIGGER_RISING,
+>> +				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+>>  				   dev_name(&rtc->dev), rtc);
+>>  	if (ret < 0) {
+>>  		dev_err(&pdev->dev, "IRQ is not free.\n");
 > 
-> Some more information on the SCHEME bit field.
-> -----------------
-> 31:30
-> SCHEME
-> Used to distinguish between old scheme and current.
-> 
-> RO Read Only
-> 
-> 0x0 -  LEGACY
-> 
-> 0x1 - Highlander 0.8 scheme
-> --------------------------------
+> OK, this is the second such patch I've seen and it's time to wonder if
+> we should get grumpy at tglx.  afacit 1c6c6952 broke the following
+> drivers:
 
+If you want to be grumpy, be grumpy at Linus. Thomas actually posted a patch
+which just emits a warning, instead of failing to request the IRQ, but Linus
+didn't want to take it. The whole thread is here
+https://lkml.org/lkml/2012/6/12/151
 
-Thanks Santosh,
+> 
+> 
+> sound/soc/codecs/wm8994.c
+> sound/soc/codecs/max98095.c
+> sound/soc/codecs/twl6040.c
+> drivers/usb/otg/ab8500-usb.c
+> drivers/usb/otg/twl4030-usb.c
+> drivers/gpio/gpio-sx150x.c
+> drivers/gpio/gpio-ab8500.c
+> drivers/mfd/ab8500-gpadc.c
+> drivers/mfd/ti-ssp.c
+> drivers/mfd/twl4030-madc.c
+> drivers/mfd/htc-i2cpld.c
+> drivers/mfd/wm831x-auxadc.c
+> drivers/mfd/twl6040-core.c
+> drivers/mfd/wm8350-core.c
+> drivers/extcon/extcon-max8997.c
+> drivers/mmc/host/of_mmc_spi.c
+> drivers/mmc/core/cd-gpio.c
+> drivers/net/can/mcp251x.c
+> drivers/nfc/pn544_hci.c
+> drivers/nfc/pn544.c
+> drivers/power/ab8500_btemp.c
+> drivers/power/twl4030_charger.c
+> drivers/power/lp8727_charger.c
+> drivers/power/smb347-charger.c
+> drivers/power/max17042_battery.c
+> drivers/power/wm831x_power.c
+> drivers/power/ab8500_fg.c
+> drivers/power/max8903_charger.c
+> drivers/power/ab8500_charger.c
+> drivers/regulator/wm831x-isink.c
+> drivers/regulator/wm831x-ldo.c
+> drivers/regulator/wm831x-dcdc.c
+> drivers/staging/ste_rmi4/synaptics_i2c_rmi4.c
+> drivers/staging/iio/adc/adt7310.c
+> drivers/staging/iio/adc/adt7410.c
+> drivers/staging/iio/adc/ad7816.c
+> drivers/staging/iio/cdc/ad7150.c
+> drivers/staging/iio/accel/sca3000_core.c
+> drivers/staging/cptm1217/clearpad_tm1217.c
+> drivers/input/keyboard/tc3589x-keypad.c
+> drivers/input/keyboard/twl4030_keypad.c
+> drivers/input/misc/twl4030-pwrbutton.c
+> drivers/input/misc/twl6040-vibra.c
+> drivers/input/misc/wm831x-on.c
+> drivers/media/radio/si470x/radio-si470x-i2c.c
+> drivers/base/regmap/regmap-irq.c
+> drivers/rtc/rtc-wm831x.c
+> drivers/rtc/rtc-twl.c
+> drivers/rtc/rtc-ab8500.c
+> drivers/rtc/rtc-max8998.c
+> drivers/rtc/rtc-isl1208.c
+> drivers/platform/x86/intel_mid_powerbtn.c
+> include/linux/mfd/wm8994/core.h
+> include/linux/mfd/wm8350/core.h
+> 
+> what am I missing here?
+> 
 
-This is what I was looking for, may be it is worth to put this information 
-in either commit description of in code-comment.
+Most of these drivers are not broken (anymore), the majority drivers which
+were broken by Thomas's patch have already been fixed. As for your list:
+I've already sent out a fix for all of the staging/iio/ drivers a couple of
+days ago. And drivers which use nested interrupts are not affected by this
+problem. In your list these are basically all drivers with wm*, twl* and
+ab8500 in their names. But still leaves a handful of broken driver which
+should be fixed.
 
-Thanks,
-Vaibhav
+- Lars
