@@ -1,261 +1,145 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH 2/3] usb: musb: dsps: add phy control logic to glue
-Date: Tue, 10 Jul 2012 11:39:59 +0530
-Message-ID: <CAAe_U6+mnS1k2F-aQXkcAS7ZH5pzeNGz6vc=xk+q60D6YF13aA@mail.gmail.com>
-References: <1341841690-23899-1-git-send-email-x0132156@ti.com>
-	<1341841690-23899-2-git-send-email-x0132156@ti.com>
-	<CAAe_U6+wYsiVOvYm8t4g8P5R4jWzBCQhC-XBfNVgM4GqWi-JLQ@mail.gmail.com>
-	<47CEF8C4B26E8C44B22B028A650E0EA93EACDF73@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430
+ SOC
+Date: Tue, 10 Jul 2012 06:11:34 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA694DF@DBDE01.ent.ti.com>
+References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
+ <1341566515-22665-5-git-send-email-santosh.shilimkar@ti.com>
+ <4FFA9B61.8030808@ti.com>
+ <CAMQu2gwGzK4dt0VW19LhQK_tjGgY6C4b628M3dNi5xP_hYFPhg@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA69474@DBDE01.ent.ti.com>
+ <CAMQu2gxLvG82zGsyEpw6HXp+=3OtB+O8zYSzQ=-ga7NUrcrfog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:48507 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753730Ab2GJGKA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 02:10:00 -0400
-Received: by vbbfc26 with SMTP id fc26so9194182vbb.26
-        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 23:09:59 -0700 (PDT)
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EACDF73@DBDE01.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35247 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753378Ab2GJGL5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 02:11:57 -0400
+In-Reply-To: <CAMQu2gxLvG82zGsyEpw6HXp+=3OtB+O8zYSzQ=-ga7NUrcrfog@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "Santhapuri, Damodar" <x0132156@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-Hi,
+On Tue, Jul 10, 2012 at 11:36:15, Shilimkar, Santosh wrote:
+> On Tue, Jul 10, 2012 at 11:27 AM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> > On Mon, Jul 09, 2012 at 16:09:59, Shilimkar, Santosh wrote:
+> >> On Mon, Jul 9, 2012 at 2:20 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+> >> >
+> >> >
+> >> >
+> >> > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
+> >> > > From: R Sricharan <r.sricharan@ti.com>
+> >> > >
+> >> > > OMAP5430 is Texas Instrument's SOC based on ARM Cortex-A15 SMP
+> >> > > architecture. It's a dual core SOC with GIC used for interrupt
+> >> > > handling and with an integrated L2 cache controller.
+> >> > >
+> >> > > OMAP5432 is another variant of OMAP5430, with a
+> >> > > memory controller supporting DDR3 and SATA.
+> >> > >
+> >> > > Patch includes:
+> >> > >  - The machine specific headers and sources updates.
+> >> > >  - Platform header updates.
+> >> > >  - Minimum initialisation support for serial.
+> >> > >  - IO table init
+> >> > >
+> >> > > Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> >> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> > > ---
+> >>
+> >> [..]
+> >>
+> >> > >
+> >> > > +#if defined(CONFIG_SOC_OMAP5)
+> >> > > +static struct omap_globals omap5_globals = {
+> >> > > +     .class  = OMAP54XX_CLASS,
+> >> > > +     .tap    = OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
+> >> > > +     .ctrl   = OMAP2_L4_IO_ADDRESS(OMAP54XX_SCM_BASE),
+> >> > > +     .ctrl_pad       = OMAP2_L4_IO_ADDRESS(OMAP54XX_CTRL_BASE),
+> >> > > +     .prm    = OMAP2_L4_IO_ADDRESS(OMAP54XX_PRM_BASE),
+> >> > > +     .cm     = OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_AON_BASE),
+> >> > > +     .cm2    = OMAP2_L4_IO_ADDRESS(OMAP54XX_CM_CORE_BASE),
+> >> > > +     .prcm_mpu = OMAP2_L4_IO_ADDRESS(OMAP54XX_PRCM_MPU_BASE),
+> >> >
+> >> > I am not sure whether we had discussed on this before, couldn't find it.
+> >> >
+> >> > Why don't we reuse OMAP4 data here and elsewhere??
+> >> >
+> >> Because data is not same between OMAP4 and OMAP5.
+> >> Wherever it is same, it is taken care.
+> >>
+> >
+> > Above most of the base-addresses are same as omap4.
+> >
+> > And what about clocktree and hwmod? Is it going tobe same as omap4?
+> > Or we have separate data generated?
+> >
+> The data generated is different for OMAP5. Hwmod, powerdomain, clockdomain,
+> muxes. This data is out of the tree now since we are waiting for ES2.0
+> data which
+> has some differences w.r.t ES1.0. 
 
-On Tue, Jul 10, 2012 at 11:35 AM, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
-> Hi,
->>
->> On Mon, Jul 9, 2012 at 7:18 PM, Damodar Santhapuri <x0132156@ti.com>
->> wrote:
->> > From: Ajay Kumar Gupta <ajay.gupta@ti.com>
->> >
->> > AM335x uses NOP transceiver driver and need to enable builtin PHY
->> > by writing into usb_ctrl register available in system control
->> > module register space. This is being added at musb glue driver
->> > layer untill a separate system control module driver is available.
->> >
->> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
->> > Signed-off-by: Damodar Santhapuri <x0132156@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/board-ti8168evm.c   |    1 -
->> >  arch/arm/mach-omap2/omap_phy_internal.c |   35 ------------
->> >  arch/arm/plat-omap/include/plat/usb.h   |    5 +-
->> >  drivers/usb/musb/musb_dsps.c            |   88
->> +++++++++++++++++++++++++------
->> >  4 files changed, 74 insertions(+), 55 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
->> omap2/board-ti8168evm.c
->> > index d4c8392..0c7c098 100644
->> > --- a/arch/arm/mach-omap2/board-ti8168evm.c
->> > +++ b/arch/arm/mach-omap2/board-ti8168evm.c
->> > @@ -26,7 +26,6 @@
->> >  #include <plat/usb.h>
->> >
->> >  static struct omap_musb_board_data musb_board_data = {
->> > -       .set_phy_power  = ti81xx_musb_phy_power,
->> >         .interface_type = MUSB_INTERFACE_ULPI,
->> >         .mode           = MUSB_OTG,
->> >         .power          = 500,
->> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
->> omap2/omap_phy_internal.c
->> > index d52651a..d80bb16 100644
->> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
->> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
->> > @@ -254,38 +254,3 @@ void am35x_set_mode(u8 musb_mode)
->> >
->> >         omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
->> >  }
->> > -
->> > -void ti81xx_musb_phy_power(u8 on)
->> > -{
->> > -       void __iomem *scm_base = NULL;
->> > -       u32 usbphycfg;
->> > -
->> > -       scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
->> > -       if (!scm_base) {
->> > -               pr_err("system control module ioremap failed\n");
->> > -               return;
->> > -       }
->> > -
->> > -       usbphycfg = __raw_readl(scm_base + USBCTRL0);
->> > -
->> > -       if (on) {
->> > -               if (cpu_is_ti816x()) {
->> > -                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
->> > -                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
->> > -               } else if (cpu_is_ti814x()) {
->> > -                       usbphycfg &= ~(USBPHY_CM_PWRDN |
->> USBPHY_OTG_PWRDN
->> > -                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
->> > -                       usbphycfg |= (USBPHY_OTGVDET_EN |
->> USBPHY_OTGSESSEND_EN
->> > -                               | USBPHY_DPOPBUFCTL |
->> USBPHY_DMOPBUFCTL);
->> > -               }
->> > -       } else {
->> > -               if (cpu_is_ti816x())
->> > -                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
->> > -               else if (cpu_is_ti814x())
->> > -                       usbphycfg |= USBPHY_CM_PWRDN |
->> USBPHY_OTG_PWRDN;
->> > -
->> > -       }
->> > -       __raw_writel(usbphycfg, scm_base + USBCTRL0);
->> > -
->> > -       iounmap(scm_base);
->> > -}
->> > diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-
->> omap/include/plat/usb.h
->> > index 548a4c8..c2aa4ae 100644
->> > --- a/arch/arm/plat-omap/include/plat/usb.h
->> > +++ b/arch/arm/plat-omap/include/plat/usb.h
->> > @@ -95,7 +95,6 @@ extern void am35x_musb_reset(void);
->> >  extern void am35x_musb_phy_power(u8 on);
->> >  extern void am35x_musb_clear_irq(void);
->> >  extern void am35x_set_mode(u8 musb_mode);
->> > -extern void ti81xx_musb_phy_power(u8 on);
->> >
->> >  /* AM35x */
->> >  /* USB 2.0 PHY Control */
->> > @@ -120,8 +119,8 @@ extern void ti81xx_musb_phy_power(u8 on);
->> >  #define CONF2_DATPOL           (1 << 1)
->> >
->> >  /* TI81XX specific definitions */
->> > -#define USBCTRL0       0x620
->> > -#define USBSTAT0       0x624
->> > +#define MUSB_USBSS_REV_816X    0x9
->> > +#define MUSB_USBSS_REV_814X    0xb
->> >
->> >  /* TI816X PHY controls bits */
->> >  #define TI816X_USBPHY0_NORMAL_MODE     (1 << 0)
->> > diff --git a/drivers/usb/musb/musb_dsps.c
->> b/drivers/usb/musb/musb_dsps.c
->> > index 494772f..f7271c3 100644
->> > --- a/drivers/usb/musb/musb_dsps.c
->> > +++ b/drivers/usb/musb/musb_dsps.c
->> > @@ -115,9 +115,46 @@ struct dsps_glue {
->> >         struct platform_device *musb;   /* child musb pdev */
->> >         const struct dsps_musb_wrapper *wrp; /* wrapper register
->> offsets */
->> >         struct timer_list timer;        /* otg_workaround timer */
->> > +       u32 __iomem *usb_ctrl;
->> > +       u8      usbss_rev;
->> >  };
->> >
->> >  /**
->> > + * musb_dsps_phy_control - phy on/off
->> > + * @glue: struct dsps_glue *
->> > + * @on: flag for phy to be switched on or off
->> > + *
->> > + * This is to enable the PHY using usb_ctrl register in system
->> control
->> > + * module space.
->> > + *
->> > + * XXX: This function will be removed once we have a seperate driver
->> for
->> %s/seperate/separate
->> > + * control module
->> > + */
->> > +static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
->> > +{
->> > +       u32 usbphycfg;
->> > +
->> > +       usbphycfg = __raw_readl(glue->usb_ctrl);
->>
->> How about using readl instead of __raw_readl here and below?
->> > +
->> > +       if (on) {
->> > +               if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
->> > +                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
->> > +                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
->> > +               } else if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
->> > +                       usbphycfg &= ~(USBPHY_CM_PWRDN |
->> USBPHY_OTG_PWRDN
->> > +                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
->> > +                       usbphycfg |= (USBPHY_OTGVDET_EN |
->> USBPHY_OTGSESSEND_EN
->> > +                               | USBPHY_DPOPBUFCTL |
->> USBPHY_DMOPBUFCTL);
->> > +               }
->> > +       } else {
->> > +               if (glue->usbss_rev == MUSB_USBSS_REV_816X)
->> > +                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
->> > +               else if (glue->usbss_rev == MUSB_USBSS_REV_814X)
->> > +                       usbphycfg |= USBPHY_CM_PWRDN |
->> USBPHY_OTG_PWRDN;
->> > +       }
->> > +       __raw_writel(usbphycfg, glue->usb_ctrl);
->> only writel()?
->> > +}
->> > +/**
->> >   * dsps_musb_enable - enable interrupts
->> >   */
->> >  static void dsps_musb_enable(struct musb *musb)
->> > @@ -363,11 +400,9 @@ static irqreturn_t dsps_interrupt(int irq, void
->> *hci)
->> >  static int dsps_musb_init(struct musb *musb)
->> >  {
->> >         struct device *dev = musb->controller;
->> > -       struct musb_hdrc_platform_data *plat = dev->platform_data;
->> >         struct platform_device *pdev = to_platform_device(dev-
->> >parent);
->> >         struct dsps_glue *glue = platform_get_drvdata(pdev);
->> >         const struct dsps_musb_wrapper *wrp = glue->wrp;
->> > -       struct omap_musb_board_data *data = plat->board_data;
->> >         void __iomem *reg_base = musb->ctrl_base;
->> >         u32 rev, val;
->> >         int status;
->> > @@ -395,8 +430,7 @@ static int dsps_musb_init(struct musb *musb)
->> >         dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
->> >
->> >         /* Start the on-chip PHY and its PLL. */
->> > -       if (data->set_phy_power)
->> > -               data->set_phy_power(1);
->> > +       musb_dsps_phy_control(glue, 1);
->> >
->> >         musb->isr = dsps_interrupt;
->> >
->> > @@ -418,8 +452,6 @@ err0:
->> >  static int dsps_musb_exit(struct musb *musb)
->> >  {
->> >         struct device *dev = musb->controller;
->> > -       struct musb_hdrc_platform_data *plat = dev->platform_data;
->> > -       struct omap_musb_board_data *data = plat->board_data;
->> >         struct platform_device *pdev = to_platform_device(dev-
->> >parent);
->> >         struct dsps_glue *glue = platform_get_drvdata(pdev);
->> >
->> > @@ -427,8 +459,7 @@ static int dsps_musb_exit(struct musb *musb)
->> >                 del_timer_sync(&glue->timer);
->> >
->> >         /* Shutdown the on-chip PHY and its PLL. */
->> > -       if (data->set_phy_power)
->> > -               data->set_phy_power(0);
->> > +       musb_dsps_phy_control(glue, 0);
->> >
->> >         /* NOP driver needs change if supporting dual instance */
->> >         usb_put_phy(musb->xceiv);
->> > @@ -460,6 +491,22 @@ static int __devinit
->> dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
->> >         char res_name[10];
->> >         int ret;
->> >
->> > +       /* get memory resource for usb control register */
->> > +       sprintf(res_name, "usb_ctrl%d", id);
->> > +       res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
->> res_name);
->> Avoid getting resource by name.. With dt, you wont be able to do
->> those..
->
-> When we are completely on DT then this would anyways go and we can
-> get these resource data for each usb port from DT APIs.
+Ok, this is useful information.
 
-Even with dt, you will still get the resources using
-platform_get_resource() API's.. So why not have it that way from the
-beginning itself..
+> This was discussed in the beginning
+> as part of this
+> series review on the list.
+> 
 
-Thanks
-Kishon
+My bad, I missed that discussion, and will refer to archives now.
+
+> >
+> >> [..]
+> >>
+> >> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> >> > > index 70cf825..766181c 100644
+> >> > > --- a/arch/arm/plat-omap/sram.c
+> >> > > +++ b/arch/arm/plat-omap/sram.c
+> >> > > @@ -6,8 +6,8 @@
+> >> > >   * Copyright (C) 2005 Nokia Corporation
+> >> > >   * Written by Tony Lindgren <tony@atomide.com>
+> >> > >   *
+> >> > > - * Copyright (C) 2009 Texas Instruments
+> >> > > - * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> > > + * Copyright (C) 2009-2012 Texas Instruments
+> >> > > + * Added OMAP4/5 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> > >   *
+> >> > >   * This program is free software; you can redistribute it and/or modify
+> >> > >   * it under the terms of the GNU General Public License version 2 as
+> >> > > @@ -44,6 +44,7 @@
+> >> > >  #else
+> >> > >  #define OMAP4_SRAM_PUB_PA    (OMAP4_SRAM_PA + 0x4000)
+> >> > >  #endif
+> >> > > +#define OMAP5_SRAM_PA                0x40300000
+> >> > >
+> >> >
+> >> > We have mix of such definitions here, for example,
+> >> >
+> >> > "arch/arm/plat-omap/include/plat/sram.h"
+> >> > and now in arch/arm/plat-omap/sram.c here itself.
+> >> >
+> >> >
+> >> > May be right time to clean it up now.
+> >> >
+> >> Thats because of an interconnect BUG which needed it exported
+> >> at plat level in case of OMAP4.
+> >>
+> >
+> > Not only omap4, but we have 2, 3, 4 and AM33xx definitions present there
+> > at plat/sram.h and public PA (SRAM_PUB_PA) address is defined in sram.c file.
+> >
+> I see that now. Infact there is no need for any of those PA's to be defined
+> there except OMAP4 which needs to have that macro available for an errata.
+> 
+> I will clean that up once the series is merged. Don't want to introduce any
+> regression in last moment changes.
+> 
+
+I am ok. 
+
+Thanks,
+Vaibhav
