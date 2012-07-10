@@ -1,137 +1,165 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1 10/11] arm/dts: omap: Add usb_otg and glue data
-Date: Tue, 10 Jul 2012 11:57:05 +0530
-Message-ID: <4FFBCB39.1010809@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v1 05/11] drivers: usb: twl6030: Add dt support for
+ twl6030 usb
+Date: Tue, 10 Jul 2012 11:58:37 +0530
+Message-ID: <CAAe_U6LXHvPxHLA1Zhx9Gx8DMM7k4rTpvEAzNzLGrRKOXvBwSA@mail.gmail.com>
 References: <1340884267-28908-1-git-send-email-kishon@ti.com>
- <1340884267-28908-11-git-send-email-kishon@ti.com>
+	<1340884267-28908-6-git-send-email-kishon@ti.com>
+	<4FFBC478.4060308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1340884267-28908-11-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <4FFBC478.4060308@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
-> Add usb otg data node in omap4/omap3 device tree file. Also update
-> the node with board specific setting in omapx-<board>.dts file.
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
-> ---
->   arch/arm/boot/dts/omap3-beagle.dts |    6 ++++++
->   arch/arm/boot/dts/omap3-evm.dts    |    6 ++++++
->   arch/arm/boot/dts/omap3.dtsi       |    8 ++++++++
->   arch/arm/boot/dts/omap4-panda.dts  |    6 ++++++
->   arch/arm/boot/dts/omap4-sdp.dts    |    6 ++++++
->   arch/arm/boot/dts/omap4.dtsi       |    8 ++++++++
->   6 files changed, 40 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index 5b4506c..f3d7076 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -67,3 +67,9 @@
->   &mmc3 {
->   	status = "disable";
->   };
-> +
-> +&usb_otg_hs {
-> +	interface_type =<0>;
-> +	mode =<3>;
-> +	power =<50>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-> index 2eee16e..8963b3d 100644
-> --- a/arch/arm/boot/dts/omap3-evm.dts
-> +++ b/arch/arm/boot/dts/omap3-evm.dts
-> @@ -18,3 +18,9 @@
->   		reg =<0x80000000 0x10000000>; /* 256 MB */
->   	};
->   };
-> +
-> +&usb_otg_hs {
-> +	interface_type =<0>;
-> +	mode =<3>;
-> +	power =<50>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 99474fa..2f565d6 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -215,5 +215,13 @@
->   			compatible = "ti,omap3-hsmmc";
->   			ti,hwmods = "mmc3";
->   		};
-> +
-> +		usb_otg_hs: usb_otg_hs@4a0ab000 {
-> +			compatible = "ti,musb-omap2430";
+Hi,
 
-this compatible doesn't seem right in omap3.dtsi. Same with
-the below entry in omap4.dtsi.
-See other IP blocks which are reused across OMAP2/3/4 on
-how the compatible for those are handled.
+On Tue, Jul 10, 2012 at 11:28 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
+>>
+>> Add device tree support for twl6030 usb driver.
+>> Update the Documentation with device tree binding information.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>> ---
+>>   .../devicetree/bindings/usb/twlxxxx-usb.txt        |   18 ++++++++
+>>   drivers/usb/otg/twl6030-usb.c                      |   45
+>> ++++++++++++++------
+>>   2 files changed, 50 insertions(+), 13 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> new file mode 100644
+>> index 0000000..f293271
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>> @@ -0,0 +1,18 @@
+>> +USB COMPARATOR OF TWL CHIPS
+>> +
+>> +TWL6030 USB COMPARATOR
+>> + - compatible : Should be "ti,twl6030-usb"
+>> + - interrupts : Two interrupt numbers to the cpu should be specified.
+>> First
+>> +   interrupt number is the otg interrupt number that raises ID interrupts
+>> when
+>> +   the controller has to act as host and the second interrupt number is
+>> the
+>> +   usb interrupt number that raises VBUS interrupts when the controller
+>> has to
+>> +   act as device
+>> + - regulator :<supply-name>  can be "vusb" or "ldousb"
+>> + -<supply-name>-supply : phandle to the regulator device tree node
+>> +
+>> +twl6030-usb {
+>> +       compatible = "ti,twl6030-usb";
+>> +       interrupts =<  4 10>;
+>> +       regulator = "vusb";
+>> +       vusb-supply =<&vusb>;
+>
+>
+> This doesn't seem right. Why do you ned a 'regulator' string along
+> with the phandle?
 
-> +			ti,hwmods = "usb_otg_hs";
-> +			multipoint =<1>;
-> +			num_eps =<16>;
-> +			ram_bits =<12>;
-> +		};
->   	};
->   };
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index 1efe0c5..0825fa7 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -89,3 +89,9 @@
->   	ti,non-removable;
->   	bus-width =<4>;
->   };
-> +
-> +&usb_otg_hs {
-> +	interface_type =<1>;
-> +	mode =<3>;
-> +	power =<50>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index d08c4d1..5244d51 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -158,3 +158,9 @@
->   	bus-width =<4>;
->   	ti,non-removable;
->   };
-> +
-> +&usb_otg_hs {
-> +	interface_type =<1>;
-> +	mode =<3>;
-> +	power =<50>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 4d2dcc1..bc7b3c3 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -285,5 +285,13 @@
->   				<0x4a002300 0x1>;
->   			};
->   		};
-> +
-> +		usb_otg_hs: usb_otg_hs@4a0ab000 {
-> +			compatible = "ti,musb-omap2430";
-> +			ti,hwmods = "usb_otg_hs";
-> +			multipoint =<1>;
-> +			num_eps =<16>;
-> +			ram_bits =<12>;
-> +		};
->   	};
->   };
+The original code was something like
+	if (twl->features & TWL6025_SUBCLASS)
+		regulator_name = "ldousb";
+	else
+		regulator_name = "vusb";
+
+I wasn't sure how to handle this *TWL6025_SUBCLASS* stuff.
+
+>
+>> +};
+>> diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+>> index 6a361d2..20b7abe 100644
+>> --- a/drivers/usb/otg/twl6030-usb.c
+>> +++ b/drivers/usb/otg/twl6030-usb.c
+>> @@ -105,7 +105,7 @@ struct twl6030_usb {
+>>         u8                      asleep;
+>>         bool                    irq_enabled;
+>>         bool                    vbus_enable;
+>> -       unsigned long           features;
+>> +       const char              *regulator;
+>>   };
+>>
+>>   #define       comparator_to_twl(x) container_of((x), struct twl6030_usb,
+>> comparator)
+>> @@ -153,13 +153,6 @@ static int twl6030_start_srp(struct phy_companion
+>> *comparator)
+>>
+>>   static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
+>>   {
+>> -       char *regulator_name;
+>> -
+>> -       if (twl->features&  TWL6025_SUBCLASS)
+>>
+>> -               regulator_name = "ldousb";
+>> -       else
+>> -               regulator_name = "vusb";
+>> -
+>>         /* Set to OTG_REV 1.3 and turn on the ID_WAKEUP_COMP */
+>>         twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x1, TWL6030_BACKUP_REG);
+>>
+>> @@ -169,7 +162,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb
+>> *twl)
+>>         /* Program MISC2 register and set bit VUSB_IN_VBAT */
+>>         twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
+>>
+>> -       twl->usb3v3 = regulator_get(twl->dev, regulator_name);
+>> +       twl->usb3v3 = regulator_get(twl->dev, twl->regulator);
+>>         if (IS_ERR(twl->usb3v3))
+>>                 return -ENODEV;
+>>
+>> @@ -324,9 +317,9 @@ static int __devinit twl6030_usb_probe(struct
+>> platform_device *pdev)
+>>   {
+>>         struct twl6030_usb      *twl;
+>>         int                     status, err;
+>> -       struct twl4030_usb_data *pdata;
+>> -       struct device *dev =&pdev->dev;
+>>
+>> -       pdata = dev->platform_data;
+>> +       struct device_node      *np = pdev->dev.of_node;
+>> +       struct device           *dev =&pdev->dev;
+>>
+>> +       struct twl4030_usb_data *pdata = dev->platform_data;
+>>
+>>         twl = devm_kzalloc(dev, sizeof *twl, GFP_KERNEL);
+>>         if (!twl)
+>> @@ -335,13 +328,28 @@ static int __devinit twl6030_usb_probe(struct
+>> platform_device *pdev)
+>>         twl->dev                =&pdev->dev;
+>>
+>>         twl->irq1               = platform_get_irq(pdev, 0);
+>>         twl->irq2               = platform_get_irq(pdev, 1);
+>> -       twl->features           = pdata->features;
+>>         twl->linkstat           = OMAP_MUSB_UNKNOWN;
+>>
+>>         twl->comparator.set_vbus        = twl6030_set_vbus;
+>>         twl->comparator.start_srp       = twl6030_start_srp;
+>>         omap_usb2_set_comparator(&twl->comparator);
+>>
+>> +       if (np) {
+>> +               err = of_property_read_string(np,
+>> "regulator",&twl->regulator);
+>>
+>> +               if (err<  0) {
+>> +                       dev_err(&pdev->dev, "unable to get regulator\n");
+>> +                       return err;
+>> +               }
+>
+>
+> Isn't there a better way for the driver to know which supply to use instead
+> of DT passing the supply name?
+
+The problem I see is this same driver is used for twl6030 and twl6025
+and the regulator used is different for these two chips (And I think
+twl6025 will also use the same dt file as twl6030 as I don't see a
+different file for 6025).
+
+Thanks
+Kishon
