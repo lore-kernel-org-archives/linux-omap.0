@@ -1,106 +1,90 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430
- SOC
-Date: Tue, 10 Jul 2012 08:30:35 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA699A3@DBDE01.ent.ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
- <1341566515-22665-5-git-send-email-santosh.shilimkar@ti.com>
- <4FFA9B61.8030808@ti.com> <20120709131156.GH1122@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA69538@DBDE01.ent.ti.com>
- <20120710081851.GL1122@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v1 10/11] arm/dts: omap: Add usb_otg and glue data
+Date: Tue, 10 Jul 2012 14:02:41 +0530
+Message-ID: <4FFBE8A9.6050608@ti.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>	<1340884267-28908-11-git-send-email-kishon@ti.com>	<4FFBCB39.1010809@ti.com> <CAAe_U6LqF9aZLZgHQYhX6VXXB41HUNmZgXfOwe9V9VtWVe+46g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42548 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753576Ab2GJIao convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 04:30:44 -0400
-In-Reply-To: <20120710081851.GL1122@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAAe_U6LqF9aZLZgHQYhX6VXXB41HUNmZgXfOwe9V9VtWVe+46g@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-On Tue, Jul 10, 2012 at 13:48:52, Tony Lindgren wrote:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120709 23:30]:
-> > On Mon, Jul 09, 2012 at 18:41:58, Tony Lindgren wrote:
-> > > * Vaibhav Hiremath <hvaibhav@ti.com> [120709 01:55]:
-> > > > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
-> > > > > --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> > > > > +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-> > > > > @@ -39,6 +39,7 @@ struct omap_clk {
-> > > > >  #define CK_443X		(1 << 11)
-> > > > >  #define CK_TI816X	(1 << 12)
-> > > > >  #define CK_446X		(1 << 13)
-> > > > > +#define CK_54XX		(1 << 14)
-> > > > 
-> > > > This is conflicting with AM33XX, you may want to rebase it again, since
-> > > > AM33xx clock tree is already pushed and available in
-> > > > linux-omap/devel-am33xx-part2.
-> > > 
-> > > Heh these CK_XXXX defines are now running out of the u16 cpu_mask.
-> > > 
-> > > They really should be replaced with SoC specific lists of clocks
-> > > rather than bloating the cpu_mask and repeating it for every clock
-> > > that's compiled in for 800+ times.
-> > > 
-> > > Below (untested) is what could be done in the short term.
-> > > 
-> > > I wonder if we could #define CK_OMAP_DUMMY 0 that's always set
-> > > for non-shared clocks if they only get set in some *_data.c
-> > > file in a unique way?
-> > > 
-> > > Paul got any better ideas?
-> ...
-> 
-> > This also will not scale up in the future and will end up again in the same 
-> > situation.
-> 
-> Right that's why we want to get rid of it.
->  
-> > Just a quick thought, may work here,
-> > 
-> > I looked at the usage of cpu_mask and rates.flag and I believe we can 
-> > restrict both to given SoC, something like,
-> > 
-> > OMAP34XX ->
-> >           ES1
-> >           ES2PLUS
-> >           36XX
-> >           AM35XX
-> >           ...
-> > 
-> > OMAP4 ->
-> >           443X
-> >           446X
-> > 
-> > AM33XX ->
-> >           AM335X
-> >           TI816X
-> >           TI814X
-> >           ...
-> > 
-> > XYZ...  ->
-> >           ...
-> > 
-> > 
-> > The proposal would be,
-> > 
-> > To make cpu_mask and rate.flags 32 bit wide and divide it in 16-16 bits -
-> > 
-> > Lower 16 bits => describe SoC it is applicable to
-> > Upper 16 bit => describes silicon versions or families
-> 
-> No thanks.. We don't want to make it 32 bit and bloat all the compiled in
-> clock even further. 
-> 
+On Tuesday 10 July 2012 01:43 PM, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
+>
+> On Tue, Jul 10, 2012 at 11:57 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
+>> On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
+>>>
+>>> Add usb otg data node in omap4/omap3 device tree file. Also update
+>>> the node with board specific setting in omapx-<board>.dts file.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>> ---
+>>>    arch/arm/boot/dts/omap3-beagle.dts |    6 ++++++
+>>>    arch/arm/boot/dts/omap3-evm.dts    |    6 ++++++
+>>>    arch/arm/boot/dts/omap3.dtsi       |    8 ++++++++
+>>>    arch/arm/boot/dts/omap4-panda.dts  |    6 ++++++
+>>>    arch/arm/boot/dts/omap4-sdp.dts    |    6 ++++++
+>>>    arch/arm/boot/dts/omap4.dtsi       |    8 ++++++++
+>>>    6 files changed, 40 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts
+>>> b/arch/arm/boot/dts/omap3-beagle.dts
+>>> index 5b4506c..f3d7076 100644
+>>> --- a/arch/arm/boot/dts/omap3-beagle.dts
+>>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+>>> @@ -67,3 +67,9 @@
+>>>    &mmc3 {
+>>>          status = "disable";
+>>>    };
+>>> +
+>>> +&usb_otg_hs {
+>>> +       interface_type =<0>;
+>>> +       mode =<3>;
+>>> +       power =<50>;
+>>> +};
+>>> diff --git a/arch/arm/boot/dts/omap3-evm.dts
+>>> b/arch/arm/boot/dts/omap3-evm.dts
+>>> index 2eee16e..8963b3d 100644
+>>> --- a/arch/arm/boot/dts/omap3-evm.dts
+>>> +++ b/arch/arm/boot/dts/omap3-evm.dts
+>>> @@ -18,3 +18,9 @@
+>>>                  reg =<0x80000000 0x10000000>; /* 256 MB */
+>>>          };
+>>>    };
+>>> +
+>>> +&usb_otg_hs {
+>>> +       interface_type =<0>;
+>>> +       mode =<3>;
+>>> +       power =<50>;
+>>> +};
+>>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+>>> index 99474fa..2f565d6 100644
+>>> --- a/arch/arm/boot/dts/omap3.dtsi
+>>> +++ b/arch/arm/boot/dts/omap3.dtsi
+>>> @@ -215,5 +215,13 @@
+>>>                          compatible = "ti,omap3-hsmmc";
+>>>                          ti,hwmods = "mmc3";
+>>>                  };
+>>> +
+>>> +               usb_otg_hs: usb_otg_hs@4a0ab000 {
+>>> +                       compatible = "ti,musb-omap2430";
+>>
+>>
+>> this compatible doesn't seem right in omap3.dtsi. Same with
+>> the below entry in omap4.dtsi.
+>> See other IP blocks which are reused across OMAP2/3/4 on
+>> how the compatible for those are handled.
+>
+> Ok. So it should be like *ti,omap4-musb*, *ti,omap3-musb*?
 
-In that case, how about just get rid of cpu_mask completely and trust the 
-data passed by clock-tree for clksel dividers?
-Let clock-tree data handle this, even if in some cases we end up in 
-duplicating data for some clocks??
+Yes, that would be more appropriate.
 
-Thanks,
-Vaibhav
+>
+> Thanks
+> Kishon
+
