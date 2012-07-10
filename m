@@ -1,130 +1,95 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
-Date: Tue, 10 Jul 2012 09:32:21 +0200
-Message-ID: <4FFBDA85.8070708@metafoo.de>
-References: <1341592434-4207-1-git-send-email-khilman@ti.com> <20120709151527.58f44c3a.akpm@linux-foundation.org>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v1 10/11] arm/dts: omap: Add usb_otg and glue data
+Date: Tue, 10 Jul 2012 13:43:57 +0530
+Message-ID: <CAAe_U6LqF9aZLZgHQYhX6VXXB41HUNmZgXfOwe9V9VtWVe+46g@mail.gmail.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>
+ <1340884267-28908-11-git-send-email-kishon@ti.com>
+ <4FFBCB39.1010809@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120709151527.58f44c3a.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kevin Hilman <khilman@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, rtc-linux@googlegroups.com, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4FFBCB39.1010809@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux@arm.linux.org.uk, b-cousson@ti.com, linux-doc@vger.kernel.org, tony@atomide.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, hvaibhav@ti.com, balbi@ti.com, rob@landley.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/10/2012 12:15 AM, Andrew Morton wrote:
-> On Fri,  6 Jul 2012 09:33:54 -0700
-> Kevin Hilman <khilman@ti.com> wrote:
-> 
->> Requesting a threaded interrupt without a primary handler and without
->> IRQF_ONESHOT is dangerous, and after commit 1c6c6952 (genirq: Reject
->> bogus threaded irq requests), these requests are rejected.  This
->> causes ->probe() to fail, and the RTC driver not to be availble.
+Hi,
+
+On Tue, Jul 10, 2012 at 11:57 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
 >>
->> To fix, add IRQF_ONESHOT to the IRQ flags.
+>> Add usb otg data node in omap4/omap3 device tree file. Also update
+>> the node with board specific setting in omapx-<board>.dts file.
 >>
->> Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake
->> to wake from system suspend multiple times.
->>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
 >> ---
->> Resending to broader audience and including Andrew.  Since, I understand
->> that drivers/rtc is somewhat orphaned, Andrew, can you queue this fix for
->> v3.5.  Thanks.
+>>   arch/arm/boot/dts/omap3-beagle.dts |    6 ++++++
+>>   arch/arm/boot/dts/omap3-evm.dts    |    6 ++++++
+>>   arch/arm/boot/dts/omap3.dtsi       |    8 ++++++++
+>>   arch/arm/boot/dts/omap4-panda.dts  |    6 ++++++
+>>   arch/arm/boot/dts/omap4-sdp.dts    |    6 ++++++
+>>   arch/arm/boot/dts/omap4.dtsi       |    8 ++++++++
+>>   6 files changed, 40 insertions(+), 0 deletions(-)
 >>
->>  drivers/rtc/rtc-twl.c |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->> index 258abea..c5d06fe 100644
->> --- a/drivers/rtc/rtc-twl.c
->> +++ b/drivers/rtc/rtc-twl.c
->> @@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
->>  	}
->>  
->>  	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
->> -				   IRQF_TRIGGER_RISING,
->> +				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
->>  				   dev_name(&rtc->dev), rtc);
->>  	if (ret < 0) {
->>  		dev_err(&pdev->dev, "IRQ is not free.\n");
-> 
-> OK, this is the second such patch I've seen and it's time to wonder if
-> we should get grumpy at tglx.  afacit 1c6c6952 broke the following
-> drivers:
+>> diff --git a/arch/arm/boot/dts/omap3-beagle.dts
+>> b/arch/arm/boot/dts/omap3-beagle.dts
+>> index 5b4506c..f3d7076 100644
+>> --- a/arch/arm/boot/dts/omap3-beagle.dts
+>> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+>> @@ -67,3 +67,9 @@
+>>   &mmc3 {
+>>         status = "disable";
+>>   };
+>> +
+>> +&usb_otg_hs {
+>> +       interface_type =<0>;
+>> +       mode =<3>;
+>> +       power =<50>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap3-evm.dts
+>> b/arch/arm/boot/dts/omap3-evm.dts
+>> index 2eee16e..8963b3d 100644
+>> --- a/arch/arm/boot/dts/omap3-evm.dts
+>> +++ b/arch/arm/boot/dts/omap3-evm.dts
+>> @@ -18,3 +18,9 @@
+>>                 reg =<0x80000000 0x10000000>; /* 256 MB */
+>>         };
+>>   };
+>> +
+>> +&usb_otg_hs {
+>> +       interface_type =<0>;
+>> +       mode =<3>;
+>> +       power =<50>;
+>> +};
+>> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+>> index 99474fa..2f565d6 100644
+>> --- a/arch/arm/boot/dts/omap3.dtsi
+>> +++ b/arch/arm/boot/dts/omap3.dtsi
+>> @@ -215,5 +215,13 @@
+>>                         compatible = "ti,omap3-hsmmc";
+>>                         ti,hwmods = "mmc3";
+>>                 };
+>> +
+>> +               usb_otg_hs: usb_otg_hs@4a0ab000 {
+>> +                       compatible = "ti,musb-omap2430";
+>
+>
+> this compatible doesn't seem right in omap3.dtsi. Same with
+> the below entry in omap4.dtsi.
+> See other IP blocks which are reused across OMAP2/3/4 on
+> how the compatible for those are handled.
 
-If you want to be grumpy, be grumpy at Linus. Thomas actually posted a patch
-which just emits a warning, instead of failing to request the IRQ, but Linus
-didn't want to take it. The whole thread is here
-https://lkml.org/lkml/2012/6/12/151
+Ok. So it should be like *ti,omap4-musb*, *ti,omap3-musb*?
 
-> 
-> 
-> sound/soc/codecs/wm8994.c
-> sound/soc/codecs/max98095.c
-> sound/soc/codecs/twl6040.c
-> drivers/usb/otg/ab8500-usb.c
-> drivers/usb/otg/twl4030-usb.c
-> drivers/gpio/gpio-sx150x.c
-> drivers/gpio/gpio-ab8500.c
-> drivers/mfd/ab8500-gpadc.c
-> drivers/mfd/ti-ssp.c
-> drivers/mfd/twl4030-madc.c
-> drivers/mfd/htc-i2cpld.c
-> drivers/mfd/wm831x-auxadc.c
-> drivers/mfd/twl6040-core.c
-> drivers/mfd/wm8350-core.c
-> drivers/extcon/extcon-max8997.c
-> drivers/mmc/host/of_mmc_spi.c
-> drivers/mmc/core/cd-gpio.c
-> drivers/net/can/mcp251x.c
-> drivers/nfc/pn544_hci.c
-> drivers/nfc/pn544.c
-> drivers/power/ab8500_btemp.c
-> drivers/power/twl4030_charger.c
-> drivers/power/lp8727_charger.c
-> drivers/power/smb347-charger.c
-> drivers/power/max17042_battery.c
-> drivers/power/wm831x_power.c
-> drivers/power/ab8500_fg.c
-> drivers/power/max8903_charger.c
-> drivers/power/ab8500_charger.c
-> drivers/regulator/wm831x-isink.c
-> drivers/regulator/wm831x-ldo.c
-> drivers/regulator/wm831x-dcdc.c
-> drivers/staging/ste_rmi4/synaptics_i2c_rmi4.c
-> drivers/staging/iio/adc/adt7310.c
-> drivers/staging/iio/adc/adt7410.c
-> drivers/staging/iio/adc/ad7816.c
-> drivers/staging/iio/cdc/ad7150.c
-> drivers/staging/iio/accel/sca3000_core.c
-> drivers/staging/cptm1217/clearpad_tm1217.c
-> drivers/input/keyboard/tc3589x-keypad.c
-> drivers/input/keyboard/twl4030_keypad.c
-> drivers/input/misc/twl4030-pwrbutton.c
-> drivers/input/misc/twl6040-vibra.c
-> drivers/input/misc/wm831x-on.c
-> drivers/media/radio/si470x/radio-si470x-i2c.c
-> drivers/base/regmap/regmap-irq.c
-> drivers/rtc/rtc-wm831x.c
-> drivers/rtc/rtc-twl.c
-> drivers/rtc/rtc-ab8500.c
-> drivers/rtc/rtc-max8998.c
-> drivers/rtc/rtc-isl1208.c
-> drivers/platform/x86/intel_mid_powerbtn.c
-> include/linux/mfd/wm8994/core.h
-> include/linux/mfd/wm8350/core.h
-> 
-> what am I missing here?
-> 
-
-Most of these drivers are not broken (anymore), the majority drivers which
-were broken by Thomas's patch have already been fixed. As for your list:
-I've already sent out a fix for all of the staging/iio/ drivers a couple of
-days ago. And drivers which use nested interrupts are not affected by this
-problem. In your list these are basically all drivers with wm*, twl* and
-ab8500 in their names. But still leaves a handful of broken driver which
-should be fixed.
-
-- Lars
+Thanks
+Kishon
