@@ -1,72 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v1 08/11] arm/dts: Add twl4030-usb data
-Date: Tue, 10 Jul 2012 11:43:28 +0530
-Message-ID: <4FFBC808.5050602@ti.com>
-References: <1340884267-28908-1-git-send-email-kishon@ti.com> <1340884267-28908-9-git-send-email-kishon@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 10 Jul 2012 06:20:04 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A622E@DBDE01.ent.ti.com>
+References: <20120628123207.GG19842@atomide.com> <4FEC89B9.3090404@ti.com>
+ <20120702063651.GO4202@atomide.com> <4FF1D980.4040100@ti.com>
+ <20120703081746.GJ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
+ <20120704075158.GQ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+ <20120705105535.GB1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A39DF@DBDE01.ent.ti.com>
+ <20120706120533.GU1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1340884267-28908-9-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, hvaibhav@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36055 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900Ab2GJGUW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 02:20:22 -0400
+In-Reply-To: <20120706120533.GU1122@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
-> Add twl4030-usb data node in twl4030 device tree file.
->
-> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
-> ---
->   arch/arm/boot/dts/twl4030.dtsi |   21 +++++++++++++++++++++
->   1 files changed, 21 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-> index 22f4d13..66534a3 100644
-> --- a/arch/arm/boot/dts/twl4030.dtsi
-> +++ b/arch/arm/boot/dts/twl4030.dtsi
-> @@ -37,6 +37,18 @@
->   		regulator-max-microvolt =<3150000>;
->   	};
->
-> +	vusb1v5: regulator@3 {
-> +		compatible = "ti,twl4030-vusb1v5";
-> +	};
+Hi Tony,
 
-These @3, @4 are actually wrong since the node do
-not have a 'reg' property in it. This was commented on
-by David Brown on my original series which added this but
-it somehow slipped through the cracks. I understand that
-you would have looked up what existed in the file and
-extended, but what already exists in the file needs to
-be fixed up too. I'll send in a patch to fix those up.
+Could not respond you earlier as was sick
 
-regards,
-Rajendra
+On Fri, Jul 06, 2012 at 17:35:33, Tony Lindgren wrote:
+> * Mohammed, Afzal <afzal@ti.com> [120705 07:56]:
+> > On Thu, Jul 05, 2012 at 16:25:35, Tony Lindgren wrote:
 
-> +
-> +	vusb1v8: regulator@4 {
-> +		compatible = "ti,twl4030-vusb1v8";
-> +	};
-> +
-> +	vusb3v1: regulator@5 {
-> +		compatible = "ti,twl4030-vusb3v1";
-> +	};
-> +
->   	twl_gpio: gpio {
->   		compatible = "ti,twl4030-gpio";
->   		gpio-controller;
-> @@ -44,4 +56,13 @@
->   		interrupt-controller;
->   		#interrupt-cells =<1>;
->   	};
-> +
-> +	twl4030-usb {
-> +		compatible = "ti,twl4030-usb";
-> +		interrupts =<  10 4>;
-> +		usb1v5-supply =<&vusb1v5>;
-> +		usb1v8-supply =<&vusb1v8>;
-> +		usb3v1-supply =<&vusb3v1>;
-> +		usb_mode =<1>;
-> +	};
->   };
+> > Presently bigger issue that I am facing w.r.t driver conversion is the
+> > requirement of peripheral specific gpmc timing calculation before probe.
+> > I believe currently in mainline runtime gpmc clock changes are not
+> > handled
+> 
+> Hmm I don't follow, why can't the timings be set during the peripheral
+> specific driver probe?
+
+My viewpoint while making the above comment was with gpmc driver
+series that was posted, in that it was required to do peripheral specific
+timings calculation before probe. With your suggested peripheral specific
+driver for the purpose of handling retime, it is not a problem, a
+solution on how to integrate it has to be found though.
+
+> > > The peripheral driver can register it's retime function with gpmc and
+> > > get a cookie back that allows getting the DT provided timings from gpmc.
+> > > And after that the initial timings can be set.
+> > 
+> > If timings peripheral timings can be fully contained in driver, should
+> > we try to pass the same timings translated in terms of gpmc timings
+> > through DT ?, and how do we get equivalent gpmc timings to update DT,
+> > manually calculate similar to platform init code ?, or I misunderstood
+> > you
+
+> Well yes the timings should be passed via devicetree in a gpmc specific
+
+I assume with the above, you were referring to peripherals that does not
+have retime function.
+
+> format. But the peripheral specific retime function still needs to be
+> also registered for peripherals that need it.
+
+For the peripherals requiring retime, we cannot (as otherwise whatever
+retime does would have to be manually done based on the knowledge of
+boot time gpmc clock period to calculate gpmc timings to be fed to DT)
+pass gpmc timings via device tree, right ?
+
+Regards
+Afzal
