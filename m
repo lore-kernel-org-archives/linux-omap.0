@@ -1,57 +1,116 @@
-From: Federico Fuga <fuga@studiofuga.com>
-Subject: Re: [PATCH] rpmsg bus subsys_initcall initialization ordering
-Date: Tue, 10 Jul 2012 18:43:35 +0200
-Message-ID: <485F7F7C-2D0C-4B14-8A46-D42C9F8ED4E4@studiofuga.com>
-References: <1341936444-3094-1-git-send-email-fuga@studiofuga.com> <CAK=Wgbaf0On3teqOw1myqkS4Dei3Vw2Zn=0xfOv-YiNUjFr0fg@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1278)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=Wgbaf0On3teqOw1myqkS4Dei3Vw2Zn=0xfOv-YiNUjFr0fg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 10 Jul 2012 12:15:28 -0500
+Message-ID: <4FFC6330.1040409@ti.com>
+References: <20120703081746.GJ1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com> <20120704075158.GQ1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com> <20120705105535.GB1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A39DF@DBDE01.ent.ti.com> <20120706120533.GU1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A622E@DBDE01.ent.ti.com> <20120710094538.GT1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A64D0@DBDE01.ent.ti.com> <20120710131734.GV1122@atomide.com> <C8443D0743D26F4388EA172BF4E2A7A93E9A669D@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57597 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756492Ab2GJRPf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jul 2012 13:15:35 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A669D@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Ohad,
+Hi Afzal,
 
-Il giorno 10/lug/2012, alle ore 18:22, Ohad Ben-Cohen ha scritto:
-
-> On Tue, Jul 10, 2012 at 7:07 PM, Federico Fuga <fuga@studiofuga.com> wrote:
->> omaprpc depends on the rpmsg bus.
+On 07/10/2012 08:47 AM, Mohammed, Afzal wrote:
+> Hi Tony,
 > 
-> Sorry for the ignorance, but what's omaprpc ? :)
+> On Tue, Jul 10, 2012 at 18:47:34, Tony Lindgren wrote:
+>> * Mohammed, Afzal <afzal@ti.com> [120710 03:09]:
+>>> On Tue, Jul 10, 2012 at 15:15:38, Tony Lindgren wrote:
+>>>> * Mohammed, Afzal <afzal@ti.com> [120709 23:24]:
 > 
-
-
-You're right, I should have explained this! :-)
-omaprpc is the Omap Remote Procedure Call driver. Quoting the Kconfig file,
-
-"An rpmsg driver that exposes the Remote Procedure Call API to User Space, in order to allow applications to distribute remote call to more power efficient remote processors on OMAP4+ systems".
-
-It depends on rpmsg system.
-
-> I guess it's some out-of-tree module (which I've never seen) so I'm
-> not sure we want change mainline code to fix issues with it.
+>>>>> For the peripherals requiring retime, we cannot (as otherwise whatever
+>>>>> retime does would have to be manually done based on the knowledge of
+>>>>> boot time gpmc clock period to calculate gpmc timings to be fed to DT)
+>>>>> pass gpmc timings via device tree, right ?
+>>>>
+>>>> We can still do it when the connected peripheral probe registers with
+>>>> gpmc.
 > 
+> Were you actually referring to updating kernel view of device tree nodes, and
+> not the device tree file (not sure whether it is really possible) ?
 
-omaprpc is out of the official mainline code, it's inside the official ti/omap branch/project.
-I guessed that the easier solution had been to change the initialization level, in a similar way it's done by the i2c bus driver for example.
-I don't know if this is the best solution to solve this, maybe the problem could be solved in the omaprpc driver (maybe this could be the right solution).
+I believe that Tony is suggesting performing the retime at probe time.
+In the case of OneNand you would simply call the
+onenand_set_async_mode/sync_mode from within the probe as a retime
+function.
 
-
-> If your code is anyway out-of-tree, it'd probably make more sense if
-> this patch stays out of tree too (plus I have no way to review this
-> patch, and understand the issue it fixes, without seeing the relevant
-> code).
+>>> We can, but would it be feasible practically ?, gpmc timings to update in
+>>> DT for a such a peripheral (requiring retime) can be found out only by
+>>> manual calculation similar to the way done in retime function (based on
+>>> peripheral's timings and boot time gpmc clock period), correct ?, Also
+>>> wouldn't this make it necessary to know gpmc clock period at boot time
+>>> for properly updating gpmc timing entry in DT ?
+>>
+>> The gpmc clock period can be returned to the connected peripheral when
+>> it's registering. Well basically we can call the retime function upon
+>> registering and pass the gpmc clock period.
 > 
-> If this really is about mainline kernel, let me know.
+> Won't this lead to the necessity of particular driver load order problem ?,
+> As per the above, to return gpmc clock period to the connected peripheral,
+> we need to ensure that gpmc driver is probed before peripheral driver.
+
+I think it is more like when probing the gpmc, the retime function for
+the connected peripheral is called passing the gpmc clock freq.
+
+> And in that case how can gpmc driver rely on DT as gpmc timings for the
+> peripheral requiring retime would not yet be available as peripheral
+> driver is not yet probed, seems like a circular dependency.
+
+The DT node should simply have the information required by the retime
+function or gpmc timings themselves if available. In the case of OneNAND
+async mode you have a bunch of constants such as ...
+
+const int t_cer  = 15;
+const int t_avdp = 12;
+const int t_cez  = 20; /* max of t_cez, t_oez */
+const int t_ds   = 30;
+const int t_wpl  = 40;
+const int t_wph  = 30
+
+These can be stored in the DT and then translated to gpmc timings at
+runtime. DT should only store static timing or clock information known
+at compile time.
+
+>>> And in this case, we are going to register retime function, so instead of
+>>> relying on DT to provide gpmc timings for such a peripheral, won't it
+>>> be better to make use of retime that is already registered ?
+>>
+>> No we need to pass the timings from device tree as they may be different
+>> for similar boards. For example, different level shifters used on
+>> similar boards may affect the timings, although the retime function
+>> can be the same.
 > 
+> Unless I am missing something, could not see this scenario taken care
+> in the existing retime functions, did see one comment for smc91x, but
+> seems in that case Kernel doesn't do any timing configuration and
+> leave timings as configured by bootloader
 
-Really, I don't have enough experience to say if it should be solved this way or not. For what I can see, this seems absolutely logic that busses are initialized before other drivers, so subsys_initcall should be perfectly logic. But I don't have the complete view of the system, so I could be wrong.
-On the other hand, I didn't find another way to solve this dependency problem. I know there is also a Makefile approach, but the dependent driver (omaprpc) is in the staging driver directory, so I think is not feasible.
-Any other solution?
+I think that we just need to adapt the current functions that our
+calculating the timings so that ...
 
-Thanks
+1. We can call from them within the gpmc probe to setup the timings
+versus having the peripherals program the gpmc priory to probe.
+2. Any static timing information needed by the retime function is part
+of the platform data passed to the gpmc probe and therefore can also be
+read from DT.
 
-Federico
+>From a high-level I think that the goal should be ...
+
+gpmc_probe
+	--> request CS
+	--> calls retime function to calculate gpmc timing (optional)
+	--> configures CS
+	--> registers peripheral device
+
+Cheers
+Jon
