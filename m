@@ -1,247 +1,171 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1 01/11] drivers: usb: otg: add a new driver for omap
- usb2 phy
-Date: Tue, 10 Jul 2012 12:07:52 +0530
-Message-ID: <CAAe_U6L9qiBMXWeS2POeBod8uASCtmqDc4DigwBx1bJ-hhaNRQ@mail.gmail.com>
-References: <1340884267-28908-1-git-send-email-kishon@ti.com>
- <1340884267-28908-2-git-send-email-kishon@ti.com>
- <4FFBC1D0.5030506@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v1 05/11] drivers: usb: twl6030: Add dt support for twl6030
+ usb
+Date: Tue, 10 Jul 2012 12:14:21 +0530
+Message-ID: <4FFBCF45.7000304@ti.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>	<1340884267-28908-6-git-send-email-kishon@ti.com>	<4FFBC478.4060308@ti.com> <CAAe_U6LXHvPxHLA1Zhx9Gx8DMM7k4rTpvEAzNzLGrRKOXvBwSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <4FFBC1D0.5030506-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <CAAe_U6LXHvPxHLA1Zhx9Gx8DMM7k4rTpvEAzNzLGrRKOXvBwSA@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, hvaibhav@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Jul 10, 2012 at 11:16 AM, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> wrote:
->> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt
->> b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> new file mode 100644
->> index 0000000..80a28c9
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> @@ -0,0 +1,16 @@
->> +OMAP USB PHY
->> +
->> +OMAP USB2 PHY
->> +
->> +Required properties:
->> + - compatible: Should be "ti,omap-usb2"
->> + - reg : Address and length of the register set for the device. Also
->> +add the address of control module dev conf register until a driver for
->> +control module is added
->> +
->> +This is usually a subnode of ocp2scp to which it is connected.
->> +
->> +usb2phy@0x4a0ad080 {
->> +       compatible = "ti,omap-usb2";
->> +       reg =<0x4a0ad080 0x58>;
+On Tuesday 10 July 2012 11:58 AM, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
 >
->
-> Don;t you need a 'ti,hwmods' entry for this one?
-
-I don't think it needs one as it has nothing more than this one
-address space. (it doesn't have sysconfig, doesn't have any prcm
-register..).
->
->
->> --- /dev/null
->> +++ b/drivers/usb/otg/omap-usb2.c
->> @@ -0,0 +1,273 @@
->> +/*
->> + * omap-usb2.c - USB PHY, talking to musb controller in OMAP.
->> + *
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com
->
->
-> Copyright (C) 2012? Same for the couple of headers below.
-Will fix it.
->
->
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * Author: Kishon Vijay Abraham I<kishon-l0cyMroinI0@public.gmane.org>
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + */
->> +
->
->
->> +
->> +static int __devinit omap_usb2_probe(struct platform_device *pdev)
->> +{
->> +       struct omap_usb                 *phy;
->> +       struct usb_otg                  *otg;
->> +       struct resource                 *res;
->> +
->> +       phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->> +       if (!phy) {
->> +               dev_err(&pdev->dev, "unable to allocate memory for USB2
->> PHY\n");
->> +               return -ENOMEM;
->> +       }
->> +
->> +       otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
->> +       if (!otg) {
->> +               dev_err(&pdev->dev, "unable to allocate memory for USB
->> OTG\n");
->> +               return -ENOMEM;
->> +       }
->> +
->> +       phy->dev                =&pdev->dev;
+> On Tue, Jul 10, 2012 at 11:28 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
+>> On Thursday 28 June 2012 05:21 PM, Kishon Vijay Abraham I wrote:
+>>>
+>>> Add device tree support for twl6030 usb driver.
+>>> Update the Documentation with device tree binding information.
+>>>
+>>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>>> ---
+>>>    .../devicetree/bindings/usb/twlxxxx-usb.txt        |   18 ++++++++
+>>>    drivers/usb/otg/twl6030-usb.c                      |   45
+>>> ++++++++++++++------
+>>>    2 files changed, 50 insertions(+), 13 deletions(-)
+>>>    create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>>> b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>>> new file mode 100644
+>>> index 0000000..f293271
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+>>> @@ -0,0 +1,18 @@
+>>> +USB COMPARATOR OF TWL CHIPS
+>>> +
+>>> +TWL6030 USB COMPARATOR
+>>> + - compatible : Should be "ti,twl6030-usb"
+>>> + - interrupts : Two interrupt numbers to the cpu should be specified.
+>>> First
+>>> +   interrupt number is the otg interrupt number that raises ID interrupts
+>>> when
+>>> +   the controller has to act as host and the second interrupt number is
+>>> the
+>>> +   usb interrupt number that raises VBUS interrupts when the controller
+>>> has to
+>>> +   act as device
+>>> + - regulator :<supply-name>   can be "vusb" or "ldousb"
+>>> + -<supply-name>-supply : phandle to the regulator device tree node
+>>> +
+>>> +twl6030-usb {
+>>> +       compatible = "ti,twl6030-usb";
+>>> +       interrupts =<   4 10>;
+>>> +       regulator = "vusb";
+>>> +       vusb-supply =<&vusb>;
 >>
->> +
->> +       phy->phy.dev            = phy->dev;
->> +       phy->phy.label          = "omap-usb2";
->> +       phy->phy.set_suspend    = omap_usb2_suspend;
->> +       phy->phy.otg            = otg;
->> +
->> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
->> +
->> +       phy->control_dev_conf = devm_request_and_ioremap(&pdev->dev, res);
->> +       if (phy->control_dev_conf == NULL) {
->> +               dev_err(&pdev->dev, "Failed to obtain io memory\n");
->> +               return -ENXIO;
->> +       }
->> +
->> +       phy->is_suspended       = 1;
->> +       omap_usb_phy_power(phy, 0);
->> +
->> +       otg->set_host           = omap_usb_set_host;
->> +       otg->set_peripheral     = omap_usb_set_peripheral;
->> +       otg->set_vbus           = omap_usb_set_vbus;
->> +       otg->start_srp          = omap_usb_start_srp;
->> +       otg->phy                =&phy->phy;
 >>
->> +
->> +       phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+>> This doesn't seem right. Why do you ned a 'regulator' string along
+>> with the phandle?
 >
+> The original code was something like
+> 	if (twl->features&  TWL6025_SUBCLASS)
+> 		regulator_name = "ldousb";
+> 	else
+> 		regulator_name = "vusb";
 >
-> Why not just use clk_get()? What does devm_clk_get() do?
-It just associates the clk with the device. So whenever the the driver
-gets detached, the devres will take care to do a clk_put() of the
-clock.
+> I wasn't sure how to handle this *TWL6025_SUBCLASS* stuff.
 >
+>>
+>>> +};
+>>> diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+>>> index 6a361d2..20b7abe 100644
+>>> --- a/drivers/usb/otg/twl6030-usb.c
+>>> +++ b/drivers/usb/otg/twl6030-usb.c
+>>> @@ -105,7 +105,7 @@ struct twl6030_usb {
+>>>          u8                      asleep;
+>>>          bool                    irq_enabled;
+>>>          bool                    vbus_enable;
+>>> -       unsigned long           features;
+>>> +       const char              *regulator;
+>>>    };
+>>>
+>>>    #define       comparator_to_twl(x) container_of((x), struct twl6030_usb,
+>>> comparator)
+>>> @@ -153,13 +153,6 @@ static int twl6030_start_srp(struct phy_companion
+>>> *comparator)
+>>>
+>>>    static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
+>>>    {
+>>> -       char *regulator_name;
+>>> -
+>>> -       if (twl->features&   TWL6025_SUBCLASS)
+>>>
+>>> -               regulator_name = "ldousb";
+>>> -       else
+>>> -               regulator_name = "vusb";
+>>> -
+>>>          /* Set to OTG_REV 1.3 and turn on the ID_WAKEUP_COMP */
+>>>          twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x1, TWL6030_BACKUP_REG);
+>>>
+>>> @@ -169,7 +162,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb
+>>> *twl)
+>>>          /* Program MISC2 register and set bit VUSB_IN_VBAT */
+>>>          twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
+>>>
+>>> -       twl->usb3v3 = regulator_get(twl->dev, regulator_name);
+>>> +       twl->usb3v3 = regulator_get(twl->dev, twl->regulator);
+>>>          if (IS_ERR(twl->usb3v3))
+>>>                  return -ENODEV;
+>>>
+>>> @@ -324,9 +317,9 @@ static int __devinit twl6030_usb_probe(struct
+>>> platform_device *pdev)
+>>>    {
+>>>          struct twl6030_usb      *twl;
+>>>          int                     status, err;
+>>> -       struct twl4030_usb_data *pdata;
+>>> -       struct device *dev =&pdev->dev;
+>>>
+>>> -       pdata = dev->platform_data;
+>>> +       struct device_node      *np = pdev->dev.of_node;
+>>> +       struct device           *dev =&pdev->dev;
+>>>
+>>> +       struct twl4030_usb_data *pdata = dev->platform_data;
+>>>
+>>>          twl = devm_kzalloc(dev, sizeof *twl, GFP_KERNEL);
+>>>          if (!twl)
+>>> @@ -335,13 +328,28 @@ static int __devinit twl6030_usb_probe(struct
+>>> platform_device *pdev)
+>>>          twl->dev                =&pdev->dev;
+>>>
+>>>          twl->irq1               = platform_get_irq(pdev, 0);
+>>>          twl->irq2               = platform_get_irq(pdev, 1);
+>>> -       twl->features           = pdata->features;
+>>>          twl->linkstat           = OMAP_MUSB_UNKNOWN;
+>>>
+>>>          twl->comparator.set_vbus        = twl6030_set_vbus;
+>>>          twl->comparator.start_srp       = twl6030_start_srp;
+>>>          omap_usb2_set_comparator(&twl->comparator);
+>>>
+>>> +       if (np) {
+>>> +               err = of_property_read_string(np,
+>>> "regulator",&twl->regulator);
+>>>
+>>> +               if (err<   0) {
+>>> +                       dev_err(&pdev->dev, "unable to get regulator\n");
+>>> +                       return err;
+>>> +               }
+>>
+>>
+>> Isn't there a better way for the driver to know which supply to use instead
+>> of DT passing the supply name?
 >
->> +       if (IS_ERR(phy->wkupclk)) {
->> +               dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
->> +               return PTR_ERR(phy->wkupclk);
->> +       }
->> +       clk_prepare(phy->wkupclk);
->
->
-> Ideally clk_prepare() is an extension of clk_enable() and is expected
-> to be used that way. Not to be clubbed with clk_get(). Same with
-> clk_unprepare(). Do you do a clk_enable()/_disable() in interrupt/
-> atomic context?
+> The problem I see is this same driver is used for twl6030 and twl6025
+> and the regulator used is different for these two chips (And I think
 
-Currently it is called from a work queue. But Felipe wanted to remove
-those work_queue from omap2430 glue. Then this would be called from
-atomic context.
-A query for you here. If pm_runtime_get_sync() is called in interrupt
-context, will runtime resume of that device will also be called in the
-same context?
+hmm, so based on what chip is used on a board, shouldn't the board dts
+file just map the right regulator with a supply name?
+This doesn't look like something the driver should be bothered about.
 
+> twl6025 will also use the same dt file as twl6030 as I don't see a
+> different file for 6025).
 >
->
->> +
->> +       usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
->> +
->> +       platform_set_drvdata(pdev, phy);
->> +
->> +       pm_runtime_enable(phy->dev);
->> +
->> +       return 0;
->> +}
->> +
->> +static int __devexit omap_usb2_remove(struct platform_device *pdev)
->> +{
->> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->> +
->> +       clk_unprepare(phy->wkupclk);
->> +       usb_remove_phy(&phy->phy);
->> +       platform_set_drvdata(pdev, NULL);
->> +
->> +       return 0;
->> +}
->> +
->> +#ifdef CONFIG_PM
->> +
->> +static int omap_usb2_runtime_suspend(struct device *dev)
->> +{
->> +       struct platform_device  *pdev = to_platform_device(dev);
->> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->> +
->> +       clk_disable(phy->wkupclk);
->> +
->> +       return 0;
->> +}
->> +
->> +static int omap_usb2_runtime_resume(struct device *dev)
->> +{
->> +       struct platform_device  *pdev = to_platform_device(dev);
->> +       struct omap_usb *phy = platform_get_drvdata(pdev);
->> +
->> +       clk_enable(phy->wkupclk);
->> +
->> +       return 0;
->> +}
->> +
->> +static const struct dev_pm_ops omap_usb2_pm_ops = {
->> +       SET_RUNTIME_PM_OPS(omap_usb2_runtime_suspend,
->> omap_usb2_runtime_resume,
->> +               NULL)
->> +};
->> +
->> +#define DEV_PM_OPS     (&omap_usb2_pm_ops)
->> +#else
->> +#define DEV_PM_OPS     NULL
->> +#endif
->> +
->> +#ifdef CONFIG_OF
->> +static const struct of_device_id omap_usb2_id_table[] = {
->> +       { .compatible = "ti,omap-usb2" },
->> +       {}
->> +};
->> +MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
->> +#else
->> +#define omap_usb2_id_table NULL;
->> +#endif
->> +
->> +static struct platform_driver omap_usb2_driver = {
->> +       .probe          = omap_usb2_probe,
->> +       .remove         = __devexit_p(omap_usb2_remove),
->> +       .driver         = {
->> +               .name   = "omap-usb2",
->> +               .owner  = THIS_MODULE,
->> +               .pm     = DEV_PM_OPS,
->> +               .of_match_table = omap_usb2_id_table,
->
->
-> Use of_match_ptr() instead.
+> Thanks
+> Kishon
 
-Ok. And I'll remove #define omap_usb2_id_table NULL;.
-
-Thanks
-Kishon
