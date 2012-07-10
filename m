@@ -1,92 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
-Date: Tue, 10 Jul 2012 06:05:55 -0700
-Message-ID: <49064.8885527209$1341925565@news.gmane.org>
+Subject: [GIT PULL 3/5] omap cleanup part2 for v3.6 merge window
+Date: Tue, 10 Jul 2012 06:05:56 -0700
+Message-ID: <E1Soa8w-0001G1-1w@merlin.infradead.org>
+References: <pull-1341925556-888624>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11675 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141Ab2GJNF7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 09:05:59 -0400
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <pull-1341925556-888624>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+The following changes since commit 3f96a2d90e6923e2dd1e35d2f149a70a4d0f678c:
 
-  Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+  Merge tags 'omap-cleanup-for-v3.6', 'omap-devel-dmtimer-for-v3.6' and 'omap-devel-am33xx-for-v3.6' into devel-am33xx-part2 (2012-07-04 00:29:31 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-dt-for-v3.6
 
-for you to fetch changes up to f700c4d780f14125f61b70e86d805908efe3fb89:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-part2-for-v3.6
 
-  arm/dts: New dts file for PandaBoardES (4460) (2012-07-09 05:37:05 -0700)
+for you to fetch changes up to fb584511c4664573097ece7df0de06ad00b713a2:
 
-----------------------------------------------------------------
-Device tree related patches for omaps
+  ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds (2012-07-09 01:44:11 -0700)
 
 ----------------------------------------------------------------
-Afzal Mohammed (1):
-      arm/dts: am33xx wdt node
+This branch contains more clean-up like changes and minor fixes for making
+it easier to support new omap SoCs, such as omap5 and am33xx.
 
-AnilKumar Ch (4):
-      arm/dts: Add initial DT support for AM33XX SoC family
-      arm/dts: Add support for AM335x EVM
-      arm/dts: Add support for AM335x BeagleBone
-      arm/dts: remove MMC/SD and SPI related entries from am33xx.dtsi
+This branch has dependencies to earlier clean-up in omap-cleanup-for-v3.6
+and  omap-devel-dmtimer-for-v3.6 branches, and also depends on the
+omap-devel-am33xx-for-v3.6 branch, and are based on a merge of these
+branches.
 
-Jon Hunter (1):
-      arm/dts: OMAP2: Add support for OMAP2420H4 Board
+----------------------------------------------------------------
+Jon Hunter (2):
+      ARM: OMAP4: clockdomain/CM code: Update supported transition modes
+      ARM: OMAP2+: powerdomain code: Fix Wake-up power domain power status
 
-Peter Ujfalusi (7):
-      arm/dts: omap4: Add entry for OMAP McPDM IP
-      arm/dts: omap4: Add entry for OMAP DMIC IP
-      arm/dts: omap4-sdp: Add fixed regulator to represent VBAT
-      arm/dts: omap4-sdp: Add support for twl6040
-      arm/dts: omap4-sdp: Enable audio support via device tree
-      arm/dts: omap4-panda: Audio support for PandaBoard 4430
-      arm/dts: New dts file for PandaBoardES (4460)
+Kishon Vijay Abraham I (1):
+      ARM: OMAP2+: hwmod code: add support to set dmadisable in hwmod framework
 
-Uri Yosef (1):
-      arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule support
+Paul Walmsley (1):
+      Merge branches 'hwmod_am335x_support_3.6', 'clkdm_pwrdm_devel_a_3.6' and 'misc_devel_3.6' into omap_devel_f_3.6
 
-Vaibhav Hiremath (2):
-      arm/dts: Add support for TI AM3517/05 EVM board
-      arm/dts: omap3-evm: Add i2c and twl4030 support
+R Sricharan (1):
+      ARM: OMAP2+: PRM/CM: Move the stubbed prm and cm functions to prcm.c file and make them __weak
 
-Xiao Jiang (3):
-      arm/dts: add wdt node for omap3 and omap4
-      ARM: OMAP: avoid build wdt platform device if with dt support
-      watchdog: omap_wdt: add device tree support
+Sakari Ailus (1):
+      ARM: OMAP3: control: add definition for CONTROL_CAMERA_PHY_CTRL
 
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- .../devicetree/bindings/watchdog/omap-wdt.txt      |   14 ++
- arch/arm/boot/dts/am335x-bone.dts                  |   20 +++
- arch/arm/boot/dts/am335x-evm.dts                   |   20 +++
- arch/arm/boot/dts/am33xx.dtsi                      |  158 ++++++++++++++++++++
- arch/arm/boot/dts/am3517-evm.dts                   |   32 ++++
- arch/arm/boot/dts/omap2420-h4.dts                  |   20 +++
- arch/arm/boot/dts/omap3-evm.dts                    |   28 ++++
- arch/arm/boot/dts/omap3.dtsi                       |    5 +
- arch/arm/boot/dts/omap4-panda.dts                  |   37 +++++
- arch/arm/boot/dts/omap4-pandaES.dts                |   24 +++
- arch/arm/boot/dts/omap4-sdp.dts                    |   68 +++++++++
- arch/arm/boot/dts/omap4-var_som.dts                |   96 ++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |   23 +++
- arch/arm/mach-omap2/devices.c                      |    2 +-
- drivers/watchdog/omap_wdt.c                        |    7 +
- 16 files changed, 556 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/watchdog/omap-wdt.txt
- create mode 100644 arch/arm/boot/dts/am335x-bone.dts
- create mode 100644 arch/arm/boot/dts/am335x-evm.dts
- create mode 100644 arch/arm/boot/dts/am33xx.dtsi
- create mode 100644 arch/arm/boot/dts/am3517-evm.dts
- create mode 100644 arch/arm/boot/dts/omap2420-h4.dts
- create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
- create mode 100644 arch/arm/boot/dts/omap4-var_som.dts
+Santosh Shilimkar (1):
+      ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds
+
+Tarun Kanti DebBarma (3):
+      ARM: OMAP2+: hwmod: add omap_hwmod_get_main_clk() API
+      ARM: OMAP: dmtimer: use devm_ API and do some cleanup in probe()
+      ARM: OMAP2+: dmtimer: cleanup fclk usage
+
+Tony Lindgren (2):
+      Merge tag 'omap-devel-f-for-3.6' of git://git.kernel.org/.../pjw/omap-pending into cleanup-part2
+      ARM: OMAP2+: Fix mismerge for omap_hwmod_get_main_clk() API
+
+Vaibhav Hiremath (7):
+      ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod required for am33xx
+      ARM: OMAP3/4: omap_hwmod: Add rstst_offs field to struct omap_hwmod_omap4_prcm
+      ARM: OMAP2+: All OMAP2PLUS uses omap-device.o target so add one entry
+      ARM: OMAP2+: Move omap3 dpll ops to dpll3xxx.c
+      ARM: OMAP2+: am33xx: Make am33xx as a separate class
+      ARM: OMAP2+: am33xx: Change cpu_is_am33xx to soc_is_am33xx
+      ARM: OMAP2+: Remove unnecessary ifdef around __omap2_set_globals
+
+Vikram Pandita (1):
+      ARM: OMAP3+: dpll: optimize noncore dpll locking logic
+
+ arch/arm/mach-omap2/Kconfig                  |   12 +++-
+ arch/arm/mach-omap2/Makefile                 |    8 ++-
+ arch/arm/mach-omap2/clock.c                  |   18 ------
+ arch/arm/mach-omap2/clock3xxx_data.c         |    2 +-
+ arch/arm/mach-omap2/clock44xx_data.c         |   22 ++++----
+ arch/arm/mach-omap2/clockdomain44xx.c        |   10 +++-
+ arch/arm/mach-omap2/cminst44xx.c             |   14 -----
+ arch/arm/mach-omap2/cminst44xx.h             |   25 ---------
+ arch/arm/mach-omap2/common.c                 |   10 +---
+ arch/arm/mach-omap2/common.h                 |    5 ++
+ arch/arm/mach-omap2/control.h                |    1 +
+ arch/arm/mach-omap2/dpll3xxx.c               |   26 ++++++++-
+ arch/arm/mach-omap2/id.c                     |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   76 ++++++++++++++++++++++++--
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |   10 ++++
+ arch/arm/mach-omap2/powerdomain.c            |    6 +-
+ arch/arm/mach-omap2/prcm.c                   |   23 ++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h           |   65 ----------------------
+ arch/arm/mach-omap2/prm_common.c             |   62 +++++++++++++++++++++
+ arch/arm/mach-omap2/timer.c                  |    3 +-
+ arch/arm/plat-omap/Makefile                  |    4 +-
+ arch/arm/plat-omap/dmtimer.c                 |   53 ++++++------------
+ arch/arm/plat-omap/include/plat/cpu.h        |   17 +++---
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   19 +++++++
+ arch/arm/plat-omap/include/plat/sdrc.h       |    2 +-
+ arch/arm/plat-omap/sram.c                    |    6 +-
+ 26 files changed, 296 insertions(+), 207 deletions(-)
