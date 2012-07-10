@@ -1,92 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 5/5] minimal omap5 support for v3.6 merge window
-Date: Tue, 10 Jul 2012 06:42:36 -0700
-Message-ID: <20120710134235.GY1122@atomide.com>
-References: <pull-1341925556-888624>
- <E1SoaE5-0001gM-89@merlin.infradead.org>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Tue, 10 Jul 2012 13:47:03 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A669D@DBDE01.ent.ti.com>
+References: <20120703081746.GJ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A2BAC@DBDE01.ent.ti.com>
+ <20120704075158.GQ1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+ <20120705105535.GB1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A39DF@DBDE01.ent.ti.com>
+ <20120706120533.GU1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A622E@DBDE01.ent.ti.com>
+ <20120710094538.GT1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A64D0@DBDE01.ent.ti.com>
+ <20120710131734.GV1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32927 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301Ab2GJNmk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 09:42:40 -0400
-Content-Disposition: inline
-In-Reply-To: <E1SoaE5-0001gM-89@merlin.infradead.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43809 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754007Ab2GJNrT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 09:47:19 -0400
+In-Reply-To: <20120710131734.GV1122@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [120710 06:21]:
-> The following changes since commit fb584511c4664573097ece7df0de06ad00b713a2:
+Hi Tony,
+
+On Tue, Jul 10, 2012 at 18:47:34, Tony Lindgren wrote:
+> * Mohammed, Afzal <afzal@ti.com> [120710 03:09]:
+> > On Tue, Jul 10, 2012 at 15:15:38, Tony Lindgren wrote:
+> > > * Mohammed, Afzal <afzal@ti.com> [120709 23:24]:
+
+> > > > For the peripherals requiring retime, we cannot (as otherwise whatever
+> > > > retime does would have to be manually done based on the knowledge of
+> > > > boot time gpmc clock period to calculate gpmc timings to be fed to DT)
+> > > > pass gpmc timings via device tree, right ?
+> > > 
+> > > We can still do it when the connected peripheral probe registers with
+> > > gpmc.
+
+Were you actually referring to updating kernel view of device tree nodes, and
+not the device tree file (not sure whether it is really possible) ?
+
+> > We can, but would it be feasible practically ?, gpmc timings to update in
+> > DT for a such a peripheral (requiring retime) can be found out only by
+> > manual calculation similar to the way done in retime function (based on
+> > peripheral's timings and boot time gpmc clock period), correct ?, Also
+> > wouldn't this make it necessary to know gpmc clock period at boot time
+> > for properly updating gpmc timing entry in DT ?
 > 
->   ARM: OMAP: sdrc: Fix the build break for OMAP4 only builds (2012-07-09 01:44:11 -0700)
+> The gpmc clock period can be returned to the connected peripheral when
+> it's registering. Well basically we can call the retime function upon
+> registering and pass the gpmc clock period.
+
+Won't this lead to the necessity of particular driver load order problem ?,
+As per the above, to return gpmc clock period to the connected peripheral,
+we need to ensure that gpmc driver is probed before peripheral driver.
+And in that case how can gpmc driver rely on DT as gpmc timings for the
+peripheral requiring retime would not yet be available as peripheral
+driver is not yet probed, seems like a circular dependency.
+
+>  
+> > And in this case, we are going to register retime function, so instead of
+> > relying on DT to provide gpmc timings for such a peripheral, won't it
+> > be better to make use of retime that is already registered ?
 > 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap devel-omap5
+> No we need to pass the timings from device tree as they may be different
+> for similar boards. For example, different level shifters used on
+> similar boards may affect the timings, although the retime function
+> can be the same.
 
-FYI, I got some merge conflicts with the am33xx and PM/smartreflex
-changes, here's how I resolved them.
+Unless I am missing something, could not see this scenario taken care
+in the existing retime functions, did see one comment for smc91x, but
+seems in that case Kernel doesn't do any timing configuration and
+leave timings as configured by bootloader
 
-Regards,
-
-Tony
-
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@@ -48,5 -48,5 +48,8 @@@ Boards
-  - AM335X EVM : Software Developement Board for AM335x
-    compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
-  
- +- AM335X Bone : Low cost community board
- +  compatible = "ti,am335x-bone", "ti,am33xx", "ti,omap3"
-++
-+ - OMAP5 EVM : Evaluation Module
-+   compatible = "ti,omap5-evm", "ti,omap5"
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@@ -68,11 -71,13 +71,12 @@@ ifeq ($(CONFIG_PM),y
-  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
-  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
-  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
- -obj-$(CONFIG_ARCH_OMAP3)		+= cpuidle34xx.o
-  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o omap-mpuss-lowpower.o
-+ obj-$(CONFIG_SOC_OMAP5)			+= omap-mpuss-lowpower.o
- -obj-$(CONFIG_ARCH_OMAP4)		+= cpuidle44xx.o
-  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- -obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
- -obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
- +
- +obj-$(CONFIG_POWER_AVS_OMAP)		+= sr_device.o
- +obj-$(CONFIG_POWER_AVS_OMAP_CLASS3)    += smartreflex-class3.o
-  
-  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
-  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
-@@@ -83,12 -88,10 +87,15 @@@ endi
-  
-  endif
-  
- +ifeq ($(CONFIG_CPU_IDLE),y)
- +obj-$(CONFIG_ARCH_OMAP3)                += cpuidle34xx.o
- +obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
- +endif
- +
-  # PRCM
-+ omap-prcm-4-5-common			=  prcm.o cminst44xx.o cm44xx.o \
-+ 					   prcm_mpu44xx.o prminst44xx.o \
-+ 					   vc44xx_data.o vp44xx_data.o
-  obj-y					+= prm_common.o
-  obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
-  obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
-@@@ -161,7 -168,8 +172,9 @@@ obj-$(CONFIG_ARCH_OMAP3)		+= clkt_iclk.
-  obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o
-  obj-$(CONFIG_ARCH_OMAP4)		+= dpll3xxx.o dpll44xx.o
-  obj-$(CONFIG_SOC_AM33XX)		+= $(clock-common) dpll3xxx.o
- +obj-$(CONFIG_SOC_AM33XX)		+= clock33xx_data.o
-+ obj-$(CONFIG_SOC_OMAP5)			+= $(clock-common)
-+ obj-$(CONFIG_SOC_OMAP5)			+= dpll3xxx.o dpll44xx.o
-  
-  # OMAP2 clock rate set data (old "OPP" data)
-  obj-$(CONFIG_SOC_OMAP2420)		+= opp2420_data.o
+Regards
+Afzal
