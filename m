@@ -1,96 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
-Date: Tue, 10 Jul 2012 06:05:55 -0700
-Message-ID: <36627.352416008$1341925723@news.gmane.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 4 0/4] Add ability to set defaultless network device MAC
+ addresses to deterministic computed locally administered values
+Date: Tue, 10 Jul 2012 09:08:49 -0400
+Message-ID: <1341925729.14828.17.camel@gandalf.stny.rr.com>
+References: <20120705024259.26317.16000.stgit@build.warmcat.com>
+	 <201207101437.54877.florian@openwrt.org> <4FFC2712.9020208@warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FFC2712.9020208@warmcat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "\"Andy Green =?UTF-8?Q?=28=E6=9E=97=E5=AE=89=E5=BB=B8=29=22?=" <andy@warmcat.com>
+Cc: Florian Fainelli <florian@openwrt.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, s-jan@ti.com, arnd@arndb.de, patches@linaro.org, tony@atomide.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+On Tue, 2012-07-10 at 20:58 +0800, "Andy Green (=E6=9E=97=E5=AE=89=E5=BB=
+=B8)" wrote:
+> On 10/07/12 20:37, the mail apparently from Florian Fainelli included=
+:
+>=20
 
-  Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+> Why should Ubuntu, Fedora etc stink up their OSes with Panda-specific=
+=20
+> workarounds?  And Panda is not the only device with this issue.
 
-are available in the git repository at:
+Actually I think you just answered your own question ;-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-dt-for-v3.6
+Anyway, I don't think an initrd solution is the best. Yeah, it's fine
+for a work around, but then I need to go and screw with the initrd if i=
+t
+doesn't have support for the board. If the network card already has a
+MAC address, why should the kernel give it another *random* one?
 
-for you to fetch changes up to f700c4d780f14125f61b70e86d805908efe3fb89:
+This isn't a complex patch set, where the complexity should be put into
+userspace. And it makes it very convenient for people that just want th=
+e
+board to boot so they can test it. I'm not developing any SoC or BSP,
+I'm just using it to make sure my kernel changes can also be implemente=
+d
+for ARM.
 
-  arm/dts: New dts file for PandaBoardES (4460) (2012-07-09 05:37:05 -0700)
-
-----------------------------------------------------------------
-Device tree related patches for omaps
-
-----------------------------------------------------------------
-Afzal Mohammed (1):
-      arm/dts: am33xx wdt node
-
-AnilKumar Ch (4):
-      arm/dts: Add initial DT support for AM33XX SoC family
-      arm/dts: Add support for AM335x EVM
-      arm/dts: Add support for AM335x BeagleBone
-      arm/dts: remove MMC/SD and SPI related entries from am33xx.dtsi
-
-Jon Hunter (1):
-      arm/dts: OMAP2: Add support for OMAP2420H4 Board
-
-Peter Ujfalusi (7):
-      arm/dts: omap4: Add entry for OMAP McPDM IP
-      arm/dts: omap4: Add entry for OMAP DMIC IP
-      arm/dts: omap4-sdp: Add fixed regulator to represent VBAT
-      arm/dts: omap4-sdp: Add support for twl6040
-      arm/dts: omap4-sdp: Enable audio support via device tree
-      arm/dts: omap4-panda: Audio support for PandaBoard 4430
-      arm/dts: New dts file for PandaBoardES (4460)
-
-Uri Yosef (1):
-      arm/dts: OMAP4: Add Variscite OMAP4 System-On-Modeule support
-
-Vaibhav Hiremath (2):
-      arm/dts: Add support for TI AM3517/05 EVM board
-      arm/dts: omap3-evm: Add i2c and twl4030 support
-
-Xiao Jiang (3):
-      arm/dts: add wdt node for omap3 and omap4
-      ARM: OMAP: avoid build wdt platform device if with dt support
-      watchdog: omap_wdt: add device tree support
-
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- .../devicetree/bindings/watchdog/omap-wdt.txt      |   14 ++
- arch/arm/boot/dts/am335x-bone.dts                  |   20 +++
- arch/arm/boot/dts/am335x-evm.dts                   |   20 +++
- arch/arm/boot/dts/am33xx.dtsi                      |  158 ++++++++++++++++++++
- arch/arm/boot/dts/am3517-evm.dts                   |   32 ++++
- arch/arm/boot/dts/omap2420-h4.dts                  |   20 +++
- arch/arm/boot/dts/omap3-evm.dts                    |   28 ++++
- arch/arm/boot/dts/omap3.dtsi                       |    5 +
- arch/arm/boot/dts/omap4-panda.dts                  |   37 +++++
- arch/arm/boot/dts/omap4-pandaES.dts                |   24 +++
- arch/arm/boot/dts/omap4-sdp.dts                    |   68 +++++++++
- arch/arm/boot/dts/omap4-var_som.dts                |   96 ++++++++++++
- arch/arm/boot/dts/omap4.dtsi                       |   23 +++
- arch/arm/mach-omap2/devices.c                      |    2 +-
- drivers/watchdog/omap_wdt.c                        |    7 +
- 16 files changed, 556 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/watchdog/omap-wdt.txt
- create mode 100644 arch/arm/boot/dts/am335x-bone.dts
- create mode 100644 arch/arm/boot/dts/am335x-evm.dts
- create mode 100644 arch/arm/boot/dts/am33xx.dtsi
- create mode 100644 arch/arm/boot/dts/am3517-evm.dts
- create mode 100644 arch/arm/boot/dts/omap2420-h4.dts
- create mode 100644 arch/arm/boot/dts/omap4-pandaES.dts
- create mode 100644 arch/arm/boot/dts/omap4-var_som.dts
+-- Steve
