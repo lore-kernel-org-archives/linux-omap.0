@@ -1,60 +1,70 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 02/14] ARM: OMAP: counter-32k: Select the CR register
- offset using the IP scheme.
-Date: Tue, 10 Jul 2012 06:41:24 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA695E6@DBDE01.ent.ti.com>
-References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
- <1341566515-22665-3-git-send-email-santosh.shilimkar@ti.com>
- <4FFA9B6C.7050003@ti.com>
- <CAMQu2gz0UU_RCFSvxo1s_XwDAmTtL4NadsFTg8qL7PtGwPqKtQ@mail.gmail.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v1 01/11] drivers: usb: otg: add a new driver for omap
+ usb2 phy
+Date: Tue, 10 Jul 2012 12:18:24 +0530
+Message-ID: <CAAe_U6Kx8o6sHgpev3UEAou7tuNDt9iL0+hcyOVDb0WsCsSwKg@mail.gmail.com>
+References: <1340884267-28908-1-git-send-email-kishon@ti.com>
+ <1340884267-28908-2-git-send-email-kishon@ti.com>
+ <4FFBC1D0.5030506@ti.com>
+ <D958900912E20642BCBC71664EFECE3E6DDAD9FF96@BGMAIL02.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37107 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752240Ab2GJGrS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 02:47:18 -0400
-In-Reply-To: <CAMQu2gz0UU_RCFSvxo1s_XwDAmTtL4NadsFTg8qL7PtGwPqKtQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <D958900912E20642BCBC71664EFECE3E6DDAD9FF96-QZ+emBqkIFBDw2glCA4ptUEOCMrvLtNR@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Venu Byravarasu <vbyravarasu-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-On Mon, Jul 09, 2012 at 16:12:15, Shilimkar, Santosh wrote:
-> On Mon, Jul 9, 2012 at 2:20 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> >
-> >
-> > On 7/6/2012 2:51 PM, Santosh Shilimkar wrote:
-> >> From: R Sricharan <r.sricharan@ti.com>
-> >>
-> >> OMAP socs has a legacy and a highlander version of the
-> >> 32k sync counter IP. The register offsets vary between the
-> >> highlander and the legacy scheme. So use the 'SCHEME'
-> >> bits(30-31) of the revision register to distinguish between
-> >
-> >
-> > Just for my understanding, can we get further information on SCHEME
-> > bit-fields? What kind of information we have it here.
-> >
-> > I may need this info to pass on to design team here.
-> >
-> Sure. You can refer to the OMAP4 TRM for the bit builds.
-> SCHEME bit field tell you difference between a highlander
-> and legacy IP as the patch says.
-> 
+Hi,
 
-Santosh,
+On Tue, Jul 10, 2012 at 11:33 AM, Venu Byravarasu
+<vbyravarasu-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org> wrote:
+>> > +
+>> > +#ifdef CONFIG_PM
+>
+> Should it not be CONFIG_PM_SLEEP instead of just CONFIG_PM?
 
-Can you point to the section of OMAP4 TRM? 
+Why? I think we should have CONFIG_PM_SLEEP only when we have
+*suspend*, *resume* hooks. But this driver has only *runtime_suspend*
+and *runtime_resume* hooks.
+>
+>> > +
+>> > +static int omap_usb2_runtime_suspend(struct device *dev)
+>> > +{
+>> > +   struct platform_device  *pdev = to_platform_device(dev);
+>> > +   struct omap_usb *phy = platform_get_drvdata(pdev);
+>> > +
+>
+>
+>> > +static int __init usb2_omap_init(void)
+>> > +{
+>> > +   return platform_driver_register(&omap_usb2_driver);
+>> > +}
+>> > +arch_initcall(usb2_omap_init);
+>> > +
+>> > +static void __exit usb2_omap_exit(void)
+>> > +{
+>> > +   platform_driver_unregister(&omap_usb2_driver);
+>> > +}
+>> > +module_exit(usb2_omap_exit);
+>> > +
+>
+> Do you really need arch_initcall here?
+> If not, then you can replace above two function calls with module_platform_driver().
 
-I referred to both Public TRM and internal TRM, but both only did mention
-"TI internal Data".
+I indeed want it to be arch_initcall. When the module is built-in, I
+want this module to loaded before twl6030-usb.c
 
-And as per code, we are not checking any value in 31-30 bit-fields, code 
-just assumes that, non-zero value would be highlander IP. 
-
-Thanks,
-Vaibhav
-
+Thanks
+Kishon
