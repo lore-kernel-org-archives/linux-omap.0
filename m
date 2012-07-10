@@ -1,139 +1,78 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [GIT PULL] gpio/omap: final fixes for v3.5
-Date: Fri, 6 Jul 2012 18:29:45 -0600
-Message-ID: <CACxGe6v+67PEJrOk6K86WjcU055U_QrPU8e21ppKyn9Rfq36tQ@mail.gmail.com>
-References: <87vci08npt.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6147868586886055180=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87vci08npt.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Linus Walleij <linus.ml.walleij@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: [PATCH 1/1] ARM: OMAP3: igep0020: set GPIO mode for mux mcspi1_cs2 pin
+Date: Tue, 10 Jul 2012 03:57:32 +0200
+Message-ID: <1341885452-5372-1-git-send-email-javier@dowhile0.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45919 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952Ab2GJB5u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jul 2012 21:57:50 -0400
+Received: by weyx8 with SMTP id x8so1714881wey.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jul 2012 18:57:48 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?q?Enric=20Balletb=C3=B2=20i=20Serra?= <eballetbo@gmail.com>
+Cc: Tom Rini <trini@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Javier Martinez Canillas <javier@dowhile0.org>
 
---===============6147868586886055180==
-Content-Type: multipart/alternative; boundary=047d7b2ee2e949a3c704c4327a53
+According to the IGEPv2 Rev.C data-sheet the LAN9221i pin 14 (IRQ) is
+connected to the OMAP3730 mcspi1_cs2 pin. Since this omap mux pin acts
+as an IRQ line, it has to be configured as an input GPIO.
 
---047d7b2ee2e949a3c704c4327a53
-Content-Type: text/plain; charset=ISO-8859-1
+IGEPv2 platform code sets the smsc911x_cfg->gpio_irq to GPIO 176 but
+since the mux pin default mode is MODE7 (safe_mode) the driver fails
+when trying to register the IRQ with the following error message:
 
-Hi Kevin,
+[    1.994598] smsc911x: Driver version 2008-10-21
+[    3.704162] irq 272: nobody cared (try booting with the "irqpoll" option)
+[    3.711364] [<c001a114>] (unwind_backtrace+0x0/0xf0) from [<c009a0d4>] (__report_bad_irq+0x20/0xbc)
+[    3.720916] [<c009a0d4>] (__report_bad_irq+0x20/0xbc) from [<c009a41c>] (note_interrupt+0x1d8/0x238)
+[    3.730560] [<c009a41c>] (note_interrupt+0x1d8/0x238) from [<c0098234>] (handle_irq_event_percpu+0xc0/0x260)
+[    3.740936] [<c0098234>] (handle_irq_event_percpu+0xc0/0x260) from [<c0098410>] (handle_irq_event+0x3c/0x5c)
+[    3.751312] [<c0098410>] (handle_irq_event+0x3c/0x5c) from [<c009abe0>] (handle_level_irq+0xac/0x10c)
+[    3.761047] [<c009abe0>] (handle_level_irq+0xac/0x10c) from [<c0097a34>] (generic_handle_irq+0x30/0x48)
+[    3.770935] [<c0097a34>] (generic_handle_irq+0x30/0x48) from [<c02a6b74>] (gpio_irq_handler+0x180/0x1d4)
+[    3.780944] [<c02a6b74>] (gpio_irq_handler+0x180/0x1d4) from [<c0097a34>] (generic_handle_irq+0x30/0x48)
+[    3.790954] [<c0097a34>] (generic_handle_irq+0x30/0x48) from [<c0013e18>] (handle_IRQ+0x4c/0xac)
+[    3.800231] [<c0013e18>] (handle_IRQ+0x4c/0xac) from [<c000858c>] (omap3_intc_handle_irq+0x60/0x74)
+[    3.809783] [<c000858c>] (omap3_intc_handle_irq+0x60/0x74) from [<c04979e4>] (__irq_svc+0x44/0x60)
+[    3.819213] Exception stack(0xee42fde0 to 0xee42fe28)
+[    3.824554] fde0: 00000001 00000001 00000000 00000000 60000013 c06cce14 c06cce14 00000110
+[    3.833190] fe00: 00000000 c06ccdf4 60000013 ee41d000 fb058064 ee42fe28 c0089e08 c04976b4
+[    3.841796] fe20: 20000013 ffffffff
+[    3.845489] [<c04979e4>] (__irq_svc+0x44/0x60) from [<c04976b4>] (_raw_spin_unlock_irqrestore+0x34/0x44)
+[    3.855499] [<c04976b4>] (_raw_spin_unlock_irqrestore+0x34/0x44) from [<c0099744>] (__setup_irq+0x1b8/0x3f0)
+[    3.865875] [<c0099744>] (__setup_irq+0x1b8/0x3f0) from [<c0099a34>] (request_threaded_irq+0xb8/0x140)
+[    3.875701] [<c0099a34>] (request_threaded_irq+0xb8/0x140) from [<c0487950>] (smsc911x_drv_probe+0x75c/0x11a4)
+[    3.886260] [<c0487950>] (smsc911x_drv_probe+0x75c/0x11a4) from [<c02e9bcc>] (platform_drv_probe+0x18/0x1c)
+[    3.906707] [<c02e89b8>] (driver_probe_device+0x90/0x210) from [<c02e8bcc>] (__driver_attach+0x94/0x98)
+[    3.916625] [<c02e8bcc>] (__driver_attach+0x94/0x98) from [<c02e7298>] (bus_for_each_dev+0x50/0x7c)
+[    3.926177] [<c02e7298>] (bus_for_each_dev+0x50/0x7c) from [<c02e81d4>] (bus_add_driver+0x184/0x248)
+[    3.935821] [<c02e81d4>] (bus_add_driver+0x184/0x248) from [<c02e909c>] (driver_register+0x78/0x12c)
+[    3.945465] [<c02e909c>] (driver_register+0x78/0x12c) from [<c0008648>] (do_one_initcall+0x34/0x178)
+[    3.955108] [<c0008648>] (do_one_initcall+0x34/0x178) from [<c066e8f4>] (kernel_init+0xfc/0x1c0)
+[    3.964385] [<c066e8f4>] (kernel_init+0xfc/0x1c0) from [<c00140b0>] (kernel_thread_exit+0x0/0x8)
+[    3.973632] handlers:
+[    3.976043] [<c034e2cc>] smsc911x_irqhandler
+[    3.980560] Disabling IRQ #272
 
-Linus W. is handling picking up gpio stuff for me while I'm overloaded with
-moving to the UK.
+Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+---
+ arch/arm/mach-omap2/board-igep0020.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Linus, I typically pull from Kevin instead of applying the patches myself.
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 7491529..2821448 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -554,6 +554,8 @@ static const struct usbhs_omap_board_data igep3_usbhs_bdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* SMSC9221 LAN Controller ETH IRQ (GPIO_176) */
++	OMAP3_MUX(MCSPI1_CS2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #endif
+-- 
+1.7.7.6
 
-g.
- On Jul 6, 2012 5:38 PM, "Kevin Hilman" <khilman@ti.com> wrote:
-
-> Hi Grant,
->
-> Here's a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.
->
-> Thanks,
->
-> Kevin
->
->
-> The following changes since commit
-> 6b16351acbd415e66ba16bf7d473ece1574cf0bc:
->
->   Linux 3.5-rc4 (2012-06-24 12:53:04 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.gitfor_3.5/fixes/gpio-3
->
-> for you to fetch changes up to 7b86cef34afceeecf57d4d07f3cfab06f8b60b13:
->
->   gpio/omap: fix invalid context restore of gpio bank-0 (2012-07-03
-> 09:41:39 -0700)
->
-> ----------------------------------------------------------------
-> Grazvydas Ignotas (1):
->       gpio/omap: fix irq loss while in idle with debounce on
->
-> Jon Hunter (1):
->       gpio/omap: fix invalid context restore of gpio bank-0
->
->  drivers/gpio/gpio-omap.c |   14 +++++++++++++-
->  1 file changed, 13 insertions(+), 1 deletion(-)
->
-
---047d7b2ee2e949a3c704c4327a53
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<p>Hi Kevin,</p>
-<p>Linus W. is handling picking up gpio stuff for me while I&#39;m overload=
-ed with moving to the UK.</p>
-<p>Linus, I typically pull from Kevin instead of applying the patches mysel=
-f.</p>
-<p>g.<br>
-</p>
-<div class=3D"gmail_quote">On Jul 6, 2012 5:38 PM, &quot;Kevin Hilman&quot;=
- &lt;<a href=3D"mailto:khilman@ti.com">khilman@ti.com</a>&gt; wrote:<br typ=
-e=3D"attribution"><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .=
-8ex;border-left:1px #ccc solid;padding-left:1ex">
-Hi Grant,<br>
-<br>
-Here&#39;s a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.<br>
-<br>
-Thanks,<br>
-<br>
-Kevin<br>
-<br>
-<br>
-The following changes since commit 6b16351acbd415e66ba16bf7d473ece1574cf0bc=
-:<br>
-<br>
-=A0 Linux 3.5-rc4 (2012-06-24 12:53:04 -0700)<br>
-<br>
-are available in the git repository at:<br>
-<br>
-=A0 git://<a href=3D"http://git.kernel.org/pub/scm/linux/kernel/git/khilman=
-/linux-omap-pm.git" target=3D"_blank">git.kernel.org/pub/scm/linux/kernel/g=
-it/khilman/linux-omap-pm.git</a> for_3.5/fixes/gpio-3<br>
-<br>
-for you to fetch changes up to 7b86cef34afceeecf57d4d07f3cfab06f8b60b13:<br=
->
-<br>
-=A0 gpio/omap: fix invalid context restore of gpio bank-0 (2012-07-03 09:41=
-:39 -0700)<br>
-<br>
-----------------------------------------------------------------<br>
-Grazvydas Ignotas (1):<br>
-=A0 =A0 =A0 gpio/omap: fix irq loss while in idle with debounce on<br>
-<br>
-Jon Hunter (1):<br>
-=A0 =A0 =A0 gpio/omap: fix invalid context restore of gpio bank-0<br>
-<br>
-=A0drivers/gpio/gpio-omap.c | =A0 14 +++++++++++++-<br>
-=A01 file changed, 13 insertions(+), 1 deletion(-)<br>
-</blockquote></div>
-
---047d7b2ee2e949a3c704c4327a53--
-
-
---===============6147868586886055180==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============6147868586886055180==--
