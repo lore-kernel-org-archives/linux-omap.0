@@ -1,113 +1,166 @@
-From: Dennis Gilmore <dgilmore@fedoraproject.org>
-Subject: Re: dtb for pandaboard
-Date: Tue, 10 Jul 2012 18:25:43 -0500
-Message-ID: <20120710182543.34068bca@pegasus.ausil.us>
-References: <20120708173259.592552c1@pegasus.ausil.us>
-	<20120709090848.GD1122@atomide.com>
-	<20120710181119.27faf235@pegasus.ausil.us>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [GIT PULL 2/5] omap board changes for v3.6 merge window
+Date: Wed, 11 Jul 2012 08:52:19 +0800
+Message-ID: <4FFCCE43.2070709@windriver.com>
+References: <0M4ZFU-1RqIwX3VUq-00yonj@mx.kundenserver.de> <201207101534.13166.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ausil.us ([74.119.218.133]:44278 "EHLO mail.ausil.us"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756026Ab2GJX7D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jul 2012 19:59:03 -0400
-In-Reply-To: <20120710181119.27faf235@pegasus.ausil.us>
+Received: from mail.windriver.com ([147.11.1.11]:34812 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481Ab2GKAwv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jul 2012 20:52:51 -0400
+In-Reply-To: <201207101534.13166.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dennis Gilmore <dennis@ausil.us>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUdWUs
-IDEwIEp1bCAyMDEyIDE4OjExOjE5IC0wNTAwDQpEZW5uaXMgR2lsbW9yZSA8ZGVubmlzQGF1c2ls
-LnVzPiB3cm90ZToNCg0KPiAtLS0tLUJFR0lOIFBHUCBTSUdORUQgTUVTU0FHRS0tLS0tDQo+IEhh
-c2g6IFNIQTENCj4gDQo+IE9uIE1vbiwgOSBKdWwgMjAxMiAwMjowODo0OSAtMDcwMA0KPiBUb255
-IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToNCj4gDQo+ID4gKiBEZW5uaXMgR2ls
-bW9yZSA8ZGVubmlzQGF1c2lsLnVzPiBbMTIwNzA4IDE2OjExXToNCj4gPiA+IC0tLS0tQkVHSU4g
-UEdQIFNJR05FRCBNRVNTQUdFLS0tLS0NCj4gPiA+IEhhc2g6IFNIQTENCj4gPiA+IA0KPiA+ID4g
-SGkgZG9lcyBhbnlvbmUgaGFwcGVuIHRvIGhhdmUgYSB3b3JraW5nIGR0YiBmaWxlIGZvciB0aGUN
-Cj4gPiA+IHBhbmRhYm9hcmQ/IHRyeWluZyB0byB0ZXN0IGJvb3RpbmcgdGhlIGZlZG9yYSByYXdo
-aWRlIGtlcm5lbA0KPiA+ID4gd2hpY2ggaXMgMy41LjAtcmM1IHdpdGggYSBkdGIgZmlsZSBJIG1h
-ZGUgZnJvbSB0aGUgbWF0Y2hpbmcNCj4gPiA+IHNvdXJjZXMgSSBkb250IGdldCBwYXN0IGRlY29t
-cHJlc3NpbmcgdGhlIGtlcm5lbC4gaWYgaSBkb250IHVzZSBhDQo+ID4gPiBkdGIgZmlsZSB0aGUg
-c3lzdGVtIGJvb3RzIGZ1cnRoZXIgYnV0IGl0IGknbSB1bmFibGUgdG8gZmluZCB0aGUNCj4gPiA+
-IHJvb3QgZmlsZXN5c3RlbSBzaW5jZSBpdCBzZWVtcyB0aGF0IHRoZSBwbGF0Zm9ybSBkYXRhIGhh
-cyBiZWVuDQo+ID4gPiBtZXNzZWQgdXAuIG1vZHByb2Jpbmcgb21hcCByZXN1bHRzIGluIG5vIHJl
-Z2lzdHJhdGlvbiBvZiB0aGUgbW1jDQo+ID4gPiBibG9jayBkZXZpY2VzLiANCj4gPiA+IA0KPiA+
-ID4gaSd2ZSBub3QgdGVzdGVkIG9uIGEgcGFuZGFib2FyZCBFUyBvciBiZWFnbGVib2FyZCB5ZXQg
-IG9yIGFueQ0KPiA+ID4gb3RoZXIgdHlwZSBvZiBvbWFwIHN5c3RlbS4gDQo+ID4gDQo+ID4gRllJ
-LCBJIGJvb3RlZCBteSBwYW5kYSBlcyByZWNlbnRseSBqdXN0IGZpbmUgd2l0aCBkdGIgYXBwZW5k
-IHN1cHBvcnQNCj4gPiBhbmQgdGhlIGZvbGxvd2luZyAuY29uZmlnIGFkZGl0aW9uIHVzaW5nIHRo
-ZSBwbGFpbg0KPiA+IGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA0LXBhbmRhLmR0cyBmaWxlOg0KPiA+
-IA0KPiA+IENPTkZJR19BUk1fQVBQRU5ERURfRFRCPXkNCj4gPiBDT05GSUdfQVJNX0FUQUdfRFRC
-X0NPTVBBVD15DQo+ID4gQ09ORklHX0VYVDRfRlM9eQ0KPiA+IA0KPiA+IENhbiB5b3UgcGxlYXNl
-IGVuYWJsZSBERUJVR19MTCwgRUFSTFlfUFJJTlRLIGFuZCBhZGQgZWFybHlwcmludGsgdG8NCj4g
-PiB5b3VyIGNtZGxpbmUgYW5kIHBvc3Qgd2hhdCB5b3UgZ2V0Pw0KPiA+IA0KPiA+IFJlZ2FyZHMs
-DQo+ID4gDQo+ID4gVG9ueQ0KPiANCj4gTG9hZGVkIGVudmlyb25tZW50IGZyb20gdUVudi50eHQN
-Cj4gSW1wb3J0aW5nIGVudmlyb25tZW50IGZyb20gbW1jIC4uLg0KPiByZWFkaW5nIHVJbWFnZS1v
-bWFwDQo+IA0KPiAzOTg4MDQwIGJ5dGVzIHJlYWQNCj4gcmVhZGluZyB1SW5pdHJkLW9tYXANCj4g
-DQo+IDExOTAgYnl0ZXMgcmVhZA0KPiByZWFkaW5nIG9tYXA0LXBhbmRhLmR0Yg0KPiANCj4gNTQ4
-MyBieXRlcyByZWFkDQo+IEJvb3RpbmcgZnJvbSBtbWMgLi4uDQo+ICMjIEJvb3Rpbmcga2VybmVs
-IGZyb20gTGVnYWN5IEltYWdlIGF0IDgwMzAwMDAwIC4uLg0KPiAgICBJbWFnZSBOYW1lOiAgIDMu
-NS4wLTAucmM2LmdpdDAuMy5mYzE4LmFybXY3aGwuDQo+ICAgIEltYWdlIFR5cGU6ICAgQVJNIExp
-bnV4IEtlcm5lbCBJbWFnZSAodW5jb21wcmVzc2VkKQ0KPiAgICBEYXRhIFNpemU6ICAgIDM5ODc5
-NzYgQnl0ZXMgPSAzLjggTWlCDQo+ICAgIExvYWQgQWRkcmVzczogODAwMDgwMDANCj4gICAgRW50
-cnkgUG9pbnQ6ICA4MDAwODAwMA0KPiAgICBWZXJpZnlpbmcgQ2hlY2tzdW0gLi4uIE9LDQo+ICMj
-IExvYWRpbmcgaW5pdCBSYW1kaXNrIGZyb20gTGVnYWN5IEltYWdlIGF0IDgxNjAwMDAwIC4uLg0K
-PiAgICBJbWFnZSBOYW1lOiAgIGluaXRyYW1mcw0KPiAgICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51
-eCBSQU1EaXNrIEltYWdlICh1bmNvbXByZXNzZWQpDQo+ICAgIERhdGEgU2l6ZTogICAgMTEyNiBC
-eXRlcyA9IDEuMSBLaUINCj4gICAgTG9hZCBBZGRyZXNzOiAwMDAwMDAwMA0KPiAgICBFbnRyeSBQ
-b2ludDogIDAwMDAwMDAwDQo+ICAgIFZlcmlmeWluZyBDaGVja3N1bSAuLi4gT0sNCj4gIyMgRmxh
-dHRlbmVkIERldmljZSBUcmVlIGJsb2IgYXQgODI2MDAwMDANCj4gICAgQm9vdGluZyB1c2luZyB0
-aGUgZmR0IGJsb2IgYXQgMHg4MjYwMDAwMA0KPiAgICBMb2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4g
-T0sNCj4gT0sNCj4gICAgcmVzZXJ2aW5nIGZkdCBtZW1vcnkgcmVnaW9uOiBhZGRyPTlkMDAwMDAw
-IHNpemU9MzAwMDAwMA0KPiAgICBMb2FkaW5nIFJhbWRpc2sgdG8gYmZlZmEwMDAsIGVuZCBiZmVm
-YTQ2NiAuLi4gT0sNCj4gICAgTG9hZGluZyBEZXZpY2UgVHJlZSB0byBiZmVmNTAwMCwgZW5kIGJm
-ZWY5NTZhIC4uLiBPSw0KPiANCj4gU3RhcnRpbmcga2VybmVsIC4uLg0KPiANCj4gVW5jb21wcmVz
-c2luZyBMaW51eC4uLiBkb25lLCBib290aW5nIHRoZSBrZXJuZWwuDQo+IFdhcm5pbmc6IE5laXRo
-ZXIgYXRhZ3Mgbm9yIGR0YiBmb3VuZA0KPiANCj4gaXMgYXMgZmFyIGFzIGkgYW0gZ2V0dGluZy4N
-Cj4gDQo+IERlbm5pcw0KPiAtLS0tLUJFR0lOIFBHUCBTSUdOQVRVUkUtLS0tLQ0KPiBWZXJzaW9u
-OiBHbnVQRyB2Mi4wLjE4IChHTlUvTGludXgpDQo+IA0KPiBpRVlFQVJFQ0FBWUZBay84dHAwQUNn
-a1FrU3htNDdCYVdmZk5CZ0NjQ0dXRVhFNDB1bGNWYTNuQjNBUHVuWlBoDQo+IFRqQUFuak5KVjVl
-VnQvRVZZZTZNZ21ING9rRTZpQkNHDQo+ID0xRS9xDQo+IC0tLS0tRU5EIFBHUCBTSUdOQVRVUkUt
-LS0tLQ0KDQpib290aW5nIHdpdGhvdXQgdXNpbmcgdGhlIGR0YiBmaWxlIGkgZ2V0DQoNClsgICAg
-Mi43NzQ2MjddID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NClsgICAgMi43NzQ2NThd
-IFsgSU5GTzogc3VzcGljaW91cyBSQ1UgdXNhZ2UuIF0NClsgICAgMi43NzQ2NThdIDMuNS4wLTAu
-cmM2LmdpdDAuMy5mYzE4LmFybXY3aGwub21hcCAjMSBOb3QgdGFpbnRlZA0KWyAgICAyLjc3NDY1
-OF0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KWyAgICAyLjc3NDY1OF0gZHJpdmVy
-cy9iYXNlL3Bvd2VyL29wcC5jOjE1NCBzdXNwaWNpb3VzIHJjdV9kZXJlZmVyZW5jZV9jaGVjaygp
-IHVzYWdlIQ0KWyAgICAyLjc3NDY1OF0NClsgICAgMi43NzQ2NThdIG90aGVyIGluZm8gdGhhdCBt
-aWdodCBoZWxwIHVzIGRlYnVnIHRoaXM6DQpbICAgIDIuNzc0NjU4XQ0KWyAgICAyLjc3NDY1OF0N
-ClsgICAgMi43NzQ2NThdIHJjdV9zY2hlZHVsZXJfYWN0aXZlID0gMSwgZGVidWdfbG9ja3MgPSAw
-DQpbICAgIDIuNzc0NjU4XSAzIGxvY2tzIGhlbGQgYnkga3dvcmtlci8wOjAvNDoNClsgICAgMi43
-NzQ3MTldICAjMToNClsgICAgMi43NzQ3MTldICAoDQpbICAgIDIuNzc0NzE5XSAoJigmZGJzX2lu
-Zm8tPndvcmspLT53b3JrKQ0KWyAgICAyLjc3NDcxOV0gKXsrLisuLi59DQpbICAgIDIuNzc0NzE5
-XSAsIGF0Og0KWyAgICAyLjc3NDcxOV0gWzxjMDA1YmVlND5dIHByb2Nlc3Nfb25lX3dvcmsrMHgx
-ZTgvMHg2OGMNClsgICAgMi43NzQ3MTldICAjMjoNClsgICAgMi43NzQ3MTldICAoDQpbICAgIDIu
-Nzc0NzQ5XSAmdGhpc19kYnNfaW5mby0+dGltZXJfbXV0ZXgNClsgICAgMi43NzQ3NDldICl7Ky4r
-Li4ufQ0KWyAgICAyLjc3NDc0OV0gLCBhdDoNClsgICAgMi43NzQ3NDldIFs8YzAzZDNhNjg+XSBk
-b19kYnNfdGltZXIrMHgzNC8weDQzOA0KWyAgICAyLjc3NDc0OV0NClsgICAgMi43NzQ3NDldIHN0
-YWNrIGJhY2t0cmFjZToNClsgICAgMi43NzQ4MTBdIFs8YzAwMTY3OTA+XSAodW53aW5kX2JhY2t0
-cmFjZSsweDAvMHgxMjQpIGZyb20gWzxjMDMxMDY0MD5dIChvcHBfZ2V0X3ZvbHRhZ2UrMHg4MC8w
-eGQwKQ0KWyAgICAyLjc3NDgxMF0gWzxjMDMxMDY0MD5dIChvcHBfZ2V0X3ZvbHRhZ2UrMHg4MC8w
-eGQwKSBmcm9tIFs8YzAzZDUzNDg+XSAob21hcF90YXJnZXQrMHgxODAvMHg0NzApDQpbICAgIDIu
-Nzc0ODQxXSBbPGMwM2Q1MzQ4Pl0gKG9tYXBfdGFyZ2V0KzB4MTgwLzB4NDcwKSBmcm9tIFs8YzAz
-Y2ZmYjA+XSAoX19jcHVmcmVxX2RyaXZlcl90YXJnZXQrMHhhMC8weGM4KQ0KWyAgICAyLjc3NDg0
-MV0gWzxjMDNjZmZiMD5dIChfX2NwdWZyZXFfZHJpdmVyX3RhcmdldCsweGEwLzB4YzgpIGZyb20g
-WzxjMDNkM2RiND5dIChkb19kYnNfdGltZXIrMHgzODAvMHg0MzgpDQpbICAgIDIuNzc0ODcxXSBb
-PGMwM2QzZGI0Pl0gKGRvX2Ric190aW1lcisweDM4MC8weDQzOCkgZnJvbSBbPGMwMDVjMDJjPl0g
-KHByb2Nlc3Nfb25lX3dvcmsrMHgzMzAvMHg2OGMpDQpbICAgIDIuNzc0ODcxXSBbPGMwMDVjMDJj
-Pl0gKHByb2Nlc3Nfb25lX3dvcmsrMHgzMzAvMHg2OGMpIGZyb20gWzxjMDA1YzU1Yz5dICh3b3Jr
-ZXJfdGhyZWFkKzB4MWEwLzB4MmMwKQ0KWyAgICAyLjc3NDg3MV0gWzxjMDA1YzU1Yz5dICh3b3Jr
-ZXJfdGhyZWFkKzB4MWEwLzB4MmMwKSBmcm9tIFs8YzAwNjI1N2M+XSAoa3RocmVhZCsweDk4LzB4
-YWMpDQpbICAgIDIuNzc0OTAyXSBbPGMwMDYyNTdjPl0gKGt0aHJlYWQrMHg5OC8weGFjKSBmcm9t
-IFs8YzAwMGY3MTQ+XSAoa2VybmVsX3RocmVhZF9leGl0KzB4MC8weDgpDQpbICAgIDIuNzc0OTMy
-XSB2b2x0ZG1fc2NhbGU6IE5vIHZvbHRhZ2Ugc2NhbGUgQVBJIHJlZ2lzdGVyZWQgZm9yIHZkZF9t
-cHUNClsgICAgMi43NzQ5MzJdIHBsYXRmb3JtIG1wdS4wOiBvbWFwX3RhcmdldDogdW5hYmxlIHRv
-IHNjYWxlIHZvbHRhZ2UgdXAuDQpbICAgIDIuNzc0Njg4XSAgIzA6ICAoZXZlbnRzKXsuKy4rLi59
-LCBhdDogWzxjMDA1YmVlND5dIHByb2Nlc3Nfb25lX3dvcmsrMHgxZTgvMHg2OGMNCg0KDQpEZW5u
-aXMNCi0tLS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjE4
-IChHTlUvTGludXgpDQoNCmlFWUVBUkVDQUFZRkFrLzh1ZmNBQ2drUWtTeG00N0JhV2ZlWnN3Q2ZX
-a1hqKzhzd3grOWgyOEdQeXQ0aC8rV2wNCnhsb0FuMExqR0JLUHNCTndmZ0I0cGV0YmlqU1RwL0JM
-DQo9bm54Vg0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
+=E4=BA=8E 2012=E5=B9=B407=E6=9C=8810=E6=97=A5 23:34, Arnd Bergmann =E5=86=
+=99=E9=81=93:
+> On Tuesday 10 July 2012, Tony Lindgren wrote:
+>> The following changes since commit 6887a4131da3adaab011613776d865f4b=
+cfb5678:
+>>
+>>    Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+>>
+>> are available in the git repository at:
+>>
+>>    git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap t=
+ags/omap-devel-board-for-v3.6
+>>
+>> for you to fetch changes up to b103a2e22a238085f5c50d96345e1a09bb1ef=
+d50:
+>>
+>>    ARM: OMAP3: Fix omap3evm randconfig error introduced by VBUS supp=
+ort (2012-07-09 23:22:24 -0700)
+>>
+>> ----------------------------------------------------------------
+>> Board and platform data related changes for omaps
+>>
+>> ----------------------------------------------------------------
+>> Andy Gross (1):
+>>        omap2+: add drm device
+>>
+>> Dmitry Lifshitz (2):
+>>        ARM: OMAP3: cm-t35: add mt9t001 camera sensor support
+>>        ARM: OMAP3: cm-t35: add tvp5150 decoder support
+>>
+>> Peter Ujfalusi (2):
+>>        ARM: OMAP: board-4430sdp: MUX configuration for sys_nirq2
+>>        ARM: OMAP: board-omap4panda: MUX configuration for sys_nirq2
+>>
+>> Tony Lindgren (1):
+>>        ARM: OMAP3: Fix omap3evm randconfig error introduced by VBUS =
+support
+>>
+>> Zumeng Chen (4):
+>>        ARM: OMAP3EVM: Add NAND flash definition
+>>        ARM: OMAP3EVM: Adding USB internal LDOs board file
+>>        ARM: omap3evm: enable VBUS switch for EHCI tranceiver
+>>        ARM: OMAP3530evm: set pendown_state and debounce time for ads=
+7846
+>> diff --cc arch/arm/mach-omap2/common-board-devices.c
+> I got a conflict in arch/arm/mach-omap2/common-board-devices.c betwee=
+n
+> 16aced80f6739 "ARM: OMAP3530evm: set pendown_state and debounce time =
+for
+> ads7846" and 97ee9f01d6f26 "ARM: OMAP: fix the ads7846 init code",
+> see my resolution below.
+>
+> Please check if what I have in the for-next branch makese sense to yo=
+u
+> all.
+No problem,  many thanks Arnd for your information.
+I'll check it, test it, and send you feedback.
+
+Regards,
+Zumeng
+>
+> 	Arnd
+>
+> * Unmerged path arch/arm/mach-omap2/common-board-devices.c
+> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/ma=
+ch-omap2/common-board-devices.c
+> index 1706ebc..1473474 100644
+> --- a/arch/arm/mach-omap2/common-board-devices.c
+> +++ b/arch/arm/mach-omap2/common-board-devices.c
+> @@ -35,6 +35,16 @@ static struct omap2_mcspi_device_config ads7846_mc=
+spi_config =3D {
+>   	.turbo_mode	=3D 0,
+>    };
+>
+>   +/*
+>   + * ADS7846 driver maybe request a gpio according to the value
+>   + * of pdata->get_pendown_state, but we have done this. So set
+>   + * get_pendown_state to avoid twice gpio requesting.
+>   + */
+>   +static int omap3_get_pendown_state(void)
+>   +{
+>   +	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
+>   +}
+>   +
+>    static struct ads7846_platform_data ads7846_config =3D {
+>   	.x_max			=3D 0x0fff,
+>   	.y_max			=3D 0x0fff,
+> @@ -45,6 +55,7 @@ static struct ads7846_platform_data ads7846_config =
+=3D {
+>   	.debounce_rep		=3D 1,
+>   	.gpio_pendown		=3D -EINVAL,
+>   	.keep_vref_on		=3D 1,
+>   +	.get_pendown_state	=3D&omap3_get_pendown_state,
+>    };
+>
+>    static struct spi_board_info ads7846_spi_board_info __initdata =3D=
+ {
+> @@ -63,28 +74,30 @@ void __init omap_ads7846_init(int bus_num, int gp=
+io_pendown, int gpio_debounce,
+>   	struct spi_board_info *spi_bi =3D&ads7846_spi_board_info;
+>   	int err;
+>
+> -	if (board_pdata&&  board_pdata->get_pendown_state) {
+> -		err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+> -		if (err) {
+> -			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+> -			return;
+> -		}
+> -		gpio_export(gpio_pendown, 0);
+> -
+> -		if (gpio_debounce)
+> -			gpio_set_debounce(gpio_pendown, gpio_debounce);
+> +	err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+> +	if (err) {
+> +		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+> +		return;
+>   	}
+>
+> +	if (gpio_debounce)
+> +		gpio_set_debounce(gpio_pendown, gpio_debounce);
+> +
+>   	spi_bi->bus_num	=3D bus_num;
+>   	spi_bi->irq	=3D gpio_to_irq(gpio_pendown);
+>
+>   	if (board_pdata) {
+>   		board_pdata->gpio_pendown =3D gpio_pendown;
+>   		spi_bi->platform_data =3D board_pdata;
+> +		if (board_pdata->get_pendown_state)
+> +			gpio_export(gpio_pendown, 0);
+>   	} else {
+>   		ads7846_config.gpio_pendown =3D gpio_pendown;
+>   	}
+>
+> +	if (!board_pdata || (board_pdata&&  !board_pdata->get_pendown_state=
+))
+> +		gpio_free(gpio_pendown);
+> +
+>   	spi_register_board_info(&ads7846_spi_board_info, 1);
+>   }
+>   #else
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
