@@ -1,200 +1,139 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2 2/3] usb: musb: dsps: add phy control logic to glue
-Date: Wed, 11 Jul 2012 10:48:19 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAD01EE@DBDE01.ent.ti.com>
-References: <1342002598-30633-1-git-send-email-x0132156@ti.com>
-	<1342002598-30633-2-git-send-email-x0132156@ti.com>
- <CAAe_U6LuH+1gxHxvVwNb4fkFzVqEWUdPUhvSCBLPb44Ea_QqCg@mail.gmail.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Wed, 11 Jul 2012 11:50:03 +0100
+Message-ID: <WC20120711105003.8400AC@terrafix.co.uk>
+References: <WC20120705150314.450045@terrafix.co.uk> <87zk77p3s5.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52535 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753112Ab2GKKsZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 06:48:25 -0400
-In-Reply-To: <CAAe_U6LuH+1gxHxvVwNb4fkFzVqEWUdPUhvSCBLPb44Ea_QqCg@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:43161 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757203Ab2GKKu0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Jul 2012 06:50:26 -0400
+In-Reply-To: <87zk77p3s5.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "Santhapuri, Damodar" <x0132156@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-> On Wed, Jul 11, 2012 at 3:59 PM, Damodar Santhapuri <x0132156@ti.com>
-> wrote:
-> > From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> >
-> > AM335x uses NOP transceiver driver and need to enable builtin PHY
-> > by writing into usb_ctrl register available in system control
-> > module register space. This is being added at musb glue driver
-> > layer untill a separate system control module driver is available.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > Signed-off-by: Damodar Santhapuri <x0132156@ti.com>
-> > ---
-> > Changes from v0:
-> >         - Used platform_get_resource() instead of
-> platform_get_resource_byname()
-> > based on Kishon's comment.
-> >
-> >  arch/arm/mach-omap2/board-ti8168evm.c   |    1 -
-> >  arch/arm/mach-omap2/omap_phy_internal.c |   35 ------------
-> >  arch/arm/plat-omap/include/plat/usb.h   |    5 +-
-> >  drivers/usb/musb/musb_dsps.c            |   87
-> +++++++++++++++++++++++++------
-> >  4 files changed, 73 insertions(+), 55 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
-> omap2/board-ti8168evm.c
-> > index d4c8392..0c7c098 100644
-> > --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> > +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> > @@ -26,7 +26,6 @@
-> >  #include <plat/usb.h>
-> >
-> >  static struct omap_musb_board_data musb_board_data = {
-> > -       .set_phy_power  = ti81xx_musb_phy_power,
-> >         .interface_type = MUSB_INTERFACE_ULPI,
-> >         .mode           = MUSB_OTG,
-> >         .power          = 500,
-> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
-> omap2/omap_phy_internal.c
-> > index d52651a..d80bb16 100644
-> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> > @@ -254,38 +254,3 @@ void am35x_set_mode(u8 musb_mode)
-> >
-> >         omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-> >  }
-> > -
-> > -void ti81xx_musb_phy_power(u8 on)
-> > -{
-> > -       void __iomem *scm_base = NULL;
-> > -       u32 usbphycfg;
-> > -
-> > -       scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> > -       if (!scm_base) {
-> > -               pr_err("system control module ioremap failed\n");
-> > -               return;
-> > -       }
-> > -
-> > -       usbphycfg = __raw_readl(scm_base + USBCTRL0);
-> > -
-> > -       if (on) {
-> > -               if (cpu_is_ti816x()) {
-> > -                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> > -                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> > -               } else if (cpu_is_ti814x()) {
-> > -                       usbphycfg &= ~(USBPHY_CM_PWRDN |
-> USBPHY_OTG_PWRDN
-> > -                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
-> > -                       usbphycfg |= (USBPHY_OTGVDET_EN |
-> USBPHY_OTGSESSEND_EN
-> > -                               | USBPHY_DPOPBUFCTL |
-> USBPHY_DMOPBUFCTL);
-> > -               }
-> > -       } else {
-> > -               if (cpu_is_ti816x())
-> > -                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> > -               else if (cpu_is_ti814x())
-> > -                       usbphycfg |= USBPHY_CM_PWRDN |
-> USBPHY_OTG_PWRDN;
-> > -
-> > -       }
-> > -       __raw_writel(usbphycfg, scm_base + USBCTRL0);
-> > -
-> > -       iounmap(scm_base);
-> > -}
-> > diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-
-> omap/include/plat/usb.h
-> > index 548a4c8..c2aa4ae 100644
-> > --- a/arch/arm/plat-omap/include/plat/usb.h
-> > +++ b/arch/arm/plat-omap/include/plat/usb.h
-> > @@ -95,7 +95,6 @@ extern void am35x_musb_reset(void);
-> >  extern void am35x_musb_phy_power(u8 on);
-> >  extern void am35x_musb_clear_irq(void);
-> >  extern void am35x_set_mode(u8 musb_mode);
-> > -extern void ti81xx_musb_phy_power(u8 on);
-> >
-> >  /* AM35x */
-> >  /* USB 2.0 PHY Control */
-> > @@ -120,8 +119,8 @@ extern void ti81xx_musb_phy_power(u8 on);
-> >  #define CONF2_DATPOL           (1 << 1)
-> >
-> >  /* TI81XX specific definitions */
-> > -#define USBCTRL0       0x620
-> > -#define USBSTAT0       0x624
-> > +#define MUSB_USBSS_REV_816X    0x9
-> > +#define MUSB_USBSS_REV_814X    0xb
-> >
-> >  /* TI816X PHY controls bits */
-> >  #define TI816X_USBPHY0_NORMAL_MODE     (1 << 0)
-> > diff --git a/drivers/usb/musb/musb_dsps.c
-> b/drivers/usb/musb/musb_dsps.c
-> > index 494772f..72eda64 100644
-> > --- a/drivers/usb/musb/musb_dsps.c
-> > +++ b/drivers/usb/musb/musb_dsps.c
-> > @@ -115,9 +115,46 @@ struct dsps_glue {
-> >         struct platform_device *musb;   /* child musb pdev */
-> >         const struct dsps_musb_wrapper *wrp; /* wrapper register
-> offsets */
-> >         struct timer_list timer;        /* otg_workaround timer */
-> > +       u32 __iomem *usb_ctrl;
-> > +       u8      usbss_rev;
-> >  };
-> >
-> >  /**
-> > + * musb_dsps_phy_control - phy on/off
-> > + * @glue: struct dsps_glue *
-> > + * @on: flag for phy to be switched on or off
-> > + *
-> > + * This is to enable the PHY using usb_ctrl register in system
-> control
-> > + * module space.
-> > + *
-> > + * XXX: This function will be removed once we have a seperate driver
-> for
-> > + * control module
-> > + */
-> > +static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
-> 
-> I think this function should be added in your transceiver driver. I
-> don't see glue as an appropriate place for this
+-----Original Message-----
+=46rom: Kevin Hilman <khilman@ti.com>
+To: "Joe Woodward" <jw@terrafix.co.uk>
+Cc: "linux-omap\@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Tue, 10 Jul 2012 16:58:18 -0700
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with =
+RTC?
 
-We use NOP transceiver which is generic and used by many other platforms.
-This function is specific to am33xx glue and so musb_dsps.c is right place.
+> "Joe Woodward" <jw@terrafix.co.uk> writes:
+>=20
+> > I've got 3.5-rc5 with the following patches applied to get system
+> suspend working on OMAP3:
+> >   - fix the DSS: OMAPDSS: Use PM notifiers for system suspend
+> >   - fix the 32KHz clock: ARM: OMAP2+: hwmod code/clockdomain data:
+> fix 32K sync timer
+> >
+> > This has been built with the omap2plus_defconfig.
+> >
+> > However, If I disable the RTC (i.e.
+> CONFIG_RTC_CLASS/CONFIG_RTC_DRV_TWL4030) and rebuild then when
+> suspending the device never wakes up.
+> >
+> > That is, I can't get any wakeups to happen (either through the
+> console, or GPIO buttons) hence I'm assuming the kernel has crashed..=
+=2E
+> >
+> > Any ideas?
+> >
+> > As far as I know there is no dependency on the RTC in 3.4, and with
+> the RTC compiled in I never see a problem on 3.5-rc5.
+>=20
+> There is definitely a bug in the EHCI driver in v3.5 that cause a han=
+g
+> in suspend, but the RTC connection is very strange.
+>=20
+> I was not able to reproduce this.
+>=20
+> Can you try the same with my current 'pm' branch[1].  I've got a
+> handful
+> of additional fixes there for various other problems where both MMC a=
+nd
+> EHCI are preventing sucessful suspend with the default
+> omap2plus_defconfig.  (note the EHCI fix is simply diabling it in the
+> defconfig.)
+>=20
+> Kevin
+>=20
 
-Thanks,
-Ajay
-> > +{
-> > +       u32 usbphycfg;
-> > +
-> > +       usbphycfg = __raw_readl(glue->usb_ctrl);
-> > +
-> > +       if (on) {
-> > +               if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
-> > +                       usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> > +                       usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> > +               } else if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
-> > +                       usbphycfg &= ~(USBPHY_CM_PWRDN |
-> USBPHY_OTG_PWRDN
-> > +                               | USBPHY_DPINPUT | USBPHY_DMINPUT);
-> > +                       usbphycfg |= (USBPHY_OTGVDET_EN |
-> USBPHY_OTGSESSEND_EN
-> > +                               | USBPHY_DPOPBUFCTL |
-> USBPHY_DMOPBUFCTL);
-> > +               }
-> > +       } else {
-> > +               if (glue->usbss_rev == MUSB_USBSS_REV_816X)
-> > +                       usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> > +               else if (glue->usbss_rev == MUSB_USBSS_REV_814X)
-> > +                       usbphycfg |= USBPHY_CM_PWRDN |
-> USBPHY_OTG_PWRDN;
-> > +       }
-> > +       __raw_writel(usbphycfg, glue->usb_ctrl);
-> > +}
-> > +/**
-> 
-> Thanks
-> Kishon
+Hi Kevin,
+
+Thanks for looking in to this.
+
+I've taken a copy of the PM branch with tag "pm-20120710" and built wit=
+h omap2plus_defconfig.
+
+But I get several warnings during boot, and suspend works - but almost =
+nothing enters the target states:
+
+Warnings include:
+[    0.000000] clockdomain: mpu_clkdm: powerdomain =AC=F5`=C08=BAs=C0 d=
+oes not exist
+
+[    2.311004] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+[    2.317382] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine =
+channel 62
+[    2.325256] omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+[    2.331512] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine =
+channel 48
+
+[    2.447784] platform omap_hsmmc.0: omap_device_late_idle: enabled bu=
+t no driver.  Idling
+[    2.456359] platform omap_hsmmc.1: omap_device_late_idle: enabled bu=
+t no driver.  Idling
+
+# echo mem > /sys/power/state
+[  107.398956] PM: Syncing filesystems ... done.
+[  107.413757] Freezing user space processes ... (elapsed 0.02 seconds)=
+ done.
+[  107.443481] Freezing remaining freezable tasks ... (elapsed 0.02 sec=
+onds) done.
+[  107.474700] Suspending console(s) (use no_console_suspend to debug)
+[  107.493560] PM: suspend of devices complete after 9.246 msecs
+[  107.496063] PM: late suspend of devices complete after 2.502 msecs
+[  107.500427] PM: noirq suspend of devices complete after 4.302 msecs
+[  107.500488] Disabling non-boot CPUs ...
+[  108.446838] Powerdomain (iva2_pwrdm) didn't enter target state 1
+[  108.446868] Powerdomain (dss_pwrdm) didn't enter target state 1
+[  108.446868] Powerdomain (per_pwrdm) didn't enter target state 1
+[  108.446868] Powerdomain (core_pwrdm) didn't enter target state 1
+[  108.446899] Powerdomain (usbhost_pwrdm) didn't enter target state 1
+[  108.446899] Could not enter target state in pm_suspend
+[  108.448852] PM: noirq resume of devices complete after 1.769 msecs
+[  108.451873] PM: early resume of devices complete after 1.556 msecs
+[  108.459716] PM: resume of devices complete after 7.690 msecs
+[  108.541748] Restarting tasks ... done.
+sh: write error: Operation not permitted
+
+This is all on an Overo AirSTORM (3703-based) plugged in to a GUMSTIX P=
+ALO43 dev board.
+
+Cheers,
+Joe
+
+> [1]
+> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
+it
+> pm
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
