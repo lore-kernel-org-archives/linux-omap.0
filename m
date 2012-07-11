@@ -1,70 +1,60 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 1/3] arm: omap: hwmod: add new memory resource for
- usb phy control
-Date: Wed, 11 Jul 2012 16:44:35 +0400
-Message-ID: <4FFD7533.8010807@mvista.com>
-References: <1342002598-30633-1-git-send-email-x0132156@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Wed, 11 Jul 2012 18:23:48 +0530
+Message-ID: <CAP05o4JZNeh2BCxkfUVajYLGdzPG30v++-EYjLD09OmS1uqyyQ@mail.gmail.com>
+References: <87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi>
+	<87d34nfdei.fsf@ti.com>
+	<871uku85o8.fsf@ti.com>
+	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
+	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+	<87k3yj4pn4.fsf@ti.com>
+	<20120705111901.GR22065@sortiz-mobl>
+	<CAP05o4JEx0uSCH+mZzLhoV479A00uUumvYY_-b8dQ9j_5Awumw@mail.gmail.com>
+	<CAP05o4+OBPBzqurM2FHDBmQ0AbBLVHL5DP+cMHW+jS5bG23-EQ@mail.gmail.com>
+	<20120711102958.GA23772@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342002598-30633-1-git-send-email-x0132156-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <20120711102958.GA23772@sortiz-mobl>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+To: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+On Wed, Jul 11, 2012 at 3:59 PM, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> Hi Keshava, Kevin,
+>
+> On Fri, Jul 06, 2012 at 05:29:00PM +0530, Munegowda, Keshava wrote:
+>> Samuel
+>>           I have sent that patch to disable the ehci in
+>> omap2plus_defconfig; after merging that
+>> please merge this patch too. This will fix the crashes in during boot
+>> with NFS in beagleXM
+> I'm going to apply and push this patch for 3.5, and the defconfig patch can be
+> pushed through Tony's tree.
+> Kevin, could you please ACK it ?
+>
+> Cheers,
+> Samuel.
+>
 
-On 11-07-2012 14:29, Damodar Santhapuri wrote:
+Thanks Samuel
 
-> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Kevin,
+    need your ack for this.
+The commit id 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+"Fix OMAP EHCI suspend/resume failure (i693)",
+is handling the clocks in ehci driver which is not correct,
+it will be through the usb host driver ( /mfd/omap-usb_host.c )  exporting
+APIs to ehci driver to handler the port clocks.
 
-> Added usb_ctrl0 and usb_ctrl1 base address as new memory resources
-> which will be used at am335x musb driver glue layer to turn on or
-> off builin PHY untill we have a separate system control module
-> driver.
+for now, this patch is necessary to remove the
+ commit id 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+"Fix OMAP EHCI suspend/resume failure (i693)",
 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> Singed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
-> ---
-> Changes from v0:
-> Reordered the layout based on Kishon's comment on not using
-> platform_get_resources_by_name.
-
->   arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   12 ++++++++++++
->   1 files changed, 12 insertions(+), 0 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> index df888fe..ec9e9df 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-> @@ -3269,11 +3269,23 @@ static struct omap_hwmod_addr_space am33xx_usbss_addr_space[] = {
->   		.flags		= ADDR_TYPE_RT
->   	},
->   	{
-> +		.name		= "usb_ctrl0",
-> +		.pa_start	= 0x44E10620,
-> +		.pa_end		= 0x44E10624,
-
-   Not 0x44E10623?
-
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{
->   		.name		= "musb1",
->   		.pa_start	= 0x47401800,
->   		.pa_end		= 0x47401800 + SZ_2K - 1,
->   		.flags		= ADDR_TYPE_RT
->   	},
-> +	{
-> +		.name		= "usb_ctrl1",
-> +		.pa_start	= 0x44E10628,
-> +		.pa_end		= 0x44E1062c,
-
-    Not 0x44E1062B?
-
-WBR, Sergei
+regards
+keshava
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
