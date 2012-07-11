@@ -1,40 +1,30 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: mismerge of 'omap-cleanup-for-v3.6' into tmp-merge
-Date: Wed, 11 Jul 2012 13:10:43 -0700
-Message-ID: <87fw8yjby4.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod
+ framework
+Date: Wed, 11 Jul 2012 14:33:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207111431590.25585@utopia.booyaka.com>
+References: <1340898256-22884-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A83EA624A5@DBDE01.ent.ti.com> <alpine.DEB.2.00.1207040311400.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA6334A@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1207040329120.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA6A5F4@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:35055 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932452Ab2GKUKn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jul 2012 16:10:43 -0400
-Received: by pbbrr4 with SMTP id rr4so2470837pbb.9
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 13:10:42 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:41864 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030188Ab2GKUdI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 16:33:08 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA6A5F4@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Mark A. Greer" <Mark.Greer@AnimalCreek.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
 
-Hi Tony,
+On Wed, 11 Jul 2012, Hiremath, Vaibhav wrote:
 
-In your current master branch, commit 3dd50d054 (Merge tag
-'omap-cleanup-for-v3.6' into tmp-merge) added back the mpu_3xxx_clkdm
-into the common clockdomains that was removed by commit 16e5e2c47 (ARM:
-OMAP AM35x: clockdomain data: Fix clockdomain dependencies)
+> Agreed, but would it make sense to include in v3.6 merge window?
 
-This causes duplicate registration attempts for mpu_clkdm and the secon=
-d
-registration causes a warning from the clockdomain layer:
+Barring force majeure, I'm pretty much done with patches for the v3.6 
+merge window.  Am working on this patch and the AM33xx hwmod data for 
+v3.7.
 
-   clockdomain: mpu_clkdm: powerdomain ({Z=EF=BF=BD=18=D7=82=EF=BF=BD d=
-oes not exist
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
