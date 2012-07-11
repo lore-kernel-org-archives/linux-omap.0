@@ -1,117 +1,112 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct
- gpio_bank
-Date: Wed, 11 Jul 2012 17:49:16 +0300
-Message-ID: <4FFD926C.9090707@ti.com>
-References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com> <1331906760-5259-5-git-send-email-tarun.kanti@ti.com> <4FFAA7B3.6020009@ti.com> <CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com> <4FFAC5D6.4090306@ti.com> <CAC83ZvL0mjVEE4DDd2gPb7Du5YyEbJ46yMZ4Yg1_oupS8rz7jg@mail.gmail.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Wed, 11 Jul 2012 21:01:57 +0530
+Message-ID: <CANrkHUZnCtvGs8u2pA3SYvpBU-UXakHQEx_RmOAh6vinTq2HBw@mail.gmail.com>
+References: <WC20120705150314.450045@terrafix.co.uk>
+	<87zk77p3s5.fsf@ti.com>
+	<WC20120711105003.8400AC@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43549 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932675Ab2GKOtb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jul 2012 10:49:31 -0400
-In-Reply-To: <CAC83ZvL0mjVEE4DDd2gPb7Du5YyEbJ46yMZ4Yg1_oupS8rz7jg@mail.gmail.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:50146 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755463Ab2GKPcA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Jul 2012 11:32:00 -0400
+Received: by lbbgg6 with SMTP id gg6so2517284lbb.22
+        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 08:31:57 -0700 (PDT)
+In-Reply-To: <WC20120711105003.8400AC@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 07/09/2012 03:30 PM, DebBarma, Tarun Kanti wrote:
-> On Mon, Jul 9, 2012 at 5:21 PM, Roger Quadros <rogerq@ti.com> wrote:
->> Tarun,
+On Wed, Jul 11, 2012 at 4:20 PM, Joe Woodward <jw@terrafix.co.uk> wrote=
+:
+> -----Original Message-----
+> From: Kevin Hilman <khilman@ti.com>
+> To: "Joe Woodward" <jw@terrafix.co.uk>
+> Cc: "linux-omap\@vger.kernel.org" <linux-omap@vger.kernel.org>
+> Date: Tue, 10 Jul 2012 16:58:18 -0700
+> Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built wit=
+h RTC?
+>
+>> "Joe Woodward" <jw@terrafix.co.uk> writes:
 >>
->> On 07/09/2012 02:16 PM, DebBarma, Tarun Kanti wrote:
->>> Hi Roger,
->>>
->>> On Mon, Jul 9, 2012 at 3:13 PM, Roger Quadros <rogerq@ti.com> wrote:
->>>> Hi,
->>>>
->>>> Just bumped across this patch and have a query.
->>>>
->>>> On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
->>>>> There is no more need to have saved_wakeup because bank->context.wake_en
->>>>> already holds that value. So getting rid of read/write operation associated
->>>>> with this field.
->>>>>
->>>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>>>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>> Acked-by: Felipe Balbi <balbi@ti.com>
->>>>> ---
->>>>>  drivers/gpio/gpio-omap.c |   12 +++---------
->>>>>  1 files changed, 3 insertions(+), 9 deletions(-)
->>>>>
->>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>>>> index 3a4f151..3b91ade 100644
->>>>> --- a/drivers/gpio/gpio-omap.c
->>>>> +++ b/drivers/gpio/gpio-omap.c
->>>>> @@ -57,7 +57,6 @@ struct gpio_bank {
->>>>>       u16 irq;
->>>>>       int irq_base;
->>>>>       struct irq_domain *domain;
->>>>> -     u32 saved_wakeup;
->>>>>       u32 non_wakeup_gpios;
->>>>>       u32 enabled_non_wakeup_gpios;
->>>>>       struct gpio_regs context;
->>>>> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
->>>>>       unsigned long           flags;
->>>>>
->>>>>       spin_lock_irqsave(&bank->lock, flags);
->>>>> -     bank->saved_wakeup = __raw_readl(mask_reg);
->>>>>       __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
->>>>
->>>> OK, here you are overwriting the mask_reg with the wakeup bitmask
->>>> without saving the mask_reg's original content.
->>> This is based upon understanding that set_gpio_trigger() is the common
->>> function where update of wake_en register takes place. Unless, mask_reg
->>> in this case refers to something else, effectively we would be saving the
->>> same value to saved_wakeup what is already present in wake_en.
->>> I will verify this specific to this function.
->>>
->>>>
->>>>>       spin_unlock_irqrestore(&bank->lock, flags);
->>>>>
->>>>> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
->>>>>       unsigned long           flags;
->>>>>
->>>>>       spin_lock_irqsave(&bank->lock, flags);
->>>>> -     __raw_writel(bank->saved_wakeup, mask_reg);
->>>>> +     __raw_writel(bank->context.wake_en, mask_reg);
->>>>
->>>> Now you are restoring nothing but the same content that you stored
->>>> during suspend. This will cause the non-wakeup gpio interrupts to get
->>>> masked between a suspend/resume. So isn't this a bug?
->>> That's right, the same value is restored back which was last updated in
->>> set_gpio_trigger() that got stored in wake_en register. Let me know if
->>> I am missing your points here.
+>> > I've got 3.5-rc5 with the following patches applied to get system
+>> suspend working on OMAP3:
+>> >   - fix the DSS: OMAPDSS: Use PM notifiers for system suspend
+>> >   - fix the 32KHz clock: ARM: OMAP2+: hwmod code/clockdomain data:
+>> fix 32K sync timer
+>> >
+>> > This has been built with the omap2plus_defconfig.
+>> >
+>> > However, If I disable the RTC (i.e.
+>> CONFIG_RTC_CLASS/CONFIG_RTC_DRV_TWL4030) and rebuild then when
+>> suspending the device never wakes up.
+>> >
+>> > That is, I can't get any wakeups to happen (either through the
+>> console, or GPIO buttons) hence I'm assuming the kernel has crashed.=
+=2E.
+>> >
+>> > Any ideas?
+>> >
+>> > As far as I know there is no dependency on the RTC in 3.4, and wit=
+h
+>> the RTC compiled in I never see a problem on 3.5-rc5.
 >>
->> If it is writing the same thing then isn't this write redundant?
-> Not, really. During suspend if the register has lost the context
-> we need to restore the value from wake_en.
-
-Shouldn't that be taken care of by omap_gpio_restore_context() that too
-only if the context was lost?
-
-> --
-> Tarun
+>> There is definitely a bug in the EHCI driver in v3.5 that cause a ha=
+ng
+>> in suspend, but the RTC connection is very strange.
 >>
->>>
->>>>
->>>> Proper solution would be to save the mask_reg context into another
->>>> register than context.wake_en during suspend.
->>> As I said, this would make sense if mask_reg is referring to different
->>> register than what is used in set_gpio_trigger(). I will have a look.
+>> I was not able to reproduce this.
 >>
->> OK thanks.
+>> Can you try the same with my current 'pm' branch[1].  I've got a
+>> handful
+>> of additional fixes there for various other problems where both MMC =
+and
+>> EHCI are preventing sucessful suspend with the default
+>> omap2plus_defconfig.  (note the EHCI fix is simply diabling it in th=
+e
+>> defconfig.)
 >>
->>>
->>> BTW, did you observe anything unusual during some testing?
+>> Kevin
 >>
+>
+> Hi Kevin,
+>
+> Thanks for looking in to this.
+>
+> I've taken a copy of the PM branch with tag "pm-20120710" and built w=
+ith omap2plus_defconfig.
+>
+> But I get several warnings during boot, and suspend works - but almos=
+t nothing enters the target states:
+>
+> Warnings include:
+> [    0.000000] clockdomain: mpu_clkdm: powerdomain =AC=F5`=C08=BAs=C0=
+ does not exist
+>
+> [    2.311004] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+> [    2.317382] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engin=
+e channel 62
+> [    2.325256] omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+> [    2.331512] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engin=
+e channel 48
+>
+Hi Joe,
 
-Did you get a chance to see if the two registers are same or different?
+This warning should go away with CONFIG_DMA_OMAP, CONFIG_DMA_ENGINE ena=
+bled
 
-regards,
--roger
-
-
+> [    2.447784] platform omap_hsmmc.0: omap_device_late_idle: enabled =
+but no driver.  Idling
+> [    2.456359] platform omap_hsmmc.1: omap_device_late_idle: enabled =
+but no driver.  Idling
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
