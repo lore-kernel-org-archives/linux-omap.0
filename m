@@ -1,129 +1,142 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dtb for pandaboard
-Date: Wed, 11 Jul 2012 00:42:33 -0700
-Message-ID: <20120711074232.GE1122@atomide.com>
-References: <20120708173259.592552c1@pegasus.ausil.us>
- <20120709090848.GD1122@atomide.com>
- <20120710181119.27faf235@pegasus.ausil.us>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: Re: [PATCH v2 RESEND 0/3] Watchdog: OMAP: bootstatus fix for omap3
+ and changes for the current watchdog framework
+Date: Wed, 11 Jul 2012 16:10:12 +0800
+Message-ID: <4FFD34E4.7060505@windriver.com>
+References: <1341819328-3514-1-git-send-email-zumeng.chen@windriver.com> <4FFBACE4.80901@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27392 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab2GKHmf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 03:42:35 -0400
-Content-Disposition: inline
-In-Reply-To: <20120710181119.27faf235@pegasus.ausil.us>
+Received: from mail.windriver.com ([147.11.1.11]:56013 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523Ab2GKIKl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 04:10:41 -0400
+In-Reply-To: <4FFBACE4.80901@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dennis Gilmore <dennis@ausil.us>
-Cc: linux-omap@vger.kernel.org
+To: shubhrajyoti@ti.com, hvaibhav@ti.com, wim@iguana.be, "Hilman, Kevin" <khilman@ti.com>
+Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul.gortmaker@windriver.com, tony@atomide.com
 
-* Dennis Gilmore <dennis@ausil.us> [120710 16:16]:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> On Mon, 9 Jul 2012 02:08:49 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > * Dennis Gilmore <dennis@ausil.us> [120708 16:11]:
-> > > -----BEGIN PGP SIGNED MESSAGE-----
-> > > Hash: SHA1
-> > > 
-> > > Hi does anyone happen to have a working dtb file for the pandaboard?
-> > > trying to test booting the fedora rawhide kernel which is
-> > > 3.5.0-rc5 with a dtb file I made from the matching sources I dont
-> > > get past decompressing the kernel. if i dont use a dtb file the
-> > > system boots further but it i'm unable to find the root filesystem
-> > > since it seems that the platform data has been messed up.
-> > > modprobing omap results in no registration of the mmc block
-> > > devices. 
-> > > 
-> > > i've not tested on a pandaboard ES or beagleboard yet  or any other
-> > > type of omap system. 
-> > 
-> > FYI, I booted my panda es recently just fine with dtb append support
-> > and the following .config addition using the plain
-> > arch/arm/boot/dts/omap4-panda.dts file:
-> > 
-> > CONFIG_ARM_APPENDED_DTB=y
-> > CONFIG_ARM_ATAG_DTB_COMPAT=y
-> > CONFIG_EXT4_FS=y
-> > 
-> > Can you please enable DEBUG_LL, EARLY_PRINTK and add earlyprintk to
-> > your cmdline and post what you get?
-> > 
-> > Regards,
-> > 
-> > Tony
-> 
-> Loaded environment from uEnv.txt
-> Importing environment from mmc ...
-> reading uImage-omap
-> 
-> 3988040 bytes read
-> reading uInitrd-omap
-> 
-> 1190 bytes read
-> reading omap4-panda.dtb
-> 
-> 5483 bytes read
-> Booting from mmc ...
-> ## Booting kernel from Legacy Image at 80300000 ...
->    Image Name:   3.5.0-0.rc6.git0.3.fc18.armv7hl.
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    3987976 Bytes = 3.8 MiB
->    Load Address: 80008000
->    Entry Point:  80008000
->    Verifying Checksum ... OK
-> ## Loading init Ramdisk from Legacy Image at 81600000 ...
->    Image Name:   initramfs
->    Image Type:   ARM Linux RAMDisk Image (uncompressed)
->    Data Size:    1126 Bytes = 1.1 KiB
->    Load Address: 00000000
->    Entry Point:  00000000
->    Verifying Checksum ... OK
-> ## Flattened Device Tree blob at 82600000
->    Booting using the fdt blob at 0x82600000
->    Loading Kernel Image ... OK
-> OK
->    reserving fdt memory region: addr=9d000000 size=3000000
->    Loading Ramdisk to bfefa000, end bfefa466 ... OK
->    Loading Device Tree to bfef5000, end bfef956a ... OK
-> 
-> Starting kernel ...
-> 
-> Uncompressing Linux... done, booting the kernel.
-> Warning: Neither atags nor dtb found
-> 
-> is as far as i am getting.
+The same case works well on am335xevm but with a new patch in
+mach-omap2/prcm.c
 
-Sounds like it's some kind of issue with dtb getting overwritten
-by something. We had an issue where kernel BSS was overlapping dtb
-in some cases, but those should be fixed.
+I'll send it later.
 
-Maybe try to leave out ARCH_OMAP2 and ARCH_OMAP3 and maybe CONFIG_NET
-from your .config to make the kernel smaller and see if that makes
-a difference?
+root@ti-omap3:~# uname -a
+Linux ti-omap3 3.4.3-00635-g82d1d26-dirty #32 Wed Jul 11 16:02:12 CST
+2012 armv7l GNU/Linux
+root@ti-omap3:~# dmesg|grep WDT
+[ 1.921173] omap_wdt: OMAP WDTimer Rev 0x01: Initial timeout 0sec
+status=3D 0x1
+root@ti-omap3:~# ./a.out -i 20; for i in `seq 1 20`; do echo $i ; sleep
+1;done
+Set watchdog interval to 20
+Current watchdog interval is 20
+Last boot is caused by : Watchdog
+Use:
+<w> to kick through writing over device file
+<i> to kick through IOCTL
+<x> to exit the program
+x
 
-If that works, then moving the dtb address in uEnv.txt should help.
+1
+2
+[snip]
+U-Boot SPL 2011.09 (Feb 09 2012 - 15:38:59)
+Texas Instruments Revision detection unimplemented
 
-Also, please check if the same issue happens with appended dtb:
 
-Add the following to your .config:
+U-Boot 2011.09 (Feb 09 2012 - 15:11:31)
 
-CONFIG_ARM_APPENDED_DTB=y
-CONFIG_ARM_ATAG_DTB_COMPAT=y
-
-Build the kernel, then create the uImage:
-
-$ cat arch/arm/boot/zImage arch/arm/boot/$MACHINE.dtb > /srv/tftp/zImage-omap2plus && \
-mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 \
--n "Linux" -d /srv/tftp/zImage-omap2plus /srv/tftp/uImage-omap2plus
-
-You may need to leave out the dtb from your uEnv.txt, I forgot which dtb
-is the primary one..
+I2C: ready
+DRAM: 256 MiB
+WARNING: Caches not enabled
+=46ound a daughter card connected
+NAND: HW ECC Hamming Code selected
+256 MiB
+MMC: OMAP SD/MMC: 0
+Net: cpsw
+Hit any key to stop autoboot: 0
+U-Boot#
 
 Regards,
+Zumeng
 
-Tony
+=D3=DA 2012=C4=EA07=D4=C210=C8=D5 12:17, Zumeng Chen =D0=B4=B5=C0:
+> =D3=DA 2012=C4=EA07=D4=C209=C8=D5 15:35, Zumeng Chen =D0=B4=B5=C0:
+>> Hello,
+>>
+>> The following patches based on the 3.5-rc6 from Wim, which
+>> focus on:
+>>
+>> 1 ) bootstatus fix for omap3,
+>>
+>> 2 ) omap-wdt framework update cater for the current framework
+>>     as Shubhrajyoti comments mentioned.
+> I compiled a test case from the following website,
+> http://www.lpclinux.com/Blogs/Testing_LPC313x_Linux_Watchdog_Driver
+>
+> It works well.
+>
+> root@ti-omap3:/tmp# ./a.out -h
+> Usage: ./a.out [options]
+> -h --help Display this usage information.
+> -d --dev <device_file> Use <device_file> as watchdog device file.
+> The default device file is '/dev/watchdog'
+> -i --interval <interval> Change the watchdog interval time
+> root@ti-omap3:/tmp# ./a.out -i 40;
+> Set watchdog interval to 40
+> Current watchdog interval is 40
+> Last boot is caused by : Watchdog
+> Use:
+> <w> to kick through writing over device file
+> <i> to kick through IOCTL
+> <x> to exit the program
+> x
+> Goodbye !
+> watchdog: Omap Watchdog: nowayout prevents watchdog to be stopped!
+> watchdog: Omap Watchdog: watchdog did not stop!
+> root@ti-omap3:/tmp# for i in `seq 1 30`; do echo $i; sleep 1;done
+> 1
+> 2
+>
+> [snip]
+>
+> I built NOWAYOUT in driver, so it doesn't stop, still going until the
+> following
+> information:
+>
+> Texas Instruments X-Loader 1.42
+> Starting OS Bootloader...
+> No OOB scheme defined for oobsize 0
+> OneNAND: 0 kB
+> 256 MiB
+>
+> Regards,
+> Zumeng
+>> Regards,
+>>
+>> Zumeng Chen (3):
+>>   Watchdog: Omap: Changes for the new watchdog framework
+>>   Watchdog: Omap: select watchdog core for framework change
+>>   Watchdog: Omap: get the bootstatus for OMAP2Plus
+>>
+>>  arch/arm/mach-omap2/prcm.c  |    5 +-
+>>  drivers/watchdog/Kconfig    |    1 +
+>>  drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++----------------=
+-----------
+>>  drivers/watchdog/omap_wdt.h |    5 +
+>>  4 files changed, 133 insertions(+), 220 deletions(-)
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
