@@ -1,90 +1,117 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Wed, 11 Jul 2012 07:23:35 -0700
-Message-ID: <874npenzq0.fsf@ti.com>
-References: <87ehp71liv.fsf@ti.com> <20120622203645.GD29290@arwen.pp.htv.fi>
-	<87d34nfdei.fsf@ti.com> <871uku85o8.fsf@ti.com>
-	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
-	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
-	<87k3yj4pn4.fsf@ti.com> <20120705111901.GR22065@sortiz-mobl>
-	<CAP05o4JEx0uSCH+mZzLhoV479A00uUumvYY_-b8dQ9j_5Awumw@mail.gmail.com>
-	<CAP05o4+OBPBzqurM2FHDBmQ0AbBLVHL5DP+cMHW+jS5bG23-EQ@mail.gmail.com>
-	<20120711102958.GA23772@sortiz-mobl>
-	<CAP05o4JZNeh2BCxkfUVajYLGdzPG30v++-EYjLD09OmS1uqyyQ@mail.gmail.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct
+ gpio_bank
+Date: Wed, 11 Jul 2012 17:49:16 +0300
+Message-ID: <4FFD926C.9090707@ti.com>
+References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com> <1331906760-5259-5-git-send-email-tarun.kanti@ti.com> <4FFAA7B3.6020009@ti.com> <CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com> <4FFAC5D6.4090306@ti.com> <CAC83ZvL0mjVEE4DDd2gPb7Du5YyEbJ46yMZ4Yg1_oupS8rz7jg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33730 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755233Ab2GKOXl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jul 2012 10:23:41 -0400
-Received: by yenl12 with SMTP id l12so2202431yen.1
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 07:23:35 -0700 (PDT)
-In-Reply-To: <CAP05o4JZNeh2BCxkfUVajYLGdzPG30v++-EYjLD09OmS1uqyyQ@mail.gmail.com>
-	(Keshava Munegowda's message of "Wed, 11 Jul 2012 18:23:48 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43549 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932675Ab2GKOtb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Jul 2012 10:49:31 -0400
+In-Reply-To: <CAC83ZvL0mjVEE4DDd2gPb7Du5YyEbJ46yMZ4Yg1_oupS8rz7jg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, notasas@gmail.com, Paul Walmsley <paul@pwsan.com>, Russ.Dill@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-"Munegowda, Keshava" <keshava_mgowda@ti.com> writes:
-
-> On Wed, Jul 11, 2012 at 3:59 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
->> Hi Keshava, Kevin,
+On 07/09/2012 03:30 PM, DebBarma, Tarun Kanti wrote:
+> On Mon, Jul 9, 2012 at 5:21 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> Tarun,
 >>
->> On Fri, Jul 06, 2012 at 05:29:00PM +0530, Munegowda, Keshava wrote:
->>> Samuel
->>>           I have sent that patch to disable the ehci in
->>> omap2plus_defconfig; after merging that
->>> please merge this patch too. This will fix the crashes in during boot
->>> with NFS in beagleXM
->> I'm going to apply and push this patch for 3.5, and the defconfig patch can be
->> pushed through Tony's tree.
->> Kevin, could you please ACK it ?
+>> On 07/09/2012 02:16 PM, DebBarma, Tarun Kanti wrote:
+>>> Hi Roger,
+>>>
+>>> On Mon, Jul 9, 2012 at 3:13 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>>> Hi,
+>>>>
+>>>> Just bumped across this patch and have a query.
+>>>>
+>>>> On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
+>>>>> There is no more need to have saved_wakeup because bank->context.wake_en
+>>>>> already holds that value. So getting rid of read/write operation associated
+>>>>> with this field.
+>>>>>
+>>>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>>>> ---
+>>>>>  drivers/gpio/gpio-omap.c |   12 +++---------
+>>>>>  1 files changed, 3 insertions(+), 9 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>>> index 3a4f151..3b91ade 100644
+>>>>> --- a/drivers/gpio/gpio-omap.c
+>>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>>> @@ -57,7 +57,6 @@ struct gpio_bank {
+>>>>>       u16 irq;
+>>>>>       int irq_base;
+>>>>>       struct irq_domain *domain;
+>>>>> -     u32 saved_wakeup;
+>>>>>       u32 non_wakeup_gpios;
+>>>>>       u32 enabled_non_wakeup_gpios;
+>>>>>       struct gpio_regs context;
+>>>>> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>>>>>       unsigned long           flags;
+>>>>>
+>>>>>       spin_lock_irqsave(&bank->lock, flags);
+>>>>> -     bank->saved_wakeup = __raw_readl(mask_reg);
+>>>>>       __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
+>>>>
+>>>> OK, here you are overwriting the mask_reg with the wakeup bitmask
+>>>> without saving the mask_reg's original content.
+>>> This is based upon understanding that set_gpio_trigger() is the common
+>>> function where update of wake_en register takes place. Unless, mask_reg
+>>> in this case refers to something else, effectively we would be saving the
+>>> same value to saved_wakeup what is already present in wake_en.
+>>> I will verify this specific to this function.
+>>>
+>>>>
+>>>>>       spin_unlock_irqrestore(&bank->lock, flags);
+>>>>>
+>>>>> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+>>>>>       unsigned long           flags;
+>>>>>
+>>>>>       spin_lock_irqsave(&bank->lock, flags);
+>>>>> -     __raw_writel(bank->saved_wakeup, mask_reg);
+>>>>> +     __raw_writel(bank->context.wake_en, mask_reg);
+>>>>
+>>>> Now you are restoring nothing but the same content that you stored
+>>>> during suspend. This will cause the non-wakeup gpio interrupts to get
+>>>> masked between a suspend/resume. So isn't this a bug?
+>>> That's right, the same value is restored back which was last updated in
+>>> set_gpio_trigger() that got stored in wake_en register. Let me know if
+>>> I am missing your points here.
 >>
->> Cheers,
->> Samuel.
->>
->
-> Thanks Samuel
->
-> Kevin,
->     need your ack for this.
+>> If it is writing the same thing then isn't this write redundant?
+> Not, really. During suspend if the register has lost the context
+> we need to restore the value from wake_en.
 
-You never answered earlier questions from myself or Russ Dill about the
-more targetted patches from Russ:
+Shouldn't that be taken care of by omap_gpio_restore_context() that too
+only if the context was lost?
 
-   ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
-   Fix OMAP EHCI suspend/resume failure (i693) '354ab856' causes
-
-Also, your current $SUBJECT patch is large and not well
-described. e.g. what is "not correct" and why.  Why does it fix the
-problems mentioned?  The original changelog mentions the "core retention
-issue" but this patch does nothing to address that.  If you want an Ack
-from me, especially because I'm not an expert in this IP, you'll have to
-describe things in a way that I can understand.
-
-IMO, at this point of the dev cycle (trying to stabilize v3.5), the full
-cleanup/fix of this feature will need to be done for v3.6.  For v3.5, I
-think the two patches from Russ Dill should be merged.   They are
-targetted fixes and very well described.
-
-Kevin
-
-> The commit id 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-> "Fix OMAP EHCI suspend/resume failure (i693)",
-> is handling the clocks in ehci driver which is not correct,
-> it will be through the usb host driver ( /mfd/omap-usb_host.c )  exporting
-> APIs to ehci driver to handler the port clocks.
->
-> for now, this patch is necessary to remove the
->  commit id 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-> "Fix OMAP EHCI suspend/resume failure (i693)",
->
-> regards
-> keshava
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Tarun
+>>
+>>>
+>>>>
+>>>> Proper solution would be to save the mask_reg context into another
+>>>> register than context.wake_en during suspend.
+>>> As I said, this would make sense if mask_reg is referring to different
+>>> register than what is used in set_gpio_trigger(). I will have a look.
+>>
+>> OK thanks.
+>>
+>>>
+>>> BTW, did you observe anything unusual during some testing?
+>>
+
+Did you get a chance to see if the two registers are same or different?
+
+regards,
+-roger
+
+
