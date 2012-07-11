@@ -1,48 +1,71 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: Re: [PATCH v4 0/2] add new cache maintenance api
-Date: Wed, 11 Jul 2012 17:43:12 +0530
-Message-ID: <CADysL2YuOuCQEDpy0TdWJHaSmiotg-utnPSnhmxCetH0XBVRPg@mail.gmail.com>
-References: <CADysL2ZD0yCpCodeuwDpiaiD=uYuDfv4MDXN=YWa-LfY1-8pjA@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] arm: omap: hwmod: add new memory resource for
+ usb phy control
+Date: Wed, 11 Jul 2012 16:44:35 +0400
+Message-ID: <4FFD7533.8010807@mvista.com>
+References: <1342002598-30633-1-git-send-email-x0132156@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:46965 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753133Ab2GKMNP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jul 2012 08:13:15 -0400
-Received: by bkcji2 with SMTP id ji2so979265bkc.8
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 05:13:13 -0700 (PDT)
-In-Reply-To: <CADysL2ZD0yCpCodeuwDpiaiD=uYuDfv4MDXN=YWa-LfY1-8pjA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342002598-30633-1-git-send-email-x0132156-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
 
-Hi Russell,
+Hello.
 
-On Thu, Jul 5, 2012 at 10:50 AM, Gupta, Ramesh <grgupta@ti.com> wrote:
-> From 393c4effbbec74ff9b969d53ce4d36fde56b71df Mon Sep 17 00:00:00 2001
-> From: Ramesh Gupta G <grgupta@ti.com>
-> Date: Wed, 4 Jul 2012 16:43:41 +0530
-> Subject: [PATCH v4 0/2] add new cache maintenance api
->
-> This patch series is the next version to
-> - add a new cache maintenance api to support non-coherent iommu drivers.
-> - flush both L1 and L2 caches from OMAP iommu whenever the page table
->   memory is updated.
->
-> Changes since the previous patch set (v3)
-> - Minor cleanup for fixing checkpatch warnings.
->
-> The implementation of the new api is based on
-> the approach[1] discussed.
->
-> [1]http://marc.info/?l=linux-kernel&m=131316512713815&w=2
+On 11-07-2012 14:29, Damodar Santhapuri wrote:
 
+> From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Did you get a chance to review this patch series? Please let me know
-if I miss anything.
+> Added usb_ctrl0 and usb_ctrl1 base address as new memory resources
+> which will be used at am335x musb driver glue layer to turn on or
+> off builin PHY untill we have a separate system control module
+> driver.
 
-thank you and regards
-Ramesh Gupta G
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Singed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+> ---
+> Changes from v0:
+> Reordered the layout based on Kishon's comment on not using
+> platform_get_resources_by_name.
+
+>   arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   12 ++++++++++++
+>   1 files changed, 12 insertions(+), 0 deletions(-)
+
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> index df888fe..ec9e9df 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -3269,11 +3269,23 @@ static struct omap_hwmod_addr_space am33xx_usbss_addr_space[] = {
+>   		.flags		= ADDR_TYPE_RT
+>   	},
+>   	{
+> +		.name		= "usb_ctrl0",
+> +		.pa_start	= 0x44E10620,
+> +		.pa_end		= 0x44E10624,
+
+   Not 0x44E10623?
+
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{
+>   		.name		= "musb1",
+>   		.pa_start	= 0x47401800,
+>   		.pa_end		= 0x47401800 + SZ_2K - 1,
+>   		.flags		= ADDR_TYPE_RT
+>   	},
+> +	{
+> +		.name		= "usb_ctrl1",
+> +		.pa_start	= 0x44E10628,
+> +		.pa_end		= 0x44E1062c,
+
+    Not 0x44E1062B?
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
