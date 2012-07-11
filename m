@@ -1,50 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 2/5] omap board changes for v3.6 merge window
-Date: Tue, 10 Jul 2012 23:51:49 -0700
-Message-ID: <20120711065149.GB1122@atomide.com>
-References: <0M4ZFU-1RqIwX3VUq-00yonj@mx.kundenserver.de>
- <201207101534.13166.arnd@arndb.de>
- <4FFCCE43.2070709@windriver.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 2/3] usb: musb: dsps: add phy control logic to glue
+Date: Wed, 11 Jul 2012 07:03:30 +0000
+Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EACFBE1@DBDE01.ent.ti.com>
+References: <47CEF8C4B26E8C44B22B028A650E0EA93EACDFFF@DBDE01.ent.ti.com>
+ <BF1B1853A762164888C918AB089265E4282B4C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48770 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082Ab2GKGvx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 02:51:53 -0400
-Content-Disposition: inline
-In-Reply-To: <4FFCCE43.2070709@windriver.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49722 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754251Ab2GKHFU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jul 2012 03:05:20 -0400
+In-Reply-To: <BF1B1853A762164888C918AB089265E4282B4C@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zumeng Chen <zumeng.chen@windriver.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
+To: "Santhapuri, Damodar" <x0132156@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Zumeng Chen <zumeng.chen@windriver.com> [120710 17:57]:
-> =E4=BA=8E 2012=E5=B9=B407=E6=9C=8810=E6=97=A5 23:34, Arnd Bergmann =E5=
-=86=99=E9=81=93:
-> >I got a conflict in arch/arm/mach-omap2/common-board-devices.c betwe=
-en
-> >16aced80f6739 "ARM: OMAP3530evm: set pendown_state and debounce time=
- for
-> >ads7846" and 97ee9f01d6f26 "ARM: OMAP: fix the ads7846 init code",
-> >see my resolution below.
+Hi,
+> > > >> On Mon, Jul 9, 2012 at 7:18 PM, Damodar Santhapuri
+> <x0132156@ti.com>
+[...]
+> > > >> Avoid getting resource by name.. With dt, you wont be able to do
+> > > >> those..
+> > > >
+> > > > When we are completely on DT then this would anyways go and we
+> can
+> > > > get these resource data for each usb port from DT APIs.
+> > >
+> > > Even with dt, you will still get the resources using
+> > > platform_get_resource() API's.. So why not have it that way from
+> the
+> > > beginning itself..
 > >
-> >Please check if what I have in the for-next branch makese sense to y=
-ou
-> >all.
->
-> No problem,  many thanks Arnd for your information.
-> I'll check it, test it, and send you feedback.
+> > Ok got it. We will post an updated patch.
+> 
+> Plalform_get_resource api works fine if we hardcode 3rd argument to
+> 3+id for usb_cntrl register Since dsps_create_musb_pdev calls for each
+> wrp->instances.
+> 
+> static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8
+> id)
+> {
+> 	....
+> 	....
+>         /* get memory resource for usb control register */
+>         res = platform_get_resource(pdev, IORESOURCE_MEM, 3+id);
+>         dev_err(dev,"Damodar :usb ctrl%d res=%x\n",id,res->start);
+>         if (!res) {
+>                 dev_err(dev, "%s get mem resource failed\n", res_name);
+>                 ret = -ENODEV;
+>                 goto err0;
+>         }
+> ....
+> }
 
-Thanks, looks good. Also I've checked that for-next builds fine with
-my testconfigs.
+You can place the memory resources as 
+{{usbss, .}, {musb0, .}, {usb0_ctrl, .}, {musb1, .}, {usb1_ctrl, .}}
 
-Regards,
+and then use index as "2 * id + 2" to get the usbX_ctrl base address.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ajay
+> 
+> Damodar.
+> >
+> > Ajay
+> > >
+> > > Thanks
+> > > Kishon
