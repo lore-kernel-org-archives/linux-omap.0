@@ -1,64 +1,100 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing pen-down GPIO
-Date: Wed, 11 Jul 2012 16:18:20 -0700
-Message-ID: <1342048700-15040-1-git-send-email-khilman@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47939 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030498Ab2GKXSY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jul 2012 19:18:24 -0400
-Received: by yhr47 with SMTP id 47so1631834yhr.0
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 16:18:22 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Subject: Re: [PATCH 2/2] gpio/omap: add *remove* callback in platform_driver
+Date: Wed, 11 Jul 2012 16:25:44 -0700
+Message-ID: <87394xhocn.fsf@ti.com>
+References: <1341997995-14020-1-git-send-email-tarun.kanti@ti.com>
+	<1341997995-14020-3-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1341997995-14020-3-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 11 Jul 2012 14:43:15 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-commit 97ee9f01d6 (ARM: OMAP: fix the ads7846 init code) mistakenly
-frees the pen-down GPIO even though it will be used by the ads7846
-driver.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-Freeing a GPIO means that the GPIO bank containing that GPIO can be
-runtime suspended if its the last/only GPIO being used in that bank.
-If the GPIO bank is runtime suspended, any accesses to that bank will
-cause faults.
+> Add *remove* callback so that necessary cleanup operations are
+> performed when device is unregistered. 
 
-Because the current code frees the GPIO, the ads7846 driver probe will
-fault when it requests its IRQ line.  Because the IRQ is a GPIO line,
-the request IRQ will trickle down into the OMAP GPIO layer:
-gpio_irq_type() --> _set_gpio_triggering() which can fault if the
-bank has been runtime suspended.
+How was this tested?  on what platforms?  
 
-This is exctly what happens on Overo platforms (3530 Water, 3730 Overo
-FireSTORM) since this is the only GPIO used in the bank.
+> The device is deleted
+> from the list and associated clock handle is released by
+> calling clk_put() and irq descriptor is released using the
+> irq_free_desc() api.
 
-To fix, don't free the GPIO at all since it is always in use.
+There is quite a bit of other things to do in remove to properly cleanup
+what is done in probe.
 
-Cc: Igor Grinberg <grinberg@compulab.co.il>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Tony, this applies on top of your current fixes-non-critical branch and
-should probably go in to v3.5-rc since the patch which introduced the
-problem did as well.
+Also, what happens when a 'remove' is triwhen there are GPIOs that 
+are still requested and in use, especially if they are GPIO IRQs.
 
- arch/arm/mach-omap2/common-board-devices.c |    3 ---
- 1 file changed, 3 deletions(-)
+Also, what about runtime PM?
 
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index c187586..1ae6fd6 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -84,9 +84,6 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 		ads7846_config.gpio_pendown = gpio_pendown;
- 	}
- 
--	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
--		gpio_free(gpio_pendown);
--
- 	spi_register_board_info(&ads7846_spi_board_info, 1);
- }
- #else
--- 
-1.7.9.2
+In short, this seems very premature and I suspect untested.
 
+Kevin
+
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Reported-by: Paul Walmsley <paul@pwsan.com>
+> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  drivers/gpio/gpio-omap.c |   30 ++++++++++++++++++++++++++++++
+>  1 files changed, 30 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index afecdcc..08929d5 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1140,6 +1140,35 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  	return ret;
+>  }
+>  
+> +/**
+> + * omap_gpio_remove - cleanup a registered gpio device
+> + * @pdev:       pointer to current gpio platform device
+> + *
+> + * Called by driver framework whenever a gpio device is unregistered.
+> + * GPIO is deleted from the list and associated clock handle freed.
+> + */
+> +static int __devexit omap_gpio_remove(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct gpio_bank *bank;
+> +	unsigned long flags;
+> +	int ret = -EINVAL;
+> +
+> +	list_for_each_entry(bank, &omap_gpio_list, node) {
+> +		spin_lock_irqsave(&bank->lock, flags);
+> +		if (bank->dev == dev) {
+> +			list_del(&bank->node);
+> +			clk_put(bank->dbck);
+> +			irq_free_desc(bank->irq_base);
+> +			ret = 0;
+> +			spin_unlock_irqrestore(&bank->lock, flags);
+> +			break;
+> +		}
+> +		spin_unlock_irqrestore(&bank->lock, flags);
+> +	}
+> +	return ret;
+> +}
+> +
+>  #ifdef CONFIG_ARCH_OMAP2PLUS
+>  
+>  #if defined(CONFIG_PM_RUNTIME)
+> @@ -1466,6 +1495,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
+>  
+>  static struct platform_driver omap_gpio_driver = {
+>  	.probe		= omap_gpio_probe,
+> +	.remove = __devexit_p(omap_gpio_remove),
+>  	.driver		= {
+>  		.name	= "omap_gpio",
+>  		.pm	= &gpio_pm_ops,
