@@ -1,158 +1,77 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 02/11] usb: musb: kill global and static for multi instance
-Date: Thu, 12 Jul 2012 15:23:25 +0530
-Message-ID: <1342086814-32181-3-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 07/11] usb: otg: nop: add dt support
+Date: Thu, 12 Jul 2012 15:23:30 +0530
+Message-ID: <1342086814-32181-8-git-send-email-ajay.gupta@ti.com>
 References: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51094 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758979Ab2GLJxs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jul 2012 05:53:48 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:35808 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758980Ab2GLJxs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jul 2012 05:53:48 -0400
 In-Reply-To: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Moved global variable "musb_debugfs_root" and static variable
-"old_state" to 'struct musb' to help support multi instance of
-musb controller as present on AM335x platform.
-
-Also removed the global variable "orig_dma_mask" and filled the
-dev->dma_mask with parent device's dma_mask.
+Added device tree support for nop transceiver driver and updated the
+Documentation with device tree binding information for am33xx platform.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
-Earlier version of this was submitted at
-http://marc.info/?l=linux-usb&m=134062715911250&w=2
+ .../devicetree/bindings/usb/am33xx-usb.txt         |    3 +++
+ drivers/usb/otg/nop-usb-xceiv.c                    |   12 ++++++++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
- drivers/usb/musb/musb_core.c    |   16 +++-------------
- drivers/usb/musb/musb_core.h    |    4 ++++
- drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
- 3 files changed, 15 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index f6ce66f..b6389f7 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1773,10 +1773,9 @@ static const struct attribute_group musb_attr_group = {
- static void musb_irq_work(struct work_struct *data)
- {
- 	struct musb *musb = container_of(data, struct musb, irq_work);
--	static int old_state;
- 
--	if (musb->xceiv->state != old_state) {
--		old_state = musb->xceiv->state;
-+	if (musb->xceiv->state != musb->xceiv_old_state) {
-+		musb->xceiv_old_state = musb->xceiv->state;
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
- }
-@@ -2086,11 +2085,6 @@ fail0:
- /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
-  * bridge to a platform device; this driver then suffices.
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index ca8fa56..a314720 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -12,3 +12,6 @@ AM33XX MUSB GLUE
+    represents PERIPHERAL.
+  - power : Should be "250". This signifies the controller can supply upto
+    500mA when operating in host mode.
++
++NOP USB PHY
++ - compatible : Should be "ti,nop-xceiv-usb"
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+index 2e5e889..0bca4d1 100644
+--- a/drivers/usb/otg/nop-usb-xceiv.c
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -27,6 +27,7 @@
   */
--
--#ifndef CONFIG_MUSB_PIO_ONLY
--static u64	*orig_dma_mask;
--#endif
--
- static int __devinit musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
-@@ -2109,10 +2103,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
  
--#ifndef CONFIG_MUSB_PIO_ONLY
--	/* clobbered by use_dma=n */
--	orig_dma_mask = dev->dma_mask;
--#endif
- 	status = musb_init_controller(dev, irq, base);
- 	if (status < 0)
- 		iounmap(base);
-@@ -2137,7 +2127,7 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 	iounmap(ctrl_base);
- 	device_init_wakeup(&pdev->dev, 0);
- #ifndef CONFIG_MUSB_PIO_ONLY
--	pdev->dev.dma_mask = orig_dma_mask;
-+	pdev->dev.dma_mask = (&dev->dev.parent)->dma_mask;
- #endif
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/otg.h>
+@@ -152,12 +153,23 @@ static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
  	return 0;
  }
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 24daafd..fc8817d 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -452,6 +452,10 @@ struct musb {
- #endif
- 	/* id for multiple musb instances */
- 	u8			id;
-+	int                     xceiv_old_state;
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry           *debugfs_root;
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id nop_xceiv_id_table[] = {
++	{ .compatible = "ti,nop-xceiv-usb" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, nop_xceiv_id_table);
++#else
++#define nop_xceiv_id_table NULL
 +#endif
++
+ static struct platform_driver nop_usb_xceiv_driver = {
+ 	.probe		= nop_usb_xceiv_probe,
+ 	.remove		= __devexit_p(nop_usb_xceiv_remove),
+ 	.driver		= {
+ 		.name	= "nop_usb_xceiv",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(nop_xceiv_id_table),
+ 	},
  };
  
- static inline struct musb *gadget_to_musb(struct usb_gadget *g)
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 40a37c9..b1e8f21 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
- 	{  }	/* Terminating Entry */
- };
- 
--static struct dentry *musb_debugfs_root;
--
- static int musb_regdump_show(struct seq_file *s, void *unused)
- {
- 	struct musb		*musb = s->private;
-@@ -240,20 +238,24 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 	struct dentry		*root;
- 	struct dentry		*file;
- 	int			ret;
-+	char			name[10];
- 
--	root = debugfs_create_dir("musb", NULL);
-+	sprintf(name, "musb%d", musb->id);
-+	root = debugfs_create_dir(name, NULL);
- 	if (!root) {
- 		ret = -ENOMEM;
- 		goto err0;
- 	}
- 
--	file = debugfs_create_file("regdump", S_IRUGO, root, musb,
-+	sprintf(name, "regdump%d", musb->id);
-+	file = debugfs_create_file(name, S_IRUGO, root, musb,
- 			&musb_regdump_fops);
- 	if (!file) {
- 		ret = -ENOMEM;
- 		goto err1;
- 	}
- 
-+	sprintf(name, "testmode%d", musb->id);
- 	file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR,
- 			root, musb, &musb_test_mode_fops);
- 	if (!file) {
-@@ -261,7 +263,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 		goto err1;
- 	}
- 
--	musb_debugfs_root = root;
-+	musb->debugfs_root = root;
- 
- 	return 0;
- 
-@@ -274,5 +276,5 @@ err0:
- 
- void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
- {
--	debugfs_remove_recursive(musb_debugfs_root);
-+	debugfs_remove_recursive(musb->debugfs_root);
- }
 -- 
 1.7.0.4
 
