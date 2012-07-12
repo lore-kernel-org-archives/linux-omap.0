@@ -1,67 +1,181 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP3: prevent per_clkdm from attempting manual
- domain transitions
-Date: Thu, 12 Jul 2012 15:11:13 +0530
-Message-ID: <4FFE9BB9.7000209@ti.com>
-References: <1338470942-20185-1-git-send-email-t-kristo@ti.com> <1338470942-20185-9-git-send-email-t-kristo@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 05/11] usb: musb: dsps: add dt support
+Date: Thu, 12 Jul 2012 15:23:28 +0530
+Message-ID: <1342086814-32181-6-git-send-email-ajay.gupta@ti.com>
+References: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36146 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757206Ab2GLJlU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 05:41:20 -0400
-Received: by obqv19 with SMTP id v19so6701091obq.16
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 02:41:19 -0700 (PDT)
-In-Reply-To: <1338470942-20185-9-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36836 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758993Ab2GLJxu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jul 2012 05:53:50 -0400
+In-Reply-To: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Thursday 31 May 2012 06:59 PM, Tero Kristo wrote:
-> Previously, PER clock domain was always enabled, as the usecounts
-> for this domain incorrectly always showed positive value. On HW
-> level though, the domain enters idle as it is set in HW supervised
-> mode. Now, when the usecounts reflect real values, PER domain will
-> attempt to enter software supervised idle, which is not supported by the
-> hardware/kernel that well, and causes multiple problems. First of all,
-> coming back from idle, PER domain remains idle as the wakedeps have
-> been disabled for the domain, and this causes a crash with the GPIO
-> code, as the resume code attempts to access domain which is not active.
-> Just enabling the interface clocks for the GPIO does not help, as they
-> are autoidled and don't bring the domain out of idle. Secondly, there
-> are multiple erratas for omap3, which say that the wakedeps should be
-> enabled for the PER domain, see e.g. errata i582 for omap3630.
+Added device tree support for dsps musb glue driver and updated the
+Documentation with device tree binding information.
 
-If PER software supervised idle is so *buggy* then shouldn't the flags
-just reflect that PER *does not* support software supervised idle?
-Using a flag which reflects that the clkdm supports both hardware
-and software supervised idle ('CLKDM_CAN_HWSUP_SWSUP') and then using
-another one to actually skip putting it in software supervised sounds
-a little round about, no?
-Does updating the flag to 'CLKDM_CAN_HWSUP' also fix all the issues
-for you? without adding the additional 'CLKDM_SKIP_MANUAL_TRANS' flag.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   14 +++++
+ drivers/usb/musb/musb_dsps.c                       |   62 +++++++++++++++++---
+ 2 files changed, 67 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
->
-> Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> ---
->   arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> index 6038adb..0dae4c8 100644
-> --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> @@ -282,7 +282,7 @@ static struct clockdomain usbhost_clkdm = {
->   static struct clockdomain per_clkdm = {
->   	.name		= "per_clkdm",
->   	.pwrdm		= { .name = "per_pwrdm" },
-> -	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-> +	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_SKIP_MANUAL_TRANS,
->   	.dep_bit	= OMAP3430_EN_PER_SHIFT,
->   	.wkdep_srcs	= per_wkdeps,
->   	.sleepdep_srcs	= per_sleepdeps,
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+new file mode 100644
+index 0000000..ca8fa56
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -0,0 +1,14 @@
++AM33XX MUSB GLUE
++ - compatible : Should be "ti,musb-am33xx"
++ - ti,hwmods : must be "usb_otg_hs"
++ - multipoint : Should be "1" indicating the musb controller supports
++   multipoint. This is a MUSB configuration-specific setting.
++ - num_eps : Specifies the number of endpoints. This is also a
++   MUSB configuration-specific setting. Should be set to "16"
++ - ram_bits : Specifies the ram address size. Should be set to "12"
++ - port0_mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++   represents PERIPHERAL.
++ - port1_mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
++   represents PERIPHERAL.
++ - power : Should be "250". This signifies the controller can supply upto
++   500mA when operating in host mode.
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 17efd3d..619c800 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -31,6 +31,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/of.h>
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+@@ -45,6 +46,10 @@
+ 
+ #include "musb_core.h"
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id musb_dsps_of_match[];
++#endif
++
+ /**
+  * avoid using musb_readx()/musb_writex() as glue layer should not be
+  * dependent on musb core layer symbols.
+@@ -496,6 +501,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	struct device *dev = glue->dev;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct musb_hdrc_platform_data  *pdata = dev->platform_data;
++	struct device_node *np = pdev->dev.of_node;
++	struct musb_hdrc_config	*config;
+ 	struct platform_device	*musb;
+ 	struct resource *res;
+ 	struct resource	resources[2];
+@@ -555,14 +562,40 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 
+ 	glue->musb[id]			= musb;
+ 
+-	pdata->platform_ops		= &dsps_ops;
+-
+ 	ret = platform_device_add_resources(musb, resources, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add resources\n");
+ 		goto err1;
+ 	}
+ 
++	if (np) {
++		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb platfrom data\n");
++			ret = -ENOMEM;
++			goto err1;
++		}
++
++		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
++		if (!config) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb hdrc config\n");
++			goto err1;
++		}
++
++		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
++		sprintf(res_name, "port%d_mode", id);
++		of_property_read_u32(np, res_name, (u32 *)&pdata->mode);
++		of_property_read_u32(np, "power", (u32 *)&pdata->power);
++		config->multipoint = of_property_read_bool(np, "multipoint");
++
++		pdata->config		= config;
++	}
++
++	pdata->platform_ops		= &dsps_ops;
++
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(dev, "failed to add platform_data\n");
+@@ -591,14 +624,22 @@ static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
+ 
+ static int __devinit dsps_probe(struct platform_device *pdev)
+ {
+-	const struct platform_device_id *id = platform_get_device_id(pdev);
+-	const struct dsps_musb_wrapper *wrp =
+-				(struct dsps_musb_wrapper *)id->driver_data;
++	struct device_node *np = pdev->dev.of_node;
++	const struct of_device_id *match;
++	const struct dsps_musb_wrapper *wrp;
+ 	struct dsps_glue *glue;
+ 	struct resource *iomem;
+ 	u32 __iomem *usbss;
+ 	int ret, i;
+ 
++	match = of_match_node(musb_dsps_of_match, np);
++	if (!match) {
++		dev_err(&pdev->dev, "fail to get matching of_match struct\n");
++		ret = -EINVAL;
++		goto err0;
++	}
++	wrp = match->data;
++
+ 	/* allocate glue */
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -758,13 +799,16 @@ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+ };
+ MODULE_DEVICE_TABLE(platform, musb_dsps_id_table);
+ 
++#ifdef CONFIG_OF
+ static const struct of_device_id musb_dsps_of_match[] __devinitconst = {
+-	{ .compatible = "musb-ti81xx", },
+-	{ .compatible = "ti,ti81xx-musb", },
+-	{ .compatible = "ti,am335x-musb", },
++	{ .compatible = "ti,musb-am33xx",
++		.data = (void *) &ti81xx_driver_data, },
+ 	{  },
+ };
+ MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
++#else
++#define musb_dsps_of_match NULL
++#endif
+ 
+ static struct platform_driver dsps_usbss_driver = {
+ 	.probe		= dsps_probe,
+@@ -772,7 +816,7 @@ static struct platform_driver dsps_usbss_driver = {
+ 	.driver         = {
+ 		.name   = "musb-dsps",
+ 		.pm	= &dsps_pm_ops,
+-		.of_match_table	= musb_dsps_of_match,
++		.of_match_table	= of_match_ptr(musb_dsps_of_match),
+ 	},
+ 	.id_table	= musb_dsps_id_table,
+ };
+-- 
+1.7.0.4
 
