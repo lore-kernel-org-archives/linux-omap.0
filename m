@@ -1,52 +1,59 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Thu, 12 Jul 2012 11:26:44 +0530
-Message-ID: <4FFE671C.30002@ti.com>
-References: <WC20120705150314.450045@terrafix.co.uk> <87zk77p3s5.fsf@ti.com> <WC20120711105003.8400AC@terrafix.co.uk> <87pq82kz0l.fsf@ti.com> <CALLhW=6p4AAUrpQmAFCTC2SYbAU_2F0roZ4Ha-NfE+oGn6zPbw@mail.gmail.com> <87wr2ahtqg.fsf@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: ensure probe returns error upon resource failure
+Date: Thu, 12 Jul 2012 11:49:13 +0530
+Message-ID: <CANfBPZ8afVFt8UFr2Bi1M=NYbr_W0oH5ZOy90EXdQ9zaVm63dQ@mail.gmail.com>
+References: <1341963658-20896-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:36766 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057Ab2GLF4v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 01:56:51 -0400
-Received: by obfk16 with SMTP id k16so2399657obf.15
-        for <linux-omap@vger.kernel.org>; Wed, 11 Jul 2012 22:56:50 -0700 (PDT)
-In-Reply-To: <87wr2ahtqg.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1341963658-20896-1-git-send-email-khilman@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, open list <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Thursday 12 July 2012 02:59 AM, Kevin Hilman wrote:
-> Omar Ramirez Luna <omar.luna@linaro.org> writes:
+On Wed, Jul 11, 2012 at 5:10 AM, Kevin Hilman <khilman@ti.com> wrote:
+> If platform_get_resource_by_name() fails, driver probe is aborted an
+> should return an error so the driver is not bound to the device.
 >
->> On 11 July 2012 12:07, Kevin Hilman <khilman@ti.com> wrote:
->> ...
->>>> [    2.311004] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
->>>> [    2.317382] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
->>>> [    2.325256] omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
->>>> [    2.331512] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
->>> These are normal because DMA engine is not compiled in with
->>> omap2plus_defconfig.  MMC wont' work unless you build in DMA engine, but
->>> that doesn't matter for trying to figure out your problem.
->> Hijacking this thread a little bit...
->>
->> It looks like a dependency is missing in Kconfig then, as this also
->> fails to boot if the file system is in MMC. As you pointed out
->> CONFIG_DMADEVICES and CONFIG_DMA_OMAP is needed to boot in this case.
->> I'm using a Panda 4460.
-> Yes, the drivers that have been converted to DMA engine should probably
-> 'select DMADEVICES' and 'select DMA_OMAP' since they will now depend on
-> DMA engine.
-looks like some effort already
-https://patchwork.kernel.org/patch/1157731/
+> However, in the current error path of platform_get_resource_by_name(),
+> probe returns zero since the return value (ret) is not properly set.
+> With a zero return value, the driver core assumes probe was successful
+> and will bind the driver to the device.
 >
-> Kevin
+> Fix this by ensuring that probe returns an error code in this failure
+> path.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+
+Good catch.
+Acked-by: Venkatraman S <svenkatr@ti.com>
+
+
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 389a3ee..19e60e9 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1931,6 +1931,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+>         res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+>         if (!res) {
+>                 dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
+> +               ret = -ENXIO;
+>                 goto err_irq;
+>         }
+>         host->dma_line_tx = res->start;
+> @@ -1938,6 +1939,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+>         res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+>         if (!res) {
+>                 dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
+> +               ret = -ENXIO;
+>                 goto err_irq;
+>         }
+>         host->dma_line_rx = res->start;
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> 1.7.9.2
+>
