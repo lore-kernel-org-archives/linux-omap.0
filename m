@@ -1,78 +1,52 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 8/9] ARM: OMAP3: prevent per_clkdm from attempting
- manual domain transitions
-Date: Thu, 12 Jul 2012 18:35:13 +0300
-Message-ID: <1342107313.4672.40.camel@sokoban>
-References: <1338470942-20185-1-git-send-email-t-kristo@ti.com>
-	 <1338470942-20185-9-git-send-email-t-kristo@ti.com>
-	 <4FFE9BB9.7000209@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 1/3] regulator: tps65217: Add device tree support
+Date: Thu, 12 Jul 2012 18:28:37 +0100
+Message-ID: <20120712172836.GR7256@opensource.wolfsonmicro.com>
+References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
+ <1341918584-28004-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40301 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933947Ab2GLPff (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jul 2012 11:35:35 -0400
-In-Reply-To: <4FFE9BB9.7000209@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="24/piotZLKF/SXqU"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1341918584-28004-2-git-send-email-anilkumar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
-
-On Thu, 2012-07-12 at 15:11 +0530, Rajendra Nayak wrote:
-> On Thursday 31 May 2012 06:59 PM, Tero Kristo wrote:
-> > Previously, PER clock domain was always enabled, as the usecounts
-> > for this domain incorrectly always showed positive value. On HW
-> > level though, the domain enters idle as it is set in HW supervised
-> > mode. Now, when the usecounts reflect real values, PER domain will
-> > attempt to enter software supervised idle, which is not supported by the
-> > hardware/kernel that well, and causes multiple problems. First of all,
-> > coming back from idle, PER domain remains idle as the wakedeps have
-> > been disabled for the domain, and this causes a crash with the GPIO
-> > code, as the resume code attempts to access domain which is not active.
-> > Just enabling the interface clocks for the GPIO does not help, as they
-> > are autoidled and don't bring the domain out of idle. Secondly, there
-> > are multiple erratas for omap3, which say that the wakedeps should be
-> > enabled for the PER domain, see e.g. errata i582 for omap3630.
-> 
-> If PER software supervised idle is so *buggy* then shouldn't the flags
-> just reflect that PER *does not* support software supervised idle?
-> Using a flag which reflects that the clkdm supports both hardware
-> and software supervised idle ('CLKDM_CAN_HWSUP_SWSUP') and then using
-> another one to actually skip putting it in software supervised sounds
-> a little round about, no?
-> Does updating the flag to 'CLKDM_CAN_HWSUP' also fix all the issues
-> for you? without adding the additional 'CLKDM_SKIP_MANUAL_TRANS' flag.
-
-Simple CAN_HWSUP doesn't work, as the whole problem is with HWSUP mode
-and manual enabling / disabling of autodeps by kernel. I can rename the
-flag to something like CLKDM_NO_AUTODEP_DISABLE and move the checking of
-flag from the generic clockdomain code to omap3 clockdomain part though.
-
--Tero
-
-> 
-> >
-> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> > ---
-> >   arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
-> >   1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > index 6038adb..0dae4c8 100644
-> > --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
-> > @@ -282,7 +282,7 @@ static struct clockdomain usbhost_clkdm = {
-> >   static struct clockdomain per_clkdm = {
-> >   	.name		= "per_clkdm",
-> >   	.pwrdm		= { .name = "per_pwrdm" },
-> > -	.flags		= CLKDM_CAN_HWSUP_SWSUP,
-> > +	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_SKIP_MANUAL_TRANS,
-> >   	.dep_bit	= OMAP3430_EN_PER_SHIFT,
-> >   	.wkdep_srcs	= per_wkdeps,
-> >   	.sleepdep_srcs	= per_sleepdeps,
-> 
 
 
+--24/piotZLKF/SXqU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jul 10, 2012 at 04:39:42PM +0530, AnilKumar Ch wrote:
+> This commit adds device tree support for tps65217 pmic. And usage
+> details are added to device tree documentation. Driver is tested
+> by using kernel module with regulator set and get APIs.
+
+Applied, thanks.
+
+--24/piotZLKF/SXqU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP/wksAAoJEBus8iNuMP3dgcIP/Az7K5iUFhWJ5Kak7CtG1icC
+9BVT6amEhOGcXNQjA6nhi1Y6ajok+z+Ln0/4U/dbPg4yiXkNyn9TnALsV7L5Vcl1
+c4H4zwfYQgLLGTXo2mZilTabNBVspYPKZmtodMHrajsTVUeZbV1x1aDFHWsqnNJd
+bl8CgfaRrBbbotz7qJ3ojnsZWyDuhbsydI7c8h8ysgizFSxnClrFn4ekdZsE2+RS
+i2jwO4VseJAH+/EaRGXoJx2wOh564uEGzvOrWd4RZb2drzCtqQHkMn8IUXwVtqTg
+/UOaL5n8QHxNSOCFBsaNnXdnBKE14Rt4Kx8k1jIEWxPftKQRrCdVVQ3XZ6ZL+lJt
+a8mbhNBD2aYDRLglXU2jkjC4qc2XHI7/MvOoQqc9krXfGuaUwwXkjRUSbuQGw6v7
+G7lYWE3zBLOn0ESQPb4yjEiOqDEo/hkntD2CjbFEx4R7F57xoKm4LjntkEjUBPh+
+2zceV9I/jlsY9vzRg6Yp8JSZfVKND4uGN5vK6zZi5eJziN2wkdHl7Yqnt2yuEcZu
+UOuKDJaqh5QI1ea60+I+8i/CqoOHQSHjTGmeLEFhwI7boSjNPFDauM7lDsjEgpAe
+XEaSuHW9eXhL742eKq3fKwR/C9qZeRqheNu6xYhp5A2VsoCCrKSe+QfiXdt5Ogfq
+IJQRHLMV5fgKN84sIaDN
+=sBGE
+-----END PGP SIGNATURE-----
+
+--24/piotZLKF/SXqU--
