@@ -1,99 +1,81 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not
- stable, disable it
-Date: Thu, 12 Jul 2012 14:03:40 +0530
-Message-ID: <CAP05o4JVWPQjx4srob7jhBTepa8URX4tpOmLyNTpWdaw3pTQ3A@mail.gmail.com>
-References: <1341598828-31410-1-git-send-email-khilman@ti.com>
+From: "Santhapuri, Damodar" <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2 1/3] arm: omap: hwmod: add new memory resource for
+ usb phy control
+Date: Thu, 12 Jul 2012 08:52:07 +0000
+Message-ID: <BF1B1853A762164888C918AB089265E4282FCD@DBDE01.ent.ti.com>
+References: <4FFD7533.8010807@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36638 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753392Ab2GLIdn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 04:33:43 -0400
-Received: by lbbgj10 with SMTP id gj10so3008469lbb.9
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 01:33:40 -0700 (PDT)
-In-Reply-To: <1341598828-31410-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4FFD7533.8010807-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-On Fri, Jul 6, 2012 at 11:50 PM, Kevin Hilman <khilman@ti.com> wrote:
-> The EHCI driver is not stable enough to be enabled by default.  In v3.5,
-> it has at least the following problems:
->
-> - warning dump during bootup
-> - hang during suspend
-> - prevents CORE powerdomain from entering retention during idle (even
->   when no USB devices connected.)
->
-> This demonstrates that this driver has not been thoroughly tested and
-> therfore should not be enabled in the default defconfig.
->
-> In addition, the problems above cause new PM regressions which need be
-> addressed before this driver should be enabled in the default
-> defconfig.
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Tony, this applies to your current fixes branch.   Please queue up for v3.5-rc
-> so this PM regression is fixed in v3.5.  Thanks.
->
->  arch/arm/configs/omap2plus_defconfig |    1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-> index 9854ff4..11828e6 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -176,7 +176,6 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
->  CONFIG_USB_DEVICEFS=y
->  CONFIG_USB_SUSPEND=y
->  CONFIG_USB_MON=y
-> -CONFIG_USB_EHCI_HCD=y
->  CONFIG_USB_WDM=y
->  CONFIG_USB_STORAGE=y
->  CONFIG_USB_LIBUSUAL=y
-> --
-> 1.7.9.2
->
 
 
-hi Kevin
-   This patch is good. But , in  my earlier patch I was disabling the
-dependent configuration of ehci too.
+Hi,
+> 
+> Hello.
+> 
+> On 11-07-2012 14:29, Damodar Santhapuri wrote:
+> 
+> > From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> 
+> > Added usb_ctrl0 and usb_ctrl1 base address as new memory resources
+> > which will be used at am335x musb driver glue layer to turn on or
+> > off builin PHY untill we have a separate system control module
+> > driver.
+> 
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> > Singed-off-by: Damodar Santhapuri <x0132156-l0cyMroinI0@public.gmane.org>
+> > ---
+> > Changes from v0:
+> > Reordered the layout based on Kishon's comment on not using
+> > platform_get_resources_by_name.
+> 
+> >   arch/arm/mach-omap2/omap_hwmod_33xx_data.c |   12 ++++++++++++
+> >   1 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-
+> omap2/omap_hwmod_33xx_data.c
+> > index df888fe..ec9e9df 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> > @@ -3269,11 +3269,23 @@ static struct omap_hwmod_addr_space
+> am33xx_usbss_addr_space[] = {
+> >   		.flags		= ADDR_TYPE_RT
+> >   	},
+> >   	{
+> > +		.name		= "usb_ctrl0",
+> > +		.pa_start	= 0x44E10620,
+> > +		.pa_end		= 0x44E10624,
+> 
+>    Not 0x44E10623?
+> 
+> > +		.flags		= ADDR_TYPE_RT
+> > +	},
+> > +	{
+> >   		.name		= "musb1",
+> >   		.pa_start	= 0x47401800,
+> >   		.pa_end		= 0x47401800 + SZ_2K - 1,
+> >   		.flags		= ADDR_TYPE_RT
+> >   	},
+> > +	{
+> > +		.name		= "usb_ctrl1",
+> > +		.pa_start	= 0x44E10628,
+> > +		.pa_end		= 0x44E1062c,
+> 
+>     Not 0x44E1062B?
 
-- CONFIG_USB=y
-                - removes the usb host  ( EHCI is the only host),
-hence keeping it enabled with ehci does not make sense for
-                        omap2 defconfig
+I will fix this and send you updated patch.
 
--CONFIG_USB_DEBUG=y
-                   - Enables the debug messages for usb host
-
--CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
--CONFIG_USB_DEVICEFS=y
-                    Announces the new devices attached to ehci; if usb
-host it self is not there, then we dont need it.
-
--CONFIG_USB_SUSPEND=y
-                   - suspend resume of usb host; not required if ehci
-itself is not existing
-
--CONFIG_USB_MON=y
-                   - usb monitor
-
--CONFIG_USB_WDM=y
--CONFIG_USB_STORAGE=y
--CONFIG_USB_LIBUSUAL=y
--CONFIG_USB_TEST=y
-              - usb storage and test ; again dependent on ehci only in
-omap2plusdefconfig.
-
-for omap build, if you disabling ehci , its good have not include
-these modules; yet including these modules does not harm anything.
-
-regards
-keshava
+Damodar .
+> 
+> WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
