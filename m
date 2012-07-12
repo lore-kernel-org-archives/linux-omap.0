@@ -1,46 +1,99 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: suspend broken on 3.5-rc1?
-Date: Thu, 12 Jul 2012 11:31:11 +0300
-Message-ID: <1342081871.4672.32.camel@sokoban>
-References: <4FD1D570.1010508@ti.com>	<20120608105611.GO12766@atomide.com>
-	 <4FD1EF25.3060906@ti.com>	<1339160732.2091.47.camel@sokoban>
-	 <4FD1FB47.8040007@ti.com>	<4FD72FB7.60905@ti.com>
-	 <CALLhW=5HUJuUbEoz7GXJ3h75iqB_9_bNrofBU45zKQejkKExAQ@mail.gmail.com>
-	 <87mx36ht3y.fsf@ti.com>
-	 <CALLhW=7FwtPy0_u863fH7-nSMW4AvxuqHvNeO2CqtF3aJEgh4Q@mail.gmail.com>
-	 <4FFE6049.7040908@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: omap2plus_defconfig: EHCI driver is not
+ stable, disable it
+Date: Thu, 12 Jul 2012 14:03:40 +0530
+Message-ID: <CAP05o4JVWPQjx4srob7jhBTepa8URX4tpOmLyNTpWdaw3pTQ3A@mail.gmail.com>
+References: <1341598828-31410-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59582 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751596Ab2GLIbQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 04:31:16 -0400
-In-Reply-To: <4FFE6049.7040908@ti.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36638 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753392Ab2GLIdn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jul 2012 04:33:43 -0400
+Received: by lbbgj10 with SMTP id gj10so3008469lbb.9
+        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 01:33:40 -0700 (PDT)
+In-Reply-To: <1341598828-31410-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, loml <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-07-12 at 10:57 +0530, Rajendra Nayak wrote:
-> On Thursday 12 July 2012 05:28 AM, Omar Ramirez Luna wrote:
-> > I suspect this might be specific to 4460 as Rajendra reported it was
-> > working for him on 4430 but not on 4460, I haven't tried 4430 but let
-> > me see if I can find one.
-> 
-> Yes, this is an issue specific to 4460. The patch 'ARM: OMAP4460:
-> Workaround for ROM bug because of CA9 r2pX GIC control register change'
-> from Tero's Core retention series [1] fixes it. Unfortunately the patch
-> does not apply on it own and has dependencies with other patches in the
-> series.
-> 
-> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/78399
+On Fri, Jul 6, 2012 at 11:50 PM, Kevin Hilman <khilman@ti.com> wrote:
+> The EHCI driver is not stable enough to be enabled by default.  In v3.5,
+> it has at least the following problems:
+>
+> - warning dump during bootup
+> - hang during suspend
+> - prevents CORE powerdomain from entering retention during idle (even
+>   when no USB devices connected.)
+>
+> This demonstrates that this driver has not been thoroughly tested and
+> therfore should not be enabled in the default defconfig.
+>
+> In addition, the problems above cause new PM regressions which need be
+> addressed before this driver should be enabled in the default
+> defconfig.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Tony, this applies to your current fixes branch.   Please queue up for v3.5-rc
+> so this PM regression is fixed in v3.5.  Thanks.
+>
+>  arch/arm/configs/omap2plus_defconfig |    1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index 9854ff4..11828e6 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -176,7 +176,6 @@ CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+>  CONFIG_USB_DEVICEFS=y
+>  CONFIG_USB_SUSPEND=y
+>  CONFIG_USB_MON=y
+> -CONFIG_USB_EHCI_HCD=y
+>  CONFIG_USB_WDM=y
+>  CONFIG_USB_STORAGE=y
+>  CONFIG_USB_LIBUSUAL=y
+> --
+> 1.7.9.2
+>
 
-The dependencies are by design, I am trying to force maintainers to get
-that stuff in. ;)
 
--Tero
+hi Kevin
+   This patch is good. But , in  my earlier patch I was disabling the
+dependent configuration of ehci too.
 
+- CONFIG_USB=y
+                - removes the usb host  ( EHCI is the only host),
+hence keeping it enabled with ehci does not make sense for
+                        omap2 defconfig
 
+-CONFIG_USB_DEBUG=y
+                   - Enables the debug messages for usb host
+
+-CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+-CONFIG_USB_DEVICEFS=y
+                    Announces the new devices attached to ehci; if usb
+host it self is not there, then we dont need it.
+
+-CONFIG_USB_SUSPEND=y
+                   - suspend resume of usb host; not required if ehci
+itself is not existing
+
+-CONFIG_USB_MON=y
+                   - usb monitor
+
+-CONFIG_USB_WDM=y
+-CONFIG_USB_STORAGE=y
+-CONFIG_USB_LIBUSUAL=y
+-CONFIG_USB_TEST=y
+              - usb storage and test ; again dependent on ehci only in
+omap2plusdefconfig.
+
+for omap build, if you disabling ehci , its good have not include
+these modules; yet including these modules does not harm anything.
+
+regards
+keshava
