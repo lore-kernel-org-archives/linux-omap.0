@@ -1,80 +1,67 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv3 5/9] ARM: OMAP3: set autoidle flags for a few clocks
-Date: Thu, 12 Jul 2012 14:43:27 +0530
-Message-ID: <4FFE9537.9080708@ti.com>
-References: <1338470942-20185-1-git-send-email-t-kristo@ti.com> <1338470942-20185-6-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv3 8/9] ARM: OMAP3: prevent per_clkdm from attempting manual
+ domain transitions
+Date: Thu, 12 Jul 2012 15:11:13 +0530
+Message-ID: <4FFE9BB9.7000209@ti.com>
+References: <1338470942-20185-1-git-send-email-t-kristo@ti.com> <1338470942-20185-9-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:47378 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933467Ab2GLJNe (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36146 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757206Ab2GLJlU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 05:13:34 -0400
-Received: by yenr13 with SMTP id r13so1955238yen.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 02:13:33 -0700 (PDT)
-In-Reply-To: <1338470942-20185-6-git-send-email-t-kristo@ti.com>
+	Thu, 12 Jul 2012 05:41:20 -0400
+Received: by obqv19 with SMTP id v19so6701091obq.16
+        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 02:41:19 -0700 (PDT)
+In-Reply-To: <1338470942-20185-9-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi Tero,
+On Thursday 31 May 2012 06:59 PM, Tero Kristo wrote:
+> Previously, PER clock domain was always enabled, as the usecounts
+> for this domain incorrectly always showed positive value. On HW
+> level though, the domain enters idle as it is set in HW supervised
+> mode. Now, when the usecounts reflect real values, PER domain will
+> attempt to enter software supervised idle, which is not supported by the
+> hardware/kernel that well, and causes multiple problems. First of all,
+> coming back from idle, PER domain remains idle as the wakedeps have
+> been disabled for the domain, and this causes a crash with the GPIO
+> code, as the resume code attempts to access domain which is not active.
+> Just enabling the interface clocks for the GPIO does not help, as they
+> are autoidled and don't bring the domain out of idle. Secondly, there
+> are multiple erratas for omap3, which say that the wakedeps should be
+> enabled for the PER domain, see e.g. errata i582 for omap3630.
 
-On Thursday 31 May 2012 06:58 PM, Tero Kristo wrote:
-> dpll3, dpll4 and sdrc_ick are controlled automatically by hardware.
+If PER software supervised idle is so *buggy* then shouldn't the flags
+just reflect that PER *does not* support software supervised idle?
+Using a flag which reflects that the clkdm supports both hardware
+and software supervised idle ('CLKDM_CAN_HWSUP_SWSUP') and then using
+another one to actually skip putting it in software supervised sounds
+a little round about, no?
+Does updating the flag to 'CLKDM_CAN_HWSUP' also fix all the issues
+for you? without adding the additional 'CLKDM_SKIP_MANUAL_TRANS' flag.
 
-sdrc_ick does not seem to have a software control to enable/disable
-this automatic control in hardware, so what you are doing in the
-patch below seems fine.
-However for dpll3 and dpll4, there is indeed a software control which
-is enabled/disabled through omap3_dpll_allow_idle/omap3_dpll_deny_idle
-functions respectively. So shouldn't the 'autoidle' flag for them be
-handled similar to what you do in omap2_clkt_iclk_allow_idle/
-omap2_clkt_iclk_deny_idle functions in your PATCH 2/9, instead of
-setting them to 'true' statically?
-
-regards,
-Rajendra
-
-> Thus, reflect this with the autoidle flags, the clocks will no longer
-> show as active in usecount dumps and will allow the voltdm->sleep /
-> wakeup calls to work properly.
 >
 > Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@ti.com>
 > ---
->   arch/arm/mach-omap2/clock3xxx_data.c |    3 +++
->   1 files changed, 3 insertions(+), 0 deletions(-)
+>   arch/arm/mach-omap2/clockdomains3xxx_data.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index 4e1a3b0..ca0de28 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -434,6 +434,7 @@ static struct clk dpll3_ck = {
->   	.round_rate	=&omap2_dpll_round_rate,
->   	.clkdm_name	= "dpll3_clkdm",
->   	.recalc		=&omap3_dpll_recalc,
-> +	.autoidle	= true,
->   };
->
->   /*
-> @@ -617,6 +618,7 @@ static struct clk dpll4_ck = {
->   	.set_rate	=&omap3_dpll4_set_rate,
->   	.clkdm_name	= "dpll4_clkdm",
->   	.recalc		=&omap3_dpll_recalc,
-> +	.autoidle	= true,
->   };
->
->   /*
-> @@ -1751,6 +1753,7 @@ static struct clk sdrc_ick = {
->   	.flags		= ENABLE_ON_INIT,
->   	.clkdm_name	= "core_l3_clkdm",
->   	.recalc		=&followparent_recalc,
-> +	.autoidle	= true,
->   };
->
->   static struct clk gpmc_fck = {
+> diff --git a/arch/arm/mach-omap2/clockdomains3xxx_data.c b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> index 6038adb..0dae4c8 100644
+> --- a/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clockdomains3xxx_data.c
+> @@ -282,7 +282,7 @@ static struct clockdomain usbhost_clkdm = {
+>   static struct clockdomain per_clkdm = {
+>   	.name		= "per_clkdm",
+>   	.pwrdm		= { .name = "per_pwrdm" },
+> -	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+> +	.flags		= CLKDM_CAN_HWSUP_SWSUP | CLKDM_SKIP_MANUAL_TRANS,
+>   	.dep_bit	= OMAP3430_EN_PER_SHIFT,
+>   	.wkdep_srcs	= per_wkdeps,
+>   	.sleepdep_srcs	= per_sleepdeps,
 
