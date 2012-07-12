@@ -1,89 +1,89 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Thu, 12 Jul 2012 15:43:08 +0100
-Message-ID: <WC20120712144308.86003F@terrafix.co.uk>
-References: <WC20120712081507.600002@terrafix.co.uk> <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 5/9] ARM: OMAP3: set autoidle flags for a few clocks
+Date: Thu, 12 Jul 2012 18:32:27 +0300
+Message-ID: <1342107147.4672.37.camel@sokoban>
+References: <1338470942-20185-1-git-send-email-t-kristo@ti.com>
+	 <1338470942-20185-6-git-send-email-t-kristo@ti.com>
+	 <4FFE9537.9080708@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:50051 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932530Ab2GLOnX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 10:43:23 -0400
-In-Reply-To: <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57614 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932560Ab2GLPcr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jul 2012 11:32:47 -0400
+In-Reply-To: <4FFE9537.9080708@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
------Original Message-----
-=46rom: Paul Walmsley <paul@pwsan.com>
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Kevin Hilman <khilman@ti.com>, "linux-omap\\@vger.kernel.org" <linu=
-x-omap@vger.kernel.org>
-Date: Thu, 12 Jul 2012 04:59:09 -0600 (MDT)
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with =
-RTC?
+On Thu, 2012-07-12 at 14:43 +0530, Rajendra Nayak wrote:
+> Hi Tero,
+> 
+> On Thursday 31 May 2012 06:58 PM, Tero Kristo wrote:
+> > dpll3, dpll4 and sdrc_ick are controlled automatically by hardware.
+> 
+> sdrc_ick does not seem to have a software control to enable/disable
+> this automatic control in hardware, so what you are doing in the
+> patch below seems fine.
+> However for dpll3 and dpll4, there is indeed a software control which
+> is enabled/disabled through omap3_dpll_allow_idle/omap3_dpll_deny_idle
+> functions respectively. So shouldn't the 'autoidle' flag for them be
+> handled similar to what you do in omap2_clkt_iclk_allow_idle/
+> omap2_clkt_iclk_deny_idle functions in your PATCH 2/9, instead of
+> setting them to 'true' statically?
 
->=20
-> Hi Joe
->=20
-> can you give this one a try to see if it helps:
->=20
-> http://marc.info/?l=3Dlinux-omap&m=3D134209072829531&w=3D2
->=20
->=20
-> - Paul
+Yea, this is a good idea, and seems to work also. I'll add this change
+to the next rev.
 
-Hi Paul,
+-Tero
 
-I've applied this on top of Kevin's PM branch, along with Kevin's ads78=
-46 fix:
-http://www.spinics.net/lists/linux-omap/msg73717.html
-
-I think this has fixed the following warning:
-[    0.000000] clockdomain: mpu_clkdm: powerdomain =AC=F5`=C08=BAs=C0 d=
-oes not exist
-=20
-But when I try and suspend I still get the same problems:
-# echo mem > /sys/power/state
-[   13.283935] PM: Syncing filesystems ... done.
-[   13.300537] Freezing user space processes ... (elapsed 0.01 seconds)=
- done.
-[   13.324859] Freezing remaining freezable tasks ... (elapsed 0.02 sec=
-onds) done.
-[   13.356140] Suspending console(s) (use no_console_suspend to debug)
-[   13.487823] PM: suspend of devices complete after 120.578 msecs
-[   13.491577] PM: late suspend of devices complete after 3.722 msecs
-[   13.497375] PM: noirq suspend of devices complete after 5.767 msecs
-[   13.497436] Disabling non-boot CPUs ...
-[   15.806640] Powerdomain (iva2_pwrdm) didn't enter target state 1
-[   15.806640] Powerdomain (dss_pwrdm) didn't enter target state 1
-[   15.806671] Powerdomain (per_pwrdm) didn't enter target state 1
-[   15.806671] Powerdomain (core_pwrdm) didn't enter target state 1
-[   15.806671] Powerdomain (usbhost_pwrdm) didn't enter target state 1
-[   15.806671] Could not enter target state in pm_suspend
-[   15.809722] PM: noirq resume of devices complete after 2.868 msecs
-[   15.813598] PM: early resume of devices complete after 2.380 msecs
-[   16.179382] mmc1: error -110 during resume (card was removed?)
-[   16.189575] PM: resume of devices complete after 375.824 msecs
-[   16.279602] Restarting tasks ... done.
-sh: write error: Operation not permitted
-
-Cheers,
-Joe
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> regards,
+> Rajendra
+> 
+> > Thus, reflect this with the autoidle flags, the clocks will no longer
+> > show as active in usecount dumps and will allow the voltdm->sleep /
+> > wakeup calls to work properly.
+> >
+> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> > Cc: Paul Walmsley<paul@pwsan.com>
+> > Cc: Kevin Hilman<khilman@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/clock3xxx_data.c |    3 +++
+> >   1 files changed, 3 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> > index 4e1a3b0..ca0de28 100644
+> > --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> > @@ -434,6 +434,7 @@ static struct clk dpll3_ck = {
+> >   	.round_rate	=&omap2_dpll_round_rate,
+> >   	.clkdm_name	= "dpll3_clkdm",
+> >   	.recalc		=&omap3_dpll_recalc,
+> > +	.autoidle	= true,
+> >   };
+> >
+> >   /*
+> > @@ -617,6 +618,7 @@ static struct clk dpll4_ck = {
+> >   	.set_rate	=&omap3_dpll4_set_rate,
+> >   	.clkdm_name	= "dpll4_clkdm",
+> >   	.recalc		=&omap3_dpll_recalc,
+> > +	.autoidle	= true,
+> >   };
+> >
+> >   /*
+> > @@ -1751,6 +1753,7 @@ static struct clk sdrc_ick = {
+> >   	.flags		= ENABLE_ON_INIT,
+> >   	.clkdm_name	= "core_l3_clkdm",
+> >   	.recalc		=&followparent_recalc,
+> > +	.autoidle	= true,
+> >   };
+> >
+> >   static struct clk gpmc_fck = {
+> 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
