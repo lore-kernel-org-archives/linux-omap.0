@@ -1,103 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Thu, 12 Jul 2012 13:35:14 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com>
-References: <WC20120712081507.600002@terrafix.co.uk> <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com> <WC20120712144308.86003F@terrafix.co.uk>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: suspend broken on 3.5-rc1?
+Date: Thu, 12 Jul 2012 14:49:08 -0500
+Message-ID: <CALLhW=4VkOhYo9vRgqqVfmifx7ynTfURxGH2CQh8ZvD0SBtnmg@mail.gmail.com>
+References: <4FD1D570.1010508@ti.com>
+	<20120608105611.GO12766@atomide.com>
+	<4FD1EF25.3060906@ti.com>
+	<1339160732.2091.47.camel@sokoban>
+	<4FD1FB47.8040007@ti.com>
+	<4FD72FB7.60905@ti.com>
+	<CALLhW=5HUJuUbEoz7GXJ3h75iqB_9_bNrofBU45zKQejkKExAQ@mail.gmail.com>
+	<87mx36ht3y.fsf@ti.com>
+	<CALLhW=7FwtPy0_u863fH7-nSMW4AvxuqHvNeO2CqtF3aJEgh4Q@mail.gmail.com>
+	<4FFE6049.7040908@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-925570018-1342121714=:25585"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41840 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755751Ab2GLTfP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jul 2012 15:35:15 -0400
-In-Reply-To: <WC20120712144308.86003F@terrafix.co.uk>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:51547 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932899Ab2GLTtJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jul 2012 15:49:09 -0400
+Received: by vcbf11 with SMTP id f11so1779950vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 12:49:08 -0700 (PDT)
+In-Reply-To: <4FFE6049.7040908@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Kevin Hilman <khilman@ti.com>, "linux-omap\\\\@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, Tony Lindgren <tony@atomide.com>, loml <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 12 July 2012 00:27, Rajendra Nayak <rnayak@ti.com> wrote:
+> On Thursday 12 July 2012 05:28 AM, Omar Ramirez Luna wrote:
+>>
+>> I suspect this might be specific to 4460 as Rajendra reported it was
+>> working for him on 4430 but not on 4460, I haven't tried 4430 but let
+>> me see if I can find one.
+>
+>
+> Yes, this is an issue specific to 4460. The patch 'ARM: OMAP4460:
+> Workaround for ROM bug because of CA9 r2pX GIC control register change'
+> from Tero's Core retention series [1] fixes it. Unfortunately the patch
+> does not apply on it own and has dependencies with other patches in the
+> series.
+>
+> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/78399
 
---155748971-925570018-1342121714=:25585
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Thanks, it worked! I took the first two patches of the series and at
+least I'm able to come back from suspend on Panda 4460.
 
-Hello Joe,
+However, the original series no longer applies on 3.5-rc6 and I
+couldn't find a rebased version on Tero's tree, so I just rebased the
+first two to 3.5-rc6 in case anybody stomps on this thread and for
+test purposes only:
 
-On Thu, 12 Jul 2012, Joe Woodward wrote:
+git://github.com/omarrmz/upstream-wip.git
+branch: LO-k3.5-rc6-secondary-CPU-resume-hangs
 
-> I think this has fixed the following warning:
-> [    0.000000] clockdomain: mpu_clkdm: powerdomain =AC=F5`=C08=BAs=C0 doe=
-s not exist
-> =20
-> But when I try and suspend I still get the same problems:
-> # echo mem > /sys/power/state
-> [   13.283935] PM: Syncing filesystems ... done.
-> [   13.300537] Freezing user space processes ... (elapsed 0.01 seconds) d=
-one.
-> [   13.324859] Freezing remaining freezable tasks ... (elapsed 0.02 secon=
-ds) done.
-> [   13.356140] Suspending console(s) (use no_console_suspend to debug)
-> [   13.487823] PM: suspend of devices complete after 120.578 msecs
-> [   13.491577] PM: late suspend of devices complete after 3.722 msecs
-> [   13.497375] PM: noirq suspend of devices complete after 5.767 msecs
-> [   13.497436] Disabling non-boot CPUs ...
-> [   15.806640] Powerdomain (iva2_pwrdm) didn't enter target state 1
-> [   15.806640] Powerdomain (dss_pwrdm) didn't enter target state 1
-> [   15.806671] Powerdomain (per_pwrdm) didn't enter target state 1
-> [   15.806671] Powerdomain (core_pwrdm) didn't enter target state 1
-> [   15.806671] Powerdomain (usbhost_pwrdm) didn't enter target state 1
-> [   15.806671] Could not enter target state in pm_suspend
-> [   15.809722] PM: noirq resume of devices complete after 2.868 msecs
-> [   15.813598] PM: early resume of devices complete after 2.380 msecs
-> [   16.179382] mmc1: error -110 during resume (card was removed?)
-> [   16.189575] PM: resume of devices complete after 375.824 msecs
-> [   16.279602] Restarting tasks ... done.
-> sh: write error: Operation not permitted
+I hope at least 1 and 2 from the original series make it for 3.6.
 
-Thanks for the test.  Perhaps you could try the following untested patch?
+Regards,
 
-
-- Paul
-
----
- arch/arm/mach-omap2/pm34xx.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e4fc88c..ced2f76 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -545,13 +545,10 @@ static void __init prcm_setup_regs(void)
- =09=09=09  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
-=20
- =09/* Don't attach IVA interrupts */
--=09if (omap3_has_iva()) {
--=09=09omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
--=09=09omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--=09=09omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
--=09=09omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD,
--=09=09=09=09=09OMAP3430_PM_IVAGRPSEL);
--=09}
-+=09omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
-+=09omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
-+=09omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-+=09omap2_prm_write_mod_reg(0, OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
-=20
- =09/* Clear any pending 'reset' flags */
- =09omap2_prm_write_mod_reg(0xffffffff, MPU_MOD, OMAP2_RM_RSTST);
-@@ -565,8 +562,7 @@ static void __init prcm_setup_regs(void)
- =09/* Clear any pending PRCM interrupts */
- =09omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-=20
--=09if (omap3_has_iva())
--=09=09omap3_iva_idle();
-+=09omap3_iva_idle();
-=20
- =09omap3_d2d_idle();
- }
---=20
-1.7.10
-
---155748971-925570018-1342121714=:25585--
+Omar
