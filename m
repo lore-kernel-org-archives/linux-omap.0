@@ -1,123 +1,134 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Thu, 12 Jul 2012 12:11:17 +0530
-Message-ID: <CAP05o4+hQh-weQ_hfFMxY-byEijwDF3e-D9U5gwh6yRD7C_=Zw@mail.gmail.com>
-References: <87ehp71liv.fsf@ti.com>
-	<20120622203645.GD29290@arwen.pp.htv.fi>
-	<87d34nfdei.fsf@ti.com>
-	<871uku85o8.fsf@ti.com>
-	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
-	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
-	<87k3yj4pn4.fsf@ti.com>
-	<20120705111901.GR22065@sortiz-mobl>
-	<CAP05o4JEx0uSCH+mZzLhoV479A00uUumvYY_-b8dQ9j_5Awumw@mail.gmail.com>
-	<CAP05o4+OBPBzqurM2FHDBmQ0AbBLVHL5DP+cMHW+jS5bG23-EQ@mail.gmail.com>
-	<20120711102958.GA23772@sortiz-mobl>
-	<CAP05o4JZNeh2BCxkfUVajYLGdzPG30v++-EYjLD09OmS1uqyyQ@mail.gmail.com>
-	<874npenzq0.fsf@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Thu, 12 Jul 2012 09:15:07 +0100
+Message-ID: <WC20120712081507.600002@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <874npenzq0.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russ.Dill-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:33113 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752759Ab2GLIP3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jul 2012 04:15:29 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jul 11, 2012 at 7:53 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-> "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
->
->> On Wed, Jul 11, 2012 at 3:59 PM, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
->>> Hi Keshava, Kevin,
->>>
->>> On Fri, Jul 06, 2012 at 05:29:00PM +0530, Munegowda, Keshava wrote:
->>>> Samuel
->>>>           I have sent that patch to disable the ehci in
->>>> omap2plus_defconfig; after merging that
->>>> please merge this patch too. This will fix the crashes in during boot
->>>> with NFS in beagleXM
->>> I'm going to apply and push this patch for 3.5, and the defconfig patch can be
->>> pushed through Tony's tree.
->>> Kevin, could you please ACK it ?
->>>
->>> Cheers,
->>> Samuel.
->>>
->>
->> Thanks Samuel
->>
->> Kevin,
->>     need your ack for this.
->
-> You never answered earlier questions from myself or Russ Dill about the
-> more targetted patches from Russ:
->
->    ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
->    Fix OMAP EHCI suspend/resume failure (i693) '354ab856' causes
->
-> Also, your current $SUBJECT patch is large and not well
-> described. e.g. what is "not correct" and why.  Why does it fix the
-> problems mentioned?  The original changelog mentions the "core retention
-> issue" but this patch does nothing to address that.  If you want an Ack
-> from me, especially because I'm not an expert in this IP, you'll have to
-> describe things in a way that I can understand.
->
-> IMO, at this point of the dev cycle (trying to stabilize v3.5), the full
-> cleanup/fix of this feature will need to be done for v3.6.  For v3.5, I
-> think the two patches from Russ Dill should be merged.   They are
-> targetted fixes and very well described.
->
+...snip...
+> > Hmm, interesting, I don't see this on my 3730-based Over FireSTORM.
+> >
+> > But, after "converting" mine into an AirStorm[1], I see the same
+> errors
+> > as you're seeing.  We're obviously doing something wrong when IVA
+> and/or
+> > SGX are not present, so I will look into it.
+> 
+> With the hack below on top of my pm branch, can you try to
+> suspend/resume on your AirSTORM?
+> 
+> You'll get a bunch of noise from the clockdomain code becasue of the
+> missing power domains, but you can ignore them.  
+> 
+> I'm hoping this will fix your issue.  Obviously, this hack is not a
+> real
+> fix but just a test to see if the problem is where I think it is.  If
+> so, then I know the right solution and it's been discussed before but
+> never been a priority (at least for me) to fix.
+> 
+> Basically, we still need to fix up the registration of certain hwmods
+> and powerdomains based on whether or not certain IPs exist or not.  We
+> currently are rather blindly registering the hwmods for IVA, GFX etc.
+> 
 > Kevin
->
+> 
+
+After applying the patch (and also your GPIO fix for the ads7846).
+
+As you said, when booting lots of warnings are spat out:
+
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] WARNING: at arch/arm/mach-omap2/clockdomain.c:237 _resolve_clkdm_deps.clone.0+0x98/0x108()
+[    0.000000] Modules linked in:
+[    0.000000]
+[    0.000000] [<c001b75c>] (unwind_backtrace+0x0/0xf0) from [<c0041788>] (warn_slowpath_common+0x4c/0x64)
+[    0.000000] [<c0041788>] (warn_slowpath_common+0x4c/0x64) from [<c0041834>] (warn_slowpath_fmt+0x30/0x40)
+[    0.000000] [<c0041834>] (warn_slowpath_fmt+0x30/0x40) from [<c00321a0>] (_resolve_clkdm_deps.clone.0+0x98/0x108)
+[    0.000000] [<c00321a0>] (_resolve_clkdm_deps.clone.0+0x98/0x108) from [<c0032bb8>] (clkdm_complete_init+0x3c/0xa0)
+[    0.000000] [<c0032bb8>] (clkdm_complete_init+0x3c/0xa0) from [<c06d2458>] (omap3_init_early+0x20/0x30)
+[    0.000000] [<c06d2458>] (omap3_init_early+0x20/0x30) from [<c06ce1a8>] (setup_arch+0x814/0x934)
+[    0.000000] [<c06ce1a8>] (setup_arch+0x814/0x934) from [<c06ca584>] (start_kernel+0x88/0x300)
+[    0.000000] [<c06ca584>] (start_kernel+0x88/0x300) from [<80008044>] (0x80008044)
+[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+
+And now when suspending I get:
+
+# echo mem > /sys/power/state
+[   78.174713] PM: Syncing filesystems ... done.
+[   78.190582] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[   78.216430] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[   78.247558] Suspending console(s) (use no_console_suspend to debug)
+[   78.379241] PM: suspend of devices complete after 120.605 msecs
+[   78.382934] PM: late suspend of devices complete after 3.692 msecs
+[   78.388671] PM: noirq suspend of devices complete after 5.706 msecs
+[   78.388732] Disabling non-boot CPUs ...
+[  107.219818] Powerdomain (core_pwrdm) didn't enter target state 1
+[  107.219818] Could not enter target state in pm_suspend
+[  107.222808] PM: noirq resume of devices complete after 2.838 msecs
+[  107.226684] PM: early resume of devices complete after 2.380 msecs
+[  107.592620] mmc1: error -110 during resume (card was removed?)
+[  107.602752] PM: resume of devices complete after 375.946 msecs
+[  107.667449] Restarting tasks ... done.
+sh: write error: Operation not permitted
+
+So most of the warnings have gone, but core still fails to enter the target state.
+
+This is sitll using the omap2plus_defconfig with:
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+
+CONFIG_DMADEVICES=y
+CONFIG_DMA_OMAP=y
+
+CONFIG_SQUASHFS=y
+
+All running from RAM-based RFS.
+
+Cheers,
+Joe
 
 
-Hi Kevin
-        The usb2 host of omap3/4/5 silicons has the following ips
+> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> index bb883e4..b3568bb 100644
+> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+> @@ -341,7 +341,7 @@ static struct powerdomain dpll5_pwrdm = {
+>  /* As powerdomains are added or removed above, this list must also be
+> changed */
+>  static struct powerdomain *powerdomains_omap3430_common[] __initdata =
+> {
+>  	&wkup_omap2_pwrdm,
+> -	&iva2_pwrdm,
+> +	/* &iva2_pwrdm, */
+>  	&mpu_3xxx_pwrdm,
+>  	&neon_pwrdm,
+>  	&cam_pwrdm,
+> @@ -373,7 +373,7 @@ static struct powerdomain
+> *powerdomains_omap3430es2_es3_0[] __initdata = {
+>  /* also includes 3630ES1.1+ */
+>  static struct powerdomain *powerdomains_omap3430es3_1plus[] __initdata
+> = {
+>  	&core_3xxx_es3_1_pwrdm,
+> -	&sgx_pwrdm,
+> +	/* &sgx_pwrdm, */
+>  	&usbhost_pwrdm,
+>  	&dpll5_pwrdm,
+>  	NULL
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-1. UHH   (  /drivers/mfd/omap-usb-host.c ) -- platform driver
-2. TLL    ( /drivers/mfd/omap-usb-host.c )
-3. ehci    ( /drivers/usb/host/ehci-omap.c)  - platform driver
-4. ohci ( /drivers/usb/host/ohci-omap3.c ) - platform drivers
 
-The 3 platform drivers exists to make the ehci/ohci functional.
-
-The  UHH-TLL or usb host core driver is the parent platform driver of
-ehci and ohci.
-This parent driver doe the clock enable/disable which common for both
-ehci and ohci.
-takes care of common port setting and clocks during suspend and resume
-and ensures
-that there is no overwrites by ehci and ohci platform drivers.
-
-The commit id  354ab8567ae3107a8cbe7228c3181990ba598aac titled
-"Fix OMAP EHCI suspend/resume failure (i693)" was handling the clocks in
-the ehci driver it self, instead it should be handled by usb host core
-driver  as per above
-explanation. so, the UHH-TLL Driver should handle the changes done by
-354ab8567ae3107a8cbe7228c3181990ba598aac.
-
-
-hence this patch removes the changed done by the commit id
-354ab8567ae3107a8cbe7228c3181990ba598aac
-
-suppose if this patch is not included, then it will cause the
-following two problems
-
-1.  crash during the system boot
-                       - observed in beagle xm , with NFS file system
-                                           the Ethernet is through
-ehci driver , since the ehci ports clocks are not handled properly
-                         by this commit id
-354ab8567ae3107a8cbe7228c3181990ba598aac,  it leads to crash
-
-2. crash during suspend/resume
-                  - observed in beagle xm with ram fs
-                                     if the ehci is driver is included
-and if it tries to suspend it leads to crash
-
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
