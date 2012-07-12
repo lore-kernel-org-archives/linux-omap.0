@@ -1,43 +1,42 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 09/11] usb: musb: dsps: remove explicit NOP device creation
-Date: Thu, 12 Jul 2012 15:23:32 +0530
-Message-ID: <1342086814-32181-10-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 11/11] arm/dts: am33xx: add phy phandle to usbss
+Date: Thu, 12 Jul 2012 15:23:34 +0530
+Message-ID: <1342086814-32181-12-git-send-email-ajay.gupta@ti.com>
 References: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342086814-32181-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51095 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758982Ab2GLJxs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jul 2012 05:53:48 -0400
+In-Reply-To: <1342086814-32181-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-As NOP device node is now added in am33xx tree so remove the call
-which creates the NOP platform_device.
+Added NOP PHY phandle to usbss device node as same will be used
+to get the phy from otg framework.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_dsps.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 619c800..36e2969 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -425,8 +425,7 @@ static int dsps_musb_init(struct musb *musb)
- 	/* mentor core register starts at offset of 0x400 from musb base */
- 	musb->mregs += wrp->musb_core_offset;
- 
--	/* Register NOP driver */
--	usb_nop_xceiv_register(musb->id);
-+	/* Get the NOP PHY */
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 3bd9911..0e7aaaa 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -172,6 +172,8 @@
+ 			port0_mode = <3>;
+ 			port1_mode = <1>;
+ 			power = <250>;
++			usb0-phy = <&usb0_phy>;
++			usb1-phy = <&usb1_phy>;
+ 		};
+ 	};
+ };
 -- 
 1.7.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
