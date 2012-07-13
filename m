@@ -1,550 +1,176 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 2/8] ARM: OMAP2+: PM: introduce power domains functional states
-Date: Thu, 12 Jul 2012 22:01:24 -0500
-Message-ID: <CAOMWX4cT+U2iq3e=rfBaSX5Hdn_kNEkdF0ffC33UCuEfEjdisw@mail.gmail.com>
-References: <1339685591-11177-1-git-send-email-j-pihet@ti.com> <1339685591-11177-3-git-send-email-j-pihet@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
+ migration
+Date: Fri, 13 Jul 2012 04:36:54 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A8B63@DBDE01.ent.ti.com>
+References: <C8443D0743D26F4388EA172BF4E2A7A93E9A35E1@DBDE01.ent.ti.com>
+ <20120705105535.GB1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A39DF@DBDE01.ent.ti.com>
+ <20120706120533.GU1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A622E@DBDE01.ent.ti.com>
+ <20120710094538.GT1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A64D0@DBDE01.ent.ti.com>
+ <20120710131734.GV1122@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A669D@DBDE01.ent.ti.com>
+ <4FFC6330.1040409@ti.com> <20120711064724.GA1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47216 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752538Ab2GMDBr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jul 2012 23:01:47 -0400
-Received: by wibhm2 with SMTP id hm2so148728wib.16
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 20:01:44 -0700 (PDT)
-In-Reply-To: <1339685591-11177-3-git-send-email-j-pihet@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36539 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680Ab2GMEhT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 00:37:19 -0400
+In-Reply-To: <20120711064724.GA1122@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Jun 14, 2012 at 9:53 AM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
-[..]
-> --- a/arch/arm/mach-omap2/powerdomain-common.c
-> +++ b/arch/arm/mach-omap2/powerdomain-common.c
-> @@ -108,3 +108,74 @@ u32 omap2_pwrdm_get_mem_bank_stst_mask(u8 bank)
->         return 0;
->  }
->
-> +/**
-> + * omap2_pwrdm_func_to_pwrst - Convert functional (i.e. logical) to
-> + * internal (i.e. registers) values for the power domains states.
-> + * @struct powerdomain * to convert the values for
-> + * @func_pwrst: functional power state
-> + *
-> + * Returns the internal power state value for the power domain, or
-> + * -EINVAL in case of invalid parameters passed in.
-> + */
-> +int omap2_pwrdm_func_to_pwrst(struct powerdomain *pwrdm, u8 func_pwrst)
+Hi Tony, Jon,
 
-Unless we handle logicpwst and pwst here, it makes it hard for non
-arch/arm/mach-omap2/powerdomain* files to use this properly.
+Thanks for your explanations, ideas & suggestions.
 
-> +{
-> +       int ret;
-> +
-> +       switch (func_pwrst) {
-> +       case PWRDM_FUNC_PWRST_ON:
-> +               ret = PWRDM_POWER_ON;
-> +               break;
-> +       case PWRDM_FUNC_PWRST_INACTIVE:
-> +               ret = PWRDM_POWER_INACTIVE;
-> +               break;
-> +       case PWRDM_FUNC_PWRST_CSWR:
-> +       case PWRDM_FUNC_PWRST_OSWR:
-> +               ret = PWRDM_POWER_RET;
+Let me try to come up with a solution based on these.
 
-logic power state?
-
-> +               break;
-> +       case PWRDM_FUNC_PWRST_OFF:
-> +               ret = PWRDM_POWER_OFF;
-> +               break;
-> +       default:
-> +               ret = -EINVAL;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +/**
-> + * omap2_pwrdm_pwrst_to_func - Convert internal (i.e. registers) to
-> + * functional (i.e. logical) values for the power domains states.
-> + * @struct powerdomain * to convert the values for
-> + * @pwrst: internal power state
-> + *
-> + * Returns the functional power state value for the power domain, or
-> + * -EINVAL in case of invalid parameters passed in.
-> + */
-> +int omap2_pwrdm_pwrst_to_func(struct powerdomain *pwrdm, u8 pwrst)
-Same here as well..
-> +{
-> +       int ret;
-> +
-> +       switch (pwrst) {
-> +       case PWRDM_POWER_ON:
-> +               ret = PWRDM_FUNC_PWRST_ON;
-> +               break;
-> +       case PWRDM_POWER_INACTIVE:
-> +               ret = PWRDM_FUNC_PWRST_INACTIVE;
-> +               break;
-> +       case PWRDM_POWER_RET:
-> +               /*
-> +                * XXX warning: return OSWR in case of pd in RET and
-> +                * logic in OFF
-> +                */
-We need to be able to pass in logic pwst to be able to make that determination.
-
-> +               ret = PWRDM_FUNC_PWRST_CSWR;
-> +               break;
-> +       case PWRDM_POWER_OFF:
-> +               ret = PWRDM_FUNC_PWRST_OFF;
-> +               break;
-> +       default:
-> +               ret = -EINVAL;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 1641e72..e79b5ae 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -466,6 +466,135 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
->  }
->
->  /**
-> + * pwrdm_func_to_pwrst - get the internal (i.e. registers) value mapped
-> + * to the functional state
-> + * @pwrdm: struct powerdomain * to query
-> + * @func_pwrst: functional power state
-> + *
-> + * Convert the functional power state to the platform specific power
-> + * domain state value.
-> + * Returns the internal power domain state value or -EINVAL in case
-> + * of invalid parameters passed in.
-> + */
-> +int pwrdm_func_to_pwrst(struct powerdomain *pwrdm, u8 func_pwrst)
-should take enum pwrdm_func_state func_pwrst
-
-> +{
-> +       int ret = func_pwrst;
-> +
-> +       if ((!pwrdm) || (func_pwrst >= PWRDM_MAX_FUNC_PWRSTS))
-> +               return -EINVAL;
-> +
-> +       if (arch_pwrdm && arch_pwrdm->pwrdm_func_to_pwrst)
-> +               ret = arch_pwrdm->pwrdm_func_to_pwrst(pwrdm, func_pwrst);
-
-Should we not return an error if the function pointer is not available
-for the arch?
-on platforms without func_pwrst pointer converter routing hooked on,
-we return func_pwrst back to caller, which expects pwrst!
-
-> +
-> +       pr_debug("powerdomain: convert func %0x to pwrst %0x for %s\n",
-> +                func_pwrst, ret, pwrdm->name);
-> +
-> +       return ret;
-> +}
-> +
-> +/**
-> + * pwrdm_pwrst_to_func - get the functional (i.e. logical) value mapped
-> + * to the internal state
-> + * @pwrdm: struct powerdomain * to query
-> + * @pwrst: internal power state
-> + *
-> + * Convert the internal power state to the power domain functional value.
-> + * Returns the functional power domain state value or -EINVAL in case
-> + * of invalid parameters passed in.
-> + */
-> +int pwrdm_pwrst_to_func(struct powerdomain *pwrdm, u8 pwrst)
-should return enum pwrdm_func_state
-
-> +{
-> +       int ret = pwrst;
-> +
-> +       if ((!pwrdm) || (pwrst >= PWRDM_MAX_PWRSTS))
-> +               return -EINVAL;
-> +
-> +       pr_debug("powerdomain: convert %0x pwrst to func for %s\n",
-> +                pwrst, pwrdm->name);
-> +
-> +       if (arch_pwrdm && arch_pwrdm->pwrdm_pwrst_to_func)
-> +               ret = arch_pwrdm->pwrdm_pwrst_to_func(pwrdm, pwrst);
-
-same in reverse here.
-
-> +
-> +       return ret;
-> +}
-> +
-> +/* Types of sleep_switch used in omap_set_pwrdm_state */
-> +#define FORCEWAKEUP_SWITCH     0
-> +#define LOWPOWERSTATE_SWITCH   1
-> +
-> +/**
-> + * omap_set_pwrdm_state - program next powerdomain power state
-> + * @pwrdm: struct powerdomain * to set
-> + * @func_pwrst: power domain functional state, one of the PWRDM_FUNC_* macros
-> + *
-> + * This programs the pwrdm next functional state, sets the dependencies
-> + * and waits for the state to be applied.
-> + */
-> +int omap_set_pwrdm_state(struct powerdomain *pwrdm,
-> +                        enum pwrdm_func_state func_pwrst)
-> +{
-> +       u8 curr_pwrst, next_pwrst;
-> +       int pwrst = pwrdm_func_to_pwrst(pwrdm, func_pwrst);
-> +       int sleep_switch = -1, ret = 0, hwsup = 0;
-> +
-> +       if (!pwrdm || IS_ERR(pwrdm) || (pwrst < 0)) {
-> +               pr_debug("%s: invalid params: pwrdm=%p, func_pwrst=%0x\n",
-> +                        __func__, pwrdm, func_pwrst);
-> +               return -EINVAL;
-> +       }
-> +
-> +       pr_debug("%s: set func_pwrst %0x to pwrdm %s\n",
-> +                __func__, func_pwrst, pwrdm->name);
-> +
-> +       mutex_lock(&pwrdm->lock);
-This should be  a spinlock (previous patch i believe) - hurts cpuidle otherwise.
-
-> +
-> +       while (!(pwrdm->pwrsts & (1 << pwrst))) {
-> +               if (pwrst == PWRDM_POWER_OFF)
-> +                       goto out;
-> +               pwrst--;
-> +       }
-> +
-
-if we like to handle a single API for OSWR and CSWR, then it needs to
-handle logic power state as well here.
-
-> +       next_pwrst = pwrdm_read_next_pwrst(pwrdm);
-> +       if (next_pwrst == pwrst)
-> +               goto out;
-> +
-> +       curr_pwrst = pwrdm_read_pwrst(pwrdm);
-> +       if (curr_pwrst < PWRDM_POWER_ON) {
-> +               if ((curr_pwrst > pwrst) &&
-> +                       (pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
-> +                       sleep_switch = LOWPOWERSTATE_SWITCH;
-> +               } else {
-> +                       hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
-> +                       clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
-> +                       sleep_switch = FORCEWAKEUP_SWITCH;
-> +               }
-> +       }
-> +
-> +       ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
-> +       if (ret)
-> +               pr_err("%s: unable to set power state of powerdomain: %s\n",
-> +                      __func__, pwrdm->name);
-> +
-> +       switch (sleep_switch) {
-> +       case FORCEWAKEUP_SWITCH:
-> +               if (hwsup)
-> +                       clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
-> +               else
-> +                       clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
-> +               break;
-> +       case LOWPOWERSTATE_SWITCH:
-> +               pwrdm_set_lowpwrstchange(pwrdm);
-> +               pwrdm_wait_transition(pwrdm);
-> +               pwrdm_state_switch(pwrdm);
-> +               break;
-> +       }
-> +
-> +out:
-> +       mutex_unlock(&pwrdm->lock);
-> +       return ret;
-> +}
-> +
-> +/**
->   * pwrdm_set_next_pwrst - set next powerdomain power state
->   * @pwrdm: struct powerdomain * to set
->   * @pwrst: one of the PWRDM_POWER_* macros
-> @@ -522,6 +651,21 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
->  }
->
->  /**
-> + * pwrdm_read_next_func_pwrst - get next powerdomain functional power state
-> + * @pwrdm: struct powerdomain * to get power state
-> + *
-> + * Return the powerdomain @pwrdm's next functional power state.
-> + * Returns -EINVAL if the powerdomain pointer is null or returns
-> + * the next power state upon success.
-> + */
-> +int pwrdm_read_next_func_pwrst(struct powerdomain *pwrdm)
-should return enum pwrdm_func_state
-> +{
-> +       int ret = pwrdm_read_next_pwrst(pwrdm);
-> +
-> +       return pwrdm_pwrst_to_func(pwrdm, ret);
-> +}
-> +
-> +/**
->   * pwrdm_read_pwrst - get current powerdomain power state
->   * @pwrdm: struct powerdomain * to get power state
->   *
-> @@ -543,6 +687,21 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
->  }
->
->  /**
-> + * pwrdm_read_func_pwrst - get current powerdomain functional power state
-> + * @pwrdm: struct powerdomain * to get power state
-> + *
-> + * Return the powerdomain @pwrdm's current functional power state.
-> + * Returns -EINVAL if the powerdomain pointer is null or returns
-> + * the current power state upon success.
-> + */
-> +int pwrdm_read_func_pwrst(struct powerdomain *pwrdm)
-should return enum pwrdm_func_state
-> +{
-> +       int ret = pwrdm_read_pwrst(pwrdm);
-> +
-> +       return pwrdm_pwrst_to_func(pwrdm, ret);
-> +}
-
-my Crib about the above apis are lack of logic power state handling :(
-which forces code like cpuidle to use different apis for logic
-power state and force them to use these apis just for pwrst.
+Regards
+Afzal
 
 
-> +
-> +/**
->   * pwrdm_read_prev_pwrst - get previous powerdomain power state
->   * @pwrdm: struct powerdomain * to get previous power state
->   *
-> @@ -564,6 +723,21 @@ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
->  }
->
->  /**
-> + * pwrdm_read_prev_func_pwrst - get previous powerdomain functional power state
-> + * @pwrdm: struct powerdomain * to get previous power state
-> + *
-> + * Return the powerdomain @pwrdm's previous functional power state.
-> + * Returns -EINVAL if the powerdomain pointer is null or returns the
-> + * previous power state upon success.
-> + */
-> +int pwrdm_read_prev_func_pwrst(struct powerdomain *pwrdm)
-should return enum pwrdm_func_state
-> +{
-> +       int ret = pwrdm_read_prev_pwrst(pwrdm);
-> +
-> +       return pwrdm_pwrst_to_func(pwrdm, ret);
-> +}
-again here.
+On Wed, Jul 11, 2012 at 12:17:25, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120710 10:20]:
+> > Hi Afzal,
+> > 
+> > On 07/10/2012 08:47 AM, Mohammed, Afzal wrote:
+> > > Hi Tony,
+> > > 
+> > > On Tue, Jul 10, 2012 at 18:47:34, Tony Lindgren wrote:
+> > >> * Mohammed, Afzal <afzal@ti.com> [120710 03:09]:
+> > >>> On Tue, Jul 10, 2012 at 15:15:38, Tony Lindgren wrote:
+> > >>>> * Mohammed, Afzal <afzal@ti.com> [120709 23:24]:
+> > > 
+> > >>>>> For the peripherals requiring retime, we cannot (as otherwise whatever
+> > >>>>> retime does would have to be manually done based on the knowledge of
+> > >>>>> boot time gpmc clock period to calculate gpmc timings to be fed to DT)
+> > >>>>> pass gpmc timings via device tree, right ?
+> > >>>>
+> > >>>> We can still do it when the connected peripheral probe registers with
+> > >>>> gpmc.
+> > > 
+> > > Were you actually referring to updating kernel view of device tree nodes, and
+> > > not the device tree file (not sure whether it is really possible) ?
+> > 
+> > I believe that Tony is suggesting performing the retime at probe time.
+> > In the case of OneNand you would simply call the
+> > onenand_set_async_mode/sync_mode from within the probe as a retime
+> > function.
+> 
+> Yes there's no need to do it earlier.
+>  
+> > >>> We can, but would it be feasible practically ?, gpmc timings to update in
+> > >>> DT for a such a peripheral (requiring retime) can be found out only by
+> > >>> manual calculation similar to the way done in retime function (based on
+> > >>> peripheral's timings and boot time gpmc clock period), correct ?, Also
+> > >>> wouldn't this make it necessary to know gpmc clock period at boot time
+> > >>> for properly updating gpmc timing entry in DT ?
+> > >>
+> > >> The gpmc clock period can be returned to the connected peripheral when
+> > >> it's registering. Well basically we can call the retime function upon
+> > >> registering and pass the gpmc clock period.
+> > > 
+> > > Won't this lead to the necessity of particular driver load order problem ?,
+> > > As per the above, to return gpmc clock period to the connected peripheral,
+> > > we need to ensure that gpmc driver is probed before peripheral driver.
+> > 
+> > I think it is more like when probing the gpmc, the retime function for
+> > the connected peripheral is called passing the gpmc clock freq.
+> 
+> Right, there's no need to do any of that at gpmc probe time. And the
+> module dependencies take care of the load ordrer as gpmc_cs_request()
+> is exported.
+>  
+> > > And in that case how can gpmc driver rely on DT as gpmc timings for the
+> > > peripheral requiring retime would not yet be available as peripheral
+> > > driver is not yet probed, seems like a circular dependency.
+> > 
+> > The DT node should simply have the information required by the retime
+> > function or gpmc timings themselves if available. In the case of OneNAND
+> > async mode you have a bunch of constants such as ...
+> > 
+> > const int t_cer  = 15;
+> > const int t_avdp = 12;
+> > const int t_cez  = 20; /* max of t_cez, t_oez */
+> > const int t_ds   = 30;
+> > const int t_wpl  = 40;
+> > const int t_wph  = 30
+> > 
+> > These can be stored in the DT and then translated to gpmc timings at
+> > runtime. DT should only store static timing or clock information known
+> > at compile time.
+> 
+> Yup. And the format of the timing data in DT should be standardized so
+> the only differences for each connected peripheral is the retime function.
+>  
+> > >>> And in this case, we are going to register retime function, so instead of
+> > >>> relying on DT to provide gpmc timings for such a peripheral, won't it
+> > >>> be better to make use of retime that is already registered ?
+> > >>
+> > >> No we need to pass the timings from device tree as they may be different
+> > >> for similar boards. For example, different level shifters used on
+> > >> similar boards may affect the timings, although the retime function
+> > >> can be the same.
+> > > 
+> > > Unless I am missing something, could not see this scenario taken care
+> > > in the existing retime functions, did see one comment for smc91x, but
+> > > seems in that case Kernel doesn't do any timing configuration and
+> > > leave timings as configured by bootloader
+> > 
+> > I think that we just need to adapt the current functions that our
+> > calculating the timings so that ...
+> > 
+> > 1. We can call from them within the gpmc probe to setup the timings
+> > versus having the peripherals program the gpmc priory to probe.
+> > 2. Any static timing information needed by the retime function is part
+> > of the platform data passed to the gpmc probe and therefore can also be
+> > read from DT.
+> 
+> Yup, and also:
+> 
+> 3. Disable frequency scaling for L3 if no retime function is specified
+> 
+> In that case we may have a generic default function that just sets the
+> boot time values and disables the L3 scaling.
+>  
+> > From a high-level I think that the goal should be ...
+> > 
+> > gpmc_probe
+> > 	--> request CS
+> > 	--> calls retime function to calculate gpmc timing (optional)
+> > 	--> configures CS
+> > 	--> registers peripheral device
+> 
+> Yes with few additions.. Connected peripheral probe requests CS from
+> gpmc with the optional retime function pointer passed as a parameter.
+> After gpmc code has determined the CS is available, it calls the optional
+> retime function before returning back to the connected peripheral probe.
+> 
+> So how about the following with a bit more details:
+> 
+> gpmc_probe
+> 	--> just sets up gpmc resources then idles itself
+> 
+> connected peripheral probe
+> 	--> calls gpmc_cs_request() with gpmc timings from DT and an
+> 	    optional retime function as a parameter
+> 	--> gpmc_cs_request() allocates the CS
+> 	--> gpmc_cs_request() calls the optional retime function and
+> 	    if not specified, just sets the DT timings and disables
+> 	    L3 DFS
+> 	--> gpmc_cs_request() returns to connected peripheral probe
+> 
+> Regards,
+> 
+> Tony
+> 
 
-> +
-> +/**
->   * pwrdm_set_logic_retst - set powerdomain logic power state upon retention
->   * @pwrdm: struct powerdomain * to set
->   * @pwrst: one of the PWRDM_POWER_* macros
-> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-> index bab84fc..0404f9f 100644
-> --- a/arch/arm/mach-omap2/powerdomain.h
-> +++ b/arch/arm/mach-omap2/powerdomain.h
-> @@ -9,9 +9,6 @@
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
-> - *
-> - * XXX This should be moved to the mach-omap2/ directory at the earliest
-> - * opportunity.
->   */
->
->  #ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
-> @@ -26,7 +23,51 @@
->
->  #include "voltage.h"
->
-> -/* Powerdomain basic power states */
-> +/***************************************************************
-> + * External API
-> + ***************************************************************/
-> +
-> +/* Powerdomain functional power states, used by the external API functions */
-> +enum pwrdm_func_state {
-> +       PWRDM_FUNC_PWRST_OFF            = 0x0,
-> +       PWRDM_FUNC_PWRST_OSWR,
-> +       PWRDM_FUNC_PWRST_CSWR,
-> +       PWRDM_FUNC_PWRST_INACTIVE,
-> +       PWRDM_FUNC_PWRST_ON,
-> +       PWRDM_MAX_FUNC_PWRSTS           /* Last value, used as the max value */
-> +};
-> +
-> +struct clockdomain;
-> +struct powerdomain;
-> +
-> +struct powerdomain *pwrdm_lookup(const char *name);
-> +
-> +int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-> +                       void *user);
-> +int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-> +                       void *user);
-> +
-> +struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
-> +
-> +int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
-> +
-> +int pwrdm_read_prev_func_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_read_func_pwrst(struct powerdomain *pwrdm);
-> +int pwrdm_read_next_func_pwrst(struct powerdomain *pwrdm);
-> +extern int omap_set_pwrdm_state(struct powerdomain *pwrdm,
-> +                               enum pwrdm_func_state func_pwrst);
-> +
-> +extern void omap242x_powerdomains_init(void);
-> +extern void omap243x_powerdomains_init(void);
-> +extern void omap3xxx_powerdomains_init(void);
-> +extern void omap44xx_powerdomains_init(void);
-> +
-> +
-
-We should split the following out to a separate header which is not to
-be used by anyone else other than powerdomain*.[ch]
-
-> +/***************************************************************
-> + * Internal code, only used in powerdomain*.[ch]
-> + ***************************************************************/
-> +
-> +/* Powerdomain internal power states, internal use only */
->  #define PWRDM_POWER_OFF                0x0
->  #define PWRDM_POWER_RET                0x1
->  #define PWRDM_POWER_INACTIVE   0x2
-> @@ -45,7 +86,6 @@
->  #define PWRSTS_RET_ON          (PWRSTS_RET | PWRSTS_ON)
->  #define PWRSTS_OFF_RET_ON      (PWRSTS_OFF_RET | PWRSTS_ON)
->
-> -
->  /* Powerdomain flags */
->  #define PWRDM_HAS_HDWR_SAR     (1 << 0) /* hardware save-and-restore support */
->  #define PWRDM_HAS_MPU_QUIRK    (1 << 1) /* MPU pwr domain has MEM bank 0 bits
-> @@ -74,9 +114,6 @@
->  /* XXX A completely arbitrary number. What is reasonable here? */
->  #define PWRDM_TRANSITION_BAILOUT 100000
->
-> -struct clockdomain;
-> -struct powerdomain;
-> -
->  /**
->   * struct powerdomain - OMAP powerdomain
->   * @name: Powerdomain name
-> @@ -130,6 +167,10 @@ struct powerdomain {
->
->  /**
->   * struct pwrdm_ops - Arch specific function implementations
-> + * @pwrdm_func_to_pwrst: Convert the pd functional power state to
-> + *  the internal state
-> + * @pwrdm_pwrst_to_func: Convert the pd internal power state to
-> + *  the functional state
->   * @pwrdm_set_next_pwrst: Set the target power state for a pd
->   * @pwrdm_read_next_pwrst: Read the target power state set for a pd
->   * @pwrdm_read_pwrst: Read the current power state of a pd
-> @@ -150,6 +191,8 @@ struct powerdomain {
->   * @pwrdm_wait_transition: Wait for a pd state transition to complete
->   */
->  struct pwrdm_ops {
-> +       int     (*pwrdm_func_to_pwrst)(struct powerdomain *pwrdm, u8 func_pwrst);
-should take in enum pwrdm_func_state
-> +       int     (*pwrdm_pwrst_to_func)(struct powerdomain *pwrdm, u8 func_pwrst);
-should return enum pwrdm_func_state
-
->         int     (*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
->         int     (*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
->         int     (*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
-> @@ -174,21 +217,11 @@ int pwrdm_register_platform_funcs(struct pwrdm_ops *custom_funcs);
->  int pwrdm_register_pwrdms(struct powerdomain **pwrdm_list);
->  int pwrdm_complete_init(void);
->
-> -struct powerdomain *pwrdm_lookup(const char *name);
-> -
-> -int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-> -                       void *user);
-> -int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-> -                       void *user);
-> -
->  int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
->  int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
->  int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
->                          int (*fn)(struct powerdomain *pwrdm,
->                                    struct clockdomain *clkdm));
-> -struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
-> -
-> -int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
->
->  int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
->  int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
-> @@ -196,6 +229,9 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm);
->  int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
->  int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
->
-> +int omap2_pwrdm_func_to_pwrst(struct powerdomain *pwrdm, u8 func_pwrst);
-> +int omap2_pwrdm_pwrst_to_func(struct powerdomain *pwrdm, u8 pwrst);
-> +
->  int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst);
->  int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
->  int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
-> @@ -220,11 +256,6 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
->  int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
->  bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
->
-> -extern void omap242x_powerdomains_init(void);
-> -extern void omap243x_powerdomains_init(void);
-> -extern void omap3xxx_powerdomains_init(void);
-> -extern void omap44xx_powerdomains_init(void);
-> -
->  extern struct pwrdm_ops omap2_pwrdm_operations;
->  extern struct pwrdm_ops omap3_pwrdm_operations;
->  extern struct pwrdm_ops omap4_pwrdm_operations;
-> diff --git a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
-> index 0f0a9f1..79c1293 100644
-> --- a/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
-> +++ b/arch/arm/mach-omap2/powerdomain2xxx_3xxx.c
-> @@ -26,6 +26,7 @@
->
->
->  /* Common functions across OMAP2 and OMAP3 */
-> +
->  static int omap2_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->  {
->         omap2_prm_rmw_mod_reg_bits(OMAP_POWERSTATE_MASK,
-> @@ -210,6 +211,8 @@ static int omap3_pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
->  }
->
->  struct pwrdm_ops omap2_pwrdm_operations = {
-> +       .pwrdm_func_to_pwrst    = omap2_pwrdm_func_to_pwrst,
-> +       .pwrdm_pwrst_to_func    = omap2_pwrdm_pwrst_to_func,
->         .pwrdm_set_next_pwrst   = omap2_pwrdm_set_next_pwrst,
->         .pwrdm_read_next_pwrst  = omap2_pwrdm_read_next_pwrst,
->         .pwrdm_read_pwrst       = omap2_pwrdm_read_pwrst,
-> @@ -222,6 +225,8 @@ struct pwrdm_ops omap2_pwrdm_operations = {
->  };
->
->  struct pwrdm_ops omap3_pwrdm_operations = {
-> +       .pwrdm_func_to_pwrst    = omap2_pwrdm_func_to_pwrst,
-> +       .pwrdm_pwrst_to_func    = omap2_pwrdm_pwrst_to_func,
->         .pwrdm_set_next_pwrst   = omap2_pwrdm_set_next_pwrst,
->         .pwrdm_read_next_pwrst  = omap2_pwrdm_read_next_pwrst,
->         .pwrdm_read_pwrst       = omap2_pwrdm_read_pwrst,
-> diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-> index 601325b..538b528 100644
-> --- a/arch/arm/mach-omap2/powerdomain44xx.c
-> +++ b/arch/arm/mach-omap2/powerdomain44xx.c
-> @@ -209,6 +209,8 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
->  }
->
->  struct pwrdm_ops omap4_pwrdm_operations = {
-> +       .pwrdm_func_to_pwrst    = omap2_pwrdm_func_to_pwrst,
-> +       .pwrdm_pwrst_to_func    = omap2_pwrdm_pwrst_to_func,
->         .pwrdm_set_next_pwrst   = omap4_pwrdm_set_next_pwrst,
->         .pwrdm_read_next_pwrst  = omap4_pwrdm_read_next_pwrst,
->         .pwrdm_read_pwrst       = omap4_pwrdm_read_pwrst,
-
-otherwise, this is a nice concept
---
-Regards,
-Nishanth Menon
