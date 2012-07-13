@@ -1,77 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
-Date: Thu, 12 Jul 2012 23:41:48 -0700
-Message-ID: <20120713064147.GG1122@atomide.com>
-References: <pull-1341925556-888624>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
+Subject: Re: mismerge of 'omap-cleanup-for-v3.6' into tmp-merge
+Date: Thu, 12 Jul 2012 23:43:50 -0700
+Message-ID: <20120713064349.GH1122@atomide.com>
+References: <87fw8yjby4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:46376 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:47022 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab2GMGlx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:41:53 -0400
+	with ESMTP id S1750857Ab2GMGnw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:43:52 -0400
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
+In-Reply-To: <87fw8yjby4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Mark A. Greer" <Mark.Greer@AnimalCreek.com>
 
-* Mohammed, Afzal <afzal@ti.com> [120712 23:19]:
+* Kevin Hilman <khilman@ti.com> [120711 13:15]:
 > Hi Tony,
-> 
-> On Tue, Jul 10, 2012 at 18:35:55, Tony Lindgren wrote:
-> > The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
-> > 
-> >   Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-dt-for-v3.6
-> > 
-> > for you to fetch changes up to f700c4d780f14125f61b70e86d805908efe3fb89:
-> > 
-> >   arm/dts: New dts file for PandaBoardES (4460) (2012-07-09 05:37:05 -0700)
-> > 
-> > ----------------------------------------------------------------
-> > Device tree related patches for omaps
-> > 
-> > ----------------------------------------------------------------
-> > Afzal Mohammed (1):
-> >       arm/dts: am33xx wdt node
-> 
-> The above patch seems to be an empty one, actual changes in it as in
-> original patch [1] is missing, same changes are shown below for your
-> reference [2].
-> 
-> Can you please do the needful so that the intended change of this
-> patch makes to mainline this merge window.
+>=20
+> In your current master branch, commit 3dd50d054 (Merge tag
+> 'omap-cleanup-for-v3.6' into tmp-merge) added back the mpu_3xxx_clkdm
+> into the common clockdomains that was removed by commit 16e5e2c47 (AR=
+M:
+> OMAP AM35x: clockdomain data: Fix clockdomain dependencies)
+>=20
+> This causes duplicate registration attempts for mpu_clkdm and the sec=
+ond
+> registration causes a warning from the clockdomain layer:
+>=20
+>    clockdomain: mpu_clkdm: powerdomain ({Z=EF=BF=BD=18=D7=82=EF=BF=BD=
+ does not exist
 
-Argh. Thanks for letting me know. I must have something wrong with
-my scripts when applying patches. We'll have to apply this as a fix.
+OK. Can you please check if this issue is also in arm-soc for-next
+and provide a patch if that's the case?
 
 Regards,
 
 Tony
- 
-> Regards
-> Afzal
-> 
-> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg71644.html
-> [2]
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index f46e353..08b2a5b 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -185,5 +185,10 @@
->                         compatible = "ti,omap3-hsmmc";
->                         ti,hwmods = "mmc3";
->                 };
-> +
-> +               wdt2: wdt@44e35000 {
-> +                       compatible = "ti,omap3-wdt";
-> +                       ti,hwmods = "wd_timer2";
-> +               };
->         };
->  };
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
