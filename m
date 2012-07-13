@@ -1,88 +1,187 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
-Date: Fri, 13 Jul 2012 00:56:58 -0700
-Message-ID: <20120713075658.GQ1122@atomide.com>
-References: <pull-1341925556-888624>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
- <20120713064147.GG1122@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP4: twl-common: Support for additional devices on i2c1 bus
+Date: Fri, 13 Jul 2012 10:01:45 +0200
+Message-ID: <1342166505-15275-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31925 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754875Ab2GMH5E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 03:57:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20120713064147.GG1122@atomide.com>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:47703 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753739Ab2GMIBj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jul 2012 04:01:39 -0400
+Received: by obbwd20 with SMTP id wd20so5890432obb.37
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 01:01:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120712 23:46]:
-> * Mohammed, Afzal <afzal@ti.com> [120712 23:19]:
-> > Hi Tony,
-> > 
-> > On Tue, Jul 10, 2012 at 18:35:55, Tony Lindgren wrote:
-> > > The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
-> > > 
-> > >   Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
-> > > 
-> > > are available in the git repository at:
-> > > 
-> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-dt-for-v3.6
-> > > 
-> > > for you to fetch changes up to f700c4d780f14125f61b70e86d805908efe3fb89:
-> > > 
-> > >   arm/dts: New dts file for PandaBoardES (4460) (2012-07-09 05:37:05 -0700)
-> > > 
-> > > ----------------------------------------------------------------
-> > > Device tree related patches for omaps
-> > > 
-> > > ----------------------------------------------------------------
-> > > Afzal Mohammed (1):
-> > >       arm/dts: am33xx wdt node
-> > 
-> > The above patch seems to be an empty one, actual changes in it as in
-> > original patch [1] is missing, same changes are shown below for your
-> > reference [2].
-> > 
-> > Can you please do the needful so that the intended change of this
-> > patch makes to mainline this merge window.
-> 
-> Argh. Thanks for letting me know. I must have something wrong with
-> my scripts when applying patches. We'll have to apply this as a fix.
+On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related devices.
+Manufacturers can opt to use different codec than twl6040 and also can add
+audio related IC to the bus (external amplifier for example on SDP4430).
 
-Arnd and Olof, let me know if you want me to resubmit a new branch instead
-of the already pulled devel-dt branch. That branch should not have other
-dependencies as it's based on -rc5. Of course is it's buried into other
-DT patches it's too late.
+Make it possible to add differnet set of additional devices to i2c1 bus on
+OMAP4 boards.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c    |   14 ++++++++++--
+ arch/arm/mach-omap2/board-omap4panda.c |   12 +++++++++-
+ arch/arm/mach-omap2/twl-common.c       |   35 +++++++++----------------------
+ arch/arm/mach-omap2/twl-common.h       |    3 +-
+ 4 files changed, 33 insertions(+), 31 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 2fd7b03..1d81f62 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -542,7 +542,7 @@ static struct twl6040_vibra_data twl6040_vibra = {
  
-> Regards,
-> 
-> Tony
->  
-> > Regards
-> > Afzal
-> > 
-> > [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg71644.html
-> > [2]
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index f46e353..08b2a5b 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -185,5 +185,10 @@
-> >                         compatible = "ti,omap3-hsmmc";
-> >                         ti,hwmods = "mmc3";
-> >                 };
-> > +
-> > +               wdt2: wdt@44e35000 {
-> > +                       compatible = "ti,omap3-wdt";
-> > +                       ti,hwmods = "wd_timer2";
-> > +               };
-> >         };
-> >  };
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static struct twl6040_gpo_data twl6040_gpo = {
+ 	.nr_gpo = TWL6040_GPO_MAX,
+-	.gpio_base = -1,
++	.gpio_base = 192,
+ };
+ 
+ static struct twl6040_platform_data twl6040_data = {
+@@ -553,6 +553,14 @@ static struct twl6040_platform_data twl6040_data = {
+ 	.irq_base	= TWL6040_CODEC_IRQ_BASE,
+ };
+ 
++static struct i2c_board_info __initdata sdp4430_i2c_1_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6040", 0x4b),
++		.irq = OMAP44XX_IRQ_SYS_2N,
++		.platform_data = &twl6040_data,
++	},
++};
++
+ static struct twl4030_platform_data sdp4430_twldata = {
+ 	/* Regulators */
+ 	.vusim		= &sdp4430_vusim,
+@@ -586,8 +594,8 @@ static int __init omap4_i2c_init(void)
+ 			TWL_COMMON_REGULATOR_CLK32KG |
+ 			TWL_COMMON_REGULATOR_V1V8 |
+ 			TWL_COMMON_REGULATOR_V2V1);
+-	omap4_pmic_init("twl6030", &sdp4430_twldata,
+-			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
++	omap4_pmic_init("twl6030", &sdp4430_twldata, sdp4430_i2c_1_boardinfo,
++			ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+ 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b627cdc..5becba2 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -266,6 +266,14 @@ static struct twl6040_platform_data twl6040_data = {
+ 	.irq_base	= TWL6040_CODEC_IRQ_BASE,
+ };
+ 
++static struct i2c_board_info __initdata panda_i2c_1_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6040", 0x4b),
++		.irq = OMAP44XX_IRQ_SYS_2N,
++		.platform_data = &twl6040_data,
++	},
++};
++
+ /* Panda board uses the common PMIC configuration */
+ static struct twl4030_platform_data omap4_panda_twldata;
+ 
+@@ -293,8 +301,8 @@ static int __init omap4_panda_i2c_init(void)
+ 			TWL_COMMON_REGULATOR_CLK32KG |
+ 			TWL_COMMON_REGULATOR_V1V8 |
+ 			TWL_COMMON_REGULATOR_V2V1);
+-	omap4_pmic_init("twl6030", &omap4_panda_twldata,
+-			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
++	omap4_pmic_init("twl6030", &omap4_panda_twldata, panda_i2c_1_boardinfo,
++			ARRAY_SIZE(panda_i2c_1_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	/*
+ 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index c76d075..94c8280 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -39,16 +39,6 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
+ 	.flags		= I2C_CLIENT_WAKE,
+ };
+ 
+-static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
+-	{
+-		.addr		= 0x48,
+-		.flags		= I2C_CLIENT_WAKE,
+-	},
+-	{
+-		I2C_BOARD_INFO("twl6040", 0x4b),
+-	},
+-};
+-
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static int twl_set_voltage(void *data, int target_uV)
+ {
+@@ -77,30 +67,25 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+ 
+ void __init omap4_pmic_init(const char *pmic_type,
+ 		    struct twl4030_platform_data *pmic_data,
+-		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
++		    struct i2c_board_info *devices, int nr_devices)
+ {
+ 	/* PMIC part*/
+ 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
+-	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
+-		sizeof(omap4_i2c1_board_info[0].type));
+-	omap4_i2c1_board_info[0].irq = OMAP44XX_IRQ_SYS_1N;
+-	omap4_i2c1_board_info[0].platform_data = pmic_data;
+-
+-	/* TWL6040 audio IC part */
+-	omap4_i2c1_board_info[1].irq = twl6040_irq;
+-	omap4_i2c1_board_info[1].platform_data = twl6040_data;
+-
+-	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
++	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
+ 
++	/* Register additional devices on i2c1 bus if needed */
++	if (devices)
++		i2c_register_board_info(1, devices, nr_devices);
+ }
+ 
+ void __init omap_pmic_late_init(void)
+ {
+ 	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
+-	if (pmic_i2c_board_info.irq)
+-		omap3_twl_init();
+-	if (omap4_i2c1_board_info[0].irq)
+-		omap4_twl_init();
++	if (!pmic_i2c_board_info.irq)
++		return;
++
++	omap3_twl_init();
++	omap4_twl_init();
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+index 8fe71cf..de062c7 100644
+--- a/arch/arm/mach-omap2/twl-common.h
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -32,6 +32,7 @@
+ 
+ struct twl4030_platform_data;
+ struct twl6040_platform_data;
++struct i2c_board_info;
+ 
+ void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+ 		    struct twl4030_platform_data *pmic_data);
+@@ -51,7 +52,7 @@ static inline void omap3_pmic_init(const char *pmic_type,
+ 
+ void omap4_pmic_init(const char *pmic_type,
+ 		    struct twl4030_platform_data *pmic_data,
+-		    struct twl6040_platform_data *audio_data, int twl6040_irq);
++		    struct i2c_board_info *devices, int nr_devices);
+ 
+ void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 			   u32 pdata_flags, u32 regulators_flags);
+-- 
+1.7.8.6
+
