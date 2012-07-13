@@ -1,61 +1,120 @@
-From: Dennis Gilmore <dennis@ausil.us>
-Subject: Re: dtb for pandaboard
-Date: Fri, 13 Jul 2012 08:08:00 -0500
-Message-ID: <20120713080800.5ebea37c@pegasus.ausil.us>
-References: <20120708173259.592552c1@pegasus.ausil.us>
-	<20120709090848.GD1122@atomide.com>
-	<20120710181119.27faf235@pegasus.ausil.us>
-	<20120711074232.GE1122@atomide.com>
-	<20120711084855.5887c9ea@pegasus.ausil.us>
-	<20120713065700.GK1122@atomide.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v4 0/8] ARM: OMAP2+: PM: introduce the power domains
+ functional states
+Date: Fri, 13 Jul 2012 15:41:59 +0200
+Message-ID: <CAORVsuXZpN97_as+gF6dyoyaU8os4rr=YNgiNMJXfAedQkkwyw@mail.gmail.com>
+References: <1339685591-11177-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ausil.us ([74.119.218.133]:41540 "EHLO mail.ausil.us"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756629Ab2GMNIU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 09:08:20 -0400
-In-Reply-To: <20120713065700.GK1122@atomide.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:65271 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab2GMNmB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 09:42:01 -0400
+Received: by bkwj10 with SMTP id j10so3125917bkw.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 06:42:00 -0700 (PDT)
+In-Reply-To: <1339685591-11177-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
+Cc: Jean Pihet <j-pihet@ti.com>
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUaHUs
-IDEyIEp1bCAyMDEyIDIzOjU3OjAwIC0wNzAwDQpUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
-Y29tPiB3cm90ZToNCg0KPiAqIERlbm5pcyBHaWxtb3JlIDxkZW5uaXNAYXVzaWwudXM+IFsxMjA3
-MTEgMDY6NTNdOg0KPiA+IE9uIFdlZCwgMTEgSnVsIDIwMTIgMDA6NDI6MzMgLTA3MDANCj4gPiBU
-b255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29tPiB3cm90ZToNCj4gPiA+IA0KPiA+ID4gU291
-bmRzIGxpa2UgaXQncyBzb21lIGtpbmQgb2YgaXNzdWUgd2l0aCBkdGIgZ2V0dGluZyBvdmVyd3Jp
-dHRlbg0KPiA+ID4gYnkgc29tZXRoaW5nLiBXZSBoYWQgYW4gaXNzdWUgd2hlcmUga2VybmVsIEJT
-UyB3YXMgb3ZlcmxhcHBpbmcgZHRiDQo+ID4gPiBpbiBzb21lIGNhc2VzLCBidXQgdGhvc2Ugc2hv
-dWxkIGJlIGZpeGVkLg0KPiA+IA0KPiA+IHNlZW1zIHRoYXQgdGhleSBhcmUgbm90IGFsbCBmaXhl
-ZCBhcHBlbmRpbmcgdGhlIGR0YiBhbGxvd3MgbWUgdG8NCj4gPiBib290IGkgY291bGQgdHJ5IGxv
-YWRpbmcgdGhlIGR0YiBhdCBhIGRpZmZlcmVudCBhZGRyZXNzLiANCj4gDQo+IE9LIHNvdW5kcyBs
-aWtlIHRoYXQncyB0aGUgaXNzdWUgdGhlbiwgaG9wZWZ1bGx5IG1vdmluZyB0aGUgZHRiIGFyb3Vu
-ZA0KPiBoZWxwcy4NCg0KbW92aW5nIHRoZSBhZGRyZXNzIGZvciB0aGUgZHRiIGRvZXMgcmVzdWx0
-IGluIGl0IHN0YXJ0aW5nIHRvIGJvb3QNCg0KPiA+ID4gTWF5YmUgdHJ5IHRvIGxlYXZlIG91dCBB
-UkNIX09NQVAyIGFuZCBBUkNIX09NQVAzIGFuZCBtYXliZQ0KPiA+ID4gQ09ORklHX05FVCBmcm9t
-IHlvdXIgLmNvbmZpZyB0byBtYWtlIHRoZSBrZXJuZWwgc21hbGxlciBhbmQgc2VlDQo+ID4gPiBp
-ZiB0aGF0IG1ha2VzIGEgZGlmZmVyZW5jZT8NCj4gPiA+IA0KPiA+ID4gSWYgdGhhdCB3b3Jrcywg
-dGhlbiBtb3ZpbmcgdGhlIGR0YiBhZGRyZXNzIGluIHVFbnYudHh0IHNob3VsZA0KPiA+ID4gaGVs
-cC4NCj4gPiA+IA0KPiA+ID4gQWxzbywgcGxlYXNlIGNoZWNrIGlmIHRoZSBzYW1lIGlzc3VlIGhh
-cHBlbnMgd2l0aCBhcHBlbmRlZCBkdGI6DQo+ID4gd2l0aCB0aGUgYXBwZW5kZWQgZHRiIGltYWdl
-IGltIGJhY2sgdG8gd2hlcmUgaSB3YXMgbm90IHVzaW5nIGEgZHRiDQo+ID4gZmlsZSBhdCBhbGwu
-ICB0aGF0IGlzIHRoYXQgb21hcCBpcyBub3QgYmVpbmcgYXV0b2xvYWRlZC4gYW5kIHRoZQ0KPiA+
-IHNkY2FyZCBzbyByb290ZnMgbmV2ZXIgc2hvd3MgdXAuICBpIGdldCBkcm9wcGVkIHRvIGEgZHJh
-Y3V0IHJlc2N1ZQ0KPiA+IHNoZWxsIHdoZXJlIGlmIGkgbWFudWFsbHkgbW9kcHJvYmUgb21hcCAg
-bm90aGluZyBpcyBoYXBwZW5pbmcuIA0KPiANCj4gSWYgdGhlIFNEIGNhcmQgaXMgbm90IGRldGVj
-dGVkIHdpdGggYXBwZW5kZWQgZHRiIGVpdGhlciwgdGhlIGNhcmQNCj4gdm9sdGFnZXMgbWF5IG5v
-dCBiZSBzdXBwb3J0ZWQuIEkgYmVsaWV2ZSBSYWplbmRyYSBtZW50aW9uZWQgaW4gc29tZQ0KPiBt
-YWlsIHRoYXQgd2UncmUgc3RpbGwgbWlzc2luZyBzb21lIHZvbHRhZ2Ugc2V0dGluZ3MgZm9yIHRo
-ZSBEVCBjYXNlDQo+IGZvciBvbWFwX2hzbW1jLmMuIEluIHRoYXQgY2FzZSB0aGUgY2FyZCBzaG91
-bGQgd29yayBmb3IgdGhlIG5vbi1EVA0KPiBib290aW5nIHRob3VnaC4NCg0KSSBzdGFydGVkIHRy
-eWluZyB0byB1c2UgYSBkdGIgYmVjYXVzZSB0aGUgc2RjYXJkIHdhcyBub3Qgc2hvd2luZyB1cC4g
-SQ0Kd2FudGVkIHRvIHNlZSBpZiB1c2luZyBkdGIgYWxsb3dlZCBpdCB0byB3b3JrLiBpdCBkb2Vz
-bnQgd29yayB3aXRoIG9yDQp3aXRob3V0IGEgZHRiLg0KDQpEZW5uaXMNCi0tLS0tQkVHSU4gUEdQ
-IFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjE4IChHTlUvTGludXgpDQoNCmlF
-WUVBUkVDQUFZRkFsQUFIYmdBQ2drUWtTeG00N0JhV2ZlYWpBQ2VMSXIwcnRDTWhTTWtQbWlUOWM5
-SVgxSUcNCk5VSUFuUjJoVDdydFdZNXV5ZHJoZ1FXejM2eGFOWGQyDQo9WldxVQ0KLS0tLS1FTkQg
-UEdQIFNJR05BVFVSRS0tLS0tDQo=
+Hi!
+
+On Thu, Jun 14, 2012 at 4:53 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> Here is a re-spin after some comments after an internal review and some testing on
+> OMAP4 with device OFF support.
+>
+> Implement the functional states for the power domains:
+> - unify the API to use the functional states,
+> - protect the power domain state change by a mutex in
+>   omap_set_pwrdm_state,
+> - introduce the functional states for power domains power states and
+>   logic power states, and the conversion functions between the
+>   functional and internal states,
+> - program the logic power state of power domains from the functional
+>   states, in omap_set_pwrdm_state
+> - convert the OMAP2/3/4 PM code to use the updated API,
+> - provide the power domains statistics by functional states,
+> - provide ftrace tracepoints with the functional state.
+>
+> Based on mainline kernel 3.5.0-rc2.
+>
+> Tested on OMAP3 Beagleboard, with suspend and cpuidle in RET and
+> OFF modes.
+
+Here is the latest version for anyone willing to look at it, or even
+better review and test it.
+
+The latest code can be fetched from https://gitorious.org/jpihet/linux.
+Please note that the tree also contains branches for the per-device PM
+QoS, OMAP4 device OFF and the misc fixes needed to allow OMAP4 to
+enter the low power modes.
+
+Based on 3.5.0-rc6; tested with OMAP3&4 suspend/resume and OMAP3
+cpuidle, using CSWR and OFF modes.
+
+Here are the changes since the last version:
+- changed the locking to a spinlock. Thanks to Ambresh K for reporting
+the issue,
+- extended the locking to the next power state read
+(pwrdm_read_next_func_pwrst) and write (omap_set_pwrdm_state).
+
+Regards,
+Jean
+
+>
+>
+> History:
+>  v4:
+>  - reworked the code after internal review and testing with OMAP3&4 device
+>    OFF,
+>  - fixed the tracepoints generation code,
+>  - introduce a function that returns power domains achievable functional
+>    states, in order to return a valid state for power domains that only
+>    support some of the power states. Although it has been tested OK the
+>    code is in RFC state.
+>
+>  v3:
+>  - fix a bug in OMAP3 cpuidle which prevented the IO wake-ups in PER
+>
+>  v2:
+>  - add the logic power states,
+>  - provide the power domains statistics by functional states
+>
+>  v1:
+>  - initial implementation, in RFC state
+>
+>
+> Jean Pihet (8):
+>   ARM: OMAP2+: PM: protect the power domain state change by a mutex
+>   ARM: OMAP2+: PM: introduce power domains functional states
+>   ARM: OMAP2+: PM: use the functional power states API
+>   ARM: OMAP2+: PM: introduce power domains logic and memory functional
+>     states
+>   ARM: OMAP2+: PM: introduce power domains achievable functional states
+>   ARM: OMAP2+: PM: use the functional power states API for logic and
+>     memory
+>   ARM: OMAP2+: PM: use power domain functional state in stats counters
+>   ARM: OMAP2+: PM debug: trace the functional power domains states
+>
+>  arch/arm/mach-omap2/cpuidle34xx.c          |   61 +++---
+>  arch/arm/mach-omap2/cpuidle44xx.c          |   28 +--
+>  arch/arm/mach-omap2/omap-hotplug.c         |    2 +-
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c  |   39 ++--
+>  arch/arm/mach-omap2/pm-debug.c             |   15 +-
+>  arch/arm/mach-omap2/pm.c                   |   62 -----
+>  arch/arm/mach-omap2/pm.h                   |    1 -
+>  arch/arm/mach-omap2/pm24xx.c               |   15 +-
+>  arch/arm/mach-omap2/pm34xx.c               |   78 +++---
+>  arch/arm/mach-omap2/pm44xx.c               |   18 +-
+>  arch/arm/mach-omap2/powerdomain-common.c   |  100 ++++++++
+>  arch/arm/mach-omap2/powerdomain.c          |  367 ++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/powerdomain.h          |  101 ++++++--
+>  arch/arm/mach-omap2/powerdomain2xxx_3xxx.c |    7 +
+>  arch/arm/mach-omap2/powerdomain44xx.c      |    3 +
+>  15 files changed, 653 insertions(+), 244 deletions(-)
+>
+> --
+> 1.7.7.6
+>
