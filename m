@@ -1,8 +1,7 @@
 From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 2/4] ARM: OMAP3: Dynamically disable secure timer nodes for
- secure devices
-Date: Fri, 13 Jul 2012 17:19:33 -0500
-Message-ID: <1342217976-29802-4-git-send-email-jon-hunter@ti.com>
+Subject: [RFC 4/4] ARM: OMAP: Add DT support for timer driver
+Date: Fri, 13 Jul 2012 17:19:36 -0500
+Message-ID: <1342217976-29802-7-git-send-email-jon-hunter@ti.com>
 References: <1342217976-29802-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,118 +22,136 @@ To: Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, Tony Lindgr
 Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP3 devices may or may not have security features enabled. Security enabled
-devices are known as high-secure (HS) and devices without security are known as
-general purpose (GP).
+In order to add device-tree support to the timer driver the following changes
+were made ...
 
-For OMAP3 devices there are 12 general purpose timers available. On secure
-devices the 12th timer is reserved for secure usage and so cannot be used by
-the kernel, where as for a GP device it is available. We can detect the OMAP
-device type, secure or GP, at runtime via an on-chip register. Today, when not
-using DT, we do not register the 12th timer as a linux device if the device is
-secure.
-
-When using device tree, device tree is going to register all the timer devices
-it finds in the device tree blob. To prevent device tree from registering 12th
-timer on a secure OMAP3 device we can add a status property to the timer
-binding with the value "disabled" at boot time. Note that timer 12 on a OMAP3
-device has a property "ti,timer-secure" to indicate that it will not be
-available on a secure device and so for secure OMAP3 devices, we search for
-timers with this property and then disable them. Using the prom_add_property()
-function to dynamically add a property was a recommended approach suggested by
-Rob Herring [1].
-
-I have tested this on an OMAP3 GP device and faking it to pretend to be a
-secure device to ensure that any timers marked with "ti,timer-secure" are not
-registered on boot. I have also made sure that all timers are registered as
-expected on a GP device by default.
-
-[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/79203
+1. If DT blob is present, then let HWMOD create the timer devices dynamically.
+2. When device-tree is present the "id" field in the platform_device structure
+   (pdev->id) is initialised to -1 and the timer instance is looked-up using the
+   device tree alias mechanism. Therefore, avoid using "pdev-id" in the driver
+   and use "timer->id" which will be initialised correctly regardless of whether
+   device tree is present.
+3. When device-tree is present the platform_data structure will be NULL and so
+   check for this.
+4. The OMAP timer device tree binding optional parameters ...
+	a. ti,timer-alwon  --> Timer is in an always-on power domain
+	b. ti,timer-pwn    --> Timer can generate a PWM output
+   Search for the above parameters and set the appropriate timer attribute
+   flags.
 
 Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-generic.c |    1 +
- arch/arm/mach-omap2/common.h        |    1 +
- arch/arm/mach-omap2/timer.c         |   36 +++++++++++++++++++++++++++++++++++
- 3 files changed, 38 insertions(+)
+ arch/arm/mach-omap2/timer.c  |    4 ++++
+ arch/arm/plat-omap/dmtimer.c |   32 ++++++++++++++++++++++++++------
+ 2 files changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 6f93a20..20124d7 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -40,6 +40,7 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- static void __init omap_generic_init(void)
- {
- 	omap_sdrc_init(NULL, NULL);
-+	omap_dmtimer_init();
- 
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- }
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 1f65b18..d6a4875 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -326,6 +326,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 				      struct omap_sdrc_params *sdrc_cs1);
- struct omap2_hsmmc_info;
- extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
-+extern void omap_dmtimer_init(void);
- 
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 13d20c8..e3b9931 100644
+index e3b9931..ad5b29a 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -36,6 +36,7 @@
- #include <linux/clocksource.h>
- #include <linux/clockchips.h>
- #include <linux/slab.h>
+@@ -473,6 +473,10 @@ static int __init omap2_dm_timer_init(void)
+ {
+ 	int ret;
+ 
++	/* If dtb is there, the devices will be created dynamically */
++	if (of_have_populated_dt())
++		return -ENODEV;
++
+ 	ret = omap_hwmod_for_each_by_class("timer", omap_timer_init, NULL);
+ 	if (unlikely(ret)) {
+ 		pr_err("%s: device registration failed.\n", __func__);
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 626ad8c..5a51b67 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -40,6 +40,8 @@
+ #include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/pm_runtime.h>
 +#include <linux/of.h>
++#include <linux/of_device.h>
  
- #include <asm/mach/time.h>
  #include <plat/dmtimer.h>
-@@ -482,6 +483,41 @@ static int __init omap2_dm_timer_init(void)
- }
- arch_initcall(omap2_dm_timer_init);
+ #include <plat/omap-pm.h>
+@@ -123,7 +125,7 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
+ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+ {
+ 	omap_dm_timer_enable(timer);
+-	if (timer->pdev->id != 1) {
++	if (timer->id != 1) {
+ 		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
+ 		omap_dm_timer_wait_for_reset(timer);
+ 	}
+@@ -214,7 +216,7 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
  
-+static struct property timer_disabled = {
-+	.name = "status",
-+	.length = sizeof("disabled"),
-+	.value = "disabled",
-+};
+ 	spin_lock_irqsave(&dm_timer_lock, flags);
+ 	list_for_each_entry(t, &omap_timer_list, node) {
+-		if (t->pdev->id == id && !t->reserved) {
++		if (t->id == id && !t->reserved) {
+ 			timer = t;
+ 			timer->reserved = 1;
+ 			break;
+@@ -414,7 +416,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 	 * use the clock framework to set the parent clock. To be removed
+ 	 * once OMAP1 migrated to using clock framework for dmtimers
+ 	 */
+-	if (pdata->set_timer_src)
++	if (pdata && pdata->set_timer_src)
+ 		return pdata->set_timer_src(timer->pdev, source);
+ 
+ 	fclk = clk_get(&timer->pdev->dev, "fck");
+@@ -695,7 +697,7 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+ 
+-	if (!pdata) {
++	if (!pdata && !dev->of_node) {
+ 		dev_err(dev, "%s: no platform data.\n", __func__);
+ 		return -ENODEV;
+ 	}
+@@ -724,11 +726,21 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	timer->id = pdev->id;
++	if (dev->of_node) {
++		timer->id = of_alias_get_id(dev->of_node, "timer");
 +
-+static struct of_device_id omap3_timer_match[] __initdata = {
-+	{ .compatible = "ti,omap3-timer", },
-+	{ }
-+};
-+
-+/**
-+ * omap_dmtimer_init - initialisation function when device tree is used
-+ *
-+ * For secure OMAP3 devices, timers with device type "timer-secure" cannot
-+ * be used by the kernel as they are reserved. Therefore, to prevent the
-+ * kernel registering these devices remove them dynamically from the device
-+ * tree on boot.
-+ */
-+void __init omap_dmtimer_init(void)
-+{
-+	struct device_node *np;
-+
-+	if (!cpu_is_omap34xx())
-+		return;
-+
-+	/* If we are a secure device, remove any secure timer nodes */
-+	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
-+		for_each_matching_node(np, omap3_timer_match) {
-+			if (of_get_property(np, "ti,timer-secure", NULL))
-+				prom_add_property(np, &timer_disabled);
-+		}
++		if (of_find_property(dev->of_node, "ti,timer-alwon", NULL))
++			timer->capability |= OMAP_TIMER_ALWON;
++		if (of_find_property(dev->of_node, "ti,timer-pwm", NULL))
++			timer->capability |= OMAP_TIMER_HAS_PWM;
++	} else {
++		timer->id = pdev->id;
++		timer->capability = pdata->timer_capability;
 +	}
-+}
 +
- /**
-  * omap2_override_clocksource - clocksource override with user configuration
-  *
+ 	timer->irq = irq->start;
+ 	timer->reserved = omap_dm_timer_reserved_systimer(timer->id);
+ 	timer->pdev = pdev;
+-	timer->capability = pdata->timer_capability;
+ 
+ 	/* Skip pm_runtime_enable for OMAP1 */
+ 	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
+@@ -778,11 +790,19 @@ static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
++static const struct of_device_id omap_timer_match[] = {
++	{ .compatible = "ti,omap3-timer", },
++	{ .compatible = "ti,omap2-timer", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, omap_timer_match);
++
+ static struct platform_driver omap_dm_timer_driver = {
+ 	.probe  = omap_dm_timer_probe,
+ 	.remove = __devexit_p(omap_dm_timer_remove),
+ 	.driver = {
+ 		.name   = "omap_timer",
++		.of_match_table = of_match_ptr(omap_timer_match),
+ 	},
+ };
+ 
 -- 
 1.7.9.5
