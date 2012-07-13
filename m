@@ -1,41 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Fri, 13 Jul 2012 12:26:13 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
-References: <WC20120712081507.600002@terrafix.co.uk> <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com> <WC20120712144308.86003F@terrafix.co.uk> <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com> <WC20120713105737.0900A2@terrafix.co.uk>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] ARM: OMAP2+: Fix dmtimer set source clock failure
+Date: Fri, 13 Jul 2012 15:12:03 -0500
+Message-ID: <1342210323-2129-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45438 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755984Ab2GMS0O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 14:26:14 -0400
-In-Reply-To: <WC20120713105737.0900A2@terrafix.co.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:38953 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495Ab2GMUMT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 16:12:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>, Joe Woodward <jw@terrafix.co.uk>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-+ Mark
+Calling the dmtimer function omap_dm_timer_set_source() fails if following a
+call to pm_runtime_put() to disable the timer. For example the following
+sequence would fail to set the parent clock ...
 
-On Fri, 13 Jul 2012, Joe Woodward wrote:
+	omap_dm_timer_stop(gptimer);
+	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
 
-> Thanks Paul,
-> 
-> That patch does indeed seem to fix all my problems!
-> 
-> With it I can now suspend, and all power domains hit the target states.
+The following error message would be seen ...
 
-OK, great.  That patch is basically a revert of 
-a819c4f16d5a2708c11e708fd59a96565c5384a8 ("ARM: OMAP3: PM: Only access IVA 
-if one exists").  Sounds like we need to discriminate between the case 
-where the IVA2 is present but has been efused off in some way (as in the 
-AM3703) vs. the case where the IVA2 is not present at all (as in the 
-AM35xx).
+omap_dm_timer_set_source: failed to set timer_32k_ck as parent
 
-Mark, do you have the time to take a look at this?  Maybe omap3_has_iva() 
-needs to be split into omap3_has_iva() and omap3_has_usable_iva().  Or 
-maybe you can come up with a better idea...
+The problem is that, by design, pm_runtime_put() simply decrements the usage
+count and returns before the timer has actually been disabled. Therefore,
+setting the parent clock failed because the timer was still active when the
+trying to set the parent clock. Setting a parent clock will fail if the clock
+you are setting the parent of has a non-zero usage count. To ensure that this
+does not fail use pm_runtime_put_sync() when disabling the timer.
 
+Note that this will not be seen on OMAP1 devices, because these devices do
+not use the clock framework for dmtimers.
 
-- Paul
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 626ad8c..7b6689a 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -258,7 +258,7 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
+ 
+ void omap_dm_timer_disable(struct omap_dm_timer *timer)
+ {
+-	pm_runtime_put(&timer->pdev->dev);
++	pm_runtime_put_sync(&timer->pdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
+ 
+-- 
+1.7.9.5
+
