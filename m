@@ -1,7 +1,7 @@
 From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: [RFC 1/4] arm/dts: OMAP: Add genernal purpose timer nodes
-Date: Fri, 13 Jul 2012 17:19:31 -0500
-Message-ID: <1342217976-29802-2-git-send-email-jon-hunter@ti.com>
+Subject: [RFC 1/4] arm/dts: OMAP: Add timer nodes
+Date: Fri, 13 Jul 2012 17:19:32 -0500
+Message-ID: <1342217976-29802-3-git-send-email-jon-hunter@ti.com>
 References: <1342217976-29802-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
