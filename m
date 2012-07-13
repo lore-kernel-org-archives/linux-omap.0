@@ -1,73 +1,89 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
- to OFF when in-use
-Date: Fri, 13 Jul 2012 09:07:41 -0500
-Message-ID: <50002BAD.3010600@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <20120713140021.GS18079@mudshark.cambridge.arm.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv4 1/8] ARM: OMAP: clk: add support for omap_clk_for_each
+Date: Fri, 13 Jul 2012 17:19:38 +0300
+Message-ID: <1342189185-5306-2-git-send-email-t-kristo@ti.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60973 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35592 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987Ab2GMOHz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 10:07:55 -0400
-In-Reply-To: <20120713140021.GS18079@mudshark.cambridge.arm.com>
+	id S933265Ab2GMOUS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jul 2012 10:20:18 -0400
+In-Reply-To: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi Will,
+This works similarly to e.g. pwrdm_for_each(). Needed by enhanced
+usecounting debug functionality that will be added to pm-debug.
 
-On 07/13/2012 09:00 AM, Will Deacon wrote:
-> Jon,
-> 
-> [cutting out realms of context!]
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/clock.c              |   33 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clock.h |    2 +
+ 2 files changed, 35 insertions(+), 0 deletions(-)
 
-Thanks! My inbox thanks you too ;-)
-
-> On Fri, Jul 13, 2012 at 02:54:59PM +0100, Jon Hunter wrote:
->> Another proposal I also thought of is re-working the flags to describe
->> the HW mode to be used when turning on the CLKDM, when the CLKDM is
->> active and when the CLKDM is shut down. So instead of saying what modes
->> the CLKDM supports, specify what modes should be used for pre-ON (i.e.
->> turn ON), ON and OFF. Right now software is trying to decide for us by
->> what is available (which is ideal) but makes working around such nuances
->> a little more painful.
->>
->> By the way, I did do some testing on OMAP3, but I don't recall now
->> whether I was having such problems with OMAP3. I need to go back and
->> test perf again on OMAP3 to see if such a flag is needed.
-> 
-> If you do test on OMAP3, please kill the OMAP3_EMU option as I think this
-> has the effect of keeping the EMU power domain up via the etm code (look at
-> etb_probe).
-> 
-> Will
-> 
-> ---8<---
-> 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index a91009c..d02054c 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -1139,8 +1139,7 @@ config XSCALE_PMU
->         default y
->  
->  config CPU_HAS_PMU
-> -       depends on (CPU_V6 || CPU_V6K || CPU_V7 || XSCALE_PMU) && \
-> -                  (!ARCH_OMAP3 || OMAP3_EMU)
-> +       depends on (CPU_V6 || CPU_V6K || CPU_V7 || XSCALE_PMU)
->         default y
->         bool
-
-Ah-ha! May be this is why is worked without issue. I will look at that
-and check the power states. I must admit that my testing was quick to
-ensure no breakages but no thorough to check what was going on with power.
-
-Cheers
-Jon
-
-
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 706b7e2..ad9dc59 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -355,6 +355,39 @@ int omap_clk_enable_autoidle_all(void)
+ 	return 0;
+ }
+ 
++/**
++ * omap_clk_for_each - call a function for each registered clock
++ * @fn: pointer to callback function
++ * @data: void * data to pass to callback function
++ *
++ * Call @fn for each registered clock, passing @data to each function.
++ * @fn must return 0 for success or any other value for failure. If
++ * @fn returns non-zero, the iteration across clocks will stop and
++ * the non-zero return value will be passed to the caller of
++ * omap_clk_for_each(). @fn is called with clockfw_lock held.
++ */
++int omap_clk_for_each(int (*fn)(struct clk *clk, void *user), void *user)
++{
++	struct clk *c;
++	unsigned long flags;
++	int ret = 0;
++
++	if (!fn)
++		return -EINVAL;
++
++	spin_lock_irqsave(&clockfw_lock, flags);
++
++	list_for_each_entry(c, &clocks, node) {
++		ret = fn(c, user);
++		if (ret)
++			break;
++	}
++
++	spin_unlock_irqrestore(&clockfw_lock, flags);
++
++	return ret;
++}
++
+ int omap_clk_disable_autoidle_all(void)
+ {
+ 	struct clk *c;
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index d0ef57c..998947e 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -294,6 +294,8 @@ extern void propagate_rate(struct clk *clk);
+ extern void recalculate_root_clocks(void);
+ extern unsigned long followparent_recalc(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
++extern int omap_clk_for_each(int (*fn)(struct clk *clk, void *user),
++				void *user);
+ unsigned long omap_fixed_divisor_recalc(struct clk *clk);
+ extern struct clk *omap_clk_get_by_name(const char *name);
+ extern int omap_clk_enable_autoidle_all(void);
+-- 
+1.7.4.1
 
