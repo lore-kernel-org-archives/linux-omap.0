@@ -1,49 +1,80 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Fri, 13 Jul 2012 14:28:10 -0700
-Message-ID: <20120713212810.GB20211@animalcreek.com>
-References: <WC20120712081507.600002@terrafix.co.uk>
- <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com>
- <WC20120712144308.86003F@terrafix.co.uk>
- <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com>
- <WC20120713105737.0900A2@terrafix.co.uk>
- <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 13 Jul 2012 23:52:36 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1207132335110.5711@axis700.grange>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+ <201206262027.47817.arnd@arndb.de> <1340804708.1562.253.camel@vkoul-udesk3>
+ <201206271520.49276.arnd@arndb.de> <1342161907.1726.26.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:41276 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097Ab2GMV2M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 17:28:12 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:60459 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752066Ab2GMVx1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 17:53:27 -0400
+In-Reply-To: <1342161907.1726.26.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Fri, Jul 13, 2012 at 12:26:13PM -0600, Paul Walmsley wrote:
-> + Mark
-> 
-> On Fri, 13 Jul 2012, Joe Woodward wrote:
-> 
-> > Thanks Paul,
-> > 
-> > That patch does indeed seem to fix all my problems!
-> > 
-> > With it I can now suspend, and all power domains hit the target states.
-> 
-> OK, great.  That patch is basically a revert of 
-> a819c4f16d5a2708c11e708fd59a96565c5384a8 ("ARM: OMAP3: PM: Only access IVA 
-> if one exists").  Sounds like we need to discriminate between the case 
-> where the IVA2 is present but has been efused off in some way (as in the 
-> AM3703) vs. the case where the IVA2 is not present at all (as in the 
-> AM35xx).
-> 
-> Mark, do you have the time to take a look at this?  Maybe omap3_has_iva() 
-> needs to be split into omap3_has_iva() and omap3_has_usable_iva().  Or 
-> maybe you can come up with a better idea...
+Hi Vinod
 
-Sure, I'll see what I can figure out.
+On Fri, 13 Jul 2012, Vinod Koul wrote:
 
-Mark
+> On Wed, 2012-06-27 at 15:20 +0000, Arnd Bergmann wrote:
+
+[snip]
+
+> > Do you mean there must be a global table, or are you ok with putting
+> > the information about a channel into the device that uses the channel,
+> > as we do for most other subsystems (IRQ, GPIO, pinctrl, ...).
+> > If not, what is the problem with that approach?
+> 
+> Today, we simple ask, "give me dma channel with DMA_SLAVE capability".
+> 
+> If we change it to "give me dma channel which suits my need" and have
+> additional information in dmaengine to handle this request effectively.
+> 
+> What that would mean is
+> a) DMA channel either knows which channel to provide, Or
+> b) Additional arguments provided to dmaengine API to help it find out
+> which channel to provide.
+> 
+> It would be good to have client ask for a specific channel. But in order
+> to build generic clients, we face a problem that clients may not know
+> how they mapped to dmac by SoC designer. Or the mux maybe entirely
+> flexible on which channel.
+> 
+> If we add this as DT property (which I assume should be platform
+> specific), then client will know which channel to request.
+> It can have two levels, dmac and channel. In case mux is flexible enough
+> then client gets a channel and program the mux for this mapping.
+> 
+> I think this is the most simplistic solution I have for this, thoughts?
+
+How about this my idea:
+
+http://thread.gmane.org/gmane.linux.ports.arm.omap/75828/focus=15501
+
+A small correction to it would be, that it shouldn't (necessarily) be a 
+separate driver, because in some cases the mux resides on the DMAC, they 
+share registers, so, it shouldn't really be a separate device and a 
+separate driver, don't think it's worth an MFD set up or anything similar. 
+So, I am trying ATM to implement something along the lines of
+
+struct dma_chan *dma_request_slave_channel(struct device *dev,
+		enum dma_transfer_direction direction, const char *name);
+
+The connection between clients and the mux is always static, so, the 
+dmaengine core can always just pass to the mux a client-side "pad" 
+specifier (dev + direction + (optionally) name). The mux call-back will 
+then see, where it can connect that pad and return a suitable channel 
+descriptor - possibly with the help of the DMAC driver proper.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
