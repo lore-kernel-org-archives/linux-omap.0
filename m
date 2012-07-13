@@ -1,54 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Criteria for merging new board support files
-Date: Thu, 12 Jul 2012 23:51:04 -0700
-Message-ID: <20120713065102.GJ1122@atomide.com>
-References: <20120712204710.GA3850@renkinjitsu.usine.8d.com>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 13 Jul 2012 12:21:12 +0530
+Message-ID: <1342162272.1726.29.camel@vkoul-udesk3>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	 <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
+	 <201206252030.56025.arnd@arndb.de>
+	 <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61025 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960Ab2GMGvF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:51:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20120712204710.GA3850@renkinjitsu.usine.8d.com>
+Received: from mga01.intel.com ([192.55.52.88]:12724 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752960Ab2GMGvj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jul 2012 02:51:39 -0400
+In-Reply-To: <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Raphael Assenat <raph@8d.com>
-Cc: linux-omap@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi,
-
-* Raphael Assenat <raph@8d.com> [120712 14:28]:
-> Hello,
+On Fri, 2012-07-06 at 13:36 +0200, Guennadi Liakhovetski wrote:
+> On Mon, 25 Jun 2012, Arnd Bergmann wrote:
 > 
-> We have designed a board based on the AM3505 to use in one of our products,
-> an unattended payment terminal. I am wondering if it would be meaningful 
-> to clean up and submit our patches to add support for our board in the 
-> mainline.
+> [snip]
 > 
-> As this board is neither a development/evm platform nor a mass produced 
-> consumer product, not many users, if ever, will want to customize
-> their kernel. Therefore I am not sure what the advantages for the 
-> community at large would be... Besides our code serving as yet another 
-> board file example.
+> > The channel data in the device tree is still in a format
+> > that is specific to that dmaengine driver and interpreted
+> > by it. Using the regular dma_filter_fn prototype is not
+> > necessary, but it would be convenient because the dmaengine
+> > code already knows how to deal with it. If we don't use this
+> > method, how about adding another callback to struct dma_device
+> > like
+> > 
+> > bool (*device_match)(struct dma_chan *chan, struct property *req);
 > 
-> What is the current maintainer position regarding new board support files? 
-> Were submissions from people in the same situation ever merged? Do you think
-> it worth the effort to clean up and submit our board support files?
+> I like this idea, but why don't we extend it to also cover the non-DT 
+> case? I.e., why don't we add the above callback (call it "match" or 
+> "filter" or anything else) to dmaengine operations and inside (the 
+> extended) dma_request_channel(), instead of calling the filter function, 
+> passed as a parameter, we loop over all registered DMAC devices and call 
+> their filter callbacks, 
+And I have told you many times, that dmacs should not know anything
+about clients. They should be totally agnostic to it.
 
-We're moving towards device tree based booting and the board-*.c files
-will be going away except for board-generic.c. No new board-*.c files
-will be merged.
+Clients need to request a specific channel, and that is where changes
+should come for. Not having dmac provide one.
 
-I've been carrying some board-*.c files in the testing-board branch,
-but we're now at a point where the devicetree based booting should work
-for simple cases. Some parts are of course still missing.
 
-So I suggest you just provide a new .dts file for your board. Might be
-worth posting the board-*.c file anyways so people can use that if
-they want to.
+-- 
+~Vinod
 
-Regards,
-
-Tony
