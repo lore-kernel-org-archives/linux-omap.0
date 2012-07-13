@@ -1,72 +1,88 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 2/8] ARM: OMAP2+: PM: introduce power domains functional states
-Date: Fri, 13 Jul 2012 02:27:49 -0500
-Message-ID: <CAOMWX4faqqLTM+YmiKjqonQyew+U+49PsK04FUKXUUySdJATkg@mail.gmail.com>
-References: <1339685591-11177-1-git-send-email-j-pihet@ti.com>
- <1339685591-11177-3-git-send-email-j-pihet@ti.com> <CAOMWX4cT+U2iq3e=rfBaSX5Hdn_kNEkdF0ffC33UCuEfEjdisw@mail.gmail.com>
- <4FFFB19D.2090808@ti.com> <CAOMWX4ctd20p2qBKyVBEE7PxXaEoExMivnE9Kcx6Om1w6U5yCw@mail.gmail.com>
- <CAORVsuWvELiRj4XYGQ5WZuNbmWO_Hp8FaHHHhSjXbCPDeaigGg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
+Date: Fri, 13 Jul 2012 00:56:58 -0700
+Message-ID: <20120713075658.GQ1122@atomide.com>
+References: <pull-1341925556-888624>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
+ <20120713064147.GG1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:38281 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752939Ab2GMH2M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 03:28:12 -0400
-Received: by weyx8 with SMTP id x8so2483518wey.33
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 00:28:09 -0700 (PDT)
-In-Reply-To: <CAORVsuWvELiRj4XYGQ5WZuNbmWO_Hp8FaHHHhSjXbCPDeaigGg@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31925 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754875Ab2GMH5E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 03:57:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20120713064147.GG1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jul 13, 2012 at 2:18 AM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
-[..]
->> Santosh pointed me to the thread offline. This is indeed a much better
->> approach IMHO than having 3 conflicting options inside powerdomain
->> framework.
-> After looking at the code and having sent my comments, I like it ...
-> mainly because it is really similar to my proposal ;-p
-> Can you elaborate more on 'having 3 conflicting options inside
-> powerdomain framework'?
-Current code has:
-a) PWRDM_POWER_XYZ -> describe power state
-b) PWRSTS_XYZ ->meant to describe supported states for each pwrdm
+* Tony Lindgren <tony@atomide.com> [120712 23:46]:
+> * Mohammed, Afzal <afzal@ti.com> [120712 23:19]:
+> > Hi Tony,
+> > 
+> > On Tue, Jul 10, 2012 at 18:35:55, Tony Lindgren wrote:
+> > > The following changes since commit 6887a4131da3adaab011613776d865f4bcfb5678:
+> > > 
+> > >   Linux 3.5-rc5 (2012-06-30 16:08:57 -0700)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-dt-for-v3.6
+> > > 
+> > > for you to fetch changes up to f700c4d780f14125f61b70e86d805908efe3fb89:
+> > > 
+> > >   arm/dts: New dts file for PandaBoardES (4460) (2012-07-09 05:37:05 -0700)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Device tree related patches for omaps
+> > > 
+> > > ----------------------------------------------------------------
+> > > Afzal Mohammed (1):
+> > >       arm/dts: am33xx wdt node
+> > 
+> > The above patch seems to be an empty one, actual changes in it as in
+> > original patch [1] is missing, same changes are shown below for your
+> > reference [2].
+> > 
+> > Can you please do the needful so that the intended change of this
+> > patch makes to mainline this merge window.
+> 
+> Argh. Thanks for letting me know. I must have something wrong with
+> my scripts when applying patches. We'll have to apply this as a fix.
 
-this patch introduces:
-a) PWRDM_POWER_XYZ -> describe power state (only for powerdomain*.[ch])
-b) PWRSTS_XYZ ->meant to describe supported states for each pwrdm
-c) PWRDM_FUNC_XYZ -> for files other than powerdomain*.[ch]
-
-https://patchwork.kernel.org/patch/1160431/
-maintains
-a) PWRDM_POWER_XYZ -> describe power state
-b) PWRSTS_XYZ ->meant to describe supported states for each pwrdm
-
-i) reduces code churn
-ii) supports logic pwr handling within existing framework
-iii) no conflicting usage beyond known definition and usage. (though
-personally, I;d like to see PWRSTS_XYZ dissappear into private
-header..
-
-
-> Here are the main differences in the implementation:
-> - the RFC code provides a _private header file, which forces the
-> external users (cpuidle, pmXXXX.c etc.),
-That is one of the reasons I like it. I need to have a code which will
-be maintained beyond the original code creators - reduced ability to
-mess up the code by "not-well-informed" developers is paramount
-importance for me.
-
-> - the RFC code still uses the same function names while my code
-> renames them to '*_func_*'. This makes the code look more complicated
-> than it really is.
-
-True. But, it paves the way to move all functions that is not intended
-to be used beyond powerdomain files to a private power domain header -
-which achieves the same objective without code churn.
-
-Regards,
-Nishanth Menon
+Arnd and Olof, let me know if you want me to resubmit a new branch instead
+of the already pulled devel-dt branch. That branch should not have other
+dependencies as it's based on -rc5. Of course is it's buried into other
+DT patches it's too late.
+ 
+> Regards,
+> 
+> Tony
+>  
+> > Regards
+> > Afzal
+> > 
+> > [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg71644.html
+> > [2]
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index f46e353..08b2a5b 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -185,5 +185,10 @@
+> >                         compatible = "ti,omap3-hsmmc";
+> >                         ti,hwmods = "mmc3";
+> >                 };
+> > +
+> > +               wdt2: wdt@44e35000 {
+> > +                       compatible = "ti,omap3-wdt";
+> > +                       ti,hwmods = "wd_timer2";
+> > +               };
+> >         };
+> >  };
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
