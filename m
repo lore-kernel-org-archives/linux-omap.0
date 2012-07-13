@@ -1,42 +1,48 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 1/3] regulator: tps65217: Add device tree support
-Date: Fri, 13 Jul 2012 05:43:30 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
-References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
- <1341918584-28004-2-git-send-email-anilkumar@ti.com>
- <20120712172836.GR7256@opensource.wolfsonmicro.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH] OMAP4: 4430sdp: OTG: increase max allowed output current
+Date: Fri, 13 Jul 2012 11:23:12 +0530
+Message-ID: <CAAe_U6Kza7Zc2SF-ve761Kb2_0Q-9K19qkAZ2eahh-AHrsfh8w@mail.gmail.com>
+References: <1342099542-13862-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120712172836.GR7256-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: "sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Girdwood,
- Liam" <lrg-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60081 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030184Ab2GMFxO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jul 2012 01:53:14 -0400
+Received: by vbal1 with SMTP id l1so2205454vba.9
+        for <linux-omap@vger.kernel.org>; Thu, 12 Jul 2012 22:53:12 -0700 (PDT)
+In-Reply-To: <1342099542-13862-1-git-send-email-ruslan.bilovol@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
-Hi Mark,
+Hi,
 
-On Thu, Jul 12, 2012 at 22:58:37, Mark Brown wrote:
-> On Tue, Jul 10, 2012 at 04:39:42PM +0530, AnilKumar Ch wrote:
-> > This commit adds device tree support for tps65217 pmic. And usage
-> > details are added to device tree documentation. Driver is tested
-> > by using kernel module with regulator set and get APIs.
-> 
-> Applied, thanks.
+On Thu, Jul 12, 2012 at 6:55 PM, Ruslan Bilovol <ruslan.bilovol@ti.com> wrote:
+> TWL6030/32 that is used on 4430sdp board can deliver up to 200mA
+> for OTG port power supply in the HOST mode.
+>
+> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 8e17284..10223f5 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -429,7 +429,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+>  static struct omap_musb_board_data musb_board_data = {
+>         .interface_type         = MUSB_INTERFACE_UTMI,
+>         .mode                   = MUSB_OTG,
+> -       .power                  = 100,
+> +       .power                  = 200,
+>  };
 
-Thanks much, are you going to push reset of the patches in this series?
+Shouldn't this change be made for omap4 panda as well.
 
 Thanks
-AnilKumar
+Kishon
