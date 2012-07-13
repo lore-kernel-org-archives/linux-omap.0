@@ -1,53 +1,58 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 13 Jul 2012 12:21:12 +0530
-Message-ID: <1342162272.1726.29.camel@vkoul-udesk3>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	 <4FE896F9.2020806@ti.com> <1340647463.1562.127.camel@vkoul-udesk3>
-	 <201206252030.56025.arnd@arndb.de>
-	 <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: dtb for pandaboard
+Date: Thu, 12 Jul 2012 23:57:00 -0700
+Message-ID: <20120713065700.GK1122@atomide.com>
+References: <20120708173259.592552c1@pegasus.ausil.us>
+ <20120709090848.GD1122@atomide.com>
+ <20120710181119.27faf235@pegasus.ausil.us>
+ <20120711074232.GE1122@atomide.com>
+ <20120711084855.5887c9ea@pegasus.ausil.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:12724 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab2GMGvj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 02:51:39 -0400
-In-Reply-To: <Pine.LNX.4.64.1207061315470.29809@axis700.grange>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43386 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753451Ab2GMG5F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:57:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20120711084855.5887c9ea@pegasus.ausil.us>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Dennis Gilmore <dennis@ausil.us>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, 2012-07-06 at 13:36 +0200, Guennadi Liakhovetski wrote:
-> On Mon, 25 Jun 2012, Arnd Bergmann wrote:
-> 
-> [snip]
-> 
-> > The channel data in the device tree is still in a format
-> > that is specific to that dmaengine driver and interpreted
-> > by it. Using the regular dma_filter_fn prototype is not
-> > necessary, but it would be convenient because the dmaengine
-> > code already knows how to deal with it. If we don't use this
-> > method, how about adding another callback to struct dma_device
-> > like
+* Dennis Gilmore <dennis@ausil.us> [120711 06:53]:
+> On Wed, 11 Jul 2012 00:42:33 -0700
+> Tony Lindgren <tony@atomide.com> wrote:
 > > 
-> > bool (*device_match)(struct dma_chan *chan, struct property *req);
+> > Sounds like it's some kind of issue with dtb getting overwritten
+> > by something. We had an issue where kernel BSS was overlapping dtb
+> > in some cases, but those should be fixed.
 > 
-> I like this idea, but why don't we extend it to also cover the non-DT 
-> case? I.e., why don't we add the above callback (call it "match" or 
-> "filter" or anything else) to dmaengine operations and inside (the 
-> extended) dma_request_channel(), instead of calling the filter function, 
-> passed as a parameter, we loop over all registered DMAC devices and call 
-> their filter callbacks, 
-And I have told you many times, that dmacs should not know anything
-about clients. They should be totally agnostic to it.
+> seems that they are not all fixed appending the dtb allows me to boot i
+> could try loading the dtb at a different address. 
 
-Clients need to request a specific channel, and that is where changes
-should come for. Not having dmac provide one.
+OK sounds like that's the issue then, hopefully moving the dtb around
+helps.
+ 
+> > Maybe try to leave out ARCH_OMAP2 and ARCH_OMAP3 and maybe CONFIG_NET
+> > from your .config to make the kernel smaller and see if that makes
+> > a difference?
+> > 
+> > If that works, then moving the dtb address in uEnv.txt should help.
+> > 
+> > Also, please check if the same issue happens with appended dtb:
+> with the appended dtb image im back to where i was not using a dtb file
+> at all.  that is that omap is not being autoloaded. and the sdcard so
+> rootfs never shows up.  i get dropped to a dracut rescue shell where if
+> i manually modprobe omap  nothing is happening. 
 
+If the SD card is not detected with appended dtb either, the card
+voltages may not be supported. I believe Rajendra mentioned in some
+mail that we're still missing some voltage settings for the DT case
+for omap_hsmmc.c. In that case the card should work for the non-DT
+booting though.
 
--- 
-~Vinod
+Regards,
 
+Tony
