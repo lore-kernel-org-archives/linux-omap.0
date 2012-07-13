@@ -1,37 +1,41 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] rpmsg bus subsys_initcall initialization ordering
-Date: Fri, 13 Jul 2012 21:00:16 +0300
-Message-ID: <CAK=WgbaTrjSPqEKKt+bt0uD1x+yNXxRZfJUGZjjMnWGV0aAV3Q@mail.gmail.com>
-References: <1341936444-3094-1-git-send-email-fuga@studiofuga.com>
- <CAK=Wgbaf0On3teqOw1myqkS4Dei3Vw2Zn=0xfOv-YiNUjFr0fg@mail.gmail.com>
- <485F7F7C-2D0C-4B14-8A46-D42C9F8ED4E4@studiofuga.com> <CAK=WgbZFHzHLxQfoWW4Cz_PpBCzER75KCd=C3WS-7w_LryKuQA@mail.gmail.com>
- <47AF0F55-39D1-4B7E-BE0E-D2395989322D@studiofuga.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Fri, 13 Jul 2012 12:26:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
+References: <WC20120712081507.600002@terrafix.co.uk> <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com> <WC20120712144308.86003F@terrafix.co.uk> <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com> <WC20120713105737.0900A2@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:34688 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932563Ab2GMSAh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 14:00:37 -0400
-Received: by vbbff1 with SMTP id ff1so2448930vbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 11:00:37 -0700 (PDT)
-In-Reply-To: <47AF0F55-39D1-4B7E-BE0E-D2395989322D@studiofuga.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45438 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755984Ab2GMS0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 14:26:14 -0400
+In-Reply-To: <WC20120713105737.0900A2@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Federico Fuga <fuga@studiofuga.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>, Joe Woodward <jw@terrafix.co.uk>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Hi Federico,
++ Mark
 
-On Wed, Jul 11, 2012 at 10:14 AM, Federico Fuga <fuga@studiofuga.com> wrote:
-> it triggers a BUG() in drivers/base/driver.c line 169
+On Fri, 13 Jul 2012, Joe Woodward wrote:
 
-Thanks for sharing this; it definitely makes sense now.
+> Thanks Paul,
+> 
+> That patch does indeed seem to fix all my problems!
+> 
+> With it I can now suspend, and all power domains hit the target states.
 
-> The subsys_initcall indeed solve this issue
+OK, great.  That patch is basically a revert of 
+a819c4f16d5a2708c11e708fd59a96565c5384a8 ("ARM: OMAP3: PM: Only access IVA 
+if one exists").  Sounds like we need to discriminate between the case 
+where the IVA2 is present but has been efused off in some way (as in the 
+AM3703) vs. the case where the IVA2 is not present at all (as in the 
+AM35xx).
 
-I agree. I'll take it, but will change the commit log to make it
-omaprpc-agnostic.
+Mark, do you have the time to take a look at this?  Maybe omap3_has_iva() 
+needs to be split into omap3_has_iva() and omap3_has_usable_iva().  Or 
+maybe you can come up with a better idea...
 
-Thanks,
-Ohad.
+
+- Paul
