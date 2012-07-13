@@ -1,73 +1,48 @@
-From: "Hilman, Kevin" <khilman@ti.com>
-Subject: Re: [GIT PULL] gpio/omap: final fixes for v3.5
-Date: Tue, 10 Jul 2012 18:35:39 -0700
-Message-ID: <CALyTGOAVrfsuy2sWXR728N4TqdewMP5d6AE9UinavE0d8BDJow@mail.gmail.com>
-References: <87vci08npt.fsf@ti.com>
- <CACRpkdaTLFzjmUtcZ-D-DN05CL_6ZVL=A65P4LpxWExVn4v+2Q@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [RFC 2/6] ARM: OMAP3: clock data: prevent IVA2 DPLL low power stop mode
+Date: Fri, 13 Jul 2012 19:37:35 +0300
+Message-ID: <1342197459-7920-3-git-send-email-t-kristo@ti.com>
+References: <1342197459-7920-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1975984865567257413=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CACRpkdaTLFzjmUtcZ-D-DN05CL_6ZVL=A65P4LpxWExVn4v+2Q@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56727 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752615Ab2GMQi0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 12:38:26 -0400
+In-Reply-To: <1342197459-7920-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
---===============1975984865567257413==
-Content-Type: multipart/alternative; boundary=20cf30363cd14e9de104c483dd67
+If IVA2 DPLL is in low power stop mode, this will prevent IVA2
+powerdomain sleep transition. Typically the DPLL is in locked
+autoidle mode, which will allow sleep. With the wrong config,
+the DPLL will end up in the wrong mode if IVA2 clock is first
+enabled, then disabled by SW. This happens for example once
+IVA2 hwmod reset sequence is implemented properly within hwmod
+preprogram hook, as the IVA2 clock must be enabled during this.
 
---20cf30363cd14e9de104c483dd67
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-On Jul 9, 2012 11:07 AM, "Linus Walleij" <linus.walleij@linaro.org> wrote:
->
-> On Sat, Jul 7, 2012 at 1:38 AM, Kevin Hilman <khilman@ti.com> wrote:
->
-> > Here's a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.
->
-> I've pulled this to my GPIO tree for testing in next.
->
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 1efdec2..3b7e9c8 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -353,8 +353,7 @@ static struct dpll_data dpll2_dd = {
+ 	.freqsel_mask	= OMAP3430_IVA2_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL),
+ 	.enable_mask	= OMAP3430_EN_IVA2_DPLL_MASK,
+-	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED) |
+-				(1 << DPLL_LOW_POWER_BYPASS),
++	.modes		= (1 << DPLL_LOCKED) | (1 << DPLL_LOW_POWER_BYPASS),
+ 	.auto_recal_bit	= OMAP3430_EN_IVA2_DPLL_DRIFTGUARD_SHIFT,
+ 	.recal_en_bit	= OMAP3430_PRM_IRQENABLE_MPU_IVA2_DPLL_RECAL_EN_SHIFT,
+ 	.recal_st_bit	= OMAP3430_PRM_IRQSTATUS_MPU_IVA2_DPLL_ST_SHIFT,
+-- 
+1.7.4.1
 
-Excellent, thanks.
-
-Kevin
-
---20cf30363cd14e9de104c483dd67
-Content-Type: text/html; charset=ISO-8859-1
-
-<p><br>
-On Jul 9, 2012 11:07 AM, &quot;Linus Walleij&quot; &lt;<a href="mailto:linus.walleij@linaro.org">linus.walleij@linaro.org</a>&gt; wrote:<br>
-&gt;<br>
-&gt; On Sat, Jul 7, 2012 at 1:38 AM, Kevin Hilman &lt;<a href="mailto:khilman@ti.com">khilman@ti.com</a>&gt; wrote:<br>
-&gt;<br>
-&gt; &gt; Here&#39;s a couple (hopefully) final OMAP GPIO fixes for v3.5-rc.<br>
-&gt;<br>
-&gt; I&#39;ve pulled this to my GPIO tree for testing in next.<br>
-&gt;</p>
-<p>Excellent, thanks.</p>
-<p>Kevin<br>
-</p>
-
---20cf30363cd14e9de104c483dd67--
-
-
---===============1975984865567257413==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1975984865567257413==--
