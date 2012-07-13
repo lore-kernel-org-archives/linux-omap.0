@@ -1,96 +1,54 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: RFC: Simplification of Power Domain Control
-Date: Fri, 13 Jul 2012 04:51:05 -0500
-Message-ID: <CAOMWX4d=bYzb3+ao0DFLi8SHk5_gZ9dO=g0JV19NnTgxH89b4w@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 1/3] regulator: tps65217: Add device tree support
+Date: Fri, 13 Jul 2012 10:54:54 +0100
+Message-ID: <20120713095454.GB4215@opensource.wolfsonmicro.com>
+References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
+ <1341918584-28004-2-git-send-email-anilkumar@ti.com>
+ <20120712172836.GR7256@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:45549 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757044Ab2GMJv2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 05:51:28 -0400
-Received: by weyx56 with SMTP id x56so3134221wey.13
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 02:51:25 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EuxKj2iCbKjpUGkD"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul <paul@pwsan.com>, Jean <j-pihet@ti.com>, Kevin <khilman@ti.com>, Santosh <santosh.shilimkar@ti.com>, Benoit <b-cousson@ti.com>, David <dderrick@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-
-On Thursday 05 July 2012, Rajendra Nayak wrote:
-[..]
-> From 5f5e4eb342110286bf719c7d9d7c1959f53e34f9 Mon Sep 17 00:00:00 2001
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Thu, 5 Jul 2012 17:33:28 +0530
-> Subject: [RFC] ARM: OMAP: Powerdomain: control memory and logic bits internally
->
-> Powerdomain framework exposes various apis for memory and logic
-> control for powerdomains, for its users to program OSWR: Open SWitch
-> Retention state. While in theory, there are various combinations of
-> memory and logic states possible which can be configured as OSWR,
-> in practice all OMAPs use just one combination. Logic lost, memory retained.
->
-> This can very easily be handled within the powerdomain framework itself,
-> without exposing all complex memory/logic control apis to upper layer
-> drivers like cpuidle and suspend.
->
-> To do this, introduce 2 new power domain states PWRDM_POWER_CSWR and
-> PWRDM_POWER_OSWR usable by the users of powerdomain framework and
-> make all memory/logic control apis internal to powerdomain framework.
-> Change all users of powerdomain framework to get rid of all usage
-> of memory/logic control apis and use the newly defined states for
-> CSWR and OSWR with the already used powerstate control apis.
->
-> Some functions (which are now made internal) are forward declared
-> to avoid moving functions around in the file (which can be done in a
-> later patch) to help keep the patch reviewable.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
 
-Ref: http://marc.info/?t=133968586800004&r=1&w=2
+--EuxKj2iCbKjpUGkD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Apologies, but i've had to copypaste the original message, so inline response
-might be a bit messed up.
+On Fri, Jul 13, 2012 at 05:43:30AM +0000, AnilKumar, Chimata wrote:
 
->From an initial port to get cpuidle working on OMAP5, my experiences follow:
+> Thanks much, are you going to push reset of the patches in this series?
 
-a) counter handling (pm-debug.c) - we can now do better than give our
-arcane RET:5
-LOGIC-POWER-OFF:4 , instead we can clearly indicate OSWR, CSWR in
-counter
-Part of the issue also now becomes that count and time arrays are in
-the range of
-PWRDM_POWER_ON. They break when CSWR/OSWR is in pwrdm->state
+No, there's no dependency so I'd expect them to be applied by the
+architecture maintainers.
 
-b) pwrst handling this becomes a hard one to handle (as usual) when
-comparisons of
-while (!(pwrdm->pwrsts & (1 << pwrst))) {
-        if (pwrst == PWRDM_POWER_OFF)
-                goto out;
-        pwrst--;
-}
+--EuxKj2iCbKjpUGkD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-with value 4, 5 -> pwrsts should either now use OSWR, CSWR definitions
-OR we will need translate back before checks
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-c) in few critical places, these mentioned error checks do silent
-error returns - example:
- if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
-         return -EINVAL;
- this bit me more than once while i tried to bring up the patch
-we should be doing a patch which introduces a ratelimited WARN to kill the
-bad callers.
+iQIcBAEBAgAGBQJP//AuAAoJEBus8iNuMP3d3dcP/1YA08soeMqDBAvVREqJdIAx
+VpsvDCE3A2MYEK7muDbS8W+v4AuV27NwkFPavlMUlTLRZVATeLQWJQR9mXt0/LwV
+Nhu59GYoYd3HsvQRwUJCLBQMyokG045fSrXY/YvA6pJKRVJ5bcS76QBIESrPUpsA
+y06LaI9/qUGm6PzmYd9z5jtO5Z1IXPBfOl/AAs0lwdhJI3FDucSFtXhzocTieVXY
+/tPmZvwbI1MTCe0U5pq47rSL8MH6box1QBctgQ6Q18KIst/cWkyS0FiJ/hywMZDB
++EFFWC1cOZq+tWB+2nZ8LbomlhNtnagzxDrhfU3V9LBD8KtDeAhv694D9j4jl4wg
+N4e4Rc7cllt2/iW3j7ctNIGVDiyOwDsSaZAKzXr3m9/aZErAaQNtLs0eFgUQ81Zk
+AnvXBuLmM3XqkV3J+2dAc8RCr9XftSAkl/XgZsW/YfK4eqNfo50UNQQwDqbwqsDs
+f8oRjzdKUSVuzRUh5YaI80wZRourZtUg4CJqLGb3hoy1rY8c/TwLZ/BeLn4ckC/g
+h90/nGZi2dU5OtYvdoQRIspfT1S99oBRHnTW0ncPvabSOWZgHVgNNxVtoydzJCqB
+eF10xqG0yQausM/bcajmmSTbMkVllRu7KK+Rra/Fbe+18452e3CYa5pNQ/EhJuvB
+5QfQD0Era/MAEIFQghOV
+=vKfD
+-----END PGP SIGNATURE-----
 
-d) we have been lazy in programming and have been using cur_pwrst <
-PWRDM_POWER_ON or INACTIVE etc.. and do a set of operations based off
-that. this wont work as CSWR, OSWR > POWER_INACTIVE. (e.g. pm3 code)
-
-e) similar to what Jean did, omap_set_pwrdm_state will need to move
-over from pm.c to powerdomain.c
-
-f) We probably should also will need an updated patch for
-http://marc.info/?l=linux-omap&m=133968581105049&w=2
-
-Regards,
-Nishanth Menon
+--EuxKj2iCbKjpUGkD--
