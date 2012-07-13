@@ -1,58 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: dtb for pandaboard
-Date: Thu, 12 Jul 2012 23:57:00 -0700
-Message-ID: <20120713065700.GK1122@atomide.com>
-References: <20120708173259.592552c1@pegasus.ausil.us>
- <20120709090848.GD1122@atomide.com>
- <20120710181119.27faf235@pegasus.ausil.us>
- <20120711074232.GE1122@atomide.com>
- <20120711084855.5887c9ea@pegasus.ausil.us>
+Subject: Re: mismerge of 'omap-cleanup-for-v3.6' into tmp-merge
+Date: Fri, 13 Jul 2012 00:00:07 -0700
+Message-ID: <20120713070007.GL1122@atomide.com>
+References: <87fw8yjby4.fsf@ti.com>
+ <20120713064349.GH1122@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:43386 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:26538 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451Ab2GMG5F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:57:05 -0400
+	with ESMTP id S1751253Ab2GMHAJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 03:00:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20120711084855.5887c9ea@pegasus.ausil.us>
+In-Reply-To: <20120713064349.GH1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dennis Gilmore <dennis@ausil.us>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Mark A. Greer" <Mark.Greer@AnimalCreek.com>
 
-* Dennis Gilmore <dennis@ausil.us> [120711 06:53]:
-> On Wed, 11 Jul 2012 00:42:33 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> > 
-> > Sounds like it's some kind of issue with dtb getting overwritten
-> > by something. We had an issue where kernel BSS was overlapping dtb
-> > in some cases, but those should be fixed.
-> 
-> seems that they are not all fixed appending the dtb allows me to boot i
-> could try loading the dtb at a different address. 
+* Tony Lindgren <tony@atomide.com> [120712 23:48]:
+> * Kevin Hilman <khilman@ti.com> [120711 13:15]:
+> > Hi Tony,
+> >=20
+> > In your current master branch, commit 3dd50d054 (Merge tag
+> > 'omap-cleanup-for-v3.6' into tmp-merge) added back the mpu_3xxx_clk=
+dm
+> > into the common clockdomains that was removed by commit 16e5e2c47 (=
+ARM:
+> > OMAP AM35x: clockdomain data: Fix clockdomain dependencies)
+> >=20
+> > This causes duplicate registration attempts for mpu_clkdm and the s=
+econd
+> > registration causes a warning from the clockdomain layer:
+> >=20
+> >    clockdomain: mpu_clkdm: powerdomain ({Z=EF=BF=BD=18=D7=82=EF=BF=BD=
+ does not exist
+>=20
+> OK. Can you please check if this issue is also in arm-soc for-next
+> and provide a patch if that's the case?
 
-OK sounds like that's the issue then, hopefully moving the dtb around
-helps.
- 
-> > Maybe try to leave out ARCH_OMAP2 and ARCH_OMAP3 and maybe CONFIG_NET
-> > from your .config to make the kernel smaller and see if that makes
-> > a difference?
-> > 
-> > If that works, then moving the dtb address in uEnv.txt should help.
-> > 
-> > Also, please check if the same issue happens with appended dtb:
-> with the appended dtb image im back to where i was not using a dtb file
-> at all.  that is that omap is not being autoloaded. and the sdcard so
-> rootfs never shows up.  i get dropped to a dracut rescue shell where if
-> i manually modprobe omap  nothing is happening. 
-
-If the SD card is not detected with appended dtb either, the card
-voltages may not be supported. I believe Rajendra mentioned in some
-mail that we're still missing some voltage settings for the DT case
-for omap_hsmmc.c. In that case the card should work for the non-DT
-booting though.
-
-Regards,
+Oh looks like Paul already sent a fix for this one as
+"[PATCH] ARM: OMAP3: clockdomain: fix accidental duplicate".
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
