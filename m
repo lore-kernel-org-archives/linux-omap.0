@@ -1,54 +1,46 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 1/3] regulator: tps65217: Add device tree support
-Date: Fri, 13 Jul 2012 10:54:54 +0100
-Message-ID: <20120713095454.GB4215@opensource.wolfsonmicro.com>
-References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
- <1341918584-28004-2-git-send-email-anilkumar@ti.com>
- <20120712172836.GR7256@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: arm system wide sram support
+Date: Fri, 13 Jul 2012 09:55:11 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA3F274@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EuxKj2iCbKjpUGkD"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nori, Sekhar" <nsekhar@ti.com>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "rmk+kernel@arm.linux.org.uk" <rmk+kernel@arm.linux.org.uk>, "plagnioj@jcrosoft.com" <plagnioj@jcrosoft.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi,
 
---EuxKj2iCbKjpUGkD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have started working on Audio support for TI AM335x SOC. 
+It uses the same McASP IP as in Davinci platform.
 
-On Fri, Jul 13, 2012 at 05:43:30AM +0000, AnilKumar, Chimata wrote:
+The mcasp driver (davinci-pcm) uses SRAM api's. 
+Currently OMAP & Davinci have their own allocation systems, and both with
+their own ways of copying functions into the SRAM.
 
-> Thanks much, are you going to push reset of the patches in this series?
+A Patch was floating in the ML which supported merging this functionality
+as a unified consolidated sram support. 
 
-No, there's no dependency so I'd expect them to be applied by the
-architecture maintainers.
+https://patchwork.kernel.org/patch/961222/
 
---EuxKj2iCbKjpUGkD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+However I believe the patch was not accepted and I couldn't find any 
+updates on it later.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Can someone give me some pointers about the status for this patch or 
+If there has been any update on this?
 
-iQIcBAEBAgAGBQJP//AuAAoJEBus8iNuMP3d3dcP/1YA08soeMqDBAvVREqJdIAx
-VpsvDCE3A2MYEK7muDbS8W+v4AuV27NwkFPavlMUlTLRZVATeLQWJQR9mXt0/LwV
-Nhu59GYoYd3HsvQRwUJCLBQMyokG045fSrXY/YvA6pJKRVJ5bcS76QBIESrPUpsA
-y06LaI9/qUGm6PzmYd9z5jtO5Z1IXPBfOl/AAs0lwdhJI3FDucSFtXhzocTieVXY
-/tPmZvwbI1MTCe0U5pq47rSL8MH6box1QBctgQ6Q18KIst/cWkyS0FiJ/hywMZDB
-+EFFWC1cOZq+tWB+2nZ8LbomlhNtnagzxDrhfU3V9LBD8KtDeAhv694D9j4jl4wg
-N4e4Rc7cllt2/iW3j7ctNIGVDiyOwDsSaZAKzXr3m9/aZErAaQNtLs0eFgUQ81Zk
-AnvXBuLmM3XqkV3J+2dAc8RCr9XftSAkl/XgZsW/YfK4eqNfo50UNQQwDqbwqsDs
-f8oRjzdKUSVuzRUh5YaI80wZRourZtUg4CJqLGb3hoy1rY8c/TwLZ/BeLn4ckC/g
-h90/nGZi2dU5OtYvdoQRIspfT1S99oBRHnTW0ncPvabSOWZgHVgNNxVtoydzJCqB
-eF10xqG0yQausM/bcajmmSTbMkVllRu7KK+Rra/Fbe+18452e3CYa5pNQ/EhJuvB
-5QfQD0Era/MAEIFQghOV
-=vKfD
------END PGP SIGNATURE-----
+Is anyone working on this consolidation?
 
---EuxKj2iCbKjpUGkD--
+Thanks & Regards
+Gururaja
