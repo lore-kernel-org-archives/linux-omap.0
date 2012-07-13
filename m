@@ -1,49 +1,56 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
-Date: Fri, 13 Jul 2012 06:14:08 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
-References: <pull-1341925556-888624>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Thu, 12 Jul 2012 23:34:24 -0700
+Message-ID: <20120713063423.GF1122@atomide.com>
+References: <WC20120705150314.450045@terrafix.co.uk>
+ <87zk77p3s5.fsf@ti.com>
+ <WC20120711105003.8400AC@terrafix.co.uk>
+ <87pq82kz0l.fsf@ti.com>
+ <CALLhW=6p4AAUrpQmAFCTC2SYbAU_2F0roZ4Ha-NfE+oGn6zPbw@mail.gmail.com>
+ <87wr2ahtqg.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53404 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030814Ab2GMGOV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:14:21 -0400
-In-Reply-To: <pull-1341925556-888624>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:47564 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857Ab2GMGe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 02:34:28 -0400
+Content-Disposition: inline
+In-Reply-To: <87wr2ahtqg.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-SGkgVG9ueSwNCg0KT24gVHVlLCBKdWwgMTAsIDIwMTIgYXQgMTg6MzU6NTUsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQo+IFRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgNjg4N2E0MTMx
-ZGEzYWRhYWIwMTE2MTM3NzZkODY1ZjRiY2ZiNTY3ODoNCj4gDQo+ICAgTGludXggMy41LXJjNSAo
-MjAxMi0wNi0zMCAxNjowODo1NyAtMDcwMCkNCj4gDQo+IGFyZSBhdmFpbGFibGUgaW4gdGhlIGdp
-dCByZXBvc2l0b3J5IGF0Og0KPiANCj4gICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xp
-bnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAgdGFncy9vbWFwLWRldmVsLWR0LWZvci12
-My42DQo+IA0KPiBmb3IgeW91IHRvIGZldGNoIGNoYW5nZXMgdXAgdG8gZjcwMGM0ZDc4MGYxNDEy
-NWY2MWI3MGU4NmQ4MDU5MDhlZmUzZmI4OToNCj4gDQo+ICAgYXJtL2R0czogTmV3IGR0cyBmaWxl
-IGZvciBQYW5kYUJvYXJkRVMgKDQ0NjApICgyMDEyLTA3LTA5IDA1OjM3OjA1IC0wNzAwKQ0KPiAN
-Cj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQ0KPiBEZXZpY2UgdHJlZSByZWxhdGVkIHBhdGNoZXMgZm9yIG9tYXBzDQo+IA0K
-PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tDQo+IEFmemFsIE1vaGFtbWVkICgxKToNCj4gICAgICAgYXJtL2R0czogYW0zM3h4
-IHdkdCBub2RlDQoNClRoZSBhYm92ZSBwYXRjaCBzZWVtcyB0byBiZSBhbiBlbXB0eSBvbmUsIGFj
-dHVhbCBjaGFuZ2VzIGluIGl0IGFzIGluDQpvcmlnaW5hbCBwYXRjaCBbMV0gaXMgbWlzc2luZywg
-c2FtZSBjaGFuZ2VzIGFyZSBzaG93biBiZWxvdyBmb3IgeW91cg0KcmVmZXJlbmNlIFsyXS4NCg0K
-Q2FuIHlvdSBwbGVhc2UgZG8gdGhlIG5lZWRmdWwgc28gdGhhdCB0aGUgaW50ZW5kZWQgY2hhbmdl
-IG9mIHRoaXMNCnBhdGNoIG1ha2VzIHRvIG1haW5saW5lIHRoaXMgbWVyZ2Ugd2luZG93Lg0KDQpS
-ZWdhcmRzDQpBZnphbA0KDQpbMV0gaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnL21zZzcxNjQ0Lmh0bWwNClsyXQ0KZGlmZiAtLWdpdCBhL2FyY2gv
-YXJtL2Jvb3QvZHRzL2FtMzN4eC5kdHNpIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LmR0c2kN
-CmluZGV4IGY0NmUzNTMuLjA4YjJhNWIgMTAwNjQ0DQotLS0gYS9hcmNoL2FybS9ib290L2R0cy9h
-bTMzeHguZHRzaQ0KKysrIGIvYXJjaC9hcm0vYm9vdC9kdHMvYW0zM3h4LmR0c2kNCkBAIC0xODUs
-NSArMTg1LDEwIEBADQogICAgICAgICAgICAgICAgICAgICAgICBjb21wYXRpYmxlID0gInRpLG9t
-YXAzLWhzbW1jIjsNCiAgICAgICAgICAgICAgICAgICAgICAgIHRpLGh3bW9kcyA9ICJtbWMzIjsN
-CiAgICAgICAgICAgICAgICB9Ow0KKw0KKyAgICAgICAgICAgICAgIHdkdDI6IHdkdEA0NGUzNTAw
-MCB7DQorICAgICAgICAgICAgICAgICAgICAgICBjb21wYXRpYmxlID0gInRpLG9tYXAzLXdkdCI7
-DQorICAgICAgICAgICAgICAgICAgICAgICB0aSxod21vZHMgPSAid2RfdGltZXIyIjsNCisgICAg
-ICAgICAgICAgICB9Ow0KICAgICAgICB9Ow0KIH07DQo=
+* Kevin Hilman <khilman@ti.com> [120711 14:34]:
+> Omar Ramirez Luna <omar.luna@linaro.org> writes:
+> 
+> > On 11 July 2012 12:07, Kevin Hilman <khilman@ti.com> wrote:
+> > ...
+> >>> [    2.311004] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+> >>> [    2.317382] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+> >>> [    2.325256] omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+> >>> [    2.331512] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+> >>
+> >> These are normal because DMA engine is not compiled in with
+> >> omap2plus_defconfig.  MMC wont' work unless you build in DMA engine, but
+> >> that doesn't matter for trying to figure out your problem.
+> >
+> > Hijacking this thread a little bit...
+> >
+> > It looks like a dependency is missing in Kconfig then, as this also
+> > fails to boot if the file system is in MMC. As you pointed out
+> > CONFIG_DMADEVICES and CONFIG_DMA_OMAP is needed to boot in this case.
+> > I'm using a Panda 4460.
+> 
+> Yes, the drivers that have been converted to DMA engine should probably
+> 'select DMADEVICES' and 'select DMA_OMAP' since they will now depend on
+> DMA engine.
+
+The drivers should also work with PIO if DMADEVICES is not selected.
+If they don't it's a bug in the driver, or at least the driver probe
+should return an error.
+
+Regards,
+
+Tony
