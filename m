@@ -1,44 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP4: twl-common: Support for additional devices
- on i2c1 bus
-Date: Fri, 13 Jul 2012 12:20:38 +0200
-Message-ID: <4FFFF676.1090304@ti.com>
-References: <1342168682-15888-1-git-send-email-peter.ujfalusi@ti.com> <CAOMWX4e81gKYa_j8DHE_dn06+JfLwfEPuyj5kYVmDUBdG0n-1A@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] OMAP2+: Fix random config build break with !ARM_CPU_SUSPEND
+Date: Fri, 13 Jul 2012 16:15:07 +0530
+Message-ID: <1342176307-6435-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:55055 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932482Ab2GMKUW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jul 2012 06:20:22 -0400
-Received: by obbtb18 with SMTP id tb18so4344990obb.7
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jul 2012 03:20:19 -0700 (PDT)
-In-Reply-To: <CAOMWX4e81gKYa_j8DHE_dn06+JfLwfEPuyj5kYVmDUBdG0n-1A@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51716 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030272Ab2GMKpX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jul 2012 06:45:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>
 
-On 07/13/2012 12:14 PM, Menon, Nishanth wrote:
-> We still need a way to switch to I2C highspeed mode
-> omap4_pmic_init still does register in 400KHz mode, while setting a b=
-it in 6040
-> should let us talk 3.3MHz on the bus.
+The random config builds with PM and !ARM_CPU_SUSPEND breaks with below
+error on omap2plus_defconfig.
 
-We need to have a way to do this runtime I think. The twl6040 comes up =
-with
-100kbps as a default speed. So far we had no issue with 400kbps bus, bu=
-t if we
-increase it we might not be able to communicate with twl6040...
+arch/arm/mach-omap2/sleep44xx.S:323: undefined reference to `cpu_resume'
+arch/arm/mach-omap2/omap-mpuss-lowpower.c:278: undefined reference to `cpu_suspend'
 
---=20
-P=E9ter
+This is because recently merged OMAP5 platform shares the common files
+with OMAP4 but doesn't select ARM_CPU_SUSPEND. Without the ARM_CPU_SUSPEND
+the sleep code is meaningless.
 
+Fix the same by adding ARM_CPU_SUSPEND for OMAP5. The suggestion came from
+Russell King in an off-list discussion.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+Applies against linux-omap master at commit cb07e339457.
+
+ arch/arm/mach-omap2/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 2c73f38..976050d 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -68,6 +68,7 @@ config SOC_OMAP5
+ 	select CPU_V7
+ 	select ARM_GIC
+ 	select HAVE_SMP
++	select ARM_CPU_SUSPEND if PM
+ 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+-- 
+1.7.9.5
+
