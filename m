@@ -1,44 +1,83 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
-Date: Sat, 14 Jul 2012 00:56:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207140048210.3876@utopia.booyaka.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
- <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
- <5000D647.4090200@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: dtb for pandaboard
+Date: Sat, 14 Jul 2012 00:04:17 -0700
+Message-ID: <20120714070417.GA6522@atomide.com>
+References: <20120708173259.592552c1@pegasus.ausil.us>
+ <20120709090848.GD1122@atomide.com>
+ <20120710181119.27faf235@pegasus.ausil.us>
+ <20120711074232.GE1122@atomide.com>
+ <20120711084855.5887c9ea@pegasus.ausil.us>
+ <20120713065700.GK1122@atomide.com>
+ <20120713080800.5ebea37c@pegasus.ausil.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5000D647.4090200-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33847 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752205Ab2GNHET (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jul 2012 03:04:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20120713080800.5ebea37c@pegasus.ausil.us>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Dennis Gilmore <dennis@ausil.us>
+Cc: linux-omap@vger.kernel.org
 
-Hi
+* Dennis Gilmore <dennis@ausil.us> [120713 06:13]:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> On Thu, 12 Jul 2012 23:57:00 -0700
+> Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > * Dennis Gilmore <dennis@ausil.us> [120711 06:53]:
+> > > On Wed, 11 Jul 2012 00:42:33 -0700
+> > > Tony Lindgren <tony@atomide.com> wrote:
+> > > > 
+> > > > Sounds like it's some kind of issue with dtb getting overwritten
+> > > > by something. We had an issue where kernel BSS was overlapping dtb
+> > > > in some cases, but those should be fixed.
+> > > 
+> > > seems that they are not all fixed appending the dtb allows me to
+> > > boot i could try loading the dtb at a different address. 
+> > 
+> > OK sounds like that's the issue then, hopefully moving the dtb around
+> > helps.
+> 
+> moving the address for the dtb does result in it starting to boot
 
-On Fri, 13 Jul 2012, Rob Herring wrote:
+Great. Can you please post the kernel, dtb and initrd addresses for
+what worked and what did not work?
 
-> I'm not sure this is really a good use of aliases. UARTs use aliases 
-> because it is important that the UART number to tty number is known and 
-> fixed. IIUC, as an example you are picking timer1 because it has 
-> properties X, Y and Z. If so, then you should describe those h/w 
-> properties within the timer nodes so you can pick which timer to use 
-> based on it's h/w properties.
+I'd like to know where the overwriting happens: Already in u-boot,
+while uncompressing kernel, or while kernel resets BSS.
+ 
+> > > > Maybe try to leave out ARCH_OMAP2 and ARCH_OMAP3 and maybe
+> > > > CONFIG_NET from your .config to make the kernel smaller and see
+> > > > if that makes a difference?
+> > > > 
+> > > > If that works, then moving the dtb address in uEnv.txt should
+> > > > help.
+> > > > 
+> > > > Also, please check if the same issue happens with appended dtb:
+> > > with the appended dtb image im back to where i was not using a dtb
+> > > file at all.  that is that omap is not being autoloaded. and the
+> > > sdcard so rootfs never shows up.  i get dropped to a dracut rescue
+> > > shell where if i manually modprobe omap  nothing is happening. 
+> > 
+> > If the SD card is not detected with appended dtb either, the card
+> > voltages may not be supported. I believe Rajendra mentioned in some
+> > mail that we're still missing some voltage settings for the DT case
+> > for omap_hsmmc.c. In that case the card should work for the non-DT
+> > booting though.
+> 
+> I started trying to use a dtb because the sdcard was not showing up. I
+> wanted to see if using dtb allowed it to work. it doesnt work with or
+> without a dtb.
 
-Some GPTIMER blocks have input and output signals that can be routed to 
-external package balls.  So it's possible that some application may need 
-to request a specific timer ID, since that timer would be connected to a 
-specific off-chip device.
+Hmm maybe grep for the MMC errors during the boot without dtb and also
+post some info on the MMC card?
 
+Regards,
 
-- Paul
+Tony
