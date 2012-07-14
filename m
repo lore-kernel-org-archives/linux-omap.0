@@ -1,65 +1,54 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
-Date: Sat, 14 Jul 2012 11:42:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207141138160.3876@utopia.booyaka.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
- <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
- <5000D647.4090200@gmail.com>
- <alpine.DEB.2.00.1207140048210.3876@utopia.booyaka.com>
- <50017BB1.8010702@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP3: clockdomain: fix accidental duplicate
+ registration
+Date: Sat, 14 Jul 2012 11:54:52 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207141150340.3876@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1207120448120.25585@utopia.booyaka.com> <87394wg97u.fsf@ti.com> <20120713064713.GI1122@atomide.com> <20120714085257.GB6522@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50017BB1.8010702-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2014395355-1342288492=:3876"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:34629 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915Ab2GNRyx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jul 2012 13:54:53 -0400
+In-Reply-To: <20120714085257.GB6522@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Rob,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-thanks for your response.
+--155748971-2014395355-1342288492=:3876
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On Sat, 14 Jul 2012, Rob Herring wrote:
+On Sat, 14 Jul 2012, Tony Lindgren wrote:
 
-> On 07/14/2012 01:56 AM, Paul Walmsley wrote:
-> > On Fri, 13 Jul 2012, Rob Herring wrote:
-> > 
-> >> I'm not sure this is really a good use of aliases. UARTs use aliases 
-> >> because it is important that the UART number to tty number is known and 
-> >> fixed. IIUC, as an example you are picking timer1 because it has 
-> >> properties X, Y and Z. If so, then you should describe those h/w 
-> >> properties within the timer nodes so you can pick which timer to use 
-> >> based on it's h/w properties.
-> > 
-> > Some GPTIMER blocks have input and output signals that can be routed to 
-> > external package balls.  So it's possible that some application may need 
-> > to request a specific timer ID, since that timer would be connected to a 
-> > specific off-chip device.
-> 
-> Yes, I understand that. So you
+> As the tmp-merge branch has other branches and never goes upstream, the
+> commit should say:
+>=20
+> Commit 472fd5401561f94698f4c8f9dbbbfbf76ab55626 (Merge branch 'cleanup-hw=
+mod'
+> into cleanup)... So I've updated the patch and applied it into l-o master=
+=2E
 
-(just to clarify, these are Jon's patches)
+Thanks for fixing it.
 
-> should be describing which ones have i/o and what they are connected to. 
+> The patch seems to produce a new warning against arm soc tree=20
+> next/cleanup branch:
+>=20
+> warning: =E2=80=98mpu_3xxx_clkdm=E2=80=99 defined but not used
+>=20
+> Paul, care to check if a change is needed for the arm soc tree
+> next/cleanup branch version of this patch?
 
-Right, agreed.
-
-> The PWM binding is probably a starting point.
-
-My point, perhaps unclear, was about the aliases.  Do you have a different 
-approach in mind that applications should use, other than requesting a 
-specific timer by ID?
+arm-soc next/cleanup branch doesn't include commit 16e5e2c4 ("ARM: OMAP=20
+AM35x: clockdomain data: Fix clockdomain dependencies").  So that patch=20
+won't apply there, and the copy of mach-omap2/clockdomains3xxx_data.c in=20
+that branch is clean.
 
 
 - Paul
+--155748971-2014395355-1342288492=:3876--
