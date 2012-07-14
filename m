@@ -1,28 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 Subject: Re: [RFC RESEND 4/4] ARM: OMAP: Add DT support for timer driver
-Date: Fri, 13 Jul 2012 17:41:45 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207131740460.25585@utopia.booyaka.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-5-git-send-email-jon-hunter@ti.com>
+Date: Fri, 13 Jul 2012 19:57:36 -0500
+Message-ID: <5000C400.1030302@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
+ <1342218413-30116-5-git-send-email-jon-hunter@ti.com>
+ <alpine.DEB.2.00.1207131740460.25585@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33533 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756704Ab2GMXlq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jul 2012 19:41:46 -0400
-In-Reply-To: <1342218413-30116-5-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1207131740460.25585-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
-
-Hi
-
-On Fri, 13 Jul 2012, Jon Hunter wrote:
-
-> 1. If DT blob is present, then let HWMOD create the timer devices dynamically.
-
-This probably should read "is _not_ present", yes?
 
 
-- Paul
+On 07/13/2012 06:41 PM, Paul Walmsley wrote:
+> Hi
+> 
+> On Fri, 13 Jul 2012, Jon Hunter wrote:
+> 
+>> 1. If DT blob is present, then let HWMOD create the timer devices dynamically.
+> 
+> This probably should read "is _not_ present", yes?
+
+Yes, you are right. What a balls-up ...
+
+Thanks
+Jon
