@@ -1,53 +1,53 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable OMAP DMA engine support
-Date: Sun, 15 Jul 2012 05:03:18 +0200
-Message-ID: <1342321398-11009-1-git-send-email-javier@dowhile0.org>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: [PATCH V3 0/3] Watchdog: OMAP3: bootstatus fix and changes for the current watchdog framework
+Date: Sun, 15 Jul 2012 15:19:29 +0800
+Message-ID: <1342336772-29020-1-git-send-email-zumeng.chen@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:49823 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335Ab2GODDc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Jul 2012 23:03:32 -0400
-Received: by wgbdr13 with SMTP id dr13so4262592wgb.1
-        for <linux-omap@vger.kernel.org>; Sat, 14 Jul 2012 20:03:31 -0700 (PDT)
+Received: from mail.windriver.com ([147.11.1.11]:61752 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab2GOHTo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 03:19:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Javier Martinez Canillas <javier@dowhile0.org>
+To: khilman@ti.com, shubhrajyoti@ti.com, linux-watchdog@vger.kernel.org, hvaibhav@ti.com
+Cc: wim@iguana.be, linux-omap@vger.kernel.org, tony@atomide.com, paul.gortmaker@windriver.com
 
-commit 13f30fc893e4610f67dd7a8b0b67aec02eac1775
-Author: Russell King <rmk+kernel@arm.linux.org.uk>
-Date:   Sat Apr 21 22:41:10 2012 +0100
+Hello,
 
-    mmc: omap: remove private DMA API implementation
+The following patches based on the 3.5-rc6 from Wim, which
+focus on:
 
-removed the private DMA API implementation from the OMAP mmc host to
-make it use exclusively the DMA engine API.
+1. bootstatus fix for omap3,
 
-Unfortunately the omap2plus_defconfig doesn't enable this feature
-leading to the following error on an IGEPv2 Rev.C (and probably on most
-boards with MMC support):
+2. omap-wdt framework update cater for the current framework
+   as Shubhrajyoti comments mentioned.
 
-[    2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
-[    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+V3 changes:
 
-Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
----
- arch/arm/configs/omap2plus_defconfig |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+1. New comments updated as Kevin mentioned in the third patch;
+2. 3530evm works well,
+   AM33xx seems work well with the following changes:
+	+   if (cpu_is_am335x())
+	+       return omap2_prm_read_mod_reg(AM33XX_PRM_DEVICE_MOD,
+	+           AM33XX_PRM_RSTST_OFFSET) & 0x7f;
+   But since some definitions not ready for am33xx, so I don't
+   give the patch, if they have been updated, feel free to take these. 
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index b152de7..e58edc3 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_TWL92330=y
- CONFIG_RTC_DRV_TWL4030=y
-+CONFIG_DMADEVICES=y
-+CONFIG_DMA_OMAP=y
- CONFIG_EXT2_FS=y
- CONFIG_EXT3_FS=y
- # CONFIG_EXT3_FS_XATTR is not set
+Regards,
+
+Zumeng Chen (3):
+  Watchdog: Omap: Changes for the new watchdog framework
+  Watchdog: Omap: select watchdog core for framework change
+  Watchdog: Omap: get the bootstatus for OMAP34xx
+
+ arch/arm/mach-omap2/prcm.c  |    9 +-
+ drivers/watchdog/Kconfig    |    1 +
+ drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++---------------------------
+ drivers/watchdog/omap_wdt.h |    5 +
+ 4 files changed, 136 insertions(+), 221 deletions(-)
+
 -- 
-1.7.7.6
+1.7.5.4
 
