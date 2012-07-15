@@ -1,43 +1,36 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] remoteproc: allocate vrings on demand, free when not needed
-Date: Sun, 15 Jul 2012 12:10:17 +0300
-Message-ID: <CAK=WgbZVUEWErthGz0ch-fFkZAEMU0unqPPXCZ5AXVa-8a3=_A@mail.gmail.com>
-References: <1337515228-31910-1-git-send-email-ohad@wizery.com>
+Subject: Re: [PATCH 1/2] remoteproc: maintain a generic child device for each rproc
+Date: Sun, 15 Jul 2012 12:12:35 +0300
+Message-ID: <CAK=WgbbTh8C4_qZRnFe0gqoTETRb+KfMVe78L6LC3bZsFh80Sw@mail.gmail.com>
+References: <1338017791-9442-1-git-send-email-ohad@wizery.com>
+ <4FC5DBFA.2030300@codeaurora.org> <CAK=WgbZJJJPuNWVv8WgL=KKm6Hrx2krDD9gBOTP7sA8p7mh_rA@mail.gmail.com>
+ <CAK=WgbbREXV8nkF4vh9iLUp1WQj2ZLYW6VG8Urmw9=roy63meQ@mail.gmail.com>
+ <4FF1F145.2050408@codeaurora.org> <CAK=WgbZ+=MGU5juuOP+_vtUe4d_46j=Rd0cqYi7q2i-9T35R5w@mail.gmail.com>
+ <4FF5FA9B.4070003@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:52480 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060Ab2GOJKi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 05:10:38 -0400
-Received: by vcbfk26 with SMTP id fk26so360755vcb.19
-        for <linux-omap@vger.kernel.org>; Sun, 15 Jul 2012 02:10:38 -0700 (PDT)
-In-Reply-To: <1337515228-31910-1-git-send-email-ohad@wizery.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:39669 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799Ab2GOJM4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 05:12:56 -0400
+Received: by vbbff1 with SMTP id ff1so3009981vbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 15 Jul 2012 02:12:55 -0700 (PDT)
+In-Reply-To: <4FF5FA9B.4070003@codeaurora.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-On Sun, May 20, 2012 at 3:00 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Dynamically allocate the vrings' DMA when the remote processor
-> is about to be powered on (i.e. when ->find_vqs() is invoked),
-> and release them as soon as it is powered off (i.e. when ->del_vqs()
-> is invoked).
+On Thu, Jul 5, 2012 at 11:35 PM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> Ok then. Please add
 >
-> The obvious and immediate benefit is better memory utilization, since
-> memory for the vrings is now only allocated when the relevant remote
-> processor is being used.
->
-> Additionally, this approach also makes recovery of a (crashing)
-> remote processor easier: one just needs to remove the relevant
-> vdevs, and the entire vrings cleanup takes place automagically.
->
-> Tested-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
->  drivers/remoteproc/remoteproc_core.c     |  109 +++++++++++++++---------------
->  drivers/remoteproc/remoteproc_internal.h |    2 +
->  drivers/remoteproc/remoteproc_virtio.c   |   13 +++-
->  3 files changed, 67 insertions(+), 57 deletions(-)
+> Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
 
-Applied.
+Added, and applied patch. thanks!
+
+> It would be nice if you got an ack from Greg or Kay on the device_type
+> usage too.
+
+I agree, I'd just hate bothering them on this now. Probably a topic
+for a conference chat :)
