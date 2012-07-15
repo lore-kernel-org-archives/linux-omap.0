@@ -1,38 +1,30 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] remoteproc: adopt the driver core's alloc/add/del/put naming
-Date: Sun, 15 Jul 2012 13:14:44 +0300
-Message-ID: <CAK=WgbbO72S9=T-dnJBHE5d5k9H8dtYFtxe_AMSe+ut+0ZPOHg@mail.gmail.com>
-References: <1341409019-32166-1-git-send-email-ohad@wizery.com> <4FF50107.8030406@codeaurora.org>
+From: "Emad S. Alshamllan" <Eshamlan@stc.com.sa>
+Subject: BUSINESS INVESTMENT!
+Date: Sun, 15 Jul 2012 19:40:18 +0300
+Message-ID: <D50F41D4C42FC044AAA1BA641D8B98F623BE5C76C3@STCCNTMSG01.stc.corp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4FF50107.8030406@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, =?ISO-8859-1?Q?Sjur_Br=E6ndeland?= <sjur.brandeland@stericsson.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from esgrybm04.stc.com.sa ([212.118.156.89]:51097 "EHLO
+	ESGRYBM04.stc.com.sa" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751422Ab2GORJV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 13:09:21 -0400
+Content-Language: it-IT
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 5, 2012 at 5:50 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
-> On 7/4/2012 6:36 AM, Ohad Ben-Cohen wrote:
->> To make remoteproc's API more intuitive for developers, we adopt
->> the driver core's naming, i.e. alloc -> add -> del -> put. We'll also
->> add register/unregister when their first user shows up.
->>
->> Otherwise - there's no functional change here.
->>
->> Suggested by Russell King <linux@arm.linux.org.uk>.
->>
->> Cc: Russell King <linux@arm.linux.org.uk>
->
-> Acked-by: Stephen Boyd <sboyd@codeaurora.org>
 
-On Thu, Jul 5, 2012 at 2:50 AM, Linus Walleij <linus.walleij@linaro.org> wrote:
-> I understand this patch and it's a good thing, so:
-> Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
->
-> Yours,
-> Linus Walleij
 
-Thanks Linus and Stephen.
 
-Applied.
+Goodday Sir/Madam,
+
+I am Looking for a profitable business that my client can invest his funds in your country.
+
+I will be waiting for your positive business investment idea as soon as you can.
+
+With Regards,
+Emad S. Alshamllan.
+e.alshamllan@consultant.com
+____________________________________________________________________________________________
+The information in this email may contain confidential material and it is intended solely for the addresses. Access to this  email by anyone else is unauthorized. If you are not the intended recipient, please delete the email and destroy any copies of it, any disclosure, copying, distribution is prohibited and may be considered unlawful. Contents of this email and any attachments may be altered, Statement and opinions expressed in this email are those of the sender, and do not necessarily  reflect those of Saudi Telecommunications Company (STC).
