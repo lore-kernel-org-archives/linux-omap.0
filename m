@@ -1,53 +1,41 @@
 From: Zumeng Chen <zumeng.chen@windriver.com>
-Subject: [PATCH RESEND V3 0/3] Watchdog: OMAP3: bootstatus fix and changes for the current watchdog framework
-Date: Sun, 15 Jul 2012 15:44:03 +0800
-Message-ID: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
+Subject: [PATCH RESEND v3 2/3] Watchdog: Omap: select watchdog core for framework change
+Date: Sun, 15 Jul 2012 15:44:05 +0800
+Message-ID: <1342338246-29101-3-git-send-email-zumeng.chen@windriver.com>
+References: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail1.windriver.com ([147.11.146.13]:61365 "EHLO
+Received: from mail1.windriver.com ([147.11.146.13]:61379 "EHLO
 	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060Ab2GOHol (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 03:44:41 -0400
+	with ESMTP id S1751087Ab2GOHpK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 03:45:10 -0400
+In-Reply-To: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@ti.com, shubhrajyoti@ti.com, linux-watchdog@vger.kernel.org, hvaibhav@ti.com
 Cc: wim@iguana.be, linux-omap@vger.kernel.org, tony@atomide.com, paul.gortmaker@windriver.com, linux-arm-kernel@lists.infradead.org
 
-Hello,
+Since the current watchdog framework depends on the watchdog core
+so select it in Kconfig.
 
-The following patches based on the 3.5-rc6 from Wim, which
-focus on:
+Signed-off-by: Zumeng Chen <zumeng.chen@windriver.com>
+---
+ drivers/watchdog/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-1. bootstatus fix for omap3,
-
-2. omap-wdt framework update cater for the current framework
-   as Shubhrajyoti comments mentioned.
-
-V3 changes:
-
-1. New comments updated as Kevin mentioned in the third patch;
-2. 3530evm works well,
-   AM33xx seems work well with the following changes:
-	+   if (cpu_is_am335x())
-	+       return omap2_prm_read_mod_reg(AM33XX_PRM_DEVICE_MOD,
-	+           AM33XX_PRM_RSTST_OFFSET) & 0x7f;
-   But since some definitions not ready for am33xx, so I don't
-   give the patch, if they have been updated, feel free to take these. 
-
-Regards,
-
-Zumeng Chen (3):
-  Watchdog: Omap: Changes for the new watchdog framework
-  Watchdog: Omap: select watchdog core for framework change
-  Watchdog: Omap: get the bootstatus for OMAP34xx
-
- arch/arm/mach-omap2/prcm.c  |    9 +-
- drivers/watchdog/Kconfig    |    1 +
- drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++---------------------------
- drivers/watchdog/omap_wdt.h |    5 +
- 4 files changed, 136 insertions(+), 221 deletions(-)
-
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index fe819b7..fb5b108 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
+ config OMAP_WATCHDOG
+ 	tristate "OMAP Watchdog"
+ 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
++	select WATCHDOG_CORE
+ 	help
+ 	  Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog.  Say 'Y'
+ 	  here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog timer.
 -- 
 1.7.5.4
 
