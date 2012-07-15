@@ -1,88 +1,53 @@
-From: David Gibson <david-xT8FGy+AXnRB3Ne2BGzF6laj5H9X9Tb+@public.gmane.org>
-Subject: Re: Mis?use of aliases
-Date: Sun, 15 Jul 2012 17:39:19 +1000
-Message-ID: <20120715073919.GJ11326@truffala.fritz.box>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
- <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
- <5000D647.4090200@gmail.com> <50010402.3050502@firmworks.com>
- <20120714163701.GI11326@truffala.fritz.box>
- <5001A745.3000509@firmworks.com>
+From: Zumeng Chen <zumeng.chen@windriver.com>
+Subject: [PATCH RESEND V3 0/3] Watchdog: OMAP3: bootstatus fix and changes for the current watchdog framework
+Date: Sun, 15 Jul 2012 15:44:03 +0800
+Message-ID: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5001A745.3000509-D5eQfiDGL7eakBO8gow8eQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mitch Bradley <wmb-D5eQfiDGL7eakBO8gow8eQ@public.gmane.org>
-Cc: device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tarun Kanti DebBarma <tarun.kanti-l0cyMroinI0@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail1.windriver.com ([147.11.146.13]:61365 "EHLO
+	mail1.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060Ab2GOHol (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 03:44:41 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com, shubhrajyoti@ti.com, linux-watchdog@vger.kernel.org, hvaibhav@ti.com
+Cc: wim@iguana.be, linux-omap@vger.kernel.org, tony@atomide.com, paul.gortmaker@windriver.com, linux-arm-kernel@lists.infradead.org
 
-On Sat, Jul 14, 2012 at 07:07:17AM -1000, Mitch Bradley wrote:
-> On 7/14/2012 6:37 AM, David Gibson wrote:
-> > On Fri, Jul 13, 2012 at 07:30:42PM -1000, Mitch Bradley wrote:
-> >>> I'm not sure this is really a good use of aliases. UARTs use aliases
-> >>> because it is important that the UART number to tty number is known and
-> >>> fixed.
-> >>
-> >> This brings up an issue that I've been meaning to comment on.
-> >>
-> >> The use of phandle-valued properties in the aliases node causes real OFW
-> >> implementations some amount of heartburn.  The Open Firmware standard
-> >> says that the properties in /aliases are string-valued.  That's
-> >> important, because aliases are shorthand for fragments of full device
-> >> specifiers (pathnames that can include arguments to nodes).  Phandles
-> >> can point to nodes, but can't be relative, and can't encode
-> >> per-node-component arguments.
-> > 
-> > Um, so, properties in /aliases should not have phandle values, flat
-> > tree or otherwise.  Has this been seen in the wild, or are you being
-> > misled by the fact that dtc's reference-to-phandle and
-> > reference-to-path syntax is very similar:
-> 
-> Yes, I was indeed being misled.  Thanks for the clarification.  The
-> "&fred" syntax is present in the .dts files that I have looked at.
+Hello,
 
-Right, it's all about the context.  &label is always a reference to
-another node, but in cell context < ... > that's expanded as a
-phandle, in bare context it's expanded as a path.
+The following patches based on the 3.5-rc6 from Wim, which
+focus on:
 
-> > 	prop = <&fred>;
-> > Will generate a phandle valued property, but
-> > 	prop = &fred;
-> > Will generate a string (path) valued property.
-> > 
-> >> For binding a Linux unit number to a device node, I would prefer to
-> >> decorate the node with a property like "linux,unit#", instead of
-> >> breaking the standard semantics of /aliases.
-> > 
-> > I don't see how using aliases for unit numbering (inherently) breaks
-> > the semantics of /aliases.  If phandle valued properties are being
-> > used that is wrong, but it's not necessary for the unit numbering
-> > anyway.
-> 
-> I agree, the use of string-valued /aliases is not a semantic problem.
-> That said, I still think that decorating individual nodes is a better
-> approach, for locality reasons.  But, now that my misunderstanding has
-> been cleared up, it's a mild preference instead of "heartburn".
+1. bootstatus fix for omap3,
 
-So, I think aliases was suggested for this sort of numbering precisely
-because it _isn't_ local.  Particularly when numbering similar devices
-across unrelated busses, the ordering more or less has to be a global
-platform convention, and may not be derived from - or even contradict
-- local numbering conventions from individual busses or components.
+2. omap-wdt framework update cater for the current framework
+   as Shubhrajyoti comments mentioned.
+
+V3 changes:
+
+1. New comments updated as Kevin mentioned in the third patch;
+2. 3530evm works well,
+   AM33xx seems work well with the following changes:
+	+   if (cpu_is_am335x())
+	+       return omap2_prm_read_mod_reg(AM33XX_PRM_DEVICE_MOD,
+	+           AM33XX_PRM_RSTST_OFFSET) & 0x7f;
+   But since some definitions not ready for am33xx, so I don't
+   give the patch, if they have been updated, feel free to take these. 
+
+Regards,
+
+Zumeng Chen (3):
+  Watchdog: Omap: Changes for the new watchdog framework
+  Watchdog: Omap: select watchdog core for framework change
+  Watchdog: Omap: get the bootstatus for OMAP34xx
+
+ arch/arm/mach-omap2/prcm.c  |    9 +-
+ drivers/watchdog/Kconfig    |    1 +
+ drivers/watchdog/omap_wdt.c |  342 ++++++++++++++++---------------------------
+ drivers/watchdog/omap_wdt.h |    5 +
+ 4 files changed, 136 insertions(+), 221 deletions(-)
 
 -- 
-David Gibson			| I'll have my music baroque, and my code
-david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
-				| _way_ _around_!
-http://www.ozlabs.org/~dgibson
+1.7.5.4
+
