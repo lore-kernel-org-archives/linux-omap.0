@@ -1,64 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
- to OFF when in-use
-Date: Mon, 16 Jul 2012 12:38:27 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <alpine.DEB.2.00.1207131418500.25585@utopia.booyaka.com>
- <50045D17.9050704@ti.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1514760656-1342463907=:28834"
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: [PATCH 0/3] OMAP: hwmod: reset API proposal
+Date: Mon, 16 Jul 2012 14:21:22 -0500
+Message-ID: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35303 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947Ab2GPSi1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 14:38:27 -0400
-In-Reply-To: <50045D17.9050704@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:47493 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078Ab2GPTVe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 15:21:34 -0400
+Received: by obbuo13 with SMTP id uo13so9900910obb.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 12:21:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Omar Ramirez Luna <omar.ramirez@copitl.com>
 
---155748971-1514760656-1342463907=:28834
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+***
+RESEND: http://bit.ly/PZDbcc
+Needed for ipu, dsp and their mmu reset lines.
+***
 
-Hi Jon,
+Recent changes in omap_hwmod framework have reworked the behaviour
+towards hardreset handling, commit 747834a (ARM: OMAP2+: hwmod:
+revise hardreset behavior) recommends for drivers to implement
+their own reset sequences until code out-of-tree hits mainline
+and then their needs and code can be reviewed.
 
-On Mon, 16 Jul 2012, Jon Hunter wrote:
+Since it is not clear when this will occur for all drivers and
+hwmod code was not deleted (presumably because at some point it
+will handle the resets once again), this series exports functions
+to handle hardreset lines in an attempt to reduce code duplication
+for those who have a common reset sequence.
 
-> Yes I see that makes sense. However, patch #7 has already changed the
-> mapping of the flags. I had intended that patch #7 and #8 would be
-> applied together. However, I could see that patch #7 can be taken just
-> to eliminate using the SW_SLEEP state. So basically, what I am saying is
-> does patch #7 have any value without #8?
+These APIs are intended to be used by iommu for now, but were
+tested with IPU and remoteproc on Pandaboard.
 
-Certainly not as much value as it had before.  But my understanding, which=
-=20
-is possibly incorrect, matches what you wrote in patch #7's description:
+Omar Ramirez Luna (3):
+  ARM: OMAP: hwmod: partially un-reset hwmods might not be properly
+    enabled
+  ARM: OMAP: hwmod: revise deassert sequence
+  ARM: OMAP: omap_device: expose hwmod assert/deassert to omap devices
 
-"For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is=20
-equivalent to SW_WKUP. The only difference between HW_AUTO and SW_SLEEP=20
-for OMAP4 devices is that the PRM_IRQSTATUS_MPU.TRANSITION_ST interrupt=20
-status is set in case of SW_SLEEP transition, and not set in case of=20
-HW_AUTO transition."
+ arch/arm/mach-omap2/omap_hwmod.c              |   70 +++++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
+ arch/arm/plat-omap/omap_device.c              |   45 ++++++++++++++++
+ 3 files changed, 104 insertions(+), 15 deletions(-)
 
-We don't use that PRM_IRQSTATUS_MPU.TRANSITION_ST interrupt bit.  So if=20
-SW_SLEEP and HW_AUTO really have identical meanings otherwise, then I=20
-suppose we might as well use the one that does what we need with no=20
-extraneous side-effects?  My recollection from a conversation with Beno=EEt=
-=20
-a few months ago was that this was his view as well.
+-- 
+1.7.4.1
 
-> That's fine with me. We can always workaround such issues by adding flags=
-=2E
->=20
-> I can give this a try this week and let you know how it goes.
-
-Okay, great.  No rush on my account.
-
-
-- Paul
---155748971-1514760656-1342463907=:28834--
