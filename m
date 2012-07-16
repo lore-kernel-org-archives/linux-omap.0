@@ -1,226 +1,116 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] drivers: bus: add a new driver for omap-ocp2scp
-Date: Mon, 16 Jul 2012 19:43:42 +0530
-Message-ID: <1342448023-14438-2-git-send-email-kishon@ti.com>
-References: <1342448023-14438-1-git-send-email-kishon@ti.com>
+From: "zumeng.chen" <zchen@windriver.com>
+Subject: Re: [PATCH RESEND V3 0/3] Watchdog: OMAP3: bootstatus fix and changes
+ for the current watchdog framework
+Date: Mon, 16 Jul 2012 22:55:53 +0800
+Message-ID: <50042B79.10408@windriver.com>
+References: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com> <79CD15C6BA57404B839C016229A409A83EA6DFAE@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1342448023-14438-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:37863 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932Ab2GPO43 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 10:56:29 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA6DFAE@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Zumeng Chen <zumeng.chen@windriver.com>, "Hilman, Kevin" <khilman@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul.gortmaker@windriver.com" <paul.gortmaker@windriver.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
-creating all the devices that is connected to OCP2SCP. In the case of OMAP4,
-USB2PHY is connected to ocp2scp.
+On 2012=E5=B9=B407=E6=9C=8816=E6=97=A5 21:10, Hiremath, Vaibhav wrote:
+> On Sun, Jul 15, 2012 at 13:14:03, Zumeng Chen wrote:
+>> Hello,
+>>
+>> The following patches based on the 3.5-rc6 from Wim, which
+>> focus on:
+>>
+>> 1. bootstatus fix for omap3,
+>>
+>> 2. omap-wdt framework update cater for the current framework
+>>     as Shubhrajyoti comments mentioned.
+>>
+>> V3 changes:
+>>
+>> 1. New comments updated as Kevin mentioned in the third patch;
+>> 2. 3530evm works well,
+>>     AM33xx seems work well with the following changes:
+>> 	+   if (cpu_is_am335x())
+>> 	+       return omap2_prm_read_mod_reg(AM33XX_PRM_DEVICE_MOD,
+>> 	+           AM33XX_PRM_RSTST_OFFSET)&  0x7f;
+>>     But since some definitions not ready for am33xx, so I don't
+>>     give the patch, if they have been updated, feel free to take the=
+se.
+>>
+> Did you test it on any of AM33xx platform?
+Yes. I ever did in v2 as follows shown:
 
-This also includes device tree support for ocp2scp driver and
-the documentation with device tree binding information is updated.
+The same case works well on am335xevm but with a new patch in
+mach-omap2/prcm.c
 
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
----
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 ++
- drivers/Kconfig                                    |    2 +
- drivers/Makefile                                   |    2 +
- drivers/bus/Kconfig                                |   15 +++
- drivers/bus/Makefile                               |    5 +
- drivers/bus/omap-ocp2scp.c                         |   98 ++++++++++++++++++++
- 6 files changed, 132 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
- create mode 100644 drivers/bus/Kconfig
- create mode 100644 drivers/bus/Makefile
- create mode 100644 drivers/bus/omap-ocp2scp.c
+I'll send it later.
 
-diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-new file mode 100644
-index 0000000..d2fe064
---- /dev/null
-+++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-@@ -0,0 +1,10 @@
-+* OMAP OCP2SCP - ocp interface to scp interface
-+
-+properties:
-+- compatible : Should be "ti,omap-ocp2scp"
-+- #address-cells, #size-cells : Must be present if the device has sub-nodes
-+- ranges : the child address space are mapped 1:1 onto the parent address space
-+- ti,hwmods : must be "ocp2scp_usb_phy"
-+
-+Sub-nodes:
-+All the devices connected to ocp2scp are described using sub-node to ocp2scp
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index bfc9186..4fe1e4c 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -2,6 +2,8 @@ menu "Device Drivers"
- 
- source "drivers/base/Kconfig"
- 
-+source "drivers/bus/Kconfig"
-+
- source "drivers/connector/Kconfig"
- 
- source "drivers/mtd/Kconfig"
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 2ba29ff..cac3819 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -5,6 +5,8 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
-+obj-y				+= bus/
-+
- # GPIO must come after pinctrl as gpios may need to mux pins etc
- obj-y				+= pinctrl/
- obj-y				+= gpio/
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-new file mode 100644
-index 0000000..6270415
---- /dev/null
-+++ b/drivers/bus/Kconfig
-@@ -0,0 +1,15 @@
-+#
-+# Bus Devices
-+#
-+
-+menu "Bus devices"
-+
-+config OMAP_OCP2SCP
-+	tristate "OMAP OCP2SCP DRIVER"
-+	help
-+	  Driver to enable ocp2scp module which transforms ocp interface
-+	  protocol to scp protocol. In OMAP4, USB PHY is connected via
-+	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
-+	  OCP2SCP.
-+
-+endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-new file mode 100644
-index 0000000..0ec50bc
---- /dev/null
-+++ b/drivers/bus/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for the bus drivers.
-+#
-+
-+obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-new file mode 100644
-index 0000000..8c3db3a
---- /dev/null
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -0,0 +1,98 @@
-+/*
-+ * omap-ocp2scp.c - transform ocp interface protocol to scp protocol
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+
-+static int ocp2scp_remove_devices(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	platform_device_unregister(pdev);
-+
-+	return 0;
-+}
-+
-+static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
-+{
-+	int			ret;
-+	struct device_node	*np = pdev->dev.of_node;
-+
-+	if (np) {
-+		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
-+		if (ret) {
-+			dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
-+			goto err0;
-+		}
-+	}
-+	pm_runtime_enable(&pdev->dev);
-+
-+	return 0;
-+
-+err0:
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return ret;
-+}
-+
-+static int __devexit omap_ocp2scp_remove(struct platform_device *pdev)
-+{
-+	pm_runtime_disable(&pdev->dev);
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id omap_ocp2scp_id_table[] = {
-+	{ .compatible = "ti,omap-ocp2scp" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
-+#endif
-+
-+static struct platform_driver omap_ocp2scp_driver = {
-+	.probe		= omap_ocp2scp_probe,
-+	.remove		= __devexit_p(omap_ocp2scp_remove),
-+	.driver		= {
-+		.name	= "omap-ocp2scp",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(omap_ocp2scp_id_table),
-+	},
-+};
-+
-+static int __init omap_ocp2scp_init(void)
-+{
-+	return platform_driver_register(&omap_ocp2scp_driver);
-+}
-+arch_initcall(omap_ocp2scp_init);
-+
-+static void __exit omap_ocp2scp_exit(void)
-+{
-+	platform_driver_unregister(&omap_ocp2scp_driver);
-+}
-+module_exit(omap_ocp2scp_exit);
-+
-+MODULE_ALIAS("platform: omap-ocp2scp");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("OMAP OCP2SCP DRIVER");
-+MODULE_LICENSE("GPLv2");
--- 
-1.7.5.4
+root@ti-omap3:~# uname -a
+Linux ti-omap3 3.4.3-00635-g82d1d26-dirty #32 Wed Jul 11 16:02:12 CST
+2012 armv7l GNU/Linux
+root@ti-omap3:~# dmesg|grep WDT
+[ 1.921173] omap_wdt: OMAP WDTimer Rev 0x01: Initial timeout 0sec statu=
+s=3D 0x1
+root@ti-omap3:~# ./a.out -i 20; for i in `seq 1 20`; do echo $i ; sleep
+1;done
+Set watchdog interval to 20
+Current watchdog interval is 20
+Last boot is caused by : Watchdog
+Use:
+<w>  to kick through writing over device file
+<i>  to kick through IOCTL
+<x>  to exit the program
+x
+
+1
+2
+[snip]
+U-Boot SPL 2011.09 (Feb 09 2012 - 15:38:59)
+Texas Instruments Revision detection unimplemented
+
+
+U-Boot 2011.09 (Feb 09 2012 - 15:11:31)
+
+I2C: ready
+DRAM: 256 MiB
+WARNING: Caches not enabled
+=46ound a daughter card connected
+NAND: HW ECC Hamming Code selected
+256 MiB
+MMC: OMAP SD/MMC: 0
+Net: cpsw
+Hit any key to stop autoboot: 0
+U-Boot#
+
+
+>   If you use linux-omap/master pr
+> linux-next branch as a baseline you should have basic things (except =
+hwmod
+> data) available.
+>
+> I will test it and send a patch for this on your behalf (if you are o=
+k with
+> it).
+I'm OK for this, thanks Vaibhav.
+>
+> Note: Change in convention, cpu_is_am335x() =3D>  soc_is_am335x()
+Yes, agreed.
+
+Regards,
+Zumeng
+> Thanks,
+> Vaibhav
+>
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
