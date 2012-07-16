@@ -1,115 +1,138 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH RFT 1/2] regulator: twl: Fix the formula to calculate
- vsel and voltage for twl6030ldo
-Date: Mon, 16 Jul 2012 14:41:06 +0530
-Message-ID: <5003DAAA.2070301@ti.com>
-References: <1341804151.14367.1.camel@phoenix> <1341831686.4343.7.camel@phoenix>
+Subject: Re: [PATCH RFT 1/2] regulator: twl: Fix checking voltage range in
+ twl6030smps_set_voltage()
+Date: Mon, 16 Jul 2012 14:55:15 +0530
+Message-ID: <5003DDFB.2090102@ti.com>
+References: <1342244233.4207.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:60480 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751122Ab2GPJLN (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58119 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751288Ab2GPJZX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 05:11:13 -0400
-Received: by obbuo19 with SMTP id uo19so8036657obb.25
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 02:11:12 -0700 (PDT)
-In-Reply-To: <1341831686.4343.7.camel@phoenix>
+	Mon, 16 Jul 2012 05:25:23 -0400
+Received: by obbuo19 with SMTP id uo19so9714547obb.11
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 02:25:22 -0700 (PDT)
+In-Reply-To: <1342244233.4207.1.camel@phoenix>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Axel Lin <axel.lin@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, loml <linux-omap@vger.kernel.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, LKML <linux-kernel@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, loml <linux-omap@vger.kernel.org>
 
-Hi Axel,
+Copying Graeme and linux-omap list.
 
-My apologies for the delay in responding to this one.
+On Saturday 14 July 2012 11:07 AM, Axel Lin wrote:
+> The voltage selection logic is supposed to find the samllest voltage falls
+> within specified range. When using equation to calculate vsel, we need to
+> ensure the requested min_uV meet the range of using the equation.
+> Otherwise we may select a voltage that is out of specified range.
+>
+> For example, in the case vsel = 62 means select voltage of 2100000uV.
+> What we want is to ensure the requested min_uV<= 2100000 rather than checking
+> max_uV>= 2100000. And this also means in the case min_uV>  2100000, vsel = 62
+> does not meet the request.
+>
+> Also calling twl6030smps_list_voltage() for all cases to ensure the selected
+> voltage still in bounds.
+>
+> Signed-off-by: Axel Lin<axel.lin@gmail.com>
+> ---
+>   drivers/regulator/twl-regulator.c |   36 ++++++++++++++++--------------------
+>   1 file changed, 16 insertions(+), 20 deletions(-)
+>
+> diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+> index 8f0bd56..03d0bea 100644
+> --- a/drivers/regulator/twl-regulator.c
+> +++ b/drivers/regulator/twl-regulator.c
+> @@ -760,32 +760,28 @@ twl6030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
+>   			unsigned int *selector)
+>   {
+>   	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+> -	int	vsel = 0;
+> +	int vsel = 0, calc_uV;
+>
+>   	switch (info->flags) {
+>   	case 0:
+>   		if (min_uV == 0)
+>   			vsel = 0;
+>   		else if ((min_uV>= 600000)&&  (min_uV<= 1300000)) {
+> -			int calc_uV;
+>   			vsel = DIV_ROUND_UP(min_uV - 600000, 12500);
+>   			vsel++;
+> -			calc_uV = twl6030smps_list_voltage(rdev, vsel);
+> -			if (calc_uV>  max_uV)
+> -				return -EINVAL;
+>   		}
+>   		/* Values 1..57 for vsel are linear and can be calculated
+>   		 * values 58..62 are non linear.
+>   		 */
+> -		else if ((min_uV>  1900000)&&  (max_uV>= 2100000))
+> +		else if ((min_uV>  1900000)&&  (min_uV<= 2100000))
+>   			vsel = 62;
+> -		else if ((min_uV>  1800000)&&  (max_uV>= 1900000))
+> +		else if ((min_uV>  1800000)&&  (min_uV<= 1900000))
+>   			vsel = 61;
+> -		else if ((min_uV>  1500000)&&  (max_uV>= 1800000))
+> +		else if ((min_uV>  1500000)&&  (min_uV<= 1800000))
+>   			vsel = 60;
+> -		else if ((min_uV>  1350000)&&  (max_uV>= 1500000))
+> +		else if ((min_uV>  1350000)&&  (min_uV<= 1500000))
+>   			vsel = 59;
+> -		else if ((min_uV>  1300000)&&  (max_uV>= 1350000))
+> +		else if ((min_uV>  1300000)&&  (min_uV<= 1350000))
+>   			vsel = 58;
+>   		else
+>   			return -EINVAL;
+> @@ -794,25 +790,21 @@ twl6030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
+>   		if (min_uV == 0)
+>   			vsel = 0;
+>   		else if ((min_uV>= 700000)&&  (min_uV<= 1420000)) {
+> -			int calc_uV;
+>   			vsel = DIV_ROUND_UP(min_uV - 700000, 12500);
+>   			vsel++;
+> -			calc_uV = twl6030smps_list_voltage(rdev, vsel);
+> -			if (calc_uV>  max_uV)
+> -				return -EINVAL;
+>   		}
+>   		/* Values 1..57 for vsel are linear and can be calculated
+>   		 * values 58..62 are non linear.
+>   		 */
+> -		else if ((min_uV>  1900000)&&  (max_uV>= 2100000))
+> +		else if ((min_uV>  1900000)&&  (min_uV<= 2100000))
+>   			vsel = 62;
+> -		else if ((min_uV>  1800000)&&  (max_uV>= 1900000))
+> +		else if ((min_uV>  1800000)&&  (min_uV<= 1900000))
+>   			vsel = 61;
+> -		else if ((min_uV>  1350000)&&  (max_uV>= 1800000))
+> +		else if ((min_uV>  1350000)&&  (min_uV<= 1800000))
+>   			vsel = 60;
+> -		else if ((min_uV>  1350000)&&  (max_uV>= 1500000))
+> +		else if ((min_uV>  1350000)&&  (min_uV<= 1500000))
+>   			vsel = 59;
+> -		else if ((min_uV>  1300000)&&  (max_uV>= 1350000))
+> +		else if ((min_uV>  1300000)&&  (min_uV<= 1350000))
+>   			vsel = 58;
+>   		else
+>   			return -EINVAL;
+> @@ -828,13 +820,17 @@ twl6030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
+>   	case SMPS_OFFSET_EN|SMPS_EXTENDED_EN:
+>   		if (min_uV == 0) {
+>   			vsel = 0;
+> -		} else if ((min_uV>= 2161000)&&  (max_uV<= 4321000)) {
+> +		} else if ((min_uV>= 2161000)&&  (min_uV<= 4321000)) {
+>   			vsel = DIV_ROUND_UP(min_uV - 2161000, 38600);
+>   			vsel++;
+>   		}
+>   		break;
+>   	}
+>
+> +	calc_uV = twl6030smps_list_voltage(rdev, vsel);
+> +	if (calc_uV>  max_uV)
+> +		return -EINVAL;
+> +
+>   	*selector = vsel;
+>
+>   	return twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE_SMPS,
 
-On Monday 09 July 2012 04:31 PM, Axel Lin wrote:
-> =E6=96=BC =E4=B8=80=EF=BC=8C2012-07-09 =E6=96=BC 11:22 +0800=EF=BC=8C=
-Axel Lin =E6=8F=90=E5=88=B0=EF=BC=9A
->> In twl6030ldo_set_voltage, current code use below formula to calcula=
-te vsel:
->>          vsel =3D (min_uV/1000 - 1000)/100 + 1;
->> This is worng because when min_uV is 1000000 uV, vsel is 1.
->> It should be 0 in this case.
-
-Why? Do you know of any documentation which states this?
-I am referring to the twl6030 Top Functional spec version 1.18
-and Table - 223 "LDO Output Voltage Selection Code" clearly
-states that the vsel should be 1 when voltage expected is 1000000 uV.
-
-Also refer to equation 3 "LDO Output Voltage Selection Code" in the
-same document and you will see this mentioned..
-Absolute Voltage value =3D 1.0V + 0.1V * (binary value =E2=80=93 000000=
-01)
-
->> Fix it by change the equation to: (This equation is common for linea=
-r mapping)
->>          vsel =3D DIV_ROUND_UP(min_uV - rdev->desc->min_uV, rdev->de=
-sc->uV_step);
->>
->> In twl6030ldo_get_voltage, current code use below formula to calcula=
-te voltage:
->>          mV =3D 1000mv + 100mv * (vsel - 1)
->> This is worng because when vsel is 0, mV is 900mV. Note the min_uV i=
-s 1000mV.
->> Fix it by change the equation to: (This equation is common for linea=
-r mapping)
->>          return rdev->desc->min_uV + vsel * rdev->desc->uV_step;
->
-> While I'm thinking I need to rework this patch so that it doesn't use
-> rdev->desc->min_uV and rdev->desc->uV_step and then can be applied
-> to current Linus' tree.
->
-> But while I am tracking back to commit 3e3d3be79c
-> Author: Rajendra Nayak<rnayak@ti.com>
-> Date:   Thu Apr 22 14:18:32 2010 +0530
->
->      twl6030: regulator: Remove vsel tables and use formula for
-> calculation
->
->      All twl6030 regulators can be programmed from 1.0v to 3.3v
->      with 100mV steps.
->      The below formula can be used to calculate the vsel values
->      to be programmed in the VREG_VOLTAGE registers.
->
->      Voltage(in mV) =3D 1000mv + 100mv * (vsel - 1)
->
->      Ex: if vsel =3D 0x9, mV =3D 1000 + 100 * (9 -1) =3D 1800mV.
->
->      This patch removes all existing VSEL tables for twl6030 adjustab=
-le
->      regulators and just uses the formula directly for vsel calculati=
-ons
->      after verifing they fall in the allowed range.
->
->      Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->
-> I found a problem that before commit 3e3d3be79c, the voltage tables w=
-ere
-> not linear mapping. So why we can convert these voltage mapping table=
- to
-> Voltage(in mV) =3D 1000mv + 100mv * (vsel - 1)?
->
-> Did I miss something?
-
-All voltage tables before commit '3e3d3be79c' for twl6030 regulators
-were clearly wrong. They assumed similarity with twl4030 regulators
-which was not right.
-
-regards,
-Rajendra
-
->
-> Regards,
-> Axel
->
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
