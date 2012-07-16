@@ -1,91 +1,115 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: PM/UART 3.5-rc5: UART Rx wakeups not quite right?
-Date: Mon, 16 Jul 2012 11:40:03 +0300
-Message-ID: <20120716084002.GN7955@arwen.pp.htv.fi>
-References: <WC20120705133859.690032@terrafix.co.uk>
- <87boju2s8x.fsf@ti.com>
-Reply-To: balbi@ti.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH RFT 1/2] regulator: twl: Fix the formula to calculate
+ vsel and voltage for twl6030ldo
+Date: Mon, 16 Jul 2012 14:41:06 +0530
+Message-ID: <5003DAAA.2070301@ti.com>
+References: <1341804151.14367.1.camel@phoenix> <1341831686.4343.7.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yAzUYvkKIfeS0jQX"
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48576 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750937Ab2GPInA (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:60480 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751122Ab2GPJLN (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 04:43:00 -0400
-Received: by lbbgg6 with SMTP id gg6so7458519lbb.36
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 01:42:57 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <87boju2s8x.fsf@ti.com>
+	Mon, 16 Jul 2012 05:11:13 -0400
+Received: by obbuo19 with SMTP id uo19so8036657obb.25
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 02:11:12 -0700 (PDT)
+In-Reply-To: <1341831686.4343.7.camel@phoenix>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Axel Lin <axel.lin@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, loml <linux-omap@vger.kernel.org>
 
+Hi Axel,
 
---yAzUYvkKIfeS0jQX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+My apologies for the delay in responding to this one.
 
-Hi,
+On Monday 09 July 2012 04:31 PM, Axel Lin wrote:
+> =E6=96=BC =E4=B8=80=EF=BC=8C2012-07-09 =E6=96=BC 11:22 +0800=EF=BC=8C=
+Axel Lin =E6=8F=90=E5=88=B0=EF=BC=9A
+>> In twl6030ldo_set_voltage, current code use below formula to calcula=
+te vsel:
+>>          vsel =3D (min_uV/1000 - 1000)/100 + 1;
+>> This is worng because when min_uV is 1000000 uV, vsel is 1.
+>> It should be 0 in this case.
 
-On Thu, Jul 05, 2012 at 07:32:30AM -0700, Kevin Hilman wrote:
-> "Joe Woodward" <jw@terrafix.co.uk> writes:
->=20
-> > Are there any patches floating around to fix UART Rx wakeups for 3.5?
-> >
-> > I have a GUMSTIX Overo with various things hanging off the UARTs, one
-> > of which (on ttyO0) sends in periodic (GPS) data.
-> >
-> > I don't want this data to wake the OMAP from system suspend.
-> >
-> > I would normally disable UART Rx wakeup for ttyO0:
-> > # echo "disabled" > /sys/devices/platform/omap_uart.0/power/wakeup
-> >
-> > This works on 3.5-rc5 (i.e. I can suspend, and not immediately wake) UN=
-TIL
-> > I run an application that opens /dev/ttyO0.
-> >
-> > At this point when entering system suspend ttyO0 wakes the OMAP up
-> > immediately, even though the SYSFS reports the wakeup as "disabled".
-> >
-> > Any ideas?
->=20
-> Sounds like a bug.
->=20
-> Unfortunately, the OMAP UART driver is currently without an owner as far
-> as I know.
->=20
-> Felipe, who is looking after the UART driver now?
+Why? Do you know of any documentation which states this?
+I am referring to the twl6030 Top Functional spec version 1.18
+and Table - 223 "LDO Output Voltage Selection Code" clearly
+states that the vsel should be 1 when voltage expected is 1000000 uV.
 
-you said it right. It's without an owner. Joe, any chance you could help
-by bisecting the problem down to a commit ?
+Also refer to equation 3 "LDO Output Voltage Selection Code" in the
+same document and you will see this mentioned..
+Absolute Voltage value =3D 1.0V + 0.1V * (binary value =E2=80=93 000000=
+01)
 
---=20
-balbi
+>> Fix it by change the equation to: (This equation is common for linea=
+r mapping)
+>>          vsel =3D DIV_ROUND_UP(min_uV - rdev->desc->min_uV, rdev->de=
+sc->uV_step);
+>>
+>> In twl6030ldo_get_voltage, current code use below formula to calcula=
+te voltage:
+>>          mV =3D 1000mv + 100mv * (vsel - 1)
+>> This is worng because when vsel is 0, mV is 900mV. Note the min_uV i=
+s 1000mV.
+>> Fix it by change the equation to: (This equation is common for linea=
+r mapping)
+>>          return rdev->desc->min_uV + vsel * rdev->desc->uV_step;
+>
+> While I'm thinking I need to rework this patch so that it doesn't use
+> rdev->desc->min_uV and rdev->desc->uV_step and then can be applied
+> to current Linus' tree.
+>
+> But while I am tracking back to commit 3e3d3be79c
+> Author: Rajendra Nayak<rnayak@ti.com>
+> Date:   Thu Apr 22 14:18:32 2010 +0530
+>
+>      twl6030: regulator: Remove vsel tables and use formula for
+> calculation
+>
+>      All twl6030 regulators can be programmed from 1.0v to 3.3v
+>      with 100mV steps.
+>      The below formula can be used to calculate the vsel values
+>      to be programmed in the VREG_VOLTAGE registers.
+>
+>      Voltage(in mV) =3D 1000mv + 100mv * (vsel - 1)
+>
+>      Ex: if vsel =3D 0x9, mV =3D 1000 + 100 * (9 -1) =3D 1800mV.
+>
+>      This patch removes all existing VSEL tables for twl6030 adjustab=
+le
+>      regulators and just uses the formula directly for vsel calculati=
+ons
+>      after verifing they fall in the allowed range.
+>
+>      Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>
+> I found a problem that before commit 3e3d3be79c, the voltage tables w=
+ere
+> not linear mapping. So why we can convert these voltage mapping table=
+ to
+> Voltage(in mV) =3D 1000mv + 100mv * (vsel - 1)?
+>
+> Did I miss something?
 
---yAzUYvkKIfeS0jQX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+All voltage tables before commit '3e3d3be79c' for twl6030 regulators
+were clearly wrong. They assumed similarity with twl4030 regulators
+which was not right.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+regards,
+Rajendra
 
-iQIcBAEBAgAGBQJQA9NiAAoJEIaOsuA1yqRENx8QAKZPLNdhbwhMmZ1UywdEdFr8
-EV54czPUnGr6Usu4PFL0Rojef67Pw80iRU0XA+gT36pJDrk8lak11k6ueJKlucsz
-vYRf75Jr8+66XiM6I2/5kidBZe6MaknvtUoOsVd9MJEN4a88QFnWXMXLFIVlZVZL
-ykB/9h4bGttgu9pXQz7/60WYElA3G1+izKYx3L2Y3Jbg8VVzelf6B/56Mb+5brAk
-cU8jPtF/vruB7JUs4/AzLgShjHQ4ck9R85I+icwIV/hU3t9x1n5wrDXY6IZAalt5
-fQeNBvt5JY2Tn0me/WL8Q1MWU4ESBvgQUYPZjqnDbVQz1mzfJ5MptgS+mYICzeO9
-6UQmzMuOD53f9hbWEi7hDX47+UP/+z1JxgjAIMYiMThtKs4pmfHmx+2RWsV7UFn2
-8LRO+c4EyrTyMLJZSbhrfdmuQ91TMaLuPkM7u/Ri1G/Wk2F3S4wbSAptKPZo5Gau
-6rsc63EXLimFkWirlI/8C8z9Y7OroUSEpcqLznplefmbX5GVRkNde3eupqjDbT+Q
-KyIaQHDJZewHn/IFmNIXzJff9qDY36Vv5jDyRYekB2MKVjbYOkUxFdQbgAZfcr9y
-0oXN7v781+RqVy8NsXyb4vV/3JwQSePzJoIbKc+UwtCyKZxdrL3/4YYZ+5P4hLdv
-vp8YicHIzmyUphMLTCBU
-=aFtb
------END PGP SIGNATURE-----
+>
+> Regards,
+> Axel
+>
+>
 
---yAzUYvkKIfeS0jQX--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
