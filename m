@@ -1,125 +1,51 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH RFT] regulator: twl: Fix list_voltate for twl6030ldo_ops
-Date: Mon, 16 Jul 2012 18:31:10 +0800
-Message-ID: <1342434670.4717.6.camel@phoenix>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCHv4 5/8] ARM: OMAP3: set autoidle flag for sdrc_ick
+Date: Mon, 16 Jul 2012 16:09:08 +0530
+Message-ID: <5003EF4C.6070700@ti.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com> <1342189185-5306-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, loml <linux-omap@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:51017 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752421Ab2GPKjP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jul 2012 06:39:15 -0400
+Received: by obbeh20 with SMTP id eh20so9987394obb.24
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 03:39:14 -0700 (PDT)
+In-Reply-To: <1342189185-5306-6-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-According to the datasheet, the voltage for twl6030ldo_ops is not linea=
-r for
-all cases. Linear mapping is only for the selection code from
-00000001 to 00011000.
+On Friday 13 July 2012 07:49 PM, Tero Kristo wrote:
+> sdrc_ick doesn't have autoidle flag on HW, but is always automatically
+> idled. Thus mark the autoidle flag statically as true for it to reflect
+> hardware behavior. The clock will no longer show as active in usecount
+> dumps and will allow the voltdm->sleep / wakeup calls to work properly.
+>
+> Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> Cc: Kevin Hilman<khilman@ti.com>
 
-Table 9. LDO Output Voltage Selection Code
-CODE     VOUT(V)    COD      VOUT(V)    CODE     VOUT(V)    CODE     VO=
-UT(V)
-00000000 0          00001000 1.7        00010000 2.5        00011000 3.=
-3
-00000001 1.0        00001001 1.8        00010001 2.6        00011001 Re=
-served
-00000010 1.1        00001010 1.9        00010010 2.7        00011010 Re=
-served
-00000011 1.2        00001011 2.0        00010011 2.8        00011011 Re=
-served
-00000100 1.3        00001100 2.1        00010100 2.9        00011100 Re=
-served
-00000101 1.4        00001101 2.2        00010101 3.0        00011101 Re=
-served
-00000110 1.5        00001110 2.3        00010110 3.1        00011110 Re=
-served
-00000111 1.6        00001111 2.4        00010111 3.2        00011111 2.=
-75
+Reviewed-by: Rajendra Nayak <rnayak@ti.com>
 
-This patch implements the list_voltage callback based on above table.
+> ---
+>   arch/arm/mach-omap2/clock3xxx_data.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index 1efdec2..596e041 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -1751,6 +1751,7 @@ static struct clk sdrc_ick = {
+>   	.flags		= ENABLE_ON_INIT,
+>   	.clkdm_name	= "core_l3_clkdm",
+>   	.recalc		=&followparent_recalc,
+> +	.autoidle	= true,
+>   };
+>
+>   static struct clk gpmc_fck = {
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/regulator/twl-regulator.c |   31 ++++++++++++++++++++++++-----=
---
- 1 file changed, 24 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-=
-regulator.c
-index de99b78..242fe90 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -559,6 +559,27 @@ static struct regulator_ops twl6030coresmps_ops =3D=
- {
- 	.get_voltage	=3D twl6030coresmps_get_voltage,
- };
-=20
-+static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigne=
-d sel)
-+{
-+	struct twlreg_info *info =3D rdev_get_drvdata(rdev);
-+
-+	switch (sel) {
-+	case 0:
-+		return 0;
-+	case 1 ... 24:
-+		/* Linear mapping from 00000001 to 00011000:
-+		 * Absolute voltage value =3D 1.0 V + 0.1 V =C3=97 (sel =E2=80=93 00=
-000001)
-+		 */
-+		return (info->min_mV + 100 * (sel - 1)) * 1000;
-+	case 25 ... 30:
-+		return -EINVAL;
-+	case 31:
-+		return 2750000;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- static int
- twl6030ldo_set_voltage_sel(struct regulator_dev *rdev, unsigned select=
-or)
- {
-@@ -577,7 +598,7 @@ static int twl6030ldo_get_voltage_sel(struct regula=
-tor_dev *rdev)
- }
-=20
- static struct regulator_ops twl6030ldo_ops =3D {
--	.list_voltage	=3D regulator_list_voltage_linear,
-+	.list_voltage	=3D twl6030ldo_list_voltage,
-=20
- 	.set_voltage_sel =3D twl6030ldo_set_voltage_sel,
- 	.get_voltage_sel =3D twl6030ldo_get_voltage_sel,
-@@ -906,12 +927,10 @@ static struct twlreg_info TWL6030_INFO_##label =3D=
- { \
- 	.desc =3D { \
- 		.name =3D #label, \
- 		.id =3D TWL6030_REG_##label, \
--		.n_voltages =3D (max_mVolts - min_mVolts)/100 + 1, \
-+		.n_voltages =3D 32, \
- 		.ops =3D &twl6030ldo_ops, \
- 		.type =3D REGULATOR_VOLTAGE, \
- 		.owner =3D THIS_MODULE, \
--		.min_uV =3D min_mVolts * 1000, \
--		.uV_step =3D 100 * 1000, \
- 		}, \
- 	}
-=20
-@@ -923,12 +942,10 @@ static struct twlreg_info TWL6025_INFO_##label =3D=
- { \
- 	.desc =3D { \
- 		.name =3D #label, \
- 		.id =3D TWL6025_REG_##label, \
--		.n_voltages =3D ((max_mVolts - min_mVolts)/100) + 1, \
-+		.n_voltages =3D 32, \
- 		.ops =3D &twl6030ldo_ops, \
- 		.type =3D REGULATOR_VOLTAGE, \
- 		.owner =3D THIS_MODULE, \
--		.min_uV =3D min_mVolts * 1000, \
--		.uV_step =3D 100 * 1000, \
- 		}, \
- 	}
-=20
---=20
-1.7.9.5
