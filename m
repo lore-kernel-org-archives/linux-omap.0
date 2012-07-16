@@ -1,56 +1,48 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH RFT] regulator: twl: Fix list_voltate for twl6030ldo_ops
-Date: Mon, 16 Jul 2012 20:58:53 +0100
-Message-ID: <20120716195853.GB10774@opensource.wolfsonmicro.com>
-References: <1342434670.4717.6.camel@phoenix>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 2/2] gpio/omap: add *remove* callback in platform_driver
+Date: Mon, 16 Jul 2012 22:49:17 +0200
+Message-ID: <CACRpkdYMzdjFXBMs6do-yqiBFV5ru28SftA5u+ZkP5KO+PhjCA@mail.gmail.com>
+References: <1341997995-14020-1-git-send-email-tarun.kanti@ti.com>
+	<1341997995-14020-3-git-send-email-tarun.kanti@ti.com>
+	<87394xhocn.fsf@ti.com>
+	<CACRpkdZMG_ZHW_eGGrdrJh1SuO_=hOObijzmxG1ob6RoNf_dwg@mail.gmail.com>
+	<87a9z4g9bi.fsf@ti.com>
+	<CACRpkdZxUpQ=a-yQ8b4bnX3S9penPWkxJ+PG2Zi4i9YZibYRiw@mail.gmail.com>
+	<87ipdnein1.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QKdGvSO+nmPlgiQ/"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47391 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751292Ab2GPT6z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 15:58:55 -0400
-Content-Disposition: inline
-In-Reply-To: <1342434670.4717.6.camel@phoenix>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:62883 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751919Ab2GPUtS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 16:49:18 -0400
+Received: by qadb17 with SMTP id b17so1859298qad.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 13:49:17 -0700 (PDT)
+In-Reply-To: <87ipdnein1.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Axel Lin <axel.lin@gmail.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, loml <linux-omap@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
+On Mon, Jul 16, 2012 at 7:10 PM, Kevin Hilman <khilman@ti.com> wrote:
 
---QKdGvSO+nmPlgiQ/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Subject: [PATCH] MAINTAINERS: add entry OMAP GPIO driver
+>
+> Since I've been maintaining this, making it official at the request of the
+> GPIO maintainers.
+>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Linus Walleij <linus.walleij@linaro.org>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-On Mon, Jul 16, 2012 at 06:31:10PM +0800, Axel Lin wrote:
-> According to the datasheet, the voltage for twl6030ldo_ops is not linear for
-> all cases. Linear mapping is only for the selection code from
-> 00000001 to 00011000.
+Thank! Applied, but:
 
-Applied, thanks.
+> +F:     drivers/gpio/gpio.omap.c
 
---QKdGvSO+nmPlgiQ/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I replaced the period with a dash:
+drivers/gpio/gpio-omap.c
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQBHJ0AAoJEBus8iNuMP3dXPMP/3TCVV75+l8b5h4pd/ll6h/K
-ibuTd1VZdDFLW/KPumsovHMDzaJzn46HEprGfRGAujFynWz+KurC084WW2Mu+Z3+
-udntO9Op5jsVfPt1ZdZouTs8+6/93HZGiPt7ZPvMyL/q1CxupQJp9Und4RjtUrrA
-V+N9NlsEKxwS8af27KY2g4Rl2ox9wgpj2vFONdswUHPoY5q+oDsv8ru1P/QH20NU
-p5Wa9TsRRxbgbTv0mlF25vib/cnE1CNojSSOAi4WQAwEpq2u78izZPalhroCdB14
-fVOTk5IBIyKz1qlW2qpKW263hs6w6ClJy7Y2ApnRFiJ9PhI8GtJSexLrUlO9RiEQ
-9yPozRU0WHd75TJZVxT3B3gmUeTo6oT648Yic59Ms6vWBx8aLYSVXQgcrFCfrF4b
-DkiK/kR6w8gC/vPtGYaAg5BvlEH/bxxmyftccvApkSp8rMtE7v+M9/YjK+VV1vQ7
-hXAbZOqVkvYMB1ROVF1oFsn4u09e14FEyOiWj45yZs27Mrnbuh7WlWjxL3fMB2cL
-HRWp3my0YxT9Wa9gE7ORHt6tz1SjlO3cDX0w8dENtvgEnKbca90XmUeTT3xl5yEN
-PFL5J4lhl7qEZ7Pa/t0FCIndqf7z6K/rboxXUXwu98hXBKYMW8FAiHD16p0EUZHL
-YLuE3OFVAsk+3Y8Fu/Xe
-=ECUP
------END PGP SIGNATURE-----
-
---QKdGvSO+nmPlgiQ/--
+Yours,
+Linus Walleij
