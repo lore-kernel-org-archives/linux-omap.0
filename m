@@ -1,58 +1,69 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH RESEND V3 0/3] Watchdog: OMAP3: bootstatus fix and
- changes for the current watchdog framework
-Date: Mon, 16 Jul 2012 13:10:13 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA6DFAE@DBDE01.ent.ti.com>
-References: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Mon, 16 Jul 2012 19:01:06 +0530
+Message-ID: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52150 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50812 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751808Ab2GPNLC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 09:11:02 -0400
-In-Reply-To: <1342338246-29101-1-git-send-email-zumeng.chen@windriver.com>
-Content-Language: en-US
+	id S1751611Ab2GPNbW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jul 2012 09:31:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zumeng Chen <zumeng.chen@windriver.com>, "Hilman, Kevin" <khilman@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>
-Cc: "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul.gortmaker@windriver.com" <paul.gortmaker@windriver.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 
-On Sun, Jul 15, 2012 at 13:14:03, Zumeng Chen wrote:
-> Hello,
-> 
-> The following patches based on the 3.5-rc6 from Wim, which
-> focus on:
-> 
-> 1. bootstatus fix for omap3,
-> 
-> 2. omap-wdt framework update cater for the current framework
->    as Shubhrajyoti comments mentioned.
-> 
-> V3 changes:
-> 
-> 1. New comments updated as Kevin mentioned in the third patch;
-> 2. 3530evm works well,
->    AM33xx seems work well with the following changes:
-> 	+   if (cpu_is_am335x())
-> 	+       return omap2_prm_read_mod_reg(AM33XX_PRM_DEVICE_MOD,
-> 	+           AM33XX_PRM_RSTST_OFFSET) & 0x7f;
->    But since some definitions not ready for am33xx, so I don't
->    give the patch, if they have been updated, feel free to take these. 
-> 
+The TLL (Transceiver Less Link) is an separate IP block, independent of
+the host controller. Basically this TLL operates like USB PHY which allows
+the user to connect two USB transceiver interfaces together directly
+without the use of differential transceivers in omap3 and later chips.
+The TLL configuration is removed from the UHH driver and implemented as
+a seperate platform driver. Now, the UHH driver configures the TLL
+through API's exported by the TLL platform driver.
 
-Did you test it on any of AM33xx platform? If you use linux-omap/master pr 
-linux-next branch as a baseline you should have basic things (except hwmod 
-data) available.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-I will test it and send a patch for this on your behalf (if you are ok with 
-it).
+In v4:
+    - rebased on top of linux kernel version 3.5.rc7
+    - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
 
+In v3:
+  - rebased on top V3 of Russ dill's patch
+       'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+       fixes an issue where the ULPI PHYs were not held in reset
+       while initializing the EHCI controller
+	http://permalink.gmane.org/gmane.linux.usb.general/65988
+      
+  - rebased on top of patch 
+    OMAP: USB : Fix the EHCI enumeration and core retention issue
+     http://permalink.gmane.org/gmane.linux.usb.general/66239
 
-Note: Change in convention, cpu_is_am335x() => soc_is_am335x()
+In V2:
+    - covered review comments from linux omap and usb community
+    - rebased on top Russ dill's patch
+       'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+       fixes an issue where the ULPI PHYs were not held in reset
+       while initializing the EHCI controller
 
-Thanks,
-Vaibhav
+Keshava Munegowda (5):
+  ARM: OMAP: Add the USB TLL clocks device name
+  ARM: OMAP: USB: HOST TLL platform driver
+  ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+  ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+  ARM: OMAP: Remove older device name of the USB TLL clocks
 
+ arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+ arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+ arch/arm/mach-omap2/usb-host.c        |   31 ++-
+ arch/arm/plat-omap/include/plat/usb.h |    7 +
+ drivers/mfd/Kconfig                   |    2 +-
+ drivers/mfd/Makefile                  |    2 +-
+ drivers/mfd/omap-usb-host.c           |  238 ++---------------
+ drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+ 8 files changed, 523 insertions(+), 240 deletions(-)
+ create mode 100644 drivers/mfd/omap-usb-tll.c
+
+-- 
+1.7.9.5
 
