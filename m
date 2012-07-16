@@ -1,52 +1,96 @@
 From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH 0/3] OMAP: hwmod: reset API proposal
-Date: Mon, 16 Jul 2012 14:21:22 -0500
-Message-ID: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:47493 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab2GPTVe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 15:21:34 -0400
-Received: by obbuo13 with SMTP id uo13so9900910obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 12:21:34 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH 3/3] ARM: OMAP: omap_device: expose hwmod assert/deassert to omap devices
+Date: Mon, 16 Jul 2012 14:21:25 -0500
+Message-ID: <1342466485-1050-4-git-send-email-omar.luna@linaro.org>
+References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@copitl.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.luna@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
-From: Omar Ramirez Luna <omar.ramirez@copitl.com>
+This APIs are meant to be an interface to hwmod assert/deassert
+function, omap devices can call them through their platform data
+to control their reset lines, they are expected to know the name
+of the reset line they are trying to control.
 
-***
-RESEND: http://bit.ly/PZDbcc
-Needed for ipu, dsp and their mmu reset lines.
-***
-
-Recent changes in omap_hwmod framework have reworked the behaviour
-towards hardreset handling, commit 747834a (ARM: OMAP2+: hwmod:
-revise hardreset behavior) recommends for drivers to implement
-their own reset sequences until code out-of-tree hits mainline
-and then their needs and code can be reviewed.
-
-Since it is not clear when this will occur for all drivers and
-hwmod code was not deleted (presumably because at some point it
-will handle the resets once again), this series exports functions
-to handle hardreset lines in an attempt to reduce code duplication
-for those who have a common reset sequence.
-
-These APIs are intended to be used by iommu for now, but were
-tested with IPU and remoteproc on Pandaboard.
-
-Omar Ramirez Luna (3):
-  ARM: OMAP: hwmod: partially un-reset hwmods might not be properly
-    enabled
-  ARM: OMAP: hwmod: revise deassert sequence
-  ARM: OMAP: omap_device: expose hwmod assert/deassert to omap devices
-
- arch/arm/mach-omap2/omap_hwmod.c              |   70 +++++++++++++++++++-----
+Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+---
  arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
- arch/arm/plat-omap/omap_device.c              |   45 ++++++++++++++++
- 3 files changed, 104 insertions(+), 15 deletions(-)
+ arch/arm/plat-omap/omap_device.c              |   45 +++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 4327b2c..27bcc24 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -118,6 +118,10 @@ int omap_device_get_context_loss_count(struct platform_device *pdev);
+ 
+ /* Other */
+ 
++int omap_device_assert_hardreset(struct platform_device *pdev,
++				 const char *name);
++int omap_device_deassert_hardreset(struct platform_device *pdev,
++				 const char *name);
+ int omap_device_idle_hwmods(struct omap_device *od);
+ int omap_device_enable_hwmods(struct omap_device *od);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index c490240..8883074 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -925,6 +925,51 @@ int omap_device_shutdown(struct platform_device *pdev)
+ }
+ 
+ /**
++ * omap_device_assert_hardreset - set a device's reset line
++ * @pdev: struct platform_device * to reset
++ * @name: const char * with the name of the reset line
++ *
++ * According to @name, set the reset line of the hwmods associated
++ * with this @pdev deivce.
++ */
++int omap_device_assert_hardreset(struct platform_device *pdev, const char *name)
++{
++	int i, ret = 0;
++	struct omap_device *od = to_omap_device(pdev);
++
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		ret = omap_hwmod_assert_hardreset(od->hwmods[i], name);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++/**
++ * omap_device_deassert_hardreset - lift a device's reset line
++ * @pdev: struct platform_device * to reset
++ * @name: const char * with the name of the reset line
++ *
++ * According to @name, lift the reset line of the hwmods associated
++ * with this @pdev deivce.
++ */
++int omap_device_deassert_hardreset(struct platform_device *pdev,
++				const char *name)
++{
++	int i, ret = 0;
++	struct omap_device *od = to_omap_device(pdev);
++
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		ret = omap_hwmod_deassert_hardreset(od->hwmods[i], name);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++/**
+  * omap_device_align_pm_lat - activate/deactivate device to match wakeup lat lim
+  * @od: struct omap_device *
+  *
 -- 
 1.7.4.1
-
