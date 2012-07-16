@@ -1,32 +1,47 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP: pm-debug: enhanced usecount debug support
-Date: Mon, 16 Jul 2012 17:44:14 +0530
-Message-ID: <50040596.9000103@ti.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>	 <1342189185-5306-7-git-send-email-t-kristo@ti.com>	 <5003F1E9.5080700@ti.com> <1342439156.4672.66.camel@sokoban>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2 1/3] regulator: tps65217: Add device tree support
+Date: Mon, 16 Jul 2012 12:35:46 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9F70AE@DBDE01.ent.ti.com>
+References: <1341918584-28004-1-git-send-email-anilkumar@ti.com>
+ <1341918584-28004-2-git-send-email-anilkumar@ti.com>
+ <20120712172836.GR7256@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13E9F61CC@DBDE01.ent.ti.com>
+ <20120713095454.GB4215@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:52955 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751182Ab2GPMOV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 08:14:21 -0400
-Received: by yenl3 with SMTP id l3so6352935yen.26
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 05:14:20 -0700 (PDT)
-In-Reply-To: <1342439156.4672.66.camel@sokoban>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43683 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751014Ab2GPMf7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 08:35:59 -0400
+In-Reply-To: <20120713095454.GB4215@opensource.wolfsonmicro.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-On Monday 16 July 2012 05:15 PM, Tero Kristo wrote:
->>> >  >
->>> >  >  This patch also provices a way to do printk dumps from kernel code,
->>> >  >  by calling the pm_dbg_dump_X functions. The plan is to call these
->>> >  >  functions once an error condition is detected, e.g. failed suspend.
-> ^
-> |
-> This part is the main motivation for this patch imo.
++Tony
 
-ah, okay. I missed that part completely.
+Tony,
+
+On Fri, Jul 13, 2012 at 15:24:54, Mark Brown wrote:
+> On Fri, Jul 13, 2012 at 05:43:30AM +0000, AnilKumar, Chimata wrote:
+> 
+> > Thanks much, are you going to push reset of the patches in this series?
+> 
+> No, there's no dependency so I'd expect them to be applied by the
+> architecture maintainers.
+> 
+
+Could you please push these [2/3 and 3/3] patches to linux-omap "devel-dt
+tree"?
+http://marc.info/?l=linux-omap&m=134191889501150&w=2
+http://marc.info/?l=linux-omap&m=134191891701159&w=2
+
+After these patches, "PMIC I2C slave address addition for AM335x EVM/Bone
+will be submitted, which actually passes DT data to tps65910/217 drivers"
+
+Regards
+AnilKumar
