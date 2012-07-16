@@ -1,105 +1,64 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] gpio/omap: add *remove* callback in platform_driver
-Date: Mon, 16 Jul 2012 10:10:58 -0700
-Message-ID: <87ipdnein1.fsf@ti.com>
-References: <1341997995-14020-1-git-send-email-tarun.kanti@ti.com>
-	<1341997995-14020-3-git-send-email-tarun.kanti@ti.com>
-	<87394xhocn.fsf@ti.com>
-	<CACRpkdZMG_ZHW_eGGrdrJh1SuO_=hOObijzmxG1ob6RoNf_dwg@mail.gmail.com>
-	<87a9z4g9bi.fsf@ti.com>
-	<CACRpkdZxUpQ=a-yQ8b4bnX3S9penPWkxJ+PG2Zi4i9YZibYRiw@mail.gmail.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable OMAP DMA engine support
+Date: Mon, 16 Jul 2012 10:12:28 -0700
+Message-ID: <87bojfeikj.fsf@ti.com>
+References: <1342321398-11009-1-git-send-email-javier@dowhile0.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55538 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851Ab2GPRKs (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45699 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752799Ab2GPRMK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 13:10:48 -0400
-Received: by ghbf1 with SMTP id f1so6236351ghb.23
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 10:10:42 -0700 (PDT)
-In-Reply-To: <CACRpkdZxUpQ=a-yQ8b4bnX3S9penPWkxJ+PG2Zi4i9YZibYRiw@mail.gmail.com>
-	(Linus Walleij's message of "Sat, 14 Jul 2012 22:51:44 +0200")
+	Mon, 16 Jul 2012 13:12:10 -0400
+Received: by ghbz2 with SMTP id z2so4843358ghb.6
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 10:12:06 -0700 (PDT)
+In-Reply-To: <1342321398-11009-1-git-send-email-javier@dowhile0.org> (Javier
+	Martinez Canillas's message of "Sun, 15 Jul 2012 05:03:18 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+Javier Martinez Canillas <javier@dowhile0.org> writes:
 
-> On Thu, Jul 12, 2012 at 7:48 PM, Kevin Hilman <khilman@ti.com> wrote:
+> commit 13f30fc893e4610f67dd7a8b0b67aec02eac1775
+> Author: Russell King <rmk+kernel@arm.linux.org.uk>
+> Date:   Sat Apr 21 22:41:10 2012 +0100
 >
->> In the case of OMAP GPIO, unless it's an obvious fix, I would recommend
->> you wait at least until you see some acks/tested tags from any of
->>
->> - Santosh Shilimkar <santosh.shilimkar@ti.com>
->> - Rajendra Nayak <rnayak@ti.com>
->> - Benoit Cousson <b-cousson@ti.com>
->>
->> or Tony, Paul or myself.
+>     mmc: omap: remove private DMA API implementation
 >
-> Instead of trying to store this information in my and Grants brains and
-> us forgetting it, what about patching MAINTAINERS to reflect the fact
-> instead? That's better I think, plus I use that file a lot.
+> removed the private DMA API implementation from the OMAP mmc host to
+> make it use exclusively the DMA engine API.
 >
->> For major series, I have been collecting/queueing them for Grant after
->> ensuring they have been well reviewed and well tested (although I am
->> eagerly hoping to hand off this role to someone else.)
->
-> Listing it under your GIT tree in MAINTAINERS for this driver will make
-> this work better I think.
->
-> One path for OMAP GPIO patches, simple. It's obviously the
-> ambiguity that cause the trouble. Then you can also decide
-> on each cycle whether to send these to GPIO or ARM SoC
-> etc.
+> Unfortunately the omap2plus_defconfig doesn't enable this feature
+> leading to the following error on an IGEPv2 Rev.C (and probably on most
+> boards with MMC support):
 
-Yeah, I understand the process, but I've been avoiding doing that
-because, well, I don't want the job.  I have been trying to get someone
-else at TI to maintain this driver, but have not been successful.
-
-So, until that happens, feel free to queue up the patch below.
-
-Santosh, note that I've put you as co-maintainer of this driver.
+Personally, I'd rather see this fixed by having the drivers that depend
+on DMA engine 'select DMADEVICES'.  That way, any defconfig will work
+correctly instead of just omap2plus_defconfig.
 
 Kevin
 
-
->From c429e2e98ea7add98b85a47483ca7126284b22e6 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Mon, 16 Jul 2012 10:05:07 -0700
-Subject: [PATCH] MAINTAINERS: add entry OMAP GPIO driver
-
-Since I've been maintaining this, making it official at the request of the
-GPIO maintainers.
-
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 03df1d1..61d117a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4943,6 +4943,13 @@ S:	Maintained
- F:	drivers/usb/*/*omap*
- F:	arch/arm/*omap*/usb*
- 
-+OMAP GPIO DRIVER
-+M:	Santosh Shilimkar <santosh.shilimkar@ti.com>
-+M:	Kevin Hilman <khilman@ti.com>
-+L:	linux-omap@vger.kernel.org
-+S:	Maintained
-+F:	drivers/gpio/gpio.omap.c
-+
- OMFS FILESYSTEM
- M:	Bob Copeland <me@bobcopeland.com>
- L:	linux-karma-devel@lists.sourceforge.net
--- 
-1.7.9.2
-
+> [    2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+>
+> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> ---
+>  arch/arm/configs/omap2plus_defconfig |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+> index b152de7..e58edc3 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
+>  CONFIG_RTC_CLASS=y
+>  CONFIG_RTC_DRV_TWL92330=y
+>  CONFIG_RTC_DRV_TWL4030=y
+> +CONFIG_DMADEVICES=y
+> +CONFIG_DMA_OMAP=y
+>  CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  # CONFIG_EXT3_FS_XATTR is not set
