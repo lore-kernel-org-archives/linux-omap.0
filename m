@@ -1,52 +1,38 @@
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: omap2plus_defconfig: enable OMAP DMA
- engine support
-Date: Tue, 17 Jul 2012 01:28:04 +0200
-Message-ID: <CABxcv=nbUOKKhJxTG302fX=UzHsX3mN=R2nEi88VZM61ka11Vg@mail.gmail.com>
-References: <1342321398-11009-1-git-send-email-javier@dowhile0.org>
-	<87bojfeikj.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: am33xx: Fix the timer fck clock naming
+ convention
+Date: Mon, 16 Jul 2012 17:54:39 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207161754230.28834@utopia.booyaka.com>
+References: <1342462158-15998-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:40964 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab2GPX2E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 19:28:04 -0400
-Received: by obbuo13 with SMTP id uo13so10186824obb.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 16:28:04 -0700 (PDT)
-In-Reply-To: <87bojfeikj.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33626 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802Ab2GPXyk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 19:54:40 -0400
+In-Reply-To: <1342462158-15998-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Mon, Jul 16, 2012 at 7:12 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Javier Martinez Canillas <javier@dowhile0.org> writes:
->
->> commit 13f30fc893e4610f67dd7a8b0b67aec02eac1775
->> Author: Russell King <rmk+kernel@arm.linux.org.uk>
->> Date:   Sat Apr 21 22:41:10 2012 +0100
->>
->>     mmc: omap: remove private DMA API implementation
->>
->> removed the private DMA API implementation from the OMAP mmc host to
->> make it use exclusively the DMA engine API.
->>
->> Unfortunately the omap2plus_defconfig doesn't enable this feature
->> leading to the following error on an IGEPv2 Rev.C (and probably on most
->> boards with MMC support):
->
-> Personally, I'd rather see this fixed by having the drivers that depend
-> on DMA engine 'select DMADEVICES'.  That way, any defconfig will work
-> correctly instead of just omap2plus_defconfig.
->
-> Kevin
->
+On Mon, 16 Jul 2012, Vaibhav Hiremath wrote:
 
-Hi Kevin,
+> With commit ae6df418a21f3a361c5f9b878e32a8aba4e17692
+> Sub: ARM: OMAP2+: dmtimer: cleanup fclk usage)
+> The Timer functional clock naming convention has changed from
+> gptX_fck => timerXfck, and so as the timer init function
+> in mach-omap2/timer.c.
+> OMAP4 clocktree also has changed accordingly.
+> 
+> AM33xx Clock Tree has been merged during rc3-4 timeframe,
+> before above commit got merged, so similar change is required
+> for AM33xx as well (Change the gptX_fck => timerX_fck).
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Thanks a lot for your feedback. I'll do what you suggest and send a v2
-of the patch.
+Thanks, this looks like 3.6-rc material, right?
 
-Best regards,
-Javier
+
+- Paul
