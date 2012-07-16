@@ -1,240 +1,85 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 6/8] ARM: OMAP: pm-debug: enhanced usecount debug support
-Date: Mon, 16 Jul 2012 16:20:17 +0530
-Message-ID: <5003F1E9.5080700@ti.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com> <1342189185-5306-7-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv4 7/8] ARM: OMAP: clockdomain: add support for preventing
+ autodep delete
+Date: Mon, 16 Jul 2012 16:30:35 +0530
+Message-ID: <5003F453.9020903@ti.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com> <1342189185-5306-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56722 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751542Ab2GPKuY (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60586 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751466Ab2GPLAl (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Jul 2012 06:50:24 -0400
-Received: by obbuo19 with SMTP id uo19so14477456obb.39
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 03:50:23 -0700 (PDT)
-In-Reply-To: <1342189185-5306-7-git-send-email-t-kristo@ti.com>
+	Mon, 16 Jul 2012 07:00:41 -0400
+Received: by obbwc20 with SMTP id wc20so12622234obb.17
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 04:00:40 -0700 (PDT)
+In-Reply-To: <1342189185-5306-8-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
+Hi Tero,
+
 On Friday 13 July 2012 07:49 PM, Tero Kristo wrote:
-> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
-> their own file, 'usecount'. This file shows the usecounts for every
-> active domain and their children recursively. 'count' file now only
-> shows power state counts for powerdomains.
+> Some clockdomains bug out if their autodeps are deleted before idle.
+> This happens namely with OMAP3 PER domain, it will bug out if it
+> doesn't have wakedeps enabled when it enters off-mode. This patch
+> adds support for new flag 'CLKDM_NO_AUTODEP_DISABLE' which does this.
 
-The only comment I had on this patch was what I also said in response
-to PATCH 1/8 about keeping the clock usecounts separate if possible.
-voltdm, pwrdm, clkdm and hwmod are OMAP specific frameworks (and so is
-clock framework for now) but sooner than later we would move to using
-COMMON clock framework and then supporting the clock usecounts in
-/debug/pm_debug/usecount would not be possible.
+I had one more thought on how we could handle this (without adding a new
+flag :-))
+How about marking OMAP3 PER with a CLKDM_NO_AUTODEPS (already existing
+flag) and setting a sleep/wakeup dependency of OMAP3 PER with MPU and
+IVA one time sometime during late PM init. Because thats what we intent
+to do, which is have a sleep/wakeup dependency set *always* and never
+try to remove it, right?
 
->
-> This patch also provices a way to do printk dumps from kernel code,
-> by calling the pm_dbg_dump_X functions. The plan is to call these
-> functions once an error condition is detected, e.g. failed suspend.
+regards,
+Rajendra
+
 >
 > Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@ti.com>
 > ---
->   arch/arm/mach-omap2/pm-debug.c |  128 ++++++++++++++++++++++++++++++++++------
->   arch/arm/mach-omap2/pm.h       |    6 ++
->   2 files changed, 115 insertions(+), 19 deletions(-)
+>   arch/arm/mach-omap2/clockdomain.c |    3 +++
+>   arch/arm/mach-omap2/clockdomain.h |    4 ++++
+>   2 files changed, 7 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 814bcd9..cfc46a8 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -51,6 +51,7 @@ static int pm_dbg_init(void);
->   enum {
->   	DEBUG_FILE_COUNTERS = 0,
->   	DEBUG_FILE_TIMERS,
-> +	DEBUG_FILE_USECOUNT,
->   };
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> index 7f5423e..56cef58 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -201,6 +201,9 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
+>   	if (!autodeps || clkdm->flags&  CLKDM_NO_AUTODEPS)
+>   		return;
 >
->   static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
-> @@ -75,23 +76,6 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
->   	pwrdm->timer = t;
->   }
+> +	if (clkdm->flags&  CLKDM_NO_AUTODEP_DISABLE)
+> +		return;
+> +
+>   	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
+>   		if (IS_ERR(autodep->clkdm.ptr))
+>   			continue;
+> diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+> index 373399a..1fc5314 100644
+> --- a/arch/arm/mach-omap2/clockdomain.h
+> +++ b/arch/arm/mach-omap2/clockdomain.h
+> @@ -31,12 +31,16 @@
+>    *
+>    * CLKDM_NO_AUTODEPS: Prevent "autodeps" from being added/removed from this
+>    *     clockdomain.  (Currently, this applies to OMAP3 clockdomains only.)
+> + * CLKDM_NO_AUTODEP_DISABLE: Prevent clockdomain code from deleting autodeps.
+> + *     Needed for PER domain on omap3, as it will bug out with off-mode if
+> + *     wakedeps are removed.
+>    */
+>   #define CLKDM_CAN_FORCE_SLEEP			(1<<  0)
+>   #define CLKDM_CAN_FORCE_WAKEUP			(1<<  1)
+>   #define CLKDM_CAN_ENABLE_AUTO			(1<<  2)
+>   #define CLKDM_CAN_DISABLE_AUTO			(1<<  3)
+>   #define CLKDM_NO_AUTODEPS			(1<<  4)
+> +#define CLKDM_NO_AUTODEP_DISABLE		(1<<  5)
 >
-> -static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
-> -{
-> -	struct seq_file *s = (struct seq_file *)user;
-> -
-> -	if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
-> -		strcmp(clkdm->name, "wkup_clkdm") == 0 ||
-> -		strncmp(clkdm->name, "dpll", 4) == 0)
-> -		return 0;
-> -
-> -	seq_printf(s, "%s->%s (%d)", clkdm->name,
-> -			clkdm->pwrdm.ptr->name,
-> -			atomic_read(&clkdm->usecount));
-> -	seq_printf(s, "\n");
-> -
-> -	return 0;
-> -}
-> -
->   static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
->   {
->   	struct seq_file *s = (struct seq_file *)user;
-> @@ -145,11 +129,112 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
->   	return 0;
->   }
->
-> +static struct voltagedomain *parent_voltdm;
-> +static struct powerdomain *parent_pwrdm;
-> +static struct clockdomain *parent_clkdm;
-> +
-> +#define PM_DBG_PRINT(s, fmt, args...)			\
-> +	{						\
-> +		if (s)					\
-> +			seq_printf(s, fmt, ## args);	\
-> +		else					\
-> +			pr_info(fmt, ## args);		\
-> +	}
-> +
-> +static int _pm_dbg_dump_clk(struct clk *clk, void *user)
-> +{
-> +	struct seq_file *s = user;
-> +
-> +	if (clk->clkdm == parent_clkdm&&  clk->usecount&&  !clk->autoidle)
-> +		PM_DBG_PRINT(s, "      ck:%s: %d\n", clk->name, clk->usecount);
-> +
-> +	return 0;
-> +}
-> +
-> +static int _pm_dbg_dump_hwmod(struct omap_hwmod *oh, void *user)
-> +{
-> +	struct seq_file *s = user;
-> +
-> +	if (oh->clkdm != parent_clkdm)
-> +		return 0;
-> +
-> +	if (oh->_state != _HWMOD_STATE_ENABLED)
-> +		return 0;
-> +
-> +	PM_DBG_PRINT(s, "      oh:%s: enabled\n", oh->name);
-> +
-> +	return 0;
-> +}
-> +
-> +static int _pm_dbg_dump_clkdm(struct clockdomain *clkdm, void *user)
-> +{
-> +	struct seq_file *s = user;
-> +	u32 usecount;
-> +
-> +	if (clkdm->pwrdm.ptr == parent_pwrdm) {
-> +		usecount = atomic_read(&clkdm->usecount);
-> +		if (usecount) {
-> +			PM_DBG_PRINT(s, "    cd:%s: %d\n", clkdm->name,
-> +				usecount);
-> +			parent_clkdm = clkdm;
-> +			omap_hwmod_for_each(_pm_dbg_dump_hwmod, s);
-> +			omap_clk_for_each(_pm_dbg_dump_clk, s);
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int _pm_dbg_dump_pwrdm(struct powerdomain *pwrdm, void *user)
-> +{
-> +	struct seq_file *s = user;
-> +	u32 usecount;
-> +
-> +	if (pwrdm->voltdm.ptr == parent_voltdm) {
-> +		usecount = atomic_read(&pwrdm->usecount);
-> +		if (usecount) {
-> +			PM_DBG_PRINT(s, "  pd:%s: %d\n", pwrdm->name, usecount);
-> +			parent_pwrdm = pwrdm;
-> +			clkdm_for_each(_pm_dbg_dump_clkdm, s);
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm)
-> +{
-> +	pr_info("pd:%s: %d\n", pwrdm->name, atomic_read(&pwrdm->usecount));
-> +	parent_pwrdm = pwrdm;
-> +	clkdm_for_each(_pm_dbg_dump_clkdm, NULL);
-> +}
-> +
-> +void pm_dbg_dump_voltdm(struct voltagedomain *voltdm)
-> +{
-> +	pr_info("vd:%s: %d\n", voltdm->name, atomic_read(&voltdm->usecount));
-> +	parent_voltdm = voltdm;
-> +	pwrdm_for_each(_pm_dbg_dump_pwrdm, NULL);
-> +}
-> +
-> +static int _voltdm_dbg_show_counters(struct voltagedomain *voltdm, void *user)
-> +{
-> +	struct seq_file *s = user;
-> +
-> +	seq_printf(s, "vd:%s: %d\n", voltdm->name,
-> +		atomic_read(&voltdm->usecount));
-> +
-> +	parent_voltdm = voltdm;
-> +	pwrdm_for_each(_pm_dbg_dump_pwrdm, s);
-> +	return 0;
-> +}
-> +
-> +static int pm_dbg_show_usecount(struct seq_file *s, void *unused)
-> +{
-> +	voltdm_for_each(_voltdm_dbg_show_counters, s);
-> +	return 0;
-> +}
-> +
->   static int pm_dbg_show_counters(struct seq_file *s, void *unused)
->   {
->   	pwrdm_for_each(pwrdm_dbg_show_counter, s);
-> -	clkdm_for_each(clkdm_dbg_show_counter, s);
-> -
->   	return 0;
->   }
->
-> @@ -162,6 +247,9 @@ static int pm_dbg_show_timers(struct seq_file *s, void *unused)
->   static int pm_dbg_open(struct inode *inode, struct file *file)
->   {
->   	switch ((int)inode->i_private) {
-> +	case DEBUG_FILE_USECOUNT:
-> +		return single_open(file, pm_dbg_show_usecount,
-> +			&inode->i_private);
->   	case DEBUG_FILE_COUNTERS:
->   		return single_open(file, pm_dbg_show_counters,
->   			&inode->i_private);
-> @@ -271,6 +359,8 @@ static int __init pm_dbg_init(void)
->   		d, (void *)DEBUG_FILE_COUNTERS,&debug_fops);
->   	(void) debugfs_create_file("time", S_IRUGO,
->   		d, (void *)DEBUG_FILE_TIMERS,&debug_fops);
-> +	(void) debugfs_create_file("usecount", S_IRUGO,
-> +		d, (void *)DEBUG_FILE_USECOUNT,&debug_fops);
->
->   	pwrdm_for_each(pwrdms_setup, (void *)d);
->
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 7856489..312f2de 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -41,10 +41,16 @@ static inline int omap4_opp_init(void)
->   extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
->   extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
->
-> +struct clk;
-> +
->   #ifdef CONFIG_PM_DEBUG
->   extern u32 enable_off_mode;
-> +extern void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm);
-> +extern void pm_dbg_dump_voltdm(struct voltagedomain *voltdm);
->   #else
->   #define enable_off_mode 0
-> +static inline void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm) { }
-> +static inline void pm_dbg_dump_voltdm(struct voltagedomain *voltdm) { }
->   #endif
->
->   #if defined(CONFIG_PM_DEBUG)&&  defined(CONFIG_DEBUG_FS)
+>   #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+>   #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
 
