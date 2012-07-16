@@ -1,48 +1,30 @@
-From: Western Union Office Annex <online2254114@telkomsa.net>
-Subject: UN COMPENSATION PAYOUT
-Date: Mon, 16 Jul 2012 02:55:13 +0200 (SAST)
-Message-ID: <191869671.841871.1342400113437.JavaMail.root__11981.5744147219$1342400203$gmane$org@zimbra2-vm1.telkomsa.net>
-Reply-To: Western Union Office Annex
-	  <westernunionofficeannex86@yahoo.com.hk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC 5/6] ARM: OMAP3: hwmod data: add sad2d hwmod
+Date: Sun, 15 Jul 2012 19:14:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207151812590.28834@utopia.booyaka.com>
+References: <1342197459-7920-1-git-send-email-t-kristo@ti.com> <1342197459-7920-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from scorpius.telkomsa.net ([196.25.211.121]:33111 "EHLO
-	scorpius.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab2GPAzS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 20:55:18 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:58603 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab2GPBOH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Jul 2012 21:14:07 -0400
+In-Reply-To: <1342197459-7920-6-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
- 
-Hello, 
+On Fri, 13 Jul 2012, Tero Kristo wrote:
 
-  I write to inform you that we have already sent you $5000.00USD through Western Union as we have been given the mandate to transfer your full compensation payment of $1,800,000.00USD via Western Union Money Transfer by the United Nations (ECOWAS). This is because United Nations and (ECOWAS) are supporting individuals due to the worldwide economy meltdown. 
+> SAD2D stands for the die to die interface, and is used for communicating
+> with the optional stacked modem. This hwmod is added in preparation for
+> the d2d_idle move from pm34xx.c to hwmod data.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-  I would have requested for your phone number to give you the information through phone but internet hackers were many. So i decided to email you the MTCN and sender name so that you can pick up this $5000.00USD to enable us send another $5000.00USD by tomorrow as you know that we will be sending you only $5000.00USD per day.  The fund was send in the name which you use in opening your e-mail address. 
-
-Please pick up this information and rush to any western union to pick up the $5000.00USD and send us an email back to enable us send you another payment by tomorrow. 
-
-Email or call me once you picked up this $5000.00USD today. 
-
-
-Mr.Steven Colin 
-E-mail: westernunionofficeannex86@yahoo.com.hk 
+Thanks, queued this for 3.7.
 
 
-Here is the western union information to pick up the $5000.00USD, 
-
-
-MTCN :___________________837-321-5034
-SENDER'S NAME:___________Lawrence Smith 
-TEXT QUESTION:___________HONEST 
-ANSWER:__________________TRUST 
-AMOUNT SENT______________$5000.00USD 
-COUNTRY:_________________Cambodia 
-
-
-I am waiting for your email  once you pick up the $5000.00USD, 
-
-Thanks 
-Mr.Steven Colin. 
+- Paul
