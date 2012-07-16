@@ -1,79 +1,56 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
- to OFF when in-use
-Date: Mon, 16 Jul 2012 14:38:49 -0500
-Message-ID: <50046DC9.80203@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <alpine.DEB.2.00.1207131418500.25585@utopia.booyaka.com> <50045D17.9050704@ti.com> <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH RFT] regulator: twl: Fix list_voltate for twl6030ldo_ops
+Date: Mon, 16 Jul 2012 20:58:53 +0100
+Message-ID: <20120716195853.GB10774@opensource.wolfsonmicro.com>
+References: <1342434670.4717.6.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QKdGvSO+nmPlgiQ/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56566 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293Ab2GPTjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 15:39:03 -0400
-In-Reply-To: <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47391 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751292Ab2GPT6z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jul 2012 15:58:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1342434670.4717.6.camel@phoenix>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Axel Lin <axel.lin@gmail.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, loml <linux-omap@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
 
-Hi Paul,
 
-On 07/16/2012 01:38 PM, Paul Walmsley wrote:
-> Hi Jon,
->=20
-> On Mon, 16 Jul 2012, Jon Hunter wrote:
->=20
->> Yes I see that makes sense. However, patch #7 has already changed th=
-e
->> mapping of the flags. I had intended that patch #7 and #8 would be
->> applied together. However, I could see that patch #7 can be taken ju=
-st
->> to eliminate using the SW_SLEEP state. So basically, what I am sayin=
-g is
->> does patch #7 have any value without #8?
->=20
-> Certainly not as much value as it had before.  But my understanding, =
-which=20
-> is possibly incorrect, matches what you wrote in patch #7's descripti=
-on:
->=20
-> "For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is=
-=20
-> equivalent to SW_WKUP. The only difference between HW_AUTO and SW_SLE=
-EP=20
-> for OMAP4 devices is that the PRM_IRQSTATUS_MPU.TRANSITION_ST interru=
-pt=20
-> status is set in case of SW_SLEEP transition, and not set in case of=20
-> HW_AUTO transition."
->=20
-> We don't use that PRM_IRQSTATUS_MPU.TRANSITION_ST interrupt bit.  So =
-if=20
-> SW_SLEEP and HW_AUTO really have identical meanings otherwise, then I=
-=20
-> suppose we might as well use the one that does what we need with no=20
-> extraneous side-effects?  My recollection from a conversation with Be=
-no=EEt=20
-> a few months ago was that this was his view as well.
+--QKdGvSO+nmPlgiQ/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Yes that is my understanding too. So from that standpoint it is fine to
-keep. However, I just wanted to make sure I understood your thinking he=
-re.
+On Mon, Jul 16, 2012 at 06:31:10PM +0800, Axel Lin wrote:
+> According to the datasheet, the voltage for twl6030ldo_ops is not linear for
+> all cases. Linear mapping is only for the selection code from
+> 00000001 to 00011000.
 
->> That's fine with me. We can always workaround such issues by adding =
-flags.
->>
->> I can give this a try this week and let you know how it goes.
->=20
-> Okay, great.  No rush on my account.
+Applied, thanks.
 
-Ok. I have a few items on my plate that keep preventing me from getting
-back to this, but what to get this done.
+--QKdGvSO+nmPlgiQ/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQBHJ0AAoJEBus8iNuMP3dXPMP/3TCVV75+l8b5h4pd/ll6h/K
+ibuTd1VZdDFLW/KPumsovHMDzaJzn46HEprGfRGAujFynWz+KurC084WW2Mu+Z3+
+udntO9Op5jsVfPt1ZdZouTs8+6/93HZGiPt7ZPvMyL/q1CxupQJp9Und4RjtUrrA
+V+N9NlsEKxwS8af27KY2g4Rl2ox9wgpj2vFONdswUHPoY5q+oDsv8ru1P/QH20NU
+p5Wa9TsRRxbgbTv0mlF25vib/cnE1CNojSSOAi4WQAwEpq2u78izZPalhroCdB14
+fVOTk5IBIyKz1qlW2qpKW263hs6w6ClJy7Y2ApnRFiJ9PhI8GtJSexLrUlO9RiEQ
+9yPozRU0WHd75TJZVxT3B3gmUeTo6oT648Yic59Ms6vWBx8aLYSVXQgcrFCfrF4b
+DkiK/kR6w8gC/vPtGYaAg5BvlEH/bxxmyftccvApkSp8rMtE7v+M9/YjK+VV1vQ7
+hXAbZOqVkvYMB1ROVF1oFsn4u09e14FEyOiWj45yZs27Mrnbuh7WlWjxL3fMB2cL
+HRWp3my0YxT9Wa9gE7ORHt6tz1SjlO3cDX0w8dENtvgEnKbca90XmUeTT3xl5yEN
+PFL5J4lhl7qEZ7Pa/t0FCIndqf7z6K/rboxXUXwu98hXBKYMW8FAiHD16p0EUZHL
+YLuE3OFVAsk+3Y8Fu/Xe
+=ECUP
+-----END PGP SIGNATURE-----
+
+--QKdGvSO+nmPlgiQ/--
