@@ -1,138 +1,79 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: [PATCH 1/3] ARM: OMAP: hwmod: partially un-reset hwmods might not be properly enabled
-Date: Mon, 16 Jul 2012 14:21:23 -0500
-Message-ID: <1342466485-1050-2-git-send-email-omar.luna@linaro.org>
-References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
+ to OFF when in-use
+Date: Mon, 16 Jul 2012 14:38:49 -0500
+Message-ID: <50046DC9.80203@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <alpine.DEB.2.00.1207131418500.25585@utopia.booyaka.com> <50045D17.9050704@ti.com> <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:38381 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753615Ab2GPTVi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 15:21:38 -0400
-Received: by gglu4 with SMTP id u4so5385418ggl.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 12:21:38 -0700 (PDT)
-In-Reply-To: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56566 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293Ab2GPTjD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 15:39:03 -0400
+In-Reply-To: <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Some IP blocks might not be using/controlling more than one
-reset line, this check loosens the restriction to fully use
-hwmod framework for those drivers.
+Hi Paul,
 
-E.g.: ipu has reset lines: mmu_cache, cpu0 and cpu1.
-- cpu1 might not be used and hence (with previous check)
-  won't be fully enabled by hwmod code.
+On 07/16/2012 01:38 PM, Paul Walmsley wrote:
+> Hi Jon,
+>=20
+> On Mon, 16 Jul 2012, Jon Hunter wrote:
+>=20
+>> Yes I see that makes sense. However, patch #7 has already changed th=
+e
+>> mapping of the flags. I had intended that patch #7 and #8 would be
+>> applied together. However, I could see that patch #7 can be taken ju=
+st
+>> to eliminate using the SW_SLEEP state. So basically, what I am sayin=
+g is
+>> does patch #7 have any value without #8?
+>=20
+> Certainly not as much value as it had before.  But my understanding, =
+which=20
+> is possibly incorrect, matches what you wrote in patch #7's descripti=
+on:
+>=20
+> "For OMAP4 devices, SW_SLEEP is equivalent to HW_AUTO and NO_SLEEP is=
+=20
+> equivalent to SW_WKUP. The only difference between HW_AUTO and SW_SLE=
+EP=20
+> for OMAP4 devices is that the PRM_IRQSTATUS_MPU.TRANSITION_ST interru=
+pt=20
+> status is set in case of SW_SLEEP transition, and not set in case of=20
+> HW_AUTO transition."
+>=20
+> We don't use that PRM_IRQSTATUS_MPU.TRANSITION_ST interrupt bit.  So =
+if=20
+> SW_SLEEP and HW_AUTO really have identical meanings otherwise, then I=
+=20
+> suppose we might as well use the one that does what we need with no=20
+> extraneous side-effects?  My recollection from a conversation with Be=
+no=EEt=20
+> a few months ago was that this was his view as well.
 
-While at it, prevent _omap4_module_disable if all the hardreset
-lines on an IP block are not under reset.
+Yes that is my understanding too. So from that standpoint it is fine to
+keep. However, I just wanted to make sure I understood your thinking he=
+re.
 
-Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
----
- arch/arm/mach-omap2/omap_hwmod.c |   37 ++++++++++++++++++++++---------------
- 1 files changed, 22 insertions(+), 15 deletions(-)
+>> That's fine with me. We can always workaround such issues by adding =
+flags.
+>>
+>> I can give this a try this week and let you know how it goes.
+>=20
+> Okay, great.  No rush on my account.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 3215dad..091c199 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1558,25 +1558,28 @@ static int _read_hardreset(struct omap_hwmod *oh, const char *name)
- }
- 
- /**
-- * _are_any_hardreset_lines_asserted - return true if part of @oh is hard-reset
-+ * _are_all_hardreset_lines_asserted - return true if the @oh is hard-reset
-  * @oh: struct omap_hwmod *
-  *
-- * If any hardreset line associated with @oh is asserted, then return true.
-- * Otherwise, if @oh has no hardreset lines associated with it, or if
-- * no hardreset lines associated with @oh are asserted, then return false.
-+ * If all hardreset lines associated with @oh are asserted, then return true.
-+ * Otherwise, if part of @oh is out hardreset or if no hardreset lines
-+ * associated with @oh are asserted, then return false.
-  * This function is used to avoid executing some parts of the IP block
-- * enable/disable sequence if a hardreset line is set.
-+ * enable/disable sequence if its hardreset line is set.
-  */
--static bool _are_any_hardreset_lines_asserted(struct omap_hwmod *oh)
-+static bool _are_all_hardreset_lines_asserted(struct omap_hwmod *oh)
- {
--	int i;
-+	int i, rst_cnt = 0;
- 
- 	if (oh->rst_lines_cnt == 0)
- 		return false;
- 
- 	for (i = 0; i < oh->rst_lines_cnt; i++)
- 		if (_read_hardreset(oh, oh->rst_lines[i].name) > 0)
--			return true;
-+			rst_cnt++;
-+
-+	if (oh->rst_lines_cnt == rst_cnt)
-+		return true;
- 
- 	return false;
- }
-@@ -1595,6 +1598,13 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
- 		return -EINVAL;
- 
-+	/*
-+	 * Since integration code might still be doing something, only
-+	 * disable if all lines are under hardreset.
-+	 */
-+	if (!_are_all_hardreset_lines_asserted(oh))
-+		return 0;
-+
- 	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
- 
- 	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
-@@ -1602,9 +1612,6 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
- 				    oh->clkdm->clkdm_offs,
- 				    oh->prcm.omap4.clkctrl_offs);
- 
--	if (_are_any_hardreset_lines_asserted(oh))
--		return 0;
--
- 	v = _omap4_wait_target_disable(oh);
- 	if (v)
- 		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-@@ -1830,7 +1837,7 @@ static int _enable(struct omap_hwmod *oh)
- 	}
- 
- 	/*
--	 * If an IP block contains HW reset lines and any of them are
-+	 * If an IP block contains HW reset lines and all of them are
- 	 * asserted, we let integration code associated with that
- 	 * block handle the enable.  We've received very little
- 	 * information on what those driver authors need, and until
-@@ -1838,7 +1845,7 @@ static int _enable(struct omap_hwmod *oh)
- 	 * posted to the public lists, this is probably the best we
- 	 * can do.
- 	 */
--	if (_are_any_hardreset_lines_asserted(oh))
-+	if (_are_all_hardreset_lines_asserted(oh))
- 		return 0;
- 
- 	/* Mux pins for device runtime if populated */
-@@ -1918,7 +1925,7 @@ static int _idle(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	if (_are_any_hardreset_lines_asserted(oh))
-+	if (_are_all_hardreset_lines_asserted(oh))
- 		return 0;
- 
- 	if (oh->class->sysc)
-@@ -2006,7 +2013,7 @@ static int _shutdown(struct omap_hwmod *oh)
- 		return -EINVAL;
- 	}
- 
--	if (_are_any_hardreset_lines_asserted(oh))
-+	if (_are_all_hardreset_lines_asserted(oh))
- 		return 0;
- 
- 	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
--- 
-1.7.4.1
+Ok. I have a few items on my plate that keep preventing me from getting
+back to this, but what to get this done.
 
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
