@@ -1,75 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] pinctrl: Add one-register-per-pin type device tree
- based pinctrl driver
-Date: Mon, 16 Jul 2012 00:10:18 -0700
-Message-ID: <20120716071017.GC6522@atomide.com>
-References: <20120618055036.GU12766@atomide.com>
- <20120619135600.GX12766@atomide.com>
- <4FE39C86.5070901@wwwdotorg.org>
- <20120622083955.GZ12766@atomide.com>
- <4FE4AC40.8080400@wwwdotorg.org>
- <20120626134319.GA3483@atomide.com>
- <4FE9EBEC.9040208@wwwdotorg.org>
- <20120627102851.GC3483@atomide.com>
- <20120710091131.GQ1122@atomide.com>
- <CACRpkdYUJ3v-DoVbK6Pc6Y833Hn_0KS9PtEpjUCnMr57zfH5Bw@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] rpmsg bus subsys_initcall initialization ordering
+Date: Mon, 16 Jul 2012 10:47:03 +0300
+Message-ID: <CAK=Wgbbah8JvyJz0rJJTPFtu-UY-OfOxsEwh9B-74F7YdXTs3A@mail.gmail.com>
+References: <1341936444-3094-1-git-send-email-fuga@studiofuga.com>
+ <CAK=Wgbaf0On3teqOw1myqkS4Dei3Vw2Zn=0xfOv-YiNUjFr0fg@mail.gmail.com>
+ <485F7F7C-2D0C-4B14-8A46-D42C9F8ED4E4@studiofuga.com> <CAK=WgbZFHzHLxQfoWW4Cz_PpBCzER75KCd=C3WS-7w_LryKuQA@mail.gmail.com>
+ <47AF0F55-39D1-4B7E-BE0E-D2395989322D@studiofuga.com> <CAK=WgbaTrjSPqEKKt+bt0uD1x+yNXxRZfJUGZjjMnWGV0aAV3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48908 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330Ab2GPHK2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 03:10:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYUJ3v-DoVbK6Pc6Y833Hn_0KS9PtEpjUCnMr57zfH5Bw@mail.gmail.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:53637 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440Ab2GPHrZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Jul 2012 03:47:25 -0400
+Received: by vcbfk26 with SMTP id fk26so658860vcb.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Jul 2012 00:47:25 -0700 (PDT)
+In-Reply-To: <CAK=WgbaTrjSPqEKKt+bt0uD1x+yNXxRZfJUGZjjMnWGV0aAV3Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Stephen Warren <swarren@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Federico Fuga <fuga@studiofuga.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [120714 13:21]:
-> On Tue, Jul 10, 2012 at 11:11 AM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > OK so no comments for a while. Here's the patch updated to leave out
-> > the comments in the binding example.
-> 
-> I reason like this:
-> 
-> - My fears is that the code gets hopeless to understand the mux, the
->  only way to understand that aspect of the system will be to read the DTS
->  and have the data sheet ready at hand.
+Hi Federico,
 
-Yes that is a valid concern. Once we have the preprocessing available
-for DTS files reading should be easier. Also user space tools can be
-developed for showing the package specific data in detailed form.
- 
-> But:
-> 
-> - Tony knows what he's doing and what is best for OMAP. And this gets
->  (hopefully) all that OMAP mux code out of arch/arm.
+On Fri, Jul 13, 2012 at 9:00 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> I agree. I'll take it, but will change the commit log to make it
+> omaprpc-agnostic.
 
-Heh thanks for the positive feedback ;) Yes this should allow us to
-drop close to 8k lines of data and code from arch/arm/mach-omap2 
-once the conversion is done. I'm planning to drop the unused entries
-first to cut down the data quite a bit. And already omap5 and am33xx
-are DT only and using pinctrl-single to start with. The remaining
-legacy mux code can be dropped once we are done with the DT conversion.
+Here's what I'm going to apply:
 
-> - Surely it will be better to go through this subsystem if we're refactoring
->   it all again later, and all drivers can be transferred to the abstract
->   pinctrl API which is a big win in itself, bringing coherency to the
->   drivers/* at large.
-> 
-> So applied it, so it can be evaluated in real operating environments.
-> 
-> But if I don't see OMAP transferred to use this I'll simply delete it
-> again. :-)
+commit 913552b8c7a0f06cc1bff27f8e9953bffe6a1817
+Author: Federico Fuga <fuga@studiofuga.com>
+Date:   Mon Jul 16 10:36:51 2012 +0300
 
-OK thanks, for reference some am33xx patches for beagle bone already
-got posted using an earlier revision of this binding:
+    rpmsg: fix dependency on initialization order
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg71695.html
+    When rpmsg drivers are built into the kernel, they must not initialize
+    before the rpmsg bus does, otherwise they'd trigger a BUG() in
+    drivers/base/driver.c line 169 (driver_register()).
 
-Regards,
+    To fix that, and to stop depending on arbitrary linkage ordering of
+    those built-in rpmsg driver, we let the rpmsg bus initialize at
+    subsys_initcall.
 
-Tony
+    Signed-off-by: Federico Fuga <fuga@studiofuga.com>
+    [ohad: rewrite the commit log]
+    Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index 0af7fd3..e564a01 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -1104,7 +1104,7 @@ static int __init rpmsg_init(void)
+
+        return ret;
+ }
+-module_init(rpmsg_init);
++subsys_initcall(rpmsg_init);
+
+ static void __exit rpmsg_fini(void)
+ {
