@@ -1,43 +1,45 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] rpmsg: 1-liner fix for 3.5
-Date: Tue, 17 Jul 2012 14:10:38 +0300
-Message-ID: <CAK=Wgbas=HSg1b4c3=vQSns0jPe5j_NTg-rk56q_g6AzbEGysQ@mail.gmail.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: OMAP PM late init with DT blob
+Date: Tue, 17 Jul 2012 11:24:06 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB110DA@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:44114 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707Ab2GQLK7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 07:10:59 -0400
-Received: by vcbfk26 with SMTP id fk26so158459vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 04:10:59 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:60597 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751898Ab2GQLYM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 07:24:12 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Federico Fuga <fuga@studiofuga.com>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Linus,
+Hi,
 
-The following changes since commit 84a1caf1453c3d44050bd22db958af4a7f99315c:
+I am looking at adding PM support for AM335x based on l-o/master.
+arch/arm/mach-omap2/pm.c has the following comment:
 
-  Linux 3.5-rc7 (2012-07-14 15:40:28 -0700)
+/*
+ * In the case of DT, the PMIC and SR initialization will be done using
+ * a completely different mechanism.
+ * Disable this part if a DT blob is available.
+ */
+if (of_have_populated_dt())
+        return 0;
 
-are available in the git repository at:
+Basic DT support for AM335x is already in mainline so this check causes
+various PM related inits and also the registration of the suspend ops to be
+skipped.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
-tags/single-rpmsg-3.5-fix
+I tried searching the list archives for any discussion on this but could not
+find anything. Can someone shed some light on the how the device tree is to
+be used for PMIC and SR initialization. 
 
-for you to fetch changes up to 9634252617441991b01dacaf4040866feecaf36f:
+Any objections to moving the suspend ops registration before the DT blob check?
 
-  rpmsg: fix dependency on initialization order (2012-07-17 13:10:38 +0300)
+Regards,
+Vaibhav B.
 
-----------------------------------------------------------------
-A single rpmsg fix for 3.5, coming from Federico Fuga, which
-eliminates the dependency on arbitrary initialization orders.
 
-----------------------------------------------------------------
-Federico Fuga (1):
-      rpmsg: fix dependency on initialization order
-
- drivers/rpmsg/virtio_rpmsg_bus.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
