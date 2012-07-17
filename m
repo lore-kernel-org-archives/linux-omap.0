@@ -1,164 +1,166 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v4 4/4] memory: emif: add device tree support to emif
- driver
-Date: Tue, 17 Jul 2012 10:58:32 -0700
-Message-ID: <20120717175832.GA20806@kroah.com>
-References: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com>
- <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
- <CAMQu2gz6jdcR4hQPPbmyO8vrkdmppHeCkZmV3_9w27LOzKrUuA@mail.gmail.com>
- <20120630042356.GC1816@kroah.com>
- <CAMQu2gy0MmP4JLW4P1FreJqMMEBYSTjkLHJb8WX=aXLA6hxtZg@mail.gmail.com>
- <CAMQu2gxZ-tWJXAOeh20NsF1uyvs9fqwYtggFv=d7-qX+WFumRQ@mail.gmail.com>
- <CAMQu2gw_ZB7gVyL95B-h27B1fQh0d-YB3weaWRN6DNaGtSypDw@mail.gmail.com>
- <20120717163602.GA7167@kroah.com>
- <CAMQu2gw2Zt3E8byD=_nUXya-xU=gOA71arbbSh7gzxQhet0Vtg@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Tue, 17 Jul 2012 19:24:33 +0000
+Message-ID: <201207171924.33756.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206271520.49276.arnd@arndb.de> <1342161907.1726.26.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:64705 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751366Ab2GQR6g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 13:58:36 -0400
-Received: by yhmm54 with SMTP id m54so671977yhm.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 10:58:36 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gw2Zt3E8byD=_nUXya-xU=gOA71arbbSh7gzxQhet0Vtg@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:64925 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756483Ab2GQTZH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 15:25:07 -0400
+In-Reply-To: <1342161907.1726.26.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, tony@atomide.com
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Jul 17, 2012 at 10:37:45PM +0530, Shilimkar, Santosh wrote:
-> On Tue, Jul 17, 2012 at 10:06 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> > On Mon, Jul 09, 2012 at 07:02:36PM +0530, Shilimkar, Santosh wrote:
-> >> Greg,
-> >>
+On Friday 13 July 2012, Vinod Koul wrote:
+> > Do you mean there must be a global table, or are you ok with putting
+> > the information about a channel into the device that uses the channel,
+> > as we do for most other subsystems (IRQ, GPIO, pinctrl, ...).
+> > If not, what is the problem with that approach?
 > 
-> [...]
+> Today, we simple ask, "give me dma channel with DMA_SLAVE capability".
 > 
-> >> > To elaborate more, I have created below patch.
-> >> > Let me know what do you think ?
-> >> >
-> >> Any comments ??
-> >
-> > Becides the obvious one of sending a line-wrapped patch that can not be
-> > applied?  :)
-> >
-> My bad. Sorry about that.
-> Sending it again and also attaching it in case mailer screws it up.
+> If we change it to "give me dma channel which suits my need" and have
+> additional information in dmaengine to handle this request effectively.
 > 
-> -->>
-> >From 74688a87fd490909e9122bf757c0096480e9fc11 Mon Sep 17 00:00:00 2001
-> From: Aneesh V <aneesh@ti.com>
-> Date: Mon, 30 Jan 2012 20:06:30 +0530
-> Subject: [PATCH 4/4] memory: emif: add device tree support to emif driver
+> What that would mean is
+> a) DMA channel either knows which channel to provide, Or
+> b) Additional arguments provided to dmaengine API to help it find out
+> which channel to provide.
 > 
-> Device tree support for the EMIF driver. LPDDR2 generic timings
-> extraction from device is managed using couple of helper
-> functions which can be used by other memory controller
-> drivers.
+> It would be good to have client ask for a specific channel. But in order
+> to build generic clients, we face a problem that clients may not know
+> how they mapped to dmac by SoC designer. Or the mux maybe entirely
+> flexible on which channel.
 > 
-> Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Aneesh V <aneesh@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  drivers/memory/Makefile    |    1 +
->  drivers/memory/emif.c      |  182 +++++++++++++++++++++++++++++++++++++++++++-
->  drivers/memory/of_memory.c |  153 +++++++++++++++++++++++++++++++++++++
->  drivers/memory/of_memory.h |   36 +++++++++
->  4 files changed, 371 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/memory/of_memory.c
->  create mode 100644 drivers/memory/of_memory.h
+> If we add this as DT property (which I assume should be platform
+> specific), then client will know which channel to request.
+> It can have two levels, dmac and channel. In case mux is flexible enough
+> then client gets a channel and program the mux for this mapping.
 > 
-> diff --git a/drivers/memory/Makefile b/drivers/memory/Makefile
-> index 42b3ce9..cd8486b 100644
-> --- a/drivers/memory/Makefile
-> +++ b/drivers/memory/Makefile
-> @@ -2,6 +2,7 @@
->  # Makefile for memory devices
->  #
-> 
-> +obj-$(CONFIG_OF)		+= of_memory.o
->  obj-$(CONFIG_TI_EMIF)		+= emif.o
->  obj-$(CONFIG_TEGRA20_MC)	+= tegra20-mc.o
->  obj-$(CONFIG_TEGRA30_MC)	+= tegra30-mc.o
-> diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
-> index 33a4396..06b4eb7 100644
-> --- a/drivers/memory/emif.c
-> +++ b/drivers/memory/emif.c
-> @@ -18,6 +18,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/interrupt.h>
->  #include <linux/slab.h>
-> +#include <linux/of.h>
->  #include <linux/debugfs.h>
->  #include <linux/seq_file.h>
->  #include <linux/module.h>
-> @@ -25,6 +26,7 @@
->  #include <linux/spinlock.h>
->  #include <memory/jedec_ddr.h>
->  #include "emif.h"
-> +#include "of_memory.h"
-> 
->  /**
->   * struct emif_data - Per device static data for driver's use
-> @@ -49,6 +51,7 @@
->   *				frequency in effect at the moment)
->   * @plat_data:			Pointer to saved platform data.
->   * @debugfs_root:		dentry to the root folder for EMIF in debugfs
-> + * @np_ddr:			Pointer to ddr device tree node
->   */
->  struct emif_data {
->  	u8				duplicate;
-> @@ -63,6 +66,7 @@ struct emif_data {
->  	struct emif_regs		*curr_regs;
->  	struct emif_platform_data	*plat_data;
->  	struct dentry			*debugfs_root;
-> +	struct device_node		*np_ddr;
->  };
-> 
->  static struct emif_data *emif1;
-> @@ -1148,6 +1152,168 @@ static int is_custom_config_valid(struct
-> emif_custom_configs *cust_cfgs,
->  	return valid;
->  }
-> 
-> +#if defined(CONFIG_OF)
-> +static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
-> +		struct emif_data *emif)
+> I think this is the most simplistic solution I have for this, thoughts?
 
-Why can't all of this code be in the of_memory.c file?
+I think we're basically on the same page. Let's see if I have covered
+all the cases we discussed so far. I've tried to update the binding that
+Jon sent out initially with everything we've discussed, so please review
+this to see if I understood you correctly.
+
+	Arnd
 
 
-> +static struct emif_data * __init_or_module of_get_device_details(
-> +		struct device_node *np_emif, struct device *dev)
+* Generic DMA Controller and DMA request bindings
 
-of_get_memory_device_details()?
+Generic binding to provide a way for a driver using DMA Engine to retrieve the
+DMA request or channel information that goes from a hardware device to a DMA
+controller.
 
-> +{
-> +	struct emif_data		*emif = NULL;
-> +	struct ddr_device_info		*dev_info = NULL;
-> +	struct emif_platform_data	*pd = NULL;
-> +	struct device_node		*np_ddr;
-> +	int				len;
-> +
-> +	np_ddr = of_parse_phandle(np_emif, "device-handle", 0);
-> +	if (!np_ddr)
-> +		goto error;
-> +	emif	= devm_kzalloc(dev, sizeof(struct emif_data), GFP_KERNEL);
-> +	pd	= devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
-> +	dev_info = devm_kzalloc(dev, sizeof(*dev_info), GFP_KERNEL);
-> +
-> +	if (!emif || !pd || !dev_info) {
-> +		dev_err(dev, "%s: of_get_device_details() failure!!\n",
-> +			__func__);
+* DMA controller
 
-Look at what that error message just printed out.  Redundancy is nice,
-but come on, that's not ok :)
+Required property:
+    - #dma-cells: Number elements to describe DMA channel information. Must be
+                  at least 2, allowing a phandle and a flags cell, but usually
+		  is larger so a client can also specify a request or channel
+                  number and/or some configuration.
 
-thanks,
+Optional properties:
+    - #dma-channels: Number of DMA channels supported by the controller.
+    - #dma-requests: Number of DMA requests signals supported by the controller.
 
-greg k-h
+Example:
+
+       sdma: dmaengine@48000000 {
+               compatible = "ti,omap4-sdma"
+               reg = <0x48000000 0x1000>;
+               interrupts = <4>;
+               #dma-cells = <3>;
+               #dma-channels = <32>;
+               #dma-requests = <127>;
+       };
+
+
+* DMA client
+
+Client drivers should specify the DMA property using a phandle to the controller
+followed by the number of DMA request/channel and the transfer type of the
+channel (eg. device-to-memory, memory-to-device, memory-to-memory, etc).
+
+Required property:
+    dmas: list of one or more dma specifiers, each consisting of
+     - phandle pointing to dma controller node
+     - flags word, a bit map that can hold these flags
+       * 0x00000001 channel can be used for transfer from device
+       * 0x00000002 channel can be user for transfer to device
+     - zero or more cells in a format specific to the the dma controller
+       node listed in the phandle. This typically contains a dma request
+       line number or a channel number, but can contain any data that
+       is used required for configuring a channel.
+
+Optional property:
+    dma-names: when present, this shall contain one identifier string
+    for each dma specifier in the dmas property. The specific strings
+    that can be used are defined in the binding of the DMA client
+    device. When multiple dma specifiers can be used as alternatives,
+    the dma-names for those dma specifiers must be identical.
+
+Any dma specifiers that have identical flags and identical dma-names
+(if present) shall refer to different dma controllers that can be
+used as alternatives, e.g. when a request line is connected to
+multiple dma controllers. If multiple dma specifiers are listed that
+have the same flags but refer to different functional channels,
+the dma-names property must be used to distinguish them.
+
+Examples:
+
+1. One DMA write channel, one DMA read/write channel:
+
+       i2c1: i2c@1 {
+               ...
+               dmas = <&sdma 2 1 &sdma 3 2>;
+               ...
+       };
+
+2. A single read-write channel with two alternative dma controllers
+   providing it:
+
+	dmas = <&dma0 3 5
+		&dma1 3 7
+		&dma2 3 2>;
+
+3. A device with three channels, one of which has two alternatives:
+
+	dmas = <&dma0 1 4 /* data read */
+		&dma0 2 6 /* data write */
+		&dma1 1 0 /* error read */
+		&dma2 1 0>; /* alternative error read */
+	dma-names = "data", "data", "error", "error";
+
+4. A dma controller requiring complex configuration:
+
+       dma: dmaengine@48000000 {
+               compatible = "foo,foo-sdma"
+               reg = <0x48000000 0x1000>;
+               interrupts = <4>;
+               #dma-cells = <6>; /* phandle, flag, request, channel,
+					 input-width, output-width */
+               #dma-channels = <32>;
+               #dma-requests = <127>;
+       };
+
+       mmc@49000000 {
+		...
+		dmas = <&dma 1	/* read */
+			2	/* request line */
+			5       /* channel */
+			16	/* 16 bit bus width on read */
+			8>	/* 8 bit bus width on write */
+		       <&dma 2	/* write */
+			3	/* request line */
+			6       /* channel */
+			8	/* 8 bit bus width on read */
+			16>	/* 16 bit bus width on write */
