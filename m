@@ -1,38 +1,43 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 0/6] OMAP: iommu: hwmod, reset handling and runtime PM
-Date: Tue, 17 Jul 2012 13:51:12 +0300
-Message-ID: <CAK=WgbbVvFoGRoitscvTRUWUWd=3HLiuvs6ZUNZnAbF67tXO5A@mail.gmail.com>
-References: <1339811764-5337-1-git-send-email-omar.luna@linaro.org> <20120717101100.GI4213@amd.com>
+Subject: [GIT PULL] rpmsg: 1-liner fix for 3.5
+Date: Tue, 17 Jul 2012 14:10:38 +0300
+Message-ID: <CAK=Wgbas=HSg1b4c3=vQSns0jPe5j_NTg-rk56q_g6AzbEGysQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:60855 "EHLO
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:44114 "EHLO
 	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036Ab2GQKvf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 06:51:35 -0400
-Received: by vcbfk26 with SMTP id fk26so149307vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 03:51:34 -0700 (PDT)
-In-Reply-To: <20120717101100.GI4213@amd.com>
+	with ESMTP id S1750707Ab2GQLK7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 07:10:59 -0400
+Received: by vcbfk26 with SMTP id fk26so158459vcb.19
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 04:10:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joerg.roedel@amd.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Federico Fuga <fuga@studiofuga.com>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-+ Paul
+Hi Linus,
 
-On Tue, Jul 17, 2012 at 1:11 PM, Joerg Roedel <joerg.roedel@amd.com> wrote:
-> On Fri, Jun 15, 2012 at 08:55:58PM -0500, Omar Ramirez Luna wrote:
->> Omar Ramirez Luna (6):
->>   ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
->>   ARM: OMAP3: hwmod data: add mmu data for iva and isp
->>   ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
->>   ARM: OMAP3/4: iommu: migrate to hwmod framework
->>   ARM: OMAP2+: iommu: add reset handling
->>   ARM: OMAP3/4: iommu: adapt to runtime pm
->
-> What happens with this patch-set. Comments anyone? Ohad?
+The following changes since commit 84a1caf1453c3d44050bd22db958af4a7f99315c:
 
-Looks like it depends on a few OMAP hwmod changes (reset handling)
-which require Paul's ACK.
+  Linux 3.5-rc7 (2012-07-14 15:40:28 -0700)
 
-Ohad.
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+tags/single-rpmsg-3.5-fix
+
+for you to fetch changes up to 9634252617441991b01dacaf4040866feecaf36f:
+
+  rpmsg: fix dependency on initialization order (2012-07-17 13:10:38 +0300)
+
+----------------------------------------------------------------
+A single rpmsg fix for 3.5, coming from Federico Fuga, which
+eliminates the dependency on arbitrary initialization orders.
+
+----------------------------------------------------------------
+Federico Fuga (1):
+      rpmsg: fix dependency on initialization order
+
+ drivers/rpmsg/virtio_rpmsg_bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
