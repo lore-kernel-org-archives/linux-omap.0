@@ -1,114 +1,112 @@
-From: Raphael Assenat <raph@8d.com>
-Subject: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Tue, 17 Jul 2012 10:01:40 -0400
-Message-ID: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 7/8] ARM: OMAP: clockdomain: add support for
+ preventing autodep delete
+Date: Tue, 17 Jul 2012 17:56:11 +0300
+Message-ID: <1342536971.4672.82.camel@sokoban>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	 <1342189185-5306-8-git-send-email-t-kristo@ti.com>
+	 <5003F453.9020903@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from roc.holo.8d.com ([64.254.227.115]:53797 "EHLO roc.holo.8d.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58459 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753827Ab2GQOBl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jul 2012 10:01:41 -0400
-Received: from raph.usine.8d.com ([192.168.142.55] helo=renkinjitsu.usine.8d.com)
-	by roc.holo.8d.com with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <raph@8d.com>)
-	id 1Sr8LM-0001WK-Fw
-	for linux-omap@vger.kernel.org; Tue, 17 Jul 2012 10:01:40 -0400
-Received: from raph by renkinjitsu.usine.8d.com with local (Exim 4.72)
-	(envelope-from <raph@8d.com>)
-	id 1Sr8LM-00067s-BK
-	for linux-omap@vger.kernel.org; Tue, 17 Jul 2012 10:01:40 -0400
-Content-Disposition: inline
+	id S1753801Ab2GQO4S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jul 2012 10:56:18 -0400
+In-Reply-To: <5003F453.9020903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Add timings for ChiMei G121S1-L01/L02 and G121X1-L01 LCD displays.
+On Mon, 2012-07-16 at 16:30 +0530, Rajendra Nayak wrote:
+> Hi Tero,
+> 
+> On Friday 13 July 2012 07:49 PM, Tero Kristo wrote:
+> > Some clockdomains bug out if their autodeps are deleted before idle.
+> > This happens namely with OMAP3 PER domain, it will bug out if it
+> > doesn't have wakedeps enabled when it enters off-mode. This patch
+> > adds support for new flag 'CLKDM_NO_AUTODEP_DISABLE' which does this.
+> 
+> I had one more thought on how we could handle this (without adding a new
+> flag :-))
+> How about marking OMAP3 PER with a CLKDM_NO_AUTODEPS (already existing
+> flag) and setting a sleep/wakeup dependency of OMAP3 PER with MPU and
+> IVA one time sometime during late PM init. Because thats what we intent
+> to do, which is have a sleep/wakeup dependency set *always* and never
+> try to remove it, right?
 
-Signed-off-by: Raphael Assenat <raph@8d.com>
+I did some extra investigation on this, sorry for the delay. What is
+enough, is to just add a wakedep from wkup_clkdm to per_clkdm, as the
+wakedeps have usecounting so once this is done, the autodep handling
+can't remove the wakedep.
 
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -486,6 +486,80 @@ static struct panel_config generic_dpi_panels[] = {
- 					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
- 		.name			= "primeview_pd104slf",
- 	},
-+
-+	/* ChiMei G121S1-L01 */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 600,
-+
-+			.pixel_clock	= 39700,
-+
-+			.hfp		= 128,
-+			.hsw		= 1,
-+			.hbp		= 128,
-+
-+			.vfp		= 28,
-+			.vsw		= 1,
-+			.vbp		= 28
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT,
-+		.power_on_delay		= 0,
-+		.power_off_delay	= 0,
-+		.name			= "chimei_g121s1-l01",
-+	},
-+
-+	/* ChiMei G121S1-L02 */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 600,
-+
-+			.pixel_clock	= 40000,
-+
-+			.hfp		= 1,
-+			.hsw		= 256,
-+			.hbp		= 1,
-+
-+			.vfp		= 1,
-+			.vsw		= 28,
-+			.vbp		= 1
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT,
-+		.power_on_delay		= 0,
-+		.power_off_delay	= 0,
-+		.name			= "chimei_g121s1-l02",
-+	},
-+
-+
-+	/* ChiMei G121X1-L01 */
-+	{
-+		{
-+			.x_res		= 1024,
-+			.y_res		= 768,
-+
-+			.pixel_clock	= 64900,
-+
-+			.hfp		= 160,
-+			.hsw		= 1,
-+			.hbp		= 160,
-+
-+			.vfp		= 38,
-+			.vsw		= 1,
-+			.vbp		= 38
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT,
-+		.power_on_delay		= 0,
-+		.power_off_delay	= 0,
-+		.name			= "chimei_g121x1-l01",
-+	},
-+
- };
- 
- struct panel_drv_data {
+Anyway, it also looks like this fix is no longer needed with the latest
+kernel, something has changed with the gpio code / or latencies and it
+doesn't crash anymore. Thus, it looks like patches 7 & 8 can be dropped
+from this set for now. This is the behavior with beagleboard at least,
+if someone can verify this with some other omap3 hw that would be nice.
+
+The underlying issue still remains, we have errata i582 which doesn't
+have any workarounds in the kernel yet. We should probably resurrect
+something like this:
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38834.html
+
+... or just pull the part which adds the dynamic wakedep add / remove
+for the per domain when attempting per OFF.
+
+-Tero
+
+
+> 
+> regards,
+> Rajendra
+> 
+> >
+> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/clockdomain.c |    3 +++
+> >   arch/arm/mach-omap2/clockdomain.h |    4 ++++
+> >   2 files changed, 7 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> > index 7f5423e..56cef58 100644
+> > --- a/arch/arm/mach-omap2/clockdomain.c
+> > +++ b/arch/arm/mach-omap2/clockdomain.c
+> > @@ -201,6 +201,9 @@ void _clkdm_del_autodeps(struct clockdomain *clkdm)
+> >   	if (!autodeps || clkdm->flags&  CLKDM_NO_AUTODEPS)
+> >   		return;
+> >
+> > +	if (clkdm->flags&  CLKDM_NO_AUTODEP_DISABLE)
+> > +		return;
+> > +
+> >   	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
+> >   		if (IS_ERR(autodep->clkdm.ptr))
+> >   			continue;
+> > diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+> > index 373399a..1fc5314 100644
+> > --- a/arch/arm/mach-omap2/clockdomain.h
+> > +++ b/arch/arm/mach-omap2/clockdomain.h
+> > @@ -31,12 +31,16 @@
+> >    *
+> >    * CLKDM_NO_AUTODEPS: Prevent "autodeps" from being added/removed from this
+> >    *     clockdomain.  (Currently, this applies to OMAP3 clockdomains only.)
+> > + * CLKDM_NO_AUTODEP_DISABLE: Prevent clockdomain code from deleting autodeps.
+> > + *     Needed for PER domain on omap3, as it will bug out with off-mode if
+> > + *     wakedeps are removed.
+> >    */
+> >   #define CLKDM_CAN_FORCE_SLEEP			(1<<  0)
+> >   #define CLKDM_CAN_FORCE_WAKEUP			(1<<  1)
+> >   #define CLKDM_CAN_ENABLE_AUTO			(1<<  2)
+> >   #define CLKDM_CAN_DISABLE_AUTO			(1<<  3)
+> >   #define CLKDM_NO_AUTODEPS			(1<<  4)
+> > +#define CLKDM_NO_AUTODEP_DISABLE		(1<<  5)
+> >
+> >   #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+> >   #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
+> 
+
+
