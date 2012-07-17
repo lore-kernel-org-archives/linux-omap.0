@@ -1,7 +1,7 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 02/11] arm/dts: omap: Add omap-usb2 dt data
-Date: Tue, 17 Jul 2012 13:40:02 +0530
-Message-ID: <1342512611-20529-3-git-send-email-kishon@ti.com>
+Subject: [PATCH v2 06/11] arm/dts: Add twl6030-usb data
+Date: Tue, 17 Jul 2012 13:40:06 +0530
+Message-ID: <1342512611-20529-7-git-send-email-kishon@ti.com>
 References: <1342512611-20529-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -11,28 +11,53 @@ Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: kishon-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add omap-usb2 data node in omap4 device tree file.
+Add twl6030-usb data node in twl6030 device tree file
 
 Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4-panda.dts |    4 ++++
+ arch/arm/boot/dts/omap4-sdp.dts   |    4 ++++
+ arch/arm/boot/dts/twl6030.dtsi    |    6 ++++++
+ 3 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index bda5df3..4d2dcc1 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -279,6 +279,11 @@
- 			#size-cells = <1>;
- 			ranges;
- 			ti,hwmods = "ocp2scp_usb_phy";
-+			usb2phy@0x4a0ad080 {
-+				compatible = "ti,omap-usb2";
-+				reg = <0x4a0ad080 0x58>,
-+				      <0x4a002300 0x1>;
-+			};
- 		};
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 1efe0c5..7052422 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -89,3 +89,7 @@
+ 	ti,non-removable;
+ 	bus-width = <4>;
+ };
++
++&twlusb {
++	usb-supply = <&vusb>;
++};
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index d08c4d1..6326d7c 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -158,3 +158,7 @@
+ 	bus-width = <4>;
+ 	ti,non-removable;
+ };
++
++&twlusb {
++	usb-supply = <&vusb>;
++};
+diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
+index 3b2f351..5efd6d3 100644
+--- a/arch/arm/boot/dts/twl6030.dtsi
++++ b/arch/arm/boot/dts/twl6030.dtsi
+@@ -83,4 +83,10 @@
+ 	clk32kg: regulator@12 {
+ 		compatible = "ti,twl6030-clk32kg";
  	};
++
++	twlusb: twl6030-usb {
++		compatible = "ti,twl6030-usb";
++		interrupts = < 4 10 >;
++		regulator = "vusb";
++	};
  };
 -- 
 1.7.5.4
