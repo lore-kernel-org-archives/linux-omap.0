@@ -1,83 +1,46 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH v2 00/11] usb: musb: adding multi instance support
-Date: Tue, 17 Jul 2012 14:43:16 +0530
-Message-ID: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH 1/2] drivers: bus: add a new driver for omap-ocp2scp
+Date: Tue, 17 Jul 2012 08:00:42 +0000
+Message-ID: <201207170800.43300.arnd@arndb.de>
+References: <1342448023-14438-1-git-send-email-kishon@ti.com>
+ <1342448023-14438-2-git-send-email-kishon@ti.com>
+ <CAAe_U6K9sm-sDK80ySSHPGf5SYuwDkhW+4q8r2deXi7Tz3TxJw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52604 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751366Ab2GQJNk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 05:13:40 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CAAe_U6K9sm-sDK80ySSHPGf5SYuwDkhW+4q8r2deXi7Tz3TxJw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Hi,
+On Tuesday 17 July 2012, ABRAHAM, KISHON VIJAY wrote:
+> On Mon, Jul 16, 2012 at 7:43 PM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
+> > Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
+> > creating all the devices that is connected to OCP2SCP. In the case of OMAP4,
+> > USB2PHY is connected to ocp2scp.
+> >
+> > This also includes device tree support for ocp2scp driver and
+> > the documentation with device tree binding information is updated.
+> >
+> > Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> > Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> > Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
 
-This series of patches adds,
-a) Multi instances support in musb driver
-b) DT support for musb_dsps glue layer
-c) DT support for NOP transceiver
+Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-AM33xx and TI81xx has dual musb controller and has two usb PHY of same type.
-This patch series uses 'phandle' based API devm_usb_get_phy_by_phandle() to
-get the PHY of same type. This API support is being added by Kishon's patch
-discussed at [1]
+Now that we've found a place for the code to live, do we know which maintainer is
+going to pick it up? If nobody else volunteers, we can take it through the
+arm-soc tree.
 
-The series applies to linux-omap (master branch)
-	+ Vaibhav baseport patches on his tree at [3]
-	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
-	+ Kishon's patch on phandle at [1]
-	+ AM33xx musb glue compile and bugfix patches at [4], [5], [6] and [7]
-	+ Damodar's recent patch at [2] 
-
-and have been tested on Beaglebone board.
-
-1. http://marc.info/?l=linux-usb&m=134070369306112&w=2
-2. http://marc.info/?l=linux-usb&m=134200284230689&w=2
-3. https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging
-4. http://marc.info/?l=linux-usb&m=134131746111637&w=2
-5. http://marc.info/?l=linux-usb&m=134131746411639&w=2
-6. http://marc.info/?l=linux-usb&m=134062716011251&w=2
-7. http://marc.info/?l=linux-usb&m=134061179405213&w=2
-
-Changes from v1:
-	- Defined musb_ida to manage core ids based on Felipe's comment
-	  in [PATCH 01/11]
-Thanks,
-Ajay
-
-Ajay Kumar Gupta (11):
-  usb: musb: add musb->id to identify core instance
-  usb: musb: kill global and static for multi instance
-  usb: musb: am335x: add support for dual instance
-  usb: otg: nop: add support for multiple tranceiver
-  usb: musb: dsps: add dt support
-  arm/dts: am33xx: Add dt data for usbss
-  usb: otg: nop: add dt support
-  arm/dts: am33xx: add dt data for usb nop phy
-  usb: musb: dsps: remove explicit NOP device creation
-  usb: musb: dsps: get the PHY using phandle api
-  arm/dts: am33xx: add phy phandle to usbss
-
- .../devicetree/bindings/usb/am33xx-usb.txt         |   19 ++
- arch/arm/boot/dts/am33xx.dtsi                      |   21 +++
- arch/arm/mach-omap2/board-omap3evm.c               |    2 +-
- drivers/usb/musb/am35x.c                           |   46 +++--
- drivers/usb/musb/blackfin.c                        |   30 +++-
- drivers/usb/musb/da8xx.c                           |   38 +++--
- drivers/usb/musb/davinci.c                         |   40 +++--
- drivers/usb/musb/musb_core.c                       |   47 ++++--
- drivers/usb/musb/musb_core.h                       |    8 +
- drivers/usb/musb/musb_debugfs.c                    |   14 +-
- drivers/usb/musb/musb_dsps.c                       |  191 ++++++++++++++------
- drivers/usb/musb/omap2430.c                        |   26 ++-
- drivers/usb/musb/tusb6010.c                        |   32 +++-
- drivers/usb/musb/ux500.c                           |   33 +++-
- drivers/usb/otg/nop-usb-xceiv.c                    |   32 +++-
- include/linux/usb/otg.h                            |    9 +-
- 16 files changed, 425 insertions(+), 163 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
-
+	Arnd
