@@ -1,43 +1,50 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH v2 09/11] usb: musb: dsps: remove explicit NOP device creation
-Date: Tue, 17 Jul 2012 14:43:25 +0530
-Message-ID: <1342516407-16515-10-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 06/11] arm/dts: am33xx: Add dt data for usbss
+Date: Tue, 17 Jul 2012 14:43:22 +0530
+Message-ID: <1342516407-16515-7-git-send-email-ajay.gupta@ti.com>
 References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49830 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751329Ab2GQJNj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jul 2012 05:13:39 -0400
-In-Reply-To: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342516407-16515-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-As NOP device node is now added in am33xx tree so remove the call
-which creates the NOP platform_device.
+Added device tree data for usbss on am33xx. There are two musb controllers
+on am33xx platform so have port0_mode and port1_mode additional data.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 18a16dd..4c59809 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -425,8 +425,7 @@ static int dsps_musb_init(struct musb *musb)
- 	/* mentor core register starts at offset of 0x400 from musb base */
- 	musb->mregs += wrp->musb_core_offset;
- 
--	/* Register NOP driver */
--	usb_nop_xceiv_register(musb->id);
-+	/* Get the NOP PHY */
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 59509c4..b572803 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -154,5 +154,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+ 		};
++
++		usb_otg_hs: usb_otg_hs@47400000 {
++			compatible = "ti,musb-am33xx";
++			ti,hwmods = "usb_otg_hs";
++			multipoint = <1>;
++			num_eps = <16>;
++			ram_bits = <12>;
++			port0_mode = <3>;
++			port1_mode = <1>;
++			power = <250>;
++		};
+ 	};
+ };
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
