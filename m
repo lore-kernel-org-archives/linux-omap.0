@@ -1,65 +1,109 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V2] Add missing modules aliases to get sound working on
- omap devices
-Date: Tue, 17 Jul 2012 14:37:42 +0100
-Message-ID: <20120717133742.GD4477@opensource.wolfsonmicro.com>
-References: <4FFECC40.5020502@free.fr>
- <20120713100953.GF4215@opensource.wolfsonmicro.com>
- <5005691F.9010301@free.fr>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH] clk: fix compile for OF && !COMMON_CLK
+Date: Tue, 17 Jul 2012 08:46:27 -0500
+Message-ID: <50056CB3.90004@gmail.com>
+References: <1342475161-20402-1-git-send-email-robherring2@gmail.com> <20120717001228.GA28886@gmail.com> <5004C935.4050707@gmail.com> <50056648.6000906@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uxuisgdDHaNETlh8"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54976 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751315Ab2GQNhp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jul 2012 09:37:45 -0400
-Content-Disposition: inline
-In-Reply-To: <5005691F.9010301@free.fr>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:42621 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183Ab2GQNqc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 09:46:32 -0400
+In-Reply-To: <50056648.6000906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guillaume Gardet <guillaume.gardet@free.fr>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, peter.ujfalusi@ti.com, mans.rullgard@linaro.org, Liam Girdwood <lrg@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Mike Turquette <mturquette@ti.com>, Shawn Guo <shawn.guo@linaro.org>, Prashant Gaikwad <pgaikwad@nvidia.com>, aletes.xgr@gmail.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, loml <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>
+
+On 07/17/2012 08:19 AM, Rajendra Nayak wrote:
+> Rob, Mike,
+> 
+> On Tuesday 17 July 2012 07:38 AM, Rob Herring wrote:
+>> On 07/16/2012 07:12 PM, Mike Turquette wrote:
+>>> On 20120716-16:46, Rob Herring wrote:
+>>>> From: Rob Herring<rob.herring@calxeda.com>
+>>>>
+>>>> With commit 766e6a4ec602d0c107 (clk: add DT clock binding support),
+>>>> compiling with OF&&  !COMMON_CLK is broken.
+>>>>
+>>>
+>>> Hi Rob,
+>>>
+>>> Thanks for sending this quickly.
+>>>
+>>> <snip>
+>>>> @@ -313,19 +314,19 @@ int clk_add_alias(const char *alias, const
+>>>> char *alias_dev_name, char *id,
+>>>>   struct device_node;
+>>>>   struct of_phandle_args;
+>>>>
+>>>> -#ifdef CONFIG_OF
+>>>> +#if defined(CONFIG_OF)&&  defined(CONFIG_COMMON_CLK)
+>>>>   struct clk *of_clk_get(struct device_node *np, int index);
+>>>>   struct clk *of_clk_get_by_name(struct device_node *np, const char
+>>>> *name);
+>>>>   struct clk *of_clk_get_from_provider(struct of_phandle_args
+>>>> *clkspec);
+>>>>   #else
+>>>>   static inline struct clk *of_clk_get(struct device_node *np, int
+>>>> index)
+>>>>   {
+>>>> -    return NULL;
+>>>> +    return ERR_PTR(-EINVAL);
+> 
+> So how is this expected to work on platforms (like OMAP) which have
+> CONFIG_OF enabled but not CONFIG_COMMON_CLK?
+> 
+
+As I mentioned in my other reply, this really belongs with Shawn's patch
+that changes the return value checking from NULL to err values.
+
+> Archit has been seeing issues with failed clk_get's in the omap dss
+> driver on linux-next.
+> The clk_gets pass a valid dev pointer and an alias/con-id.
+> 
+> With the $Subject patch, the of_clk_get_by_name() for our builds always
+> returns a ERR_PTR(-EINVAL).
+> 
+> Even if we do get the right of_clk_get_by_name() built in,
+> there is another issue on OMAP where in we have CONFIG_OF
+> enabled/selected by default for all OMAP2+ builds, even when we
+> *do not* pass a dt blob to the kernel.
+> 
+> So would the below code fail in such cases because it expects a
+> valid of_node to be populated for a device (which also has clock
+> information in it)? if CONFIG_OF is set.
+> 
+> struct clk *clk_get(struct device *dev, const char *con_id)
+> {
+>         const char *dev_id = dev ? dev_name(dev) : NULL;
+>         struct clk *clk;
+> 
+>         if (dev) {
+> ---->
+>     Any reason why this isn't
+>     if (dev->of_node) {
+> ---->
+
+dev may be null, we could do (dev && dev->of_node) though. Either way
+the error handling here needs to do the right thing.
+
+>                 clk = of_clk_get_by_name(dev->of_node, con_id);
+>                 if (clk && __clk_get(clk))
+>                         return clk;
+>         }
+> 
+>         return clk_get_sys(dev_id, con_id);
+> }
+> 
+> regards,
+> Rajendra
+> 
+> 
+> 
+> 
+> 
 
 
---uxuisgdDHaNETlh8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 17, 2012 at 03:31:11PM +0200, Guillaume Gardet wrote:
-
-> >Please resend in the format from SubmittingPatches rather than as an
-> >attachment.
-
-> Ok. Please find the patch below.
->=20
-> This patch add missing modules aliases to get sound working on omap devic=
-es.
-
-I'm not sure you've looked at all of SubmittingPatches...
-
---uxuisgdDHaNETlh8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQBWqfAAoJEBus8iNuMP3dUtAP/A1C63h9WayJZMevTVc1+9hw
-u4bWDa9WYvuNBBRCkr2uZUrpOq9BA4JvmX55ghbAHR63h/4ei29JXxIV2L4xlIqQ
-lxOQS6ThnUg8D9Q8vZs4kB6hCptAeKG3uySHvf8xqnAWBoxSHogT7/kTTTREIpn7
-aPFSyVEHZ6JmUX85fWa3OXB+sG9tA30Y4BECj+hFFRoFrCECzWFr1f4bEyUJoAG2
-IHXxA+eGd97bdMUyLib7z6N+bPFrroWaxNtJ9OTOWZu0NthQqTSg3Bb0To4g6lfg
-FljJAyS6wP5k9m/e6rfbT7h/croykzGiFlU6oMicyQaCupWc3C9A0xdeQZMZLhPs
-1cA69vxADT452YcUJnOkpgJusjNamaq848fByI0I+fSTzNQC6xhEiZ8EJe0SE4rT
-9hhRPPTgYycuoEpG+TiffBJSCfRUV6FaJXwtcABODxluDUjd6hruwf7I0ifoYy6L
-DC4fzGsW6i7sU1weY6DUOFPLiFGij5bkaTwyDE6kuaSaIj2WiiDVFO8kHUFcTvtG
-L9W8rfSpf+9XWyVrFmOurke2nuC7wrLqESrxyTQmRchx47U3YQTN+W/6xUSnCqEx
-G1csRDaVwsTeR/BHKTNxJNH9BEglvc4HkGUe2eX2ke707jt8n7eTEoGe8o1YIZX9
-qeH5RWzME5wCItFBQDvV
-=gKMX
------END PGP SIGNATURE-----
-
---uxuisgdDHaNETlh8--
