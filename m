@@ -1,43 +1,55 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 02/11] arm/dts: omap: Add omap-usb2 dt data
-Date: Tue, 17 Jul 2012 16:27:13 +0400
-Message-ID: <50055A21.5010206@mvista.com>
-References: <1342512611-20529-1-git-send-email-kishon@ti.com> <1342512611-20529-3-git-send-email-kishon@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 2/2] arm/dts: omap4: Add ocp2scp data
+Date: Tue, 17 Jul 2012 16:36:08 +0400
+Message-ID: <50055C38.3000309@mvista.com>
+References: <1342448023-14438-1-git-send-email-kishon@ti.com> <1342448023-14438-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342512611-20529-3-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:50756 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958Ab2GQMhA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 08:37:00 -0400
+Received: by lbbgm6 with SMTP id gm6so568435lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 05:36:58 -0700 (PDT)
+In-Reply-To: <1342448023-14438-3-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, ohad@wizery.com, linus.walleij@linaro.org, myungjoo.ham@samsung.com, rusty@rustcorp.com.au, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
 Hello.
 
-On 17-07-2012 12:10, Kishon Vijay Abraham I wrote:
+On 16-07-2012 18:13, Kishon Vijay Abraham I wrote:
 
-> Add omap-usb2 data node in omap4 device tree file.
+> Add ocp2scp data node in omap4 device tree file.
 
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 > ---
->   arch/arm/boot/dts/omap4.dtsi |    5 +++++
->   1 files changed, 5 insertions(+), 0 deletions(-)
->
+>   arch/arm/boot/dts/omap4.dtsi |    8 ++++++++
+>   1 files changed, 8 insertions(+), 0 deletions(-)
+
 > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index bda5df3..4d2dcc1 100644
+> index 359c497..bda5df3 100644
 > --- a/arch/arm/boot/dts/omap4.dtsi
 > +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -279,6 +279,11 @@
->   			#size-cells = <1>;
->   			ranges;
->   			ti,hwmods = "ocp2scp_usb_phy";
-> +			usb2phy@0x4a0ad080 {
+> @@ -272,5 +272,13 @@
+>   			ti,hwmods = "mmc5";
+>   			ti,needs-special-reset;
+>   		};
+> +
+> +		ocp2scp@4a0ad000  {
 
-    There should be no "0x" prefix here.
+    "reg" property is absent, so why do you give the node name an address postfix?
+
+> +			compatible = "ti,omap-ocp2scp";
+> +			#address-cells = <1>;
+> +			#size-cells = <1>;
+> +			ranges;
+> +			ti,hwmods = "ocp2scp_usb_phy";
+> +		};
 
 WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
