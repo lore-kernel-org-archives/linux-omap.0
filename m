@@ -1,50 +1,52 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH v2 07/11] usb: otg: nop: add dt support
-Date: Tue, 17 Jul 2012 16:40:52 +0400
-Message-ID: <50055D54.9040005@mvista.com>
-References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com> <1342516407-16515-8-git-send-email-ajay.gupta@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 08/11] arm/dts: am33xx: add dt data for usb nop phy
+Date: Tue, 17 Jul 2012 16:42:30 +0400
+Message-ID: <50055DB6.7020602@mvista.com>
+References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com> <1342516407-16515-9-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:37703 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415Ab2GQMlm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 08:41:42 -0400
-Received: by lbbgm6 with SMTP id gm6so573741lbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jul 2012 05:41:40 -0700 (PDT)
-In-Reply-To: <1342516407-16515-8-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342516407-16515-9-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
 
 Hello.
 
 On 17-07-2012 13:13, Ajay Kumar Gupta wrote:
 
-> Added device tree support for nop transceiver driver and updated the
-> Documentation with device tree binding information for am33xx platform.
+> AM33xx has two musb controller and they have one NOP PHY each.
+> Added the device tree data for NOP PHY.
 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 > ---
->   .../devicetree/bindings/usb/am33xx-usb.txt         |    3 +++
->   drivers/usb/otg/nop-usb-xceiv.c                    |   12 ++++++++++++
->   2 files changed, 15 insertions(+), 0 deletions(-)
+>   arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
+>   1 files changed, 8 insertions(+), 0 deletions(-)
 
-> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> index ca8fa56..a314720 100644
-> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> @@ -12,3 +12,6 @@ AM33XX MUSB GLUE
->      represents PERIPHERAL.
->    - power : Should be "250". This signifies the controller can supply upto
->      500mA when operating in host mode.
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index b572803..3bd9911 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -155,6 +155,14 @@
+>   			ti,hwmods = "i2c3";
+>   		};
+>
+> +		usb0_phy: phy@1 {
+> +			compatible = "ti,nop-xceiv-usb";
+> +		};
 > +
-> +NOP USB PHY
-> + - compatible : Should be "ti,nop-xceiv-usb"
+> +		usb1_phy: phy@2 {
+> +			compatible = "ti,nop-xceiv-usb";
+> +		};
 
-    Why are you declaring it as TI specific. There's nothing company specific 
-in the NOP transceiver.
+    No "reg" property again, and address postfix in the node name?
 
 WBR, Sergei
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
