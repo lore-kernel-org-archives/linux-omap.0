@@ -1,7 +1,7 @@
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 06/11] arm/dts: am33xx: Add dt data for usbss
-Date: Tue, 17 Jul 2012 14:43:22 +0530
-Message-ID: <1342516407-16515-7-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH v2 11/11] arm/dts: am33xx: add phy phandle to usbss
+Date: Tue, 17 Jul 2012 14:43:27 +0530
+Message-ID: <1342516407-16515-12-git-send-email-ajay.gupta@ti.com>
 References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,33 +12,25 @@ To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Added device tree data for usbss on am33xx. There are two musb controllers
-on am33xx platform so have port0_mode and port1_mode additional data.
+Added NOP PHY phandle to usbss device node as same will be used
+to get the phy from otg framework.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 59509c4..b572803 100644
+index 3bd9911..0e7aaaa 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -154,5 +154,16 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
+@@ -172,6 +172,8 @@
+ 			port0_mode = <3>;
+ 			port1_mode = <1>;
+ 			power = <250>;
++			usb0-phy = <&usb0_phy>;
++			usb1-phy = <&usb1_phy>;
  		};
-+
-+		usb_otg_hs: usb_otg_hs@47400000 {
-+			compatible = "ti,musb-am33xx";
-+			ti,hwmods = "usb_otg_hs";
-+			multipoint = <1>;
-+			num_eps = <16>;
-+			ram_bits = <12>;
-+			port0_mode = <3>;
-+			port1_mode = <1>;
-+			power = <250>;
-+		};
  	};
  };
 -- 
