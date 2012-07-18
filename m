@@ -1,104 +1,67 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 00/11] omap: musb: Add device tree support
-Date: Wed, 18 Jul 2012 16:08:31 +0530
-Message-ID: <1342607922-11554-1-git-send-email-kishon@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: OMAP PM late init with DT blob
+Date: Wed, 18 Jul 2012 11:03:25 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB128F7@DBDE01.ent.ti.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EB110DA@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1207171430430.28834@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54505 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753845Ab2GRLDa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 07:03:30 -0400
+In-Reply-To: <alpine.DEB.2.00.1207171430430.28834@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-This patch series adds device tree support for MUSB and device
-tree support for all the related modules to get MUSB working in
-OMAP platform.
+Hi Paul,
 
-A new omap-usb2 phy driver has been added (with only dt suppport)
-to perform phy configurations. Previously this configuration was
-performed by twl6030, using pdata function pointers.
+On Wed, Jul 18, 2012 at 02:03:04, Paul Walmsley wrote:
+> On Tue, 17 Jul 2012, Bedia, Vaibhav wrote:
+> 
+> > I am looking at adding PM support for AM335x based on l-o/master.
+> > arch/arm/mach-omap2/pm.c has the following comment:
+> > 
+> > /*
+> >  * In the case of DT, the PMIC and SR initialization will be done using
+> >  * a completely different mechanism.
+> >  * Disable this part if a DT blob is available.
+> >  */
+> > if (of_have_populated_dt())
+> >         return 0;
+> > 
+> > Basic DT support for AM335x is already in mainline so this check causes
+> > various PM related inits and also the registration of the suspend ops to be
+> > skipped.
+> > 
+> > I tried searching the list archives for any discussion on this but could not
+> > find anything. Can someone shed some light on the how the device tree is to
+> > be used for PMIC and SR initialization. 
+> > 
+> > Any objections to moving the suspend ops registration before the DT blob check?
+> 
+> Moving the registration makes sense to me, based on a quick look.
+> 
+> IMHO, a better approach for this code would be to reverse the sense of 
+> that of_have_populated_dt() test, and specifically wrap the parts that are 
+> going to be changed by DT.  The rationale here is that only certain steps 
+> need to be skipped, so those should probably be skipped explicitly rather 
+> than skipping the whole function.
+> 
 
-With the addition of omap-usb2 to perform phy configurations,
-twl6030 is made as a comparator driver to detect VBUS and ID events
-and notify it to the glue layer.
+I checked the different inits which get skipped right now. I think _init_voltages()
+should not really be dependent on the DT check to cover the cases wherein the voltages
+are controlled using a regular regulator driver. However right now I don't know what
+approach to take here. For now I have sent an RFC patch [1] with just the movement of
+suspend ops.
 
-musb core is _NOT_ yet converted to support device tree support as it
-would need lot of driver re-design because of its enormous use of
-function pointers. That will be in _TO DO_ list.
+Regards,
+Vaibhav B.
 
-Changes from v3:
-remove the address in the node name of usb_otg_hs since the usb_otg_hs
-node doesn't have a reg property. Thanks Ajay Gupta for finding this.
+[1] http://marc.info/?l=linux-omap&m=134260813520149&w=2 
 
-Changes from v2:
-Fixed Sergei's comment to remove *0x* prefix in usb2phy@0x4a0ad080
-
-Changes from v1:
-* Fixed Rajendra Nayak comments (regulator naming, compatible naming of
-musb and other minor cleanups.)
-* It's agreed to have ocp2scp in drivers/bus and usb2 phy is a child of
-ocp2scp, the documentation is updated accordingly.
-
-Changes from RFC:
-Removed the dependency on [RFC PATCH 00/11] OMAP System Control Module.
-Writing to control module register is now handled in otg driver itself.
-Once the system control module driver get upstreamed, I'll send a patch
-to make use of API's in control module driver to write to control
-module register.
-
-This series was developed on
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git xceiv
-
-This patch series depends on
-[PATCH 0/2] omap: add ocp2scp as a bus driver
-
-Performed MUSB device mode testing on OMAP4 panda, OMAP4 SDP
-and OMAP3 beagle.
-
-Kishon Vijay Abraham I (11):
-  drivers: usb: otg: add a new driver for omap usb2 phy
-  arm/dts: omap: Add omap-usb2 dt data
-  drivers: usb: otg: make twl6030_usb as a comparator driver to
-    omap_usb2
-  arm: omap: hwmod: add a new addr space in otg for writing to control
-    module
-  drivers: usb: twl6030: Add dt support for twl6030 usb
-  arm/dts: Add twl6030-usb data
-  drivers: usb: twl4030: Add device tree support for twl4030 usb
-  arm/dts: Add twl4030-usb data
-  drivers: usb: musb: Add device tree support for omap musb glue
-  arm/dts: omap: Add usb_otg and glue data
-  arm: omap: phy: remove unused functions from omap-phy-internal.c
-
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |    3 +
- Documentation/devicetree/bindings/usb/omap-usb.txt |   48 ++++
- .../devicetree/bindings/usb/twlxxxx-usb.txt        |   41 +++
- arch/arm/boot/dts/omap3-beagle.dts                 |    6 +
- arch/arm/boot/dts/omap3-evm.dts                    |    6 +
- arch/arm/boot/dts/omap3.dtsi                       |    8 +
- arch/arm/boot/dts/omap4-panda.dts                  |   10 +
- arch/arm/boot/dts/omap4-sdp.dts                    |   10 +
- arch/arm/boot/dts/omap4.dtsi                       |   13 +
- arch/arm/boot/dts/twl4030.dtsi                     |   21 ++
- arch/arm/boot/dts/twl6030.dtsi                     |    6 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    5 +
- arch/arm/mach-omap2/omap_phy_internal.c            |  138 ----------
- arch/arm/mach-omap2/twl-common.c                   |    5 -
- arch/arm/mach-omap2/usb-musb.c                     |    3 -
- drivers/usb/musb/omap2430.c                        |  107 +++++++-
- drivers/usb/musb/omap2430.h                        |    9 +
- drivers/usb/otg/Kconfig                            |   10 +
- drivers/usb/otg/Makefile                           |    1 +
- drivers/usb/otg/omap-usb2.c                        |  271 ++++++++++++++++++++
- drivers/usb/otg/twl4030-usb.c                      |   26 ++-
- drivers/usb/otg/twl6030-usb.c                      |  153 +++--------
- include/linux/usb/omap_usb.h                       |   45 ++++
- include/linux/usb/phy_companion.h                  |   34 +++
- 24 files changed, 706 insertions(+), 273 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/omap-usb.txt
- create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
- create mode 100644 drivers/usb/otg/omap-usb2.c
- create mode 100644 include/linux/usb/omap_usb.h
- create mode 100644 include/linux/usb/phy_companion.h
-
--- 
-1.7.5.4
