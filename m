@@ -1,52 +1,40 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
-Date: Wed, 18 Jul 2012 00:19:07 -0700
-Message-ID: <20120718071906.GJ6522@atomide.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
- <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
- <5000D647.4090200@gmail.com>
- <500439A8.1050705@ti.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: set GPIO mode for mux
+ mcspi1_cs2 pin
+Date: Wed, 18 Jul 2012 00:20:53 -0700
+Message-ID: <20120718072052.GK6522@atomide.com>
+References: <1341885452-5372-1-git-send-email-javier@dowhile0.org>
+ <CAFqH_511c6CyAYnbtU0ECZwzRNwJEdTqtcZ63nODCYZU4GC0aA@mail.gmail.com>
+ <CABxcv=miEavW5Qf-Y+S4Nph+ah5gQ6QDpt-T44tdHLBxcP8pqQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23528 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:24386 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059Ab2GRHTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 03:19:12 -0400
+	with ESMTP id S1752046Ab2GRHU5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 03:20:57 -0400
 Content-Disposition: inline
-In-Reply-To: <500439A8.1050705@ti.com>
+In-Reply-To: <CABxcv=miEavW5Qf-Y+S4Nph+ah5gQ6QDpt-T44tdHLBxcP8pqQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Enric =?utf-8?B?QmFsbGV0YsOy?= i Serra <eballetbo@gmail.com>, Tom Rini <trini@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jon Hunter <jon-hunter@ti.com> [120716 09:01]:
-> On 07/13/2012 09:15 PM, Rob Herring wrote:
+* Javier Martinez Canillas <javier@dowhile0.org> [120717 00:16]:
 > 
-> Tony, Tarun,
+> Hi Tony,
 > 
-> How would you feel on replacing omap_dmtimer_request_specific(int id)
-> with say omap_dm_timer_request_by_cap(int cap)?
+> Just pinging to see if you have further comments on this patch or if
+> it can be applied. It solves a bug on IGEPv2 boards.
 > 
-> I was thinking of changing the name so that it is clear that the API has
-> changed. The "int cap" passed to the above function would be an OR of
-> the appropriate the capabilities flags we have in dmtimer.h ...
+> I know the trend is to move away from board code. I'll start working
+> on an device tree for the IGEPv2 but it will take some time until is
+> ready (and I'm not sure if all the OMAP3 support is already present on
+> DT).
 > 
-> /* timer capabilities used in hwmod database */
-> #define OMAP_TIMER_SECURE                               0x80000000
-> #define OMAP_TIMER_ALWON                                0x40000000
-> #define OMAP_TIMER_HAS_PWM                              0x20000000
-> ...
+> So could you please take bug fixes for the board code in the meantime?
 
-That may break coprocessors where the firmware may expect a hardcoded
-specific timer.. So at least that should be checked before the change.
-If the specific timer is still needed for some firmware, it's best to
-add a separate function for the capabilities.
-
-Also, I believe it's up to the firmware running in secure mode to
-select the secure timers. So unless there's some way to query which
-timers are claimed by the secure mode, that too needs to be passed
-via DT.
+Yes seems like something for the v3.6-rc series.
 
 Regards,
 
