@@ -1,76 +1,132 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 06/11] arm/dts: am33xx: Add dt data for usbss
-Date: Wed, 18 Jul 2012 12:37:23 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EADB646@DBDE01.ent.ti.com>
-References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
- <1342516407-16515-7-git-send-email-ajay.gupta@ti.com>
- <50055CD9.3060300@mvista.com>
- <47CEF8C4B26E8C44B22B028A650E0EA93EADB1C5@DBDE01.ent.ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH] PWM: Add support for configuring polarity of PWM
+Date: Wed, 18 Jul 2012 18:24:13 +0530
+Message-ID: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EADB1C5-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: thierry.reding@avionic-design.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: nsekhar@ti.com, avinashphilip@ti.com, gururaja.hebbar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi
-> > On 17-07-2012 13:13, Ajay Kumar Gupta wrote:
-> >
-> > > Added device tree data for usbss on am33xx. There are two musb
-> > controllers
-> > > on am33xx platform so have port0_mode and port1_mode additional
-> data.
-> >
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > >   arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
-> > >   1 files changed, 11 insertions(+), 0 deletions(-)
-> >
-> > > diff --git a/arch/arm/boot/dts/am33xx.dtsi
-> > b/arch/arm/boot/dts/am33xx.dtsi
-> > > index 59509c4..b572803 100644
-> > > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > > @@ -154,5 +154,16 @@
-> > >   			#size-cells = <0>;
-> > >   			ti,hwmods = "i2c3";
-> > >   		};
-> > > +
-> > > +		usb_otg_hs: usb_otg_hs@47400000 {
-> >
-> >     The "reg" property is absent, so why did you give the node name
-> the
-> > address postfix?
-> 
-> Currently "reg" property is coming from "ti hwmods".
+Duty cycle inversion of PWM wave should achieved through PWM polarity
+inversion. Also polarity of PWM wave should configurable from slave
+drivers,
 
-I meant base addresses are coming from hwmods and so there is no "reg"
-property added here. I will update the patch dropping address postfix.
+Configure polarity
+1. PWM_POLARITY_NORMAL  -> duty ns defines ON period of PWM wave
+2. PWM_POLARITY_INVERSE -> duty ns defines OFF period of PWM wave.
 
-Ajay
+This patch adds support for configuring PWM polarity in PWM frame work.
 
-> > > +			compatible = "ti,musb-am33xx";
-> > > +			ti,hwmods = "usb_otg_hs";
-> > > +			multipoint = <1>;
-> > > +			num_eps = <16>;
-> > > +			ram_bits = <12>;
-> > > +			port0_mode = <3>;
-> > > +			port1_mode = <1>;
-> > > +			power = <250>;
-> > > +		};
-> >
-> > WBR, Sergei
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+Configuring polarity to be done with PWM device disabled, if not
+failure reported.
+
+If PWM device is enabled while configuring polarity, disabling and
+re_enabling make it complex. Whoever uses this API has to taken
+care of the basic rules.
+
+Discussions related to this can found at
+http://www.spinics.net/lists/kernel/msg1372110.html
+
+:100644 100644 ecb7690... 24d5495... M	drivers/pwm/core.c
+:100644 100644 21d076c... 2e4e960... M	include/linux/pwm.h
+ drivers/pwm/core.c  |   32 ++++++++++++++++++++++++++++++++
+ include/linux/pwm.h |   15 +++++++++++++++
+ 2 files changed, 47 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index ecb7690..24d5495 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -379,6 +379,38 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+ EXPORT_SYMBOL_GPL(pwm_config);
+ 
+ /**
++ * pwm_set_polarity() - change PWM device Polarity
++ * @pwm: PWM device
++ * @polarity: Configure polarity of PWM
++ *
++ * Polarity to be configured with PWM device disabled.
++ */
++int pwm_set_polarity(struct pwm_device *pwm, int polarity)
++{
++	int pwm_flags = PWM_POLARITY_NORMAL;
++
++	if (!pwm || !pwm->chip->ops->set_polarity)
++		return -EINVAL;
++
++	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
++		dev_err(pwm->chip->dev,
++			"Polarity configuration Failed!, PWM device enabled\n");
++		return -EBUSY;
++	}
++
++	if (polarity == PWM_POLARITY_INVERSE)
++		pwm_flags = PWM_POLARITY_INVERSE;
++
++	if (!pwm_flags)
++		clear_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
++	else
++		set_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
++
++	return pwm->chip->ops->set_polarity(pwm->chip, pwm, polarity);
++}
++EXPORT_SYMBOL_GPL(pwm_set_polarity);
++
++/**
+  * pwm_enable() - start a PWM output toggling
+  * @pwm: PWM device
+  */
+diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+index 21d076c..2e4e960 100644
+--- a/include/linux/pwm.h
++++ b/include/linux/pwm.h
+@@ -21,6 +21,16 @@ void pwm_free(struct pwm_device *pwm);
+  */
+ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns);
+ 
++enum {
++	PWM_POLARITY_NORMAL,	/* ON period depends on duty_ns */
++	PWM_POLARITY_INVERSE,	/* OFF period depends on duty_ns */
++};
++
++/*
++ * pwm_set_polarity - set polarity of PWM device
++ */
++int pwm_set_polarity(struct pwm_device *pwm, int polarity);
++
+ /*
+  * pwm_enable - start a PWM output toggling
+  */
+@@ -37,6 +47,7 @@ struct pwm_chip;
+ enum {
+ 	PWMF_REQUESTED = 1 << 0,
+ 	PWMF_ENABLED = 1 << 1,
++	PWMF_POLARITY_INVERSE = 1 << 2,
+ };
+ 
+ struct pwm_device {
+@@ -66,6 +77,7 @@ static inline unsigned int pwm_get_period(struct pwm_device *pwm)
+  * @request: optional hook for requesting a PWM
+  * @free: optional hook for freeing a PWM
+  * @config: configure duty cycles and period length for this PWM
++ * @set_polarity: configure polarity of PWM
+  * @enable: enable PWM output toggling
+  * @disable: disable PWM output toggling
+  * @dbg_show: optional routine to show contents in debugfs
+@@ -79,6 +91,9 @@ struct pwm_ops {
+ 	int			(*config)(struct pwm_chip *chip,
+ 					  struct pwm_device *pwm,
+ 					  int duty_ns, int period_ns);
++	int			(*set_polarity)(struct pwm_chip *chip,
++					  struct pwm_device *pwm,
++					  int polarity);
+ 	int			(*enable)(struct pwm_chip *chip,
+ 					  struct pwm_device *pwm);
+ 	void			(*disable)(struct pwm_chip *chip,
+-- 
+1.7.1
