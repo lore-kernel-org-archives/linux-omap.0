@@ -1,63 +1,46 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
-Date: Wed, 18 Jul 2012 10:11:56 -0500
-Message-ID: <5006D23C.5010004@ti.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <20120718071906.GJ6522@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [RFC 0/3] Add cyclic DMA support to OMAP DMA engine driver
+Date: Wed, 18 Jul 2012 21:47:05 +0530
+Message-ID: <CAMQu2gygvOeWrOPBnc=21oTPWWnFG8go5gcxAJ5UfDTG+cPRLw@mail.gmail.com>
+References: <20120622085911.GA19026@n2100.arm.linux.org.uk>
+ <20120622123013.GA7586@sirena.org.uk> <20120622131750.GB19226@n2100.arm.linux.org.uk>
+ <20120622161155.GM4037@opensource.wolfsonmicro.com> <20120625111847.GE19226@n2100.arm.linux.org.uk>
+ <20120627114003.GG308@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42136 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754616Ab2GRPME (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 11:12:04 -0400
-In-Reply-To: <20120718071906.GJ6522@atomide.com>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:52530 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753171Ab2GRQR2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jul 2012 12:17:28 -0400
+Received: by vcbfy27 with SMTP id fy27so3032304vcb.9
+        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 09:17:25 -0700 (PDT)
+In-Reply-To: <20120627114003.GG308@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robherring2@gmail.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Hi Tony,
++ Peter,
 
-On 07/18/2012 02:19 AM, Tony Lindgren wrote:
-> * Jon Hunter <jon-hunter@ti.com> [120716 09:01]:
->> On 07/13/2012 09:15 PM, Rob Herring wrote:
->>
->> Tony, Tarun,
->>
->> How would you feel on replacing omap_dmtimer_request_specific(int id)
->> with say omap_dm_timer_request_by_cap(int cap)?
->>
->> I was thinking of changing the name so that it is clear that the API has
->> changed. The "int cap" passed to the above function would be an OR of
->> the appropriate the capabilities flags we have in dmtimer.h ...
->>
->> /* timer capabilities used in hwmod database */
->> #define OMAP_TIMER_SECURE                               0x80000000
->> #define OMAP_TIMER_ALWON                                0x40000000
->> #define OMAP_TIMER_HAS_PWM                              0x20000000
->> ...
-> 
-> That may break coprocessors where the firmware may expect a hardcoded
-> specific timer.. So at least that should be checked before the change.
-> If the specific timer is still needed for some firmware, it's best to
-> add a separate function for the capabilities.
+On Wed, Jun 27, 2012 at 5:10 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Mon, Jun 25, 2012 at 12:18:47PM +0100, Russell King - ARM Linux wrote:
+>
+>> It appears to be something to do with the jack detection that's going wrong.
+>> If I start the audio with the jack disconnected, I never get anything out
+>> of the board.  It requires the jack to be connected before the first use.
+>> The on-board speakers used to work without the jack plugged in at one time
+>> but they seem to be completely non-functional now.
+>
+>> Confused.
+>
+> Me too - there's nothing obvious in the code just from inspection that
+> would affect this.
 
-I have seen that timers are used by the GPU and Ducati. Maybe I can
-check with the authors to see if we can get them to request by
-capability instead. If we can't then I need to figure out a way to
-resolve the timer ID when using DT. Per Rob's comments using alias is
-not the intended use. An alternative would be to extract the ID from the
-hwmod name, but was not sure if that would be appropriate either :-(
+Does audio work with $subject series after your mux fixes which
+you posted recently.
 
-> Also, I believe it's up to the firmware running in secure mode to
-> select the secure timers. So unless there's some way to query which
-> timers are claimed by the secure mode, that too needs to be passed
-> via DT.
-
-Yes, that is handled by patch 2/4. If we are on a secure device, then
-will not register any timers marked with the "ti,timer-secure" property.
-
-Cheers
-Jon
-
+Regards
+Santosh
