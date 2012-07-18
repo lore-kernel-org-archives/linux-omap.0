@@ -1,61 +1,73 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2 08/11] arm/dts: am33xx: add dt data for usb nop phy
-Date: Wed, 18 Jul 2012 07:05:19 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAD9C63@DBDE01.ent.ti.com>
-References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
- <1342516407-16515-9-git-send-email-ajay.gupta@ti.com>
- <50055DB6.7020602@mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+ hosts by default
+Date: Wed, 18 Jul 2012 00:10:39 -0700
+Message-ID: <20120718071039.GI6522@atomide.com>
+References: <1342485005-5178-1-git-send-email-javier@dowhile0.org>
+ <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com>
+ <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com>
+ <20120718065951.GH6522@atomide.com>
+ <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59375 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752224Ab2GRHFa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 03:05:30 -0400
-In-Reply-To: <50055DB6.7020602@mvista.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64023 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087Ab2GRHKp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 03:10:45 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>, Kevin.Hilman.khilman@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 
-Hi,
-
-> > AM33xx has two musb controller and they have one NOP PHY each.
-> > Added the device tree data for NOP PHY.
-> 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >   arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
-> >   1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi
-> b/arch/arm/boot/dts/am33xx.dtsi
-> > index b572803..3bd9911 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -155,6 +155,14 @@
-> >   			ti,hwmods = "i2c3";
-> >   		};
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120718 00:09]:
+> On Wed, Jul 18, 2012 at 12:29 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Javier Martinez Canillas <javier@dowhile0.org> [120716 23:56]:
+> >> On Tue, Jul 17, 2012 at 8:45 AM, Shilimkar, Santosh
+> >> <santosh.shilimkar@ti.com> wrote:
+> >> > Hi,
+> >> >
+> >> > On Tue, Jul 17, 2012 at 6:00 AM, Javier Martinez Canillas
+> >> > <javier@dowhile0.org> wrote:
+> >> >> The OMAP MMC and OMAP High Speed MMC hosts now use entirely the DMA
+> >> >> engine API instead of the previous private DMA API implementation.
+> >> >>
+> >> >> So, if the kernel is built with support for any of these hosts but it
+> >> >> doesn't support DMA devices nor OMAP DMA support, it fails when trying
+> >> >> to obtain a DMA channel which leads to the following error on an OMAP3
+> >> >> IGEPv2 Rev.C board (and probably on most OMAP boards with MMC support):
+> >> >>
+> >> >> [    2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+> >> >> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+> >> >>
+> >> >> selecting automatically CONFIG_DMADEVICES and CONFIG_DMA_OMAP solves it.
+> >> >>
+> >> >> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> >> >> ---
+> >> > Considering, we are updating drivers to select the DMA engine, can you
+> >> > also include
+> >> > "drivers/spi/spi-omap2-mcspi.c" which is also updated for DMA engine.
+> >> >
+> >> > Regards
+> >> > Santosh
+> >>
+> >> Hi Santosh,
+> >>
+> >> Ok, I'll send a v2 now which includes spi-omap2-mcspi then.
 > >
-> > +		usb0_phy: phy@1 {
-> > +			compatible = "ti,nop-xceiv-usb";
-> > +		};
-> > +
-> > +		usb1_phy: phy@2 {
-> > +			compatible = "ti,nop-xceiv-usb";
-> > +		};
-> 
->     No "reg" property again, and address postfix in the node name?
+> > I don't think we should do this, the drivers should work with and without
+> > dma. This just needs to be added to the omap2plus_defconfig.
+> >
+> Well this was not decided based on any DMA CONFIG option before for
+> the subject drivers. It is already by default enabled if the DMA is supported
+> by the driver IP. There is a possibility to disable it from driver platform/dt
+> data so that still remains.
 
-I will update this to 
-+		usb0_phy: phy0 {
-+		usb1_phy: phy1 {
+I think it should rather be that if the driver is broken and does not work
+without DMA, it should have depends on CONFIG_DMA_OMAP.
 
-Thanks,
-Ajay
-> 
-> WBR, Sergei
-> 
+Regards,
 
+Tony
