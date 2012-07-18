@@ -1,67 +1,61 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: OMAP PM late init with DT blob
-Date: Wed, 18 Jul 2012 11:03:25 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB128F7@DBDE01.ent.ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EB110DA@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1207171430430.28834@utopia.booyaka.com>
+From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+Subject: Re: [RFC/PATCH 3/3] i2c: omap: Add support for I2C_M_STOP message flag
+Date: Wed, 18 Jul 2012 13:13:12 +0200
+Message-ID: <223770735.y2EoxFmDTd@avalon>
+References: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com> <1340720229-30356-4-git-send-email-laurent.pinchart@ideasonboard.com> <5006556C.8070003@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54505 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753845Ab2GRLDa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 07:03:30 -0400
-In-Reply-To: <alpine.DEB.2.00.1207171430430.28834@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5006556C.8070003-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Paul,
+Hi Shubhrajyoti,
 
-On Wed, Jul 18, 2012 at 02:03:04, Paul Walmsley wrote:
-> On Tue, 17 Jul 2012, Bedia, Vaibhav wrote:
-> 
-> > I am looking at adding PM support for AM335x based on l-o/master.
-> > arch/arm/mach-omap2/pm.c has the following comment:
+On Wednesday 18 July 2012 11:49:24 Shubhrajyoti wrote:
+> On Tuesday 26 June 2012 07:47 PM, Laurent Pinchart wrote:
+> > Generate a stop condition after each message marked with I2C_M_STOP.
 > > 
-> > /*
-> >  * In the case of DT, the PMIC and SR initialization will be done using
-> >  * a completely different mechanism.
-> >  * Disable this part if a DT blob is available.
-> >  */
-> > if (of_have_populated_dt())
-> >         return 0;
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+> > ---
 > > 
-> > Basic DT support for AM335x is already in mainline so this check causes
-> > various PM related inits and also the registration of the suspend ops to be
-> > skipped.
+> >  drivers/i2c/busses/i2c-omap.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
 > > 
-> > I tried searching the list archives for any discussion on this but could not
-> > find anything. Can someone shed some light on the how the device tree is to
-> > be used for PMIC and SR initialization. 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index 801df60..cf1bda0 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -545,6 +545,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
 > > 
-> > Any objections to moving the suspend ops registration before the DT blob check?
+> >  	if (dev->speed > 400)
+> >  	
+> >  		w |= OMAP_I2C_CON_OPMODE_HS;
+> > 
+> > +	if (msg->flags & I2C_M_STOP)
+> > +		stop = 1;
 > 
-> Moving the registration makes sense to me, based on a quick look.
-> 
-> IMHO, a better approach for this code would be to reverse the sense of 
-> that of_have_populated_dt() test, and specifically wrap the parts that are 
-> going to be changed by DT.  The rationale here is that only certain steps 
-> need to be skipped, so those should probably be skipped explicitly rather 
-> than skipping the whole function.
-> 
+> How about patching omap_i2c_xfer (caller) instead.
+> There are some debug prints of stop  above that will not reflect the
+> real value.
 
-I checked the different inits which get skipped right now. I think _init_voltages()
-should not really be dependent on the DT check to cover the cases wherein the voltages
-are controlled using a regular regulator driver. However right now I don't know what
-approach to take here. For now I have sent an RFC patch [1] with just the movement of
-suspend ops.
+omap_i2c_xfer() doesn't look at the content of individual messages, I thought 
+it was cleaner not to modify that. Note that the message flags are printed in 
+the debug message you mention, which is why I've decided to modify the stop 
+variable after printing the message. If you think it's better to modify it 
+before, we can move this chunk above the dev_dbg().
 
+
+> >  	if (msg->flags & I2C_M_TEN)
+> >  	
+> >  		w |= OMAP_I2C_CON_XA;
+> >  	
+> >  	if (!(msg->flags & I2C_M_RD))
+
+-- 
 Regards,
-Vaibhav B.
 
-[1] http://marc.info/?l=linux-omap&m=134260813520149&w=2 
-
+Laurent Pinchart
