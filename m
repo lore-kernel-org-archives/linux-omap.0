@@ -1,59 +1,57 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2 07/11] usb: otg: nop: add dt support
-Date: Wed, 18 Jul 2012 06:53:58 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAD9BE9@DBDE01.ent.ti.com>
-References: <1342516407-16515-1-git-send-email-ajay.gupta@ti.com>
- <1342516407-16515-8-git-send-email-ajay.gupta@ti.com>
- <50055D54.9040005@mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+ hosts by default
+Date: Tue, 17 Jul 2012 23:59:51 -0700
+Message-ID: <20120718065951.GH6522@atomide.com>
+References: <1342485005-5178-1-git-send-email-javier@dowhile0.org>
+ <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com>
+ <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58337 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751080Ab2GRGyI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 02:54:08 -0400
-In-Reply-To: <50055D54.9040005@mvista.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin.Hilman.khilman@ti.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
+* Javier Martinez Canillas <javier@dowhile0.org> [120716 23:56]:
+> On Tue, Jul 17, 2012 at 8:45 AM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> > Hi,
+> >
+> > On Tue, Jul 17, 2012 at 6:00 AM, Javier Martinez Canillas
+> > <javier@dowhile0.org> wrote:
+> >> The OMAP MMC and OMAP High Speed MMC hosts now use entirely the DMA
+> >> engine API instead of the previous private DMA API implementation.
+> >>
+> >> So, if the kernel is built with support for any of these hosts but it
+> >> doesn't support DMA devices nor OMAP DMA support, it fails when trying
+> >> to obtain a DMA channel which leads to the following error on an OMAP3
+> >> IGEPv2 Rev.C board (and probably on most OMAP boards with MMC support):
+> >>
+> >> [    2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+> >> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+> >>
+> >> selecting automatically CONFIG_DMADEVICES and CONFIG_DMA_OMAP solves it.
+> >>
+> >> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> >> ---
+> > Considering, we are updating drivers to select the DMA engine, can you
+> > also include
+> > "drivers/spi/spi-omap2-mcspi.c" which is also updated for DMA engine.
+> >
+> > Regards
+> > Santosh
 > 
-> On 17-07-2012 13:13, Ajay Kumar Gupta wrote:
+> Hi Santosh,
 > 
-> > Added device tree support for nop transceiver driver and updated the
-> > Documentation with device tree binding information for am33xx
-> platform.
-> 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >   .../devicetree/bindings/usb/am33xx-usb.txt         |    3 +++
-> >   drivers/usb/otg/nop-usb-xceiv.c                    |   12
-> ++++++++++++
-> >   2 files changed, 15 insertions(+), 0 deletions(-)
-> 
-> > diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> > index ca8fa56..a314720 100644
-> > --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> > +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> > @@ -12,3 +12,6 @@ AM33XX MUSB GLUE
-> >      represents PERIPHERAL.
-> >    - power : Should be "250". This signifies the controller can
-> supply upto
-> >      500mA when operating in host mode.
-> > +
-> > +NOP USB PHY
-> > + - compatible : Should be "ti,nop-xceiv-usb"
-> 
->     Why are you declaring it as TI specific. There's nothing company
-> specific in the NOP transceiver.
+> Ok, I'll send a v2 now which includes spi-omap2-mcspi then.
 
-Thanks for review. I will change this to "nop-xceiv-usb".
+I don't think we should do this, the drivers should work with and without
+dma. This just needs to be added to the omap2plus_defconfig.
 
-Ajay
-> 
-> WBR, Sergei
+Regards,
+
+Tony
