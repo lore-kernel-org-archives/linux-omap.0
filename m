@@ -1,132 +1,63 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: [PATCH] PWM: Add support for configuring polarity of PWM
-Date: Wed, 18 Jul 2012 18:24:13 +0530
-Message-ID: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Wed, 18 Jul 2012 10:11:56 -0500
+Message-ID: <5006D23C.5010004@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <20120718071906.GJ6522@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: thierry.reding@avionic-design.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: nsekhar@ti.com, avinashphilip@ti.com, gururaja.hebbar@ti.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42136 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab2GRPME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 11:12:04 -0400
+In-Reply-To: <20120718071906.GJ6522@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robherring2@gmail.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-Duty cycle inversion of PWM wave should achieved through PWM polarity
-inversion. Also polarity of PWM wave should configurable from slave
-drivers,
+Hi Tony,
 
-Configure polarity
-1. PWM_POLARITY_NORMAL  -> duty ns defines ON period of PWM wave
-2. PWM_POLARITY_INVERSE -> duty ns defines OFF period of PWM wave.
+On 07/18/2012 02:19 AM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120716 09:01]:
+>> On 07/13/2012 09:15 PM, Rob Herring wrote:
+>>
+>> Tony, Tarun,
+>>
+>> How would you feel on replacing omap_dmtimer_request_specific(int id)
+>> with say omap_dm_timer_request_by_cap(int cap)?
+>>
+>> I was thinking of changing the name so that it is clear that the API has
+>> changed. The "int cap" passed to the above function would be an OR of
+>> the appropriate the capabilities flags we have in dmtimer.h ...
+>>
+>> /* timer capabilities used in hwmod database */
+>> #define OMAP_TIMER_SECURE                               0x80000000
+>> #define OMAP_TIMER_ALWON                                0x40000000
+>> #define OMAP_TIMER_HAS_PWM                              0x20000000
+>> ...
+> 
+> That may break coprocessors where the firmware may expect a hardcoded
+> specific timer.. So at least that should be checked before the change.
+> If the specific timer is still needed for some firmware, it's best to
+> add a separate function for the capabilities.
 
-This patch adds support for configuring PWM polarity in PWM frame work.
+I have seen that timers are used by the GPU and Ducati. Maybe I can
+check with the authors to see if we can get them to request by
+capability instead. If we can't then I need to figure out a way to
+resolve the timer ID when using DT. Per Rob's comments using alias is
+not the intended use. An alternative would be to extract the ID from the
+hwmod name, but was not sure if that would be appropriate either :-(
 
-Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
----
-Configuring polarity to be done with PWM device disabled, if not
-failure reported.
+> Also, I believe it's up to the firmware running in secure mode to
+> select the secure timers. So unless there's some way to query which
+> timers are claimed by the secure mode, that too needs to be passed
+> via DT.
 
-If PWM device is enabled while configuring polarity, disabling and
-re_enabling make it complex. Whoever uses this API has to taken
-care of the basic rules.
+Yes, that is handled by patch 2/4. If we are on a secure device, then
+will not register any timers marked with the "ti,timer-secure" property.
 
-Discussions related to this can found at
-http://www.spinics.net/lists/kernel/msg1372110.html
+Cheers
+Jon
 
-:100644 100644 ecb7690... 24d5495... M	drivers/pwm/core.c
-:100644 100644 21d076c... 2e4e960... M	include/linux/pwm.h
- drivers/pwm/core.c  |   32 ++++++++++++++++++++++++++++++++
- include/linux/pwm.h |   15 +++++++++++++++
- 2 files changed, 47 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index ecb7690..24d5495 100644
---- a/drivers/pwm/core.c
-+++ b/drivers/pwm/core.c
-@@ -379,6 +379,38 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
- EXPORT_SYMBOL_GPL(pwm_config);
- 
- /**
-+ * pwm_set_polarity() - change PWM device Polarity
-+ * @pwm: PWM device
-+ * @polarity: Configure polarity of PWM
-+ *
-+ * Polarity to be configured with PWM device disabled.
-+ */
-+int pwm_set_polarity(struct pwm_device *pwm, int polarity)
-+{
-+	int pwm_flags = PWM_POLARITY_NORMAL;
-+
-+	if (!pwm || !pwm->chip->ops->set_polarity)
-+		return -EINVAL;
-+
-+	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
-+		dev_err(pwm->chip->dev,
-+			"Polarity configuration Failed!, PWM device enabled\n");
-+		return -EBUSY;
-+	}
-+
-+	if (polarity == PWM_POLARITY_INVERSE)
-+		pwm_flags = PWM_POLARITY_INVERSE;
-+
-+	if (!pwm_flags)
-+		clear_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
-+	else
-+		set_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
-+
-+	return pwm->chip->ops->set_polarity(pwm->chip, pwm, polarity);
-+}
-+EXPORT_SYMBOL_GPL(pwm_set_polarity);
-+
-+/**
-  * pwm_enable() - start a PWM output toggling
-  * @pwm: PWM device
-  */
-diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index 21d076c..2e4e960 100644
---- a/include/linux/pwm.h
-+++ b/include/linux/pwm.h
-@@ -21,6 +21,16 @@ void pwm_free(struct pwm_device *pwm);
-  */
- int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns);
- 
-+enum {
-+	PWM_POLARITY_NORMAL,	/* ON period depends on duty_ns */
-+	PWM_POLARITY_INVERSE,	/* OFF period depends on duty_ns */
-+};
-+
-+/*
-+ * pwm_set_polarity - set polarity of PWM device
-+ */
-+int pwm_set_polarity(struct pwm_device *pwm, int polarity);
-+
- /*
-  * pwm_enable - start a PWM output toggling
-  */
-@@ -37,6 +47,7 @@ struct pwm_chip;
- enum {
- 	PWMF_REQUESTED = 1 << 0,
- 	PWMF_ENABLED = 1 << 1,
-+	PWMF_POLARITY_INVERSE = 1 << 2,
- };
- 
- struct pwm_device {
-@@ -66,6 +77,7 @@ static inline unsigned int pwm_get_period(struct pwm_device *pwm)
-  * @request: optional hook for requesting a PWM
-  * @free: optional hook for freeing a PWM
-  * @config: configure duty cycles and period length for this PWM
-+ * @set_polarity: configure polarity of PWM
-  * @enable: enable PWM output toggling
-  * @disable: disable PWM output toggling
-  * @dbg_show: optional routine to show contents in debugfs
-@@ -79,6 +91,9 @@ struct pwm_ops {
- 	int			(*config)(struct pwm_chip *chip,
- 					  struct pwm_device *pwm,
- 					  int duty_ns, int period_ns);
-+	int			(*set_polarity)(struct pwm_chip *chip,
-+					  struct pwm_device *pwm,
-+					  int polarity);
- 	int			(*enable)(struct pwm_chip *chip,
- 					  struct pwm_device *pwm);
- 	void			(*disable)(struct pwm_chip *chip,
--- 
-1.7.1
