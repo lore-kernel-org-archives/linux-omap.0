@@ -1,39 +1,56 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] regulator: tps65217: fix build error if REGULATOR is
- not enabled
-Date: Wed, 18 Jul 2012 09:55:57 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9F8BD7@DBDE01.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] regulator: tps65217: fix build error if REGULATOR is not
+ enabled
+Date: Wed, 18 Jul 2012 11:00:13 +0100
+Message-ID: <20120718100013.GC22739@opensource.wolfsonmicro.com>
 References: <1342593663-23938-1-git-send-email-anilkumar@ti.com>
  <20120718094449.GA22739@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13E9F8BD7@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WplhKdTI2c8ulnbP"
 Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20120718094449.GA22739@opensource.wolfsonmicro.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13E9F8BD7@DBDE01.ent.ti.com>
 Sender: linux-next-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
 Cc: "rdunlap@xenotime.net" <rdunlap@xenotime.net>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Mark,
 
-On Wed, Jul 18, 2012 at 15:14:49, Mark Brown wrote:
-> On Wed, Jul 18, 2012 at 12:11:03PM +0530, AnilKumar Ch wrote:
-> > Fixes below build error if CONFIG_REGULATOR is not enabled.
-> > 
-> > drivers/built-in.o: In function `tps65217_probe':
-> > tps65217.c:(.devinit.text+0x13e37): undefined reference to `of_regulator_match'
-> 
-> This isn't a patch to the regulator driver, this is a patch to the MFD.
-> Normally this would be fixed by making the MFD driver not depend on the
-> regulator API - why is the MFD driver using the regulator API?
-> 
+--WplhKdTI2c8ulnbP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regulators platform data is added to platform device in MFD driver, which we
-need for regulator driver, of_regulator_match() is used to check the regulator
-consumers if we pass DT data. If we do not enable CONFIG_REGULATOR then
-of_regulator_match() is not exported, so we see this error.
+On Wed, Jul 18, 2012 at 09:55:57AM +0000, AnilKumar, Chimata wrote:
 
-Regards
-AnilKumar
+> Regulators platform data is added to platform device in MFD driver, which we
+> need for regulator driver, of_regulator_match() is used to check the regulator
+> consumers if we pass DT data. If we do not enable CONFIG_REGULATOR then
+> of_regulator_match() is not exported, so we see this error.
+
+Why are you doing that in the MFD driver?
+
+--WplhKdTI2c8ulnbP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQBokmAAoJEBus8iNuMP3de4kP/3qZEdviooJ+BBKA/C/Op2EW
+4iqwHdkVQP5oouXXUBZQST6DEcRqEZvyJFN5zzvlEmW8Z5RSPTOioPd739NJzN1s
+nMsLGHe52b/ursfKzm+HV72WqXGkENX2rnEgxr9L5j8BCbGreJeEU8on8CoWAi8l
+gbksT690zaiTs/nSCf5BnmDVQCaOrvMN+5KxcoPE2ppRcr0YDzFVqFqjuoLInKHH
+6RnQIBalyb8H/gH9+ADbrDyHk8EeVVUJOmKnka39tZ+3Dku4ET6tMjaZKmpIRv2b
+5AAnHqUzxq9ywdPE+xvZpCnn/RUM0jtpnJTLsqaLoaXS5DWCSiEzSAfJWhbfEyov
+1F6pCHlT9UJqYHck3/fHizeD5CTo+2htg1D2SikZaLiM6Jbzoz/h5g1x4NEEvrRz
+Cu/j05X/dBlxkNugLKjKURO0qXUglWE0PU9fTIfi9DzLSmc496KrxNXxOeO8f7K5
+ZYX8LQJyactZxzzffrYbCYifEugYf55sTgo2VdkwvtbOaW1nGZaP8pWJgGuPqHHO
+1A+sXwiWnf/JYpmEsZtGjO+Nx7phSKsKhiXvUQnv5aQe4IJguD57+UNcfy4Ciy++
+DShbIbvJUGZsWj+GPCUhI7ccrVI/qttu7PH+WDNZrMguJEkTNTUHzezdUhkaZ/Bw
+9lnHjcV9U+N7duiCKn6g
+=FWg0
+-----END PGP SIGNATURE-----
+
+--WplhKdTI2c8ulnbP--
