@@ -1,46 +1,32 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 0/3] Add cyclic DMA support to OMAP DMA engine driver
-Date: Wed, 18 Jul 2012 21:47:05 +0530
-Message-ID: <CAMQu2gygvOeWrOPBnc=21oTPWWnFG8go5gcxAJ5UfDTG+cPRLw@mail.gmail.com>
-References: <20120622085911.GA19026@n2100.arm.linux.org.uk>
- <20120622123013.GA7586@sirena.org.uk> <20120622131750.GB19226@n2100.arm.linux.org.uk>
- <20120622161155.GM4037@opensource.wolfsonmicro.com> <20120625111847.GE19226@n2100.arm.linux.org.uk>
- <20120627114003.GG308@opensource.wolfsonmicro.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: OMAP PM late init with DT blob
+Date: Wed, 18 Jul 2012 10:22:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207181018550.16772@utopia.booyaka.com>
+References: <B5906170F1614E41A8A28DE3B8D121433EB110DA@DBDE01.ent.ti.com> <alpine.DEB.2.00.1207171430430.28834@utopia.booyaka.com> <B5906170F1614E41A8A28DE3B8D121433EB128F7@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:52530 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753171Ab2GRQR2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jul 2012 12:17:28 -0400
-Received: by vcbfy27 with SMTP id fy27so3032304vcb.9
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 09:17:25 -0700 (PDT)
-In-Reply-To: <20120627114003.GG308@opensource.wolfsonmicro.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:45937 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242Ab2GRQWm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 12:22:42 -0400
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB128F7@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-+ Peter,
+On Wed, 18 Jul 2012, Bedia, Vaibhav wrote:
 
-On Wed, Jun 27, 2012 at 5:10 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Mon, Jun 25, 2012 at 12:18:47PM +0100, Russell King - ARM Linux wrote:
->
->> It appears to be something to do with the jack detection that's going wrong.
->> If I start the audio with the jack disconnected, I never get anything out
->> of the board.  It requires the jack to be connected before the first use.
->> The on-board speakers used to work without the jack plugged in at one time
->> but they seem to be completely non-functional now.
->
->> Confused.
->
-> Me too - there's nothing obvious in the code just from inspection that
-> would affect this.
+> I checked the different inits which get skipped right now. I think _init_voltages()
+> should not really be dependent on the DT check to cover the cases wherein the voltages
+> are controlled using a regular regulator driver. However right now I don't know what
+> approach to take here. For now I have sent an RFC patch [1] with just the movement of
+> suspend ops.
 
-Does audio work with $subject series after your mux fixes which
-you posted recently.
+That seems reasonable based on a quick glance.  Why not update your patch 
+to just keep that code where it is and wrap the the pmic and voltage late 
+init in that DT test?
 
-Regards
-Santosh
+
+- Paul
