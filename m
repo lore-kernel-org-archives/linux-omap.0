@@ -1,61 +1,158 @@
-From: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Subject: Re: [RFC/PATCH 3/3] i2c: omap: Add support for I2C_M_STOP message flag
-Date: Wed, 18 Jul 2012 03:05:57 +0200
-Message-ID: <29216681.BqaBliBlOO@avalon>
-References: <1340720229-30356-1-git-send-email-laurent.pinchart@ideasonboard.com> <1340720229-30356-4-git-send-email-laurent.pinchart@ideasonboard.com> <20120717172935.45ff210f@endymion.delvare>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
+Date: Tue, 17 Jul 2012 19:20:35 -0700
+Message-ID: <20120718022035.GC18663@animalcreek.com>
+References: <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com>
+ <WC20120712144308.86003F@terrafix.co.uk>
+ <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com>
+ <WC20120713105737.0900A2@terrafix.co.uk>
+ <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
+ <20120717004010.GA6612@animalcreek.com>
+ <alpine.DEB.2.00.1207161841260.28834@utopia.booyaka.com>
+ <WC20120717100848.280191@terrafix.co.uk>
+ <alpine.DEB.2.00.1207171326510.28834@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120717172935.45ff210f-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:55196 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051Ab2GRCUg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 22:20:36 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1207171326510.28834@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Hi Jean,
-
-On Tuesday 17 July 2012 17:29:35 Jean Delvare wrote:
-> On Tue, 26 Jun 2012 16:17:09 +0200, Laurent Pinchart wrote:
-> > Generate a stop condition after each message marked with I2C_M_STOP.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> > ---
-> > 
-> >  drivers/i2c/busses/i2c-omap.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> > index 801df60..cf1bda0 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -545,6 +545,8 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
-> > 
-> >  	if (dev->speed > 400)
-> >  	
-> >  		w |= OMAP_I2C_CON_OPMODE_HS;
-> > 
-> > +	if (msg->flags & I2C_M_STOP)
-> > +		stop = 1;
-> > 
-> >  	if (msg->flags & I2C_M_TEN)
-> >  	
-> >  		w |= OMAP_I2C_CON_XA;
-> >  	
-> >  	if (!(msg->flags & I2C_M_RD))
+On Tue, Jul 17, 2012 at 01:28:13PM -0600, Paul Walmsley wrote:
+> Hi Joe, Mark,
 > 
-> Looks OK to me, but I can't test it, and I also don't know a thing
-> about OMAP.
+> On Tue, 17 Jul 2012, Joe Woodward wrote:
+> 
+> > The patch you sent is basically in two halves:
+> >   - the writes to the registers
+> >   - the calling of omap3_iva_idle().
+> > 
+> > If I patch only the writes to the registers then suspend still fails.
+> > If I patch only the calling of omap3_iva_idle() then suspend works.
+> > If I patch both the writes to the registers and the calling of omap3_iva_idle() then suspend works.
+> 
+> Wow, that's unexpected.  Thanks very much for trying this.
+> 
+> Well Mark, I guess that's your answer.  Looks like the IVA is still 
+> running on that AM3703 chip.  I guess it's probably best to do both 
+> halves, anyway.
 
-I've tested it and it works :-)
+How does this look?
 
-> Maybe it would be a good idea to let omap_i2c_func() return
-> I2C_FUNC_PROTOCOL_MANGLING now?
+Based on linux-omap/master (ce6b8b760e2fef013b1038e5398580d187f80c00).
 
-Good point. It should already have been returned, as the driver already 
-supports I2C_M_IGNORE_ACK.
+I'm not very creative when it comes to naming this thing so I'm
+happy if you have a better idea.  I tested it on an am37xevm and
+tried to test on an am35xevm but it appears that the am35xevm is
+broken in that branch. :(
 
+Mark
+--
+
+>From b889b2642bd16b3d8e5856f39a3ea08d10102aad Mon Sep 17 00:00:00 2001
+From: Mark A. Greer <mgreer@animalcreek.com>
+Date: Tue, 17 Jul 2012 18:50:01 -0700
+Subject: [PATCH] ARM: OMAP3: Add OMAP3_HAS_IVA_REGS feature
+
+It appears that the am3703 and possibly the am3715 SoCs
+have an active IVA subsystem even though the CONTROL_IDCODE
+register indicates that they don't.  From experimentation,
+it seems that the IVA still requires some registers to be
+initialized even though we don't want it fully functional.
+
+To accomplish this, add a new feature (OMAP3_HAS_IVA_REGS)
+that indicates that the IVA should be initialized but not
+really used.
+
+Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
+---
+ arch/arm/mach-omap2/id.c              |    2 +-
+ arch/arm/mach-omap2/pm34xx.c          |    4 ++--
+ arch/arm/plat-omap/include/plat/cpu.h |   22 ++++++++++++----------
+ 3 files changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 40373db..4072fbd 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -242,7 +242,7 @@ void __init omap3xxx_check_features(void)
+ 	OMAP3_CHECK_FEATURE(status, NEON);
+ 	OMAP3_CHECK_FEATURE(status, ISP);
+ 	if (cpu_is_omap3630())
+-		omap_features |= OMAP3_HAS_192MHZ_CLK;
++		omap_features |= OMAP3_HAS_192MHZ_CLK | OMAP3_HAS_IVA_REGS;
+ 	if (cpu_is_omap3430() || cpu_is_omap3630())
+ 		omap_features |= OMAP3_HAS_IO_WAKEUP;
+ 	if (cpu_is_omap3630() || omap_rev() == OMAP3430_REV_ES3_1 ||
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e4fc88c..119cbf0 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -545,7 +545,7 @@ static void __init prcm_setup_regs(void)
+ 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+ 
+ 	/* Don't attach IVA interrupts */
+-	if (omap3_has_iva()) {
++	if (omap3_has_iva() || omap3_has_iva_regs()) {
+ 		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
+ 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
+ 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
+@@ -565,7 +565,7 @@ static void __init prcm_setup_regs(void)
+ 	/* Clear any pending PRCM interrupts */
+ 	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+-	if (omap3_has_iva())
++	if (omap3_has_iva() || omap3_has_iva_regs())
+ 		omap3_iva_idle();
+ 
+ 	omap3_d2d_idle();
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 68b180e..2509bf4 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -451,16 +451,17 @@ extern u32 omap_features;
+ 
+ #define OMAP3_HAS_L2CACHE		BIT(0)
+ #define OMAP3_HAS_IVA			BIT(1)
+-#define OMAP3_HAS_SGX			BIT(2)
+-#define OMAP3_HAS_NEON			BIT(3)
+-#define OMAP3_HAS_ISP			BIT(4)
+-#define OMAP3_HAS_192MHZ_CLK		BIT(5)
+-#define OMAP3_HAS_IO_WAKEUP		BIT(6)
+-#define OMAP3_HAS_SDRC			BIT(7)
+-#define OMAP3_HAS_IO_CHAIN_CTRL		BIT(8)
+-#define OMAP4_HAS_MPU_1GHZ		BIT(9)
+-#define OMAP4_HAS_MPU_1_2GHZ		BIT(10)
+-#define OMAP4_HAS_MPU_1_5GHZ		BIT(11)
++#define OMAP3_HAS_IVA_REGS		BIT(2)
++#define OMAP3_HAS_SGX			BIT(3)
++#define OMAP3_HAS_NEON			BIT(4)
++#define OMAP3_HAS_ISP			BIT(5)
++#define OMAP3_HAS_192MHZ_CLK		BIT(6)
++#define OMAP3_HAS_IO_WAKEUP		BIT(7)
++#define OMAP3_HAS_SDRC			BIT(8)
++#define OMAP3_HAS_IO_CHAIN_CTRL		BIT(9)
++#define OMAP4_HAS_MPU_1GHZ		BIT(10)
++#define OMAP4_HAS_MPU_1_2GHZ		BIT(11)
++#define OMAP4_HAS_MPU_1_5GHZ		BIT(12)
+ 
+ 
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+@@ -472,6 +473,7 @@ static inline unsigned int omap3_has_ ##feat(void)	\
+ OMAP3_HAS_FEATURE(l2cache, L2CACHE)
+ OMAP3_HAS_FEATURE(sgx, SGX)
+ OMAP3_HAS_FEATURE(iva, IVA)
++OMAP3_HAS_FEATURE(iva_regs, IVA_REGS)
+ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
