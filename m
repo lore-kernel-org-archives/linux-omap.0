@@ -1,62 +1,93 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: tps65217: fix build error if REGULATOR is not
- enabled
-Date: Wed, 18 Jul 2012 10:44:49 +0100
-Message-ID: <20120718094449.GA22739@opensource.wolfsonmicro.com>
-References: <1342593663-23938-1-git-send-email-anilkumar@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 4/4] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
+Date: Wed, 18 Jul 2012 09:46:39 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA70918@DBDE01.ent.ti.com>
+References: <1338285402-11306-1-git-send-email-hvaibhav@ti.com>
+ <1338285402-11306-5-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1207171353190.28834@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:37644 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751010Ab2GRJow (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:44:52 -0400
-Content-Disposition: inline
-In-Reply-To: <1342593663-23938-1-git-send-email-anilkumar@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43883 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752964Ab2GRJqr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 05:46:47 -0400
+In-Reply-To: <alpine.DEB.2.00.1207171353190.28834@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: rdunlap@xenotime.net, sfr@canb.auug.org.au, sameo@linux.intel.com, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
+On Wed, Jul 18, 2012 at 01:29:01, Paul Walmsley wrote:
+> Hi Vaibhav
+> 
+> a comment.
+> 
+> On Tue, 29 May 2012, Vaibhav Hiremath wrote:
+> 
+> > This patch adds HWMOD data for all the peripherals of
+> > AM335X device and also hooks up to the existing OMAP framework.
+> 
+> 
+> ...
+> 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> > new file mode 100644
+> > index 0000000..df888fe
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> > @@ -0,0 +1,3368 @@
+> 
+> ...
+> 
+> > +static struct omap_hwmod_irq_info am33xx_emif_irqs[] = {
+> > +	{ .name = "ddrerr0", .irq = 101 },
+> > +	{ .irq = -1 }
+> > +};
+> 
+> So the above array of struct omap_hwmod_irq_info records has a terminator 
+> (which is correct), but many similar arrays do not, such as:
+> 
+> > +/* l3_main (l3_fast) */
+> > +static struct omap_hwmod_irq_info am33xx_l3_main_irqs[] = {
+> > +	{ .name = "l3debug", .irq = 9 },
+> > +	{ .name = "l3appint", .irq = 10 },
+> > +};
+> 
+> and
+> 
+> > +static struct omap_hwmod_irq_info am33xx_mpu_irqs[] = {
+> > +	{ .name = "emuint", .irq = 0 },
+> > +	{ .name = "commtx", .irq = 1 },
+> > +	{ .name = "commrx", .irq = 2 },
+> > +	{ .name = "bench", .irq = 3 },
+> > +};
+> 
+> and
+> 
+> > +static struct omap_hwmod_rst_info am33xx_wkup_m3_resets[] = {
+> > +	{ .name = "wkup_m3", .rst_shift = 3, .st_shift = 5 },
+> > +};
+> > +
+> > +static struct omap_hwmod_irq_info am33xx_wkup_m3_irqs[] = {
+> > +	{ .name = "txev", .irq = 78 },
+> > +};
+> 
+> and several others.  
+> 
+> Could you add those, please?
+> 
 
---IJpNTDwzlM2Ie8A6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks Paul for the review, I will fix it next version.
 
-On Wed, Jul 18, 2012 at 12:11:03PM +0530, AnilKumar Ch wrote:
-> Fixes below build error if CONFIG_REGULATOR is not enabled.
->=20
-> drivers/built-in.o: In function `tps65217_probe':
-> tps65217.c:(.devinit.text+0x13e37): undefined reference to `of_regulator_=
-match'
+> The omap_hwmod_dma_info arrays look clean to me.
+> 
 
-This isn't a patch to the regulator driver, this is a patch to the MFD.
-Normally this would be fixed by making the MFD driver not depend on the
-regulator API - why is the MFD driver using the regulator API?
+Have you done with review? Should I wait for further comments or submit the 
+next version?
 
---IJpNTDwzlM2Ie8A6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks,
+Vaibhav
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQBoV8AAoJEBus8iNuMP3dVXwP/1pxnlpS8W3n3KZbkYvTAQDb
-1yDP1EbGKF2CaEUrhop4tAQrEnnVW9YDTa7c4sjq2978q2Y1AcUeJeiZquHonhjR
-MvIlgO2WpAm+waRpk7CV5C3kGVdDxe8N6E7+rUrV2ghlrAGf9oLJWqudsWWbmRfS
-qls9qgnaQXY1HYH9yUZYgqF9//OSEIsCxdEG6G/AKxBj4Fka7FxfqtgewdSBbFxk
-AtoG0s/ywGDjw4A8iOKP9TevzIJ9XL7Rf9qFvE/JQ1Eywh12qyFy6qVgq4+tAMgm
-oHno1unLROEkc93nlNYQKWgKO90bbM5Hgo4NVId+JuEdZcQ73ZfB5h9B0dE28yVu
-4haPIPaiev+5B0ERF29W/uEJRV6gY0IHoJGfbsBdEHG5oqG7hKlYEBeW8DnOtxAZ
-IG0tGZKzVUi3Z/QydGBUtAuwTC4OOStVPRjVTQd7hvsAIrDX4rE1x7XveAOIiS7D
-WbggLKZH93pI232997o+gb8bcodT4AwwBzO5BQLEWTW3LWBb49UEWqq5ZIH3ZVN+
-rdtvYCocBdxINZtmF5psSKffAQOBNZQp9Qgm8hVq2BV/qLUj1WCae3cSnWQGpYoA
-LtH3W39Bb9pGxbE+F6Dh1xbBV4g4aaFvtbscq7BRNex88i7ehvCEhxX56kp1amIO
-Qgx2uEfvQyySjXmDwcrU
-=9gaP
------END PGP SIGNATURE-----
-
---IJpNTDwzlM2Ie8A6--
