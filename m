@@ -1,71 +1,57 @@
-From: Hiroshi Doyu <hdoyu@nvidia.com>
-Subject: Re: [v3.6 3/3] iommu/tegra: smmu: Fix unsleepable memory allocation
- at alloc_pdir()
-Date: Wed, 18 Jul 2012 10:50:35 +0200
-Message-ID: <20120718.115035.519900225393247427.hdoyu@nvidia.com>
-References: <20120717100901.GH4213@amd.com><20120717.152524.175499431618552821.hdoyu@nvidia.com><20120717132300.GK4213@amd.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 3/7] ARM: OMAP4: hwmod: flag hwmods/modules not
+ supporting module level context status
+Date: Wed, 18 Jul 2012 12:00:42 +0300
+Message-ID: <1342602042.4672.85.camel@sokoban>
+References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+	 <1339428387-4800-4-git-send-email-t-kristo@ti.com>
+	 <CAOMWX4e9bpJivetsx-FD_U7BbjrWh0Xto-7MTUe5YK8Mjpi9Sg@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:9167 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751663Ab2GRIup convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 04:50:45 -0400
-In-Reply-To: <20120717132300.GK4213@amd.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39896 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751704Ab2GRJAx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jul 2012 05:00:53 -0400
+In-Reply-To: <CAOMWX4e9bpJivetsx-FD_U7BbjrWh0Xto-7MTUe5YK8Mjpi9Sg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "joerg.roedel@amd.com" <joerg.roedel@amd.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "chrisw@sous-sol.org" <chrisw@sous-sol.org>, "ohad@wizery.com" <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-"joerg.roedel@amd.com" <joerg.roedel@amd.com> wrote @ Tue, 17 Jul 2012 15:23:00 +0200:
-
-> On Tue, Jul 17, 2012 at 02:25:24PM +0200, Hiroshi Doyu wrote:
-> > The above spin_lock is always necessary. "as->lock" should be held to
-> > protect "as->pdir_page". Only when "as->pdir_page" is NULL,
-> > "as->pdir_page" would be allocated in "alloc_pdir()". Without this
-> > lock, the following race could happen:
-> > 
-> > 
-> > Without as->lock:
-> > A:			B:
-> > i == 3
-> > pdir_page == NULL
-> > 			i == 3
-> > 	     		pdir_page == NULL
-> > pdir_page = a;
-> > 			pdir_page = b;	!!!!!! OVERWRITTEN !!!!!!
+On Tue, 2012-07-17 at 03:11 -0500, Menon, Nishanth wrote:
+> On Mon, Jun 11, 2012 at 10:26 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> > On OMAP4 most modules/hwmods support module level context status. On
+> > OMAP3 and earlier, we relied on the power domain level context status.
+> > Identify all modules that don't support 'context_offs' by marking the
+> > offset as USHRT_MAX. Rest have a valid 'context_offs' populated in
+> > .prcm structure already.
 > >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > index 86fc513..828e7b8 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -208,6 +208,7 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod = {
+> >         .prcm = {
+> >                 .omap4 = {
+> >                         .clkctrl_offs = OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET,
+> > +                       .context_offs = USHRT_MAX,
 > 
-> Unless I am missing something, this is not the correct situation with my
-> patch. It would look more like this:
-> 
-> 
->  A:					B:
->  i == 3
->  pdir_page == NULL
->  					i == 3
->  	     				pdir_page == NULL
-> 
->  take as->lock
-> 
->  /* race check */
->  pdir_page == NULL -> proceed		/* spinning on as->lock */
-> 
->  pdir_page = a;
-> 
->  release as->lock
-> 
-> 					 take as->lock
-> 
-> 					 /* race check */
-> 					 pdir_page != NULL -> return
-> 
-> This should be fine, no? Do I miss something?
+> OMAP4430_RM_ABE_AESS_CONTEXT? why not use LOSTMEM_AESSMEM ? ABE will
+> need to know when it lost context to be able to reload it's firmware,
+> no?
 
-You are right. I didn't get the point of your patch. In the case that
-you can return -EAGAIN, the complicated "lock,unlock,lock,check race"
-is not necessary as you did.
+You are right, this should be possible to use. I just searched for
+modules which didn't have context_offs defined and added USHRT_MAX
+blindly there.
 
-Verified the patch w/ Tegra3 based board. Please put this into next
-queue. Thanks.
+-Tero
+
+
