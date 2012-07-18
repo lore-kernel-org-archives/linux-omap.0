@@ -1,158 +1,197 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Tue, 17 Jul 2012 19:20:35 -0700
-Message-ID: <20120718022035.GC18663@animalcreek.com>
-References: <alpine.DEB.2.00.1207120456100.25585@utopia.booyaka.com>
- <WC20120712144308.86003F@terrafix.co.uk>
- <alpine.DEB.2.00.1207121334150.25585@utopia.booyaka.com>
- <WC20120713105737.0900A2@terrafix.co.uk>
- <alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
- <20120717004010.GA6612@animalcreek.com>
- <alpine.DEB.2.00.1207161841260.28834@utopia.booyaka.com>
- <WC20120717100848.280191@terrafix.co.uk>
- <alpine.DEB.2.00.1207171326510.28834@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
+ EMAC
+Date: Tue, 17 Jul 2012 21:54:53 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:55196 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051Ab2GRCUg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 22:20:36 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1207171326510.28834@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:57396 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab2GRDyy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jul 2012 23:54:54 -0400
+In-Reply-To: <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jul 17, 2012 at 01:28:13PM -0600, Paul Walmsley wrote:
-> Hi Joe, Mark,
+Hi
+
+just a quick comment on this one.
+
+On Fri, 11 May 2012, Mark A. Greer wrote:
+
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
 > 
-> On Tue, 17 Jul 2012, Joe Woodward wrote:
+> The am35x family of SoCs has a Davinci EMAC ethernet
+> controller on-chip.  Unfortunately, the EMAC is unable
+> to wake the PRCM when there is network activity which
+> leads to a hung or extremely slow system when the MPU
+> has executed a 'wfi' instruction (because of pm_idle
+> or CPUidle).  To prevent this, add hooks to the EMAC
+> pm_runtime suspend/resume calls so that hlt is disabled
+> whenever the EMAC is in use.
 > 
-> > The patch you sent is basically in two halves:
-> >   - the writes to the registers
-> >   - the calling of omap3_iva_idle().
-> > 
-> > If I patch only the writes to the registers then suspend still fails.
-> > If I patch only the calling of omap3_iva_idle() then suspend works.
-> > If I patch both the writes to the registers and the calling of omap3_iva_idle() then suspend works.
-> 
-> Wow, that's unexpected.  Thanks very much for trying this.
-> 
-> Well Mark, I guess that's your answer.  Looks like the IVA is still 
-> running on that AM3703 chip.  I guess it's probably best to do both 
-> halves, anyway.
+> Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 
-How does this look?
+...
 
-Based on linux-omap/master (ce6b8b760e2fef013b1038e5398580d187f80c00).
+> --- a/arch/arm/mach-omap2/am35xx-emac.c
+> +++ b/arch/arm/mach-omap2/am35xx-emac.c
+> @@ -23,6 +23,37 @@
+>  #include "control.h"
+>  #include "am35xx-emac.h"
+>  
+> +/*
+> + * Default pm_lats for the am35x.
+> + * The net effect of using am35xx_emac_pm_lats[] is that
+> + * pm_idle or CPUidle won't be called while the emac
+> + * interface is open.  This is required because the
+> + * EMAC can't wake up PRCM so if the MPU is executing
+> + * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
+> + * it won't break out of it due to emac activity.
+> + */
+> +static int am35xx_emac_deactivate_func(struct omap_device *od)
+> +{
+> +	enable_hlt();
+> +	return omap_device_idle_hwmods(od);
+> +}
+> +
+> +static int am35xx_emac_activate_func(struct omap_device *od)
+> +{
+> +	disable_hlt();
+> +	return omap_device_enable_hwmods(od);
+> +}
 
-I'm not very creative when it comes to naming this thing so I'm
-happy if you have a better idea.  I tested it on an am37xevm and
-tried to test on an am35xevm but it appears that the am35xevm is
-broken in that branch. :(
+>From the patch description, it doesn't sound like it's WFI entry that's 
+the problem.  The EMAC can assert its interrupt lines to the INTC, since 
+the EMAC is active.  If the MPU and CORE powerdomains are ON, then the ARM 
+core should wake up out of WFI.  (Unless there's some weird bug; always 
+possible.)
 
-Mark
---
+Probably the MPU DPLL has to stay running for it all to work, since I 
+think that is activated and deactivated by the PRCM.  Maybe the CORE DPLL 
+has to stay running too (but I doubt it).  But I'll bet that all the 
+clocks downstream of the DPLLs can be gated.  If it works, that would save 
+a lot of energy over the disable_hlt() approach.  With disable_hlt(), the 
+ARM & interconnect is just going to be burning power waiting for the 
+interrupt to come in.
 
->From b889b2642bd16b3d8e5856f39a3ea08d10102aad Mon Sep 17 00:00:00 2001
-From: Mark A. Greer <mgreer@animalcreek.com>
-Date: Tue, 17 Jul 2012 18:50:01 -0700
-Subject: [PATCH] ARM: OMAP3: Add OMAP3_HAS_IVA_REGS feature
+Want to try something like this?  It's your patch but modified to not use 
+disable/enable_hlt().  If it doesn't work in your test case, maybe 
+try uncommenting that second set of deny_idle / allow_idle ...
 
-It appears that the am3703 and possibly the am3715 SoCs
-have an active IVA subsystem even though the CONTROL_IDCODE
-register indicates that they don't.  From experimentation,
-it seems that the IVA still requires some registers to be
-initialized even though we don't want it fully functional.
 
-To accomplish this, add a new feature (OMAP3_HAS_IVA_REGS)
-that indicates that the IVA should be initialized but not
-really used.
+- Paul
 
-Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 ---
- arch/arm/mach-omap2/id.c              |    2 +-
- arch/arm/mach-omap2/pm34xx.c          |    4 ++--
- arch/arm/plat-omap/include/plat/cpu.h |   22 ++++++++++++----------
- 3 files changed, 15 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/am35xx-emac.c |   54 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 49 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 40373db..4072fbd 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -242,7 +242,7 @@ void __init omap3xxx_check_features(void)
- 	OMAP3_CHECK_FEATURE(status, NEON);
- 	OMAP3_CHECK_FEATURE(status, ISP);
- 	if (cpu_is_omap3630())
--		omap_features |= OMAP3_HAS_192MHZ_CLK;
-+		omap_features |= OMAP3_HAS_192MHZ_CLK | OMAP3_HAS_IVA_REGS;
- 	if (cpu_is_omap3430() || cpu_is_omap3630())
- 		omap_features |= OMAP3_HAS_IO_WAKEUP;
- 	if (cpu_is_omap3630() || omap_rev() == OMAP3430_REV_ES3_1 ||
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e4fc88c..119cbf0 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -545,7 +545,7 @@ static void __init prcm_setup_regs(void)
- 			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index 2c90ac6..d09ccd2 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -23,6 +23,41 @@
+ #include "control.h"
+ #include "am35xx-emac.h"
  
- 	/* Don't attach IVA interrupts */
--	if (omap3_has_iva()) {
-+	if (omap3_has_iva() || omap3_has_iva_regs()) {
- 		omap2_prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
- 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
- 		omap2_prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-@@ -565,7 +565,7 @@ static void __init prcm_setup_regs(void)
- 	/* Clear any pending PRCM interrupts */
- 	omap2_prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++static struct clk *mpu_dpll_ck, *core_dpll_ck;
++
++/*
++ * Default pm_lats for the am35x.
++ * The net effect of using am35xx_emac_pm_lats[] is that
++ * pm_idle or CPUidle won't be called while the emac
++ * interface is open.  This is required because the
++ * EMAC can't wake up PRCM so if the MPU is executing
++ * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
++ * it won't break out of it due to emac activity.
++ */
++static int am35xx_emac_deactivate_func(struct omap_device *od)
++{
++	mpu_dpll_ck->ops->deny_idle(mpu_dpll_ck);
++	/* core_dpll_ck->ops->deny_idle(core_dpll_ck); */
++	return omap_device_idle_hwmods(od);
++}
++
++static int am35xx_emac_activate_func(struct omap_device *od)
++{
++	mpu_dpll_ck->ops->allow_idle(mpu_dpll_ck);
++	/* core_dpll_ck->ops->allow_idle(core_dpll_ck); */
++	return omap_device_enable_hwmods(od);
++}
++
++struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
++	{
++		.deactivate_func	= am35xx_emac_deactivate_func,
++		.activate_func		= am35xx_emac_activate_func,
++		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
++
+ static void am35xx_enable_emac_int(void)
+ {
+ 	u32 v;
+@@ -58,12 +93,14 @@ static struct emac_platform_data am35xx_emac_pdata = {
+ static struct mdio_platform_data am35xx_mdio_pdata;
  
--	if (omap3_has_iva())
-+	if (omap3_has_iva() || omap3_has_iva_regs())
- 		omap3_iva_idle();
+ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+-		void *pdata, int pdata_len)
++					     void *pdata, int pdata_len,
++					     struct omap_device_pm_latency *pm_lats,
++					     int pm_lats_size)
+ {
+ 	struct platform_device *pdev;
  
- 	omap3_d2d_idle();
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 68b180e..2509bf4 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -451,16 +451,17 @@ extern u32 omap_features;
+ 	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
+-				 NULL, 0, false);
++				 pm_lats, pm_lats_size, false);
+ 	if (IS_ERR(pdev)) {
+ 		WARN(1, "Can't build omap_device for %s:%s.\n",
+ 		     oh->class->name, oh->name);
+@@ -73,7 +110,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
+ 	return 0;
+ }
  
- #define OMAP3_HAS_L2CACHE		BIT(0)
- #define OMAP3_HAS_IVA			BIT(1)
--#define OMAP3_HAS_SGX			BIT(2)
--#define OMAP3_HAS_NEON			BIT(3)
--#define OMAP3_HAS_ISP			BIT(4)
--#define OMAP3_HAS_192MHZ_CLK		BIT(5)
--#define OMAP3_HAS_IO_WAKEUP		BIT(6)
--#define OMAP3_HAS_SDRC			BIT(7)
--#define OMAP3_HAS_IO_CHAIN_CTRL		BIT(8)
--#define OMAP4_HAS_MPU_1GHZ		BIT(9)
--#define OMAP4_HAS_MPU_1_2GHZ		BIT(10)
--#define OMAP4_HAS_MPU_1_5GHZ		BIT(11)
-+#define OMAP3_HAS_IVA_REGS		BIT(2)
-+#define OMAP3_HAS_SGX			BIT(3)
-+#define OMAP3_HAS_NEON			BIT(4)
-+#define OMAP3_HAS_ISP			BIT(5)
-+#define OMAP3_HAS_192MHZ_CLK		BIT(6)
-+#define OMAP3_HAS_IO_WAKEUP		BIT(7)
-+#define OMAP3_HAS_SDRC			BIT(8)
-+#define OMAP3_HAS_IO_CHAIN_CTRL		BIT(9)
-+#define OMAP4_HAS_MPU_1GHZ		BIT(10)
-+#define OMAP4_HAS_MPU_1_2GHZ		BIT(11)
-+#define OMAP4_HAS_MPU_1_5GHZ		BIT(12)
+-void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
++void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
++		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
+ {
+ 	struct omap_hwmod *oh;
+ 	u32 v;
+@@ -88,7 +126,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ 	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
  
+ 	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
+-					 sizeof(am35xx_mdio_pdata));
++					 sizeof(am35xx_mdio_pdata), NULL, 0);
+ 	if (ret) {
+ 		pr_err("Could not build davinci_mdio hwmod device\n");
+ 		return;
+@@ -103,12 +141,18 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
+ 	am35xx_emac_pdata.rmii_en = rmii_en;
  
- #define OMAP3_HAS_FEATURE(feat,flag)			\
-@@ -472,6 +473,7 @@ static inline unsigned int omap3_has_ ##feat(void)	\
- OMAP3_HAS_FEATURE(l2cache, L2CACHE)
- OMAP3_HAS_FEATURE(sgx, SGX)
- OMAP3_HAS_FEATURE(iva, IVA)
-+OMAP3_HAS_FEATURE(iva_regs, IVA_REGS)
- OMAP3_HAS_FEATURE(neon, NEON)
- OMAP3_HAS_FEATURE(isp, ISP)
- OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+ 	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
+-					 sizeof(am35xx_emac_pdata));
++					 sizeof(am35xx_emac_pdata),
++					 pm_lats, pm_lats_size);
+ 	if (ret) {
+ 		pr_err("Could not build davinci_emac hwmod device\n");
+ 		return;
+ 	}
+ 
++	mpu_dpll_ck = clk_get(NULL, "dpll1_ck");
++	WARN(!mpu_dpll_ck);
++	core_dpll_ck = clk_get(NULL, "dpll3_ck");
++	WARN(!core_dpll_ck);
++
+ 	v = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+ 	v &= ~AM35XX_CPGMACSS_SW_RST;
+ 	omap_ctrl_writel(v, AM35XX_CONTROL_IP_SW_RESET);
 -- 
-1.7.0.4
+1.7.10.4
 
