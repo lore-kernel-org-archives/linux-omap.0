@@ -1,64 +1,56 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
  EMAC
-Date: Wed, 18 Jul 2012 14:32:46 -0700
-Message-ID: <20120718213246.GD27904@animalcreek.com>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
- <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com>
+Date: Wed, 18 Jul 2012 17:25:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com> <20120718213246.GD27904@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:57386 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751619Ab2GRVcs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 17:32:48 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58084 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab2GRXZR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 19:25:17 -0400
+In-Reply-To: <20120718213246.GD27904@animalcreek.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: "Mark A. Greer" <mgreer@animalcreek.com>
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, Jul 17, 2012 at 09:54:53PM -0600, Paul Walmsley wrote:
-> Hi
+On Wed, 18 Jul 2012, Mark A. Greer wrote:
 
-Hi Paul.
-
-> From the patch description, it doesn't sound like it's WFI entry that's 
-> the problem.  The EMAC can assert its interrupt lines to the INTC, since 
-> the EMAC is active.  If the MPU and CORE powerdomains are ON, then the ARM 
-> core should wake up out of WFI.  (Unless there's some weird bug; always 
-> possible.)
+> On Tue, Jul 17, 2012 at 09:54:53PM -0600, Paul Walmsley wrote:
 > 
-> Probably the MPU DPLL has to stay running for it all to work, since I 
-> think that is activated and deactivated by the PRCM.  Maybe the CORE DPLL 
-> has to stay running too (but I doubt it).  But I'll bet that all the 
-> clocks downstream of the DPLLs can be gated.  If it works, that would save 
-> a lot of energy over the disable_hlt() approach.  With disable_hlt(), the 
-> ARM & interconnect is just going to be burning power waiting for the 
-> interrupt to come in.
+> > Want to try something like this?  It's your patch but modified to not use 
+> > disable/enable_hlt().  If it doesn't work in your test case, maybe 
+> > try uncommenting that second set of deny_idle / allow_idle ...
+> 
+> I tested the modified patch (to get it to compile) below.
 
-Makes sense.
+Doh, sorry about that. 
 
-> Want to try something like this?  It's your patch but modified to not use 
-> disable/enable_hlt().  If it doesn't work in your test case, maybe 
-> try uncommenting that second set of deny_idle / allow_idle ...
+> It did not work with or without the core_dpll_ck deny_idle/allow_idle
+> commented out.
 
-I tested the modified patch (to get it to compile) below.
-It did not work with or without the core_dpll_ck deny_idle/allow_idle
-commented out.
+Here's a version with some of the CPUIdle states restricted.  Maybe try 
+this one if you're using CPUIdle?
 
-Mark
+If it happens to work, it would also be interesting to know if it works 
+with the CORE DPLL part commented out.
+
+
+- Paul
+
 ---
  arch/arm/mach-omap2/am35xx-emac.c     |   56 ++++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/am35xx-emac.h     |   13 ++++++-
+ arch/arm/mach-omap2/am35xx-emac.h     |   13 ++++++--
  arch/arm/mach-omap2/board-am3517evm.c |    3 +-
  arch/arm/mach-omap2/board-cm-t3517.c  |    3 +-
- 4 files changed, 66 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c     |    5 +++
+ 5 files changed, 71 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-index 2c90ac6..ed695e8 100644
+index 2c90ac6..6b0edcd 100644
 --- a/arch/arm/mach-omap2/am35xx-emac.c
 +++ b/arch/arm/mach-omap2/am35xx-emac.c
 @@ -16,13 +16,50 @@
@@ -88,14 +80,14 @@ index 2c90ac6..ed695e8 100644
 +static int am35xx_emac_deactivate_func(struct omap_device *od)
 +{
 +	mpu_dpll_ck->ops->deny_idle(mpu_dpll_ck);
-+	/* core_dpll_ck->ops->deny_idle(core_dpll_ck); */
++	core_dpll_ck->ops->deny_idle(core_dpll_ck);
 +	return omap_device_idle_hwmods(od);
 +}
 +
 +static int am35xx_emac_activate_func(struct omap_device *od)
 +{
 +	mpu_dpll_ck->ops->allow_idle(mpu_dpll_ck);
-+	/* core_dpll_ck->ops->allow_idle(core_dpll_ck); */
++	core_dpll_ck->ops->allow_idle(core_dpll_ck);
 +	return omap_device_enable_hwmods(od);
 +}
 +
@@ -223,3 +215,50 @@ index a33ad46..8258057 100644
  }
  
  MACHINE_START(CM_T3517, "Compulab CM-T3517")
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index f2a49a4..d95dd8c 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -291,6 +291,7 @@ struct cpuidle_driver omap3_idle_driver = {
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C3",
+ 			.desc		  = "MPU RET + CORE ON",
++			.disable	  = 1,
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+@@ -299,6 +300,7 @@ struct cpuidle_driver omap3_idle_driver = {
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C4",
+ 			.desc		  = "MPU OFF + CORE ON",
++			.disable	  = 1,
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+@@ -307,6 +309,7 @@ struct cpuidle_driver omap3_idle_driver = {
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C5",
+ 			.desc		  = "MPU RET + CORE RET",
++			.disable	  = 1,
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+@@ -315,6 +318,7 @@ struct cpuidle_driver omap3_idle_driver = {
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C6",
+ 			.desc		  = "MPU OFF + CORE RET",
++			.disable	  = 1,
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+@@ -323,6 +327,7 @@ struct cpuidle_driver omap3_idle_driver = {
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C7",
+ 			.desc		  = "MPU OFF + CORE OFF",
++			.disable	  = 1,
+ 		},
+ 	},
+ 	.state_count = ARRAY_SIZE(omap3_idle_data),
+-- 
+1.7.10.4
+
