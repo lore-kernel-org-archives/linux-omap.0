@@ -1,65 +1,86 @@
-From: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Subject: Re: [PATCH] OMAP4: 4430sdp: OTG: increase max allowed output current
-Date: Wed, 18 Jul 2012 12:43:22 +0300
-Message-ID: <CAEa47Nqu_b_KGou30u64gsQC_Qwz-X=P9_a5YRTTCCE0mwS2mg@mail.gmail.com>
-References: <1342099542-13862-1-git-send-email-ruslan.bilovol@ti.com>
-	<CAAe_U6Kza7Zc2SF-ve761Kb2_0Q-9K19qkAZ2eahh-AHrsfh8w@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+ hosts by default
+Date: Wed, 18 Jul 2012 15:14:28 +0530
+Message-ID: <CAMQu2gy+uXJFfmOwLX=YH41pr-N+T28-1wLo5rXEaj9MGffHPw@mail.gmail.com>
+References: <1342485005-5178-1-git-send-email-javier@dowhile0.org>
+ <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com>
+ <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com>
+ <20120718065951.GH6522@atomide.com> <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com>
+ <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com>
+ <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
+ <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
+ <CAMQu2gxLwGACAT-r6=L9DKB=3fTNaEJ4woZOb4zttJ8qTTJmFA@mail.gmail.com>
+ <CAAwP0s2apfBHLKHtzvwqb2KPCMNhEXMe5R9792bO7FhfY5Y+uQ@mail.gmail.com> <CANfBPZ_N4ZK5PgFQLHWMwsG60tb-FPTjeieTJ92rBUNgONAxAw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:38894 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751010Ab2GRJnY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jul 2012 05:43:24 -0400
-Received: by vcbfk26 with SMTP id fk26so1073304vcb.5
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 02:43:22 -0700 (PDT)
-In-Reply-To: <CAAe_U6Kza7Zc2SF-ve761Kb2_0Q-9K19qkAZ2eahh-AHrsfh8w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CANfBPZ_N4ZK5PgFQLHWMwsG60tb-FPTjeieTJ92rBUNgONAxAw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
-Hi,
+On Wed, Jul 18, 2012 at 3:08 PM, S, Venkatraman <svenkatr@ti.com> wrote:
+> On Wed, Jul 18, 2012 at 2:46 PM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
 
-On Fri, Jul 13, 2012 at 8:53 AM, ABRAHAM, KISHON VIJAY <kishon@ti.com>
-wrote:
->
-> Hi,
->
-> On Thu, Jul 12, 2012 at 6:55 PM, Ruslan Bilovol <ruslan.bilovol@ti.com>
-> wrote:
-> > TWL6030/32 that is used on 4430sdp board can deliver up to 200mA
-> > for OTG port power supply in the HOST mode.
-> >
-> > Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-4430sdp.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c
-> > b/arch/arm/mach-omap2/board-4430sdp.c
-> > index 8e17284..10223f5 100644
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@ -429,7 +429,7 @@ static struct platform_device *sdp4430_devices[]
-> > __initdata = {
-> >  static struct omap_musb_board_data musb_board_data = {
-> >         .interface_type         = MUSB_INTERFACE_UTMI,
-> >         .mode                   = MUSB_OTG,
-> > -       .power                  = 100,
-> > +       .power                  = 200,
-> >  };
->
-> Shouldn't this change be made for omap4 panda as well.
+[...]
 
-Yes, omap4 panda uses same TWL IC. Should I fix this patch or send
-separate for panda?
+>>>>
+>>>> And what about enabling it at the SoC config level but making the
+>>>> drivers dependant on CONFIG_DMADEVICES and CONFIG_DMA_OMAP? If you
+>>>> agree I can send something like this in two different patches (one for
+>>>> the omap2plus_defconfig and another to make the drivers dependant on
+>>>> the config option):
+>>>>
+>>>> diff --git a/arch/arm/configs/omap2plus_defconfig
+>>>> b/arch/arm/configs/omap2plus_defconfig
+>>>> index b152de7..e58edc3 100644
+>>>> --- a/arch/arm/configs/omap2plus_defconfig
+>>>> +++ b/arch/arm/configs/omap2plus_defconfig
+>>>> @@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
+>>>>  CONFIG_RTC_CLASS=y
+>>>>  CONFIG_RTC_DRV_TWL92330=y
+>>>>  CONFIG_RTC_DRV_TWL4030=y
+>>>> +CONFIG_DMADEVICES=y
+>>>> +CONFIG_DMA_OMAP=y
+>>>>  CONFIG_EXT2_FS=y
+>>>>  CONFIG_EXT3_FS=y
+>>>>  # CONFIG_EXT3_FS_XATTR is not set
+>>>> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+>>>> index aa131b3..314c7bd 100644
+>>>> --- a/drivers/mmc/host/Kconfig
+>>>> +++ b/drivers/mmc/host/Kconfig
+>>>> @@ -231,7 +231,7 @@ config MMC_SDHCI_S3C_DMA
+>>>>
+>>>>  config MMC_OMAP
+>>>>         tristate "TI OMAP Multimedia Card Interface support"
+>>>> -       depends on ARCH_OMAP
+>>>> +       depends on ARCH_OMAP && DMADEVICES && DMA_OMAP
+>>>
+>>> May be. But since for sure a driver knows that it needs DMA
+>>> support to be enabled, I will just select it rather than depends
+>>> on.
+>>>
+>>> Regards
+>>> santosh
+>>
+>> Yes I agree with you, I was just exploring other options :-)
+>>
+> For MMC atleast, there's already a patch in mmc-next to do a "Depends On"
+> http://git.kernel.org/?p=linux/kernel/git/cjb/mmc.git;a=commit;h=7c68046c99f0b96d965c31cf42814b9a0f15ad46
 
---
-Best regards,
-Ruslan Bilovol
+Change log assumes says .
 
->
-> Thanks
-> Kishon
+"The patch simply make them depend on DMA_OMAP since DMA_OMAP
+will select DMA_ENGINE automatically"
+
+This won't be true if the DMA selection are not done
+at ARCH_OMAP level as discussed in this thread.
+
+Having said that, I think Russell and Tony need to
+take call on how this needs to be handled.
+
+Regards
+Santosh
