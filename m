@@ -1,61 +1,45 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 0/2] omap: add ocp2scp as a bus driver
-Date: Wed, 18 Jul 2012 12:00:37 +0530
-Message-ID: <1342593039-7728-1-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2 2/2] arm/dts: omap4: Add ocp2scp data
+Date: Wed, 18 Jul 2012 12:00:39 +0530
+Message-ID: <1342593039-7728-3-git-send-email-kishon@ti.com>
+References: <1342593039-7728-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54906 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817Ab2GRGbZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jul 2012 02:31:25 -0400
+In-Reply-To: <1342593039-7728-1-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, kishon@ti.com, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, ohad@wizery.com, linus.walleij@linaro.org, myungjoo.ham@samsung.com, rusty@rustcorp.com.au, swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-This patch series is done as a preparatory step for adding phy drivers
-for dwc3 and musb.
+Add ocp2scp data node in omap4 device tree file.
 
-This series adds a new driver for ocp2scp (only dt) to which phy
-drivers are connected.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/boot/dts/omap4.dtsi |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Since currently there is no generic way to create a child device along
-with doing a pm_runtime_enable (the exact requirement for ocp2scp), I'm
-creating a separate driver for ocp2scp.
-
-Changes from v1:
-Fixed Sergei's comments to remove the address in the node name of ocp2scp
-since the ocp2scp node doesn't have a reg property.
-
-Changes from [RFC PATCH v2 0/2] omap: add ocp2scp as a misc driver:
-Created a new folder drivers/bus and moved ocp2scp driver from misc to
-drivers/bus.
-
-This patch was developed and tested on
-git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git
-
-Kishon Vijay Abraham I (2):
-  drivers: bus: add a new driver for omap-ocp2scp
-  arm/dts: omap4: Add ocp2scp data
-
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 ++
- arch/arm/boot/dts/omap4.dtsi                       |    8 ++
- drivers/Kconfig                                    |    2 +
- drivers/Makefile                                   |    2 +
- drivers/bus/Kconfig                                |   15 +++
- drivers/bus/Makefile                               |    5 +
- drivers/bus/omap-ocp2scp.c                         |   98 ++++++++++++++++++++
- 7 files changed, 140 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
- create mode 100644 drivers/bus/Kconfig
- create mode 100644 drivers/bus/Makefile
- create mode 100644 drivers/bus/omap-ocp2scp.c
-
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 359c497..29c6243 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -272,5 +272,13 @@
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
+ 		};
++
++		ocp2scp {
++			compatible = "ti,omap-ocp2scp";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++			ti,hwmods = "ocp2scp_usb_phy";
++		};
+ 	};
+ };
 -- 
 1.7.5.4
+
