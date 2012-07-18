@@ -1,31 +1,53 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCHv4 7/8] ARM: OMAP: clockdomain: add support for preventing
- autodep delete
-Date: Wed, 18 Jul 2012 12:45:16 +0530
-Message-ID: <50066284.1030903@ti.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>	 <1342189185-5306-8-git-send-email-t-kristo@ti.com>	 <5003F453.9020903@ti.com> <1342536971.4672.82.camel@sokoban>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Wed, 18 Jul 2012 00:19:07 -0700
+Message-ID: <20120718071906.GJ6522@atomide.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
+ <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
+ <5000D647.4090200@gmail.com>
+ <500439A8.1050705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56908 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752059Ab2GRHPY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jul 2012 03:15:24 -0400
-Received: by obqv19 with SMTP id v19so4065614obq.16
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 00:15:23 -0700 (PDT)
-In-Reply-To: <1342536971.4672.82.camel@sokoban>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23528 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752059Ab2GRHTM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 03:19:12 -0400
+Content-Disposition: inline
+In-Reply-To: <500439A8.1050705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, device-tree <devicetree-discuss@lists.ozlabs.org>
 
-On Tuesday 17 July 2012 08:26 PM, Tero Kristo wrote:
-> Anyway, it also looks like this fix is no longer needed with the latest
-> kernel, something has changed with the gpio code / or latencies and it
-> doesn't crash anymore. Thus, it looks like patches 7&  8 can be dropped
-> from this set for now. This is the behavior with beagleboard at least,
-> if someone can verify this with some other omap3 hw that would be nice.
+* Jon Hunter <jon-hunter@ti.com> [120716 09:01]:
+> On 07/13/2012 09:15 PM, Rob Herring wrote:
+> 
+> Tony, Tarun,
+> 
+> How would you feel on replacing omap_dmtimer_request_specific(int id)
+> with say omap_dm_timer_request_by_cap(int cap)?
+> 
+> I was thinking of changing the name so that it is clear that the API has
+> changed. The "int cap" passed to the above function would be an OR of
+> the appropriate the capabilities flags we have in dmtimer.h ...
+> 
+> /* timer capabilities used in hwmod database */
+> #define OMAP_TIMER_SECURE                               0x80000000
+> #define OMAP_TIMER_ALWON                                0x40000000
+> #define OMAP_TIMER_HAS_PWM                              0x20000000
+> ...
 
-I can test it on a omap3 SDP. What do you want me to test?
+That may break coprocessors where the firmware may expect a hardcoded
+specific timer.. So at least that should be checked before the change.
+If the specific timer is still needed for some firmware, it's best to
+add a separate function for the capabilities.
+
+Also, I believe it's up to the firmware running in secure mode to
+select the secure timers. So unless there's some way to query which
+timers are claimed by the secure mode, that too needs to be passed
+via DT.
+
+Regards,
+
+Tony
