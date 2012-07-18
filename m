@@ -1,64 +1,49 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv6 3/7] ARM: OMAP4: hwmod: flag hwmods/modules not
- supporting module level context status
-Date: Wed, 18 Jul 2012 19:23:26 +0300
-Message-ID: <1342628606.4672.112.camel@sokoban>
-References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
-	 <1339428387-4800-4-git-send-email-t-kristo@ti.com>
-	 <CAOMWX4e9bpJivetsx-FD_U7BbjrWh0Xto-7MTUe5YK8Mjpi9Sg@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 0/6] OMAP: iommu: hwmod, reset handling and runtime PM
+Date: Wed, 18 Jul 2012 12:15:00 -0500
+Message-ID: <CALLhW=7PcocUyG=b+LszJj+hvNqKAY8Gf6hNPc0XW3XtF=hG9g@mail.gmail.com>
+References: <1339811764-5337-1-git-send-email-omar.luna@linaro.org>
+	<20120717101100.GI4213@amd.com>
+	<CAK=WgbbVvFoGRoitscvTRUWUWd=3HLiuvs6ZUNZnAbF67tXO5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52645 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754401Ab2GRQXg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jul 2012 12:23:36 -0400
-In-Reply-To: <CAOMWX4e9bpJivetsx-FD_U7BbjrWh0Xto-7MTUe5YK8Mjpi9Sg@mail.gmail.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:49452 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833Ab2GRRPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 13:15:01 -0400
+Received: by vcbfk26 with SMTP id fk26so1291354vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 10:15:00 -0700 (PDT)
+In-Reply-To: <CAK=WgbbVvFoGRoitscvTRUWUWd=3HLiuvs6ZUNZnAbF67tXO5A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org
 
-On Tue, 2012-07-17 at 03:11 -0500, Menon, Nishanth wrote:
-> On Mon, Jun 11, 2012 at 10:26 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> > On OMAP4 most modules/hwmods support module level context status. On
-> > OMAP3 and earlier, we relied on the power domain level context status.
-> > Identify all modules that don't support 'context_offs' by marking the
-> > offset as USHRT_MAX. Rest have a valid 'context_offs' populated in
-> > .prcm structure already.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > index 86fc513..828e7b8 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > @@ -208,6 +208,7 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod = {
-> >         .prcm = {
-> >                 .omap4 = {
-> >                         .clkctrl_offs = OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET,
-> > +                       .context_offs = USHRT_MAX,
-> 
-> OMAP4430_RM_ABE_AESS_CONTEXT? why not use LOSTMEM_AESSMEM ? ABE will
-> need to know when it lost context to be able to reload it's firmware,
-> no?
+On 17 July 2012 05:51, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> + Paul
+>
+> On Tue, Jul 17, 2012 at 1:11 PM, Joerg Roedel <joerg.roedel@amd.com> wrote:
+>> On Fri, Jun 15, 2012 at 08:55:58PM -0500, Omar Ramirez Luna wrote:
+>>> Omar Ramirez Luna (6):
+>>>   ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
+>>>   ARM: OMAP3: hwmod data: add mmu data for iva and isp
+>>>   ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+>>>   ARM: OMAP3/4: iommu: migrate to hwmod framework
+>>>   ARM: OMAP2+: iommu: add reset handling
+>>>   ARM: OMAP3/4: iommu: adapt to runtime pm
+>>
+>> What happens with this patch-set. Comments anyone? Ohad?
+>
+> Looks like it depends on a few OMAP hwmod changes (reset handling)
+> which require Paul's ACK.
 
-It looks like current hwmod data doesn't support specific bits to be
-used for the context declaration, it is only specifying the register
-offset. Also, the same register is used by aess hwmod, so this will
-cause a conflict if I take the same register into use.
+That's correct, sorry if I failed to mention that in the cover-letter,
+but it does depend on:
 
-This could be fixed by adding a field for the context bits, but I guess
-this should be commented upon by someone (Benoit / Paul) before I craft
-some sort of patch for that.
+http://lkml.indiana.edu/hypermail/linux/kernel/1207.2/00361.html
 
-Meanwhile, I will keep the USHRT_MAX here until better solution is
-available.
+For the hwmod reset handling. Mainly, I wanted to gather comments for
+this patch set.
 
--Tero
-
+- omar
