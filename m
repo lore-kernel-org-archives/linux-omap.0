@@ -1,200 +1,223 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv5 16/18] i2c: omap: resize fifos before each message
-Date: Thu, 19 Jul 2012 20:08:06 +0530
-Message-ID: <1342708688-2342-17-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv5 06/18] i2c: omap: split out [XR]DR and [XR]RDY
+Date: Thu, 19 Jul 2012 20:07:56 +0530
+Message-ID: <1342708688-2342-7-git-send-email-shubhrajyoti@ti.com>
 References: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342708688-2342-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42004 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752535Ab2GSOoW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 10:44:22 -0400
+In-Reply-To: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 
-This patch will try to avoid the usage of
-draining feature by reconfiguring the FIFO
-the start condition of each message based
-on the message's size.
+While they do pretty much the same thing, there
+are a few peculiarities. Specially WRT erratas,
+it's best to split those out and re-factor the
+read/write loop to another function which both
+cases call.
 
-By doing that, we will be better utilizing
-the FIFO when doing big transfers.
+This last part will be done on another patch.
 
-While at that also drop the now unneeded
-check for dev->buf_len as we always know
-the amount of data to be transmitted.
+While at that, also avoid an unncessary register
+read since dev->fifo_len will always contain the
+correct amount of data to be transferred.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   83 +++++++++++++++++++++++++----------------
- 1 files changed, 51 insertions(+), 32 deletions(-)
+v4: use dev->buf_len as it is in sync with the remaining
+bytes avoids a reg read thereby
+
+ drivers/i2c/busses/i2c-omap.c |  126 ++++++++++++++++++++++++++++++-----------
+ 1 files changed, 92 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 3f50021..05edae3 100644
+index 940ba64..5f6d9c5 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -193,6 +193,7 @@ struct omap_i2c_dev {
- 	u8			*regs;
- 	size_t			buf_len;
- 	struct i2c_adapter	adapter;
-+	u8			threshold;
- 	u8			fifo_size;	/* use as flag and value
- 						 * fifo_size==0 implies no fifo
- 						 * if set, should be trsh+1
-@@ -418,13 +419,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
- 
--	if (dev->fifo_size) {
--		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
--		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
--			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
--	}
--
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 
-@@ -462,6 +456,45 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
- 	return 0;
- }
- 
-+static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
-+{
-+	u16		buf;
-+
-+	if (dev->flags & OMAP_I2C_FLAG_NO_FIFO)
-+		return;
-+
-+	/*
-+	 * Set up notification threshold based on message size. We're doing
-+	 * this to try and avoid draining feature as much as possible. Whenever
-+	 * we have big messages to transfer (bigger than our total fifo size)
-+	 * then we might use draining feature to transfer the remaining bytes.
-+	 */
-+
-+	dev->threshold = clamp(size, (u8) 1, dev->fifo_size);
-+
-+	buf = omap_i2c_read_reg(dev, OMAP_I2C_BUF_REG);
-+
-+	if (is_rx) {
-+		/* Clear RX Threshold */
-+		buf &= ~(0x3f << 8);
-+		buf |= ((dev->threshold - 1) << 8) | OMAP_I2C_BUF_RXFIF_CLR;
-+	} else {
-+		/* Clear TX Threshold */
-+		buf &= ~0x3f;
-+		buf |= (dev->threshold - 1) | OMAP_I2C_BUF_TXFIF_CLR;
-+	}
-+
-+	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
-+
-+	if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
-+		dev->b_hw = 1; /* Enable hardware fixes */
-+
-+	/* calculate wakeup latency constraint for MPU */
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->latency = (1000000 * dev->threshold) /
-+			(1000 * dev->speed / 8);
-+}
-+
- /*
-  * Low level master read/write transaction.
-  */
-@@ -478,6 +511,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	if (msg->len == 0)
- 		return -EINVAL;
- 
-+	dev->receiver = !!(msg->flags & I2C_M_RD);
-+	omap_i2c_resize_fifo(dev, msg->len, dev->receiver);
-+
- 	omap_i2c_write_reg(dev, OMAP_I2C_SA_REG, msg->addr);
- 
- 	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
-@@ -493,7 +529,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 
- 	INIT_COMPLETION(dev->cmd_complete);
- 	dev->cmd_err = 0;
--	dev->receiver = !!(msg->flags & I2C_M_RD);
- 
- 	w = OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
- 
-@@ -757,12 +792,6 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 	u16		w;
- 
- 	while (num_bytes--) {
--		if (!dev->buf_len) {
--			dev_err(dev->dev, "%s without data",
--					is_rdr ? "RDR" : "RRDY");
--			break;
--		}
--
- 		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
- 		*dev->buf++ = w;
- 		dev->buf_len--;
-@@ -772,10 +801,8 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 		 * omap4 is 8 bit wide
- 		 */
- 		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--			if (dev->buf_len) {
--				*dev->buf++ = w >> 8;
--				dev->buf_len--;
--			}
-+			*dev->buf++ = w >> 8;
-+			dev->buf_len--;
- 		}
- 	}
- }
-@@ -786,12 +813,6 @@ static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 	u16		w;
- 
- 	while (num_bytes--) {
--		if (!dev->buf_len) {
--			dev_err(dev->dev, "%s without data",
--					is_xdr ? "XDR" : "XRDY");
--			break;
--		}
--
- 		w = *dev->buf++;
- 		dev->buf_len--;
- 
-@@ -800,10 +821,8 @@ static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 		 * omap4 is 8 bit wide
- 		 */
- 		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--			if (dev->buf_len) {
--				w |= *dev->buf++ << 8;
--				dev->buf_len--;
--			}
-+			w |= *dev->buf++ << 8;
-+			dev->buf_len--;
+@@ -798,36 +798,62 @@ complete:
+ 			return IRQ_HANDLED;
  		}
  
- 		if (dev->errata & I2C_OMAP_ERRATA_I462) {
-@@ -898,8 +917,8 @@ complete:
- 		if (stat & OMAP_I2C_STAT_RRDY) {
+-		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
++		if (stat & OMAP_I2C_STAT_RDR) {
  			u8 num_bytes = 1;
  
--			if (dev->fifo_size)
--				num_bytes = dev->fifo_size;
-+			if (dev->threshold)
-+				num_bytes = dev->threshold;
++			if (dev->fifo_size)
++				num_bytes = dev->buf_len;
++
++			while (num_bytes--) {
++				if (!dev->buf_len) {
++					dev_err(dev->dev,
++							"RDR IRQ while no data"
++							" requested\n");
++					break;
++				}
++
++				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
++				*dev->buf++ = w;
++				dev->buf_len--;
++
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						*dev->buf++ = w >> 8;
++						dev->buf_len--;
++					}
++				}
++			}
++
+ 			if (dev->errata & I2C_OMAP_ERRATA_I207)
+ 				i2c_omap_errata_i207(dev, stat);
  
- 			omap_i2c_receive_data(dev, num_bytes, false);
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
-@@ -926,8 +945,8 @@ complete:
+-			if (dev->fifo_size) {
+-				if (stat & OMAP_I2C_STAT_RRDY)
+-					num_bytes = dev->fifo_size;
+-				else    /* read RXSTAT on RDR interrupt */
+-					num_bytes = (omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG)
+-							>> 8) & 0x3F;
+-			}
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
++			continue;
++		}
++
++		if (stat & OMAP_I2C_STAT_RRDY) {
++			u8 num_bytes = 1;
++
++			if (dev->fifo_size)
++				num_bytes = dev->fifo_size;
++
+ 			while (num_bytes--) {
+ 				if (!dev->buf_len) {
+-					if (stat & OMAP_I2C_STAT_RRDY)
+-						dev_err(dev->dev,
++					dev_err(dev->dev,
+ 							"RRDY IRQ while no data"
+-								" requested\n");
+-					if (stat & OMAP_I2C_STAT_RDR)
+-						dev_err(dev->dev,
+-							"RDR IRQ while no data"
+-								" requested\n");
++							" requested\n");
+ 					break;
+ 				}
+ 
+ 				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+ 				*dev->buf++ = w;
+ 				dev->buf_len--;
++
+ 				/*
+ 				 * Data reg in 2430, omap3 and
+ 				 * omap4 is 8 bit wide
+@@ -840,36 +866,68 @@ complete:
+ 					}
+ 				}
+ 			}
+-			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
+-						OMAP_I2C_STAT_RDR));
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
+ 			continue;
+ 		}
+ 
+-		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
++		if (stat & OMAP_I2C_STAT_XDR) {
  			u8 num_bytes = 1;
- 			int ret;
+-			if (dev->fifo_size) {
+-				if (stat & OMAP_I2C_STAT_XRDY)
+-					num_bytes = dev->fifo_size;
+-				else    /* read TXSTAT on XDR interrupt */
+-					num_bytes = omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG)
+-							& 0x3F;
++
++			if (dev->fifo_size)
++				num_bytes = dev->buf_len;
++
++			while (num_bytes--) {
++				if (!dev->buf_len) {
++					dev_err(dev->dev,
++							"XDR IRQ while no "
++							"data to send\n");
++					break;
++				}
++
++				w = *dev->buf++;
++				dev->buf_len--;
++
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						w |= *dev->buf++ << 8;
++						dev->buf_len--;
++					}
++				}
++
++				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
++				    errata_omap3_i462(dev, &stat, &err))
++					goto complete;
++
++				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
++			continue;
++		}
++
++		if (stat & OMAP_I2C_STAT_XRDY) {
++			u8 num_bytes = 1;
++
++			if (dev->fifo_size)
++				num_bytes = dev->fifo_size;
++
+ 			while (num_bytes--) {
+ 				if (!dev->buf_len) {
+-					if (stat & OMAP_I2C_STAT_XRDY)
+-						dev_err(dev->dev,
++					dev_err(dev->dev,
+ 							"XRDY IRQ while no "
+ 							"data to send\n");
+-					if (stat & OMAP_I2C_STAT_XDR)
+-						dev_err(dev->dev,
+-							"XDR IRQ while no "
+-							"data to send\n");
+ 					break;
+ 				}
  
--			if (dev->fifo_size)
--				num_bytes = dev->fifo_size;
-+			if (dev->threshold)
-+				num_bytes = dev->threshold;
+ 				w = *dev->buf++;
+ 				dev->buf_len--;
++
+ 				/*
+ 				 * Data reg in 2430, omap3 and
+ 				 * omap4 is 8 bit wide
+@@ -888,8 +946,8 @@ complete:
  
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
- 			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
+-						OMAP_I2C_STAT_XDR));
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
+ 			continue;
+ 		}
+ 
 -- 
 1.7.5.4
+
