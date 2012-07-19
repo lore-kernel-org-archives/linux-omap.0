@@ -1,53 +1,51 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv6 3/7] ARM: OMAP4: hwmod: flag hwmods/modules not
- supporting module level context status
-Date: Thu, 19 Jul 2012 12:50:55 +0300
-Message-ID: <1342691455.4672.125.camel@sokoban>
-References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
-	 <1339428387-4800-4-git-send-email-t-kristo@ti.com>
-	 <CAOMWX4e9bpJivetsx-FD_U7BbjrWh0Xto-7MTUe5YK8Mjpi9Sg@mail.gmail.com>
-	 <1342628606.4672.112.camel@sokoban>
-	 <alpine.DEB.2.00.1207181122280.19048@utopia.booyaka.com>
-Reply-To: <t-kristo@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: am3517: geting MMC working
+Date: Thu, 19 Jul 2012 15:38:03 +0530
+Message-ID: <CANrkHUZcev9=ef2GNM=7vEr7=Ym2gTL82sE7CgG8ApH92Fr=Sw@mail.gmail.com>
+References: <5007A838.3040309@visionsystems.de>
+	<CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com>
+	<5007AF7C.1010902@visionsystems.de>
+	<CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com>
+	<5007B721.9070305@visionsystems.de>
+	<CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
+	<5007C215.7020904@visionsystems.de>
+	<CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44340 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753019Ab2GSJvF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 05:51:05 -0400
-In-Reply-To: <alpine.DEB.2.00.1207181122280.19048@utopia.booyaka.com>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:60291 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752258Ab2GSKIF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 06:08:05 -0400
+Received: by lbbgj10 with SMTP id gj10so4217501lbb.23
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 03:08:03 -0700 (PDT)
+In-Reply-To: <CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
+To: "S, Venkatraman" <svenkatr@ti.com>, yegor_sub1@visionsystems.de
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>
 
-On Wed, 2012-07-18 at 11:24 -0600, Paul Walmsley wrote:
-> On Wed, 18 Jul 2012, Tero Kristo wrote:
-> 
-> > On Tue, 2012-07-17 at 03:11 -0500, Menon, Nishanth wrote:
-> >
-> > > OMAP4430_RM_ABE_AESS_CONTEXT? why not use LOSTMEM_AESSMEM ? ABE will
-> > > need to know when it lost context to be able to reload it's firmware,
-> > > no?
-> > 
-> > It looks like current hwmod data doesn't support specific bits to be
-> > used for the context declaration, it is only specifying the register
-> > offset. Also, the same register is used by aess hwmod, so this will
-> > cause a conflict if I take the same register into use.
-> > 
-> > This could be fixed by adding a field for the context bits, but I guess
-> > this should be commented upon by someone (Benoit / Paul) before I craft
-> > some sort of patch for that.
-> 
-> If you need to add a u8 there to specify the bitshift, go ahead and do it.  
-> u8 lostmem_bit, perhaps?
+On Thu, Jul 19, 2012 at 2:27 PM, S, Venkatraman <svenkatr@ti.com> wrote:
+> On Thu, Jul 19, 2012 at 1:45 PM, Yegor Yefremov
+> <yegor_sub1@visionsystems.de> wrote:
 
-Mask might be better, as we have RFF / DFF bits, and also if mask is not
-defined, we can assume we want to check the whole register (current
-behavior.) I'll add this for next rev.
+>> Waiting for root device /dev/mmcblk0p2...
+>> mmc0: starting CMD0 arg 00000000 flags 000000c0
+>> omap_hsmmc omap_hsmmc.0: mmc0: CMD0, argument 0x00000000
+>>
+>
+> From this, one can only infer that the card is not responding at all,
+> and all attempts
+> are returning with a timeout (CTO=Command Time Out).
+> These (control) commands don't use DMA, so it's not a DMA issue upto this.
+> If the card is fine, and it worked before, I would suggest a bisect.
+> Meanwhile I'll check lo-master with my OMAP4 boards.
+>
+> ~Venkat
 
--Tero
+I checked on 4430sdp, OMAP4 is able to detect both eMMC and SD with lo-master.
 
-
+-- 
+Thanks and Regards,
+Balaji T K
