@@ -1,142 +1,56 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH v4 09/11] drivers: usb: musb: Add device tree support for
- omap musb glue
-Date: Thu, 19 Jul 2012 20:18:27 +0530
-Message-ID: <CAAe_U6+_-0HC-_TEDnOT2jPCRtH=6FHjZdTmmomTSmJOEk7kGA@mail.gmail.com>
-References: <1342607922-11554-1-git-send-email-kishon@ti.com>
-	<1342607922-11554-10-git-send-email-kishon@ti.com>
-	<47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
+ issue
+Date: Thu, 19 Jul 2012 11:15:15 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1207191113440.1764-100000@iolanthe.rowland.org>
+References: <20120719102013.GJ14302@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44006 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751516Ab2GSPPQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 11:15:16 -0400
+In-Reply-To: <20120719102013.GJ14302@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, khilman@ti.com, sameo@linux.intel.com, notasas@gmail.com, Greg KH <gregkh@linuxfoundation.org>
 
-Hi,
+On Thu, 19 Jul 2012, Felipe Balbi wrote:
 
-On Thu, Jul 19, 2012 at 6:51 PM, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
 > Hi,
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->>  Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
->>  drivers/usb/musb/omap2430.c                        |   55
->> ++++++++++++++++++++
->>  2 files changed, 88 insertions(+), 1 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt
->> b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> index 80a28c9..39cdffb 100644
->> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
->> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
->> @@ -1,4 +1,4 @@
->> -OMAP USB PHY
->> +OMAP USB PHY AND GLUE
->>
->>  OMAP USB2 PHY
->>
->> @@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
->>       compatible = "ti,omap-usb2";
->>       reg = <0x4a0ad080 0x58>;
->>  };
->> +
->> +OMAP MUSB GLUE
->> + - compatible : Should be "ti,musb-omap2430"
->> + - ti,hwmods : must be "usb_otg_hs"
->> + - multipoint : Should be "1" indicating the musb controller supports
->> +   multipoint. This is a MUSB configuration-specific setting.
->> + - num_eps : Specifies the number of endpoints. This is also a
->> +   MUSB configuration-specific setting. Should be set to "16"
->> + - ram_bits : Specifies the ram address size. Should be set to "12"
->> + - interface_type : This is a board specific setting to describe the type
->> of
->> +   interface between the controller and the phy. It should be "0" or "1"
->> +   specifying ULPI and UTMI respectively.
->> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
->> +   represents PERIPHERAL.
->> + - power : Should be "50". This signifies the controller can supply upto
->> +   100mA when operating in host mode.
->> +
->> +SOC specific device node entry
->> +usb_otg_hs: usb_otg_hs@4a0ab000 {
->> +     compatible = "ti,musb-omap2430";
->> +     ti,hwmods = "usb_otg_hs";
->> +     multipoint = <1>;
->> +     num_eps = <16>;
->> +     ram_bits = <12>;
->> +};
->> +
->> +Board specific device node entry
->> +&usb_otg_hs {
->> +     interface_type = <1>;
->> +     mode = <3>;
->> +     power = <50>;
->> +};
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
->> index addbebf..331e477 100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -30,6 +30,7 @@
->>  #include <linux/init.h>
->>  #include <linux/list.h>
->>  #include <linux/io.h>
->> +#include <linux/of.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/dma-mapping.h>
->>  #include <linux/pm_runtime.h>
->> @@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
->>  static int __devinit omap2430_probe(struct platform_device *pdev)
->>  {
->>       struct musb_hdrc_platform_data  *pdata = pdev->dev.platform_data;
->> +     struct omap_musb_board_data     *data;
->>       struct platform_device          *musb;
->>       struct omap2430_glue            *glue;
->> +     struct device_node              *np = pdev->dev.of_node;
->> +     struct musb_hdrc_config         *config;
->>       struct resource                 *res;
->>       int                             ret = -ENOMEM;
->>
->> @@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct
->> platform_device *pdev)
->>       if (glue->control_otghs == NULL)
->>               dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
->>
->> +     if (np) {
->> +             pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
->> +             if (!pdata) {
->> +                     dev_err(&pdev->dev,
->> +                             "failed to allocate musb platfrom data\n");
->> +                     ret = -ENOMEM;
->> +                     goto err1;
->> +             }
->> +
->> +             data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
->> +             if (!data) {
->> +                     dev_err(&pdev->dev,
->> +                                     "failed to allocate musb board data\n");
->> +                     ret = -ENOMEM;
->> +                     goto err1;
->> +             }
->> +
->> +             config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
->> +             if (!data) {
->> +                     dev_err(&pdev->dev,
->> +                             "failed to allocate musb hdrc config\n");
->> +                     goto err1;
->> +             }
->> +
->> +             of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
->> +             of_property_read_u32(np, "interface_type",
->> +                                             (u32 *)&data->interface_type);
->> +             of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
->> +             of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
->> +             of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
->
-> pdata->mode is already read so above should be removed.
+> 
+> On Thu, Jun 21, 2012 at 07:12:12PM +0530, Keshava Munegowda wrote:
+> > This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+> > "Fix OMAP EHCI suspend/resume failure (i693)" is causing
+> > the usb hub and device detection fails in beagle XM
+> > causeing NFS not functional. This affects the core retention too.
+> > The same commit logic needs to be revisted adhering to hwmod and
+> > device tree framework.
+> > for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
+> > titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
+> > 
+> > This patch is validated on BeagleXM with NFS support over
+> > usb ethernet and USB mass storage and other device detection.
+> > 
+> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> 
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> 
+> turns out this is causing other issues and another version of the patch
+> will be provided.
+> 
+> Greg, Alan, this is basically a git revert of the commit id listed
+> above.
 
-Ok.
+I have no objection to reverting the patch.  But on a related note,
+have you had a chance to read my comment:
 
-Thanks
-Kishon
+	http://marc.info/?l=linux-usb&m=134098423528415&w=2
+
+?
+
+Alan Stern
+
+
