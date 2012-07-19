@@ -1,42 +1,30 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] regulator: tps65217: fix build error if REGULATOR is
- not enabled
-Date: Thu, 19 Jul 2012 12:35:24 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13E9F98DB@DBDE01.ent.ti.com>
-References: <1342593663-23938-1-git-send-email-anilkumar@ti.com>
- <20120718094449.GA22739@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9F8BD7@DBDE01.ent.ti.com>
- <20120718100013.GC22739@opensource.wolfsonmicro.com>
+From: "Emad S. Alshamllan" <Eshamlan@stc.com.sa>
+Subject: BUSINESS INVESTMENT!
+Date: Thu, 19 Jul 2012 15:33:27 +0300
+Message-ID: <D50F41D4C42FC044AAA1BA641D8B98F623BF0866EA@STCCNTMSG01.stc.corp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20120718100013.GC22739@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Sender: linux-next-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "rdunlap@xenotime.net" <rdunlap@xenotime.net>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from esgrybm04.stc.com.sa ([212.118.156.89]:59682 "EHLO
+	ESGRYBM04.stc.com.sa" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab2GSNC3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 09:02:29 -0400
+Content-Language: es-DO
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
 
-On Wed, Jul 18, 2012 at 15:30:13, Mark Brown wrote:
-> On Wed, Jul 18, 2012 at 09:55:57AM +0000, AnilKumar, Chimata wrote:
-> 
-> > Regulators platform data is added to platform device in MFD driver, which we
-> > need for regulator driver, of_regulator_match() is used to check the regulator
-> > consumers if we pass DT data. If we do not enable CONFIG_REGULATOR then
-> > of_regulator_match() is not exported, so we see this error.
-> 
-> Why are you doing that in the MFD driver?
-> 
 
-I got your point, I referred tps6586x driver while developing the initial driver.
-Based on tps6586x MFD driver I added REGULATOR flag. I think tps6586x MFD driver
-need to be cleaned up.
 
-I will submit a patch to make tps65217 MFD driver independent of REGULATOR
-framework.
+Goodday Sir/Madam,
 
-Thanks
-AnilKumar
+I am Looking for a profitable business that my client can invest his funds in your country.
+
+I will be waiting for your positive business investment idea as soon as you can.
+
+With Regards,
+Emad S. Alshamllan.
+e.alshamllan@consultant.com
+____________________________________________________________________________________________
+The information in this email may contain confidential material and it is intended solely for the addresses. Access to this  email by anyone else is unauthorized. If you are not the intended recipient, please delete the email and destroy any copies of it, any disclosure, copying, distribution is prohibited and may be considered unlawful. Contents of this email and any attachments may be altered, Statement and opinions expressed in this email are those of the sender, and do not necessarily  reflect those of Saudi Telecommunications Company (STC).
