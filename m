@@ -1,18 +1,22 @@
-From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@xunyang.com.cn>
+From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <test@soft-sd.com>
 Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOe+pOWPkei9r+S7tg==?=
 	=?utf-8?B?77yMQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHhw==?=
 	=?utf-8?B?6LSt5ZWGLOa1t+WFs+aVsOaNrizlsZXkvJrkubDlrrYg5LuFMzAw5YWDIQ==?=
-Date: Thu, 19 Jul 2012 12:22:47 +0000 (UTC)
-Message-ID: <20200719201719346228__3655.06966268203$1342700568$gmane$org@xunyang.com.cn>
+Date: Thu, 19 Jul 2012 12:23:05 +0000 (UTC)
+Message-ID: <20200719201711788256@soft-sd.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-tape-owner@vger.kernel.org>
-Date: Sun, 19 Jul 2020 20:17:11 +0800
-Sender: linux-tape-owner@vger.kernel.org
-To: linuxexperts@googlegroups.com, linuxjua@126.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-scsi@vger.kernel.org, linux-tape@vger.kernel.org, linux-users@it.canterbury.ac.nz, linv5800@comcast.net, lucas_instruments@live.com, linwang@wzptt.zj
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from [210.51.38.188] ([210.51.38.188]:2930 "HELO soft-sd.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
+	id S1751653Ab2GSMW5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 08:22:57 -0400
+Date: Sun, 19 Jul 2020 20:17:00 +0800
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lucans@burusports.lv, lucahdesigns@live.com, linuxbeginner@21cn.com, lucas.conor@msn.com, linux-help-mtg@charon.mit.edu, lucas.m.c.8@hotmail.com, linuxlein@web.de, lucas.webdeveloper@gmail.com, linux-omap@vger.kernel.org, lucas@anancy-153-1-46-36.w83-196.abo.wanadoo.fr
 
 MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
 54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
