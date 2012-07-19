@@ -1,62 +1,184 @@
-From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@znz888.com>
-Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOe+pOWPkei9r+S7tg==?=
-	=?utf-8?B?77yMQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHhw==?=
-	=?utf-8?B?6LSt5ZWGLOa1t+WFs+aVsOaNrizlsZXkvJrkubDlrrYg5LuFMzAw5YWDIQ==?=
-Date: Thu, 19 Jul 2012 13:12:56 +0000 (UTC)
-Message-ID: <20200719201716242707__7647.95303480259$1342703576$gmane$org@znz888.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 09/11] drivers: usb: musb: Add device tree support
+ for omap musb glue
+Date: Thu, 19 Jul 2012 13:21:12 +0000
+Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
+References: <1342607922-11554-1-git-send-email-kishon@ti.com>
+ <1342607922-11554-10-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Date: Sun, 19 Jul 2020 20:17:07 +0800
-Sender: linux-security-module-owner@vger.kernel.org
-To: linusliu90@gmail.com, lucas.marin@urv.cat, linux-list@ssc.com, linux-mm-bugs-archive@nl.linux.org, linux-omap@vger.kernel.org, linux-rdma@vger.kernel.org, linux-security-module@vger.kernel.org, lucas@iuseelite.com, linuxusers@socallinux.org, lucas@turkertravel.com, linvia@hotmail.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342607922-11554-10-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org" <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
-54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
-hSjmlbDmja7mmK/lhajooYzkuJrnmoTvvIzlj6/ku6XmjInnhaflhbPplK7or43mj5Dlj5blh7rm
-naXnmoQp77yaIA0KMe+8jDIwMTLmmKXlraMxMTHlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Ln
-m5jmlbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDm
-ja7vvIzlrrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAx
-Mueni+Wto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOAgg0KM++8jDIwMTLm
-nIDmlrDlhajnkIPlsZXkvJrnjrDlnLrkubDlrrblupMo5LiO6LS45Y+R5ZCM5q2lKSzlhbE0NuS4
-h+adoeaVsOaNruOAgiAo5oyJ54Wn6KGM5Lia5YiG57G7KQ0KNO+8jDIwMTEsMjAxMOW5tCwyMDA5
-5bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQg
-MTA1IDEwNiAxMDcgMTA4LDEwOSwxMTAg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo1
-77yMNDguNjjkuIfmnaHmnIDmlrDkubDlrrbor6Lnm5jvvIzpg73luKbmnIlFbWFpbO+8jOacgOac
-ieS7t+WAvOeahOivouebmOOAgg0KNu+8jDIwMTHmnIDmlrAgQjJCIOiLseaWh+WbvemZheermTYw
-5LiH5bim6IGU57uc5pa55byP6K+i55uYIOacgOacieS7t+WAvOivouebmOS5i+S4gC4NCjfvvIwy
-MDEw5rW35YWz5o+Q5Y2VcGllcnPniYgxMDAw5LiH5pWw5o2uLg0KOO+8jDIwMTHlubTliLDpppnm
-uK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOi2
-hee6p+mHjeimgeeahOS5sOWutuOAgg0KOe+8jDIwMTHlubTmlrDlop7liqDnmoQt576O5Zu9QjJC
-IHRob21hc25ldCDph4fotK3llYblkI3ljZXjgIINCjEw77yM576k5Y+R6L2v5Lu25a6J6KOF5LiO
-6YOo572y5pyN5Yqh44CCDQoNCui/meS6m+WFqOacie+8jOWFsTEyODDkuIcg5pWw5o2u44CCDQoN
-CiANCuimgeeahOaKk+e0p+iBlOezu1FROiA0NjAxMjI2NDEg5oiW6ICF56uL5Y2z5Zue5aSN6YKu
-566xOiA0NjAxMjI2NDFAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogNDYwMTIyNjQxIOaI
-luiAheeri+WNs+WbnuWkjemCrueusTogNDYwMTIyNjQxQHFxLmNvbQ0K6KaB55qE5oqT57Sn6IGU
-57O7UVE6IDQ2MDEyMjY0MSDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDQ2MDEyMjY0MUBxcS5j
-b20NCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6LOWPr+S7pei1sOa3mOWu
-neS6pOaYkyzmlLbliLDmlbDmja7pqozor4Ez5aSp5ZCO5YaN5LuY5qy+LOi/meaYr+WvueaCqOac
-gOWlveeahOS/nemanOS6huOAgiANCg0KDQoNCuWwj+aKgOW3p++8miANCuaKijUwMOS4h+S5sOWu
-tue+pOWPkeS7peS4gOmBje+8jOWdh+S8muacieaVsOWNg+S4quWbnuWkjeeahO+8jOi/meS6m+Ww
-seaYr+mdnuW4uOmrmOi0qOmHj+eahOS5sOWutuOAgiANCuS9v+eUqOaIkeS7rOmAgeeahOe+pOWP
-kei9r+S7tu+8jDEtMuWRqOWwseWPr+WujOWFqOWPkeWujOOAgg0KDQoNCg0KDQoNCuW5v+S6pOS8
-muS5sOWutuaMieS6p+WTgeexu+WIq+WIhuexu++8jOWIhuS4uuS7peS4i+WHoOexu++8mg0KMSDl
-ip7lhazorr7lpIcNCjIg57yW57uH5Y+K6Jek6ZOB5bel6Im65ZOBDQozIOeOu+eSgw0KNCDppJDl
-jqjnlKjlhbcNCjUg6L2m6L6GDQo2IOWkp+Wei+acuuaisOWPiuiuvuWkhw0KNyDnlLXlrZDnlLXm
-sJQNCjgg55S15a2Q5raI6LS55ZOBDQo5IOe6uue7hw0KMTAg5pyN6KOFDQoxMSDkuKrkurrmiqTn
-kIYNCjEyIOW3peeoi+acuuaisA0KMTMg5bel5YW3DQoxNCDljJblt6UNCjE1IOiuoeeul+acuuWP
-iumAmuiurw0KMTYg5a625bGF55So5ZOBDQoxNyDlrrblsYXoo4XppbANCjE4IOWutuWFtw0KMTkg
-5a6255So55S15ZmoDQoyMCDlu7rnrZHlj4roo4XppbDmnZDmlpkNCjIxIOiKguaXpeeUqOWTgQ0K
-MjIg56S85ZOB5Y+K6LWg5ZOBDQoyMyDmkanmiZjovaYNCjI0IOaxvei9pumFjeS7tg0KMjUg6aOf
-5ZOBDQoyNiDpmbbnk7cNCjI3IOmTgeefsw0KMjgg546p5YW3DQoyOSDljavmtbQNCjMwIOS6lOmH
-kQ0KMzEg5bCP5Z6L5py65qKwDQozMiDpnosNCjMzIOS8kemXsueUqOWTgQ0KMzQg5Yy755aXDQoz
-NSDmtbTlrqTkuqflk4ENCjM2IOWbreaelw0KMzcg54Wn5piO5Lqn5ZOBDQozOCDpkp/ooajnnLzp
-lZwNCjM5IOiHquihjOi9pg0KNDAg5YyFDQoNCg0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemr
-mA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+ae
-gemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeO
-h+aegemrmA0K
+Hi,
+> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
+>  drivers/usb/musb/omap2430.c                        |   55
+> ++++++++++++++++++++
+>  2 files changed, 88 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt
+> b/Documentation/devicetree/bindings/usb/omap-usb.txt
+> index 80a28c9..39cdffb 100644
+> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+> @@ -1,4 +1,4 @@
+> -OMAP USB PHY
+> +OMAP USB PHY AND GLUE
+> 
+>  OMAP USB2 PHY
+> 
+> @@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
+>  	compatible = "ti,omap-usb2";
+>  	reg = <0x4a0ad080 0x58>;
+>  };
+> +
+> +OMAP MUSB GLUE
+> + - compatible : Should be "ti,musb-omap2430"
+> + - ti,hwmods : must be "usb_otg_hs"
+> + - multipoint : Should be "1" indicating the musb controller supports
+> +   multipoint. This is a MUSB configuration-specific setting.
+> + - num_eps : Specifies the number of endpoints. This is also a
+> +   MUSB configuration-specific setting. Should be set to "16"
+> + - ram_bits : Specifies the ram address size. Should be set to "12"
+> + - interface_type : This is a board specific setting to describe the type
+> of
+> +   interface between the controller and the phy. It should be "0" or "1"
+> +   specifying ULPI and UTMI respectively.
+> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+> +   represents PERIPHERAL.
+> + - power : Should be "50". This signifies the controller can supply upto
+> +   100mA when operating in host mode.
+> +
+> +SOC specific device node entry
+> +usb_otg_hs: usb_otg_hs@4a0ab000 {
+> +	compatible = "ti,musb-omap2430";
+> +	ti,hwmods = "usb_otg_hs";
+> +	multipoint = <1>;
+> +	num_eps = <16>;
+> +	ram_bits = <12>;
+> +};
+> +
+> +Board specific device node entry
+> +&usb_otg_hs {
+> +	interface_type = <1>;
+> +	mode = <3>;
+> +	power = <50>;
+> +};
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index addbebf..331e477 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/init.h>
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+> +#include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/pm_runtime.h>
+> @@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+>  static int __devinit omap2430_probe(struct platform_device *pdev)
+>  {
+>  	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
+> +	struct omap_musb_board_data	*data;
+>  	struct platform_device		*musb;
+>  	struct omap2430_glue		*glue;
+> +	struct device_node		*np = pdev->dev.of_node;
+> +	struct musb_hdrc_config		*config;
+>  	struct resource			*res;
+>  	int				ret = -ENOMEM;
+> 
+> @@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct
+> platform_device *pdev)
+>  	if (glue->control_otghs == NULL)
+>  		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
+> 
+> +	if (np) {
+> +		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata) {
+> +			dev_err(&pdev->dev,
+> +				"failed to allocate musb platfrom data\n");
+> +			ret = -ENOMEM;
+> +			goto err1;
+> +		}
+> +
+> +		data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+> +		if (!data) {
+> +			dev_err(&pdev->dev,
+> +					"failed to allocate musb board data\n");
+> +			ret = -ENOMEM;
+> +			goto err1;
+> +		}
+> +
+> +		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+> +		if (!data) {
+> +			dev_err(&pdev->dev,
+> +				"failed to allocate musb hdrc config\n");
+> +			goto err1;
+> +		}
+> +
+> +		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+> +		of_property_read_u32(np, "interface_type",
+> +						(u32 *)&data->interface_type);
+> +		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
+> +		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
+> +		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
 
+pdata->mode is already read so above should be removed.
 
+Ajay
+> +		of_property_read_u32(np, "power", (u32 *)&pdata->power);
+> +		config->multipoint = of_property_read_bool(np, "multipoint");
+> +
+> +		pdata->board_data	= data;
+> +		pdata->config		= config;
+> +	}
+> +
+>  	pdata->platform_ops		= &omap2430_ops;
+> 
+>  	platform_set_drvdata(pdev, glue);
+> @@ -597,12 +638,26 @@ static struct dev_pm_ops omap2430_pm_ops = {
+>  #define DEV_PM_OPS	NULL
+>  #endif
+> 
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id omap2430_id_table[] = {
+> +	{
+> +		.compatible = "ti,omap4-musb"
+> +	},
+> +	{
+> +		.compatible = "ti,omap3-musb"
+> +	},
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, omap2430_id_table);
+> +#endif
+> +
+>  static struct platform_driver omap2430_driver = {
+>  	.probe		= omap2430_probe,
+>  	.remove		= __devexit_p(omap2430_remove),
+>  	.driver		= {
+>  		.name	= "musb-omap2430",
+>  		.pm	= DEV_PM_OPS,
+> +		.of_match_table = of_match_ptr(omap2430_id_table),
+>  	},
+>  };
+> 
+> --
+> 1.7.5.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
