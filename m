@@ -1,17 +1,17 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv7 08/12] ARM: OMAP4430: PM: Work-around for ROM code BUG
- of PER pwrst ctrl
-Date: Thu, 19 Jul 2012 17:21:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207191717220.14390@utopia.booyaka.com>
-References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-9-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
+ suspend
+Date: Thu, 19 Jul 2012 17:30:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207191726090.14390@utopia.booyaka.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>  <1342704392-23657-8-git-send-email-t-kristo@ti.com>  <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com> <1342711907.4672.153.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43869 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:34341 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652Ab2GSXVz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 19:21:55 -0400
-In-Reply-To: <1342704392-23657-9-git-send-email-t-kristo@ti.com>
+	with ESMTP id S1752166Ab2GSXaM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 19:30:12 -0400
+In-Reply-To: <1342711907.4672.153.camel@sokoban>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
@@ -21,50 +21,26 @@ Hi
 
 On Thu, 19 Jul 2012, Tero Kristo wrote:
 
-> On OMAP4430 HS / EMU chips, ROM code appears to re-configure L4PER domain
-> next powerstate during wakeup from OSWR / OFF, programming it to ON.
-> This will prevent successive entries to cpuidle retention / off, until
-> kernel decices to change the L4PER target state, which can be delayed
-> for a very long time as kernel is lazy programming the target state.
+> Subject: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
+> suspend
 > 
-> This patch fixes the issue within the low power OSWR / OFF mode code, so
-> that this register is saved / restored across MPU OSWR / OFF state.
-> 
-> This problem seems to only occur with OMAP4430 HS/EMU, it does not impact
-> OMAP4460+ or GP devices.
+> Currently OMAP4 suspend puts all power domains to CSWR. OSWR is a deeper
+> state that saves more power, but has higher latencies also. As suspend
+> is considered a high-latency operation, OSWR is appropriate here.
 > 
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > ---
->  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   39 ++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/pm.h                  |    1 +
->  arch/arm/mach-omap2/pm44xx.c              |   10 +++++++
->  3 files changed, 49 insertions(+), 1 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> index 0e5f81b..963a61b 100644
-> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> I'll update this to next rev if one is requested.
 
-...
+No need, I'll add it in the local copy here.
 
-> @@ -215,6 +225,28 @@ static void save_l2x0_context(void)
->  {}
->  #endif
->  
-> +static inline void save_l4per_regs(void)
-> +{
-> +	int i;
-> +
-> +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L4PER_ERRATUM_PWSTCT))
-> +		return;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(l4per_reg); i++)
-> +		l4per_reg[i].val = __raw_readl(l4per_reg[i].addr);
+> (Kind of hoping this set would be reaching maturity already.)
 
-This is accessing the system PRM registers directly.  We're trying to 
-remove these raw register accesses from non-PRM code because a PRM driver 
-is in the works.  Please move this to prm44xx.c or prminst44xx.c and 
-implement a higher-level interface that omap-mpuss-lowpower.c can call.
+It kind of looks to me like there are two or three separate sets within 
+the series.  My feeling is that Kevin should take the first two, then I 
+should take the rest other than 6 and 7.  Then once those are queued, 
+we can pull in 6 and 7.  Does that make sense to you?
 
 
 - Paul
