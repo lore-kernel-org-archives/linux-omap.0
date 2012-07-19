@@ -1,24 +1,28 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
 Subject: Re: am3517: geting MMC working
-Date: Thu, 19 Jul 2012 10:15:17 +0200
-Message-ID: <5007C215.7020904@visionsystems.de>
-References: <5007A838.3040309@visionsystems.de> <CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com> <5007AF7C.1010902@visionsystems.de> <CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com> <5007B721.9070305@visionsystems.de> <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
-Reply-To: yegor_sub1@visionsystems.de
+Date: Thu, 19 Jul 2012 10:46:10 +0200
+Message-ID: <CAAwP0s0UPkibqkgSaCqy7Vw-8hiPAuvOCmkr32o0Q2ttvVkO8w@mail.gmail.com>
+References: <5007A838.3040309@visionsystems.de> <CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com>
+ <5007AF7C.1010902@visionsystems.de> <CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com>
+ <5007B721.9070305@visionsystems.de> <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:39203 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417Ab2GSIPd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 04:15:33 -0400
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:61349 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752583Ab2GSIqb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 04:46:31 -0400
+Received: by gglu4 with SMTP id u4so2507475ggl.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 01:46:30 -0700 (PDT)
 In-Reply-To: <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>
+Cc: yegor_sub1@visionsystems.de, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>
 
-Am 19.07.2012 09:43, schrieb S, Venkatraman:
+On Thu, Jul 19, 2012 at 9:43 AM, S, Venkatraman <svenkatr@ti.com> wrote=
+:
 > On Thu, Jul 19, 2012 at 12:58 PM, Yegor Yefremov
 > <yegor_sub1@visionsystems.de> wrote:
 >> Am 19.07.2012 09:07, schrieb Shilimkar, Santosh:
@@ -51,6 +55,7 @@ MADEVICES and CONFIG_DMA_OMAP). Found in some other thread [1]. As far =
 as I can tell, debounce clk is the problem.
 >>>>
 >>> Sorry. I miss-read the message.
+>>
 >> The whole log for reference:
 >>
 >> Booting Linux on physical CPU 0
@@ -154,7 +159,7 @@ lnar
 >> Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
 >> NFS: Registering the id_resolver key type
 >> Key type id_resolver registered
->> jffs2: version 2.2. (NAND) (SUMMARY)  =A9 2001-2006 Red Hat, Inc.
+>> jffs2: version 2.2. (NAND) (SUMMARY)  =C2=A9 2001-2006 Red Hat, Inc.
 >> msgmni has been set to 483
 >> io scheduler noop registered
 >> io scheduler deadline registered
@@ -209,118 +214,40 @@ e
 >> mmc0: host does not support reading read-only switch. assuming write=
 -enable.
 >> --
+>
 > Debouce clocks failures are non fatal, and are present in OMAP2xxx on=
 ly.
 > (I don't know about AM35xx, but most likely its not present).
-
-You're right:
-http://old.nabble.com/-PATCH-V2--omap_hsmmc:-Fix-for-the-db-clock-failu=
-re-message-td25047778.html
-
 > The last 2 lines shows that mmc0 is enumerated, but the boot partitio=
 n is not.
 > If possible, can you please provide logs with MMC_DEBUG enabled at co=
 mpile time
 > and a verbose loglevel (loglevel=3D8) ?
+>
 
-Bluetooth: HCI UART driver ver 2.2
-Bluetooth: HCI H4 protocol initialized
-Bluetooth: HCI BCSP protocol initialized
-Bluetooth: HCILL protocol initialized
-omap_hsmmc omap_hsmmc.0: context was not lost
-omap_hsmmc omap_hsmmc.0: enabled
-omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
-omap-dma-engine omap-dma-engine: allocating channel for 62
-omap-dma-engine omap-dma-engine: allocating channel for 61
-mmc0: clock 0Hz busmode 2 powermode 1 cs 0 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 0Hz
-mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-omap_hsmmc omap_hsmmc.0: disabled
-omap_hsmmc omap_hsmmc.1: context was not lost
-omap_hsmmc omap_hsmmc.1: enabled
-omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
-omap-dma-engine omap-dma-engine: allocating channel for 48
-omap-dma-engine omap-dma-engine: allocating channel for 47
-omap_hsmmc omap_hsmmc.0: context was not lost
-omap_hsmmc omap_hsmmc.0: enabled
-mmc0: mmc_rescan_try_freq: trying to init card at 400000 Hz
-mmc0: starting CMD52 arg 00000c00 flags 00000195
-omap_hsmmc omap_hsmmc.0: mmc0: CMD52, argument 0x00000c00
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-mmc0: req done (CMD52): -110: 00000000 00000000 00000000 00000000
-mmc1: clock 0Hz busmode 2 powermode 1 cs 0 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.1: Set clock to 0Hz
-mmc0: starting CMD52 arg 80000c08 flags 00000195
-omap_hsmmc omap_hsmmc.0: mmc0: CMD52, argument 0x80000c08
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-mmc0: req done (CMD52): -110: 00000000 00000000 00000000 00000000
-mmc1: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.1: Set clock to 400000Hz
-mmc0: clock 400000Hz busmode 2 powermode 2 cs 1 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-mmc0: starting CMD0 arg 00000000 flags 000000c0
-omap_hsmmc omap_hsmmc.0: mmc0: CMD0, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 1
-mmc0: req done (CMD0): 0: 00000000 00000000 00000000 00000000
-omap_hsmmc omap_hsmmc.1: disabled
-mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 19 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-oprofile: hardware counters not available
-oprofile: using timer interrupt.
-TCP: cubic registered
-Initializing XFRM netlink socket
-NET: Registered protocol family 17
-NET: Registered protocol family 15
-lib80211: common routines for IEEE802.11 drivers
-lib80211_crypt: registered algorithm 'NULL'
-Key type dns_resolver registered
-VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev 1
-voltdm_scale: No voltage scale API registered for vdd_mpu_iva
-voltdm_scale: No voltage scale API registered for vdd_core
-PM: no software I/O chain control; some wakeups may be lost
-ThumbEE CPU extension supported.
-clock: disabling unused clocks to save power
-mmc0: starting CMD8 arg 000001aa flags 000002f5
-omap_hsmmc omap_hsmmc.0: mmc0: CMD8, argument 0x000001aa
-omap_hsmmc omap_hsmmc.0: IRQ Status is 1
-mmc0: req done (CMD8): 0: 000001aa 00000000 00000000 00000000
-mmc0: starting CMD5 arg 00000000 flags 000002e1
-omap_hsmmc omap_hsmmc.0: mmc0: CMD5, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-mmc0: req failed (CMD5): -110, retrying...
-omap_hsmmc omap_hsmmc.0: mmc0: CMD5, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-mmc0: req failed (CMD5): -110, retrying...
-omap_hsmmc omap_hsmmc.0: mmc0: CMD5, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-davinci_emac davinci_emac.0: using random MAC addr: 0a:e0:2b:8a:d1:27
-mmc0: req failed (CMD5): -110, retrying...
-omap_hsmmc omap_hsmmc.0: mmc0: CMD5, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 18000
-omap_hsmmc omap_hsmmc.0: MMC IRQ 0x18000 : ERRI CTO
-mmc0: req done (CMD5): -110: 00000000 00000000 00000000 00000000
-mmc0: starting CMD55 arg 00000000 flags 000000f5
-omap_hsmmc omap_hsmmc.0: mmc0: CMD55, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 1
-mmc0: req done (CMD55): 0: 00400120 00000000 00000000 00000000
-mmc0: starting CMD41 arg 00000000 flags 000000e1
-omap_hsmmc omap_hsmmc.0: mmc0: CMD41, argument 0x00000000
-omap_hsmmc omap_hsmmc.0: IRQ Status is 1
-mmc0: req done (CMD41): 0: 00ff8000 00000000 00000000 00000000
-mmc0: clock 400000Hz busmode 2 powermode 2 cs 0 Vdd 15 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-mmc0: clock 400000Hz busmode 2 powermode 2 cs 1 Vdd 15 width 0 timing 0
-omap_hsmmc omap_hsmmc.0: Set clock to 400000Hz
-Waiting for root device /dev/mmcblk0p2...
-mmc0: starting CMD0 arg 00000000 flags 000000c0
-omap_hsmmc omap_hsmmc.0: mmc0: CMD0, argument 0x00000000
+Hi Yegor,
 
+In case is of some help to you I had the exact problem than you on an
+IGEPv2 board (TI DM3730 OMAP3 board)
+
+But enabling CONFIG_DMA_OMAP and CONFIG_DMADEVICES solve it. Now on
+booting I have this log:
+
+[    2.312866] omap_hsmmc omap_hsmmc.1: Failed to get debounce clk
+[    2.319335] omap-dma-engine omap-dma-engine: allocating channel for =
+48
+[    2.326324] omap-dma-engine omap-dma-engine: allocating channel for =
+47
+[    2.377716] omap_hsmmc omap_hsmmc.0: Failed to get debounce clk
+[    2.384124] omap-dma-engine omap-dma-engine: allocating channel for =
+62
+[    2.390991] omap-dma-engine omap-dma-engine: allocating channel for =
+61
+
+and the MMC is working well.
+
+Best regards,
+Javier
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
