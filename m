@@ -1,313 +1,127 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 03/11] usb: musb: am335x: add support for dual instance
-Date: Thu, 19 Jul 2012 11:11:31 +0530
-Message-ID: <1342676499-32507-4-git-send-email-ajay.gupta@ti.com>
-References: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCHv6 4/7] ARM: OMAP: hwmod: Add support for per hwmod/module
+ context lost count
+Date: Thu, 19 Jul 2012 00:55:05 -0500
+Message-ID: <CAOMWX4dWnJSOwLVvrAfMd7a9eKE97ywR0TrS6imHFA67V5QZag@mail.gmail.com>
+References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+ <1339428387-4800-5-git-send-email-t-kristo@ti.com> <CAOMWX4fecw5A0BhDG-swVubKtxTEKdNpcODOh7=uFBFbSAnbgw@mail.gmail.com>
+ <1342602902.4672.91.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342676499-32507-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:59603 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750721Ab2GSFz1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 01:55:27 -0400
+Received: by weyx10 with SMTP id x10so1299168wey.10
+        for <linux-omap@vger.kernel.org>; Wed, 18 Jul 2012 22:55:25 -0700 (PDT)
+In-Reply-To: <1342602902.4672.91.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-AM335x and TI81xx platform has dual musb controller so updating the
-musb_dspc.c to support the same.
+On Wed, Jul 18, 2012 at 4:15 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>
+> On Tue, 2012-07-17 at 02:59 -0500, Menon, Nishanth wrote:
+> > Couple of minor comments:
+> > On Mon, Jun 11, 2012 at 10:26 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> > [...]
+> > >  /**
+> > > + * _omap4_update_context_lost - increment hwmod context loss counter
+> > > if
+> > > + * hwmod context was lost, and clear hardware context loss reg
+> > > + * @oh: hwmod to check for context loss
+> > > + *
+> > > + * If the PRCM indicates that the hwmod @oh lost context, increment
+> > > + * our in-memory context loss counter, and clear the RM_*_CONTEXT
+> > > + * bits. No return value.
+> > > + */
+> > > +static void _omap4_update_context_lost(struct omap_hwmod *oh)
+> > > +{
+> > > +       u32 r;
+> > > +
+> > > +       if (oh->prcm.omap4.context_offs == USHRT_MAX)
+> > > +               return;
+> > would'nt it be better to return a dummy incremental counter instead of
+> > returning no context loss (count = 0)?
+>
+> I guess you are right, this way we may have some extra context restores
+> for modules which don't have context offs defined, rather than not
+> restoring them at all. Only thing I can think might prevent this is if
+> there are modules that never lose context but don't have context
+> register? How about omap5+?
 
-Changes:
-	- Moved otg_workaround timer to glue structure
-	- Moved static local variable last_timer to glue structure
-	- PHY on/off related cleanups
+there has been an interesting debate ongoing with HWAUTO and context
+loss count handling -> since we update only on _enable, this might
+actually be interesting to consider:
+enable
+idle
+un_idle (lost context)
+read counter -> no update
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/musb_dsps.c |   93 +++++++++++++++++++++++++----------------
- 1 files changed, 57 insertions(+), 36 deletions(-)
+Now to handle modules that never loose context - they have to be in
+wakeup domain.. should we consider a flag for those? would'nt matter
+o5 or not, context is still the same.. this issue could be resolved if
+counter update is done even when a check is done.
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 2174699..a2c8a06 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -105,6 +105,8 @@ struct dsps_musb_wrapper {
- 	/* miscellaneous stuff */
- 	u32		musb_core_offset;
- 	u8		poll_seconds;
-+	/* number of musb instances */
-+	u8		instances;
- };
- 
+
+> >
+> > > +
+> > > +       r =
+> > > omap4_prminst_read_inst_reg(oh->clkdm->pwrdm.ptr->prcm_partition,
+> > > +
+> > > oh->clkdm->pwrdm.ptr->prcm_offs,
+> > > +                                       oh->prcm.omap4.context_offs);
+> > > +
+> > > +       if (!r)
+> > > +               return;
+> > > +
+> > > +       oh->prcm.omap4.context_lost_counter++;
+> > need to be careful about counter overflow.
+>
+> Well, this code can't do much for that even if it overflows... the type
+> for the context_lost_counter is unsigned though, maybe it should be
+> expanded if you are worried...?
+
+it can hit 0 with overflow(no context loss). that will not be good, right?
+
+How about something like:
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index eac813a..5fb9572 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1606,6 +1606,18 @@ static void _reconfigure_io_chain(void)
+        spin_unlock_irqrestore(&io_chain_lock, flags);
+ }
+
++static inline void _omap4_inc_context_loss(unsigned int *v)
++{
++
++       /*
++        * Context loss count has to be a non-negative value.
++        * Clear the sign bit to get a value range from 1 to
++        * INT_MAX.
++        */
++       *v = (*v + 1) & INT_MAX;
++       *v = *v ? *v : 1;
++}
++
  /**
-@@ -112,16 +114,18 @@ struct dsps_musb_wrapper {
-  */
- struct dsps_glue {
- 	struct device *dev;
--	struct platform_device *musb;	/* child musb pdev */
-+	struct platform_device *musb[2];	/* child musb pdev */
- 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
--	struct timer_list timer;	/* otg_workaround timer */
--	u32 __iomem *usb_ctrl;
-+	struct timer_list timer[2];	/* otg_workaround timer */
-+	unsigned long last_timer[2];    /* last timer data for each instance */
-+	u32 __iomem *usb_ctrl[2];
- 	u8      usbss_rev;
- };
- 
- /**
-  * musb_dsps_phy_control - phy on/off
-  * @glue: struct dsps_glue *
-+ * @id: musb instance
-  * @on: flag for phy to be switched on or off
-  *
-  * This is to enable the PHY using usb_ctrl register in system control
-@@ -130,11 +134,11 @@ struct dsps_glue {
-  * XXX: This function will be removed once we have a seperate driver for
-  * control module
-  */
--static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
-+static void musb_dsps_phy_control(struct dsps_glue *glue, u8 id, u8 on)
- {
- 	u32 usbphycfg;
- 
--	usbphycfg = __raw_readl(glue->usb_ctrl);
-+	usbphycfg = __raw_readl(glue->usb_ctrl[id]);
- 
- 	if (on) {
- 		if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
-@@ -157,7 +161,7 @@ static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
- 				glue->usbss_rev == MUSB_USBSS_REV_33XX)
- 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
- 	}
--	__raw_writel(usbphycfg, glue->usb_ctrl);
-+	__raw_writel(usbphycfg, glue->usb_ctrl[id]);
- }
- /**
-  * dsps_musb_enable - enable interrupts
-@@ -247,7 +251,7 @@ static void otg_timer(unsigned long _musb)
- 
- 		devctl = dsps_readb(mregs, MUSB_DEVCTL);
- 		if (devctl & MUSB_DEVCTL_BDEVICE)
--			mod_timer(&glue->timer,
-+			mod_timer(&glue->timer[musb->id],
- 					jiffies + wrp->poll_seconds * HZ);
- 		else
- 			musb->xceiv->state = OTG_STATE_A_IDLE;
-@@ -263,7 +267,6 @@ static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
- 	struct device *dev = musb->controller;
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
--	static unsigned long last_timer;
- 
- 	if (!is_otg_enabled(musb))
- 		return;
-@@ -276,22 +279,23 @@ static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
- 				musb->xceiv->state == OTG_STATE_A_WAIT_BCON)) {
- 		dev_dbg(musb->controller, "%s active, deleting timer\n",
- 				otg_state_string(musb->xceiv->state));
--		del_timer(&glue->timer);
--		last_timer = jiffies;
-+		del_timer(&glue->timer[musb->id]);
-+		glue->last_timer[musb->id] = jiffies;
- 		return;
- 	}
- 
--	if (time_after(last_timer, timeout) && timer_pending(&glue->timer)) {
-+	if (time_after(glue->last_timer[musb->id], timeout) &&
-+				timer_pending(&glue->timer[musb->id])) {
- 		dev_dbg(musb->controller,
- 			"Longer idle timer already pending, ignoring...\n");
- 		return;
- 	}
--	last_timer = timeout;
-+	glue->last_timer[musb->id] = timeout;
- 
- 	dev_dbg(musb->controller, "%s inactive, starting idle timer for %u ms\n",
- 		otg_state_string(musb->xceiv->state),
- 			jiffies_to_msecs(timeout - jiffies));
--	mod_timer(&glue->timer, timeout);
-+	mod_timer(&glue->timer[musb->id], timeout);
- }
- 
- static irqreturn_t dsps_interrupt(int irq, void *hci)
-@@ -360,7 +364,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 			 */
- 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
- 			musb->xceiv->state = OTG_STATE_A_WAIT_VFALL;
--			mod_timer(&glue->timer,
-+			mod_timer(&glue->timer[musb->id],
- 					jiffies + wrp->poll_seconds * HZ);
- 			WARNING("VBUS error workaround (delay coming)\n");
- 		} else if (is_host_enabled(musb) && drvvbus) {
-@@ -368,7 +372,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 			MUSB_HST_MODE(musb);
- 			musb->xceiv->otg->default_a = 1;
- 			musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
--			del_timer(&glue->timer);
-+			del_timer(&glue->timer[musb->id]);
- 		} else {
- 			musb->is_active = 0;
- 			MUSB_DEV_MODE(musb);
-@@ -395,7 +399,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 
- 	/* Poll for ID change */
- 	if (is_otg_enabled(musb) && musb->xceiv->state == OTG_STATE_B_IDLE)
--		mod_timer(&glue->timer, jiffies + wrp->poll_seconds * HZ);
-+		mod_timer(&glue->timer[musb->id],
-+				jiffies + wrp->poll_seconds * HZ);
- 
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
-@@ -429,13 +434,14 @@ static int dsps_musb_init(struct musb *musb)
- 	}
- 
- 	if (is_host_enabled(musb))
--		setup_timer(&glue->timer, otg_timer, (unsigned long) musb);
-+		setup_timer(&glue->timer[musb->id], otg_timer,
-+			(unsigned long) musb);
- 
- 	/* Reset the musb */
- 	dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
- 
- 	/* Start the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 1);
-+	musb_dsps_phy_control(glue, musb->id, 1);
- 
- 	musb->isr = dsps_interrupt;
- 
-@@ -461,10 +467,10 @@ static int dsps_musb_exit(struct musb *musb)
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
- 
- 	if (is_host_enabled(musb))
--		del_timer_sync(&glue->timer);
-+		del_timer_sync(&glue->timer[musb->id]);
- 
- 	/* Shutdown the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 0);
-+	musb_dsps_phy_control(glue, musb->id, 0);
- 
- 	/* NOP driver needs change if supporting dual instance */
- 	usb_put_phy(musb->xceiv);
-@@ -504,8 +510,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
- 		goto err0;
- 	}
- 
--	glue->usb_ctrl = devm_request_and_ioremap(&pdev->dev, res);
--	if (glue->usb_ctrl == NULL) {
-+	glue->usb_ctrl[id] = devm_request_and_ioremap(&pdev->dev, res);
-+	if (glue->usb_ctrl[id] == NULL) {
- 		dev_err(dev, "Failed to obtain usb_ctrl%d memory\n", id);
- 		ret = -ENODEV;
- 		goto err0;
-@@ -554,7 +560,7 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
- 	musb->dev.dma_mask		= &musb_dmamask;
- 	musb->dev.coherent_dma_mask	= musb_dmamask;
- 
--	glue->musb			= musb;
-+	glue->musb[id]			= musb;
- 
- 	pdata->platform_ops		= &dsps_ops;
- 
-@@ -586,11 +592,11 @@ err0:
- 	return ret;
- }
- 
--static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue)
-+static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
- {
--	musb_put_id(glue->dev, glue->musb->id);
--	platform_device_del(glue->musb);
--	platform_device_put(glue->musb);
-+	musb_put_id(glue->dev, glue->musb[id]->id);
-+	platform_device_del(glue->musb[id]);
-+	platform_device_put(glue->musb[id]);
- }
- 
- static int __devinit dsps_probe(struct platform_device *pdev)
-@@ -601,7 +607,7 @@ static int __devinit dsps_probe(struct platform_device *pdev)
- 	struct dsps_glue *glue;
- 	struct resource *iomem;
- 	u32 __iomem *usbss;
--	int ret;
-+	int ret, i;
- 
- 	/* allocate glue */
- 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
-@@ -645,11 +651,16 @@ static int __devinit dsps_probe(struct platform_device *pdev)
- 		goto err2;
- 	}
- 
--	/* create the child platform device for first instances of musb */
--	ret = dsps_create_musb_pdev(glue, 0);
--	if (ret != 0) {
--		dev_err(&pdev->dev, "failed to create child pdev\n");
--		goto err3;
-+	/* create the child platform device for all instances of musb */
-+	for (i = 0; i < wrp->instances ; i++) {
-+		ret = dsps_create_musb_pdev(glue, i);
-+		if (ret != 0) {
-+			dev_err(&pdev->dev, "failed to create child pdev\n");
-+			/* release resources of previously created instances */
-+			for (i--; i >= 0 ; i--)
-+				dsps_delete_musb_pdev(glue, i);
-+			goto err3;
-+		}
- 	}
- 
- 	/* read the usbss revision register */
-@@ -670,9 +681,12 @@ err0:
- static int __devexit dsps_remove(struct platform_device *pdev)
- {
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
- 
- 	/* delete the child platform device */
--	dsps_delete_musb_pdev(glue);
-+	for (i = 0; i < wrp->instances ; i++)
-+		dsps_delete_musb_pdev(glue, i);
- 
- 	/* disable usbss clocks */
- 	pm_runtime_put(&pdev->dev);
-@@ -687,9 +701,12 @@ static int dsps_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
- 
- 	/* Shutdown the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 0);
-+	for (i = 0 ; i < wrp->instances ; i++)
-+		musb_dsps_phy_control(glue, i, 0);
- 
- 	return 0;
- }
-@@ -698,9 +715,12 @@ static int dsps_resume(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
- 
- 	/* Start the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 1);
-+	for (i = 0 ; i < wrp->instances ; i++)
-+		musb_dsps_phy_control(glue, i, 1);
- 
- 	return 0;
- }
-@@ -736,6 +756,7 @@ static const struct dsps_musb_wrapper ti81xx_driver_data __devinitconst = {
- 	.rxep_bitmap		= (0xfffe << 16),
- 	.musb_core_offset	= 0x400,
- 	.poll_seconds		= 2,
-+	.instances		= 2,
- };
- 
- static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
--- 
-1.7.0.4
+  * _omap4_update_context_lost - increment hwmod context loss counter if
+  * hwmod context was lost, and clear hardware context loss reg
+@@ -1629,7 +1641,7 @@ static void _omap4_update_context_lost(struct
+omap_hwmod *oh)
+        if (!r)
+                return;
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-       oh->prcm.omap4.context_lost_counter++;
++       _omap4_inc_context_loss(&oh->prcm.omap4.context_lost_counter);
+
+        omap4_prminst_write_inst_reg(r, oh->clkdm->pwrdm.ptr->prcm_partition,
+                                     oh->clkdm->pwrdm.ptr->prcm_offs,
+
+Regards,
+Nishanth Menon
