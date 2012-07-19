@@ -1,65 +1,79 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv6 4/7] ARM: OMAP: hwmod: Add support for per
- hwmod/module context lost count
-Date: Thu, 19 Jul 2012 14:47:54 +0300
-Message-ID: <1342698474.4672.129.camel@sokoban>
-References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
-	 <1339428387-4800-5-git-send-email-t-kristo@ti.com>
-	 <CAOMWX4fecw5A0BhDG-swVubKtxTEKdNpcODOh7=uFBFbSAnbgw@mail.gmail.com>
-	 <1342602902.4672.91.camel@sokoban>
-	 <CAOMWX4dWnJSOwLVvrAfMd7a9eKE97ywR0TrS6imHFA67V5QZag@mail.gmail.com>
-	 <1342691380.4672.123.camel@sokoban>
-	 <CAOMWX4d9wBS2dx_6S9ouMagUPnAr3q8TYXpGq52nREfGHxVEUg@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP3: clockdomain: fix accidental duplicate
+ registration
+Date: Thu, 19 Jul 2012 04:52:16 -0700
+Message-ID: <20120719115216.GP6522@atomide.com>
+References: <alpine.DEB.2.00.1207120448120.25585@utopia.booyaka.com>
+ <87394wg97u.fsf@ti.com>
+ <20120713064713.GI1122@atomide.com>
+ <20120714085257.GB6522@atomide.com>
+ <alpine.DEB.2.00.1207141150340.3876@utopia.booyaka.com>
+ <20120716083609.GG6522@atomide.com>
+ <alpine.DEB.2.00.1207180341001.16772@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53472 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752745Ab2GSLsA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 07:48:00 -0400
-In-Reply-To: <CAOMWX4d9wBS2dx_6S9ouMagUPnAr3q8TYXpGq52nREfGHxVEUg@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50636 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751690Ab2GSLwU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 07:52:20 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1207180341001.16772@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-07-19 at 05:27 -0500, Menon, Nishanth wrote:
-> On Thu, Jul 19, 2012 at 4:49 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> >
-> > Zero doesn't mean no context loss. If counter was previous MAX_INT, if
-> > it goes to zero it is still a context loss, as the counter value
-> > differs. Drivers do check against diff in the context loss counter, and
-> > if there is one, they do restore which is the right way to handle it. No
-> > need to unnecessarily make this more complicated than it is.
+* Paul Walmsley <paul@pwsan.com> [120718 02:58]:
+> Hi
 > 
-> so we flip the responsibility of overflow to drivers. considering a
-> similar scenario of jiffies
-> /*
->  *      These inlines deal with timer wrapping correctly. You are
->  *      strongly encouraged to use them
->  *      1. Because people otherwise forget
->  *      2. Because if the timer wrap changes in future you won't have to
->  *         alter your driver code.
->  *
->  * time_after(a,b) returns true if the time a is after time b.
-> ...
-> */
-> from past experience, it is highly possible that drivers never get
-> this right. if the intent is just to let the drivers know context was
-> lost, why not go back to the alternate possibility of a bool
-> lost_context which tells the driver if it lost context since it last
-> called the lost_context api.
+> On Mon, 16 Jul 2012, Tony Lindgren wrote:
+> 
+> > Hmm well it seems that we should apply this fix into arm-soc next/cleanup
+> > branch if that's where the mismerge happened? It seems the same mismerge
+> > is there even without 16e5e2c4?
+> 
+> The arm-soc next/cleanup copy of mach-omap2/clockdomains3xxx_data.c is 
+> correct.  The problem that my patch was designed to fix doesn't exist in 
+> that version of the file (868c157df9721675c19729eed2c96bac6c3f1d01).
 
-This goes to the discussion whether the API of lost context stuff is
-correct or not, and goes out of scope for this set.
+OK
+ 
+> > You patch applies into arm-soc next/cleanup with fuzz:
+> > 
+> > patching file arch/arm/mach-omap2/clockdomain.c
+> > patching file arch/arm/mach-omap2/clockdomain.h
+> > Hunk #1 succeeded at 82 (offset -4 lines).
+> > patching file arch/arm/mach-omap2/clockdomains3xxx_data.c
+> > Hunk #1 succeeded at 347 with fuzz 2 (offset -107 lines).
+> > 
+> > So that's why I'm wondering if it needs some changes.
+> 
+> OK, I understand why you're asking.  
+> 
+> I went back and researched it.  The patch that I sent is only needed 
+> because the conflict resolution in merge commit 
+> 3dd50d0545bd5a8ad83d4339f07935cd3e883271 ("Merge tag 
+> 'omap-cleanup-for-v3.6' into tmp-merge") adds &mpu_3xxx_clkdm back into 
+> the clockdomains_common list.  The previous commit on that file 
+> 16e5e2c471ab889f838bfe1c44032d0481c115e1 removed &mpu_3xxx_clkdm from the 
+> common list, because the AM35xx chips needed to use a different MPU 
+> clockdomain structure from the OMAP3xxx chips.
+> 
+> Or, put differently: Before 16e5e2c471ab889f838bfe1c44032d0481c115e1, it 
+> was correct to have &mpu_3xxx_clkdm in the common list.  That's 
+> what's in arm-soc next/cleanup and that data is correct.
+> 
+> After 16e5e2c471ab889f838bfe1c44032d0481c115e1, it's incorrect to have 
+> &mpu_3xxx_clkdm in the common list.
+> 
+> Hope this isn't even more confusing :-)
 
-I am just attempting to bring omap4 to omap3 level in the first place,
-we can discuss about the potential API problems separately, and a change
-like that should be relatively easy to implement anyway.... but will
-break several drivers.
+Well I'm still a bit confused :)
 
--Tero
+Which branch in arm-soc tree should this fix be applied then?
+Or do we actually need two fixes into arm-soc tree?
 
+Regards,
 
+Tony
