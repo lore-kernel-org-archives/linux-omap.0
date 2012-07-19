@@ -1,84 +1,70 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
- EMAC
-Date: Thu, 19 Jul 2012 16:59:06 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207191649040.14390@utopia.booyaka.com>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com> <20120718213246.GD27904@animalcreek.com> <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
- <20120719182602.GB24076@animalcreek.com>
+Subject: Re: [PATCHv7 08/12] ARM: OMAP4430: PM: Work-around for ROM code BUG
+ of PER pwrst ctrl
+Date: Thu, 19 Jul 2012 17:21:54 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207191717220.14390@utopia.booyaka.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-9-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43582 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:43869 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab2GSW7I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 18:59:08 -0400
-In-Reply-To: <20120719182602.GB24076@animalcreek.com>
+	with ESMTP id S1751652Ab2GSXVz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 19:21:55 -0400
+In-Reply-To: <1342704392-23657-9-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ilya Yanok <yanok@emcraft.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-+ Ilya
+Hi
 
-Hi Mark
+On Thu, 19 Jul 2012, Tero Kristo wrote:
 
-Maybe try something like this on top of the patch that disables the 
-MPU DPLL autoidle?
+> On OMAP4430 HS / EMU chips, ROM code appears to re-configure L4PER domain
+> next powerstate during wakeup from OSWR / OFF, programming it to ON.
+> This will prevent successive entries to cpuidle retention / off, until
+> kernel decices to change the L4PER target state, which can be delayed
+> for a very long time as kernel is lazy programming the target state.
+> 
+> This patch fixes the issue within the low power OSWR / OFF mode code, so
+> that this register is saved / restored across MPU OSWR / OFF state.
+> 
+> This problem seems to only occur with OMAP4430 HS/EMU, it does not impact
+> OMAP4460+ or GP devices.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |   39 ++++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/pm.h                  |    1 +
+>  arch/arm/mach-omap2/pm44xx.c              |   10 +++++++
+>  3 files changed, 49 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> index 0e5f81b..963a61b 100644
+> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
 
-I don't know what am35xx_enable_emac_int() is supposed to do.  It seems 
-strange to clear the interrupt status bits when one is supposed to enable 
-the interrupts.  Maybe Ilya can shed some light on it.
+...
+
+> @@ -215,6 +225,28 @@ static void save_l2x0_context(void)
+>  {}
+>  #endif
+>  
+> +static inline void save_l4per_regs(void)
+> +{
+> +	int i;
+> +
+> +	if (!IS_PM44XX_ERRATUM(PM_OMAP4_ROM_L4PER_ERRATUM_PWSTCT))
+> +		return;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(l4per_reg); i++)
+> +		l4per_reg[i].val = __raw_readl(l4per_reg[i].addr);
+
+This is accessing the system PRM registers directly.  We're trying to 
+remove these raw register accesses from non-PRM code because a PRM driver 
+is in the works.  Please move this to prm44xx.c or prminst44xx.c and 
+implement a higher-level interface that omap-mpuss-lowpower.c can call.
 
 
 - Paul
-
----
- arch/arm/mach-omap2/am35xx-emac.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-index 2c90ac6..231190e 100644
---- a/arch/arm/mach-omap2/am35xx-emac.c
-+++ b/arch/arm/mach-omap2/am35xx-emac.c
-@@ -23,23 +23,17 @@
- #include "control.h"
- #include "am35xx-emac.h"
- 
--static void am35xx_enable_emac_int(void)
--{
--	u32 v;
--
--	v = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
--	v |= (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR |
--	      AM35XX_CPGMAC_C0_MISC_PULSE_CLR | AM35XX_CPGMAC_C0_RX_THRESH_CLR);
--	omap_ctrl_writel(v, AM35XX_CONTROL_LVL_INTR_CLEAR);
--	omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR); /* OCP barrier */
--}
--
- static void am35xx_disable_emac_int(void)
- {
- 	u32 v;
- 
--	v = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
--	v |= (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR);
-+	/* XXX What about the misc interrupts? */
-+	/*
-+	 * XXX MDIO driver should handle its interrupts through the EMAC
-+	 * driver
-+	 */
-+	v = (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR |
-+	     AM35XX_CPGMAC_C0_MISC_PULSE_CLR | AM35XX_CPGMAC_C0_RX_THRESH_CLR);
- 	omap_ctrl_writel(v, AM35XX_CONTROL_LVL_INTR_CLEAR);
- 	omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR); /* OCP barrier */
- }
-@@ -51,7 +45,6 @@ static struct emac_platform_data am35xx_emac_pdata = {
- 	.ctrl_ram_size		= AM35XX_EMAC_CNTRL_RAM_SIZE,
- 	.hw_ram_addr		= AM35XX_EMAC_HW_RAM_ADDR,
- 	.version		= EMAC_VERSION_2,
--	.interrupt_enable	= am35xx_enable_emac_int,
- 	.interrupt_disable	= am35xx_disable_emac_int,
- };
- 
--- 
-1.7.10.4
-
