@@ -1,56 +1,52 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
- issue
-Date: Thu, 19 Jul 2012 11:15:15 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1207191113440.1764-100000@iolanthe.rowland.org>
-References: <20120719102013.GJ14302@arwen.pp.htv.fi>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
+ suspend
+Date: Thu, 19 Jul 2012 18:31:47 +0300
+Message-ID: <1342711907.4672.153.camel@sokoban>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
+	 <1342704392-23657-8-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:44006 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751516Ab2GSPPQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 11:15:16 -0400
-In-Reply-To: <20120719102013.GJ14302@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:46721 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750942Ab2GSPbx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 11:31:53 -0400
+In-Reply-To: <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, khilman@ti.com, sameo@linux.intel.com, notasas@gmail.com, Greg KH <gregkh@linuxfoundation.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 19 Jul 2012, Felipe Balbi wrote:
-
-> Hi,
+On Thu, 2012-07-19 at 08:44 -0600, Paul Walmsley wrote:
+> On Thu, 19 Jul 2012, Tero Kristo wrote:
 > 
-> On Thu, Jun 21, 2012 at 07:12:12PM +0530, Keshava Munegowda wrote:
-> > This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-> > "Fix OMAP EHCI suspend/resume failure (i693)" is causing
-> > the usb hub and device detection fails in beagle XM
-> > causeing NFS not functional. This affects the core retention too.
-> > The same commit logic needs to be revisted adhering to hwmod and
-> > device tree framework.
-> > for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
-> > titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
-> > 
-> > This patch is validated on BeagleXM with NFS support over
-> > usb ethernet and USB mass storage and other device detection.
-> > 
-> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > 
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> 
-> turns out this is causing other issues and another version of the patch
-> will be provided.
-> 
-> Greg, Alan, this is basically a git revert of the commit id listed
-> above.
+> This one needs at least some short description for the changelog.  Maybe 
+> just a brief explanation that OSWR saves more energy that CSWR, but has 
+> higher resume latency, and since resume from system suspend is considered 
+> to be a high-latency operation, OSWR is appropriate here.
 
-I have no objection to reverting the patch.  But on a related note,
-have you had a chance to read my comment:
+Yea, I can add one. How about this:
 
-	http://marc.info/?l=linux-usb&m=134098423528415&w=2
+Subject: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
+suspend
 
-?
+Currently OMAP4 suspend puts all power domains to CSWR. OSWR is a deeper
+state that saves more power, but has higher latencies also. As suspend
+is considered a high-latency operation, OSWR is appropriate here.
 
-Alan Stern
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+
+I'll update this to next rev if one is requested.
+
+(Kind of hoping this set would be reaching maturity already.)
+
+-Tero
 
 
