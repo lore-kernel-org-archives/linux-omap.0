@@ -1,82 +1,82 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Thu, 19 Jul 2012 15:48:44 +0530
-Message-ID: <CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
-References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
+ issue
+Date: Thu, 19 Jul 2012 13:20:14 +0300
+Message-ID: <20120719102013.GJ14302@arwen.pp.htv.fi>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVh9lyqKgK19OcEf"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:59443 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753714Ab2GSKSt (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34609 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752386Ab2GSKXQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 06:18:49 -0400
-Received: by lbgc1 with SMTP id c1so3854822lbg.29
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 03:18:44 -0700 (PDT)
-In-Reply-To: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	Thu, 19 Jul 2012 06:23:16 -0400
+Received: by lbon10 with SMTP id n10so6215519lbo.27
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 03:23:13 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, balbi@ti.com, Paul Walmsley <paul@pwsan.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, parthab@india.ti.com
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, khilman@ti.com, balbi@ti.com, sameo@linux.intel.com, notasas@gmail.com, Alan Stern <stern@rowland.harvard.edu>, Greg KH <gregkh@linuxfoundation.org>
 
-On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
-<keshava_mgowda@ti.com> wrote:
-> The TLL (Transceiver Less Link) is an separate IP block, independent of
-> the host controller. Basically this TLL operates like USB PHY which allows
-> the user to connect two USB transceiver interfaces together directly
-> without the use of differential transceivers in omap3 and later chips.
-> The TLL configuration is removed from the UHH driver and implemented as
-> a seperate platform driver. Now, the UHH driver configures the TLL
-> through API's exported by the TLL platform driver.
->
+
+--EVh9lyqKgK19OcEf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Thu, Jun 21, 2012 at 07:12:12PM +0530, Keshava Munegowda wrote:
+> This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+> "Fix OMAP EHCI suspend/resume failure (i693)" is causing
+> the usb hub and device detection fails in beagle XM
+> causeing NFS not functional. This affects the core retention too.
+> The same commit logic needs to be revisted adhering to hwmod and
+> device tree framework.
+> for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
+> titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
+>=20
+> This patch is validated on BeagleXM with NFS support over
+> usb ethernet and USB mass storage and other device detection.
+>=20
 > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->
-> In v4:
->     - rebased on top of linux kernel version 3.5.rc7
->     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
->
-> In v3:
->   - rebased on top V3 of Russ dill's patch
->        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->        fixes an issue where the ULPI PHYs were not held in reset
->        while initializing the EHCI controller
->         http://permalink.gmane.org/gmane.linux.usb.general/65988
->
->   - rebased on top of patch
->     OMAP: USB : Fix the EHCI enumeration and core retention issue
->      http://permalink.gmane.org/gmane.linux.usb.general/66239
->
-> In V2:
->     - covered review comments from linux omap and usb community
->     - rebased on top Russ dill's patch
->        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->        fixes an issue where the ULPI PHYs were not held in reset
->        while initializing the EHCI controller
->
-> Keshava Munegowda (5):
->   ARM: OMAP: Add the USB TLL clocks device name
->   ARM: OMAP: USB: HOST TLL platform driver
->   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
->   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
->   ARM: OMAP: Remove older device name of the USB TLL clocks
->
->  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
->  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
->  arch/arm/mach-omap2/usb-host.c        |   31 ++-
->  arch/arm/plat-omap/include/plat/usb.h |    7 +
->  drivers/mfd/Kconfig                   |    2 +-
->  drivers/mfd/Makefile                  |    2 +-
->  drivers/mfd/omap-usb-host.c           |  238 ++---------------
->  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
->  8 files changed, 523 insertions(+), 240 deletions(-)
->  create mode 100644 drivers/mfd/omap-usb-tll.c
->
-> --
-> 1.7.9.5
 
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-Felipe/ Paul
-      please let me know if you have any review comments on this v4 series.
+turns out this is causing other issues and another version of the patch
+will be provided.
 
-regards
-keshava
+Greg, Alan, this is basically a git revert of the commit id listed
+above.
+
+--=20
+balbi
+
+--EVh9lyqKgK19OcEf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQB99dAAoJEIaOsuA1yqREoB0P/A9xODEb/OQXip5zo5IYnfMe
+tbNkcAepo4U6gsMxnxmrI7KnHEd76UeemYpghzpaap2YdxxXb1FiFa7nmAnX09jm
+URzPJwJeGx1cFjmFPTILEz7II3yYY4q62hj+2+qq2QKd0HV/dkZmQ9kgxERLvkmA
+TRQUhomNHasKoFQYtFMR0R7mqNN2xivQK3tXt1q3+bwPP+b7XICazfYAYDMW+4Ei
+PXoTJvzTmGw59ngspNQHaXGdXV4b1YoIMvmYwodv5KYuuoRPpbaxa4ulYPvpbmXc
+Jyq8GAR0TMMWjNKaKCOzdtNMue2E20xjms8brCkvNKyz0UUtwO0p21CjHqOv1XTJ
+6KZdLDAVYfJTh9sTKPi0mrl2o84rr8cKRRzfkdkHKi56QInDvIIqMEKGkJfggeeE
+bIWi03zNoc2wfKADzDwOASivZj8Zzx6oDOtVNAjT+JhVm53/dhqeZkF/DbAQisis
+7JaqL1yX5poQo81uryPNa09lGvEHUUEDGanQHPJuPJhlocuaBkbE1efT4KoMcq3k
+g2RbwqBW2To5xoHharUfy0UaWMxZK8L8oli9cDERzhsP3shy4LHCsZVvjAu7JcMS
+IY1avJztmAT4TJqIEPdFhU/tcFB/CN7R2Ka/Ujdypj0DFvUCYwlOsMk4Rh3hb4eB
+ocbbpjq7RRQHs5PkgdlL
+=SEtw
+-----END PGP SIGNATURE-----
+
+--EVh9lyqKgK19OcEf--
