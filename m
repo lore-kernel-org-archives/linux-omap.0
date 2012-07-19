@@ -1,72 +1,43 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv5 00/18] I2C big cleanup
-Date: Thu, 19 Jul 2012 20:07:50 +0530
-Message-ID: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv5 18/18] i2c: omap: remove redundant status read
+Date: Thu, 19 Jul 2012 20:08:08 +0530
+Message-ID: <1342708688-2342-19-git-send-email-shubhrajyoti@ti.com>
+References: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41954 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751616Ab2GSOn4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 10:43:56 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342708688-2342-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Changes since v1:
-       - removed tabification on patch 6/17
-       - removed dev_err() which was introduced on patch 09/17
-Changes since v2:
-        - do not set full fifo depth in the RDR interrupt.
-        - some changelog updates.
-        - rebase to the Wolfram's tree.
-Changes since v3:
-        - Remove a redundant read of status register
-        - Read the dev->buf_len variable instead of the register
-        as the information of the remaining bytes is there.
-Changes since v4:
-	- Ack the arbitration lost.
-	- Rebase to the i2c-embedded/for-next branch.
+Remove the redundant read of the status register.
 
-Tested on omap4sdp and 3430sdp.
-Functional testing.
-Also did suspend resume test.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-This applies on Wolfram's i2c-embedded/for-next branch
-
-Previous disscurssion
-http://www.spinics.net/lists/linux-omap/msg73235.html
-
-are available in the git repository at:
-  git://gitorious.org/linus-tree/linus-tree.git for_next/i2c/big_cleanup
-
-
-Felipe Balbi (17):
-  i2c: omap: switch to devm_* API
-  i2c: omap: simplify num_bytes handling
-  i2c: omap: decrease indentation level on data handling
-  i2c: omap: add blank lines
-  i2c: omap: simplify omap_i2c_ack_stat()
-  i2c: omap: split out [XR]DR and [XR]RDY
-  i2c: omap: improve i462 errata handling
-  i2c: omap: re-factor receive/transmit data loop
-  i2c: omap: switch over to do {} while loop
-  i2c: omap: ack IRQ in parts
-  i2c: omap: switch to platform_get_irq()
-  i2c: omap: bus: add a receiver flag
-  i2c: omap: simplify errata check
-  i2c: omap: always return IRQ_HANDLED
-  i2c: omap: simplify IRQ exit path
-  i2c: omap: resize fifos before each message
-  i2c: omap: get rid of the "complete" label
-
-Shubhrajyoti D (1):
-  i2c: omap: remove redundant status read
-
- drivers/i2c/busses/i2c-omap.c |  392 ++++++++++++++++++++++++-----------------
- 1 files changed, 228 insertions(+), 164 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 2e48da9..7ad24ac 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -943,7 +943,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->buf_len;
+ 
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
+ 
+@@ -959,7 +958,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->threshold;
+ 
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
+ 
 -- 
 1.7.5.4
-
