@@ -1,30 +1,142 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
- suspend
-Date: Thu, 19 Jul 2012 08:44:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
-References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-8-git-send-email-t-kristo@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v4 09/11] drivers: usb: musb: Add device tree support for
+ omap musb glue
+Date: Thu, 19 Jul 2012 20:18:27 +0530
+Message-ID: <CAAe_U6+_-0HC-_TEDnOT2jPCRtH=6FHjZdTmmomTSmJOEk7kGA@mail.gmail.com>
+References: <1342607922-11554-1-git-send-email-kishon@ti.com>
+	<1342607922-11554-10-git-send-email-kishon@ti.com>
+	<47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57291 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547Ab2GSOon (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 10:44:43 -0400
-In-Reply-To: <1342704392-23657-8-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "rob@landley.net" <rob@landley.net>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 19 Jul 2012, Tero Kristo wrote:
+Hi,
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+On Thu, Jul 19, 2012 at 6:51 PM, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
+> Hi,
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
+>>  drivers/usb/musb/omap2430.c                        |   55
+>> ++++++++++++++++++++
+>>  2 files changed, 88 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> index 80a28c9..39cdffb 100644
+>> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> @@ -1,4 +1,4 @@
+>> -OMAP USB PHY
+>> +OMAP USB PHY AND GLUE
+>>
+>>  OMAP USB2 PHY
+>>
+>> @@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
+>>       compatible = "ti,omap-usb2";
+>>       reg = <0x4a0ad080 0x58>;
+>>  };
+>> +
+>> +OMAP MUSB GLUE
+>> + - compatible : Should be "ti,musb-omap2430"
+>> + - ti,hwmods : must be "usb_otg_hs"
+>> + - multipoint : Should be "1" indicating the musb controller supports
+>> +   multipoint. This is a MUSB configuration-specific setting.
+>> + - num_eps : Specifies the number of endpoints. This is also a
+>> +   MUSB configuration-specific setting. Should be set to "16"
+>> + - ram_bits : Specifies the ram address size. Should be set to "12"
+>> + - interface_type : This is a board specific setting to describe the type
+>> of
+>> +   interface between the controller and the phy. It should be "0" or "1"
+>> +   specifying ULPI and UTMI respectively.
+>> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+>> +   represents PERIPHERAL.
+>> + - power : Should be "50". This signifies the controller can supply upto
+>> +   100mA when operating in host mode.
+>> +
+>> +SOC specific device node entry
+>> +usb_otg_hs: usb_otg_hs@4a0ab000 {
+>> +     compatible = "ti,musb-omap2430";
+>> +     ti,hwmods = "usb_otg_hs";
+>> +     multipoint = <1>;
+>> +     num_eps = <16>;
+>> +     ram_bits = <12>;
+>> +};
+>> +
+>> +Board specific device node entry
+>> +&usb_otg_hs {
+>> +     interface_type = <1>;
+>> +     mode = <3>;
+>> +     power = <50>;
+>> +};
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>> index addbebf..331e477 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -30,6 +30,7 @@
+>>  #include <linux/init.h>
+>>  #include <linux/list.h>
+>>  #include <linux/io.h>
+>> +#include <linux/of.h>
+>>  #include <linux/platform_device.h>
+>>  #include <linux/dma-mapping.h>
+>>  #include <linux/pm_runtime.h>
+>> @@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
+>>  static int __devinit omap2430_probe(struct platform_device *pdev)
+>>  {
+>>       struct musb_hdrc_platform_data  *pdata = pdev->dev.platform_data;
+>> +     struct omap_musb_board_data     *data;
+>>       struct platform_device          *musb;
+>>       struct omap2430_glue            *glue;
+>> +     struct device_node              *np = pdev->dev.of_node;
+>> +     struct musb_hdrc_config         *config;
+>>       struct resource                 *res;
+>>       int                             ret = -ENOMEM;
+>>
+>> @@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct
+>> platform_device *pdev)
+>>       if (glue->control_otghs == NULL)
+>>               dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
+>>
+>> +     if (np) {
+>> +             pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+>> +             if (!pdata) {
+>> +                     dev_err(&pdev->dev,
+>> +                             "failed to allocate musb platfrom data\n");
+>> +                     ret = -ENOMEM;
+>> +                     goto err1;
+>> +             }
+>> +
+>> +             data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+>> +             if (!data) {
+>> +                     dev_err(&pdev->dev,
+>> +                                     "failed to allocate musb board data\n");
+>> +                     ret = -ENOMEM;
+>> +                     goto err1;
+>> +             }
+>> +
+>> +             config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
+>> +             if (!data) {
+>> +                     dev_err(&pdev->dev,
+>> +                             "failed to allocate musb hdrc config\n");
+>> +                     goto err1;
+>> +             }
+>> +
+>> +             of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+>> +             of_property_read_u32(np, "interface_type",
+>> +                                             (u32 *)&data->interface_type);
+>> +             of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
+>> +             of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
+>> +             of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+>
+> pdata->mode is already read so above should be removed.
 
-This one needs at least some short description for the changelog.  Maybe 
-just a brief explanation that OSWR saves more energy that CSWR, but has 
-higher resume latency, and since resume from system suspend is considered 
-to be a high-latency operation, OSWR is appropriate here.
+Ok.
 
-
-- Paul
+Thanks
+Kishon
