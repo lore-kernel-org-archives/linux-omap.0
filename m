@@ -1,75 +1,65 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH v4 07/11] usb: otg: nop: add dt support
-Date: Thu, 19 Jul 2012 17:16:03 +0530
-Message-ID: <1342698367-12978-8-git-send-email-ajay.gupta@ti.com>
-References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 4/7] ARM: OMAP: hwmod: Add support for per
+ hwmod/module context lost count
+Date: Thu, 19 Jul 2012 14:47:54 +0300
+Message-ID: <1342698474.4672.129.camel@sokoban>
+References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+	 <1339428387-4800-5-git-send-email-t-kristo@ti.com>
+	 <CAOMWX4fecw5A0BhDG-swVubKtxTEKdNpcODOh7=uFBFbSAnbgw@mail.gmail.com>
+	 <1342602902.4672.91.camel@sokoban>
+	 <CAOMWX4dWnJSOwLVvrAfMd7a9eKE97ywR0TrS6imHFA67V5QZag@mail.gmail.com>
+	 <1342691380.4672.123.camel@sokoban>
+	 <CAOMWX4d9wBS2dx_6S9ouMagUPnAr3q8TYXpGq52nREfGHxVEUg@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53320 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53472 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753966Ab2GSLqT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 07:46:19 -0400
-In-Reply-To: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
+	id S1752745Ab2GSLsA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 07:48:00 -0400
+In-Reply-To: <CAOMWX4d9wBS2dx_6S9ouMagUPnAr3q8TYXpGq52nREfGHxVEUg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Added device tree support for nop transceiver driver and updated the
-Documentation with device tree binding information for am33xx platform.
+On Thu, 2012-07-19 at 05:27 -0500, Menon, Nishanth wrote:
+> On Thu, Jul 19, 2012 at 4:49 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> >
+> > Zero doesn't mean no context loss. If counter was previous MAX_INT, if
+> > it goes to zero it is still a context loss, as the counter value
+> > differs. Drivers do check against diff in the context loss counter, and
+> > if there is one, they do restore which is the right way to handle it. No
+> > need to unnecessarily make this more complicated than it is.
+> 
+> so we flip the responsibility of overflow to drivers. considering a
+> similar scenario of jiffies
+> /*
+>  *      These inlines deal with timer wrapping correctly. You are
+>  *      strongly encouraged to use them
+>  *      1. Because people otherwise forget
+>  *      2. Because if the timer wrap changes in future you won't have to
+>  *         alter your driver code.
+>  *
+>  * time_after(a,b) returns true if the time a is after time b.
+> ...
+> */
+> from past experience, it is highly possible that drivers never get
+> this right. if the intent is just to let the drivers know context was
+> lost, why not go back to the alternate possibility of a bool
+> lost_context which tells the driver if it lost context since it last
+> called the lost_context api.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- .../devicetree/bindings/usb/am33xx-usb.txt         |    3 +++
- drivers/usb/otg/nop-usb-xceiv.c                    |   10 ++++++++++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+This goes to the discussion whether the API of lost context stuff is
+correct or not, and goes out of scope for this set.
 
-diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-index ca8fa56..9782585 100644
---- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-@@ -12,3 +12,6 @@ AM33XX MUSB GLUE
-    represents PERIPHERAL.
-  - power : Should be "250". This signifies the controller can supply upto
-    500mA when operating in host mode.
-+
-+NOP USB PHY
-+ - compatible : Should be "nop-xceiv-usb"
-diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-index aa2f767..2788a00 100644
---- a/drivers/usb/otg/nop-usb-xceiv.c
-+++ b/drivers/usb/otg/nop-usb-xceiv.c
-@@ -27,6 +27,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/usb/otg.h>
-@@ -151,12 +152,21 @@ static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id nop_xceiv_id_table[] = {
-+	{ .compatible = "nop-xceiv-usb" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, nop_xceiv_id_table);
-+#endif
-+
- static struct platform_driver nop_usb_xceiv_driver = {
- 	.probe		= nop_usb_xceiv_probe,
- 	.remove		= __devexit_p(nop_usb_xceiv_remove),
- 	.driver		= {
- 		.name	= "nop_usb_xceiv",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(nop_xceiv_id_table),
- 	},
- };
- 
--- 
-1.7.0.4
+I am just attempting to bring omap4 to omap3 level in the first place,
+we can discuss about the potential API problems separately, and a change
+like that should be relatively easy to implement anyway.... but will
+break several drivers.
+
+-Tero
+
 
