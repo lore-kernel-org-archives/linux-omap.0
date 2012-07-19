@@ -1,120 +1,72 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv5 07/18] i2c: omap: improve i462 errata handling
-Date: Thu, 19 Jul 2012 20:07:57 +0530
-Message-ID: <1342708688-2342-8-git-send-email-shubhrajyoti@ti.com>
-References: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv5 00/18] I2C big cleanup
+Date: Thu, 19 Jul 2012 20:07:50 +0530
+Message-ID: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35971 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41954 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752527Ab2GSOmv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 10:42:51 -0400
-In-Reply-To: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
+	id S1751616Ab2GSOn4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 10:43:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+Changes since v1:
+       - removed tabification on patch 6/17
+       - removed dev_err() which was introduced on patch 09/17
+Changes since v2:
+        - do not set full fifo depth in the RDR interrupt.
+        - some changelog updates.
+        - rebase to the Wolfram's tree.
+Changes since v3:
+        - Remove a redundant read of status register
+        - Read the dev->buf_len variable instead of the register
+        as the information of the remaining bytes is there.
+Changes since v4:
+	- Ack the arbitration lost.
+	- Rebase to the i2c-embedded/for-next branch.
 
-Make it not depend on ISR's local variables
-in order to make it easier to re-factor the
-transmit data loop.
-Also since we are waiting for XUDF(Transmitter underflow) just before
-writing data lets not flag the underflow.
-This is anyways going to go once we write
-the data.
+Tested on omap4sdp and 3430sdp.
+Functional testing.
+Also did suspend resume test.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-[Avoid flagging the XUDF]
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 13 deletions(-)
+This applies on Wolfram's i2c-embedded/for-next branch
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5f6d9c5..6f98812 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -722,27 +722,30 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
-  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
-  * them from the memory to the I2C interface.
-  */
--static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
-+static int errata_omap3_i462(struct omap_i2c_dev *dev)
- {
- 	unsigned long timeout = 10000;
-+	u16 stat;
- 
--	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
--		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-+	do {
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		if (stat & OMAP_I2C_STAT_XUDF)
-+			break;
-+
-+		if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
--			return -ETIMEDOUT;
-+			return -EIO;
- 		}
- 
- 		cpu_relax();
--		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
-+	} while (--timeout);
- 
- 	if (!timeout) {
- 		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
- 		return 0;
- 	}
- 
--	*err |= OMAP_I2C_STAT_XUDF;
- 	return 0;
- }
- 
-@@ -900,9 +903,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
-+
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
-+
-+					if (ret < 0)
-+						goto complete;
-+				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
-@@ -940,9 +950,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
-+
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
-+
-+					if (ret < 0)
-+						goto complete;
-+				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
+Previous disscurssion
+http://www.spinics.net/lists/linux-omap/msg73235.html
+
+are available in the git repository at:
+  git://gitorious.org/linus-tree/linus-tree.git for_next/i2c/big_cleanup
+
+
+Felipe Balbi (17):
+  i2c: omap: switch to devm_* API
+  i2c: omap: simplify num_bytes handling
+  i2c: omap: decrease indentation level on data handling
+  i2c: omap: add blank lines
+  i2c: omap: simplify omap_i2c_ack_stat()
+  i2c: omap: split out [XR]DR and [XR]RDY
+  i2c: omap: improve i462 errata handling
+  i2c: omap: re-factor receive/transmit data loop
+  i2c: omap: switch over to do {} while loop
+  i2c: omap: ack IRQ in parts
+  i2c: omap: switch to platform_get_irq()
+  i2c: omap: bus: add a receiver flag
+  i2c: omap: simplify errata check
+  i2c: omap: always return IRQ_HANDLED
+  i2c: omap: simplify IRQ exit path
+  i2c: omap: resize fifos before each message
+  i2c: omap: get rid of the "complete" label
+
+Shubhrajyoti D (1):
+  i2c: omap: remove redundant status read
+
+ drivers/i2c/busses/i2c-omap.c |  392 ++++++++++++++++++++++++-----------------
+ 1 files changed, 228 insertions(+), 164 deletions(-)
+
 -- 
 1.7.5.4
 
