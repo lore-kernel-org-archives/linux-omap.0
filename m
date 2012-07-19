@@ -1,87 +1,137 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v3 04/11] usb: otg: nop: add support for multiple
- tranceiver
-Date: Thu, 19 Jul 2012 10:15:47 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EADDADE@DBDE01.ent.ti.com>
-References: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
-	<1342676499-32507-5-git-send-email-ajay.gupta@ti.com>
- <CAAe_U6+a_8hoJgdHfLGyMeg6EMmkfkP1Zow9avRTgG6EpV5p1Q@mail.gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Thu, 19 Jul 2012 15:47:20 +0530
+Message-ID: <CAP05o4+YDy7tYt-FiUauec5nrRTydhmHGO6guf_Eo7gUVpYtAA@mail.gmail.com>
+References: <87ehp71liv.fsf@ti.com>
+	<20120622203645.GD29290@arwen.pp.htv.fi>
+	<87d34nfdei.fsf@ti.com>
+	<871uku85o8.fsf@ti.com>
+	<CAP05o4+hxt6zY0AxK5aNW7a3Hyiw0_krP9=XK_prN5=Uk2SxmA@mail.gmail.com>
+	<CAP05o4KinrK7N13nivOy+reibY526c8sv6ySkxwDZwDMJHSaiQ@mail.gmail.com>
+	<87k3yj4pn4.fsf@ti.com>
+	<20120705111901.GR22065@sortiz-mobl>
+	<CAP05o4JEx0uSCH+mZzLhoV479A00uUumvYY_-b8dQ9j_5Awumw@mail.gmail.com>
+	<CAP05o4+OBPBzqurM2FHDBmQ0AbBLVHL5DP+cMHW+jS5bG23-EQ@mail.gmail.com>
+	<20120711102958.GA23772@sortiz-mobl>
+	<CAP05o4JZNeh2BCxkfUVajYLGdzPG30v++-EYjLD09OmS1uqyyQ@mail.gmail.com>
+	<874npenzq0.fsf@ti.com>
+	<CAP05o4+hQh-weQ_hfFMxY-byEijwDF3e-D9U5gwh6yRD7C_=Zw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44859 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752386Ab2GSKP5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 06:15:57 -0400
-In-Reply-To: <CAAe_U6+a_8hoJgdHfLGyMeg6EMmkfkP1Zow9avRTgG6EpV5p1Q@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAP05o4+hQh-weQ_hfFMxY-byEijwDF3e-D9U5gwh6yRD7C_=Zw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russ.Dill-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi,
-> > Currently we have one single nop transceiver support as same is
-> > defined as a global variable in drivers/usb/otg/nop-usb-xceiv.c.
-> > This need to be changed to support multiple otg controller each
-> > using nop transceiver on a platform such as am335x.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3evm.c |    2 +-
-> >  drivers/usb/musb/am35x.c             |    4 ++--
-> >  drivers/usb/musb/blackfin.c          |    4 ++--
-> >  drivers/usb/musb/da8xx.c             |    4 ++--
-> >  drivers/usb/musb/davinci.c           |    6 +++---
-> >  drivers/usb/musb/musb_dsps.c         |   10 +++++-----
-> >  drivers/usb/musb/tusb6010.c          |    6 +++---
-> >  drivers/usb/otg/nop-usb-xceiv.c      |   20 ++++++++++++--------
-> >  include/linux/usb/otg.h              |    9 +++++----
-> >  9 files changed, 35 insertions(+), 30 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> > index ef230a0..a3393bc 100644
-[...]
-> > diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-> > index 4636d39..36cc791 100644
-> > --- a/include/linux/usb/otg.h
-> > +++ b/include/linux/usb/otg.h
-> > @@ -95,6 +95,7 @@ struct usb_phy {
-> >         struct device           *dev;
-> >         const char              *label;
-> >         unsigned int             flags;
-> > +       u8                      id;
-> 
-> Do we really need to have *id* in phy??
+On Thu, Jul 12, 2012 at 12:11 PM, Munegowda, Keshava
+<keshava_mgowda-l0cyMroinI0@public.gmane.org> wrote:
+> On Wed, Jul 11, 2012 at 7:53 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+>> "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>> On Wed, Jul 11, 2012 at 3:59 PM, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>>>> Hi Keshava, Kevin,
+>>>>
+>>>> On Fri, Jul 06, 2012 at 05:29:00PM +0530, Munegowda, Keshava wrote:
+>>>>> Samuel
+>>>>>           I have sent that patch to disable the ehci in
+>>>>> omap2plus_defconfig; after merging that
+>>>>> please merge this patch too. This will fix the crashes in during boot
+>>>>> with NFS in beagleXM
+>>>> I'm going to apply and push this patch for 3.5, and the defconfig patch can be
+>>>> pushed through Tony's tree.
+>>>> Kevin, could you please ACK it ?
+>>>>
+>>>> Cheers,
+>>>> Samuel.
+>>>>
+>>>
+>>> Thanks Samuel
+>>>
+>>> Kevin,
+>>>     need your ack for this.
+>>
+>> You never answered earlier questions from myself or Russ Dill about the
+>> more targetted patches from Russ:
+>>
+>>    ARM: OMAP: USB: Fixup ehci_hcd_omap_probe error path
+>>    Fix OMAP EHCI suspend/resume failure (i693) '354ab856' causes
+>>
+>> Also, your current $SUBJECT patch is large and not well
+>> described. e.g. what is "not correct" and why.  Why does it fix the
+>> problems mentioned?  The original changelog mentions the "core retention
+>> issue" but this patch does nothing to address that.  If you want an Ack
+>> from me, especially because I'm not an expert in this IP, you'll have to
+>> describe things in a way that I can understand.
+>>
+>> IMO, at this point of the dev cycle (trying to stabilize v3.5), the full
+>> cleanup/fix of this feature will need to be done for v3.6.  For v3.5, I
+>> think the two patches from Russ Dill should be merged.   They are
+>> targetted fixes and very well described.
+>>
+>> Kevin
+>>
+>
+>
+> Hi Kevin
+>         The usb2 host of omap3/4/5 silicons has the following ips
+>
+> 1. UHH   (  /drivers/mfd/omap-usb-host.c ) -- platform driver
+> 2. TLL    ( /drivers/mfd/omap-usb-host.c )
+> 3. ehci    ( /drivers/usb/host/ehci-omap.c)  - platform driver
+> 4. ohci ( /drivers/usb/host/ohci-omap3.c ) - platform drivers
+>
+> The 3 platform drivers exists to make the ehci/ohci functional.
+>
+> The  UHH-TLL or usb host core driver is the parent platform driver of
+> ehci and ohci.
+> This parent driver doe the clock enable/disable which common for both
+> ehci and ohci.
+> takes care of common port setting and clocks during suspend and resume
+> and ensures
+> that there is no overwrites by ehci and ohci platform drivers.
+>
+> The commit id  354ab8567ae3107a8cbe7228c3181990ba598aac titled
+> "Fix OMAP EHCI suspend/resume failure (i693)" was handling the clocks in
+> the ehci driver it self, instead it should be handled by usb host core
+> driver  as per above
+> explanation. so, the UHH-TLL Driver should handle the changes done by
+> 354ab8567ae3107a8cbe7228c3181990ba598aac.
+>
+>
+> hence this patch removes the changed done by the commit id
+> 354ab8567ae3107a8cbe7228c3181990ba598aac
+>
+> suppose if this patch is not included, then it will cause the
+> following two problems
+>
+> 1.  crash during the system boot
+>                        - observed in beagle xm , with NFS file system
+>                                            the Ethernet is through
+> ehci driver , since the ehci ports clocks are not handled properly
+>                          by this commit id
+> 354ab8567ae3107a8cbe7228c3181990ba598aac,  it leads to crash
+>
+> 2. crash during suspend/resume
+>                   - observed in beagle xm with ram fs
+>                                      if the ehci is driver is included
+> and if it tries to suspend it leads to crash
+>
+> regards
+> keshava
 
-I will update the patches dropping this.
 
-> >
-> >         enum usb_phy_type       type;
-> >         enum usb_otg_state      state;
-> > @@ -137,14 +138,14 @@ extern void usb_remove_phy(struct usb_phy *);
-> >
-> >  #if defined(CONFIG_NOP_USB_XCEIV) ||
-> (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
-> >  /* sometimes transceivers are accessed only through e.g. ULPI */
+hi Felipe
+        I request you to ack this patch;
+this will enable the boot issue in beagle xm with NFS.
+I will rework the patch with commit id
+354ab8567ae3107a8cbe7228c3181990ba598aac by Anand gadiyar
+after the TLL driver gets merged.
 
-> > -extern void usb_nop_xceiv_register(void);
-> > -extern void usb_nop_xceiv_unregister(void);
-> > +extern void usb_nop_xceiv_register(int id);
-> > +extern void usb_nop_xceiv_unregister(struct usb_phy *);
-
-> IMHO,  these declarations shouldn't be in usb/otg.h. It can be in a
-> header file specific to usb_nop?
-
-They were in otg.h and just definition getting changed so I think they
-need to be in otg.h only as a logical change of this patch.
-
-Location can be changed as a separate patch later.
-
-Thanks,
-Ajay
-> 
-> Thanks
-> Kishon
+regards
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
