@@ -1,61 +1,31 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv5 12/18] i2c: omap: bus: add a receiver flag
-Date: Thu, 19 Jul 2012 20:08:02 +0530
-Message-ID: <1342708688-2342-13-git-send-email-shubhrajyoti@ti.com>
-References: <1342708688-2342-1-git-send-email-shubhrajyoti@ti.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] MMC: OMAP: make MMC_OMAP* depend on DMA_OMAP
+Date: Thu, 19 Jul 2012 10:41:57 -0400
+Message-ID: <87liif95je.fsf@octavius.laptop.org>
+References: <1341450721-20993-1-git-send-email-ming.lei@canonical.com>
+	<87pq7s9w8f.fsf@octavius.laptop.org>
+	<CANfBPZ8K3=EG296_ZBd_ZaMaKPCXx4YWBOT6LjCy9T6ZsVhRHw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342708688-2342-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CANfBPZ8K3=EG296_ZBd_ZaMaKPCXx4YWBOT6LjCy9T6ZsVhRHw@mail.gmail.com>
+	(Venkatraman S.'s message of "Thu, 19 Jul 2012 16:59:45 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>, Kevin Hilman <khilman@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Hi,
 
-that way we can ignore TX IRQs while in receiver
-mode and ignore RX IRQs while in transmitter mode.
+On Thu, Jul 19 2012, S, Venkatraman wrote:
+> Chris,
+>  I think we have to hold on to this patch just for today. There's
+> another thread about this same issue on linux-omap
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-[Trivial formatting changes]
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Thanks, I've dropped it from mmc-next -- I'll wait for Russell or Tony
+to agree with one of the patches.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 71047dd..d732865 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -199,6 +199,7 @@ struct omap_i2c_dev {
- 						 */
- 	u8			rev;
- 	unsigned		b_hw:1;		/* bad h/w fixes */
-+	unsigned		receiver:1;	/* true when we're in receiver mode */
- 	u16			iestate;	/* Saved interrupt register */
- 	u16			pscstate;
- 	u16			scllstate;
-@@ -492,6 +493,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 
- 	INIT_COMPLETION(dev->cmd_complete);
- 	dev->cmd_err = 0;
-+	dev->receiver = !!(msg->flags & I2C_M_RD);
- 
- 	w = OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
- 
-@@ -834,6 +836,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 		stat &= bits;
- 
-+		/* If we're in receiver mode, ignore XDR/XRDY */
-+		if (dev->receiver)
-+			stat &= ~(OMAP_I2C_STAT_XDR | OMAP_I2C_STAT_XRDY);
-+		else
-+			stat &= ~(OMAP_I2C_STAT_RDR | OMAP_I2C_STAT_RRDY);
-+
- 		if (!stat) {
- 			/* my work here is done */
- 			return IRQ_HANDLED;
+- Chris.
 -- 
-1.7.5.4
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
