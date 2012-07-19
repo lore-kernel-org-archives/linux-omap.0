@@ -1,18 +1,22 @@
-From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin-LKQtL5H22ZDQT0dZR+AlfA@public.gmane.org>
+From: =?utf-8?B?5pyJ5pWI5p6c5YaN5LuY5qy+?= <admin@znz888.com>
 Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOe+pOWPkei9r+S7tg==?=
 	=?utf-8?B?77yMQjJC6K+i55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHhw==?=
 	=?utf-8?B?6LSt5ZWGLOa1t+WFs+aVsOaNrizlsZXkvJrkubDlrrYg5LuFMzAw5YWDIQ==?=
-Date: Thu, 19 Jul 2012 13:12:50 +0000 (UTC)
-Message-ID: <20200719201716242707@znz888.com>
+Date: Thu, 19 Jul 2012 13:12:53 +0000 (UTC)
+Message-ID: <20200719201716242707__47522.1030800187$1342703574$gmane$org@znz888.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from zz-13-222-a8.bta.net.cn ([202.108.13.222]:44703 "EHLO
+	mail.znz888.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750712Ab2GSNMo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 09:12:44 -0400
 Date: Sun, 19 Jul 2020 20:17:07 +0800
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linusliu90-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, lucas.marin-dMnexiTLjhM@public.gmane.org, linux-list-RxPa508aZeE@public.gmane.org, linux-mm-bugs-archive-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lucas-wi6MUXih4j5l57MIdRCFDg@public.gmane.org, linuxusers-+lTk9Ns4B/4/ohRxsw7f2g@public.gmane.org, lucas-dyuMCJBaGtOI3VD9JDNw9w@public.gmane.org, linvia-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linusliu90@gmail.com, lucas.marin@urv.cat, linux-list@ssc.com, linux-mm-bugs-archive@nl.linux.org, linux-omap@vger.kernel.org, linux-rdma@vger.kernel.org, linux-security-module@vger.kernel.org, lucas@iuseelite.com, linuxusers@socallinux.org, lucas@turkertravel.com, linvia@hotmail.com
 
 MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
 54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
@@ -60,7 +64,3 @@ gemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeO
 h+aegemrmA0K
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
