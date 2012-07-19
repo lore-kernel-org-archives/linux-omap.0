@@ -1,52 +1,53 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
- suspend
-Date: Thu, 19 Jul 2012 18:31:47 +0300
-Message-ID: <1342711907.4672.153.camel@sokoban>
-References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
-	 <1342704392-23657-8-git-send-email-t-kristo@ti.com>
-	 <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
-Reply-To: <t-kristo@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
+ EMAC
+Date: Thu, 19 Jul 2012 11:26:02 -0700
+Message-ID: <20120719182602.GB24076@animalcreek.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
+ <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
+ <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com>
+ <20120718213246.GD27904@animalcreek.com>
+ <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46721 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750942Ab2GSPbx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 11:31:53 -0400
-In-Reply-To: <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
+Received: from mail20.dotsterhost.com ([66.11.232.73]:38898 "EHLO
+	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab2GSS0T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 14:26:19 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, 2012-07-19 at 08:44 -0600, Paul Walmsley wrote:
-> On Thu, 19 Jul 2012, Tero Kristo wrote:
+On Wed, Jul 18, 2012 at 05:25:16PM -0600, Paul Walmsley wrote:
+> On Wed, 18 Jul 2012, Mark A. Greer wrote:
 > 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > On Tue, Jul 17, 2012 at 09:54:53PM -0600, Paul Walmsley wrote:
+> > 
+> > > Want to try something like this?  It's your patch but modified to not use 
+> > > disable/enable_hlt().  If it doesn't work in your test case, maybe 
+> > > try uncommenting that second set of deny_idle / allow_idle ...
+> > 
+> > I tested the modified patch (to get it to compile) below.
 > 
-> This one needs at least some short description for the changelog.  Maybe 
-> just a brief explanation that OSWR saves more energy that CSWR, but has 
-> higher resume latency, and since resume from system suspend is considered 
-> to be a high-latency operation, OSWR is appropriate here.
+> Doh, sorry about that. 
 
-Yea, I can add one. How about this:
+No worries.
 
-Subject: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
-suspend
+> > It did not work with or without the core_dpll_ck deny_idle/allow_idle
+> > commented out.
+> 
+> Here's a version with some of the CPUIdle states restricted.  Maybe try 
+> this one if you're using CPUIdle?
 
-Currently OMAP4 suspend puts all power domains to CSWR. OSWR is a deeper
-state that saves more power, but has higher latencies also. As suspend
-is considered a high-latency operation, OSWR is appropriate here.
+I wasn't but I tried this lastest patch with and without CPUidle...
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
+> If it happens to work, it would also be interesting to know if it works 
+> with the CORE DPLL part commented out.
 
-I'll update this to next rev if one is requested.
+...and, unfortunately, it didnt' work in either case.
 
-(Kind of hoping this set would be reaching maturity already.)
-
--Tero
-
-
+Mark
