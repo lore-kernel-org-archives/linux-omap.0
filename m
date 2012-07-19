@@ -1,86 +1,104 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH v3 07/11] usb: otg: nop: add dt support
-Date: Thu, 19 Jul 2012 14:55:55 +0530
-Message-ID: <CAAe_U6+Sn3wQ2bL22rLyP++=Fe7GadQcqCJx3icBOC1zO04e0w@mail.gmail.com>
-References: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
-	<1342676499-32507-8-git-send-email-ajay.gupta@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 4/7] ARM: OMAP: hwmod: Add support for per
+ hwmod/module context lost count
+Date: Thu, 19 Jul 2012 12:49:40 +0300
+Message-ID: <1342691380.4672.123.camel@sokoban>
+References: <1339428387-4800-1-git-send-email-t-kristo@ti.com>
+	 <1339428387-4800-5-git-send-email-t-kristo@ti.com>
+	 <CAOMWX4fecw5A0BhDG-swVubKtxTEKdNpcODOh7=uFBFbSAnbgw@mail.gmail.com>
+	 <1342602902.4672.91.camel@sokoban>
+	 <CAOMWX4dWnJSOwLVvrAfMd7a9eKE97ywR0TrS6imHFA67V5QZag@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:52167 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751664Ab2GSJZ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 05:25:57 -0400
-Received: by vcbf13 with SMTP id f13so2265414vcb.23
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 02:25:56 -0700 (PDT)
-In-Reply-To: <1342676499-32507-8-git-send-email-ajay.gupta@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40197 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751Ab2GSJtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 05:49:50 -0400
+In-Reply-To: <CAOMWX4dWnJSOwLVvrAfMd7a9eKE97ywR0TrS6imHFA67V5QZag@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Thu, 2012-07-19 at 00:55 -0500, Menon, Nishanth wrote:
+> On Wed, Jul 18, 2012 at 4:15 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> >
+> > On Tue, 2012-07-17 at 02:59 -0500, Menon, Nishanth wrote:
+> > > Couple of minor comments:
+> > > On Mon, Jun 11, 2012 at 10:26 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> > > [...]
+> > > >  /**
+> > > > + * _omap4_update_context_lost - increment hwmod context loss counter
+> > > > if
+> > > > + * hwmod context was lost, and clear hardware context loss reg
+> > > > + * @oh: hwmod to check for context loss
+> > > > + *
+> > > > + * If the PRCM indicates that the hwmod @oh lost context, increment
+> > > > + * our in-memory context loss counter, and clear the RM_*_CONTEXT
+> > > > + * bits. No return value.
+> > > > + */
+> > > > +static void _omap4_update_context_lost(struct omap_hwmod *oh)
+> > > > +{
+> > > > +       u32 r;
+> > > > +
+> > > > +       if (oh->prcm.omap4.context_offs == USHRT_MAX)
+> > > > +               return;
+> > > would'nt it be better to return a dummy incremental counter instead of
+> > > returning no context loss (count = 0)?
+> >
+> > I guess you are right, this way we may have some extra context restores
+> > for modules which don't have context offs defined, rather than not
+> > restoring them at all. Only thing I can think might prevent this is if
+> > there are modules that never lose context but don't have context
+> > register? How about omap5+?
+> 
+> there has been an interesting debate ongoing with HWAUTO and context
+> loss count handling -> since we update only on _enable, this might
+> actually be interesting to consider:
+> enable
+> idle
+> un_idle (lost context)
+> read counter -> no update
+> 
+> Now to handle modules that never loose context - they have to be in
+> wakeup domain.. should we consider a flag for those? would'nt matter
+> o5 or not, context is still the same.. this issue could be resolved if
+> counter update is done even when a check is done.
 
-On Thu, Jul 19, 2012 at 11:11 AM, Ajay Kumar Gupta <ajay.gupta@ti.com> wrote:
-> Added device tree support for nop transceiver driver and updated the
-> Documentation with device tree binding information for am33xx platform.
->
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> ---
->  .../devicetree/bindings/usb/am33xx-usb.txt         |    3 +++
->  drivers/usb/otg/nop-usb-xceiv.c                    |   12 ++++++++++++
->  2 files changed, 15 insertions(+), 0 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> index ca8fa56..9782585 100644
-> --- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-> @@ -12,3 +12,6 @@ AM33XX MUSB GLUE
->     represents PERIPHERAL.
->   - power : Should be "250". This signifies the controller can supply upto
->     500mA when operating in host mode.
-> +
-> +NOP USB PHY
-> + - compatible : Should be "nop-xceiv-usb"
-> diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-> index 2e5e889..102e7d8 100644
-> --- a/drivers/usb/otg/nop-usb-xceiv.c
-> +++ b/drivers/usb/otg/nop-usb-xceiv.c
-> @@ -27,6 +27,7 @@
->   */
->
->  #include <linux/module.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/usb/otg.h>
-> @@ -152,12 +153,23 @@ static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
->         return 0;
->  }
->
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id nop_xceiv_id_table[] = {
-> +       { .compatible = "nop-xceiv-usb" },
-> +       {}
-> +};
-> +MODULE_DEVICE_TABLE(of, nop_xceiv_id_table);
-> +#else
-> +#define nop_xceiv_id_table NULL
-> +#endif
+Yea, that would be an option. I think I'll add a flag for not losing
+context ever.
 
-The *#else* part is not needed as your *of_match_ptr* will take care of it.
+> 
+> 
+> > >
+> > > > +
+> > > > +       r =
+> > > > omap4_prminst_read_inst_reg(oh->clkdm->pwrdm.ptr->prcm_partition,
+> > > > +
+> > > > oh->clkdm->pwrdm.ptr->prcm_offs,
+> > > > +                                       oh->prcm.omap4.context_offs);
+> > > > +
+> > > > +       if (!r)
+> > > > +               return;
+> > > > +
+> > > > +       oh->prcm.omap4.context_lost_counter++;
+> > > need to be careful about counter overflow.
+> >
+> > Well, this code can't do much for that even if it overflows... the type
+> > for the context_lost_counter is unsigned though, maybe it should be
+> > expanded if you are worried...?
+> 
+> it can hit 0 with overflow(no context loss). that will not be good, right?
 
-> +
->  static struct platform_driver nop_usb_xceiv_driver = {
->         .probe          = nop_usb_xceiv_probe,
->         .remove         = __devexit_p(nop_usb_xceiv_remove),
->         .driver         = {
->                 .name   = "nop_usb_xceiv",
->                 .owner  = THIS_MODULE,
-> +               .of_match_table = of_match_ptr(nop_xceiv_id_table),
->         },
->  };
+Zero doesn't mean no context loss. If counter was previous MAX_INT, if
+it goes to zero it is still a context loss, as the counter value
+differs. Drivers do check against diff in the context loss counter, and
+if there is one, they do restore which is the right way to handle it. No
+need to unnecessarily make this more complicated than it is.
 
-Thanks
-Kishon
+-Tero
+
+
