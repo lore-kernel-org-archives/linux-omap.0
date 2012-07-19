@@ -1,62 +1,152 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv7 00/12] ARM: OMAP4: core retention support
-Date: Thu, 19 Jul 2012 16:26:20 +0300
-Message-ID: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv7 03/12] ARM: OMAP4: hwmod: flag hwmods/modules not supporting module level context status
+Date: Thu, 19 Jul 2012 16:26:23 +0300
+Message-ID: <1342704392-23657-4-git-send-email-t-kristo@ti.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58857 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33532 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750991Ab2GSN0w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 09:26:52 -0400
+	id S1751064Ab2GSN1H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 09:27:07 -0400
+In-Reply-To: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, nm@ti.com, paul@pwsan.com, khilman@ti.com, rnayak@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
+On OMAP4 most modules/hwmods support module level context status. On
+OMAP3 and earlier, we relied on the power domain level context status.
+Identify all modules that don't support 'context_offs' by marking the
+offset as USHRT_MAX. Rest have a valid 'context_offs' populated in
+.prcm structure already.
 
-Changes compared to previous version:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   46 ++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+), 0 deletions(-)
 
-- ported on top of 3.5-rc7
-- patch 3: added a few modules here not having context_offs
-- patch 8: NEW:
-  * ROM code on EMU / HS devices seem to wipe the contents of
-    L4PER_PWRSTCTRL register, thus this patch adds an errata +
-    save and restore for this register, this was noticed while
-    testing cpu_idle on EMU device
-- patch 9: NEW:
-  * sl2if hwmod is still blocking core retention on omap4, this
-    patch comments it out similarly to aess / usb_host_fs
-- patch 10: NEW:
-  * adds support for lostcontext_mask, this is needed by l4_abe / aess
-    hwmods as they will share context register, but use different bits
-    within it
-- patch 11: NEW:
-  * adds the hwmod data for sharing context register for l4_abe / aess
-- patch 12: NEW:
-  * context lost counter logic update for modules that don't have
-    context register
-
-Some of the NEW patches (10..12) are result of comments received on
-l-o list, and can be merged with other patches in the set if they are seen
-acceptable. Core retention works without these patches fine, but they
-address some corner cases.
-
-Tested with omap4460 GP panda + omap4430 EMU blaze, with both suspend +
-cpu_idle. cpu_idle + uart autosuspend seems to have an issue with
-omap4 currently that it loses some of the characters at the end of
-a print, should be fixed on uart driver level. Made a quick hack myself
-for this by modifying the serial_omap_tx_empty() to not use pm_runtime_put
-but pm_runtime_put_autosuspend at end, but this might not be the right
-way to fix this.
-
-Working test tree available also:
-git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-branch: mainline-3.5-rc7-omap4-ret-v7
-
-Branch contains also func pwrst code from Jean + io_chain set + one
-timekeeping patch from mainline tip to make suspend work properly.
-
--Tero
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index b7bcba5..ad7df4e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -204,6 +204,7 @@ static struct omap_hwmod omap44xx_l4_abe_hwmod = {
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_offs = OMAP4_CM1_ABE_L4ABE_CLKCTRL_OFFSET,
++			.context_offs = USHRT_MAX,
+ 		},
+ 	},
+ };
+@@ -260,6 +261,11 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+ 	.name		= "mpu_private",
+ 	.class		= &omap44xx_mpu_bus_hwmod_class,
+ 	.clkdm_name	= "mpuss_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /*
+@@ -448,6 +454,11 @@ static struct omap_hwmod omap44xx_ctrl_module_core_hwmod = {
+ 	.class		= &omap44xx_ctrl_module_hwmod_class,
+ 	.clkdm_name	= "l4_cfg_clkdm",
+ 	.mpu_irqs	= omap44xx_ctrl_module_core_irqs,
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* ctrl_module_pad_core */
+@@ -455,6 +466,11 @@ static struct omap_hwmod omap44xx_ctrl_module_pad_core_hwmod = {
+ 	.name		= "ctrl_module_pad_core",
+ 	.class		= &omap44xx_ctrl_module_hwmod_class,
+ 	.clkdm_name	= "l4_cfg_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* ctrl_module_wkup */
+@@ -462,6 +478,11 @@ static struct omap_hwmod omap44xx_ctrl_module_wkup_hwmod = {
+ 	.name		= "ctrl_module_wkup",
+ 	.class		= &omap44xx_ctrl_module_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* ctrl_module_pad_wkup */
+@@ -469,6 +490,11 @@ static struct omap_hwmod omap44xx_ctrl_module_pad_wkup_hwmod = {
+ 	.name		= "ctrl_module_pad_wkup",
+ 	.class		= &omap44xx_ctrl_module_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /*
+@@ -2538,6 +2564,11 @@ static struct omap_hwmod omap44xx_prcm_mpu_hwmod = {
+ 	.name		= "prcm_mpu",
+ 	.class		= &omap44xx_prcm_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* cm_core_aon */
+@@ -2545,6 +2576,11 @@ static struct omap_hwmod omap44xx_cm_core_aon_hwmod = {
+ 	.name		= "cm_core_aon",
+ 	.class		= &omap44xx_prcm_hwmod_class,
+ 	.clkdm_name	= "cm_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* cm_core */
+@@ -2552,6 +2588,11 @@ static struct omap_hwmod omap44xx_cm_core_hwmod = {
+ 	.name		= "cm_core",
+ 	.class		= &omap44xx_prcm_hwmod_class,
+ 	.clkdm_name	= "cm_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /* prm */
+@@ -2588,6 +2629,11 @@ static struct omap_hwmod omap44xx_scrm_hwmod = {
+ 	.name		= "scrm",
+ 	.class		= &omap44xx_scrm_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.prcm = {
++		.omap4 = {
++			.context_offs = USHRT_MAX,
++		},
++	},
+ };
+ 
+ /*
+-- 
+1.7.4.1
 
