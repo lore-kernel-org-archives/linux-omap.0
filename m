@@ -1,288 +1,179 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH v4 04/11] usb: otg: nop: add support for multiple tranceiver
-Date: Thu, 19 Jul 2012 17:16:00 +0530
-Message-ID: <1342698367-12978-5-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 05/11] usb: musb: dsps: add dt support
+Date: Thu, 19 Jul 2012 17:16:01 +0530
+Message-ID: <1342698367-12978-6-git-send-email-ajay.gupta@ti.com>
 References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48243 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753959Ab2GSLqT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jul 2012 07:46:19 -0400
-In-Reply-To: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342698367-12978-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Currently we have one single nop transceiver support as same is
-defined as a global variable in drivers/usb/otg/nop-usb-xceiv.c.
-This need to be changed to support multiple otg controller each
-using nop transceiver on a platform such as am335x.
+Added device tree support for dsps musb glue driver and updated the
+Documentation with device tree binding information.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |    2 +-
- drivers/usb/musb/am35x.c             |    4 ++--
- drivers/usb/musb/blackfin.c          |    4 ++--
- drivers/usb/musb/da8xx.c             |    4 ++--
- drivers/usb/musb/davinci.c           |    6 +++---
- drivers/usb/musb/musb_dsps.c         |   10 +++++-----
- drivers/usb/musb/tusb6010.c          |    6 +++---
- drivers/usb/otg/nop-usb-xceiv.c      |   19 +++++++++++--------
- include/linux/usb/otg.h              |    8 ++++----
- 9 files changed, 33 insertions(+), 30 deletions(-)
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   14 +++++
+ drivers/usb/musb/musb_dsps.c                       |   60 +++++++++++++++++---
+ 2 files changed, 65 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index ef230a0..a3393bc 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -704,7 +704,7 @@ static void __init omap3_evm_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
- 
- 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(0);
- 
- 	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
- 		/* enable EHCI VBUS using GPIO22 */
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-index 01203eb..eb6220f 100644
---- a/drivers/usb/musb/am35x.c
-+++ b/drivers/usb/musb/am35x.c
-@@ -364,7 +364,7 @@ static int am35x_musb_init(struct musb *musb)
- 	if (!rev)
- 		return -ENODEV;
- 
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
-@@ -408,7 +408,7 @@ static int am35x_musb_exit(struct musb *musb)
- 		data->set_phy_power(0);
- 
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
-index c848b82..03d081c 100644
---- a/drivers/usb/musb/blackfin.c
-+++ b/drivers/usb/musb/blackfin.c
-@@ -415,7 +415,7 @@ static int bfin_musb_init(struct musb *musb)
- 	}
- 	gpio_direction_output(musb->config->gpio_vrsel, 0);
- 
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv)) {
- 		gpio_free(musb->config->gpio_vrsel);
-@@ -442,7 +442,7 @@ static int bfin_musb_exit(struct musb *musb)
- 	gpio_free(musb->config->gpio_vrsel);
- 
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
-index cebd9d7..3ce4a92 100644
---- a/drivers/usb/musb/da8xx.c
-+++ b/drivers/usb/musb/da8xx.c
-@@ -425,7 +425,7 @@ static int da8xx_musb_init(struct musb *musb)
- 	if (!rev)
- 		goto fail;
- 
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		goto fail;
-@@ -460,7 +460,7 @@ static int da8xx_musb_exit(struct musb *musb)
- 	phy_off();
- 
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 
- 	return 0;
- }
-diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-index 3f094f2..d5156b3 100644
---- a/drivers/usb/musb/davinci.c
-+++ b/drivers/usb/musb/davinci.c
-@@ -385,7 +385,7 @@ static int davinci_musb_init(struct musb *musb)
- 	void __iomem	*tibase = musb->ctrl_base;
- 	u32		revision;
- 
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		goto unregister;
-@@ -447,7 +447,7 @@ static int davinci_musb_init(struct musb *musb)
- fail:
- 	usb_put_phy(musb->xceiv);
- unregister:
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 	return -ENODEV;
- }
- 
-@@ -496,7 +496,7 @@ static int davinci_musb_exit(struct musb *musb)
- 	phy_off();
- 
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 
- 	return 0;
- }
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+new file mode 100644
+index 0000000..ca8fa56
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -0,0 +1,14 @@
++AM33XX MUSB GLUE
++ - compatible : Should be "ti,musb-am33xx"
++ - ti,hwmods : must be "usb_otg_hs"
++ - multipoint : Should be "1" indicating the musb controller supports
++   multipoint. This is a MUSB configuration-specific setting.
++ - num_eps : Specifies the number of endpoints. This is also a
++   MUSB configuration-specific setting. Should be set to "16"
++ - ram_bits : Specifies the ram address size. Should be set to "12"
++ - port0_mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++   represents PERIPHERAL.
++ - port1_mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
++   represents PERIPHERAL.
++ - power : Should be "250". This signifies the controller can supply upto
++   500mA when operating in host mode.
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index a2c8a06..9fcacff 100644
+index 9fcacff..ac9f58b 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -420,8 +420,8 @@ static int dsps_musb_init(struct musb *musb)
- 	/* mentor core register starts at offset of 0x400 from musb base */
- 	musb->mregs += wrp->musb_core_offset;
+@@ -31,6 +31,7 @@
  
--	/* NOP driver needs change if supporting dual instance */
--	usb_nop_xceiv_register();
-+	/* Register NOP driver */
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
-@@ -456,7 +456,7 @@ static int dsps_musb_init(struct musb *musb)
- 	return 0;
- err0:
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 	return status;
- }
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/of.h>
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+@@ -45,6 +46,10 @@
  
-@@ -472,9 +472,9 @@ static int dsps_musb_exit(struct musb *musb)
- 	/* Shutdown the on-chip PHY and its PLL. */
- 	musb_dsps_phy_control(glue, musb->id, 0);
+ #include "musb_core.h"
  
--	/* NOP driver needs change if supporting dual instance */
-+	/* Unregister NOP driver */
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
++#ifdef CONFIG_OF
++static const struct of_device_id musb_dsps_of_match[];
++#endif
++
+ /**
+  * avoid using musb_readx()/musb_writex() as glue layer should not be
+  * dependent on musb core layer symbols.
+@@ -496,6 +501,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	struct device *dev = glue->dev;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct musb_hdrc_platform_data  *pdata = dev->platform_data;
++	struct device_node *np = pdev->dev.of_node;
++	struct musb_hdrc_config	*config;
+ 	struct platform_device	*musb;
+ 	struct resource *res;
+ 	struct resource	resources[2];
+@@ -562,14 +569,40 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
  
- 	return 0;
- }
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index 64a0e95..6b23e55 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -1078,7 +1078,7 @@ static int tusb_musb_init(struct musb *musb)
- 	void __iomem		*sync = NULL;
- 	int			ret;
+ 	glue->musb[id]			= musb;
  
--	usb_nop_xceiv_register();
-+	usb_nop_xceiv_register(musb->id);
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
-@@ -1132,7 +1132,7 @@ done:
- 			iounmap(sync);
- 
- 		usb_put_phy(musb->xceiv);
--		usb_nop_xceiv_unregister();
-+		usb_nop_xceiv_unregister(musb->xceiv);
- 	}
- 	return ret;
- }
-@@ -1148,7 +1148,7 @@ static int tusb_musb_exit(struct musb *musb)
- 	iounmap(musb->sync_va);
- 
- 	usb_put_phy(musb->xceiv);
--	usb_nop_xceiv_unregister();
-+	usb_nop_xceiv_unregister(musb->xceiv);
- 	return 0;
- }
- 
-diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
-index 803f958..aa2f767 100644
---- a/drivers/usb/otg/nop-usb-xceiv.c
-+++ b/drivers/usb/otg/nop-usb-xceiv.c
-@@ -35,15 +35,14 @@
- struct nop_usb_xceiv {
- 	struct usb_phy		phy;
- 	struct device		*dev;
-+	struct platform_device	*pd;
- };
- 
--static struct platform_device *pd;
+-	pdata->platform_ops		= &dsps_ops;
 -
--void usb_nop_xceiv_register(void)
-+void usb_nop_xceiv_register(int id)
- {
--	if (pd)
--		return;
--	pd = platform_device_register_simple("nop_usb_xceiv", -1, NULL, 0);
-+	struct platform_device *pd;
-+
-+	pd = platform_device_register_simple("nop_usb_xceiv", id, NULL, 0);
- 	if (!pd) {
- 		printk(KERN_ERR "Unable to register usb nop transceiver\n");
- 		return;
-@@ -51,10 +50,13 @@ void usb_nop_xceiv_register(void)
- }
- EXPORT_SYMBOL(usb_nop_xceiv_register);
- 
--void usb_nop_xceiv_unregister(void)
-+void usb_nop_xceiv_unregister(struct usb_phy *phy)
- {
-+	struct nop_usb_xceiv *nop = container_of(phy,
-+			struct nop_usb_xceiv, phy);
-+	struct platform_device *pd = nop->pd;
-+
- 	platform_device_unregister(pd);
--	pd = NULL;
- }
- EXPORT_SYMBOL(usb_nop_xceiv_unregister);
- 
-@@ -107,6 +109,7 @@ static int __devinit nop_usb_xceiv_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+ 	ret = platform_device_add_resources(musb, resources, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add resources\n");
+ 		goto err2;
  	}
  
-+	nop->pd			= pdev;
- 	nop->dev		= &pdev->dev;
- 	nop->phy.dev		= nop->dev;
- 	nop->phy.label		= "nop-xceiv";
-diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
-index 4636d39..2cd3e91 100644
---- a/include/linux/usb/otg.h
-+++ b/include/linux/usb/otg.h
-@@ -137,14 +137,14 @@ extern void usb_remove_phy(struct usb_phy *);
++	if (np) {
++		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb platfrom data\n");
++			ret = -ENOMEM;
++			goto err2;
++		}
++
++		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
++		if (!config) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb hdrc config\n");
++			goto err2;
++		}
++
++		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
++		sprintf(res_name, "port%d_mode", id);
++		of_property_read_u32(np, res_name, (u32 *)&pdata->mode);
++		of_property_read_u32(np, "power", (u32 *)&pdata->power);
++		config->multipoint = of_property_read_bool(np, "multipoint");
++
++		pdata->config		= config;
++	}
++
++	pdata->platform_ops		= &dsps_ops;
++
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(dev, "failed to add platform_data\n");
+@@ -601,14 +634,22 @@ static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
  
- #if defined(CONFIG_NOP_USB_XCEIV) || (defined(CONFIG_NOP_USB_XCEIV_MODULE) && defined(MODULE))
- /* sometimes transceivers are accessed only through e.g. ULPI */
--extern void usb_nop_xceiv_register(void);
--extern void usb_nop_xceiv_unregister(void);
-+extern void usb_nop_xceiv_register(int id);
-+extern void usb_nop_xceiv_unregister(struct usb_phy *);
- #else
--static inline void usb_nop_xceiv_register(void)
-+static inline void usb_nop_xceiv_register(int id)
+ static int __devinit dsps_probe(struct platform_device *pdev)
  {
- }
+-	const struct platform_device_id *id = platform_get_device_id(pdev);
+-	const struct dsps_musb_wrapper *wrp =
+-				(struct dsps_musb_wrapper *)id->driver_data;
++	struct device_node *np = pdev->dev.of_node;
++	const struct of_device_id *match;
++	const struct dsps_musb_wrapper *wrp;
+ 	struct dsps_glue *glue;
+ 	struct resource *iomem;
+ 	u32 __iomem *usbss;
+ 	int ret, i;
  
--static inline void usb_nop_xceiv_unregister(void)
-+static inline void usb_nop_xceiv_unregister(struct usb_phy *phy)
- {
- }
- #endif
++	match = of_match_node(musb_dsps_of_match, np);
++	if (!match) {
++		dev_err(&pdev->dev, "fail to get matching of_match struct\n");
++		ret = -EINVAL;
++		goto err0;
++	}
++	wrp = match->data;
++
+ 	/* allocate glue */
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -768,13 +809,14 @@ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+ };
+ MODULE_DEVICE_TABLE(platform, musb_dsps_id_table);
+ 
++#ifdef CONFIG_OF
+ static const struct of_device_id musb_dsps_of_match[] __devinitconst = {
+-	{ .compatible = "musb-ti81xx", },
+-	{ .compatible = "ti,ti81xx-musb", },
+-	{ .compatible = "ti,am335x-musb", },
++	{ .compatible = "ti,musb-am33xx",
++		.data = (void *) &ti81xx_driver_data, },
+ 	{  },
+ };
+ MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
++#endif
+ 
+ static struct platform_driver dsps_usbss_driver = {
+ 	.probe		= dsps_probe,
+@@ -782,7 +824,7 @@ static struct platform_driver dsps_usbss_driver = {
+ 	.driver         = {
+ 		.name   = "musb-dsps",
+ 		.pm	= &dsps_pm_ops,
+-		.of_match_table	= musb_dsps_of_match,
++		.of_match_table	= of_match_ptr(musb_dsps_of_match),
+ 	},
+ 	.id_table	= musb_dsps_id_table,
+ };
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
