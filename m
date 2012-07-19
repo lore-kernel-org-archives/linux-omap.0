@@ -1,42 +1,48 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 11/11] arm/dts: am33xx: add phy phandle to usbss
-Date: Thu, 19 Jul 2012 11:11:39 +0530
-Message-ID: <1342676499-32507-12-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH v3 08/11] arm/dts: am33xx: add dt data for usb nop phy
+Date: Thu, 19 Jul 2012 11:11:36 +0530
+Message-ID: <1342676499-32507-9-git-send-email-ajay.gupta@ti.com>
 References: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342676499-32507-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49508 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751111Ab2GSFl4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 01:41:56 -0400
+In-Reply-To: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Added NOP PHY phandle to usbss device node as same will be used
-to get the phy from otg framework.
+AM33xx has two musb controller and they have one NOP PHY each.
+Added the device tree data for NOP PHY.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index b03a9b5..d3ab69a 100644
+index 08e9a40..b03a9b5 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -172,6 +172,8 @@
- 			port0_mode = <3>;
- 			port1_mode = <1>;
- 			power = <250>;
-+			usb0-phy = <&usb0_phy>;
-+			usb1-phy = <&usb1_phy>;
+@@ -155,6 +155,14 @@
+ 			ti,hwmods = "i2c3";
  		};
- 	};
- };
+ 
++		usb0_phy: phy0 {
++			compatible = "nop-xceiv-usb";
++		};
++
++		usb1_phy: phy1 {
++			compatible = "nop-xceiv-usb";
++		};
++
+ 		usb_otg_hs: usb_otg_hs {
+ 			compatible = "ti,musb-am33xx";
+ 			ti,hwmods = "usb_otg_hs";
 -- 
 1.7.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
