@@ -1,43 +1,31 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
- EMAC
-Date: Thu, 19 Jul 2012 13:20:37 -0700
-Message-ID: <20120719202037.GB5264@animalcreek.com>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com>
- <1336770778-23044-3-git-send-email-mgreer@animalcreek.com>
- <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com>
- <20120718213246.GD27904@animalcreek.com>
- <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
- <20120719182602.GB24076@animalcreek.com>
- <alpine.DEB.2.00.1207191317510.14390@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: am3517: geting MMC working
+Date: Thu, 19 Jul 2012 15:38:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207191532560.14390@utopia.booyaka.com>
+References: <5007A838.3040309@visionsystems.de> <CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com> <5007AF7C.1010902@visionsystems.de> <CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com> <5007B721.9070305@visionsystems.de>
+ <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com> <5007C215.7020904@visionsystems.de> <CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:53659 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507Ab2GSUUi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 16:20:38 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1207191317510.14390@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33028 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714Ab2GSVis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 17:38:48 -0400
+In-Reply-To: <CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: yegor_sub1@visionsystems.de, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>
 
-On Thu, Jul 19, 2012 at 01:19:13PM -0600, Paul Walmsley wrote:
-> On Thu, 19 Jul 2012, Mark A. Greer wrote:
-> 
-> > ...and, unfortunately, it didnt' work in either case.
-> 
-> OK thanks for the tests.  Is the EMAC/MDIO really active and asserting 
-> interrupts while all this is happening?
+On Thu, 19 Jul 2012, S, Venkatraman wrote:
 
-I should be active but I have not way to tell for sure.
+> >From this, one can only infer that the card is not responding at all,
+> and all attempts
+> are returning with a timeout (CTO=Command Time Out).
 
-> Or has that driver called 
-> pm_runtime_put*(), and so the EMAC/MDIO isn't waking up? 
+Looks to me like the card is responding to CMD8, CMD55, ACMD41, and CMD0.  
+It's only CMD52 and CMD5 that are timing out.  Aren't those timeouts 
+expected with a SD memory card?
 
-pm_runtime_get has definitely been called and pm_runtime_put
-has definitely _not_ been called.
 
-Mark
+- Paul
