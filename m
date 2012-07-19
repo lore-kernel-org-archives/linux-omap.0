@@ -1,264 +1,155 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
- EMAC
-Date: Wed, 18 Jul 2012 17:25:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
-References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com> <20120718213246.GD27904@animalcreek.com>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH v3 02/11] usb: musb: kill global and static for multi instance
+Date: Thu, 19 Jul 2012 11:11:30 +0530
+Message-ID: <1342676499-32507-3-git-send-email-ajay.gupta@ti.com>
+References: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58084 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab2GRXZR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jul 2012 19:25:17 -0400
-In-Reply-To: <20120718213246.GD27904@animalcreek.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49511 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752389Ab2GSFl4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 01:41:56 -0400
+In-Reply-To: <1342676499-32507-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Wed, 18 Jul 2012, Mark A. Greer wrote:
+Moved global variable "musb_debugfs_root" and static variable
+"old_state" to 'struct musb' to help support multi instance of
+musb controller as present on AM335x platform.
 
-> On Tue, Jul 17, 2012 at 09:54:53PM -0600, Paul Walmsley wrote:
-> 
-> > Want to try something like this?  It's your patch but modified to not use 
-> > disable/enable_hlt().  If it doesn't work in your test case, maybe 
-> > try uncommenting that second set of deny_idle / allow_idle ...
-> 
-> I tested the modified patch (to get it to compile) below.
+Also removed the global variable "orig_dma_mask" and filled the
+dev->dma_mask with parent device's dma_mask.
 
-Doh, sorry about that. 
-
-> It did not work with or without the core_dpll_ck deny_idle/allow_idle
-> commented out.
-
-Here's a version with some of the CPUIdle states restricted.  Maybe try 
-this one if you're using CPUIdle?
-
-If it happens to work, it would also be interesting to know if it works 
-with the CORE DPLL part commented out.
-
-
-- Paul
-
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/mach-omap2/am35xx-emac.c     |   56 ++++++++++++++++++++++++++++++---
- arch/arm/mach-omap2/am35xx-emac.h     |   13 ++++++--
- arch/arm/mach-omap2/board-am3517evm.c |    3 +-
- arch/arm/mach-omap2/board-cm-t3517.c  |    3 +-
- arch/arm/mach-omap2/cpuidle34xx.c     |    5 +++
- 5 files changed, 71 insertions(+), 9 deletions(-)
+ drivers/usb/musb/musb_core.c    |   16 +++-------------
+ drivers/usb/musb/musb_core.h    |    4 ++++
+ drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
+ 3 files changed, 15 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
-index 2c90ac6..6b0edcd 100644
---- a/arch/arm/mach-omap2/am35xx-emac.c
-+++ b/arch/arm/mach-omap2/am35xx-emac.c
-@@ -16,13 +16,50 @@
-  */
- 
- #include <linux/err.h>
-+#include <linux/clk.h>
- #include <linux/davinci_emac.h>
- #include <asm/system.h>
-+#include <plat/clock.h>
- #include <plat/omap_device.h>
- #include <mach/am35xx.h>
- #include "control.h"
- #include "am35xx-emac.h"
- 
-+static struct clk *mpu_dpll_ck, *core_dpll_ck;
-+
-+/*
-+ * Default pm_lats for the am35x.
-+ * The net effect of using am35xx_emac_pm_lats[] is that
-+ * pm_idle or CPUidle won't be called while the emac
-+ * interface is open.  This is required because the
-+ * EMAC can't wake up PRCM so if the MPU is executing
-+ * a 'wfi' instruction (e.g., from pm_idle or CPUidle),
-+ * it won't break out of it due to emac activity.
-+ */
-+static int am35xx_emac_deactivate_func(struct omap_device *od)
-+{
-+	mpu_dpll_ck->ops->deny_idle(mpu_dpll_ck);
-+	core_dpll_ck->ops->deny_idle(core_dpll_ck);
-+	return omap_device_idle_hwmods(od);
-+}
-+
-+static int am35xx_emac_activate_func(struct omap_device *od)
-+{
-+	mpu_dpll_ck->ops->allow_idle(mpu_dpll_ck);
-+	core_dpll_ck->ops->allow_idle(core_dpll_ck);
-+	return omap_device_enable_hwmods(od);
-+}
-+
-+struct omap_device_pm_latency am35xx_emac_pm_lats[] = {
-+	{
-+		.deactivate_func	= am35xx_emac_deactivate_func,
-+		.activate_func		= am35xx_emac_activate_func,
-+		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
-+};
-+
-+int am35xx_emac_pm_lats_size = ARRAY_SIZE(am35xx_emac_pm_lats);
-+
- static void am35xx_enable_emac_int(void)
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 3e09984..a5db4dd 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1802,10 +1802,9 @@ static const struct attribute_group musb_attr_group = {
+ static void musb_irq_work(struct work_struct *data)
  {
- 	u32 v;
-@@ -58,12 +95,14 @@ static struct emac_platform_data am35xx_emac_pdata = {
- static struct mdio_platform_data am35xx_mdio_pdata;
+ 	struct musb *musb = container_of(data, struct musb, irq_work);
+-	static int old_state;
  
- static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
--		void *pdata, int pdata_len)
-+					     void *pdata, int pdata_len,
-+					     struct omap_device_pm_latency *pm_lats,
-+					     int pm_lats_size)
- {
- 	struct platform_device *pdev;
- 
- 	pdev = omap_device_build(oh->class->name, 0, oh, pdata, pdata_len,
--				 NULL, 0, false);
-+				 pm_lats, pm_lats_size, false);
- 	if (IS_ERR(pdev)) {
- 		WARN(1, "Can't build omap_device for %s:%s.\n",
- 		     oh->class->name, oh->name);
-@@ -73,7 +112,8 @@ static int __init omap_davinci_emac_dev_init(struct omap_hwmod *oh,
- 	return 0;
+-	if (musb->xceiv->state != old_state) {
+-		old_state = musb->xceiv->state;
++	if (musb->xceiv->state != musb->xceiv_old_state) {
++		musb->xceiv_old_state = musb->xceiv->state;
+ 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+ 	}
  }
- 
--void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
-+void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size)
+@@ -2115,11 +2114,6 @@ fail0:
+ /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
+  * bridge to a platform device; this driver then suffices.
+  */
+-
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-static u64	*orig_dma_mask;
+-#endif
+-
+ static int __devinit musb_probe(struct platform_device *pdev)
  {
- 	struct omap_hwmod *oh;
- 	u32 v;
-@@ -88,7 +128,7 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
- 	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
- 
- 	ret = omap_davinci_emac_dev_init(oh, &am35xx_mdio_pdata,
--					 sizeof(am35xx_mdio_pdata));
-+					 sizeof(am35xx_mdio_pdata), NULL, 0);
- 	if (ret) {
- 		pr_err("Could not build davinci_mdio hwmod device\n");
- 		return;
-@@ -103,12 +143,18 @@ void __init am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en)
- 	am35xx_emac_pdata.rmii_en = rmii_en;
- 
- 	ret = omap_davinci_emac_dev_init(oh, &am35xx_emac_pdata,
--					 sizeof(am35xx_emac_pdata));
-+					 sizeof(am35xx_emac_pdata),
-+					 pm_lats, pm_lats_size);
- 	if (ret) {
- 		pr_err("Could not build davinci_emac hwmod device\n");
- 		return;
+ 	struct device	*dev = &pdev->dev;
+@@ -2138,10 +2132,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
  
-+	mpu_dpll_ck = clk_get(NULL, "dpll1_ck");
-+	WARN(!mpu_dpll_ck, "Can't get dpll1_ck\n");
-+	core_dpll_ck = clk_get(NULL, "dpll3_ck");
-+	WARN(!core_dpll_ck, "Can't get dpll3_ck\n");
-+
- 	v = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
- 	v &= ~AM35XX_CPGMACSS_SW_RST;
- 	omap_ctrl_writel(v, AM35XX_CONTROL_IP_SW_RESET);
-diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-omap2/am35xx-emac.h
-index 15c6f9c..446a429 100644
---- a/arch/arm/mach-omap2/am35xx-emac.h
-+++ b/arch/arm/mach-omap2/am35xx-emac.h
-@@ -5,11 +5,20 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+#include <plat/omap_device.h>
- 
- #define AM35XX_DEFAULT_MDIO_FREQUENCY	1000000
- 
- #if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
--void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en);
-+extern struct omap_device_pm_latency am35xx_emac_pm_lats[];
-+extern int am35xx_emac_pm_lats_size;
-+
-+void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size);
- #else
--static inline void am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en) {}
-+#define am35xx_emac_pm_lats		NULL
-+#define am35xx_emac_pm_lats_size	0
-+
-+static inline am35xx_emac_init(unsigned long mdio_bus_freq, u8 rmii_en,
-+		struct omap_device_pm_latency *pm_lats, int pm_lats_size) {}
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-	/* clobbered by use_dma=n */
+-	orig_dma_mask = dev->dma_mask;
+-#endif
+ 	status = musb_init_controller(dev, irq, base);
+ 	if (status < 0)
+ 		iounmap(base);
+@@ -2166,7 +2156,7 @@ static int __devexit musb_remove(struct platform_device *pdev)
+ 	iounmap(ctrl_base);
+ 	device_init_wakeup(&pdev->dev, 0);
+ #ifndef CONFIG_MUSB_PIO_ONLY
+-	pdev->dev.dma_mask = orig_dma_mask;
++	pdev->dev.dma_mask = (&dev->dev.parent)->dma_mask;
  #endif
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 18f6010..5348d0d 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -368,7 +368,8 @@ static void __init am3517_evm_init(void)
- 	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
- 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- 	/*Ethernet*/
--	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-+	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-+			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
- 
- 	/* MUSB */
- 	am3517_evm_musb_init();
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index a33ad46..8258057 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -292,7 +292,8 @@ static void __init cm_t3517_init(void)
- 	cm_t3517_init_rtc();
- 	cm_t3517_init_usbh();
- 	cm_t3517_init_hecc();
--	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
-+	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1,
-+			 am35xx_emac_pm_lats, am35xx_emac_pm_lats_size);
+ 	return 0;
  }
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 69ed141..6b6cee9 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -452,6 +452,10 @@ struct musb {
+ #endif
+ 	/* id for multiple musb instances */
+ 	u8			id;
++	int                     xceiv_old_state;
++#ifdef CONFIG_DEBUG_FS
++	struct dentry           *debugfs_root;
++#endif
+ };
  
- MACHINE_START(CM_T3517, "Compulab CM-T3517")
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f2a49a4..d95dd8c 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -291,6 +291,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C3",
- 			.desc		  = "MPU RET + CORE ON",
-+			.disable	  = 1,
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
-@@ -299,6 +300,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C4",
- 			.desc		  = "MPU OFF + CORE ON",
-+			.disable	  = 1,
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
-@@ -307,6 +309,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C5",
- 			.desc		  = "MPU RET + CORE RET",
-+			.disable	  = 1,
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
-@@ -315,6 +318,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C6",
- 			.desc		  = "MPU OFF + CORE RET",
-+			.disable	  = 1,
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
-@@ -323,6 +327,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C7",
- 			.desc		  = "MPU OFF + CORE OFF",
-+			.disable	  = 1,
- 		},
- 	},
- 	.state_count = ARRAY_SIZE(omap3_idle_data),
+ static inline struct musb *gadget_to_musb(struct usb_gadget *g)
+diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
+index 40a37c9..b1e8f21 100644
+--- a/drivers/usb/musb/musb_debugfs.c
++++ b/drivers/usb/musb/musb_debugfs.c
+@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
+ 	{  }	/* Terminating Entry */
+ };
+ 
+-static struct dentry *musb_debugfs_root;
+-
+ static int musb_regdump_show(struct seq_file *s, void *unused)
+ {
+ 	struct musb		*musb = s->private;
+@@ -240,20 +238,24 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 	struct dentry		*root;
+ 	struct dentry		*file;
+ 	int			ret;
++	char			name[10];
+ 
+-	root = debugfs_create_dir("musb", NULL);
++	sprintf(name, "musb%d", musb->id);
++	root = debugfs_create_dir(name, NULL);
+ 	if (!root) {
+ 		ret = -ENOMEM;
+ 		goto err0;
+ 	}
+ 
+-	file = debugfs_create_file("regdump", S_IRUGO, root, musb,
++	sprintf(name, "regdump%d", musb->id);
++	file = debugfs_create_file(name, S_IRUGO, root, musb,
+ 			&musb_regdump_fops);
+ 	if (!file) {
+ 		ret = -ENOMEM;
+ 		goto err1;
+ 	}
+ 
++	sprintf(name, "testmode%d", musb->id);
+ 	file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR,
+ 			root, musb, &musb_test_mode_fops);
+ 	if (!file) {
+@@ -261,7 +263,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 		goto err1;
+ 	}
+ 
+-	musb_debugfs_root = root;
++	musb->debugfs_root = root;
+ 
+ 	return 0;
+ 
+@@ -274,5 +276,5 @@ err0:
+ 
+ void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
+ {
+-	debugfs_remove_recursive(musb_debugfs_root);
++	debugfs_remove_recursive(musb->debugfs_root);
+ }
 -- 
-1.7.10.4
+1.7.0.4
 
