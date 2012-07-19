@@ -1,184 +1,61 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v4 09/11] drivers: usb: musb: Add device tree support
- for omap musb glue
-Date: Thu, 19 Jul 2012 13:21:12 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EADE11A@DBDE01.ent.ti.com>
-References: <1342607922-11554-1-git-send-email-kishon@ti.com>
- <1342607922-11554-10-git-send-email-kishon@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv7 01/12] ARM: OMAP4: PM: add errata support
+Date: Thu, 19 Jul 2012 16:26:21 +0300
+Message-ID: <1342704392-23657-2-git-send-email-t-kristo@ti.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1342607922-11554-10-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org" <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56276 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750991Ab2GSN0y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jul 2012 09:26:54 -0400
+In-Reply-To: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, nm@ti.com, paul@pwsan.com, khilman@ti.com, rnayak@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/usb/omap-usb.txt |   34 ++++++++++++-
->  drivers/usb/musb/omap2430.c                        |   55
-> ++++++++++++++++++++
->  2 files changed, 88 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> index 80a28c9..39cdffb 100644
-> --- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> @@ -1,4 +1,4 @@
-> -OMAP USB PHY
-> +OMAP USB PHY AND GLUE
-> 
->  OMAP USB2 PHY
-> 
-> @@ -14,3 +14,35 @@ usb2phy@0x4a0ad080 {
->  	compatible = "ti,omap-usb2";
->  	reg = <0x4a0ad080 0x58>;
->  };
-> +
-> +OMAP MUSB GLUE
-> + - compatible : Should be "ti,musb-omap2430"
-> + - ti,hwmods : must be "usb_otg_hs"
-> + - multipoint : Should be "1" indicating the musb controller supports
-> +   multipoint. This is a MUSB configuration-specific setting.
-> + - num_eps : Specifies the number of endpoints. This is also a
-> +   MUSB configuration-specific setting. Should be set to "16"
-> + - ram_bits : Specifies the ram address size. Should be set to "12"
-> + - interface_type : This is a board specific setting to describe the type
-> of
-> +   interface between the controller and the phy. It should be "0" or "1"
-> +   specifying ULPI and UTMI respectively.
-> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
-> +   represents PERIPHERAL.
-> + - power : Should be "50". This signifies the controller can supply upto
-> +   100mA when operating in host mode.
-> +
-> +SOC specific device node entry
-> +usb_otg_hs: usb_otg_hs@4a0ab000 {
-> +	compatible = "ti,musb-omap2430";
-> +	ti,hwmods = "usb_otg_hs";
-> +	multipoint = <1>;
-> +	num_eps = <16>;
-> +	ram_bits = <12>;
-> +};
-> +
-> +Board specific device node entry
-> +&usb_otg_hs {
-> +	interface_type = <1>;
-> +	mode = <3>;
-> +	power = <50>;
-> +};
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index addbebf..331e477 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -30,6 +30,7 @@
->  #include <linux/init.h>
->  #include <linux/list.h>
->  #include <linux/io.h>
-> +#include <linux/of.h>
->  #include <linux/platform_device.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/pm_runtime.h>
-> @@ -469,8 +470,11 @@ static u64 omap2430_dmamask = DMA_BIT_MASK(32);
->  static int __devinit omap2430_probe(struct platform_device *pdev)
->  {
->  	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
-> +	struct omap_musb_board_data	*data;
->  	struct platform_device		*musb;
->  	struct omap2430_glue		*glue;
-> +	struct device_node		*np = pdev->dev.of_node;
-> +	struct musb_hdrc_config		*config;
->  	struct resource			*res;
->  	int				ret = -ENOMEM;
-> 
-> @@ -500,6 +504,43 @@ static int __devinit omap2430_probe(struct
-> platform_device *pdev)
->  	if (glue->control_otghs == NULL)
->  		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
-> 
-> +	if (np) {
-> +		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> +		if (!pdata) {
-> +			dev_err(&pdev->dev,
-> +				"failed to allocate musb platfrom data\n");
-> +			ret = -ENOMEM;
-> +			goto err1;
-> +		}
-> +
-> +		data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-> +		if (!data) {
-> +			dev_err(&pdev->dev,
-> +					"failed to allocate musb board data\n");
-> +			ret = -ENOMEM;
-> +			goto err1;
-> +		}
-> +
-> +		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
-> +		if (!data) {
-> +			dev_err(&pdev->dev,
-> +				"failed to allocate musb hdrc config\n");
-> +			goto err1;
-> +		}
-> +
-> +		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
-> +		of_property_read_u32(np, "interface_type",
-> +						(u32 *)&data->interface_type);
-> +		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
-> +		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
-> +		of_property_read_u32(np, "mode", (u32 *)&pdata->mode);
+Added similar PM errata flag support as omap3 has. This should be used
+in similar manner, set the flags during init time, and check the flag
+values during runtime.
 
-pdata->mode is already read so above should be removed.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/pm.h     |    7 +++++++
+ arch/arm/mach-omap2/pm44xx.c |    1 +
+ 2 files changed, 8 insertions(+), 0 deletions(-)
 
-Ajay
-> +		of_property_read_u32(np, "power", (u32 *)&pdata->power);
-> +		config->multipoint = of_property_read_bool(np, "multipoint");
-> +
-> +		pdata->board_data	= data;
-> +		pdata->config		= config;
-> +	}
-> +
->  	pdata->platform_ops		= &omap2430_ops;
-> 
->  	platform_set_drvdata(pdev, glue);
-> @@ -597,12 +638,26 @@ static struct dev_pm_ops omap2430_pm_ops = {
->  #define DEV_PM_OPS	NULL
->  #endif
-> 
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id omap2430_id_table[] = {
-> +	{
-> +		.compatible = "ti,omap4-musb"
-> +	},
-> +	{
-> +		.compatible = "ti,omap3-musb"
-> +	},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, omap2430_id_table);
-> +#endif
-> +
->  static struct platform_driver omap2430_driver = {
->  	.probe		= omap2430_probe,
->  	.remove		= __devexit_p(omap2430_remove),
->  	.driver		= {
->  		.name	= "musb-omap2430",
->  		.pm	= DEV_PM_OPS,
-> +		.of_match_table = of_match_ptr(omap2430_id_table),
->  	},
->  };
-> 
-> --
-> 1.7.5.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 7856489..46ab9d9 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -88,6 +88,13 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
+ 
++#if defined(CONFIG_ARCH_OMAP4)
++extern u16 pm44xx_errata;
++#define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
++#else
++#define IS_PM44XX_ERRATUM(id)		0
++#endif
++
+ #ifdef CONFIG_OMAP_SMARTREFLEX
+ extern int omap_devinit_smartreflex(void);
+ extern void omap_enable_smartreflex_on_init(void);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index c234733..3a484b1 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -33,6 +33,7 @@ struct power_state {
+ };
+ 
+ static LIST_HEAD(pwrst_list);
++u16 pm44xx_errata;
+ 
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+-- 
+1.7.4.1
+
