@@ -1,60 +1,84 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention
- issue
-Date: Thu, 19 Jul 2012 15:55:23 -0700
-Message-ID: <20120719225523.GC32547@kroah.com>
-References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
- <20120719102013.GJ14302@arwen.pp.htv.fi>
- <20120719225405.GB32547@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] arm: omap3: am35x: Disable hlt when using Davinci
+ EMAC
+Date: Thu, 19 Jul 2012 16:59:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207191649040.14390@utopia.booyaka.com>
+References: <1336770778-23044-1-git-send-email-mgreer@animalcreek.com> <1336770778-23044-3-git-send-email-mgreer@animalcreek.com> <alpine.DEB.2.00.1207171814100.28834@utopia.booyaka.com> <20120718213246.GD27904@animalcreek.com> <alpine.DEB.2.00.1207181723120.19048@utopia.booyaka.com>
+ <20120719182602.GB24076@animalcreek.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120719225405.GB32547-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43582 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956Ab2GSW7I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jul 2012 18:59:08 -0400
+In-Reply-To: <20120719182602.GB24076@animalcreek.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mark A. Greer" <mgreer@animalcreek.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Ilya Yanok <yanok@emcraft.com>
 
-On Thu, Jul 19, 2012 at 03:54:05PM -0700, Greg KH wrote:
-> On Thu, Jul 19, 2012 at 01:20:14PM +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Jun 21, 2012 at 07:12:12PM +0530, Keshava Munegowda wrote:
-> > > This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-> > > "Fix OMAP EHCI suspend/resume failure (i693)" is causing
-> > > the usb hub and device detection fails in beagle XM
-> > > causeing NFS not functional. This affects the core retention too.
-> > > The same commit logic needs to be revisted adhering to hwmod and
-> > > device tree framework.
-> > > for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
-> > > titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
-> > > 
-> > > This patch is validated on BeagleXM with NFS support over
-> > > usb ethernet and USB mass storage and other device detection.
-> > > 
-> > > Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> > 
-> > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > 
-> > turns out this is causing other issues and another version of the patch
-> > will be provided.
-> > 
-> > Greg, Alan, this is basically a git revert of the commit id listed
-> > above.
-> 
-> Ok, I'll queue it up for 3.6-rc1 and add a -stable mark to it to get
-> into 3.5.1, ok?
++ Ilya
 
-Hm, that doesn't work as it doesn't apply to my tree :(
+Hi Mark
 
-Can someone please update this against usb-next and send it to me?
-Felipe?
+Maybe try something like this on top of the patch that disables the 
+MPU DPLL autoidle?
 
-thanks,
+I don't know what am35xx_enable_emac_int() is supposed to do.  It seems 
+strange to clear the interrupt status bits when one is supposed to enable 
+the interrupts.  Maybe Ilya can shed some light on it.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
+
+---
+ arch/arm/mach-omap2/am35xx-emac.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-omap2/am35xx-emac.c
+index 2c90ac6..231190e 100644
+--- a/arch/arm/mach-omap2/am35xx-emac.c
++++ b/arch/arm/mach-omap2/am35xx-emac.c
+@@ -23,23 +23,17 @@
+ #include "control.h"
+ #include "am35xx-emac.h"
+ 
+-static void am35xx_enable_emac_int(void)
+-{
+-	u32 v;
+-
+-	v = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+-	v |= (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR |
+-	      AM35XX_CPGMAC_C0_MISC_PULSE_CLR | AM35XX_CPGMAC_C0_RX_THRESH_CLR);
+-	omap_ctrl_writel(v, AM35XX_CONTROL_LVL_INTR_CLEAR);
+-	omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR); /* OCP barrier */
+-}
+-
+ static void am35xx_disable_emac_int(void)
+ {
+ 	u32 v;
+ 
+-	v = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+-	v |= (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR);
++	/* XXX What about the misc interrupts? */
++	/*
++	 * XXX MDIO driver should handle its interrupts through the EMAC
++	 * driver
++	 */
++	v = (AM35XX_CPGMAC_C0_RX_PULSE_CLR | AM35XX_CPGMAC_C0_TX_PULSE_CLR |
++	     AM35XX_CPGMAC_C0_MISC_PULSE_CLR | AM35XX_CPGMAC_C0_RX_THRESH_CLR);
+ 	omap_ctrl_writel(v, AM35XX_CONTROL_LVL_INTR_CLEAR);
+ 	omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR); /* OCP barrier */
+ }
+@@ -51,7 +45,6 @@ static struct emac_platform_data am35xx_emac_pdata = {
+ 	.ctrl_ram_size		= AM35XX_EMAC_CNTRL_RAM_SIZE,
+ 	.hw_ram_addr		= AM35XX_EMAC_HW_RAM_ADDR,
+ 	.version		= EMAC_VERSION_2,
+-	.interrupt_enable	= am35xx_enable_emac_int,
+ 	.interrupt_disable	= am35xx_disable_emac_int,
+ };
+ 
+-- 
+1.7.10.4
+
