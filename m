@@ -1,98 +1,70 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping from cpuidle
-Date: Fri, 20 Jul 2012 17:24:29 +0530
-Message-ID: <CAMQu2gww9O-Kv6c1xFYWjj42vsoR4Ewrdzr+H7Da5RC79s_-Zw@mail.gmail.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
- <1342764284-8143-3-git-send-email-rnayak@ti.com> <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
- <5009120A.1060400@ti.com> <1342774283.4672.181.camel@sokoban>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
+ G121X1-L01 LCD displays
+Date: Fri, 20 Jul 2012 17:43:45 +0530
+Message-ID: <CAJe_Zhd3KXNVTi0S5PiPwzJXDNRpDGgSSgJbY1km4ZEi-VzwCA@mail.gmail.com>
+References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
+	<CAJe_ZhfoYoFd1AkFmb0E7=iSvZeAQRmSFONCW7jE8psCMDQ3Hg@mail.gmail.com>
+	<500912C7.8080204@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:39704 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751930Ab2GTLyv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 07:54:51 -0400
-Received: by qaat11 with SMTP id t11so153503qaa.6
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 04:54:49 -0700 (PDT)
-In-Reply-To: <1342774283.4672.181.camel@sokoban>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:61819 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124Ab2GTMNq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 08:13:46 -0400
+Received: by vbbff1 with SMTP id ff1so2830467vbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 05:13:45 -0700 (PDT)
+In-Reply-To: <500912C7.8080204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com
+To: Archit Taneja <a0393947@ti.com>
+Cc: Raphael Assenat <raph@8d.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Fri, Jul 20, 2012 at 2:21 PM, Tero Kristo <t-kristo@ti.com> wrote:
+On 20 July 2012 13:41, Archit Taneja <a0393947@ti.com> wrote:
+> On Tuesday 17 July 2012 09:57 PM, Jassi Brar wrote:
+>>>
+>>> Add timings for ChiMei G121S1-L01/L02 and G121X1-L01 LCD displays.
+>>>
+>> Display panels are board specific and there is no limit to the number
+>> of panels that could be connected to omap dss.
+>>   Does it make sense to get panel params via DT? Or at least have them
+>> come from board file? (esp when there is hardly a panel shared by two
+>> boards, and some panels aren't even used by any board in mainline)
+>>
 >
-> On Fri, 2012-07-20 at 13:38 +0530, Rajendra Nayak wrote:
-> > On Friday 20 July 2012 12:55 PM, Shilimkar, Santosh wrote:
-> > > On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak<rnayak@ti.com>
-> > > wrote:
-> > >> pwrdm_pre_transition()/pwrdm_post_transition() have always been high
-> > >> latency
-> > >> operations done within cpuidle to do Powerdomain level book-keeping
-> > >> to know
-> > >> what state transitions for different Powerdomains have been
-> > >> triggered.
-> > >> This is also useful to do a restore-on-demand in some cases when we
-> > >> know
-> > >> the context for the given Powerdomain was lost etc.
-> > >>
-> > >> Now that we have definitive entry/exit points (thanks to the
-> > >> Powerdomain
-> > >> level usecounting) for Powerdomain transitions, these book-keeping
-> > >> functions
-> > >> can very well be moved from within CPUidle into
-> > >> pwrdm_clkdm_enable()/pwrdm_
-> > >> clkdm_disable() functions.
-> > >>
-> > >> Also rename _pwrdm_pre/post_transition_cb() to
-> > >> pwrdm_pre/post_transition()
-> > >> and get rid of the original ones which iterate over all powerdomains.
-> > >>
-> > >> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> > >> ---
-> > >>   arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++--
-> > >>   arch/arm/mach-omap2/pm34xx.c              |    4 ++--
-> > >>   arch/arm/mach-omap2/powerdomain.c         |   28
-> > >> ++++++++--------------------
-> > >>   arch/arm/mach-omap2/powerdomain.h         |    4 ++--
-> > >>   4 files changed, 14 insertions(+), 26 deletions(-)
-> > >>
-> > >> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >> b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >> index 13670aa..ea19439 100644
-> > >> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> > >> @@ -255,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu,
-> > >> unsigned int power_state)
-> > >>                  return -ENXIO;
-> > >>          }
-> > >>
-> > >> -       pwrdm_pre_transition();
-> > >> +       pwrdm_cpu_idle();
-> > >>
-> > > Glad to see this is getting optimized.
-> > > I haven't seen how "pwrdm_cpu_[idle/wakeup]()" is
-> > > implemented but will those work on SMP system ?
-> > > I mean OMAP4, any CPU can make this call ?
-> >
-> > Thats a good question. I think Tero did this so he can kick in
-> > voltage transitions at the right time in idle/suspend.
-> > Given that these deal with incrementing/decrementing the MPU and CORE
-> > pwrdm usecounts alone, maybe on OMAP4 (SMP systems) this needs to also
-> > increment/decrement the specific CPU usecounts on the CPUs these calls
-> > are made.
+> A panel specific param should stay in the panel driver, it's something which
+> is specific to the panel and not the platform it is in
 >
-> Yeah, you should keep the usecounts valid by each cpu separately calling
-> these functions. My current set only sets these usecounts based on cpu0
-> activity, as cpu1 is statically controlled through cpu online / offline.
-> Once per-cpu cpuidle is in, these should be changed so that each
-> individual cpu increases the usecounts when they are brought up,
-> decrease/increase during idle, and decrease when they are brought down.
-> The usecount should always reflect the number of CPUs active on MPU
-> domain.
->
-Sounds good to me !!
+Yes it is board specific, but no it should not stay in the driver. The
+driver simply needs one compatible set of 15 numbers to do its job.
 
-Regards
-santosh
+Let me explain my point in detail....
+The array generic_dpi_panels[] is but a limited list of compatible
+configurations of a 'generic' panel. Each occupying ~20 lines in
+kernel. There would be dozens of supported panels that exist but are
+not listed in this array, and countless more that are possible to
+manufacture. If I submit a 2000 lines patch with only 100 such
+configurations you would have no reason to reject other than "I know
+what you mean" :)
+
+> It's true that currently omap platforms don't share the same panels, but
+> there is no stopping us to do that. We could remove the default panel and
+> attach a new one, even though we won't upstream non default panels in the
+> DT/board file, it would be always easier to make this change in software if
+> most of the panel specific info stays in the panel driver.
+>
+You mean you want to hardcode parameters in the driver instead of
+modifying the dtb that you pass to the kernel?
+
+> Also, 2 platforms of different SoC's may use the same panel. Currently the
+> panel drivers are SoC specific, but there is work being done between
+> different display maintainers so that the same panel driver works across
+> different SoCs.
+>
+Doesn't that make the case for DT/platform_data even stronger?
+
+Of course you as a maintainer have the final say. I am out of ways to
+explain my point.
+
+Cheers.
