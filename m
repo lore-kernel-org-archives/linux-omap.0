@@ -1,84 +1,70 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping
- from cpuidle
-Date: Fri, 20 Jul 2012 11:51:23 +0300
-Message-ID: <1342774283.4672.181.camel@sokoban>
+Subject: Re: [RFC 0/4] OMAP Cpuidle/Suspend Cleanups
+Date: Fri, 20 Jul 2012 11:59:33 +0300
+Message-ID: <1342774773.4672.187.camel@sokoban>
 References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
-	 <1342764284-8143-3-git-send-email-rnayak@ti.com>
-	 <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
-	 <5009120A.1060400@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44867 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45594 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752791Ab2GTIvf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 04:51:35 -0400
-In-Reply-To: <5009120A.1060400@ti.com>
+	id S1753181Ab2GTJAH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jul 2012 05:00:07 -0400
+In-Reply-To: <1342764284-8143-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com
 
-On Fri, 2012-07-20 at 13:38 +0530, Rajendra Nayak wrote:
-> On Friday 20 July 2012 12:55 PM, Shilimkar, Santosh wrote:
-> > On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
-> >> pwrdm_pre_transition()/pwrdm_post_transition() have always been high latency
-> >> operations done within cpuidle to do Powerdomain level book-keeping to know
-> >> what state transitions for different Powerdomains have been triggered.
-> >> This is also useful to do a restore-on-demand in some cases when we know
-> >> the context for the given Powerdomain was lost etc.
-> >>
-> >> Now that we have definitive entry/exit points (thanks to the Powerdomain
-> >> level usecounting) for Powerdomain transitions, these book-keeping functions
-> >> can very well be moved from within CPUidle into pwrdm_clkdm_enable()/pwrdm_
-> >> clkdm_disable() functions.
-> >>
-> >> Also rename _pwrdm_pre/post_transition_cb() to pwrdm_pre/post_transition()
-> >> and get rid of the original ones which iterate over all powerdomains.
-> >>
-> >> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> >> ---
-> >>   arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++--
-> >>   arch/arm/mach-omap2/pm34xx.c              |    4 ++--
-> >>   arch/arm/mach-omap2/powerdomain.c         |   28 ++++++++--------------------
-> >>   arch/arm/mach-omap2/powerdomain.h         |    4 ++--
-> >>   4 files changed, 14 insertions(+), 26 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >> index 13670aa..ea19439 100644
-> >> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-> >> @@ -255,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
-> >>                  return -ENXIO;
-> >>          }
-> >>
-> >> -       pwrdm_pre_transition();
-> >> +       pwrdm_cpu_idle();
-> >>
-> > Glad to see this is getting optimized.
-> > I haven't seen how "pwrdm_cpu_[idle/wakeup]()" is
-> > implemented but will those work on SMP system ?
-> > I mean OMAP4, any CPU can make this call ?
+On Fri, 2012-07-20 at 11:34 +0530, Rajendra Nayak wrote:
+> Hi,
 > 
-> Thats a good question. I think Tero did this so he can kick in
-> voltage transitions at the right time in idle/suspend.
-> Given that these deal with incrementing/decrementing the MPU and CORE
-> pwrdm usecounts alone, maybe on OMAP4 (SMP systems) this needs to also
-> increment/decrement the specific CPU usecounts on the CPUs these calls
-> are made.
+> Here are some CPUidle/Suspend cleanup patches done by adding
+> some more functionality in the OMAP Powerdomain framework.
+> They mostly cleanup OMAP3 but the same ideas can be used/
+> applied for OMAP4 and beyond.
+> 
+> The series is based off Teros' series [1] to add usecounting
+> support within the OMAP Powerdomain framework.
+> 
+> The patches are tested with RET/OFF in CPUidle and Suspend
+> on 3630 beagle Xm and 3430 SDP.
 
-Yeah, you should keep the usecounts valid by each cpu separately calling
-these functions. My current set only sets these usecounts based on cpu0
-activity, as cpu1 is statically controlled through cpu online / offline.
-Once per-cpu cpuidle is in, these should be changed so that each
-individual cpu increases the usecounts when they are brought up,
-decrease/increase during idle, and decrease when they are brought down.
-The usecount should always reflect the number of CPUs active on MPU
-domain.
+This set looks good to me, just requires careful testing that you don't
+break anything as you are moving lots of stuff around. For debugging
+purposes (maybe also permanently?), it might be good to keep some sort
+of failsafe mechanism in place that prevents actual core / per off
+transitions in case there is a problem with the usecounting, and you
+accidentally hit core / per off even though the usecounting doesn't
+expect it (some autoidle mechanism is overlooked for example.)
+
+Maybe add some caching for the programmed next state, and only program
+the HW register once we get to the callbacks, and restore the next state
+to ON after leaving...? This should get rid of any unexpected hangs.
 
 -Tero
+
+> 
+> regards,
+> Rajendra
+> 
+> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg72163.html
+> 
+> Rajendra Nayak (4):
+>   ARM: OMAP3: cpuidle: Remove unused MPU OSWR support code
+>   ARM: OMAP: PM: Get rid of Powerdomain book-keeping from cpuidle
+>   ARM: OMAP: powerdomain: Add .power_on/.power_down hooks for
+>     powerdomains
+>   ARM: OMAP3: PM: Use .power_on/.power_down to clean omap_sram_idle
+> 
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 +-
+>  arch/arm/mach-omap2/pm34xx.c              |  158 ++++++++++++++---------------
+>  arch/arm/mach-omap2/powerdomain.c         |   40 ++++----
+>  arch/arm/mach-omap2/powerdomain.h         |    8 +-
+>  arch/arm/mach-omap2/sleep34xx.S           |    4 +-
+>  5 files changed, 104 insertions(+), 110 deletions(-)
+> 
 
 
