@@ -1,57 +1,63 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: am3517: geting MMC working
-Date: Fri, 20 Jul 2012 10:01:09 +0200
-Message-ID: <50091045.7060102@visionsystems.de>
-References: <5007A838.3040309@visionsystems.de> <CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com> <5007AF7C.1010902@visionsystems.de> <CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com> <5007B721.9070305@visionsystems.de> <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com> <5007C215.7020904@visionsystems.de> <CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com> <alpine.DEB.2.00.1207191532560.14390@utopia.booyaka.com> <CANrkHUasORhcujiUixhBLJ3_QuUEX3iR5mYn1LMqdk70sMWCsg@mail.gmail.com> <50090B30.3070206@visionsystems.de>
-Reply-To: yegor_sub1@visionsystems.de
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Fri, 20 Jul 2012 13:36:56 +0530
+Message-ID: <CAP05o4+mEf4nxdSEF1uEpmgKPcOQ598vHTFMCXrkE_O92djupQ@mail.gmail.com>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+	<20120719102013.GJ14302@arwen.pp.htv.fi>
+	<20120719225405.GB32547@kroah.com>
+	<20120719225523.GC32547@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.vscom.de ([62.145.30.242]:57626 "EHLO mail.visionsystems.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753146Ab2GTIBZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 04:01:25 -0400
-In-Reply-To: <50090B30.3070206@visionsystems.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120719225523.GC32547-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "S, Venkatraman" <svenkatr@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>
 
-Am 20.07.2012 09:39, schrieb Yegor Yefremov:
-> Am 20.07.2012 09:28, schrieb T Krishnamoorthy, Balaji:
->> On Fri, Jul 20, 2012 at 3:08 AM, Paul Walmsley <paul@pwsan.com> wrote:
->>> On Thu, 19 Jul 2012, S, Venkatraman wrote:
->>>
->>>> >From this, one can only infer that the card is not responding at all,
->>>> and all attempts
->>>> are returning with a timeout (CTO=Command Time Out).
->>> Looks to me like the card is responding to CMD8, CMD55, ACMD41, and CMD0.
->>> It's only CMD52 and CMD5 that are timing out.  Aren't those timeouts
->>> expected with a SD memory card?
->> yes, those timeouts are expected for SD card.
->> The failure is due to irq not received/missing for last CMD0.
->> Hi Yegor, Can you provide details for the SD card being used.
-> 
-> This is Apacer 2GB. In 3.3-rc7 I have no problems with it. Should I enable debugging in 3.3-rc7 and post the output?
+On Fri, Jul 20, 2012 at 4:25 AM, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> wrote:
+> On Thu, Jul 19, 2012 at 03:54:05PM -0700, Greg KH wrote:
+>> On Thu, Jul 19, 2012 at 01:20:14PM +0300, Felipe Balbi wrote:
+>> > Hi,
+>> >
+>> > On Thu, Jun 21, 2012 at 07:12:12PM +0530, Keshava Munegowda wrote:
+>> > > This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
+>> > > "Fix OMAP EHCI suspend/resume failure (i693)" is causing
+>> > > the usb hub and device detection fails in beagle XM
+>> > > causeing NFS not functional. This affects the core retention too.
+>> > > The same commit logic needs to be revisted adhering to hwmod and
+>> > > device tree framework.
+>> > > for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
+>> > > titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
+>> > >
+>> > > This patch is validated on BeagleXM with NFS support over
+>> > > usb ethernet and USB mass storage and other device detection.
+>> > >
+>> > > Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>> >
+>> > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+>> >
+>> > turns out this is causing other issues and another version of the patch
+>> > will be provided.
+>> >
+>> > Greg, Alan, this is basically a git revert of the commit id listed
+>> > above.
+>>
+>> Ok, I'll queue it up for 3.6-rc1 and add a -stable mark to it to get
+>> into 3.5.1, ok?
+>
+> Hm, that doesn't work as it doesn't apply to my tree :(
+>
+> Can someone please update this against usb-next and send it to me?
+> Felipe?
 
-I found the solution:
+Hi Greg
+    yes, I will do this
+I will send the v2 of this patch ASAP
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e4fc88c..0ab26ab 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -359,7 +359,7 @@ static void omap3_pm_idle(void)
- {
- 	local_fiq_disable();
- 
--	if (omap_irq_pending())
-+	if (omap_irq_pending() || !omap3_has_io_wakeup())
- 		goto out;
- 
- 	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-
-I've seen this hack for some on the mailing list. I think Mark A. Greer introduced it, but I don't remember for sure. Can this patch be applied as it is or there are some infrastructure changes required?
-
-Best regards,
-Yegor
+regards
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
