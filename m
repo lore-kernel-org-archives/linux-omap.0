@@ -1,70 +1,55 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Fri, 20 Jul 2012 17:43:45 +0530
-Message-ID: <CAJe_Zhd3KXNVTi0S5PiPwzJXDNRpDGgSSgJbY1km4ZEi-VzwCA@mail.gmail.com>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
-	<CAJe_ZhfoYoFd1AkFmb0E7=iSvZeAQRmSFONCW7jE8psCMDQ3Hg@mail.gmail.com>
-	<500912C7.8080204@ti.com>
+From: Yegor Yefremov <yegorslists@googlemail.com>
+Subject: Re: [PATCH v2] da8xx-fb: add missing FB_BLANK operations
+Date: Fri, 20 Jul 2012 14:20:48 +0200
+Message-ID: <CAGm1_kujjERaF5K048w-YM_iKWDGn12TBhjLs_XKytitrn3jcA@mail.gmail.com>
+References: <1341583288-30281-1-git-send-email-yegorslists@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:61819 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab2GTMNq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 08:13:46 -0400
-Received: by vbbff1 with SMTP id ff1so2830467vbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 05:13:45 -0700 (PDT)
-In-Reply-To: <500912C7.8080204@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63676 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab2GTMVL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 08:21:11 -0400
+In-Reply-To: <1341583288-30281-1-git-send-email-yegorslists@googlemail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Raphael Assenat <raph@8d.com>, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, FlorianSchandinat@gmx.de, tomi.valkeinen@ti.com, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On 20 July 2012 13:41, Archit Taneja <a0393947@ti.com> wrote:
-> On Tuesday 17 July 2012 09:57 PM, Jassi Brar wrote:
->>>
->>> Add timings for ChiMei G121S1-L01/L02 and G121X1-L01 LCD displays.
->>>
->> Display panels are board specific and there is no limit to the number
->> of panels that could be connected to omap dss.
->>   Does it make sense to get panel params via DT? Or at least have them
->> come from board file? (esp when there is hardly a panel shared by two
->> boards, and some panels aren't even used by any board in mainline)
->>
+On Fri, Jul 6, 2012 at 4:01 PM,  <yegorslists@googlemail.com> wrote:
+> From: Yegor Yefremov <yegorslists@googlemail.com>
 >
-> A panel specific param should stay in the panel driver, it's something which
-> is specific to the panel and not the platform it is in
+> add FB_BLANK_NORMAL, FB_BLANK_VSYNC_SUSPEND and FB_BLANK_HSYNC_SUSPEND
+> modes (copy drivers/video/omap2/omapfb/omapfb-main.c implementation).
+> Otherwise X-server will complain about invalid parameter.
 >
-Yes it is board specific, but no it should not stay in the driver. The
-driver simply needs one compatible set of 15 numbers to do its job.
-
-Let me explain my point in detail....
-The array generic_dpi_panels[] is but a limited list of compatible
-configurations of a 'generic' panel. Each occupying ~20 lines in
-kernel. There would be dozens of supported panels that exist but are
-not listed in this array, and countless more that are possible to
-manufacture. If I submit a 2000 lines patch with only 100 such
-configurations you would have no reason to reject other than "I know
-what you mean" :)
-
-> It's true that currently omap platforms don't share the same panels, but
-> there is no stopping us to do that. We could remove the default panel and
-> attach a new one, even though we won't upstream non default panels in the
-> DT/board file, it would be always easier to make this change in software if
-> most of the panel specific info stays in the panel driver.
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
+> ---
+> v2: add linux-fbdev as recipient
 >
-You mean you want to hardcode parameters in the driver instead of
-modifying the dtb that you pass to the kernel?
-
-> Also, 2 platforms of different SoC's may use the same panel. Currently the
-> panel drivers are SoC specific, but there is work being done between
-> different display maintainers so that the same panel driver works across
-> different SoCs.
+>  drivers/video/da8xx-fb.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 >
-Doesn't that make the case for DT/platform_data even stronger?
+> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
+> index 47118c7..8d745bf 100644
+> --- a/drivers/video/da8xx-fb.c
+> +++ b/drivers/video/da8xx-fb.c
+> @@ -1026,6 +1026,9 @@ static int cfb_blank(int blank, struct fb_info *info)
+>
+>                 lcd_enable_raster();
+>                 break;
+> +       case FB_BLANK_NORMAL:
+> +       case FB_BLANK_VSYNC_SUSPEND:
+> +       case FB_BLANK_HSYNC_SUSPEND:
+>         case FB_BLANK_POWERDOWN:
+>                 if (par->panel_power_ctrl)
+>                         par->panel_power_ctrl(0);
+> --
+> 1.7.7
+>
 
-Of course you as a maintainer have the final say. I am out of ways to
-explain my point.
+Were is possible to get this patch into 3.6?
 
-Cheers.
+Thanks.
+
+Yegor
