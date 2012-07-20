@@ -1,75 +1,116 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC][PATCH v2 1/1] ARM: OMAP2+: PM: Register suspend ops even
- in the presence of DT blob
-Date: Fri, 20 Jul 2012 05:43:27 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB14BB0@DBDE01.ent.ti.com>
-References: <1342699728-19831-1-git-send-email-vaibhav.bedia@ti.com>
- <5008E10F.4080706@ti.com>
- <B5906170F1614E41A8A28DE3B8D121433EB14B1E@DBDE01.ent.ti.com>
- <5008E8D5.3010007@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [RFC 1/4] ARM: OMAP3: cpuidle: Remove unused MPU OSWR support code
+Date: Fri, 20 Jul 2012 11:34:41 +0530
+Message-ID: <1342764284-8143-2-git-send-email-rnayak@ti.com>
+References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50867 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752567Ab2GTFnn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 01:43:43 -0400
-In-Reply-To: <5008E8D5.3010007@ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:54065 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173Ab2GTGFd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 02:05:33 -0400
+In-Reply-To: <1342764284-8143-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, t-kristo@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-On Fri, Jul 20, 2012 at 10:42:53, Nayak, Rajendra wrote:
-> On Friday 20 July 2012 10:31 AM, Bedia, Vaibhav wrote:
-> > On Fri, Jul 20, 2012 at 10:09:43, Nayak, Rajendra wrote:
-> >> On Thursday 19 July 2012 05:38 PM, Vaibhav Bedia wrote:
-> >>> As per the comment in omap2_common_late_init() looks like the
-> >>> original intent of the DT check was to treat only the PMIC
-> >>> and SR initialization differently. Recent changes to consolidate
-> >>> the suspend-resume code across OMAP3/4 resulted into the
-> >>> registration of suspend ops also being dependent on the check
-> >>> for DT blob. Since the suspend-resume operation should not
-> >>> really be dependent on the usage of DT remove this dependency
-> >>> by wrapping the PMIC and SR init under the DT check.
-> >>
-> >> So I am guessing you also tested suspend/resume on your hardware
-> >> with this patch, when booting with a DT blob, and it passed.
-> >>
-> >
-> > I am getting there ;)
-> >
-> > I am in the process of getting a real suspend/resume functional. As part
-> > of this I was just flow flushing the whole suspend process in the mainline
-> > kernel by putting in a dummy implementation for the .enter op and found that
-> > this change was needed.
-> 
-> Ok, good to know you are working on this. It might then make sense for
-> for you to also include this patch as part of that series?
-> It doesn't make much sense to register suspend ops which then break
-> suspend isn't it? Btw, whats the behavior on current mainline with
-> just this patch. Does it hang/crash or just prevent the system from
-> doing down?
-> 
+We do not support MPU OSWR on OMAP3. Get rid of the complex/multiple
+save_state handling in omap_sram_idle() and just use 2 save_state
+definitions
 
-Ok. I can keep this patch as part of the suspend-resume support for AM33XX.
+save_state = 1, all logic and memory lost, MPU hits OFF
+save_state = 0, nothing lost, MPU hits CSWR or shallower state
 
-With just this patch on top of the tree being maintained by Vaibhav Hiremath [1]
-I found a couple of issues that I am yet to fully root-cause.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c    |   35 +++++++++--------------------------
+ arch/arm/mach-omap2/sleep34xx.S |    4 +---
+ 2 files changed, 10 insertions(+), 29 deletions(-)
 
-1. The PM_SUSPEND_PREPARE handler in drivers/mmc/core/core.c never returns unless
-the MMC_UNSAFE_RESUME config option is selected. This might be due to the suspend
-and resume in mmc_bus_ops being NULL in the case where the config option is not set.
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7c7b173..8d96b1f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -256,19 +256,16 @@ static void omap34xx_save_context(u32 *save)
+ 
+ static int omap34xx_do_sram_idle(unsigned long save_state)
+ {
++	/*
++	 * save_state = 1 indicates all logic and memory/cache lost
++	 * save_state = 0 indicates nothing lost
++	 */
+ 	omap34xx_cpu_suspend(save_state);
+ 	return 0;
+ }
+ 
+ void omap_sram_idle(void)
+ {
+-	/* Variable to tell what needs to be saved and restored
+-	 * in omap_sram_idle*/
+-	/* save_state = 0 => Nothing to save and restored */
+-	/* save_state = 1 => Only L1 and logic lost */
+-	/* save_state = 2 => Only L2 lost */
+-	/* save_state = 3 => L1, L2 and logic lost */
+-	int save_state = 0;
+ 	int mpu_next_state = PWRDM_POWER_ON;
+ 	int per_next_state = PWRDM_POWER_ON;
+ 	int core_next_state = PWRDM_POWER_ON;
+@@ -277,20 +274,6 @@ void omap_sram_idle(void)
+ 	u32 sdrc_pwr = 0;
+ 
+ 	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
+-	switch (mpu_next_state) {
+-	case PWRDM_POWER_ON:
+-	case PWRDM_POWER_RET:
+-		/* No need to save context */
+-		save_state = 0;
+-		break;
+-	case PWRDM_POWER_OFF:
+-		save_state = 3;
+-		break;
+-	default:
+-		/* Invalid state */
+-		pr_err("Invalid mpu state in sram_idle\n");
+-		return;
+-	}
+ 
+ 	/* NEON control */
+ 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+@@ -342,12 +325,12 @@ void omap_sram_idle(void)
+ 	 * get saved. The rest is placed on the stack, and restored
+ 	 * from there before resuming.
+ 	 */
+-	if (save_state)
++	if (mpu_next_state == PWRDM_POWER_OFF) {
+ 		omap34xx_save_context(omap3_arm_context);
+-	if (save_state == 1 || save_state == 3)
+-		cpu_suspend(save_state, omap34xx_do_sram_idle);
+-	else
+-		omap34xx_do_sram_idle(save_state);
++		cpu_suspend(1, omap34xx_do_sram_idle);
++	} else {
++		omap34xx_do_sram_idle(0);
++	}
+ 
+ 	/* Restore normal SDRC POWER settings */
+ 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 1f62f23..a4d04a4 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -157,9 +157,7 @@ ENTRY(omap34xx_cpu_suspend)
+ 	/*
+ 	 * r0 contains information about saving context:
+ 	 *   0 - No context lost
+-	 *   1 - Only L1 and logic lost
+-	 *   2 - Only L2 lost (Even L1 is retained we clean it along with L2)
+-	 *   3 - Both L1 and L2 lost and logic lost
++	 *   1 - Both L1 and L2 lost and logic lost
+ 	 */
+ 
+ 	/*
+-- 
+1.7.1
 
-2. The suspend process hangs somewhere in the .suspend_noirq callback for the UART
-being used as the console when no_console_suspend is passed.
-
-I am yet to check the behavior on an OMAP3 EVM so right now I am not sure whether
-these are AM33XX specific issues. If you have any pointers that will greatly help.
-
-Regards,
-Vaibhav B.
-
-[1] https://github.com/hvaibhav/am335x-linux/tree/am335x-upstream-staging 
