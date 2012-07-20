@@ -1,232 +1,57 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RESEND] OMAP: USB : Fix the EHCI enumeration and core retention issue
-Date: Fri, 20 Jul 2012 15:10:54 +0530
-Message-ID: <1342777254-25789-1-git-send-email-keshava_mgowda@ti.com>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 20 Jul 2012 15:11:25 +0530
+Message-ID: <1342777285.1726.444.camel@vkoul-udesk3>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	 <201206271520.49276.arnd@arndb.de> <1342161907.1726.26.camel@vkoul-udesk3>
+	 <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>
+	 <87y5meu7dv.fsf@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, russ.dill-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:39457 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752791Ab2GTJlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jul 2012 05:41:21 -0400
+In-Reply-To: <87y5meu7dv.fsf@free.fr>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-This commit 354ab8567ae3107a8cbe7228c3181990ba598aac titled
-"Fix OMAP EHCI suspend/resume failure (i693)" is causing
-the usb hub and device detection fails in beagle XM
-causeing NFS not functional. This affects the core retention too.
-The same commit logic needs to be revisted adhering to hwmod and
-device tree framework.
-for now, this commit id 354ab8567ae3107a8cbe7228c3181990ba598aac
-titled "Fix OMAP EHCI suspend/resume failure (i693)" reverted.
+On Fri, 2012-07-20 at 11:08 +0200, Robert Jarzmik wrote:
+> Vinod Koul <vinod.koul@linux.intel.com> writes:
+> 
+> >> 4. A dma controller requiring complex configuration:
+> >> 
+> >>        dma: dmaengine@48000000 {
+> >>                compatible = "foo,foo-sdma"
+> >>                reg = <0x48000000 0x1000>;
+> >>                interrupts = <4>;
+> >>                #dma-cells = <6>; /* phandle, flag, request, channel,
+> >> 					 input-width, output-width */
+> > Why would we want the widths to be here?
+> > Assuming a DMA from System memory to a peripheral, source width should
+> > be system memory width and destination the peripheral width. IMO these
+> > should not be in dma property even if we need these
+> Hi Vinod,
+> 
+> I know at least one peripheral which accepts 2 widths, 8bit and 16bit, namely the
+> M-Systems DiskOnChip G3 NAND chip.
+> This device has to configured to choose either 8bit data bus access or 16bit
+> data bus access.
+That would be configured by the client (peripheral) driver and passed to
+dmaengine driver using the slave config. The point is that it has
+nothing to do with dma.
 
-This patch is validated on BeagleXM with NFS support over
-usb ethernet and USB mass storage and other device detection.
+> 
+> I'm just wondering if that usecase will fit in without the width information
+> embedded, and how will the driver choose the width to use ?
+It you need, this should be the client property and passed as argument
+to dma, not a dma property :)
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/host/ehci-omap.c |  167 +-----------------------------------------
- 1 file changed, 1 insertion(+), 166 deletions(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index ec21f4a..3ee5ed3 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -56,15 +56,6 @@
- #define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT		8
- #define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT		0
- 
--/* Errata i693 */
--static struct clk	*utmi_p1_fck;
--static struct clk	*utmi_p2_fck;
--static struct clk	*xclk60mhsp1_ck;
--static struct clk	*xclk60mhsp2_ck;
--static struct clk	*usbhost_p1_fck;
--static struct clk	*usbhost_p2_fck;
--static struct clk	*init_60m_fclk;
--
- /*-------------------------------------------------------------------------*/
- 
- static const struct hc_driver ehci_omap_hc_driver;
-@@ -80,40 +71,6 @@ static inline u32 ehci_read(void __iomem *base, u32 reg)
- 	return __raw_readl(base + reg);
- }
- 
--/* Erratum i693 workaround sequence */
--static void omap_ehci_erratum_i693(struct ehci_hcd *ehci)
--{
--	int ret = 0;
--
--	/* Switch to the internal 60 MHz clock */
--	ret = clk_set_parent(utmi_p1_fck, init_60m_fclk);
--	if (ret != 0)
--		ehci_err(ehci, "init_60m_fclk set parent"
--			"failed error:%d\n", ret);
--
--	ret = clk_set_parent(utmi_p2_fck, init_60m_fclk);
--	if (ret != 0)
--		ehci_err(ehci, "init_60m_fclk set parent"
--			"failed error:%d\n", ret);
--
--	clk_enable(usbhost_p1_fck);
--	clk_enable(usbhost_p2_fck);
--
--	/* Wait 1ms and switch back to the external clock */
--	mdelay(1);
--	ret = clk_set_parent(utmi_p1_fck, xclk60mhsp1_ck);
--	if (ret != 0)
--		ehci_err(ehci, "xclk60mhsp1_ck set parent"
--			"failed error:%d\n", ret);
--
--	ret = clk_set_parent(utmi_p2_fck, xclk60mhsp2_ck);
--	if (ret != 0)
--		ehci_err(ehci, "xclk60mhsp2_ck set parent"
--			"failed error:%d\n", ret);
--
--	clk_disable(usbhost_p1_fck);
--	clk_disable(usbhost_p2_fck);
--}
- 
- static void omap_ehci_soft_phy_reset(struct usb_hcd *hcd, u8 port)
- {
-@@ -195,50 +152,6 @@ static int omap_ehci_init(struct usb_hcd *hcd)
- 	return rc;
- }
- 
--static int omap_ehci_hub_control(
--	struct usb_hcd	*hcd,
--	u16		typeReq,
--	u16		wValue,
--	u16		wIndex,
--	char		*buf,
--	u16		wLength
--)
--{
--	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
--	u32 __iomem *status_reg = &ehci->regs->port_status[
--				(wIndex & 0xff) - 1];
--	u32		temp;
--	unsigned long	flags;
--	int		retval = 0;
--
--	spin_lock_irqsave(&ehci->lock, flags);
--
--	if (typeReq == SetPortFeature && wValue == USB_PORT_FEAT_SUSPEND) {
--		temp = ehci_readl(ehci, status_reg);
--		if ((temp & PORT_PE) == 0 || (temp & PORT_RESET) != 0) {
--			retval = -EPIPE;
--			goto done;
--		}
--
--		temp &= ~PORT_WKCONN_E;
--		temp |= PORT_WKDISC_E | PORT_WKOC_E;
--		ehci_writel(ehci, temp | PORT_SUSPEND, status_reg);
--
--		omap_ehci_erratum_i693(ehci);
--
--		set_bit((wIndex & 0xff) - 1, &ehci->suspended_ports);
--		goto done;
--	}
--
--	spin_unlock_irqrestore(&ehci->lock, flags);
--
--	/* Handle the hub control events here */
--	return ehci_hub_control(hcd, typeReq, wValue, wIndex, buf, wLength);
--done:
--	spin_unlock_irqrestore(&ehci->lock, flags);
--	return retval;
--}
--
- static void disable_put_regulator(
- 		struct ehci_hcd_omap_platform_data *pdata)
- {
-@@ -351,79 +264,9 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_pm_runtime;
- 	}
- 
--	/* get clocks */
--	utmi_p1_fck = clk_get(dev, "utmi_p1_gfclk");
--	if (IS_ERR(utmi_p1_fck)) {
--		ret = PTR_ERR(utmi_p1_fck);
--		dev_err(dev, "utmi_p1_gfclk failed error:%d\n",	ret);
--		goto err_add_hcd;
--	}
--
--	xclk60mhsp1_ck = clk_get(dev, "xclk60mhsp1_ck");
--	if (IS_ERR(xclk60mhsp1_ck)) {
--		ret = PTR_ERR(xclk60mhsp1_ck);
--		dev_err(dev, "xclk60mhsp1_ck failed error:%d\n", ret);
--		goto err_utmi_p1_fck;
--	}
--
--	utmi_p2_fck = clk_get(dev, "utmi_p2_gfclk");
--	if (IS_ERR(utmi_p2_fck)) {
--		ret = PTR_ERR(utmi_p2_fck);
--		dev_err(dev, "utmi_p2_gfclk failed error:%d\n", ret);
--		goto err_xclk60mhsp1_ck;
--	}
--
--	xclk60mhsp2_ck = clk_get(dev, "xclk60mhsp2_ck");
--	if (IS_ERR(xclk60mhsp2_ck)) {
--		ret = PTR_ERR(xclk60mhsp2_ck);
--		dev_err(dev, "xclk60mhsp2_ck failed error:%d\n", ret);
--		goto err_utmi_p2_fck;
--	}
--
--	usbhost_p1_fck = clk_get(dev, "usb_host_hs_utmi_p1_clk");
--	if (IS_ERR(usbhost_p1_fck)) {
--		ret = PTR_ERR(usbhost_p1_fck);
--		dev_err(dev, "usbhost_p1_fck failed error:%d\n", ret);
--		goto err_xclk60mhsp2_ck;
--	}
--
--	usbhost_p2_fck = clk_get(dev, "usb_host_hs_utmi_p2_clk");
--	if (IS_ERR(usbhost_p2_fck)) {
--		ret = PTR_ERR(usbhost_p2_fck);
--		dev_err(dev, "usbhost_p2_fck failed error:%d\n", ret);
--		goto err_usbhost_p1_fck;
--	}
--
--	init_60m_fclk = clk_get(dev, "init_60m_fclk");
--	if (IS_ERR(init_60m_fclk)) {
--		ret = PTR_ERR(init_60m_fclk);
--		dev_err(dev, "init_60m_fclk failed error:%d\n", ret);
--		goto err_usbhost_p2_fck;
--	}
- 
- 	return 0;
- 
--err_usbhost_p2_fck:
--	clk_put(usbhost_p2_fck);
--
--err_usbhost_p1_fck:
--	clk_put(usbhost_p1_fck);
--
--err_xclk60mhsp2_ck:
--	clk_put(xclk60mhsp2_ck);
--
--err_utmi_p2_fck:
--	clk_put(utmi_p2_fck);
--
--err_xclk60mhsp1_ck:
--	clk_put(xclk60mhsp1_ck);
--
--err_utmi_p1_fck:
--	clk_put(utmi_p1_fck);
--
--err_add_hcd:
--	usb_remove_hcd(hcd);
--
- err_pm_runtime:
- 	disable_put_regulator(pdata);
- 	pm_runtime_put_sync(dev);
-@@ -454,14 +297,6 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	iounmap(hcd->regs);
- 	usb_put_hcd(hcd);
- 
--	clk_put(utmi_p1_fck);
--	clk_put(utmi_p2_fck);
--	clk_put(xclk60mhsp1_ck);
--	clk_put(xclk60mhsp2_ck);
--	clk_put(usbhost_p1_fck);
--	clk_put(usbhost_p2_fck);
--	clk_put(init_60m_fclk);
+-- 
+~Vinod
+
