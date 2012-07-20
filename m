@@ -1,47 +1,42 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: am3517: geting MMC working
-Date: Fri, 20 Jul 2012 12:58:53 +0530
-Message-ID: <CANrkHUasORhcujiUixhBLJ3_QuUEX3iR5mYn1LMqdk70sMWCsg@mail.gmail.com>
-References: <5007A838.3040309@visionsystems.de>
-	<CAMQu2gyGH2r1vqEx5DCiv8xr=Lp+p1_5nvrtQe9RdpnfecSoag@mail.gmail.com>
-	<5007AF7C.1010902@visionsystems.de>
-	<CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com>
-	<5007B721.9070305@visionsystems.de>
-	<CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
-	<5007C215.7020904@visionsystems.de>
-	<CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
-	<alpine.DEB.2.00.1207191532560.14390@utopia.booyaka.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [RFC 4/4] ARM: OMAP3: PM: Use .power_on/.power_down to clean omap_sram_idle
+Date: Fri, 20 Jul 2012 13:00:01 +0530
+Message-ID: <CAMQu2gyk=h2Mt1RfJ83xSVN4dtTLt2Za15OEKBTq_4WaCOkGFA@mail.gmail.com>
+References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:44816 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752517Ab2GTH24 (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54498 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752566Ab2GTHaX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 03:28:56 -0400
-Received: by lban1 with SMTP id n1so4262377lba.38
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 00:28:53 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1207191532560.14390@utopia.booyaka.com>
+	Fri, 20 Jul 2012 03:30:23 -0400
+Received: by qabj40 with SMTP id j40so57078qab.15
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 00:30:21 -0700 (PDT)
+In-Reply-To: <1342764284-8143-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, yegor_sub1@visionsystems.de, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, t-kristo@ti.com
 
-On Fri, Jul 20, 2012 at 3:08 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Thu, 19 Jul 2012, S, Venkatraman wrote:
+On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+> With .power_on/.power_down hooks now available within the powerdomain
+> framework, its possible to clean a lot of mpu/core power_on/power_down
+> related code within omap_sram_idle into respective callbacks for these
+> powerdomains.
 >
->> >From this, one can only infer that the card is not responding at all,
->> and all attempts
->> are returning with a timeout (CTO=Command Time Out).
+> This should atleast also optimise the core domain context save
+> in CPUidle when attempting deeper C states, to prevent a core
+> domain context save when a device in core is still active.
+> The current code in such cases does a blind context save and
+> tries to put core domain down, even while devices are active.
 >
-> Looks to me like the card is responding to CMD8, CMD55, ACMD41, and CMD0.
-> It's only CMD52 and CMD5 that are timing out.  Aren't those timeouts
-> expected with a SD memory card?
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+Looks more modular now. Thanks Rajendra and this series is
+a good step towards decoupling CORE IDLE with CPUIDLE.
 
-yes, those timeouts are expected for SD card.
-The failure is due to irq not received/missing for last CMD0.
-Hi Yegor, Can you provide details for the SD card being used.
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
->
->
-> - Paul
+Regards
+Santosh
