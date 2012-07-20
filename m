@@ -1,42 +1,30 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 4/4] ARM: OMAP3: PM: Use .power_on/.power_down to clean omap_sram_idle
-Date: Fri, 20 Jul 2012 13:00:01 +0530
-Message-ID: <CAMQu2gyk=h2Mt1RfJ83xSVN4dtTLt2Za15OEKBTq_4WaCOkGFA@mail.gmail.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-5-git-send-email-rnayak@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v2 0/2] Add pinctrl support to AM33XX family of devices
+Date: Fri, 20 Jul 2012 13:01:46 +0530
+Message-ID: <1342769508-24810-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54498 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752566Ab2GTHaX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 03:30:23 -0400
-Received: by qabj40 with SMTP id j40so57078qab.15
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 00:30:21 -0700 (PDT)
-In-Reply-To: <1342764284-8143-5-git-send-email-rnayak@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59063 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752127Ab2GTHcO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jul 2012 03:32:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, t-kristo@ti.com
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 
-On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> With .power_on/.power_down hooks now available within the powerdomain
-> framework, its possible to clean a lot of mpu/core power_on/power_down
-> related code within omap_sram_idle into respective callbacks for these
-> powerdomains.
->
-> This should atleast also optimise the core domain context save
-> in CPUidle when attempting deeper C states, to prevent a core
-> domain context save when a device in core is still active.
-> The current code in such cases does a blind context save and
-> tries to put core domain down, even while devices are active.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
-Looks more modular now. Thanks Rajendra and this series is
-a good step towards decoupling CORE IDLE with CPUIDLE.
+Adds pinctrl support to AM33XX family of devices. These patches were
+tested on AM335x-Bone and AM335x-EVM 
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Changes from v1:
+	- Rebased the patches based on latest pinctrl-single driver
 
-Regards
-Santosh
+AnilKumar Ch (2):
+  arm/dts: Add AM33XX basic pinctrl support
+  arm/dts: Configure pinmuxs for user leds control on Bone
+
+ arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
+ arch/arm/boot/dts/am33xx.dtsi     |    9 +++++++++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
+
