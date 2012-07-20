@@ -1,57 +1,46 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC][PATCH v2 1/1] ARM: OMAP2+: PM: Register suspend ops even
- in the presence of DT blob
-Date: Fri, 20 Jul 2012 10:42:53 +0530
-Message-ID: <5008E8D5.3010007@ti.com>
-References: <1342699728-19831-1-git-send-email-vaibhav.bedia@ti.com> <5008E10F.4080706@ti.com> <B5906170F1614E41A8A28DE3B8D121433EB14B1E@DBDE01.ent.ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v5 04/11] arm: omap: hwmod: add a new addr space in otg for writing to control module
+Date: Fri, 20 Jul 2012 11:07:24 +0530
+Message-ID: <1342762651-17094-5-git-send-email-kishon@ti.com>
+References: <1342762651-17094-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40140 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751412Ab2GTFNA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 01:13:00 -0400
-Received: by pbbrp2 with SMTP id rp2so5500776pbb.28
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jul 2012 22:12:59 -0700 (PDT)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB14B1E@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1342762651-17094-1-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: kishon@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Friday 20 July 2012 10:31 AM, Bedia, Vaibhav wrote:
-> On Fri, Jul 20, 2012 at 10:09:43, Nayak, Rajendra wrote:
->> On Thursday 19 July 2012 05:38 PM, Vaibhav Bedia wrote:
->>> As per the comment in omap2_common_late_init() looks like the
->>> original intent of the DT check was to treat only the PMIC
->>> and SR initialization differently. Recent changes to consolidate
->>> the suspend-resume code across OMAP3/4 resulted into the
->>> registration of suspend ops also being dependent on the check
->>> for DT blob. Since the suspend-resume operation should not
->>> really be dependent on the usage of DT remove this dependency
->>> by wrapping the PMIC and SR init under the DT check.
->>
->> So I am guessing you also tested suspend/resume on your hardware
->> with this patch, when booting with a DT blob, and it passed.
->>
->
-> I am getting there ;)
->
-> I am in the process of getting a real suspend/resume functional. As part
-> of this I was just flow flushing the whole suspend process in the mainline
-> kernel by putting in a dummy implementation for the .enter op and found that
-> this change was needed.
+The mailbox register for usb otg in omap is present in control module.
+On detection of any events VBUS or ID, this register should be written
+to send the notification to musb core.
 
-Ok, good to know you are working on this. It might then make sense for
-for you to also include this patch as part of that series?
-It doesn't make much sense to register suspend ops which then break
-suspend isn't it? Btw, whats the behavior on current mainline with
-just this patch. Does it hang/crash or just prevent the system from
-doing down?
+Till we have a separate control module driver to write to control module,
+omap2430 will handle the register writes to control module by itself. So
+a new address space to represent this control module register is added
+to usb_otg_hs.
 
->
-> Regards,
-> Vaibhav
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index ba24d15..c50d828 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5922,6 +5922,11 @@ static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+ 		.pa_end		= 0x4a0ab7ff,
+ 		.flags		= ADDR_TYPE_RT
+ 	},
++	{
++		.pa_start	= 0x4a00233c,
++		.pa_end		= 0x4a00233f,
++		.flags		= ADDR_TYPE_RT
++	},
+ 	{ }
+ };
+ 
+-- 
+1.7.9.5
 
