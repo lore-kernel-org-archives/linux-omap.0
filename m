@@ -1,58 +1,62 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [RFC 1/4] ARM: OMAP3: cpuidle: Remove unused MPU OSWR support code
-Date: Fri, 20 Jul 2012 12:38:26 +0530
-Message-ID: <CAMQu2gzHBcYg=nhh1J2dsOGUcKBUj5MBTnJBafUPPo0uxxo7og@mail.gmail.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-2-git-send-email-rnayak@ti.com>
+Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping from cpuidle
+Date: Fri, 20 Jul 2012 12:55:35 +0530
+Message-ID: <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
+References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:47778 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753121Ab2GTHIs (ORCPT
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:46088 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751912Ab2GTHZ6 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jul 2012 03:08:48 -0400
-Received: by qaeb19 with SMTP id b19so69791qae.18
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 00:08:46 -0700 (PDT)
-In-Reply-To: <1342764284-8143-2-git-send-email-rnayak@ti.com>
+	Fri, 20 Jul 2012 03:25:58 -0400
+Received: by qcpx40 with SMTP id x40so2657600qcp.26
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jul 2012 00:25:56 -0700 (PDT)
+In-Reply-To: <1342764284-8143-3-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, t-kristo@ti.com
 
 On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> We do not support MPU OSWR on OMAP3. Get rid of the complex/multiple
-> save_state handling in omap_sram_idle() and just use 2 save_state
-> definitions
+> pwrdm_pre_transition()/pwrdm_post_transition() have always been high latency
+> operations done within cpuidle to do Powerdomain level book-keeping to know
+> what state transitions for different Powerdomains have been triggered.
+> This is also useful to do a restore-on-demand in some cases when we know
+> the context for the given Powerdomain was lost etc.
 >
-With current mainline code, this is indeed true.
-
-> save_state = 1, all logic and memory lost, MPU hits OFF
-> save_state = 0, nothing lost, MPU hits CSWR or shallower state
+> Now that we have definitive entry/exit points (thanks to the Powerdomain
+> level usecounting) for Powerdomain transitions, these book-keeping functions
+> can very well be moved from within CPUidle into pwrdm_clkdm_enable()/pwrdm_
+> clkdm_disable() functions.
+>
+> Also rename _pwrdm_pre/post_transition_cb() to pwrdm_pre/post_transition()
+> and get rid of the original ones which iterate over all powerdomains.
 >
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c    |   35 +++++++++--------------------------
->  arch/arm/mach-omap2/sleep34xx.S |    4 +---
->  2 files changed, 10 insertions(+), 29 deletions(-)
+>  arch/arm/mach-omap2/omap-mpuss-lowpower.c |    4 ++--
+>  arch/arm/mach-omap2/pm34xx.c              |    4 ++--
+>  arch/arm/mach-omap2/powerdomain.c         |   28 ++++++++--------------------
+>  arch/arm/mach-omap2/powerdomain.h         |    4 ++--
+>  4 files changed, 14 insertions(+), 26 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 7c7b173..8d96b1f 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -256,19 +256,16 @@ static void omap34xx_save_context(u32 *save)
+> diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> index 13670aa..ea19439 100644
+> --- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> +++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+> @@ -255,7 +255,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+>                 return -ENXIO;
+>         }
 >
->  static int omap34xx_do_sram_idle(unsigned long save_state)
->  {
-> +       /*
-> +        * save_state = 1 indicates all logic and memory/cache lost
-> +        * save_state = 0 indicates nothing lost
-> +        */
-Keep the same comment with mention of the MPU
-state like
-save_state = 1, all logic and memory lost, MPU hits OFF
-save_state = 0, nothing lost, MPU hits CSWR or shallower state
-
-Rest of the code looks good.
+> -       pwrdm_pre_transition();
+> +       pwrdm_cpu_idle();
+>
+Glad to see this is getting optimized.
+I haven't seen how "pwrdm_cpu_[idle/wakeup]()" is
+implemented but will those work on SMP system ?
+I mean OMAP4, any CPU can make this call ?
 
 Regards
-santosh
+Santosh
