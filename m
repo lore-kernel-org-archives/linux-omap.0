@@ -1,35 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC 1/4] ARM: OMAP3: cpuidle: Remove unused MPU OSWR support
- code
-Date: Fri, 20 Jul 2012 12:25:21 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207201222250.14390@utopia.booyaka.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-2-git-send-email-rnayak@ti.com>
+From: "Mark A. Greer" <mgreer@animalcreek.com>
+Subject: Re: [PATCH] net: ethernet: davinci_emac: add pm_runtime support
+Date: Fri, 20 Jul 2012 14:30:05 -0700
+Message-ID: <20120720213005.GA22263@animalcreek.com>
+References: <1342736577-30477-1-git-send-email-mgreer@animalcreek.com>
+ <20120720.112301.1733694549621760738.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36531 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020Ab2GTSZW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 14:25:22 -0400
-In-Reply-To: <1342764284-8143-2-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120720.112301.1733694549621760738.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, nsekhar@ti.com, khilman@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, t-kristo@ti.com
 
-On Fri, 20 Jul 2012, Rajendra Nayak wrote:
-
-> We do not support MPU OSWR on OMAP3. Get rid of the complex/multiple
-> save_state handling in omap_sram_idle() and just use 2 save_state
-> definitions
+On Fri, Jul 20, 2012 at 11:23:01AM -0700, David Miller wrote:
+> From: "Mark A. Greer" <mgreer@animalcreek.com>
+> Date: Thu, 19 Jul 2012 15:22:57 -0700
 > 
-> save_state = 1, all logic and memory lost, MPU hits OFF
-> save_state = 0, nothing lost, MPU hits CSWR or shallower state
+> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> > 
+> > Add pm_runtime support to the TI Davinci EMAC driver.
+> > 
+> > CC: Sekhar Nori <nsekhar@ti.com>
+> > CC: Kevin Hilman <khilman@ti.com>
+> > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
 > 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> This patch doesn't apply at all to net-next
 
-The code is certainly simpler, but I recall seeing patchsets in the past 
-that implemented OSWR on OMAP3.  (Not sure which powerdomains it was 
-implemented for.)  Do you know what the status of those patchsets are?
+My apologies.  I'll fix & resubmit in a bit.
 
-- Paul
+Mark
