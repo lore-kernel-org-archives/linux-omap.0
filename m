@@ -1,34 +1,42 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: [PATCH v3 0/2] net: ethernet: davinci_emac: fixups + pm_runtime
-Date: Fri, 20 Jul 2012 18:19:20 -0700
-Message-ID: <1342833562-3435-1-git-send-email-mgreer@animalcreek.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:33391 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527Ab2GUBT1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jul 2012 21:19:27 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] mmc: omap_hsmmc: ensure probe returns error upon resource failure
+Date: Sat, 21 Jul 2012 19:23:35 -0400
+Message-ID: <87k3xw3dhk.fsf@octavius.laptop.org>
+References: <1341963658-20896-1-git-send-email-khilman@ti.com>
+	<CANfBPZ8afVFt8UFr2Bi1M=NYbr_W0oH5ZOy90EXdQ9zaVm63dQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CANfBPZ8afVFt8UFr2Bi1M=NYbr_W0oH5ZOy90EXdQ9zaVm63dQ@mail.gmail.com>
+	(Venkatraman S.'s message of "Thu, 12 Jul 2012 11:49:13 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Adrian Hunter <adrian.hunter@intel.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Mark A. Greer" <mgreer@animalcreek.com>
 
-From: "Mark A. Greer" <mgreer@animalcreek.com>
+Hi,
 
-This series fixes a compile error in, and adds pm_runtime support
-to, the davinci_emac driver.
+On Thu, Jul 12 2012, S, Venkatraman wrote:
+> On Wed, Jul 11, 2012 at 5:10 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> If platform_get_resource_by_name() fails, driver probe is aborted an
+>> should return an error so the driver is not bound to the device.
+>>
+>> However, in the current error path of platform_get_resource_by_name(),
+>> probe returns zero since the return value (ret) is not properly set.
+>> With a zero return value, the driver core assumes probe was successful
+>> and will bind the driver to the device.
+>>
+>> Fix this by ensuring that probe returns an error code in this failure
+>> path.
+>>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>
+> Good catch.
+> Acked-by: Venkatraman S <svenkatr@ti.com>
 
-To test on a davinci platform, you will need another patch just
-submitted to netdev:
+Thanks, pushed to mmc-next for 3.6.
 
-	http://marc.info/?l=linux-netdev&m=134282758408187&w=2
-
-Mark A. Greer (2):
-  net: ethernet: davinci_emac: Remove unnecessary #include
-  net: ethernet: davinci_emac: add pm_runtime support
-
- drivers/net/ethernet/ti/davinci_emac.c | 45 +++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 23 deletions(-)
-
+- Chris.
 -- 
-1.7.11.2
-
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
