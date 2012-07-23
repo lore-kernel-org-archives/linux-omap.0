@@ -1,169 +1,279 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP: fix the ads7846 init code
-Date: Mon, 23 Jul 2012 15:49:54 +0300
-Message-ID: <500D4872.8040400@compulab.co.il>
-References: <1339661781-5086-1-git-send-email-grinberg@compulab.co.il> <87sjcxhpig.fsf@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH] PWM: Add support for configuring polarity of PWM
+Date: Mon, 23 Jul 2012 12:51:11 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E97189D@DBDE01.ent.ti.com>
+References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
+ <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:36886 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752675Ab2GWMuF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 08:50:05 -0400
-In-Reply-To: <87sjcxhpig.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Zumeng Chen <zumeng.chen@windriver.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi Kevin,
+On Mon, Jul 23, 2012 at 14:00:32, Thierry Reding wrote:
+> On Wed, Jul 18, 2012 at 06:24:13PM +0530, Philip, Avinash wrote:
+> > Duty cycle inversion of PWM wave should achieved through PWM polarity
+> > inversion. Also polarity of PWM wave should configurable from slave
+> > drivers,
+> 
+> Actually, I don't think that duty cycle inversion *should* be achieved
+> through polarity inversion. But it is true that the same effect *can* be
+> achieved by inverting the polarity.
 
-On 07/12/12 02:00, Kevin Hilman wrote:
-> Hi Igor,
-> 
-> Igor Grinberg <grinberg@compulab.co.il> writes:
-> 
->> In case a board provides the gpio_pendown and not board_pdata,
->> the GPIO debounce is not taken care of.
->> Fix this by taking care of GPIO debounce in any case.
->>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> 
-> I just notice this this patch causing some faults in current l-o master
-> branch.  
-
-This was not the case by the time I did the patch...
+Correct.
 
 > 
->> ---
->>  arch/arm/mach-omap2/common-board-devices.c |   22 ++++++++++++----------
->>  1 files changed, 12 insertions(+), 10 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
->> index 1706ebc..c187586 100644
->> --- a/arch/arm/mach-omap2/common-board-devices.c
->> +++ b/arch/arm/mach-omap2/common-board-devices.c
->> @@ -63,28 +63,30 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->>  	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
->>  	int err;
->>  
->> -	if (board_pdata && board_pdata->get_pendown_state) {
->> -		err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->> -		if (err) {
->> -			pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->> -			return;
->> -		}
->> -		gpio_export(gpio_pendown, 0);
->> -
->> -		if (gpio_debounce)
->> -			gpio_set_debounce(gpio_pendown, gpio_debounce);
->> +	err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->> +	if (err) {
->> +		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->> +		return;
->>  	}
->>  
->> +	if (gpio_debounce)
->> +		gpio_set_debounce(gpio_pendown, gpio_debounce);
->> +
->>  	spi_bi->bus_num	= bus_num;
->>  	spi_bi->irq	= gpio_to_irq(gpio_pendown);
->>  
->>  	if (board_pdata) {
->>  		board_pdata->gpio_pendown = gpio_pendown;
->>  		spi_bi->platform_data = board_pdata;
->> +		if (board_pdata->get_pendown_state)
->> +			gpio_export(gpio_pendown, 0);
->>  	} else {
->>  		ads7846_config.gpio_pendown = gpio_pendown;
->>  	}
->>  
->> +	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
->> +		gpio_free(gpio_pendown);
+> > Configure polarity
+> > 1. PWM_POLARITY_NORMAL  -> duty ns defines ON period of PWM wave
+> > 2. PWM_POLARITY_INVERSE -> duty ns defines OFF period of PWM wave.
 > 
-> The logic here for freeing the GPIO doesn't make any sense to me.
-> IIUC, the gpio_pendown is always used, so should not be freed.
+> Similarly, this text describes how polarity inversion can be used to
+> simular duty cycle inversion.
+> 
+> I think you should describe that this change adds support for
+> configuring the PWM polarity. If you absolutely must note that it can be
+> used to simulate the duty cycle inversion, then you can give it as an
+> example below the actual description.
+> 
+> > This patch adds support for configuring PWM polarity in PWM frame work.
+> 
+> "framework" is one word.
 
-The gpio_pendown is requested by the ads7846 driver and
-of course you can't request the GPIO second time, so the driver failed.
+Ok.
 
 > 
-> Moreover, if this GPIO is freed, that allows that GPIO bank to runtime
-> suspend if there are no other GPIOs in use in that bank.  So the first
-> attempt to use the GPIO will fault.
-
-The ads7846 driver requests the GPIO prior to using it.
-
+> > 
+> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> > ---
+> > Configuring polarity to be done with PWM device disabled, if not
+> > failure reported.
+> > 
+> > If PWM device is enabled while configuring polarity, disabling and
+> > re_enabling make it complex. Whoever uses this API has to taken
+> > care of the basic rules.
 > 
-> For example, on my Overo board(s), I noticed this failing as soon as teh
-> ads7846 driver probes, requests the IRQ and the GPIO triggering is set.
-
-Prior to requesting the IRQ, the ads7846_setup_pendown(spi, ts) method
-is called, which requests the GPIO.
-
-> 
-> Getting rid of this free fixes the problem.
-
-But then don't you have double requesting?
+> These comments belong in the commit message because they are very useful
+> information about the change that you introduce. They probably belong
+> somewhere in the code as well.
 
 > 
-> The changelog doesn't describe why the GPIO is freed here so I'm not
-> sure I follow, but it seems to me that once this GPIO is requesed, it
-> should not be freed as long as it's used, otherwise PM faults can occur.
+> > Discussions related to this can found at
+> > http://www.spinics.net/lists/kernel/msg1372110.html
+> 
+> Here's my proposal for a revised commit message:
+> 
+> 	pwm: Add support for configuring the PWM polarity
+> 
+> 	Some hardware supports inverting the polarity of the PWM signal. This
+> 	commit adds support to the PWM framework to allow users of the PWM API
+> 	to configure the polarity. Note that in order to reduce complexity,
+> 	changing the polarity of a PWM signal is only allowed while the PWM is
+> 	disabled.
+> 
+> 	A practical example where this can prove useful is to simulate inversion
+> 	of the duty cycle. While inversion of polarity and duty cycle are not
+> 	exactly the same, the differences for most use-cases are negligible.
 
-It is not used until the ads7846 driver probes.
+Ok I will update.
 
 > 
-> Kevin
+> > :100644 100644 ecb7690... 24d5495... M	drivers/pwm/core.c
+> > :100644 100644 21d076c... 2e4e960... M	include/linux/pwm.h
+> >  drivers/pwm/core.c  |   32 ++++++++++++++++++++++++++++++++
+> >  include/linux/pwm.h |   15 +++++++++++++++
+> >  2 files changed, 47 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+> > index ecb7690..24d5495 100644
+> > --- a/drivers/pwm/core.c
+> > +++ b/drivers/pwm/core.c
+> > @@ -379,6 +379,38 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> >  EXPORT_SYMBOL_GPL(pwm_config);
+> >  
+> >  /**
+> > + * pwm_set_polarity() - change PWM device Polarity
 > 
->>From bb87c3b5586950e480d0699504997a9ad587fd85 Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Wed, 11 Jul 2012 15:47:29 -0700
-> Subject: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing
->  pen-down GPIO
-> 
-> commit 97ee9f01d6 (ARM: OMAP: fix the ads7846 init code) mistakenly
-> frees the pen-down GPIO even though it will be used by the ads7846
-> driver.
-> 
-> Freeing a GPIO means that the GPIO bank containing that GPIO can be
-> runtime suspended if its the last/only GPIO being used in that bank.
-> If the GPIO bank is runtime suspended, any accesses to that bank will
-> cause faults.
-> 
-> Because the current code frees the GPIO, the ads7846 driver probe will
-> fault when it requests its IRQ line.  Because the IRQ is a GPIO line,
-> the request IRQ will trickle down into the OMAP GPIO layer:
-> gpio_irq_type() --> _set_gpio_triggering() which can fault if the
-> bank has been runtime suspended.
-> 
-> This is exctly what happens on Overo platforms (3530 Water, 3730 Overo
-> FireSTORM) since this is the only GPIO used in the bank.
-> 
-> To fix, don't free the GPIO at all since it is always in use.
-> 
-> Cc: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/common-board-devices.c |    3 ---
->  1 file changed, 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-> index c187586..1ae6fd6 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.c
-> +++ b/arch/arm/mach-omap2/common-board-devices.c
-> @@ -84,9 +84,6 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->  		ads7846_config.gpio_pendown = gpio_pendown;
->  	}
->  
-> -	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
-> -		gpio_free(gpio_pendown);
-> -
->  	spi_register_board_info(&ads7846_spi_board_info, 1);
->  }
->  #else
+> Maybe: "pwm_set_polarity() - configure the polarity of a PWM signal"
 
--- 
-Regards,
-Igor.
+
+> 
+> > + * @pwm: PWM device
+> > + * @polarity: Configure polarity of PWM
+> 
+> "new polarity of the PWM signal"
+
+
+> 
+> > + *
+> > + * Polarity to be configured with PWM device disabled.
+> 
+> "Note that the polarity cannot be configured while the PWM device is
+> enabled."
+
+Ok I will update.
+
+> 
+> > + */
+> > +int pwm_set_polarity(struct pwm_device *pwm, int polarity)
+> 
+> The polarity parameter should be an enum pwm_polarity, see below.
+> 
+> > +{
+> > +	int pwm_flags = PWM_POLARITY_NORMAL;
+> 
+> I don't think this is needed.
+> 
+> > +
+> > +	if (!pwm || !pwm->chip->ops->set_polarity)
+> > +		return -EINVAL;
+> 
+> I'd prefer -ENOSYS if .set_polarity is not implemented, so this check
+> should probably be split up:
+> 
+> 	if (!pwm || !pwm->chip || !pwm->chip->ops)
+> 		return -EINVAL;
+> 
+> 	if (!pwm->chip->ops->set_polarity)
+> 		return -ENOSYS;
+
+I will correct it.
+
+> 
+> > +
+> > +	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
+> > +		dev_err(pwm->chip->dev,
+> > +			"Polarity configuration Failed!, PWM device enabled\n");
+> > +		return -EBUSY;
+> > +	}
+> 
+> Maybe something like: "polarity cannot be configured while PWM device is
+> enabled"?
+
+Ok I will update.
+
+> Though I'm not sure the error message is all that useful. I'd
+> expect the user driver to handle -EBUSY specially.
+
+On EBUSY, client driver has to rework on it. Nothing to be done from
+framework
+
+> 
+> > +
+> > +	if (polarity == PWM_POLARITY_INVERSE)
+> > +		pwm_flags = PWM_POLARITY_INVERSE;
+> > +
+> > +	if (!pwm_flags)
+> > +		clear_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
+> > +	else
+> > +		set_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
+> 
+> You can make this decision based on the value of polarity, no need for
+> the additional variable. Also as I mention below, maybe this flag isn't
+> all that useful.
+
+Ok I will correct it.
+
+> 
+> > +
+> > +	return pwm->chip->ops->set_polarity(pwm->chip, pwm, polarity);
+> > +}
+> > +EXPORT_SYMBOL_GPL(pwm_set_polarity);
+> > +
+> > +/**
+> >   * pwm_enable() - start a PWM output toggling
+> >   * @pwm: PWM device
+> >   */
+> > diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+> > index 21d076c..2e4e960 100644
+> > --- a/include/linux/pwm.h
+> > +++ b/include/linux/pwm.h
+> > @@ -21,6 +21,16 @@ void pwm_free(struct pwm_device *pwm);
+> >   */
+> >  int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns);
+> >  
+> > +enum {
+> > +	PWM_POLARITY_NORMAL,	/* ON period depends on duty_ns */
+> > +	PWM_POLARITY_INVERSE,	/* OFF period depends on duty_ns */
+> > +};
+> 
+> You should name this enumeration so that it can actually be used as a
+> type (enum pwm_polarity). Also you can drop the comments because they
+> only apply to the specific use-case of simulating duty-cycle inversion.
+> 
+> Maybe you can put a comment above the enum, but I think if you name it
+> pwm_polarity, the meaning will be quite obvious.
+
+Ok I will correct it.
+
+> 
+> > +
+> > +/*
+> > + * pwm_set_polarity - set polarity of PWM device
+> > + */
+> > +int pwm_set_polarity(struct pwm_device *pwm, int polarity);
+> > +
+> 
+> The enumeration and this prototype need to move inside the #ifdef
+> CONFIG_PWM block because they are not available in the legacy API.
+> Also as indicated above you should change the type of the polarity
+> parameter to "enum pwm_polarity".
+
+Ok I will update.
+
+> 
+> >  /*
+> >   * pwm_enable - start a PWM output toggling
+> >   */
+> > @@ -37,6 +47,7 @@ struct pwm_chip;
+> >  enum {
+> >  	PWMF_REQUESTED = 1 << 0,
+> >  	PWMF_ENABLED = 1 << 1,
+> > +	PWMF_POLARITY_INVERSE = 1 << 2,
+> 
+> This should be named PWMF_POLARITY_INVERSED for consistency.
+
+Ok I will correct it.
+
+> I'm not sure that we really need this flag, though. It isn't used anywhere. But
+> maybe you have a use-case in mind?
+
+It can be used to find the polarity of the PWM at runtime.
+
+> 
+> >  };
+> >  
+> >  struct pwm_device {
+> > @@ -66,6 +77,7 @@ static inline unsigned int pwm_get_period(struct pwm_device *pwm)
+> >   * @request: optional hook for requesting a PWM
+> >   * @free: optional hook for freeing a PWM
+> >   * @config: configure duty cycles and period length for this PWM
+> > + * @set_polarity: configure polarity of PWM
+> 
+> "configure the polarity of this PWM"
+> 
+> >   * @enable: enable PWM output toggling
+> >   * @disable: disable PWM output toggling
+> >   * @dbg_show: optional routine to show contents in debugfs
+> > @@ -79,6 +91,9 @@ struct pwm_ops {
+> >  	int			(*config)(struct pwm_chip *chip,
+> >  					  struct pwm_device *pwm,
+> >  					  int duty_ns, int period_ns);
+> > +	int			(*set_polarity)(struct pwm_chip *chip,
+> > +					  struct pwm_device *pwm,
+> > +					  int polarity);
+> 
+> Make sure these line up properly.
+
+I will align with existing lines.
+
+Thanks
+Avinash
+
+> 
+> Thierry
+> 
