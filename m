@@ -1,55 +1,50 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: [PATCH 12/25] mmc/omap_hsmmc: add a const qualifier
-Date: Mon, 23 Jul 2012 11:13:17 +0200
-Message-ID: <1343034810-3386-13-git-send-email-u.kleine-koenig@pengutronix.de>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: [PATCH 02/25] spi/spi-omap2-mcspi: add a const qualifier
+Date: Mon, 23 Jul 2012 11:13:07 +0200
+Message-ID: <1343034810-3386-3-git-send-email-u.kleine-koenig@pengutronix.de>
 References: <1343034810-3386-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35978 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824Ab2GWJOO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 05:14:14 -0400
-In-Reply-To: <1343034810-3386-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1343034810-3386-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@calxeda.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>
-Cc: kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org
 
-This prepares *of_device_id.data becoming const. Without this change
-the following warning would occur:
-
-	drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_probe':
-	drivers/mmc/host/omap_hsmmc.c:1808: warning: initialization discards q=
-ualifiers from pointer target type
-
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
----
- drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
-c.c
-index 389a3ee..5bcd043 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1805,7 +1805,7 @@ static int __devinit omap_hsmmc_probe(struct plat=
-form_device *pdev)
- 	if (match) {
- 		pdata =3D of_get_hsmmc_pdata(&pdev->dev);
- 		if (match->data) {
--			u16 *offsetp =3D match->data;
-+			const u16 *offsetp =3D match->data;
- 			pdata->reg_offset =3D *offsetp;
- 		}
- 	}
---=20
-1.7.10.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VGhpcyBwcmVwYXJlcyAqb2ZfZGV2aWNlX2lkLmRhdGEgYmVjb21pbmcgY29uc3QuIFdpdGhvdXQg
+dGhpcyBjaGFuZ2UKdGhlIGZvbGxvd2luZyB3YXJuaW5nIHdvdWxkIG9jY3VyOgoKCWRyaXZlcnMv
+c3BpL3NwaS1vbWFwMi1tY3NwaS5jOiBJbiBmdW5jdGlvbiAnb21hcDJfbWNzcGlfcHJvYmUnOgoJ
+ZHJpdmVycy9zcGkvc3BpLW9tYXAyLW1jc3BpLmM6MTExODogd2FybmluZzogYXNzaWdubWVudCBk
+aXNjYXJkcyBxdWFsaWZpZXJzIGZyb20gcG9pbnRlciB0YXJnZXQgdHlwZQoKU2lnbmVkLW9mZi1i
+eTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4KLS0t
+CiBkcml2ZXJzL3NwaS9zcGktb21hcDItbWNzcGkuYyB8ICAgIDIgKy0KIDEgZmlsZSBjaGFuZ2Vk
+LCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3Bp
+L3NwaS1vbWFwMi1tY3NwaS5jIGIvZHJpdmVycy9zcGkvc3BpLW9tYXAyLW1jc3BpLmMKaW5kZXgg
+MGM3M2RkNC4uMzQ1NTc2OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9zcGkvc3BpLW9tYXAyLW1jc3Bp
+LmMKKysrIGIvZHJpdmVycy9zcGkvc3BpLW9tYXAyLW1jc3BpLmMKQEAgLTEwODcsNyArMTA4Nyw3
+IEBAIE1PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIG9tYXBfbWNzcGlfb2ZfbWF0Y2gpOwogc3RhdGlj
+IGludCBfX2RldmluaXQgb21hcDJfbWNzcGlfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
+cGRldikKIHsKIAlzdHJ1Y3Qgc3BpX21hc3RlcgkqbWFzdGVyOwotCXN0cnVjdCBvbWFwMl9tY3Nw
+aV9wbGF0Zm9ybV9jb25maWcgKnBkYXRhOworCWNvbnN0IHN0cnVjdCBvbWFwMl9tY3NwaV9wbGF0
+Zm9ybV9jb25maWcgKnBkYXRhOwogCXN0cnVjdCBvbWFwMl9tY3NwaQkqbWNzcGk7CiAJc3RydWN0
+IHJlc291cmNlCQkqcjsKIAlpbnQJCQlzdGF0dXMgPSAwLCBpOwotLSAKMS43LjEwLjQKCgotLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KTGl2ZSBTZWN1cml0eSBWaXJ0dWFsIENvbmZlcmVuY2UKRXhjbHVz
+aXZlIGxpdmUgZXZlbnQgd2lsbCBjb3ZlciBhbGwgdGhlIHdheXMgdG9kYXkncyBzZWN1cml0eSBh
+bmQgCnRocmVhdCBsYW5kc2NhcGUgaGFzIGNoYW5nZWQgYW5kIGhvdyBJVCBtYW5hZ2VycyBjYW4g
+cmVzcG9uZC4gRGlzY3Vzc2lvbnMgCndpbGwgaW5jbHVkZSBlbmRwb2ludCBzZWN1cml0eSwgbW9i
+aWxlIHNlY3VyaXR5IGFuZCB0aGUgbGF0ZXN0IGluIG1hbHdhcmUgCnRocmVhdHMuIGh0dHA6Ly93
+d3cuYWNjZWxhY29tbS5jb20vamF3L3Nmcm5sMDQyNDIwMTIvMTE0LzUwMTIyMjYzLwpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpzcGktZGV2ZWwtZ2VuZXJh
+bCBtYWlsaW5nIGxpc3QKc3BpLWRldmVsLWdlbmVyYWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Cmh0
+dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZvL3NwaS1kZXZlbC1nZW5l
+cmFsCg==
