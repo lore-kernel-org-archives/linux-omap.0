@@ -1,52 +1,35 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] PWM: Add support for configuring polarity of PWM
-Date: Mon, 23 Jul 2012 22:15:07 +0200
-Message-ID: <500DB0CB.1000600@metafoo.de>
-References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com> <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Mon, 23 Jul 2012 15:29:57 -0600
+Message-ID: <500DC255.40900@wwwdotorg.org>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206271520.49276.arnd@arndb.de> <1342161907.1726.26.camel@vkoul-udesk3> <201207171924.33756.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:36494 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754877Ab2GWVaC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 17:30:02 -0400
+In-Reply-To: <201207171924.33756.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Vinod Koul <vinod.koul@linux.intel.com>, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>
 
-On 07/23/2012 10:30 AM, Thierry Reding wrote:
-> On Wed, Jul 18, 2012 at 06:24:13PM +0530, Philip, Avinash wrote:
->>[...]
->> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
->> index 21d076c..2e4e960 100644
->> --- a/include/linux/pwm.h
->> +++ b/include/linux/pwm.h
->> @@ -21,6 +21,16 @@ void pwm_free(struct pwm_device *pwm);
->>   */
->>  int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns);
->>  
->> +enum {
->> +	PWM_POLARITY_NORMAL,	/* ON period depends on duty_ns */
->> +	PWM_POLARITY_INVERSE,	/* OFF period depends on duty_ns */
->> +};
-> 
-> You should name this enumeration so that it can actually be used as a
-> type (enum pwm_polarity). Also you can drop the comments because they
-> only apply to the specific use-case of simulating duty-cycle inversion
+On 07/17/2012 01:24 PM, Arnd Bergmann wrote:
+...
+> I think we're basically on the same page. Let's see if I have covered
+> all the cases we discussed so far. I've tried to update the binding that
+> Jon sent out initially with everything we've discussed, so please review
+> this to see if I understood you correctly.
+...
+> * DMA client
+...
+> Examples:
+...
+> 3. A device with three channels, one of which has two alternatives:
 
-I think we should make it very explicit what normal polarity and inverse
-polarity is. There are certain applications where it is important. E.g. one
-such application would be using it in the IIO framework to generate a trigger
-pulse to synchronize devices. If we do not specify how each of these modes
-should behave drivers may interpret and implement them differently.
+s/three/four/   s/one of which/both of which/
 
-I'd vote for the following definitions:
-PWM_POLARITY_NORMAL: A high signal for the duration of duty_ns, followed by a
-low signal for the duration of (period_ns - duty_ns).
-PWM_POLARITY_INVERSE: A low signal for the duration duty_ns, followed by a high
-signal for the duration of (period_ns - duty_ns).
-
-Maybe even rename them to PWM_POLARITY_ACTIVE_HIGH and PWM_POLARITY_ACTIVE_LOW
-since it is a bit more explicit on how the waveform should look like. "NORMAL"
-and "INVERSE" sort of depend on what you consider to be normal.
-
-- Lars
+This binding doc seems reasonable to me.
