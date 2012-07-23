@@ -1,79 +1,107 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: bisected regression: arm: omap3: voltage: fix channel
- configuration
-Date: Mon, 23 Jul 2012 17:24:54 +0300
-Message-ID: <1343053494.30247.22.camel@sokoban>
-References: <20120723210635.25e0a0d8@notabene.brown>
-Reply-To: <t-kristo@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Mon, 23 Jul 2012 20:04:52 +0530
+Message-ID: <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
+	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+	<20120723140830.GA8155@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56672 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491Ab2GWOZC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 10:25:02 -0400
-In-Reply-To: <20120723210635.25e0a0d8@notabene.brown>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36646 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752079Ab2GWOey (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jul 2012 10:34:54 -0400
+Received: by vbbff1 with SMTP id ff1so5773065vbb.33
+        for <linux-omap@vger.kernel.org>; Mon, 23 Jul 2012 07:34:53 -0700 (PDT)
+In-Reply-To: <20120723140830.GA8155@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
 
-Hi Neil,
+On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
+>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
+>> <keshava_mgowda@ti.com> wrote:
+>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
+>> > <keshava_mgowda@ti.com> wrote:
+>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
+>> >> the host controller. Basically this TLL operates like USB PHY which allows
+>> >> the user to connect two USB transceiver interfaces together directly
+>> >> without the use of differential transceivers in omap3 and later chips.
+>> >> The TLL configuration is removed from the UHH driver and implemented as
+>> >> a seperate platform driver. Now, the UHH driver configures the TLL
+>> >> through API's exported by the TLL platform driver.
+>> >>
+>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> >>
+>> >> In v4:
+>> >>     - rebased on top of linux kernel version 3.5.rc7
+>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
+>> >>
+>> >> In v3:
+>> >>   - rebased on top V3 of Russ dill's patch
+>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>> >>        while initializing the EHCI controller
+>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
+>> >>
+>> >>   - rebased on top of patch
+>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
+>> >>
+>> >> In V2:
+>> >>     - covered review comments from linux omap and usb community
+>> >>     - rebased on top Russ dill's patch
+>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>> >>        while initializing the EHCI controller
+>> >>
+>> >> Keshava Munegowda (5):
+>> >>   ARM: OMAP: Add the USB TLL clocks device name
+>> >>   ARM: OMAP: USB: HOST TLL platform driver
+>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
+>> >>
+>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
+>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
+>> >>  drivers/mfd/Kconfig                   |    2 +-
+>> >>  drivers/mfd/Makefile                  |    2 +-
+>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
+>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
+>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
+>> >>
+>> >> --
+>> >> 1.7.9.5
+>> >
+>> >
+>> > Felipe/ Paul
+>> >       please let me know if you have any review comments on this v4 series.
+>> >
+>> > regards
+>> > keshava
+>>
+>> Hi Felipe
+>>           please let me know if you have any review comments on this series now.
+>
+> looks ok... pretty much just moving code around.
+>
+> --
+> balbi
 
-On Mon, 2012-07-23 at 21:06 +1000, NeilBrown wrote:
-> My GTA04 (mobile phone using OMAP3 and TWL4030 PMIC) has difficulty rebooting
-> with 3.5.
-> The first boot (after power on) works fine.  But when I reboot it hangs just
-> before
-> 
->   Switched to new clocking rate (Crystal/Core/MPU): 26.0/332/800 MHz
-> 
-> is printed.  If I remove "mpurate=800" from the kernel command line the
-> problem goes away.
-> 
-> If I boot into 3.5, which works, and then reboot into an older working kernel
-> it freezes too.  So the 3.5 kernel leaves the device in a state which causes
-> any kernel to hang.
 
-TWL chip retains its settings over warm boot which most likely explains
-this.
+Thanks Felipe
 
-> 
-> I spent a while bisecting and narrowed it down to 
-> 
-> commit f9d29f1617eb1b2f1fd41622bd1a0fc51658d2f0
-> Author: Tero Kristo <t-kristo@ti.com>
-> Date:   Mon Feb 20 12:26:06 2012 +0200
-> 
->     arm: omap3: voltage: fix channel configuration
-> 
-> 
-> If I revert this patch then the problem goes away.  So that is the fix I'll
-> go with for now, but if anyone wants me to try something else to help find
-> out what the real problem is and to find a proper fix, I'm happy to help.
+then I request please give your Ack by for this series.
 
-Do you have cpufreq enabled in your build? If yes, then most likely the
-crash occurs because cpufreq scales the used OPP to minimum after boot
-and the warm reset doesn't switch the voltages properly and crashes as
-it attempts to raise CPU frequency.
-
-Also, if cpufreq is enabled, mpurate command line option doesn't really
-do much... it will just switch the frequency to the desired target
-during beginning of boot until cpufreq kicks in and switches the OPP to
-its own understanding of desired cpu rate. I think the handling of
-mpurate command line option should probably be ignored in cpufreq
-builds, or moved within the cpufreq driver.
-
-I tried to craft a quick boot time fix for this problem, but it seems
-the voltage layer is not properly initialized yet when the mpurate
-setting kicks in and it is not very straightforward to scale voltage
-during this time without writing a serious hack.
-
-If you don't have cpufreq enabled, then the vdd routing on your board
-might be interesting (I don't think this is the case as the kernel works
-okay after 1st boot.)
-
--Tero
-
-
+regards
+keshava
