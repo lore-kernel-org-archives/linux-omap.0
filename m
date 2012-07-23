@@ -1,226 +1,258 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] ARM: OMAP4: twl-common: Support for additional devices
- on i2c1 bus
-Date: Mon, 23 Jul 2012 10:47:33 +0200
-Message-ID: <500D0FA5.3020208@ti.com>
-References: <1342168682-15888-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 1/2] PWM: ECAP: PWM driver support for ECAP APWM.
+Date: Mon, 23 Jul 2012 09:10:09 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E971530@DBDE01.ent.ti.com>
+References: <1342172102-30363-1-git-send-email-avinashphilip@ti.com>
+ <1342172102-30363-2-git-send-email-avinashphilip@ti.com>
+ <20120723065235.GA23797@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:42959 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751691Ab2GWIrD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 04:47:03 -0400
-Received: by obbwd20 with SMTP id wd20so9664424obb.9
-        for <linux-omap@vger.kernel.org>; Mon, 23 Jul 2012 01:47:01 -0700 (PDT)
-In-Reply-To: <1342168682-15888-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37286 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751129Ab2GWJLU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 05:11:20 -0400
+In-Reply-To: <20120723065235.GA23797@avionic-0098.mockup.avionic-design.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony,
+On Mon, Jul 23, 2012 at 12:22:35, Thierry Reding wrote:
+> On Fri, Jul 13, 2012 at 03:05:01PM +0530, Philip, Avinash wrote:
+[snip]
+> >  obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
+> > +obj-$(CONFIG_PWM_ECAP)		+= pwm-ecap.o
+> 
+> Both the Kconfig and Makefile should have the entries ordered
+> alphabetically.
 
-On 07/13/2012 10:38 AM, Peter Ujfalusi wrote:
-> On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related dev=
-ices.
-> Manufacturers can opt to use different codec than twl6040 and also ca=
-n add
-> audio related IC to the bus (external amplifier for example on SDP443=
-0).
->=20
-> Make it possible to add differnet set of additional devices to i2c1 b=
-us on
-> OMAP4 boards.
+Ok. I will correct it.
 
-Would it be possible to queue this patch for 3.6?
-
-Thank you,
-
-P=E9ter
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->=20
-> Changes since v1:
-> Generated against l-o/master
->=20
-> Regards,
-> Peter
->=20
->  arch/arm/mach-omap2/board-4430sdp.c    |   12 +++++++++-
->  arch/arm/mach-omap2/board-omap4panda.c |   12 +++++++++-
->  arch/arm/mach-omap2/twl-common.c       |   35 +++++++++-------------=
----------
->  arch/arm/mach-omap2/twl-common.h       |    3 +-
->  4 files changed, 32 insertions(+), 30 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap=
-2/board-4430sdp.c
-> index ad8a7d9..26466f2 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -547,6 +547,14 @@ static struct twl6040_platform_data twl6040_data=
- =3D {
->  	.irq_base	=3D TWL6040_CODEC_IRQ_BASE,
->  };
-> =20
-> +static struct i2c_board_info __initdata sdp4430_i2c_1_boardinfo[] =3D=
- {
-> +	{
-> +		I2C_BOARD_INFO("twl6040", 0x4b),
-> +		.irq =3D OMAP44XX_IRQ_SYS_2N,
-> +		.platform_data =3D &twl6040_data,
-> +	},
-> +};
-> +
->  static struct twl4030_platform_data sdp4430_twldata =3D {
->  	/* Regulators */
->  	.vusim		=3D &sdp4430_vusim,
-> @@ -580,8 +588,8 @@ static int __init omap4_i2c_init(void)
->  			TWL_COMMON_REGULATOR_CLK32KG |
->  			TWL_COMMON_REGULATOR_V1V8 |
->  			TWL_COMMON_REGULATOR_V2V1);
-> -	omap4_pmic_init("twl6030", &sdp4430_twldata,
-> -			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
-> +	omap4_pmic_init("twl6030", &sdp4430_twldata, sdp4430_i2c_1_boardinf=
-o,
-> +			ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
->  	omap_register_i2c_bus(2, 400, NULL, 0);
->  	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
->  				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
-map2/board-omap4panda.c
-> index b627cdc..5becba2 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -266,6 +266,14 @@ static struct twl6040_platform_data twl6040_data=
- =3D {
->  	.irq_base	=3D TWL6040_CODEC_IRQ_BASE,
->  };
-> =20
-> +static struct i2c_board_info __initdata panda_i2c_1_boardinfo[] =3D =
-{
-> +	{
-> +		I2C_BOARD_INFO("twl6040", 0x4b),
-> +		.irq =3D OMAP44XX_IRQ_SYS_2N,
-> +		.platform_data =3D &twl6040_data,
-> +	},
-> +};
-> +
->  /* Panda board uses the common PMIC configuration */
->  static struct twl4030_platform_data omap4_panda_twldata;
-> =20
-> @@ -293,8 +301,8 @@ static int __init omap4_panda_i2c_init(void)
->  			TWL_COMMON_REGULATOR_CLK32KG |
->  			TWL_COMMON_REGULATOR_V1V8 |
->  			TWL_COMMON_REGULATOR_V2V1);
-> -	omap4_pmic_init("twl6030", &omap4_panda_twldata,
-> -			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
-> +	omap4_pmic_init("twl6030", &omap4_panda_twldata, panda_i2c_1_boardi=
-nfo,
-> +			ARRAY_SIZE(panda_i2c_1_boardinfo));
->  	omap_register_i2c_bus(2, 400, NULL, 0);
->  	/*
->  	 * Bus 3 is attached to the DVI port where devices like the pico DL=
-P
-> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/t=
-wl-common.c
-> index 3882f3c..d52be85 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -39,16 +39,6 @@ static struct i2c_board_info __initdata pmic_i2c_b=
-oard_info =3D {
->  	.flags		=3D I2C_CLIENT_WAKE,
->  };
-> =20
-> -static struct i2c_board_info __initdata omap4_i2c1_board_info[] =3D =
-{
-> -	{
-> -		.addr		=3D 0x48,
-> -		.flags		=3D I2C_CLIENT_WAKE,
-> -	},
-> -	{
-> -		I2C_BOARD_INFO("twl6040", 0x4b),
-> -	},
-> -};
-> -
->  #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  static int twl_set_voltage(void *data, int target_uV)
->  {
-> @@ -77,30 +67,25 @@ void __init omap_pmic_init(int bus, u32 clkrate,
-> =20
->  void __init omap4_pmic_init(const char *pmic_type,
->  		    struct twl4030_platform_data *pmic_data,
-> -		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
-> +		    struct i2c_board_info *devices, int nr_devices)
->  {
->  	/* PMIC part*/
->  	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_=
-OFF_WAKEUPENABLE);
-> -	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
-> -		sizeof(omap4_i2c1_board_info[0].type));
-> -	omap4_i2c1_board_info[0].irq =3D OMAP44XX_IRQ_SYS_1N;
-> -	omap4_i2c1_board_info[0].platform_data =3D pmic_data;
-> -
-> -	/* TWL6040 audio IC part */
-> -	omap4_i2c1_board_info[1].irq =3D twl6040_irq;
-> -	omap4_i2c1_board_info[1].platform_data =3D twl6040_data;
-> -
-> -	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
-> +	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
-> =20
-> +	/* Register additional devices on i2c1 bus if needed */
-> +	if (devices)
-> +		i2c_register_board_info(1, devices, nr_devices);
->  }
-> =20
->  void __init omap_pmic_late_init(void)
->  {
->  	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
-> -	if (pmic_i2c_board_info.irq)
-> -		omap3_twl_init();
-> -	if (omap4_i2c1_board_info[0].irq)
-> -		omap4_twl_init();
-> +	if (!pmic_i2c_board_info.irq)
-> +		return;
-> +
-> +	omap3_twl_init();
-> +	omap4_twl_init();
->  }
-> =20
->  #if defined(CONFIG_ARCH_OMAP3)
-> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/t=
-wl-common.h
-> index 8fe71cf..de062c7 100644
-> --- a/arch/arm/mach-omap2/twl-common.h
-> +++ b/arch/arm/mach-omap2/twl-common.h
-> @@ -32,6 +32,7 @@
-> =20
->  struct twl4030_platform_data;
->  struct twl6040_platform_data;
-> +struct i2c_board_info;
-> =20
->  void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int=
- pmic_irq,
->  		    struct twl4030_platform_data *pmic_data);
-> @@ -51,7 +52,7 @@ static inline void omap3_pmic_init(const char *pmic=
-_type,
-> =20
->  void omap4_pmic_init(const char *pmic_type,
->  		    struct twl4030_platform_data *pmic_data,
-> -		    struct twl6040_platform_data *audio_data, int twl6040_irq);
-> +		    struct i2c_board_info *devices, int nr_devices);
-> =20
->  void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
->  			   u32 pdata_flags, u32 regulators_flags);
->=20
+> 
+[snip]
+> > +/* ECAP registers and bits definitions */
+> > +#define TSCTR			0x00
+> > +#define CTRPHS			0x04
+> > +#define CAP1			0x08
+> > +#define CAP2			0x0C
+> > +#define CAP3			0x10
+> > +#define CAP4			0x14
+> > +#define ECCTL1			0x28
+> 
+> These registers are not used. I guess there is some use to list all
+> registers here but on the other hand the majority are unused so they
+> just clutter the driver.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> > +#define ECCTL2_APWM_POL_LOW	BIT(10)
+> 
+> This bit is never used.
+
+> 
+> > +#define ECEINT			0x2C
+> > +#define ECFLG			0x2E
+> > +#define ECCLR			0x30
+> > +#define REVID			0x5c
+> 
+> These are unused as well.
+
+Ok. I will remove it. These are been placed in future enhancement.
+
+> 
+> > +
+> > +#define DRIVER_NAME	"ecap"
+> 
+> You only use this once when defining the struct platform_driver, so
+> maybe you can just drop it.
+
+In the v2 patch, I am planning to use same in
+platform_get_resource_byname(). Here I will use this define to search
+resources.
+
+> 
+> > +
+> > +struct ecap_pwm_chip {
+> > +	struct pwm_chip	chip;
+> > +	unsigned int	clk_rate;
+> > +	void __iomem	*mmio_base;
+> > +	int		pwm_period_ns;
+> > +	int		pwm_duty_ns;
+> > +};
+> 
+> The pwm_period_ns and pwm_duty_ns don't seem to be used at all. Can they
+> be dropped?
+
+Ok. I will remove it. 
+
+> 
+> > +	/*
+> > +	 * Enable 'Free run Time stamp counter mode' to start counter
+> > +	 * and  'APWM mode' to enable APWM output
+> > +	 */
+> > +	reg_val = readw(pc->mmio_base + ECCTL2);
+> > +	reg_val |= ECCTL2_TSCTR_FREERUN | ECCTL2_APWM_MODE;
+> 
+> You already set the APWM_MODE bit in .config(), why is it needed here
+> again? Seeing that .disable() clears the bit as well, perhaps leaving it
+> clear in .config() is the better option.
+
+Clearing APWM mode in .disable() ensures PWM low output (i.e., PWM pin = low 
+in idle state).
+
+The Period & Compare registers are updated from Shadow registers (CAP1 & CAP2)
+During PWM configuration. To enable loading from Shadow registers, APWM mode 
+should be set.
+The same is done in .config().
+
+
+> 
+> > +}
+> > +
+> > +static void ecap_pwm_free(struct pwm_chip *chip, struct pwm_device *pwm)
+> > +{
+> > +	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
+> > +		dev_warn(chip->dev, "Removing PWM device without disabling\n");
+> > +		pm_runtime_put_sync(chip->dev);
+> > +	}
+> > +}
+> 
+> I wonder whether we want to have something like this in the PWM core at
+> some point. Maybe we should call .disable() automatically when they are
+> freed, or alternatively return -EBUSY if a PWM is freed but still
+> enabled. I think I prefer the latter. For now we can leave this in,
+> because I don't want to make any such core changes for 3.6 now that the
+> merge window is open.
+
+OK Thanks.
+
+> 
+> > +
+> > +static struct pwm_ops ecap_pwm_ops = {
+> > +	.free		= ecap_pwm_free,
+> > +	.config		= ecap_pwm_config,
+> > +	.enable		= ecap_pwm_enable,
+> > +	.disable	= ecap_pwm_disable,
+> > +	.owner		= THIS_MODULE,
+> > +};
+> 
+> This should be "static const pwm_ops ...".
+
+Ok I will correct it.
+
+> 
+> > +
+> > +static int __devinit ecap_pwm_probe(struct platform_device *pdev)
+> > +{
+> > +	int ret;
+> > +	struct resource *r;
+> > +	struct clk *clk;
+> > +	struct ecap_pwm_chip *pc;
+> > +
+> > +	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
+> > +	if (!pc) {
+> > +		dev_err(&pdev->dev, "failed to allocate memory\n");
+> > +		return -ENOMEM;
+> > +	}
+> > +
+> > +	clk = devm_clk_get(&pdev->dev, "fck");
+> > +	if (IS_ERR(clk)) {
+> > +		dev_err(&pdev->dev, "failed to get clock\n");
+> > +		return PTR_ERR(clk);
+> > +	}
+> > +
+> > +	pc->clk_rate = clk_get_rate(clk);
+> > +	if (!pc->clk_rate) {
+> > +		dev_err(&pdev->dev, "failed to get clock rate\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	pc->chip.dev = &pdev->dev;
+> > +	pc->chip.ops = &ecap_pwm_ops;
+> > +	pc->chip.base = -1;
+> > +	pc->chip.npwm = 1;
+> 
+> The cover letter mentions that the AM335x has 3 instances of the ECAP.
+> Is there any chance that they can be unified in one driver instance
+> (i.e. .npwm = 3?).
+
+No. All instances have separate resources (clocks, memory ..).
+
+> 
+> > +
+> > +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecap_reg");
+> > +	if (r == NULL) {
+> 
+> You use "if (!ptr)" everywhere else, maybe you should make this
+> consistent?
+Ok
+> Also the platform_get_resource_byname() is really only
+> useful for devices that have several register regions associated with
+> them. I don't know your hardware in detail, but I doubt that a PWM
+> device has more than one register region.
+
+In fact PWM Module has 4 different register space (eCAP, eHRPWM, eQEP & 
+Common Config space). So I need to use platform_get_resource_byname()
+
+> 
+> > +		dev_err(&pdev->dev, "no memory resource defined\n");
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	pc->mmio_base = devm_request_and_ioremap(&pdev->dev, r);
+> > +	if (!pc->mmio_base) {
+> > +		dev_err(&pdev->dev, "failed to ioremap() registers\n");
+> > +		return -EADDRNOTAVAIL;
+> > +	}
+> > +
+> > +	ret = pwmchip_add(&pc->chip);
+> > +	if (ret < 0) {
+> > +		dev_err(&pdev->dev, "pwmchip_add() failed: %d\n", ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	pm_runtime_enable(&pdev->dev);
+> > +	platform_set_drvdata(pdev, pc);
+> > +	dev_info(&pdev->dev, "PWM device initialized\n");
+> 
+> I think this can go away. If none of the above errors is shown you can
+> just assume that the PWM was initialized.
+
+Ok. I will remove.
+
+> 
+> > +	return 0;
+> > +}
+> > +
+> > +static int __devexit ecap_pwm_remove(struct platform_device *pdev)
+> > +{
+> > +	struct ecap_pwm_chip *pc = platform_get_drvdata(pdev);
+> > +	struct pwm_device *pwm;
+> > +
+> > +	if (WARN_ON(!pc))
+> > +		return -ENODEV;
+> 
+> Do you really want to be this verbose? This kind of check is very rare
+> anyway, but explicitly warning about it doesn't seems overkill. I think
+> the check can even be left out, since every possible error that would
+> lead to the driver data not being checked would already cause .probe()
+> to return < 0 and therefore .remove() won't ever be called anyway.
+
+Point taken, I will remove.
+
+> 
+> > +
+> > +	pwm = &pc->chip.pwms[0];
+> 
+> You don't use this variable.
+Ok
+
+Thanks
+Avinash
+
+> 
+> Thierry
+> 
