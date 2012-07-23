@@ -1,46 +1,110 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 12/25] mmc/omap_hsmmc: add a const qualifier
-Date: Mon, 23 Jul 2012 21:11:40 +0530
-Message-ID: <CANfBPZ-5Jqy3CmUg7Oqt58ZQNa1LwwfSO6BAXk7Zxi0gpSKe+w@mail.gmail.com>
-References: <1343034810-3386-1-git-send-email-u.kleine-koenig@pengutronix.de> <1343034810-3386-13-git-send-email-u.kleine-koenig@pengutronix.de>
+From: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Mon, 23 Jul 2012 16:36:46 +0000
+Message-ID: <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com>
+ <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com>
+ <4FE9A00B.6010908@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+ <4FEC7394.9030208@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com>
+ <4FEDF54D.4030609@gmail.com>
+ <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com>
+ <4FEEC7F2.8070507@gmail.com>
+ <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com>
+ <4FF42761.2000701@gmail.com>
+ <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com>
+ <500CEF97.4050207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:43786 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753359Ab2GWPmC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 11:42:02 -0400
-Received: by obbta17 with SMTP id ta17so11906945obb.8
-        for <linux-omap@vger.kernel.org>; Mon, 23 Jul 2012 08:42:00 -0700 (PDT)
-In-Reply-To: <1343034810-3386-13-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:59736 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753788Ab2GWQg6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 12:36:58 -0400
+In-Reply-To: <500CEF97.4050207@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <rob.herring@calxeda.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, kernel@pengutronix.de, linux-arm-kernel@lists.infradead.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-On Mon, Jul 23, 2012 at 2:43 PM, Uwe Kleine-K=F6nig
-<u.kleine-koenig@pengutronix.de> wrote:
-> This prepares *of_device_id.data becoming const. Without this change
-> the following warning would occur:
+> -----Original Message-----
+> From: Daniel Mack [mailto:zonque@gmail.com]
+> Sent: Monday, July 23, 2012 12:01 PM
+> To: N, Mugunthan V
+> Cc: Hiremath, Vaibhav; Paul Walmsley; Nori, Sekhar; Jason Kridner; Tony
+> Lindgren; Hilman, Kevin; Hernandez, Carlos; Maupin, Chase; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Kridner, Jason
+> Subject: Re: Current state of AM33xx patches
+> 
+> On 05.07.2012 19:45, N, Mugunthan V wrote:
+> >> -----Original Message-----
+> >> From: Daniel Mack [mailto:zonque@gmail.com]
+> >> Sent: Wednesday, July 04, 2012 4:52 PM
+> >> To: Hiremath, Vaibhav
+> >> Cc: Paul Walmsley; Nori, Sekhar; Jason Kridner; Tony Lindgren; Hilman,
+> >> Kevin; Hernandez, Carlos; Maupin, Chase; linux-omap@vger.kernel.org;
+> >> linux-arm-kernel@lists.infradead.org; Kridner, Jason; N, Mugunthan V
+> >> Subject: Re: Current state of AM33xx patches
+> >>
+> >> On 04.07.2012 12:50, Hiremath, Vaibhav wrote:
+> >>> On Wed, Jul 04, 2012 at 15:37:31, Paul Walmsley wrote:
+> >>>> On Sat, 30 Jun 2012, Daniel Mack wrote:
+> >>>>
+> >>>>> Ok, thanks for the explaining this. For now, I'll add hwmod stubs
+> for
+> >>>>> the components I need.
+> >>>>
+> >>>> Hmm.  Which drivers are you working on?  Vaibhav Hiremath has hwmod
+> >> data
+> >>>> for the AM33xx.  There might be some missing integration code to
+> build
+> >> the
+> >>>> devices for the newer IP blocks, though.
+> >>>>
+> >>>
+> >>> I would also be interested to know more here.
+> >>>
+> >>>
+> >>>>> Btw, has anyone yet worked on getting the MDIO/EMAC driver merged?
+> >>>>
+> >>>> Mainline has:
+> >>>>
+> >>>> drivers/net/ethernet/ti/davinci_emac.c
+> >>>
+> >>> Not required for AM335X.
+> >>>
+> >>>> drivers/net/ethernet/ti/davinci_mdio.c
+> >>>>
+> >>>> Those might work for you.
+> >>>>
+> >>>
+> >>> Few more files,
+> >>>
+> >>> drivers/net/ethernet/ti/cpsw.c
+> >>> drivers/net/ethernet/ti/davinci_cpdma.c
+> >>>
+> >>>
+> >>> Wanted to highlight one point,
+> >>> You still have to add platform device code to get it working.
+> >>
+> >> Exactly. And a hwmod binding for DT. Do you have patches for that?
+> >>
+> >>
+> >> Daniel
+> >
+> > I am working on DT support for cpsw and will be submitting the patch by
+> > July 20, 2012
+> 
+> Just curious - have you made any progress on that yet?
 >
->         drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_probe'=
-:
->         drivers/mmc/host/omap_hsmmc.c:1808: warning: initialization d=
-iscards qualifiers from pointer target type
->
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+ 
+I have got the runtime PM support accepted to net-next, will be working on 
+and submitting DT support by this week.
 
-Acked-by: Venkatraman S <svenkatr@ti.com>
-
-
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Mugunthan V N
