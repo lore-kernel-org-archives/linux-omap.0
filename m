@@ -1,30 +1,53 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 09/25] i2c/i2c-omap: add a const qualifier
-Date: Mon, 23 Jul 2012 22:57:48 +0530
-Message-ID: <CANQgH-Yx_iA0ANSLGjzgttBAfDFTJFQqYdo2PpJvtGN8=rdTrQ@mail.gmail.com>
-References: <1343034810-3386-1-git-send-email-u.kleine-koenig@pengutronix.de>
-	<1343034810-3386-10-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv7 09/12] ARM: OMAP4: hwmod data: temporarily comment out
+ data for the sl2if IP block
+Date: Mon, 23 Jul 2012 12:38:33 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207231236210.10781@utopia.booyaka.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-10-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1343034810-3386-10-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-510488304-1343068713=:10781"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:36149 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754617Ab2GWSie (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 14:38:34 -0400
+In-Reply-To: <1342704392-23657-10-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-On Mon, Jul 23, 2012 at 2:43 PM, Uwe Kleine-K=F6nig
-<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org> wrote:
-> This prepares *of_device_id.data becoming const. Without this change
-> the following warning would occur:
->
->         drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
->         drivers/i2c/busses/i2c-omap.c:1025: warning: assignment disca=
-rds qualifiers from pointer target type
->
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Reviewed-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-510488304-1343068713=:10781
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi Tero
+
+On Thu, 19 Jul 2012, Tero Kristo wrote:
+
+> The OMAP4 sl2if IP block requires some special programming for it to
+> enter idle. Without this programming, they will prevent the rest of
+> the chip from entering full chip idle.
+>=20
+> This patch comments out the IP block data.
+>=20
+> Later, once the appropriate support is available, this patch can be
+> reverted.
+>=20
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+Originally I was hoping that we could apply a real fix for this one.  But=
+=20
+looking at the proposed alternative in the old SL2IF E-mail threads, I'm=20
+still not convinced by what's proposed there.  So we'd better take this=20
+one for the time being.
+
+Queued for 3.6-rc.
+
+- Paul
+--155748971-510488304-1343068713=:10781--
