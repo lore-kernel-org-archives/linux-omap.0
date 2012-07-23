@@ -1,117 +1,258 @@
 From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH 2/2] PWM: EHRPWM: PWM driver support for EHRPWM.
-Date: Mon, 23 Jul 2012 09:42:21 +0200
-Message-ID: <20120723074221.GB23797@avionic-0098.mockup.avionic-design.de>
-References: <1342172102-30363-1-git-send-email-avinashphilip@ti.com>
- <1342172102-30363-3-git-send-email-avinashphilip@ti.com>
+Subject: Re: [PATCH] PWM: Add support for configuring polarity of PWM
+Date: Mon, 23 Jul 2012 10:30:32 +0200
+Message-ID: <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
+References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y7xTucakfITjPcLV"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57240 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926Ab2GWHm2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 03:42:28 -0400
+	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1342172102-30363-3-git-send-email-avinashphilip@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
+List-Id: linux-omap@vger.kernel.org
 
 
---Y7xTucakfITjPcLV
+--KsGdsel6WgEHnImy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 13, 2012 at 03:05:02PM +0530, Philip, Avinash wrote:
-> Enhanced high resolution PWM module (EHRPWM) hardware can be used to
-> generate PWM output over 2 channels. This commit adds PWM driver support
-> for EHRPWM device present on AM33XX SOC. Current implementation supports
-> simple PWM functionality.
+On Wed, Jul 18, 2012 at 06:24:13PM +0530, Philip, Avinash wrote:
+> Duty cycle inversion of PWM wave should achieved through PWM polarity
+> inversion. Also polarity of PWM wave should configurable from slave
+> drivers,
+
+Actually, I don't think that duty cycle inversion *should* be achieved
+through polarity inversion. But it is true that the same effect *can* be
+achieved by inverting the polarity.
+
+> Configure polarity
+> 1. PWM_POLARITY_NORMAL  -> duty ns defines ON period of PWM wave
+> 2. PWM_POLARITY_INVERSE -> duty ns defines OFF period of PWM wave.
+
+Similarly, this text describes how polarity inversion can be used to
+simular duty cycle inversion.
+
+I think you should describe that this change adds support for
+configuring the PWM polarity. If you absolutely must note that it can be
+used to simulate the duty cycle inversion, then you can give it as an
+example below the actual description.
+
+> This patch adds support for configuring PWM polarity in PWM frame work.
+
+"framework" is one word.
+
 >=20
 > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> Reviewed-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-
-So this driver is very similar to the ECAP one and pretty much all the
-comments apply to this as well. Some additional comments below.
-
 > ---
-> :100644 100644 f20b8f2... ad62d7a... M	drivers/pwm/Kconfig
-> :100644 100644 7dd90ec... 636a1d6... M	drivers/pwm/Makefile
-> :000000 100644 0000000... 985d334... A	drivers/pwm/pwm-ehrpwm.c
->  drivers/pwm/Kconfig      |   10 +
->  drivers/pwm/Makefile     |    1 +
->  drivers/pwm/pwm-ehrpwm.c |  476 ++++++++++++++++++++++++++++++++++++++++=
-++++++
->  3 files changed, 487 insertions(+), 0 deletions(-)
+> Configuring polarity to be done with PWM device disabled, if not
+> failure reported.
 >=20
-> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-> index f20b8f2..ad62d7a 100644
-> --- a/drivers/pwm/Kconfig
-> +++ b/drivers/pwm/Kconfig
-> @@ -95,4 +95,14 @@ config  PWM_ECAP
->  	  To compile this driver as a module, choose M here: the module
->  	  will be called pwm_ecap.
+> If PWM device is enabled while configuring polarity, disabling and
+> re_enabling make it complex. Whoever uses this API has to taken
+> care of the basic rules.
+
+These comments belong in the commit message because they are very useful
+information about the change that you introduce. They probably belong
+somewhere in the code as well.
+
+> Discussions related to this can found at
+> http://www.spinics.net/lists/kernel/msg1372110.html
+
+Here's my proposal for a revised commit message:
+
+	pwm: Add support for configuring the PWM polarity
+
+	Some hardware supports inverting the polarity of the PWM signal. This
+	commit adds support to the PWM framework to allow users of the PWM API
+	to configure the polarity. Note that in order to reduce complexity,
+	changing the polarity of a PWM signal is only allowed while the PWM is
+	disabled.
+
+	A practical example where this can prove useful is to simulate inversion
+	of the duty cycle. While inversion of polarity and duty cycle are not
+	exactly the same, the differences for most use-cases are negligible.
+
+> :100644 100644 ecb7690... 24d5495... M	drivers/pwm/core.c
+> :100644 100644 21d076c... 2e4e960... M	include/linux/pwm.h
+>  drivers/pwm/core.c  |   32 ++++++++++++++++++++++++++++++++
+>  include/linux/pwm.h |   15 +++++++++++++++
+>  2 files changed, 47 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+> index ecb7690..24d5495 100644
+> --- a/drivers/pwm/core.c
+> +++ b/drivers/pwm/core.c
+> @@ -379,6 +379,38 @@ int pwm_config(struct pwm_device *pwm, int duty_ns, =
+int period_ns)
+>  EXPORT_SYMBOL_GPL(pwm_config);
 > =20
-> +config  PWM_EHRPWM
-> +	tristate "EHRPWM PWM support"
-> +	depends on SOC_AM33XX
-> +	help
-> +	  PWM driver support for the EHRPWM controller found on AM33XX
-> +	  TI SOC
-> +
-> +	  To compile this driver as a module, choose M here: the module
-> +	  will be called pwm-ehrpwm.
-> +
+>  /**
+> + * pwm_set_polarity() - change PWM device Polarity
 
-Maybe it would be useful to prefix the names with AM33XX here. ECAP and
-EHRPWM are sort of generic and may have name clashes in the future.
+Maybe: "pwm_set_polarity() - configure the polarity of a PWM signal"
 
-> +#define PWM_CHANNEL		2	/* EHRPWM channels */
+> + * @pwm: PWM device
+> + * @polarity: Configure polarity of PWM
 
-I'd say you can just replace the one occurrence of this with the literal
-2. If you still want to have the symbolic name, then I'd suggest to call
-it something like NUM_PWM_CHANNELS to make its meaning more obvious.
+"new polarity of the PWM signal"
 
-> +static int __devexit ehrpwm_pwm_remove(struct platform_device *pdev)
+> + *
+> + * Polarity to be configured with PWM device disabled.
+
+"Note that the polarity cannot be configured while the PWM device is
+enabled."
+
+> + */
+> +int pwm_set_polarity(struct pwm_device *pwm, int polarity)
+
+The polarity parameter should be an enum pwm_polarity, see below.
+
 > +{
-> +	struct ehrpwm_pwm_chip *pc =3D platform_get_drvdata(pdev);
-> +
-> +	if (WARN_ON(!pc))
-> +		return -ENODEV;
-> +
-> +	pm_runtime_disable(&pdev->dev);
-> +	pwmchip_remove(&pc->chip);
-> +	return 0;
-> +}
+> +	int pwm_flags =3D PWM_POLARITY_NORMAL;
 
-I forgot to mention this for ECAP, but you need to check the return
-value of pwmchip_remove() because there are situations where it can
-actually fail.
+I don't think this is needed.
+
+> +
+> +	if (!pwm || !pwm->chip->ops->set_polarity)
+> +		return -EINVAL;
+
+I'd prefer -ENOSYS if .set_polarity is not implemented, so this check
+should probably be split up:
+
+	if (!pwm || !pwm->chip || !pwm->chip->ops)
+		return -EINVAL;
+
+	if (!pwm->chip->ops->set_polarity)
+		return -ENOSYS;
+
+> +
+> +	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
+> +		dev_err(pwm->chip->dev,
+> +			"Polarity configuration Failed!, PWM device enabled\n");
+> +		return -EBUSY;
+> +	}
+
+Maybe something like: "polarity cannot be configured while PWM device is
+enabled"? Though I'm not sure the error message is all that useful. I'd
+expect the user driver to handle -EBUSY specially.
+
+> +
+> +	if (polarity =3D=3D PWM_POLARITY_INVERSE)
+> +		pwm_flags =3D PWM_POLARITY_INVERSE;
+> +
+> +	if (!pwm_flags)
+> +		clear_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
+> +	else
+> +		set_bit(PWMF_POLARITY_INVERSE, &pwm->flags);
+
+You can make this decision based on the value of polarity, no need for
+the additional variable. Also as I mention below, maybe this flag isn't
+all that useful.
+
+> +
+> +	return pwm->chip->ops->set_polarity(pwm->chip, pwm, polarity);
+> +}
+> +EXPORT_SYMBOL_GPL(pwm_set_polarity);
+> +
+> +/**
+>   * pwm_enable() - start a PWM output toggling
+>   * @pwm: PWM device
+>   */
+> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+> index 21d076c..2e4e960 100644
+> --- a/include/linux/pwm.h
+> +++ b/include/linux/pwm.h
+> @@ -21,6 +21,16 @@ void pwm_free(struct pwm_device *pwm);
+>   */
+>  int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns);
+> =20
+> +enum {
+> +	PWM_POLARITY_NORMAL,	/* ON period depends on duty_ns */
+> +	PWM_POLARITY_INVERSE,	/* OFF period depends on duty_ns */
+> +};
+
+You should name this enumeration so that it can actually be used as a
+type (enum pwm_polarity). Also you can drop the comments because they
+only apply to the specific use-case of simulating duty-cycle inversion.
+
+Maybe you can put a comment above the enum, but I think if you name it
+pwm_polarity, the meaning will be quite obvious.
+
+> +
+> +/*
+> + * pwm_set_polarity - set polarity of PWM device
+> + */
+> +int pwm_set_polarity(struct pwm_device *pwm, int polarity);
+> +
+
+The enumeration and this prototype need to move inside the #ifdef
+CONFIG_PWM block because they are not available in the legacy API.
+Also as indicated above you should change the type of the polarity
+parameter to "enum pwm_polarity".
+
+>  /*
+>   * pwm_enable - start a PWM output toggling
+>   */
+> @@ -37,6 +47,7 @@ struct pwm_chip;
+>  enum {
+>  	PWMF_REQUESTED =3D 1 << 0,
+>  	PWMF_ENABLED =3D 1 << 1,
+> +	PWMF_POLARITY_INVERSE =3D 1 << 2,
+
+This should be named PWMF_POLARITY_INVERSED for consistency. I'm not
+sure that we really need this flag, though. It isn't used anywhere. But
+maybe you have a use-case in mind?
+
+>  };
+> =20
+>  struct pwm_device {
+> @@ -66,6 +77,7 @@ static inline unsigned int pwm_get_period(struct pwm_de=
+vice *pwm)
+>   * @request: optional hook for requesting a PWM
+>   * @free: optional hook for freeing a PWM
+>   * @config: configure duty cycles and period length for this PWM
+> + * @set_polarity: configure polarity of PWM
+
+"configure the polarity of this PWM"
+
+>   * @enable: enable PWM output toggling
+>   * @disable: disable PWM output toggling
+>   * @dbg_show: optional routine to show contents in debugfs
+> @@ -79,6 +91,9 @@ struct pwm_ops {
+>  	int			(*config)(struct pwm_chip *chip,
+>  					  struct pwm_device *pwm,
+>  					  int duty_ns, int period_ns);
+> +	int			(*set_polarity)(struct pwm_chip *chip,
+> +					  struct pwm_device *pwm,
+> +					  int polarity);
+
+Make sure these line up properly.
 
 Thierry
 
---Y7xTucakfITjPcLV
+--KsGdsel6WgEHnImy
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.19 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQDQBdAAoJEN0jrNd/PrOh9G4P/2EhY70Wv+M4oZAZyZclDG2G
-rmAXvIzaqxarj8D9XsJG/j+PSLqTZJqgrIRWBTIBQUyZOTQBgdpcjqi7MmSEB7He
-OwEdjj+07P8XM7n8K8TmXSjT418zy62FPJEXXSbKIka1+f/rGz2kpRWsCS73ogJa
-WOFVO+TdJ28W/ke7U01FF7PdZJwAbp6itSmxMxzQJbr3SL+Sb7F8CnRj1MD3/E9H
-RpYm4olA+NNqGFuxO81gONXx0TsC6wstxNi0MlDKzpuHzlu/yXLttxSSUJqwRGoi
-1s7TkTpAzOBAvOLg+z10OFHkA9tlPUVWJMezd9mlH0ZmQ1rdrgTgdW3PsRNR9TUW
-kqHMIBK+d198kHHeYEb37cky6CXL0CQi+a8H1Q39zQs4wI9/G5XFax+iM7lqxlIc
-nkHTw6D85XpAfSZuWGa5FL3owOB2wXHNYrilmdfQrV8/r5kQL1SHU4ehv92gUAm5
-Qlg6FFX36P0n4OFoW59RXNGc7eNdtXgEab6uA6+5FkKPzsLcSCwXeYUKQAhNoqs+
-foSmBeKr7Txh3qTEsY8favUieyjPlu9fCDVe7Q74uMYioUks8MTp1tY7K9/YSK87
-JoIekvRIVnlKMykwBixt7eSsrXNKstfNQcVKjG9zP11XSWpyKML8Dn6Wes0HUFEf
-OdLj0uE8n9alzrsABA2l
-=Yj/h
+iQIcBAEBAgAGBQJQDQuoAAoJEN0jrNd/PrOh/ZgP/3aFysZaV5ec+itaVSh/3CZz
+M7rr0Kl9oYpbRYCmC4gCZHTO1SuM/HNZwE7M4S2Asoj2N4FFYQvASv7wpyHMN8cO
+nhIXuGzyhi69rjkIOaBQ3AWryZr5tLfwEc9rzUriwWFouKGjkfOXSOnTsN6pjzO2
+44B+GvgjJIutVE0yUhc75DQQ55rd9ivmQtotboQS+ZZ+5muORIhD0WDgDck7X4Dl
+fSjmgFIM9deY346A1XZAHuhmcf7uL5Gd+/OUiBQvX/x8rTQdxjS0dyT0WwiEgwJZ
+kLxJRNIx+msmZzJ9NKf9hqMNqGjzpHD7zw/jMDLKmQWipjI6MsU23f/GabNYOrKB
+9TuNBbsX8lCIt6g5P7gSHgiuLIRlpAgQvIoedWjqyUFuTj5+MbQoyFgt/L6hmY03
+c9shFy4rVhXfUFVtnWfPvOV+66WBLgy+KNr1WIrUCbR0kJ2uAfTcHED4F2ssdHU2
+1GjpojX3AQA0zXvjy/kj3x4oj2akb3YRfwtX9pBZLGP/Y2MhRUeJHfNQ9VH9KmcB
+buC8l/ps5NKxBO+APtzcAthK5yfIECpm8QE1ny7urgApHAD0N8ln3fD29k4AEXaP
+cfEiL6JoMPOfg3IcUxJkM4SjwwfUgHoPqdz6AJPBYcypHUYZ+WO8CMxl8N9lNjNF
+CeaoPcHUYflD+VkPEG1b
+=G9wH
 -----END PGP SIGNATURE-----
 
---Y7xTucakfITjPcLV--
+--KsGdsel6WgEHnImy--
