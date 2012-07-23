@@ -1,107 +1,79 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Mon, 23 Jul 2012 20:04:52 +0530
-Message-ID: <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
-References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
-	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
-	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
-	<20120723140830.GA8155@arwen.pp.htv.fi>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH] PWM: Add support for configuring polarity of PWM
+Date: Mon, 23 Jul 2012 15:05:26 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E971AE3@DBDE01.ent.ti.com>
+References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
+ <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
+ <518397C60809E147AF5323E0420B992E3E97189D@DBDE01.ent.ti.com>
+ <20120723130825.GA21254@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36646 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752079Ab2GWOey (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 10:34:54 -0400
-Received: by vbbff1 with SMTP id ff1so5773065vbb.33
-        for <linux-omap@vger.kernel.org>; Mon, 23 Jul 2012 07:34:53 -0700 (PDT)
-In-Reply-To: <20120723140830.GA8155@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120723130825.GA21254@avionic-0098.mockup.avionic-design.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
 
-On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
->> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
->> <keshava_mgowda@ti.com> wrote:
->> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
->> > <keshava_mgowda@ti.com> wrote:
->> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
->> >> the host controller. Basically this TLL operates like USB PHY which allows
->> >> the user to connect two USB transceiver interfaces together directly
->> >> without the use of differential transceivers in omap3 and later chips.
->> >> The TLL configuration is removed from the UHH driver and implemented as
->> >> a seperate platform driver. Now, the UHH driver configures the TLL
->> >> through API's exported by the TLL platform driver.
->> >>
->> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> >>
->> >> In v4:
->> >>     - rebased on top of linux kernel version 3.5.rc7
->> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
->> >>
->> >> In v3:
->> >>   - rebased on top V3 of Russ dill's patch
->> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->> >>        fixes an issue where the ULPI PHYs were not held in reset
->> >>        while initializing the EHCI controller
->> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
->> >>
->> >>   - rebased on top of patch
->> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
->> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
->> >>
->> >> In V2:
->> >>     - covered review comments from linux omap and usb community
->> >>     - rebased on top Russ dill's patch
->> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->> >>        fixes an issue where the ULPI PHYs were not held in reset
->> >>        while initializing the EHCI controller
->> >>
->> >> Keshava Munegowda (5):
->> >>   ARM: OMAP: Add the USB TLL clocks device name
->> >>   ARM: OMAP: USB: HOST TLL platform driver
->> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
->> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
->> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
->> >>
->> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
->> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
->> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
->> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
->> >>  drivers/mfd/Kconfig                   |    2 +-
->> >>  drivers/mfd/Makefile                  |    2 +-
->> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
->> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
->> >>  8 files changed, 523 insertions(+), 240 deletions(-)
->> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
->> >>
->> >> --
->> >> 1.7.9.5
->> >
->> >
->> > Felipe/ Paul
->> >       please let me know if you have any review comments on this v4 series.
->> >
->> > regards
->> > keshava
->>
->> Hi Felipe
->>           please let me know if you have any review comments on this series now.
->
-> looks ok... pretty much just moving code around.
->
-> --
-> balbi
+On Mon, Jul 23, 2012 at 18:38:25, Thierry Reding wrote:
+> On Mon, Jul 23, 2012 at 12:51:11PM +0000, Philip, Avinash wrote:
+> > On Mon, Jul 23, 2012 at 14:00:32, Thierry Reding wrote:
+> > > On Wed, Jul 18, 2012 at 06:24:13PM +0530, Philip, Avinash wrote:
+> [...]
+> > > > +
+> > > > +	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
+> > > > +		dev_err(pwm->chip->dev,
+> > > > +			"Polarity configuration Failed!, PWM device enabled\n");
+> > > > +		return -EBUSY;
+> > > > +	}
+> > > 
+> > > Maybe something like: "polarity cannot be configured while PWM device is
+> > > enabled"?
+> > 
+> > Ok I will update.
+> > 
+> > > Though I'm not sure the error message is all that useful. I'd
+> > > expect the user driver to handle -EBUSY specially.
+> > 
+> > On EBUSY, client driver has to rework on it. Nothing to be done from
+> > framework
+> 
+> Exactly, so I think that if an error is displayed because the PWM has
+> been enabled, then that client (== user) driver should output an error
+> message, not the framework. Also, it really shouldn't happen because it
+> clearly is a driver problem that needs to be fixed.
+
+Ok. I will remove.
+
+> 
+> > > >  /*
+> > > >   * pwm_enable - start a PWM output toggling
+> > > >   */
+> > > > @@ -37,6 +47,7 @@ struct pwm_chip;
+> > > >  enum {
+> > > >  	PWMF_REQUESTED = 1 << 0,
+> > > >  	PWMF_ENABLED = 1 << 1,
+> > > > +	PWMF_POLARITY_INVERSE = 1 << 2,
+> > > 
+> > > This should be named PWMF_POLARITY_INVERSED for consistency.
+> > 
+> > Ok I will correct it.
+> > 
+> > > I'm not sure that we really need this flag, though. It isn't used anywhere. But
+> > > maybe you have a use-case in mind?
+> > 
+> > It can be used to find the polarity of the PWM at runtime.
+> 
+> Yes, but is there any use-case where this information would be required?
+
+It's been added as a feature enhancement. May be it can ignore?
 
 
-Thanks Felipe
+Thanks
+Avinash
 
-then I request please give your Ack by for this series.
-
-regards
-keshava
+> 
+> Thierry
+> 
