@@ -1,96 +1,110 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] PWM: Add support for configuring polarity of PWM
-Date: Mon, 23 Jul 2012 15:08:25 +0200
-Message-ID: <20120723130825.GA21254@avionic-0098.mockup.avionic-design.de>
-References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
- <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E97189D@DBDE01.ent.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing
+ pen-down GPIO
+Date: Mon, 23 Jul 2012 16:18:34 +0300
+Message-ID: <500D4F2A.9090706@compulab.co.il>
+References: <1342048700-15040-1-git-send-email-khilman@ti.com> <500D494D.8020606@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E97189D@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:49199 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753077Ab2GWNSl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jul 2012 09:18:41 -0400
+In-Reply-To: <500D494D.8020606@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>
 
+Hi Kevin,
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've just noticed that the patch has been modified by Arnd in a way
+that of course will trigger GPIO use without being requested.
+I'm sorry, I was not available by that time Arnd changed the patch.
 
-On Mon, Jul 23, 2012 at 12:51:11PM +0000, Philip, Avinash wrote:
-> On Mon, Jul 23, 2012 at 14:00:32, Thierry Reding wrote:
-> > On Wed, Jul 18, 2012 at 06:24:13PM +0530, Philip, Avinash wrote:
-[...]
-> > > +
-> > > +	if (test_bit(PWMF_ENABLED, &pwm->flags)) {
-> > > +		dev_err(pwm->chip->dev,
-> > > +			"Polarity configuration Failed!, PWM device enabled\n");
-> > > +		return -EBUSY;
-> > > +	}
-> >=20
-> > Maybe something like: "polarity cannot be configured while PWM device is
-> > enabled"?
->=20
-> Ok I will update.
->=20
-> > Though I'm not sure the error message is all that useful. I'd
-> > expect the user driver to handle -EBUSY specially.
->=20
-> On EBUSY, client driver has to rework on it. Nothing to be done from
-> framework
+So that is not my original patch that is triggering the issue,
+but it does not meter already...
+And currently, I think that the proper solution would be
+to remove the gpio_free() call as your patch does, but.......
 
-Exactly, so I think that if an error is displayed because the PWM has
-been enabled, then that client (=3D=3D user) driver should output an error
-message, not the framework. Also, it really shouldn't happen because it
-clearly is a driver problem that needs to be fixed.
+Tony, please pay attention to which branch it gets applied....
+It should only apply to the branches that have the patch modified
+by Arnd and not to those with unmodified patch
+(e.g. fixes-non-critical should not receive the patch).
 
-> > >  /*
-> > >   * pwm_enable - start a PWM output toggling
-> > >   */
-> > > @@ -37,6 +47,7 @@ struct pwm_chip;
-> > >  enum {
-> > >  	PWMF_REQUESTED =3D 1 << 0,
-> > >  	PWMF_ENABLED =3D 1 << 1,
-> > > +	PWMF_POLARITY_INVERSE =3D 1 << 2,
-> >=20
-> > This should be named PWMF_POLARITY_INVERSED for consistency.
->=20
-> Ok I will correct it.
->=20
-> > I'm not sure that we really need this flag, though. It isn't used anywh=
-ere. But
-> > maybe you have a use-case in mind?
->=20
-> It can be used to find the polarity of the PWM at runtime.
+Kevin, thanks for the patch.
 
-Yes, but is there any use-case where this information would be required?
+On 07/23/12 15:53, Igor Grinberg wrote:
+> On 07/12/12 02:18, Kevin Hilman wrote:
+>> commit 97ee9f01d6 (ARM: OMAP: fix the ads7846 init code) mistakenly
+>> frees the pen-down GPIO even though it will be used by the ads7846
+>> driver.
+> 
+> But the driver requests the GPIO in ads7846_setup_pendown() method...
+> 
+>>
+>> Freeing a GPIO means that the GPIO bank containing that GPIO can be
+>> runtime suspended if its the last/only GPIO being used in that bank.
+>> If the GPIO bank is runtime suspended, any accesses to that bank will
+>> cause faults.
+> 
+> Unless, it is requested again, or am I missing something?
+> 
+>>
+>> Because the current code frees the GPIO, the ads7846 driver probe will
+>> fault when it requests its IRQ line.
+> 
+> But it requests that GPIO... in ads7846_setup_pendown()
+> prior to requesting the IRQ...
+> 
+>> Because the IRQ is a GPIO line,
+>> the request IRQ will trickle down into the OMAP GPIO layer:
+>> gpio_irq_type() --> _set_gpio_triggering() which can fault if the
+>> bank has been runtime suspended.
+>>
+>> This is exctly what happens on Overo platforms (3530 Water, 3730 Overo
+>> FireSTORM) since this is the only GPIO used in the bank.
+>>
+>> To fix, don't free the GPIO at all since it is always in use.
+>>
+>> Cc: Igor Grinberg <grinberg@compulab.co.il>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-Thierry
+Acked-by: Igor Grinberg <grinberg@compulab.co.il>
 
---3MwIy2ne0vdjdPXF
-Content-Type: application/pgp-signature
+>> ---
+>> Tony, this applies on top of your current fixes-non-critical branch and
+>> should probably go in to v3.5-rc since the patch which introduced the
+>> problem did as well.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+No, this patch is not good for fixes-non-critical,
+as fixes-non-critical has unmodified version and
+will result in double requesting.
+It should be applied to master or derivatives that
+have the modified patch version.
 
-iQIcBAEBAgAGBQJQDUzJAAoJEN0jrNd/PrOhlMUP/RRHqEdxWyFUNGT8MT4eVhx+
-k3Y+E6v75hHUuPDp8KGDAktIRmuk6vzu4BB3QT1zvCIbdWLxKS701M4zn+yUeYWM
-MsCaByd9mcvO+RMGEDfsvjPUtg01BEjLS/zTPhSNQAzYjA7yhmoLCZt177X9xi7a
-ad3M2Gr0CW47qLhr3R/DzG6gM1NB3JoByjiKsgM9ZddbpFeYwKsq3UrjUj3z0XQw
-X0Y7+mHj9yIHIGbTKn3KXp/gjB2B77272cjJ0tR+5U5A1ZQcNL2edDKOgXGT7Ies
-pViXdrML0O++Bjeqjk+0zp+Dh62y0DuDb+Iyu+FVIUwXY/YYX+KWs1ayohSZ3sHv
-pTY7XrisycBWEpt7WsyVgvRcO3YU9htJOR29km6Wv89rLHcfeNk0+2QwlnqWtdaT
-UpANvzAXKnMeV4UWqY0z629DCxThkQXNsMKNx54JQ7r2bfuJc8belsvzbU2e00Rh
-pmp1lHvUh2HZmLEMEz4cFgEdc9AKyn4z1Y4KhKPoNrhiBrXzw7b9aTUaa5WMQF85
-yYXPG8VxZsKFJJn+7LXjoqiuAC2ExUYREOjPK0KXGP4HEAQu3Uhsyf41r23FgvHT
-GnHwrAVlKLOFy/Uk7NmGgCGeXYezHVHv6IZQd41EznUQqmi2Y9Sz7atmC9SdDTTo
-yOViLeGuZI4JS9Z3GN3X
-=E2wi
------END PGP SIGNATURE-----
+>>
+>>  arch/arm/mach-omap2/common-board-devices.c |    3 ---
+>>  1 file changed, 3 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+>> index c187586..1ae6fd6 100644
+>> --- a/arch/arm/mach-omap2/common-board-devices.c
+>> +++ b/arch/arm/mach-omap2/common-board-devices.c
+>> @@ -84,9 +84,6 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+>>  		ads7846_config.gpio_pendown = gpio_pendown;
+>>  	}
+>>  
+>> -	if (!board_pdata || (board_pdata && !board_pdata->get_pendown_state))
+>> -		gpio_free(gpio_pendown);
+>> -
+>>  	spi_register_board_info(&ads7846_spi_board_info, 1);
+>>  }
+>>  #else
+> 
 
---3MwIy2ne0vdjdPXF--
+-- 
+Regards,
+Igor.
