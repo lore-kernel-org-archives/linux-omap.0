@@ -1,61 +1,117 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC 1/4] ARM: OMAP3: cpuidle: Remove unused MPU OSWR support
- code
-Date: Mon, 23 Jul 2012 12:40:02 +0530
-Message-ID: <500CF8CA.10809@ti.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com> <1342764284-8143-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1207201222250.14390@utopia.booyaka.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH 2/2] PWM: EHRPWM: PWM driver support for EHRPWM.
+Date: Mon, 23 Jul 2012 09:42:21 +0200
+Message-ID: <20120723074221.GB23797@avionic-0098.mockup.avionic-design.de>
+References: <1342172102-30363-1-git-send-email-avinashphilip@ti.com>
+ <1342172102-30363-3-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y7xTucakfITjPcLV"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:55065 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753156Ab2GWHKI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 03:10:08 -0400
-Received: by obbwd20 with SMTP id wd20so12455250obb.37
-        for <linux-omap@vger.kernel.org>; Mon, 23 Jul 2012 00:10:07 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1207201222250.14390@utopia.booyaka.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:57240 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926Ab2GWHm2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jul 2012 03:42:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1342172102-30363-3-git-send-email-avinashphilip@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, t-kristo@ti.com
+To: "Philip, Avinash" <avinashphilip@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Paul,
 
-On Friday 20 July 2012 11:55 PM, Paul Walmsley wrote:
-> On Fri, 20 Jul 2012, Rajendra Nayak wrote:
->
->> We do not support MPU OSWR on OMAP3. Get rid of the complex/multiple
->> save_state handling in omap_sram_idle() and just use 2 save_state
->> definitions
->>
->> save_state = 1, all logic and memory lost, MPU hits OFF
->> save_state = 0, nothing lost, MPU hits CSWR or shallower state
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->
-> The code is certainly simpler, but I recall seeing patchsets in the past
-> that implemented OSWR on OMAP3.  (Not sure which powerdomains it was
-> implemented for.)  Do you know what the status of those patchsets are?
+--Y7xTucakfITjPcLV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-OMAP3 supports OSWR for MPU/IVA/CORE and PER powerdomains. Though we did
-have some OSWR implementations in our internal trees, we never ended up
-using them effectively, mainly because the latencies for OSWR as
-compared to OFF were very close on OMAP3 and the power savings from OFF
-(given we could hit 0v) significantly higher.
+On Fri, Jul 13, 2012 at 03:05:02PM +0530, Philip, Avinash wrote:
+> Enhanced high resolution PWM module (EHRPWM) hardware can be used to
+> generate PWM output over 2 channels. This commit adds PWM driver support
+> for EHRPWM device present on AM33XX SOC. Current implementation supports
+> simple PWM functionality.
+>=20
+> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> Reviewed-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-OSWR on OMAP4 was hence reworked to keep much more retained in OSWR and
-make it, in latency terms, something _in_between_ a CSWR and OFF.
+So this driver is very similar to the ECAP one and pretty much all the
+comments apply to this as well. Some additional comments below.
 
-Someone at some point (I don't recall and it could have even been me)
-would have tried to upstream the OSWR support from our internal trees,
-but as of now I don't know if anyone is trying to push or interested in
-OSWR support for OMAP3 anymore.
+> ---
+> :100644 100644 f20b8f2... ad62d7a... M	drivers/pwm/Kconfig
+> :100644 100644 7dd90ec... 636a1d6... M	drivers/pwm/Makefile
+> :000000 100644 0000000... 985d334... A	drivers/pwm/pwm-ehrpwm.c
+>  drivers/pwm/Kconfig      |   10 +
+>  drivers/pwm/Makefile     |    1 +
+>  drivers/pwm/pwm-ehrpwm.c |  476 ++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  3 files changed, 487 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+> index f20b8f2..ad62d7a 100644
+> --- a/drivers/pwm/Kconfig
+> +++ b/drivers/pwm/Kconfig
+> @@ -95,4 +95,14 @@ config  PWM_ECAP
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called pwm_ecap.
+> =20
+> +config  PWM_EHRPWM
+> +	tristate "EHRPWM PWM support"
+> +	depends on SOC_AM33XX
+> +	help
+> +	  PWM driver support for the EHRPWM controller found on AM33XX
+> +	  TI SOC
+> +
+> +	  To compile this driver as a module, choose M here: the module
+> +	  will be called pwm-ehrpwm.
+> +
 
-regards,
-Rajendra
+Maybe it would be useful to prefix the names with AM33XX here. ECAP and
+EHRPWM are sort of generic and may have name clashes in the future.
 
->
-> - Paul
+> +#define PWM_CHANNEL		2	/* EHRPWM channels */
 
+I'd say you can just replace the one occurrence of this with the literal
+2. If you still want to have the symbolic name, then I'd suggest to call
+it something like NUM_PWM_CHANNELS to make its meaning more obvious.
+
+> +static int __devexit ehrpwm_pwm_remove(struct platform_device *pdev)
+> +{
+> +	struct ehrpwm_pwm_chip *pc =3D platform_get_drvdata(pdev);
+> +
+> +	if (WARN_ON(!pc))
+> +		return -ENODEV;
+> +
+> +	pm_runtime_disable(&pdev->dev);
+> +	pwmchip_remove(&pc->chip);
+> +	return 0;
+> +}
+
+I forgot to mention this for ECAP, but you need to check the return
+value of pwmchip_remove() because there are situations where it can
+actually fail.
+
+Thierry
+
+--Y7xTucakfITjPcLV
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQDQBdAAoJEN0jrNd/PrOh9G4P/2EhY70Wv+M4oZAZyZclDG2G
+rmAXvIzaqxarj8D9XsJG/j+PSLqTZJqgrIRWBTIBQUyZOTQBgdpcjqi7MmSEB7He
+OwEdjj+07P8XM7n8K8TmXSjT418zy62FPJEXXSbKIka1+f/rGz2kpRWsCS73ogJa
+WOFVO+TdJ28W/ke7U01FF7PdZJwAbp6itSmxMxzQJbr3SL+Sb7F8CnRj1MD3/E9H
+RpYm4olA+NNqGFuxO81gONXx0TsC6wstxNi0MlDKzpuHzlu/yXLttxSSUJqwRGoi
+1s7TkTpAzOBAvOLg+z10OFHkA9tlPUVWJMezd9mlH0ZmQ1rdrgTgdW3PsRNR9TUW
+kqHMIBK+d198kHHeYEb37cky6CXL0CQi+a8H1Q39zQs4wI9/G5XFax+iM7lqxlIc
+nkHTw6D85XpAfSZuWGa5FL3owOB2wXHNYrilmdfQrV8/r5kQL1SHU4ehv92gUAm5
+Qlg6FFX36P0n4OFoW59RXNGc7eNdtXgEab6uA6+5FkKPzsLcSCwXeYUKQAhNoqs+
+foSmBeKr7Txh3qTEsY8favUieyjPlu9fCDVe7Q74uMYioUks8MTp1tY7K9/YSK87
+JoIekvRIVnlKMykwBixt7eSsrXNKstfNQcVKjG9zP11XSWpyKML8Dn6Wes0HUFEf
+OdLj0uE8n9alzrsABA2l
+=Yj/h
+-----END PGP SIGNATURE-----
+
+--Y7xTucakfITjPcLV--
