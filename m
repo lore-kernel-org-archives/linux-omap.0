@@ -1,53 +1,45 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH RESEND 1/4] ARM: OMAP2+: AM33XX: Add tps65910 device tree
- data
-Date: Mon, 23 Jul 2012 14:48:20 +0100
-Message-ID: <500D5624.4010505@linaro.org>
-References: <1342766789-28148-1-git-send-email-anilkumar@ti.com>
- <1342766789-28148-2-git-send-email-anilkumar@ti.com>
- <20120720095935.GQ4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9FA91E@DBDE01.ent.ti.com>
- <20120720113806.GW4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA01F1E@DBDE01.ent.ti.com>
- <20120723133400.GU4435@opensource.wolfsonmicro.com>
+From: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Subject: omap: omap_mux_init_gpio() for gpio_0
+Date: Mon, 23 Jul 2012 16:00:22 +0200
+Message-ID: <500D58F6.40807@visionsystems.de>
+Reply-To: yegor_sub1@visionsystems.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120723133400.GU4435@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "AnilKumar, Chimata" <anilkumar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns.vscom.de ([62.145.30.242]:48552 "EHLO mail.visionsystems.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751325Ab2GWOAh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jul 2012 10:00:37 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>
 
-T24gMjMvMDcvMTIgMTQ6MzQsIE1hcmsgQnJvd24gd3JvdGU6Cj4gT24gTW9uLCBKdWwgMjMsIDIw
-MTIgYXQgMDE6MjM6NTBQTSArMDAwMCwgQW5pbEt1bWFyLCBDaGltYXRhIHdyb3RlOgo+Cj4+IEJ5
-IHRoZSB3YXksIGlmIHdlIGxvb2sgYXQgYWxsIHRoZSByZWd1bGF0b3IgYWRkZWQgKERUIHN1cHBv
-cnRlZCkgdGlsbCBub3cgaGF2ZQo+PiB0aGUgc2ltaWxhciBwcm9ibGVtLgo+Cj4+IGFyY2gvYXJt
-L2Jvb3QvZHRzL2lteDZxLmR0c2kKPgo+IFRoaXMgaXMgZmluZSAtIHRoZSBTb0MgY29udGFpbnMg
-aW50ZWdyYXRlZCByZWd1bGF0b3JzIHdoaWNoIHN1cHBseSBvdGhlcgo+IGJpdHMgb2YgdGhlIFNv
-YyBzbyB3ZSBjYW4gYmUgY29uZmlkZW50IHRoYXQgdGhlIGhvb2t1cCBpcyBnb29kIGp1c3QKPiBi
-YXNlZCBvbiB0aGUgc2lsaWNvbi4KPgo+PiBhcmNoL2FybS9ib290L2R0cy90d2w0MDMwLmR0c2kK
-Pj4gYXJjaC9hcm0vYm9vdC9kdHMvdHdsNjAzMC5kdHNpCj4KPiBUaGVzZSBhcHBlYXIgdG8gaGF2
-ZSBzaW1pbGFyIGlzc3VlcyBhbmQgc2hvdWxkIGJlIGZpeGVkLCBhdCBsZWFzdCBhcyBmYXIKPiBh
-cyB0aGUgdm9sdGFnZSByYW5nZXMgZ28uCj4KPj4gYXJjaC9hcm0vYm9vdC9kdHMvZGI4NTAwLmR0
-c2kKPgo+IEknbSBub3QgYWN0dWFsbHkgc2VlaW5nIGFueXRoaW5nIHRlcnJpYmx5IHByb2JsZW1h
-dGljIGhlcmUsIHRob3VnaCB0aGUKPiByZWd1bGF0b3ItbmFtZSBwcm9wZXJ0aWVzIHNob3VsZCBy
-ZWFsbHkgYmUgcmVtb3ZlZCBhcyB0aGV5J3JlIGZhaXJseQo+IHVzZWxlc3MgYW5kIHNlZW0gdG8g
-YmUgbWlzc2luZyB0aGUgcG9pbnQgb2YgaGF2aW5nIHRoZSBwcm9wZXJ0eS4KCkkndmUgbWlzc2Vk
-IHRoZSBjb250ZXh0IG9mIHRoZSB0aHJlYWQsIHNvIGNhbid0IGNvbW1lbnQsIGJ1dCBJJ20gaGFw
-cHkgCnRvIHJlbW92ZSB0aGUgcmVndWxhdG9yLW5hbWUgcHJvcGVydGllcyBmcm9tIGRiODUwMC5k
-dHMuIEFkZGluZyB0byBteSBUT0RPLgoKLS0gCkxlZSBKb25lcwpMaW5hcm8gU1QtRXJpY3Nzb24g
-TGFuZGluZyBUZWFtIExlYWQKTGluYXJvLm9yZyDilIIgT3BlbiBzb3VyY2Ugc29mdHdhcmUgZm9y
-IEFSTSBTb0NzCkZvbGxvdyBMaW5hcm86IEZhY2Vib29rIHwgVHdpdHRlciB8IEJsb2cKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJu
-ZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRw
-Oi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+I've i2c gpio expander (pca953x) IRQ attached to pin SYS_NIRQ/GPIO_0 (am3517). How can I declare this pin as GPIO and later as IRQ?
+
+ 	if (!gpio)
+                return -EINVAL;
+
+        list_for_each_entry(e, muxmodes, node) {
+                struct omap_mux *m = &e->mux;
+                if (gpio == m->gpio) {
+                        gpio_mux = m;
+                        found++;
+                }
+        }
+
+        if (found == 0) {
+                pr_err("%s: Could not set gpio%i\n", __func__, gpio);
+                return -ENODEV;
+        }
+
+        if (found > 1) {
+                pr_info("%s: Multiple gpio paths (%d) for gpio%i\n", __func__,
+                        found, gpio);
+                return -EINVAL;
+        }
+
+with this semantic in arch/arm/mach-omap2/mux.c it is not possible and if I comment the first constraint I get "Multiple gpio paths" error, because found == 5.
+
+Yegor
