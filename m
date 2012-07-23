@@ -1,77 +1,68 @@
-From: NeilBrown <neilb@suse.de>
-Subject: bisected regression: arm: omap3: voltage: fix channel configuration
-Date: Mon, 23 Jul 2012 21:06:35 +1000
-Message-ID: <20120723210635.25e0a0d8@notabene.brown>
+From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP: USB : Fix the EHCI enumeration and core retention issue
+Date: Mon, 23 Jul 2012 16:57:41 +0530
+Message-ID: <CAP05o4+EpEtP52Bf96qEiH2r+g6yf6hhaO+BENdPdkwJmqUK9A@mail.gmail.com>
+References: <1340286132-20634-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4KOprVvgJ5aLD2+LLARtspRFkoE0Rob-dtVC7CefO-W2A@mail.gmail.com>
+	<87fw9o32v2.fsf@ti.com>
+	<CAP05o4KxWFjCCP05KzQgo4vWLdvOCeT=DWGXvEEnyWkomH1tXA@mail.gmail.com>
+	<87vcij1loh.fsf@ti.com>
+	<CAP05o4+6LxwdwCUQF_0b6dCQ9JQarNeUBzO=qgdUgnreMtDeMg@mail.gmail.com>
+	<500D0C42.8030508@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/3czxrZ9rdoMNJgCZpAk35Oe"; protocol="application/pgp-signature"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48166 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab2GWLGZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jul 2012 07:06:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <500D0C42.8030508-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
---Sig_/3czxrZ9rdoMNJgCZpAk35Oe
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jul 23, 2012 at 2:03 PM, Roger Quadros <rogerq-l0cyMroinI0@public.gmane.org> wrote:
+> Hi,
+>
+> On 06/22/2012 05:43 PM, Munegowda, Keshava wrote:
+>> On Fri, Jun 22, 2012 at 7:41 PM, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
+>>> "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org> writes:
+>>>
+>>> [...]
+>>>
+>
+>>>
+>>> You are not reading what I write.
+>>>
+>>> To repeat: your patch fixes the oops during boot, and the suspend hang
+>>> and now I see CORE hit retention in *suspend*.
+>>
+>> thanks !
+>>
+>>>
+>>> However,  CORE does still not hit retention during *idle*.
+>>
+>> here is the problem.
+>>
+>> usb host retention in idle is not supported till now.
+>> in current code, usb host cuts clock only in driver suspend not in bus
+>> suspend ( auto suspend).
+>> usb host driver need to use the  io daisy chain framework through io wakeup.
+>> I will post the patches once ehci remote wakeup features stabilized in
+>> omap3, omap4 and omap5 too.
+>>
+>
+> We are talking about CORE retention support during idle. How is IO daisy
+> chaining related to that? Doesn't IO daisy chain only apply when device
+> hits OFF?
 
+when we see the usb bus suspend, then we disable the clocks of usb host to
+enable to enable the retention in cpu idle; since we have disabled the clock of
+usb host , we will not see the device connection at the controller
+level, instead
+the irq chain handler can detect it and corresponding irq can set the clocks.
+this  same use case holds good for device OFF too.
 
-My GTA04 (mobile phone using OMAP3 and TWL4030 PMIC) has difficulty rebooti=
-ng
-with 3.5.
-The first boot (after power on) works fine.  But when I reboot it hangs just
-before
-
-  Switched to new clocking rate (Crystal/Core/MPU): 26.0/332/800 MHz
-
-is printed.  If I remove "mpurate=3D800" from the kernel command line the
-problem goes away.
-
-If I boot into 3.5, which works, and then reboot into an older working kern=
-el
-it freezes too.  So the 3.5 kernel leaves the device in a state which causes
-any kernel to hang.
-
-I spent a while bisecting and narrowed it down to=20
-
-commit f9d29f1617eb1b2f1fd41622bd1a0fc51658d2f0
-Author: Tero Kristo <t-kristo@ti.com>
-Date:   Mon Feb 20 12:26:06 2012 +0200
-
-    arm: omap3: voltage: fix channel configuration
-
-
-If I revert this patch then the problem goes away.  So that is the fix I'll
-go with for now, but if anyone wants me to try something else to help find
-out what the real problem is and to find a proper fix, I'm happy to help.
-
-Thanks,
-NeilBrown
-
---Sig_/3czxrZ9rdoMNJgCZpAk35Oe
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBUA0wOznsnt1WYoG5AQI8FA//czSRSGp7S8DTysZP4fF0xcc3o5vUXmIc
-4H23hKitBLMpkcpx9Gu3EGJOYjAvOvmox3lP4IYtkVHSH4+d0B267rbYDZVnW8f0
-b4H/5NB/IYd7YW5KoYXaDGfxTj8DevXunrCvLJSeINkoO/L2ahCXBNSnw6qCrf3+
-dk9VWXwCDswd9O2YXA6Y+hXZW1/DTOcZSpv8tMB5+/dHXxaOfLiHZx1uddVA5vD/
-8Ij5vsRw4NfFRdi+wATaNWt0/z0NZqqf9qgGpTRrldnXyd5fMXb23pi85xJAsvza
-Pe2JZFMEIbvRWKQCt8g5UnJoO5NSZ5JOWrcLuQxtDt+6r7fbzbBcRDyukEmMoV8G
-j0slBYB7k9Wpj86N6PacAGWoNqaTO/1QSgZv8IvhD6mRF/g6TWF/46xM2Kzn3VOq
-jUwajimpM8ASMs8VqVDTkyF16+dMi7Gu7W6yRDGCeLCs5Ccr11wQzMlAG5zK1Eao
-pjGSWmAt1VuBDoc5l18UrNOux+b7t27VqkcY65wsyTUfqxPLJ5h0FimDbSlb1pmV
-NdKJeHsQuzTXjMPFErtHYRoMUGKYzm9A08PchuZL6DaNCXLfxn3/7OIBxG1LlBfm
-FFh3oWswvYEw7D3c8gBRV2K2l34Z8rZ3gttNynvw4F8GBlL3XFOWpp1gxx/t4X1n
-or+sqNDxmNA=
-=cAi1
------END PGP SIGNATURE-----
-
---Sig_/3czxrZ9rdoMNJgCZpAk35Oe--
+regards
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
