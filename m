@@ -1,167 +1,107 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH 1/2] PWM: ECAP: PWM driver support for ECAP APWM.
-Date: Tue, 24 Jul 2012 10:48:44 +0200
-Message-ID: <20120724084844.GA25395@avionic-0098.mockup.avionic-design.de>
-References: <1342172102-30363-1-git-send-email-avinashphilip@ti.com>
- <1342172102-30363-2-git-send-email-avinashphilip@ti.com>
- <20120723065235.GA23797@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E971530@DBDE01.ent.ti.com>
- <20120723092204.GA8607@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E971887@DBDE01.ent.ti.com>
- <20120723133704.GB21254@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E9727CB@DBDE01.ent.ti.com>
- <20120724080724.GA29810@avionic-0098.mockup.avionic-design.de>
- <518397C60809E147AF5323E0420B992E3E972876@DBDE01.ent.ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: bisected regression: arm: omap3: voltage: fix channel
+ configuration
+Date: Tue, 24 Jul 2012 11:51:16 +0300
+Message-ID: <1343119876.30247.49.camel@sokoban>
+References: <20120723210635.25e0a0d8@notabene.brown>
+	 <1343053494.30247.22.camel@sokoban>
+	 <20120724113057.5f38806e@notabene.brown>
+	 <1343111304.30247.43.camel@sokoban>
+	 <20120724173453.01078466@notabene.brown>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53767 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab2GXIsr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 04:48:47 -0400
-Content-Disposition: inline
-In-Reply-To: <518397C60809E147AF5323E0420B992E3E972876@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42025 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957Ab2GXIvV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 04:51:21 -0400
+In-Reply-To: <20120724173453.01078466@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: NeilBrown <neilb@suse.de>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+
+On Tue, 2012-07-24 at 17:34 +1000, NeilBrown wrote:
+> On Tue, 24 Jul 2012 09:28:24 +0300 Tero Kristo <t-kristo@ti.com> wrote:
+> 
+> > On Tue, 2012-07-24 at 11:30 +1000, NeilBrown wrote:
+> 
+> > > Might there be some way to get it to scale higher than 600MHz?
+> > > The first message from U-boot says:
+> > > 
+> > > OMAP3630/3730-GP ES2.1, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
+> > > 
+> > > and the board manufacturer thinks it should be capable of 800MHz.
+> > 
+> > You need to enable 800MHz OPP similarly to what is done in 
+> > beagle_opp_init() in board-omap3beagle.c. I am not sure what your board
+> > is detected as, depends on your boot loader (check /proc/cpuinfo.)
+> 
+> Thanks!
+> Yes, my board identifies as cpu_is_omap3630() so that code looks relevant.
+> I copied the opp_init across to my board file, it runs without complaining
+> but it now gets to
+> 
+> [ ok ] Loading cpufreq kernel modules...done (none).
+> [....] CPUFreq Utilities: Setting ondemand CPUFreq governor...CPU0...
+> 
+> 
+> and hangs.  magic SYSRQ doesn't respond.
+> 
+> Any hints?
+
+You only enabled opp for 800MHz right? I am just wondering if the
+voltage levels for mpu / core opps are correct for your board... You may
+want to check the opp tables against the information provided by your
+board manufacturer. The trace about cpufreq enabling ondemand governor
+indicates it is switching to frequency throttling mode at that point, so
+it most likely tries to raise MPU frequency to 800MHz (CPU load is
+pretty high during boot.) You can try adding some trace to cpufreq
+driver itself to see what is happening.
+
+Another thing to verify would be to check the voltage rails on your
+board schematics to see how the supply voltages are delivered.
+
+-Tero
+
+> 
+> Thanks,
+> NeilBrown
+> 
+> 
+> #
+> # CPU Power Management
+> #
+> 
+> #
+> # CPU Frequency scaling
+> #
+> CONFIG_CPU_FREQ=y
+> CONFIG_CPU_FREQ_TABLE=y
+> CONFIG_CPU_FREQ_STAT=y
+> CONFIG_CPU_FREQ_STAT_DETAILS=y
+> # CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
+> CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE=y
+> # CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+> # CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
+> # CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
+> CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+> CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+> CONFIG_CPU_FREQ_GOV_USERSPACE=y
+> CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+> CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+> 
+> #
+> # ARM CPU frequency scaling drivers
+> #
+> CONFIG_ARM_OMAP2PLUS_CPUFREQ=y
+> # CONFIG_ARM_EXYNOS4210_CPUFREQ is not set
+> # CONFIG_ARM_EXYNOS4X12_CPUFREQ is not set
+> # CONFIG_ARM_EXYNOS5250_CPUFREQ is not set
+> CONFIG_CPU_IDLE=y
+> CONFIG_CPU_IDLE_GOV_LADDER=y
+> CONFIG_CPU_IDLE_GOV_MENU=y
 
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 24, 2012 at 08:36:08AM +0000, Philip, Avinash wrote:
-> On Tue, Jul 24, 2012 at 13:37:24, Thierry Reding wrote:
-> > On Tue, Jul 24, 2012 at 07:52:06AM +0000, Philip, Avinash wrote:
-> > > On Mon, Jul 23, 2012 at 19:07:04, Thierry Reding wrote:
-> > > > On Mon, Jul 23, 2012 at 12:44:38PM +0000, Philip, Avinash wrote:
-> > > > > On Mon, Jul 23, 2012 at 14:52:04, Thierry Reding wrote:
-> > > > > > On Mon, Jul 23, 2012 at 09:10:09AM +0000, Philip, Avinash wrote:
-> > > > > > > On Mon, Jul 23, 2012 at 12:22:35, Thierry Reding wrote:
-> > > > > > > > On Fri, Jul 13, 2012 at 03:05:01PM +0530, Philip, Avinash w=
-rote:
-> > > > > > > > > +	/*
-> > > > > > > > > +	 * Enable 'Free run Time stamp counter mode' to start c=
-ounter
-> > > > > > > > > +	 * and  'APWM mode' to enable APWM output
-> > > > > > > > > +	 */
-> > > > > > > > > +	reg_val =3D readw(pc->mmio_base + ECCTL2);
-> > > > > > > > > +	reg_val |=3D ECCTL2_TSCTR_FREERUN | ECCTL2_APWM_MODE;
-> > > > > > > >=20
-> > > > > > > > You already set the APWM_MODE bit in .config(), why is it n=
-eeded here
-> > > > > > > > again? Seeing that .disable() clears the bit as well, perha=
-ps leaving it
-> > > > > > > > clear in .config() is the better option.
-> > > > > > >=20
-> > > > > > > Clearing APWM mode in .disable() ensures PWM low output (i.e.=
-, PWM pin =3D low=20
-> > > > > > > in idle state).
-> > > > > > >=20
-> > > > > > > The Period & Compare registers are updated from Shadow regist=
-ers (CAP1 & CAP2)
-> > > > > > > During PWM configuration. To enable loading from Shadow regis=
-ters, APWM mode=20
-> > > > > > > should be set.
-> > > > > > > The same is done in .config().
-> > > > > >=20
-> > > > > > My point was that if you do it in .enable(), then why do you st=
-ill set
-> > > > > > it in .config()? Since the sequence is typically .config() foll=
-owed by
-> > > > > > .enable(), setting the bit in both seems redundant. It should b=
-e enough
-> > > > > > to load the registers during .enable(), right?
-> > > > >=20
-> > > > > Consider scenarios where .enable() can be called without calling =
-=2Econfig().
-> > > > > Example I just need to stop the pwm signal momentarily and re-ena=
-ble.
-> > > > > In this case, .config() need not be called. So, APWM mode bit nee=
-ds to be=20
-> > > > > set in .enable()
-> > > > >=20
-> > > > > Now, considering .config() followed by .enable().
-> > > > > Currently in PWM driver, the CAP1 & CAP2 registers is copied to s=
-hadow=20
-> > > > > Registers (CAP3 & CAP4) by hardwaare in .config(). This requires =
-APWM
-> > > > > mode bit to be set.=20
-> > > > >=20
-> > > > > The same can be done in .enable() also. However, we again need to=
- pass=20
-> > > > > the pwm parameters (period & duty cycle values) to the .enable().=
-=20
-> > > > > We don't want to duplicate this parameter passing.=20
-> > > > > To avoid this we enable the APWM mode bit in both .config() & .en=
-able().
-> > > >=20
-> > > > That's weird. I assumed that the values written to the shadow regis=
-ters
-> > > > would automatically be copied to the active registers on each new P=
-WM
-> > > > period.
-> > >=20
-> > > This is correct in case if PWM is running.
-> > >=20
-> > > > If I understand correctly what you're saying, however, the eCAP
-> > > > requires the APWM bit to be set in order to write the shadow regist=
-ers
-> > > > at all.
-> > >=20
-> > > In APWM mode, writing to CAP1/CAP2 (active registers) will also write=
- the
-> > > same value to the corresponding CAP3/CAP4 (shadow registers). This em=
-ulates
-> > > immediate mode.=20
-> > >=20
-> > > Writing directly to the shadow registers CAP3/CAP4 will invoke the
-> > > shadow mode.
-> > >=20
-> > > If PWM is not running, cycle & duty values written to active register=
-s, not
-> > > to shadow registers. To copy these value to shadow registers APWM mod=
-e to be
-> > > set. This way reloading from shadow registers can be ensured on next =
-PWM
-> > > period/cycle.
-> >=20
-> > I think this is the part I don't understand. If you wrote cycle and duty
-> > values to the active registers already, then the shadow registers should
-> > be ignored by the hardware. There should be no need to reload the active
-> > registers.
->=20
-> ECAP PWM hardware always loads active registers from shadow registers at
-> counter =3D period value (starting of next period). So on every next cycle
-> active registers being updated from shadow registers. So shadow registers
-> acting as a backup.
-
-Okay, in that case I don't see any other option.
-
-Thierry
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQDmFsAAoJEN0jrNd/PrOhXSgP/1wITTATK26RrdAzEPVIF4uC
-OGxLam6FjhUnbMh69y7EmSY245FHhP+aPv3YfO4ZfNMJGmmJ+UsnQ2sf/B9rHINN
-ECC4fZXZG6vNAHleNNW7V1KF6hLt9yctQupggpHV1n5TMuWaXX/n+dRdyKqW8Epe
-YnfiriUQsgQf6aauKrO+qldeyEAUA24OfwSRMpUJ3PDlc3F9R+4bRrJgWj2zLMeA
-TKuVDaSL0Kfd8YY2Uqt+KcaJzJbyXX4aAMWnUokKxV9zWFGuIM2pppRPo9i59ooJ
-neIt7f7gioSNnh1oWW4eg39advX3G9f6C7w0r4YcxgytyHXNAxg+2SxQrK81e0CH
-MmWfvhKJf/Duc6bH+fKjGlPK3DW+VABlP59VvUNHoZdRlGKztPW/TnqfTqy4Z19V
-p+BIWZG4yu3ib5oPHgLqvElyABK8wyZOoMl/r33KTBoUcq+9NcBCIQ8Ce5SOhKyU
-cjlI09UmaIXak1YvZYJjgEJDJwmxfaxtGhnM/onECasYw2xtTh6hDf1jdxLIHleQ
-tPJVcDJE6fuPR4J2YgEKSQioLeDFay9xD4rQEFmsO21h2PJoSr8MCkIl9Id3X1QD
-YPQbV301QzGPXFRhm+WIPlhYsmZzt4JQEzwt5UWITGH+SuAmq3Dk1HFcxwMwm7Xt
-32gVz4ZVm5a5Rd9Sv1sq
-=oUxy
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
