@@ -1,78 +1,52 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 4/5] arm: omap: debug-leds: add a remove method
-Date: Tue, 24 Jul 2012 11:54:01 +0300
-Message-ID: <1343120042-16695-5-git-send-email-balbi@ti.com>
+Subject: [PATCH 3/5] arm: omap: debug-leds: add section annotation to probe
+Date: Tue, 24 Jul 2012 11:54:00 +0300
+Message-ID: <1343120042-16695-4-git-send-email-balbi@ti.com>
 References: <1343120042-16695-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:38898 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751965Ab2GXI5Y (ORCPT
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:48010 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752476Ab2GXI5V (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jul 2012 04:57:24 -0400
-Received: by lagz14 with SMTP id z14so788346lag.35
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jul 2012 01:57:21 -0700 (PDT)
+	Tue, 24 Jul 2012 04:57:21 -0400
+Received: by lbom4 with SMTP id m4so9136923lbo.2
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jul 2012 01:57:19 -0700 (PDT)
 In-Reply-To: <1343120042-16695-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-while at that, also convert to module_platform_driver
+put our probe function on __devinit section, so
+it can be freed on some cases.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/plat-omap/debug-leds.c | 25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ arch/arm/plat-omap/debug-leds.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
-index 392daa8..08fbb85 100644
+index 615d085..392daa8 100644
 --- a/arch/arm/plat-omap/debug-leds.c
 +++ b/arch/arm/plat-omap/debug-leds.c
-@@ -251,6 +251,14 @@ static void __devinit newled_init(struct device *dev)
- 	return;
+@@ -236,7 +236,7 @@ fpga_led_set(struct led_classdev *cdev, enum led_brightness value)
+ 	spin_unlock_irqrestore(&lock, flags);
  }
  
-+static void __devexit newled_exit(void)
-+{
-+	unsigned	i;
-+	struct dbg_led	*led;
-+
-+	for (i = 0, led = dbg_leds; i < ARRAY_SIZE(dbg_leds); i++, led++)
-+		led_classdev_unregister(&led->cdev);
-+}
+-static void __init newled_init(struct device *dev)
++static void __devinit newled_init(struct device *dev)
+ {
+ 	unsigned	i;
+ 	struct dbg_led	*led;
+@@ -254,7 +254,7 @@ static void __init newled_init(struct device *dev)
  
  /*-------------------------------------------------------------------------*/
  
-@@ -279,6 +287,16 @@ static int __devinit fpga_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int __devexit fpga_remove(struct platform_device *pdev)
-+{
-+	if (new_led_api())
-+		newled_exit();
-+
-+	iounmap(fpga);
-+
-+	return 0;
-+}
-+
- static int fpga_suspend_noirq(struct device *dev)
+-static int /* __init */ fpga_probe(struct platform_device *pdev)
++static int __devinit fpga_probe(struct platform_device *pdev)
  {
- 	__raw_writew(~0, &fpga->leds);
-@@ -300,10 +318,7 @@ static struct platform_driver led_driver = {
- 	.driver.name	= "omap_dbg_led",
- 	.driver.pm	= &fpga_dev_pm_ops,
- 	.probe		= fpga_probe,
-+	.remove		= __devexit_p(fpga_remove),
- };
+ 	struct resource	*iomem;
  
--static int __init fpga_init(void)
--{
--	return platform_driver_register(&led_driver);
--}
--module_init(fpga_init);
-+module_platform_driver(led_driver);
 -- 
 1.7.11
 
