@@ -1,115 +1,131 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: bisected regression: arm: omap3: voltage: fix channel
- configuration
-Date: Tue, 24 Jul 2012 17:34:53 +1000
-Message-ID: <20120724173453.01078466@notabene.brown>
-References: <20120723210635.25e0a0d8@notabene.brown>
-	<1343053494.30247.22.camel@sokoban>
-	<20120724113057.5f38806e@notabene.brown>
-	<1343111304.30247.43.camel@sokoban>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH 1/2] PWM: ECAP: PWM driver support for ECAP APWM.
+Date: Tue, 24 Jul 2012 07:52:06 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E9727CB@DBDE01.ent.ti.com>
+References: <1342172102-30363-1-git-send-email-avinashphilip@ti.com>
+ <1342172102-30363-2-git-send-email-avinashphilip@ti.com>
+ <20120723065235.GA23797@avionic-0098.mockup.avionic-design.de>
+ <518397C60809E147AF5323E0420B992E3E971530@DBDE01.ent.ti.com>
+ <20120723092204.GA8607@avionic-0098.mockup.avionic-design.de>
+ <518397C60809E147AF5323E0420B992E3E971887@DBDE01.ent.ti.com>
+ <20120723133704.GB21254@avionic-0098.mockup.avionic-design.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/wz04O7PJmG35mmDipPBAehC"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:45905 "EHLO mx2.suse.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46786 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755084Ab2GXHgt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jul 2012 03:36:49 -0400
-In-Reply-To: <1343111304.30247.43.camel@sokoban>
+	id S1755434Ab2GXHxU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 03:53:20 -0400
+In-Reply-To: <20120723133704.GB21254@avionic-0098.mockup.avionic-design.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---Sig_/wz04O7PJmG35mmDipPBAehC
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jul 23, 2012 at 19:07:04, Thierry Reding wrote:
+> On Mon, Jul 23, 2012 at 12:44:38PM +0000, Philip, Avinash wrote:
+> > On Mon, Jul 23, 2012 at 14:52:04, Thierry Reding wrote:
+> > > On Mon, Jul 23, 2012 at 09:10:09AM +0000, Philip, Avinash wrote:
+> > > > On Mon, Jul 23, 2012 at 12:22:35, Thierry Reding wrote:
+> > > > > On Fri, Jul 13, 2012 at 03:05:01PM +0530, Philip, Avinash wrote:
+> > > > > > +	/*
+> > > > > > +	 * Enable 'Free run Time stamp counter mode' to start counter
+> > > > > > +	 * and  'APWM mode' to enable APWM output
+> > > > > > +	 */
+> > > > > > +	reg_val = readw(pc->mmio_base + ECCTL2);
+> > > > > > +	reg_val |= ECCTL2_TSCTR_FREERUN | ECCTL2_APWM_MODE;
+> > > > > 
+> > > > > You already set the APWM_MODE bit in .config(), why is it needed here
+> > > > > again? Seeing that .disable() clears the bit as well, perhaps leaving it
+> > > > > clear in .config() is the better option.
+> > > > 
+> > > > Clearing APWM mode in .disable() ensures PWM low output (i.e., PWM pin = low 
+> > > > in idle state).
+> > > > 
+> > > > The Period & Compare registers are updated from Shadow registers (CAP1 & CAP2)
+> > > > During PWM configuration. To enable loading from Shadow registers, APWM mode 
+> > > > should be set.
+> > > > The same is done in .config().
+> > > 
+> > > My point was that if you do it in .enable(), then why do you still set
+> > > it in .config()? Since the sequence is typically .config() followed by
+> > > .enable(), setting the bit in both seems redundant. It should be enough
+> > > to load the registers during .enable(), right?
+> > 
+> > Consider scenarios where .enable() can be called without calling .config().
+> > Example I just need to stop the pwm signal momentarily and re-enable.
+> > In this case, .config() need not be called. So, APWM mode bit needs to be 
+> > set in .enable()
+> > 
+> > Now, considering .config() followed by .enable().
+> > Currently in PWM driver, the CAP1 & CAP2 registers is copied to shadow 
+> > Registers (CAP3 & CAP4) by hardwaare in .config(). This requires APWM
+> > mode bit to be set. 
+> > 
+> > The same can be done in .enable() also. However, we again need to pass 
+> > the pwm parameters (period & duty cycle values) to the .enable(). 
+> > We don't want to duplicate this parameter passing. 
+> > To avoid this we enable the APWM mode bit in both .config() & .enable().
+> 
+> That's weird. I assumed that the values written to the shadow registers
+> would automatically be copied to the active registers on each new PWM
+> period.
 
-On Tue, 24 Jul 2012 09:28:24 +0300 Tero Kristo <t-kristo@ti.com> wrote:
+This is correct in case if PWM is running.
 
-> On Tue, 2012-07-24 at 11:30 +1000, NeilBrown wrote:
+> If I understand correctly what you're saying, however, the eCAP
+> requires the APWM bit to be set in order to write the shadow registers
+> at all.
 
-> > Might there be some way to get it to scale higher than 600MHz?
-> > The first message from U-boot says:
-> >=20
-> > OMAP3630/3730-GP ES2.1, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
-> >=20
-> > and the board manufacturer thinks it should be capable of 800MHz.
->=20
-> You need to enable 800MHz OPP similarly to what is done in=20
-> beagle_opp_init() in board-omap3beagle.c. I am not sure what your board
-> is detected as, depends on your boot loader (check /proc/cpuinfo.)
+In APWM mode, writing to CAP1/CAP2 (active registers) will also write the
+same value to the corresponding CAP3/CAP4 (shadow registers). This emulates
+immediate mode. 
 
-Thanks!
-Yes, my board identifies as cpu_is_omap3630() so that code looks relevant.
-I copied the opp_init across to my board file, it runs without complaining
-but it now gets to
+Writing directly to the shadow registers CAP3/CAP4 will invoke the
+shadow mode.
 
-[ ok ] Loading cpufreq kernel modules...done (none).
-[....] CPUFreq Utilities: Setting ondemand CPUFreq governor...CPU0...
+If PWM is not running, cycle & duty values written to active registers, not
+to shadow registers. To copy these value to shadow registers APWM mode to be
+set. This way reloading from shadow registers can be ensured on next PWM
+period/cycle.
 
+If PWM is running, cycle & duty values written to shadow registers. So that
+it won't disturb current PWM period. On the next PWM period, new values will
+be reloaded from shadow registers to active registers.
 
-and hangs.  magic SYSRQ doesn't respond.
+So APWM mode to be set to copy shadow registers from active registers
+(immediate mode).
+ 
+>
+ 
+[snip]
 
-Any hints?
+> > > My point is that if you need to refer to the register region by name,
+> > > then the driver should clearly be using more than a single region.
+> > > Neither the eCAP nor eHRPWM do that.
+> > 
+> > On AM335x SoC, this common config space is shared by the other 3 
+> > modules (eCAP, eHRPWM, eQEP).
+> > However, on Davinci platform don't have any common config space.
+> > 
+> > So from driver reusability view, usage of platform_get_resource_byname() 
+> > is better choice.
+> 
+> I don't quite see how you would be able to reuse the driver in that
+> case. The driver that you posted uses only one memory region, so the
+> platform device that you instantiate for the driver to bind to only
+> gets the one region through the .resource and .num_resources fields.
+> 
+> How is that going to work?
 
-Thanks,
-NeilBrown
+I understand now. I will use platform_get_resource().
 
+Thanks
+Avinash
 
-#
-# CPU Power Management
-#
+> 
+> Thierry
+> 
 
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=3Dy
-CONFIG_CPU_FREQ_TABLE=3Dy
-CONFIG_CPU_FREQ_STAT=3Dy
-CONFIG_CPU_FREQ_STAT_DETAILS=3Dy
-# CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE is not set
-CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE=3Dy
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
-# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=3Dy
-CONFIG_CPU_FREQ_GOV_POWERSAVE=3Dy
-CONFIG_CPU_FREQ_GOV_USERSPACE=3Dy
-CONFIG_CPU_FREQ_GOV_ONDEMAND=3Dy
-CONFIG_CPU_FREQ_GOV_CONSERVATIVE=3Dy
-
-#
-# ARM CPU frequency scaling drivers
-#
-CONFIG_ARM_OMAP2PLUS_CPUFREQ=3Dy
-# CONFIG_ARM_EXYNOS4210_CPUFREQ is not set
-# CONFIG_ARM_EXYNOS4X12_CPUFREQ is not set
-# CONFIG_ARM_EXYNOS5250_CPUFREQ is not set
-CONFIG_CPU_IDLE=3Dy
-CONFIG_CPU_IDLE_GOV_LADDER=3Dy
-CONFIG_CPU_IDLE_GOV_MENU=3Dy
-
---Sig_/wz04O7PJmG35mmDipPBAehC
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIUAwUBUA5QHTnsnt1WYoG5AQI6pQ/4v0rNyb0oDhU9VJpAqIAEinCaiY2Y7sX+
-p7ueFQ/E3x3GmqYzV0R3mpma0ppjumN3qHnscIrx5shPQBnA36JVmWtQzPneBh8C
-1IhrH4MFb7JBsPr5ojuah8meqo8YvXekOPkhMq9pPfC/qBBXJvehNuBQmsq2f+a2
-0spJqVSJYbLh86quXIrwHKMQUDLnuzeaGh3eSsPykmpcz+GrhYfDkA+GNbzGyrbO
-lSEI48ktgqsp9Lt60Dd9SKirVoXTH1qyddXNFKGEsXsLDs7hf/amxkMcqNoyyJxu
-7VlGjHqqGfH5iG3qoXZhWduVEPYTBdSALiaGIp80C7J0MGnmJXq58p0GjfdJ0Oq+
-dGkY6x7QsffCMMVLaPbLeFU+vaMdFYJVxTiWHuAVtnXurdDqovTWmuXETBUrcJwT
-lLjS+uPeZi3EIeTw/zUxztnyFTGltkWAqaJyYRZSvPIo2qreKWGw5ppL6jmB8WwO
-SEla4FvT6uRAzGu9AaxL3ZM9xFiU5y4f+b4342xdhFISqh7YGqeXLYklpTuz7orI
-jsft0zq/e0aSS+Ch1JEhGBdWTuu6M13fefM6/JUqYF17ceIuX0qZs3jtseatkMEE
-BfyvjyMBe9TrTn+8sCl8utMv7thCUYtW/qxOQljr92yedkNzxZJ3R9cKHVL8aAg1
-t/xcK+LXvw==
-=gtjm
------END PGP SIGNATURE-----
-
---Sig_/wz04O7PJmG35mmDipPBAehC--
