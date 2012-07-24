@@ -1,71 +1,65 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v2 00/25] make *struct of_device_id.data const
-Date: Tue, 24 Jul 2012 15:01:47 +0000
-Message-ID: <201207241501.48302.arnd@arndb.de>
-References: <1343034810-3386-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Jan =?ISO-8859-1?Q?L=FCbbe?= <jlu@pengutronix.de>
+Subject: Re: am3517: USB state in 3.5-rc6
+Date: Tue, 24 Jul 2012 17:30:05 +0200
+Message-ID: <1343143805.834.3.camel@coredoba.hi.pengutronix.de>
+References: <500CF852.4020005@visionsystems.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1343034810-3386-1-git-send-email-u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Uwe =?utf-8?q?Kleine-K=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Wim Van Sebroeck <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, arm-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, cbe-oss-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Timur Tabi <timur-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alan Cox <alan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Oliver Hartkopp <socketcan-fJ+pQTUTwRTk1uMJSBkQmQ@public.gmane.org>, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46723 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073Ab2GXPaH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 11:30:07 -0400
+In-Reply-To: <500CF852.4020005@visionsystems.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: yegor_sub1@visionsystems.de
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mark A. Greer" <mgreer@animalcreek.com>, "Porter, Matt" <mporter@ti.com>
 
-T24gTW9uZGF5IDIzIEp1bHkgMjAxMiwgVXdlIEtsZWluZS1Lw7ZuaWcgd3JvdGU6Cj4gdGhpcyBp
-cyB0aGUgMm5kIHZlcnNpb24gb2YgdGhpcyBzZXJpZXMgd2hvc2UgZ29hbCBpcyB0byBtYWtlIHN0
-cnVjdAo+IG9mX2RldmljZV9pZC5kYXRhIGNvbnN0LiBDb25jZXB0dWFsbHkgYSBkcml2ZXIgbXVz
-dCBub3QgbW9kaWZ5IHRoZSBkYXRhCj4gY29udGFpbmVkIHRoZXJlIHNvIG1ha2luZyBpdCBjb25z
-dCBpcyB0aGUgcmlnaHQgdGhpbmcuCj4gCj4gdjEgb2YgdGhpcyBzZXJpZXMgd2FzIHNlbnQgd2l0
-aCBNZXNzYWdlLWlkOgo+IDEzNDIxODI3MzQtMzIxLTEtZ2l0LXNlbmQtZW1haWwteS4gQ2hhbmdl
-cyBzaW5jZSB0aGVuIGFyZToKPiAgLSBwb3dlcnBjIGZpeGVzCj4gIC0gc2V2ZXJhbCBuZXcgY29u
-c3RzIHRoYXQgd2VyZSBmb3VuZCBieSBBcm5kIHRoYXQgYXJlIHBvc3NpYmxlIGFmdGVyCj4gICAg
-cGF0Y2ggMTkuCj4gICAgCj4gQXJuZCBzdWdnZXN0ZWQgdG8gdGFrZSB0aGlzIHNlcmllcyB2aWEg
-YXJtLXNvYyBsYXRlIGZvciAzLjYgaW4gb25lIGdvCj4gYmVjYXVzZSBwYXRjaCAxOSBkZXBlbmRz
-IG9uIHRoZSBmb3JtZXIgcGF0Y2hlcyBidXQgaXMgYSBwcmVjb25kaXRpb24gdG8KPiB0aGUgbGF0
-dGVyIGFuZCBpdCBmaXhlcyBhIGZldyB3YXJuaW5ncy4gU28gZ2V0dGluZyBpdCBpbiB2aWEgdGhl
-Cj4gcmVzcGVjdGl2ZSBtYWludGFpbmVyIHRyZWVzIHdvdWxkIG5lZWQgYSBtdWNoIGJpZ2dlciBj
-b29yZGluYXRpb24KPiBlZmZvcnQuIFRoYXQgbWVhbnMgSSBwcmVmZXIgZ2V0dGluZyBBY2tzIG92
-ZXIgeW91IHRha2luZyB0aGUgcGF0Y2guCj4gCj4gVmlub2QgS291bCBhbHJlYWR5IHRvb2sKPiAg
-ICAgICAgIGRtYWVuZ2luZTogYXRfaGRtYWM6IGFkZCBhIGZldyBjb25zdCBxdWFsaWZpZXJzCj4g
-dGhhdCBpcyBpbiBuZXh0LTIwMTIwNzIzIGFzIDdmZDYzY2NkYWQ3MiBub3cuIFZpbm9kLCBJIGRv
-bid0IGZvbGxvdyB5b3VyCj4gcHVsbCByZXF1ZXN0cywgYnV0IGFzc3VtaW5nIHlvdSBkaWRuJ3Qg
-bGV0IGl0IGFscmVhZHkgcHVsbCBmb3IgMy42IEkKPiBzdWdnZXN0IHlvdSBkcm9wIGl0IGZyb20g
-eW91ciBxdWV1ZSBhbmQgSSBqdXN0IHRha2UgeW91ciBBY2suCj4gCj4gVGhpcyBzZXJpZXMgd2Fz
-IGJ1aWxkIHRlc3RlZCBmb3IgYXJtIChhbGwgZGVmY29uZmlncykgYW5kIHBvd2VycGMgKGFsbAo+
-IGRlZmNvbmZpZ3MgYW5kIGFuIGFsbHllc2NvbmZpZykgYW5kIGdyZXAgZGlkbid0IGZpbmQgbW9y
-ZSBpc3N1ZXMuIEFzCj4gYmVmb3JlIGl0IGludHJvZHVjZXMgYSB3YXJuaW5nIGluIGRyaXZlcnMv
-cmVndWxhdG9yL3R3bC1yZWd1bGF0b3IuYy4KPiBUaGlzIGRyaXZlciBkb2VzIG1vZGlmeSBpdHMg
-Lm9mX21hdGNoX3RhYmxlIHdoZW4gYSBkZXZpY2UgaXMgYm91bmQgd2hpY2gKPiBkb2Vzbid0IGZp
-dHMgdGhlIGNvbmNlcHQgb2YgaW5kZXBlbmRhbnQgZGV2aWNlcy4gQXJuZCBub3RpY2VkIGFub3Ro
-ZXIKPiBuZXcgd2FybmluZyBpbiBkcml2ZXJzL3Njc2kvcWxvZ2ljcHRpLmMgdGhhdCBpc24ndCB0
-aGF0IGVhc3kgdG8gcmVzb2x2ZSwKPiBiZWNhdXNlIHRoZSBwb2ludGVyIHRvIChub3cpIGNvbnN0
-IGRhdGEgaXMgcGFzc2VkIGFzIGZpcnN0IGFyZ3VtZW50IHRvCj4gc2NzaV9ob3N0X2FsbG9jLiBU
-byBmaXggdGhhdCBwcm9wZXJseSBzdHJ1Y3QgU2NzaV9Ib3N0Lmhvc3R0IG5lZWRzIHRvCj4gZ2V0
-IGEgY29uc3QsIHRvby4gQWx0ZXJuYXRpdmVseSBJIGNvdWxkIGludHJvZHVjZSBhIGNhc3QgcmVt
-b3ZpbmcgdGhlCj4gY29uc3QsIGJ1dCBJIGRvbid0IGxpa2UgdGhhdC4KPiAKPiBUaGlzIHNlcmll
-cyBpcyBhbHNvIGF2YWlsYWJsZSBhdDoKPiAKPiAgICAgICAgIGdpdDovL2dpdC5wZW5ndXRyb25p
-eC5kZS9naXQvdWtsL2xpbnV4LmdpdCBvZmRldmljZWlkZGF0YQo+IAo+IGFuZCBJIHdpbGwgbW9k
-aWZ5IGl0IHRoZXJlIGZvciB0aGUgQWNrcyBJJ20gZ2V0dGluZy4KClB1bGxlZCB0aGUgZW50aXJl
-IHNlcmllcyBpbnRvIGFybS1zb2MvbGF0ZS93YXJuaW5ncy4gVGhhbmtzIGV2ZXJ5b25lCndobyBw
-cm92aWRlZCBBY2tzLiBJJ2xsIHdhaXQgZm9yIGEgZmV3IG1vcmUgZGF5cyB0byBsZXQgdGhpcyBz
-aXQKaW4gbGludXgtbmV4dCBhbmQgaWYgbm9ib2R5IGNvbXBsYWlucywgT2xvZiBvciBJIHdpbGwg
-Zm9yd2FyZCBpdAp0byBMaW51cy4KCglBcm5kCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KTGl2ZSBT
-ZWN1cml0eSBWaXJ0dWFsIENvbmZlcmVuY2UKRXhjbHVzaXZlIGxpdmUgZXZlbnQgd2lsbCBjb3Zl
-ciBhbGwgdGhlIHdheXMgdG9kYXkncyBzZWN1cml0eSBhbmQgCnRocmVhdCBsYW5kc2NhcGUgaGFz
-IGNoYW5nZWQgYW5kIGhvdyBJVCBtYW5hZ2VycyBjYW4gcmVzcG9uZC4gRGlzY3Vzc2lvbnMgCndp
-bGwgaW5jbHVkZSBlbmRwb2ludCBzZWN1cml0eSwgbW9iaWxlIHNlY3VyaXR5IGFuZCB0aGUgbGF0
-ZXN0IGluIG1hbHdhcmUgCnRocmVhdHMuIGh0dHA6Ly93d3cuYWNjZWxhY29tbS5jb20vamF3L3Nm
-cm5sMDQyNDIwMTIvMTE0LzUwMTIyMjYzLwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpzcGktZGV2ZWwtZ2VuZXJhbCBtYWlsaW5nIGxpc3QKc3BpLWRldmVs
-LWdlbmVyYWxAbGlzdHMuc291cmNlZm9yZ2UubmV0Cmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2Uu
-bmV0L2xpc3RzL2xpc3RpbmZvL3NwaS1kZXZlbC1nZW5lcmFsCg==
+Hi,
+
+On Mon, 2012-07-23 at 09:08 +0200, Yegor Yefremov wrote:
+> After getting MMC working I now have following issues: both musb and EHCI make problems.
+> 
+> musb:
+> 
+> musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+> musb-am35x musb-am35x: failed to get clock
+> musb-am35x: probe of musb-am35x failed with error -2  
+
+I've seen the same problem after merging omap-devel-d-for-3.6 onto v3.5.
+(see http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=tag;h=refs/tags/omap-devel-d-for-3.6)
+
+So far I've worked around it like this (I'm not sure this is the correct
+approach, but it works):
+
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 9f3eda9..2184693 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -480,14 +480,14 @@ static int __devinit am35x_probe(struct platform_device *pdev)
+                goto err1;
+        }
+ 
+-       phy_clk = clk_get(&pdev->dev, "fck");
++       phy_clk = clk_get(&pdev->dev, "hsotgusb_ick");
+        if (IS_ERR(phy_clk)) {
+                dev_err(&pdev->dev, "failed to get PHY clock\n");
+                ret = PTR_ERR(phy_clk);
+                goto err2;
+        }
+ 
+-       clk = clk_get(&pdev->dev, "ick");
++       clk = clk_get(&pdev->dev, "hsotgusb_fck");
+        if (IS_ERR(clk)) {
+                dev_err(&pdev->dev, "failed to get clock\n");
+                ret = PTR_ERR(clk);
+
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
