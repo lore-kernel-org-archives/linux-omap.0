@@ -1,24 +1,60 @@
-From: "Mr. Richard Sun" <tagnrichard@yahoo.com.hk>
-Subject: MAIL 24.07.2012
-Date: Tue, 24 Jul 2012 19:42:39 +0200
-Message-ID: <201207241742.q6OHgjNb026830@mail.ucla.edu>
-Reply-To: tangrichad@yahoo.com.hk
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: [PATCH] omap: usb: host: remove deprecated flag 'es2_compatibility'
+Date: Tue, 24 Jul 2012 21:08:40 +0300
+Message-ID: <1343153320-4628-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out-52.smtp.ucla.edu ([169.232.46.170]:42267 "EHLO
-	out-52.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756209Ab2GXR7L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 13:59:11 -0400
-Content-Description: Mail message body
+Received: from devils.ext.ti.com ([198.47.26.153]:51619 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933171Ab2GXSIn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 14:08:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <tagnrichard@yahoo.com.hk>
+To: balbi@ti.com, tony@atomide.com, ajay.gupta@ti.com, gadiyar@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Mail From Sun.
+Currently this flag is not used anywhere and may be safely removed.
 
-I work with the hang seng Bank Hong Kong.I have a business proposition for you involving a trade in my bank which I know we will be of mutual benefit to both of us, If interested mail me at:tangrichad@yahoo.com.hk
+Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+---
+ arch/arm/mach-omap2/usb-host.c        |    1 -
+ arch/arm/plat-omap/include/plat/usb.h |    4 ----
+ 2 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index dde8a11..5e1cb53 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -500,7 +500,6 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 		ehci_data.regulator[i] = pdata->regulator[i];
+ 	}
+ 	ehci_data.phy_reset = pdata->phy_reset;
+-	ohci_data.es2_compatibility = pdata->es2_compatibility;
+ 	usbhs_data.ehci_data = &ehci_data;
+ 	usbhs_data.ohci_data = &ohci_data;
  
-Regards,
-Richard Sun.
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 762eeb0..f8c1eb8 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -32,9 +32,6 @@ struct usbhs_omap_board_data {
+ 	/* have to be valid if phy_reset is true and portx is in phy mode */
+ 	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
+ 
+-	/* Set this to true for ES2.x silicon */
+-	unsigned			es2_compatibility:1;
+-
+ 	unsigned			phy_reset:1;
+ 
+ 	/*
+@@ -53,7 +50,6 @@ struct ehci_hcd_omap_platform_data {
+ 
+ struct ohci_hcd_omap_platform_data {
+ 	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	unsigned			es2_compatibility:1;
+ };
+ 
+ struct usbhs_omap_platform_data {
+-- 
+1.7.1
+
