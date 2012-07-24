@@ -1,46 +1,45 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: NFS mount issue with OMAP4 on linux-next
-Date: Tue, 24 Jul 2012 12:37:45 +0530
-Message-ID: <500E49C1.3000703@ti.com>
-References: <500E3B9B.9080702@ti.com> <500E3E4E.1060809@ti.com> <CANfBPZ_EJJk_HRCpUpZHauJCjJ8HgQO=YC104roEcKsAAw=iMA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Tue, 24 Jul 2012 07:19:03 +0000
+Message-ID: <201207240719.03601.arnd@arndb.de>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201207171924.33756.arnd@arndb.de> <500DC255.40900@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34814 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185Ab2GXHJD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 03:09:03 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q6O792hT011588
-	for <linux-omap@vger.kernel.org>; Tue, 24 Jul 2012 02:09:03 -0500
-In-Reply-To: <CANfBPZ_EJJk_HRCpUpZHauJCjJ8HgQO=YC104roEcKsAAw=iMA@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:61655 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754977Ab2GXHTM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 03:19:12 -0400
+In-Reply-To: <500DC255.40900@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Vinod Koul <vinod.koul@linux.intel.com>, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>
 
-On Tuesday 24 July 2012 12:23 PM, S, Venkatraman wrote:
-> On Tue, Jul 24, 2012 at 11:48 AM, Archit Taneja <a0393947@ti.com> wrote:
->> Hi,
->>
->> Comparing with working logs, I see this difference:
->>
->> [    1.502166] spi spi1.0: no RX DMA engine channel for McSPI
->> [    1.507904] omap2_mcspi omap2_mcspi.1: can't setup spi1.0, status -11
->> [    1.514862] omap2_mcspi omap2_mcspi.1: can't create new device for ks8851
->>
->> I guess that's why it isn't working?
->>
-> Most likely yes. SPI is needed for ethernet on OMAP4.
-> Please include this patch in your build and check..
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=55936cdfaaf11ac352b56bc58e42d6661e65ee13
+On Monday 23 July 2012, Stephen Warren wrote:
+> > 3. A device with three channels, one of which has two alternatives:
+> 
+> s/three/four/   s/one of which/both of which/
+> 
+> This binding doc seems reasonable to me.
 
-It works fine with this.
+I asked a linguist about it who said that you can't have "both" together
+with "four". She also mentioned that my text is rather confusing, so maybe
+you also got it wrong. I'll try adding some explanation:
 
-Thanks,
-Archit
+3. A device with three channels, one of which has two alternatives:
 
->
->
+        dmas = <&dma0 1 4   /* first channel,  data read */
+                &dma0 2 6   /* second channel, data write */
+                &dma1 1 0   /* third channel,  error read */
+                &dma2 1 0>; /* third channel,  ernative error read */
+        dma-names = "data", "data", "error", "error";
 
+   The first two channels are identified by having a unique direction
+   flag in combination with the "data" string. For the third channel,
+   there are two dma specifiers with identical flags (1) and strings
+   ("error"), so only one specifier may be used at a time.
+
+	Arnd
