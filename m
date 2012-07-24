@@ -1,74 +1,67 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] PWM: Add support for configuring polarity of PWM
-Date: Tue, 24 Jul 2012 10:26:24 +0200
-Message-ID: <20120724082624.GA4476@avionic-0098.mockup.avionic-design.de>
-References: <1342616053-7793-1-git-send-email-avinashphilip@ti.com>
- <20120723083032.GA12868@avionic-0098.mockup.avionic-design.de>
- <500DB0CB.1000600@metafoo.de>
- <20120724065121.GA30417@avionic-0098.mockup.avionic-design.de>
- <500E5BED.6050401@metafoo.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] arm/dts: Configure pinmuxs for user leds
+ control on Bone
+Date: Tue, 24 Jul 2012 01:30:08 -0700
+Message-ID: <20120724083007.GU6522@atomide.com>
+References: <1342769508-24810-1-git-send-email-anilkumar@ti.com>
+ <1342769508-24810-3-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <500E5BED.6050401@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: "Philip, Avinash" <avinashphilip@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---DocE+STaALJfprDB
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:26906 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755613Ab2GXIaL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 04:30:11 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1342769508-24810-3-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-On Tue, Jul 24, 2012 at 10:25:17AM +0200, Lars-Peter Clausen wrote:
-> On 07/24/2012 08:51 AM, Thierry Reding wrote:
-> >=20
-> > How about the following?
-> >=20
-> > /**
-> >  * enum pwm_polarity - polarity of a PWM signal
-> >  * @PWM_POLARITY_NORMAL: a high signal for the duration of the duty-
-> >  *   cycle, followed by a low signal for the remainder of the pulse
-> >  *   period
-> >  * @PWM_POLARITY_INVERSED: a low signal for the duration of the duty-
-> >  *   cycle, followed by a high signal for the remainder of the pulse
-> >  *   period
-> >  */
-> > enum pwm_polarity {
-> > 	PWM_POLARITY_NORMAL,
-> > 	PWM_POLARITY_INVERSED,
-> > };
-> >=20
->=20
-> Looks fine :)
+* AnilKumar Ch <anilkumar@ti.com> [120720 00:36]:
+> Adds GPIO pinctrl nodes to am3358_pinmux master node to control
+> user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
+> 
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index a4d4415..452ce3f 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -28,3 +28,18 @@
+>  };
+>  
+>  /include/ "tps65217.dtsi"
+> +
+> +&am3358_pinmux {
+> +
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&userled_pins>;
+> +
+> +	userled_pins: pinmux_userled_pins {
+> +		pinctrl-single,pins = <
+> +			0x54 0x7	/* gpmc_a5.gpio1_21, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> +			0x58 0x17	/* gpmc_a6.gpio1_22, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
+> +			0x5C 0x7	/* gpmc_a7.gpio1_23, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
+> +			0x60 0x17	/* gpmc_a8.gpio1_24, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
+> +		>;
+> +	};
+> +};
 
-Philip: can you fold this into your patch?
+Let's standardize on the following minimal commenting as those can be
+search and replaced the same way when we have preprocessing available:
 
-Thierry
+		pinctrl-single,pins = <
+			0x54 0x7	/* gpmc_a5.gpio1_21  OUTPUT | MODE7 */
+			0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
+			0x5C 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
+			0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
+		>;
 
---DocE+STaALJfprDB
-Content-Type: application/pgp-signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQDlwwAAoJEN0jrNd/PrOh62cP/i77Mw0m4gmbVn8eVoSLTCvP
-sGoOMu/ah++aako1tUVAmRF0tYqwzsXhgS625U3kUPL1MEsDepKP8WModFwz8VOX
-XZju7gduZ9bqhFcCuV3cmyM+tHhjC0O58n1wijpMNS8xdLDmVSX2yR9fHSCpNj1M
-Dep0Uw9PRj0SZgcFVtVsNOFXnbJen+3njJNR2S7RZSuRSZybdDlekTiw5Vm9Nmuy
-pL1ELZhtRkN6X7z0pDbpFIWZo+UCeNMaps445gA6pcBS0aQcqyuDdeZCCzzEjJjO
-0QJwsn/PGtfAsfZstPgxl1Fyf4Fg9zQ2tBqkNOwwYh0nJYH5m8Kq2XRZiPthIizz
-ka6BHN9okUbbAVTRbIstFYlx6IJd1ge1kKKdjHFGuN5G49gI62dBI5QuyzFMdWwV
-jwCy3UbKKv40w/KfnrQ/Ao8N8A0cWNotHQVKW36dM7YWeIa7+468ILoujKL3ie9Z
-f6gPm6223R6tX7dh6MjwE9Eq87m9CaJc4j2D1i4yJ70f4/vwMO0K/yn6ubRrzYGa
-rQBahj4xtQYRonu1GQhw0YfEyZmV2k5KUePNV7706LYmQ54ivsHuNF/2JTXgTasd
-kI5dwzFcDkQVbdMlRgSHzcYmntFG54HE+rEUJ68NjoEMZ2zUwfPCXhWHM3jmZdPt
-UCLoR8a0bUIlN1zshkMN
-=j9i3
------END PGP SIGNATURE-----
-
---DocE+STaALJfprDB--
+Tony
