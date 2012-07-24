@@ -1,82 +1,42 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 2/2] arm/dts: Configure pinmuxs for user leds control
- on Bone
-Date: Tue, 24 Jul 2012 09:11:09 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA026D0@DBDE01.ent.ti.com>
-References: <1342769508-24810-1-git-send-email-anilkumar@ti.com>
- <1342769508-24810-3-git-send-email-anilkumar@ti.com>
- <20120724083007.GU6522@atomide.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Tue, 24 Jul 2012 16:54:27 +0400
+Message-ID: <500E9B03.20706@mvista.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <201206271520.49276.arnd@arndb.de> <1342161907.1726.26.camel@vkoul-udesk3> <201207171924.33756.arnd@arndb.de> <500DC255.40900@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120724083007.GU6522-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:44278 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753812Ab2GXMzX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 08:55:23 -0400
+Received: by lbbgm6 with SMTP id gm6so9038393lbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jul 2012 05:55:22 -0700 (PDT)
+In-Reply-To: <500DC255.40900@wwwdotorg.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@linux.intel.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Hello.
 
-Thanks for the review.
+On 24-07-2012 1:29, Stephen Warren wrote:
 
-On Tue, Jul 24, 2012 at 14:00:08, Tony Lindgren wrote:
-> * AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> [120720 00:36]:
-> > Adds GPIO pinctrl nodes to am3358_pinmux master node to control
-> > user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/am335x-bone.dts |   15 +++++++++++++++
-> >  1 files changed, 15 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> > index a4d4415..452ce3f 100644
-> > --- a/arch/arm/boot/dts/am335x-bone.dts
-> > +++ b/arch/arm/boot/dts/am335x-bone.dts
-> > @@ -28,3 +28,18 @@
-> >  };
-> >  
-> >  /include/ "tps65217.dtsi"
-> > +
-> > +&am3358_pinmux {
-> > +
-> > +	pinctrl-names = "default";
-> > +	pinctrl-0 = <&userled_pins>;
-> > +
-> > +	userled_pins: pinmux_userled_pins {
-> > +		pinctrl-single,pins = <
-> > +			0x54 0x7	/* gpmc_a5.gpio1_21, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> > +			0x58 0x17	/* gpmc_a6.gpio1_22, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
-> > +			0x5C 0x7	/* gpmc_a7.gpio1_23, OMAP_PIN_OUTPUT | OMAP_MUX_MODE7 */
-> > +			0x60 0x17	/* gpmc_a8.gpio1_24, OMAP_PIN_OUTPUT_PULLUP | OMAP_MUX_MODE7 */
-> > +		>;
-> > +	};
-> > +};
-> 
-> Let's standardize on the following minimal commenting as those can be
-> search and replaced the same way when we have preprocessing available:
-> 
-> 		pinctrl-single,pins = <
-> 			0x54 0x7	/* gpmc_a5.gpio1_21  OUTPUT | MODE7 */
-> 			0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
-> 			0x5C 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
-> 			0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
-> 		>;
-> 
+>> I think we're basically on the same page. Let's see if I have covered
+>> all the cases we discussed so far. I've tried to update the binding that
+>> Jon sent out initially with everything we've discussed, so please review
+>> this to see if I understood you correctly.
+> ...
+>> * DMA client
+> ...
+>> Examples:
+> ...
+>> 3. A device with three channels, one of which has two alternatives:
 
-Point taken, I thought the same after v2 submission. I will send the updated
-version with this fix.
+> s/three/four/   s/one of which/both of which/
 
-Thanks
-AnilKumar
+    You can't say "both" of 4 channels, only "all". :-)
+
+WBR, Sergei
+
