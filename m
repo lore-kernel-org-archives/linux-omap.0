@@ -1,45 +1,29 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 24 Jul 2012 19:27:04 +0000
-Message-ID: <201207241927.04542.arnd@arndb.de>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com> <1342777047.1726.435.camel@vkoul-udesk3> <500EF27F.6050905@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP3: clockdomain: fix accidental duplicate
+ registration
+Date: Tue, 24 Jul 2012 14:52:48 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207241451580.10781@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1207120448120.25585@utopia.booyaka.com> <87394wg97u.fsf@ti.com> <20120713064713.GI1122@atomide.com> <20120714085257.GB6522@atomide.com> <alpine.DEB.2.00.1207141150340.3876@utopia.booyaka.com> <20120716083609.GG6522@atomide.com>
+ <alpine.DEB.2.00.1207180341001.16772@utopia.booyaka.com> <20120719115216.GP6522@atomide.com> <alpine.DEB.2.00.1207191242080.14390@utopia.booyaka.com> <20120724081636.GT6522@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61973 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753609Ab2GXT1Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 15:27:16 -0400
-In-Reply-To: <500EF27F.6050905@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:59430 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755800Ab2GXUwt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jul 2012 16:52:49 -0400
+In-Reply-To: <20120724081636.GT6522@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Vinod Koul <vinod.koul@linux.intel.com>, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday 24 July 2012, Jon Hunter wrote:
-> Ok. The thought was that the user would have the following means of
-> requesting a channel ...
-> 
-> 1. By name
-> 2. By a filter parameter (flags)
-> 3. By name and a filter parameter
-> 
-> So we would have the following APIs ...
-> 
-> struct dma_chan
-> *of_dma_request_channel(struct device_node *node, unsigned int flags);
-> struct dma_chan
-> *of_dma_request_named channel(struct device_node *node, char *name,
-> unsigned int flags);
-> 
-> In both of these the filter parameter flags is optional.
-> 
-> Let me know your thoughts on this.
+On Tue, 24 Jul 2012, Tony Lindgren wrote:
 
-I definitely like this version. I was thinking of a different variant
-where we have separate functions for each flag value, but I think yours
-is actually better.
+> OK looks like Linus fixed up part of it, care to check what's needed
+> against current mainline now?
 
-	Arnd
+Current mainline seems to be okay here.
+
+
+- Paul
