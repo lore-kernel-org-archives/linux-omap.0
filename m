@@ -1,68 +1,37 @@
-From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Subject: Re: [PATCH v4 3/4] OMAP2+: use control module mfd driver in omap_type
-Date: Wed, 25 Jul 2012 16:45:53 +0400
-Message-ID: <500FEA81.6010100@dev.rtsoft.ru>
-References: <500FD2EF.4010304@dev.rtsoft.ru> <500FE915.6090707@mvista.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH-V3] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
+Date: Wed, 25 Jul 2012 14:41:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207251438210.23542@utopia.booyaka.com>
+References: <1343214422-28718-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:47101 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755483Ab2GYMpz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:45:55 -0400
-In-Reply-To: <500FE915.6090707@mvista.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48120 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750826Ab2GYUlT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 16:41:19 -0400
+In-Reply-To: <1343214422-28718-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, amit.kucheria@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, amit.kachhap@linaro.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-  HI, Sergei.
+Hello Vaibhav,
 
-On 07/25/2012 04:39 PM, Sergei Shtylyov wrote:
-> Hello.
->
-> On 25-07-2012 15:05, Konstantin Baydarov wrote:
->
->> OMAP system control module can be probed early, then
->> omap_type is safe to use its APIs.
->
->> TODO: add support for other omap versions
->
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
->> Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
->> ---
->>   arch/arm/mach-omap2/id.c |   11 ++++++-----
->>   1 files changed, 6 insertions(+), 5 deletions(-)
->
->> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->> index 40373db..8018cad 100644
->> --- a/arch/arm/mach-omap2/id.c
->> +++ b/arch/arm/mach-omap2/id.c
-> [...]
->> @@ -43,15 +44,15 @@ int omap_type(void)
->>       u32 val = 0;
->>
->>       if (cpu_is_omap24xx()) {
->> -        val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
->> +        val = omap_control_status_read();
->>       } else if (soc_is_am33xx()) {
->> -        val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
->> +        val = omap_control_status_read();
->>       } else if (cpu_is_omap34xx()) {
->> -        val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
->> +        val = omap_control_status_read();
->>       } else if (cpu_is_omap44xx()) {
->> -        val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
->> +        val = omap_control_status_read();
->
->    Isn't it better to merge now identical code into one *if*?
-Good point.
->
-> WBR, Sergei
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 25 Jul 2012, Vaibhav Hiremath wrote:
 
+> This patch adds HWMOD data for all the peripherals of
+> AM335X device and also hooks up to the existing OMAP framework.
+
+Looks pretty good.  One question:
+
+> +static struct omap_hwmod am33xx_ehrpwm0_hwmod = {
+> +	.name		= "ehrpwm.0",
+
+These IP blocks and the ECAP IP blocks have periods in their names.
+The rest of the IP block named in the file don't use periods -- which
+is also the style used by the rest of the OMAP SoCs.  Is there
+some reason that these have periods in their names?
+
+
+- Paul
