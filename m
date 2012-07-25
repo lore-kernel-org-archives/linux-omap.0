@@ -1,84 +1,54 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v5 01/11] usb: musb: add musb->id to identify core
- instance
-Date: Wed, 25 Jul 2012 12:43:42 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAE5CA5@DBDE01.ent.ti.com>
-References: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
- <1343218049-29917-2-git-send-email-ajay.gupta@ti.com>
- <20120725121128.GO16794@arwen.pp.htv.fi>
- <47CEF8C4B26E8C44B22B028A650E0EA93EAE5B87@DBDE01.ent.ti.com>
- <20120725122028.GV16794@arwen.pp.htv.fi>
- <47CEF8C4B26E8C44B22B028A650E0EA93EAE5BEC@DBDE01.ent.ti.com>
- <20120725123221.GY16794@arwen.pp.htv.fi>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v2 1/2] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Wed, 25 Jul 2012 16:43:40 +0400
+Message-ID: <500FE9FC.7070303@mvista.com>
+References: <1343219012-19472-1-git-send-email-anilkumar@ti.com> <1343219012-19472-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43122 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755483Ab2GYMnw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:43:52 -0400
-In-Reply-To: <20120725123221.GY16794@arwen.pp.htv.fi>
-Content-Language: en-US
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:39132 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755483Ab2GYMof (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jul 2012 08:44:35 -0400
+Received: by lahd3 with SMTP id d3so501027lah.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 05:44:34 -0700 (PDT)
+In-Reply-To: <1343219012-19472-2-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, mkl@pengutronix.de, wg@grandegger.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
-> On Wed, Jul 25, 2012 at 12:30:12PM +0000, Gupta, Ajay Kumar wrote:
-> > Hi,
-> > > On Wed, Jul 25, 2012 at 12:19:32PM +0000, Gupta, Ajay Kumar wrote:
-> > > > Hi,
-> > > > >
-> > > > > On Wed, Jul 25, 2012 at 05:37:19PM +0530, Ajay Kumar Gupta wrote:
-> > > > > > diff --git a/drivers/usb/musb/musb_core.c
-> > > > > > b/drivers/usb/musb/musb_core.c index 89d1871..f5eb8a7 100644
-> > > > > > --- a/drivers/usb/musb/musb_core.c
-> > > > > > +++ b/drivers/usb/musb/musb_core.c
-> > > > >
-> > > > > <snip>
-> > > > >
-> > > > > > @@ -1889,6 +1921,7 @@ musb_init_controller(struct device *dev,
-> > > > > > int nIrq,
-> > > > > void __iomem *ctrl)
-> > > > > >  	pm_runtime_enable(musb->controller);
-> > > > > >
-> > > > > >  	spin_lock_init(&musb->lock);
-> > > > > > +	musb->id = pdev->id;
-> > > > >
-> > > > > I fail to see where this musb->id would be used. Care to clarify ?
-> > > >
-> > > > Sure, It is used in musb_init_debugfs(). Please refer 02/11.
-> > >
-> > > Then it's a bit unnecessary right ?
-> > >
-> > > You can change the directory name to dev_name(musb->controller) as
-> > > that will already have the id appended to it.
-> >
-> > Well, musb->id is used at many more places and it has to be there.
-> > Please refer
-> >
-> > 01/11 where all glue layers using it for:
-> > +       musb_put_id(&pdev->dev, glue->musb->id);
+Hello.
 
-Here glue->musb is a platform_device and not "struct musb". So it's limited
-at glue layer alone. All IDs are being saved in each pdev->id. We have two
-musb instances and so we have glue->musb[2] pdevs and so each IDs getting saved
-at glue->musb[0]->id and glue->musb[1]->id.
+On 25-07-2012 16:23, AnilKumar Ch wrote:
 
-How about musb->id (I mean struct musb here) uses at other places?
+> Add Bosch D_CAN controller device tree data to AM33XX dtsi file
+> by adding d_can device node with all the necessary parameters.
 
-03/11 where musb dsps glue is extensively using it at multiple places.
-04/11 where all glue using if they need nop.
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>   arch/arm/boot/dts/am33xx.dtsi |    5 +++++
+>   1 file changed, 5 insertions(+)
 
-Ajay
-> 
-> your struct *_glue{}; should be the one holding the ID as it's the one who
-> requested it. If you request multiple IDs, you hold multiple IDs (glue->id0,
-> glue->id1, glue->idN) and so on.
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index 9b974dc..2db2ffb 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -163,5 +163,10 @@
+>   			#size-cells = <0>;
+>   			ti,hwmods = "i2c3";
+>   		};
+> +
+> +		dcan1: d_can@481D0000 {
+
+    Address postfix in the node name and no "reg" property?
+
+> +			compatible = "bosch,d_can";
+> +			ti,hwmods = "d_can1";
+> +		};
+
+WBR, Sergei
 
 
-> 
-> --
-> balbi
