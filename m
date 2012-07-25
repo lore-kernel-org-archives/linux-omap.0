@@ -1,105 +1,88 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v4 02/11] usb: musb: kill global and static for multi
- instance
-Date: Wed, 25 Jul 2012 10:34:49 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAE56BD@DBDE01.ent.ti.com>
-References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
- <1342698367-12978-3-git-send-email-ajay.gupta@ti.com>
- <20120725075014.GR3630@arwen.pp.htv.fi>
+From: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Subject: [PATCH v4 0/4] OMAP System Control Module
+Date: Wed, 25 Jul 2012 15:05:09 +0400
+Message-ID: <500FD2E5.2050406@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+ boundary="------------020900000105090502060900"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33050 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754465Ab2GYKfH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 06:35:07 -0400
-In-Reply-To: <20120725075014.GR3630@arwen.pp.htv.fi>
-Content-Language: en-US
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:58790 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754155Ab2GYLFL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 07:05:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
+To: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com
+Cc: balbi@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, amit.kachhap@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>
 
-Hi,
-> 
-> On Thu, Jul 19, 2012 at 05:15:58PM +0530, Ajay Kumar Gupta wrote:
-> > Moved global variable "musb_debugfs_root" and static variable
-> > "old_state" to 'struct musb' to help support multi instance of musb
-> > controller as present on AM335x platform.
-> >
-> > Also removed the global variable "orig_dma_mask" and filled the
-> > dev->dma_mask with parent device's dma_mask.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >  drivers/usb/musb/musb_core.c    |   16 +++-------------
-> >  drivers/usb/musb/musb_core.h    |    4 ++++
-> >  drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
-> >  3 files changed, 15 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/drivers/usb/musb/musb_core.c
-> > b/drivers/usb/musb/musb_core.c index 3e09984..a5db4dd 100644
-> > --- a/drivers/usb/musb/musb_core.c
-> > +++ b/drivers/usb/musb/musb_core.c
-> > @@ -1802,10 +1802,9 @@ static const struct attribute_group
-> > musb_attr_group = {  static void musb_irq_work(struct work_struct
-> > *data)  {
-> >  	struct musb *musb = container_of(data, struct musb, irq_work);
-> > -	static int old_state;
-> >
-> > -	if (musb->xceiv->state != old_state) {
-> > -		old_state = musb->xceiv->state;
-> > +	if (musb->xceiv->state != musb->xceiv_old_state) {
-> > +		musb->xceiv_old_state = musb->xceiv->state;
-> >  		sysfs_notify(&musb->controller->kobj, NULL, "mode");
-> >  	}
-> >  }
-> > @@ -2115,11 +2114,6 @@ fail0:
-> >  /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
-> >   * bridge to a platform device; this driver then suffices.
-> >   */
-> > -
-> > -#ifndef CONFIG_MUSB_PIO_ONLY
-> > -static u64	*orig_dma_mask;
-> > -#endif
-> > -
-> >  static int __devinit musb_probe(struct platform_device *pdev)  {
-> >  	struct device	*dev = &pdev->dev;
-> > @@ -2138,10 +2132,6 @@ static int __devinit musb_probe(struct
-> platform_device *pdev)
-> >  		return -ENOMEM;
-> >  	}
-> >
-> > -#ifndef CONFIG_MUSB_PIO_ONLY
-> > -	/* clobbered by use_dma=n */
-> > -	orig_dma_mask = dev->dma_mask;
-> > -#endif
-> >  	status = musb_init_controller(dev, irq, base);
-> >  	if (status < 0)
-> >  		iounmap(base);
-> > @@ -2166,7 +2156,7 @@ static int __devexit musb_remove(struct
-> platform_device *pdev)
-> >  	iounmap(ctrl_base);
-> >  	device_init_wakeup(&pdev->dev, 0);
-> >  #ifndef CONFIG_MUSB_PIO_ONLY
-> > -	pdev->dev.dma_mask = orig_dma_mask;
-> > +	pdev->dev.dma_mask = (&dev->dev.parent)->dma_mask;
-> 
-> are you sure ?? This should be:
-> 
-> dev->parent.dma_mask;
+This is a multi-part message in MIME format.
+--------------020900000105090502060900
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 7bit
 
-Actually both are fine and I used parent based on your recommendation
-in my earlier version of patch at
-http://marc.info/?l=linux-usb&m=134121391908734&w=2
+ Hello.
 
-anyways I will change to :
-pdev->dev.dma_mask = dma_set_mask((&pdev->dev, DMA_BIT_MASK(64));
+This is a next version of series of patches(based on Eduardo Valentin's patch set) adding a basic support for system control module, on OMAP4+ context.
+As Bandgap and usb phy drivers are now independent from control module driver and they will be sent separately. IIUC, Bandgap driver has already been sent.
 
-Ajay
-> 
-> In fact, while doing that you could use dma_set_mask() instead ;-)
-> 
-> --
-> balbi
+OMAP system control module driver provides only one API function - read of CONTROL_STATUS register:
+u32 omap_control_status_read(void) that is used in omap_type()
+
+The physical address of CONTROL_STATUS register is specified in DT:
+ctrl_module_core: ctrl_module_core@4A0022C4 {
+	compatible = "ti,omap4-control";
+	#address-cells = <1>;
+	#size-cells = <1>;
+	/* ranges; */
+	ti,hwmods = "ctrl_module_core";
+	reg = <0x4A0022C4 0x4>; /* CONTROL_STATUS register */
+};
+
+Eduardo Valentin (3):
+  From d4c6cf571e403f30a97db32ba6198b0c35a864b7 Mon Sep 17 00:00:00
+    2001
+  From 116a0111a6e2e563a81b0aa2dbf7a18e9ef9dbd1 Mon Sep 17 00:00:00
+    2001
+  From dda5f1badbfb82718c9ff21098998a842ce6886e Mon Sep 17 00:00:00
+    2001
+
+Santosh Shilimkar (1):
+  From 1c2af619cc34aafc027330fbb823595e3b2d139b Mon Sep 17 00:00:00
+    2001
+
+ .../devicetree/bindings/mfd/omap_control.txt       |   32 +
+ arch/arm/boot/dts/omap4.dtsi                       |   10 +
+ arch/arm/mach-omap2/Kconfig                        |    1 +
+ arch/arm/mach-omap2/control.h                      |   48 +-
+ arch/arm/mach-omap2/id.c                           |   11 +-
+ .../include/mach/ctrl_module_core_44xx.h           |  392 ------
+ .../include/mach/ctrl_module_pad_core_44xx.h       | 1409 --------------------
+ .../include/mach/ctrl_module_pad_wkup_44xx.h       |  236 ----
+ .../include/mach/ctrl_module_wkup_44xx.h           |   92 --
+ arch/arm/plat-omap/Kconfig                         |    4 +
+ drivers/mfd/Kconfig                                |    6 +
+ drivers/mfd/Makefile                               |    1 +
+ drivers/mfd/omap-control-core.c                    |  162 +++
+ include/linux/mfd/omap_control.h                   |   35 +
+ 14 files changed, 300 insertions(+), 2139 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/omap_control.txt
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_wkup_44xx.h
+ delete mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
+ create mode 100644 drivers/mfd/omap-control-core.c
+ create mode 100644 include/linux/mfd/omap_control.h
+
+-- 
+1.7.7.6
+
+
+--------------020900000105090502060900
+Content-Type: text/plain; charset=UTF-8;
+ name="Attached Message Part"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="Attached Message Part"
+
+
+--------------020900000105090502060900--
