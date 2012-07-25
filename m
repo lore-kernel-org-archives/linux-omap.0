@@ -1,61 +1,84 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH v4 3/4] OMAP2+: use control module mfd driver in omap_type
-Date: Wed, 25 Jul 2012 16:39:49 +0400
-Message-ID: <500FE915.6090707@mvista.com>
-References: <500FD2EF.4010304@dev.rtsoft.ru>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH v5 01/11] usb: musb: add musb->id to identify core
+ instance
+Date: Wed, 25 Jul 2012 12:43:42 +0000
+Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAE5CA5@DBDE01.ent.ti.com>
+References: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
+ <1343218049-29917-2-git-send-email-ajay.gupta@ti.com>
+ <20120725121128.GO16794@arwen.pp.htv.fi>
+ <47CEF8C4B26E8C44B22B028A650E0EA93EAE5B87@DBDE01.ent.ti.com>
+ <20120725122028.GV16794@arwen.pp.htv.fi>
+ <47CEF8C4B26E8C44B22B028A650E0EA93EAE5BEC@DBDE01.ent.ti.com>
+ <20120725123221.GY16794@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:57189 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932934Ab2GYMko (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:40:44 -0400
-Received: by lbbgm6 with SMTP id gm6so604627lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 05:40:43 -0700 (PDT)
-In-Reply-To: <500FD2EF.4010304@dev.rtsoft.ru>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43122 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755483Ab2GYMnw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:43:52 -0400
+In-Reply-To: <20120725123221.GY16794@arwen.pp.htv.fi>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, amit.kucheria@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, amit.kachhap@linaro.org
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hello.
+Hi,
+> On Wed, Jul 25, 2012 at 12:30:12PM +0000, Gupta, Ajay Kumar wrote:
+> > Hi,
+> > > On Wed, Jul 25, 2012 at 12:19:32PM +0000, Gupta, Ajay Kumar wrote:
+> > > > Hi,
+> > > > >
+> > > > > On Wed, Jul 25, 2012 at 05:37:19PM +0530, Ajay Kumar Gupta wrote:
+> > > > > > diff --git a/drivers/usb/musb/musb_core.c
+> > > > > > b/drivers/usb/musb/musb_core.c index 89d1871..f5eb8a7 100644
+> > > > > > --- a/drivers/usb/musb/musb_core.c
+> > > > > > +++ b/drivers/usb/musb/musb_core.c
+> > > > >
+> > > > > <snip>
+> > > > >
+> > > > > > @@ -1889,6 +1921,7 @@ musb_init_controller(struct device *dev,
+> > > > > > int nIrq,
+> > > > > void __iomem *ctrl)
+> > > > > >  	pm_runtime_enable(musb->controller);
+> > > > > >
+> > > > > >  	spin_lock_init(&musb->lock);
+> > > > > > +	musb->id = pdev->id;
+> > > > >
+> > > > > I fail to see where this musb->id would be used. Care to clarify ?
+> > > >
+> > > > Sure, It is used in musb_init_debugfs(). Please refer 02/11.
+> > >
+> > > Then it's a bit unnecessary right ?
+> > >
+> > > You can change the directory name to dev_name(musb->controller) as
+> > > that will already have the id appended to it.
+> >
+> > Well, musb->id is used at many more places and it has to be there.
+> > Please refer
+> >
+> > 01/11 where all glue layers using it for:
+> > +       musb_put_id(&pdev->dev, glue->musb->id);
 
-On 25-07-2012 15:05, Konstantin Baydarov wrote:
+Here glue->musb is a platform_device and not "struct musb". So it's limited
+at glue layer alone. All IDs are being saved in each pdev->id. We have two
+musb instances and so we have glue->musb[2] pdevs and so each IDs getting saved
+at glue->musb[0]->id and glue->musb[1]->id.
 
-> OMAP system control module can be probed early, then
-> omap_type is safe to use its APIs.
+How about musb->id (I mean struct musb here) uses at other places?
 
-> TODO: add support for other omap versions
+03/11 where musb dsps glue is extensively using it at multiple places.
+04/11 where all glue using if they need nop.
 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-> ---
->   arch/arm/mach-omap2/id.c |   11 ++++++-----
->   1 files changed, 6 insertions(+), 5 deletions(-)
+Ajay
+> 
+> your struct *_glue{}; should be the one holding the ID as it's the one who
+> requested it. If you request multiple IDs, you hold multiple IDs (glue->id0,
+> glue->id1, glue->idN) and so on.
 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 40373db..8018cad 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-[...]
-> @@ -43,15 +44,15 @@ int omap_type(void)
->   	u32 val = 0;
->
->   	if (cpu_is_omap24xx()) {
-> -		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
-> +		val = omap_control_status_read();
->   	} else if (soc_is_am33xx()) {
-> -		val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
-> +		val = omap_control_status_read();
->   	} else if (cpu_is_omap34xx()) {
-> -		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-> +		val = omap_control_status_read();
->   	} else if (cpu_is_omap44xx()) {
-> -		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
-> +		val = omap_control_status_read();
 
-    Isn't it better to merge now identical code into one *if*?
-
-WBR, Sergei
-
+> 
+> --
+> balbi
