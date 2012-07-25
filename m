@@ -1,103 +1,61 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v5 01/11] usb: musb: add musb->id to identify core
- instance
-Date: Wed, 25 Jul 2012 15:32:21 +0300
-Message-ID: <20120725123221.GY16794@arwen.pp.htv.fi>
-References: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
- <1343218049-29917-2-git-send-email-ajay.gupta@ti.com>
- <20120725121128.GO16794@arwen.pp.htv.fi>
- <47CEF8C4B26E8C44B22B028A650E0EA93EAE5B87@DBDE01.ent.ti.com>
- <20120725122028.GV16794@arwen.pp.htv.fi>
- <47CEF8C4B26E8C44B22B028A650E0EA93EAE5BEC@DBDE01.ent.ti.com>
-Reply-To: balbi@ti.com
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v4 3/4] OMAP2+: use control module mfd driver in omap_type
+Date: Wed, 25 Jul 2012 16:39:49 +0400
+Message-ID: <500FE915.6090707@mvista.com>
+References: <500FD2EF.4010304@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wHYmV+hLPeNaasdK"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:51280 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933023Ab2GYMfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jul 2012 08:35:33 -0400
-Received: by lban1 with SMTP id n1so571906lba.24
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 05:35:31 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EAE5BEC@DBDE01.ent.ti.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:57189 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932934Ab2GYMko (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:40:44 -0400
+Received: by lbbgm6 with SMTP id gm6so604627lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 05:40:43 -0700 (PDT)
+In-Reply-To: <500FD2EF.4010304@dev.rtsoft.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: b-cousson@ti.com, kishon@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, paul@pwsan.com, amit.kucheria@linaro.org, Eduardo Valentin <eduardo.valentin@ti.com>, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, amit.kachhap@linaro.org
 
+Hello.
 
---wHYmV+hLPeNaasdK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 25-07-2012 15:05, Konstantin Baydarov wrote:
 
-On Wed, Jul 25, 2012 at 12:30:12PM +0000, Gupta, Ajay Kumar wrote:
-> Hi,
-> > On Wed, Jul 25, 2012 at 12:19:32PM +0000, Gupta, Ajay Kumar wrote:
-> > > Hi,
-> > > >
-> > > > On Wed, Jul 25, 2012 at 05:37:19PM +0530, Ajay Kumar Gupta wrote:
-> > > > > diff --git a/drivers/usb/musb/musb_core.c
-> > > > > b/drivers/usb/musb/musb_core.c index 89d1871..f5eb8a7 100644
-> > > > > --- a/drivers/usb/musb/musb_core.c
-> > > > > +++ b/drivers/usb/musb/musb_core.c
-> > > >
-> > > > <snip>
-> > > >
-> > > > > @@ -1889,6 +1921,7 @@ musb_init_controller(struct device *dev, int
-> > > > > nIrq,
-> > > > void __iomem *ctrl)
-> > > > >  	pm_runtime_enable(musb->controller);
-> > > > >
-> > > > >  	spin_lock_init(&musb->lock);
-> > > > > +	musb->id =3D pdev->id;
-> > > >
-> > > > I fail to see where this musb->id would be used. Care to clarify ?
-> > >
-> > > Sure, It is used in musb_init_debugfs(). Please refer 02/11.
-> >=20
-> > Then it's a bit unnecessary right ?
-> >=20
-> > You can change the directory name to dev_name(musb->controller) as that=
- will
-> > already have the id appended to it.
->=20
-> Well, musb->id is used at many more places and it has to be there. Please=
- refer
->=20
-> 01/11 where all glue layers using it for:
-> +       musb_put_id(&pdev->dev, glue->musb->id);
+> OMAP system control module can be probed early, then
+> omap_type is safe to use its APIs.
 
-your struct *_glue{}; should be the one holding the ID as it's the one
-who requested it. If you request multiple IDs, you hold multiple IDs
-(glue->id0, glue->id1, glue->idN) and so on.
+> TODO: add support for other omap versions
 
---=20
-balbi
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+> ---
+>   arch/arm/mach-omap2/id.c |   11 ++++++-----
+>   1 files changed, 6 insertions(+), 5 deletions(-)
 
---wHYmV+hLPeNaasdK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 40373db..8018cad 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+[...]
+> @@ -43,15 +44,15 @@ int omap_type(void)
+>   	u32 val = 0;
+>
+>   	if (cpu_is_omap24xx()) {
+> -		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+> +		val = omap_control_status_read();
+>   	} else if (soc_is_am33xx()) {
+> -		val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
+> +		val = omap_control_status_read();
+>   	} else if (cpu_is_omap34xx()) {
+> -		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
+> +		val = omap_control_status_read();
+>   	} else if (cpu_is_omap44xx()) {
+> -		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
+> +		val = omap_control_status_read();
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+    Isn't it better to merge now identical code into one *if*?
 
-iQIcBAEBAgAGBQJQD+dVAAoJEIaOsuA1yqRE/+IP/iukZ7X7dqGUWrTJnfPaY29/
-1lqN8AI6t06E4ZRQ/FsCz3eUJ4gUfwkbFL4Ek4B6yPz1jkksFX9EMDBbnfLBRO4M
-idRQcIRs+ULgWXYZgsCoYK9HB7Rbg565aQjiAwz7GjalrY2UmtPmzKPW8eNd314P
-O4w/HVTaewmk9ii2NvxaMKaXlunFOTCTqXd3ZTv/MCoJde509YH2GzdrXeHlfG9D
-AdN4igUIe1uskILapctK7ryyDMcNdEk37IFAPo2wuUorjoMH8DETvUUJg2lLNJtL
-bSbrSg6x5xyGqfmwNznCRuoAV3b7QJgxeOQ3shhgwU5XmJpP6exj9Lq0ZHr0Y7be
-XRXaChPA2e3xQHihaoetOETUK+tk7T7Ij8i81tIrcEUwjSgCzc5UORS70NrGx0CP
-VmRFxXjqG8iuZCU5m7DXDF2XerNXYiGH3q4bqnOx/4VIUaPy2JwXLr9XeSHaoF4c
-YcI7o13lFg8FyJuxCYqaeCLQIf442zCQl99eOXHSqUrIJdIzILLwMX341X+3C78x
-fKlmye8bccKBc2qEFQL3P/G0IpW5HIlnS0KkgHFx19KqugcGnGeWwKFMykMKkICQ
-hMSuLmsRKLrYUJv4dA+f6pqL/wWLK3Doe8tSv7uArZyCxG+LVK5VrfA/e6JW48Kq
-mEVQogVR+2MMFgQiR8Rh
-=hV9e
------END PGP SIGNATURE-----
+WBR, Sergei
 
---wHYmV+hLPeNaasdK--
