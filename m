@@ -1,128 +1,73 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: RE: [PATCHv4 3/8] ARM: OMAP3+: voltage: add support for
- voltagedomain usecounts
-Date: Wed, 25 Jul 2012 11:07:50 +0300
-Message-ID: <1343203670.30247.79.camel@sokoban>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	 <1342189185-5306-4-git-send-email-t-kristo@ti.com>
-	 <6cfa1276727a03e26caea893ced86b92@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
+Date: Wed, 25 Jul 2012 08:57:22 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA0319F@DBDE01.ent.ti.com>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
+ <201201181711.15751.arnd@arndb.de>
+ <331ABD5ECB02734CA317220B2BBEABC13177DFF6@DBDE01.ent.ti.com>
+ <201201191710.45862.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53395 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756204Ab2GYIIE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jul 2012 04:08:04 -0400
-In-Reply-To: <6cfa1276727a03e26caea893ced86b92@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <201201191710.45862.arnd@arndb.de>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2012-07-24 at 15:58 -0500, Vishwanath Sripathy wrote:
-> Tero,
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tero Kristo
-> > Sent: Friday, July 13, 2012 9:20 AM
-> > To: linux-omap@vger.kernel.org; paul@pwsan.com; khilman@ti.com
-> > Cc: linux-arm-kernel@lists.infradead.org
-> > Subject: [PATCHv4 3/8] ARM: OMAP3+: voltage: add support for
-> > voltagedomain usecounts
-> >
-> > These are updated based on powerdomain usecounts. Also added support
-> > for voltdm->sleep and voltdm->wakeup calls that will be invoked once
-> > voltagedomain enters sleep or wakes up based on usecount numbers.
-> > These
-> > will be used for controlling voltage scaling functionality.
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/powerdomain.c |    6 +++-
-> >  arch/arm/mach-omap2/voltage.c     |   56
-> > +++++++++++++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/voltage.h     |   11 +++++++
-> >  3 files changed, 72 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-
-> > omap2/powerdomain.c
-> > index 68bdf36..3b4b15d 100644
-> > --- a/arch/arm/mach-omap2/powerdomain.c
-> > +++ b/arch/arm/mach-omap2/powerdomain.c
-> > @@ -994,7 +994,8 @@ void pwrdm_clkdm_enable(struct powerdomain
-> > *pwrdm)
-> >  	if (!pwrdm)
-> >  		return;
-> >
-> > -	atomic_inc(&pwrdm->usecount);
-> > +	if (atomic_inc_return(&pwrdm->usecount) == 1)
-> > +		voltdm_pwrdm_enable(pwrdm->voltdm.ptr);
-> >  }
-> >
-> >  /**
-> > @@ -1013,6 +1014,9 @@ void pwrdm_clkdm_disable(struct powerdomain
-> > *pwrdm)
-> >
-> >  	val = atomic_dec_return(&pwrdm->usecount);
-> >
-> > +	if (!val)
-> > +		voltdm_pwrdm_disable(pwrdm->voltdm.ptr);
-> > +
-> >  	BUG_ON(val < 0);
-> >  }
-> >
-> > diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
-> > omap2/voltage.c
-> > index 4dc60e8..8c6439b 100644
-> > --- a/arch/arm/mach-omap2/voltage.c
-> > +++ b/arch/arm/mach-omap2/voltage.c
-> > @@ -38,6 +38,7 @@
-> >
-> >  #include "voltage.h"
-> >  #include "powerdomain.h"
-> > +#include "smartreflex.h"
-> >
-> >  #include "vc.h"
-> >  #include "vp.h"
-> > @@ -340,6 +341,61 @@ int voltdm_add_pwrdm(struct voltagedomain
-> > *voltdm, struct powerdomain *pwrdm)
-> >  }
-> >
-> >  /**
-> > + * voltdm_pwrdm_enable - increase usecount for a voltagedomain
-> > + * @voltdm: struct voltagedomain * to increase count for
-> > + *
-> > + * Increases usecount for a given voltagedomain. If the usecount
-> > reaches
-> > + * 1, the domain is awakened from idle and the function will call
-> > the
-> > + * voltagedomain->wakeup callback for this domain.
-> > + */
-> > +void voltdm_pwrdm_enable(struct voltagedomain *voltdm)
-> > +{
-> > +	if (!voltdm)
-> > +		return;
-> > +
-> > +	if (atomic_inc_return(&voltdm->usecount) == 1) {
-> > +		if (voltdm->wakeup)
-> > +			voltdm->wakeup(voltdm);
-> > +	}
-> > +}
-> I think these usecounting functions are prone to race conditions and need
-> to be protected using spin_lock or something like that (not just the
-> usecounter). Otherwise right sequence will not be followed when multiple
-> modules try to idle and enable simultaneously. You can see this issue when
-> 2 cpus enter idle independently.
-
-Yes, you are right... something like this needs to be added for SMP once
-individual cpuidle is in place. I'll add this kind of fix for the next
-version.
-
--Tero
-
-
+SGkgQXJuZCwNCg0KT24gVGh1LCBKYW4gMTksIDIwMTIgYXQgMjI6NDA6NDUsIEFybmQgQmVyZ21h
+bm4gd3JvdGU6DQo+IE9uIFRodXJzZGF5IDE5IEphbnVhcnkgMjAxMiwgQW5pbEt1bWFyLCBDaGlt
+YXRhIHdyb3RlOg0KPiA+IEFuZHJvaWQgdXNlcnNwYWNlIHJ1bm5pbmcgb24gVEkgQU0zMzV4IEVW
+TSBpcyB1c2luZyB0aGUgaW50ZXJmYWNlDQo+ID4gcHJvdmlkZWQgYnkgbGlzM2x2MDJkLiBUaGV5
+IHdlcmUgYXNraW5nIHNvbWUgbW9yZSBpbnRlcmZhY2VzIGZyb20NCj4gPiBsaXMzbHZvMmQgZHJp
+dmVyLg0KPiA+IA0KPiA+IFRoZXJlIGFyZSBtdWx0aXBsZSB3YXlzIHdlIGNhbiBpbnRlcmZhY2Ug
+YWNjZWxlcm9tZXRlciB0byBBbmRyb2lkIGxheWVycywNCj4gPiB3aGljaCBpcyBpbXBsZW1lbnRl
+ZCBvbiBoYXJkd2FyZSBhYnN0cmFjdGlvbiBsYXllciAoSEFMKSBpbiBBbmRyaW9kLg0KPiA+IA0K
+PiA+IDEpIEludGVycnVwdCBtb2RlDQo+ID4gMikgUG9sbGluZyBtb2RlDQo+ID4gICAgMmEpIEtl
+cm5lbCBwb2xsaW5nDQo+ID4gICAgMmIpIFRpbWVyIHBvbGxpbmcNCj4gPiANCj4gPiBCYXNlZCBv
+biB0aGUgaW50ZXJmYWNlcyBwcm92aWRlZCBieSB0aGUgbGlzM2x2MDJkIGFzIHdlbGwgYXMNCj4g
+PiBsaXMzMzFkbGggKEgvVyBub3Qgc3VwcG9ydGluZyB0aGUgaW50ZXJydXB0cykgdGhleSB3ZXJl
+IGltcGxlbWVudGluZw0KPiA+IHRoZSBrZXJuZWwgcG9sbGluZyBtZWNoYW5pc20uDQo+ID4gDQo+
+ID4gU28gaW1wbGVtZW50YXRpb24gb24gSEFMIGlzIGxpa2UgdGhpcyBpZiBhY2NlbGVyb21ldGVy
+IGludGVyZmFjZSBpcw0KPiA+IG9wZW5lZCB0aGVuIGtlcm5lbCB3aWxsIHN0YXJ0IHBvbGxpbmcg
+dGhpcyBkcml2ZXIgcGVyaW9kaWNhbGx5IGFuZA0KPiA+IHBhc3MgZXZlbnRzIHRvIGlucHV0IHN1
+YnN5c3RlbS4gKEl0J3MgYSBsaXR0bGUgYml0IG92ZXIgaGVhZCkNCj4gPiANCj4gPiBHZW5lcmFs
+bHkgdGhlIGRldmljZSBzaG91bGQgYmUgb3BlbiBidXQga2VybmVsIHNob3VsZCBvbmx5IHBvbGwN
+Cj4gPiB3aGVuIGFuIGFwcCB0aGF0IHVzZXMgYWNjZWxlcm9tZXRlciBpcyBzdGFydGVkLg0KPiA+
+IA0KPiA+IFRoZSBiaWdnZXN0IHJlcXVpcmVtZW50IGZvciB0aGVtIChBbmRyaW9kIHBlb3BsZSkg
+aXMgdG8gYWxsb3cgdXNlciB0bw0KPiA+IGVuYWJsZSAvIGRpc2FibGUgYWNjZWxlcm9tZXRlciBm
+cm9tIHVzZXIgc3BhY2UgYW5kIHRvIGNvbmZpZ3VyZQ0KPiA+IHRoZSBhY2NlbGVyb21ldGVyIHBv
+bGxpbmcgZnJlcXVlbmN5Lg0KPiA+IA0KPiA+IFRvZGF5IHRoZXJlIGlzIG5vIG9wdGlvbiBpbiBs
+aXMzbHZvMmQgZHJpdmVyIHRvIHByb3ZpZGUgdGhpcyBraW5kDQo+ID4gb2YgZnVuY3Rpb25hbGl0
+aWVzDQo+IA0KPiBIaSBBbmlsS3VtYXIsDQo+IA0KPiBUaGlzIGFsbCBzb3VuZHMgbGlrZSB0aGUg
+aW50ZXJmYWNlIGlzIG5vdCBjb21wbGV0ZWx5IHRob3VnaHQgdGhyb3VnaC4NCj4gDQo+IEkgZGlk
+IG5vdCByZWFsaXplIHRoYXQgdGhlIGRyaXZlciBhY3R1YWxseSB1c2VzIHRoZSBpbnB1dCBzdWJz
+eXN0ZW0NCj4gaW4gYWRkaXRpb24gdG8gaXRzIG93biBpbnRlcmZhY2VzLiBUaGlzIGlzIGRlZmlu
+aXRlbHkgZ29vZCwgYW5kIGl0DQo+IG1lYW5zIHRoYXQgd2UgY2FuIG1vdmUgdGhlIGZpbGVzIGZy
+b20gZHJpdmVycy9taXNjIHRvIGRyaXZlcnMvaW5wdXQvbWlzYw0KPiBvciBkcml2ZXJzL2lucHV0
+L2FjY2VsZXJvbWV0ZXIsIG1ha2luZyBpdCBEbWl0cnkncyBwcm9ibGVtIGluc3RlYWQgb2YNCj4g
+bWluZSA7LSkNCj4gDQo+IEhhdmluZyBjdXN0b20gdXNlciBpbnRlcmZhY2VzIGluc2lkZSBhbiBp
+bnB1dCBkcml2ZXIgaG93ZXZlciBpcyB2ZXJ5DQo+IGJhZC4gSSdtIHN1cmUgdGhhdCBvdGhlciBh
+Y2NlbGVyb21ldGVycyB3aWxsIGhhdmUgdGhlIHNhbWUgcmVxdWlyZW1lbnRzDQo+IHJlZ2FyZGlu
+ZyBwb2xsaW5nIGZyZXF1ZW5jeSBhbmQgZW5hYmxlL2Rpc2FibGUgaW4gYW5kcm9pZCBhcyB3ZWxs
+IGFzDQo+IGFueXR3aGVyZSBlbHNlIGFuZCBpdCBzaG91bGQgYWJzb2x1dGVseSBub3QgYmUgaGFu
+ZGxlZCBieSBhIHVzZXIgc3BhY2UNCj4gSEFMIGJ1dCBpbnN0ZWFkIGluc2lkZSBvZiB0aGUga2Vy
+bmVsLCB1c2luZyBhIGNvbW1vbiBtZXRob2QgZm9yIGFsbA0KPiBhdmFpbGFibGUgZHJpdmVycy4N
+Cj4gDQo+IEJhc2VkIG9uIHRoYXQsIEkgYWxzbyBkb3VidCB3ZSBzaG91bGQgYXBwbHkgeW91ciBw
+YXRjaCB0byBhZGQgdGhlDQo+ICJyYW5nZSIgYXR0cmlidXRlIChhZGRpbmcgc3VwcG9ydCBmb3Ig
+bGlzMzNsZGxoIGlzIGZpbmUgdGhvdWdoKS4NCj4NCj4gSW5zdGVhZCBJIHdvdWxkIGFzayB5b3Ug
+dG8gZmlyc3QgZml4IHdoYXQncyB0aGVyZSBieSBtb3ZpbmcgdGhlDQo+IHVzZXIgc3BhY2UgaW50
+ZXJmYWNlcyBpbnRvIHRoZSBpbnB1dCBjb3JlIGZyb20gdGhlIGRyaXZlcg0KPiBhbmQgZG9jdW1l
+bnRpbmcgdGhlbS4NCj4NCj4gSSBkb24ndCBrbm93IHdoYXQgdGhlIHByZWZlcnJlZCB3YXkgZm9y
+IGRvaW5nIHRoaW5ncyBpcyB0aGVyZQ0KPiAoam95c3RpY2sgaW9jdGwsIHN5c2ZzIGF0dHJpYnV0
+ZSwgLi4uKSBidXQgRG1pdHJ5IHNob3VsZA0KPiBiZSBhYmxlIHRvIHByb3ZpZGUgYWR2aWNlIHRo
+ZXJlLiBUaGVuIGFkZCBpbnRlcmZhY2VzIGZvciB0aGUNCj4gYWRkaXRpb25hbCBzdHVmZiB5b3Ug
+bmVlZCAocmFuZ2UsIGRpc2FibGUsIC4uLikgaW4gdGhlIHNhbWUNCj4gcGxhY2UgYW5kIGltcGxl
+bWVudCB0aGVtIGFzIGNhbGxiYWNrcyBpbiB0aGUgZHJpdmVyIGl0c2VsZi4NCg0KSSB3aWxsIHJl
+bW92ZSB0aGUgcmFuZ2UgYXR0cmlidXRlIGFuZCBJIHdpbGwgc3VibWl0IHYyLiBUaGUgcmVzdCBv
+Zg0KdGhlIHBhdGNoIGRlYWxzIHdpdGggYWRkaW5nIHN1cHBvcnQgZm9yIGxpczMzbGRsaCBhbmQg
+c2hvdWxkIGJlIGZhaXJseQ0Kbm9uLWNvbnRyb3ZlcnNpYWwuIFdlIGNhbiByZXZpc2l0IHRoZSBy
+YW5nZSBhdHRyaWJ1dGUgYWRkaXRpb24gYXQgYQ0KbGF0ZXIgdGltZS4NCg0KUmVnYXJkcw0KQW5p
+bEt1bWFyDQo=
