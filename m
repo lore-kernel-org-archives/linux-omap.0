@@ -1,128 +1,112 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 02/11] usb: musb: kill global and static for multi
- instance
-Date: Wed, 25 Jul 2012 10:50:15 +0300
-Message-ID: <20120725075014.GR3630@arwen.pp.htv.fi>
-References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
- <1342698367-12978-3-git-send-email-ajay.gupta@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] omap: usb: host: remove deprecated flag
+ 'es2_compatibility'
+Date: Wed, 25 Jul 2012 10:54:13 +0300
+Message-ID: <20120725075413.GS3630@arwen.pp.htv.fi>
+References: <1343153320-4628-1-git-send-email-ruslan.bilovol@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QVgWX4+QEldMe/r9"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="OiITrshLgfui8fEl"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:42494 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755385Ab2GYH5Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jul 2012 03:57:25 -0400
+Received: by lahc1 with SMTP id c1so308364lah.4
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 00:57:23 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1342698367-12978-3-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <1343153320-4628-1-git-send-email-ruslan.bilovol@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: balbi@ti.com, tony@atomide.com, ajay.gupta@ti.com, gadiyar@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
 
 
---QVgWX4+QEldMe/r9
+--OiITrshLgfui8fEl
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Jul 19, 2012 at 05:15:58PM +0530, Ajay Kumar Gupta wrote:
-> Moved global variable "musb_debugfs_root" and static variable
-> "old_state" to 'struct musb' to help support multi instance of
-> musb controller as present on AM335x platform.
+On Tue, Jul 24, 2012 at 09:08:40PM +0300, Ruslan Bilovol wrote:
+> Currently this flag is not used anywhere and may be safely removed.
 >=20
-> Also removed the global variable "orig_dma_mask" and filled the
-> dev->dma_mask with parent device's dma_mask.
->=20
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+
+looks good to me. Keshava ?
+
 > ---
->  drivers/usb/musb/musb_core.c    |   16 +++-------------
->  drivers/usb/musb/musb_core.h    |    4 ++++
->  drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
->  3 files changed, 15 insertions(+), 19 deletions(-)
+>  arch/arm/mach-omap2/usb-host.c        |    1 -
+>  arch/arm/plat-omap/include/plat/usb.h |    4 ----
+>  2 files changed, 0 insertions(+), 5 deletions(-)
 >=20
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 3e09984..a5db4dd 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1802,10 +1802,9 @@ static const struct attribute_group musb_attr_grou=
-p =3D {
->  static void musb_irq_work(struct work_struct *data)
->  {
->  	struct musb *musb =3D container_of(data, struct musb, irq_work);
-> -	static int old_state;
-> =20
-> -	if (musb->xceiv->state !=3D old_state) {
-> -		old_state =3D musb->xceiv->state;
-> +	if (musb->xceiv->state !=3D musb->xceiv_old_state) {
-> +		musb->xceiv_old_state =3D musb->xceiv->state;
->  		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+> diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-hos=
+t.c
+> index dde8a11..5e1cb53 100644
+> --- a/arch/arm/mach-omap2/usb-host.c
+> +++ b/arch/arm/mach-omap2/usb-host.c
+> @@ -500,7 +500,6 @@ void __init usbhs_init(const struct usbhs_omap_board_=
+data *pdata)
+>  		ehci_data.regulator[i] =3D pdata->regulator[i];
 >  	}
->  }
-> @@ -2115,11 +2114,6 @@ fail0:
->  /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
->   * bridge to a platform device; this driver then suffices.
->   */
-> -
-> -#ifndef CONFIG_MUSB_PIO_ONLY
-> -static u64	*orig_dma_mask;
-> -#endif
-> -
->  static int __devinit musb_probe(struct platform_device *pdev)
->  {
->  	struct device	*dev =3D &pdev->dev;
-> @@ -2138,10 +2132,6 @@ static int __devinit musb_probe(struct platform_de=
-vice *pdev)
->  		return -ENOMEM;
->  	}
+>  	ehci_data.phy_reset =3D pdata->phy_reset;
+> -	ohci_data.es2_compatibility =3D pdata->es2_compatibility;
+>  	usbhs_data.ehci_data =3D &ehci_data;
+>  	usbhs_data.ohci_data =3D &ohci_data;
 > =20
-> -#ifndef CONFIG_MUSB_PIO_ONLY
-> -	/* clobbered by use_dma=3Dn */
-> -	orig_dma_mask =3D dev->dma_mask;
-> -#endif
->  	status =3D musb_init_controller(dev, irq, base);
->  	if (status < 0)
->  		iounmap(base);
-> @@ -2166,7 +2156,7 @@ static int __devexit musb_remove(struct platform_de=
-vice *pdev)
->  	iounmap(ctrl_base);
->  	device_init_wakeup(&pdev->dev, 0);
->  #ifndef CONFIG_MUSB_PIO_ONLY
-> -	pdev->dev.dma_mask =3D orig_dma_mask;
-> +	pdev->dev.dma_mask =3D (&dev->dev.parent)->dma_mask;
-
-are you sure ?? This should be:
-
-dev->parent.dma_mask;
-
-In fact, while doing that you could use dma_set_mask() instead ;-)
+> diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/i=
+nclude/plat/usb.h
+> index 762eeb0..f8c1eb8 100644
+> --- a/arch/arm/plat-omap/include/plat/usb.h
+> +++ b/arch/arm/plat-omap/include/plat/usb.h
+> @@ -32,9 +32,6 @@ struct usbhs_omap_board_data {
+>  	/* have to be valid if phy_reset is true and portx is in phy mode */
+>  	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
+> =20
+> -	/* Set this to true for ES2.x silicon */
+> -	unsigned			es2_compatibility:1;
+> -
+>  	unsigned			phy_reset:1;
+> =20
+>  	/*
+> @@ -53,7 +50,6 @@ struct ehci_hcd_omap_platform_data {
+> =20
+>  struct ohci_hcd_omap_platform_data {
+>  	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+> -	unsigned			es2_compatibility:1;
+>  };
+> =20
+>  struct usbhs_omap_platform_data {
+> --=20
+> 1.7.1
+>=20
 
 --=20
 balbi
 
---QVgWX4+QEldMe/r9
+--OiITrshLgfui8fEl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQD6U2AAoJEIaOsuA1yqREFAAP/2NdNCbI8Yj+Mfs9t5vu6Dvc
-o4k6ITxDD9u3UwivVC0axI5qgvESX0WQLu0Cd9yQ01i8WWbSeyqvwqitWAyEuc4u
-uRlBtmF6MDps+RWmpAedXRbddYJLXPoAfwL0IGj3tRto8L/h3AcaNtcTj53SUhDs
-TSD/fiCIybZuX1LoNkFpXJgNu+n6SQifQ6/cZHOXHlTMitsvzaHoxRF3f5n11SDf
-Ls77Ol7lqWXyENqY2f8b/P1lYFmJq6f15Pr+yv1N+9vgz8zFNxAz6qqImnnwGKCN
-Sgx6kSOAQexlAqGYTYxqBReK0O/DMC9YSoyyuaA4xkZxuoBKsyA7Cpo29oNSvODH
-bkyWL4nJqgsN/eUMZCRsG+xCPSRSWtKc1V9DD72Et+KdAVr9Ysbklf6rjs/AMisR
-3Vd5NR6/2Z39ydzv157Sn+/4+h93i+1a/eX/Z+K8koRgAHFDKTKSRjCp9WFd6CwA
-YbphVRyrgTixfrFIEeeRtRdFo+09gjgobQ5goUjSDU4alGR8f1fUdtdHCJiDNphv
-JJ/UmAj2exxmlOvPjVvl7egAWOzTsiXfEhrQxqKE08wlpQC6xES3EMEMrjMA+fef
-h87b/fH2OKPm1ZWHAYY7LwX6x4u1gqcDaML0rJ4flP6DwzYi3wLXMJmN/lRKtz4o
-EABt/SSXfp98oW5nmrKK
-=APoo
+iQIcBAEBAgAGBQJQD6YlAAoJEIaOsuA1yqRE8moP/37kZVMxSlGfCQWjPDFquVNC
+2VARsdPVT0g6MdB4MSDz7gcK5zlEP+7zcfiopsnc1S8iZImGDDoxTo38fl7UQhBq
+tCcqhUjyLMHY5KiXARLxtKlyDgjLjE/JCqfk2wtCnKu/taRJ7WZBrE1buZvWi5fm
+gvM/FCdzP0TQePBXba3VsiTkoSM89ce+DUqRsg9Zl+07KOqIYB6Y5OSQyknTl76T
+B1XEVrlSlTyazXHChZmNTzKc1SRenAR3D0ss79jjfoC6FcjCH13TutMn5QdD3ZIQ
+RmgOh5JKZfOXJoFxdck24WYBBrLImpemGz0uBj/9RJiQOI6YWTlIAhmMG1kWNVPM
+e8vhS9S5kITUpH26HwtrheNYv7mmF99Yxt/EjA0qjkK5eQcUgZ6P28g2RGAnknNq
+qbyEZFglCTbBgCuuYmWjUDMAJF/9hz5W3XmipM5U0o4iIOc+lPxeG5UqKrItHirr
+xXeSy7htqNkBlyCnbDfwAuFCUxCAnfSMNf52iTUtcVipp7QJGxeIPX+Db8Y29olJ
+aRc+1Y2/DN9Ym9RKMj2VRLVFUZIaiuA4fUj58N9ir6YjzTWdU7nAPK/xNjDRZw7z
+ZCvs8h8vajz/HowlAOu66PChtBFAhpdbcSONLu5d+DPah+iaeCDouScqp/BNbTfN
+Gq1+2dsy9GsWoZigBRwQ
+=YNAP
 -----END PGP SIGNATURE-----
 
---QVgWX4+QEldMe/r9--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--OiITrshLgfui8fEl--
