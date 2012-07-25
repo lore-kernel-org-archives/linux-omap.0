@@ -1,82 +1,105 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [GIT PULL] remoteproc for 3.6
-Date: Wed, 25 Jul 2012 13:24:52 +0300
-Message-ID: <CAK=Wgbb0ch+z7YKou7hqgFF45mGiYd6TD_XUaHgr3b26Fbp1Sg@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH v4 02/11] usb: musb: kill global and static for multi
+ instance
+Date: Wed, 25 Jul 2012 10:34:49 +0000
+Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAE56BD@DBDE01.ent.ti.com>
+References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
+ <1342698367-12978-3-git-send-email-ajay.gupta@ti.com>
+ <20120725075014.GR3630@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: =?ISO-8859-1?Q?Sjur_Br=E6ndeland?= <sjur.brandeland@stericsson.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33050 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754465Ab2GYKfH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 06:35:07 -0400
+In-Reply-To: <20120725075014.GR3630@arwen.pp.htv.fi>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Linus,
+Hi,
+> 
+> On Thu, Jul 19, 2012 at 05:15:58PM +0530, Ajay Kumar Gupta wrote:
+> > Moved global variable "musb_debugfs_root" and static variable
+> > "old_state" to 'struct musb' to help support multi instance of musb
+> > controller as present on AM335x platform.
+> >
+> > Also removed the global variable "orig_dma_mask" and filled the
+> > dev->dma_mask with parent device's dma_mask.
+> >
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> > ---
+> >  drivers/usb/musb/musb_core.c    |   16 +++-------------
+> >  drivers/usb/musb/musb_core.h    |    4 ++++
+> >  drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
+> >  3 files changed, 15 insertions(+), 19 deletions(-)
+> >
+> > diff --git a/drivers/usb/musb/musb_core.c
+> > b/drivers/usb/musb/musb_core.c index 3e09984..a5db4dd 100644
+> > --- a/drivers/usb/musb/musb_core.c
+> > +++ b/drivers/usb/musb/musb_core.c
+> > @@ -1802,10 +1802,9 @@ static const struct attribute_group
+> > musb_attr_group = {  static void musb_irq_work(struct work_struct
+> > *data)  {
+> >  	struct musb *musb = container_of(data, struct musb, irq_work);
+> > -	static int old_state;
+> >
+> > -	if (musb->xceiv->state != old_state) {
+> > -		old_state = musb->xceiv->state;
+> > +	if (musb->xceiv->state != musb->xceiv_old_state) {
+> > +		musb->xceiv_old_state = musb->xceiv->state;
+> >  		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+> >  	}
+> >  }
+> > @@ -2115,11 +2114,6 @@ fail0:
+> >  /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
+> >   * bridge to a platform device; this driver then suffices.
+> >   */
+> > -
+> > -#ifndef CONFIG_MUSB_PIO_ONLY
+> > -static u64	*orig_dma_mask;
+> > -#endif
+> > -
+> >  static int __devinit musb_probe(struct platform_device *pdev)  {
+> >  	struct device	*dev = &pdev->dev;
+> > @@ -2138,10 +2132,6 @@ static int __devinit musb_probe(struct
+> platform_device *pdev)
+> >  		return -ENOMEM;
+> >  	}
+> >
+> > -#ifndef CONFIG_MUSB_PIO_ONLY
+> > -	/* clobbered by use_dma=n */
+> > -	orig_dma_mask = dev->dma_mask;
+> > -#endif
+> >  	status = musb_init_controller(dev, irq, base);
+> >  	if (status < 0)
+> >  		iounmap(base);
+> > @@ -2166,7 +2156,7 @@ static int __devexit musb_remove(struct
+> platform_device *pdev)
+> >  	iounmap(ctrl_base);
+> >  	device_init_wakeup(&pdev->dev, 0);
+> >  #ifndef CONFIG_MUSB_PIO_ONLY
+> > -	pdev->dev.dma_mask = orig_dma_mask;
+> > +	pdev->dev.dma_mask = (&dev->dev.parent)->dma_mask;
+> 
+> are you sure ?? This should be:
+> 
+> dev->parent.dma_mask;
 
-There are a few merge conflicts which are mostly trivial, but there's
-also a sneaky one which is easy to miss (I missed it when I reviewed
-the merge in linux-next) so I also pushed a 3.6-merge-reference branch
-(for reference).
+Actually both are fine and I used parent based on your recommendation
+in my earlier version of patch at
+http://marc.info/?l=linux-usb&m=134121391908734&w=2
 
-(in short, e981f6d "remoteproc: fix print format warnings" fixed a
-line in rproc_load_segments(), but that function was relocated to
-remoteproc_elf_loader.c by 72854fb "remoteproc: Move Elf related
-functions to separate file", and since 72854fb is based on the
-pre-fixed version of the function, it does not carry the 1-liner fix
-to remoteproc_elf_loader.c, so the merge commit should. Thanks a
-lot!).
+anyways I will change to :
+pdev->dev.dma_mask = dma_set_mask((&pdev->dev, DMA_BIT_MASK(64));
 
-Without further ado,
-
-The following changes since commit 485802a6c524e62b5924849dd727ddbb1497=
-cc71:
-
-  Linux 3.5-rc3 (2012-06-16 17:25:17 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-tags/remoteproc-for-3.6
-
-for you to fetch changes up to 6bb697b6b06041d2d0affc862b17b4b443a107e0=
-:
-
-  MAINTAINERS: add remoteproc's git (2012-07-15 11:39:02 +0300)
-
-----------------------------------------------------------------
-A batch of remoteproc patches for 3.6:
-- custom binary format support from Sjur Br=E6ndeland
-- groundwork for recovery and runtime pm support
-- some cleanups and API simplifications
-
-----------------------------------------------------------------
-Ohad Ben-Cohen (8):
-      remoteproc: allocate vrings on demand, free when not needed
-      remoteproc: maintain a generic child device for each rproc
-      remoteproc: remove the now-redundant kref
-      remoteproc: simplify unregister/free interfaces
-      remoteproc: support non-iommu carveout assignment
-      remoteproc: remove the get_by_name/put API
-      remoteproc: adopt the driver core's alloc/add/del/put naming
-      MAINTAINERS: add remoteproc's git
-
-Sjur Br=E6ndeland (4):
-      remoteproc: Pass struct fw to load_segments and find_rsc_table.
-      remoteproc: Add function rproc_get_boot_addr
-      remoteproc: Move Elf related functions to separate file
-      remoteproc: Support custom firmware handlers
-
- Documentation/remoteproc.txt               |  58 +--
- MAINTAINERS                                |   1 +
- drivers/remoteproc/Makefile                |   1 +
- drivers/remoteproc/omap_remoteproc.c       |  26 +-
- drivers/remoteproc/remoteproc_core.c       | 726 ++++++++-------------=
---------
- drivers/remoteproc/remoteproc_debugfs.c    |   4 +-
- drivers/remoteproc/remoteproc_elf_loader.c | 295 ++++++++++++
- drivers/remoteproc/remoteproc_internal.h   |  62 +++
- drivers/remoteproc/remoteproc_virtio.c     |  34 +-
- drivers/rpmsg/virtio_rpmsg_bus.c           |   3 +-
- include/linux/remoteproc.h                 |  20 +-
- 11 files changed, 613 insertions(+), 617 deletions(-)
- create mode 100644 drivers/remoteproc/remoteproc_elf_loader.c
+Ajay
+> 
+> In fact, while doing that you could use dma_set_mask() instead ;-)
+> 
+> --
+> balbi
