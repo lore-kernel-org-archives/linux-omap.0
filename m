@@ -1,14 +1,14 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 02/11] usb: musb: kill global and static for multi instance
-Date: Wed, 25 Jul 2012 17:37:20 +0530
-Message-ID: <1343218049-29917-3-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH v5 06/11] arm/dts: am33xx: Add dt data for usbss
+Date: Wed, 25 Jul 2012 17:37:24 +0530
+Message-ID: <1343218049-29917-7-git-send-email-ajay.gupta@ti.com>
 References: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39567 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:39568 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756601Ab2GYMHn (ORCPT
+	with ESMTP id S1756602Ab2GYMHn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jul 2012 08:07:43 -0400
 In-Reply-To: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,161 +16,35 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Moved global variable "musb_debugfs_root" and static variable
-"old_state" to 'struct musb' to help support multi instance of
-musb controller as present on AM335x platform.
-
-Also removed the global variable "orig_dma_mask" and filled the
-dev->dma_mask with parent device's dma_mask.
+Added device tree data for usbss on am33xx. There are two musb controllers
+on am33xx platform so have port0_mode and port1_mode additional data.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_core.c    |   22 +++++++---------------
- drivers/usb/musb/musb_core.h    |    4 ++++
- drivers/usb/musb/musb_debugfs.c |   14 ++++++++------
- 3 files changed, 19 insertions(+), 21 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index f5eb8a7..cfd93b7 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -100,6 +100,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/idr.h>
-+#include <linux/dma-mapping.h>
- 
- #include "musb_core.h"
- 
-@@ -1804,10 +1805,9 @@ static const struct attribute_group musb_attr_group = {
- static void musb_irq_work(struct work_struct *data)
- {
- 	struct musb *musb = container_of(data, struct musb, irq_work);
--	static int old_state;
- 
--	if (musb->xceiv->state != old_state) {
--		old_state = musb->xceiv->state;
-+	if (musb->xceiv->state != musb->xceiv_old_state) {
-+		musb->xceiv_old_state = musb->xceiv->state;
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
- }
-@@ -2117,11 +2117,6 @@ fail0:
- /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
-  * bridge to a platform device; this driver then suffices.
-  */
--
--#ifndef CONFIG_MUSB_PIO_ONLY
--static u64	*orig_dma_mask;
--#endif
--
- static int __devinit musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
-@@ -2140,10 +2135,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
--#ifndef CONFIG_MUSB_PIO_ONLY
--	/* clobbered by use_dma=n */
--	orig_dma_mask = dev->dma_mask;
--#endif
- 	status = musb_init_controller(dev, irq, base);
- 	if (status < 0)
- 		iounmap(base);
-@@ -2153,7 +2144,8 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 
- static int __devexit musb_remove(struct platform_device *pdev)
- {
--	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct device	*dev = &pdev->dev;
-+	struct musb	*musb = dev_to_musb(dev);
- 	void __iomem	*ctrl_base = musb->ctrl_base;
- 
- 	/* this gets called on rmmod.
-@@ -2166,9 +2158,9 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 
- 	musb_free(musb);
- 	iounmap(ctrl_base);
--	device_init_wakeup(&pdev->dev, 0);
-+	device_init_wakeup(dev, 0);
- #ifndef CONFIG_MUSB_PIO_ONLY
--	pdev->dev.dma_mask = orig_dma_mask;
-+	dma_set_mask(dev, *dev->parent->dma_mask);
- #endif
- 	return 0;
- }
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 69ed141..6b6cee9 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -452,6 +452,10 @@ struct musb {
- #endif
- 	/* id for multiple musb instances */
- 	u8			id;
-+	int                     xceiv_old_state;
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry           *debugfs_root;
-+#endif
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 59509c4..08e9a40 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -154,5 +154,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+ 		};
++
++		usb_otg_hs: usb_otg_hs {
++			compatible = "ti,musb-am33xx";
++			ti,hwmods = "usb_otg_hs";
++			multipoint = <1>;
++			num_eps = <16>;
++			ram_bits = <12>;
++			port0_mode = <3>;
++			port1_mode = <1>;
++			power = <250>;
++		};
+ 	};
  };
- 
- static inline struct musb *gadget_to_musb(struct usb_gadget *g)
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 40a37c9..b1e8f21 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
- 	{  }	/* Terminating Entry */
- };
- 
--static struct dentry *musb_debugfs_root;
--
- static int musb_regdump_show(struct seq_file *s, void *unused)
- {
- 	struct musb		*musb = s->private;
-@@ -240,20 +238,24 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 	struct dentry		*root;
- 	struct dentry		*file;
- 	int			ret;
-+	char			name[10];
- 
--	root = debugfs_create_dir("musb", NULL);
-+	sprintf(name, "musb%d", musb->id);
-+	root = debugfs_create_dir(name, NULL);
- 	if (!root) {
- 		ret = -ENOMEM;
- 		goto err0;
- 	}
- 
--	file = debugfs_create_file("regdump", S_IRUGO, root, musb,
-+	sprintf(name, "regdump%d", musb->id);
-+	file = debugfs_create_file(name, S_IRUGO, root, musb,
- 			&musb_regdump_fops);
- 	if (!file) {
- 		ret = -ENOMEM;
- 		goto err1;
- 	}
- 
-+	sprintf(name, "testmode%d", musb->id);
- 	file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR,
- 			root, musb, &musb_test_mode_fops);
- 	if (!file) {
-@@ -261,7 +263,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 		goto err1;
- 	}
- 
--	musb_debugfs_root = root;
-+	musb->debugfs_root = root;
- 
- 	return 0;
- 
-@@ -274,5 +276,5 @@ err0:
- 
- void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
- {
--	debugfs_remove_recursive(musb_debugfs_root);
-+	debugfs_remove_recursive(musb->debugfs_root);
- }
 -- 
 1.7.0.4
 
