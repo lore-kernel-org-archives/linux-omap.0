@@ -1,73 +1,92 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Wed, 25 Jul 2012 08:57:22 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA0319F@DBDE01.ent.ti.com>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
- <201201181711.15751.arnd@arndb.de>
- <331ABD5ECB02734CA317220B2BBEABC13177DFF6@DBDE01.ent.ti.com>
- <201201191710.45862.arnd@arndb.de>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] Input: omap4-keypad: Fix the probe error handling
+Date: Wed, 25 Jul 2012 15:05:16 +0530
+Message-ID: <1343208916-19149-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <201201191710.45862.arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGkgQXJuZCwNCg0KT24gVGh1LCBKYW4gMTksIDIwMTIgYXQgMjI6NDA6NDUsIEFybmQgQmVyZ21h
-bm4gd3JvdGU6DQo+IE9uIFRodXJzZGF5IDE5IEphbnVhcnkgMjAxMiwgQW5pbEt1bWFyLCBDaGlt
-YXRhIHdyb3RlOg0KPiA+IEFuZHJvaWQgdXNlcnNwYWNlIHJ1bm5pbmcgb24gVEkgQU0zMzV4IEVW
-TSBpcyB1c2luZyB0aGUgaW50ZXJmYWNlDQo+ID4gcHJvdmlkZWQgYnkgbGlzM2x2MDJkLiBUaGV5
-IHdlcmUgYXNraW5nIHNvbWUgbW9yZSBpbnRlcmZhY2VzIGZyb20NCj4gPiBsaXMzbHZvMmQgZHJp
-dmVyLg0KPiA+IA0KPiA+IFRoZXJlIGFyZSBtdWx0aXBsZSB3YXlzIHdlIGNhbiBpbnRlcmZhY2Ug
-YWNjZWxlcm9tZXRlciB0byBBbmRyb2lkIGxheWVycywNCj4gPiB3aGljaCBpcyBpbXBsZW1lbnRl
-ZCBvbiBoYXJkd2FyZSBhYnN0cmFjdGlvbiBsYXllciAoSEFMKSBpbiBBbmRyaW9kLg0KPiA+IA0K
-PiA+IDEpIEludGVycnVwdCBtb2RlDQo+ID4gMikgUG9sbGluZyBtb2RlDQo+ID4gICAgMmEpIEtl
-cm5lbCBwb2xsaW5nDQo+ID4gICAgMmIpIFRpbWVyIHBvbGxpbmcNCj4gPiANCj4gPiBCYXNlZCBv
-biB0aGUgaW50ZXJmYWNlcyBwcm92aWRlZCBieSB0aGUgbGlzM2x2MDJkIGFzIHdlbGwgYXMNCj4g
-PiBsaXMzMzFkbGggKEgvVyBub3Qgc3VwcG9ydGluZyB0aGUgaW50ZXJydXB0cykgdGhleSB3ZXJl
-IGltcGxlbWVudGluZw0KPiA+IHRoZSBrZXJuZWwgcG9sbGluZyBtZWNoYW5pc20uDQo+ID4gDQo+
-ID4gU28gaW1wbGVtZW50YXRpb24gb24gSEFMIGlzIGxpa2UgdGhpcyBpZiBhY2NlbGVyb21ldGVy
-IGludGVyZmFjZSBpcw0KPiA+IG9wZW5lZCB0aGVuIGtlcm5lbCB3aWxsIHN0YXJ0IHBvbGxpbmcg
-dGhpcyBkcml2ZXIgcGVyaW9kaWNhbGx5IGFuZA0KPiA+IHBhc3MgZXZlbnRzIHRvIGlucHV0IHN1
-YnN5c3RlbS4gKEl0J3MgYSBsaXR0bGUgYml0IG92ZXIgaGVhZCkNCj4gPiANCj4gPiBHZW5lcmFs
-bHkgdGhlIGRldmljZSBzaG91bGQgYmUgb3BlbiBidXQga2VybmVsIHNob3VsZCBvbmx5IHBvbGwN
-Cj4gPiB3aGVuIGFuIGFwcCB0aGF0IHVzZXMgYWNjZWxlcm9tZXRlciBpcyBzdGFydGVkLg0KPiA+
-IA0KPiA+IFRoZSBiaWdnZXN0IHJlcXVpcmVtZW50IGZvciB0aGVtIChBbmRyaW9kIHBlb3BsZSkg
-aXMgdG8gYWxsb3cgdXNlciB0bw0KPiA+IGVuYWJsZSAvIGRpc2FibGUgYWNjZWxlcm9tZXRlciBm
-cm9tIHVzZXIgc3BhY2UgYW5kIHRvIGNvbmZpZ3VyZQ0KPiA+IHRoZSBhY2NlbGVyb21ldGVyIHBv
-bGxpbmcgZnJlcXVlbmN5Lg0KPiA+IA0KPiA+IFRvZGF5IHRoZXJlIGlzIG5vIG9wdGlvbiBpbiBs
-aXMzbHZvMmQgZHJpdmVyIHRvIHByb3ZpZGUgdGhpcyBraW5kDQo+ID4gb2YgZnVuY3Rpb25hbGl0
-aWVzDQo+IA0KPiBIaSBBbmlsS3VtYXIsDQo+IA0KPiBUaGlzIGFsbCBzb3VuZHMgbGlrZSB0aGUg
-aW50ZXJmYWNlIGlzIG5vdCBjb21wbGV0ZWx5IHRob3VnaHQgdGhyb3VnaC4NCj4gDQo+IEkgZGlk
-IG5vdCByZWFsaXplIHRoYXQgdGhlIGRyaXZlciBhY3R1YWxseSB1c2VzIHRoZSBpbnB1dCBzdWJz
-eXN0ZW0NCj4gaW4gYWRkaXRpb24gdG8gaXRzIG93biBpbnRlcmZhY2VzLiBUaGlzIGlzIGRlZmlu
-aXRlbHkgZ29vZCwgYW5kIGl0DQo+IG1lYW5zIHRoYXQgd2UgY2FuIG1vdmUgdGhlIGZpbGVzIGZy
-b20gZHJpdmVycy9taXNjIHRvIGRyaXZlcnMvaW5wdXQvbWlzYw0KPiBvciBkcml2ZXJzL2lucHV0
-L2FjY2VsZXJvbWV0ZXIsIG1ha2luZyBpdCBEbWl0cnkncyBwcm9ibGVtIGluc3RlYWQgb2YNCj4g
-bWluZSA7LSkNCj4gDQo+IEhhdmluZyBjdXN0b20gdXNlciBpbnRlcmZhY2VzIGluc2lkZSBhbiBp
-bnB1dCBkcml2ZXIgaG93ZXZlciBpcyB2ZXJ5DQo+IGJhZC4gSSdtIHN1cmUgdGhhdCBvdGhlciBh
-Y2NlbGVyb21ldGVycyB3aWxsIGhhdmUgdGhlIHNhbWUgcmVxdWlyZW1lbnRzDQo+IHJlZ2FyZGlu
-ZyBwb2xsaW5nIGZyZXF1ZW5jeSBhbmQgZW5hYmxlL2Rpc2FibGUgaW4gYW5kcm9pZCBhcyB3ZWxs
-IGFzDQo+IGFueXR3aGVyZSBlbHNlIGFuZCBpdCBzaG91bGQgYWJzb2x1dGVseSBub3QgYmUgaGFu
-ZGxlZCBieSBhIHVzZXIgc3BhY2UNCj4gSEFMIGJ1dCBpbnN0ZWFkIGluc2lkZSBvZiB0aGUga2Vy
-bmVsLCB1c2luZyBhIGNvbW1vbiBtZXRob2QgZm9yIGFsbA0KPiBhdmFpbGFibGUgZHJpdmVycy4N
-Cj4gDQo+IEJhc2VkIG9uIHRoYXQsIEkgYWxzbyBkb3VidCB3ZSBzaG91bGQgYXBwbHkgeW91ciBw
-YXRjaCB0byBhZGQgdGhlDQo+ICJyYW5nZSIgYXR0cmlidXRlIChhZGRpbmcgc3VwcG9ydCBmb3Ig
-bGlzMzNsZGxoIGlzIGZpbmUgdGhvdWdoKS4NCj4NCj4gSW5zdGVhZCBJIHdvdWxkIGFzayB5b3Ug
-dG8gZmlyc3QgZml4IHdoYXQncyB0aGVyZSBieSBtb3ZpbmcgdGhlDQo+IHVzZXIgc3BhY2UgaW50
-ZXJmYWNlcyBpbnRvIHRoZSBpbnB1dCBjb3JlIGZyb20gdGhlIGRyaXZlcg0KPiBhbmQgZG9jdW1l
-bnRpbmcgdGhlbS4NCj4NCj4gSSBkb24ndCBrbm93IHdoYXQgdGhlIHByZWZlcnJlZCB3YXkgZm9y
-IGRvaW5nIHRoaW5ncyBpcyB0aGVyZQ0KPiAoam95c3RpY2sgaW9jdGwsIHN5c2ZzIGF0dHJpYnV0
-ZSwgLi4uKSBidXQgRG1pdHJ5IHNob3VsZA0KPiBiZSBhYmxlIHRvIHByb3ZpZGUgYWR2aWNlIHRo
-ZXJlLiBUaGVuIGFkZCBpbnRlcmZhY2VzIGZvciB0aGUNCj4gYWRkaXRpb25hbCBzdHVmZiB5b3Ug
-bmVlZCAocmFuZ2UsIGRpc2FibGUsIC4uLikgaW4gdGhlIHNhbWUNCj4gcGxhY2UgYW5kIGltcGxl
-bWVudCB0aGVtIGFzIGNhbGxiYWNrcyBpbiB0aGUgZHJpdmVyIGl0c2VsZi4NCg0KSSB3aWxsIHJl
-bW92ZSB0aGUgcmFuZ2UgYXR0cmlidXRlIGFuZCBJIHdpbGwgc3VibWl0IHYyLiBUaGUgcmVzdCBv
-Zg0KdGhlIHBhdGNoIGRlYWxzIHdpdGggYWRkaW5nIHN1cHBvcnQgZm9yIGxpczMzbGRsaCBhbmQg
-c2hvdWxkIGJlIGZhaXJseQ0Kbm9uLWNvbnRyb3ZlcnNpYWwuIFdlIGNhbiByZXZpc2l0IHRoZSBy
-YW5nZSBhdHRyaWJ1dGUgYWRkaXRpb24gYXQgYQ0KbGF0ZXIgdGltZS4NCg0KUmVnYXJkcw0KQW5p
-bEt1bWFyDQo=
+- pm_runtime_disable call is missed in some of the error cases
+  fix the same.
+- In the error path pm_runtime_put_sync is called after pm_runtime_disable
+ fix the same.
+- keypad_data->keymap free was missed in one of the error path fix it.
+
+Also while at it call pm_runtime_put_sync after the register access in probe
+instead of waiting for input registration etc.
+
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/input/keyboard/omap4-keypad.c |   16 +++++++---------
+ 1 files changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index c05f98c..17efede 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -310,6 +310,7 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		goto err_unmap;
+ 	}
+ 	rev = __raw_readl(keypad_data->base + OMAP4_KBD_REVISION);
++	pm_runtime_put_sync(&pdev->dev);
+ 	rev &= 0x03 << 30;
+ 	rev >>= 30;
+ 	switch (rev) {
+@@ -325,14 +326,14 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev,
+ 			"Keypad reports unsupported revision %d", rev);
+ 		error = -EINVAL;
+-		goto err_pm_put_sync;
++		goto err_unmap;
+ 	}
+ 
+ 	/* input device allocation */
+ 	keypad_data->input = input_dev = input_allocate_device();
+ 	if (!input_dev) {
+ 		error = -ENOMEM;
+-		goto err_pm_put_sync;
++		goto err_unmap;
+ 	}
+ 
+ 	input_dev->name = pdev->name;
+@@ -374,30 +375,27 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 			     "omap4-keypad", keypad_data);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "failed to register interrupt\n");
+-		goto err_free_input;
++		goto err_free_keymap;
+ 	}
+ 
+-	pm_runtime_put_sync(&pdev->dev);
+ 
+ 	error = input_register_device(keypad_data->input);
+ 	if (error < 0) {
+ 		dev_err(&pdev->dev, "failed to register input device\n");
+-		goto err_pm_disable;
++		goto err_free_irq;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, keypad_data);
+ 	return 0;
+ 
+-err_pm_disable:
+-	pm_runtime_disable(&pdev->dev);
++err_free_irq:
+ 	free_irq(keypad_data->irq, keypad_data);
+ err_free_keymap:
+ 	kfree(keypad_data->keymap);
+ err_free_input:
+ 	input_free_device(input_dev);
+-err_pm_put_sync:
+-	pm_runtime_put_sync(&pdev->dev);
+ err_unmap:
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(keypad_data->base);
+ err_release_mem:
+ 	release_mem_region(res->start, resource_size(res));
+-- 
+1.7.5.4
