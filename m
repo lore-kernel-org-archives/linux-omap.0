@@ -1,92 +1,86 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH] Input: omap4-keypad: Fix the probe error handling
-Date: Wed, 25 Jul 2012 15:05:16 +0530
-Message-ID: <1343208916-19149-1-git-send-email-shubhrajyoti@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 01/11] usb: musb: add musb->id to identify core
+ instance
+Date: Wed, 25 Jul 2012 10:23:28 +0000
+Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAE5603@DBDE01.ent.ti.com>
+References: <1342698367-12978-1-git-send-email-ajay.gupta@ti.com>
+ <1342698367-12978-2-git-send-email-ajay.gupta@ti.com>
+ <20120725074534.GQ3630@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120725074534.GQ3630-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-- pm_runtime_disable call is missed in some of the error cases
-  fix the same.
-- In the error path pm_runtime_put_sync is called after pm_runtime_disable
- fix the same.
-- keypad_data->keymap free was missed in one of the error path fix it.
+Hi,
+> On Thu, Jul 19, 2012 at 05:15:57PM +0530, Ajay Kumar Gupta wrote:
+> > diff --git a/drivers/usb/musb/musb_core.c
+> > b/drivers/usb/musb/musb_core.c index 89d1871..3e09984 100644
+> > --- a/drivers/usb/musb/musb_core.c
+> > +++ b/drivers/usb/musb/musb_core.c
+> > @@ -99,6 +99,7 @@
+> >  #include <linux/prefetch.h>
+> >  #include <linux/platform_device.h>
+> >  #include <linux/io.h>
+> > +#include <linux/idr.h>
+> >
+> >  #include "musb_core.h"
+> >
+> > @@ -114,6 +115,7 @@
+> >
+> >  #define MUSB_DRIVER_NAME "musb-hdrc"
+> >  const char musb_driver_name[] = MUSB_DRIVER_NAME;
+> > +static DEFINE_IDA(musb_ida);
+> >
+> >  MODULE_DESCRIPTION(DRIVER_INFO);
+> >  MODULE_AUTHOR(DRIVER_AUTHOR);
+> > @@ -130,6 +132,33 @@ static inline struct musb *dev_to_musb(struct
+> > device *dev)
+> >
+> >
+> > /*--------------------------------------------------------------------
+> > -----*/
+> >
+> > +int musb_get_id(struct device *dev, gfp_t gfp_mask) {
+> > +	int ret;
+> > +	int id;
+> > +
+> > +	ret = ida_pre_get(&musb_ida, gfp_mask);
+> > +	if (!ret) {
+> > +		dev_err(dev, "failed to reserve resource for id\n");
+> > +		return -ENOMEM;
+> > +	}
+> > +
+> > +	ret = ida_get_new(&musb_ida, &id);
+> > +	if (ret < 0) {
+> > +		dev_err(dev, "failed to allocate a new id\n");
+> > +		return ret;
+> > +	}
+> > +
+> > +	return id;
+> > +}
+> > +
+> > +void musb_put_id(struct device *dev, int id) {
+> > +
+> > +	dev_dbg(dev, "removing id %d\n", id);
+> > +	ida_remove(&musb_ida, id);
+> > +}
+> 
+> both of these should be EXPORT_SYMBOL_GPL() for cases when musb and glue are
+> compiled as modules.
 
-Also while at it call pm_runtime_put_sync after the register access in probe
-instead of waiting for input registration etc.
+Sure. I will fix this.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/input/keyboard/omap4-keypad.c |   16 +++++++---------
- 1 files changed, 7 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index c05f98c..17efede 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -310,6 +310,7 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 		goto err_unmap;
- 	}
- 	rev = __raw_readl(keypad_data->base + OMAP4_KBD_REVISION);
-+	pm_runtime_put_sync(&pdev->dev);
- 	rev &= 0x03 << 30;
- 	rev >>= 30;
- 	switch (rev) {
-@@ -325,14 +326,14 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev,
- 			"Keypad reports unsupported revision %d", rev);
- 		error = -EINVAL;
--		goto err_pm_put_sync;
-+		goto err_unmap;
- 	}
- 
- 	/* input device allocation */
- 	keypad_data->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
- 		error = -ENOMEM;
--		goto err_pm_put_sync;
-+		goto err_unmap;
- 	}
- 
- 	input_dev->name = pdev->name;
-@@ -374,30 +375,27 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 			     "omap4-keypad", keypad_data);
- 	if (error) {
- 		dev_err(&pdev->dev, "failed to register interrupt\n");
--		goto err_free_input;
-+		goto err_free_keymap;
- 	}
- 
--	pm_runtime_put_sync(&pdev->dev);
- 
- 	error = input_register_device(keypad_data->input);
- 	if (error < 0) {
- 		dev_err(&pdev->dev, "failed to register input device\n");
--		goto err_pm_disable;
-+		goto err_free_irq;
- 	}
- 
- 	platform_set_drvdata(pdev, keypad_data);
- 	return 0;
- 
--err_pm_disable:
--	pm_runtime_disable(&pdev->dev);
-+err_free_irq:
- 	free_irq(keypad_data->irq, keypad_data);
- err_free_keymap:
- 	kfree(keypad_data->keymap);
- err_free_input:
- 	input_free_device(input_dev);
--err_pm_put_sync:
--	pm_runtime_put_sync(&pdev->dev);
- err_unmap:
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(keypad_data->base);
- err_release_mem:
- 	release_mem_region(res->start, resource_size(res));
--- 
-1.7.5.4
+Ajay
+> 
+> --
+> balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
