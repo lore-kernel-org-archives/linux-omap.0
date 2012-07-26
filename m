@@ -1,65 +1,38 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 26 Jul 2012 10:53:46 -0500
-Message-ID: <5011680A.6040400@ti.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>  <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>  <201207260714.34540.arnd@arndb.de> <1343302083.1726.9027.camel@vkoul-udesk3>
+From: Daniel Mack <zonque@gmail.com>
+Subject: Re: Current state of AM33xx patches
+Date: Thu, 26 Jul 2012 17:58:30 +0200
+Message-ID: <50116926.4060309@gmail.com>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com> <4FF42761.2000701@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com> <500CEF97.4050207@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com> <501159C3.302010
+ 9@gmail.com> <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39627 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab2GZPyH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 11:54:07 -0400
-In-Reply-To: <1343302083.1726.9027.camel@vkoul-udesk3>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:47078 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753021Ab2GZP6l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 11:58:41 -0400
+Received: by wibhm11 with SMTP id hm11so6585297wib.1
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 08:58:39 -0700 (PDT)
+In-Reply-To: <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+
+On 26.07.2012 17:00, Koen Kooi wrote:
+
+> With Ajay's usb patches you can easily boot from a usb stick, you'll
+> only need the bootloads to be on mmc or tftp. That's what I have been
+> doing on my beaglebone :)
+> 
+> I'm going to update
+> https://github.com/beagleboard/kernel/tree/beaglebone-3.6 to use
+> linus' tree when I get a chance to test a build.
+
+Hmm, how are the patches in this repository generated? Is there a tree
+that has them as real commits?
 
 
-On 07/26/2012 06:28 AM, Vinod Koul wrote:
-> On Thu, 2012-07-26 at 07:14 +0000, Arnd Bergmann wrote:
->> On Thursday 26 July 2012, Vinod Koul wrote:
->>>>> But from a client POV it makes sense as with the given direction you
->>>>> would need a specific request line for a channel. So this is right.
->>>>> But direction is something I don't expect to be used for "give me a
->>>>> channel" 
->>>>
->>>> Ok. The thought was that the user would have the following means of
->>>> requesting a channel ...
->>>>
->>>> 1. By name
->>> Bare name maynot be enough. In a dmac we have many channels which one to
->>> choose?
->> The name is what is associated with the property in the client device
->> node, which describes everything the dmac driver needs to know.
->> If the dmac needs to pick a specific channel, it can find out from the
->> "dmas" property in combination with that name. If it is allowed to
->> pick any channel, it doesn't need to bother.
-> dmac doesn't pick a channel. They don't come into picture till dmaengine
-> and client have agreed on channel. And then channel callback in invoked,
-> still it doesn't know which client.
-
-I think what Arnd meant was that dmaengine (not the dmac) would use the
-DT node and name information to extract the dma mapping information from
-the device tree and provide a channel back to the client. So yes the
-dmac is not involved here.
-
-By the way, when I said "by name" above (and probably this was not
-clear) but it should have been "DT node and name". So really a channel
-is requested by ...
-
-1. DT node and a name
-2. DT node and a filter parameter (flags)
-3. DT node, a name and a filter parameter (flags)
-
-The DT node points us to the specific device in the DT, say an MMC node,
-and the MMC node then contains the DMA mapping info. The device node may
-have the mapping information have one or more DMA requests/channels and
-so then the name and/or flags is used to determine which the client needs.
-
-Sorry hope that this is a little clearer.
-
-Cheers
-Jon
+Thanks,
+Daniel
