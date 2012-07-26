@@ -1,75 +1,203 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
-Date: Wed, 25 Jul 2012 19:41:23 -0500
-Message-ID: <50109233.3090302@ti.com>
-References: <20120608094708.GC19062@mudshark.cambridge.arm.com> <4FD21930.4000800@ti.com> <20120611173930.GD28235@mudshark.cambridge.arm.com> <4FD64083.3020800@ti.com> <20120612092842.GA2991@mudshark.cambridge.arm.com> <4FD7B1DC.30108@ti.com> <20120612213150.GC24380@mudshark.cambridge.arm.com> <4FD7C597.7060501@ti.com> <20120702095539.GD22239@mudshark.cambridge.arm.com> <4FF1D15E.7040301@ti.com> <20120702220117.GD25234@mudshark.cambridge.arm.com> <4FF6340A.6020409@ti.com>
+From: zhangfei gao <zhangfei.gao@gmail.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 26 Jul 2012 12:56:02 +0800
+Message-ID: <CAMj5BkjbZsL_vSCfLsZ6UsdPrAHeQ+FwBFYbUM_L1w3wqCLuMQ@mail.gmail.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	<201206271520.49276.arnd@arndb.de>
+	<1342161907.1726.26.camel@vkoul-udesk3>
+	<201207171924.33756.arnd@arndb.de>
+	<1342756850.1726.74.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52045 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562Ab2GZAlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jul 2012 20:41:21 -0400
-In-Reply-To: <4FF6340A.6020409@ti.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:32911 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750741Ab2GZE4F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 00:56:05 -0400
+Received: by lahd3 with SMTP id d3so1125892lah.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 21:56:02 -0700 (PDT)
+In-Reply-To: <1342756850.1726.74.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Vinod Koul <vinod.koul@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi Will,
-
-On 07/05/2012 07:40 PM, Jon Hunter wrote:
-> Hi Will,
-> 
-> On 07/02/2012 05:01 PM, Will Deacon wrote:
->> On Mon, Jul 02, 2012 at 05:50:38PM +0100, Jon Hunter wrote:
->>> On 07/02/2012 04:55 AM, Will Deacon wrote:
->>>>
->>>> Did you have any luck getting to the bottom of this?
->>>
->>> I am still waiting for feedback from design. They were trying to confirm
->>> my observations. Unfortunately, it is taking some time. I will ping them
->>> again.
+On Fri, Jul 20, 2012 at 12:00 PM, Vinod Koul <vinod.koul@linux.intel.com> wrote:
+> On Tue, 2012-07-17 at 19:24 +0000, Arnd Bergmann wrote:
+>> On Friday 13 July 2012, Vinod Koul wrote:
+>> > > Do you mean there must be a global table, or are you ok with putting
+>> > > the information about a channel into the device that uses the channel,
+>> > > as we do for most other subsystems (IRQ, GPIO, pinctrl, ...).
+>> > > If not, what is the problem with that approach?
+>> >
+>> > Today, we simple ask, "give me dma channel with DMA_SLAVE capability".
+>> >
+>> > If we change it to "give me dma channel which suits my need" and have
+>> > additional information in dmaengine to handle this request effectively.
+>> >
+>> > What that would mean is
+>> > a) DMA channel either knows which channel to provide, Or
+>> > b) Additional arguments provided to dmaengine API to help it find out
+>> > which channel to provide.
+>> >
+>> > It would be good to have client ask for a specific channel. But in order
+>> > to build generic clients, we face a problem that clients may not know
+>> > how they mapped to dmac by SoC designer. Or the mux maybe entirely
+>> > flexible on which channel.
+>> >
+>> > If we add this as DT property (which I assume should be platform
+>> > specific), then client will know which channel to request.
+>> > It can have two levels, dmac and channel. In case mux is flexible enough
+>> > then client gets a channel and program the mux for this mapping.
+>> >
+>> > I think this is the most simplistic solution I have for this, thoughts?
 >>
->> Ok, thanks. If pinging doesn't work, bribery can be quite effective with
->> hardware guys :)
-> 
-> Yes looks like I am going to need to get creative :-)
-> 
->>>> It would be good to take your PMU suspend/resume patches once we know that
->>>> they will get used.
->>>
->>> Yes that would be good. I could drop the 4460 specific changes for now
->>> and make 4460 work in the same way as 4430 (using CTI) for the time
->>> being and see if we can get these in. However, I recall that was not
->>> working for you, but it was working fine for me.
+>> I think we're basically on the same page. Let's see if I have covered
+>> all the cases we discussed so far. I've tried to update the binding that
+>> Jon sent out initially with everything we've discussed, so please review
+>> this to see if I understood you correctly.
+> I think this looks fine to me. Few comments below on client side
 >>
->> Indeed, that hack didn't help me and I'd rather not commit it if it only
->> partially fixes the problem. A better bet might just be to go with your
->> original approach and see how many bug reports we receive. That might also
->> help us narrow down the problem, but it's your call.
-> 
-> Ok, I think that that is best.
-> 
->> In the meantime, I pushed what I think is the latest drop of your series to
->> a new branch on kernel.org:
+>>       Arnd
 >>
->>   git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git perf/omap4-dev
-> 
-> Looks good.
+>>
+>> * Generic DMA Controller and DMA request bindings
+>>
+>> Generic binding to provide a way for a driver using DMA Engine to retrieve the
+>> DMA request or channel information that goes from a hardware device to a DMA
+>> controller.
+>>
+>> * DMA controller
+>>
+>> Required property:
+>>     - #dma-cells: Number elements to describe DMA channel information. Must be
+>>                   at least 2, allowing a phandle and a flags cell, but usually
+>>                 is larger so a client can also specify a request or channel
+>>                   number and/or some configuration.
+>>
+>> Optional properties:
+>>     - #dma-channels: Number of DMA channels supported by the controller.
+>>     - #dma-requests: Number of DMA requests signals supported by the controller.
+>>
+>> Example:
+>>
+>>        sdma: dmaengine@48000000 {
+>>                compatible = "ti,omap4-sdma"
+>>                reg = <0x48000000 0x1000>;
+>>                interrupts = <4>;
+>>                #dma-cells = <3>;
+>>                #dma-channels = <32>;
+>>                #dma-requests = <127>;
+>>        };
+>>
+>>
+>> * DMA client
+>>
+>> Client drivers should specify the DMA property using a phandle to the controller
+>> followed by the number of DMA request/channel and the transfer type of the
+>> channel (eg. device-to-memory, memory-to-device, memory-to-memory, etc).
+>>
+>> Required property:
+>>     dmas: list of one or more dma specifiers, each consisting of
+>>      - phandle pointing to dma controller node
+>>      - flags word, a bit map that can hold these flags
+>>        * 0x00000001 channel can be used for transfer from device
+>>        * 0x00000002 channel can be user for transfer to device
+> Is this for identifying which channel is for TX and RX? If not I am not
+> sure I understood it well
+>
+>>      - zero or more cells in a format specific to the the dma controller
+>>        node listed in the phandle. This typically contains a dma request
+>>        line number or a channel number, but can contain any data that
+>>        is used required for configuring a channel.
 
-I just wanted to let you know that I have been updating the PMU patches
-for OMAP. Latest can be found here [1]. I have not included Paul's patch
-[2] in this series at the moment, because although it works well for
-OMAP4, I need to create the HWMOD structures for OMAP3. Without these
-structures it breaks OMAP3 PMU support. Once this is done we should be
-able to get rid for the OMAP3 dependency on ETM. Unfortunately, Benoit
-(Mr HWMOD) is out on his holidays but should be back next week and then
-maybe he can give me some guidance on this HWMOD stuff.
+How about extend struct dma_slave_config, adding one member of
+"request_line", if
+"request line" is must config in most platform.
 
-Cheers
-Jon
+struct dma_slave_config {
+~
+u32 request_line;
+}
+The advantage is request_line can be get directly from
+dmaengine_slave_config regardless of DT.
 
-[1] https://gitorious.org/linux-omap-dev dev-pmu
-[2] http://marc.info/?l=linux-omap&m=134212809112530&w=2
+>>
+>> Optional property:
+>>     dma-names: when present, this shall contain one identifier string
+>>     for each dma specifier in the dmas property. The specific strings
+>>     that can be used are defined in the binding of the DMA client
+>>     device. When multiple dma specifiers can be used as alternatives,
+>>     the dma-names for those dma specifiers must be identical.
+>>
+>> Any dma specifiers that have identical flags and identical dma-names
+>> (if present) shall refer to different dma controllers that can be
+>> used as alternatives, e.g. when a request line is connected to
+>> multiple dma controllers. If multiple dma specifiers are listed that
+>> have the same flags but refer to different functional channels,
+>> the dma-names property must be used to distinguish them.
+>>
+>> Examples:
+>>
+>> 1. One DMA write channel, one DMA read/write channel:
+>>
+>>        i2c1: i2c@1 {
+>>                ...
+>>                dmas = <&sdma 2 1 &sdma 3 2>;
+>>                ...
+>>        };
+>>
+>> 2. A single read-write channel with two alternative dma controllers
+>>    providing it:
+>>
+>>       dmas = <&dma0 3 5
+>>               &dma1 3 7
+>>               &dma2 3 2>;
+>>
+>> 3. A device with three channels, one of which has two alternatives:
+>>
+>>       dmas = <&dma0 1 4 /* data read */
+>>               &dma0 2 6 /* data write */
+>>               &dma1 1 0 /* error read */
+>>               &dma2 1 0>; /* alternative error read */
+>>       dma-names = "data", "data", "error", "error";
+>>
+>> 4. A dma controller requiring complex configuration:
+>>
+>>        dma: dmaengine@48000000 {
+>>                compatible = "foo,foo-sdma"
+>>                reg = <0x48000000 0x1000>;
+>>                interrupts = <4>;
+>>                #dma-cells = <6>; /* phandle, flag, request, channel,
+>>                                        input-width, output-width */
+> Why would we want the widths to be here?
+> Assuming a DMA from System memory to a peripheral, source width should
+> be system memory width and destination the peripheral width. IMO these
+> should not be in dma property even if we need these
+>>                #dma-channels = <32>;
+>>                #dma-requests = <127>;
+>>        };
+>>
+>>        mmc@49000000 {
+>>               ...
+>>               dmas = <&dma 1  /* read */
+>>                       2       /* request line */
+>>                       5       /* channel */
+>>                       16      /* 16 bit bus width on read */
+>>                       8>      /* 8 bit bus width on write */
+>>                      <&dma 2  /* write */
+>>                       3       /* request line */
+>>                       6       /* channel */
+>>                       8       /* 8 bit bus width on read */
+>>                       16>     /* 16 bit bus width on write */
+> >From this looks like flag is for TX/RX, so maybe i read correct :)
+>
+> --
+> ~Vinod
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
