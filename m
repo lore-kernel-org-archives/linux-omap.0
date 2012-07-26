@@ -1,54 +1,51 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: Current state of AM33xx patches
-Date: Thu, 26 Jul 2012 17:00:14 +0200
-Message-ID: <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com> <4FF42761.2000701@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com> <500CEF97.4050207@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com> <501159C3.302010
- 9@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Thu, 26 Jul 2012 16:05:35 +0100
+Message-ID: <20120726150534.GD6382@mudshark.cambridge.arm.com>
+References: <4FD64083.3020800@ti.com>
+ <20120612092842.GA2991@mudshark.cambridge.arm.com>
+ <4FD7B1DC.30108@ti.com>
+ <20120612213150.GC24380@mudshark.cambridge.arm.com>
+ <4FD7C597.7060501@ti.com>
+ <20120702095539.GD22239@mudshark.cambridge.arm.com>
+ <4FF1D15E.7040301@ti.com>
+ <20120702220117.GD25234@mudshark.cambridge.arm.com>
+ <4FF6340A.6020409@ti.com>
+ <50109233.3090302@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:56606 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773Ab2GZPAU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 11:00:20 -0400
-Received: by wibhq12 with SMTP id hq12so5514981wib.1
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 08:00:19 -0700 (PDT)
-In-Reply-To: <501159C3.3020109@gmail.com>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:54017 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751814Ab2GZPGK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 11:06:10 -0400
+Content-Disposition: inline
+In-Reply-To: <50109233.3090302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+On Thu, Jul 26, 2012 at 01:41:23AM +0100, Jon Hunter wrote:
+> Hi Will,
 
-Op 26 jul. 2012, om 16:52 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
+Hi Jon,
 
-> On 23.07.2012 18:36, N, Mugunthan V wrote:
->>> On 05.07.2012 19:45, N, Mugunthan V wrote:
-> 
->>>> I am working on DT support for cpsw and will be submitting the patch by
->>>> July 20, 2012
->>> 
->>> Just curious - have you made any progress on that yet?
->>> 
->> 
->> I have got the runtime PM support accepted to net-next, will be working on 
->> and submitting DT support by this week.
-> 
-> I got these updates now via mainline, thanks for your work. Could you
-> give me some board code sniplet that makes that driver work for you? I'm
-> asking because I fail to see the "fck" clock that the driver requires.
-> 
-> I'm based on Linus' tree in the middle of the merge window, plus the
-> am335x-upstream-staging branch of
-> git://github.com/hvaibhav/am335x-linux.git - anything else I need to have?
-> 
-> Once I have network up and running, I can finally boot into a shell :)
+> On 07/05/2012 07:40 PM, Jon Hunter wrote:
+> I just wanted to let you know that I have been updating the PMU patches
+> for OMAP. Latest can be found here [1]. I have not included Paul's patch
+> [2] in this series at the moment, because although it works well for
+> OMAP4, I need to create the HWMOD structures for OMAP3. Without these
+> structures it breaks OMAP3 PMU support. Once this is done we should be
+> able to get rid for the OMAP3 dependency on ETM. Unfortunately, Benoit
+> (Mr HWMOD) is out on his holidays but should be back next week and then
+> maybe he can give me some guidance on this HWMOD stuff.
 
-With Ajay's usb patches you can easily boot from a usb stick, you'll only need the bootloads to be on mmc or tftp. That's what I have been doing on my beaglebone :)
+Ok, thanks for updating me. I've pushed the patches out onto my
+perf/omap4-dev branch as that seems to be a good place to collate the
+current state of things. I've not tried doing anything with it yet though.
 
-I'm going to update https://github.com/beagleboard/kernel/tree/beaglebone-3.6 to use linus' tree when I get a chance to test a build.
+Do you know when Benoit will be back online?
 
-regards,
-
-Koen
+Will
