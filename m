@@ -1,97 +1,75 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping from cpuidle
-Date: Wed, 25 Jul 2012 15:43:03 -0700
-Message-ID: <87obn3798o.fsf@ti.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
-	<1342764284-8143-3-git-send-email-rnayak@ti.com>
-	<CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
-	<5009120A.1060400@ti.com> <1342774283.4672.181.camel@sokoban>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Wed, 25 Jul 2012 19:41:23 -0500
+Message-ID: <50109233.3090302@ti.com>
+References: <20120608094708.GC19062@mudshark.cambridge.arm.com> <4FD21930.4000800@ti.com> <20120611173930.GD28235@mudshark.cambridge.arm.com> <4FD64083.3020800@ti.com> <20120612092842.GA2991@mudshark.cambridge.arm.com> <4FD7B1DC.30108@ti.com> <20120612213150.GC24380@mudshark.cambridge.arm.com> <4FD7C597.7060501@ti.com> <20120702095539.GD22239@mudshark.cambridge.arm.com> <4FF1D15E.7040301@ti.com> <20120702220117.GD25234@mudshark.cambridge.arm.com> <4FF6340A.6020409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:60498 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751206Ab2GYWnH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jul 2012 18:43:07 -0400
-Received: by yenl12 with SMTP id l12so2361469yen.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 15:43:05 -0700 (PDT)
-In-Reply-To: <1342774283.4672.181.camel@sokoban> (Tero Kristo's message of
-	"Fri, 20 Jul 2012 11:51:23 +0300")
+Received: from comal.ext.ti.com ([198.47.26.152]:52045 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751562Ab2GZAlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jul 2012 20:41:21 -0400
+In-Reply-To: <4FF6340A.6020409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Rajendra Nayak <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com
+To: Will Deacon <will.deacon@arm.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Tero Kristo <t-kristo@ti.com> writes:
+Hi Will,
 
-> On Fri, 2012-07-20 at 13:38 +0530, Rajendra Nayak wrote:
->> On Friday 20 July 2012 12:55 PM, Shilimkar, Santosh wrote:
->> > On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
->> >> pwrdm_pre_transition()/pwrdm_post_transition() have always been high latency
->> >> operations done within cpuidle to do Powerdomain level book-keeping to know
->> >> what state transitions for different Powerdomains have been triggered.
->> >> This is also useful to do a restore-on-demand in some cases when we know
->> >> the context for the given Powerdomain was lost etc.
->> >>
->> >> Now that we have definitive entry/exit points (thanks to the Powerdomain
->> >> level usecounting) for Powerdomain transitions, these book-keeping functions
->> >> can very well be moved from within CPUidle into pwrdm_clkdm_enable()/pwrdm_
->> >> clkdm_disable() functions.
->> >>
->> >> Also rename _pwrdm_pre/post_transition_cb() to pwrdm_pre/post_transition()
->> >> and get rid of the original ones which iterate over all powerdomains.
->> >>
->> >> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+On 07/05/2012 07:40 PM, Jon Hunter wrote:
+> Hi Will,
+> 
+> On 07/02/2012 05:01 PM, Will Deacon wrote:
+>> On Mon, Jul 02, 2012 at 05:50:38PM +0100, Jon Hunter wrote:
+>>> On 07/02/2012 04:55 AM, Will Deacon wrote:
+>>>>
+>>>> Did you have any luck getting to the bottom of this?
+>>>
+>>> I am still waiting for feedback from design. They were trying to confirm
+>>> my observations. Unfortunately, it is taking some time. I will ping them
+>>> again.
+>>
+>> Ok, thanks. If pinging doesn't work, bribery can be quite effective with
+>> hardware guys :)
+> 
+> Yes looks like I am going to need to get creative :-)
+> 
+>>>> It would be good to take your PMU suspend/resume patches once we know that
+>>>> they will get used.
+>>>
+>>> Yes that would be good. I could drop the 4460 specific changes for now
+>>> and make 4460 work in the same way as 4430 (using CTI) for the time
+>>> being and see if we can get these in. However, I recall that was not
+>>> working for you, but it was working fine for me.
+>>
+>> Indeed, that hack didn't help me and I'd rather not commit it if it only
+>> partially fixes the problem. A better bet might just be to go with your
+>> original approach and see how many bug reports we receive. That might also
+>> help us narrow down the problem, but it's your call.
+> 
+> Ok, I think that that is best.
+> 
+>> In the meantime, I pushed what I think is the latest drop of your series to
+>> a new branch on kernel.org:
+>>
+>>   git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git perf/omap4-dev
+> 
+> Looks good.
 
-This is excellent!   Thanks for working on this.
+I just wanted to let you know that I have been updating the PMU patches
+for OMAP. Latest can be found here [1]. I have not included Paul's patch
+[2] in this series at the moment, because although it works well for
+OMAP4, I need to create the HWMOD structures for OMAP3. Without these
+structures it breaks OMAP3 PMU support. Once this is done we should be
+able to get rid for the OMAP3 dependency on ETM. Unfortunately, Benoit
+(Mr HWMOD) is out on his holidays but should be back next week and then
+maybe he can give me some guidance on this HWMOD stuff.
 
-However, it needs a rebase against mainline though because I merged a
-set of optimizations[1] to this code already that only calls pre/post
-per-pwrdm.
+Cheers
+Jon
 
-[...]
-
->> > Glad to see this is getting optimized.
->> > I haven't seen how "pwrdm_cpu_[idle/wakeup]()" is
->> > implemented but will those work on SMP system ?
->> > I mean OMAP4, any CPU can make this call ?
->> 
->> Thats a good question. I think Tero did this so he can kick in
->> voltage transitions at the right time in idle/suspend.
->> Given that these deal with incrementing/decrementing the MPU and CORE
->> pwrdm usecounts alone, maybe on OMAP4 (SMP systems) this needs to also
->> increment/decrement the specific CPU usecounts on the CPUs these calls
->> are made.
->
-> Yeah, you should keep the usecounts valid by each cpu separately calling
-> these functions. My current set only sets these usecounts based on cpu0
-> activity, as cpu1 is statically controlled through cpu online / offline.
-> Once per-cpu cpuidle is in, these should be changed so that each
-> individual cpu increases the usecounts when they are brought up,
-> decrease/increase during idle, and decrease when they are brought down.
-> The usecount should always reflect the number of CPUs active on MPU
-> domain.
-
-Coupled CPUidle is merging for v3.6 (hopefully OMAP support too), so
-this should be addressed sooner rather than later.
-
-Kevin
-
-[1] Specifically, see:
-commit 58f0829b7186150318c79515f0e0850c5e7a9c89
-Author: Kevin Hilman <khilman@ti.com>
-Date:   Fri May 11 15:47:17 2012 -0700
-
-    ARM: OMAP3: PM: call pre/post transition per powerdomain
-    
-    We only need to call the pre/post transtion methods when we know the
-    power state is changing.  First, split up the pre/post transition
-    calls to be per-powerdomain, and then make them conditional on whether
-    the power domain is actually changing states.
-    
-    Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-    Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-    Tested-by: Grazvydas Ignotas <notasas@gmail.com>
-    Signed-off-by: Kevin Hilman <khilman@ti.com>
-
+[1] https://gitorious.org/linux-omap-dev dev-pmu
+[2] http://marc.info/?l=linux-omap&m=134212809112530&w=2
