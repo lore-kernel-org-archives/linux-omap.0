@@ -1,42 +1,98 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping
- from cpuidle
-Date: Thu, 26 Jul 2012 14:50:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1207261447050.14468@utopia.booyaka.com>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com>  <1342764284-8143-3-git-send-email-rnayak@ti.com>  <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>  <5009120A.1060400@ti.com> <1342774283.4672.181.camel@sokoban>
- <87obn3798o.fsf@ti.com> <50113B3C.4090608@ti.com>  <87boj2s9hi.fsf@ti.com> <1343327231.30247.151.camel@sokoban>
+Subject: [PATCH] ARM: OMAP3xxx: clockdomain: fix software supervised
+ wakeup/sleep
+Date: Thu, 26 Jul 2012 15:04:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207261503290.14468@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37017 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:44717 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705Ab2GZUuU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 16:50:20 -0400
-In-Reply-To: <1343327231.30247.151.camel@sokoban>
+	with ESMTP id S1752642Ab2GZVEM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 17:04:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
-
-On Thu, 26 Jul 2012, Tero Kristo wrote:
-
-> On Thu, 2012-07-26 at 10:44 -0700, Kevin Hilman wrote:
-> 
-> > Or, to get rid of autodeps. ;)
-> 
-> Whats the reason for having them anyway?
-
-No one has yet posted tested patches to convert OMAP2/3 to use the IP 
-block-based clockdomain enable sequence.  A few folks posted some patches 
-for this in 2010 but the patches didn't boot.
-
-It should be a little easier to try this now since we have more data 
-defined now than we did in the past.
-
-> Some of the wakedeps make sense (per domain due to hw bugs) but 
-> sleepdeps...?
-
-That sounds like a different issue.
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com, jon-hunter@ti.com
 
 
-- Paul
+Commit 4da71ae6 ("OMAP: clockdomain: Arch specific funcs for
+clkdm_clk_enable/disable") called the OMAP2xxx-specific functions for
+clockdomain wakeup and sleep.  This would probably have broken
+software-supervised clockdomain wakeup and sleep on OMAP3.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   50 ++++++++++++++++++++++++++--
+ 1 file changed, 48 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+index a0d68db..f99e65c 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+@@ -241,6 +241,52 @@ static void omap3_clkdm_deny_idle(struct clockdomain *clkdm)
+ 		_clkdm_del_autodeps(clkdm);
+ }
+ 
++static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
++{
++	bool hwsup = false;
++
++	if (!clkdm->clktrctrl_mask)
++		return 0;
++
++	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++				clkdm->clktrctrl_mask);
++
++	if (hwsup) {
++		/* Disable HW transitions when we are changing deps */
++		_disable_hwsup(clkdm);
++		_clkdm_add_autodeps(clkdm);
++		_enable_hwsup(clkdm);
++	} else {
++		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++			omap3_clkdm_wakeup(clkdm);
++	}
++
++	return 0;
++}
++
++static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
++{
++	bool hwsup = false;
++
++	if (!clkdm->clktrctrl_mask)
++		return 0;
++
++	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
++				clkdm->clktrctrl_mask);
++
++	if (hwsup) {
++		/* Disable HW transitions when we are changing deps */
++		_disable_hwsup(clkdm);
++		_clkdm_del_autodeps(clkdm);
++		_enable_hwsup(clkdm);
++	} else {
++		if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
++			omap3_clkdm_sleep(clkdm);
++	}
++
++	return 0;
++}
++
+ struct clkdm_ops omap2_clkdm_operations = {
+ 	.clkdm_add_wkdep	= omap2_clkdm_add_wkdep,
+ 	.clkdm_del_wkdep	= omap2_clkdm_del_wkdep,
+@@ -267,6 +313,6 @@ struct clkdm_ops omap3_clkdm_operations = {
+ 	.clkdm_wakeup		= omap3_clkdm_wakeup,
+ 	.clkdm_allow_idle	= omap3_clkdm_allow_idle,
+ 	.clkdm_deny_idle	= omap3_clkdm_deny_idle,
+-	.clkdm_clk_enable	= omap2_clkdm_clk_enable,
+-	.clkdm_clk_disable	= omap2_clkdm_clk_disable,
++	.clkdm_clk_enable	= omap3xxx_clkdm_clk_enable,
++	.clkdm_clk_disable	= omap3xxx_clkdm_clk_disable,
+ };
+-- 
+1.7.10.4
+
