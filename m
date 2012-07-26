@@ -1,118 +1,103 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct gpio_bank
-Date: Thu, 26 Jul 2012 11:50:21 +0530
-Message-ID: <CAC83ZvJ7DW-u+Q_DJB8TRX9=F+ucESBNRQ0T8qkFdt0W4c=o4A@mail.gmail.com>
-References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
-	<1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
-	<4FFAA7B3.6020009@ti.com>
-	<CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Thu, 26 Jul 2012 12:12:40 +0530
+Message-ID: <1343284960.1726.8978.camel@vkoul-udesk3>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
+	 <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>
+	 <201207200839.24259.arnd@arndb.de> <1342777047.1726.435.camel@vkoul-udesk3>
+	 <500EF27F.6050905@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44170 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750789Ab2GZGUW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 02:20:22 -0400
-Received: by qabj40 with SMTP id j40so947166qab.15
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 23:20:21 -0700 (PDT)
-In-Reply-To: <CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:20674 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750742Ab2GZGmN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 02:42:13 -0400
+In-Reply-To: <500EF27F.6050905@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi Roger,
+On Tue, 2012-07-24 at 14:07 -0500, Jon Hunter wrote:
+> Hi Vinod,
+> >>>> Required property:
+> >>>>     dmas: list of one or more dma specifiers, each consisting of
+> >>>>      - phandle pointing to dma controller node
+> >>>>      - flags word, a bit map that can hold these flags
+> >>>>        * 0x00000001 channel can be used for transfer from device
+> >>>>        * 0x00000002 channel can be user for transfer to device
+> >>>
+> >>> Is this for identifying which channel is for TX and RX? If not I am not
+> >>> sure I understood it well
+> >>
+> >> Yes, but we can potentially add more flags here.
+> >>
+> >> The argument we had when coming up with this was roughly:
+> >>
+> >> * we need to identify which specifiers are referring to the same
+> >>   conceptual channel and can be used as alternatives
+> >> * this could be done just using the dma-names property, but making
+> >>   dma-names mandatory adds complexity for everyone.
+> >> * Most devices have just one or two channels, and if they have two,
+> >>   there is usually one input and one output.
+> >>
+> >> => if the common dmaengine code can find out whether a channel is
+> >>   input or output without looking at the dmac driver specific configuration,
+> >>   we don't need to add dma-names in most cases, but just let the client
+> >>   driver ask for "give me a channel with these flags".
+> > No we don't export the direction of the channel and usually channel can
+> > be configured either way.
+> 
+> So yes I can see that a channel itself could be configured to support a
+> given direction, but when we ask for a channel via dma_request_channel()
+> we are going to get a channel that matches the criteria we pass using
+> the filter parameter. So here the thinking was that "flags" is a filter
+> parameter that the user could specify and one example being direction
+> but it could be something else too.
+Yes that can be done, but I am leaning towards clients not have to do
+anything :) DMAEngine needs to know mapping and when
+dma_request_channel() is called it _always_ gives you the right channel.
 
-On Mon, Jul 9, 2012 at 4:46 PM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> Hi Roger,
->
-> On Mon, Jul 9, 2012 at 3:13 PM, Roger Quadros <rogerq@ti.com> wrote:
->> Hi,
->>
->> Just bumped across this patch and have a query.
->>
->> On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
->>> There is no more need to have saved_wakeup because bank->context.wake_en
->>> already holds that value. So getting rid of read/write operation associated
->>> with this field.
->>>
->>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Acked-by: Felipe Balbi <balbi@ti.com>
->>> ---
->>>  drivers/gpio/gpio-omap.c |   12 +++---------
->>>  1 files changed, 3 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>> index 3a4f151..3b91ade 100644
->>> --- a/drivers/gpio/gpio-omap.c
->>> +++ b/drivers/gpio/gpio-omap.c
->>> @@ -57,7 +57,6 @@ struct gpio_bank {
->>>       u16 irq;
->>>       int irq_base;
->>>       struct irq_domain *domain;
->>> -     u32 saved_wakeup;
->>>       u32 non_wakeup_gpios;
->>>       u32 enabled_non_wakeup_gpios;
->>>       struct gpio_regs context;
->>> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
->>>       unsigned long           flags;
->>>
->>>       spin_lock_irqsave(&bank->lock, flags);
->>> -     bank->saved_wakeup = __raw_readl(mask_reg);
->>>       __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
->>
->> OK, here you are overwriting the mask_reg with the wakeup bitmask
->> without saving the mask_reg's original content.
-> This is based upon understanding that set_gpio_trigger() is the common
-> function where update of wake_en register takes place. Unless, mask_reg
-> in this case refers to something else, effectively we would be saving the
-> same value to saved_wakeup what is already present in wake_en.
-> I will verify this specific to this function.
-I had a look at this change and it appears for OMAP1 we have to explicitly
-save the register here. This is because set_gpio_trigger() refers to wake_en
-register for OMAP2+ platforms, whereas here on OMAP1 it is referring to
-irqenable register. In other words we need to have:
-bank->context.wake_en = __raw_readl(mask_reg);
---
-Tarun
+Maybe for slave case we need to create dma_request_slave_channel() which
+has additional arguments for dmaengine to do the filtering.
 
->
->>
->>>       spin_unlock_irqrestore(&bank->lock, flags);
->>>
->>> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
->>>       unsigned long           flags;
->>>
->>>       spin_lock_irqsave(&bank->lock, flags);
->>> -     __raw_writel(bank->saved_wakeup, mask_reg);
->>> +     __raw_writel(bank->context.wake_en, mask_reg);
->>
->> Now you are restoring nothing but the same content that you stored
->> during suspend. This will cause the non-wakeup gpio interrupts to get
->> masked between a suspend/resume. So isn't this a bug?
-> That's right, the same value is restored back which was last updated in
-> set_gpio_trigger() that got stored in wake_en register. Let me know if
-> I am missing your points here.
->
->>
->> Proper solution would be to save the mask_reg context into another
->> register than context.wake_en during suspend.
-> As I said, this would make sense if mask_reg is referring to different
-> register than what is used in set_gpio_trigger(). I will have a look.
->
-> BTW, did you observe anything unusual during some testing?
->
-> Thanks.
-> --
-> Tarun
->>
->>>       spin_unlock_irqrestore(&bank->lock, flags);
->>>
->>>       return 0;
->>
->>
->> cheers,
->> -roger
+
+> > But from a client POV it makes sense as with the given direction you
+> > would need a specific request line for a channel. So this is right.
+> > But direction is something I don't expect to be used for "give me a
+> > channel" 
+> 
+> Ok. The thought was that the user would have the following means of
+> requesting a channel ...
+> 
+> 1. By name
+Bare name maynot be enough. In a dmac we have many channels which one to
+choose?
+> 2. By a filter parameter (flags)
+Even with direction same problem can arise
+> 3. By name and a filter parameter
+Additionally we need to say which channel, or making dmaengine already
+aware will help here
+
+> 
+> So we would have the following APIs ...
+> 
+> struct dma_chan
+> *of_dma_request_channel(struct device_node *node, unsigned int flags);
+> struct dma_chan
+> *of_dma_request_named channel(struct device_node *node, char *name,
+> unsigned int flags);
+> 
+> In both of these the filter parameter flags is optional.
+> 
+> Let me know your thoughts on this.
+I would call them dma_request_slave_channel and try to add to it for
+additional filtering
+
+
+
+-- 
+~Vinod
+
