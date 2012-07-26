@@ -1,76 +1,79 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP4 coupled CPUidle support for v3.6
-Date: Thu, 26 Jul 2012 14:37:47 -0700
-Message-ID: <87394enqz8.fsf@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing pen-down GPIO
+Date: Thu, 26 Jul 2012 14:58:23 -0700
+Message-ID: <87ipdambgg.fsf@ti.com>
+References: <1342048700-15040-1-git-send-email-khilman@ti.com>
+	<500D494D.8020606@compulab.co.il> <500D4F2A.9090706@compulab.co.il>
+	<87zk6mpbfa.fsf@ti.com> <5011B465.70605@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34361 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752288Ab2GZVhs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 17:37:48 -0400
-Received: by pbcwz7 with SMTP id wz7so4002301pbc.2
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 14:37:46 -0700 (PDT)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41196 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752662Ab2GZV62 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 17:58:28 -0400
+Received: by pbbro2 with SMTP id ro2so4831313pbb.27
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 14:58:22 -0700 (PDT)
+In-Reply-To: <5011B465.70605@windriver.com> (zumeng chen's message of "Fri, 27
+	Jul 2012 05:19:33 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, ccross@android.com, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "zumeng.chen" <zchen@windriver.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Zumeng Chen <zumeng.chen@windriver.com>
 
-Hi Arnd, Olof,
+"zumeng.chen" <zchen@windriver.com> writes:
 
-I know it is late, but I'm really hoping this can still make it for
-v3.6, so consider this a [GIT PLEA].  ;)
+> On 2012=E5=B9=B407=E6=9C=8827=E6=97=A5 03:30, Kevin Hilman wrote:
+>> + Zumeng Chen
+>>
+>> Igor Grinberg<grinberg@compulab.co.il>  writes:
+>>
+>>> Hi Kevin,
+>>>
+>>> I've just noticed that the patch has been modified by Arnd in a way
+>>> that of course will trigger GPIO use without being requested.
+>>> I'm sorry, I was not available by that time Arnd changed the patch.
+>> Your right, your original patch isn't the problem.  I found the root
+>> cause.
+>>
+>> The real problem is actually introduced by the merge of your patch f=
+rom
+>> the arm-soc/cleanup branch, and this one from Zumeng Chen: commit
+>> 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce time fo=
+r
+>> ads7846) from the arm-soc/boards branch.
+>>
+>> However, looking closer at the one from Zumeng, that one is clearly =
+not
+>> right.  It unconditionally adds a *board-specific* ->get_pendown_sta=
+te
+>> function to the pdata that is common to *all* boards.  That's just w=
+rong
+>> and has the side-effect of making ->get_pendown_state() wrong on eve=
+ry
+>> board except the OMAP3EVM.  Oops.
+>>
+>> So, IMO, in addition to $SUBJECT patch, in order to get the touchscr=
+een
+>> GPIO working on non OMAP3EVM boards, we also need something like thi=
+s as
+>> well.
+> Definitely, thanks Kevin.
+>> Igor, Zumeng, could you try this out on your boards anc confirm if i=
+t's
+>> working?  I currently don't have a board setup with a touchscreen in=
+ my
+>> board farm.
+> Acked
 
-OMAP4 coupled CPUidle support has been well tested and was ready for the
-v3.5 merge window, but there were some complaints from Linus in the pull
-request from Len (unrelated to CPUidle) that caused the core support to
-be left out of v3.5, so I didn't submit the OMAP stuff either.
-
-Since then, there has been some confusion about maintainership of core
-CPUidle code, including an additional cpuidle-next tree from Linaro
-leading to confusion/delay about how/where to merge the OMAP support.
-
-All of that is sorted out now, and Len has just sent his pull request[1]
-to Linus including the core CPUidle changes to support coupled CPUidle,
-so the path is now paved for the OMAP support.
-
-Also, in mainline, CPUidle doesn't properly work on OMAP4 without
-coupled states support, so there should be no concern about breaking
-existing OMAP4 CPUidle support.
-
-So, with all of that background and excuses,  could you please pull this
-into one of your late branches (or maybe a new arm-soc/late/pm branch) ?
-
-Thanks,
+Did you test this on your board?  If so, could you respond with a
+Tested-by tag?  Thanks.
 
 Kevin
-
-[1] https://lkml.org/lkml/2012/7/26/6
-
-
-The following changes since commit 28a33cbc24e4256c143dce96c7d93bf423229f92:
-
-  Linux 3.5 (2012-07-21 13:58:29 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.6/pm/coupled-cpuidle
-
-for you to fetch changes up to b93d70aeb8f3b5ed2d74643f5009239a55634e1d:
-
-  ARM: OMAP4: CPUidle: Open broadcast clock-event device. (2012-07-25 16:06:08 -0700)
-
-----------------------------------------------------------------
-Kevin Hilman (1):
-      ARM: OMAP4: CPUidle: add synchronization for coupled idle states
-
-Santosh Shilimkar (3):
-      ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
-      ARM: OMAP4: CPUidle: Use coupled cpuidle states to implement SMP cpuidle.
-      ARM: OMAP4: CPUidle: Open broadcast clock-event device.
-
- arch/arm/mach-omap2/Kconfig       |    1 +
- arch/arm/mach-omap2/cpuidle44xx.c |  141 +++++++++++++++++++++++++------------
- arch/arm/mach-omap2/timer.c       |    4 +-
- 3 files changed, 101 insertions(+), 45 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
