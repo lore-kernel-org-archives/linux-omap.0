@@ -1,83 +1,83 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V2] Add missing modules aliases to get
- sound working on omap devices
-Date: Thu, 26 Jul 2012 23:00:50 +0100
-Message-ID: <20120726220049.GK4560@opensource.wolfsonmicro.com>
-References: <4FFECC40.5020502@free.fr>
+From: "zumeng.chen" <zchen@windriver.com>
+Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing
+ pen-down GPIO
+Date: Fri, 27 Jul 2012 06:40:26 +0800
+Message-ID: <5011C75A.3080201@windriver.com>
+References: <1342048700-15040-1-git-send-email-khilman@ti.com>	<500D494D.8020606@compulab.co.il> <500D4F2A.9090706@compulab.co.il>	<87zk6mpbfa.fsf@ti.com> <5011B465.70605@windriver.com> <87ipdambgg.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1301524147303685493=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4FFECC40.5020502@free.fr>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Guillaume Gardet <guillaume.gardet@free.fr>
-Cc: peter.ujfalusi@ti.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, mans.rullgard@linaro.org, Liam Girdwood <lrg@ti.com>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:37363 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662Ab2GZWkm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 18:40:42 -0400
+In-Reply-To: <87ipdambgg.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Zumeng Chen <zumeng.chen@windriver.com>
 
+On 2012=E5=B9=B407=E6=9C=8827=E6=97=A5 05:58, Kevin Hilman wrote:
+> "zumeng.chen"<zchen@windriver.com>  writes:
+>
+>> On 2012=E5=B9=B407=E6=9C=8827=E6=97=A5 03:30, Kevin Hilman wrote:
+>>> + Zumeng Chen
+>>>
+>>> Igor Grinberg<grinberg@compulab.co.il>   writes:
+>>>
+>>>> Hi Kevin,
+>>>>
+>>>> I've just noticed that the patch has been modified by Arnd in a wa=
+y
+>>>> that of course will trigger GPIO use without being requested.
+>>>> I'm sorry, I was not available by that time Arnd changed the patch=
+=2E
+>>> Your right, your original patch isn't the problem.  I found the roo=
+t
+>>> cause.
+>>>
+>>> The real problem is actually introduced by the merge of your patch =
+from
+>>> the arm-soc/cleanup branch, and this one from Zumeng Chen: commit
+>>> 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce time f=
+or
+>>> ads7846) from the arm-soc/boards branch.
+>>>
+>>> However, looking closer at the one from Zumeng, that one is clearly=
+ not
+>>> right.  It unconditionally adds a *board-specific* ->get_pendown_st=
+ate
+>>> function to the pdata that is common to *all* boards.  That's just =
+wrong
+>>> and has the side-effect of making ->get_pendown_state() wrong on ev=
+ery
+>>> board except the OMAP3EVM.  Oops.
+>>>
+>>> So, IMO, in addition to $SUBJECT patch, in order to get the touchsc=
+reen
+>>> GPIO working on non OMAP3EVM boards, we also need something like th=
+is as
+>>> well.
+>> Definitely, thanks Kevin.
+>>> Igor, Zumeng, could you try this out on your boards anc confirm if =
+it's
+>>> working?  I currently don't have a board setup with a touchscreen i=
+n my
+>>> board farm.
+>> Acked
+> Did you test this on your board?
+No, I just read/compiled it.
+>   If so, could you respond with a
+> Tested-by tag?  Thanks
+NP, Kevin, I'll test it after being office, and
+it's about ten o'clock this morning.
 
---===============1301524147303685493==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hl1kWnBARzJiTscN"
-Content-Disposition: inline
-
-
---hl1kWnBARzJiTscN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jul 12, 2012 at 03:08:16PM +0200, Guillaume Gardet wrote:
-> This patch add missing modules aliases to get sound working on omap devices.
-
-So, after a bunch of hand editing I applied this.  As I *repeatedly*
-requested you should send patches in the format covered in
-SubmittingPatches, the main reason it took me so long to get round to
-applying this is that I had to strip things like this:
-
-> From 18b1ba8becc3dd256bdaad2d825f46b551debda3 Mon Sep 17 00:00:00 2001
-> From: Guillaume GARDET <guillaume.gardet@oliseo.fr>
-> Date: Tue, 10 Jul 2012 13:47:16 +0200
-> Subject: [PATCH] Add missing modules aliases to fix audio on omap devices
-
-out of the commit message, plus the fact that since you hadn't used an
-appropriate subject line for the subsystem your patch didn't turn up
-when I searched my mail for patches to be handled.
-
---hl1kWnBARzJiTscN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQEb38AAoJEBus8iNuMP3duHIP+wfACPXfvx13c5xDwwblu7V2
-qGGMwHwe224Eg55dqvtS+xshTewKkNz3iFIAOUxoiN0dbR4HY0SsdtKqoeNOLWqP
-iN93QrVXkeXbW9009FYsPq+p8/tNqdcOXxacLKsGCefAesw5Hs9/3+dqeuicEGie
-/1mVs1shM5n9q3/Qr+3q0uT2HLmUSo5Kbu8JlpqiBf4wxHFfVQmsOR3UtwGYG5rk
-hd2yttrZiBj2tSPg+NqRCN6dmNiGEJK6nXCzTDXqqwhKv4z6ynkd+gHRcchkFOUE
-UAvO8HAYDK3siOmoKvvC9bEwKX1dW31dX3cZqiiDVN0pwVDgmDx1dRlzsNxlu8iE
-z+OOBklPb+4tTVs0QSA4AeoMm6BawdHsjGmErF2d/qX3ee0Kv/wVwiXpV9qwYwF0
-nCAZcaOqVovy8/24U3/+PbkzQOKP0sXGF3ZilvwJGxwcumv1ciTiwZssk5SckjeV
-lf726snEeEuPZ/q9FKqqnjWURQjran1/nrnuXJSQpaQIOUL75ZhmE3ahquNfylVG
-kck/kGNExNgY6R+xc96tDk4wW0WPTvWpqbjBmm+F1hH9eW0UEZZNOi1MW9xMHDB5
-14kjK1rFXOjgH5rDvfBLHCalmwu0IIbecJgcYCn2TZ9HMiSDBWeXH55plgszwbg4
-iyH7t8TlWh+FIk7LcgAP
-=reJn
------END PGP SIGNATURE-----
-
---hl1kWnBARzJiTscN--
-
---===============1301524147303685493==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1301524147303685493==--
+Regards,
+Zumeng
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
