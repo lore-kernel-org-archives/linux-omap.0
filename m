@@ -1,68 +1,119 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 26 Jul 2012 16:58:03 +0530
-Message-ID: <1343302083.1726.9027.camel@vkoul-udesk3>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	 <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>
-	 <201207260714.34540.arnd@arndb.de>
+From: Marc Kleine-Budde <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Thu, 26 Jul 2012 11:14:57 +0200
+Message-ID: <50110A91.2080508@pengutronix.de>
+References: <1343219012-19472-1-git-send-email-anilkumar@ti.com>
+ <1343219012-19472-2-git-send-email-anilkumar@ti.com>
+ <9D2B44C8-820E-4E96-A480-7A650583BC92@dominion.thruhere.net>
+ <331ABD5ECB02734CA317220B2BBEABC13EA04433@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:41303 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750766Ab2GZL1c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 07:27:32 -0400
-In-Reply-To: <201207260714.34540.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============3581946412174764816=="
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA04433-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Cc: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jon Hunter <jon-hunter@ti.com>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-07-26 at 07:14 +0000, Arnd Bergmann wrote:
-> On Thursday 26 July 2012, Vinod Koul wrote:
-> > > > But from a client POV it makes sense as with the given direction you
-> > > > would need a specific request line for a channel. So this is right.
-> > > > But direction is something I don't expect to be used for "give me a
-> > > > channel" 
-> > > 
-> > > Ok. The thought was that the user would have the following means of
-> > > requesting a channel ...
-> > > 
-> > > 1. By name
-> > Bare name maynot be enough. In a dmac we have many channels which one to
-> > choose?
-> 
-> The name is what is associated with the property in the client device
-> node, which describes everything the dmac driver needs to know.
-> If the dmac needs to pick a specific channel, it can find out from the
-> "dmas" property in combination with that name. If it is allowed to
-> pick any channel, it doesn't need to bother.
-dmac doesn't pick a channel. They don't come into picture till dmaengine
-and client have agreed on channel. And then channel callback in invoked,
-still it doesn't know which client.
-> 
-> > > 2. By a filter parameter (flags)
-> > Even with direction same problem can arise
-> 
-> Again this is just identifying which dma specifier from the "dmas"
-> property to pick. The use case is the very common one that there
-> is at most one "read" and one "write" channel. In this case all
-> the client has to know is that it wants a channel that fits the
-> description given in DT for the direction it's looking for.
-client knows but that needs to be propagated to dmaengine (not dmac) and
-dmaengine filters this based on new information it has
-> 
-> > > 3. By name and a filter parameter
-> > Additionally we need to say which channel, or making dmaengine already
-> > aware will help here.
-> 
-> The channel is still described in the specifier, the client should
-> not care about it.
-> 
-> 	Arnd
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============3581946412174764816==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig279659FE36C48DC57D2D5DF2"
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig279659FE36C48DC57D2D5DF2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 07/26/2012 11:03 AM, AnilKumar, Chimata wrote:
+> On Thu, Jul 26, 2012 at 14:16:33, Koen Kooi wrote:
+>>
+>> Op 25 jul. 2012, om 14:23 heeft AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> het vo=
+lgende geschreven:
+>>
+>>> Add Bosch D_CAN controller device tree data to AM33XX dtsi file
+>>> by adding d_can device node with all the necessary parameters.
+>>>
+>>> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>> arch/arm/boot/dts/am33xx.dtsi |    5 +++++
+>>> 1 file changed, 5 insertions(+)
+>>>
+>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx=
+=2Edtsi
+>>> index 9b974dc..2db2ffb 100644
+>>> --- a/arch/arm/boot/dts/am33xx.dtsi
+>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
+>>> @@ -163,5 +163,10 @@
+>>> 			#size-cells =3D <0>;
+>>> 			ti,hwmods =3D "i2c3";
+>>> 		};
+>>> +
+>>> +		dcan1: d_can@481D0000 {
+>>> +			compatible =3D "bosch,d_can";
+>>> +			ti,hwmods =3D "d_can1";
+>>> +		};
+>>> 	};
+>>
+>> I scanned the linux-networking mailinglist and l-o-ml, but I can't fin=
+d the patchset that actually adds the d_can drivers, could you provide a =
+link to that? I have 2 different CAN capes I'd like to test on beaglebone=
+=2E
+>>
+>=20
+> You can find it from linux-next or net-next trees, D_CAN support is add=
+ed
+> to C_CAN driver.
+>=20
+> http://git.kernel.org/?p=3Dlinux/kernel/git/davem/net-next.git;
+> a=3Dcommitdiff;h=3D69927fccd96b15bd228bb82d356a7a2a0cfaeefb
+
+Meanwhile it's in Linus's git tree.
+
+Marc
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
 
--- 
-~Vinod
+--------------enig279659FE36C48DC57D2D5DF2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAlARCpcACgkQjTAFq1RaXHPKVQCeKXK3nVR6k5CyfkP4NBvnQpfi
+OgQAn0DBsdSzHniHz3/CEDB6B3PTF6ms
+=7Fkl
+-----END PGP SIGNATURE-----
+
+--------------enig279659FE36C48DC57D2D5DF2--
+
+--===============3581946412174764816==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--===============3581946412174764816==--
