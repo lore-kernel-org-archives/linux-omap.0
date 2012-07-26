@@ -1,137 +1,149 @@
-From: Juha Kuikka <juha.kuikka@gmail.com>
-Subject: Re: PM/RTC 3.5-rc5: System suspends fails when not built with RTC?
-Date: Thu, 26 Jul 2012 14:09:33 -0700
-Message-ID: <CAKvrXUpeC2N-CRLuVGPKNVEV_tqRfGF1EgsYJ8f4mHjo7oEY5w@mail.gmail.com>
-References: <WC20120713105737.0900A2@terrafix.co.uk>
-	<alpine.DEB.2.00.1207131217590.25585@utopia.booyaka.com>
-	<20120717004010.GA6612@animalcreek.com>
-	<alpine.DEB.2.00.1207161841260.28834@utopia.booyaka.com>
-	<WC20120717100848.280191@terrafix.co.uk>
-	<alpine.DEB.2.00.1207171326510.28834@utopia.booyaka.com>
-	<20120718022035.GC18663@animalcreek.com>
-	<WC20120718100634.8301FB@terrafix.co.uk>
-	<20120718172654.GA27904@animalcreek.com>
+From: "zumeng.chen" <zchen@windriver.com>
+Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing
+ pen-down GPIO
+Date: Fri, 27 Jul 2012 05:19:33 +0800
+Message-ID: <5011B465.70605@windriver.com>
+References: <1342048700-15040-1-git-send-email-khilman@ti.com>	<500D494D.8020606@compulab.co.il> <500D4F2A.9090706@compulab.co.il> <87zk6mpbfa.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:62597 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247Ab2GZVJe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 17:09:34 -0400
-Received: by yhmm54 with SMTP id m54so2496488yhm.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 14:09:34 -0700 (PDT)
-In-Reply-To: <20120718172654.GA27904@animalcreek.com>
+Received: from mail.windriver.com ([147.11.1.11]:56568 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582Ab2GZVTw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 17:19:52 -0400
+In-Reply-To: <87zk6mpbfa.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@animalcreek.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Zumeng Chen <zumeng.chen@windriver.com>
 
-A thousand apologizes for double posting, some html sneaked into the
-first email and it got dropped by the list server.
-
-I am running on a gumstix with OMAP 3503 on it (name escapes me at the
-moment) and it has the same issue.
-
-Just applying Mark's patch on top of
-55936cdfaaf11ac352b56bc58e42d6661e65ee13 (linux-omap) is not enough, I
-also need to set the OMAP3_HAS_IVA_REGS for the 3430 as well.
-
-Inlined patch:
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 4072fbd..45d3eb4 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -244,7 +244,7 @@ void __init omap3xxx_check_features(void)
-        if (cpu_is_omap3630())
-                omap_features |= OMAP3_HAS_192MHZ_CLK | OMAP3_HAS_IVA_REGS;
-        if (cpu_is_omap3430() || cpu_is_omap3630())
--               omap_features |= OMAP3_HAS_IO_WAKEUP;
-+               omap_features |= OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_IVA_REGS;
-        if (cpu_is_omap3630() || omap_rev() == OMAP3430_REV_ES3_1 ||
-            omap_rev() == OMAP3430_REV_ES3_1_2)
-                omap_features |= OMAP3_HAS_IO_CHAIN_CTRL;
-
-Here is with I see with this patch:
-/debug/pm_debug # echo mem > /sys/power/state
-[ 1058.657928] PM: Syncing filesystems ... done.
-[ 1058.669616] Freezing user space processes ... (elapsed 0.02 seconds) done.
-[ 1058.703094] Freezing remaining freezable tasks ... (elapsed 0.02
-seconds) done.
-[ 1058.734252] Suspending console(s) (use no_console_suspend to debug)
-[ 1058.921936] PM: suspend of devices complete after 161.285 msecs
-[ 1058.938995] PM: late suspend of devices complete after 16.936 msecs
-[ 1058.963134] PM: noirq suspend of devices complete after 23.986 msecs
-[ 1060.013336] Successfully put all powerdomains to target state
-[ 1060.025726] PM: noirq resume of devices complete after 11.810 msecs
-[ 1060.042480] PM: early resume of devices complete after 10.437 msecs
-[ 1060.481353] PM: resume of devices complete after 438.415 msecs
-[ 1060.547912] Restarting tasks ... done.
-
-/debug/pm_debug # cat /debug/pm_debug/count
-usbhost_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:0,RET:710,INA:0,ON:711,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:710,INA:0,ON:711,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-usbhost_clkdm->usbhost_pwrdm (1)
-sgx_clkdm->sgx_pwrdm (0)
-per_clkdm->per_pwrdm (18)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (1)
-d2d_clkdm->core_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-core_l4_clkdm->core_pwrdm (24)
-core_l3_clkdm->core_pwrdm (4)
-neon_clkdm->neon_pwrdm (0)
-
-I see that the usbhost domain is still not hitting retention but for
-some reason it is not being complained about in suspend messages.
-
-I am running omap2plus_defconfig with CPUFREQ and CPUIDLE enabled, USB disabled.
-
-- Juha
-
-On Wed, Jul 18, 2012 at 10:26 AM, Mark A. Greer <mgreer@animalcreek.com> wrote:
+On 2012=E5=B9=B407=E6=9C=8827=E6=97=A5 03:30, Kevin Hilman wrote:
+> + Zumeng Chen
 >
-> On Wed, Jul 18, 2012 at 11:06:34AM +0100, Joe Woodward wrote:
-> > From: "Mark A. Greer" <mgreer@animalcreek.com>
+> Igor Grinberg<grinberg@compulab.co.il>  writes:
 >
-> > > How does this look?
+>> Hi Kevin,
+>>
+>> I've just noticed that the patch has been modified by Arnd in a way
+>> that of course will trigger GPIO use without being requested.
+>> I'm sorry, I was not available by that time Arnd changed the patch.
+> Your right, your original patch isn't the problem.  I found the root
+> cause.
 >
-> > > Subject: [PATCH] ARM: OMAP3: Add OMAP3_HAS_IVA_REGS feature
-> > >
-> > > It appears that the am3703 and possibly the am3715 SoCs
-> > > have an active IVA subsystem even though the CONTROL_IDCODE
-> > > register indicates that they don't.  From experimentation,
-> > > it seems that the IVA still requires some registers to be
-> > > initialized even though we don't want it fully functional.
-> > >
-> > > To accomplish this, add a new feature (OMAP3_HAS_IVA_REGS)
-> > > that indicates that the IVA should be initialized but not
-> > > really used.
-> > >
-> > > Signed-off-by: Mark A. Greer <mgreer@animalcreek.com>
-> > > ---
+> The real problem is actually introduced by the merge of your patch fr=
+om
+> the arm-soc/cleanup branch, and this one from Zumeng Chen: commit
+> 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce time for
+> ads7846) from the arm-soc/boards branch.
 >
-> > Tested on a GUMSTIX Overo AirSTORM (AM3703-based), and that fixes the problem for me, thanks!
+> However, looking closer at the one from Zumeng, that one is clearly n=
+ot
+> right.  It unconditionally adds a *board-specific* ->get_pendown_stat=
+e
+> function to the pdata that is common to *all* boards.  That's just wr=
+ong
+> and has the side-effect of making ->get_pendown_state() wrong on ever=
+y
+> board except the OMAP3EVM.  Oops.
 >
-> Great!  Thanks for testing, Joe.
->
-> Paul, Kevin, any comments?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> So, IMO, in addition to $SUBJECT patch, in order to get the touchscre=
+en
+> GPIO working on non OMAP3EVM boards, we also need something like this=
+ as
+> well.
+Definitely, thanks Kevin.
+> Igor, Zumeng, could you try this out on your boards anc confirm if it=
+'s
+> working?  I currently don't have a board setup with a touchscreen in =
+my
+> board farm.
+Acked
 
-
-
+Zumeng
+> Kevin
+>
+>  From 85516c6a3354967caf4cff434d28c3001cd411eb Mon Sep 17 00:00:00 20=
+01
+> From: Kevin Hilman<khilman@ti.com>
+> Date: Thu, 26 Jul 2012 12:15:38 -0700
+> Subject: [PATCH 2/2] ARM: OMAP2+: ads7846: fix ->get_pendown_state() =
+to work
+>   on all boards
+>
+> commit 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce
+> time for ads7846) introduced a common ->get_pendown_state() function
+> into the generic code, but that function was board-specific for the
+> OMAP3EVM.
+>
+> Fix this up to work for all boards that pass in a pendown GPIO.
+>
+> Cc: Zumeng Chen<zumeng.chen@windriver.com>
+> Cc: Igor Grinberg<grinberg@compulab.co.il>
+> Signed-off-by: Kevin Hilman<khilman@ti.com>
+> ---
+>   arch/arm/mach-omap2/board-omap3evm.c       |    1 +
+>   arch/arm/mach-omap2/common-board-devices.c |    4 +++-
+>   arch/arm/mach-omap2/common-board-devices.h |    1 -
+>   3 files changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-oma=
+p2/board-omap3evm.c
+> index ef230a0..0d362e9 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -58,6 +58,7 @@
+>   #include "hsmmc.h"
+>   #include "common-board-devices.h"
+>
+> +#define OMAP3_EVM_TS_GPIO	175
+>   #define OMAP3_EVM_EHCI_VBUS	22
+>   #define OMAP3_EVM_EHCI_SELECT	61
+>
+> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/ma=
+ch-omap2/common-board-devices.c
+> index 0fee95f..06f176f 100644
+> --- a/arch/arm/mach-omap2/common-board-devices.c
+> +++ b/arch/arm/mach-omap2/common-board-devices.c
+> @@ -40,9 +40,10 @@ static struct omap2_mcspi_device_config ads7846_mc=
+spi_config =3D {
+>    * of pdata->get_pendown_state, but we have done this. So set
+>    * get_pendown_state to avoid twice gpio requesting.
+>    */
+> +static int omap3_gpio_pendown;
+>   static int omap3_get_pendown_state(void)
+>   {
+> -	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
+> +	return !gpio_get_value(omap3_gpio_pendown);
+>   }
+>
+>   static struct ads7846_platform_data ads7846_config =3D {
+> @@ -74,6 +75,7 @@ void __init omap_ads7846_init(int bus_num, int gpio=
+_pendown, int gpio_debounce,
+>   	struct spi_board_info *spi_bi =3D&ads7846_spi_board_info;
+>   	int err;
+>
+> +	omap3_gpio_pendown =3D gpio_pendown;
+>   	err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+>   	if (err) {
+>   		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/ma=
+ch-omap2/common-board-devices.h
+> index 4c4ef6a..a0b4a428 100644
+> --- a/arch/arm/mach-omap2/common-board-devices.h
+> +++ b/arch/arm/mach-omap2/common-board-devices.h
+> @@ -4,7 +4,6 @@
+>   #include "twl-common.h"
+>
+>   #define NAND_BLOCK_SIZE	SZ_128K
+> -#define OMAP3_EVM_TS_GPIO	175
+>
+>   struct mtd_partition;
+>   struct ads7846_platform_data;
 
 --
-Duck tape is like the force, it has a light side and a dark side and
-it holds the universe together.
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
