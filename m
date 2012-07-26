@@ -1,74 +1,91 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v5 02/11] usb: musb: kill global and static for multi
- instance
-Date: Thu, 26 Jul 2012 08:25:32 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA93EAEF790@DBDE01.ent.ti.com>
-References: <1343218326-30610-1-git-send-email-ajay.gupta@ti.com>
- <20120726074057.GH29029@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v5 04/11] usb: otg: nop: add support for multiple
+ tranceiver
+Date: Thu, 26 Jul 2012 11:24:02 +0300
+Message-ID: <20120726082402.GO29029@arwen.pp.htv.fi>
+References: <1343218049-29917-1-git-send-email-ajay.gupta@ti.com>
+ <1343218049-29917-5-git-send-email-ajay.gupta@ti.com>
+ <20120726073621.GG29029@arwen.pp.htv.fi>
+ <47CEF8C4B26E8C44B22B028A650E0EA93EAEF6F7@DBDE01.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120726074057.GH29029-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s9kDAZ2EyO0AcRYa"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54483 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751011Ab2GZI1Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 04:27:16 -0400
+Received: by lahd3 with SMTP id d3so1211345lah.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 01:27:13 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA93EAEF6F7@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
+
+
+--s9kDAZ2EyO0AcRYa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
-> On Wed, Jul 25, 2012 at 05:42:06PM +0530, Ajay Kumar Gupta wrote:
-> > @@ -240,20 +238,24 @@ int __devinit musb_init_debugfs(struct musb *musb)
-> >  	struct dentry		*root;
-> >  	struct dentry		*file;
-> >  	int			ret;
-> > +	char			name[10];
-> >
-> > -	root = debugfs_create_dir("musb", NULL);
-> > +	sprintf(name, "musb%d", musb->id);
-> > +	root = debugfs_create_dir(name, NULL);
-> 
-> I told you to use dev_name(musb) for a reason. See what happens when you
-> use dev_name(musb);
-> 
-> Do you not think about the other users of this driver ? Do you not know
-> what's the ID on platform_devices which "don't have an ID" ??
 
-We are now using musb_ida for all glue layers so '-1' issue will not come.
-Still if we can manage without 'id' then better to do that way.
+On Thu, Jul 26, 2012 at 08:22:35AM +0000, Gupta, Ajay Kumar wrote:
+> > > @@ -408,7 +408,7 @@ static int am35x_musb_exit(struct musb *musb)
+> > >  		data->set_phy_power(0);
+> > >
+> > >  	usb_put_phy(musb->xceiv);
+> > > -	usb_nop_xceiv_unregister();
+> > > +	usb_nop_xceiv_unregister(musb->xceiv);
+> >=20
+> > Dude, this is so wrong... You don't know if there are other users of the
+> > nop xceiv in the system. If there are other users which already have
+> > claimed id 0, you will try to create duplicated directories under sysfs.
+> > MUSB's ID has nothing to do with NOP's ID.
+>=20
+> I could not understood this comment as I am not using id. Please clarify.
 
-Ajay
-> The
-> drivers core set it to -1, then on everybody who's got a single musb
-> instance, will have to access the "musb-1" directory. That doesn't seem
-> nice.
-> 
-> Just use dev_name(musb).
+sorry, my bad. I put the comment on the wrong hunk:
 
-L
-> 
-> >  	if (!root) {
-> >  		ret = -ENOMEM;
-> >  		goto err0;
-> >  	}
-> >
-> > -	file = debugfs_create_file("regdump", S_IRUGO, root, musb,
-> > +	sprintf(name, "regdump%d", musb->id);
-> > +	file = debugfs_create_file(name, S_IRUGO, root, musb,
-> >  			&musb_regdump_fops);
-> >  	if (!file) {
-> >  		ret = -ENOMEM;
-> >  		goto err1;
-> >  	}
-> >
-> > +	sprintf(name, "testmode%d", musb->id);
-> 
-> this is unnecessary!! Only the directory name needs this trick,
-> whatever's under the root directory does not need any ID appended to it.
-> 
-> --
-> balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > @@ -364,7 +364,7 @@ static int am35x_musb_init(struct musb *musb)
+> > >  	if (!rev)
+> > >  		return -ENODEV;
+> > >
+> > > -	usb_nop_xceiv_register();
+> > > +	usb_nop_xceiv_register(musb->id);
+> > >  	musb->xceiv =3D usb_get_phy(USB_PHY_TYPE_USB2);
+> > >  	if (IS_ERR_OR_NULL(musb->xceiv))
+> > >  		return -ENODEV;
+
+here. You pass musb->id to become NOP's ID.
+
+--=20
+balbi
+
+--s9kDAZ2EyO0AcRYa
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQEP6iAAoJEIaOsuA1yqRE/r8P/26o6hLwrIdtp8qbbULGz8gK
+sjJwxzpuWNPkRPr1MaElWunWmN4HSpgPi/GlCUtSGDnDY4XL9r2WwOMDZt4sm3PF
+CiJSzF7l/f4t2tfBlmU7Nu/KqLLAyCca+10Qt3GIesJqZQ20PtDGTe1kx4/l7Vqn
+wea7+yB6DRBqhHqPJESx0fOiLPbuOUFvvBHiF6Bb3cvGTC67leH3WmHTu892uDTu
+wQ/Q+1shWWyvPYDdMuJhtRxorvoew8wtCmH4kXN6ZPyqJilQ4TUN3WHOnBTi6ElN
+quMyY3bQt7nKGUGw/WoZxBnwfa71EO8573bWGpKmDttCgAKvoH6C816qCyDJnlhu
+b95u1Byon3wKur3YYCf9gEQdLz8WCXa5QpZY1lUZo09ohw9NCQmR3jyeKy/vsKR3
+vWXeuYfCvElhZPutQb/Ic8nvVNt2rR+hNqrFsLZFxPsItqKkqsA8j7xYxuaHYERv
+F+3NQjd0Qx9JhOZj7ETXK50T0CCCSN1ErmnqXrVfkjJCOtiPWESFwqgdRg6cIEev
+O/haxcV6Dkiw8NZtDWM+sA5HCXdGdsuiJ42VLx3f66v8NoWOF3CZKG/czjpht4Ew
+UKLEd5xHhau/iXR39qCiEXgtyR6pq4+95qYTSGx18waokhxN3MgloZxsDIuJ/I8r
+mEhq2I05Eda0ebwKoRzH
+=Wi9c
+-----END PGP SIGNATURE-----
+
+--s9kDAZ2EyO0AcRYa--
