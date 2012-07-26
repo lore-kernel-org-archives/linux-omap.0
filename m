@@ -1,149 +1,76 @@
-From: "zumeng.chen" <zchen@windriver.com>
-Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing
- pen-down GPIO
-Date: Fri, 27 Jul 2012 05:19:33 +0800
-Message-ID: <5011B465.70605@windriver.com>
-References: <1342048700-15040-1-git-send-email-khilman@ti.com>	<500D494D.8020606@compulab.co.il> <500D4F2A.9090706@compulab.co.il> <87zk6mpbfa.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] OMAP4 coupled CPUidle support for v3.6
+Date: Thu, 26 Jul 2012 14:37:47 -0700
+Message-ID: <87394enqz8.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:56568 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582Ab2GZVTw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 17:19:52 -0400
-In-Reply-To: <87zk6mpbfa.fsf@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34361 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752288Ab2GZVhs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 17:37:48 -0400
+Received: by pbcwz7 with SMTP id wz7so4002301pbc.2
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 14:37:46 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Zumeng Chen <zumeng.chen@windriver.com>
+To: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, ccross@android.com, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On 2012=E5=B9=B407=E6=9C=8827=E6=97=A5 03:30, Kevin Hilman wrote:
-> + Zumeng Chen
->
-> Igor Grinberg<grinberg@compulab.co.il>  writes:
->
->> Hi Kevin,
->>
->> I've just noticed that the patch has been modified by Arnd in a way
->> that of course will trigger GPIO use without being requested.
->> I'm sorry, I was not available by that time Arnd changed the patch.
-> Your right, your original patch isn't the problem.  I found the root
-> cause.
->
-> The real problem is actually introduced by the merge of your patch fr=
-om
-> the arm-soc/cleanup branch, and this one from Zumeng Chen: commit
-> 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce time for
-> ads7846) from the arm-soc/boards branch.
->
-> However, looking closer at the one from Zumeng, that one is clearly n=
-ot
-> right.  It unconditionally adds a *board-specific* ->get_pendown_stat=
-e
-> function to the pdata that is common to *all* boards.  That's just wr=
-ong
-> and has the side-effect of making ->get_pendown_state() wrong on ever=
-y
-> board except the OMAP3EVM.  Oops.
->
-> So, IMO, in addition to $SUBJECT patch, in order to get the touchscre=
-en
-> GPIO working on non OMAP3EVM boards, we also need something like this=
- as
-> well.
-Definitely, thanks Kevin.
-> Igor, Zumeng, could you try this out on your boards anc confirm if it=
-'s
-> working?  I currently don't have a board setup with a touchscreen in =
-my
-> board farm.
-Acked
+Hi Arnd, Olof,
 
-Zumeng
-> Kevin
->
->  From 85516c6a3354967caf4cff434d28c3001cd411eb Mon Sep 17 00:00:00 20=
-01
-> From: Kevin Hilman<khilman@ti.com>
-> Date: Thu, 26 Jul 2012 12:15:38 -0700
-> Subject: [PATCH 2/2] ARM: OMAP2+: ads7846: fix ->get_pendown_state() =
-to work
->   on all boards
->
-> commit 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce
-> time for ads7846) introduced a common ->get_pendown_state() function
-> into the generic code, but that function was board-specific for the
-> OMAP3EVM.
->
-> Fix this up to work for all boards that pass in a pendown GPIO.
->
-> Cc: Zumeng Chen<zumeng.chen@windriver.com>
-> Cc: Igor Grinberg<grinberg@compulab.co.il>
-> Signed-off-by: Kevin Hilman<khilman@ti.com>
-> ---
->   arch/arm/mach-omap2/board-omap3evm.c       |    1 +
->   arch/arm/mach-omap2/common-board-devices.c |    4 +++-
->   arch/arm/mach-omap2/common-board-devices.h |    1 -
->   3 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-oma=
-p2/board-omap3evm.c
-> index ef230a0..0d362e9 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -58,6 +58,7 @@
->   #include "hsmmc.h"
->   #include "common-board-devices.h"
->
-> +#define OMAP3_EVM_TS_GPIO	175
->   #define OMAP3_EVM_EHCI_VBUS	22
->   #define OMAP3_EVM_EHCI_SELECT	61
->
-> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/ma=
-ch-omap2/common-board-devices.c
-> index 0fee95f..06f176f 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.c
-> +++ b/arch/arm/mach-omap2/common-board-devices.c
-> @@ -40,9 +40,10 @@ static struct omap2_mcspi_device_config ads7846_mc=
-spi_config =3D {
->    * of pdata->get_pendown_state, but we have done this. So set
->    * get_pendown_state to avoid twice gpio requesting.
->    */
-> +static int omap3_gpio_pendown;
->   static int omap3_get_pendown_state(void)
->   {
-> -	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
-> +	return !gpio_get_value(omap3_gpio_pendown);
->   }
->
->   static struct ads7846_platform_data ads7846_config =3D {
-> @@ -74,6 +75,7 @@ void __init omap_ads7846_init(int bus_num, int gpio=
-_pendown, int gpio_debounce,
->   	struct spi_board_info *spi_bi =3D&ads7846_spi_board_info;
->   	int err;
->
-> +	omap3_gpio_pendown =3D gpio_pendown;
->   	err =3D gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->   	if (err) {
->   		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
-> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/ma=
-ch-omap2/common-board-devices.h
-> index 4c4ef6a..a0b4a428 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.h
-> +++ b/arch/arm/mach-omap2/common-board-devices.h
-> @@ -4,7 +4,6 @@
->   #include "twl-common.h"
->
->   #define NAND_BLOCK_SIZE	SZ_128K
-> -#define OMAP3_EVM_TS_GPIO	175
->
->   struct mtd_partition;
->   struct ads7846_platform_data;
+I know it is late, but I'm really hoping this can still make it for
+v3.6, so consider this a [GIT PLEA].  ;)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OMAP4 coupled CPUidle support has been well tested and was ready for the
+v3.5 merge window, but there were some complaints from Linus in the pull
+request from Len (unrelated to CPUidle) that caused the core support to
+be left out of v3.5, so I didn't submit the OMAP stuff either.
+
+Since then, there has been some confusion about maintainership of core
+CPUidle code, including an additional cpuidle-next tree from Linaro
+leading to confusion/delay about how/where to merge the OMAP support.
+
+All of that is sorted out now, and Len has just sent his pull request[1]
+to Linus including the core CPUidle changes to support coupled CPUidle,
+so the path is now paved for the OMAP support.
+
+Also, in mainline, CPUidle doesn't properly work on OMAP4 without
+coupled states support, so there should be no concern about breaking
+existing OMAP4 CPUidle support.
+
+So, with all of that background and excuses,  could you please pull this
+into one of your late branches (or maybe a new arm-soc/late/pm branch) ?
+
+Thanks,
+
+Kevin
+
+[1] https://lkml.org/lkml/2012/7/26/6
+
+
+The following changes since commit 28a33cbc24e4256c143dce96c7d93bf423229f92:
+
+  Linux 3.5 (2012-07-21 13:58:29 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.6/pm/coupled-cpuidle
+
+for you to fetch changes up to b93d70aeb8f3b5ed2d74643f5009239a55634e1d:
+
+  ARM: OMAP4: CPUidle: Open broadcast clock-event device. (2012-07-25 16:06:08 -0700)
+
+----------------------------------------------------------------
+Kevin Hilman (1):
+      ARM: OMAP4: CPUidle: add synchronization for coupled idle states
+
+Santosh Shilimkar (3):
+      ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
+      ARM: OMAP4: CPUidle: Use coupled cpuidle states to implement SMP cpuidle.
+      ARM: OMAP4: CPUidle: Open broadcast clock-event device.
+
+ arch/arm/mach-omap2/Kconfig       |    1 +
+ arch/arm/mach-omap2/cpuidle44xx.c |  141 +++++++++++++++++++++++++------------
+ arch/arm/mach-omap2/timer.c       |    4 +-
+ 3 files changed, 101 insertions(+), 45 deletions(-)
