@@ -1,57 +1,99 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Current state of AM33xx patches
-Date: Thu, 26 Jul 2012 19:46:26 +0200
-Message-ID: <50118272.1050209@gmail.com>
-References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com> <4FF42761.2000701@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com> <500CEF97.4050207@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com> <501159C3.302010
- 9@gmail.com> <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net> <50116926.4060309@gmail.com> <587C7FB9-2DD3-48EE-B74D-BEBDF199BE23@dominion.thruhere.net>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping
+ from cpuidle
+Date: Thu, 26 Jul 2012 21:27:11 +0300
+Message-ID: <1343327231.30247.151.camel@sokoban>
+References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
+	 <1342764284-8143-3-git-send-email-rnayak@ti.com>
+	 <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
+	 <5009120A.1060400@ti.com> <1342774283.4672.181.camel@sokoban>
+	 <87obn3798o.fsf@ti.com> <50113B3C.4090608@ti.com>  <87boj2s9hi.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:33971 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218Ab2GZRqb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 13:46:31 -0400
-Received: by wibhm11 with SMTP id hm11so6676236wib.1
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 10:46:30 -0700 (PDT)
-In-Reply-To: <587C7FB9-2DD3-48EE-B74D-BEBDF199BE23@dominion.thruhere.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38978 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751251Ab2GZS10 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 14:27:26 -0400
+In-Reply-To: <87boj2s9hi.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com
 
-On 26.07.2012 18:09, Koen Kooi wrote:
+On Thu, 2012-07-26 at 10:44 -0700, Kevin Hilman wrote:
+> Rajendra Nayak <rnayak@ti.com> writes:
 > 
-> Op 26 jul. 2012, om 17:58 heeft Daniel Mack <zonque@gmail.com> het
-> volgende geschreven:
+> > On Thursday 26 July 2012 04:13 AM, Kevin Hilman wrote:
+> >> Tero Kristo<t-kristo@ti.com>  writes:
+> >>
+> >>> On Fri, 2012-07-20 at 13:38 +0530, Rajendra Nayak wrote:
+> >>>> On Friday 20 July 2012 12:55 PM, Shilimkar, Santosh wrote:
+> >>>>> On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak<rnayak@ti.com>   wrote:
+> >>>>>> pwrdm_pre_transition()/pwrdm_post_transition() have always been high latency
+> >>>>>> operations done within cpuidle to do Powerdomain level book-keeping to know
+> >>>>>> what state transitions for different Powerdomains have been triggered.
+> >>>>>> This is also useful to do a restore-on-demand in some cases when we know
+> >>>>>> the context for the given Powerdomain was lost etc.
+> >>>>>>
+> >>>>>> Now that we have definitive entry/exit points (thanks to the Powerdomain
+> >>>>>> level usecounting) for Powerdomain transitions, these book-keeping functions
+> >>>>>> can very well be moved from within CPUidle into pwrdm_clkdm_enable()/pwrdm_
+> >>>>>> clkdm_disable() functions.
+> >>>>>>
+> >>>>>> Also rename _pwrdm_pre/post_transition_cb() to pwrdm_pre/post_transition()
+> >>>>>> and get rid of the original ones which iterate over all powerdomains.
+> >>>>>>
+> >>>>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> >>
+> >> This is excellent!   Thanks for working on this.
+> >>
+> >> However, it needs a rebase against mainline though because I merged a
+> >> set of optimizations[1] to this code already that only calls pre/post
+> >> per-pwrdm.
+> >>
+> >
+> > Hi Kevin,
+> >
+> > I thought some more on this patch, and I think this way of collecting
+> > stats and knowing what state transitions the powerdomains been through
+> > will not work on OMAP3, mainly because of the autodeps. Might work on
+> > OMAP4 and beyond which do not need any autodeps.
+> >
+> > Here why I think so,
+> > Lets assume a Powerdomain X with a last module Y active, once Y disables
+> > the last clock (lets assume no hardware controlled clocks for
+> > simplicity), we clear the last power state register for X. However
+> > due to autodeps X does not transition to a target state immediately.
+> > It only does so when the MPU (and IVA) go down, and because
+> > of the wakeup dependency (autodeps set a sleep and a wakeup dep with
+> > both MPU and IVA) is also woken up every time MPU or IVA are up.
+> > So its quite possible that X transitions in and out of sleep multiple
+> > times before Y decides to re-enable its clocks, which is when we end up
+> > looking for the last power state entered.
+> > Lets say X entered OFF 3 times in between Y disabling and re-enabling
+> > its clocks. Though we end up updating the counter only once (instead of
+> > 3) we still know and can tell Y that it lost context.
+> > The problem however arises if for some reason X entered OFF
+> > twice and happened to stay ON the third time the dependencies were met.
+> > When Y re-enables its clocks, we end up telling it that it *did not*
+> > lose context because we see the previous power state was ON.
 > 
->> On 26.07.2012 17:00, Koen Kooi wrote:
->> 
->>> With Ajay's usb patches you can easily boot from a usb stick,
->>> you'll only need the bootloads to be on mmc or tftp. That's what
->>> I have been doing on my beaglebone :)
->>> 
->>> I'm going to update 
->>> https://github.com/beagleboard/kernel/tree/beaglebone-3.6 to use 
->>> linus' tree when I get a chance to test a build.
->> 
->> Hmm, how are the patches in this repository generated? Is there a
->> tree that has them as real commits?
+> Yeah, this is definitely a problem.
 > 
-> If only! I'm manually pulling them from the mailinglist archives and
-> patchwork. I keep hoping for TI to put up a git tree with all their
-> WIP stuff, but I guess that goes into the world peace and pony
-> category of wanting things.
+> As long as we have autodeps, everything is centralized around CPU
+> transitions anyways, so it makes sense to keep the accounting
+> centralized too.
 > 
-> Even with this small patchset I'm already having a ton of merge
-> conflicts in the .dtsi files which is keeping me from posting my
-> patches (e.g. the leds-gpio one) to the proper mailinglists.
+> > I think as long as we have autodeps, the only way on OMAP3 to accurately
+> > do this is to do it for all dependent domains in CPUIdle :(
 > 
-> Anyway, enough ranting, mainline + those patches now works on my
-> beaglebone so for now I'm a happy camper :)
+> Or, to get rid of autodeps. ;)
 
-I'm not on beaglebone here, so things are different. I'd be happy to get
-some sniplet that make the cpsw stuff work ...
+Whats the reason for having them anyway? Some of the wakedeps make sense
+(per domain due to hw bugs) but sleepdeps...?
 
+-Tero
 
-Daniel
