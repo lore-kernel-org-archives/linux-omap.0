@@ -1,99 +1,130 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [RFC 2/4] ARM: OMAP: PM: Get rid of Powerdomain book-keeping
- from cpuidle
-Date: Thu, 26 Jul 2012 21:27:11 +0300
-Message-ID: <1343327231.30247.151.camel@sokoban>
-References: <1342764284-8143-1-git-send-email-rnayak@ti.com>
-	 <1342764284-8143-3-git-send-email-rnayak@ti.com>
-	 <CAMQu2gyCmx57ctZFBoAUKUXY+9zwFLCDHsBfehXicH7mEyDzQg@mail.gmail.com>
-	 <5009120A.1060400@ti.com> <1342774283.4672.181.camel@sokoban>
-	 <87obn3798o.fsf@ti.com> <50113B3C.4090608@ti.com>  <87boj2s9hi.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: ads7846 init: fix fault caused by freeing pen-down GPIO
+Date: Thu, 26 Jul 2012 12:30:49 -0700
+Message-ID: <87zk6mpbfa.fsf@ti.com>
+References: <1342048700-15040-1-git-send-email-khilman@ti.com>
+	<500D494D.8020606@compulab.co.il> <500D4F2A.9090706@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38978 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751251Ab2GZS10 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 14:27:26 -0400
-In-Reply-To: <87boj2s9hi.fsf@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:58906 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753007Ab2GZTbA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jul 2012 15:31:00 -0400
+Received: by pbbrp2 with SMTP id rp2so3630888pbb.28
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 12:30:50 -0700 (PDT)
+In-Reply-To: <500D4F2A.9090706@compulab.co.il> (Igor Grinberg's message of
+	"Mon, 23 Jul 2012 16:18:34 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Zumeng Chen <zumeng.chen@windriver.com>
 
-On Thu, 2012-07-26 at 10:44 -0700, Kevin Hilman wrote:
-> Rajendra Nayak <rnayak@ti.com> writes:
-> 
-> > On Thursday 26 July 2012 04:13 AM, Kevin Hilman wrote:
-> >> Tero Kristo<t-kristo@ti.com>  writes:
-> >>
-> >>> On Fri, 2012-07-20 at 13:38 +0530, Rajendra Nayak wrote:
-> >>>> On Friday 20 July 2012 12:55 PM, Shilimkar, Santosh wrote:
-> >>>>> On Fri, Jul 20, 2012 at 11:34 AM, Rajendra Nayak<rnayak@ti.com>   wrote:
-> >>>>>> pwrdm_pre_transition()/pwrdm_post_transition() have always been high latency
-> >>>>>> operations done within cpuidle to do Powerdomain level book-keeping to know
-> >>>>>> what state transitions for different Powerdomains have been triggered.
-> >>>>>> This is also useful to do a restore-on-demand in some cases when we know
-> >>>>>> the context for the given Powerdomain was lost etc.
-> >>>>>>
-> >>>>>> Now that we have definitive entry/exit points (thanks to the Powerdomain
-> >>>>>> level usecounting) for Powerdomain transitions, these book-keeping functions
-> >>>>>> can very well be moved from within CPUidle into pwrdm_clkdm_enable()/pwrdm_
-> >>>>>> clkdm_disable() functions.
-> >>>>>>
-> >>>>>> Also rename _pwrdm_pre/post_transition_cb() to pwrdm_pre/post_transition()
-> >>>>>> and get rid of the original ones which iterate over all powerdomains.
-> >>>>>>
-> >>>>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> >>
-> >> This is excellent!   Thanks for working on this.
-> >>
-> >> However, it needs a rebase against mainline though because I merged a
-> >> set of optimizations[1] to this code already that only calls pre/post
-> >> per-pwrdm.
-> >>
-> >
-> > Hi Kevin,
-> >
-> > I thought some more on this patch, and I think this way of collecting
-> > stats and knowing what state transitions the powerdomains been through
-> > will not work on OMAP3, mainly because of the autodeps. Might work on
-> > OMAP4 and beyond which do not need any autodeps.
-> >
-> > Here why I think so,
-> > Lets assume a Powerdomain X with a last module Y active, once Y disables
-> > the last clock (lets assume no hardware controlled clocks for
-> > simplicity), we clear the last power state register for X. However
-> > due to autodeps X does not transition to a target state immediately.
-> > It only does so when the MPU (and IVA) go down, and because
-> > of the wakeup dependency (autodeps set a sleep and a wakeup dep with
-> > both MPU and IVA) is also woken up every time MPU or IVA are up.
-> > So its quite possible that X transitions in and out of sleep multiple
-> > times before Y decides to re-enable its clocks, which is when we end up
-> > looking for the last power state entered.
-> > Lets say X entered OFF 3 times in between Y disabling and re-enabling
-> > its clocks. Though we end up updating the counter only once (instead of
-> > 3) we still know and can tell Y that it lost context.
-> > The problem however arises if for some reason X entered OFF
-> > twice and happened to stay ON the third time the dependencies were met.
-> > When Y re-enables its clocks, we end up telling it that it *did not*
-> > lose context because we see the previous power state was ON.
-> 
-> Yeah, this is definitely a problem.
-> 
-> As long as we have autodeps, everything is centralized around CPU
-> transitions anyways, so it makes sense to keep the accounting
-> centralized too.
-> 
-> > I think as long as we have autodeps, the only way on OMAP3 to accurately
-> > do this is to do it for all dependent domains in CPUIdle :(
-> 
-> Or, to get rid of autodeps. ;)
++ Zumeng Chen
 
-Whats the reason for having them anyway? Some of the wakedeps make sense
-(per domain due to hw bugs) but sleepdeps...?
+Igor Grinberg <grinberg@compulab.co.il> writes:
 
--Tero
+> Hi Kevin,
+>
+> I've just noticed that the patch has been modified by Arnd in a way
+> that of course will trigger GPIO use without being requested.
+> I'm sorry, I was not available by that time Arnd changed the patch.
+
+Your right, your original patch isn't the problem.  I found the root
+cause.
+
+The real problem is actually introduced by the merge of your patch from
+the arm-soc/cleanup branch, and this one from Zumeng Chen: commit
+16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce time for
+ads7846) from the arm-soc/boards branch.
+
+However, looking closer at the one from Zumeng, that one is clearly not
+right.  It unconditionally adds a *board-specific* ->get_pendown_state
+function to the pdata that is common to *all* boards.  That's just wrong
+and has the side-effect of making ->get_pendown_state() wrong on every
+board except the OMAP3EVM.  Oops.
+
+So, IMO, in addition to $SUBJECT patch, in order to get the touchscreen
+GPIO working on non OMAP3EVM boards, we also need something like this as
+well.
+
+Igor, Zumeng, could you try this out on your boards anc confirm if it's
+working?  I currently don't have a board setup with a touchscreen in my
+board farm.
+
+Kevin
+
+>From 85516c6a3354967caf4cff434d28c3001cd411eb Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@ti.com>
+Date: Thu, 26 Jul 2012 12:15:38 -0700
+Subject: [PATCH 2/2] ARM: OMAP2+: ads7846: fix ->get_pendown_state() to work
+ on all boards
+
+commit 16aced80f6 (ARM: OMAP3530evm: set pendown_state and debounce
+time for ads7846) introduced a common ->get_pendown_state() function
+into the generic code, but that function was board-specific for the
+OMAP3EVM.
+
+Fix this up to work for all boards that pass in a pendown GPIO.
+
+Cc: Zumeng Chen <zumeng.chen@windriver.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c       |    1 +
+ arch/arm/mach-omap2/common-board-devices.c |    4 +++-
+ arch/arm/mach-omap2/common-board-devices.h |    1 -
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index ef230a0..0d362e9 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -58,6 +58,7 @@
+ #include "hsmmc.h"
+ #include "common-board-devices.h"
+ 
++#define OMAP3_EVM_TS_GPIO	175
+ #define OMAP3_EVM_EHCI_VBUS	22
+ #define OMAP3_EVM_EHCI_SELECT	61
+ 
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index 0fee95f..06f176f 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -40,9 +40,10 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+  * of pdata->get_pendown_state, but we have done this. So set
+  * get_pendown_state to avoid twice gpio requesting.
+  */
++static int omap3_gpio_pendown;
+ static int omap3_get_pendown_state(void)
+ {
+-	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
++	return !gpio_get_value(omap3_gpio_pendown);
+ }
+ 
+ static struct ads7846_platform_data ads7846_config = {
+@@ -74,6 +75,7 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
+ 	int err;
+ 
++	omap3_gpio_pendown = gpio_pendown;
+ 	err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+ 	if (err) {
+ 		pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index 4c4ef6a..a0b4a428 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -4,7 +4,6 @@
+ #include "twl-common.h"
+ 
+ #define NAND_BLOCK_SIZE	SZ_128K
+-#define OMAP3_EVM_TS_GPIO	175
+ 
+ struct mtd_partition;
+ struct ads7846_platform_data;
+-- 
+1.7.9.2
 
