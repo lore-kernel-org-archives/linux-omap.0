@@ -1,203 +1,118 @@
-From: zhangfei gao <zhangfei.gao@gmail.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 26 Jul 2012 12:56:02 +0800
-Message-ID: <CAMj5BkjbZsL_vSCfLsZ6UsdPrAHeQ+FwBFYbUM_L1w3wqCLuMQ@mail.gmail.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	<201206271520.49276.arnd@arndb.de>
-	<1342161907.1726.26.camel@vkoul-udesk3>
-	<201207171924.33756.arnd@arndb.de>
-	<1342756850.1726.74.camel@vkoul-udesk3>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v4 04/12] gpio/omap: remove saved_wakeup field from struct gpio_bank
+Date: Thu, 26 Jul 2012 11:50:21 +0530
+Message-ID: <CAC83ZvJ7DW-u+Q_DJB8TRX9=F+ucESBNRQ0T8qkFdt0W4c=o4A@mail.gmail.com>
+References: <1331906760-5259-1-git-send-email-tarun.kanti@ti.com>
+	<1331906760-5259-5-git-send-email-tarun.kanti@ti.com>
+	<4FFAA7B3.6020009@ti.com>
+	<CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:32911 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741Ab2GZE4F (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44170 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750789Ab2GZGUW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jul 2012 00:56:05 -0400
-Received: by lahd3 with SMTP id d3so1125892lah.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 21:56:02 -0700 (PDT)
-In-Reply-To: <1342756850.1726.74.camel@vkoul-udesk3>
+	Thu, 26 Jul 2012 02:20:22 -0400
+Received: by qabj40 with SMTP id j40so947166qab.15
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jul 2012 23:20:21 -0700 (PDT)
+In-Reply-To: <CAC83ZvLo3X_-EarrMFNM0B196FaMLrP5SNh5OA7aE7wMZ9VJUQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Jon Hunter <jon-hunter@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 
-On Fri, Jul 20, 2012 at 12:00 PM, Vinod Koul <vinod.koul@linux.intel.com> wrote:
-> On Tue, 2012-07-17 at 19:24 +0000, Arnd Bergmann wrote:
->> On Friday 13 July 2012, Vinod Koul wrote:
->> > > Do you mean there must be a global table, or are you ok with putting
->> > > the information about a channel into the device that uses the channel,
->> > > as we do for most other subsystems (IRQ, GPIO, pinctrl, ...).
->> > > If not, what is the problem with that approach?
->> >
->> > Today, we simple ask, "give me dma channel with DMA_SLAVE capability".
->> >
->> > If we change it to "give me dma channel which suits my need" and have
->> > additional information in dmaengine to handle this request effectively.
->> >
->> > What that would mean is
->> > a) DMA channel either knows which channel to provide, Or
->> > b) Additional arguments provided to dmaengine API to help it find out
->> > which channel to provide.
->> >
->> > It would be good to have client ask for a specific channel. But in order
->> > to build generic clients, we face a problem that clients may not know
->> > how they mapped to dmac by SoC designer. Or the mux maybe entirely
->> > flexible on which channel.
->> >
->> > If we add this as DT property (which I assume should be platform
->> > specific), then client will know which channel to request.
->> > It can have two levels, dmac and channel. In case mux is flexible enough
->> > then client gets a channel and program the mux for this mapping.
->> >
->> > I think this is the most simplistic solution I have for this, thoughts?
->>
->> I think we're basically on the same page. Let's see if I have covered
->> all the cases we discussed so far. I've tried to update the binding that
->> Jon sent out initially with everything we've discussed, so please review
->> this to see if I understood you correctly.
-> I think this looks fine to me. Few comments below on client side
->>
->>       Arnd
->>
->>
->> * Generic DMA Controller and DMA request bindings
->>
->> Generic binding to provide a way for a driver using DMA Engine to retrieve the
->> DMA request or channel information that goes from a hardware device to a DMA
->> controller.
->>
->> * DMA controller
->>
->> Required property:
->>     - #dma-cells: Number elements to describe DMA channel information. Must be
->>                   at least 2, allowing a phandle and a flags cell, but usually
->>                 is larger so a client can also specify a request or channel
->>                   number and/or some configuration.
->>
->> Optional properties:
->>     - #dma-channels: Number of DMA channels supported by the controller.
->>     - #dma-requests: Number of DMA requests signals supported by the controller.
->>
->> Example:
->>
->>        sdma: dmaengine@48000000 {
->>                compatible = "ti,omap4-sdma"
->>                reg = <0x48000000 0x1000>;
->>                interrupts = <4>;
->>                #dma-cells = <3>;
->>                #dma-channels = <32>;
->>                #dma-requests = <127>;
->>        };
->>
->>
->> * DMA client
->>
->> Client drivers should specify the DMA property using a phandle to the controller
->> followed by the number of DMA request/channel and the transfer type of the
->> channel (eg. device-to-memory, memory-to-device, memory-to-memory, etc).
->>
->> Required property:
->>     dmas: list of one or more dma specifiers, each consisting of
->>      - phandle pointing to dma controller node
->>      - flags word, a bit map that can hold these flags
->>        * 0x00000001 channel can be used for transfer from device
->>        * 0x00000002 channel can be user for transfer to device
-> Is this for identifying which channel is for TX and RX? If not I am not
-> sure I understood it well
+Hi Roger,
+
+On Mon, Jul 9, 2012 at 4:46 PM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+> Hi Roger,
 >
->>      - zero or more cells in a format specific to the the dma controller
->>        node listed in the phandle. This typically contains a dma request
->>        line number or a channel number, but can contain any data that
->>        is used required for configuring a channel.
+> On Mon, Jul 9, 2012 at 3:13 PM, Roger Quadros <rogerq@ti.com> wrote:
+>> Hi,
+>>
+>> Just bumped across this patch and have a query.
+>>
+>> On 03/16/2012 04:05 PM, Tarun Kanti DebBarma wrote:
+>>> There is no more need to have saved_wakeup because bank->context.wake_en
+>>> already holds that value. So getting rid of read/write operation associated
+>>> with this field.
+>>>
+>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>> ---
+>>>  drivers/gpio/gpio-omap.c |   12 +++---------
+>>>  1 files changed, 3 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 3a4f151..3b91ade 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -57,7 +57,6 @@ struct gpio_bank {
+>>>       u16 irq;
+>>>       int irq_base;
+>>>       struct irq_domain *domain;
+>>> -     u32 saved_wakeup;
+>>>       u32 non_wakeup_gpios;
+>>>       u32 enabled_non_wakeup_gpios;
+>>>       struct gpio_regs context;
+>>> @@ -777,7 +776,6 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>>>       unsigned long           flags;
+>>>
+>>>       spin_lock_irqsave(&bank->lock, flags);
+>>> -     bank->saved_wakeup = __raw_readl(mask_reg);
+>>>       __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
+>>
+>> OK, here you are overwriting the mask_reg with the wakeup bitmask
+>> without saving the mask_reg's original content.
+> This is based upon understanding that set_gpio_trigger() is the common
+> function where update of wake_en register takes place. Unless, mask_reg
+> in this case refers to something else, effectively we would be saving the
+> same value to saved_wakeup what is already present in wake_en.
+> I will verify this specific to this function.
+I had a look at this change and it appears for OMAP1 we have to explicitly
+save the register here. This is because set_gpio_trigger() refers to wake_en
+register for OMAP2+ platforms, whereas here on OMAP1 it is referring to
+irqenable register. In other words we need to have:
+bank->context.wake_en = __raw_readl(mask_reg);
+--
+Tarun
 
-How about extend struct dma_slave_config, adding one member of
-"request_line", if
-"request line" is must config in most platform.
-
-struct dma_slave_config {
-~
-u32 request_line;
-}
-The advantage is request_line can be get directly from
-dmaengine_slave_config regardless of DT.
-
->>
->> Optional property:
->>     dma-names: when present, this shall contain one identifier string
->>     for each dma specifier in the dmas property. The specific strings
->>     that can be used are defined in the binding of the DMA client
->>     device. When multiple dma specifiers can be used as alternatives,
->>     the dma-names for those dma specifiers must be identical.
->>
->> Any dma specifiers that have identical flags and identical dma-names
->> (if present) shall refer to different dma controllers that can be
->> used as alternatives, e.g. when a request line is connected to
->> multiple dma controllers. If multiple dma specifiers are listed that
->> have the same flags but refer to different functional channels,
->> the dma-names property must be used to distinguish them.
->>
->> Examples:
->>
->> 1. One DMA write channel, one DMA read/write channel:
->>
->>        i2c1: i2c@1 {
->>                ...
->>                dmas = <&sdma 2 1 &sdma 3 2>;
->>                ...
->>        };
->>
->> 2. A single read-write channel with two alternative dma controllers
->>    providing it:
->>
->>       dmas = <&dma0 3 5
->>               &dma1 3 7
->>               &dma2 3 2>;
->>
->> 3. A device with three channels, one of which has two alternatives:
->>
->>       dmas = <&dma0 1 4 /* data read */
->>               &dma0 2 6 /* data write */
->>               &dma1 1 0 /* error read */
->>               &dma2 1 0>; /* alternative error read */
->>       dma-names = "data", "data", "error", "error";
->>
->> 4. A dma controller requiring complex configuration:
->>
->>        dma: dmaengine@48000000 {
->>                compatible = "foo,foo-sdma"
->>                reg = <0x48000000 0x1000>;
->>                interrupts = <4>;
->>                #dma-cells = <6>; /* phandle, flag, request, channel,
->>                                        input-width, output-width */
-> Why would we want the widths to be here?
-> Assuming a DMA from System memory to a peripheral, source width should
-> be system memory width and destination the peripheral width. IMO these
-> should not be in dma property even if we need these
->>                #dma-channels = <32>;
->>                #dma-requests = <127>;
->>        };
->>
->>        mmc@49000000 {
->>               ...
->>               dmas = <&dma 1  /* read */
->>                       2       /* request line */
->>                       5       /* channel */
->>                       16      /* 16 bit bus width on read */
->>                       8>      /* 8 bit bus width on write */
->>                      <&dma 2  /* write */
->>                       3       /* request line */
->>                       6       /* channel */
->>                       8       /* 8 bit bus width on read */
->>                       16>     /* 16 bit bus width on write */
-> >From this looks like flag is for TX/RX, so maybe i read correct :)
 >
+>>
+>>>       spin_unlock_irqrestore(&bank->lock, flags);
+>>>
+>>> @@ -793,7 +791,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+>>>       unsigned long           flags;
+>>>
+>>>       spin_lock_irqsave(&bank->lock, flags);
+>>> -     __raw_writel(bank->saved_wakeup, mask_reg);
+>>> +     __raw_writel(bank->context.wake_en, mask_reg);
+>>
+>> Now you are restoring nothing but the same content that you stored
+>> during suspend. This will cause the non-wakeup gpio interrupts to get
+>> masked between a suspend/resume. So isn't this a bug?
+> That's right, the same value is restored back which was last updated in
+> set_gpio_trigger() that got stored in wake_en register. Let me know if
+> I am missing your points here.
+>
+>>
+>> Proper solution would be to save the mask_reg context into another
+>> register than context.wake_en during suspend.
+> As I said, this would make sense if mask_reg is referring to different
+> register than what is used in set_gpio_trigger(). I will have a look.
+>
+> BTW, did you observe anything unusual during some testing?
+>
+> Thanks.
 > --
-> ~Vinod
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> Tarun
+>>
+>>>       spin_unlock_irqrestore(&bank->lock, flags);
+>>>
+>>>       return 0;
+>>
+>>
+>> cheers,
+>> -roger
