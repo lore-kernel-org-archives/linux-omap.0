@@ -1,66 +1,120 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: OMAP: Configuring CONTROL_DEVCONF0 register via DT with pinctrl
-Date: Fri, 27 Jul 2012 12:43:17 +0300
-Message-ID: <501262B5.1080004@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Fri, 27 Jul 2012 17:44:20 +0530
+Message-ID: <CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
+	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+	<20120723140830.GA8155@arwen.pp.htv.fi>
+	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:38043 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836Ab2G0Jmk (ORCPT
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:54209 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751062Ab2G0MOX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jul 2012 05:42:40 -0400
-Received: by obbuo13 with SMTP id uo13so4682332obb.33
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 02:42:39 -0700 (PDT)
+	Fri, 27 Jul 2012 08:14:23 -0400
+Received: by vbjk17 with SMTP id k17so2603386vbj.7
+        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 05:14:20 -0700 (PDT)
+In-Reply-To: <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
 
-Hello,
+On Mon, Jul 23, 2012 at 8:04 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
+>>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
+>>> <keshava_mgowda@ti.com> wrote:
+>>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
+>>> > <keshava_mgowda@ti.com> wrote:
+>>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
+>>> >> the host controller. Basically this TLL operates like USB PHY which allows
+>>> >> the user to connect two USB transceiver interfaces together directly
+>>> >> without the use of differential transceivers in omap3 and later chips.
+>>> >> The TLL configuration is removed from the UHH driver and implemented as
+>>> >> a seperate platform driver. Now, the UHH driver configures the TLL
+>>> >> through API's exported by the TLL platform driver.
+>>> >>
+>>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>> >>
+>>> >> In v4:
+>>> >>     - rebased on top of linux kernel version 3.5.rc7
+>>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
+>>> >>
+>>> >> In v3:
+>>> >>   - rebased on top V3 of Russ dill's patch
+>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>> >>        while initializing the EHCI controller
+>>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
+>>> >>
+>>> >>   - rebased on top of patch
+>>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
+>>> >>
+>>> >> In V2:
+>>> >>     - covered review comments from linux omap and usb community
+>>> >>     - rebased on top Russ dill's patch
+>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>> >>        while initializing the EHCI controller
+>>> >>
+>>> >> Keshava Munegowda (5):
+>>> >>   ARM: OMAP: Add the USB TLL clocks device name
+>>> >>   ARM: OMAP: USB: HOST TLL platform driver
+>>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
+>>> >>
+>>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+>>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+>>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
+>>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
+>>> >>  drivers/mfd/Kconfig                   |    2 +-
+>>> >>  drivers/mfd/Makefile                  |    2 +-
+>>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
+>>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+>>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
+>>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
+>>> >>
+>>> >> --
+>>> >> 1.7.9.5
+>>> >
+>>> >
+>>> > Felipe/ Paul
+>>> >       please let me know if you have any review comments on this v4 series.
+>>> >
+>>> > regards
+>>> > keshava
+>>>
+>>> Hi Felipe
+>>>           please let me know if you have any review comments on this series now.
+>>
+>> looks ok... pretty much just moving code around.
+>>
+>> --
+>> balbi
+>
+>
+> Thanks Felipe
+>
+> then I request please give your Ack by for this series.
+>
+> regards
+> keshava
 
-I need to find a solution to control 2 bits in CONTROL_DEVCONF0 on OMAP=
-2/3 for
-McBSP1 CLKR/FSR signal routing.
-In boards using McBSP1 we might need to change bit 3 and 4 based on the=
- audio
-setup (how the board has been wired).
+Hi Paul
+    do you have any review comments on this series?
+Felipe is OK with this series.  if there are no review comments on this series
+I request your ack by for the same.
+Once this series gets in to mainline. i will start the Device tree
+conversion for usb2 host.
 
-So far I have come up with the following idea to handle to but not real=
-ly sure
-if it is the correct way (I have taken the idea from the arm/dts: Add A=
-M33XX
-basic pinctrl support series).
-
-In .dtsi file of the SoC:
-
-control_devconf0: pinmux@48002274 {
-	compatible =3D "pinctrl-single";
-	reg =3D <0x48002274 4>;	/* Single register */
-	#address-cells =3D <1>;
-	#size-cells =3D <0>;
-	pinctrl-single,register-width =3D <32>;
-	pinctrl-single,function-mask =3D <0x5F>;
-};
-
-In the .dts file of the board which needs to change the CLKR/FSR config=
-uration:
-
-&control_devconf0 {
-	pinctrl-names =3D "default";
-	pinctrl-0 =3D <&mcbsp1_pins>;
-
-	mcbsp1_pins: pinmux_mcbsp1_pins {
-		pinctrl-single,pins =3D <0x00 0x18>; /* CLKR/FSR from CLKX/FSX
-						    * pin */
-	};
-
-};
-
-Thanks for the help,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+keshava
