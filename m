@@ -1,47 +1,51 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH] OMAP3 clock: remove obsolete comment
-Date: Fri, 27 Jul 2012 09:28:45 +0200
-Message-ID: <5012432D.5000003@matrix-vision.de>
-References: <1343305722-16721-1-git-send-email-michael.jones@matrix-vision.de> <alpine.DEB.2.00.1207261349350.14468@utopia.booyaka.com> <50123DD1.4090307@matrix-vision.de> <alpine.DEB.2.00.1207270105001.21530@utopia.booyaka.com>
+From: Qipeng Zha <Qipeng_Zha@sigmadesigns.com>
+Subject: arm interrupt handling
+Date: Fri, 27 Jul 2012 15:26:37 +0800
+Message-ID: <FF5886E7A1A0F346BD37602822BD01AA231CB282CC@cn-exh-02.CN.TRID.COM>
+References: <20120705024259.26317.16000.stgit@build.warmcat.com>
+ <201207101437.54877.florian@openwrt.org> <4FFC2712.9020208@warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:41928 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab2G0HZt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jul 2012 03:25:49 -0400
-In-Reply-To: <alpine.DEB.2.00.1207270105001.21530@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4FFC2712.9020208@warmcat.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rostedt@goodmis.org" <rostedt@goodmis.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
-
-Thanks for the explanations.
-
-On 07/27/2012 09:14 AM, Paul Walmsley wrote:
-> Hello Michael,
->
-
-[snip]
-
-> There is; it's Documentation/SubmittingPatches which can be viewed here:
->
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=Documentation/SubmittingPatches
-
-I looked at that, too, but it wasn't clear to me that even such a 
-trivial patch should have an "explanation body", as the description
-there assumes a functional change is being introduced.  Now I know!
-
-[snip]
->
-> - Paul
->
-
--Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+SGkNCldoZW4gSSBzdHVkeSB0aGUgaW50ZXJydXB0IGhhbmRsaW5nIGNvZGUgaW4gMi42LjM5IGZv
+ciBvbWFwIHNvYywgZm91bmQgZG9uJ3QgY2xlYXIgQ1BTUi5JIHRvIGVuYWJsZSBpcnEgdGlsbCBl
+YWNoIElTUiBmaW5pc2hlZC4NCklzIHRoaXMgdHJ1ZT8gT3IgSSBtaXNzIHNvbWV0aGluZywgc2lu
+Y2UgdGhpcyB3aWxsIGJlIHdpcmVkIHRoYXQgdGhlIGNvcmUgd2lsbCBub3Qgc2VydmljZSBhbnkg
+b3RoZXIgaXJxIGJlZm9yZSBjb21wbGV0ZSBiZWZvcmUgaXJxIGhhbmRsaW5nLg0KDQoNCkJlc3Qg
+d2lzaGVzDQpRaXBlbmcNCg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGlu
+dXgtYXJtLWtlcm5lbC1ib3VuY2VzQGxpc3RzLmluZnJhZGVhZC5vcmcgW21haWx0bzpsaW51eC1h
+cm0ta2VybmVsLWJvdW5jZXNAbGlzdHMuaW5mcmFkZWFkLm9yZ10gT24gQmVoYWxmIE9mICJBbmR5
+IEdyZWVuICjmnpflronlu7gpIg0KU2VudDogMjAxMuW5tDfmnIgxMOaXpSAyMDo1OQ0KVG86IEZs
+b3JpYW4gRmFpbmVsbGkNCkNjOiBzLWphbkB0aS5jb207IGFybmRAYXJuZGIuZGU7IHBhdGNoZXNA
+bGluYXJvLm9yZzsgdG9ueUBhdG9taWRlLmNvbTsgbmV0ZGV2QHZnZXIua2VybmVsLm9yZzsgbGlu
+dXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgcm9zdGVkdEBnb29kbWlzLm9yZzsgbGludXgtb21h
+cEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0K
+U3ViamVjdDogUmU6IFtQQVRDSCA0IDAvNF0gQWRkIGFiaWxpdHkgdG8gc2V0IGRlZmF1bHRsZXNz
+IG5ldHdvcmsgZGV2aWNlIE1BQyBhZGRyZXNzZXMgdG8gZGV0ZXJtaW5pc3RpYyBjb21wdXRlZCBs
+b2NhbGx5IGFkbWluaXN0ZXJlZCB2YWx1ZXMNCg0KT24gMTAvMDcvMTIgMjA6MzcsIHRoZSBtYWls
+IGFwcGFyZW50bHkgZnJvbSBGbG9yaWFuIEZhaW5lbGxpIGluY2x1ZGVkOg0KDQpIaSAtDQoNCj4g
+TGUgamV1ZGkgMDUganVpbGxldCAyMDEyIDA0OjQ0OjMzLCBBbmR5IEdyZWVuIGEgw6ljcml0IDoN
+Cj4+IFRoZSBmb2xsb3dpbmcgc2VyaWVzIGFkZHMgc29tZSBjb2RlIHRvIGdlbmVyYXRlIGxlZ2Fs
+LCBsb2NhbGx5IGFkbWluaXN0ZXJlZA0KPj4gTUFDIGFkZHJlc3NlcyBmcm9tIE9NQVA0IENQVSBE
+aWUgSUQgZnVzZSBkYXRhLCBhbmQgdGhlbiBhZGRzIGEgaGVscGVyIGF0DQo+PiBuZXQvZXRoZXJu
+ZXQgdGFraW5nIGNhcmUgb2YgYWNjZXB0aW5nIGRldmljZSBwYXRoIC8gTUFDIG1hcHBpbmcNCj4+
+IHJlZ2lzdHJhdGlvbnMgYW5kIHJ1bm5pbmcgYSBub3RpZmllciB0byBlbmZvcmNlIHRoZSByZXF1
+ZXN0ZWQgTUFDIHdoZW4gdGhlDQo+PiBtYXRjaGluZyBuZXR3b3JrIGRldmljZSB0dXJucyB1cC4N
+Cj4NCj4gVGhpcyBsb29rcyBsaWtlIHNvbWV0aGluZyB5b3UgY2FuIHNvbHZlIGJ5IHVzZXItc3Bh
+Y2UgZW50aXJlbHkuIEV4cG9zZSB0aGUNCg0KVGhhdCBtaWdodCBzZWVtIHNvIGZyb20gYSBvcGVu
+d3J0IHBlcnNwZWN0aXZlLCB3aGVyZSB5b3UgY3VzdG9tIGNvb2sgdGhlIA0Kd2hvbGUgdXNlcmxh
+bmQgdGhpbmcgcGVyLWRldmljZSwgYnV0IGl0IGFpbid0IHNvIGZyb20gYSBnZW5lcmljIHJvb3Rm
+cyANCnBlcnNwZWN0aXZlLg0KDQpXaHkgc2hvdWxkIFVidW50dSwgRmVkb3JhIGV0YyBzdGluayB1
+cCB0aGVpciBPU2VzIHdpdGggUGFuZGEtc3BlY2lmaWMgDQp3b3JrYXJvdW5kcz8gIEFuZCBQYW5k
+YSBpcyBub3QgdGhlIG9ubHkgZGV2aWNlIHdpdGggdGhpcyBpc3N1ZS4NCg0KLUFuZHkNCg0KX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCmxpbnV4LWFybS1r
+ZXJuZWwgbWFpbGluZyBsaXN0DQpsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcN
+Cmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtl
+cm5lbA0K
