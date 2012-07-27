@@ -1,80 +1,47 @@
-From: "Mark A. Greer" <mgreer@animalcreek.com>
-Subject: Re: am3517: geting MMC working
-Date: Thu, 26 Jul 2012 16:31:07 -0700
-Message-ID: <20120726233107.GA21273@animalcreek.com>
-References: <5007AF7C.1010902@visionsystems.de>
- <CAMQu2gx83tx66kQtF9v_v6yaw-L6v8QMc9u3bokX68ZhzC0tiA@mail.gmail.com>
- <5007B721.9070305@visionsystems.de>
- <CANfBPZ8tfApLcL2WGsP6jgwv7zafywJp7oHQ6E=xBYN8KYyeww@mail.gmail.com>
- <5007C215.7020904@visionsystems.de>
- <CANfBPZ9PcEWUUuFWBD3p9hk6FEEyUJh9cfM3hojayk+Wdycs5A@mail.gmail.com>
- <alpine.DEB.2.00.1207191532560.14390@utopia.booyaka.com>
- <CANrkHUasORhcujiUixhBLJ3_QuUEX3iR5mYn1LMqdk70sMWCsg@mail.gmail.com>
- <50090B30.3070206@visionsystems.de>
- <50091045.7060102@visionsystems.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] OMAP4 coupled CPUidle support for v3.6
+Date: Thu, 26 Jul 2012 17:19:15 -0700
+Message-ID: <CAOesGMiTfW6Qz=z4FvG=SomCuKo3C8um1M=uXJV8ZAjeKhRoOg@mail.gmail.com>
+References: <87394enqz8.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail20.dotsterhost.com ([66.11.232.73]:50852 "EHLO
-	mail20.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109Ab2GZXbI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 19:31:08 -0400
-Content-Disposition: inline
-In-Reply-To: <50091045.7060102@visionsystems.de>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:50576 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab2G0ATQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jul 2012 20:19:16 -0400
+Received: by pbbrp8 with SMTP id rp8so4035227pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 17:19:15 -0700 (PDT)
+In-Reply-To: <87394enqz8.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, Paul Walmsley <paul@pwsan.com>, "S, Venkatraman" <svenkatr@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Porter, Matt" <mporter@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, ccross@android.com, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Fri, Jul 20, 2012 at 10:01:09AM +0200, Yegor Yefremov wrote:
-> Am 20.07.2012 09:39, schrieb Yegor Yefremov:
-> > Am 20.07.2012 09:28, schrieb T Krishnamoorthy, Balaji:
-> >> On Fri, Jul 20, 2012 at 3:08 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >>> On Thu, 19 Jul 2012, S, Venkatraman wrote:
-> >>>
-> >>>> >From this, one can only infer that the card is not responding at all,
-> >>>> and all attempts
-> >>>> are returning with a timeout (CTO=Command Time Out).
-> >>> Looks to me like the card is responding to CMD8, CMD55, ACMD41, and CMD0.
-> >>> It's only CMD52 and CMD5 that are timing out.  Aren't those timeouts
-> >>> expected with a SD memory card?
-> >> yes, those timeouts are expected for SD card.
-> >> The failure is due to irq not received/missing for last CMD0.
-> >> Hi Yegor, Can you provide details for the SD card being used.
-> > 
-> > This is Apacer 2GB. In 3.3-rc7 I have no problems with it. Should I enable debugging in 3.3-rc7 and post the output?
-> 
-> I found the solution:
-> 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index e4fc88c..0ab26ab 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -359,7 +359,7 @@ static void omap3_pm_idle(void)
->  {
->  	local_fiq_disable();
->  
-> -	if (omap_irq_pending())
-> +	if (omap_irq_pending() || !omap3_has_io_wakeup())
->  		goto out;
->  
->  	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> 
-> I've seen this hack for some on the mailing list. I think
-> Mark A. Greer introduced it, but I don't remember for sure.
-> Can this patch be applied as it is or there are some infrastructure
-> changes required?
+Kevin,
 
-[Oops, I thought I sent this days ago.]
+On Thu, Jul 26, 2012 at 2:37 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Arnd, Olof,
+>
+> I know it is late, but I'm really hoping this can still make it for
+> v3.6, so consider this a [GIT PLEA].  ;)
 
-Hi Yegor.
+New features submitted halfway through the merge window? Yeah, that's late.
 
-Yep, it was me.  That change is unacceptable though, see:
+I'll pull it in as late2/pm once the below is fixed, but I won't
+promise we'll send it up.
 
-	http://www.spinics.net/lists/arm-kernel/msg168865.html
 
-You were testing on linux-omap/master?  If so, hmmm, I thought
-that branch would work.  For now, you can try adding 'nohlt'
-to the cmdline but that's a bit of a sledgehammer...
+> Kevin Hilman (1):
+>       ARM: OMAP4: CPUidle: add synchronization for coupled idle states
+>
+> Santosh Shilimkar (3):
+>       ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
+>       ARM: OMAP4: CPUidle: Use coupled cpuidle states to implement SMP cpuidle.
+>       ARM: OMAP4: CPUidle: Open broadcast clock-event device.
 
-Mark
+This looks odd, Colin was author to the first of the commits
+attributed to Santosh.
+
+
+-Olof
