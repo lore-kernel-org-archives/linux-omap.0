@@ -1,68 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/6] w1: omap-hdq: add section annotation to remove
-Date: Fri, 27 Jul 2012 10:04:44 +0300
-Message-ID: <20120727070444.GG5201@arwen.pp.htv.fi>
-References: <1343217932-25372-1-git-send-email-balbi@ti.com>
- <20120726144526.GB26045@ioremap.net>
-Reply-To: balbi@ti.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3 clock: remove obsolete comment
+Date: Fri, 27 Jul 2012 01:14:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207270105001.21530@utopia.booyaka.com>
+References: <1343305722-16721-1-git-send-email-michael.jones@matrix-vision.de> <alpine.DEB.2.00.1207261349350.14468@utopia.booyaka.com> <50123DD1.4090307@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="j2AXaZ4YhVcLc+PQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120726144526.GB26045@ioremap.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Felipe Balbi <balbi@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:38658 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877Ab2G0HOO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jul 2012 03:14:14 -0400
+In-Reply-To: <50123DD1.4090307@matrix-vision.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Hello Michael,
+
+On Fri, 27 Jul 2012, Michael Jones wrote:
+
+> Thanks for the comments, I'll adhere to them in the future.  I assume you
+> meant you _only_ accept patches with a non-null changelog.
+
+Indeed, that's right, I misstated it.
+
+> I referred to 
+> http://omappedia.org/wiki/Releasing_to_Linux_kernel_using_patches_and_emails 
+> before my submission, and didn't see these two points.  A few Q's:
+> 
+> Can I add these two points to that Wiki page?
+
+Sounds reasonable, but I don't know who maintains that page.
+
+> Or is there a more authoritative checklist somewhere?
+
+There is; it's Documentation/SubmittingPatches which can be viewed here:
+
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=Documentation/SubmittingPatches
+
+> Why is it queued for 3.7?
+
+It is a low-priority fix (but valuable nonetheless, of course).
+
+> I thought 3.6 was in the works?
+
+Most of the significant new patches for 3.6 were tested and queued several 
+weeks ago.  Now we are queuing bugfix and regression patches for 3.6-rc 
+and new features and low-priority fixes for 3.7.
+
+> Where is it queued?
+
+It is currently queued in a git branch on my local drive.
 
 
---j2AXaZ4YhVcLc+PQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, Jul 26, 2012 at 06:45:26PM +0400, Evgeniy Polyakov wrote:
-> Hi all
->=20
-> On Wed, Jul 25, 2012 at 03:05:27PM +0300, Felipe Balbi (balbi@ti.com) wro=
-te:
-> > trivial patch, no functional changes.
-> >=20
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
->=20
-> Looks good to me
-> Who should pick it up?
->=20
-> Feel free to add my acked-by: Evgeniy Polyakov <zbr@ioremap.net>
-
-I thought you would :-p Then I guess Tony, maybe ?
-
---=20
-balbi
-
---j2AXaZ4YhVcLc+PQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQEj2MAAoJEIaOsuA1yqREx1YP/02qNyPiTGM8VFVdRhIDhq3N
-Jaf/rW///ucRmYuUxBzEmasUjTXm5RlLLmxPi109VQYTbUsRcHtlK+wRUHFXQnJH
-iv2ZxrPcw62plDwOjmo785vYJ1L/H8sZ8Z0KQCk0I3+BCU6+IT4I6GKeH8PP1xk1
-Uawr4fLIX7KP3O1c4HEsfdliXcD1QqZNWqQfmyoTAhQzS/imNnPEZBUNypfpRWTe
-U+VPs2yc8fdEd/ZlulqWbEqkp1sX7X3m05ZuEkkk1m552D67UE1hpzchLOKb1OQy
-85H6idKp5tfAc8MGwYHSGfKtW1rsnqbXTBcMCf9WGVgQwARW/F/hDm9ofkJ/EM2c
-OguMoZXtx7rX+BAFlkFiI9QN4RhhPezaKWyqBFrfvc81+nt9qCO0d1NFMK3YcdZw
-X8i1aMHVhe1p1EMhFPctOQlSGizVDT/c8QkRUM4qK6Tr4KQhsgy/a00xLN5uih5D
-nNidsEnQ/5Wf91vpl58YFNUz9yFcHNxjpCpBbGAWzvRDdE0b8tjk8E2l+8FNqsC7
-HvdSZEfwJG3bNiuD8elFHdTwUf8VaWePCyltWjA43ddnbWPEo2e56Cn5di9sR2w8
-Atie56EIip/ir5MA0jZfsI1G6tLLX8gCOnqbDgcmym+Wj8RWUZANZ7ww0f1wE0cb
-kBcYL8pLZukA+hyrBcsq
-=p6j+
------END PGP SIGNATURE-----
-
---j2AXaZ4YhVcLc+PQ--
+- Paul
