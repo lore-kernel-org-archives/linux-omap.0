@@ -1,61 +1,61 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+From: Colin Cross <ccross@android.com>
 Subject: Re: [GIT PULL] OMAP4 coupled CPUidle support for v3.6
-Date: Fri, 27 Jul 2012 08:34:57 +0200
-Message-ID: <CAMQu2gynmXqprXPctYHA-V6niE4QptJ_fQ8Fv7J5OAooK1A6wQ@mail.gmail.com>
-References: <87394enqz8.fsf@ti.com> <CAOesGMiTfW6Qz=z4FvG=SomCuKo3C8um1M=uXJV8ZAjeKhRoOg@mail.gmail.com>
+Date: Thu, 26 Jul 2012 23:44:10 -0700
+Message-ID: <CAMbhsRSdWpsYub+M9Li44cW1dc2wg76Q3njAxNK2vjC0_jOeJg@mail.gmail.com>
+References: <87394enqz8.fsf@ti.com>
+	<CAOesGMiTfW6Qz=z4FvG=SomCuKo3C8um1M=uXJV8ZAjeKhRoOg@mail.gmail.com>
+	<CAMQu2gynmXqprXPctYHA-V6niE4QptJ_fQ8Fv7J5OAooK1A6wQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:58671 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751049Ab2G0GfT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jul 2012 02:35:19 -0400
-Received: by ggnk4 with SMTP id k4so3441654ggn.21
-        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 23:35:17 -0700 (PDT)
-In-Reply-To: <CAOesGMiTfW6Qz=z4FvG=SomCuKo3C8um1M=uXJV8ZAjeKhRoOg@mail.gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:44374 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098Ab2G0GoM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jul 2012 02:44:12 -0400
+Received: by yenl2 with SMTP id l2so2838357yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jul 2012 23:44:11 -0700 (PDT)
+In-Reply-To: <CAMQu2gynmXqprXPctYHA-V6niE4QptJ_fQ8Fv7J5OAooK1A6wQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: Kevin Hilman <khilman@ti.com>, arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, ccross@android.com, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, Kevin Hilman <khilman@ti.com>, arm@kernel.org, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-On Fri, Jul 27, 2012 at 2:19 AM, Olof Johansson <olof@lixom.net> wrote:
-> Kevin,
->
-> On Thu, Jul 26, 2012 at 2:37 PM, Kevin Hilman <khilman@ti.com> wrote:
->> Hi Arnd, Olof,
+On Thu, Jul 26, 2012 at 11:34 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Fri, Jul 27, 2012 at 2:19 AM, Olof Johansson <olof@lixom.net> wrote:
+>> Kevin,
 >>
->> I know it is late, but I'm really hoping this can still make it for
->> v3.6, so consider this a [GIT PLEA].  ;)
->
-> New features submitted halfway through the merge window? Yeah, that's late.
->
-> I'll pull it in as late2/pm once the below is fixed, but I won't
-> promise we'll send it up.
->
->
->> Kevin Hilman (1):
->>       ARM: OMAP4: CPUidle: add synchronization for coupled idle states
+>> On Thu, Jul 26, 2012 at 2:37 PM, Kevin Hilman <khilman@ti.com> wrote:
+>>> Hi Arnd, Olof,
+>>>
+>>> I know it is late, but I'm really hoping this can still make it for
+>>> v3.6, so consider this a [GIT PLEA].  ;)
 >>
->> Santosh Shilimkar (3):
->>       ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
->>       ARM: OMAP4: CPUidle: Use coupled cpuidle states to implement SMP cpuidle.
->>       ARM: OMAP4: CPUidle: Open broadcast clock-event device.
->
-> This looks odd, Colin was author to the first of the commits
-> attributed to Santosh.
->
-Not sure what you mean. These patches are written by me. Kevin, Collin helped
-in review. If you are referring to the {ARM: OMAP: timer: allow gp
-timer clock-event to be
-used on both cpus} which does have SOB from me and Colin. The very first version
-of this version I picked was from product tree in which it was
-commited on Coiln's name.
-Later I updated that forf the multi-omap and the new timer code and
-hence the update
-in Author.
+>> New features submitted halfway through the merge window? Yeah, that's late.
+>>
+>> I'll pull it in as late2/pm once the below is fixed, but I won't
+>> promise we'll send it up.
+>>
+>>
+>>> Kevin Hilman (1):
+>>>       ARM: OMAP4: CPUidle: add synchronization for coupled idle states
+>>>
+>>> Santosh Shilimkar (3):
+>>>       ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
+>>>       ARM: OMAP4: CPUidle: Use coupled cpuidle states to implement SMP cpuidle.
+>>>       ARM: OMAP4: CPUidle: Open broadcast clock-event device.
+>>
+>> This looks odd, Colin was author to the first of the commits
+>> attributed to Santosh.
+>>
+> Not sure what you mean. These patches are written by me. Kevin, Collin helped
+> in review. If you are referring to the {ARM: OMAP: timer: allow gp
+> timer clock-event to be
+> used on both cpus} which does have SOB from me and Colin. The very first version
+> of this version I picked was from product tree in which it was
+> commited on Coiln's name.
+> Later I updated that forf the multi-omap and the new timer code and
+> hence the update
+> in Author.
 
-Hope this clear.
-
-Regards
-Santosh
+I have no problem with the authorship on these two patches.
