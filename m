@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
-Date: Fri, 27 Jul 2012 12:36:33 -0700
-Message-ID: <878ve5j8se.fsf@ti.com>
+Subject: Re: [PATCHv4 6/8] ARM: OMAP: pm-debug: enhanced usecount debug support
+Date: Fri, 27 Jul 2012 12:55:13 -0700
+Message-ID: <87y5m5htcu.fsf@ti.com>
 References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
+	<1342189185-5306-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:41176 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752386Ab2G0Tgl (ORCPT
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:35673 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752386Ab2G0Tz3 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jul 2012 15:36:41 -0400
-Received: by pbcwz7 with SMTP id wz7so6497868pbc.30
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 12:36:35 -0700 (PDT)
-In-Reply-To: <1342189185-5306-5-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Fri, 13 Jul 2012 17:19:41 +0300")
+	Fri, 27 Jul 2012 15:55:29 -0400
+Received: by pbbrp16 with SMTP id rp16so5952771pbb.24
+        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 12:55:15 -0700 (PDT)
+In-Reply-To: <1342189185-5306-7-git-send-email-t-kristo@ti.com> (Tero Kristo's
+	message of "Fri, 13 Jul 2012 17:19:43 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
@@ -23,26 +23,26 @@ Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead
 
 Tero Kristo <t-kristo@ti.com> writes:
 
-> mpu / core powerdomain usecounts are now statically increased
-> by 1 during MPU activity. This allows the domains to reflect
-> actual usage, and will allow the usecount to reach 0 just before
-> all CPUs are ready to idle. Proper powerdomain usecounts are
-> propageted to voltagedomain level also, and will allow vc
-> callbacks to be triggered at right point of time.
+> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+> their own file, 'usecount'. This file shows the usecounts for every
+> active domain and their children recursively. 'count' file now only
+> shows power state counts for powerdomains.
+>
+> This patch also provices a way to do printk dumps from kernel code,
+> by calling the pm_dbg_dump_X functions. The plan is to call these
+> functions once an error condition is detected, e.g. failed suspend.
 >
 > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > Cc: Paul Walmsley <paul@pwsan.com>
 > Cc: Kevin Hilman <khilman@ti.com>
 
-IMO, the idea is fine, but I'm not crazy about the implementation in
-powerdomain.c, which is meant for pwrdm generic code.   In particular,
-I'm not crazy about the pwrdm lookups in powerdomain.c.
+I think we should separate out the debug stuff as a separate patch set.
 
-Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
-not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
-
-Also, the changelog should be a bit more specific about why CORE
-powerdomain is also handled here when most of the code only talks about
-the CPU.
+Where I want to go with PM debug is away from in-kernel debug prints and
+towards using tracepoints.  We have tracepoints in the clock code that
+correspond to usecounts, but we need them in the clkdm, pwrdm and voltdm
+code as well.  With that, you can use userspace tools (perf, ftrace) to
+trace a problem (e.g. failed suspend) and see voltdm/pwrdm/clkdm/clks
+are on when they shouldn't be.
 
 Kevin
