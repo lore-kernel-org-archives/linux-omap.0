@@ -1,68 +1,161 @@
-From: Ravi B <ravibabu@ti.com>
-Subject: [PATCH v6 10/11] usb: musb: dsps: get the PHY using phandle api
-Date: Fri, 27 Jul 2012 14:02:06 +0530
-Message-ID: <1343377927-7850-10-git-send-email-ravibabu@ti.com>
+From: Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v6 02/11] usb: musb: kill global and static for multi instance
+Date: Fri, 27 Jul 2012 14:01:58 +0530
+Message-ID: <1343377927-7850-2-git-send-email-ravibabu@ti.com>
 References: <1343377927-7850-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47971 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150Ab2G0IcY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jul 2012 04:32:24 -0400
-In-Reply-To: <1343377927-7850-1-git-send-email-ravibabu@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1343377927-7850-1-git-send-email-ravibabu-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, ajayguptaj@gmail.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Ravi B <ravibabu@ti.com>
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-AM33xx has two PHY of same type used by each musb controller so
-use phandle of phy nodes to get the phy pointer.
+Moved global variable "musb_debugfs_root" and static variable
+"old_state" to 'struct musb' to help support multi instance of
+musb controller as present on AM335x platform.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Ravi B <ravibabu@ti.com>
+Also removed the global variable "orig_dma_mask" and filled the
+dev->dma_mask with parent device's dma_mask.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
 ---
- .../devicetree/bindings/usb/am33xx-usb.txt         |    2 ++
- drivers/usb/musb/musb_dsps.c                       |    4 +++-
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/usb/musb/musb_core.c    |   22 +++++++---------------
+ drivers/usb/musb/musb_core.h    |    4 ++++
+ drivers/usb/musb/musb_debugfs.c |    8 +++-----
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-index 9782585..e2702df 100644
---- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
-@@ -12,6 +12,8 @@ AM33XX MUSB GLUE
-    represents PERIPHERAL.
-  - power : Should be "250". This signifies the controller can supply upto
-    500mA when operating in host mode.
-+ - usb0-phy : phandle for usb0 NOP PHY
-+ - usb1-phy : phandle for usb1 NOP PHY
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index a565fc2..e781800 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -100,6 +100,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/idr.h>
++#include <linux/dma-mapping.h>
  
- NOP USB PHY
-  - compatible : Should be "nop-xceiv-usb"
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 24b2e4a..c2d053b 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -423,6 +423,7 @@ static int dsps_musb_init(struct musb *musb)
- 	struct dsps_glue *glue = platform_get_drvdata(parent_pdev);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	void __iomem *reg_base = musb->ctrl_base;
-+	char name[10];
- 	u32 rev, val;
- 	int status;
+ #include "musb_core.h"
  
-@@ -430,7 +431,8 @@ static int dsps_musb_init(struct musb *musb)
- 	musb->mregs += wrp->musb_core_offset;
+@@ -1804,10 +1805,9 @@ static const struct attribute_group musb_attr_group = {
+ static void musb_irq_work(struct work_struct *data)
+ {
+ 	struct musb *musb = container_of(data, struct musb, irq_work);
+-	static int old_state;
  
- 	/* Get the NOP PHY */
--	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
-+	sprintf(name, "usb%d-phy", pdev->id);
-+	musb->xceiv = devm_usb_get_phy_by_phandle(&parent_pdev->dev, name);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
+-	if (musb->xceiv->state != old_state) {
+-		old_state = musb->xceiv->state;
++	if (musb->xceiv->state != musb->xceiv_old_state) {
++		musb->xceiv_old_state = musb->xceiv->state;
+ 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
+ 	}
+ }
+@@ -2115,11 +2115,6 @@ fail0:
+ /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
+  * bridge to a platform device; this driver then suffices.
+  */
+-
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-static u64	*orig_dma_mask;
+-#endif
+-
+ static int __devinit musb_probe(struct platform_device *pdev)
+ {
+ 	struct device	*dev = &pdev->dev;
+@@ -2138,10 +2133,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
  
+-#ifndef CONFIG_MUSB_PIO_ONLY
+-	/* clobbered by use_dma=n */
+-	orig_dma_mask = dev->dma_mask;
+-#endif
+ 	status = musb_init_controller(dev, irq, base);
+ 	if (status < 0)
+ 		iounmap(base);
+@@ -2151,7 +2142,8 @@ static int __devinit musb_probe(struct platform_device *pdev)
+ 
+ static int __devexit musb_remove(struct platform_device *pdev)
+ {
+-	struct musb	*musb = dev_to_musb(&pdev->dev);
++	struct device	*dev = &pdev->dev;
++	struct musb	*musb = dev_to_musb(dev);
+ 	void __iomem	*ctrl_base = musb->ctrl_base;
+ 
+ 	/* this gets called on rmmod.
+@@ -2164,9 +2156,9 @@ static int __devexit musb_remove(struct platform_device *pdev)
+ 
+ 	musb_free(musb);
+ 	iounmap(ctrl_base);
+-	device_init_wakeup(&pdev->dev, 0);
++	device_init_wakeup(dev, 0);
+ #ifndef CONFIG_MUSB_PIO_ONLY
+-	pdev->dev.dma_mask = orig_dma_mask;
++	dma_set_mask(dev, *dev->parent->dma_mask);
+ #endif
+ 	return 0;
+ }
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 84436f7..5ec32b9 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -450,6 +450,10 @@ struct musb {
+ #ifdef MUSB_CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc_entry;
+ #endif
++	int			xceiv_old_state;
++#ifdef CONFIG_DEBUG_FS
++	struct dentry		*debugfs_root;
++#endif
+ };
+ 
+ static inline struct musb *gadget_to_musb(struct usb_gadget *g)
+diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
+index 40a37c9..1d6e8af 100644
+--- a/drivers/usb/musb/musb_debugfs.c
++++ b/drivers/usb/musb/musb_debugfs.c
+@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
+ 	{  }	/* Terminating Entry */
+ };
+ 
+-static struct dentry *musb_debugfs_root;
+-
+ static int musb_regdump_show(struct seq_file *s, void *unused)
+ {
+ 	struct musb		*musb = s->private;
+@@ -241,7 +239,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 	struct dentry		*file;
+ 	int			ret;
+ 
+-	root = debugfs_create_dir("musb", NULL);
++	root = debugfs_create_dir(dev_name(musb->controller), NULL);
+ 	if (!root) {
+ 		ret = -ENOMEM;
+ 		goto err0;
+@@ -261,7 +259,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
+ 		goto err1;
+ 	}
+ 
+-	musb_debugfs_root = root;
++	musb->debugfs_root = root;
+ 
+ 	return 0;
+ 
+@@ -274,5 +272,5 @@ err0:
+ 
+ void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
+ {
+-	debugfs_remove_recursive(musb_debugfs_root);
++	debugfs_remove_recursive(musb->debugfs_root);
+ }
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
