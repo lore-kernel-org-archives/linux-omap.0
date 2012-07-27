@@ -1,165 +1,182 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3xxx: clockdomain: fix software supervised wakeup/sleep
-Date: Fri, 27 Jul 2012 13:28:45 +0530
-Message-ID: <CACYZBRHmO3a3oBwbFP8GqDQj3xB7nB59TkzxAbFrZ2=h0VX3-g@mail.gmail.com>
-References: <alpine.DEB.2.00.1207261503290.14468@utopia.booyaka.com>
+From: Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v6 05/11] usb: musb: dsps: add dt support
+Date: Fri, 27 Jul 2012 14:02:01 +0530
+Message-ID: <1343377927-7850-5-git-send-email-ravibabu@ti.com>
+References: <1343377927-7850-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:43942 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751858Ab2G0H6r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jul 2012 03:58:47 -0400
-Received: by vcdd16 with SMTP id d16so5133931vcd.16
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 00:58:45 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1207261503290.14468@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1343377927-7850-1-git-send-email-ravibabu-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jon-hunter@ti.com
 
-Paul,
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-On Fri, Jul 27, 2012 at 2:34 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Commit 4da71ae6 ("OMAP: clockdomain: Arch specific funcs for
-> clkdm_clk_enable/disable") called the OMAP2xxx-specific functions for
-> clockdomain wakeup and sleep.  This would probably have broken
-> software-supervised clockdomain wakeup and sleep on OMAP3.
+Added device tree support for dsps musb glue driver and updated the
+Documentation with device tree binding information.
 
-Would something like this be better than duplicating most of
-omap2_clkdm_clk_enable/disable?
-
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ravi B <ravibabu-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   14 +++++
+ drivers/usb/musb/musb_dsps.c                       |   60 +++++++++++++++++---
+ 2 files changed, 65 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
-Index: linux-2.6/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-2012-07-27 13:15:49.238134472 +0530
-+++ linux-2.6/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-2012-07-27 13:22:01.607380032 +0530
-@@ -162,6 +162,27 @@
-                                                clkdm->clktrctrl_mask);
- }
-
-+static void _clkdm_sleep(struct clockdomain *clkdm)
-+{
-+       if (cpu_is_omap24xx())
-+               omap2_cm_set_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
-+                                       clkdm->pwrdm.ptr->prcm_offs,
-+                                       OMAP2_PM_PWSTCTRL);
-+       else if (cpu_is_omap34xx())
-+               omap3xxx_cm_clkdm_force_sleep(clkdm->pwrdm.ptr->prcm_offs,
-+                                       clkdm->clktrctrl_mask);
-+}
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+new file mode 100644
+index 0000000..ca8fa56
+--- /dev/null
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -0,0 +1,14 @@
++AM33XX MUSB GLUE
++ - compatible : Should be "ti,musb-am33xx"
++ - ti,hwmods : must be "usb_otg_hs"
++ - multipoint : Should be "1" indicating the musb controller supports
++   multipoint. This is a MUSB configuration-specific setting.
++ - num_eps : Specifies the number of endpoints. This is also a
++   MUSB configuration-specific setting. Should be set to "16"
++ - ram_bits : Specifies the ram address size. Should be set to "12"
++ - port0_mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
++   represents PERIPHERAL.
++ - port1_mode : Should be "1" to represent HOST. "3" signifies OTG and "2"
++   represents PERIPHERAL.
++ - power : Should be "250". This signifies the controller can supply upto
++   500mA when operating in host mode.
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 4fcfa1a..67d1f00 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -31,6 +31,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/of.h>
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+@@ -45,6 +46,10 @@
+ 
+ #include "musb_core.h"
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id musb_dsps_of_match[];
++#endif
 +
-+static void _clkdm_wakeup(struct clockdomain *clkdm)
-+{
-+       if (cpu_is_omap24xx())
-+               omap2_cm_clear_mod_reg_bits(OMAP24XX_FORCESTATE_MASK,
-+                                       clkdm->pwrdm.ptr->prcm_offs,
-+                                       OMAP2_PM_PWSTCTRL);
-+       else if (cpu_is_omap34xx())
-+               omap3xxx_cm_clkdm_force_wakeup(clkdm->pwrdm.ptr->prcm_offs,
-+                                       clkdm->clktrctrl_mask);
-+}
-
- static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
+ /**
+  * avoid using musb_readx()/musb_writex() as glue layer should not be
+  * dependent on musb core layer symbols.
+@@ -501,6 +506,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	struct device *dev = glue->dev;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct musb_hdrc_platform_data  *pdata = dev->platform_data;
++	struct device_node *np = pdev->dev.of_node;
++	struct musb_hdrc_config	*config;
+ 	struct platform_device	*musb;
+ 	struct resource *res;
+ 	struct resource	resources[2];
+@@ -567,14 +574,40 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 
+ 	glue->musb[id]			= musb;
+ 
+-	pdata->platform_ops		= &dsps_ops;
+-
+ 	ret = platform_device_add_resources(musb, resources, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add resources\n");
+ 		goto err2;
+ 	}
+ 
++	if (np) {
++		pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb platfrom data\n");
++			ret = -ENOMEM;
++			goto err2;
++		}
++
++		config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
++		if (!config) {
++			dev_err(&pdev->dev,
++				"failed to allocate musb hdrc config\n");
++			goto err2;
++		}
++
++		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
++		sprintf(res_name, "port%d_mode", id);
++		of_property_read_u32(np, res_name, (u32 *)&pdata->mode);
++		of_property_read_u32(np, "power", (u32 *)&pdata->power);
++		config->multipoint = of_property_read_bool(np, "multipoint");
++
++		pdata->config		= config;
++	}
++
++	pdata->platform_ops		= &dsps_ops;
++
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(dev, "failed to add platform_data\n");
+@@ -606,14 +639,22 @@ static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
+ 
+ static int __devinit dsps_probe(struct platform_device *pdev)
  {
-@@ -180,7 +201,7 @@
-                _enable_hwsup(clkdm);
-        } else {
-                if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
--                       omap2_clkdm_wakeup(clkdm);
-+                       _clkdm_wakeup(clkdm);
-        }
+-	const struct platform_device_id *id = platform_get_device_id(pdev);
+-	const struct dsps_musb_wrapper *wrp =
+-				(struct dsps_musb_wrapper *)id->driver_data;
++	struct device_node *np = pdev->dev.of_node;
++	const struct of_device_id *match;
++	const struct dsps_musb_wrapper *wrp;
+ 	struct dsps_glue *glue;
+ 	struct resource *iomem;
+ 	u32 __iomem *usbss;
+ 	int ret, i;
+ 
++	match = of_match_node(musb_dsps_of_match, np);
++	if (!match) {
++		dev_err(&pdev->dev, "fail to get matching of_match struct\n");
++		ret = -EINVAL;
++		goto err0;
++	}
++	wrp = match->data;
++
+ 	/* allocate glue */
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -773,13 +814,14 @@ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+ };
+ MODULE_DEVICE_TABLE(platform, musb_dsps_id_table);
+ 
++#ifdef CONFIG_OF
+ static const struct of_device_id musb_dsps_of_match[] __devinitconst = {
+-	{ .compatible = "musb-ti81xx", },
+-	{ .compatible = "ti,ti81xx-musb", },
+-	{ .compatible = "ti,am335x-musb", },
++	{ .compatible = "ti,musb-am33xx",
++		.data = (void *) &ti81xx_driver_data, },
+ 	{  },
+ };
+ MODULE_DEVICE_TABLE(of, musb_dsps_of_match);
++#endif
+ 
+ static struct platform_driver dsps_usbss_driver = {
+ 	.probe		= dsps_probe,
+@@ -787,7 +829,7 @@ static struct platform_driver dsps_usbss_driver = {
+ 	.driver         = {
+ 		.name   = "musb-dsps",
+ 		.pm	= &dsps_pm_ops,
+-		.of_match_table	= musb_dsps_of_match,
++		.of_match_table	= of_match_ptr(musb_dsps_of_match),
+ 	},
+ 	.id_table	= musb_dsps_id_table,
+ };
+-- 
+1.7.0.4
 
-        return 0;
-@@ -203,7 +224,7 @@
-                _enable_hwsup(clkdm);
-        } else {
-                if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
--                       omap2_clkdm_sleep(clkdm);
-+                       _clkdm_sleep(clkdm);
-        }
-
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   50 ++++++++++++++++++++++++++--
->  1 file changed, 48 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-> index a0d68db..f99e65c 100644
-> --- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-> +++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-> @@ -241,6 +241,52 @@ static void omap3_clkdm_deny_idle(struct clockdomain *clkdm)
->                 _clkdm_del_autodeps(clkdm);
->  }
->
-> +static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
-> +{
-> +       bool hwsup = false;
-> +
-> +       if (!clkdm->clktrctrl_mask)
-> +               return 0;
-> +
-> +       hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-> +                               clkdm->clktrctrl_mask);
-> +
-> +       if (hwsup) {
-> +               /* Disable HW transitions when we are changing deps */
-> +               _disable_hwsup(clkdm);
-> +               _clkdm_add_autodeps(clkdm);
-> +               _enable_hwsup(clkdm);
-> +       } else {
-> +               if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-> +                       omap3_clkdm_wakeup(clkdm);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static int omap3xxx_clkdm_clk_disable(struct clockdomain *clkdm)
-> +{
-> +       bool hwsup = false;
-> +
-> +       if (!clkdm->clktrctrl_mask)
-> +               return 0;
-> +
-> +       hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
-> +                               clkdm->clktrctrl_mask);
-> +
-> +       if (hwsup) {
-> +               /* Disable HW transitions when we are changing deps */
-> +               _disable_hwsup(clkdm);
-> +               _clkdm_del_autodeps(clkdm);
-> +               _enable_hwsup(clkdm);
-> +       } else {
-> +               if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
-> +                       omap3_clkdm_sleep(clkdm);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  struct clkdm_ops omap2_clkdm_operations = {
->         .clkdm_add_wkdep        = omap2_clkdm_add_wkdep,
->         .clkdm_del_wkdep        = omap2_clkdm_del_wkdep,
-> @@ -267,6 +313,6 @@ struct clkdm_ops omap3_clkdm_operations = {
->         .clkdm_wakeup           = omap3_clkdm_wakeup,
->         .clkdm_allow_idle       = omap3_clkdm_allow_idle,
->         .clkdm_deny_idle        = omap3_clkdm_deny_idle,
-> -       .clkdm_clk_enable       = omap2_clkdm_clk_enable,
-> -       .clkdm_clk_disable      = omap2_clkdm_clk_disable,
-> +       .clkdm_clk_enable       = omap3xxx_clkdm_clk_enable,
-> +       .clkdm_clk_disable      = omap3xxx_clkdm_clk_disable,
->  };
-> --
-> 1.7.10.4
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
