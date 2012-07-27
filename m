@@ -1,67 +1,63 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH RESEND v2 1/2] arm/dts: Add AM33XX basic pinctrl support
-Date: Fri, 27 Jul 2012 12:10:52 +0300
-Message-ID: <50125B1C.8000209@ti.com>
-References: <1343144719-26352-1-git-send-email-anilkumar@ti.com> <1343144719-26352-2-git-send-email-anilkumar@ti.com>
+Subject: OMAP: Configuring CONTROL_DEVCONF0 register via DT with pinctrl
+Date: Fri, 27 Jul 2012 12:43:17 +0300
+Message-ID: <501262B5.1080004@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:42569 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751565Ab2G0JKQ (ORCPT
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:38043 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750836Ab2G0Jmk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jul 2012 05:10:16 -0400
-Received: by obqv19 with SMTP id v19so6162758obq.30
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 02:10:15 -0700 (PDT)
-In-Reply-To: <1343144719-26352-2-git-send-email-anilkumar@ti.com>
+	Fri, 27 Jul 2012 05:42:40 -0400
+Received: by obbuo13 with SMTP id uo13so4682332obb.33
+        for <linux-omap@vger.kernel.org>; Fri, 27 Jul 2012 02:42:39 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
+To: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi,
+Hello,
 
-On 07/24/2012 06:45 PM, AnilKumar Ch wrote:
-> Adds basic pinctrl support for AM33XX family of devices. This patch
-> is based on the pinctrl-simple driver submitted by Tony Lindgren's
-> here: http://lwn.net/Articles/496075/
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
->  1 file changed, 9 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx=
-=2Edtsi
-> index 59509c4..9b974dc 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -40,6 +40,15 @@
->  		};
->  	};
-> =20
-> +	am3358_pinmux: pinmux@44E10800 {
-> +		compatible =3D "pinctrl-single";
-> +		reg =3D <0x44E10800 0x0338>;
+I need to find a solution to control 2 bits in CONTROL_DEVCONF0 on OMAP=
+2/3 for
+McBSP1 CLKR/FSR signal routing.
+In boards using McBSP1 we might need to change bit 3 and 4 based on the=
+ audio
+setup (how the board has been wired).
 
-I'm just curious about the size here: how it ended up as 0x0338?
-While looking at the TRM of AM335x I can come up with 0x0238 (0x44e1080=
-0 -
-0x44e10a38), but I don't see any sings of the remaining 0x0100 to be
-documented at least.
+So far I have come up with the following idea to handle to but not real=
+ly sure
+if it is the correct way (I have taken the idea from the arm/dts: Add A=
+M33XX
+basic pinctrl support series).
 
-> +		#address-cells =3D <1>;
-> +		#size-cells =3D <0>;
-> +		pinctrl-single,register-width =3D <32>;
-> +		pinctrl-single,function-mask =3D <0x7F>;
-> +	};
-> +
->  	/*
->  	 * XXX: Use a flat representation of the AM33XX interconnect.
->  	 * The real AM33XX interconnect network is quite complex.Since
->=20
---=20
+In .dtsi file of the SoC:
+
+control_devconf0: pinmux@48002274 {
+	compatible =3D "pinctrl-single";
+	reg =3D <0x48002274 4>;	/* Single register */
+	#address-cells =3D <1>;
+	#size-cells =3D <0>;
+	pinctrl-single,register-width =3D <32>;
+	pinctrl-single,function-mask =3D <0x5F>;
+};
+
+In the .dts file of the board which needs to change the CLKR/FSR config=
+uration:
+
+&control_devconf0 {
+	pinctrl-names =3D "default";
+	pinctrl-0 =3D <&mcbsp1_pins>;
+
+	mcbsp1_pins: pinmux_mcbsp1_pins {
+		pinctrl-single,pins =3D <0x00 0x18>; /* CLKR/FSR from CLKX/FSX
+						    * pin */
+	};
+
+};
+
+Thanks for the help,
 P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
