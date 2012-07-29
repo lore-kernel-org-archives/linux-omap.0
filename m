@@ -1,56 +1,40 @@
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH v2] da8xx-fb: add missing FB_BLANK operations
-Date: Sun, 29 Jul 2012 21:05:04 +0000
-Message-ID: <5015A580.5030203@gmx.de>
-References: <1341583288-30281-1-git-send-email-yegorslists@googlemail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1 v2] ARM: only call smp_send_stop() on SMP
+Date: Sun, 29 Jul 2012 22:31:25 +0100
+Message-ID: <20120729213125.GD7405@n2100.arm.linux.org.uk>
+References: <20120625005134.GA2342@S2101-09.ap.freescale.net> <20120625084905.GD19226@n2100.arm.linux.org.uk> <CAAwP0s2jTPM_ErDOFKXoe95_Xd=xjkuTAsDbLctQ08_QVNkakQ@mail.gmail.com> <5012CC98.60206@ti.com> <20120727204447.GA10024@mudshark.cambridge.arm.com> <20120727210637.GA16377@n2100.arm.linux.org.uk> <20120727214024.GA10249@mudshark.cambridge.arm.com> <20120728100831.GC7405@n2100.arm.linux.org.uk> <20120728121103.GA11370@mudshark.cambridge.arm.com> <CABxcv=mVKt8+gYK6kHydmG3SnDZgjMbJuEcUBx_z5sumNY_SQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46294 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753615Ab2G2VFI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jul 2012 17:05:08 -0400
-In-Reply-To: <1341583288-30281-1-git-send-email-yegorslists@googlemail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51299 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087Ab2G2Vbj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jul 2012 17:31:39 -0400
+Content-Disposition: inline
+In-Reply-To: <CABxcv=mVKt8+gYK6kHydmG3SnDZgjMbJuEcUBx_z5sumNY_SQw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: yegorslists@googlemail.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Will Deacon <will.deacon@arm.com>, Jon Hunter <jon-hunter@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Shawn Guo <shawn.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 07/06/2012 02:01 PM, yegorslists@googlemail.com wrote:
-> From: Yegor Yefremov <yegorslists@googlemail.com>
+On Sat, Jul 28, 2012 at 04:26:28PM +0200, Javier Martinez Canillas wrote:
+> On Sat, Jul 28, 2012 at 2:11 PM, Will Deacon <will.deacon@arm.com> wrote:
+> > Acked-by: Will Deacon <will.deacon@arm.com>
+> >
+> > The next question is: who's putting this into the patch system?
+> >
+> > Will
 > 
-> add FB_BLANK_NORMAL, FB_BLANK_VSYNC_SUSPEND and FB_BLANK_HSYNC_SUSPEND
-> modes (copy drivers/video/omap2/omapfb/omapfb-main.c implementation).
-> Otherwise X-server will complain about invalid parameter.
+> Hi,
 > 
-> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
-
-Applied.
-
-
-Thanks,
-
-Florian Tobias Schandinat
-
-> ---
-> v2: add linux-fbdev as recipient 
+> I just put the patch with Will's Acked-by on the patch system. It  was
+> accepted as patch 7480/1 [1].
 > 
->  drivers/video/da8xx-fb.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+> The patch is on top of today's linux-next (next-20120727).
 > 
-> diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-> index 47118c7..8d745bf 100644
-> --- a/drivers/video/da8xx-fb.c
-> +++ b/drivers/video/da8xx-fb.c
-> @@ -1026,6 +1026,9 @@ static int cfb_blank(int blank, struct fb_info *info)
->  
->  		lcd_enable_raster();
->  		break;
-> +	case FB_BLANK_NORMAL:
-> +	case FB_BLANK_VSYNC_SUSPEND:
-> +	case FB_BLANK_HSYNC_SUSPEND:
->  	case FB_BLANK_POWERDOWN:
->  		if (par->panel_power_ctrl)
->  			par->panel_power_ctrl(0);
+> Thanks a lot and best regards,
+> Javier
+> 
+> [1] http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=7480/1
 
+Isn't this a candidate for stable kernels?
