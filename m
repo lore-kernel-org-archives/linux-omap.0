@@ -1,57 +1,91 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 0/6] ARM: OMAP3+: minor PM core code cleanup
-Date: Mon, 30 Jul 2012 13:53:59 -0700
-Message-ID: <871ujtgec8.fsf@ti.com>
-References: <1342197459-7920-1-git-send-email-t-kristo@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 1/3] ARM: omap: clk: add clk_prepare and
+ clk_unprepare
+Date: Mon, 30 Jul 2012 16:31:23 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207301614590.8722@utopia.booyaka.com>
+References: <1341224669-15231-1-git-send-email-rnayak@ti.com> <1341224669-15231-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:36953 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754470Ab2G3UyC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jul 2012 16:54:02 -0400
-Received: by pbbrr13 with SMTP id rr13so11912394pbb.40
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 13:54:01 -0700 (PDT)
-In-Reply-To: <1342197459-7920-1-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Fri, 13 Jul 2012 19:37:33 +0300")
+Received: from utopia.booyaka.com ([72.9.107.138]:33024 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755095Ab2G3WbY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 18:31:24 -0400
+In-Reply-To: <1341224669-15231-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: mturquette@ti.com, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tero, Paul,
+Hi
 
-Tero Kristo <t-kristo@ti.com> writes:
+On Mon, 2 Jul 2012, Rajendra Nayak wrote:
 
-> Hi,
->
-> Following set moves some PRM related code away from PM core code to
-> PRM / HWMOD. This requires the hwmod cleanup set from Paul that
-> implements the setup_preprogram hooks for hwmods. Sending as RFC for
-> initial commenting.
+> As part of Common Clk Framework (CCF) the clk_enable() operation
+> was split into a clk_prepare() which could sleep, and a clk_enable()
+> which should never sleep. Similarly the clk_disable() was
+> split into clk_disable() and clk_unprepare(). This was
+> needed to handle complex cases where in a clk gate/ungate
+> would require a slow and a fast part to be implemented.
+> None of the clocks below seem to be in the 'complex' clocks
+> category and are just simple clocks which are enabled/disabled
+> through simple register writes.
+> Most of the instances also seem to be called in non-atomic
+> context which means its safe to move all of those from
+> using a clk_enable() to clk_prepare_enable() and clk_disable() to
+> clk_disable_unprepare().
+> For a few others where there is a possibility they get called from
+> an interrupt or atomic context, there is an additonal clk_prepare()
+> done before a clk_enable() and a clk_unprepare()
+> after a clk_disable().
+> This is in preparation of OMAP moving to CCF.
+> 
+> Based on initial changes from Mike turquette.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-What is the status of the setup_preprogram hooks patch(es)?  Looks like
-that part was dropped from Paul's original series of fixes.
+Looking at this one, it seems basically okay except for this part:
 
-Just curious,
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 7731936..f904993 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -608,6 +608,7 @@ static int _init_main_clk(struct omap_hwmod *oh)
+>  			   oh->name, oh->main_clk);
+>  		return -EINVAL;
+>  	}
+> +	clk_prepare(oh->_clk);
+>  
+>  	if (!oh->_clk->clkdm)
+>  		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
+> @@ -645,6 +646,7 @@ static int _init_interface_clks(struct omap_hwmod *oh)
+>  			ret = -EINVAL;
+>  		}
+>  		os->_clk = c;
+> +		clk_prepare(os->_clk);
+>  	}
+>  
+>  	return ret;
+> @@ -672,6 +674,7 @@ static int _init_opt_clks(struct omap_hwmod *oh)
+>  			ret = -EINVAL;
+>  		}
+>  		oc->_clk = c;
+> +		clk_prepare(oc->_clk);
+>  	}
+>  
+>  	return ret;
 
-Kevin
+Seems to me that the strategy here of calling clk_prepare() right after 
+the clk_get() is only going to work as long as clk_prepare() is a no-op. 
+Right now this code is called early in the boot before many subsystems are 
+available.
 
-> This set does following:
-> - gets rid of the prcm interrupt handler from pm34xx.c
-> - removes iva_idle from pm34xx.c
-> - removes d2d_idle from pm34xx.c
->
-> There are some side-effects though, it looks like the reset statuses
-> for iva / d2d modules are rather flaky, and some failed hardreset
-> warnings are generated during boot. PM works fine though and the
-> modules are put to idle properly. Could use some ideas how to handle
-> this, maybe add a flag for ignoring the hardreset status completely...?
->
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So if we make a change like this one, it seems like we would basically 
+expect it to break once we start doing anything meaningful with 
+clk_prepare(), like using clk_prepare() for voltage scaling or something 
+that requires I2C?  We'd also probably want to mark this with some kind of 
+"HACK" comment.
+ 
+
+
+- Paul
