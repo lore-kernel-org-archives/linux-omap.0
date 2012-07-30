@@ -1,114 +1,223 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 0/2] OMAPDSS: DISPC: Improvements to DIGIT sync signal
- selection
-Date: Mon, 30 Jul 2012 14:21:50 -0500
-Message-ID: <5016DECE.5000107@ti.com>
-References: <1343434897-8444-1-git-send-email-ricardo.neri@ti.com> <1343646716.8019.22.camel@lappyti> <50167487.9080703@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GPIO] Crashed when not using
+Date: Mon, 30 Jul 2012 13:36:47 -0700
+Message-ID: <87fw89gf4w.fsf@ti.com>
+References: <CAKdam54gXixs4F-a07ajj9GNMth46d4NTdoUL3GokzvjuWaGyg@mail.gmail.com>
+	<CAC83ZvKnOw+UBOWYtt294k-5Xk8S6Gy1pChSF7aXGmGjLGSeCA@mail.gmail.com>
+	<CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36144 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754508Ab2G3TW4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jul 2012 15:22:56 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q6UJMugG005209
-	for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 14:22:56 -0500
-Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q6UJMujY003849
-	for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 14:22:56 -0500
-In-Reply-To: <50167487.9080703@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
+	(Sourav Poddar's message of "Mon, 30 Jul 2012 16:45:10 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Poddar, Sourav" <sourav.poddar@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, s-guiriec@ti.com, linux-omap@vger.kernel.org
 
-Hi Tomi, Archit,
+"Poddar, Sourav" <sourav.poddar@ti.com> writes:
 
-Thanks for your feedback.
-
-On 07/30/2012 06:48 AM, Archit Taneja wrote:
-> On Monday 30 July 2012 04:41 PM, Tomi Valkeinen wrote:
->> On Fri, 2012-07-27 at 19:21 -0500, Ricardo Neri wrote:
->>> Hello,
+> On Mon, Jul 30, 2012 at 3:04 PM, DebBarma, Tarun Kanti
+> <tarun.kanti@ti.com> wrote:
+>> Sourav,
+>>
+>> On Mon, Jul 30, 2012 at 2:13 PM, Poddar, Sourav <sourav.poddar@ti.com> wrote:
+>>> Hi All,
 >>>
->>> DSS code wrongly assumes that VENC is always available as source for
->>> the external
->>> sync signal for the display controller DIGIT channel. One cannot blindly
->>> rely only on the value of DSS_CONTROL register as certain processors
->>> may not
->>> have VENC (e.g., OMAP5).
+>>> I tried using gpio as an interrupt line for my driver
+>>> (drivers/staging/iio/light/tsl2x7x_core.c) for omap5.
+>>> The interrupt line number was directly passed to the driver using
+>>> device tree. But what I observed
+>>> is the following crash..
 >>>
->>> These patches add logic to correctly set/get the sync signal based on
->>> the
->>> available displays in the DIGIT channel.
 >>>
->>> For the HDMI driver, handle the error in the selection of the source.
+>>> [    1.599273] mousedev: PS/2 mouse device common for all mice
+>>> [    1.607513] i2c /dev entries driver
+>>> [    1.613739] Driver for 1-wire Dallas network protocol.
+>>> [    1.622650] usbcore: registered new interface driver usbhid
+>>> [    1.628540] usbhid: USB HID core driver
+>>> [    1.633728] Unhandled fault: imprecise external abort (0x1406) at 0x00000000
+>>> [    1.641113] Internal error: : 1406 [#1] SMP ARM
+>>> [    1.645874] Modules linked in:
+>>> [    1.649078] CPU: 0    Not tainted  (3.5.0-02045-g0b474d6-dirty #415)
+>>> [    1.655761] PC is at _set_gpio_triggering+0x44/0x264
+>>> [    1.660980] LR is at gpio_irq_type+0xb8/0x160
+>>> [    1.665527] pc : [<c02dbb68>]    lr : [<c02dc2dc>]    psr: 60000093
+>>> [    1.665527] sp : dc851df0  ip : c07a8f00  fp : 00000000
+>>> [    1.677581] r10: 00000081  r9 : 00000000  r8 : dc8ffc10
+>>> [    1.683074] r7 : 20000093  r6 : 00000000  r5 : 00000001  r4 : fa05b000
+>>> [    1.689910] r3 : dc8ffc10  r2 : 00000002  r1 : 00000002  r0 : 00000140
+>>> [    1.696746] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
+>>> Segment kernel
+>>> [    1.704528] Control: 10c53c7d  Table: 8000406a  DAC: 00000017
+>>> [    1.710540] Process swapper/0 (pid: 1, stack limit = 0xdc8502f8)
+>>> [    1.716857] Stack: (0xdc851df0 to 0xdc852000)
+>>> [    1.721405] 1de0:                                     00000002
+>>> c0731280 dc8ffc6c 20000093
+>>> [    1.730010] 1e00: c02dc224 c0731280 dc8d4980 00000000 c07a8e50
+>>> 00000141 00000002 c00a37b8
+>>> [    1.738586] 1e20: 00002002 c0731280 dc8d4980 00000141 c07312d4
+>>> c07312b4 40000013 c00a3d7c
+>>> [    1.747161] 1e40: 00000141 c06728c0 00000000 c0090578 c247f000
+>>> c00a2d5c c0412258 00000141
+>>> [    1.755737] 1e60: c0731280 c0537818 dc8d4980 c00a3fe4 c07bf6a0
+>>> 00002002 c071bed8 c247f000
+>>> [    1.764312] 1e80: dc9df000 00000004 c07bf6a0 dc9df020 c247f3c0
+>>> c04ea344 c06728c0 c247f000
+>>> [    1.772888] 1ea0: 00000000 09090578 c07bf6a0 dc9df004 dc9df000
+>>> c04ea194 00000091 c071bed8
+>>> [    1.781494] 1ec0: c06f89f4 c03e13c0 c03e1314 dc9df020 c0d1afd8
+>>> dc9df054 c07bf60c c03272ac
+>>> [    1.790069] 1ee0: dc9df020 c07bf60c dc9df054 00000000 00000091
+>>> c03274c0 c07bf60c dc851f08
+>>> [    1.798645] 1f00: c032742c c0325b10 dc8f26a8 dc9ef790 00000000
+>>> c07bf60c c07bcea8 c243d6c0
+>>> [    1.807220] 1f20: 00000000 c0326240 c0672958 c02bce08 c07bf5e4
+>>> c07bf60c c03e12a0 00000000
+>>> [    1.815795] 1f40: 00000091 c071bed8 c06f89f4 c0327ab0 c07bf5e4
+>>> 00000007 c07c8c40 00000000
+>>> [    1.824401] 1f60: 00000091 c03e1738 00000000 dc850000 00000007
+>>> c0008648 00000000 c112c9f0
+>>> [    1.832977] 1f80: c06a6d58 c06f89f4 00000001 60000013 c06694c8
+>>> 00000000 00000006 00000006
+>>> [    1.841552] 1fa0: 60000013 c0700a20 00000007 c07c8c40 c06d020c
+>>> 00000091 c071bed8 c0700a28
+>>> [    1.850128] 1fc0: 00000000 c06d0380 00000006 00000006 c06d020c
+>>> 00000000 00000000 c06d028c
+>>> [    1.858703] 1fe0: c001548c 00000013 00000000 00000000 00000000
+>>> c001548c 3f3f3f3f 3f3f3f3f
+>>> [    1.867309] [<c02dbb68>] (_set_gpio_triggering+0x44/0x264) from
+>>> [<c02dc224>] (gpio_irq_type+0x0/0x160)
+>>> [    1.877075] [<c02dc224>] (gpio_irq_type+0x0/0x160) from [<00002002>] (0x2002)
+>>> [    1.884552] Code: e3120008 11816006 01c66001 e7846000 (e593c0fc)
+>>> [    1.890960] ------------[ cut here ]------------
+>>> [    1.895812] WARNING: at arch/arm/mach-omap2/omap_l3_noc.c:113
+>>> l3_interrupt_handler+0x184/0x1bc()
+>>> [    1.905029] L3 custom error: MASTER:MPU TARGET:L4 PER2
+>>> [    1.910430] Modules linked in:
+>>> [    1.913635] [<c001bd5c>] (unwind_backtrace+0x0/0xf4) from
+>>> [<c00414c4>] (warn_slowpath_common+0x4c/0x64)
+>>> [    1.923492] [<c00414c4>] (warn_slowpath_common+0x4c/0x64) from
+>>> [<c0041570>] (warn_slowpath_fmt+0x30/0x40)
+>>> [    1.933563] [<c0041570>] (warn_slowpath_fmt+0x30/0x40) from
+>>> [<c0035de4>] (l3_interrupt_handler+0x184/0x1bc)
+>>> [    1.943786] [<c0035de4>] (l3_interrupt_handler+0x184/0x1bc) from
+>>> [<c00a28b8>] (handle_irq_event_percpu+0x64/0x24c)
+>>> [    1.954650] [<c00a28b8>] (handle_irq_event_percpu+0x64/0x24c) from
+>>> [<c00a2adc>] (handle_irq_event+0x3c/0x5c)
+>>> [    1.964965] [<c00a2adc>] (handle_irq_event+0x3c/0x5c) from
+>>> [<c00a56a8>] (handle_fasteoi_irq+0x98/0x13c)
+>>> [    1.974822] [<c00a56a8>] (handle_fasteoi_irq+0x98/0x13c) from
+>>> [<c00a235c>] (generic_handle_irq+0x34/0x44)
+>>> [    1.984863] [<c00a235c>] (generic_handle_irq+0x34/0x44) from
+>>> [<c00153a0>] (handle_IRQ+0x4c/0xac)
+>>> [    1.994110] [<c00153a0>] (handle_IRQ+0x4c/0xac) from [<c0008480>]
+>>> (gic_handle_irq+0x2c/0x60)
+>>> [    2.002960] [<c0008480>] (gic_handle_irq+0x2c/0x60) from
+>>> [<c04f26e4>] (__irq_svc+0x44/0x60)
+>>> [    2.011718] Exception stack(0xdc851c48 to 0xdc851c90)
+>>> [    2.017028] 1c40:                   c07a87a0 00000000 dc851c80
+>>> 00000000 c0743f80 dc851da8
+>>> [    2.025604] 1c60: 00000001 00000001 dc851cd7 00000000 c02dbb6a
+>>> c02dbb6c ffffffff dc851c90
+>>> [    2.034179] 1c80: c04f2440 c04f2444 60000113 ffffffff
+>>> [    2.039489] [<c04f26e4>] (__irq_svc+0x44/0x60) from [<c04f2444>]
+>>> (_raw_spin_unlock_irq+0x28/0x2c)
+>>> [    2.048797] [<c04f2444>] (_raw_spin_unlock_irq+0x28/0x2c) from
+>>> [<c001871c>] (die+0xe0/0x324)
+>>> [    2.057647] [<c001871c>] (die+0xe0/0x324) from [<c0008444>]
+>>> (do_DataAbort+0x88/0x98)
+>>> [    2.065765] [<c0008444>] (do_DataAbort+0x88/0x98) from [<c04f2664>]
+>>> (__dabt_svc+0x44/0x80)
+>>> [    2.074462] Exception stack(0xdc851da8 to 0xdc851df0)
+>>> [    2.079742] 1da0:                   00000140 00000002 00000002
+>>> dc8ffc10 fa05b000 00000001
+>>> [    2.088317] 1dc0: 00000000 20000093 dc8ffc10 00000000 00000081
+>>> 00000000 c07a8f00 dc851df0
+>>> [    2.096893] 1de0: c02dc2dc c02dbb68 60000093 ffffffff
+>>> [    2.102203] [<c04f2664>] (__dabt_svc+0x44/0x80) from [<c02dbb68>]
+>>> (_set_gpio_triggering+0x44/0x264)
+>>> [    2.111724] [<c02dbb68>] (_set_gpio_triggering+0x44/0x264) from
+>>> [<c02dc224>] (gpio_irq_type+0x0/0x160)
+>>> [    2.121490] [<c02dc224>] (gpio_irq_type+0x0/0x160) from [<00002002>] (0x2002)
+>>> [    2.128967] ---[ end trace 8b4b88305e6b2aff ]---
+>>> [    2.133911] ---[ end trace 8b4b88305e6b2b00 ]---
+>>> [    2.138763] Kernel panic - not syncing: Attempted to kill init!
+>>> exitcode=0x0000000b
+>>> [    2.138763]
+>>> [    2.148376] CPU1: stopping
+>>> [    2.151214] [<c001bd5c>] (unwind_backtrace+0x0/0xf4) from
+>>> [<c0019c74>] (handle_IPI+0x130/0x15c)
+>>> [    2.160339] [<c0019c74>] (handle_IPI+0x130/0x15c) from [<c00084ac>]
+>>> (gic_handle_irq+0x58/0x60)
+>>> [    2.169372] [<c00084ac>] (gic_handle_irq+0x58/0x60) from
+>>> [<c04f26e4>] (__irq_svc+0x44/0x60)
+>>> [    2.178131] Exception stack(0xdc869e10 to 0xdc869e58)
+>>> [    2.183410] 9e00:                                     00000000
+>>> 00000000 00000002 60000113
+>>> [    2.191986] 9e20: 00000000 dc868000 c07970e4 00000000 00000000
+>>> 00000001 00000002 00000000
+>>> [    2.200561] 9e40: 00000001 dc869e58 c00936f4 c0093704 60000113 ffffffff
+>>> [    2.207489] [<c04f26e4>] (__irq_svc+0x44/0x60) from [<c0093704>]
+>>> (lock_acquire+0xac/0x104)
+>>> [    2.216156] [<c0093704>] (lock_acquire+0xac/0x104) from
+>>> [<c007a8bc>] (rebalance_domains+0x5c/0x1a8)
+>>> [    2.225646] [<c007a8bc>] (rebalance_domains+0x5c/0x1a8) from
+>>> [<c007ae84>] (run_rebalance_domains+0x44/0x14c)
+>>> [    2.235961] [<c007ae84>] (run_rebalance_domains+0x44/0x14c) from
+>>> [<c004a864>] (__do_softirq+0xb4/0x214)
+>>> [    2.245819] [<c004a864>] (__do_softirq+0xb4/0x214) from
+>>> [<c004aba0>] (irq_exit+0x90/0x98)
+>>> [    2.254394] [<c004aba0>] (irq_exit+0x90/0x98) from [<c0019c48>]
+>>> (handle_IPI+0x104/0x15c)
+>>> [    2.262878] [<c0019c48>] (handle_IPI+0x104/0x15c) from [<c00084ac>]
+>>> (gic_handle_irq+0x58/0x60)
+>>> [    2.271911] [<c00084ac>] (gic_handle_irq+0x58/0x60) from
+>>> [<c04f26e4>] (__irq_svc+0x44/0x60)
+>>> [    2.280670] Exception stack(0xdc869f88 to 0xdc869fd0)
+>>> [    2.285949] 9f80:                   c07a87a0 c0022a40 00000000
+>>> 00000000 dc868000 c07c8d08
+>>> [    2.294525] 9fa0: c04fe078 c0743d70 00000000 410fc0f0 c0743fa0
+>>> 00000000 00000000 dc869fd0
+>>>
+>>>
+>>> The device tree data for acquiring the above GPIO interrupt line looks
+>>> like this.
+>>>
+>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-30
+>>> 14:11:08.931694001 +0530
+>>> @@ -42,7 +42,8 @@
+>>>         tsl2771@39 {
+>>>                 compatible = "taos,tsl2771";
+>>>                 reg = <0x39>;
+>>> +                interrupt-parent = <&gpio5>;
+>>> +                interrupts = <21>; /* gpio line 149 */
+>>>         };
+>>>  };
+>>>
+>>> Note: using "gpio_request_one" in the driver solves the issue.
+>>> Is using this api in the driver required?
+>>> Any pointer on the above crash?
 >>
->> Is there an actual problem seen that this resolves? If so, It'd be nice
->> to have a brief description of the problem.
+> Hi Tarun,
+>> Any user/client driver of GPIO is supposed to go through
+>> gpio_request() API so that module clock
+>> is enabled correctly. Overriding of APIs would put the power
+>> management state machine in jeopardy.
+>> --
+> I tried putting "pm_runtime_get_sync" in gpio_irq_type api where the kernel
+> is crashing and the crash is no longer observed. So indeed, its about
+> enabling clocks.
 >
-> The issue is seen on OMAP5 with a 3.5 kernel. In 3.5 kernel, we had a
-> hack where we used to divide the TV manager's height by 2 if the
-> connected interface was VENC. On OMAP5, the bit 15 returns VENC (a zero)
-> irrespective of what we write.
->
-> This won't happen in 3.6 as we have included interlace as a part of the
-> omap_video_timings struct, and we don't try to check the bit to see
-> whether we are VENC or HDMI.
->
-> I guess we should still put a check to not set the bit on OMAP5 as it
-> may cause unknown HW behavior, i.e, make the select function like:
->
-> void dss_select_hdmi_venc_clk_source()
-> {
->      ...
->
->      displays =
->          dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_DIGIT);
->
->      if ((displays & OMAP_DISPLAY_TYPE_VENC) == 0)
->          return;
->
->      REG_FLD_MOD(DSS_CONTROL, src, 15, 15);    /* VENC_HDMI_SWITCH */
-> }
+> One doubt: Can't we put runtime apis in "gpio_irq_type" and eliminate
+> the use of
+> "gpio_request_one"??
 
-As Tomi mentions, perhaps this could be complemented with a BUG_ON could 
-be used if someone tries to use VENC as source when this is not available.
->
-> Archit
->
->>
->> Does the bit 15 in DSS_CONTROL still exist on OMAP5? What does it return
->> on OMAP5?
->>
->> I think it's clear that dss_get_hdmi_venc_clk_source() needs to return a
->> correct value so that DSS operates correctly. But I'm not sure we need
->> the extra code in dss_select_hdmi_venc_clk_source().
+No.
 
-Yes, the main purpose of these patch was to avoid blindly reading 
-DSS_CONTROL[15]. The additions to selection were just for completeness.
->>
->> dss_select_hdmi_venc_clk_source() should be called by venc or hdmi, and
->> there should be any possibility of using it in the wrong way. For extra
->> sanity checking there could be a BUG_ON() check in the
->> dss_select_hdmi_venc_clk_source() to point out if there's a bad bug in
->> venc or hdmi.
->>
->> I'd like to keep the lowest level dss-internal functions as simple as
->> possible, and written in the manner that they presume they are called
->> correctly. Otherwise we'll end up with lots of new code, checking for
->> errors that can never happen in practice.
-Well, this was an error that happened in practice :).
+You must use the GPIO requiest/free APIs to tell the GPIO core that
+the GPIO line is in use.
 
-I will resubmit based on these comments.
+Why do you want to avoid using gpio_request/gpio_free?
 
-Thanks,
-
-Ricardo
->>
->>   Tomi
->>
->
-
+Kevin
