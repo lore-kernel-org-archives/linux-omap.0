@@ -1,81 +1,100 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: rmk back but still recovering (was Re: Reminder - rmk still on vacation)
-Date: Mon, 30 Jul 2012 11:21:36 +0530
-Message-ID: <CANfBPZ_qzXgm0bX8XDnKLwoYTtcARPj+8MHpsSEWy0=G5f9qAA@mail.gmail.com>
-References: <20120725141222.GA6939@n2100.arm.linux.org.uk> <20120727134231.GA5934@n2100.arm.linux.org.uk>
- <CAMQu2gzrG2qC3_YXjaxQnc+2WzsiqoyMeOMScEWWR+gR2Vc0cw@mail.gmail.com>
- <20120727165049.GB7405@n2100.arm.linux.org.uk> <CAMQu2gyTgkswS1tYY=0g1oF7u=RGdQKEw0C3m3r3Jr+j_k9dsQ@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH] MMC/omap_hsmmc: handle failure of regulator_get better.
+Date: Mon, 30 Jul 2012 16:24:14 +1000
+Message-ID: <20120730162414.3818bded@notabene.brown>
+References: <20120730101245.7dbe72b0@notabene.brown>
+	<501619A4.50906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:48899 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751289Ab2G3Fv6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jul 2012 01:51:58 -0400
-Received: by ghrr14 with SMTP id r14so4333143ghr.4
-        for <linux-omap@vger.kernel.org>; Sun, 29 Jul 2012 22:51:57 -0700 (PDT)
-In-Reply-To: <CAMQu2gyTgkswS1tYY=0g1oF7u=RGdQKEw0C3m3r3Jr+j_k9dsQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/_hiEnjXhKGm/vR5S54ZzZvF"; protocol="application/pgp-signature"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <501619A4.50906@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>
 
-On Sat, Jul 28, 2012 at 1:40 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Fri, Jul 27, 2012 at 6:50 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
->> On Fri, Jul 27, 2012 at 06:08:13PM +0200, Shilimkar, Santosh wrote:
->>> On Fri, Jul 27, 2012 at 3:42 PM, Russell King - ARM Linux
->>> <linux@arm.linux.org.uk> wrote:
->>> > On Wed, Jul 25, 2012 at 03:12:22PM +0100, Russell King - ARM Linux wrote:
->>> >> Just a quick reminder that I'm still on holiday, and at this point there
->>> >> are over 2500 messages from the mailing lists which are sitting unread
->>> >> since I left the UK.  As I mentioned before I left the UK, it is my
->>> >> intention *not* to go back and read all those outstanding messages -
->>> >> there's too many of them to do that.
->>> >>
->>> >> So, if you want me to react to any email message you've sent, you'd
->>> >> *better* send it again next week unless I've already responded.
->>> >>
->>> >> Meanwhile, I see v3.5 has been released; I have a couple of things I
->>> >> need to do with my tree before I can push the changes, and I'll
->>> >> probably see about sorting those out over the weekend.  I also see
->>> >> that 14 new patches have landed in the patch system.
->>> >>
->>> >> However, the timing of my holiday vs the merge window means that I
->>> >> can't take anything new, unless they're fixes, so don't be surprised
->>> >> if some stuff gets missed this merge window.
->>> >
->>> > Right.  I'm not fully recovered from the jet lag (I'm still rather tired
->>> > - I hate travelling back from the North American continent because it
->>> > takes days to recover.)
->>> >
->>> > I have now archived off *all* email sent to me during July - which means
->>> > that I will *NOT* be responding to anything sent during the last 17 days.
->>> > If anyone has sent me anything important, it *MUST* be resent now.
->>> >
->>> > I am aware of an issue concerning the OMAP DMA patches.  I'm not sure
->>> > exactly what is required there, so I've dropped them from my planned pull
->>> > request in the interests of getting everything else I have to Linus.  I
->>> > may plan to send a pull request this evening.
->>> >
->>> Well the only pending discussion was enabling the CONFIG option for
->>> DMA at driver level SOC config level. Not sure if there was anything else
->>> on this really.
->>
->> Why?  The DMA driver itself is optional.
-> That was Tony's point too. Unfortunately MMC and SPI driver don't work
-> today without DMA. Some works needs to be done to support polling
-> mode and am bit skeptical if it is really worth it. Same case be with other
-> SDMA supported drivers mostly.
->
-Russell, Tony,
-  Can I request to include the DMA & MMC changes into this merge window ?
-We have many cleanups and new patches waiting to be queued up for next (3.7)
-merge window, and it'd be easier if they are implemented on top of the
-DMA changes,
-so that it gets tested together, and don't create merge conflicts.
-  I am looking into implementing polling mode, which might take some time.
-Regards,
-Venkat
+--Sig_/_hiEnjXhKGm/vR5S54ZzZvF
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 30 Jul 2012 10:50:36 +0530 Rajendra Nayak <rnayak@ti.com> wrote:
+
+> On Monday 30 July 2012 05:42 AM, NeilBrown wrote:
+> >
+> > 1/ if regulator_get fails, return an error.  This is important
+> >     if it failed with EPROBE_DEFER, as the probe needs to be
+> >     deferred.
+> >
+> > 2/ Don't set .set_power until the regulator has been found, or
+> >     the deferred probe will not bother calling omap_hsmmc_reg_get().
+>=20
+> I am not very sure, but aren't the data structures re-allocated on a
+> re-probe (after it was deferred) causing .set_power to be lost anyway?
+>=20
+
+Apparently not - as I needed to make that change before the re-probe would
+work.
+
+Looking at the code to remind myself:
+
+#define mmc_slot(host)		(host->pdata->slots[host->slot_id])
+
+so the slot is inside the platform data which is allocated in
+omap_hsmmc_init_one, called from omap_hsmmc_init.
+This is all prior to the probing of the device.
+
+So no: once set_power is set, it stays set.
+
+Thanks,
+NeilBrown
+
+> >
+> > Signed-off-by: NeilBrown<neilb@suse.de>
+> >
+> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
+c.c
+> > index 389a3ee..f052c29 100644
+> > --- a/drivers/mmc/host/omap_hsmmc.c
+> > +++ b/drivers/mmc/host/omap_hsmmc.c
+> > @@ -299,12 +299,12 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_h=
+ost *host)
+> >   	struct regulator *reg;
+> >   	int ocr_value =3D 0;
+> >
+> > -	mmc_slot(host).set_power =3D omap_hsmmc_set_power;
+> > -
+> >   	reg =3D regulator_get(host->dev, "vmmc");
+> >   	if (IS_ERR(reg)) {
+> >   		dev_dbg(host->dev, "vmmc regulator missing\n");
+> > +		return PTR_ERR(reg);
+> >   	} else {
+> > +		mmc_slot(host).set_power =3D omap_hsmmc_set_power;
+> >   		host->vcc =3D reg;
+> >   		ocr_value =3D mmc_regulator_get_ocrmask(reg);
+> >   		if (!mmc_slot(host).ocr_mask) {
+
+
+--Sig_/_hiEnjXhKGm/vR5S54ZzZvF
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBUBYojjnsnt1WYoG5AQLblA//SAJ9viMGjt7K9T160nUwpHBxjDREjlOT
+V46y8Hn12hAme6vgxpdLRpXwXdaYTLeL7dxw6bciyXy4iPLQbg/leywbBDJuqRVL
+N3y4/hS48ERb6FIhI8Lfp0Aw0Mq7Tu9jLVC5KWhiffSoYKk3CTleFzlXSqV66nTu
+xx5/zmcVRjecqyhatVVpVGrLxu2u+5T7US/Sid2T8rkfw/mi7fY7Y1wh0Iq1JpE9
+WS+nQePAc1ZlRpiM0gyAa4zvFTNtR5tq3RdktaaP28Vs/EKvd1v7PVjz8VFCXUPk
+g3Ko/FgERzUb9c54U8e+hP52ZylQ7tksn0YkuxDh3k4DMrbs/wZ9XTUvF4mC3S/4
+ePrSfY+hqRFNhDHVh2tKDWupf3f/yS9mM6rszxR6ffVUiWR40rt/h7mz/kf3a28h
+yYqQ4iPZPQQCNcgETy6FqzxU4ZOhezHL2YtEReShY/DNaYLUeclF+5o/bC991vzB
+HsnqjjUnCF6v5b9Aqu6n+DIJdUmFfolHWDCNShFQOMjJuKCegcSZuB7H95azSawL
+DVkgZljZBxhotyOUjb7ZdIPCYI2DPVarznJ5DaP3BigzVaiNXkjaUmyBnJgd1z2B
+DsYmEla6OxS457lq6ihephtb/xhvYkhRekTYo1wLjbi4btD4KHiXXApaYk7ceVvs
+xlDeNhXQvnY=
+=xRB9
+-----END PGP SIGNATURE-----
+
+--Sig_/_hiEnjXhKGm/vR5S54ZzZvF--
