@@ -1,65 +1,56 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: rmk back but still recovering (was Re: Reminder - rmk still on vacation)
-Date: Mon, 30 Jul 2012 13:56:05 +0530
-Message-ID: <CAM=Q2cuF6S9T369DFhGF8LoYaPMF=f1x9mjX1Se9S9qZ3WfiPg@mail.gmail.com>
-References: <20120725141222.GA6939@n2100.arm.linux.org.uk>
-	<20120727134231.GA5934@n2100.arm.linux.org.uk>
-	<CAMQu2gzrG2qC3_YXjaxQnc+2WzsiqoyMeOMScEWWR+gR2Vc0cw@mail.gmail.com>
-	<20120727165049.GB7405@n2100.arm.linux.org.uk>
-	<CAMQu2gyTgkswS1tYY=0g1oF7u=RGdQKEw0C3m3r3Jr+j_k9dsQ@mail.gmail.com>
-	<CANfBPZ_qzXgm0bX8XDnKLwoYTtcARPj+8MHpsSEWy0=G5f9qAA@mail.gmail.com>
-	<CAMQu2gzAcJBCxC5VtmyUOPMhc7D5P_MKCczdrxdeR0GNqMFYUg@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 6/8] ARM: OMAP: pm-debug: enhanced usecount debug
+ support
+Date: Mon, 30 Jul 2012 11:36:11 +0300
+Message-ID: <1343637371.9847.11.camel@sokoban>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	 <1342189185-5306-7-git-send-email-t-kristo@ti.com>  <87y5m5htcu.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:34504 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233Ab2G3I0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 04:26:06 -0400
-Received: by gglu4 with SMTP id u4so4514020ggl.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 01:26:05 -0700 (PDT)
-In-Reply-To: <CAMQu2gzAcJBCxC5VtmyUOPMhc7D5P_MKCczdrxdeR0GNqMFYUg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33492 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024Ab2G3IgT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 04:36:19 -0400
+In-Reply-To: <87y5m5htcu.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jul 30, 2012 at 1:10 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-[...]
->>>>
->>>> Why?  The DMA driver itself is optional.
->>> That was Tony's point too. Unfortunately MMC and SPI driver don't work
->>> today without DMA. Some works needs to be done to support polling
->>> mode and am bit skeptical if it is really worth it. Same case be with other
->>> SDMA supported drivers mostly.
->>>
->> Russell, Tony,
->>   Can I request to include the DMA & MMC changes into this merge window ?
->> We have many cleanups and new patches waiting to be queued up for next (3.7)
->> merge window, and it'd be easier if they are implemented on top of the
->> DMA changes,
->> so that it gets tested together, and don't create merge conflicts.
->>   I am looking into implementing polling mode, which might take some time.
->
-> Thanks Venkat. For the SPI driver as well I heard from Shubro (in cc) that
-> he is looking into polling mode.
+On Fri, 2012-07-27 at 12:55 -0700, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+> > their own file, 'usecount'. This file shows the usecounts for every
+> > active domain and their children recursively. 'count' file now only
+> > shows power state counts for powerdomains.
+> >
+> > This patch also provices a way to do printk dumps from kernel code,
+> > by calling the pm_dbg_dump_X functions. The plan is to call these
+> > functions once an error condition is detected, e.g. failed suspend.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> 
+> I think we should separate out the debug stuff as a separate patch set.
+> 
+> Where I want to go with PM debug is away from in-kernel debug prints and
+> towards using tracepoints.  We have tracepoints in the clock code that
+> correspond to usecounts, but we need them in the clkdm, pwrdm and voltdm
+> code as well.  With that, you can use userspace tools (perf, ftrace) to
+> trace a problem (e.g. failed suspend) and see voltdm/pwrdm/clkdm/clks
+> are on when they shouldn't be.
 
-I had a patch in case of errors falling back to poll mode
+Yes, I can split out the debug stuff from this set for next rev. I'll
+also take a look at the tracepoints if they can be used reasonably for
+this purpose. We can add tracepoints for failed suspend for each
+powerdomain, but are tracepoints a good way to do this kind of recursive
+dumps (well, we could maybe register a trace event recursively from
+clkdm + clk code if a powerdomain fails to transition.)
 
-http://www.spinics.net/lists/linux-omap/msg74417.html
+-Tero
 
->
-> IMHO, we should merge the OMAP DMA engine support which is now sufficiently
-> tested and has been in linux-next for some time. Polling mode and ASOC
-> related issues can be then debugged directly on mainline.
-> For the time being, the SOC patch which Tony merged in linux-omap
-> master can be included along with rest of the OMAP DMA engine patches
-> to have working kernel.
->
-> Regards
-> Santosh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
