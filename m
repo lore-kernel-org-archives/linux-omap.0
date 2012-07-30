@@ -1,38 +1,60 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v6 02/11] arm/dts: omap: Add omap-usb2 dt data
-Date: Mon, 30 Jul 2012 14:39:51 +0530
-Message-ID: <1343639400-28725-3-git-send-email-kishon@ti.com>
-References: <1343639400-28725-1-git-send-email-kishon@ti.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 1/1 v2] ARM: only call smp_send_stop() on SMP
+Date: Mon, 30 Jul 2012 11:22:51 +0200
+Message-ID: <CABxcv=mSEEUbvMWS+JzjuPOWq9J7kNzvSyQRZibUXzNXstuV3A@mail.gmail.com>
+References: <20120625005134.GA2342@S2101-09.ap.freescale.net>
+	<20120625084905.GD19226@n2100.arm.linux.org.uk>
+	<CAAwP0s2jTPM_ErDOFKXoe95_Xd=xjkuTAsDbLctQ08_QVNkakQ@mail.gmail.com>
+	<5012CC98.60206@ti.com>
+	<20120727204447.GA10024@mudshark.cambridge.arm.com>
+	<20120727210637.GA16377@n2100.arm.linux.org.uk>
+	<20120727214024.GA10249@mudshark.cambridge.arm.com>
+	<20120728100831.GC7405@n2100.arm.linux.org.uk>
+	<20120728121103.GA11370@mudshark.cambridge.arm.com>
+	<CABxcv=mVKt8+gYK6kHydmG3SnDZgjMbJuEcUBx_z5sumNY_SQw@mail.gmail.com>
+	<20120729213125.GD7405@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343639400-28725-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kishon@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:61780 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113Ab2G3JWw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 05:22:52 -0400
+Received: by obbuo13 with SMTP id uo13so8701995obb.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 02:22:52 -0700 (PDT)
+In-Reply-To: <20120729213125.GD7405@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>, Jon Hunter <jon-hunter@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Shawn Guo <shawn.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Add omap-usb2 data node in omap4 device tree file.
+On Sun, Jul 29, 2012 at 11:31 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Sat, Jul 28, 2012 at 04:26:28PM +0200, Javier Martinez Canillas wrote:
+>> On Sat, Jul 28, 2012 at 2:11 PM, Will Deacon <will.deacon@arm.com> wrote:
+>> > Acked-by: Will Deacon <will.deacon@arm.com>
+>> >
+>> > The next question is: who's putting this into the patch system?
+>> >
+>> > Will
+>>
+>> Hi,
+>>
+>> I just put the patch with Will's Acked-by on the patch system. It  was
+>> accepted as patch 7480/1 [1].
+>>
+>> The patch is on top of today's linux-next (next-20120727).
+>>
+>> Thanks a lot and best regards,
+>> Javier
+>>
+>> [1] http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=7480/1
+>
+> Isn't this a candidate for stable kernels?
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/boot/dts/omap4.dtsi |    5 +++++
- 1 file changed, 5 insertions(+)
+Yes, I forgot it, sorry for that.
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 29c6243..15f1890 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -279,6 +279,11 @@
- 			#size-cells = <1>;
- 			ranges;
- 			ti,hwmods = "ocp2scp_usb_phy";
-+			usb2phy@4a0ad080 {
-+				compatible = "ti,omap-usb2";
-+				reg = <0x4a0ad080 0x58>,
-+				      <0x4a002300 0x1>;
-+			};
- 		};
- 	};
- };
--- 
-1.7.9.5
+Please let me know if I need to resubmit the patch cc'ing stable.
+
+Best regards,
+Javier
