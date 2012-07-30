@@ -1,71 +1,94 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v5 3/3] ARM: OMAP2+: onenand: prepare for gpmc driver
- migration
-Date: Mon, 30 Jul 2012 07:36:39 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9AEDA4@DBDE01.ent.ti.com>
-References: <cover.1340778002.git.afzal@ti.com>
- <0a4c9edc1328f7789491e2acf5138364e08bf2cb.1340778003.git.afzal@ti.com>
- <20120627145844.GL3483@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A03A6@DBDE01.ent.ti.com>
- <20120628123207.GG19842@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9A0812@DBDE01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: rmk back but still recovering (was Re: Reminder - rmk still on vacation)
+Date: Mon, 30 Jul 2012 09:40:27 +0200
+Message-ID: <CAMQu2gzAcJBCxC5VtmyUOPMhc7D5P_MKCczdrxdeR0GNqMFYUg@mail.gmail.com>
+References: <20120725141222.GA6939@n2100.arm.linux.org.uk> <20120727134231.GA5934@n2100.arm.linux.org.uk>
+ <CAMQu2gzrG2qC3_YXjaxQnc+2WzsiqoyMeOMScEWWR+gR2Vc0cw@mail.gmail.com>
+ <20120727165049.GB7405@n2100.arm.linux.org.uk> <CAMQu2gyTgkswS1tYY=0g1oF7u=RGdQKEw0C3m3r3Jr+j_k9dsQ@mail.gmail.com>
+ <CANfBPZ_qzXgm0bX8XDnKLwoYTtcARPj+8MHpsSEWy0=G5f9qAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48327 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752103Ab2G3Hik convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 03:38:40 -0400
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9A0812@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:35475 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752327Ab2G3Hkt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Jul 2012 03:40:49 -0400
+Received: by yenr5 with SMTP id r5so5370268yen.0
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 00:40:47 -0700 (PDT)
+In-Reply-To: <CANfBPZ_qzXgm0bX8XDnKLwoYTtcARPj+8MHpsSEWy0=G5f9qAA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Chris Ball <cjb@laptop.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
-Hi Tony,
+On Mon, Jul 30, 2012 at 7:51 AM, S, Venkatraman <svenkatr@ti.com> wrote:
+> On Sat, Jul 28, 2012 at 1:40 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+>> On Fri, Jul 27, 2012 at 6:50 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>>> On Fri, Jul 27, 2012 at 06:08:13PM +0200, Shilimkar, Santosh wrote:
+>>>> On Fri, Jul 27, 2012 at 3:42 PM, Russell King - ARM Linux
+>>>> <linux@arm.linux.org.uk> wrote:
+>>>> > On Wed, Jul 25, 2012 at 03:12:22PM +0100, Russell King - ARM Linux wrote:
+>>>> >> Just a quick reminder that I'm still on holiday, and at this point there
+>>>> >> are over 2500 messages from the mailing lists which are sitting unread
+>>>> >> since I left the UK.  As I mentioned before I left the UK, it is my
+>>>> >> intention *not* to go back and read all those outstanding messages -
+>>>> >> there's too many of them to do that.
+>>>> >>
+>>>> >> So, if you want me to react to any email message you've sent, you'd
+>>>> >> *better* send it again next week unless I've already responded.
+>>>> >>
+>>>> >> Meanwhile, I see v3.5 has been released; I have a couple of things I
+>>>> >> need to do with my tree before I can push the changes, and I'll
+>>>> >> probably see about sorting those out over the weekend.  I also see
+>>>> >> that 14 new patches have landed in the patch system.
+>>>> >>
+>>>> >> However, the timing of my holiday vs the merge window means that I
+>>>> >> can't take anything new, unless they're fixes, so don't be surprised
+>>>> >> if some stuff gets missed this merge window.
+>>>> >
+>>>> > Right.  I'm not fully recovered from the jet lag (I'm still rather tired
+>>>> > - I hate travelling back from the North American continent because it
+>>>> > takes days to recover.)
+>>>> >
+>>>> > I have now archived off *all* email sent to me during July - which means
+>>>> > that I will *NOT* be responding to anything sent during the last 17 days.
+>>>> > If anyone has sent me anything important, it *MUST* be resent now.
+>>>> >
+>>>> > I am aware of an issue concerning the OMAP DMA patches.  I'm not sure
+>>>> > exactly what is required there, so I've dropped them from my planned pull
+>>>> > request in the interests of getting everything else I have to Linus.  I
+>>>> > may plan to send a pull request this evening.
+>>>> >
+>>>> Well the only pending discussion was enabling the CONFIG option for
+>>>> DMA at driver level SOC config level. Not sure if there was anything else
+>>>> on this really.
+>>>
+>>> Why?  The DMA driver itself is optional.
+>> That was Tony's point too. Unfortunately MMC and SPI driver don't work
+>> today without DMA. Some works needs to be done to support polling
+>> mode and am bit skeptical if it is really worth it. Same case be with other
+>> SDMA supported drivers mostly.
+>>
+> Russell, Tony,
+>   Can I request to include the DMA & MMC changes into this merge window ?
+> We have many cleanups and new patches waiting to be queued up for next (3.7)
+> merge window, and it'd be easier if they are implemented on top of the
+> DMA changes,
+> so that it gets tested together, and don't create merge conflicts.
+>   I am looking into implementing polling mode, which might take some time.
 
-On Thu, Jun 28, 2012 at 18:14:30, Mohammed, Afzal wrote:
-> On Thu, Jun 28, 2012 at 18:02:07, Tony Lindgren wrote:
-> > * Mohammed, Afzal <afzal@ti.com> [120628 02:36]:
+Thanks Venkat. For the SPI driver as well I heard from Shubro (in cc) that
+he is looking into polling mode.
 
-> > > diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-> > > index c8a9487..bbae674 100644
-> > > --- a/arch/arm/mach-omap2/gpmc-onenand.c
-> > > +++ b/arch/arm/mach-omap2/gpmc-onenand.c
-> > > @@ -364,6 +364,8 @@ static int omap2_onenand_setup_async(void __iomem *onenand_base)
-> > >         struct gpmc_timings t;
-> > >         int ret;
-> > > 
-> > > +       omap2_onenand_set_async_mode(onenand_base);
-> > > +
-> > >         t = omap2_onenand_calc_async_timings();
-> > > 
-> > >         ret = gpmc_set_async_mode(gpmc_onenand_data->cs, &t);
-> > 
-> > Yes that seems to do the trick, thanks! I can fold that into the
-> > breaking patch when applying.
-> 
-> 
-> Also following needs to be removed from commit message,
-> 
-> "Ensuring sync read/write are disabled in onenand cannot
-> be expected to work properly unless GPMC is setup, this
-> has been removed."
-> 
-> With the above diff we are in effect disabling sync mode in
-> onenand before GPMC has been setup in the Kernel
-> 
-> If you want, I can sent a new series too.
-
-Can you please take this series along with the above changes
-folded in $subject patch. I & Jon concurred on this as a
-solution in this same thread (along with preventing
-hwmod reset, which is taken care in hwmod patch).
-
-Please let me know whether you prefer to have a separate series
-posted inclusive of the above changes.
+IMHO, we should merge the OMAP DMA engine support which is now sufficiently
+tested and has been in linux-next for some time. Polling mode and ASOC
+related issues can be then debugged directly on mainline.
+For the time being, the SOC patch which Tony merged in linux-omap
+master can be included along with rest of the OMAP DMA engine patches
+to have working kernel.
 
 Regards
-Afzal
+Santosh
