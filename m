@@ -1,56 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: rmk back but still recovering (was Re: Reminder - rmk still on
-	vacation)
-Date: Mon, 30 Jul 2012 16:25:41 +0100
-Message-ID: <20120730152541.GI7405@n2100.arm.linux.org.uk>
-References: <CAMQu2gzrG2qC3_YXjaxQnc+2WzsiqoyMeOMScEWWR+gR2Vc0cw@mail.gmail.com> <20120727165049.GB7405@n2100.arm.linux.org.uk> <CAMQu2gyTgkswS1tYY=0g1oF7u=RGdQKEw0C3m3r3Jr+j_k9dsQ@mail.gmail.com> <CANfBPZ_qzXgm0bX8XDnKLwoYTtcARPj+8MHpsSEWy0=G5f9qAA@mail.gmail.com> <CAMQu2gzAcJBCxC5VtmyUOPMhc7D5P_MKCczdrxdeR0GNqMFYUg@mail.gmail.com> <20120730143323.GE7405@n2100.arm.linux.org.uk> <CAMQu2gyxODJb2Kc_AtYPrhwoOvEwQNLkYHvbk3e=UPdgvxdWng@mail.gmail.com> <20120730144443.GG7405@n2100.arm.linux.org.uk> <CANfBPZ9H9D-HGu2YT5hp-OXPqY4M6BZcH2qhUfHO203RokZ0Aw@mail.gmail.com> <CABxcv=msMZ7ufh2ROeEry1eY7HbXU8GRB5RkZx1x6asAx3CZ=w@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP3xxx: clockdomain: fix software supervised
+ wakeup/sleep
+Date: Mon, 30 Jul 2012 10:29:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1207301027310.18037@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1207261503290.14468@utopia.booyaka.com> <CACYZBRHmO3a3oBwbFP8GqDQj3xB7nB59TkzxAbFrZ2=h0VX3-g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51900 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364Ab2G3P0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 11:26:06 -0400
-Content-Disposition: inline
-In-Reply-To: <CABxcv=msMZ7ufh2ROeEry1eY7HbXU8GRB5RkZx1x6asAx3CZ=w@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:50932 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753299Ab2G3Q3v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jul 2012 12:29:51 -0400
+In-Reply-To: <CACYZBRHmO3a3oBwbFP8GqDQj3xB7nB59TkzxAbFrZ2=h0VX3-g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Shubhrajyoti Datta <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jon-hunter@ti.com
 
-On Mon, Jul 30, 2012 at 05:19:06PM +0200, Javier Martinez Canillas wrote:
-> On Mon, Jul 30, 2012 at 4:46 PM, S, Venkatraman <svenkatr@ti.com> wrote:
-> > On Mon, Jul 30, 2012 at 8:14 PM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> >> On Mon, Jul 30, 2012 at 04:37:09PM +0200, Shilimkar, Santosh wrote:
-> >>> On Mon, Jul 30, 2012 at 4:33 PM, Russell King - ARM Linux
-> >>> <linux@arm.linux.org.uk> wrote:
-> >>> > So I take that as you wanting exactly what is in linux-next merged without
-> >>> > any further changes?
-> >>>
-> >>> Just one patch[1] on top of that so that default omap2plus_defconfig
-> >>> keeps working.
-> >>
-> >> Err, I don't see what that patch does.  Setting ret=-ENXIO at the
-> >> start of the function, when it's subsequently overwritten by:
-> >>
-> >> +       int ret = -ENXIO, irq;
-> >> ...
-> >>         ret = omap_hsmmc_gpio_init(pdata);
-> >> ...
-> >>         ... dma stuff ...
-> >>
-> >> seems absurd.
+Hi
+
+On Fri, 27 Jul 2012, Nayak, Rajendra wrote:
+
+> On Fri, Jul 27, 2012 at 2:34 AM, Paul Walmsley <paul@pwsan.com> wrote:
 > >
-> > I think Santosh meant this patch..
-> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commitdiff;h=55936cdfaaf11ac352b56bc58e42d6661e65ee13
+> > Commit 4da71ae6 ("OMAP: clockdomain: Arch specific funcs for
+> > clkdm_clk_enable/disable") called the OMAP2xxx-specific functions for
+> > clockdomain wakeup and sleep.  This would probably have broken
+> > software-supervised clockdomain wakeup and sleep on OMAP3.
 > 
-> That is the patch that fixes the DMA issue with the OMAP MMC and OMAP
-> MMC HS drivers when OMAP_DMA option is not set, since they still don't
-> support poll mode without DMA.
-> 
-> Russell, are you going to take the patch from Tony's linux-omap/master
-> tree or do I have to add the patch to the patch system also?
+> Would something like this be better than duplicating most of
+> omap2_clkdm_clk_enable/disable?
 
-It'd be better to have it via the patch system, because pulling it out
-of a URL isn't an easy task.
+Am working towards getting the cpu_is_*() calls out of there in 
+preparation for the move to drivers/.  In fact there are some patches here 
+that will be posted shortly to get rid of those clkdm_clk_(enable|disable) 
+functions completely.
+
+
+- Paul
