@@ -1,207 +1,57 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] OMAP/serial:  Add support for driving a GPIO as DTR.
-Date: Mon, 30 Jul 2012 10:30:26 +1000
-Message-ID: <20120730103026.6b17f9e2@notabene.brown>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] MMC/omap_hsmmc: handle failure of regulator_get better.
+Date: Mon, 30 Jul 2012 10:50:36 +0530
+Message-ID: <501619A4.50906@ti.com>
+References: <20120730101245.7dbe72b0@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/4EK4HFChfRZVgbd33GY3fo7"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Cox <alan@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42050 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754076Ab2G3FUm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Jul 2012 01:20:42 -0400
+Received: by obbwc20 with SMTP id wc20so11625443obb.17
+        for <linux-omap@vger.kernel.org>; Sun, 29 Jul 2012 22:20:41 -0700 (PDT)
+In-Reply-To: <20120730101245.7dbe72b0@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/4EK4HFChfRZVgbd33GY3fo7
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Monday 30 July 2012 05:42 AM, NeilBrown wrote:
+>
+> 1/ if regulator_get fails, return an error.  This is important
+>     if it failed with EPROBE_DEFER, as the probe needs to be
+>     deferred.
+>
+> 2/ Don't set .set_power until the regulator has been found, or
+>     the deferred probe will not bother calling omap_hsmmc_reg_get().
 
+I am not very sure, but aren't the data structures re-allocated on a
+re-probe (after it was deferred) causing .set_power to be lost anyway?
 
-Hi all,
- this is my current patch which answers my question from May:
-     Question:  How to power-manage UART-attached devices.
+>
+> Signed-off-by: NeilBrown<neilb@suse.de>
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 389a3ee..f052c29 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -299,12 +299,12 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>   	struct regulator *reg;
+>   	int ocr_value = 0;
+>
+> -	mmc_slot(host).set_power = omap_hsmmc_set_power;
+> -
+>   	reg = regulator_get(host->dev, "vmmc");
+>   	if (IS_ERR(reg)) {
+>   		dev_dbg(host->dev, "vmmc regulator missing\n");
+> +		return PTR_ERR(reg);
+>   	} else {
+> +		mmc_slot(host).set_power = omap_hsmmc_set_power;
+>   		host->vcc = reg;
+>   		ocr_value = mmc_regulator_get_ocrmask(reg);
+>   		if (!mmc_slot(host).ocr_mask) {
 
- It teaches omap2/serial about the possibility of a GPIO which is to be
- driven as a DTR line.=20
- This allows me to power on/off devices that are accessed via a serial port
- (GPS, Bluetooth) when the port is opened/closed.  I simply write a driver
- which exports a GPIO line and does the required magic when it is driven
- high or low.
-
- - because '0' is a valid GPIO number, I added an extra port_info field
-   call 'DTR_present' so existing code wouldn't accidentally request to
-   use GPIO-0 as a DTR - is there a better way to handle this?
- - I added a DTR_inverted field so you could choose the polarity of the
-   GPIO line ... I'm not really sure this is needed so I'll probably drop it
-   unless encouraged otherwise.
-
- - If the gpio 'can_sleep', then I need a work-queue to effect the change, =
-and
-   I currently use the 'qos_work' rather than adding another work handler.
-   As both the qos_work and the gpio work tasks are idempotent and rare, th=
-is
-   seems reasonable.  Is it OK?  should I make another work_struct? or
-   something else?
-
-Thanks,
-NeilBrown
-
-
-
-
----------------------
-OMAP hardware doesn't provide a phyisical DTR line, but
-some configurations may need a DTR line which tracks whether
-the device is open or not.
-
-So allow a gpio to be configured as the DTR line.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index c1b93c7..25d53b2 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -304,6 +304,9 @@ void __init omap_serial_init_port(struct omap_board_dat=
-a *bdata,
- 	omap_up.dma_rx_timeout =3D info->dma_rx_timeout;
- 	omap_up.dma_rx_poll_rate =3D info->dma_rx_poll_rate;
- 	omap_up.autosuspend_timeout =3D info->autosuspend_timeout;
-+	omap_up.DTR_gpio =3D info->DTR_gpio;
-+	omap_up.DTR_inverted =3D info->DTR_inverted;
-+	omap_up.DTR_present =3D info->DTR_present;
-=20
- 	pdata =3D &omap_up;
- 	pdata_size =3D sizeof(struct omap_uart_port_info);
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-=
-omap/include/plat/omap-serial.h
-index 1a52725..52d3de4 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -69,6 +69,9 @@ struct omap_uart_port_info {
- 	unsigned int		dma_rx_timeout;
- 	unsigned int		autosuspend_timeout;
- 	unsigned int		dma_rx_poll_rate;
-+	int			DTR_gpio;
-+	int			DTR_inverted;
-+	int			DTR_present;
-=20
- 	int (*get_context_loss_count)(struct device *);
- 	void (*set_forceidle)(struct platform_device *);
-@@ -131,6 +134,10 @@ struct uart_omap_port {
- 	u32			errata;
- 	u8			wakeups_enabled;
-=20
-+	int			DTR_gpio;
-+	int			DTR_inverted;
-+	int			DTR_active;
-+
- 	struct pm_qos_request	pm_qos_request;
- 	u32			latency;
- 	u32			calc_latency;
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-ser=
-ial.c
-index d3cda0c..aa603f2 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -39,6 +39,7 @@
- #include <linux/irq.h>
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
-+#include <linux/gpio.h>
-=20
- #include <plat/dma.h>
- #include <plat/dmtimer.h>
-@@ -507,6 +508,16 @@ static void serial_omap_set_mctrl(struct uart_port *po=
-rt, unsigned int mctrl)
- 	up->mcr |=3D mcr;
- 	serial_out(up, UART_MCR, up->mcr);
- 	pm_runtime_put(&up->pdev->dev);
-+
-+	if (gpio_is_valid(up->DTR_gpio) &&
-+	    !!(mctrl & TIOCM_DTR) !=3D up->DTR_active) {
-+		up->DTR_active =3D !up->DTR_active;
-+		if (gpio_cansleep(up->DTR_gpio))
-+			schedule_work(&up->qos_work);
-+		else
-+			gpio_set_value(up->DTR_gpio,
-+				       up->DTR_active !=3D up->DTR_inverted);
-+	}
- }
-=20
- static void serial_omap_break_ctl(struct uart_port *port, int break_state)
-@@ -715,6 +726,9 @@ static void serial_omap_uart_qos_work(struct work_struc=
-t *work)
- 						qos_work);
-=20
- 	pm_qos_update_request(&up->pm_qos_request, up->latency);
-+	if (gpio_is_valid(up->DTR_gpio))
-+		gpio_set_value_cansleep(up->DTR_gpio,
-+					up->DTR_active !=3D up->DTR_inverted);
- }
-=20
- static void
-@@ -1435,7 +1449,7 @@ static int serial_omap_probe(struct platform_device *=
-pdev)
- 	struct uart_omap_port	*up;
- 	struct resource		*mem, *irq, *dma_tx, *dma_rx;
- 	struct omap_uart_port_info *omap_up_info =3D pdev->dev.platform_data;
--	int ret =3D -ENOSPC;
-+	int ret;
-=20
- 	if (pdev->dev.of_node)
- 		omap_up_info =3D of_get_uart_port_info(&pdev->dev);
-@@ -1466,10 +1480,29 @@ static int serial_omap_probe(struct platform_device=
- *pdev)
- 	if (!dma_tx)
- 		return -ENXIO;
-=20
-+	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
-+	    omap_up_info->DTR_present) {
-+		ret =3D gpio_request(omap_up_info->DTR_gpio, "omap-serial");
-+		if (ret < 0)
-+			return ret;
-+		ret =3D gpio_direction_output(omap_up_info->DTR_gpio,
-+					    omap_up_info->DTR_inverted);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
- 	up =3D devm_kzalloc(&pdev->dev, sizeof(*up), GFP_KERNEL);
- 	if (!up)
- 		return -ENOMEM;
-=20
-+	if (gpio_is_valid(omap_up_info->DTR_gpio) &&
-+	    omap_up_info->DTR_present) {
-+		up->DTR_gpio =3D omap_up_info->DTR_gpio;
-+		up->DTR_inverted =3D omap_up_info->DTR_inverted;
-+	} else
-+		up->DTR_gpio =3D -EINVAL;
-+	up->DTR_active =3D 0;
-+
- 	up->pdev =3D pdev;
- 	up->port.dev =3D &pdev->dev;
- 	up->port.type =3D PORT_OMAP;
-
---Sig_/4EK4HFChfRZVgbd33GY3fo7
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBUBXVojnsnt1WYoG5AQLxvg/9HNtWUhfWentLvETuJUWestrweilhpOgQ
-uwCZ9TzMLLkL19o0FRyVSQzGIZsLYMJ5qakFEXicCBxspEuE27wVEEyEyX+giXCD
-KNzSxLcq2mow56bUkrMKac2lC4M9Zpn4wLrUfi0gLqb1e7tq+SNwAULYRd92rOov
-0OmXkSJ8FTP8m4Vr9+67xuLIKZPdFozvwb1g4hnQnjv//JOEEWsCmfJ8poWxdpX/
-8atB+fxDRa7bjthKu4pqaWGkWtF0mZ+4QjLwhoIrgOWaVJNtZAT5U1A60Yuv/U7f
-Ng1mJC74uZQEguRyQDmy5tMlpS40dwJZ8qL60wt5/JMKt5KwCkN0GuCVrf64dU8E
-H01jDGaLrlWjn63AQjJdyEdrN2/SEF6+SrCY41aq4LCHQeP89hbbUGZpZz2Fc2tt
-xFNXkH0gXkOh04OnE86qlTP8ImOdOyqsn63ogz84lqVeaKGzDOieE+YtH04IbP3U
-Fpy+E0A/byGGmFuPgKoivMcLZnF6KnNX8lBDV6ugFgz5SIbENW7ATZh3e/63C2P6
-g1Bls9E9L5gP5GITD9Vt7m3MuljkKx7snWWumyBTYNfXknBJpP3+f/oAiqKNMdO1
-T6BJFFn9ha8PbVlXNDZ+OvjBvD2s/rAUUYatmqbkIq8NdKfkqQhLMrCJcut87NlS
-oYNaqpDB450=
-=w208
------END PGP SIGNATURE-----
-
---Sig_/4EK4HFChfRZVgbd33GY3fo7--
