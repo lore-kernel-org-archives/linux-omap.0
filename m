@@ -1,40 +1,71 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1 v2] ARM: only call smp_send_stop() on SMP
-Date: Sun, 29 Jul 2012 22:31:25 +0100
-Message-ID: <20120729213125.GD7405@n2100.arm.linux.org.uk>
-References: <20120625005134.GA2342@S2101-09.ap.freescale.net> <20120625084905.GD19226@n2100.arm.linux.org.uk> <CAAwP0s2jTPM_ErDOFKXoe95_Xd=xjkuTAsDbLctQ08_QVNkakQ@mail.gmail.com> <5012CC98.60206@ti.com> <20120727204447.GA10024@mudshark.cambridge.arm.com> <20120727210637.GA16377@n2100.arm.linux.org.uk> <20120727214024.GA10249@mudshark.cambridge.arm.com> <20120728100831.GC7405@n2100.arm.linux.org.uk> <20120728121103.GA11370@mudshark.cambridge.arm.com> <CABxcv=mVKt8+gYK6kHydmG3SnDZgjMbJuEcUBx_z5sumNY_SQw@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] MMC/omap_hsmmc: handle failure of regulator_get better.
+Date: Mon, 30 Jul 2012 10:12:45 +1000
+Message-ID: <20120730101245.7dbe72b0@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51299 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab2G2Vbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jul 2012 17:31:39 -0400
-Content-Disposition: inline
-In-Reply-To: <CABxcv=mVKt8+gYK6kHydmG3SnDZgjMbJuEcUBx_z5sumNY_SQw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/b9gLLBPGtKQhFTl1thaI0dZ"; protocol="application/pgp-signature"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>, Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Will Deacon <will.deacon@arm.com>, Jon Hunter <jon-hunter@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Shawn Guo <shawn.guo@linaro.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Sat, Jul 28, 2012 at 04:26:28PM +0200, Javier Martinez Canillas wrote:
-> On Sat, Jul 28, 2012 at 2:11 PM, Will Deacon <will.deacon@arm.com> wrote:
-> > Acked-by: Will Deacon <will.deacon@arm.com>
-> >
-> > The next question is: who's putting this into the patch system?
-> >
-> > Will
-> 
-> Hi,
-> 
-> I just put the patch with Will's Acked-by on the patch system. It  was
-> accepted as patch 7480/1 [1].
-> 
-> The patch is on top of today's linux-next (next-20120727).
-> 
-> Thanks a lot and best regards,
-> Javier
-> 
-> [1] http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=7480/1
+--Sig_/b9gLLBPGtKQhFTl1thaI0dZ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Isn't this a candidate for stable kernels?
+
+1/ if regulator_get fails, return an error.  This is important
+   if it failed with EPROBE_DEFER, as the probe needs to be
+   deferred.
+
+2/ Don't set .set_power until the regulator has been found, or
+   the deferred probe will not bother calling omap_hsmmc_reg_get().
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 389a3ee..f052c29 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -299,12 +299,12 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host =
+*host)
+ 	struct regulator *reg;
+ 	int ocr_value =3D 0;
+=20
+-	mmc_slot(host).set_power =3D omap_hsmmc_set_power;
+-
+ 	reg =3D regulator_get(host->dev, "vmmc");
+ 	if (IS_ERR(reg)) {
+ 		dev_dbg(host->dev, "vmmc regulator missing\n");
++		return PTR_ERR(reg);
+ 	} else {
++		mmc_slot(host).set_power =3D omap_hsmmc_set_power;
+ 		host->vcc =3D reg;
+ 		ocr_value =3D mmc_regulator_get_ocrmask(reg);
+ 		if (!mmc_slot(host).ocr_mask) {
+
+--Sig_/b9gLLBPGtKQhFTl1thaI0dZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBUBXRfTnsnt1WYoG5AQKRoRAAlGo3H3AeUZ/dXZOdgW5my7xflVOmtWtP
+dBe1w+SWHO77jFq3dtdhmVr/hvVlFRYMiC8WRxIOLgbJfDnqf0hh6rP7+5o76nXF
+n2Lr5MOT1yQPIUBUOCZnCCyWZ4/BbdHeoe5f/qBmE1hSVtYwt3wNmpIpM1ueySZL
+xpRMqpaKLrU+2S9DX9fQkID3NcfDd+A1MMx1GvnqHg057gSRHXURfxpVzK3g0dw3
+QjG9EiiecIDuiHIRuDWoE0aOACsVv5WLbLCXh/mQr2ioxyrCJorBi77LfPBiR3Vj
+3JO0PnzoLge6H3BjXFR6d3EtySSb/F/sUYJH5bP50AkG47l3NfmUqm0YTlnJT47Q
+llCl2nq9c114jeel+ZeZaiuu9ZHtjtLAd233Yv9JYkQG6CJJraYl0Tei2xZElY2u
+bso8mJvofh0iZ32TDBcbwuk1UOJB+NjbEaFcFY3dBQa3/s7vuTH7PD9t3uZh0Gk4
+0dvHFxa9pxoJXhGL0qhVDY6JNa7hCtC5lsRnjyed5bGBL6SsD8h3MtoCWwoa3+WJ
+WRzwcOr3+LTOrrgxzc8LOTYJFcCt7zYP6nGecAw+0ZRP13oFXUHQFOj1LpK/fayk
+zQL5SJljyit9jkOjnOxwhbA2mLb3rGTWCF9A9xhybNiPfEiPoZ/xdLTc6yXyi92U
+xcolJ3Pf42Y=
+=FKek
+-----END PGP SIGNATURE-----
+
+--Sig_/b9gLLBPGtKQhFTl1thaI0dZ--
