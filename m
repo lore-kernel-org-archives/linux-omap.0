@@ -1,64 +1,83 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Tue, 31 Jul 2012 14:27:17 +0530
-Message-ID: <CAJe_ZhfN1OEVq-MFdupZLjgc-LQBRred=L1o6wkd0FEDoSGUMA@mail.gmail.com>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
-	<CAJe_ZhfoYoFd1AkFmb0E7=iSvZeAQRmSFONCW7jE8psCMDQ3Hg@mail.gmail.com>
-	<1343721101.4685.35.camel@lappyti>
-	<CAJe_Zheg_fpnRb+eLt5SQioSUXp=PFcPz-vWC-RL3_Mh35VBdA@mail.gmail.com>
-	<1343722450.4685.37.camel@lappyti>
-	<CAJe_Zhd4ubkfMRmVNt734N0Sc3+7OfXrgSPq-fUSH+uQfQ5RzA@mail.gmail.com>
-	<1343724140.2633.20.camel@deskari>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/3] ARM: omap: clk: add clk_prepare and
+	clk_unprepare
+Date: Tue, 31 Jul 2012 10:23:15 +0100
+Message-ID: <20120731092315.GK7405@n2100.arm.linux.org.uk>
+References: <1341224669-15231-1-git-send-email-rnayak@ti.com> <1341224669-15231-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1207301614590.8722@utopia.booyaka.com> <CAJOA=zPmfq+WsAF-7nAkMGghPLYHpd+fCkrsv=3JSWLGMb-zkg@mail.gmail.com> <20120730230233.GA12574@n2100.arm.linux.org.uk> <CAJOA=zNnLahwhzjE0jkmiax8=kU8O4puJQJ1VbA-gDScawg6jw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:38590 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754814Ab2GaI5S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 04:57:18 -0400
-Received: by vcbfk26 with SMTP id fk26so5568960vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 01:57:17 -0700 (PDT)
-In-Reply-To: <1343724140.2633.20.camel@deskari>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52294 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761Ab2GaJXZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 05:23:25 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJOA=zNnLahwhzjE0jkmiax8=kU8O4puJQJ1VbA-gDScawg6jw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Raphael Assenat <raph@8d.com>, linux-omap@vger.kernel.org, Archit Taneja <a0393947@ti.com>
+To: "Turquette, Mike" <mturquette@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On 31 July 2012 14:12, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Tue, 2012-07-31 at 13:57 +0530, Jassi Brar wrote:
->> On 31 July 2012 13:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > On Tue, 2012-07-31 at 13:33 +0530, Jassi Brar wrote:
->> >> On 31 July 2012 13:21, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >>
->> >> > 2) Have the configuration for countless panels specified in the DT data
->> >> >
->> >> Why should a DT blob for a board contain more than 1 panel configuration?
->> >
->> > I meant the DT data generally, for all boards.
->> >
->> If you mean : Why have the configuration (those 15 integers) of the
->> panel on a board specified in board.dtb?
->> Well, that is an important purpose of DT - moving board specific
->> parameters, on which a generic code works, out of kernel (I am
->> refraining from preaching the goodness of that).
->
-> Sure. But panel's unconfigurable properties are not board specific
-> parameters, they are panel's internal stuff. It doesn't matter to which
-> board I attach Acme Foo-123 panel, the panel timings are still the same.
->
-It's not about the panel, it's about the board. For the generic driver
-in the kernel , the 'panel' is just a set of 15 integer values.
-There's no "Acme Foo-123" or "Acme Bar-123".  In fact, the _only_
-purpose of the panel's name string in the driver is to pick the
-correct set of "15 integers". With DT, the name string would be
-unnecessary.
+On Mon, Jul 30, 2012 at 05:31:23PM -0700, Turquette, Mike wrote:
+> On Mon, Jul 30, 2012 at 4:02 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Mon, Jul 30, 2012 at 03:42:13PM -0700, Turquette, Mike wrote:
+> >> On Mon, Jul 30, 2012 at 3:31 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >> > So if we make a change like this one, it seems like we would basically
+> >> > expect it to break once we start doing anything meaningful with
+> >> > clk_prepare(), like using clk_prepare() for voltage scaling or something
+> >> > that requires I2C?  We'd also probably want to mark this with some kind of
+> >> > "HACK" comment.
+> >>
+> >> Hi Paul,
+> >>
+> >> Did you have anything in mind to start using clk_prepare?  I still
+> >> hope to get rid of it some day and replace that call with a
+> >> combination of clk_enable and a check like clk_enable_can_sleep.
+> >
+> > Don't you dare.
+> >
+> > We arrived at the clk_prepare()/clk_enable() split after lots of
+> > discussion between different platform maintainers and their
+> > requirements.
+> >
+> > Shoving crap like "clk_enable_can_sleep()" down into drivers is
+> > totally and utterly idiotic.  We've had the situation *already*
+> > where some drivers can be used on some platforms but not on others
+> > because of differences in clk_enable() expectations.
+> >
+> 
+> How does having a dynamic run-time check cause a generic driver to run
+> on "some platforms but not on others"?
 
-Consider two panels "ABC_123" and "XYZ_321" having identical
-parameters but different internals.
-Would you have duplicate elements in the generic_dpi_panels[] array ?
-Because the 'panels' are different.
-Or would you simply assume the XYZ_Board has the panel 'ABC_123'?
-Because after all it's the parameters that matter.
+What you're asking is for drivers which use clk_prepare() and clk_enable()
+correctly to be littered with:
 
-In short, we should see a 'panel' simply as a set of 15 integers.
+-	clk_prepare(clk);
++	if (clk_enable_can_sleep(clk))
++		clk_enable(clk);
+
+and, in atomic contexts:
+
+-	clk_enable(clk);
++	if (!clk_enable_can_sleep(clk))
++		clk_enable(clk);
+
+which is total bollocks - drivers should not need to know about this
+clk_enable_can_sleep() crap.
+
+> Two calls exist because of context differences.  But in practice they
+> do the same thing: cause a line to toggle at a rate.  If a run-time
+> check exists and the framework could handle this gracefully, why would
+> you still choose the split api?
+
+How can it handle it gracefully?
+
+Take a look at something like amba-pl011.c for a clue.  Remove the
+clk_prepare() and clk_unprepare() calls.  Then consider a clk
+implementation which does not support clk_enable()/clk_disable() from
+atomic contexts.  Now think about how the pl011 driver enable the clock
+for console output from atomic contexts?  Answer, it can't.
+
+We've been here before with this stuff, and this is exactly why we split
+clk_enable() into the two separate calls we have today.
