@@ -1,67 +1,56 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
- to OFF when in-use
-Date: Tue, 31 Jul 2012 15:56:37 -0500
-Message-ID: <50184685.9010608@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Tue, 31 Jul 2012 18:07:16 -0500
+Message-ID: <50186524.6060903@ti.com>
+References: <4FD7B1DC.30108@ti.com> <20120612213150.GC24380@mudshark.cambridge.arm.com> <4FD7C597.7060501@ti.com> <20120702095539.GD22239@mudshark.cambridge.arm.com> <4FF1D15E.7040301@ti.com> <20120702220117.GD25234@mudshark.cambridge.arm.com> <4FF6340A.6020409@ti.com> <50109233.3090302@ti.com> <20120726150534.GD6382@mudshark.cambridge.arm.com> <50115F3F.7050705@ti.com> <20120731151446.GK3903@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55289 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32901 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752418Ab2GaU4j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jul 2012 16:56:39 -0400
-In-Reply-To: <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com>
+	id S1755522Ab2GaXHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 19:07:19 -0400
+In-Reply-To: <20120731151446.GK3903@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+Hi  Will,
 
-On 07/12/2012 04:17 PM, Paul Walmsley wrote:
+On 07/31/2012 10:14 AM, Will Deacon wrote:
+> On Thu, Jul 26, 2012 at 04:16:15PM +0100, Jon Hunter wrote:
+>> On 07/26/2012 10:05 AM, Will Deacon wrote:
+>>> Ok, thanks for updating me. I've pushed the patches out onto my
+>>> perf/omap4-dev branch as that seems to be a good place to collate the
+>>> current state of things. I've not tried doing anything with it yet though.
+>>
+>> Ok, great. Let me know if you have any problems. I have ran some initial
+>> testing on omap3430, omap4430 and omap4460 and it seems ok (AFAICT).
+> 
+> Just an FYI that I gave up maintaining the old perf/omap4 branch and instead
+> moved everything from perf/omap4-dev onto that as the rebase was getting
+> painful.
 
-[snip]
+I have just updated my pmu branch for omap3/4. You can pull my latest
+patches from [1].
 
-> @@ -170,6 +201,18 @@ static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
->  	if (!clkdm->clktrctrl_mask)
->  		return 0;
->  
-> +	/*
-> +	 * The CLKDM_MISSING_IDLE_REPORTING flag documentation has
-> +	 * more details on the unpleasant problem this is working
-> +	 * around
-> +	 */
-> +	if (clkdm->flags & (CLKDM_MISSING_IDLE_REPORTING |
-> +			    CLKDM_CAN_FORCE_WAKEUP)) {
-> +		(cpu_is_omap24xx()) ? omap2_clkdm_wakeup(clkdm) :
-> +			omap3_clkdm_wakeup(clkdm);
-> +		return 0;
-> +	}
-> +
->  	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
->  				clkdm->clktrctrl_mask);
+In the latest series I have:
+1. Pulled in an omap3 clock domain fix from Paul [2]
+2. Rebased Paul's patch [3] on top of [2]. I have also made a couple
+   updates to this patch and I need to get Paul's feedback.
+3. I have removed the OMAP3 PMU dependency on ETM from the Kconfig.
 
-I think that the above needs to be ...
+I have tested this on OMAP3430, OMAP4430 and OMAP4460. Seems to be
+working well my end so let me know if you have chance to try.
 
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-index e5bb219..d2b081d 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -253,8 +253,8 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
-         * more details on the unpleasant problem this is working
-         * around
-         */
--       if (clkdm->flags & (CLKDM_MISSING_IDLE_REPORTING |
--                           CLKDM_CAN_FORCE_WAKEUP)) {
-+       if ((clkdm->flags & CLKDM_MISSING_IDLE_REPORTING) &&
-+                               (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)) {
-                omap3_clkdm_wakeup(clkdm);
-                return 0;
-
-... otherwise I see other clkdm such as MPU being put in force-wakeup state 
-although they don't have CLKDM_MISSING_IDLE_REPORTING set.
+I will probably send out the series once I align with Paul on the above
+changes and the HWMOD stuff I have added for OMAP3 with Benoit.
 
 Cheers
 Jon
+
+[1] git@gitorious.org:linux-omap-dev/linux-omap-dev.git -b dev-pmu
+[2] http://marc.info/?l=linux-omap&m=134333691309305&w=2
+[3] http://marc.info/?l=linux-omap&m=134212809112530&w=2
