@@ -1,82 +1,68 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH] drm: refcnt drm_framebuffer
-Date: Tue, 31 Jul 2012 14:28:29 -0500
-Message-ID: <CAF6AEGuY3-vF4DRmQrQVo_gwKgfKFczf7zXUZtUm4Ke__ewQwA@mail.gmail.com>
-References: <1343751621-1868-1-git-send-email-rob.clark@linaro.org>
-	<1343754016_22717@CP5-2952>
-	<CAF6AEGurctYdnsXg6SoT9nWPjX9z+nhMwU9NO3K+hAqKmszi1Q@mail.gmail.com>
-	<1343756872_22859@CP5-2952>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: Current state of AM33xx patches
+Date: Tue, 31 Jul 2012 21:29:43 +0200
+Message-ID: <9F9237B3-55BD-471B-ADD1-1A18F3644387@dominion.thruhere.net>
+References: <4FD5BA4C.9070706@gmail.com> <CBFB6F19.95320%jkridner@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5361A@DBDE01.ent.ti.com> <4FE326A8.8090807@gmail.com> <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com> <4FF42761.2000701@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com> <500CEF97.4050207@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com> <501159C3.302010
+ 9@gmail.com> <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net> <50116926.4060309@gmail.com> <587C7FB9-2DD3-48EE-B74D-BEBDF199BE23@dominion.thruhere.net> <50118272.1050209@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:55528 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab2GaT23 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 15:28:29 -0400
-Received: by vbbff1 with SMTP id ff1so6153816vbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 12:28:29 -0700 (PDT)
-In-Reply-To: <1343756872_22859@CP5-2952>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:63563 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab2GaT3Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 15:29:24 -0400
+Received: by eaac11 with SMTP id c11so280161eaa.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 12:29:23 -0700 (PDT)
+In-Reply-To: <50118272.1050209@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, Greg KH <greg@kroah.com>, patches@linaro.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-On Tue, Jul 31, 2012 at 12:47 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> On Tue, 31 Jul 2012 12:41:28 -0500, Rob Clark <rob.clark@linaro.org> wrote:
->> On Tue, Jul 31, 2012 at 12:00 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
->> > On Tue, 31 Jul 2012 11:20:21 -0500, Rob Clark <rob.clark@linaro.org> wrote:
->> >> From: Rob Clark <rob@ti.com>
->> >>
->> >> This simplifies drm fb lifetime, and if the crtc/plane needs to hold
->> >> a ref to the fb when disabling a pipe until the next vblank, this
->> >> avoids the need to make disabling an overlay synchronous.  This is a
->> >> problem that shows up when userspace is using a drm plane to
->> >> implement a hw cursor.. making overlay disable synchronous causes
->> >> a performance problem when x11 is rapidly enabling/disabling the
->> >> hw cursor.  But not making it synchronous opens up a race condition
->> >> for crashing if userspace turns around and immediately deletes the
->> >> fb.  Refcnt'ing the fb makes it possible to solve this problem.
->> >
->> > Presumably you have a follow-on patch putting the new refcnt to use so
->> > that we can judge whether you truly need refcnting on the fb itself in
->> > addition to the refcnted object and the various hw bookkeeping that
->> > needs to be performed?
->>
->> Yes, I do.. although it is a bit experimental at this point, so not
->> really ready to be submitted as anything other than an RFC.. it is
->> part of omapdrm kms re-write to use dispc directly rather than go thru
->> omapdss.  (With omapdss we don't hit this issue because disabling
->> overlays is forced to be synchronous.. so instead we have the
->> performance problem I mentioned.)
->>
->> I *could* just rely on the GEM refcnt, but that gets messier when you
->> take into account multi-planar formats.  I suppose I also could have
->> my own internal refcnt'd object to hold the set of GEM objects
->> associated w/ the fb, but, well, that seems a bit silly.  And
->> refcnt'ing the fb had been mentioned previously as a good thing to do
->> (I think it was danvet?)
->
-> Sure, there are a few places in the code that have caused ordering
-> issues in the past due to lack of refcnting the fb... But since you
-> haven't fixed up those cases, I'm looking for justification for adding
-> that extra bit of complexity. Adding a new interface and no users is
-> just asking for trouble.
 
-hmm, I did realize that drm_plane cleanup only happens as a result of
-drm_framebuffer_cleanup().. which doesn't work too well if the driver
-is holding a ref to the fb :-/
+Op 26 jul. 2012, om 19:46 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
 
-so I guess at a minimum I need to fix plane cleanup to be part of
-drm_fb_helper_restore_fbdev_mode()
+> On 26.07.2012 18:09, Koen Kooi wrote:
+>> 
+>> Op 26 jul. 2012, om 17:58 heeft Daniel Mack <zonque@gmail.com> het
+>> volgende geschreven:
+>> 
+>>> On 26.07.2012 17:00, Koen Kooi wrote:
+>>> 
+>>>> With Ajay's usb patches you can easily boot from a usb stick,
+>>>> you'll only need the bootloads to be on mmc or tftp. That's what
+>>>> I have been doing on my beaglebone :)
+>>>> 
+>>>> I'm going to update 
+>>>> https://github.com/beagleboard/kernel/tree/beaglebone-3.6 to use 
+>>>> linus' tree when I get a chance to test a build.
+>>> 
+>>> Hmm, how are the patches in this repository generated? Is there a
+>>> tree that has them as real commits?
+>> 
+>> If only! I'm manually pulling them from the mailinglist archives and
+>> patchwork. I keep hoping for TI to put up a git tree with all their
+>> WIP stuff, but I guess that goes into the world peace and pony
+>> category of wanting things.
+>> 
+>> Even with this small patchset I'm already having a ton of merge
+>> conflicts in the .dtsi files which is keeping me from posting my
+>> patches (e.g. the leds-gpio one) to the proper mailinglists.
+>> 
+>> Anyway, enough ranting, mainline + those patches now works on my
+>> beaglebone so for now I'm a happy camper :)
+> 
+> I'm not on beaglebone here, so things are different. I'd be happy to get
+> some sniplet that make the cpsw stuff work ...
 
-BR,
--R
+2/3 of the way there:
 
-> -Chris
->
-> --
-> Chris Wilson, Intel Open Source Technology Centre
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://patchwork.ozlabs.org/patch/174085/
+http://patchwork.ozlabs.org/patch/174086/
+
+I keep failing to create a .dts that doesn't upset the dtc, so I don't have it working yet :(
+
+regards,
+
+Koen
