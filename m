@@ -1,46 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: Disable PLL properly in case of error at
- power_on
-Date: Tue, 31 Jul 2012 11:50:49 +0300
-Message-ID: <1343724649.2633.23.camel@deskari>
-References: <1343693522-26170-1-git-send-email-ricardo.neri@ti.com>
+Subject: Re: [PATCH] OMAPDSS: DISPC: Use msleep instead of blocking mdelay
+Date: Tue, 31 Jul 2012 11:53:28 +0300
+Message-ID: <1343724808.2633.25.camel@deskari>
+References: <1343138635-2802-1-git-send-email-jaswinder.singh@linaro.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-9FRzyh9CjVEDU6sejkDF"
+	boundary="=-ItR/pYeMus56yFdbE6du"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:56051 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755849Ab2GaIux (ORCPT
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:58142 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755848Ab2GaIxi (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jul 2012 04:50:53 -0400
-Received: by lahi5 with SMTP id i5so4716157lah.14
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 01:50:50 -0700 (PDT)
-In-Reply-To: <1343693522-26170-1-git-send-email-ricardo.neri@ti.com>
+	Tue, 31 Jul 2012 04:53:38 -0400
+Received: by lahj13 with SMTP id j13so3603247lah.11
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 01:53:29 -0700 (PDT)
+In-Reply-To: <1343138635-2802-1-git-send-email-jaswinder.singh@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: archit@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: a0393947@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-9FRzyh9CjVEDU6sejkDF
+--=-ItR/pYeMus56yFdbE6du
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-07-30 at 19:12 -0500, Ricardo Neri wrote:
-> Small patch to disable the PLL appropriately before runtime_put in case
-> an error occurs while enabling the PHY.
+On Tue, 2012-07-24 at 19:33 +0530, Jassi Brar wrote:
+> We have no reason to block in the error handler workqueue, so use msleep.
 >=20
-> Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+> Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
 > ---
->  drivers/video/omap2/dss/hdmi.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+>  drivers/video/omap2/dss/dispc.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 
 Thanks, applied.
+
+As a side note, I hate that error handler =3D). It was a quick emergency
+hack to somehow handle certain situations, but generally it sucks.
+However, I don't really have a good idea what to do in case we get
+errors from DSS HW.
 
  Tomi
 
 
---=-9FRzyh9CjVEDU6sejkDF
+--=-ItR/pYeMus56yFdbE6du
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -48,20 +51,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQF5xpAAoJEPo9qoy8lh714nYP/RCtAb+Lbe2M7wxfEJp+QQVu
-OgMK3q8HlTfs7IfDsjudnp5Bjz1sZghUomjYdsUFtR7mgy51Mu3T41BCZiVf3ZsN
-6buCioTC8PmW1ph0Z25VdgBQ4b5H44lngCKFghsU7FezfwXiBcR+/3kfVS7CLGUn
-wN3RlPZtrV/UdIDzKm/fgiCp2Gfc1vN4cxvuh3dlMa1glMGtiP95zM0QLcX6NYt/
-KBEcnnQePFG1hCEgtZabA3D2fo+0WV6q3/GdlCc722cbg6902/b1QG1ayzhfs4sV
-RQaZiVn5Ke0flM+57uSJckfpgfo/nJ8jxR/C0gfsVwlvugqB33D6S8SRcD3LuxBX
-4nhzH9/J7T6h9YvClMnztSigxsN8smXkzIQQGKcAYQSx72kUjsqT72ha92CnplmU
-MtGx1h/o55iM/VqNgSRG6/BB4uVRm5zMCcmra/gzL7UWQngkMYn1k8rzf6pP5SZE
-uBc6RSrzh64LCKjVCPzY7zs9n7Fp+yh+L/+ozMLwYL2AipSDq3LiJbTLtTEGCg47
-Icy4j9Bc5Bu/9FCFA/LUVMj+GT21/LKbGFaqBAYbPynmZu7C8gunT6gIiFt4pfkn
-P9DgsN17pPk45dERt0VXylq4K2COiPRKSwyFTTl0OHxpDCAnSbb6Hhw+5YQuK+bX
-it16eTpZXyDUWR/2d+mP
-=p7sI
+iQIcBAABAgAGBQJQF50IAAoJEPo9qoy8lh71XFQP+wVr3Ypl0y/7OkK7/t4Dcy0S
+j1r/H0uGT5hNxGvOIsSMAyITI24whrdQ2Reig/gCvdW3nYujh2NUjFBcDxWuDXGK
+NGAh7ND7Ln80LlZnAqRkXm1H83Nt2940JnrlrHzvI0TWFsgxN+bmzsmX3F6bdGSD
+X3iutklMZyIdTfoZfmPrnWFuRcXw5meh8SlvQoUGlpPrhGj3A2AQ+UX0vnKap9GX
+ccJ8sedkT8lqUFkdgzxxta/iFmnDSRYx5pOKfNXTiqBs7YWA5uHddAA3WgSdNp+W
+yCHYzSc5Endq3IdPoVv5aRRKRLCqrFlA6UdoecIwqpb6D4co3etRTuy1dN65R+Bo
+YzVbHXmN8Lk1YcPO2ipG7GkaXdd+kmF0JkQyHh2x2V+ELTPVwR4uU2590pmtDg0Y
+3MoFdOLkOXEIbKEV5Pa/Pb6pmzsbRZuY5qvQO6Y2CwgZ3cNqygLB/nkpArxrRIrS
+gBnBzAHZZJlEaoAOx1hoYEp5l3ZtP2bQbtj/rImmnwiW908tOjyH6UYhddlD7Kxl
+atudfRQ4YGXc0Por1r18fqdspxeCzZM+gtHqLXrXBrUK31ZyzWNv3WZXhJoOe8tH
+m3PFy83CnrptQn3RnXwwkiOln5ZUg4s3Je+R9BnUEQja8uRJQT6xMRrsRCthq2PH
+vT7yoUMifgr7wTMHcx9C
+=k+8t
 -----END PGP SIGNATURE-----
 
---=-9FRzyh9CjVEDU6sejkDF--
+--=-ItR/pYeMus56yFdbE6du--
 
