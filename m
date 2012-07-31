@@ -1,30 +1,24 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: (unknown)
-Date: Tue, 31 Jul 2012 18:52:19 -0500
-Message-ID: <1343778739-10485-1-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH v3 RESEND] OMAPDSS: DISPC: Improvements to DIGIT sync signal selection
+Date: Tue, 31 Jul 2012 18:56:59 -0500
+Message-ID: <1343779019-10611-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45772 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45957 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754721Ab2GaXxb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 19:53:31 -0400
+	with ESMTP id S1754721Ab2GaX6P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 19:58:15 -0400
 Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q6VNrVwT019097
-	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 18:53:31 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q6VNwFQ1019445
+	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 18:58:15 -0500
 Received: from DFLE73.ent.ti.com (dfle73.ent.ti.com [128.247.5.110])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q6VNrUfk007931
-	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 18:53:30 -0500
-Subject: 
+	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q6VNwEbn011560
+	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 18:58:14 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: archit@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
-
->From 8b0f9153d078b7182efd604ef8525d50899ce1a3 Mon Sep 17 00:00:00 2001
-From: Ricardo Neri <ricardo.neri@ti.com>
-Date: Mon, 30 Jul 2012 17:54:59 -0500
-Subject: [PATCH v3] OMAPDSS: DISPC: Improvements to DIGIT sync signal selection
 
 DSS code wrongly assumes that VENC is always available as source for the external
 sync signal for the display controller DIGIT channel. One cannot blindly write/read
