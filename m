@@ -1,112 +1,150 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [GPIO] Crashed when not using
-Date: Tue, 31 Jul 2012 09:43:51 +0300
-Message-ID: <20120731064350.GD6004@arwen.pp.htv.fi>
+Date: Tue, 31 Jul 2012 09:52:26 +0300
+Message-ID: <20120731065224.GE6004@arwen.pp.htv.fi>
 References: <CAKdam54gXixs4F-a07ajj9GNMth46d4NTdoUL3GokzvjuWaGyg@mail.gmail.com>
  <CAC83ZvKnOw+UBOWYtt294k-5Xk8S6Gy1pChSF7aXGmGjLGSeCA@mail.gmail.com>
  <CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
  <87fw89gf4w.fsf@ti.com>
+ <CAKdam57xtXnKAgvneqATSTr0ng978T5HbkTB0T3sYp96N=Qfww@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="d9ADC0YsG2v16Js0"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="MIdTMoZhcV1D07fI"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37216 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755560Ab2GaGz6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 02:55:58 -0400
+Received: by lbol5 with SMTP id l5so3436523lbo.6
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jul 2012 23:55:46 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <87fw89gf4w.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+In-Reply-To: <CAKdam57xtXnKAgvneqATSTr0ng978T5HbkTB0T3sYp96N=Qfww@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Poddar, Sourav" <sourav.poddar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 30, 2012 at 01:36:47PM -0700, Kevin Hilman wrote:
-
-<little trimming>
-
-> >>> The device tree data for acquiring the above GPIO interrupt line looks
-> >>> like this.
+On Tue, Jul 31, 2012 at 10:23:16AM +0530, Poddar, Sourav wrote:
+> >>>> The device tree data for acquiring the above GPIO interrupt line loo=
+ks
+> >>>> like this.
+> >>>>
+> >>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-30
+> >>>> 14:11:08.931694001 +0530
+> >>>> @@ -42,7 +42,8 @@
+> >>>>         tsl2771@39 {
+> >>>>                 compatible =3D "taos,tsl2771";
+> >>>>                 reg =3D <0x39>;
+> >>>> +                interrupt-parent =3D <&gpio5>;
+> >>>> +                interrupts =3D <21>; /* gpio line 149 */
+> >>>>         };
+> >>>>  };
+> >>>>
+> >>>> Note: using "gpio_request_one" in the driver solves the issue.
+> >>>> Is using this api in the driver required?
+> >>>> Any pointer on the above crash?
 > >>>
-> >>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-30
-> >>> 14:11:08.931694001 +0530
-> >>> @@ -42,7 +42,8 @@
-> >>>         tsl2771@39 {
-> >>>                 compatible =3D "taos,tsl2771";
-> >>>                 reg =3D <0x39>;
-> >>> +                interrupt-parent =3D <&gpio5>;
-> >>> +                interrupts =3D <21>; /* gpio line 149 */
-> >>>         };
-> >>>  };
-> >>>
-> >>> Note: using "gpio_request_one" in the driver solves the issue.
-> >>> Is using this api in the driver required?
-> >>> Any pointer on the above crash?
+> >> Hi Tarun,
+> >>> Any user/client driver of GPIO is supposed to go through
+> >>> gpio_request() API so that module clock
+> >>> is enabled correctly. Overriding of APIs would put the power
+> >>> management state machine in jeopardy.
+> >>> --
+> >> I tried putting "pm_runtime_get_sync" in gpio_irq_type api where the k=
+ernel
+> >> is crashing and the crash is no longer observed. So indeed, its about
+> >> enabling clocks.
 > >>
-> > Hi Tarun,
-> >> Any user/client driver of GPIO is supposed to go through
-> >> gpio_request() API so that module clock
-> >> is enabled correctly. Overriding of APIs would put the power
-> >> management state machine in jeopardy.
-> >> --
-> > I tried putting "pm_runtime_get_sync" in gpio_irq_type api where the ke=
-rnel
-> > is crashing and the crash is no longer observed. So indeed, its about
-> > enabling clocks.
+> >> One doubt: Can't we put runtime apis in "gpio_irq_type" and eliminate
+> >> the use of
+> >> "gpio_request_one"??
 > >
-> > One doubt: Can't we put runtime apis in "gpio_irq_type" and eliminate
-> > the use of
-> > "gpio_request_one"??
->=20
-> No.
->=20
-> You must use the GPIO requiest/free APIs to tell the GPIO core that
-> the GPIO line is in use.
->=20
-> Why do you want to avoid using gpio_request/gpio_free?
+> > No.
+> >
+> > You must use the GPIO requiest/free APIs to tell the GPIO core that
+> > the GPIO line is in use.
+> >
+> Thanks for this confirmation.
+> > Why do you want to avoid using gpio_request/gpio_free?
+> >
+> I was assuming that DT based gpio IRQ registration will automatically
+> take care of
+> the above APIs. But since that is not the case(as mentioned by
+> santosh),  we need to use the
+> gpio_request/free apis.
 
-Then how do we differentiate from a driver perspective if e.g.
-client->irq (for I2C client drivers) refers to a pin on a GPIO
-controller or a real interrupt when running with DT ?
+Hang on for a while, let's try to get to the bottom of this debate first
+;-)
 
-Having something like:
+We have a canonical way of passing IRQ numbers to drivers through DT and
+that is the "interrupts" attribute. It shouldn't matter if that IRQ pin
+is connected to a real IRQ line or through a GPIO controller. In both
+cases we should use the "interrupts" attribute.
 
-#interrupt-parent =3D &<gpio5>;
-interrupts =3D <21>;
+If DT core doesn't allocate the GPIO for us then how does this work:
 
-would already give me the correct IRQ number from the driver, now how do
-we differentiate the interrupt parents ? There's no way to do that from
-a driver perspective, so DT core has to either do it, or provide means
-for drivers to detect it themselves.
+(omap4-sdp.dts)
+
+127 &mcspi1 {
+128         eth@0 {
+129                 compatible =3D "ks8851";
+130                 spi-max-frequency =3D <24000000>;
+131                 reg =3D <0>;
+132                 interrupt-parent =3D <&gpio2>;
+133                 interrupts =3D <2>; /* gpio line 34 */
+134                 vdd-supply =3D <&vdd_eth>;
+135         };
+136 };
+
+
+There's no gpio request on the driver:
+
+$ git grep -e gpio_request drivers/net/ethernet/micrel/ks8851.c
+$
+
+Since Benoit was the one who added that to the dts file (commit
+e7c64db9), I assume he tested his patch before posting, so again I ask -
+How does that work and why doesn't this work for Sourav's tsl2771
+controller ?
+
+This is either a regression on drivers/of, or commit e7c64db9 is also
+broken...
+
+Benoit, do you know how should this work ?
 
 --=20
 balbi
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQF36mAAoJEIaOsuA1yqREgBIP/2rbS9fWN3llwkxNhT43ynef
-tijg2r1FMIXqXPrQiBjnyI9ISbhEcN9LBTtU8YQrwYPwyNVK2p2xdLii+2DTUfi8
-QrSeyKUgsAI7tIQjy477DeLfM3UQNemoSY0EBjX8DrckoftmLPc1zqtNDNlQbBoy
-H6uRjoSCszqrn37GgXUhj1+9rJHsKxoOiphTuFphtFIeUJcnJ9IF3gjYlcFA3FgB
-fYqArK+qWrrkeJfeVnm0jox4RS6bvhbANSqsz4jJERu1lBS0zaPdAXnt7PdzGry+
-2GAo+TfpSVcI58oz0D/m6VHLpvtawv66+MZTEbMJG7LWVlg/gf1CnBwWGLhAi1Jt
-n97z+g7HuBiZ5Q/jXjFNTsSo0A8XIXFTpzsRg7PXX5riC5yzc+opwGhEjMJ+KbLL
-D2f4GfMCDFpyNNJ0PSAZWdPliMx7iryEuOBFSGXfuwWVCkZPvPIET0c+k+6NTxH5
-VFBobrLkTSApaTfqWBcC/sOS8kclO73ZkyPUtDyCqXNKQ71xrWkjvnqywMP4Zaaz
-TZmZzQa7p2ORyjzHXbC5Zd6fQWy1ms9AwTmZfugkkHNHM/Y1itqT8PGtDzdRuBLT
-sttCiE2pjR9F8XEOynYXcvAArEOyYHjgy1+bU7F2U/HWp6BbO9zuiPPAh2B+XTNx
-9uqD3Xumgq7tw73wBjTT
-=1Y3c
+iQIcBAEBAgAGBQJQF4CoAAoJEIaOsuA1yqRE1XsP/ifm46Exy1QL2lpopNR7YRkz
+gN5tElKpODablne0m+sZ/GREDvgr7VpK856ZfwhLv2p9EaaQxWjeeXU7WHM+TsBz
+0MU1m9vymXIO2NN/Yz0plKrWP2y4u/8491yGgZL2eOe12h5ga3bGG0Vxsy7T3KfO
+itoqhhXlr+Uj1qIBQnJByBB+HG3ZlMJy2Ze2UHBOtTX1HkrFKZamwaa0j9wHY+B+
+BsnQ93Xi7cTnaJCXQf2Ei9+NRbJLQhC/c8EiiL+qaA1wmaNbv0CJsksC031v0MKM
+9erfxFiHxyhOIiXYQwmUfgdxGLPL5j3wCpAXokubEdnqNdsqVG47QAKTx7bIjQkn
+JF4FCGCyoZz3wIc0IPVOUoQKid6Gt9ia2GdtwJD/WJMIVW+Xzs9RVHepYbYscP39
+YKzZWQ3pKZm3A7jEOEoo1D/zyIUG1yabbk0b2a5yuRyguZY6iJztYBVLJP3gxbYl
+CQmN97ubAE8cogXzBcPwjxTjI1PJANUYvBgmBIaUsc9sgg3zpEyAXzmzDbZDpci+
+LEWKbDyf1sE0j2ZpNjABAp18bDLqJWJ8dFYx3FGbCys0xax1D27gNxNcoxeOcPCv
+SM9mXETTihjON/vHiXxlFzSFOU0UAij2DK6s8fGi3jMLevAp40ZUEUX2XanK82eG
+wi+uZRXOs27jBD8mRGLO
+=kZv5
 -----END PGP SIGNATURE-----
 
---d9ADC0YsG2v16Js0--
+--MIdTMoZhcV1D07fI--
