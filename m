@@ -1,78 +1,76 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Tue, 31 Jul 2012 11:42:20 +0300
-Message-ID: <1343724140.2633.20.camel@deskari>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
-	 <CAJe_ZhfoYoFd1AkFmb0E7=iSvZeAQRmSFONCW7jE8psCMDQ3Hg@mail.gmail.com>
-	 <1343721101.4685.35.camel@lappyti>
-	 <CAJe_Zheg_fpnRb+eLt5SQioSUXp=PFcPz-vWC-RL3_Mh35VBdA@mail.gmail.com>
-	 <1343722450.4685.37.camel@lappyti>
-	 <CAJe_Zhd4ubkfMRmVNt734N0Sc3+7OfXrgSPq-fUSH+uQfQ5RzA@mail.gmail.com>
+Subject: Re: [PATCH] OMAPDSS: Do not require a VDDS_DSI regulator on am35xx
+Date: Tue, 31 Jul 2012 11:45:23 +0300
+Message-ID: <1343724323.2633.22.camel@deskari>
+References: <20120719200429.GD3850@renkinjitsu.usine.8d.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-IOc6caoeXyo/PeYRdbQ3"
+	boundary="=-BPHa456mAo1W7749tFjl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48691 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754826Ab2GaImY (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:39011 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755833Ab2GaIp1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jul 2012 04:42:24 -0400
-Received: by lbbgg6 with SMTP id gg6so4829800lbb.8
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 01:42:21 -0700 (PDT)
-In-Reply-To: <CAJe_Zhd4ubkfMRmVNt734N0Sc3+7OfXrgSPq-fUSH+uQfQ5RzA@mail.gmail.com>
+	Tue, 31 Jul 2012 04:45:27 -0400
+Received: by lboj14 with SMTP id j14so4499561lbo.35
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 01:45:24 -0700 (PDT)
+In-Reply-To: <20120719200429.GD3850@renkinjitsu.usine.8d.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: Raphael Assenat <raph@8d.com>, linux-omap@vger.kernel.org, Archit Taneja <a0393947@ti.com>
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
 
---=-IOc6caoeXyo/PeYRdbQ3
+--=-BPHa456mAo1W7749tFjl
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2012-07-31 at 13:57 +0530, Jassi Brar wrote:
-> On 31 July 2012 13:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Tue, 2012-07-31 at 13:33 +0530, Jassi Brar wrote:
-> >> On 31 July 2012 13:21, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >>
-> >> > 2) Have the configuration for countless panels specified in the DT d=
-ata
-> >> >
-> >> Why should a DT blob for a board contain more than 1 panel configurati=
-on?
-> >
-> > I meant the DT data generally, for all boards.
-> >
-> If you mean : Why have the configuration (those 15 integers) of the
-> panel on a board specified in board.dtb?
-> Well, that is an important purpose of DT - moving board specific
-> parameters, on which a generic code works, out of kernel (I am
-> refraining from preaching the goodness of that).
+On Thu, 2012-07-19 at 16:04 -0400, Raphael Assenat wrote:
+> On our AM3505 based board, dpi.c complains that there is no VDSS_DSI regu=
+lator
+> and the framebuffer cannot be enabled. However, this check does not seem =
+to
+> apply to AM3505/17 chips.
+>=20
+> I am not the first facing this issue, see this thread from Nov. 2011:
+> http://marc.info/?l=3Dlinux-omap&m=3D132147745930213&w=3D2
+>=20
+> The string 'vdds_dsi' does appear once in the technical reference manual[=
+1]
+> but there is no corresponding power pin on the package[2]. I failed to=
+=20
+> locate any signal that could be an equivalent. I am trying to obtain some
+> clarifications on TI's forum[3]...
+>=20
+> In any case, I am currently running with the patch below. In order to kee=
+p
+> cpu_is_xx uses to a minimum, I check for am35xx once at init time and all=
+ow
+> dpi.vdds_dsi_reg to be NULL from then on, getting rid of all the other
+> cpu_is_omap34xx uses in the process.
+>=20
+> Your comments would be appreciated. Please also consider for merging.
 
-Sure. But panel's unconfigurable properties are not board specific
-parameters, they are panel's internal stuff. It doesn't matter to which
-board I attach Acme Foo-123 panel, the panel timings are still the same.
+VDDS_DSI is used to power up some of the DSS pins on OMAP3. I don't know
+why the HW was designed like that... If you have a correct image without
+the power, then obviously it's not needed.
 
-Okay, agreed, the timing properties are not unconfigurable. But I'd
-expect that normally the timings used are the normal timings specified
-in the panel's datasheet.
+We don't currently deal with AM3xxx SoCs in any way in the driver. It's
+difficult enough trying to handle just OMAP DSS versions, and now we
+need to add AM3xxx to the mix. Sigh =3D).
 
-For the cases where the board manufacturer wants to use non-standard
-timings, perhaps we could allow overriding with DT data the ones
-specified in the kernel. Or have a panel driver that expects to get all
-the data from DT.
+However, I don't want to apply this patch, as we're trying to remove the
+cpu_is checks (soc_is goes in the same category).
 
-But I don't see why a panel database in the kernel driver is a bad thing
-(presuming it can be used in most cases). The driver should allow using
-the panel device without requiring the user to give extra information.
-(extra in the sense that the driver should already know about that
-info).
+I guess we need to add entries for the AM3xxx SoCs in the
+dss_features.c.
+
+Any idea what other differences AM3xxx has compared to OMAP3?
 
  Tomi
 
 
---=-IOc6caoeXyo/PeYRdbQ3
+--=-BPHa456mAo1W7749tFjl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -80,20 +78,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQF5psAAoJEPo9qoy8lh71xSgP/if9roBcCvgsn7n2eX8YVkSM
-nSra7PTv2unOvTExO1co7M0egbPnWEjr+CZ5GorsZO0zwnSGj20tTBLaC4kic+la
-0mqro4MwVb8ao7bE60TF23OUccdhlbcuEIrTlyRs7qB3YlnQKZf6XotfqAqrw2RX
-kA0/es/qjJVApkjNkIo6eDQmfhjTRQHjw5K4/yzar0Qj404nZA0lrK7d7wgrC/ap
-XEpxZwrCdnlPXV2WYSd84f5ohd6Xw6H2La3FCEG3rvlpWXVtPUn9x++IR63HvMmV
-TfCZvWCx8xXXkc5sto86GY0Hgaqe9zMBSCqrEnD90D/oHMK5R/B3h5+CdWRKh3us
-flb+cbQIEIX4efFGRlCBID18qaNN980m1NC6UYInv3sirKNx6MQm4UNBirTX34Eq
-eOKkwTmNY3uwamLgZQcAL3nkLXc7UQ33jChEzwQepVpNmrq0nuBzK1U+7Tn0HvbO
-h6fnmY9GRyulXKdQeJ/Cv5SQdlXWJEFc6NGEklEZz2sibT6QCIvZUnzesRs/aLgj
-7PsiFXFD9xN71Wh3VMbcYqSNTZAe3xL8JOoFe0kx6s6iUKltJ8bNEAjo6ZWOqvji
-iC9GaYCN/KDXVrwAtbHXgKuLYh9n0qMuvixgYMS2Q30lxJ9/rP0NbMvxdEvFyTJz
-005rwiuWzaDxFOOP1urO
-=7ux+
+iQIcBAABAgAGBQJQF5sjAAoJEPo9qoy8lh71pCoQAKX1V/27fnxvJypBc0pZTx8U
+IXRAkSU4pjN1wbK9ko3LU5RBsC5mp5Te7ZVSilv1lkCU3fXIayPO35dRoQv8imln
+b+K7LVpioxTmoYnEpu3Q/82F3kUjriDXR75AKmG6MRhvqB5UCzgjXAcID+TToJQw
+6TPbec043oH+QIR55Eg8b1SISWI8+pY9GD4YClxrPUGLYaXs/pOP6vLqUa2I0Za7
+bn3UAjGmRL9BvCLvCvrm5wg0F1XEISHks2rDpNXj7046u1WUglMphEpG/j0CDxTt
++CBqJqGrWa40tGdHN2YYetv4K8bdK+6PwPvhpndE3jaF3dTw5A0j8sX5qyCdjh7A
+MRPq0HeEL9qC73IkTLghBmA3zVhRmIx7e6bFAJ2mYIOLLTQT1R29bvUERFrtYJ4H
+bNWA+OEyTDzJym45i+30aNRLba/Bq7LB0vH4qSO0sjLRasO5JuzCVebUYG1rmMKt
+PShMxDI8OefGntXrtsDCHJ7a5pDJ2gzXFDIV7LJQfx2b3OUyTTHLFx64zgdEmqYv
+7ameVED9YJTcY+EkuASbZ7vgGIh0L43/NqXmmUtDTcM33uEr/HZkBpOfSuSefuOH
+qxR1js/IbBiqZitOjsbtLYzDhTtdgbDhE4PSGaw/tNWj//TkwRFvxJvZKcsnZ4pv
+kmrywSeOKIlimgbPcaDp
+=rZZA
 -----END PGP SIGNATURE-----
 
---=-IOc6caoeXyo/PeYRdbQ3--
+--=-BPHa456mAo1W7749tFjl--
 
