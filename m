@@ -1,119 +1,118 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Tue, 31 Jul 2012 23:44:00 +0530
-Message-ID: <CAJe_Zhdr9dEXFZJRdS1WU=vH9r+n6ri+a+jgOsyXe9Ysem+tYw@mail.gmail.com>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
-	<CAJe_ZhfoYoFd1AkFmb0E7=iSvZeAQRmSFONCW7jE8psCMDQ3Hg@mail.gmail.com>
-	<1343721101.4685.35.camel@lappyti>
-	<CAJe_Zheg_fpnRb+eLt5SQioSUXp=PFcPz-vWC-RL3_Mh35VBdA@mail.gmail.com>
-	<1343722450.4685.37.camel@lappyti>
-	<CAJe_Zhd4ubkfMRmVNt734N0Sc3+7OfXrgSPq-fUSH+uQfQ5RzA@mail.gmail.com>
-	<1343724140.2633.20.camel@deskari>
-	<CAJe_ZhfN1OEVq-MFdupZLjgc-LQBRred=L1o6wkd0FEDoSGUMA@mail.gmail.com>
-	<1343728654.4685.68.camel@lappyti>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
+ to OFF when in-use
+Date: Tue, 31 Jul 2012 13:16:42 -0500
+Message-ID: <5018210A.1040902@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <alpine.DEB.2.00.1207131418500.25585@utopia.booyaka.com> <50045D17.9050704@ti.com> <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com> <50171841.40309@ti.com> <501760BF.8070801@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:60477 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755085Ab2GaSOC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 14:14:02 -0400
-Received: by vcbfk26 with SMTP id fk26so6133213vcb.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 11:14:00 -0700 (PDT)
-In-Reply-To: <1343728654.4685.68.camel@lappyti>
+Received: from bear.ext.ti.com ([192.94.94.41]:54251 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755230Ab2GaSQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:16:44 -0400
+In-Reply-To: <501760BF.8070801@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Raphael Assenat <raph@8d.com>, linux-omap@vger.kernel.org, Archit Taneja <a0393947@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 31 July 2012 15:27, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Tue, 2012-07-31 at 14:27 +0530, Jassi Brar wrote:
->> On 31 July 2012 14:12, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > On Tue, 2012-07-31 at 13:57 +0530, Jassi Brar wrote:
->> >> On 31 July 2012 13:44, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >> > On Tue, 2012-07-31 at 13:33 +0530, Jassi Brar wrote:
->> >> >> On 31 July 2012 13:21, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> >> >>
->> >> >> > 2) Have the configuration for countless panels specified in the DT data
->> >> >> >
->> >> >> Why should a DT blob for a board contain more than 1 panel configuration?
->> >> >
->> >> > I meant the DT data generally, for all boards.
->> >> >
->> >> If you mean : Why have the configuration (those 15 integers) of the
->> >> panel on a board specified in board.dtb?
->> >> Well, that is an important purpose of DT - moving board specific
->> >> parameters, on which a generic code works, out of kernel (I am
->> >> refraining from preaching the goodness of that).
->> >
->> > Sure. But panel's unconfigurable properties are not board specific
->> > parameters, they are panel's internal stuff. It doesn't matter to which
->> > board I attach Acme Foo-123 panel, the panel timings are still the same.
->> >
->> It's not about the panel, it's about the board. For the generic driver
->> in the kernel , the 'panel' is just a set of 15 integer values.
->> There's no "Acme Foo-123" or "Acme Bar-123".  In fact, the _only_
->> purpose of the panel's name string in the driver is to pick the
->> correct set of "15 integers". With DT, the name string would be
->> unnecessary.
->
-> Yes, the panel's name is used to "probe" the correct config. If we had
-> panels that could be asked "which panel are you" we could use that, but
-> with dummy panels we need to manually give the identifier (name) so that
-> the driver can do the probe.
->
->> Consider two panels "ABC_123" and "XYZ_321" having identical
->> parameters but different internals.
->> Would you have duplicate elements in the generic_dpi_panels[] array ?
->> Because the 'panels' are different.
->> Or would you simply assume the XYZ_Board has the panel 'ABC_123'?
->> Because after all it's the parameters that matter.
->
-> I would duplicate the elements. Or, if we have lots of panels having the
-> exact same parameters, we could have an array of names instead of just a
-> name.
->
->> In short, we should see a 'panel' simply as a set of 15 integers.
->
-> Ok, I see. You mean that the 15 integers define the panel, so, in a
-> sense, the 15 integers is the name/identifier for the panel.
->
-> It would technically work, of course. But I do disagree with it:
->
-> 1) I still don't see why you say it's board related. The properties in
-> question are properties of the panel, told in the panel specs, and
-> programmed when using the panel. No matter where the panel is used, the
-> same properties should be used.
->
-> 2) As I see it, describing non-configurable device hardware properties
-> in the DT data is the wrong way. The driver should either probe the
-> properties or an ID from the device, or the ID of the device should be
-> given to the driver (a bit like what can be done with i2c).
->
-> 3) Moving the data to DT would make any future changes more difficult.
-> Say, we could (probably should) add some regulator handling to the
-> driver, because usually panels need power to operate. Currently we just
-> presume the powers are always on.
->
-> Adding this is easy with the current approach. Adding it if the data is
-> in DT would be difficult, if not impossible, as all the board out there
-> could already be using the old DT format which doesn't have the
-> regulator data. Even in the best case all the boards out there would not
-> be able to use the regulator stuff.
->
->
-> Academic issues aside, what is the issue with the current approach in
-> practice? How would the DT approach make it better? Both approaches work
-> just fine, afaik. The current approach requires some maintenance from
-> me, but that's rather minor.
->
-> Anyway, even if I don't see the point, I'm not strictly against your
-> approach. If everybody thinks it's much better, it's fine for me.
->
-No, I don't insist. Its only I in 'everybody' here, so please do it
-only if you see any merit in passing panel parameters via DT. I only
-wanted to share my opinion and so I did.
+Hi Paul,
 
-Best Regards.
--jassi
+On 07/30/2012 11:36 PM, Jon Hunter wrote:
+> Hi Paul,
+> 
+> On 07/30/2012 06:26 PM, Jon Hunter wrote:
+> 
+> [...]
+> 
+>> 1. When HWMOD attempts to disable the clock domain for OMAP2/3 devices 
+>>    we simply return without doing anything. Not sure if it is safe to 
+>>    remove this but I can do some more testing on OMAP2/3. 
+>>
+>> commit a0307bd539ecef976793679a1c4ff0d47b22c4bd
+>> Author: Jon Hunter <jon-hunter@ti.com>
+>> Date:   Mon Jul 30 18:04:06 2012 -0500
+>>
+>>     ARM: OMAP2/3: Allow HWMOD to disable clock domains
+>>     
+>>     Currently when HWMOD attempts to disable a clock domain on OMAP2/3 devices we
+>>     will return from the function clkdm_hwmod_disable() without actually disabling
+>>     the clock domain. Per the comment this is deliberate because initially HWMOD
+>>     OMAP2/3 devices did not support clock domains. However, clock domains are now
+>>     supported by HWMOD for these devices and so allow HWMOD to disable the clock
+>>     domains.
+>>     
+>>     XXX - Tested on OMAP3430 beagle board, but needs more testing on OMAP2/3
+>>
+>> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+>> index 011186f..8f7a941 100644
+>> --- a/arch/arm/mach-omap2/clockdomain.c
+>> +++ b/arch/arm/mach-omap2/clockdomain.c
+>> @@ -1075,10 +1075,6 @@ int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh)
+>>   */
+>>  int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh)
+>>  {
+>> -       /* The clkdm attribute does not exist yet prior OMAP4 */
+>> -       if (cpu_is_omap24xx() || cpu_is_omap34xx())
+>> -               return 0;
+>> -
+>>         /*
+>>          * XXX Rewrite this code to maintain a list of enabled
+>>          * downstream hwmods for debugging purposes?
+>>
+>>
+>> 2. I need to make the following changes to your patch. The change to
+>>    omap2_clkdm_clk_disable() was needed to get the EMU to turn off.
+>>    At the same time I thought we should make the same change to
+>>    omap2_clkdm_clk_enable().
+>>
+>> diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+>> index 09385a9..c94b2fb 100644
+>> --- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+>> +++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+>> @@ -223,7 +223,8 @@ static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
+>>                 _enable_hwsup(clkdm);
+>>         } else {
+>>                 if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
+>> -                       omap2_clkdm_wakeup(clkdm);
+>> +                       (cpu_is_omap24xx()) ? omap2_clkdm_wakeup(clkdm) :
+>> +                               omap3_clkdm_wakeup(clkdm);
+>>         }
+>>  
+>>         return 0;
+>> @@ -257,7 +258,8 @@ static int omap2_clkdm_clk_disable(struct clockdomain *clkdm)
+>>                 _enable_hwsup(clkdm);
+>>         } else {
+>>                 if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
+>> -                       omap2_clkdm_sleep(clkdm);
+>> +                       (cpu_is_omap24xx()) ? omap2_clkdm_sleep(clkdm) :
+>> +                               omap3_clkdm_sleep(clkdm);
+>>         }
+> 
+> I just remembered you sending out a patch [1] to address #2 above. Let
+> me know your thoughts about change #1.
+
+So scratch item #1 above. As Rajendra pointed out in another thread this
+is not right. The only other comment I have with your patch is maybe we
+need to add the following to prevent the EMU PD being idled during
+boot-up if enabled early in the boot process. 
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 011186f..84d3fbc 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -825,7 +825,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+        if (!clkdm)
+                return;
+ 
+-       if (!(clkdm->flags & CLKDM_CAN_ENABLE_AUTO)) {
++       if (!(clkdm->flags & CLKDM_CAN_ENABLE_AUTO) ||
++                       (clkdm->flags & CLKDM_MISSING_IDLE_REPORTING)) {
+                pr_debug("clock: automatic idle transitions cannot be enabled "
+                         "on clockdomain %s\n", clkdm->name);
+                return;
+
+Cheers
+Jon
