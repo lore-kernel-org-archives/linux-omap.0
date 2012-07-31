@@ -1,82 +1,67 @@
-From: =?UTF-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
-Subject: Re: [PATCH] OMAPDSS: Do not require a VDDS_DSI regulator on am35xx
-Date: Tue, 31 Jul 2012 16:46:33 -0400
-Message-ID: <50184429.4030103@8d.com>
-References: <20120719200429.GD3850@renkinjitsu.usine.8d.com> <1343724323.2633.22.camel@deskari>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
+ to OFF when in-use
+Date: Tue, 31 Jul 2012 15:56:37 -0500
+Message-ID: <50184685.9010608@ti.com>
+References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from roc.holo.8d.com ([64.254.227.115]:43198 "EHLO roc.holo.8d.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55289 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154Ab2GaUqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jul 2012 16:46:36 -0400
-In-Reply-To: <1343724323.2633.22.camel@deskari>
+	id S1752418Ab2GaU4j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 16:56:39 -0400
+In-Reply-To: <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On 31/07/12 04:45 AM, Tomi Valkeinen wrote:
-> On Thu, 2012-07-19 at 16:04 -0400, Raphael Assenat wrote:
->> On our AM3505 based board, dpi.c complains that there is no VDSS_DSI=
- regulator
->> and the framebuffer cannot be enabled. However, this check does not =
-seem to
->> apply to AM3505/17 chips.
->>
->> I am not the first facing this issue, see this thread from Nov. 2011=
-:
->> http://marc.info/?l=3Dlinux-omap&m=3D132147745930213&w=3D2
->>
->> The string 'vdds_dsi' does appear once in the technical reference ma=
-nual[1]
->> but there is no corresponding power pin on the package[2]. I failed =
-to=20
->> locate any signal that could be an equivalent. I am trying to obtain=
- some
->> clarifications on TI's forum[3]...
->>
->> In any case, I am currently running with the patch below. In order t=
-o keep
->> cpu_is_xx uses to a minimum, I check for am35xx once at init time an=
-d allow
->> dpi.vdds_dsi_reg to be NULL from then on, getting rid of all the oth=
-er
->> cpu_is_omap34xx uses in the process.
->>
->> Your comments would be appreciated. Please also consider for merging=
-=2E
->=20
-> VDDS_DSI is used to power up some of the DSS pins on OMAP3. I don't k=
-now
-> why the HW was designed like that... If you have a correct image with=
-out
-> the power, then obviously it's not needed.
+Hi Paul,
 
-Yes, I confirm the image is displayed properly.
+On 07/12/2012 04:17 PM, Paul Walmsley wrote:
 
-> We don't currently deal with AM3xxx SoCs in any way in the driver. It=
-'s
-> difficult enough trying to handle just OMAP DSS versions, and now we
-> need to add AM3xxx to the mix. Sigh =3D).
->=20
-> However, I don't want to apply this patch, as we're trying to remove =
-the
-> cpu_is checks (soc_is goes in the same category).
->=20
-> I guess we need to add entries for the AM3xxx SoCs in the
-> dss_features.c.
->=20
-> Any idea what other differences AM3xxx has compared to OMAP3?
+[snip]
 
-This is the only one I am aware of.
+> @@ -170,6 +201,18 @@ static int omap2_clkdm_clk_enable(struct clockdomain *clkdm)
+>  	if (!clkdm->clktrctrl_mask)
+>  		return 0;
+>  
+> +	/*
+> +	 * The CLKDM_MISSING_IDLE_REPORTING flag documentation has
+> +	 * more details on the unpleasant problem this is working
+> +	 * around
+> +	 */
+> +	if (clkdm->flags & (CLKDM_MISSING_IDLE_REPORTING |
+> +			    CLKDM_CAN_FORCE_WAKEUP)) {
+> +		(cpu_is_omap24xx()) ? omap2_clkdm_wakeup(clkdm) :
+> +			omap3_clkdm_wakeup(clkdm);
+> +		return 0;
+> +	}
+> +
+>  	hwsup = omap2_cm_is_clkdm_in_hwsup(clkdm->pwrdm.ptr->prcm_offs,
+>  				clkdm->clktrctrl_mask);
 
+I think that the above needs to be ...
 
-Best regards,
-Rapha=C3=ABl Ass=C3=A9nat
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+index e5bb219..d2b081d 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+@@ -253,8 +253,8 @@ static int omap3xxx_clkdm_clk_enable(struct clockdomain *clkdm)
+         * more details on the unpleasant problem this is working
+         * around
+         */
+-       if (clkdm->flags & (CLKDM_MISSING_IDLE_REPORTING |
+-                           CLKDM_CAN_FORCE_WAKEUP)) {
++       if ((clkdm->flags & CLKDM_MISSING_IDLE_REPORTING) &&
++                               (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)) {
+                omap3_clkdm_wakeup(clkdm);
+                return 0;
+
+... otherwise I see other clkdm such as MPU being put in force-wakeup state 
+although they don't have CLKDM_MISSING_IDLE_REPORTING set.
+
+Cheers
+Jon
