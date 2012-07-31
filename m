@@ -1,38 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 1/3] ARM: omap: clk: add clk_prepare and
-	clk_unprepare
-Date: Tue, 31 Jul 2012 10:27:14 +0100
-Message-ID: <20120731092714.GL7405@n2100.arm.linux.org.uk>
-References: <1341224669-15231-1-git-send-email-rnayak@ti.com> <1341224669-15231-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1207301614590.8722@utopia.booyaka.com> <CAJOA=zPmfq+WsAF-7nAkMGghPLYHpd+fCkrsv=3JSWLGMb-zkg@mail.gmail.com> <20120730230233.GA12574@n2100.arm.linux.org.uk> <CAJOA=zNnLahwhzjE0jkmiax8=kU8O4puJQJ1VbA-gDScawg6jw@mail.gmail.com> <50179584.9070006@codeaurora.org>
+From: "Mr.Bojan Limsley" <Limsley@ey.com>
+Subject: MAIL
+Date: Tue, 31 Jul 2012 11:19:48 +0200
+Message-ID: <201207310926.q6V7jMar003067@mail.ucla.edu>
+Reply-To: bojanlims@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52300 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826Ab2GaJ1c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 05:27:32 -0400
-Content-Disposition: inline
-In-Reply-To: <50179584.9070006@codeaurora.org>
+Received: from out-78.smtp.ucla.edu ([169.232.46.181]:37693 "EHLO
+	out-78.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371Ab2GaJqz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jul 2012 05:46:55 -0400
+Content-Description: Mail message body
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Saravana Kannan <skannan@codeaurora.org>
-Cc: "Turquette, Mike" <mturquette@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Shawn Guo <shawn.guo@linaro.org>, Sascha Hauer <s.hauer@pengutronix.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rob Herring <rob.herring@calxeda.com>, Magnus Damm <magnus.damm@gmail.com>
+To: Recipients <Limsley@ey.com>
 
-On Tue, Jul 31, 2012 at 01:21:24AM -0700, Saravana Kannan wrote:
-> I have heard this idea about removing the clk_prepare/unprepare API too  
-> many times and it makes me uncomfortable. I would really prefer we (the  
-> community) take this discussion to the end and put an end to it. We  
-> either agree to stick with the clk_prepare APIs or figure out the newer  
-> APIs. I don't want to keep having to deal with the "we really should be  
-> removing the clk_prepare() APIs" wrench thrown into the discussion every  
-> time we discuss anything related to a locking issue.
+Dear Friend,
 
-Well, part of the motivation to remove it comes from the fact that we
-have this "clk_prepare_enable()" thing which _everyone_ simply converts
-their existing clk_enable() call to without _thinking_ one little bit
-about the rest of the picture.
+My name is Mr.Bojan Limsley, an Armenia national. I work as an external auditor for Bank of United Kingdom. I Work as part of a bigger team that covers the entire Scotland and England region. I have taken pains to find your contact through personal endeavours.
 
-It's that which is making the justification for getting rid of the split
-API soo easy.  If people put more thought into it then the separation of
-the two calls would be much clearer, and there would be more of a
-justification to prevent its removal.
+I wish to discuss with you an issue of immense benefit to us. Your prompt response will be highly appreciated. Contact me only through my private email address:  bojanlims@gmail.com 
+
+
+Kind Regards, 
+ 
+Bojan Limsley.
+Ernst & Young
+E:Limsley@ey.com
+http://www.ey.com/
+
+
+
+_____________________________________________________________________ 
+This e-mail originated from the Internet and has been scanned for known viruses by the Messagelabs SkyScan Service. 
+*********************************************************************************** 
+This e-mail is intended for the addressee(s) named above and any other use is prohibited. It may contain confidential information. If you received this e-mail in error please contact the sender by return e-mail. 
+
+Ernst & Young does not accept legal responsibility for the contents of this message if it has reached you via the Internet, as Internet communications are not secure. Any opinions expressed are those of the author and are not necessarily endorsed by Ernst & Young. 
+
+Recipients are advised to apply their own virus checks to this message . 
+***********************************************************************************
