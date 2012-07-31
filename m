@@ -1,75 +1,72 @@
-From: Vinod Koul <vinod.koul-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Vinod Koul <vinod.koul@linux.intel.com>
 Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 31 Jul 2012 16:36:52 +0530
-Message-ID: <1343732812.1726.14412.camel@vkoul-udesk3>
+Date: Tue, 31 Jul 2012 16:42:12 +0530
+Message-ID: <1343733132.1726.14418.camel@vkoul-udesk3>
 References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
- <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>
- <201207260714.34540.arnd@arndb.de>
- <1343302083.1726.9027.camel@vkoul-udesk3>  <5011680A.6040400@ti.com>
+	 <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>
+	 <201207200839.24259.arnd@arndb.de> <1342777047.1726.435.camel@vkoul-udesk3>
+	 <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>
+	 <501181C3.1020301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5011680A.6040400-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Jassi Brar <jaswinder.singh-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:33199 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755715Ab2GaLLU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 07:11:20 -0400
+In-Reply-To: <501181C3.1020301@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-07-26 at 10:53 -0500, Jon Hunter wrote:
-> On 07/26/2012 06:28 AM, Vinod Koul wrote:
-> > On Thu, 2012-07-26 at 07:14 +0000, Arnd Bergmann wrote:
-> >> On Thursday 26 July 2012, Vinod Koul wrote:
-> >>>>> But from a client POV it makes sense as with the given direction you
-> >>>>> would need a specific request line for a channel. So this is right.
-> >>>>> But direction is something I don't expect to be used for "give me a
-> >>>>> channel" 
-> >>>>
-> >>>> Ok. The thought was that the user would have the following means of
-> >>>> requesting a channel ...
-> >>>>
-> >>>> 1. By name
-> >>> Bare name maynot be enough. In a dmac we have many channels which one to
-> >>> choose?
-> >> The name is what is associated with the property in the client device
-> >> node, which describes everything the dmac driver needs to know.
-> >> If the dmac needs to pick a specific channel, it can find out from the
-> >> "dmas" property in combination with that name. If it is allowed to
-> >> pick any channel, it doesn't need to bother.
-> > dmac doesn't pick a channel. They don't come into picture till dmaengine
-> > and client have agreed on channel. And then channel callback in invoked,
-> > still it doesn't know which client.
+On Thu, 2012-07-26 at 12:43 -0500, Jon Hunter wrote:
+> >> So yes I can see that a channel itself could be configured to
+> support a
+> >> given direction, but when we ask for a channel via
+> dma_request_channel()
+> >> we are going to get a channel that matches the criteria we pass
+> using
+> >> the filter parameter. So here the thinking was that "flags" is a
+> filter
+> >> parameter that the user could specify and one example being
+> direction
+> >> but it could be something else too.
+> > Yes that can be done, but I am leaning towards clients not have to
+> do
+> > anything :) DMAEngine needs to know mapping and when
+> > dma_request_channel() is called it _always_ gives you the right
+> channel.
 > 
-> I think what Arnd meant was that dmaengine (not the dmac) would use the
-> DT node and name information to extract the dma mapping information from
-> the device tree and provide a channel back to the client. So yes the
-> dmac is not involved here.
-Ok good that was main concern :)
+> Ok, so are you proposing to remove the filter function and parameter
+> from the dma_request_channel()?
+No. But add a new request call, dma_request_slave_channel() which is
+exclusive for slave usages and takes into account the mapping to be done
+for channels
 > 
-> By the way, when I said "by name" above (and probably this was not
-> clear) but it should have been "DT node and name". So really a channel
-> is requested by ...
+> > Maybe for slave case we need to create dma_request_slave_channel()
+> which
+> > has additional arguments for dmaengine to do the filtering.
+Yup
 > 
-> 1. DT node and a name
-> 2. DT node and a filter parameter (flags)
-> 3. DT node, a name and a filter parameter (flags)
+> Ok, so what is not clear to me is if you envision that
+> dma_request_slave_channel() is using a mapping table based look-up or
+> the DT scheme or both.
+The API should not worry about it. It would be good to have DT/ other be
+behind this API, so it is transparent to users. They just request a
+slave channel.
 > 
-> The DT node points us to the specific device in the DT, say an MMC node,
-> and the MMC node then contains the DMA mapping info. The device node may
-> have the mapping information have one or more DMA requests/channels and
-> so then the name and/or flags is used to determine which the client needs.
-> 
-> Sorry hope that this is a little clearer.
-It is...
-
+> As Arnd highlighted the DT convention is to store the DMA info in each
+> of the device nodes and not store in a global mapping table which
+> conflicts with having a mapping table approach for non-DT usage. So I
+> am
+> still not sure how you envision this function working for both the
+> non-DT and DT use-cases. 
+I expect the clients to pass the mapping information to dmaengine in way
+dmaengine understands. This information can come from DT or other
+places. That way dmaengine gets info from any system being used and be
+able to allocate slave channel properly.
 -- 
 ~Vinod
+
