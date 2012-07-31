@@ -1,182 +1,124 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [GPIO] Crashed when not using
-Date: Tue, 31 Jul 2012 15:32:11 +0300
-Message-ID: <20120731123209.GA8024@arwen.pp.htv.fi>
-References: <CAKdam54gXixs4F-a07ajj9GNMth46d4NTdoUL3GokzvjuWaGyg@mail.gmail.com>
- <CAC83ZvKnOw+UBOWYtt294k-5Xk8S6Gy1pChSF7aXGmGjLGSeCA@mail.gmail.com>
- <CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
- <87fw89gf4w.fsf@ti.com>
- <CAKdam57xtXnKAgvneqATSTr0ng978T5HbkTB0T3sYp96N=Qfww@mail.gmail.com>
- <20120731065224.GE6004@arwen.pp.htv.fi>
- <CAMQu2gxXX+4gtKVnAMMK4qr9ihJuP-OwjOYgr=6VrGZ2DWSf2A@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: OMAP3: USB: EHCI broken on 3.5?
+Date: Tue, 31 Jul 2012 13:42:07 +0100
+Message-ID: <WC20120731124207.4902F1@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxXX+4gtKVnAMMK4qr9ihJuP-OwjOYgr=6VrGZ2DWSf2A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, "Poddar, Sourav" <sourav.poddar@ti.com>, Kevin Hilman <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:42113 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752875Ab2GaMmP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jul 2012 08:42:15 -0400
+Received: from terrafix.co.uk (reverse.keele.netcentral.co.uk [212.57.249.250] (may be forged))
+	by smtp3.keele.netcentral.co.uk (8.14.2/8.14.2) with ESMTP id q6VCg67S028618
+	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 13:42:12 +0100
+Received: from WorldClient by terrafix.co.uk (MDaemon PRO v12.5.6)
+	with ESMTP id md50002260673.msg
+	for <linux-omap@vger.kernel.org>; Tue, 31 Jul 2012 13:42:08 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+I have a GUMSTIX Overo AirSTORM (AM3703-based).
+
+When running a 3.4 kernel the USB host works just fine!
+
+However when switching to 3.5 I get a few new warning messages and USB host no longer works.
+
+dmesg log after successfully loading the module (modprobe echi-hcd) on 3.4:
+[   23.424499] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[   23.431427] ehci_hcd: block sizes: qh 64 qtd 96 itd 160 sitd 96
+[   23.431732] ehci-omap ehci-omap.0: failed to get ehci port1 regulator
+[   23.431762] gpio_request: gpio-183 (USB2 PHY reset) status -16
+[   24.433471] ehci-omap ehci-omap.0: phy reset operation timed out
+[   24.433502] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=0 cc=1 pcc=3 ordered ports=3
+[   24.433532] ehci-omap ehci-omap.0: reset hcc_params 0016 thresh 1 uframes 256/512/1024 park
+[   24.433532] ehci-omap ehci-omap.0: reset command 0080b02  park=3 ithresh=8 period=1024 Reset HALT
+[   24.433563] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[   24.440063] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+[   24.448120] ehci-omap ehci-omap.0: park 0
+[   24.448181] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+[   24.454162] ehci-omap ehci-omap.0: init command 0010005 (park)=0 ithresh=1 period=512 RUN
+[   24.474517] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[   24.481597] usb usb1: default language 0x0409
+[   24.481658] usb usb1: udev 1, busnum 1, minor = 0
+[   24.481689] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[   24.488830] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[   24.496398] usb usb1: Product: OMAP-EHCI Host Controller
+[   24.501953] usb usb1: Manufacturer: Linux 3.4.0 ehci_hcd
+[   24.507537] usb usb1: SerialNumber: ehci-omap.0
+[   24.528747] usb usb1: usb_probe_device
+[   24.528778] usb usb1: configuration #1 chosen from 1 choice
+[   24.529479] usb usb1: adding 1-0:1.0 (config #1, interface 0)
+[   24.530212] hub 1-0:1.0: usb_probe_interface
+[   24.530242] hub 1-0:1.0: usb_probe_interface - got id
+[   24.530303] hub 1-0:1.0: USB hub found
+[   24.534362] hub 1-0:1.0: 3 ports detected
+[   24.538635] hub 1-0:1.0: standalone hub
+[   24.538635] hub 1-0:1.0: individual port power switching
+[   24.538665] hub 1-0:1.0: individual port over-current protection
+[   24.538665] hub 1-0:1.0: power on to power good time: 20ms
+[   24.539031] hub 1-0:1.0: local power source is good
+[   24.539062] hub 1-0:1.0: enabling power on all ports
+[   24.540008] ehci-omap ehci-omap.0: ...powerup ports...
+[   24.637634] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+[   27.013153] hub 1-0:1.0: hub_suspend
+[   27.015319] usb usb1: bus auto-suspend, wakeup 1
+[   27.015411] ehci-omap ehci-omap.0: suspend root hub
 
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+dmesg log after failing to load the module (modprobe echi-hcd) on 3.5:
+[   83.900115] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[   83.907043] ehci_hcd: block sizes: qh 64 qtd 96 itd 160 sitd 96
+[   83.907379] ehci-omap ehci-omap.0: failed to get ehci port1 regulator
+[   84.912445] ehci-omap ehci-omap.0: phy reset operation timed out
+[   84.912475] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=0 cc=1 pcc=3 ordered ports=3
+[   84.912475] ehci-omap ehci-omap.0: reset hcc_params 0016 thresh 1 uframes 256/512/1024 park
+[   84.912506] ehci-omap ehci-omap.0: reset command 0080b02  park=3 ithresh=8 period=1024 Reset HALT
+[   84.912506] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[   84.919097] ehci-omap ehci-omap.0: new USB bus registered, assigned bus number 1
+[   84.927154] ehci-omap ehci-omap.0: park 0
+[   84.927215] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+[   84.933197] ehci-omap ehci-omap.0: init command 0010005 (park)=0 ithresh=1 period=512 RUN
+[   84.946655] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[   84.953796] usb usb1: default language 0x0409
+[   84.953887] usb usb1: udev 1, busnum 1, minor = 0
+[   84.953887] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[   84.961059] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[   84.968627] usb usb1: Product: OMAP-EHCI Host Controller
+[   84.974151] usb usb1: Manufacturer: Linux 3.5.0 ehci_hcd
+[   84.979736] usb usb1: SerialNumber: ehci-omap.0
+[   84.987518] usb usb1: usb_probe_device
+[   84.987548] usb usb1: configuration #1 chosen from 1 choice
+[   84.988220] usb usb1: adding 1-0:1.0 (config #1, interface 0)
+[   84.988891] hub 1-0:1.0: usb_probe_interface
+[   84.988922] hub 1-0:1.0: usb_probe_interface - got id
+[   84.988983] hub 1-0:1.0: USB hub found
+[   84.993133] hub 1-0:1.0: 3 ports detected
+[   84.997344] hub 1-0:1.0: standalone hub
+[   84.997344] hub 1-0:1.0: individual port power switching
+[   84.997344] hub 1-0:1.0: individual port over-current protection
+[   84.997375] hub 1-0:1.0: power on to power good time: 20ms
+[   84.997711] hub 1-0:1.0: local power source is good
+[   84.997741] hub 1-0:1.0: enabling power on all ports
+[   84.998840] ehci-omap ehci-omap.0: ...powerup ports...
+[   85.030212] ehci-omap ehci-omap.0: utmi_p1_gfclk failed error:-2
+[   85.036560] ehci-omap: probe of ehci-omap.0 failed with error -2
+[   85.093658] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0000
+[   87.093780] hub 1-0:1.0: hub_suspend
+[   87.095977] usb usb1: bus auto-suspend, wakeup 1
+[   87.096099] platform ehci-omap.0: suspend root hub
 
-Hi,
+You can see that the following two new warnings are produced:
+[   85.030212] ehci-omap ehci-omap.0: utmi_p1_gfclk failed error:-2
+[   85.036560] ehci-omap: probe of ehci-omap.0 failed with error -2
 
-On Tue, Jul 31, 2012 at 02:32:43PM +0200, Shilimkar, Santosh wrote:
-> On Tue, Jul 31, 2012 at 8:52 AM, Felipe Balbi <balbi@ti.com> wrote:
-> >
-> > Hi,
-> >
-> > On Tue, Jul 31, 2012 at 10:23:16AM +0530, Poddar, Sourav wrote:
-> > > >>>> The device tree data for acquiring the above GPIO interrupt line
-> > > >>>> looks
-> > > >>>> like this.
-> > > >>>>
-> > > >>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-=
-30
-> > > >>>> 14:11:08.931694001 +0530
-> > > >>>> @@ -42,7 +42,8 @@
-> > > >>>>         tsl2771@39 {
-> > > >>>>                 compatible =3D "taos,tsl2771";
-> > > >>>>                 reg =3D <0x39>;
-> > > >>>> +                interrupt-parent =3D <&gpio5>;
-> > > >>>> +                interrupts =3D <21>; /* gpio line 149 */
-> > > >>>>         };
-> > > >>>>  };
-> > > >>>>
-> > > >>>> Note: using "gpio_request_one" in the driver solves the issue.
-> > > >>>> Is using this api in the driver required?
-> > > >>>> Any pointer on the above crash?
-> > > >>>
-> > > >> Hi Tarun,
-> > > >>> Any user/client driver of GPIO is supposed to go through
-> > > >>> gpio_request() API so that module clock
-> > > >>> is enabled correctly. Overriding of APIs would put the power
-> > > >>> management state machine in jeopardy.
-> > > >>> --
-> > > >> I tried putting "pm_runtime_get_sync" in gpio_irq_type api where t=
-he
-> > > >> kernel
-> > > >> is crashing and the crash is no longer observed. So indeed, its ab=
-out
-> > > >> enabling clocks.
-> > > >>
-> > > >> One doubt: Can't we put runtime apis in "gpio_irq_type" and elimin=
-ate
-> > > >> the use of
-> > > >> "gpio_request_one"??
-> > > >
-> > > > No.
-> > > >
-> > > > You must use the GPIO requiest/free APIs to tell the GPIO core that
-> > > > the GPIO line is in use.
-> > > >
-> > > Thanks for this confirmation.
-> > > > Why do you want to avoid using gpio_request/gpio_free?
-> > > >
-> > > I was assuming that DT based gpio IRQ registration will automatically
-> > > take care of
-> > > the above APIs. But since that is not the case(as mentioned by
-> > > santosh),  we need to use the
-> > > gpio_request/free apis.
-> >
-> > Hang on for a while, let's try to get to the bottom of this debate first
-> > ;-)
-> >
-> > We have a canonical way of passing IRQ numbers to drivers through DT and
-> > that is the "interrupts" attribute. It shouldn't matter if that IRQ pin
-> > is connected to a real IRQ line or through a GPIO controller. In both
-> > cases we should use the "interrupts" attribute.
-> >
-> > If DT core doesn't allocate the GPIO for us then how does this work:
-> >
-> > (omap4-sdp.dts)
-> >
-> > 127 &mcspi1 {
-> > 128         eth@0 {
-> > 129                 compatible =3D "ks8851";
-> > 130                 spi-max-frequency =3D <24000000>;
-> > 131                 reg =3D <0>;
-> > 132                 interrupt-parent =3D <&gpio2>;
-> > 133                 interrupts =3D <2>; /* gpio line 34 */
-> > 134                 vdd-supply =3D <&vdd_eth>;
-> > 135         };
-> > 136 };
-> >
-> >
-> > There's no gpio request on the driver:
-> >
-> > $ git grep -e gpio_request drivers/net/ethernet/micrel/ks8851.c
-> > $
-> >
-> > Since Benoit was the one who added that to the dts file (commit
-> > e7c64db9), I assume he tested his patch before posting, so again I ask -
-> > How does that work and why doesn't this work for Sourav's tsl2771
-> > controller ?
-> >
-> > This is either a regression on drivers/of, or commit e7c64db9 is also
-> > broken...
-> >
-> > Benoit, do you know how should this work ?
-> >
-> I had a discussion with Benoit on this. In fact there is a way to actually
-> trigger the GPIO request.
->=20
-> > 132                 interrupt-parent =3D <&gpio2>;
-> > 133                 interrupts =3D <2>; /* gpio line 34 */
->=20
-> As above you can see, GPIO2 bank and 2nd line.
-> And then it will make use of gpio_irq chip properties
-> to probe the GPIO line.
->=20
-> Saurabh can try this out for his use case.
+If I (rather crudely) take ehci-omap.c from 3.4, drop it in to 3.5 and re-build then 3.5 works fine.
 
-Isn't this exactly what Sourav has ?
+Any ideas?
 
-> > > >>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-=
-30
-> > > >>>> 14:11:08.931694001 +0530
-> > > >>>> @@ -42,7 +42,8 @@
-> > > >>>>         tsl2771@39 {
-> > > >>>>                 compatible =3D "taos,tsl2771";
-> > > >>>>                 reg =3D <0x39>;
-> > > >>>> +                interrupt-parent =3D <&gpio5>;
-> > > >>>> +                interrupts =3D <21>; /* gpio line 149 */
-> > > >>>>         };
-> > > >>>>  };
+Cheers,
+Joe Woodward
 
-???
 
---=20
-balbi
-
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQF9BJAAoJEIaOsuA1yqREK/sQAKOha9ZO7pejZiY7LAFAdSx7
-Qkm5cRLs6ZQMFaLI0XD+LjOHCksKJLwA7kAfbgvQqQFEu4os1jZG83G3UfZclKRb
-/kH22YRSeSmqwmTT5E8N1C1aUswKOaH1MJXgWv3S64FZdyI5lL+9fCXEZ2BZAaNG
-t/jdzXhtjKSMLnsKo/alyxuiH92PEgtYNgURFEUAusg9ihwZyFe5jlP94icT5ugJ
-3+xuf69sSZRwLFuDd6uDXlGp7AHe1Pi1GIhL0pJ6Puh430UlbP7DPh1eQIS2oBa0
-4VaFmBcE6zQHmQuOs2AKp5V9PjZhIdDrmsCLFmBZ4K2Kx4EtKwsUnf9uIgyBNg2n
-9zohXtbgEikK+N/J9cj4P1DwGjbfhhDGQlpn32D9UJzfpZfFOTscuOwW3zJv9nw0
-FLViBkSAfRLb5fLGPL9dWSCmFdZhdsaldLyY+nkBZc9TkXFrj+HIBj196uLDKC9g
-ThhCiOOuFjNwdbSFIPi2Y3z1B6sq/WEkuovx7qcaH3qAQ/+03ThTN9U418fVFre0
-468Pja3qWddpV4xB2EmayN8KSKAwiD0Z+n4IFRBMCMwZvPFcalJa3PbbUPOdWRUI
-SG98S0okwKU6gJ+5od066x3NnGEq0Fk+h2FoXtgBZTefUFIINa5sYhzUTkTZA21v
-WFS19gzf68iJfcRUyGWF
-=BCSA
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
