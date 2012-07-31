@@ -1,72 +1,124 @@
-From: Vinod Koul <vinod.koul@linux.intel.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 31 Jul 2012 16:42:12 +0530
-Message-ID: <1343733132.1726.14418.camel@vkoul-udesk3>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>
-	 <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>
-	 <201207200839.24259.arnd@arndb.de> <1342777047.1726.435.camel@vkoul-udesk3>
-	 <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>
-	 <501181C3.1020301@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [GPIO] Crashed when not using
+Date: Tue, 31 Jul 2012 14:32:43 +0200
+Message-ID: <CAMQu2gxXX+4gtKVnAMMK4qr9ihJuP-OwjOYgr=6VrGZ2DWSf2A@mail.gmail.com>
+References: <CAKdam54gXixs4F-a07ajj9GNMth46d4NTdoUL3GokzvjuWaGyg@mail.gmail.com>
+ <CAC83ZvKnOw+UBOWYtt294k-5Xk8S6Gy1pChSF7aXGmGjLGSeCA@mail.gmail.com>
+ <CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
+ <87fw89gf4w.fsf@ti.com> <CAKdam57xtXnKAgvneqATSTr0ng978T5HbkTB0T3sYp96N=Qfww@mail.gmail.com>
+ <20120731065224.GE6004@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:33199 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab2GaLLU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jul 2012 07:11:20 -0400
-In-Reply-To: <501181C3.1020301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120731065224.GE6004@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, Kevin Hilman <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-07-26 at 12:43 -0500, Jon Hunter wrote:
-> >> So yes I can see that a channel itself could be configured to
-> support a
-> >> given direction, but when we ask for a channel via
-> dma_request_channel()
-> >> we are going to get a channel that matches the criteria we pass
-> using
-> >> the filter parameter. So here the thinking was that "flags" is a
-> filter
-> >> parameter that the user could specify and one example being
-> direction
-> >> but it could be something else too.
-> > Yes that can be done, but I am leaning towards clients not have to
-> do
-> > anything :) DMAEngine needs to know mapping and when
-> > dma_request_channel() is called it _always_ gives you the right
-> channel.
-> 
-> Ok, so are you proposing to remove the filter function and parameter
-> from the dma_request_channel()?
-No. But add a new request call, dma_request_slave_channel() which is
-exclusive for slave usages and takes into account the mapping to be done
-for channels
-> 
-> > Maybe for slave case we need to create dma_request_slave_channel()
-> which
-> > has additional arguments for dmaengine to do the filtering.
-Yup
-> 
-> Ok, so what is not clear to me is if you envision that
-> dma_request_slave_channel() is using a mapping table based look-up or
-> the DT scheme or both.
-The API should not worry about it. It would be good to have DT/ other be
-behind this API, so it is transparent to users. They just request a
-slave channel.
-> 
-> As Arnd highlighted the DT convention is to store the DMA info in each
-> of the device nodes and not store in a global mapping table which
-> conflicts with having a mapping table approach for non-DT usage. So I
-> am
-> still not sure how you envision this function working for both the
-> non-DT and DT use-cases. 
-I expect the clients to pass the mapping information to dmaengine in way
-dmaengine understands. This information can come from DT or other
-places. That way dmaengine gets info from any system being used and be
-able to allocate slave channel properly.
--- 
-~Vinod
+On Tue, Jul 31, 2012 at 8:52 AM, Felipe Balbi <balbi@ti.com> wrote:
+>
+> Hi,
+>
+> On Tue, Jul 31, 2012 at 10:23:16AM +0530, Poddar, Sourav wrote:
+> > >>>> The device tree data for acquiring the above GPIO interrupt line
+> > >>>> looks
+> > >>>> like this.
+> > >>>>
+> > >>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-30
+> > >>>> 14:11:08.931694001 +0530
+> > >>>> @@ -42,7 +42,8 @@
+> > >>>>         tsl2771@39 {
+> > >>>>                 compatible = "taos,tsl2771";
+> > >>>>                 reg = <0x39>;
+> > >>>> +                interrupt-parent = <&gpio5>;
+> > >>>> +                interrupts = <21>; /* gpio line 149 */
+> > >>>>         };
+> > >>>>  };
+> > >>>>
+> > >>>> Note: using "gpio_request_one" in the driver solves the issue.
+> > >>>> Is using this api in the driver required?
+> > >>>> Any pointer on the above crash?
+> > >>>
+> > >> Hi Tarun,
+> > >>> Any user/client driver of GPIO is supposed to go through
+> > >>> gpio_request() API so that module clock
+> > >>> is enabled correctly. Overriding of APIs would put the power
+> > >>> management state machine in jeopardy.
+> > >>> --
+> > >> I tried putting "pm_runtime_get_sync" in gpio_irq_type api where the
+> > >> kernel
+> > >> is crashing and the crash is no longer observed. So indeed, its about
+> > >> enabling clocks.
+> > >>
+> > >> One doubt: Can't we put runtime apis in "gpio_irq_type" and eliminate
+> > >> the use of
+> > >> "gpio_request_one"??
+> > >
+> > > No.
+> > >
+> > > You must use the GPIO requiest/free APIs to tell the GPIO core that
+> > > the GPIO line is in use.
+> > >
+> > Thanks for this confirmation.
+> > > Why do you want to avoid using gpio_request/gpio_free?
+> > >
+> > I was assuming that DT based gpio IRQ registration will automatically
+> > take care of
+> > the above APIs. But since that is not the case(as mentioned by
+> > santosh),  we need to use the
+> > gpio_request/free apis.
+>
+> Hang on for a while, let's try to get to the bottom of this debate first
+> ;-)
+>
+> We have a canonical way of passing IRQ numbers to drivers through DT and
+> that is the "interrupts" attribute. It shouldn't matter if that IRQ pin
+> is connected to a real IRQ line or through a GPIO controller. In both
+> cases we should use the "interrupts" attribute.
+>
+> If DT core doesn't allocate the GPIO for us then how does this work:
+>
+> (omap4-sdp.dts)
+>
+> 127 &mcspi1 {
+> 128         eth@0 {
+> 129                 compatible = "ks8851";
+> 130                 spi-max-frequency = <24000000>;
+> 131                 reg = <0>;
+> 132                 interrupt-parent = <&gpio2>;
+> 133                 interrupts = <2>; /* gpio line 34 */
+> 134                 vdd-supply = <&vdd_eth>;
+> 135         };
+> 136 };
+>
+>
+> There's no gpio request on the driver:
+>
+> $ git grep -e gpio_request drivers/net/ethernet/micrel/ks8851.c
+> $
+>
+> Since Benoit was the one who added that to the dts file (commit
+> e7c64db9), I assume he tested his patch before posting, so again I ask -
+> How does that work and why doesn't this work for Sourav's tsl2771
+> controller ?
+>
+> This is either a regression on drivers/of, or commit e7c64db9 is also
+> broken...
+>
+> Benoit, do you know how should this work ?
+>
+I had a discussion with Benoit on this. In fact there is a way to actually
+trigger the GPIO request.
 
+> 132                 interrupt-parent = <&gpio2>;
+> 133                 interrupts = <2>; /* gpio line 34 */
+
+As above you can see, GPIO2 bank and 2nd line.
+And then it will make use of gpio_irq chip properties
+to probe the GPIO line.
+
+Saurabh can try this out for his use case.
+
+Regards
+Santosh
