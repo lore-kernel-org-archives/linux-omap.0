@@ -1,73 +1,66 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC 02/17] OMAPDSS: DPI: Remove omap_dss_device arguments in dpi_set_dsi_clk/dpi_set_dispc_clk
-Date: Wed, 1 Aug 2012 16:01:13 +0530
-Message-ID: <1343817088-29645-3-git-send-email-archit@ti.com>
+Subject: [RFC 01/17] OMAPDSS: APPLY: Constify timings argument in dss_mgr_set_timings
+Date: Wed, 1 Aug 2012 16:01:12 +0530
+Message-ID: <1343817088-29645-2-git-send-email-archit@ti.com>
 References: <1343817088-29645-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43786 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43778 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752923Ab2HAKdC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 06:33:02 -0400
+	id S1751793Ab2HAKc5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Aug 2012 06:32:57 -0400
 In-Reply-To: <1343817088-29645-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sumit.semwal@ti.com, rob@ti.com, Archit Taneja <archit@ti.com>
 
-The clock related info for DSS modules is not tied anymore to a panel's
-omap_dss_device struct. It's now passed via platform data. The functions
-dpi_set_dsi_clk() and dpi_set_dispc_clk() do not need the omap_dss_device
-argument to retieve these clocks. They use the api dss_get_platform_clock_config
-to get the clocks. Remove the omap_dss_device arguments from these functions.
+The function dss_mgr_set_timings is supposed to apply timings passed by an
+interface driver. It is not supposed to change the timings. Add const qualifier
+to the omap_video_timings pointer argument in dss_mgr_set_timings().
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dpi.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/video/omap2/dss/apply.c |    4 ++--
+ drivers/video/omap2/dss/dss.h   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 5fec180..c20fe23 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -80,9 +80,8 @@ static bool dpi_use_dsi_pll(struct omap_dss_device *dssdev)
- 		lcd_src == OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC;
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 0fefc68..52a5940 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -1302,7 +1302,7 @@ err:
  }
  
--static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
--		unsigned long pck_req, unsigned long *fck, int *lck_div,
--		int *pck_div)
-+static int dpi_set_dsi_clk(unsigned long pck_req, unsigned long *fck,
-+		int *lck_div, int *pck_div)
+ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings)
++		const struct omap_video_timings *timings)
  {
- 	const struct omapdss_clock_config *clks;
- 	struct dsi_clock_info dsi_cinfo;
-@@ -111,9 +110,8 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
- 	return 0;
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 
+@@ -1311,7 +1311,7 @@ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
  }
  
--static int dpi_set_dispc_clk(struct omap_dss_device *dssdev,
--		unsigned long pck_req, unsigned long *fck, int *lck_div,
--		int *pck_div)
-+static int dpi_set_dispc_clk(unsigned long pck_req, unsigned long *fck,
-+		int *lck_div, int *pck_div)
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings)
++		const struct omap_video_timings *timings)
  {
- 	struct dss_clock_info dss_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-@@ -145,10 +143,10 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
- 	int r = 0;
+ 	unsigned long flags;
  
- 	if (dpi_use_dsi_pll(dssdev))
--		r = dpi_set_dsi_clk(dssdev, t->pixel_clock * 1000, &fck,
-+		r = dpi_set_dsi_clk(t->pixel_clock * 1000, &fck,
- 				&lck_div, &pck_div);
- 	else
--		r = dpi_set_dispc_clk(dssdev, t->pixel_clock * 1000, &fck,
-+		r = dpi_set_dispc_clk(t->pixel_clock * 1000, &fck,
- 				&lck_div, &pck_div);
- 	if (r)
- 		return r;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 335ee93..8a9630b 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -207,7 +207,7 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_device *dssdev);
+ int dss_mgr_unset_device(struct omap_overlay_manager *mgr);
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings);
++		const struct omap_video_timings *timings);
+ void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+ 		const struct dss_lcd_mgr_config *config);
+ const struct omap_video_timings *dss_mgr_get_timings(struct omap_overlay_manager *mgr);
 -- 
 1.7.9.5
 
