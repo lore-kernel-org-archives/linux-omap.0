@@ -1,78 +1,56 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 1 Aug 2012 15:43:02 -0500
-Message-ID: <501994D6.6070508@ti.com>
-References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>  <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>  <201207200839.24259.arnd@arndb.de> <1342777047.1726.435.camel@vkoul-udesk3>  <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>  <501181C3.1020301@ti.com> <1343733132.1726.14418.camel@vkoul-udesk3>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
+Date: Wed, 1 Aug 2012 21:47:31 +0100
+Message-ID: <20120801204731.GA9080@mudshark.cambridge.arm.com>
+References: <4FD7C597.7060501@ti.com>
+ <20120702095539.GD22239@mudshark.cambridge.arm.com>
+ <4FF1D15E.7040301@ti.com>
+ <20120702220117.GD25234@mudshark.cambridge.arm.com>
+ <4FF6340A.6020409@ti.com>
+ <50109233.3090302@ti.com>
+ <20120726150534.GD6382@mudshark.cambridge.arm.com>
+ <50115F3F.7050705@ti.com>
+ <20120731151446.GK3903@mudshark.cambridge.arm.com>
+ <50186524.6060903@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47582 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752692Ab2HAUnY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 16:43:24 -0400
-In-Reply-To: <1343733132.1726.14418.camel@vkoul-udesk3>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:54844 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751662Ab2HAUrm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Aug 2012 16:47:42 -0400
+Content-Disposition: inline
+In-Reply-To: <50186524.6060903@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Vinod,
+On Wed, Aug 01, 2012 at 12:07:16AM +0100, Jon Hunter wrote:
+> I have just updated my pmu branch for omap3/4. You can pull my latest
+> patches from [1].
 
-On 07/31/2012 06:12 AM, Vinod Koul wrote:
-> On Thu, 2012-07-26 at 12:43 -0500, Jon Hunter wrote:
->>>> So yes I can see that a channel itself could be configured to
->> support a
->>>> given direction, but when we ask for a channel via
->> dma_request_channel()
->>>> we are going to get a channel that matches the criteria we pass
->> using
->>>> the filter parameter. So here the thinking was that "flags" is a
->> filter
->>>> parameter that the user could specify and one example being
->> direction
->>>> but it could be something else too.
->>> Yes that can be done, but I am leaning towards clients not have to
->> do
->>> anything :) DMAEngine needs to know mapping and when
->>> dma_request_channel() is called it _always_ gives you the right
->> channel.
->>
->> Ok, so are you proposing to remove the filter function and parameter
->> from the dma_request_channel()?
-> No. But add a new request call, dma_request_slave_channel() which is
-> exclusive for slave usages and takes into account the mapping to be done
-> for channels
->>
->>> Maybe for slave case we need to create dma_request_slave_channel()
->> which
->>> has additional arguments for dmaengine to do the filtering.
-> Yup
->>
->> Ok, so what is not clear to me is if you envision that
->> dma_request_slave_channel() is using a mapping table based look-up or
->> the DT scheme or both.
-> The API should not worry about it. It would be good to have DT/ other be
-> behind this API, so it is transparent to users. They just request a
-> slave channel.
+Great, thanks for that. I've pushed out to perf/omap4 and I've also
+included your runtime PM hooks in my perf/updates branch. I have a fair
+amount of cleanup sitting in there as well, so I'll post that to the list
+at -rc1 as a candidate for -next. I'll obviously leave the omap-specific
+bits for others to handle, although I'll continue maintaining my branch
+until that's hit mainline.
 
-So would you envision something like (copying from Guennadi's API but
-changing direction to flags) ...
+> In the latest series I have:
+> 1. Pulled in an omap3 clock domain fix from Paul [2]
+> 2. Rebased Paul's patch [3] on top of [2]. I have also made a couple
+>    updates to this patch and I need to get Paul's feedback.
+> 3. I have removed the OMAP3 PMU dependency on ETM from the Kconfig.
 
-struct dma_chan *dma_request_slave_channel(struct device *dev,
-					char *name, unsigned int flags)
-{
-	/* If device-tree is present get slave info from here */
-	if (dev->of_node)
-		return of_dma_request_slave_channel(dev, name, flags);
+Fantastic! I actually already removed the OMAP3 Kconfig dependency in my
+perf/updates branch as part of removing CPU_HAS_PMU entirely, so you
+probably don't need to pursue that patch.
 
-	return NULL;
-}
+> I will probably send out the series once I align with Paul on the above
+> changes and the HWMOD stuff I have added for OMAP3 with Benoit.
 
-Ok, so right now the above is nothing more than a simple wrapper around
-a DT dma function to extract the slave info. However, it would allow us
-to add another means for getting the slave info in the future if
-necessary by adding an else part to the above.
+Okey doke. If you need me to update my copy of your runtime PM patch,
+please shout (that seems to be a done deal afaict).
 
-Cheers
-Jon
+Will
