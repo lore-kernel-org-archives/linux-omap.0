@@ -1,83 +1,78 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 08/10] ARM: OMAP4: Prevent EMU power domain transitioning
- to OFF when in-use
-Date: Wed, 1 Aug 2012 14:41:34 -0500
-Message-ID: <5019866E.3000100@ti.com>
-References: <1339104132-26885-1-git-send-email-jon-hunter@ti.com> <1339104132-26885-9-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1207111441300.25585@utopia.booyaka.com> <500028B3.1040309@ti.com> <alpine.DEB.2.00.1207131418500.25585@utopia.booyaka.com> <50045D17.9050704@ti.com> <alpine.DEB.2.00.1207161228470.28834@utopia.booyaka.com> <50171841.40309@ti.com> <501760BF.8070801@ti.com> <5018210A.1040902@ti.com> <50187644.40308@ti.com> <alpine.DEB.2.00.1208010932270.21488@utopia.booyaka.com>
+Subject: Re: [PATCH V3 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 1 Aug 2012 15:43:02 -0500
+Message-ID: <501994D6.6070508@ti.com>
+References: <1335820679-28721-1-git-send-email-jon-hunter@ti.com>  <201207171924.33756.arnd@arndb.de> <1342756850.1726.74.camel@vkoul-udesk3>  <201207200839.24259.arnd@arndb.de> <1342777047.1726.435.camel@vkoul-udesk3>  <500EF27F.6050905@ti.com> <1343284960.1726.8978.camel@vkoul-udesk3>  <501181C3.1020301@ti.com> <1343733132.1726.14418.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53063 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755865Ab2HATlr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Aug 2012 15:41:47 -0400
-In-Reply-To: <alpine.DEB.2.00.1208010932270.21488@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47582 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752692Ab2HAUnY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Aug 2012 16:43:24 -0400
+In-Reply-To: <1343733132.1726.14418.camel@vkoul-udesk3>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Madhav Vij <mvij@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, device-tree <devicetree-discuss@lists.ozlabs.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Jassi Brar <jaswinder.singh@linaro.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, dan.j.williams@intel.com, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+Hi Vinod,
 
-On 08/01/2012 10:36 AM, Paul Walmsley wrote:
-> Hi Jon et al,
->=20
-> Here's what I'm planning to queue here.  The only changes from what J=
-on
-> posted are the patch changelog and some checkpatch fixes.  If anyone
-> has any final comments, please let me know.
->=20
->=20
-> - Paul
->=20
-> From: Paul Walmsley <paul@pwsan.com>
-> Date: Wed, 1 Aug 2012 09:11:20 -0600
-> Subject: [PATCH] ARM: OMAP2+: clockdomain/hwmod: add workaround for E=
-MU
->  clockdomain idle problems
->=20
-> The idle status of the IP blocks and clocks inside the EMU clockdomai=
-n
-> isn't taken into account by the PRCM hardware when deciding whether
-> the clockdomain is idle.  Add a workaround flag in the clockdomain
-> code, CLKDM_MISSING_IDLE_REPORTING, to deal with this problem, and ad=
-d
-> the code necessary to support it.
->=20
-> If CLKDM_MISSING_IDLE_REPORTING is set on a clockdomain, the
-> clockdomain will be forced active whenever an IP block inside that
-> clockdomain is in use, even if the clockdomain supports
-> hardware-supervised idle.  When the kernel indicates that the last
-> active IP block inside the clockdomain is no longer used, the
-> clockdomain will be forced idle, or, if that mode is not supported in
-> the hardware, it will be placed into hardware-supervised idle.
->=20
-> This patch is an equal collaboration with Jon Hunter
-> <jon-hunter@ti.com>.  Ming Lei <ming.lei@canonical.com>, Will Deacon
-> <will.deacon@arm.com>, Madhav Vij <mvij@ti.com>, Kevin Hilman
-> <khilman@ti.com>, Beno=EEt Cousson <b-cousson@ti.com>, and Santosh
-> Shilimkar <santosh.shilimkar@ti.com> all made essential contributions
-> to the understanding of EMU clockdomain power management on OMAP.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+On 07/31/2012 06:12 AM, Vinod Koul wrote:
+> On Thu, 2012-07-26 at 12:43 -0500, Jon Hunter wrote:
+>>>> So yes I can see that a channel itself could be configured to
+>> support a
+>>>> given direction, but when we ask for a channel via
+>> dma_request_channel()
+>>>> we are going to get a channel that matches the criteria we pass
+>> using
+>>>> the filter parameter. So here the thinking was that "flags" is a
+>> filter
+>>>> parameter that the user could specify and one example being
+>> direction
+>>>> but it could be something else too.
+>>> Yes that can be done, but I am leaning towards clients not have to
+>> do
+>>> anything :) DMAEngine needs to know mapping and when
+>>> dma_request_channel() is called it _always_ gives you the right
+>> channel.
+>>
+>> Ok, so are you proposing to remove the filter function and parameter
+>> from the dma_request_channel()?
+> No. But add a new request call, dma_request_slave_channel() which is
+> exclusive for slave usages and takes into account the mapping to be done
+> for channels
+>>
+>>> Maybe for slave case we need to create dma_request_slave_channel()
+>> which
+>>> has additional arguments for dmaengine to do the filtering.
+> Yup
+>>
+>> Ok, so what is not clear to me is if you envision that
+>> dma_request_slave_channel() is using a mapping table based look-up or
+>> the DT scheme or both.
+> The API should not worry about it. It would be good to have DT/ other be
+> behind this API, so it is transparent to users. They just request a
+> slave channel.
 
-Thanks for sending out. You can add my ...
+So would you envision something like (copying from Guennadi's API but
+changing direction to flags) ...
 
-Tested-by: Jon Hunter <jon-hunter@ti.com>
+struct dma_chan *dma_request_slave_channel(struct device *dev,
+					char *name, unsigned int flags)
+{
+	/* If device-tree is present get slave info from here */
+	if (dev->of_node)
+		return of_dma_request_slave_channel(dev, name, flags);
 
-I have tested this on omap3430 (beagle), omap4430 (blaze) and omap4460
-(panda) with perf and my PMU series [1]. I have verified that the EMU
-power domain is transitioning correctly on these platforms. For OMAP343=
-0
-I checked that CORE retention is still being achieved with this change.
+	return NULL;
+}
+
+Ok, so right now the above is nothing more than a simple wrapper around
+a DT dma function to extract the slave info. However, it would allow us
+to add another means for getting the slave info in the future if
+necessary by adding an else part to the above.
 
 Cheers
 Jon
-
-[1] git@gitorious.org:linux-omap-dev/linux-omap-dev.git -b dev-pmu
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
