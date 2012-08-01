@@ -1,79 +1,43 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH v4] OMAPDSS: DISPC: Improvements to DIGIT sync signal selection
-Date: Wed, 1 Aug 2012 07:56:40 -0500
-Message-ID: <1343825800-6971-1-git-send-email-ricardo.neri@ti.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH] staging: drm/omap: remove reclaim_buffers callback
+Date: Wed, 1 Aug 2012 18:50:34 +0530
+Message-ID: <1343827234-15565-1-git-send-email-cmahapatra@ti.com>
+References: <1343813558-28347-1-git-send-email-cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45734 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55675 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab2HAM6X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 08:58:23 -0400
-Received: from dlelxv30.itg.ti.com ([172.17.2.17])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q71CwNOo001533
-	for <linux-omap@vger.kernel.org>; Wed, 1 Aug 2012 07:58:23 -0500
-Received: from DLEE74.ent.ti.com (dlee74.ent.ti.com [157.170.170.8])
-	by dlelxv30.itg.ti.com (8.13.8/8.13.8) with ESMTP id q71CwMah024798
-	for <linux-omap@vger.kernel.org>; Wed, 1 Aug 2012 07:58:23 -0500
+	id S1752285Ab2HANWC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Aug 2012 09:22:02 -0400
+In-Reply-To: <1343813558-28347-1-git-send-email-cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: archit@ti.com, s-guiriec@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
+To: greg@kroah.com
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, rob@ti.com, tomi.valkeinen@ti.com, sumit.semwal@ti.com, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-DSS code wrongly assumes that VENC is always available as source for the external
-sync signal for the display controller DIGIT channel. One cannot blindly write/read
-the value of DSS_CONTROL[15] as in certain processors (e.g., OMAP5) this operation
-may not be valid. If the the sync source is not read correctly, the callers of
-dss_get_hdmi_venc_clk_source might make wrong assumptions about, for instance,
-video timings.
+The reclaim_buffers callback has already been removed by Daniel Vetter
+<daniel.vetter@ffwll.ch> with his patch "drm: kill reclaim_buffers callback"
+(b0071efe82). As a result the kernel compilation fails with omapdrm support
+and so the callback for reclaim_buffers is being removed from omapdrm.
 
-Logic is added to correctly get the sync signal based on the available displays
-in the DIGIT channel. The source is set only if both VENC and HDMI are supported.
-
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
-v4: add WARN_ONs to signal invalid selections.
-v3: instead of BUG_ON calls, select only if both VENC and HDMI are available.
-v2: use BUG_ON() to simplify handling of invalid cases.
+ drivers/staging/omapdrm/omap_drv.c |    1 -
+ 1 file changed, 1 deletion(-)
 
- drivers/video/omap2/dss/dss.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 04b4586..4491ab7 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -648,9 +648,18 @@ void dss_set_dac_pwrdn_bgz(bool enable)
- 	REG_FLD_MOD(DSS_CONTROL, enable, 5, 5);	/* DAC Power-Down Control */
- }
- 
--void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select hdmi)
-+void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select src)
- {
--	REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15);	/* VENC_HDMI_SWITCH */
-+	enum omap_display_type dp;
-+	dp = dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_DIGIT);
-+
-+	/* Complain about invalid selections */
-+	WARN_ON((src == DSS_VENC_TV_CLK) && !(dp & OMAP_DISPLAY_TYPE_VENC));
-+	WARN_ON((src == DSS_HDMI_M_PCLK) && !(dp & OMAP_DISPLAY_TYPE_HDMI));
-+
-+	/* Select only if we have options */
-+	if ((dp & OMAP_DISPLAY_TYPE_VENC) && (dp & OMAP_DISPLAY_TYPE_HDMI))
-+		REG_FLD_MOD(DSS_CONTROL, src, 15, 15);	/* VENC_HDMI_SWITCH */
- }
- 
- enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
-@@ -661,6 +670,9 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
- 	if ((displays & OMAP_DISPLAY_TYPE_HDMI) == 0)
- 		return DSS_VENC_TV_CLK;
- 
-+	if ((displays & OMAP_DISPLAY_TYPE_VENC) == 0)
-+		return DSS_HDMI_M_PCLK;
-+
- 	return REG_GET(DSS_CONTROL, 15, 15);
- }
- 
+diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
+index 342645a..b8e79eb 100644
+--- a/drivers/staging/omapdrm/omap_drv.c
++++ b/drivers/staging/omapdrm/omap_drv.c
+@@ -778,7 +778,6 @@ static struct drm_driver omap_drm_driver = {
+ 		.irq_postinstall = dev_irq_postinstall,
+ 		.irq_uninstall = dev_irq_uninstall,
+ 		.irq_handler = dev_irq_handler,
+-		.reclaim_buffers = drm_core_reclaim_buffers,
+ #ifdef CONFIG_DEBUG_FS
+ 		.debugfs_init = omap_debugfs_init,
+ 		.debugfs_cleanup = omap_debugfs_cleanup,
 -- 
-1.7.5.4
+1.7.10
 
