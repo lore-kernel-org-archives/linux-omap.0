@@ -1,67 +1,100 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC 11/17] OMAPDSS: HDMI: Add locking for hdmi interface get/set timing functions
-Date: Wed, 1 Aug 2012 16:01:22 +0530
-Message-ID: <1343817088-29645-12-git-send-email-archit@ti.com>
+Subject: [RFC 13/17] OMAPDSS: SDI: Create a function to set timings
+Date: Wed, 1 Aug 2012 16:01:24 +0530
+Message-ID: <1343817088-29645-14-git-send-email-archit@ti.com>
 References: <1343817088-29645-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43813 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753934Ab2HAKdq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 06:33:46 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50184 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850Ab2HAKdy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Aug 2012 06:33:54 -0400
 In-Reply-To: <1343817088-29645-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sumit.semwal@ti.com, rob@ti.com, Archit Taneja <archit@ti.com>
 
-The hdmi interface driver exposes functions to the hdmi panel driver to
-get and configure the interface timings maintained by the hdmi driver.
-
-These timings(stored in hdmi.ip_data.cfg) should be protected by the hdmi lock
-to ensure they are called sequentially, this is similar to how hdmi enable and
-disable functions need locking.
+Create function omapdss_sdi_set_timings(), this can be used by a SDI panel
+driver without disabling/enabling the SDI interface. This is similar to the
+set_timings op of the DPI interface driver. It calls sdi_set_mode() which only
+configures the DISPC timings and DSS/DISPC clock dividers.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/video/omap2/displays/panel-acx565akm.c |   13 +------------
+ drivers/video/omap2/dss/sdi.c                  |   19 +++++++++++++++++++
+ include/video/omapdss.h                        |    2 ++
+ 3 files changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 2de1f91..dfd582e 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -547,7 +547,11 @@ static void hdmi_power_off(struct omap_dss_device *dssdev)
- void omapdss_hdmi_display_get_timing(struct omap_dss_device *dssdev,
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index eaeed43..11bdc88 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -731,18 +731,7 @@ static int acx_panel_resume(struct omap_dss_device *dssdev)
+ static void acx_panel_set_timings(struct omap_dss_device *dssdev,
  		struct omap_video_timings *timings)
  {
-+	mutex_lock(&hdmi.lock);
-+
- 	*timings = hdmi.ip_data.cfg.timings;
-+
-+	mutex_unlock(&hdmi.lock);
+-	int r;
+-
+-	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+-		omapdss_sdi_display_disable(dssdev);
+-
+-	dssdev->panel.timings = *timings;
+-
+-	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+-		r = omapdss_sdi_display_enable(dssdev);
+-		if (r)
+-			dev_err(&dssdev->dev, "%s enable failed\n", __func__);
+-	}
++	omapdss_sdi_set_timings(dssdev, timings);
  }
  
- int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
-@@ -570,6 +574,8 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev,
- 	struct hdmi_cm cm;
- 	const struct hdmi_config *timing;
- 
-+	mutex_lock(&hdmi.lock);
-+
- 	cm = hdmi_get_code(timings);
- 	hdmi.ip_data.cfg.cm = cm;
- 
-@@ -588,6 +594,8 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev,
- 	} else {
- 		dss_mgr_set_timings(dssdev->manager, &timing->timings);
- 	}
-+
-+	mutex_unlock(&hdmi.lock);
+ static int acx_panel_check_timings(struct omap_dss_device *dssdev,
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index f2d3f45..d88243f 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -155,6 +155,25 @@ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev)
  }
+ EXPORT_SYMBOL(omapdss_sdi_display_disable);
  
- static void hdmi_dump_regs(struct seq_file *s)
++void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	int r;
++
++	dssdev->panel.timings = *timings;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		r = dispc_runtime_get();
++		if (r)
++			return;
++
++		sdi_set_mode(dssdev);
++
++		dispc_runtime_put();
++	}
++}
++EXPORT_SYMBOL(omapdss_sdi_set_timings);
++
+ static int __init sdi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("SDI init\n");
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index a2cd133..54ba639 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -760,6 +760,8 @@ int dpi_check_timings(struct omap_dss_device *dssdev,
+ 
+ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_sdi_display_disable(struct omap_dss_device *dssdev);
++void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings);
+ 
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev);
 -- 
 1.7.9.5
 
