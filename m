@@ -1,63 +1,87 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V2 01/10] ARM: PMU: Add runtime PM Support
-Date: Wed, 1 Aug 2012 17:34:19 -0500
-Message-ID: <5019AEEB.7010807@ti.com>
-References: <4FD7C597.7060501@ti.com> <20120702095539.GD22239@mudshark.cambridge.arm.com> <4FF1D15E.7040301@ti.com> <20120702220117.GD25234@mudshark.cambridge.arm.com> <4FF6340A.6020409@ti.com> <50109233.3090302@ti.com> <20120726150534.GD6382@mudshark.cambridge.arm.com> <50115F3F.7050705@ti.com> <20120731151446.GK3903@mudshark.cambridge.arm.com> <50186524.6060903@ti.com> <20120801204731.GA9080@mudshark.cambridge.arm.com>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: Re: [RFC 0/3] solving omapdrm/omapdss layering issues
+Date: Wed, 1 Aug 2012 17:41:46 -0500
+Message-ID: <CAF6AEGt197Vru5+UYbkAjhc0QspP2z+PGriCWgm2B_8LCMvoCw@mail.gmail.com>
+References: <1343437674-24246-1-git-send-email-rob.clark@linaro.org>
+	<1343742034.2633.56.camel@deskari>
+	<CAF6AEGuqi+E7i1cuZTCts1y46E3SDUzd8E3kuW52=jRC5EksaQ@mail.gmail.com>
+	<1343812870.2645.37.camel@deskari>
+	<CAF6AEGuoVaOwwXnS3MKcoeKrtA3=Oi108jqM3iObd3EqTmC9Bw@mail.gmail.com>
+	<50195D54.8020604@ti.com>
+	<CAF6AEGvjKCgPh=sTL922J48N9eqMGD_kNrYx_bU-zBF-bXv=Ww@mail.gmail.com>
+	<1343842704.2645.94.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59156 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756075Ab2HAWec (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 18:34:32 -0400
-In-Reply-To: <20120801204731.GA9080@mudshark.cambridge.arm.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:33243 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756341Ab2HAWlr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Aug 2012 18:41:47 -0400
+Received: by vbbff1 with SMTP id ff1so7513911vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Aug 2012 15:41:47 -0700 (PDT)
+In-Reply-To: <1343842704.2645.94.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Andy Gross <andy.gross@ti.com>
 
+On Wed, Aug 1, 2012 at 12:38 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Wed, 2012-08-01 at 11:53 -0500, Rob Clark wrote:
+>
+>> Ok.. this would help.  I'll take a look.  I do request that
+>> interfaces/panels don't set any mgr/timing related registers.  I had
+>> to comment all this stuff out in my prototype.  Really we want to set
+>> the timings separately on the crtc (mgr) / encoder (interface) /
+>> connector (panel.. not sure if it is needed, though?).  KMS will take
+>> care of propagating the timings through the pipeline.
+>
+> If we only had auto-update displays, and only the video timings were
+> shadow register, it'd work. Unfortunately we have other registers as
+> shadow registers also, like DISPC_CONTROL1, DISPC_CONFIG1 and
+> DISPC_DIVISOR1.
 
-On 08/01/2012 03:47 PM, Will Deacon wrote:
-> On Wed, Aug 01, 2012 at 12:07:16AM +0100, Jon Hunter wrote:
->> I have just updated my pmu branch for omap3/4. You can pull my latest
->> patches from [1].
-> 
-> Great, thanks for that. I've pushed out to perf/omap4 and I've also
-> included your runtime PM hooks in my perf/updates branch. I have a fair
-> amount of cleanup sitting in there as well, so I'll post that to the list
-> at -rc1 as a candidate for -next. I'll obviously leave the omap-specific
-> bits for others to handle, although I'll continue maintaining my branch
-> until that's hit mainline.
+well, I was kinda thinking we just do all the register access from the
+corresponding crtc (mgr)'s GO/apply sequencing..  so if, for example,
+you change resolution, then the plane, crtc, encoder, panel all queue
+up via omap_crtc_apply() on their associated crtc, and then at the
+right time from pre_apply() fxns call the appropriate omapdss/dispc
+function(s) for register updates.
 
-I just updated today with Paul's latest patch he sent. I don't think
-much changed from what I had in there yesterday.
+I think that would work well for everything but mgr enable/disable
+(which is infrequent, so ok to block for a few vblanks), and
+fifomerge, which I'm a bit on the fence about.
 
->> In the latest series I have:
->> 1. Pulled in an omap3 clock domain fix from Paul [2]
->> 2. Rebased Paul's patch [3] on top of [2]. I have also made a couple
->>    updates to this patch and I need to get Paul's feedback.
->> 3. I have removed the OMAP3 PMU dependency on ETM from the Kconfig.
-> 
-> Fantastic! I actually already removed the OMAP3 Kconfig dependency in my
-> perf/updates branch as part of removing CPU_HAS_PMU entirely, so you
-> probably don't need to pursue that patch.
+> But we should think if this could be somehow be changed, so that all the
+> shadow register info would come from one place. I do find it a bit
+> unlikely with a quick thought, though.
+>
+> Well, hmm. Perhaps... Omapdrm (or omapfb etc) doesn't really need to
+> know about the values of those registers, it just needs to control the
+> GO bit. So perhaps if we had some method to inform omapdrm that these
+> things have changed, and omapdrm would then set the GO bit as soon as
+> possible.
 
-Great! Glad I don't have to worry about that.
+Well, what I'm doing now is basically, if I update anything in any of
+the omap_*_info structs, I schedule an apply, and from pre_apply
+callback push the changes down to dispc.. I was thinking to follow the
+same for encoder and probably connector.  (Not sure if doing things
+like setting timings at hdmi need to be GO bit sync'd?  Maybe this
+could be bypassed for the connector, but if not it is easy enough just
+to use the same mechanism that the plane/crtc/encoder are already
+using.)
 
->> I will probably send out the series once I align with Paul on the above
->> changes and the HWMOD stuff I have added for OMAP3 with Benoit.
-> 
-> Okey doke. If you need me to update my copy of your runtime PM patch,
-> please shout (that seems to be a done deal afaict).
+> But there are some tricky stuff, like the divisors... Well, we need to
+> think about this.
 
-Yes it is good as far as I am concerned.
+I think, if I understand properly, the most tricky thing is the shared
+clocks.. although I'm not really sure if we can actually change things
+like the core clock when you plug in a 2nd display w/out loosing sync
+on the first?  That's seems like a tricky thing either way.  Anything
+else, that is only effecting a single crtc->encoder->connector chain
+can have register programming sync'd to that mgr's GO bit.
 
-I am going to be out for a couple weeks, but when I get back I will get
-the OMAP stuff out. I should probably doing some testing on -next too
-with your latest changes.
+BR,
+-R
 
-Cheers
-Jon
-
-
+>  Tomi
+>
