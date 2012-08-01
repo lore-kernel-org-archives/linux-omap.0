@@ -1,57 +1,69 @@
-From: Rob Clark <rob@ti.com>
-Subject: Re: [PATCH] staging: drm/omap: remove reclaim_buffers callback
-Date: Wed, 1 Aug 2012 06:48:13 -0500
-Message-ID: <CAF6AEGuwiUeV5QnsYW4H0=e2Ju+8MAxej3+j=6nu2=3RHiYBPA@mail.gmail.com>
-References: <1343813558-28347-1-git-send-email-cmahapatra@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: omap_device: query on "fck" clk alias created
+Date: Wed, 1 Aug 2012 17:50:16 +0530
+Message-ID: <50191F00.1040501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <1343813558-28347-1-git-send-email-cmahapatra@ti.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: greg@kroah.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52457 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751100Ab2HAMU2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Aug 2012 08:20:28 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Wed, Aug 1, 2012 at 4:32 AM, Chandrabhanu Mahapatra
-<cmahapatra@ti.com> wrote:
-> The reclaim_buffers callback has already been removed by Daniel Vetter
-> <daniel.vetter@ffwll.ch> with his patch "drm: kill reclaim_buffers callback"
-> for which the kernel compilation fails with omapdrm support. So, the callback
-> for reclaim_buffers is removed from omapdrm.
->
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Hi,
 
-Signed-off-by: Rob Clark <rob@ti.com>
+In OMAP world, we have omap_device layer, which exports api's like
+omap_device_build() to create and register platform_device to the
+kernel. This layer understands hwmod infrastructure and parses all the
+platform specific information from it.
+Now with DT migration, the same thing is achieved using a notifier,
+which in turn omap_device_build_from_dt(), which in turn does same thing.
 
-> ---
->  drivers/staging/omapdrm/omap_drv.c |    1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-> index 342645a..b8e79eb 100644
-> --- a/drivers/staging/omapdrm/omap_drv.c
-> +++ b/drivers/staging/omapdrm/omap_drv.c
-> @@ -778,7 +778,6 @@ static struct drm_driver omap_drm_driver = {
->                 .irq_postinstall = dev_irq_postinstall,
->                 .irq_uninstall = dev_irq_uninstall,
->                 .irq_handler = dev_irq_handler,
-> -               .reclaim_buffers = drm_core_reclaim_buffers,
->  #ifdef CONFIG_DEBUG_FS
->                 .debugfs_init = omap_debugfs_init,
->                 .debugfs_cleanup = omap_debugfs_cleanup,
-> --
-> 1.7.10
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One of the thing which is happening in both execution path is, creating
+alias for functional clock (hwmod_data->main_clk) for each device
+getting created with the con_id = "fck".
+
+Now the problem with this is,
+
+The clk_get() api will not work, unless we pass both the arguments (dev,
+con_id) properly. Now expecting driver to always label con_id with "fck"
+is undesirable, as the same driver can be reused on multiple platforms,
+which can be non-omap and/or non-ti platforms.
+Also we have multiple examples where driver simply calls (which is right)
+
+clk = clk_get(&pdev->dev, NULL);
+
+This would fail on OMAP platforms, unless you modify clockxxx_data.c
+file with,
+
+CLK("<device>",  NULL,           &xxx_fck,    CK_34XX),
+
+
+Devices specially with only one clock source always prefer not to
+specify con_id.
+And it seems wrong thing, as across platforms IP integration can be very
+different and you can not expect to change the clock-tree table always.
+
+So the option here we have is,
+
+1. Instead of creating alias with "fck", create an alias only with dev
+pointer, that means con_id = NULL.
+I have already tested this and it works on AM33xx platform.
+
+2. Add a new flag inside hwmod or omap_device, so that it can be read at
+omap_device layer and based on that we can decide whether to add con_id
+or not while invoking clkdev_alloc().
+This may be required to support legacy drivers which are not migrated to
+runtime_pm and still calls clk_get() for both "fck" and "ick", so here
+we need "fck" clk alias.
+
+
+Any comments or opinion on this? Based on the feedback I can create the
+changes and submit it to the list.
+
+Thanks,
+Vaibhav
