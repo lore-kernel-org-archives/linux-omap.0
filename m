@@ -1,138 +1,91 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC 12/17] OMAPDSS: SDI: Create a separate function for timing/clock configurations
-Date: Wed, 1 Aug 2012 16:01:23 +0530
-Message-ID: <1343817088-29645-13-git-send-email-archit@ti.com>
+Subject: [RFC 14/17] OMAPDSS: SDI: Maintain our own timings field in driver data
+Date: Wed, 1 Aug 2012 16:01:25 +0530
+Message-ID: <1343817088-29645-15-git-send-email-archit@ti.com>
 References: <1343817088-29645-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48014 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48020 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754850Ab2HAKdu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Aug 2012 06:33:50 -0400
+	id S1754361Ab2HAKd7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Aug 2012 06:33:59 -0400
 In-Reply-To: <1343817088-29645-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sumit.semwal@ti.com, rob@ti.com, Archit Taneja <archit@ti.com>
 
-Create a function sdi_set_mode() which configures the DISPC and DSS(PRCM)
-clocks to get the required pixel clock, and configure the manager timings.
-This is similar to what's done in the DPI driver in dpi_set_mode().
+The SDI driver currently relies on the timings in omap_dss_device struct to
+configure the DISPC accordingly. This makes the SDI interface driver dependent
+on the omap_dss_device struct.
 
-This makes the code a bit cleaner to read, and makes it easier to reconfigure
-timings instead of switching off the whole interface, and then enabling the
-interface with the new timings.
+Make the SDI driver data maintain it's own timings field. The panel driver is
+expected to call omapdss_sdi_set_timings() to set these timings before the panel
+is enabled.
+
+Make the SDI panel driver configure the new timings is the omap_dss_device
+struct(dssdev->panel.timings). The SDI driver is responsible for maintaining
+only it's own copy of timings.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/sdi.c |   65 +++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 28 deletions(-)
+ drivers/video/omap2/displays/panel-acx565akm.c |    4 ++++
+ drivers/video/omap2/dss/sdi.c                  |    5 +++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 5d31699..f2d3f45 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -49,40 +49,21 @@ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
- 	dss_mgr_set_lcd_config(dssdev->manager, &sdi.mgr_config);
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index 11bdc88..77fe59f 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -600,6 +600,8 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&md->mutex);
+ 
++	omapdss_sdi_set_timings(dssdev, &dssdev->panel.timings);
++
+ 	r = omapdss_sdi_display_enable(dssdev);
+ 	if (r) {
+ 		pr_err("%s sdi enable failed\n", __func__);
+@@ -732,6 +734,8 @@ static void acx_panel_set_timings(struct omap_dss_device *dssdev,
+ 		struct omap_video_timings *timings)
+ {
+ 	omapdss_sdi_set_timings(dssdev, timings);
++
++	dssdev->panel.timings = *timings;
  }
  
--int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
-+static int sdi_set_mode(struct omap_dss_device *dssdev)
+ static int acx_panel_check_timings(struct omap_dss_device *dssdev,
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index d88243f..917816d 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -34,6 +34,7 @@ static struct {
+ 	struct regulator *vdds_sdi_reg;
+ 
+ 	struct dss_lcd_mgr_config mgr_config;
++	struct omap_video_timings timings;
+ } sdi;
+ 
+ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
+@@ -52,7 +53,7 @@ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
+ static int sdi_set_mode(struct omap_dss_device *dssdev)
  {
-+	int r;
- 	struct omap_video_timings *t = &dssdev->panel.timings;
+ 	int r;
+-	struct omap_video_timings *t = &dssdev->panel.timings;
++	struct omap_video_timings *t = &sdi.timings;
  	struct dss_clock_info dss_cinfo;
  	struct dispc_clock_info dispc_cinfo;
  	unsigned long pck;
--	int r;
--
--	if (dssdev->manager == NULL) {
--		DSSERR("failed to enable display: no manager\n");
--		return -ENODEV;
--	}
--
--	r = omap_dss_start_device(dssdev);
--	if (r) {
--		DSSERR("failed to start device\n");
--		goto err_start_dev;
--	}
--
--	r = regulator_enable(sdi.vdds_sdi_reg);
--	if (r)
--		goto err_reg_enable;
--
--	r = dispc_runtime_get();
--	if (r)
--		goto err_get_dispc;
+@@ -160,7 +161,7 @@ void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
+ {
+ 	int r;
  
- 	/* 15.5.9.1.2 */
--	dssdev->panel.timings.data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
--	dssdev->panel.timings.sync_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
-+	t->data_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
-+	t->sync_pclk_edge = OMAPDSS_DRIVE_SIG_RISING_EDGE;
+-	dssdev->panel.timings = *timings;
++	sdi.timings = *timings;
  
- 	r = dss_calc_clock_div(t->pixel_clock * 1000, &dss_cinfo, &dispc_cinfo);
- 	if (r)
--		goto err_calc_clock_div;
-+		return r;
- 
- 	sdi.mgr_config.clock_info = dispc_cinfo;
- 
-@@ -96,12 +77,41 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 		t->pixel_clock = pck;
- 	}
- 
--
- 	dss_mgr_set_timings(dssdev->manager, t);
- 
- 	r = dss_set_clock_div(&dss_cinfo);
- 	if (r)
--		goto err_set_dss_clock_div;
-+		return r;
-+
-+	return 0;
-+}
-+
-+int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	if (dssdev->manager == NULL) {
-+		DSSERR("failed to enable display: no manager\n");
-+		return -ENODEV;
-+	}
-+
-+	r = omap_dss_start_device(dssdev);
-+	if (r) {
-+		DSSERR("failed to start device\n");
-+		goto err_start_dev;
-+	}
-+
-+	r = regulator_enable(sdi.vdds_sdi_reg);
-+	if (r)
-+		goto err_reg_enable;
-+
-+	r = dispc_runtime_get();
-+	if (r)
-+		goto err_get_dispc;
-+
-+	r = sdi_set_mode(dssdev);
-+	if (r)
-+		goto err_set_mode;
- 
- 	sdi_config_lcd_manager(dssdev);
- 
-@@ -120,8 +130,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- err_mgr_enable:
- 	dss_sdi_disable();
- err_sdi_enable:
--err_set_dss_clock_div:
--err_calc_clock_div:
-+err_set_mode:
- 	dispc_runtime_put();
- err_get_dispc:
- 	regulator_disable(sdi.vdds_sdi_reg);
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+ 		r = dispc_runtime_get();
 -- 
 1.7.9.5
 
