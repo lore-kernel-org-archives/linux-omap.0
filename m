@@ -1,54 +1,138 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v1 1/1] ARM: OMAP3: Use OMAP3_HAS_IVA_REGS with OMAP3503
-Date: Thu, 02 Aug 2012 10:43:37 +0300
-Message-ID: <501A2FA9.1060807@compulab.co.il>
-References: <1343692239-10393-1-git-send-email-juha.kuikka@gmail.com> <1343692239-10393-2-git-send-email-juha.kuikka@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: omap_device: expose hwmod assert/deassert
+ to omap devices
+Date: Thu, 2 Aug 2012 01:43:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1208020141140.4177@utopia.booyaka.com>
+References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org> <1342466485-1050-4-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:35224 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753477Ab2HBHns (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Aug 2012 03:43:48 -0400
-In-Reply-To: <1343692239-10393-2-git-send-email-juha.kuikka@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1342466485-1050-4-git-send-email-omar.luna@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Juha Kuikka <juha.kuikka@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-On 07/31/12 02:50, Juha Kuikka wrote:
-> Similarly to am3703, it seems that omap3503 has an IVA control
-> registers even though the subsystem is non-functional.
-> 
-> This patch sets the OMAP3_HAS_IVA_REGS feature to force
-> initialization of there registers.
-> 
-> Based in Mark A. Greer's patch
-> "ARM: OMAP3: Add OMAP3_HAS_IVA_REGS feature".
-> 
-> Signed-off-by: Juha Kuikka <juha.kuikka@gmail.com>
-> ---
->  arch/arm/mach-omap2/id.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 4072fbd..45d3eb4 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -244,7 +244,7 @@ void __init omap3xxx_check_features(void)
->  	if (cpu_is_omap3630())
->  		omap_features |= OMAP3_HAS_192MHZ_CLK | OMAP3_HAS_IVA_REGS;
+Hi Omar
 
-If you add the flag below, then you probably want to remove it from here, right?
+On Mon, 16 Jul 2012, Omar Ramirez Luna wrote:
 
->  	if (cpu_is_omap3430() || cpu_is_omap3630())
-> -		omap_features |= OMAP3_HAS_IO_WAKEUP;
-> +		omap_features |= OMAP3_HAS_IO_WAKEUP | OMAP3_HAS_IVA_REGS;
->  	if (cpu_is_omap3630() || omap_rev() == OMAP3430_REV_ES3_1 ||
->  	    omap_rev() == OMAP3430_REV_ES3_1_2)
->  		omap_features |= OMAP3_HAS_IO_CHAIN_CTRL;
+> This APIs are meant to be an interface to hwmod assert/deassert
+> function, omap devices can call them through their platform data
+> to control their reset lines, they are expected to know the name
+> of the reset line they are trying to control.
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
 
+This one has been queued for 3.7 with a few changes. Some more detail was 
+added to the function documentationrovement.  Also the multiple 
+assignments were removed per Documentation/CodingStyle chapter 1:
+
+"Don't put multiple assignments on a single line either."
+
+Please let me know if you have any comments.
+
+
+- Paul
+
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Date: Mon, 16 Jul 2012 14:21:25 -0500
+Subject: [PATCH] ARM: OMAP2+: omap_device: expose hwmod assert/deassert to
+ omap devices
+
+This API is meant to be an interface to hwmod assert/deassert
+function, omap devices can call them through their platform data to
+control their reset lines, they are expected to know the name of the
+reset line they are trying to control.
+
+Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+[paul@pwsan.com: tweaked some documentation; fixed CodingStyle issue]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/plat-omap/include/plat/omap_device.h |    4 ++
+ arch/arm/plat-omap/omap_device.c              |   55 +++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
+
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 4327b2c..27bcc24 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -118,6 +118,10 @@ int omap_device_get_context_loss_count(struct platform_device *pdev);
+ 
+ /* Other */
+ 
++int omap_device_assert_hardreset(struct platform_device *pdev,
++				 const char *name);
++int omap_device_deassert_hardreset(struct platform_device *pdev,
++				 const char *name);
+ int omap_device_idle_hwmods(struct omap_device *od);
+ int omap_device_enable_hwmods(struct omap_device *od);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index c490240..3b02312 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -925,6 +925,61 @@ int omap_device_shutdown(struct platform_device *pdev)
+ }
+ 
+ /**
++ * omap_device_assert_hardreset - set a device's hardreset line
++ * @pdev: struct platform_device * to reset
++ * @name: const char * name of the reset line
++ *
++ * Set the hardreset line identified by @name on the IP blocks
++ * associated with the hwmods backing the platform_device @pdev.  All
++ * of the hwmods associated with @pdev must have the same hardreset
++ * line linked to them for this to work.  Passes along the return value
++ * of omap_hwmod_assert_hardreset() in the event of any failure, or
++ * returns 0 upon success.
++ */
++int omap_device_assert_hardreset(struct platform_device *pdev, const char *name)
++{
++	struct omap_device *od = to_omap_device(pdev);
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		ret = omap_hwmod_assert_hardreset(od->hwmods[i], name);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++/**
++ * omap_device_deassert_hardreset - release a device's hardreset line
++ * @pdev: struct platform_device * to reset
++ * @name: const char * name of the reset line
++ *
++ * Release the hardreset line identified by @name on the IP blocks
++ * associated with the hwmods backing the platform_device @pdev.  All
++ * of the hwmods associated with @pdev must have the same hardreset
++ * line linked to them for this to work.  Passes along the return
++ * value of omap_hwmod_deassert_hardreset() in the event of any
++ * failure, or returns 0 upon success.
++ */
++int omap_device_deassert_hardreset(struct platform_device *pdev,
++				   const char *name)
++{
++	struct omap_device *od = to_omap_device(pdev);
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		ret = omap_hwmod_deassert_hardreset(od->hwmods[i], name);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
++/**
+  * omap_device_align_pm_lat - activate/deactivate device to match wakeup lat lim
+  * @od: struct omap_device *
+  *
 -- 
-Regards,
-Igor.
+1.7.10.4
