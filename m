@@ -1,159 +1,95 @@
 From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 02/11] usb: musb: kill global and static for multi instance
-Date: Thu, 2 Aug 2012 17:42:45 +0530
-Message-ID: <1343909574-15633-3-git-send-email-ravibabu@ti.com>
-References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v7 00/11] usb: musb: adding multi instance support
+Date: Thu, 2 Aug 2012 17:42:43 +0530
+Message-ID: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1343909574-15633-1-git-send-email-ravibabu-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+This series of patches adds,
+a) Multi instances support in musb driver
+b) DT support for musb_dsps glue layer
+c) DT support for NOP transceiver
 
-Moved global variable "musb_debugfs_root" and static variable
-"old_state" to 'struct musb' to help support multi instance of
-musb controller as present on AM335x platform.
+AM33xx and TI81xx has dual musb controller and has two usb PHY of same type.
+This patch series uses 'phandle' based API devm_usb_get_phy_by_phandle() to
+get the PHY of same type. This API support is being added by Kishon's patch
+discussed at [1]
 
-Also removed the global variable "orig_dma_mask" and filled the
-dev->dma_mask with parent device's dma_mask.
+The series applies to linux-omap (master branch)
+	+ Vaibhav baseport patches on his tree at [3]
+	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
+	+ Kishon's patch on phandle at [1]
+	+ AM33xx musb glue compile and bugfix patches at [4], [5], [6] and [7]
+	+ Damodar's recent patch at [2] 
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/musb_core.c    |   22 +++++++---------------
- drivers/usb/musb/musb_core.h    |    4 ++++
- drivers/usb/musb/musb_debugfs.c |    8 +++-----
- 3 files changed, 14 insertions(+), 20 deletions(-)
+and have been tested on Beaglebone board.
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index a565fc2..e781800 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -100,6 +100,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/idr.h>
-+#include <linux/dma-mapping.h>
- 
- #include "musb_core.h"
- 
-@@ -1804,10 +1805,9 @@ static const struct attribute_group musb_attr_group = {
- static void musb_irq_work(struct work_struct *data)
- {
- 	struct musb *musb = container_of(data, struct musb, irq_work);
--	static int old_state;
- 
--	if (musb->xceiv->state != old_state) {
--		old_state = musb->xceiv->state;
-+	if (musb->xceiv->state != musb->xceiv_old_state) {
-+		musb->xceiv_old_state = musb->xceiv->state;
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
- }
-@@ -2115,11 +2115,6 @@ fail0:
- /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
-  * bridge to a platform device; this driver then suffices.
-  */
--
--#ifndef CONFIG_MUSB_PIO_ONLY
--static u64	*orig_dma_mask;
--#endif
--
- static int __devinit musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
-@@ -2138,10 +2133,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
- 
--#ifndef CONFIG_MUSB_PIO_ONLY
--	/* clobbered by use_dma=n */
--	orig_dma_mask = dev->dma_mask;
--#endif
- 	status = musb_init_controller(dev, irq, base);
- 	if (status < 0)
- 		iounmap(base);
-@@ -2151,7 +2142,8 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 
- static int __devexit musb_remove(struct platform_device *pdev)
- {
--	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct device	*dev = &pdev->dev;
-+	struct musb	*musb = dev_to_musb(dev);
- 	void __iomem	*ctrl_base = musb->ctrl_base;
- 
- 	/* this gets called on rmmod.
-@@ -2164,9 +2156,9 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 
- 	musb_free(musb);
- 	iounmap(ctrl_base);
--	device_init_wakeup(&pdev->dev, 0);
-+	device_init_wakeup(dev, 0);
- #ifndef CONFIG_MUSB_PIO_ONLY
--	pdev->dev.dma_mask = orig_dma_mask;
-+	dma_set_mask(dev, *dev->parent->dma_mask);
- #endif
- 	return 0;
- }
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 84436f7..5ec32b9 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -450,6 +450,10 @@ struct musb {
- #ifdef MUSB_CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_entry;
- #endif
-+	int			xceiv_old_state;
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry		*debugfs_root;
-+#endif
- };
- 
- static inline struct musb *gadget_to_musb(struct usb_gadget *g)
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 40a37c9..1d6e8af 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
- 	{  }	/* Terminating Entry */
- };
- 
--static struct dentry *musb_debugfs_root;
--
- static int musb_regdump_show(struct seq_file *s, void *unused)
- {
- 	struct musb		*musb = s->private;
-@@ -241,7 +239,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 	struct dentry		*file;
- 	int			ret;
- 
--	root = debugfs_create_dir("musb", NULL);
-+	root = debugfs_create_dir(dev_name(musb->controller), NULL);
- 	if (!root) {
- 		ret = -ENOMEM;
- 		goto err0;
-@@ -261,7 +259,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 		goto err1;
- 	}
- 
--	musb_debugfs_root = root;
-+	musb->debugfs_root = root;
- 
- 	return 0;
- 
-@@ -274,5 +272,5 @@ err0:
- 
- void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
- {
--	debugfs_remove_recursive(musb_debugfs_root);
-+	debugfs_remove_recursive(musb->debugfs_root);
- }
--- 
-1.7.0.4
+1. http://marc.info/?l=linux-usb&m=134070369306112&w=2
+2. http://marc.info/?l=linux-usb&m=134200284230689&w=2
+3. https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging
+4. http://marc.info/?l=linux-usb&m=134131746111637&w=2
+5. http://marc.info/?l=linux-usb&m=134131746411639&w=2
+6. http://marc.info/?l=linux-usb&m=134062716011251&w=2
+7. http://marc.info/?l=linux-usb&m=134061179405213&w=2
+
+Changes from v6:
+	- Removed parent_pdev to get glue and used dev_get_getdrv() as per
+	  Felipe's comment
+	- use pr_debug() instead of pr_info() as per Felipe's comment
+Changes from v5:
+	- Removed musb->id as per Felipe's comment
+	- used nop_ida as per Felipe's comment
+Changes from v4:
+	- Fixed Felipe's comment for adding EXPORT_SYMBOL_GPL()
+	- Fixed Felipe's comment on using dev_set_mask()
+Changes from v3:
+	- Fixed Kishon's comment on removing "id" from phy struct and
+	  removing unneeded "#else" part.
+Changes from v2:
+	- Fixed Sergei's comment on not using address prefix in musb_dsps
+	  glue and nop transceiver dt dats.
+	- Also removed the "ti" string in compatible property for nop data.
+Changes from v1:
+	- Defined musb_ida to manage core ids based on Felipe's comment
+	  in [PATCH 01/11]
+
+Ajay Kumar Gupta (10):
+  usb: musb: add musb_ida for multi instance support
+  usb: musb: kill global and static for multi instance
+  usb: musb: am335x: add support for dual instance
+  usb: otg: nop: add support for multiple tranceiver
+  usb: musb: dsps: add dt support
+  arm/dts: am33xx: Add dt data for usbss
+  usb: otg: nop: add dt support
+  arm/dts: am33xx: add dt data for usb nop phy
+  usb: musb: dsps: remove explicit NOP device creation
+  arm/dts: am33xx: add phy phandle to usbss
+
+Ravi Babu (1):
+  usb: musb: dsps: get the PHY using phandle api
+
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   19 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   21 ++
+ drivers/usb/musb/am35x.c                           |   44 +++--
+ drivers/usb/musb/blackfin.c                        |   28 ++-
+ drivers/usb/musb/da8xx.c                           |   36 +++-
+ drivers/usb/musb/davinci.c                         |   38 +++--
+ drivers/usb/musb/musb_core.c                       |   53 ++++--
+ drivers/usb/musb/musb_core.h                       |    6 +
+ drivers/usb/musb/musb_debugfs.c                    |    8 +-
+ drivers/usb/musb/musb_dsps.c                       |  210 +++++++++++++-------
+ drivers/usb/musb/omap2430.c                        |   26 ++-
+ drivers/usb/musb/tusb6010.c                        |   30 ++-
+ drivers/usb/musb/ux500.c                           |   33 +++-
+ drivers/usb/otg/nop-usb-xceiv.c                    |   64 ++++++-
+ include/linux/usb/otg.h                            |    4 +-
+ 15 files changed, 455 insertions(+), 165 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
