@@ -1,7 +1,7 @@
 From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 08/11] arm/dts: am33xx: add dt data for usb nop phy
-Date: Thu, 2 Aug 2012 17:42:51 +0530
-Message-ID: <1343909574-15633-9-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v7 09/11] usb: musb: dsps: remove explicit NOP device creation
+Date: Thu, 2 Aug 2012 17:42:52 +0530
+Message-ID: <1343909574-15633-10-git-send-email-ravibabu@ti.com>
 References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,34 +14,29 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-AM33xx has two musb controller and they have one NOP PHY each.
-Added the device tree data for NOP PHY.
+As NOP device node is now added in am33xx tree so remove the call
+which creates the NOP platform_device.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ drivers/usb/musb/musb_dsps.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index 08e9a40..b03a9b5 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -155,6 +155,14 @@
- 			ti,hwmods = "i2c3";
- 		};
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 13c9341..891c2be 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -425,8 +425,7 @@ static int dsps_musb_init(struct musb *musb)
+ 	/* mentor core register starts at offset of 0x400 from musb base */
+ 	musb->mregs += wrp->musb_core_offset;
  
-+		usb0_phy: phy0 {
-+			compatible = "nop-xceiv-usb";
-+		};
-+
-+		usb1_phy: phy1 {
-+			compatible = "nop-xceiv-usb";
-+		};
-+
- 		usb_otg_hs: usb_otg_hs {
- 			compatible = "ti,musb-am33xx";
- 			ti,hwmods = "usb_otg_hs";
+-	/* Register NOP driver */
+-	usb_nop_xceiv_register();
++	/* Get the NOP PHY */
+ 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
 -- 
 1.7.0.4
 
