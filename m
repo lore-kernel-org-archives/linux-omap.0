@@ -1,86 +1,54 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH RFC] ARM: omap2/am33xx: add hwmod for davinci_mdio
-Date: Thu,  2 Aug 2012 21:51:37 +0200
-Message-ID: <1343937097-30484-1-git-send-email-zonque@gmail.com>
+Subject: Re: Current state of AM33xx patches
+Date: Thu, 02 Aug 2012 21:56:57 +0200
+Message-ID: <501ADB89.4030405@gmail.com>
+References: <4FD5BA4C.9070706@gmail.com> <4FE9A00B.6010908@ti.com> <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com> <4FEC7394.9030208@gmail.com> <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com> <4FEDF54D.4030609@gmail.com> <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com> <4FEEC7F2.8070507@gmail.com> <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com> <4FF42761.2000701@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com> <500CEF97.4050207@gmail.com> <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com> <501159C3.3020109@gmail.com> <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net> <50116926.4060309@gmail.com> <587C7FB9-2DD3-48EE-B74D-BEBDF199BE23@dominion.thruh
+ ere.net> <50118272.1050209@gmail.com> <9F9237B3-55BD-471B-ADD1-1A18F3644387@dominion.thruhere.net> <501A9D1C.8080305@gmail.com> <98DC2F80-9AD6-4A65-8FA8-3B2AABF72692@dominion.thruhere.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:57756 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799Ab2HBTvn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Aug 2012 15:51:43 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:37141 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502Ab2HBT5E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 15:57:04 -0400
+Received: by bkwj10 with SMTP id j10so4415966bkw.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 Aug 2012 12:57:03 -0700 (PDT)
+In-Reply-To: <98DC2F80-9AD6-4A65-8FA8-3B2AABF72692@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: mugunthanvnm@ti.com, hvaibhav@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, koen@dominion.thruhere.net, Daniel Mack <zonque@gmail.com>
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "N, Mugunthan V" <mugunthanvnm@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-Add a hwmod entry for the davinci_mdio hardware block. This aliases the
-cpsw_125mhz_clkdm and re-uses am33xx_cpgmac0_hwmod_class.
+On 02.08.2012 17:37, Koen Kooi wrote:
+>  But I still can't get it working:
+> 
+> root@beaglebone:~# dmesg | grep -i cpsw [   13.504425] net eth0:
+> initializing cpsw version 1.12 (0)
+> 
+> root@beaglebone:~# dmesg | grep -i phy [    0.000000] Booting Linux
+> on physical CPU 0 [    0.228496] nop_usb_xceiv phy.17: transceiver
+> type USB2 PHY already exists [   13.512056] libphy: PHY
+> davinci_mdio-0:00 not found [   13.517168] net eth0: phy
+> davinci_mdio-0:00 not found on slave 0 [   13.523516] libphy: PHY
+> davinci_mdio-0:01 not found [   13.528675] net eth0: phy
+> davinci_mdio-0:01 not found on slave 1
+> 
+> root@beaglebone:~# ifconfig -a | grep eth eth0      Link
+> encap:Ethernet  HWaddr 00:04:9F:01:1B:B8
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
+Ok, I got it up and and running now on my board using the two
+davinci_mdio drivers and the hwmod addition I just posted.
 
-I'm still not totally confident with the hwmod environment, so I'm not
-entirely sure whether sharing the hwmod_class is the right thing to do
-here. However, I can at least get ethernet to work on my board now.
+With those applied on top of Mugunthan work, I can link my cpsw slave
+with the phy id "davinci_mdio.18-:04", but the 18 is just the global
+device counter which will change again once I add more devices. That
+still needs some cleanup.
 
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 31 ++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+Anyway, at least I can boot into my NFS root now :) Koen, can you try
+this on your board and see if that works for you as well?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 5a4660b..637b6cc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -684,6 +684,19 @@ static struct omap_hwmod am33xx_cpgmac0_hwmod = {
- 	},
- };
- 
-+static struct omap_hwmod am33xx_cpsw_mdio_hwmod = {
-+	.name		= "davinci_mdio",
-+	.class		= &am33xx_cpgmac0_hwmod_class,
-+	.clkdm_name	= "cpsw_125mhz_clkdm",
-+	.main_clk	= "cpsw_125mhz_gclk",
-+	.prcm		= {
-+		.omap4	= {
-+			.clkctrl_offs	= AM33XX_CM_PER_CPGMAC0_CLKCTRL_OFFSET,
-+			.modulemode	= MODULEMODE_SWCTRL,
-+		},
-+	},
-+};
-+
- /*
-  * dcan class
-  */
-@@ -2501,6 +2514,23 @@ static struct omap_hwmod_ocp_if am33xx_l4_hs__cpgmac0 = {
- 	.user		= OCP_USER_MPU,
- };
- 
-+static struct omap_hwmod_addr_space am33xx_cpsw_mdio_addr_space[] = {
-+	{
-+		.pa_start	= 0x4a101000,
-+		.pa_end		= 0x4a101000 + SZ_256 - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{ }
-+};
-+
-+static struct omap_hwmod_ocp_if am33xx_l4_hs__cpsw_mdio = {
-+	.master		= &am33xx_l4_hs_hwmod,
-+	.slave		= &am33xx_cpsw_mdio_hwmod,
-+	.clk		= "cpsw_125mhz_gclk",
-+	.addr		= am33xx_cpsw_mdio_addr_space,
-+	.user		= OCP_USER_MPU,
-+};
-+
- static struct omap_hwmod_addr_space am33xx_elm_addr_space[] = {
- 	{
- 		.pa_start	= 0x48080000,
-@@ -3371,6 +3401,7 @@ static struct omap_hwmod_ocp_if *am33xx_hwmod_ocp_ifs[] __initdata = {
- 	&am33xx_l3_main__tptc2,
- 	&am33xx_l3_s__usbss,
- 	&am33xx_l4_hs__cpgmac0,
-+	&am33xx_l4_hs__cpsw_mdio,
- 	NULL,
- };
- 
--- 
-1.7.11.2
+
+Thanks,
+Daniel
 
