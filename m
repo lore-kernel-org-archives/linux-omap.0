@@ -1,7 +1,7 @@
 From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v7 09/11] usb: musb: dsps: remove explicit NOP device creation
-Date: Thu, 2 Aug 2012 17:42:52 +0530
-Message-ID: <1343909574-15633-10-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v7 06/11] arm/dts: am33xx: Add dt data for usbss
+Date: Thu, 2 Aug 2012 17:42:49 +0530
+Message-ID: <1343909574-15633-7-git-send-email-ravibabu@ti.com>
 References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,29 +14,36 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-As NOP device node is now added in am33xx tree so remove the call
-which creates the NOP platform_device.
+Added device tree data for usbss on am33xx. There are two musb controllers
+on am33xx platform so have port0_mode and port1_mode additional data.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 13c9341..891c2be 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -425,8 +425,7 @@ static int dsps_musb_init(struct musb *musb)
- 	/* mentor core register starts at offset of 0x400 from musb base */
- 	musb->mregs += wrp->musb_core_offset;
- 
--	/* Register NOP driver */
--	usb_nop_xceiv_register();
-+	/* Get the NOP PHY */
- 	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
- 	if (IS_ERR_OR_NULL(musb->xceiv))
- 		return -ENODEV;
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 59509c4..08e9a40 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -154,5 +154,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+ 		};
++
++		usb_otg_hs: usb_otg_hs {
++			compatible = "ti,musb-am33xx";
++			ti,hwmods = "usb_otg_hs";
++			multipoint = <1>;
++			num_eps = <16>;
++			ram_bits = <12>;
++			port0_mode = <3>;
++			port1_mode = <1>;
++			power = <250>;
++		};
+ 	};
+ };
 -- 
 1.7.0.4
 
