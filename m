@@ -1,50 +1,67 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: omap_device: query on "fck" clk alias created
-Date: Thu, 2 Aug 2012 14:09:09 +0100
-Message-ID: <20120802130909.GN7405@n2100.arm.linux.org.uk>
-References: <50191F00.1040501@ti.com> <50193263.8070907@ti.com> <79CD15C6BA57404B839C016229A409A83EA7DF32@DBDE01.ent.ti.com>
+Date: Thu, 2 Aug 2012 14:12:50 +0100
+Message-ID: <20120802131250.GO7405@n2100.arm.linux.org.uk>
+References: <50191F00.1040501@ti.com> <20120801141414.GM7405@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A83EA7DF5C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53411 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53419 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab2HBNJW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 09:09:22 -0400
+	with ESMTP id S1752720Ab2HBNM7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 09:12:59 -0400
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7DF32@DBDE01.ent.ti.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7DF5C@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, Aug 02, 2012 at 12:55:42PM +0000, Hiremath, Vaibhav wrote:
-> On Wed, Aug 01, 2012 at 19:12:59, Cousson, Benoit wrote:
-> > Mmm, I don't know, but even if this is right, shouldn't we avoid such
-> > usage. It might be better to be explicit than assuming that the IP will
-> > always have an unique clock.
+On Thu, Aug 02, 2012 at 01:04:37PM +0000, Hiremath, Vaibhav wrote:
+> On Wed, Aug 01, 2012 at 19:44:14, Russell King - ARM Linux wrote:
+> > On Wed, Aug 01, 2012 at 05:50:16PM +0530, Vaibhav Hiremath wrote:
+> > > The clk_get() api will not work, unless we pass both the arguments (dev,
+> > > con_id) properly. Now expecting driver to always label con_id with "fck"
+> > > is undesirable, as the same driver can be reused on multiple platforms,
+> > > which can be non-omap and/or non-ti platforms.
+> > 
+> > Why not?
+> > 
+> > The connection ID is defined by the driver, and the platform stuff is
+> > expected to provide drivers with what they require.  It's not the other
+> > way around (platforms don't tell drivers what they require.)
+> > 
+> > In other words, if the device has two clocks, one called ick and one called
+> > fck, then the device _should_ use clk_get() specifying "ick" for one, and
+> > "fck" for the other.
+> > 
+> > And platforms better provide an "ick" and a "fck" for the device, even if
+> > they have no respresentation for one or other of them (in which case you
+> > supply a dummy clock.)
+> > 
 > 
-> Isn't this IP specific and driver must know how many clocks he has to 
-> address? So I believe it will not be assumption, the driver is written
-> considering clocksources and in some cases IP is designed and meant to
-> receive only one clock input.
+> Russell, I completely agree with you, infact I am on the same page.
+> Let me give you a real example, which I am dealing with now,
+> 
+> On AM335x device we have integrated DCAN, this IP is not from TI.
+> IP is from Bosch and doesn't follow any of the TI IP standards, like 
+> HighLander spec. The IP is just integrated with interconnect bus and given a 
+> required clocksource (in this case its one clock). 
+> 
+> The driver for this IP is generic, (drivers/net/can/c_can/c_can_platform.c) 
+> obviously used across non-ti devices already and driver is implemented with,
+>     clk_get(dev, NULL);
 
-Devices themselves define what clocks they need to operate.  Drivers
-designed to be used with the clk API are supposed to obtain all clocks
-that the device requires.  The device dictates what clocks are required.
+So, elsewhere it only has one clock.  Are there any other clocks it needs
+on OMAP?
 
-This does not change the way drivers deal with clocks depending on how
-they're integrated into a SoC: devices that need five clocks should
-_always_ call clk_get() five times to get each of those five clocks.
+If the answer is no, then the driver is doing the right thing, and OMAP's
+clk stuff needs to be adjusted to suit the drivers requirements.
 
-Where a clock is not individually distinguishable or available in a SoC,
-the SoC level must arrange to return a dummy clock to the device driver.
+I've said many times over the years that clock connection IDs are defined
+by the device or driver and *nothing* else - they're certainly *not* source
+names.
 
-If a device only takes one single clock, then using a connection ID of
-NULL is acceptable.  Otherwise, an explicit name must be used, which is
-chosen either from the device IPs documentation (eg, the name of the
-_clock_ _input_) or with a lack of that information, a name chosen by
-the driver writer according to the function of the clock.
-
-You must stop thinking about the picture you get when something gets
-integrated into a SoC... and making driver code conditional on the view
-presented by the SoC.
+That's why, when I modified OMAP drivers to fix them, and they take an
+interface and function clock, they end up asking for "ick" and "fck" not
+"blah_ick" and "blah_fck".
