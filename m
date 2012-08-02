@@ -1,145 +1,231 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [RFC 0/3] solving omapdrm/omapdss layering issues
-Date: Thu, 2 Aug 2012 07:45:21 -0500
-Message-ID: <CAF6AEGuCTu_KtH-G+gQDA=2pmKtbsoe5k8m78=bJT6cRDVFm0A@mail.gmail.com>
-References: <1343437674-24246-1-git-send-email-rob.clark@linaro.org>
-	<1343742034.2633.56.camel@deskari>
-	<CAF6AEGuqi+E7i1cuZTCts1y46E3SDUzd8E3kuW52=jRC5EksaQ@mail.gmail.com>
-	<1343812870.2645.37.camel@deskari>
-	<CAF6AEGuoVaOwwXnS3MKcoeKrtA3=Oi108jqM3iObd3EqTmC9Bw@mail.gmail.com>
-	<1343891600.5767.12.camel@lappyti>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: omap_device: query on "fck" clk alias created
+Date: Thu, 2 Aug 2012 12:55:42 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA7DF32@DBDE01.ent.ti.com>
+References: <50191F00.1040501@ti.com> <50193263.8070907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:33543 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753720Ab2HBMpW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 08:45:22 -0400
-Received: by vbbff1 with SMTP id ff1so8043363vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Aug 2012 05:45:21 -0700 (PDT)
-In-Reply-To: <1343891600.5767.12.camel@lappyti>
+Received: from devils.ext.ti.com ([198.47.26.153]:47304 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904Ab2HBMzv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 08:55:51 -0400
+In-Reply-To: <50193263.8070907@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Andy Gross <andy.gross@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, Aug 2, 2012 at 2:13 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Wed, 2012-08-01 at 09:25 -0500, Rob Clark wrote:
->> On Wed, Aug 1, 2012 at 4:21 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+On Wed, Aug 01, 2012 at 19:12:59, Cousson, Benoit wrote:
+> Hi Vaibhav,
+> 
+> On 08/01/2012 02:20 PM, Vaibhav Hiremath wrote:
+> > Hi,
+> > 
+> > In OMAP world, we have omap_device layer, which exports api's like
+> > omap_device_build() to create and register platform_device to the
+> > kernel. This layer understands hwmod infrastructure and parses all the
+> > platform specific information from it.
+> > Now with DT migration, the same thing is achieved using a notifier,
+> > which in turn omap_device_build_from_dt(), which in turn does same thing.
+> > 
+> > One of the thing which is happening in both execution path is, creating
+> > alias for functional clock (hwmod_data->main_clk) for each device
+> > getting created with the con_id = "fck".
+> > 
+> > Now the problem with this is,
+> > 
+> > The clk_get() api will not work, unless we pass both the arguments (dev,
+> > con_id) properly. Now expecting driver to always label con_id with "fck"
+> > is undesirable, as the same driver can be reused on multiple platforms,
+> > which can be non-omap and/or non-ti platforms.
+> > Also we have multiple examples where driver simply calls (which is right)
+> > 
+> > clk = clk_get(&pdev->dev, NULL);
+> 
+> Mmm, I don't know, but even if this is right, shouldn't we avoid such
+> usage. It might be better to be explicit than assuming that the IP will
+> always have an unique clock.
+
+Isn't this IP specific and driver must know how many clocks he has to 
+address? So I believe it will not be assumption, the driver is written
+considering clocksources and in some cases IP is designed and meant to
+receive only one clock input.
+
+Let me bring a real example which I am dealing with now,
+
+DCAN IP integrated in AM335X device, this IP is not from TI. This is Bosch
+IP and doesn't follow any of the TI standards, like HighLander spec. Even it doesn't have SYSCONF register for that matter. The driver is generic, 
+obviously used across non-ti devices already and driver is implemented with
+Clk_get(dev, NULL);
+
+
+> Some IP does have several inputs that might or not be connected
+> depending or the integration or on the version. So even if only one
+> clock is useful at some point it will not always be true.
+> We had similar issue with the IRQ lines in the past.
+> 
+> > This would fail on OMAP platforms, unless you modify clockxxx_data.c
+> > file with,
+> > 
+> > CLK("<device>",  NULL,           &xxx_fck,    CK_34XX),
+> > 
+> > 
+> > Devices specially with only one clock source always prefer not to
+> > specify con_id.
+> 
+> How many devices do you have with only one clock source? Could you
+> provide the list of drivers that assume that?
 >
->> > I guess the fact is that DRM concepts do not really match the OMAP DSS
->> > hardware, and we'll have to use whatever gives us least problems.
->>
->> Actually, I think it does map fairly well to the hardware.. at least
->> more so than to omapdss ;-)
->
-> Hm, I'm not sure I understand, omapdss concepts map directly to the
-> hardware.
 
-I think it is mainly exposing the encoder and panel as two separate
-entities.. which seems to be what Archit is working on
+I did simple grep on drivers/ directory and here is the output of it -
 
-in case of something like DVI bridge from DPI, this seems pretty
-straightforward.. only the connector needs to know about DDC stuff,
-which i2c to use and that sort of thing.  So at kms level we would
-have (for example) an omap_dpi_encoder which would be the same for DPI
-panel (connector) or DPI->DVI bridge.  For HDMI I'm still looking
-through the code to see how this would work.  Honestly I've looked
-less at this part of code and encoder related registers in the TRM,
-compared to the ovl/mgr parts, but at least from the 'DSS overview'
-picture in the TRM it seems to make sense ;-)
 
-KMS even exposes the idea that certain crtcs can connect to only
-certain encoders.  Or that you could you could have certain connectors
-switched between encoders.  For example if you had a hw w/ DPI out,
-and some mux to switch that back and forth between a DPI lcd panel and
-a DPI->DVI bridge.  (Ok, I'm not aware of any board that actually does
-this, but it is in theory possible.)  So we could expose possible
-video chain topologies to userspace in this way.
+# grep -r clk_get drivers/* | grep -r ", NULL"
 
-The other thing is that we don't need to propagate timings from the
-panel up to the mgr at the dss level.. kms is already handling this
-for us.  In my latest version, which I haven't pushed, I removed the
-'struct omap_overlay_mgr' ptr from 'struct omap_dss_device'.
+drivers/ata/pata_arasan_cf.c:   acdev->clk = clk_get(&pdev->dev, NULL);
+drivers/ata/sata_mv.c:  hpriv->clk = clk_get(&pdev->dev, NULL);
+drivers/ata/pata_imx.c: priv->clk = clk_get(&pdev->dev, NULL);
+drivers/char/hw_random/nomadik-rng.c:   rng_clk = clk_get(&dev->dev, NULL);
+drivers/char/hw_random/picoxcell-rng.c: rng_clk = clk_get(&pdev->dev, NULL);
+drivers/char/hw_random/atmel-rng.c:     trng->clk = clk_get(&pdev->dev, NULL);
+drivers/crypto/ux500/cryp/cryp_core.c:  device_data->clk = clk_get(&pdev->dev, NULL);
+drivers/crypto/ux500/hash/hash_core.c:  device_data->clk = clk_get(dev, NULL);
+drivers/crypto/mv_cesa.c:       cp->clk = clk_get(&pdev->dev, NULL);
+drivers/dma/ipu/ipu_idmac.c:    ipu_data.ipu_clk = clk_get(&pdev->dev, NULL);
+drivers/dma/mv_xor.c:   msp->clk = clk_get(&pdev->dev, NULL);
+drivers/dma/mxs-dma.c:  mxs_dma->clk = clk_get(&pdev->dev, NULL);
+drivers/dma/ste_dma40.c:        clk = clk_get(&pdev->dev, NULL);
+drivers/gpio/gpio-pxa.c:        clk = clk_get(&pdev->dev, NULL);
+drivers/gpio/gpio-stp-xway.c:   clk = clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-davinci.c:       dev->clk = clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-sirf.c:  clk = clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-designware-platdrv.c:    dev->clk = clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-nomadik.c:       dev->clk = clk_get(&adev->dev, NULL);
+drivers/i2c/busses/i2c-nuc900.c:        i2c->clk = clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-tegra.c: clk = devm_clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-pxa.c:   i2c->clk = clk_get(&dev->dev, NULL);
+drivers/i2c/busses/i2c-sh_mobile.c:     pd->clk = clk_get(&dev->dev, NULL);
+drivers/i2c/busses/i2c-imx.c:   i2c_imx->clk = devm_clk_get(&pdev->dev, NULL);
+drivers/i2c/busses/i2c-pnx.c:   alg_data->clk = clk_get(&pdev->dev, NULL);
+drivers/ide/palm_bk3710.c:      clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/nomadik-ske-keypad.c:    keypad->clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/tnetv107x-keypad.c:      kp->clk = clk_get(dev, NULL);
+drivers/input/keyboard/pxa27x_keypad.c: keypad->clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/tegra-kbc.c:     kbc->clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/spear-keyboard.c:        kbd->clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/ep93xx_keypad.c: keypad->clk = clk_get(&pdev->dev, NULL);
+drivers/input/keyboard/w90p910_keypad.c:        keypad->clk = clk_get(&pdev->dev, NULL);
+drivers/input/touchscreen/lpc32xx_ts.c: tsc->clk = clk_get(&pdev->dev, NULL);
+drivers/input/touchscreen/w90p910_ts.c: w90p910_ts->clk = clk_get(&pdev->dev, NULL);
+drivers/input/touchscreen/tnetv107x-ts.c:       ts->clk = clk_get(dev, NULL);
+drivers/leds/leds-renesas-tpu.c:        p->clk = clk_get(&pdev->dev, NULL);
+drivers/media/video/mx3_camera.c:       mx3_cam->clk = clk_get(&pdev->dev, NULL);
+drivers/media/video/pxa_camera.c:       pcdev->clk = clk_get(&pdev->dev, NULL);
+drivers/media/video/mx2_camera.c:       pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+drivers/media/video/mx2_emmaprp.c:      pcdev->clk_emma = clk_get(&pdev->dev, NULL);
+drivers/mfd/davinci_voicecodec.c:       davinci_vc->clk = clk_get(&pdev->dev, NULL);
+drivers/mfd/ti-ssp.c:   ssp->clk = clk_get(dev, NULL);
+drivers/misc/spear13xx_pcie_gadget.c:           clk = clk_get_sys("pcie1", NULL);
+drivers/misc/spear13xx_pcie_gadget.c:           clk = clk_get_sys("pcie2", NULL);
+drivers/mmc/host/mxs-mmc.c:     host->clk = clk_get(&pdev->dev, NULL);
+drivers/mmc/host/mvsdio.c:      host->clk = clk_get(&pdev->dev, NULL);
+drivers/mmc/host/pxamci.c:      host->clk = clk_get(&pdev->dev, NULL);
+drivers/mmc/host/sdhci-spear.c: sdhci->clk = clk_get(&pdev->dev, NULL);
+drivers/mmc/host/sdhci-tegra.c: clk = clk_get(mmc_dev(host->mmc), NULL);
+drivers/mmc/host/mmci.c:        host->clk = clk_get(&dev->dev, NULL);
+drivers/mtd/devices/spear_smi.c:        dev->clk = clk_get(&pdev->dev, NULL);
+drivers/mtd/nand/gpmi-nand/gpmi-nand.c: res->clock = clk_get(&this->pdev->dev, NULL);
+drivers/mtd/nand/fsmc_nand.c:   host->clk = clk_get(&pdev->dev, NULL);
+drivers/mtd/nand/nuc900_nand.c: nuc900_nand->clk = clk_get(&pdev->dev, NULL);
+drivers/mtd/nand/orion_nand.c:  clk = clk_get(&pdev->dev, NULL);
+drivers/mtd/nand/orion_nand.c:  clk = clk_get(&pdev->dev, NULL);
+drivers/mtd/nand/pxa3xx_nand.c: info->clk = clk_get(&pdev->dev, NULL);
+drivers/net/can/c_can/c_can_platform.c: clk = clk_get(&pdev->dev, NULL);
+drivers/net/can/flexcan.c:              clk = clk_get(&pdev->dev, NULL);
 
->> The one area that kms mismatches a bit is decoupling of ovl from mgr
->> that we have in our hw..  I've partially solved that a while back w/
->
-> What do you mean with that? Ovls and mgrs are one entity in KMS? Didn't
-> the drm_plane stuff separate these?
 
-yes and no.. it is in our omapdrm implementation, because each crtc
-has it's own private plane assigned.  Basically the purpose is that we
-can't break the interface to existing KMS userspace, which expects a
-CRTC to include the dma scanout engine.  But it means at the moment we
-can't re-use these planes from crtc's that are not in use.
 
-I have some ideas about how to expose this to userspace in a backwards
-compatible way, so a userspace that is aware of this can re-use planes
-from crtcs that are not in use.  There is at least one other SoC
-platform (STE, IIRC?) that has similar flexibility in hw, so I think
-this is a worthwhile thing to do.. but just haven't gotten to it yet.
+ 
+> Most IPs in OMAP does have a fck and an ick so that does not seems nice
+> or even consistent to me to do a clk_get(&pdev->dev, NULL) for "fck" and
+> clk_get(&pdev->dev, "ick") for the ick.
+> 
 
->> For enabling/disabling an output (manager+encoder), this is relatively
->> infrequent, so it can afford to block to avoid races.  (Like userspace
->> enabling and then rapidly disabling an output part way through the
->> enable.)  But enabling/disabling an overlay, or adjusting position or
->> scanout address must not block.  And ideally, if possible, switching
->> an overlay between two managers should not block.
->
-> Adjusting the position or address of the buffer are simple, they can be
-> easily done without any blocking.
->
-> But ovl enable/disable and switching an ovl to another mgr do (possibly)
-> take multiple vsyncs (and in the switch case, vsyncs of two separate
-> outputs). So if those do not block, we'll need to handle them as a state
-> machine and try to avoid races etc. It'll be "interesting".
+I completely agree from OMAP device perspective, but it may not be 
+applicable for other architectures or devices, right?
 
-ok, I see the problem.  Really the one thing I'm not handling properly
-is disconnecting a plane from one crtc and connecting to another.  The
-disconnect should synchronize on the outgoing crtc's vblank/GO, and
-connect on the incoming crtc.  But this is not a frequent operation,
-so I think the easy solution here is to block on the
-connect-to-new-crtc if the disconnect is still pending.  I'd prefer
-this to introducing intermediate states.
 
-A simple enable/disable without changing crtc does not need to block.
-If usespace disables and then re-enables before the vblank, we just
-apply whatever is the most recent state at the vblank.  Meaning
-enable->disable->enable, the middle disable might just get skipped.
-This is fine, and actually desirable.
+> > And it seems wrong thing, as across platforms IP integration can be very
+> > different and you can not expect to change the clock-tree table always.
+> 
+> FWIW, that table is done for that exact purpose. And we introduced the
+> automatic "fck" alias creation mainly to make things easier, but that
+> method is still very valid, and if the default alias is not good enough
+> for the driver nothing should prevent you to create a new one.
+> 
+> > So the option here we have is,
+> > 
+> > 1. Instead of creating alias with "fck", create an alias only with dev
+> > pointer, that means con_id = NULL.
+> > I have already tested this and it works on AM33xx platform.
+> 
+> Do you mean assuming that the fck is always the clock with a NULL
+> con_id? And any other clocks for that device will have thus to use a
+> explicit name?
+> 
 
-> However, we can sometimes do those operations immediately. So I think we
-> should have these conditional fast-paths in the code, and do them in
-> non-blocking manner when possible.
->
->> I'll look again, but as far as I remember that at least wasn't
->> addressing the performance issues from making overlay enable/disable
->
-> Right, it wasn't addressing those issues. But your branch doesn't really
-> address those issues either, as it doesn't handle the problems related
-> to ovl enable/disable.
->
->> synchronous.  And fixing that would, I expect, trigger the same
->> problems that I already spent a few days debugging before switching
->> over to handle apply in omapdrm.
->
-> I was under the impression that the apply mechanism, the caching and
-> setting of the configs, was the major issue you had. But you're hinting
-> that the actual problem is related to ovl enable/disable? I haven't
-> tried fixing the ovl enable/disable, as I didn't know it's an issue for
-> omapdrm. Or are they both as big issues?
+Yes.
 
-I think the problem was there were some cases, like ovl updates before
-setting the mgr, where the user_info_dirty flag would be cleared but
-the registers not updated.  This is what I meant by sequence of
-operations at KMS level confusing omapdss.  This should be fixable
-with some debugging.  Although getting rid of the state tracking at
-omapdss level altogether was a much simpler solution, and is the one I
-prefer :-)
+> > 2. Add a new flag inside hwmod or omap_device, so that it can be read at
+> > omap_device layer and based on that we can decide whether to add con_id
+> > or not while invoking clkdev_alloc().
+> 
+> hwmod is supposed to contain only HW related information. In that case
+> it will be Linux driver dependent and not really HW dependent.
+> That one is thus not really acceptable.
+> 
 
-BR,
--R
+Agreed, that was one of the options. What about omap_device???
 
->  Tomi
->
+> > This may be required to support legacy drivers which are not migrated to
+> > runtime_pm and still calls clk_get() for both "fck" and "ick", so here
+> > we need "fck" clk alias.
+> 
+> We can use "fck" even with runtime_pm. Just because sometime you need to
+> get the clock rate of the main clock.
+> 
+> > Any comments or opinion on this? Based on the feedback I can create the
+> > changes and submit it to the list.
+> 
+> Well, a #3 suggestion might be to enforce the usage of fck alias in the
+> drivers instead of assuming that the "NULL" entry is the proper one.
+> 
+
+Can we??? Not sure whether we can really force this.
+
+> And a #4 will be to create a extra entry in the clkdev like you have done.
+> 
+
+If nothing works out from above options, then this is the only option we 
+have.
+But the issue here is, how can we fix dev_id? With DT support I have to 
+Really make use of "of_dev_auxdata" to fix dev id.
+
+
+> For my point of view, the #4 seems to be the one that will minimize the
+> overall change in the drivers and is probably the best one.
+> 
+> That being said, since the DT clock binding is merged now, the whole
+> automatic alias creation might disappear as soon as we will have DT boot
+> on all the platforms... OK, we are not really there still :-)
+> 
+
+Yeah, I know and understand. This is another issue we have. So we should not consider automatic aliases here.
+
+
+Thanks,
+Vaibhav
+
