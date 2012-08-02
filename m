@@ -1,359 +1,841 @@
-From: Ravi Babu <ravibabu@ti.com>
-Subject: [PATCH v7 03/11] usb: musb: am335x: add support for dual instance
-Date: Thu, 2 Aug 2012 17:42:46 +0530
-Message-ID: <1343909574-15633-4-git-send-email-ravibabu@ti.com>
+From: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v7 01/11] usb: musb: add musb_ida for multi instance support
+Date: Thu, 2 Aug 2012 17:42:44 +0530
+Message-ID: <1343909574-15633-2-git-send-email-ravibabu@ti.com>
 References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45280 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753545Ab2HBMNG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 08:13:06 -0400
-In-Reply-To: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1343909574-15633-1-git-send-email-ravibabu-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, ajayguptaj@gmail.com
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-AM335x and TI81xx platform has dual musb controller so updating the
-musb_dspc.c to support the same.
+Added musb_ida in musb_core.c to manage the multi core ids.
 
-Changes:
-	- Moved otg_workaround timer to glue structure
-	- Moved static local variable last_timer to glue structure
-	- PHY on/off related cleanups
-
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Ravi Babu <ravibabu@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_dsps.c |  113 +++++++++++++++++++++++++-----------------
- 1 files changed, 67 insertions(+), 46 deletions(-)
+ drivers/usb/musb/am35x.c     |   42 ++++++++++++++++++++++++++++--------------
+ drivers/usb/musb/blackfin.c  |   26 ++++++++++++++++++++------
+ drivers/usb/musb/da8xx.c     |   34 ++++++++++++++++++++++++----------
+ drivers/usb/musb/davinci.c   |   34 ++++++++++++++++++++++++----------
+ drivers/usb/musb/musb_core.c |   31 +++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/musb_dsps.c |   25 ++++++++++++++++++-------
+ drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
+ drivers/usb/musb/tusb6010.c  |   26 ++++++++++++++++++++------
+ drivers/usb/musb/ux500.c     |   33 +++++++++++++++++++++++----------
+ 10 files changed, 210 insertions(+), 69 deletions(-)
 
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index 7a95ab8..01203eb 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -468,6 +468,7 @@ static int __devinit am35x_probe(struct platform_device *pdev)
+ 	struct clk			*clk;
+ 
+ 	int				ret = -ENOMEM;
++	int				musbid;
+ 
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -475,38 +476,47 @@ static int __devinit am35x_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	phy_clk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(phy_clk)) {
+ 		dev_err(&pdev->dev, "failed to get PHY clock\n");
+ 		ret = PTR_ERR(phy_clk);
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	clk = clk_get(&pdev->dev, "ick");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		ret = PTR_ERR(clk);
+-		goto err3;
++		goto err4;
+ 	}
+ 
+ 	ret = clk_enable(phy_clk);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to enable PHY clock\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	ret = clk_enable(clk);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to enable clock\n");
+-		goto err5;
++		goto err6;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &am35x_dmamask;
+ 	musb->dev.coherent_dma_mask	= am35x_dmamask;
+@@ -524,38 +534,41 @@ static int __devinit am35x_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err6;
++		goto err7;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err6;
++		goto err7;
+ 	}
+ 
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err6;
++		goto err7;
+ 	}
+ 
+ 	return 0;
+ 
+-err6:
++err7:
+ 	clk_disable(clk);
+ 
+-err5:
++err6:
+ 	clk_disable(phy_clk);
+ 
+-err4:
++err5:
+ 	clk_put(clk);
+ 
+-err3:
++err4:
+ 	clk_put(phy_clk);
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -567,6 +580,7 @@ static int __devexit am35x_remove(struct platform_device *pdev)
+ {
+ 	struct am35x_glue	*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	clk_disable(glue->clk);
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index 428e6aa..c848b82 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -471,6 +471,7 @@ static int __devinit bfin_probe(struct platform_device *pdev)
+ 	struct bfin_glue		*glue;
+ 
+ 	int				ret = -ENOMEM;
++	int				musbid;
+ 
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -478,12 +479,21 @@ static int __devinit bfin_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &bfin_dmamask;
+ 	musb->dev.coherent_dma_mask	= bfin_dmamask;
+@@ -499,26 +509,29 @@ static int __devinit bfin_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	return 0;
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -530,6 +543,7 @@ static int __devexit bfin_remove(struct platform_device *pdev)
+ {
+ 	struct bfin_glue		*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/da8xx.c b/drivers/usb/musb/da8xx.c
+index 0f9fcec..cebd9d7 100644
+--- a/drivers/usb/musb/da8xx.c
++++ b/drivers/usb/musb/da8xx.c
+@@ -489,6 +489,7 @@ static int __devinit da8xx_probe(struct platform_device *pdev)
+ 	struct clk			*clk;
+ 
+ 	int				ret = -ENOMEM;
++	int				musbid;
+ 
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -496,25 +497,34 @@ static int __devinit da8xx_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	clk = clk_get(&pdev->dev, "usb20");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		ret = PTR_ERR(clk);
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = clk_enable(clk);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to enable clock\n");
+-		goto err3;
++		goto err4;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &da8xx_dmamask;
+ 	musb->dev.coherent_dma_mask	= da8xx_dmamask;
+@@ -531,32 +541,35 @@ static int __devinit da8xx_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	return 0;
+ 
+-err4:
++err5:
+ 	clk_disable(clk);
+ 
+-err3:
++err4:
+ 	clk_put(clk);
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -568,6 +581,7 @@ static int __devexit da8xx_remove(struct platform_device *pdev)
+ {
+ 	struct da8xx_glue		*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	clk_disable(glue->clk);
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index 472c8b4..3f094f2 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -523,6 +523,7 @@ static int __devinit davinci_probe(struct platform_device *pdev)
+ 	struct clk			*clk;
+ 
+ 	int				ret = -ENOMEM;
++	int				musbid;
+ 
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -530,25 +531,34 @@ static int __devinit davinci_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	clk = clk_get(&pdev->dev, "usb");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		ret = PTR_ERR(clk);
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = clk_enable(clk);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to enable clock\n");
+-		goto err3;
++		goto err4;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &davinci_dmamask;
+ 	musb->dev.coherent_dma_mask	= davinci_dmamask;
+@@ -565,32 +575,35 @@ static int __devinit davinci_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err4;
++		goto err5;
+ 	}
+ 
+ 	return 0;
+ 
+-err4:
++err5:
+ 	clk_disable(clk);
+ 
+-err3:
++err4:
+ 	clk_put(clk);
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -602,6 +615,7 @@ static int __devexit davinci_remove(struct platform_device *pdev)
+ {
+ 	struct davinci_glue		*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	clk_disable(glue->clk);
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 89d1871..a565fc2 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -99,6 +99,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
++#include <linux/idr.h>
+ 
+ #include "musb_core.h"
+ 
+@@ -114,6 +115,7 @@
+ 
+ #define MUSB_DRIVER_NAME "musb-hdrc"
+ const char musb_driver_name[] = MUSB_DRIVER_NAME;
++static DEFINE_IDA(musb_ida);
+ 
+ MODULE_DESCRIPTION(DRIVER_INFO);
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+@@ -130,6 +132,35 @@ static inline struct musb *dev_to_musb(struct device *dev)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++int musb_get_id(struct device *dev, gfp_t gfp_mask)
++{
++	int ret;
++	int id;
++
++	ret = ida_pre_get(&musb_ida, gfp_mask);
++	if (!ret) {
++		dev_err(dev, "failed to reserve resource for id\n");
++		return -ENOMEM;
++	}
++
++	ret = ida_get_new(&musb_ida, &id);
++	if (ret < 0) {
++		dev_err(dev, "failed to allocate a new id\n");
++		return ret;
++	}
++
++	return id;
++}
++EXPORT_SYMBOL_GPL(musb_get_id);
++
++void musb_put_id(struct device *dev, int id)
++{
++
++	dev_dbg(dev, "removing id %d\n", id);
++	ida_remove(&musb_ida, id);
++}
++EXPORT_SYMBOL_GPL(musb_put_id);
++
+ #ifndef CONFIG_BLACKFIN
+ static int musb_ulpi_read(struct usb_phy *phy, u32 offset)
+ {
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 51bd7b2..84436f7 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -530,6 +530,8 @@ extern const char musb_driver_name[];
+ 
+ extern void musb_start(struct musb *musb);
+ extern void musb_stop(struct musb *musb);
++extern int musb_get_id(struct device *dev, gfp_t gfp_mask);
++extern void musb_put_id(struct device *dev, int id);
+ 
+ extern void musb_write_fifo(struct musb_hw_ep *ep, u16 len, const u8 *src);
+ extern void musb_read_fifo(struct musb_hw_ep *ep, u16 len, u8 *dst);
 diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 2174699..7a09d55 100644
+index 46b07cc..2174699 100644
 --- a/drivers/usb/musb/musb_dsps.c
 +++ b/drivers/usb/musb/musb_dsps.c
-@@ -105,6 +105,8 @@ struct dsps_musb_wrapper {
- 	/* miscellaneous stuff */
- 	u32		musb_core_offset;
- 	u8		poll_seconds;
-+	/* number of musb instances */
-+	u8		instances;
- };
+@@ -494,7 +494,7 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	struct resource *res;
+ 	struct resource	resources[2];
+ 	char res_name[10];
+-	int ret;
++	int ret, musbid;
  
- /**
-@@ -112,16 +114,18 @@ struct dsps_musb_wrapper {
-  */
- struct dsps_glue {
- 	struct device *dev;
--	struct platform_device *musb;	/* child musb pdev */
-+	struct platform_device *musb[2];	/* child musb pdev */
- 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
--	struct timer_list timer;	/* otg_workaround timer */
--	u32 __iomem *usb_ctrl;
-+	struct timer_list timer[2];	/* otg_workaround timer */
-+	unsigned long last_timer[2];    /* last timer data for each instance */
-+	u32 __iomem *usb_ctrl[2];
- 	u8      usbss_rev;
- };
+ 	/* get memory resource for usb control register */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2 * id + 2);
+@@ -534,14 +534,22 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	resources[1] = *res;
+ 	resources[1].name = "mc";
  
- /**
-  * musb_dsps_phy_control - phy on/off
-  * @glue: struct dsps_glue *
-+ * @id: musb instance
-  * @on: flag for phy to be switched on or off
-  *
-  * This is to enable the PHY using usb_ctrl register in system control
-@@ -130,11 +134,11 @@ struct dsps_glue {
-  * XXX: This function will be removed once we have a seperate driver for
-  * control module
-  */
--static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
-+static void musb_dsps_phy_control(struct dsps_glue *glue, u8 id, u8 on)
- {
- 	u32 usbphycfg;
- 
--	usbphycfg = __raw_readl(glue->usb_ctrl);
-+	usbphycfg = __raw_readl(glue->usb_ctrl[id]);
- 
- 	if (on) {
- 		if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
-@@ -157,7 +161,7 @@ static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
- 				glue->usbss_rev == MUSB_USBSS_REV_33XX)
- 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
- 	}
--	__raw_writel(usbphycfg, glue->usb_ctrl);
-+	__raw_writel(usbphycfg, glue->usb_ctrl[id]);
- }
- /**
-  * dsps_musb_enable - enable interrupts
-@@ -207,8 +211,8 @@ static void otg_timer(unsigned long _musb)
- 	struct musb *musb = (void *)_musb;
- 	void __iomem *mregs = musb->mregs;
- 	struct device *dev = musb->controller;
--	struct platform_device *pdev = to_platform_device(dev->parent);
--	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	u8 devctl;
- 	unsigned long flags;
-@@ -247,7 +251,7 @@ static void otg_timer(unsigned long _musb)
- 
- 		devctl = dsps_readb(mregs, MUSB_DEVCTL);
- 		if (devctl & MUSB_DEVCTL_BDEVICE)
--			mod_timer(&glue->timer,
-+			mod_timer(&glue->timer[pdev->id],
- 					jiffies + wrp->poll_seconds * HZ);
- 		else
- 			musb->xceiv->state = OTG_STATE_A_IDLE;
-@@ -261,9 +265,8 @@ static void otg_timer(unsigned long _musb)
- static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
- {
- 	struct device *dev = musb->controller;
--	struct platform_device *pdev = to_platform_device(dev->parent);
--	struct dsps_glue *glue = platform_get_drvdata(pdev);
--	static unsigned long last_timer;
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 
- 	if (!is_otg_enabled(musb))
- 		return;
-@@ -276,22 +279,23 @@ static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
- 				musb->xceiv->state == OTG_STATE_A_WAIT_BCON)) {
- 		dev_dbg(musb->controller, "%s active, deleting timer\n",
- 				otg_state_string(musb->xceiv->state));
--		del_timer(&glue->timer);
--		last_timer = jiffies;
-+		del_timer(&glue->timer[pdev->id]);
-+		glue->last_timer[pdev->id] = jiffies;
- 		return;
++	/* get the musb id */
++	musbid = musb_get_id(dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err0;
++	}
+ 	/* allocate the child platform device */
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(dev, "failed to allocate musb device\n");
+ 		ret = -ENOMEM;
+-		goto err0;
++		goto err1;
  	}
  
--	if (time_after(last_timer, timeout) && timer_pending(&glue->timer)) {
-+	if (time_after(glue->last_timer[pdev->id], timeout) &&
-+				timer_pending(&glue->timer[pdev->id])) {
- 		dev_dbg(musb->controller,
- 			"Longer idle timer already pending, ignoring...\n");
- 		return;
- 	}
--	last_timer = timeout;
-+	glue->last_timer[pdev->id] = timeout;
- 
- 	dev_dbg(musb->controller, "%s inactive, starting idle timer for %u ms\n",
- 		otg_state_string(musb->xceiv->state),
- 			jiffies_to_msecs(timeout - jiffies));
--	mod_timer(&glue->timer, timeout);
-+	mod_timer(&glue->timer[pdev->id], timeout);
- }
- 
- static irqreturn_t dsps_interrupt(int irq, void *hci)
-@@ -299,8 +303,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 	struct musb  *musb = hci;
- 	void __iomem *reg_base = musb->ctrl_base;
- 	struct device *dev = musb->controller;
--	struct platform_device *pdev = to_platform_device(dev->parent);
--	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	unsigned long flags;
- 	irqreturn_t ret = IRQ_NONE;
-@@ -360,7 +364,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 			 */
- 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
- 			musb->xceiv->state = OTG_STATE_A_WAIT_VFALL;
--			mod_timer(&glue->timer,
-+			mod_timer(&glue->timer[pdev->id],
- 					jiffies + wrp->poll_seconds * HZ);
- 			WARNING("VBUS error workaround (delay coming)\n");
- 		} else if (is_host_enabled(musb) && drvvbus) {
-@@ -368,7 +372,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 			MUSB_HST_MODE(musb);
- 			musb->xceiv->otg->default_a = 1;
- 			musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
--			del_timer(&glue->timer);
-+			del_timer(&glue->timer[pdev->id]);
- 		} else {
- 			musb->is_active = 0;
- 			MUSB_DEV_MODE(musb);
-@@ -395,7 +399,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- 
- 	/* Poll for ID change */
- 	if (is_otg_enabled(musb) && musb->xceiv->state == OTG_STATE_B_IDLE)
--		mod_timer(&glue->timer, jiffies + wrp->poll_seconds * HZ);
-+		mod_timer(&glue->timer[pdev->id],
-+				jiffies + wrp->poll_seconds * HZ);
- 
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
-@@ -405,8 +410,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
- static int dsps_musb_init(struct musb *musb)
- {
- 	struct device *dev = musb->controller;
--	struct platform_device *pdev = to_platform_device(dev->parent);
--	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 	const struct dsps_musb_wrapper *wrp = glue->wrp;
- 	void __iomem *reg_base = musb->ctrl_base;
- 	u32 rev, val;
-@@ -429,13 +434,14 @@ static int dsps_musb_init(struct musb *musb)
- 	}
- 
- 	if (is_host_enabled(musb))
--		setup_timer(&glue->timer, otg_timer, (unsigned long) musb);
-+		setup_timer(&glue->timer[pdev->id], otg_timer,
-+			(unsigned long) musb);
- 
- 	/* Reset the musb */
- 	dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
- 
- 	/* Start the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 1);
-+	musb_dsps_phy_control(glue, pdev->id, 1);
- 
- 	musb->isr = dsps_interrupt;
- 
-@@ -457,14 +463,14 @@ err0:
- static int dsps_musb_exit(struct musb *musb)
- {
- 	struct device *dev = musb->controller;
--	struct platform_device *pdev = to_platform_device(dev->parent);
--	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
- 
- 	if (is_host_enabled(musb))
--		del_timer_sync(&glue->timer);
-+		del_timer_sync(&glue->timer[pdev->id]);
- 
- 	/* Shutdown the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 0);
-+	musb_dsps_phy_control(glue, pdev->id, 0);
- 
- 	/* NOP driver needs change if supporting dual instance */
- 	usb_put_phy(musb->xceiv);
-@@ -504,8 +510,8 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
- 		goto err0;
- 	}
- 
--	glue->usb_ctrl = devm_request_and_ioremap(&pdev->dev, res);
--	if (glue->usb_ctrl == NULL) {
-+	glue->usb_ctrl[id] = devm_request_and_ioremap(&pdev->dev, res);
-+	if (glue->usb_ctrl[id] == NULL) {
- 		dev_err(dev, "Failed to obtain usb_ctrl%d memory\n", id);
- 		ret = -ENODEV;
- 		goto err0;
-@@ -554,7 +560,7 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
++	musb->id			= musbid;
+ 	musb->dev.parent		= dev;
  	musb->dev.dma_mask		= &musb_dmamask;
  	musb->dev.coherent_dma_mask	= musb_dmamask;
+@@ -553,31 +561,34 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	ret = platform_device_add_resources(musb, resources, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add resources\n");
+-		goto err1;
++		goto err2;
+ 	}
  
--	glue->musb			= musb;
-+	glue->musb[id]			= musb;
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(dev, "failed to add platform_data\n");
+-		goto err1;
++		goto err2;
+ 	}
  
- 	pdata->platform_ops		= &dsps_ops;
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(dev, "failed to register musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
  
-@@ -586,11 +592,11 @@ err0:
+ 	return 0;
+ 
+-err1:
++err2:
+ 	platform_device_put(musb);
++err1:
++	musb_put_id(dev, musbid);
+ err0:
  	return ret;
  }
  
--static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue)
-+static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
+ static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue)
  {
--	musb_put_id(glue->dev, glue->musb->id);
--	platform_device_del(glue->musb);
--	platform_device_put(glue->musb);
-+	musb_put_id(glue->dev, glue->musb[id]->id);
-+	platform_device_del(glue->musb[id]);
-+	platform_device_put(glue->musb[id]);
++	musb_put_id(glue->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
  }
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 5fdb9da..759752b 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -441,6 +441,7 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	struct platform_device		*musb;
+ 	struct omap2430_glue		*glue;
+ 	int				ret = -ENOMEM;
++	int				musbid;
  
- static int __devinit dsps_probe(struct platform_device *pdev)
-@@ -601,7 +607,7 @@ static int __devinit dsps_probe(struct platform_device *pdev)
- 	struct dsps_glue *glue;
- 	struct resource *iomem;
- 	u32 __iomem *usbss;
--	int ret;
-+	int ret, i;
+ 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
+ 	if (!glue) {
+@@ -448,12 +449,21 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
- 	/* allocate glue */
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err0;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err0;
++		goto err1;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &omap2430_dmamask;
+ 	musb->dev.coherent_dma_mask	= omap2430_dmamask;
+@@ -478,13 +488,13 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	pm_runtime_enable(&pdev->dev);
+@@ -492,14 +502,17 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	return 0;
+ 
+-err1:
++err2:
+ 	platform_device_put(musb);
+ 
++err1:
++	musb_put_id(&pdev->dev, musbid);
++
+ err0:
+ 	return ret;
+ }
+@@ -509,6 +522,7 @@ static int __devexit omap2430_remove(struct platform_device *pdev)
+ 	struct omap2430_glue		*glue = platform_get_drvdata(pdev);
+ 
+ 	cancel_work_sync(&glue->omap_musb_mailbox_work);
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 1a1bd9c..64a0e95 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1175,6 +1175,7 @@ static int __devinit tusb_probe(struct platform_device *pdev)
+ 	struct tusb6010_glue		*glue;
+ 
+ 	int				ret = -ENOMEM;
++	int				musbid;
+ 
  	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
-@@ -645,11 +651,16 @@ static int __devinit dsps_probe(struct platform_device *pdev)
- 		goto err2;
+ 	if (!glue) {
+@@ -1182,12 +1183,21 @@ static int __devinit tusb_probe(struct platform_device *pdev)
+ 		goto err0;
  	}
  
--	/* create the child platform device for first instances of musb */
--	ret = dsps_create_musb_pdev(glue, 0);
--	if (ret != 0) {
--		dev_err(&pdev->dev, "failed to create child pdev\n");
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= &tusb_dmamask;
+ 	musb->dev.coherent_dma_mask	= tusb_dmamask;
+@@ -1203,26 +1213,29 @@ static int __devinit tusb_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err1;
++		goto err3;
+ 	}
+ 
+ 	return 0;
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -1234,6 +1247,7 @@ static int __devexit tusb_remove(struct platform_device *pdev)
+ {
+ 	struct tusb6010_glue		*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	kfree(glue);
+diff --git a/drivers/usb/musb/ux500.c b/drivers/usb/musb/ux500.c
+index a8c0fad..d62a91f 100644
+--- a/drivers/usb/musb/ux500.c
++++ b/drivers/usb/musb/ux500.c
+@@ -74,25 +74,34 @@ static int __devinit ux500_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
+ 
+-	musb = platform_device_alloc("musb-hdrc", -1);
++	/* get the musb id */
++	musbid = musb_get_id(&pdev->dev, GFP_KERNEL);
++	if (musbid < 0) {
++		dev_err(&pdev->dev, "failed to allocate musb id\n");
++		ret = -ENOMEM;
++		goto err1;
++	}
++
++	musb = platform_device_alloc("musb-hdrc", musbid);
+ 	if (!musb) {
+ 		dev_err(&pdev->dev, "failed to allocate musb device\n");
+-		goto err1;
++		goto err2;
+ 	}
+ 
+ 	clk = clk_get(&pdev->dev, "usb");
+ 	if (IS_ERR(clk)) {
+ 		dev_err(&pdev->dev, "failed to get clock\n");
+ 		ret = PTR_ERR(clk);
+-		goto err2;
++		goto err3;
+ 	}
+ 
+ 	ret = clk_enable(clk);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to enable clock\n");
 -		goto err3;
-+	/* create the child platform device for all instances of musb */
-+	for (i = 0; i < wrp->instances ; i++) {
-+		ret = dsps_create_musb_pdev(glue, i);
-+		if (ret != 0) {
-+			dev_err(&pdev->dev, "failed to create child pdev\n");
-+			/* release resources of previously created instances */
-+			for (i--; i >= 0 ; i--)
-+				dsps_delete_musb_pdev(glue, i);
-+			goto err3;
-+		}
++		goto err4;
  	}
  
- 	/* read the usbss revision register */
-@@ -670,9 +681,12 @@ err0:
- static int __devexit dsps_remove(struct platform_device *pdev)
- {
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
++	musb->id			= musbid;
+ 	musb->dev.parent		= &pdev->dev;
+ 	musb->dev.dma_mask		= pdev->dev.dma_mask;
+ 	musb->dev.coherent_dma_mask	= pdev->dev.coherent_dma_mask;
+@@ -109,32 +118,35 @@ static int __devinit ux500_probe(struct platform_device *pdev)
+ 			pdev->num_resources);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add resources\n");
+-		goto err4;
++		goto err5;
+ 	}
  
- 	/* delete the child platform device */
--	dsps_delete_musb_pdev(glue);
-+	for (i = 0; i < wrp->instances ; i++)
-+		dsps_delete_musb_pdev(glue, i);
+ 	ret = platform_device_add_data(musb, pdata, sizeof(*pdata));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to add platform_data\n");
+-		goto err4;
++		goto err5;
+ 	}
  
- 	/* disable usbss clocks */
- 	pm_runtime_put(&pdev->dev);
-@@ -687,9 +701,12 @@ static int dsps_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
- 
- 	/* Shutdown the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 0);
-+	for (i = 0 ; i < wrp->instances ; i++)
-+		musb_dsps_phy_control(glue, i, 0);
- 
- 	return 0;
- }
-@@ -698,9 +715,12 @@ static int dsps_resume(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev->parent);
- 	struct dsps_glue *glue = platform_get_drvdata(pdev);
-+	const struct dsps_musb_wrapper *wrp = glue->wrp;
-+	int i;
- 
- 	/* Start the on-chip PHY and its PLL. */
--	musb_dsps_phy_control(glue, 1);
-+	for (i = 0 ; i < wrp->instances ; i++)
-+		musb_dsps_phy_control(glue, i, 1);
+ 	ret = platform_device_add(musb);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register musb device\n");
+-		goto err4;
++		goto err5;
+ 	}
  
  	return 0;
- }
-@@ -736,6 +756,7 @@ static const struct dsps_musb_wrapper ti81xx_driver_data __devinitconst = {
- 	.rxep_bitmap		= (0xfffe << 16),
- 	.musb_core_offset	= 0x400,
- 	.poll_seconds		= 2,
-+	.instances		= 2,
- };
  
- static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
+-err4:
++err5:
+ 	clk_disable(clk);
+ 
+-err3:
++err4:
+ 	clk_put(clk);
+ 
+-err2:
++err3:
+ 	platform_device_put(musb);
+ 
++err2:
++	musb_put_id(&pdev->dev, musbid);
++
+ err1:
+ 	kfree(glue);
+ 
+@@ -146,6 +158,7 @@ static int __devexit ux500_remove(struct platform_device *pdev)
+ {
+ 	struct ux500_glue	*glue = platform_get_drvdata(pdev);
+ 
++	musb_put_id(&pdev->dev, glue->musb->id);
+ 	platform_device_del(glue->musb);
+ 	platform_device_put(glue->musb);
+ 	clk_disable(glue->clk);
 -- 
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
