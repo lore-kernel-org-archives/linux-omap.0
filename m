@@ -1,66 +1,64 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH 2/3] ARM: OMAP: hwmod: revise deassert sequence
-Date: Thu, 2 Aug 2012 17:20:27 -0500
-Message-ID: <CALLhW=6-b+kjfG-u3+uXiD64UwoNEdufjJKu0Mx-sGWp6n9csg@mail.gmail.com>
-References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
-	<1342466485-1050-3-git-send-email-omar.luna@linaro.org>
-	<alpine.DEB.2.00.1208020150240.4177@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] Revert "spi: omap2-mcspi: convert to module_platform_driver"
+Date: Fri,  3 Aug 2012 02:08:37 +0300
+Message-ID: <1343948917-14760-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:49339 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab2HBWU2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 18:20:28 -0400
-Received: by vbbff1 with SMTP id ff1so42799vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Aug 2012 15:20:28 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1208020150240.4177@utopia.booyaka.com>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:51555 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754085Ab2HBXSc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 19:18:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: grant.likely@secretlab.ca, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+Cc: balbi@ti.com, tomi.valkeinen@ti.com
 
-Hi.
+This reverts commit 9fdca9dfe093c76fe1ac1a09888ba9679d46996a.
 
-On 2 August 2012 02:52, Paul Walmsley <paul@pwsan.com> wrote:
-> On Mon, 16 Jul 2012, Omar Ramirez Luna wrote:
->
->> For a reset sequence to complete cleanly, a module needs its
->> associated clocks to be enabled, otherwise the timeout check
->> in prcm code can print a false failure (failed to hardreset)
->> that occurs because the clocks aren't powered ON and the status
->> bit checked can't transition without them.
->>
->> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
->
-> Is enabling the clocks sufficient?
+Changing omap2_mcspi_init() from subsys_initcall to device_initcall broke
+the display initialization on N900 when all the drivers are compiled
+built-in. Display subsystem drivers need a certain initialization order
+and having all of them initialize with device_initcall seems to be too
+fragile. Without this revert the display init fails and the boot hangs
+with the following messages:
 
-During my testing it seemed enough, besides it looks clk framework is
-doing the same as _omap4_enable_module.
+[    1.260955] acx565akm spi1.2: invalid display ID
+[    1.265899] panel-acx565akm display0: acx_panel_probe panel detect error
+[    1.273071] omapdss CORE error: driver probe failed: -19
 
-> Or do we also need to enable the
-> IP block, e.g. by calling
->
->         if (soc_ops.enable_module)
->                 soc_ops.enable_module(oh);
->
-> as we do on OMAP4+ in _enable() ?
+[...]
 
-Basically this is a call to _omap4_enable_module, and the latter will
-"Enable the modulemode inside CLKCTRL".
+[    1.902862] omapfb omapfb: no driver for display: lcd
+[    1.908264] omapfb omapfb: cannot find default display
 
-However, _enable_clocks path which ends calling omap2_dflt_clk_enable
-does the same thing with its clk->enable_reg field.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/spi/spi-omap2-mcspi.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-So in _enable:
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index 0c73dd4..8cec17c 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1289,5 +1289,18 @@ static struct platform_driver omap2_mcspi_driver = {
+ 	.remove =	__devexit_p(omap2_mcspi_remove),
+ };
+ 
+-module_platform_driver(omap2_mcspi_driver);
++
++static int __init omap2_mcspi_init(void)
++{
++	return platform_driver_register(&omap2_mcspi_driver);
++}
++subsys_initcall(omap2_mcspi_init);
++
++static void __exit omap2_mcspi_exit(void)
++{
++	platform_driver_unregister(&omap2_mcspi_driver);
++
++}
++module_exit(omap2_mcspi_exit);
++
+ MODULE_LICENSE("GPL");
+-- 
+1.7.2.5
 
-        _enable_clocks(oh);
-        if (soc_ops.enable_module)
-                soc_ops.enable_module(oh);
-
-The enable_module part seems redundant to me, since the module should
-be already enabled by the first call to _enable_clocks.
-
-Regards,
-
-Omar
