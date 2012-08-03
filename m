@@ -1,44 +1,52 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
- used on both cpus
-Date: Fri, 3 Aug 2012 08:22:15 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA7F2F9@DBDE01.ent.ti.com>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
- <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
- <501B7AE6.8080405@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
+Date: Fri, 3 Aug 2012 10:30:52 +0200
+Message-ID: <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com> <501B7AE6.8080405@gmail.com> <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34783 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179Ab2HCIW1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 04:22:27 -0400
-In-Reply-To: <501B7AE6.8080405@gmail.com>
-Content-Language: en-US
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62264 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752923Ab2HCIa4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 04:30:56 -0400
+Received: by eaac11 with SMTP id c11so103462eaa.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 01:30:55 -0700 (PDT)
+In-Reply-To: <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ccross@android.com" <ccross@android.com>, Paul Walmsley <paul@pwsan.com>
+To: Daniel Mack <zonque@gmail.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, ccross@android.com, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Fri, Aug 03, 2012 at 12:46:54, Daniel Mack wrote:
-> On 30.03.2012 15:27, Santosh Shilimkar wrote:
-> > For coupled cpuidle to work when both cpus are active, it needs a global timer
-> > that can handle events for both cpus.  This timer is used as the broadcast
-> > clock-event when the per-cpu timer hardware stop in low power states.
-> > Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
-> > set the irq to allow the clockevent core to determine the affinity of the
-> > timer.
+
+Op 3 aug. 2012, om 09:21 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+
 > 
-> These patches made it to mainline now, shortly befor 3.6-rc1, and it
-> breaks boot on my AM33xx board.
+> Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
 > 
+>> On 30.03.2012 15:27, Santosh Shilimkar wrote:
+>>> For coupled cpuidle to work when both cpus are active, it needs a global timer
+>>> that can handle events for both cpus.  This timer is used as the broadcast
+>>> clock-event when the per-cpu timer hardware stop in low power states.
+>>> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
+>>> set the irq to allow the clockevent core to determine the affinity of the
+>>> timer.
+>> 
+>> These patches made it to mainline now, shortly befor 3.6-rc1, and it
+>> breaks boot on my AM33xx board.
+>> 
+>> Once I revert 1/3, the board boots again but crashes with the Ooops
+>> below. With the entire series reverted, everything works again as
+>> expected. Any idea?
+>> 
+>> The upstream commit ids are
+>> 
+>> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
+>> both cpus"
+>> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
+>> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
+> 
+> I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case? 
 
-Thanks Daniel for testing and reporting. I haven't tried 3.6-rc1 yet, as 
-omap-linux/master has not yet migrated to it.
-I am testing it now, and will let you know on the status.
-
-Thanks,
-Vaibhav
-
-
+To answer my own question: No, the reverts aren't needed if you disable cpuidle.
