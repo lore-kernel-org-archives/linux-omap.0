@@ -1,88 +1,171 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 09/11] drivers: usb: musb: Add device tree support for
- omap musb glue
-Date: Fri, 3 Aug 2012 16:34:32 +0300
-Message-ID: <20120803133431.GK8269@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v6 10/11] arm/dts: omap: Add usb_otg and glue data
+Date: Fri, 3 Aug 2012 16:35:16 +0300
+Message-ID: <20120803133514.GL8269@arwen.pp.htv.fi>
 References: <1343639400-28725-1-git-send-email-kishon@ti.com>
- <1343639400-28725-10-git-send-email-kishon@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+ <1343639400-28725-11-git-send-email-kishon@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4521807135921983775=="
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1343639400-28725-10-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="I4VOKWutKNZEOIPu"
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1343639400-28725-11-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============4521807135921983775==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bX/mw5riLlTkt+Gv"
-Content-Disposition: inline
-
-
---bX/mw5riLlTkt+Gv
+--I4VOKWutKNZEOIPu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Jul 30, 2012 at 02:39:58PM +0530, Kishon Vijay Abraham I wrote:
-> Added device tree support for omap musb driver and updated the
-> Documentation with device tree binding information.
+On Mon, Jul 30, 2012 at 02:39:59PM +0530, Kishon Vijay Abraham I wrote:
+> Add usb otg data node in omap4/omap3 device tree file. Also update
+> the node with board specific setting in omapx-<board>.dts file.
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-This looks good and I think I can take this without any dependencies
-again. Correct ?
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> ---
+>  arch/arm/boot/dts/omap3-beagle.dts |    6 ++++++
+>  arch/arm/boot/dts/omap3-evm.dts    |    6 ++++++
+>  arch/arm/boot/dts/omap3.dtsi       |    8 ++++++++
+>  arch/arm/boot/dts/omap4-panda.dts  |    6 ++++++
+>  arch/arm/boot/dts/omap4-sdp.dts    |    6 ++++++
+>  arch/arm/boot/dts/omap4.dtsi       |    8 ++++++++
+>  6 files changed, 40 insertions(+)
+>=20
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3=
+-beagle.dts
+> index 5b4506c..f3d7076 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -67,3 +67,9 @@
+>  &mmc3 {
+>  	status =3D "disable";
+>  };
+> +
+> +&usb_otg_hs {
+> +	interface_type =3D <0>;
+> +	mode =3D <3>;
+> +	power =3D <50>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-ev=
+m.dts
+> index 2eee16e..8963b3d 100644
+> --- a/arch/arm/boot/dts/omap3-evm.dts
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -18,3 +18,9 @@
+>  		reg =3D <0x80000000 0x10000000>; /* 256 MB */
+>  	};
+>  };
+> +
+> +&usb_otg_hs {
+> +	interface_type =3D <0>;
+> +	mode =3D <3>;
+> +	power =3D <50>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index 99474fa..4b8c142 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -215,5 +215,13 @@
+>  			compatible =3D "ti,omap3-hsmmc";
+>  			ti,hwmods =3D "mmc3";
+>  		};
+> +
+> +		usb_otg_hs: usb_otg_hs {
+> +			compatible =3D "ti,omap3-musb";
+> +			ti,hwmods =3D "usb_otg_hs";
+> +			multipoint =3D <1>;
+> +			num_eps =3D <16>;
+> +			ram_bits =3D <12>;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-=
+panda.dts
+> index 7052422..dd19370 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -93,3 +93,9 @@
+>  &twlusb {
+>  	usb-supply =3D <&vusb>;
+>  };
+> +
+> +&usb_otg_hs {
+> +	interface_type =3D <1>;
+> +	mode =3D <3>;
+> +	power =3D <50>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sd=
+p.dts
+> index 6326d7c..0fc10d4 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -162,3 +162,9 @@
+>  &twlusb {
+>  	usb-supply =3D <&vusb>;
+>  };
+> +
+> +&usb_otg_hs {
+> +	interface_type =3D <1>;
+> +	mode =3D <3>;
+> +	power =3D <50>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 15f1890..7886518 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -285,5 +285,13 @@
+>  				      <0x4a002300 0x1>;
+>  			};
+>  		};
+> +
+> +		usb_otg_hs: usb_otg_hs {
+> +			compatible =3D "ti,omap4-musb";
+> +			ti,hwmods =3D "usb_otg_hs";
+> +			multipoint =3D <1>;
+> +			num_eps =3D <16>;
+> +			ram_bits =3D <12>;
+> +		};
+>  	};
+>  };
+> --=20
+> 1.7.9.5
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 balbi
 
---bX/mw5riLlTkt+Gv
+--I4VOKWutKNZEOIPu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQG9NnAAoJEIaOsuA1yqREZBsP/js9p/cI/Hbjf+ikzVwMf4rJ
-ZjXmUQxX+IxSZF3cT0z6Fl9CHXPvfDXoHYcuUq73DcUKAMxUrlpalMGGvbPwhmHb
-7+46RqEfRFxD66pb20qEew+hV7cF+Q0j4kZPQs+jWwaGJojhWOAqAdkHGIcVIr6s
-Vn9P3Rj92ItIUQW9xZcnoIsiGL+0SaoBhE/LFHujJM9TU4hFkWQAn+twAuJMTL8Q
-GAEHeLXjEa5OIuHC8yuE8zDeP1ztBoo9UpLyczMdSiqc4HNmDkTHcaC+cePSR3nu
-EkbeIsTzn2mQQwMeL0kj7RizHMlktoWKryGbrh3UeELi3mvJapPTCeQkvldnd54r
-/JYiNx85p/QGGj9HOua2BQWdHxmbI2noGr4KhKWnwKwBt8ItYqHCOJqquvESvVgW
-tax6OfsLTuKD/dnYM+vHe3Q3EUGFMFADZVGuXfPpQi7jUWCRNWkNBBWhhDpPNDQ9
-W9HSmYhE72apEVwwLtYifVmL/RGUHHAzHHJRaX3R9MAH7qqmQdT3/WZz4UpMH1xU
-oubMI18FhAMrEp6x/5X0iTXKfotLr08HPB1r0ahTDkLSoNNh1JLJQO2I7uzMNkYI
-YHrQfIG0inHMX1pwD42ncz9XBEcyoj88SmYwCiBDsrKZV2S7cg6vhji7euJIHn/u
-L8y6uN1wFnqLWom/Ynx2
-=gadd
+iQIcBAEBAgAGBQJQG9OSAAoJEIaOsuA1yqREYC4P/1FwOeggbhQbv5FTavoxr6BH
+EPgFUfnGfWDYgigcdpre+ngLcqYeVMvMxmKZ5YJUMrc8gRz6JnHDJE6WH2Fivugd
+6j4LGf8htgGXAdSg8mhqPpW6WHg/IBq4PPgluVPdRCW7ocTivdv7JyTtREtaKByL
+POHiwV6xqDXN+yHCSJeN+V4E81NtD33nW3DI5MdQXKkxyvWvkVrYRCfKwEydP/Gp
+aZIL9UlBJoU+jNUjj4ZcgosMgTlo4Gz7to4XO2JQcU33RKceAvCYop6G6xp1szDb
+guTjE3StVLpeSPK53gb2TVQmVER6kXqoGx1P/g0jVK6UqH3zsGzCWDJser4BauAa
+39jvGflqZ4tvrNqaWwMgj0TGfMNoWAAMfL3R6BLH/33B7eG7CeqRQ0xaygLK3RIp
+ypqrp4cxvt9ksgGYLkmurQDGItLjaAQJcztB75N5Elz3TZXj9tkXUXxkHZbhcqnJ
+44mstPyTCSrd4qF0v3tbvMiXUaqOQXw/eOLhGa2NFGD/Ipk/bbBnLZszX4XpdAyS
+Aq7eWjG7afnjASMjJgGvNzYPm/Jj9SRbRencI8x/1P4dN5o3I+JriRGj/keabtLn
+8mvhVvpyVMQN9ASzXRZ4PmwibpRxSOOsZVtInCTzdbrtlYzYT9PufECqjvyjJyt3
+bVjqYLX+egnP4z6Z9FtF
+=EMR0
 -----END PGP SIGNATURE-----
 
---bX/mw5riLlTkt+Gv--
-
---===============4521807135921983775==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-devicetree-discuss mailing list
-devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-https://lists.ozlabs.org/listinfo/devicetree-discuss
-
---===============4521807135921983775==--
+--I4VOKWutKNZEOIPu--
