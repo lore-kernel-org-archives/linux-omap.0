@@ -1,29 +1,75 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 0/4] Add device tree data for omap5
-Date: Fri, 3 Aug 2012 18:08:02 +0530
-Message-ID: <1343997486-710-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 1/4] arm/dts: omap5-evm: Add I2C support
+Date: Fri, 3 Aug 2012 18:08:03 +0530
+Message-ID: <1343997486-710-2-git-send-email-sourav.poddar@ti.com>
+References: <1343997486-710-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1343997486-710-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following patch series add i2c support for omap5.
-As well as enable I2C based devices like pressure and temperature
-through device tree. Also add onchip keypad dts data.
+Add I2C data node in omap5 device tree file.
+
+Tested on omap5430 sdp.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/omap5.dtsi |   35 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 35 insertions(+), 0 deletions(-)
 
-Sourav Poddar (4):
-  arm/dts: omap5-evm: Add I2C support
-  arm/dts: omap5-evm: Add tmp102 sensor support
-  arm/dts: omap5-evm: Add keypad data
-  arm/dts: omap5-evm: Add bmp085 sensor support
-
- arch/arm/boot/dts/omap5-evm.dts |   30 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi    |   40 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 0 deletions(-)
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 57e5270..6b68dfe 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -145,6 +145,41 @@
+ 			#interrupt-cells = <1>;
+ 		};
+ 
++		i2c1: i2c@48070000 {
++			compatible = "ti,omap4-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c1";
++		};
++
++		i2c2: i2c@48072000 {
++			compatible = "ti,omap4-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c2";
++		};
++
++		i2c3: i2c@48060000 {
++			compatible = "ti,omap4-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c3";
++		};
++
++		i2c4: i2c@4807A000 {
++			compatible = "ti,omap4-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c4";
++		};
++
++		i2c5: i2c@4807C000 {
++			compatible = "ti,omap4-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c5";
++		};
++
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap4-uart";
+ 			ti,hwmods = "uart1";
+-- 
+1.7.1
