@@ -1,56 +1,33 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH v2 1/2] arm/dts: AM33XX: Add D_CAN device tree data
-Date: Fri, 3 Aug 2012 11:58:41 +0530
-Message-ID: <501B6F99.4020506@ti.com>
-References: <1343219012-19472-1-git-send-email-anilkumar@ti.com> <1343219012-19472-2-git-send-email-anilkumar@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] OMAP4: otg: phy: remove uggly mdelay(200)
+Date: Fri, 3 Aug 2012 12:21:35 +0530
+Message-ID: <CAAe_U6K5n5SEBDR1vgaoc1+MQB=_aQ7yc0jBu1BFgX-D5ZPt8w@mail.gmail.com>
+References: <1341477739-6801-1-git-send-email-ruslan.bilovol@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42664 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056Ab2HCG26 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Aug 2012 02:28:58 -0400
-In-Reply-To: <1343219012-19472-2-git-send-email-anilkumar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1341477739-6801-1-git-send-email-ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, mkl@pengutronix.de, linux-arm-kernel@lists.infradead.org
 
+Hi,
 
+On Thu, Jul 5, 2012 at 2:12 PM, Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org> wrote:
+> The original issue with powering on the PHY (and using
+> 200 ms delay after this) is not related to internal
+> processes in the PHY but is in the incorrect charger
+> detection feature usage.
+>
+> Now when it is fixed, we can safely remove this uggly
 
-On 7/25/2012 5:53 PM, AnilKumar Ch wrote:
-> Add Bosch D_CAN controller device tree data to AM33XX dtsi file
-> by adding d_can device node with all the necessary parameters.
-> 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  arch/arm/boot/dts/am33xx.dtsi |    5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index 9b974dc..2db2ffb 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -163,5 +163,10 @@
->  			#size-cells = <0>;
->  			ti,hwmods = "i2c3";
->  		};
-> +
-> +		dcan1: d_can@481D0000 {
-> +			compatible = "bosch,d_can";
-> +			ti,hwmods = "d_can1";
-> +		};
+So is this 200ms delay related to incorrect charger detection? How is
+it now fixed without the delay?
 
-Anil,
-
-Any reason why we are only specifying dcan1 instance? Shouldn't we
-specify dcan0 as well here?
-
-Thanks,
-Vaibhav
-
-
->  	};
->  };
-> 
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
