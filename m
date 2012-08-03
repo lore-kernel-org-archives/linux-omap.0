@@ -1,119 +1,110 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
- used on both cpus
-Date: Fri, 3 Aug 2012 15:44:32 +0530
-Message-ID: <CAMQu2gz-93W9zWD_v3m1nQkqmnvFwcWKDTxNsf0v39y9_rhQPA@mail.gmail.com>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
- <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
- <501B7AE6.8080405@gmail.com> <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
- <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
- <CAMQu2gxLAVk-LN8R1xBeeL1=iZ-mLSRmtZe4wpQYQPTBsY5RMA@mail.gmail.com>
- <FF29FBF3-67EC-478E-9A74-65F8A2870BDC@dominion.thruhere.net>
- <79CD15C6BA57404B839C016229A409A83EA7F59B@DBDE01.ent.ti.com> <A6396D46-C6B9-44A4-A960-657668AF08E4@dominion.thruhere.net>
+From: "N, Mugunthan V" <mugunthanvnm@ti.com>
+Subject: RE: Current state of AM33xx patches
+Date: Fri, 3 Aug 2012 10:17:08 +0000
+Message-ID: <EB1619762EAF8B4E97A227FB77B7E0293E9D3BF8@DBDE01.ent.ti.com>
+References: <4FD5BA4C.9070706@gmail.com> <4FE326A8.8090807@gmail.com>
+ <4FE8AB37.7030907@gmail.com> <4FE9A00B.6010908@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EA5B7FD@DBDE01.ent.ti.com>
+ <4FEC7394.9030208@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA5FBC1@DBDE01.ent.ti.com>
+ <4FEDF54D.4030609@gmail.com>
+ <alpine.DEB.2.00.1206291938180.2338@utopia.booyaka.com>
+ <4FEEC7F2.8070507@gmail.com>
+ <alpine.DEB.2.00.1207040403010.6760@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A83EA635DC@DBDE01.ent.ti.com>
+ <4FF42761.2000701@gmail.com>
+ <EB1619762EAF8B4E97A227FB77B7E0293E9C2548@DBDE01.ent.ti.com>
+ <500CEF97.4050207@gmail.com>
+ <EB1619762EAF8B4E97A227FB77B7E0293E9D04EB@DBDE01.ent.ti.com>
+ <501159C3.3020109@gmail.com>
+ <704C899A-606B-41A3-99E8-6D92C0EA5BC5@dominion.thruhere.net>
+ <50116926.4060309@gmail.com>
+ <587C7FB9-2DD3-48EE-B74D-BEBDF199BE23@dominion.thruhere.net>
+ <50118272.1050209@gmail.com>
+ <9F9237B3-55BD-471B-ADD1-1A18F3644387@dominion.thruhere.net>
+ <501A9D1C.8080305@gmail.com>
+ <98DC2F80-9AD6-4A65-8FA8-3B2AABF72692@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:59152 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496Ab2HCKPB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 06:15:01 -0400
-Received: by yhnn12 with SMTP id n12so544852yhn.10
-        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 03:14:55 -0700 (PDT)
-In-Reply-To: <A6396D46-C6B9-44A4-A960-657668AF08E4@dominion.thruhere.net>
+Received: from bear.ext.ti.com ([192.94.94.41]:54286 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337Ab2HCKRV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 06:17:21 -0400
+In-Reply-To: <98DC2F80-9AD6-4A65-8FA8-3B2AABF72692@dominion.thruhere.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ccross@android.com" <ccross@android.com>, Paul Walmsley <paul@pwsan.com>
+To: Koen Kooi <koen@dominion.thruhere.net>, Daniel Mack <zonque@gmail.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nori, Sekhar" <nsekhar@ti.com>, Jason Kridner <jkridner@gmail.com>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Hernandez, Carlos" <ceh@ti.com>, "Maupin, Chase" <chase.maupin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kridner, Jason" <jdk@ti.com>
 
-On Fri, Aug 3, 2012 at 3:34 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
->
-> Op 3 aug. 2012, om 11:42 heeft "Hiremath, Vaibhav" <hvaibhav@ti.com> het volgende geschreven:
->
->> On Fri, Aug 03, 2012 at 15:03:07, Koen Kooi wrote:
->>>
->>> Op 3 aug. 2012, om 11:27 heeft "Shilimkar, Santosh" <santosh.shilimkar@ti.com> het volgende geschreven:
->>>
->>>> On Fri, Aug 3, 2012 at 2:00 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
->>>>>
->>>>> Op 3 aug. 2012, om 09:21 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
->>>>>
->>>>>>
->>>>>> Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
->>>>>>
->>>>>>> On 30.03.2012 15:27, Santosh Shilimkar wrote:
->>>>>>>> For coupled cpuidle to work when both cpus are active, it needs a global timer
->>>>>>>> that can handle events for both cpus.  This timer is used as the broadcast
->>>>>>>> clock-event when the per-cpu timer hardware stop in low power states.
->>>>>>>> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
->>>>>>>> set the irq to allow the clockevent core to determine the affinity of the
->>>>>>>> timer.
->>>>>>>
->>>>>>> These patches made it to mainline now, shortly befor 3.6-rc1, and it
->>>>>>> breaks boot on my AM33xx board.
->>>>>>>
->>>>>>> Once I revert 1/3, the board boots again but crashes with the Ooops
->>>>>>> below. With the entire series reverted, everything works again as
->>>>>>> expected. Any idea?
->>>>>>>
->>>>>>> The upstream commit ids are
->>>>>>>
->>>>>>> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
->>>>>>> both cpus"
->>>>>>> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
->>>>>>> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
->>>>>>
->>>>>> I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case?
->>>>>
->>>>> To answer my own question: No, the reverts aren't needed if you disable cpuidle.
->>>>
->>>> This is really strange since CPUIDLE code is really OMAP4 specific.
->>>> obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
->>>>
->>>> May be omap2plus build some how the code gets executed on AMXX
->>>>
->>>> Can you try below and see if the boot with CPUIDLE enabled goes away on
->>>> AMXX
->>>>
->>>> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
->>>> index ea24174..195e756 100644
->>>> --- a/arch/arm/mach-omap2/pm44xx.c
->>>> +++ b/arch/arm/mach-omap2/pm44xx.c
->>>> @@ -147,6 +147,9 @@ int __init omap4_pm_init(void)
->>>>       struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
->>>>       struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
->>>>
->>>> +       if (!cpu_is_omap44xx())
->>>> +               return -ENODEV;
->>>> +
->>>>       if (omap_rev() == OMAP4430_REV_ES1_0) {
->>>>               WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
->>>>               return -ENODEV;
->>>
->>> That does seem to fix it:
->>>
->>> root@beaglebone:~# zcat /proc/config.gz | grep -i cpu_idle
->>> CONFIG_CPU_IDLE=y
->>> CONFIG_CPU_IDLE_GOV_LADDER=y
->>> CONFIG_CPU_IDLE_GOV_MENU=y
->>> CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=y
->>> root@beaglebone:~# zcat /proc/config.gz | grep -i omap4
->>> CONFIG_ARCH_OMAP4=y
->>> CONFIG_MACH_OMAP4_PANDA=y
->>> # CONFIG_OMAP4_ERRATA_I688 is not set
->>> # CONFIG_KEYBOARD_OMAP4 is not set
->>> CONFIG_OMAP4_DSS_HDMI=y
->>>
->>
->> This patch is not required, Without this patch is works for me,
->
-> I just retested and I don't need Santosh' patch, booting with cpuidle enable works now, after refreshing your patchset (and dropping the rtc commit, it conflicts with the other rtc patches out there).
->
-Thanks Koen for confirming. That means the issues was coming from
-additional patching on top of 3.6-rc1
-where some patches were not refreshed for AMXX.
+> -----Original Message-----
+> From: Koen Kooi [mailto:koen@dominion.thruhere.net]
+> Sent: Thursday, August 02, 2012 9:08 PM
+> To: Daniel Mack
+> Cc: N, Mugunthan V; Hiremath, Vaibhav; Paul Walmsley; Nori, Sekhar;
+> Jason Kridner; Tony Lindgren; Hilman, Kevin; Hernandez, Carlos; Maupin,
+> Chase; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Kridner, Jason
+> Subject: Re: Current state of AM33xx patches
+> 
+> 
+> Op 2 aug. 2012, om 17:30 heeft Daniel Mack <zonque@gmail.com> het
+> volgende geschreven:
+> 
+> > On 31.07.2012 21:29, Koen Kooi wrote:
+> >
+> >> 2/3 of the way there:
+> >>
+> >> http://patchwork.ozlabs.org/patch/174085/
+> >> http://patchwork.ozlabs.org/patch/174086/
+> >>
+> >> I keep failing to create a .dts that doesn't upset the dtc, so I
+> don't have it working yet :(
+> >
+> > Yes, that's because there are couple of sytax errors in the example
+> > bindings.
+> 
+> Not only that, it's actually missing params and other params are wrong.
+> See my non-constructive rant in the commit message:
+> http://dominion.thruhere.net/koen/angstrom/beaglebone/0001-beaglebone-
+> add-broken-cpsw-DT.patch
+> 
+> But I still can't get it working:
+> 
+> root@beaglebone:~# dmesg | grep -i cpsw
+> [   13.504425] net eth0: initializing cpsw version 1.12 (0)
+> 
+> root@beaglebone:~# dmesg | grep -i phy
+> [    0.000000] Booting Linux on physical CPU 0
+> [    0.228496] nop_usb_xceiv phy.17: transceiver type USB2 PHY already
+> exists
+> [   13.512056] libphy: PHY davinci_mdio-0:00 not found
+> [   13.517168] net eth0: phy davinci_mdio-0:00 not found on slave 0
+> [   13.523516] libphy: PHY davinci_mdio-0:01 not found
+> [   13.528675] net eth0: phy davinci_mdio-0:01 not found on slave 1
+> 
+> root@beaglebone:~# ifconfig -a | grep eth
+> eth0      Link encap:Ethernet  HWaddr 00:04:9F:01:1B:B8
+> 
+> > Mugunthan, could you repost these patches and at least copy
+> > devicetree-discuss@lists.ozlabs.org and the ARM kernel mailing list?
+> I
+> > can't comment on the patches you sent to netdev@vger.kernel.org
+> because
+> > I'm not currently subscribed to that list.
+> 
+> 
+> Same here, I'm only on l-o, but I guess I'll need to subscribe dt-
+> discuss in the near future :)
+> 
+> regards,
+> 
+> Koen
+
+I am not aware that the examples should simple be copy pastable and so had
+a non compatible example. Will fix this in the next version and will be posting soon.
 
 Regards
-Santosh
-
-Regards
-Santosh
+Mugunthan V N
