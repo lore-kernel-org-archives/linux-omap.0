@@ -1,40 +1,69 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] Revert "spi: omap2-mcspi: convert to module_platform_driver"
-Date: Thu, 2 Aug 2012 17:54:08 -0600
-Message-ID: <CACxGe6scCYLpsEDGGwaXw_ijAk027w6Mk7D7FSOTZZdC6VkKSg@mail.gmail.com>
-References: <1343948917-14760-1-git-send-email-aaro.koskinen@iki.fi>
+From: "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v7 00/11] usb: musb: adding multi instance support
+Date: Fri, 3 Aug 2012 00:54:24 +0000
+Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63E9DB6AE@DBDE01.ent.ti.com>
+References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
+ <501AFA6B.4010005@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:53171 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760Ab2HBXy3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Aug 2012 19:54:29 -0400
-Received: by vcbfk26 with SMTP id fk26so145236vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Aug 2012 16:54:28 -0700 (PDT)
-In-Reply-To: <1343948917-14760-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <501AFA6B.4010005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, balbi@ti.com, tomi.valkeinen@ti.com
 
-On Thu, Aug 2, 2012 at 5:08 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> This reverts commit 9fdca9dfe093c76fe1ac1a09888ba9679d46996a.
->
-> Changing omap2_mcspi_init() from subsys_initcall to device_initcall broke
-> the display initialization on N900 when all the drivers are compiled
-> built-in. Display subsystem drivers need a certain initialization order
-> and having all of them initialize with device_initcall seems to be too
-> fragile. Without this revert the display init fails and the boot hangs
-> with the following messages:
->
-> [    1.260955] acx565akm spi1.2: invalid display ID
-> [    1.265899] panel-acx565akm display0: acx_panel_probe panel detect error
-> [    1.273071] omapdss CORE error: driver probe failed: -19
+Hi
 
-The dependencies are all messed up. The reverted commit is part of
-fixing that and I don't really want to go backwards on it. How many
-drivers are failing? Can you try modifying the failure path of those
-drivers to return -EPROBE_DEFER and see if that helps?
+> 
+> On 02.08.2012 14:12, Ravi Babu wrote:
+> > This series of patches adds,
+> > a) Multi instances support in musb driver
+> > b) DT support for musb_dsps glue layer
+> > c) DT support for NOP transceiver
+> > 
+> > AM33xx and TI81xx has dual musb controller and has two usb 
+> PHY of same type.
+> > This patch series uses 'phandle' based API 
+> > devm_usb_get_phy_by_phandle() to get the PHY of same type. This API 
+> > support is being added by Kishon's patch discussed at [1]
+> > 
+> > The series applies to linux-omap (master branch)
+> > 	+ Vaibhav baseport patches on his tree at [3]
+> > 	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
+> > 	+ Kishon's patch on phandle at [1]
+> > 	+ AM33xx musb glue compile and bugfix patches at [4], 
+> [5], [6] and [7]
+> > 	+ Damodar's recent patch at [2]
+> > 
+> > and have been tested on Beaglebone board.
 
-g.
+Have you applied the above patches before applying these patches.
+
+Ravi Babu
+
+> 
+> I would like to test these patches on a custom AM33xx board, 
+> but I'm having trouble applying them. I am based on Linus' 
+> master tree, and "git am" fails for 
+> drivers/usb/musb/musb_dsps.c. The commits I got for that file are:
+> 
+> ded017ee6 usb: phy: fix return value check of usb_get_phy 
+> 662dca54c usb: otg: support for multiple transceivers by a 
+> single controller
+> 721002ec1 usb: otg: utils: rename function name in OTG utils
+> 9ecb88752 usb: musb: Add support for ti81xx platform
+> 
+> I wonder which branch you are based on and which tree those 
+> patches should go thru eventually.
+> 
+> 
+> Thanks,
+> Daniel
+> 
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
