@@ -1,49 +1,31 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 1/4] arm/dts: omap5-evm: Add I2C support
-Date: Fri, 03 Aug 2012 21:22:19 +0400
-Message-ID: <501C08CB.3060701@mvista.com>
-References: <1343997486-710-1-git-send-email-sourav.poddar@ti.com> <1343997486-710-2-git-send-email-sourav.poddar@ti.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH v3] printk: add option to print cpu id
+Date: Fri, 03 Aug 2012 10:54:27 -0700
+Message-ID: <m2628z6euk.fsf@firstfloor.org>
+References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343997486-710-2-git-send-email-sourav.poddar@ti.com>
+In-Reply-To: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com> (Vikram
+	Pandita's message of "Fri, 3 Aug 2012 09:56:44 -0700")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: gregkh@linuxfoundation.org, kay@vrfy.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Vikram Pandita <vikram.pandita@ti.com> writes:
 
-On 08/03/2012 04:38 PM, Sourav Poddar wrote:
+> From: Vikram Pandita <vikram.pandita@ti.com>
+>
+> Introduce config option to enable CPU id reporting for printk() calls.
 
-> Add I2C data node in omap5 device tree file.
+What's wrong with using trace_printk for this? That's much faster
+anyways. Generally printk is so slow that it's typically useless for
+instrumenting races.
 
-> Tested on omap5430 sdp.
+And really: Wasting 1/3 of the 80 character line is too much.
 
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
->  arch/arm/boot/dts/omap5.dtsi |   35 +++++++++++++++++++++++++++++++++++
->  1 files changed, 35 insertions(+), 0 deletions(-)
+-Andi
 
-> diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-> index 57e5270..6b68dfe 100644
-> --- a/arch/arm/boot/dts/omap5.dtsi
-> +++ b/arch/arm/boot/dts/omap5.dtsi
-> @@ -145,6 +145,41 @@
->  			#interrupt-cells = <1>;
->  		};
->  
-> +		i2c1: i2c@48070000 {
-> +			compatible = "ti,omap4-i2c";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			ti,hwmods = "i2c1";
-
-   Address postfix in the node name and no "reg" property?
-
-WBR, Sergei
+-- 
+ak@linux.intel.com -- Speaking for myself only
