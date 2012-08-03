@@ -1,68 +1,66 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 03/11] drivers: usb: otg: make twl6030_usb as a
- comparator driver to omap_usb2
-Date: Fri, 3 Aug 2012 16:28:53 +0300
-Message-ID: <20120803132852.GE8269@arwen.pp.htv.fi>
+Subject: Re: [PATCH v6 04/11] arm: omap: hwmod: add a new addr space in otg
+ for writing to control module
+Date: Fri, 3 Aug 2012 16:29:46 +0300
+Message-ID: <20120803132945.GF8269@arwen.pp.htv.fi>
 References: <1343639400-28725-1-git-send-email-kishon@ti.com>
- <1343639400-28725-4-git-send-email-kishon@ti.com>
+ <1343639400-28725-5-git-send-email-kishon@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
+	protocol="application/pgp-signature"; boundary="FoLtEtfbNGMjfgrs"
 Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1343639400-28725-4-git-send-email-kishon@ti.com>
+In-Reply-To: <1343639400-28725-5-git-send-email-kishon@ti.com>
 Sender: linux-doc-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---hwvH6HDNit2nSK4j
+--FoLtEtfbNGMjfgrs
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Mon, Jul 30, 2012 at 02:39:52PM +0530, Kishon Vijay Abraham I wrote:
-> All the PHY configuration other than VBUS, ID GND and OTG SRP are removed
-> from twl6030. The phy configurations are taken care by the dedicated
-> usb2 phy driver. So twl6030 is made as comparator driver for VBUS and
-> ID detection.
+On Mon, Jul 30, 2012 at 02:39:53PM +0530, Kishon Vijay Abraham I wrote:
+> The mailbox register for usb otg in omap is present in control module.
+> On detection of any events VBUS or ID, this register should be written
+> to send the notification to musb core.
 >=20
-> Writing to control module which is now handled in omap2430.c should be
-> removed once a driver for control module is in place.
+> Till we have a separate control module driver to write to control module,
+> omap2430 will handle the register writes to control module by itself. So
+> a new address space to represent this control module register is added
+> to usb_otg_hs.
 >=20
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-This looks good for the time being. Do you think it has any hard
-dependencies on your new phy drivers, or can I apply this without those
-other patches ??
+this should come before previous patch, right ? Otherwise we will try to
+ioremap a resource which isn't passed down to driver. No ?
 
 --=20
 balbi
 
---hwvH6HDNit2nSK4j
+--FoLtEtfbNGMjfgrs
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQG9IUAAoJEIaOsuA1yqREsCkP/2rDy2Re7qFXgQ3oNSuVf9V9
-VudMHTfo+AfMHKRl+TeD9RH9H2Cr7agrfhMy1G0WOznh43bmqkDkYO8If1y6fojc
-wIo7Bril2heOaywIF3v3oQPDqnKMIFFZJncBYttKGY5kzozTySmCgxusBLN7dugr
-+sT0v7Gqb06tz3wYvGlGXzC4ueOqmu78YfSD8FMAZeOSNtwiWoG7/O03Mg4dvFdy
-tuA/WQNMkvKZPFQNYUPHsYLQlyWMc8ANbFfQyKO8xxTWGiu8NPpjCcqodLRQWnDk
-kbKYGWHPomvKL8W21TWirl91FDCB7KGuDA9Hw8U5KxP3cJ3QP0+AzDi3T0IhPbTP
-MSRWt/tj+m5aDC0H1EMACTQ8uaGN8HknzxR50YWUARIBce5awZnj71US55Jzd1ne
-xHnxwP1ito+xUrDHNpI08Ckxk0yAv8cNOKDytuijeqkLzSl+wLZPAgcm8afVN203
-A1Psf8iTVo5jFajWNUoIP53YZ/Do7cmWnE0lxLRxUJtca6/Ged4TLj3d1ma98PBT
-rscJ2nziKS8qUjdwEOcw5H6Q9QiCS348IdakypxSWRoaix9da1xBjJUZB2iQfbG8
-naSouQdN/Q2Cc32/qwV6pogkNlqWX7XioZPxbfL+rH9kEkBsmz58TNFsQpvBx2sG
-p12olqejxY9wHO6og6sx
-=JDjb
+iQIcBAEBAgAGBQJQG9JJAAoJEIaOsuA1yqREnXAP/36/NQV5OtS2pQIu3629edXj
+vL1asGoL52Ns5ncESoak4aJrPADSxEkgY97aeIJwAQ5bwxVOAiHGJ4kuBH5JNLsM
+vbpn6QAViGPfZhX6ODTezG7CwFNsXXnW54pmLCZPH+RDcXJ3H/jfRM/pG4IE2eBb
+YwkdnBjZ5TjnMeCfltwm7hxk8SUYnBE7yyeT7aihL3DXy1WHsWWaurWvHJiObJMl
++rCAk9J3IojLLbiVZlcU4Wljk62cpl3zud759qIryUvaz6mrbKCJTIbaWd4z9PJc
+T++l6TMHOuLTBXakEq63qNn2Waik6t045r968oju4+iu0N6k5KeuNcOyZ1LK/Nfd
+6XPRSGSwOMD/stT2e8BZWT7hpfY+F9TXih+6EDa2iVVhW5S3U1wG1YPjcIPQ7nWC
+2xF3vzi4vK0RuiW97HrgAms7fI6oSPdvMbSgFTi4mqbFeA4GJ3Ti/+1EBlYssyOO
+9YLtoj+8ck07vsLCOd2Pq+UYe8vdvW3HP/YRGy/BZzMarPKn53enpmZZq48jzo4T
+atdtYj7e2xXuUUxffFEsSexkJOJSV3MV3830e5dN/yO082JtWFpaYqVizlizKKzN
+3z3V9iSnWJJfBIqQKrsG+UCsBSLRr1RSeioIbqvf7d8Yc9btdTWRx/zHl3Ol7WDW
+fQATjUc017aYWYyjHyG0
+=2xOM
 -----END PGP SIGNATURE-----
 
---hwvH6HDNit2nSK4j--
+--FoLtEtfbNGMjfgrs--
