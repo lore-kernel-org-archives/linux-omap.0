@@ -1,69 +1,75 @@
-From: "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v7 00/11] usb: musb: adding multi instance support
-Date: Fri, 3 Aug 2012 00:54:24 +0000
-Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63E9DB6AE@DBDE01.ent.ti.com>
-References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
- <501AFA6B.4010005@gmail.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP: hwmod: revise deassert sequence
+Date: Fri, 3 Aug 2012 10:54:47 +0530
+Message-ID: <501B609F.9030403@ti.com>
+References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org> <1342466485-1050-3-git-send-email-omar.luna@linaro.org> <alpine.DEB.2.00.1208020150240.4177@utopia.booyaka.com> <CALLhW=6-b+kjfG-u3+uXiD64UwoNEdufjJKu0Mx-sGWp6n9csg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <501AFA6B.4010005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Mack <zonque-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CALLhW=6-b+kjfG-u3+uXiD64UwoNEdufjJKu0Mx-sGWp6n9csg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi
 
-> 
-> On 02.08.2012 14:12, Ravi Babu wrote:
-> > This series of patches adds,
-> > a) Multi instances support in musb driver
-> > b) DT support for musb_dsps glue layer
-> > c) DT support for NOP transceiver
-> > 
-> > AM33xx and TI81xx has dual musb controller and has two usb 
-> PHY of same type.
-> > This patch series uses 'phandle' based API 
-> > devm_usb_get_phy_by_phandle() to get the PHY of same type. This API 
-> > support is being added by Kishon's patch discussed at [1]
-> > 
-> > The series applies to linux-omap (master branch)
-> > 	+ Vaibhav baseport patches on his tree at [3]
-> > 	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
-> > 	+ Kishon's patch on phandle at [1]
-> > 	+ AM33xx musb glue compile and bugfix patches at [4], 
-> [5], [6] and [7]
-> > 	+ Damodar's recent patch at [2]
-> > 
-> > and have been tested on Beaglebone board.
 
-Have you applied the above patches before applying these patches.
+On 8/3/2012 3:50 AM, Omar Ramirez Luna wrote:
+> Hi.
+> 
+> On 2 August 2012 02:52, Paul Walmsley <paul@pwsan.com> wrote:
+>> On Mon, 16 Jul 2012, Omar Ramirez Luna wrote:
+>>
+>>> For a reset sequence to complete cleanly, a module needs its
+>>> associated clocks to be enabled, otherwise the timeout check
+>>> in prcm code can print a false failure (failed to hardreset)
+>>> that occurs because the clocks aren't powered ON and the status
+>>> bit checked can't transition without them.
+>>>
+>>> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
+>>
+>> Is enabling the clocks sufficient?
+> 
+> During my testing it seemed enough, besides it looks clk framework is
+> doing the same as _omap4_enable_module.
+> 
+>> Or do we also need to enable the
+>> IP block, e.g. by calling
+>>
+>>         if (soc_ops.enable_module)
+>>                 soc_ops.enable_module(oh);
+>>
+>> as we do on OMAP4+ in _enable() ?
+> 
+> Basically this is a call to _omap4_enable_module, and the latter will
+> "Enable the modulemode inside CLKCTRL".
+> 
+> However, _enable_clocks path which ends calling omap2_dflt_clk_enable
+> does the same thing with its clk->enable_reg field.
+> 
+> So in _enable:
+> 
+>         _enable_clocks(oh);
+>         if (soc_ops.enable_module)
+>                 soc_ops.enable_module(oh);
+> 
+> The enable_module part seems redundant to me, since the module should
+> be already enabled by the first call to _enable_clocks.
+> 
 
-Ravi Babu
+Yes they do same thing, I believe the plan is to get rid of all clock
+leaf-nodes in the near future, and let hwmod handle module
+enable/disable part.
 
+Thanks,
+Vaibhav
+
+> Regards,
 > 
-> I would like to test these patches on a custom AM33xx board, 
-> but I'm having trouble applying them. I am based on Linus' 
-> master tree, and "git am" fails for 
-> drivers/usb/musb/musb_dsps.c. The commits I got for that file are:
-> 
-> ded017ee6 usb: phy: fix return value check of usb_get_phy 
-> 662dca54c usb: otg: support for multiple transceivers by a 
-> single controller
-> 721002ec1 usb: otg: utils: rename function name in OTG utils
-> 9ecb88752 usb: musb: Add support for ti81xx platform
-> 
-> I wonder which branch you are based on and which tree those 
-> patches should go thru eventually.
-> 
-> 
-> Thanks,
-> Daniel
-> 
+> Omar
 > --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
