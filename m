@@ -1,65 +1,83 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 07/11] drivers: usb: twl4030: Add device tree support
- for twl4030 usb
-Date: Fri, 3 Aug 2012 16:32:15 +0300
-Message-ID: <20120803133214.GI8269@arwen.pp.htv.fi>
-References: <1343639400-28725-1-git-send-email-kishon@ti.com>
- <1343639400-28725-8-git-send-email-kishon@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/2] OMAP4: otg: phy: fix charger detection
+Date: Fri, 3 Aug 2012 16:35:51 +0300
+Message-ID: <CAEa47NrvDvL=DLT2Qs4k9fZpW=98WZDg+zJwrt6qgtRO0oC=+g@mail.gmail.com>
+References: <1341477720-6771-1-git-send-email-ruslan.bilovol@ti.com>
+	<CAAe_U6+w8VbYcCXDZ6wPzu4hrF-MSpXdArz6nogPbfZ0m2E=Ag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Rmm1Stw9KgbdL9/H"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1343639400-28725-8-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <CAAe_U6+w8VbYcCXDZ6wPzu4hrF-MSpXdArz6nogPbfZ0m2E=Ag-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-
-
---Rmm1Stw9KgbdL9/H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Jul 30, 2012 at 02:39:56PM +0530, Kishon Vijay Abraham I wrote:
-> Add device tree support for twl4030 usb driver.
-> Update the Documentation with device tree binding information.
->=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+On Fri, Aug 3, 2012 at 12:01 PM, ABRAHAM, KISHON VIJAY <kishon-l0cyMroinI0@public.gmane.org> wrote:
+> Hi,
+>
+> On Thu, Jul 5, 2012 at 2:12 PM, Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org> wrote:
+>> Charger detection feature is not correctly used
+>> and thus makes some regressions if OTG was used in
+>> the host mode. Charger detection takes 500 ms so
+>> if some device is attached to the host after 500 ms
+>> it will be suddenly resetted.
+>>
+>> This feature is enabled by default after reset/cold boot
+>> so always affects PHY usage. So finally this was wrongly
+>> interpreted as "phy requires 200ms to start".
+>> After fixing this we can safely remove uggly mdelay after
+>> powering on the PHY.
+>>
+>> Signed-off-by: Ruslan Bilovol <ruslan.bilovol-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  arch/arm/mach-omap2/omap_phy_internal.c |    9 +++++++++
+>>  1 files changed, 9 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+>> index d52651a..a13a37c 100644
+>> --- a/arch/arm/mach-omap2/omap_phy_internal.c
+>> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+>> @@ -42,12 +42,16 @@
+>>  #define        SESSEND                         BIT(3)
+>>  #define        IDDIG                           BIT(4)
+>>
+>> +#define CONTROL_USB2PHYCORE            0x620
+>> +#define USB2PHY_DISCHGDET              BIT(30)
+>> +
+>>  static struct clk *phyclk, *clk48m, *clk32k;
+>>  static void __iomem *ctrl_base;
+>>  static int usbotghs_control;
+>>
+>>  int omap4430_phy_init(struct device *dev)
+>>  {
+>> +       u32 usb2phycore;
+>>         ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
+>>         if (!ctrl_base) {
+>>                 pr_err("control module ioremap failed\n");
+>> @@ -56,6 +60,11 @@ int omap4430_phy_init(struct device *dev)
+>>         /* Power down the phy */
+>>         __raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+>>
+>> +       /* Disable charger detection by default */
+>> +       usb2phycore = omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE);
+>> +       usb2phycore |= USB2PHY_DISCHGDET;
+>> +       omap4_ctrl_pad_writel(usb2phycore, CONTROL_USB2PHYCORE);
+>
+> Maybe I failed to understand correctly but the $subject says it
+> *fixes* charger detection but the patch *disables* charger detection.
+>
 
-I think this also doesn't have dependency on the rest of the series and
-I could take this upstream. Right ?
+Yes, you are correct (the patch originally was done for case with
+charger detection realized)
 
---=20
-balbi
+Will submit new patchsets with fixed subject and description
 
---Rmm1Stw9KgbdL9/H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQG9LeAAoJEIaOsuA1yqREM2AQALYEumGV8k2vIkkCRRX7zGAq
-kVE/XpWZqDCyD07kguMPO3wnLMuC2JI4rAY0rBDUVygPOYt1l//RbDrtnNnGw0/4
-gA9rKVJAT+ic0Tksfhb4vYI4Mgal/31hp3Q7rqr5/7bYxr+wWR+NMR3srIhHiyWC
-eW7Y2JlHRUXoXzky0VPj/wd1vmBbAykrG8tWmcrTVG8Oz3wYhxFifGlyATCAEopJ
-vho3aUzc88yws2rEyNV91xnysblOgyBoB/U27vHq1QGzsbbRGAZhujrCo3nJ1A25
-M9bVmsakjkvPz4KWcE4h6qq61omrTSjWg/0HPdCWvDWQzAmKbOuE4FwJ9/xS9KFd
-AwbPyq+HsKqsoG+EGZAOtJrWCo/imLbmEUlr4dR8ISfkObpxWeDP8fDbU2L7CKhX
-UaNN703LssRIcNnhyiz1NaxUI4RqCNJhiYnyZ6JezUlS9yCgtDXaWMhOdvjhh+Zm
-vd47PGpB+X4mZilUNeX1s0yCv20Ml/FeC5o1XuTvAN7GhXI0D/j1UHDr8Eien1hw
-o2lVUJxQ5l26kXhi6P4KrHeWSUY+OmmFC4fyMQk6ppveiJAY38he6OzFecU/iN6y
-MIc+vNKtvTnRKG3ourZ8TD2iDvZi3rL5Ae8KnruJFsKlV2wWxltWtmbzGAJkslOT
-+MqgoBU7Hl1lWCC9CHxv
-=YUpb
------END PGP SIGNATURE-----
-
---Rmm1Stw9KgbdL9/H--
+--
+Best regards,
+Ruslan Bilovol
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
