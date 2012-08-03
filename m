@@ -1,77 +1,81 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] arm/dts: AM33XX: Add D_CAN device tree data
-Date: Fri, 3 Aug 2012 14:44:10 +0530
-Message-ID: <501B9662.6000406@ti.com>
-References: <1343219012-19472-1-git-send-email-anilkumar@ti.com>
- <1343219012-19472-2-git-send-email-anilkumar@ti.com>
- <500FE9FC.7070303@mvista.com> <501101A7.2030503@gmail.com>
- <50114069.7070605@mvista.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
+ used on both cpus
+Date: Fri, 3 Aug 2012 14:57:19 +0530
+Message-ID: <CAMQu2gxLAVk-LN8R1xBeeL1=iZ-mLSRmtZe4wpQYQPTBsY5RMA@mail.gmail.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
+ <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
+ <501B7AE6.8080405@gmail.com> <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
+ <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <50114069.7070605-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59480 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753110Ab2HCJ1l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 05:27:41 -0400
+Received: by yenl12 with SMTP id l12so645952yen.29
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 02:27:39 -0700 (PDT)
+In-Reply-To: <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: Daniel Mack <zonque@gmail.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, ccross@android.com, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-
-
-On 7/26/2012 6:34 PM, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 26-07-2012 12:36, Daniel Mack wrote:
-> 
->>>> Add Bosch D_CAN controller device tree data to AM33XX dtsi file
->>>> by adding d_can device node with all the necessary parameters.
-> 
->>>> Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>>    arch/arm/boot/dts/am33xx.dtsi |    5 +++++
->>>>    1 file changed, 5 insertions(+)
-> 
->>>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
->>>> index 9b974dc..2db2ffb 100644
->>>> --- a/arch/arm/boot/dts/am33xx.dtsi
->>>> +++ b/arch/arm/boot/dts/am33xx.dtsi
->>>> @@ -163,5 +163,10 @@
->>>>    			#size-cells = <0>;
->>>>    			ti,hwmods = "i2c3";
->>>>    		};
->>>> +
->>>> +		dcan1: d_can@481D0000 {
+On Fri, Aug 3, 2012 at 2:00 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
+>
+> Op 3 aug. 2012, om 09:21 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+>
+>>
+>> Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
+>>
+>>> On 30.03.2012 15:27, Santosh Shilimkar wrote:
+>>>> For coupled cpuidle to work when both cpus are active, it needs a global timer
+>>>> that can handle events for both cpus.  This timer is used as the broadcast
+>>>> clock-event when the per-cpu timer hardware stop in low power states.
+>>>> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
+>>>> set the irq to allow the clockevent core to determine the affinity of the
+>>>> timer.
 >>>
->>>      Address postfix in the node name and no "reg" property?
-> 
->> This still works due to the hwmod mappings OMAP relies on.
-> 
->     I.e. the "reg" property is populated in runtime?
-> 
->> I would still
->> put it there, so the switch to real DT definitions will be less painful.
-> 
->     How it helps anything?
-> 
+>>> These patches made it to mainline now, shortly befor 3.6-rc1, and it
+>>> breaks boot on my AM33xx board.
+>>>
+>>> Once I revert 1/3, the board boots again but crashes with the Ooops
+>>> below. With the entire series reverted, everything works again as
+>>> expected. Any idea?
+>>>
+>>> The upstream commit ids are
+>>>
+>>> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
+>>> both cpus"
+>>> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
+>>> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
+>>
+>> I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case?
+>
+> To answer my own question: No, the reverts aren't needed if you disable cpuidle.
 
-This is required field if you want to use "of_dev_auxdata", without
-"reg" property OF layer fails to create dev_id (name) bindings with what
-you have specified as part of "of_dev_auxdata".
+This is really strange since CPUIDLE code is really OMAP4 specific.
+obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
 
-And with respect to CAN driver, even though we are using hwmod, I would
-want to create dev_id = d_can.0 and d_can.1. And this is only possible
-if Address and compatible string matches.
+May be omap2plus build some how the code gets executed on AMXX
 
-So this field is important and required in this case.
+Can you try below and see if the boot with CPUIDLE enabled goes away on
+AMXX
 
-Thanks,
-Vaibhav
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index ea24174..195e756 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -147,6 +147,9 @@ int __init omap4_pm_init(void)
+        struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
+        struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
+
++       if (!cpu_is_omap44xx())
++               return -ENODEV;
++
+        if (omap_rev() == OMAP4430_REV_ES1_0) {
+                WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
+                return -ENODEV;
+Regards
+Ssantosh
