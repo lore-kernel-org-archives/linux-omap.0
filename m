@@ -1,31 +1,59 @@
-From: Andi Kleen <andi@firstfloor.org>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
 Subject: Re: [PATCH v3] printk: add option to print cpu id
-Date: Fri, 03 Aug 2012 10:54:27 -0700
-Message-ID: <m2628z6euk.fsf@firstfloor.org>
-References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com>
+Date: Fri, 3 Aug 2012 11:25:37 -0700
+Message-ID: <CAFm5wm3ScpUU5wa=ei3TY0zjU4kVbOgJMmE5_QDpwy7B-TJa+A@mail.gmail.com>
+References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com> <m2628z6euk.fsf@firstfloor.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com> (Vikram
-	Pandita's message of "Fri, 3 Aug 2012 09:56:44 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: gregkh@linuxfoundation.org, kay@vrfy.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:59908 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753822Ab2HCSZ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 14:25:59 -0400
+Received: by qaeb19 with SMTP id b19so4025803qae.4
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 11:25:57 -0700 (PDT)
+In-Reply-To: <m2628z6euk.fsf@firstfloor.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: gregkh@linuxfoundation.org, kay@vrfy.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
 
-Vikram Pandita <vikram.pandita@ti.com> writes:
-
-> From: Vikram Pandita <vikram.pandita@ti.com>
+On Fri, Aug 3, 2012 at 10:54 AM, Andi Kleen <andi@firstfloor.org> wrote:
+> Vikram Pandita <vikram.pandita@ti.com> writes:
 >
-> Introduce config option to enable CPU id reporting for printk() calls.
+>> From: Vikram Pandita <vikram.pandita@ti.com>
+>>
+>> Introduce config option to enable CPU id reporting for printk() calls.
+>
+> What's wrong with using trace_printk for this?
 
-What's wrong with using trace_printk for this? That's much faster
-anyways. Generally printk is so slow that it's typically useless for
-instrumenting races.
+trace_printk works only when you know the _exact_ path in code that
+you want to profile.
+When you have no idea of a random lockup, then it would be kind of
+touch and time consuming
+to put trace prints all around the code.
 
-And really: Wasting 1/3 of the 80 character line is too much.
+> That's much faster
+> anyways. Generally printk is so slow that it's typically useless for
+> instrumenting races.
+>
 
--Andi
+As stated in another thread, its found useful to debug some specific cases:
+Check thread: http://marc.info/?l=linux-omap&m=134401269106619&w=2
 
--- 
-ak@linux.intel.com -- Speaking for myself only
+> And really: Wasting 1/3 of the 80 character line is too much.
+
+You _WASTE_ 4 chars only if you are interested in this info by
+enabling: CONFIG_PRINTK_CPUID
+Just like you _WASTE_ 15 chars when you enable existing: CONFIG_PRINTK_TIME
+
+For general usecase, recommendation would be to keep these options disabled.
+Working on shipping products, i find almost all shipping with
+CONFIG_PRINTK_TIME enabled, so there must be some value.
+Same would hold for the use case being debugged for CPUID enabling.
+
+>
+> -Andi
+>
+> --
+> ak@linux.intel.com -- Speaking for myself only
