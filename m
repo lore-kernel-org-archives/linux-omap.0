@@ -1,15 +1,14 @@
 From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH v6 07/11] drivers: usb: twl4030: Add device tree support
- for twl4030 usb
-Date: Fri, 3 Aug 2012 20:10:38 +0530
-Message-ID: <CAAe_U6+Vf-mWaPrLV=p3-WvF3xKTi202efj8RqPLy6eTeC1_UA@mail.gmail.com>
+Subject: Re: [PATCH v6 11/11] arm: omap: phy: remove unused functions from omap-phy-internal.c
+Date: Fri, 3 Aug 2012 20:11:12 +0530
+Message-ID: <CAAe_U6+KC8kWD8BHpE20oYEfTS5JegRgU8sqrj4JWVLdOFxLrg@mail.gmail.com>
 References: <1343639400-28725-1-git-send-email-kishon@ti.com>
-	<1343639400-28725-8-git-send-email-kishon@ti.com>
-	<20120803133214.GI8269@arwen.pp.htv.fi>
+	<1343639400-28725-12-git-send-email-kishon@ti.com>
+	<20120803133602.GM8269@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20120803133214.GI8269@arwen.pp.htv.fi>
+In-Reply-To: <20120803133602.GM8269@arwen.pp.htv.fi>
 Sender: linux-doc-owner@vger.kernel.org
 To: balbi@ti.com
 Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
@@ -17,19 +16,20 @@ List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Fri, Aug 3, 2012 at 7:02 PM, Felipe Balbi <balbi@ti.com> wrote:
+On Fri, Aug 3, 2012 at 7:06 PM, Felipe Balbi <balbi@ti.com> wrote:
 > Hi,
 >
-> On Mon, Jul 30, 2012 at 02:39:56PM +0530, Kishon Vijay Abraham I wrote:
->> Add device tree support for twl4030 usb driver.
->> Update the Documentation with device tree binding information.
+> On Mon, Jul 30, 2012 at 02:40:00PM +0530, Kishon Vijay Abraham I wrote:
+>> All the unnessary functions in omap-phy-internal is removed.
+>> These functionality are now handled by omap-usb2 phy driver.
 >>
+>> Cc: Felipe Balbi <balbi@ti.com>
 >> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
 >
-> I think this also doesn't have dependency on the rest of the series and
-> I could take this upstream. Right ?
+> Great stuff. I'll take this when we agree on the omap-usb2 phy driver.
 
-right.
+Sure.
 
 Thanks
 Kishon
