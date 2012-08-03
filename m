@@ -1,66 +1,62 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v6 04/11] arm: omap: hwmod: add a new addr space in otg
- for writing to control module
-Date: Fri, 3 Aug 2012 16:29:46 +0300
-Message-ID: <20120803132945.GF8269@arwen.pp.htv.fi>
+Subject: Re: [PATCH v6 05/11] drivers: usb: twl6030: Add dt support for
+ twl6030 usb
+Date: Fri, 3 Aug 2012 16:31:23 +0300
+Message-ID: <20120803133122.GG8269@arwen.pp.htv.fi>
 References: <1343639400-28725-1-git-send-email-kishon@ti.com>
- <1343639400-28725-5-git-send-email-kishon@ti.com>
+ <1343639400-28725-6-git-send-email-kishon@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FoLtEtfbNGMjfgrs"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="lQSB8Tqijvu1+4Ba"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1343639400-28725-5-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
+In-Reply-To: <1343639400-28725-6-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---FoLtEtfbNGMjfgrs
+--lQSB8Tqijvu1+4Ba
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 30, 2012 at 02:39:53PM +0530, Kishon Vijay Abraham I wrote:
-> The mailbox register for usb otg in omap is present in control module.
-> On detection of any events VBUS or ID, this register should be written
-> to send the notification to musb core.
->=20
-> Till we have a separate control module driver to write to control module,
-> omap2430 will handle the register writes to control module by itself. So
-> a new address space to represent this control module register is added
-> to usb_otg_hs.
+Hi,
+
+On Mon, Jul 30, 2012 at 02:39:54PM +0530, Kishon Vijay Abraham I wrote:
+> Add device tree support for twl6030 usb driver.
+> Update the Documentation with device tree binding information.
 >=20
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 
-this should come before previous patch, right ? Otherwise we will try to
-ioremap a resource which isn't passed down to driver. No ?
+This looks great too. I can take this without any dependencies on the
+rest of the series, I believe. Right ??
 
 --=20
 balbi
 
---FoLtEtfbNGMjfgrs
+--lQSB8Tqijvu1+4Ba
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQG9JJAAoJEIaOsuA1yqREnXAP/36/NQV5OtS2pQIu3629edXj
-vL1asGoL52Ns5ncESoak4aJrPADSxEkgY97aeIJwAQ5bwxVOAiHGJ4kuBH5JNLsM
-vbpn6QAViGPfZhX6ODTezG7CwFNsXXnW54pmLCZPH+RDcXJ3H/jfRM/pG4IE2eBb
-YwkdnBjZ5TjnMeCfltwm7hxk8SUYnBE7yyeT7aihL3DXy1WHsWWaurWvHJiObJMl
-+rCAk9J3IojLLbiVZlcU4Wljk62cpl3zud759qIryUvaz6mrbKCJTIbaWd4z9PJc
-T++l6TMHOuLTBXakEq63qNn2Waik6t045r968oju4+iu0N6k5KeuNcOyZ1LK/Nfd
-6XPRSGSwOMD/stT2e8BZWT7hpfY+F9TXih+6EDa2iVVhW5S3U1wG1YPjcIPQ7nWC
-2xF3vzi4vK0RuiW97HrgAms7fI6oSPdvMbSgFTi4mqbFeA4GJ3Ti/+1EBlYssyOO
-9YLtoj+8ck07vsLCOd2Pq+UYe8vdvW3HP/YRGy/BZzMarPKn53enpmZZq48jzo4T
-atdtYj7e2xXuUUxffFEsSexkJOJSV3MV3830e5dN/yO082JtWFpaYqVizlizKKzN
-3z3V9iSnWJJfBIqQKrsG+UCsBSLRr1RSeioIbqvf7d8Yc9btdTWRx/zHl3Ol7WDW
-fQATjUc017aYWYyjHyG0
-=2xOM
+iQIcBAEBAgAGBQJQG9KqAAoJEIaOsuA1yqREHgYP/i+9pjKJe1xAR6LRLEirNEcT
+qkLelLlZXpjmqxJ2r4nwGlFYaHJdqpT4I6uZ/7cftIK66XZk9XDTRmX6TndbmxYd
+twIjbJ/DtaP0goyFvTbPMKRiLAv9PQ/iz8oNy0qjku9/u/nEzJZm8+Ehp1C9nHxi
+oODPnbSGJIKMOmQHFFwc7e/yuedxtcVy2jIJzmWc4vD5AJsPYS/eA+YYx7abiaS3
+GqHkjEXTKVDL6/0euqkwkP0NUgp9TpD72vHhuhCrjl7uCcKwGhRXoGxNmY+uFRvv
+eykrBOnZyJg137vL7P+LOVaKSl2/woSwomA/yyp9BkQbGsi3dgg7huu6TB1a7FLK
+a0sHWkvoxv8BaqMkbDtX/kDaL81iPRhJmVyWvXW/yhkayy4WyZCycJ92lnnbpc76
+C977LYxZAx3A0wunFt1IWywmbLGSJs2E4RR6rCDCod/TXUcmtCKcCr6vVvsdvbQ3
+o+RnXSNRqZIPtiqIQGx264HZhizXvq/6CrGAemqUjq4FX4RY4ewWtr4N1j/fgNJT
+ItvA7AQSTN9K3X/zsWd5D//UB3wh2EQPa7MQ2XbIJqPz5mMRambEBOohht7HBC4q
+N33eKmiRqnPs2YccAIWn4mCE30fAkVKb3X1gjbchb0RozqvNM3b09CsQWAskhswo
+nYPu5e0MMQQXYB/roUID
+=Riso
 -----END PGP SIGNATURE-----
 
---FoLtEtfbNGMjfgrs--
+--lQSB8Tqijvu1+4Ba--
