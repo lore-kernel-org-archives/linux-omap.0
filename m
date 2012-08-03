@@ -1,52 +1,47 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
-Date: Fri, 3 Aug 2012 10:30:52 +0200
-Message-ID: <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com> <501B7AE6.8080405@gmail.com> <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Subject: Re: [PATCH 2/2] OMAP4: otg: phy: remove uggly mdelay(200)
+Date: Fri, 3 Aug 2012 11:34:33 +0300
+Message-ID: <CAEa47No+Krf8XPnZ+49JC-df_gtEWLm801rG64D=0wT7v4phaQ@mail.gmail.com>
+References: <1341477739-6801-1-git-send-email-ruslan.bilovol@ti.com>
+	<CAAe_U6K5n5SEBDR1vgaoc1+MQB=_aQ7yc0jBu1BFgX-D5ZPt8w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62264 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab2HCIa4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 04:30:56 -0400
-Received: by eaac11 with SMTP id c11so103462eaa.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 01:30:55 -0700 (PDT)
-In-Reply-To: <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:35323 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753052Ab2HCIef (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 04:34:35 -0400
+Received: by yenl12 with SMTP id l12so473465yen.15
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 01:34:34 -0700 (PDT)
+In-Reply-To: <CAAe_U6K5n5SEBDR1vgaoc1+MQB=_aQ7yc0jBu1BFgX-D5ZPt8w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, ccross@android.com, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+
+Hi,
 
 
-Op 3 aug. 2012, om 09:21 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+On Fri, Aug 3, 2012 at 9:51 AM, ABRAHAM, KISHON VIJAY <kishon@ti.com> wrote:
+>
+> Hi,
+>
+> On Thu, Jul 5, 2012 at 2:12 PM, Ruslan Bilovol <ruslan.bilovol@ti.com>
+> wrote:
+> > The original issue with powering on the PHY (and using
+> > 200 ms delay after this) is not related to internal
+> > processes in the PHY but is in the incorrect charger
+> > detection feature usage.
+> >
+> > Now when it is fixed, we can safely remove this uggly
+>
+> So is this 200ms delay related to incorrect charger detection? How is
+> it now fixed without the delay?
 
-> 
-> Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
-> 
->> On 30.03.2012 15:27, Santosh Shilimkar wrote:
->>> For coupled cpuidle to work when both cpus are active, it needs a global timer
->>> that can handle events for both cpus.  This timer is used as the broadcast
->>> clock-event when the per-cpu timer hardware stop in low power states.
->>> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
->>> set the irq to allow the clockevent core to determine the affinity of the
->>> timer.
->> 
->> These patches made it to mainline now, shortly befor 3.6-rc1, and it
->> breaks boot on my AM33xx board.
->> 
->> Once I revert 1/3, the board boots again but crashes with the Ooops
->> below. With the entire series reverted, everything works again as
->> expected. Any idea?
->> 
->> The upstream commit ids are
->> 
->> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
->> both cpus"
->> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
->> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
-> 
-> I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case? 
+Please take a look at the first patch of this series:
+http://markmail.org/message/vlbk7glkyviviipw
+It fixes charger detection feature usage.
 
-To answer my own question: No, the reverts aren't needed if you disable cpuidle.
+--
+Best regards,
+Ruslan Bilovol
