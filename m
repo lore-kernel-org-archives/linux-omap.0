@@ -1,51 +1,54 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be used on both cpus
-Date: Fri, 3 Aug 2012 09:21:17 +0200
-Message-ID: <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
-References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com> <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com> <501B7AE6.8080405@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Subject: Re: [PATCH 1/1] ARM: OMAP3: igep0020: set GPIO mode for mux
+ mcspi1_cs2 pin
+Date: Fri, 3 Aug 2012 10:06:06 +0200
+Message-ID: <CABxcv=kueP=UA6sQwS8Hs-s3vyAX+RhJgkHmyWWAVb668y-EOQ@mail.gmail.com>
+References: <1341885452-5372-1-git-send-email-javier@dowhile0.org>
+	<CAFqH_511c6CyAYnbtU0ECZwzRNwJEdTqtcZ63nODCYZU4GC0aA@mail.gmail.com>
+	<CABxcv=miEavW5Qf-Y+S4Nph+ah5gQ6QDpt-T44tdHLBxcP8pqQ@mail.gmail.com>
+	<20120718072052.GK6522@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36356 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167Ab2HCHVV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 03:21:21 -0400
-Received: by eeil10 with SMTP id l10so82920eei.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 00:21:20 -0700 (PDT)
-In-Reply-To: <501B7AE6.8080405@gmail.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:33053 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751454Ab2HCIGH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 04:06:07 -0400
+Received: by ghrr11 with SMTP id r11so507469ghr.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 01:06:07 -0700 (PDT)
+In-Reply-To: <20120718072052.GK6522@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, ccross@android.com, Paul Walmsley <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>, Tom Rini <trini@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Wed, Jul 18, 2012 at 9:20 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Javier Martinez Canillas <javier@dowhile0.org> [120717 00:16]:
+>>
+>> Hi Tony,
+>>
+>> Just pinging to see if you have further comments on this patch or if
+>> it can be applied. It solves a bug on IGEPv2 boards.
+>>
+>> I know the trend is to move away from board code. I'll start working
+>> on an device tree for the IGEPv2 but it will take some time until is
+>> ready (and I'm not sure if all the OMAP3 support is already present on
+>> DT).
+>>
+>> So could you please take bug fixes for the board code in the meantime?
+>
+> Yes seems like something for the v3.6-rc series.
+>
+> Regards,
+>
+> Tony
 
-Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
+Hi Tony,
 
-> On 30.03.2012 15:27, Santosh Shilimkar wrote:
->> For coupled cpuidle to work when both cpus are active, it needs a global timer
->> that can handle events for both cpus.  This timer is used as the broadcast
->> clock-event when the per-cpu timer hardware stop in low power states.
->> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
->> set the irq to allow the clockevent core to determine the affinity of the
->> timer.
-> 
-> These patches made it to mainline now, shortly befor 3.6-rc1, and it
-> breaks boot on my AM33xx board.
-> 
-> Once I revert 1/3, the board boots again but crashes with the Ooops
-> below. With the entire series reverted, everything works again as
-> expected. Any idea?
-> 
-> The upstream commit ids are
-> 
-> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
-> both cpus"
-> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
-> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
+I saw that Linus 3.6-rc1 has already been released and I didn't see
+this patch on it.
 
-I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case? I'd really want cpufreq and cpuidle to work properly, but right now I'll settle for "it boots".
+So, this is a kindly reminder so you don't miss this patch :-)
 
-regards,
-
-Koen
+Thanks a lot and best regards,
+Javier
