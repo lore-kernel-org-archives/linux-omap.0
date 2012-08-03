@@ -1,149 +1,112 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] drivers: bus: add a new driver for omap-ocp2scp
-Date: Fri, 3 Aug 2012 19:53:41 +0530
-Message-ID: <CAAe_U6Kk=YxwzcueZzriECiLCciaY3UAW+xfhhc-zyz5YWwXEA@mail.gmail.com>
-References: <1342593039-7728-1-git-send-email-kishon@ti.com>
- <1342593039-7728-2-git-send-email-kishon@ti.com>
- <20120803132046.GA8269@arwen.pp.htv.fi>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v6 01/11] drivers: usb: otg: add a new driver for omap
+ usb2 phy
+Date: Fri, 3 Aug 2012 20:01:44 +0530
+Message-ID: <CAAe_U6K15Nm5aNs2Vn71G7ELZWka1zB2E3VGZWTc0VjyViJ6Yw@mail.gmail.com>
+References: <1343639400-28725-1-git-send-email-kishon@ti.com>
+	<1343639400-28725-2-git-send-email-kishon@ti.com>
+	<20120803132708.GC8269@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120803132046.GA8269-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20120803132708.GC8269@arwen.pp.htv.fi>
+Sender: linux-doc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Fri, Aug 3, 2012 at 6:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> Hi,
->
-> On Wed, Jul 18, 2012 at 12:00:38PM +0530, Kishon Vijay Abraham I wrote:
->> Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
->> creating all the devices that is connected to OCP2SCP. In the case of OMAP4,
->> USB2PHY is connected to ocp2scp.
+On Fri, Aug 3, 2012 at 6:57 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Jul 30, 2012 at 02:39:50PM +0530, Kishon Vijay Abraham I wrote:
+>> All phy related programming like enabling/disabling the clocks, powering
+>> on/off the phy is taken care of by this driver. It is also used for OTG
+>> related functionality like srp.
 >>
->> This also includes device tree support for ocp2scp driver and
+>> This also includes device tree support for usb2 phy driver and
 >> the documentation with device tree binding information is updated.
 >>
->> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->
-> If you fix (or change my mind) on the comment below, you can add:
->
-> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->
->
-> Also, I wonder who should be the one to take this. Who will be queueing
-> patches on this directory to mainline ?
->
->> Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
->> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> Currently writing to control module register is taken care in this
+>> driver which will be removed once the control module driver is in place.
+>>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 >> ---
->>  .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 ++
->>  drivers/Kconfig                                    |    2 +
->>  drivers/Makefile                                   |    2 +
->>  drivers/bus/Kconfig                                |   15 +++
->>  drivers/bus/Makefile                               |    5 +
->>  drivers/bus/omap-ocp2scp.c                         |   98 ++++++++++++++++++++
->>  6 files changed, 132 insertions(+), 0 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
->>  create mode 100644 drivers/bus/Kconfig
->>  create mode 100644 drivers/bus/Makefile
->>  create mode 100644 drivers/bus/omap-ocp2scp.c
->>
->> diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+>>  .../devicetree/bindings/bus/omap-ocp2scp.txt       |    3 +
+>>  Documentation/devicetree/bindings/usb/omap-usb.txt |   17 ++
+>>  drivers/usb/otg/Kconfig                            |   10 +
+>>  drivers/usb/otg/Makefile                           |    1 +
+>>  drivers/usb/otg/omap-usb2.c                        |  280 ++++++++++++++++++++
+>
+> let's move this to drivers/usb/phy/. I'll prepare a patch moving all phy
+> drivers to that directory after the OTG state machine is ready ;-)
+
+Ok.
+>
+>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
 >> new file mode 100644
->> index 0000000..d2fe064
+>> index 0000000..52f503b
 >> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
->> @@ -0,0 +1,10 @@
->> +* OMAP OCP2SCP - ocp interface to scp interface
+>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> @@ -0,0 +1,17 @@
+>> +OMAP USB PHY
 >> +
->> +properties:
->> +- compatible : Should be "ti,omap-ocp2scp"
->> +- #address-cells, #size-cells : Must be present if the device has sub-nodes
->> +- ranges : the child address space are mapped 1:1 onto the parent address space
->> +- ti,hwmods : must be "ocp2scp_usb_phy"
+>> +OMAP USB2 PHY
 >> +
->> +Sub-nodes:
->> +All the devices connected to ocp2scp are described using sub-node to ocp2scp
->> diff --git a/drivers/Kconfig b/drivers/Kconfig
->> index bfc9186..4fe1e4c 100644
->> --- a/drivers/Kconfig
->> +++ b/drivers/Kconfig
->> @@ -2,6 +2,8 @@ menu "Device Drivers"
+>> +Required properties:
+>> + - compatible: Should be "ti,omap-usb2"
+>> + - reg : Address and length of the register set for the device. Also
+>> +add the address of control module dev conf register until a driver for
+>> +control module is added
+>> +
+>> +This is usually a subnode of ocp2scp to which it is connected.
+>> +
+>> +usb2phy@4a0ad080 {
+>> +     compatible = "ti,omap-usb2";
+>> +     reg = <0x4a0ad080 0x58>,
+>> +             <0x4a002300 0x1>;
+>> +};
+>> diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
+>> index 5c87db0..c751db7 100644
+>> --- a/drivers/usb/otg/Kconfig
+>> +++ b/drivers/usb/otg/Kconfig
+>> @@ -78,6 +78,16 @@ config TWL6030_USB
+>>         are hooked to this driver through platform_data structure.
+>>         The definition of internal PHY APIs are in the mach-omap2 layer.
 >>
->>  source "drivers/base/Kconfig"
->>
->> +source "drivers/bus/Kconfig"
->> +
->>  source "drivers/connector/Kconfig"
->>
->>  source "drivers/mtd/Kconfig"
->> diff --git a/drivers/Makefile b/drivers/Makefile
->> index 2ba29ff..cac3819 100644
->> --- a/drivers/Makefile
->> +++ b/drivers/Makefile
->> @@ -5,6 +5,8 @@
->>  # Rewritten to use lists instead of if-statements.
->>  #
->>
->> +obj-y                                += bus/
->> +
->>  # GPIO must come after pinctrl as gpios may need to mux pins etc
->>  obj-y                                += pinctrl/
->>  obj-y                                += gpio/
->> diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
->> new file mode 100644
->> index 0000000..6270415
->> --- /dev/null
->> +++ b/drivers/bus/Kconfig
->> @@ -0,0 +1,15 @@
->> +#
->> +# Bus Devices
->> +#
->> +
->> +menu "Bus devices"
->> +
->> +config OMAP_OCP2SCP
->> +     tristate "OMAP OCP2SCP DRIVER"
+>> +config OMAP_USB2
+>> +     tristate "OMAP USB2 PHY Driver"
+>> +     depends on OMAP_OCP2SCP
+>> +     select USB_OTG_UTILS
 >> +     help
->> +       Driver to enable ocp2scp module which transforms ocp interface
->> +       protocol to scp protocol. In OMAP4, USB PHY is connected via
->> +       OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
->> +       OCP2SCP.
+>> +       Enable this to support the transceiver that is part of SOC. This
+>> +       driver takes care of all the PHY functionality apart from comparator.
+>> +       The USB OTG controller communicates with the comparator using this
+>> +       driver.
 >> +
->> +endmenu
->> diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
+>>  config NOP_USB_XCEIV
+>>       tristate "NOP USB Transceiver Driver"
+>>       select USB_OTG_UTILS
+>> diff --git a/drivers/usb/otg/Makefile b/drivers/usb/otg/Makefile
+>> index 41aa509..2c2a3ca 100644
+>> --- a/drivers/usb/otg/Makefile
+>> +++ b/drivers/usb/otg/Makefile
+>> @@ -13,6 +13,7 @@ obj-$(CONFIG_USB_GPIO_VBUS) += gpio_vbus.o
+>>  obj-$(CONFIG_ISP1301_OMAP)   += isp1301_omap.o
+>>  obj-$(CONFIG_TWL4030_USB)    += twl4030-usb.o
+>>  obj-$(CONFIG_TWL6030_USB)    += twl6030-usb.o
+>> +obj-$(CONFIG_OMAP_USB2)              += omap-usb2.o
+>>  obj-$(CONFIG_NOP_USB_XCEIV)  += nop-usb-xceiv.o
+>>  obj-$(CONFIG_USB_ULPI)               += ulpi.o
+>>  obj-$(CONFIG_USB_ULPI_VIEWPORT)      += ulpi_viewport.o
+>> diff --git a/drivers/usb/otg/omap-usb2.c b/drivers/usb/otg/omap-usb2.c
 >> new file mode 100644
->> index 0000000..0ec50bc
+>> index 0000000..026cb3c
 >> --- /dev/null
->> +++ b/drivers/bus/Makefile
->> @@ -0,0 +1,5 @@
->> +#
->> +# Makefile for the bus drivers.
->> +#
->> +
->> +obj-$(CONFIG_OMAP_OCP2SCP)   += omap-ocp2scp.o
->> diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
->> new file mode 100644
->> index 0000000..8c3db3a
->> --- /dev/null
->> +++ b/drivers/bus/omap-ocp2scp.c
->> @@ -0,0 +1,98 @@
+>> +++ b/drivers/usb/otg/omap-usb2.c
+>> @@ -0,0 +1,280 @@
 >> +/*
->> + * omap-ocp2scp.c - transform ocp interface protocol to scp protocol
+>> + * omap-usb2.c - USB PHY, talking to musb controller in OMAP.
 >> + *
 >> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
 >> + * This program is free software; you can redistribute it and/or modify
@@ -151,7 +114,7 @@ On Fri, Aug 3, 2012 at 6:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org
 >> + * the Free Software Foundation; either version 2 of the License, or
 >> + * (at your option) any later version.
 >> + *
->> + * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+>> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
 >> + *
 >> + * This program is distributed in the hope that it will be useful,
 >> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -162,78 +125,274 @@ On Fri, Aug 3, 2012 at 6:50 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org
 >> +
 >> +#include <linux/module.h>
 >> +#include <linux/platform_device.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/of.h>
+>> +#include <linux/io.h>
+>> +#include <linux/usb/omap_usb.h>
+>> +#include <linux/usb/phy_companion.h>
+>> +#include <linux/clk.h>
 >> +#include <linux/err.h>
 >> +#include <linux/pm_runtime.h>
->> +#include <linux/of.h>
->> +#include <linux/of_platform.h>
+>> +#include <linux/delay.h>
 >> +
->> +static int ocp2scp_remove_devices(struct device *dev, void *c)
+>> +/**
+>> + * omap_usb2_set_comparator - links the comparator present in the sytem with
+>> + *   this phy
+>> + * @comparator - the companion phy(comparator) for this phy
+>> + *
+>> + * The phy companion driver should call this API passing the phy_companion
+>> + * filled with set_vbus and start_srp to be used by usb phy.
+>> + *
+>> + * For use by phy companion driver
+>> + */
+>> +void omap_usb2_set_comparator(struct phy_companion *comparator)
 >> +{
->> +     struct platform_device *pdev = to_platform_device(dev);
+>> +     struct omap_usb *phy;
+>> +     struct usb_phy  *x = usb_get_phy(USB_PHY_TYPE_USB2);
 >> +
->> +     platform_device_unregister(pdev);
+>> +     if (x) {
+>> +             phy = phy_to_omapusb(x);
+>> +             phy->comparator = comparator;
+>> +     }
+>> +}
+>> +EXPORT_SYMBOL_GPL(omap_usb2_set_comparator);
+>> +
+>> +/**
+>> + * omap_usb_phy_power - power on/off the phy using control module reg
+>> + * @phy: struct omap_usb *
+>> + * @on: 0 or 1, based on powering on or off the PHY
+>> + *
+>> + * XXX: Remove this function once control module driver gets merged
+>> + */
+>> +static void omap_usb_phy_power(struct omap_usb *phy, int on)
+>> +{
+>> +     u32 val;
+>> +
+>> +     if (on) {
+>> +             val = readl(phy->control_dev);
+>> +             if (val & PHY_PD) {
+>> +                     writel(~PHY_PD, phy->control_dev);
+>> +                     /* XXX: add proper documentation for this delay */
+>> +                     mdelay(200);
+>> +             }
+>> +     } else {
+>> +             writel(PHY_PD, phy->control_dev);
+>> +     }
+>> +}
+>> +
+>> +static int omap_usb_set_vbus(struct usb_otg *otg, bool enabled)
+>> +{
+>> +     struct omap_usb *phy = phy_to_omapusb(otg->phy);
+>> +
+>> +     if (!phy->comparator)
+>> +             return -ENODEV;
+>> +
+>> +     return phy->comparator->set_vbus(phy->comparator, enabled);
+>> +}
+>> +
+>> +static int omap_usb_start_srp(struct usb_otg *otg)
+>> +{
+>> +     struct omap_usb *phy = phy_to_omapusb(otg->phy);
+>> +
+>> +     if (!phy->comparator)
+>> +             return -ENODEV;
+>> +
+>> +     return phy->comparator->start_srp(phy->comparator);
+>> +}
+>> +
+>> +static int omap_usb_set_host(struct usb_otg *otg, struct usb_bus *host)
+>> +{
+>> +     struct usb_phy  *phy = otg->phy;
+>> +
+>> +     otg->host = host;
+>> +     if (!host)
+>> +             phy->state = OTG_STATE_UNDEFINED;
 >> +
 >> +     return 0;
 >> +}
 >> +
->> +static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
+>> +static int omap_usb_set_peripheral(struct usb_otg *otg,
+>> +             struct usb_gadget *gadget)
 >> +{
->> +     int                     ret;
->> +     struct device_node      *np = pdev->dev.of_node;
+>> +     struct usb_phy  *phy = otg->phy;
 >> +
->> +     if (np) {
->> +             ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
->> +             if (ret) {
->> +                     dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
->> +                     goto err0;
->> +             }
->> +     }
->> +     pm_runtime_enable(&pdev->dev);
+>> +     otg->gadget = gadget;
+>> +     if (!gadget)
+>> +             phy->state = OTG_STATE_UNDEFINED;
 >> +
 >> +     return 0;
+>> +}
 >> +
->> +err0:
->> +     device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
+>> +static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+>> +{
+>> +     u32 ret;
+>> +     struct omap_usb *phy = phy_to_omapusb(x);
+>> +
+>> +     if (suspend && !phy->is_suspended) {
+>> +             omap_usb_phy_power(phy, 0);
+>> +             pm_runtime_put_sync(phy->dev);
+>> +             phy->is_suspended = 1;
+>> +     } else if (!suspend && phy->is_suspended) {
+>> +             ret = pm_runtime_get_sync(phy->dev);
+>> +             if (ret < 0) {
+>> +                     dev_err(phy->dev, "get_sync failed with err %d\n",
+>> +                                                                     ret);
+>> +                     return ret;
+>> +             }
+>> +             omap_usb_phy_power(phy, 1);
+>> +             phy->is_suspended = 0;
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int __devinit omap_usb2_probe(struct platform_device *pdev)
+>> +{
+>> +     struct omap_usb                 *phy;
+>> +     struct usb_otg                  *otg;
+>> +     struct resource                 *res;
+>> +
+>> +     phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+>> +     if (!phy) {
+>> +             dev_err(&pdev->dev, "unable to allocate memory for USB2 PHY\n");
+>> +             return -ENOMEM;
+>> +     }
+>> +
+>> +     otg = devm_kzalloc(&pdev->dev, sizeof(*otg), GFP_KERNEL);
+>> +     if (!otg) {
+>> +             dev_err(&pdev->dev, "unable to allocate memory for USB OTG\n");
+>> +             return -ENOMEM;
+>> +     }
+>> +
+>> +     phy->dev                = &pdev->dev;
+>> +
+>> +     phy->phy.dev            = phy->dev;
+>> +     phy->phy.label          = "omap-usb2";
+>> +     phy->phy.set_suspend    = omap_usb2_suspend;
+>> +     phy->phy.otg            = otg;
+>> +
+>> +     res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>> +
+>> +     phy->control_dev = devm_request_and_ioremap(&pdev->dev, res);
+>> +     if (phy->control_dev == NULL) {
+>> +             dev_err(&pdev->dev, "Failed to obtain io memory\n");
+>> +             return -ENXIO;
+>> +     }
+>> +
+>> +     phy->is_suspended       = 1;
+>> +     omap_usb_phy_power(phy, 0);
+>> +
+>> +     otg->set_host           = omap_usb_set_host;
+>> +     otg->set_peripheral     = omap_usb_set_peripheral;
+>> +     otg->set_vbus           = omap_usb_set_vbus;
+>> +     otg->start_srp          = omap_usb_start_srp;
+>> +     otg->phy                = &phy->phy;
+>> +
+>> +     phy->wkupclk = devm_clk_get(phy->dev, "usb_phy_cm_clk32k");
+>> +     if (IS_ERR(phy->wkupclk)) {
+>> +             dev_err(&pdev->dev, "unable to get usb_phy_cm_clk32k\n");
+>> +             return PTR_ERR(phy->wkupclk);
+>> +     }
+>> +     clk_prepare(phy->wkupclk);
+>> +
+>> +     usb_add_phy(&phy->phy, USB_PHY_TYPE_USB2);
+>> +
+>> +     platform_set_drvdata(pdev, phy);
+>> +
+>> +     pm_runtime_enable(phy->dev);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int __devexit omap_usb2_remove(struct platform_device *pdev)
+>> +{
+>> +     struct omap_usb *phy = platform_get_drvdata(pdev);
+>> +
+>> +     clk_unprepare(phy->wkupclk);
+>> +     usb_remove_phy(&phy->phy);
+>> +     platform_set_drvdata(pdev, NULL);
+>
+> this platform_set_drvdata() is unnecessary as the pdev object will be
+> destroyed.
+
+Fine. Will remove it.
+>
+>> +     return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM_RUNTIME
+>> +
+>> +static int omap_usb2_runtime_suspend(struct device *dev)
+>> +{
+>> +     struct platform_device  *pdev = to_platform_device(dev);
+>> +     struct omap_usb *phy = platform_get_drvdata(pdev);
+>> +
+>> +     clk_disable(phy->wkupclk);
+>
+> weird. I would expect the wakeup clock to be enabled on suspend and
+> disabled on resume. Isn't this causing any unbalanced disable warnings ?
+
+Even I was expecting the wakeup clock to be enabled on suspend but if
+we have this enabled coreaon domain is never
+gated and core does not hit low power state. btw Why do think this is
+unbalanced?
+>
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int omap_usb2_runtime_resume(struct device *dev)
+>> +{
+>> +     u32 ret = 0;
+>> +     struct platform_device  *pdev = to_platform_device(dev);
+>> +     struct omap_usb *phy = platform_get_drvdata(pdev);
+>> +
+>> +     ret = clk_enable(phy->wkupclk);
+>> +     if (ret < 0)
+>> +             dev_err(phy->dev, "Failed to enable wkupclk %d\n", ret);
 >> +
 >> +     return ret;
 >> +}
 >> +
->> +static int __devexit omap_ocp2scp_remove(struct platform_device *pdev)
->> +{
->> +     pm_runtime_disable(&pdev->dev);
->> +     device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
->> +
->> +     return 0;
->> +}
->> +
+>> +static const struct dev_pm_ops omap_usb2_pm_ops = {
+>> +     SET_RUNTIME_PM_OPS(omap_usb2_runtime_suspend, omap_usb2_runtime_resume,
+>> +             NULL)
+>
+> only runtime ? What about static suspend ? We need this to work also
+> after a traditional echo mem > /sys/power/state ;-)
+
+The static suspend case is handled by users of this phy using set_suspend hooks.
+>
 >> +#ifdef CONFIG_OF
->> +static const struct of_device_id omap_ocp2scp_id_table[] = {
->> +     { .compatible = "ti,omap-ocp2scp" },
+>> +static const struct of_device_id omap_usb2_id_table[] = {
+>> +     { .compatible = "ti,omap-usb2" },
 >> +     {}
 >> +};
 >> +MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
 >> +#endif
 >> +
->> +static struct platform_driver omap_ocp2scp_driver = {
->> +     .probe          = omap_ocp2scp_probe,
->> +     .remove         = __devexit_p(omap_ocp2scp_remove),
+>> +static struct platform_driver omap_usb2_driver = {
+>> +     .probe          = omap_usb2_probe,
+>> +     .remove         = __devexit_p(omap_usb2_remove),
 >> +     .driver         = {
->> +             .name   = "omap-ocp2scp",
+>> +             .name   = "omap-usb2",
 >> +             .owner  = THIS_MODULE,
->> +             .of_match_table = of_match_ptr(omap_ocp2scp_id_table),
+>> +             .pm     = DEV_PM_OPS,
+>> +             .of_match_table = of_match_ptr(omap_usb2_id_table),
 >> +     },
 >> +};
 >> +
->> +static int __init omap_ocp2scp_init(void)
+>> +static int __init usb2_omap_init(void)
 >> +{
->> +     return platform_driver_register(&omap_ocp2scp_driver);
+>> +     return platform_driver_register(&omap_usb2_driver);
 >> +}
->> +arch_initcall(omap_ocp2scp_init);
+>> +arch_initcall(usb2_omap_init);
 >
-> I really think we should avoid this trickery and make dependent drivers
-> return -EPROBE_DEFER case this isn't ready yet.
+> I'd really like to see this converted into a module_platform_driver().
+> If you have dependencies, just make sure to return -EPROBE_DEFER so your
+> probe gets retried.
 
-Ok. Will do it that way in my next series.
+Sure.
 
 Thanks
 Kishon
