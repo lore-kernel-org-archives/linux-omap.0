@@ -1,129 +1,116 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] Revert "spi: omap2-mcspi: convert to
- module_platform_driver"
-Date: Fri, 3 Aug 2012 12:45:53 +0300
-Message-ID: <20120803094553.GA731@harshnoise.musicnaut.iki.fi>
-References: <1343948917-14760-1-git-send-email-aaro.koskinen@iki.fi>
- <CACxGe6scCYLpsEDGGwaXw_ijAk027w6Mk7D7FSOTZZdC6VkKSg@mail.gmail.com>
- <1343981127.2744.28.camel@deskari>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
+ used on both cpus
+Date: Fri, 3 Aug 2012 15:18:15 +0530
+Message-ID: <CAMQu2gzgfbeB0D18fKhmOaKUkY8Q_px+k9dq+jKEHc3YEuMMVQ@mail.gmail.com>
+References: <1333114048-26136-1-git-send-email-santosh.shilimkar@ti.com>
+ <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
+ <501B7AE6.8080405@gmail.com> <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
+ <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
+ <CAMQu2gxLAVk-LN8R1xBeeL1=iZ-mLSRmtZe4wpQYQPTBsY5RMA@mail.gmail.com>
+ <FF29FBF3-67EC-478E-9A74-65F8A2870BDC@dominion.thruhere.net> <79CD15C6BA57404B839C016229A409A83EA7F59B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:56231 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192Ab2HCJp5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 05:45:57 -0400
-Content-Disposition: inline
-In-Reply-To: <1343981127.2744.28.camel@deskari>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:59917 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751192Ab2HCJsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 05:48:42 -0400
+Received: by ghrr14 with SMTP id r14so674389ghr.32
+        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 02:48:36 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7F59B@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Grant Likely <grant.likely@secretlab.ca>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, balbi@ti.com
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Koen Kooi <koen@dominion.thruhere.net>, Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ccross@android.com" <ccross@android.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+On Fri, Aug 3, 2012 at 3:12 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+> On Fri, Aug 03, 2012 at 15:03:07, Koen Kooi wrote:
+>>
+>> Op 3 aug. 2012, om 11:27 heeft "Shilimkar, Santosh" <santosh.shilimkar@ti.com> het volgende geschreven:
+>>
+>> > On Fri, Aug 3, 2012 at 2:00 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
+>> >>
+>> >> Op 3 aug. 2012, om 09:21 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+>> >>
+>> >>>
+>> >>> Op 3 aug. 2012, om 09:16 heeft Daniel Mack <zonque@gmail.com> het volgende geschreven:
+>> >>>
+>> >>>> On 30.03.2012 15:27, Santosh Shilimkar wrote:
+>> >>>>> For coupled cpuidle to work when both cpus are active, it needs a global timer
+>> >>>>> that can handle events for both cpus.  This timer is used as the broadcast
+>> >>>>> clock-event when the per-cpu timer hardware stop in low power states.
+>> >>>>> Set the cpumask of clockevent_gpt to all cpus, set the rating correctly, and
+>> >>>>> set the irq to allow the clockevent core to determine the affinity of the
+>> >>>>> timer.
+>> >>>>
+>> >>>> These patches made it to mainline now, shortly befor 3.6-rc1, and it
+>> >>>> breaks boot on my AM33xx board.
+>> >>>>
+>> >>>> Once I revert 1/3, the board boots again but crashes with the Ooops
+>> >>>> below. With the entire series reverted, everything works again as
+>> >>>> expected. Any idea?
+>> >>>>
+>> >>>> The upstream commit ids are
+>> >>>>
+>> >>>> 11d6ec2e "ARM: OMAP: timer: allow gp timer clock-event to be used on
+>> >>>> both cpus"
+>> >>>> 5b4d5bcc "ARM: OMAP4: CPUidle: add synchronization for coupled idle states"
+>> >>>> b93d70ae "ARM: OMAP4: CPUidle: Open broadcast clock-event device."
+>> >>>
+>> >>> I've had boot problems with cpuidle enabled as well, what happens if you disable it? Is the revert still needed in that case?
+>> >>
+>> >> To answer my own question: No, the reverts aren't needed if you disable cpuidle.
+>> >
+>> > This is really strange since CPUIDLE code is really OMAP4 specific.
+>> > obj-$(CONFIG_ARCH_OMAP4)                += cpuidle44xx.o
+>> >
+>> > May be omap2plus build some how the code gets executed on AMXX
+>> >
+>> > Can you try below and see if the boot with CPUIDLE enabled goes away on
+>> > AMXX
+>> >
+>> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+>> > index ea24174..195e756 100644
+>> > --- a/arch/arm/mach-omap2/pm44xx.c
+>> > +++ b/arch/arm/mach-omap2/pm44xx.c
+>> > @@ -147,6 +147,9 @@ int __init omap4_pm_init(void)
+>> >        struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm, *l4wkup;
+>> >        struct clockdomain *ducati_clkdm, *l3_2_clkdm, *l4_per_clkdm;
+>> >
+>> > +       if (!cpu_is_omap44xx())
+>> > +               return -ENODEV;
+>> > +
+>> >        if (omap_rev() == OMAP4430_REV_ES1_0) {
+>> >                WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
+>> >                return -ENODEV;
+>>
+>> That does seem to fix it:
+>>
+>> root@beaglebone:~# zcat /proc/config.gz | grep -i cpu_idle
+>> CONFIG_CPU_IDLE=y
+>> CONFIG_CPU_IDLE_GOV_LADDER=y
+>> CONFIG_CPU_IDLE_GOV_MENU=y
+>> CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED=y
+>> root@beaglebone:~# zcat /proc/config.gz | grep -i omap4
+>> CONFIG_ARCH_OMAP4=y
+>> CONFIG_MACH_OMAP4_PANDA=y
+>> # CONFIG_OMAP4_ERRATA_I688 is not set
+>> # CONFIG_KEYBOARD_OMAP4 is not set
+>> CONFIG_OMAP4_DSS_HDMI=y
+>>
+>
+> This patch is not required, Without this patch is works for me,
+>
+Which is good news.Do you have CPUIDLE enabled in your build when you tested
+it. Note that CPUIDLE is not enabled by-default in omap2plus build and as I see
+from Koen's email, he did enable it in his testing.
 
-On Fri, Aug 03, 2012 at 11:05:27AM +0300, Tomi Valkeinen wrote:
-> On Thu, 2012-08-02 at 17:54 -0600, Grant Likely wrote:
-> > On Thu, Aug 2, 2012 at 5:08 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > > This reverts commit 9fdca9dfe093c76fe1ac1a09888ba9679d46996a.
-> > >
-> > > Changing omap2_mcspi_init() from subsys_initcall to device_initcall broke
-> > > the display initialization on N900 when all the drivers are compiled
-> > > built-in. Display subsystem drivers need a certain initialization order
-> > > and having all of them initialize with device_initcall seems to be too
-> > > fragile. Without this revert the display init fails and the boot hangs
-> > > with the following messages:
-> > >
-> > > [    1.260955] acx565akm spi1.2: invalid display ID
-> > > [    1.265899] panel-acx565akm display0: acx_panel_probe panel detect error
-> > > [    1.273071] omapdss CORE error: driver probe failed: -19
-> > 
-> > The dependencies are all messed up. The reverted commit is part of
-> > fixing that and I don't really want to go backwards on it. How many
-> > drivers are failing? Can you try modifying the failure path of those
-> > drivers to return -EPROBE_DEFER and see if that helps?
-> 
-> The description of 9fdca9dfe093c76fe1ac1a09888ba9679d46996a seems to be
-> overly positive: "this will delete a few lines of code, no functional
-> changes".
-> 
-> But yes, the probe dependencies with omap's display are quite fragile.
-> The probe order should be something like (from first to last):
-> 
-> - omapdss, i2c, spi, etc.
+Please confirm that 3.6-rc1 boots fine even with CPUIDLE enabled and
+we don't need
+the above mentioned patch. If it is not the case, I can post the fix.
 
-I looked more into this, and it seems this particular problem is related
-to probe order within SPI (and a special case with chip selects). The
-panel driver on N900 is spi1.2. It's listed in the board file before
-spi1.0 (touch controller). When the panel driver is probed, SPI transfers
-appear to work (no errors) but all returned data zero:
+Thanks for testing.
 
-[    1.371704] omap2_mcspi omap2_mcspi.1: registered master spi1
-[    1.378143] spi spi1.2: setup: speed 6000000, sample leading edge, clk normal
-[    1.385864] spi spi1.2: setup mode 0, 8 bits/w, 6000000 Hz max --> 0
-[    1.393005] acx565akm spi1.2: acx565akm_spi_probe
-[    1.398345] panel-acx565akm display0: acx_panel_probe
-[    1.416931] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.425415] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.433868] acx565akm spi1.2: LCD panel not enabled by bootloader (status 0x0000)
-[    1.441894] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.450347] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.458801] acx565akm spi1.2: MIPI display ID: 000000
-[    1.464202] acx565akm spi1.2: invalid display ID
-[    1.469085] panel-acx565akm display0: acx_panel_probe panel detect error
-[    1.476196] omapdss CORE error: driver probe failed: -19
-[    1.482269] omap2_mcspi omap2_mcspi.1: registered child spi1.2
-[    1.488525] spi spi1.0: setup: speed 6000000, sample leading edge, clk normal
-[    1.496124] spi spi1.0: setup mode 0, 8 bits/w, 6000000 Hz max --> 0
-[    1.503265] omap2_mcspi omap2_mcspi.1: registered child spi1.0
-
-If I modify the board file so that child spi1.0 is registered before
-spi1.2, then it starts to work properly:
-
-[    1.371978] omap2_mcspi omap2_mcspi.1: registered master spi1
-[    1.378417] spi spi1.0: setup: speed 6000000, sample leading edge, clk normal
-[    1.386108] spi spi1.0: setup mode 0, 8 bits/w, 6000000 Hz max --> 0
-[    1.393249] omap2_mcspi omap2_mcspi.1: registered child spi1.0
-[    1.399505] spi spi1.2: setup: speed 6000000, sample leading edge, clk normal
-[    1.407104] spi spi1.2: setup mode 0, 8 bits/w, 6000000 Hz max --> 0
-[    1.414245] acx565akm spi1.2: acx565akm_spi_probe
-[    1.419586] panel-acx565akm display0: acx_panel_probe
-[    1.440429] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.448883] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.457305] acx565akm spi1.2: LCD panel enabled by bootloader (status 0x80730417)
-[    1.465301] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.473724] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.482147] acx565akm spi1.2: MIPI display ID: 108a77
-[    1.487548] acx565akm spi1.2: omapfb: acx565akm rev 8a LCD detected
-[    1.494689] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.503112] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.511566] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.520019] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.528442] acx565akm spi1.2: acx565akm_bl_update_status
-[    1.534149] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.542572] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.550964] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.559417] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.567840] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.576293] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.584716] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.593109] acx565akm spi1.2: setup: speed 6000000, sample trailing edge, clk inverted
-[    1.601867] omap2_mcspi omap2_mcspi.1: registered child spi1.2
-
-So an altenative hack to fix this is to modify the board file
-(board-rx51-peripherals.c):
-
-	 /* list all spi devices here */
-	 enum {
-	 	RX51_SPI_WL1251,
-	-	RX51_SPI_MIPID,		/* LCD panel */
-	 	RX51_SPI_TSC2005,	/* Touch Controller */
-	+	RX51_SPI_MIPID,		/* LCD panel */
-	 };
-
-I guess the proper fix would be to modify SPI core so that it first does
-spi_setup for all the children/chip selects, before calling any of the
-probe functions of SPI devices? (Initializing the controller driver at
-subsys_initcall is one way to accomplish this.)
-
-A.
+Regards
+Santosh
