@@ -1,36 +1,41 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Fix the error handling in probe
-Date: Sat, 4 Aug 2012 12:06:55 +0100
-Message-ID: <20120804110654.GD10523@opensource.wolfsonmicro.com>
-References: <1343905885-31549-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1343905885-31549-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] OMAPDSS: OMAPFB: fix framebuffer console colors
+Date: Sat,  4 Aug 2012 19:19:13 +0300
+Message-ID: <1344097153-13903-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:40860 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752211Ab2HDQTV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Aug 2012 12:19:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Thu, Aug 02, 2012 at 04:41:25PM +0530, Shubhrajyoti D wrote:
-> The kfree() is taken care of by the spi core (spi_master_release() function)
-> that is called once the last reference to the underlying struct device has
-> been released. So the driver need not call kfree.
+omapfb does not currently set pseudo palette correctly for color depths
+above 16bpp, making red text invisible, command like
+  echo -e '\e[0;31mRED' > /dev/tty1
+will display nothing on framebuffer console in 24bpp mode.
+This is because temporary variable is declared incorrectly, fix it.
 
-Applied, thanks.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+ drivers/video/omap2/omapfb/omapfb-main.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 70aa47d..f7c1753 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1183,7 +1183,7 @@ static int _setcolreg(struct fb_info *fbi, u_int regno, u_int red, u_int green,
+ 			break;
+ 
+ 		if (regno < 16) {
+-			u16 pal;
++			u32 pal;
+ 			pal = ((red >> (16 - var->red.length)) <<
+ 					var->red.offset) |
+ 				((green >> (16 - var->green.length)) <<
+-- 
+1.7.0.4
+
