@@ -1,50 +1,35 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2] printk: add option to print cpu id
-Date: Sat, 4 Aug 2012 07:16:08 +0200
-Message-ID: <20120804051608.GB6728@liondog.tnic>
-References: <1343985378-22330-1-git-send-email-vikram.pandita@ti.com>
- <D958900912E20642BCBC71664EFECE3E6DDCAC49AB@BGMAIL02.nvidia.com>
- <D958900912E20642BCBC71664EFECE3E6DDCAC49AE@BGMAIL02.nvidia.com>
- <CAFm5wm2Z+FyVqG5oMWiEmZ8Je88hJ-cyDXmJw0wp4mqA-X9eYg@mail.gmail.com>
- <CAPXgP13UBwQLs+m_aSk3Ljbktz8WrL+ZO_Tfhrt_+tRBCARyQQ@mail.gmail.com>
- <CAFm5wm0nf47bcTu7iiXA3geR_5dDTF1tnf81Lz7JzbWkKdhUtA@mail.gmail.com>
- <CAPXgP11A=QfOt4SL2GvhsepP8JiDFfdaAhi6-AhW++-AvOz+aw@mail.gmail.com>
- <20120803104212.GA6936@x1.osrc.amd.com>
- <CAFm5wm0rsvuBafMH+9PpKwfaBimbRrVzxYV0nD_pg1yisAYwxQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3] printk: add option to print cpu id
+Date: Sat, 4 Aug 2012 09:51:42 +0100
+Message-ID: <20120804085142.GP7405@n2100.arm.linux.org.uk>
+References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com> <m2628z6euk.fsf@firstfloor.org> <CAFm5wm3ScpUU5wa=ei3TY0zjU4kVbOgJMmE5_QDpwy7B-TJa+A@mail.gmail.com> <20120803200822.GC731@harshnoise.musicnaut.iki.fi> <CAFm5wm2sf9LnZNj9_BDYTF9G7XH32fOL3x5n=kZ-1ih0Cek2DQ@mail.gmail.com> <20120803215954.GA4489@kroah.com> <CAFm5wm1_-JP0xjDdBvAcqqpZPQvxJPsmNtUOFQyaNw=6H_JJcg@mail.gmail.com> <20120803221327.GA5102@kroah.com> <CAFm5wm3ayofPD7oF1=z_jwE_wuqBxBHicAs=KOhjcUr7Jo0wDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFm5wm0rsvuBafMH+9PpKwfaBimbRrVzxYV0nD_pg1yisAYwxQ@mail.gmail.com>
+In-Reply-To: <CAFm5wm3ayofPD7oF1=z_jwE_wuqBxBHicAs=KOhjcUr7Jo0wDQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Kay Sievers <kay@vrfy.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Venu Byravarasu <vbyravarasu@nvidia.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Mike Turquette <mturquette@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>, kay@vrfy.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 03, 2012 at 09:46:15AM -0700, Pandita, Vikram wrote:
-> I mostly work with ARM Soc - specifically on OMAP. SMP multi core
-> systems in ARM-v7 world started to show up only few years back -
-> unlike x86 world.
+On Fri, Aug 03, 2012 at 03:25:17PM -0700, Pandita, Vikram wrote:
+> Other issue i found, using this patch, that on multi-core ARM systems,
+> almost 99% of times, IRQ's are handled by CPU0,
+> even if CPU0 was really busy and other CPU's were free. I am yet to
+> understand a good reason why.
 
-This is exactly the thing: other SMP vendors have made it so far without
-emitting which core is doing what in dmesg.
+That is because you're probably not running irqbalanced on your platforms.
 
-> ARM systems are a bit unique when it comes to security( read trust
-> zone ), and handling of FIQ's. Most of the ARM cortex-A series SoC's
-> out there have some kind of affinity to CPU0 being the master. One use
-> case has been, it has helped to know with this printk logging, if such
-> constraints are honored.
->
-> Sometimes, tracking of some lockup cases between cpu's because of bad
-> code has also been helpful with this logging support. For now i will
-> post v3 of the patch and add arm-list and linux-omap list, and there
-> might be users there can benefit.
+Firstly, the hardware does no IRQ balancing itself - you have to manually
+route IRQs to CPUs in the hardware, and if you ask for an IRQ to be
+delivered to several CPUs, all CPUs will get it each time it fires (unlike
+x86 IOAPIC which picks a CPU to route the IRQ to.)
 
-Right, so if arm people need this thing, why not make it arm-only? I
-still fail to see the need for this (... at all, actually).
+The ARM kernel does no IRQ balancing itself across CPUs, because when I
+tried to implement it, every algorithm I tried gave completely sub-optimal
+results, and irqbalanced existed to do the job in userspace.  So as there
+is a userspace solution which works, there was no point to doing this in
+the kernel.
 
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
+Please use the irqbalance daemon to spread IRQs across your CPUs.
