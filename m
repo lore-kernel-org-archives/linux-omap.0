@@ -1,79 +1,50 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: Re: [PATCH v3] printk: add option to print cpu id
-Date: Fri, 3 Aug 2012 15:48:26 -0700
-Message-ID: <CAFm5wm1SSmbdi09hc1Qo1eHw5Tc0vbMf1hWuNw-cjZEEx3jX5w@mail.gmail.com>
-References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com>
- <m2628z6euk.fsf@firstfloor.org> <CAFm5wm3ScpUU5wa=ei3TY0zjU4kVbOgJMmE5_QDpwy7B-TJa+A@mail.gmail.com>
- <20120803200822.GC731@harshnoise.musicnaut.iki.fi> <CAFm5wm2sf9LnZNj9_BDYTF9G7XH32fOL3x5n=kZ-1ih0Cek2DQ@mail.gmail.com>
- <20120803215954.GA4489@kroah.com> <CAFm5wm1_-JP0xjDdBvAcqqpZPQvxJPsmNtUOFQyaNw=6H_JJcg@mail.gmail.com>
- <20120803221327.GA5102@kroah.com> <CAFm5wm3ayofPD7oF1=z_jwE_wuqBxBHicAs=KOhjcUr7Jo0wDQ@mail.gmail.com>
- <20120803223623.GB6156@kroah.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2] printk: add option to print cpu id
+Date: Sat, 4 Aug 2012 07:16:08 +0200
+Message-ID: <20120804051608.GB6728@liondog.tnic>
+References: <1343985378-22330-1-git-send-email-vikram.pandita@ti.com>
+ <D958900912E20642BCBC71664EFECE3E6DDCAC49AB@BGMAIL02.nvidia.com>
+ <D958900912E20642BCBC71664EFECE3E6DDCAC49AE@BGMAIL02.nvidia.com>
+ <CAFm5wm2Z+FyVqG5oMWiEmZ8Je88hJ-cyDXmJw0wp4mqA-X9eYg@mail.gmail.com>
+ <CAPXgP13UBwQLs+m_aSk3Ljbktz8WrL+ZO_Tfhrt_+tRBCARyQQ@mail.gmail.com>
+ <CAFm5wm0nf47bcTu7iiXA3geR_5dDTF1tnf81Lz7JzbWkKdhUtA@mail.gmail.com>
+ <CAPXgP11A=QfOt4SL2GvhsepP8JiDFfdaAhi6-AhW++-AvOz+aw@mail.gmail.com>
+ <20120803104212.GA6936@x1.osrc.amd.com>
+ <CAFm5wm0rsvuBafMH+9PpKwfaBimbRrVzxYV0nD_pg1yisAYwxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:60257 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753879Ab2HCWss (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Aug 2012 18:48:48 -0400
-Received: by qao25 with SMTP id 25so383413qao.8
-        for <linux-omap@vger.kernel.org>; Fri, 03 Aug 2012 15:48:46 -0700 (PDT)
-In-Reply-To: <20120803223623.GB6156@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFm5wm0rsvuBafMH+9PpKwfaBimbRrVzxYV0nD_pg1yisAYwxQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kay Sievers <kay@vrfy.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Venu Byravarasu <vbyravarasu@nvidia.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Andi Kleen <andi@firstfloor.org>, kay@vrfy.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Turquette <mturquette@linaro.org>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
 
-On Fri, Aug 3, 2012 at 3:36 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> On Fri, Aug 03, 2012 at 03:25:17PM -0700, Pandita, Vikram wrote:
->> >> This was something that got used internally and helped at times.
->> >
->> > Could you have used the trace point instead?
->>
->> As i understood the trace_prink(), one would need to modify existing
->> printk -> trace_printk. Is my understanding correct?
+On Fri, Aug 03, 2012 at 09:46:15AM -0700, Pandita, Vikram wrote:
+> I mostly work with ARM Soc - specifically on OMAP. SMP multi core
+> systems in ARM-v7 world started to show up only few years back -
+> unlike x86 world.
+
+This is exactly the thing: other SMP vendors have made it so far without
+emitting which core is doing what in dmesg.
+
+> ARM systems are a bit unique when it comes to security( read trust
+> zone ), and handling of FIQ's. Most of the ARM cortex-A series SoC's
+> out there have some kind of affinity to CPU0 being the master. One use
+> case has been, it has helped to know with this printk logging, if such
+> constraints are honored.
 >
-> No, you should just be able to watch the tracepoint, right?
+> Sometimes, tracking of some lockup cases between cpu's because of bad
+> code has also been helpful with this logging support. For now i will
+> post v3 of the patch and add arm-list and linux-omap list, and there
+> might be users there can benefit.
 
-yes.
-Assumption being you know _EXACTLY_ what code piece to watch for.
-Which may not be the case all times.
+Right, so if arm people need this thing, why not make it arm-only? I
+still fail to see the need for this (... at all, actually).
 
->
->> Most of the times the problem exhibits as a random hang, without having a clue
->> which code to modify. That time one generic defconfig global switch is
->> your first tool.
->>
->> Other issue i found, using this patch, that on multi-core ARM systems,
->> almost 99% of times, IRQ's are handled by CPU0,
->> even if CPU0 was really busy and other CPU's were free. I am yet to
->> understand a good reason why.
->
-> Can't you see that from /proc/interrupts today?
+Thanks.
 
-You are right that was the next step i did and that shows the problem as well.
-The point i was trying to make, with printk showing cpu-id, there are
-problems in system that could get highlighted,
-given printk almost always runs with linux kernel.
-
->
->> this patch also helped in other areas as mentioned in the thread
->> http://marc.info/?l=linux-omap&m=134401269106619&w=2
->
-> I still don't understand how adding the cpu number to printk enabled you
-> to find any problem like this.  Can't you just add the cpu number to the
-> printk messages you care about for your specific hardware?
->
-
-The assumption here is that a developer knows well enough, which code
-to modify for logging.
-I my experience, that is not true most of the times. A global
-defconfig switch is much easier to enable.
-
-Eg: when i have some timing related issue, first thing i go for is to
-enable PRINTK_TIME, without even
-having to think about the erring code. Then time-stamps lead to bad code.
-
-That is the same though process behind the cpu-id in printk.
-
-
-> greg k-h
+-- 
+Regards/Gruss,
+    Boris.
