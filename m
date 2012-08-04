@@ -1,35 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3] printk: add option to print cpu id
-Date: Sat, 4 Aug 2012 09:51:42 +0100
-Message-ID: <20120804085142.GP7405@n2100.arm.linux.org.uk>
-References: <1344013004-32211-1-git-send-email-vikram.pandita@ti.com> <m2628z6euk.fsf@firstfloor.org> <CAFm5wm3ScpUU5wa=ei3TY0zjU4kVbOgJMmE5_QDpwy7B-TJa+A@mail.gmail.com> <20120803200822.GC731@harshnoise.musicnaut.iki.fi> <CAFm5wm2sf9LnZNj9_BDYTF9G7XH32fOL3x5n=kZ-1ih0Cek2DQ@mail.gmail.com> <20120803215954.GA4489@kroah.com> <CAFm5wm1_-JP0xjDdBvAcqqpZPQvxJPsmNtUOFQyaNw=6H_JJcg@mail.gmail.com> <20120803221327.GA5102@kroah.com> <CAFm5wm3ayofPD7oF1=z_jwE_wuqBxBHicAs=KOhjcUr7Jo0wDQ@mail.gmail.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH] spi: omap2-mcspi: Fix the error handling in probe
+Date: Sat, 4 Aug 2012 12:06:55 +0100
+Message-ID: <20120804110654.GD10523@opensource.wolfsonmicro.com>
+References: <1343905885-31549-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFm5wm3ayofPD7oF1=z_jwE_wuqBxBHicAs=KOhjcUr7Jo0wDQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Mike Turquette <mturquette@linaro.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, Vimarsh Zutshi <vimarsh.zutshi@gmail.com>, kay@vrfy.org, linux-kernel@vger.kernel.org, Andi Kleen <andi@firstfloor.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1343905885-31549-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 03, 2012 at 03:25:17PM -0700, Pandita, Vikram wrote:
-> Other issue i found, using this patch, that on multi-core ARM systems,
-> almost 99% of times, IRQ's are handled by CPU0,
-> even if CPU0 was really busy and other CPU's were free. I am yet to
-> understand a good reason why.
+On Thu, Aug 02, 2012 at 04:41:25PM +0530, Shubhrajyoti D wrote:
+> The kfree() is taken care of by the spi core (spi_master_release() function)
+> that is called once the last reference to the underlying struct device has
+> been released. So the driver need not call kfree.
 
-That is because you're probably not running irqbalanced on your platforms.
+Applied, thanks.
 
-Firstly, the hardware does no IRQ balancing itself - you have to manually
-route IRQs to CPUs in the hardware, and if you ask for an IRQ to be
-delivered to several CPUs, all CPUs will get it each time it fires (unlike
-x86 IOAPIC which picks a CPU to route the IRQ to.)
-
-The ARM kernel does no IRQ balancing itself across CPUs, because when I
-tried to implement it, every algorithm I tried gave completely sub-optimal
-results, and irqbalanced existed to do the job in userspace.  So as there
-is a userspace solution which works, there was no point to doing this in
-the kernel.
-
-Please use the irqbalance daemon to spread IRQs across your CPUs.
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
