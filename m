@@ -1,150 +1,205 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] Revert "ARM: OMAP3530evm: set pendown_state and debounce time for ads7846"
-Date: Mon, 06 Aug 2012 13:52:18 -0700
-Message-ID: <871ujj7ngd.fsf@ti.com>
-References: <876298iv9s.fsf@ti.com>
-	<1344284535-16717-1-git-send-email-grinberg@compulab.co.il>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: v3.6-rc1 DSS issues/regression
+Date: Tue, 7 Aug 2012 00:09:48 +0300
+Message-ID: <20120806210948.GC1298@harshnoise.musicnaut.iki.fi>
+References: <20120806164732.GB1298@harshnoise.musicnaut.iki.fi>
+ <1344273868.12136.50.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:58553 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756604Ab2HFUwV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 16:52:21 -0400
-Received: by pbbrr13 with SMTP id rr13so3096157pbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 13:52:19 -0700 (PDT)
-In-Reply-To: <1344284535-16717-1-git-send-email-grinberg@compulab.co.il> (Igor
-	Grinberg's message of "Mon, 6 Aug 2012 23:22:15 +0300")
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:41175 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749Ab2HFVKG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 17:10:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1344273868.12136.50.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Zumeng Chen <zumeng.chen@windriver.com>, Arnd Bergmann <arnd@arndb.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, archit@ti.com
 
-Igor Grinberg <grinberg@compulab.co.il> writes:
+Hi,
 
-> 1) The above commit introduced a common ->get_pendown_state() function
-> into the generic code, but that function was board-specific for the
-> OMAP3EVM and thus broke most other boards using this code.
->
-> 2) The above commit was mis-merged introducing another bug which
-> prevents the ads7846 driver probe function to succeed.
-> The omap_ads7846_init() function frees the pendown GPIO in case there is
-> no ->get_pendown_state() function set by the caller (board specific
-> code), so it can be requested later by the ads7846 driver.
-> The above commit add a common ->get_pendown_state() function without
-> removing the gpio_free() call and thus once the ads7846 driver tries
-> to use the pendown GPIO, it crashes as the pendown GPIO has not been
-> requested.
->
-> 3) The above commit introduces NO new functionality as
-> get_pendown_state() function is already implemented in a suitable way by
-> the ads7846 driver and the debounce time handling has already been
-> fixed by commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code).
->
-> This reverts commit 16aced80f6739beb2a6ff7b6f96c83ba80d331e8.
->
-> Conflicts:
-> 	arch/arm/mach-omap2/common-board-devices.c
->
-> Solved by taking the working version prior to the above commit.
->
-> Cc: Zumeng Chen <zumeng.chen@windriver.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> ---
-> Kevin, sorry for the late reply.
-> How about the above commit message and the below patch?
->
-> The patch applies cleanly to Tony's master branch (6 Aug 2012)
-> or Kevin's kevin-omap-pm/for_3.6/fixes/ads7846
-> after resetting two top most commits.
+On Mon, Aug 06, 2012 at 08:24:28PM +0300, Tomi Valkeinen wrote:
+> On Mon, 2012-08-06 at 19:47 +0300, Aaro Koskinen wrote:
+> > Hi,
+> > 
+> > I can't get the display on N900 (SDI, acx565akm) to work with v3.6-rc1
+> > kernel, it's just full of flicker/noise.
+> > 
+> > According to git-bisect, the problem is introduced by the commit:
+> > 
+> >     commit f476ae9dab3234532d41d36beb4ba7be838fa786
+> >     Author: Archit Taneja <archit@ti.com>
+> >     Date:   Fri Jun 29 14:37:03 2012 +0530
+> > 
+> >     OMAPDSS: APPLY: Remove DISPC writes to manager's lcd parameters in interface
+> > 
+> > Any ideas?
+> 
+> Looks strange, that particular commit more or less just moves the
+> writing of the configs to another place. And it works for DPI and DSI,
+> at least.
+> 
+> Can you take a dump of debugfs/omapdss/dss and debugfs/omapdss/dispc,
+> for both working and non-working versions, to see if there's a diff?
 
-Now that v3.6-rc1 is out, it should probalby be applied on top of -rc1.
-I've taken care of that and tested as well.
+Here's a diff:
 
-> This patch has been tested on both above branches on cm-t3730.
-> Any other board tested will be greately appreciated.
->
-> Also, if after all said in the commit message, you still don't
-> want to revert the original patch, feel free to post your thoughts.
+--- dss-n900-ok	2012-08-06 23:54:07.000000000 +0300
++++ dss-n900-broken	2012-08-06 23:51:08.000000000 +0300
+@@ -1,150 +1,150 @@
+ # cat clk
+ - DSS -
+ dpll4_ck 432000000
+ DSS_FCK (DSS1_ALWON_FCLK) = 432000000 / 12 * 2 = 72000000
+ - DISPC -
+ dispc fclk source = DSS_FCK (DSS1_ALWON_FCLK)
+ fck		72000000        
+ - LCD -
+ LCD clk source = DSS_FCK (DSS1_ALWON_FCLK)
+ lck		72000000        lck div	1
+ pck		24000000        pck div	3
+ # cat dispc
+ DISPC_REVISION                                     00000030
+ DISPC_SYSCONFIG                                    00002015
+ DISPC_SYSSTATUS                                    00000001
+ DISPC_IRQSTATUS                                    000100a2
+ DISPC_IRQENABLE                                    0000d640
+ DISPC_CONTROL                                      38018309
+ DISPC_CONFIG                                       00004204
+ DISPC_CAPABLE                                      000003ff
+-DISPC_LINE_STATUS                                  00000036
++DISPC_LINE_STATUS                                  000000bf
+ DISPC_LINE_NUMBER                                  00000000
+ DISPC_GLOBAL_ALPHA                                 000000ff
+ DISPC_DEFAULT_COLOR(LCD)                           00000000
+ DISPC_TRANS_COLOR(LCD)                             00000000
+ DISPC_SIZE_MGR(LCD)                                01df031f
+ DISPC_DEFAULT_COLOR(LCD)                           00000000
+ DISPC_TRANS_COLOR(LCD)                             00000000
+ DISPC_TIMING_H(LCD)                                01701b03
+ DISPC_TIMING_V(LCD)                                00400302
+ DISPC_POL_FREQ(LCD)                                00033000
+ DISPC_DIVISORo(LCD)                                00010003
+ DISPC_SIZE_MGR(LCD)                                01df031f
+ DISPC_DATA_CYCLE1(LCD)                             00000000
+ DISPC_DATA_CYCLE2(LCD)                             00000000
+ DISPC_DATA_CYCLE3(LCD)                             00000000
+ DISPC_CPR_COEF_R(LCD)                              00000000
+ DISPC_CPR_COEF_G(LCD)                              00000000
+ DISPC_CPR_COEF_B(LCD)                              00000000
+ DISPC_DEFAULT_COLOR(TV)                            00000000
+ DISPC_TRANS_COLOR(TV)                              00000000
+ DISPC_SIZE_MGR(TV)                                 00000000
+ DISPC_OVL_BA0(GFX)                                 8f000000
+ DISPC_OVL_BA1(GFX)                                 8f000000
+ DISPC_OVL_POSITION(GFX)                            00000000
+ DISPC_OVL_SIZE(GFX)                                01df031f
+ DISPC_OVL_ATTRIBUTES(GFX)                          000000ad
+ DISPC_OVL_FIFO_THRESHOLD(GFX)                      0bff03c0
+ DISPC_OVL_FIFO_SIZE_STATUS(GFX)                    00000400
+ DISPC_OVL_ROW_INC(GFX)                             00000001
+ DISPC_OVL_PIXEL_INC(GFX)                           00000001
+ DISPC_OVL_PRELOAD(GFX)                             00000100
+ DISPC_OVL_WINDOW_SKIP(GFX)                         00000000
+ DISPC_OVL_TABLE_BA(GFX)                            00000000
+ DISPC_OVL_BA0(VID1)                                00000000
+ DISPC_OVL_BA1(VID1)                                00000000
+ DISPC_OVL_POSITION(VID1)                           00000000
+ DISPC_OVL_SIZE(VID1)                               00000000
+ DISPC_OVL_ATTRIBUTES(VID1)                         00008000
+ DISPC_OVL_FIFO_THRESHOLD(VID1)                     00000000
+ DISPC_OVL_FIFO_SIZE_STATUS(VID1)                   00000400
+ DISPC_OVL_ROW_INC(VID1)                            00000001
+ DISPC_OVL_PIXEL_INC(VID1)                          00000001
+ DISPC_OVL_PRELOAD(VID1)                            00000100
+ DISPC_OVL_FIR(VID1)                                00000000
+ DISPC_OVL_PICTURE_SIZE(VID1)                       00000000
+ DISPC_OVL_ACCU0(VID1)                              00000000
+ DISPC_OVL_ACCU1(VID1)                              00000000
+ DISPC_OVL_PRELOAD(VID1)                            00000100
+ DISPC_OVL_BA0(VID2)                                00000000
+ DISPC_OVL_BA1(VID2)                                00000000
+ DISPC_OVL_POSITION(VID2)                           00000000
+ DISPC_OVL_SIZE(VID2)                               00000000
+ DISPC_OVL_ATTRIBUTES(VID2)                         00008000
+ DISPC_OVL_FIFO_THRESHOLD(VID2)                     00000000
+ DISPC_OVL_FIFO_SIZE_STATUS(VID2)                   00000400
+ DISPC_OVL_ROW_INC(VID2)                            00000001
+ DISPC_OVL_PIXEL_INC(VID2)                          00000001
+ DISPC_OVL_PRELOAD(VID2)                            00000100
+ DISPC_OVL_FIR(VID2)                                00000000
+ DISPC_OVL_PICTURE_SIZE(VID2)                       00000000
+ DISPC_OVL_ACCU0(VID2)                              00000000
+ DISPC_OVL_ACCU1(VID2)                              00000000
+ DISPC_OVL_PRELOAD(VID2)                            00000100
+ DISPC_OVL_FIR_COEF_H_0(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_1(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_2(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_3(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_4(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_5(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_6(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_7(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_HV_0(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_1(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_2(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_3(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_4(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_5(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_6(VID1)                      00000000
+ DISPC_OVL_FIR_COEF_HV_7(VID1)                      00000000
+ DISPC_OVL_CONV_COEF_0(VID1)                        0199012a
+ DISPC_OVL_CONV_COEF_1(VID1)                        012a0000
+ DISPC_OVL_CONV_COEF_2(VID1)                        079c0730
+ DISPC_OVL_CONV_COEF_3(VID1)                        0000012a
+ DISPC_OVL_CONV_COEF_4(VID1)                        00000205
+ DISPC_OVL_FIR_COEF_V_0(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_1(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_2(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_3(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_4(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_5(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_6(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_V_7(VID1)                       00000000
+ DISPC_OVL_FIR_COEF_H_0(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_1(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_2(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_3(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_4(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_5(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_6(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_H_7(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_HV_0(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_1(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_2(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_3(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_4(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_5(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_6(VID2)                      00000000
+ DISPC_OVL_FIR_COEF_HV_7(VID2)                      00000000
+ DISPC_OVL_CONV_COEF_0(VID2)                        0199012a
+ DISPC_OVL_CONV_COEF_1(VID2)                        012a0000
+ DISPC_OVL_CONV_COEF_2(VID2)                        079c0730
+ DISPC_OVL_CONV_COEF_3(VID2)                        0000012a
+ DISPC_OVL_CONV_COEF_4(VID2)                        00000205
+ DISPC_OVL_FIR_COEF_V_0(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_1(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_2(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_3(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_4(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_5(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_6(VID2)                       00000000
+ DISPC_OVL_FIR_COEF_V_7(VID2)                       00000000
+ # cat dss
+ DSS_REVISION                        00000020
+ DSS_SYSCONFIG                       00000001
+ DSS_SYSSTATUS                       00000001
+ DSS_CONTROL                         00000018
+ DSS_SDI_CONTROL                     00078006
+ DSS_PLL_CONTROL                     01c45968
+-DSS_SDI_STATUS                      000000a5
++DSS_SDI_STATUS                      000000bd
 
-After all the digging I did, I agree that the revert is the best
-solution.  
-
-While it's a slightly different problem/bug, I think the gpio_free() in
-common-board-devices.c should still be unconditonal since the
-gpio_request() is now unconditional.  That can be a separate patch though.
-
-Acked-by: Kevin Hilman <khilman@ti.com>
-Tested-by: Kevin Hilman <khilman@ti.com>
-
-Tested on 3430/n900, 3530/Overo, 3730/Overo STORM, 3730/BB-xM.
-
-The Overo boards were the ones that were crashing due to this bug since
-the pendown GPIO was the only one used in the bank.
-
-Tony, can you queue this up for v3.6-rc?  I have a version in my
-for_3.6/fixes/ads7846-2 branch with the tags above applied, based on v3.6-rc1.
-
-Thanks
-
-Kevin
-
->  arch/arm/mach-omap2/board-omap3evm.c       |    1 +
->  arch/arm/mach-omap2/common-board-devices.c |   11 -----------
->  arch/arm/mach-omap2/common-board-devices.h |    1 -
->  3 files changed, 1 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index ef230a0..0d362e9 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -58,6 +58,7 @@
->  #include "hsmmc.h"
->  #include "common-board-devices.h"
->  
-> +#define OMAP3_EVM_TS_GPIO	175
->  #define OMAP3_EVM_EHCI_VBUS	22
->  #define OMAP3_EVM_EHCI_SELECT	61
->  
-> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-> index 1473474..c187586 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.c
-> +++ b/arch/arm/mach-omap2/common-board-devices.c
-> @@ -35,16 +35,6 @@ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
->  	.turbo_mode	= 0,
->  };
->  
-> -/*
-> - * ADS7846 driver maybe request a gpio according to the value
-> - * of pdata->get_pendown_state, but we have done this. So set
-> - * get_pendown_state to avoid twice gpio requesting.
-> - */
-> -static int omap3_get_pendown_state(void)
-> -{
-> -	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
-> -}
-> -
->  static struct ads7846_platform_data ads7846_config = {
->  	.x_max			= 0x0fff,
->  	.y_max			= 0x0fff,
-> @@ -55,7 +45,6 @@ static struct ads7846_platform_data ads7846_config = {
->  	.debounce_rep		= 1,
->  	.gpio_pendown		= -EINVAL,
->  	.keep_vref_on		= 1,
-> -	.get_pendown_state	= &omap3_get_pendown_state,
->  };
->  
->  static struct spi_board_info ads7846_spi_board_info __initdata = {
-> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-> index 4c4ef6a..a0b4a428 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.h
-> +++ b/arch/arm/mach-omap2/common-board-devices.h
-> @@ -4,7 +4,6 @@
->  #include "twl-common.h"
->  
->  #define NAND_BLOCK_SIZE	SZ_128K
-> -#define OMAP3_EVM_TS_GPIO	175
->  
->  struct mtd_partition;
->  struct ads7846_platform_data;
+A.
