@@ -1,36 +1,35 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH] driver: misc: bmp085: remove "of_match_table" property.
-Date: Mon, 6 Aug 2012 16:42:14 +0100
-Message-ID: <20120806154214.GC29272@sirena.org.uk>
-References: <1344245324-16704-1-git-send-email-sourav.poddar@ti.com>
- <20120806093033.GH17551@arwen.pp.htv.fi>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: v3.6-rc1 DSS issues/regression
+Date: Mon, 6 Aug 2012 19:47:32 +0300
+Message-ID: <20120806164732.GB1298@harshnoise.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:52700 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932271Ab2HFQr5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 12:47:57 -0400
 Content-Disposition: inline
-In-Reply-To: <20120806093033.GH17551-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, archit@ti.com
+Cc: tomi.valkeinen@ti.com
 
-On Mon, Aug 06, 2012 at 12:30:34PM +0300, Felipe Balbi wrote:
-> On Mon, Aug 06, 2012 at 02:58:44PM +0530, Sourav Poddar wrote:
-> > There is an automatic binding done for I2C devices in the of_i2c core
-> > code. So, DT will be able to bind to any I2C device using the
-> > already existing table: MODULE_DEVICE_TABLE(i2c, bmp085_id).
+Hi,
 
-> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+I can't get the display on N900 (SDI, acx565akm) to work with v3.6-rc1
+kernel, it's just full of flicker/noise.
 
-It's good practice to have an explict compatible string even if the
-default happens to work in order to avoid any name clashes.
+According to git-bisect, the problem is introduced by the commit:
+
+    commit f476ae9dab3234532d41d36beb4ba7be838fa786
+    Author: Archit Taneja <archit@ti.com>
+    Date:   Fri Jun 29 14:37:03 2012 +0530
+
+    OMAPDSS: APPLY: Remove DISPC writes to manager's lcd parameters in interface
+
+Any ideas?
+
+Thanks,
+
+A.
