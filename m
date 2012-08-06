@@ -1,156 +1,36 @@
-From: Mugunthan V N <mugunthanvnm@ti.com>
-Subject: [PATCH 2/2] documentation: dt: bindings: cpsw: fixing the examples for directly using it in dts file
-Date: Mon, 6 Aug 2012 20:35:58 +0530
-Message-ID: <1344265558-5724-3-git-send-email-mugunthanvnm@ti.com>
-References: <1344265558-5724-1-git-send-email-mugunthanvnm@ti.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH] driver: misc: bmp085: remove "of_match_table" property.
+Date: Mon, 6 Aug 2012 16:42:14 +0100
+Message-ID: <20120806154214.GC29272@sirena.org.uk>
+References: <1344245324-16704-1-git-send-email-sourav.poddar@ti.com>
+ <20120806093033.GH17551@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43094 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756655Ab2HFPGS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Aug 2012 11:06:18 -0400
-In-Reply-To: <1344265558-5724-1-git-send-email-mugunthanvnm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120806093033.GH17551-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Mugunthan V N <mugunthanvnm@ti.com>
 
-Fixing the cpsw device tree example to make it simpler to copy pastable to dts
-file and use it directly.
+On Mon, Aug 06, 2012 at 12:30:34PM +0300, Felipe Balbi wrote:
+> On Mon, Aug 06, 2012 at 02:58:44PM +0530, Sourav Poddar wrote:
+> > There is an automatic binding done for I2C devices in the of_i2c core
+> > code. So, DT will be able to bind to any I2C device using the
+> > already existing table: MODULE_DEVICE_TABLE(i2c, bmp085_id).
 
-Signed-off-by: Mugunthan V N <mugunthanvnm@ti.com>
----
- Documentation/devicetree/bindings/net/cpsw.txt |  101 ++++++++++++-----------
- 1 files changed, 53 insertions(+), 48 deletions(-)
+> Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-diff --git a/Documentation/devicetree/bindings/net/cpsw.txt b/Documentation/devicetree/bindings/net/cpsw.txt
-index acca48c..dcaabe9 100644
---- a/Documentation/devicetree/bindings/net/cpsw.txt
-+++ b/Documentation/devicetree/bindings/net/cpsw.txt
-@@ -11,6 +11,7 @@ Required properties:
- - cpdma_channels 	: Specifies number of channels in CPDMA
- - host_port_no		: Specifies host port shift
- - cpdma_reg_ofs		: Specifies CPDMA submodule register offset
-+- cpdma_sram_ofs	: Specifies CPDMA SRAM offset
- - ale_reg_ofs		: Specifies ALE submodule register offset
- - ale_entries		: Specifies No of entries ALE can hold
- - host_port_reg_ofs	: Specifies host port register offset
-@@ -43,62 +44,66 @@ Examples:
- 		reg = <0x4A100000 0x1000>;
- 		interrupts = <55 0x4>;
- 		interrupt-parent = <&intc>;
--		cpdma_channels = 8;
--		host_port_no = 0;
--		cpdma_reg_ofs = 0x800;
--		ale_reg_ofs = 0xd00;
--		ale_entries = 1024;
--		host_port_reg_ofs = 0x108;
--		hw_stats_reg_ofs = 0x900;
--		bd_ram_ofs = 0x2000;
--		bd_ram_size = 0x2000;
--		no_bd_ram = 0;
--		rx_descs = 64;
--		mac_control = 0x20;
--		slaves = 2;
--		slave@0 {
--			slave_reg_ofs = 0x208;
--			sliver_reg_ofs = 0xd80;
--			phy_id = "davinci_mdio-0:00"
--			mac-address = [00 04 9F 01 1B B8];
-+		cpdma_channels = <8>;
-+		host_port_no = <0>;
-+		cpdma_reg_ofs = <0x800>;
-+		cpdma_sram_ofs = <0xa00>;
-+		ale_reg_ofs = <0xd00>;
-+		ale_entries = <1024>;
-+		host_port_reg_ofs = <0x108>;
-+		hw_stats_reg_ofs = <0x900>;
-+		bd_ram_ofs = <0x2000>;
-+		bd_ram_size = <0x2000>;
-+		no_bd_ram = <0>;
-+		rx_descs = <64>;
-+		mac_control = <0x20>;
-+		slaves = <2>;
-+		cpsw_emac0: slave@0 {
-+			slave_reg_ofs = <0x208>;
-+			sliver_reg_ofs = <0xd80>;
-+			phy_id = "davinci_mdio.16:00";
-+			/* Filled in by U-Boot */
-+			mac-address = [ 00 00 00 00 00 00 ];
- 		};
--		slave@1 {
--			slave_reg_ofs = 0x208;
--			sliver_reg_ofs = 0xd80;
--			phy_id = "davinci_mdio-0:01"
--			mac-address = [00 04 9F 01 1B B9];
-+		cpsw_emac1: slave@1 {
-+			slave_reg_ofs = <0x308>;
-+			sliver_reg_ofs = <0xdc0>;
-+			phy_id = "davinci_mdio.16:01";
-+			/* Filled in by U-Boot */
-+			mac-address = [ 00 00 00 00 00 00 ];
- 		};
- 	};
- 
- (or)
--
- 	mac: ethernet@4A100000 {
- 		compatible = "ti,cpsw";
- 		ti,hwmods = "cpgmac0";
--		cpdma_channels = 8;
--		host_port_no = 0;
--		cpdma_reg_ofs = 0x800;
--		ale_reg_ofs = 0xd00;
--		ale_entries = 1024;
--		host_port_reg_ofs = 0x108;
--		hw_stats_reg_ofs = 0x900;
--		bd_ram_ofs = 0x2000;
--		bd_ram_size = 0x2000;
--		no_bd_ram = 0;
--		rx_descs = 64;
--		mac_control = 0x20;
--		slaves = 2;
--		slave@0 {
--			slave_reg_ofs = 0x208;
--			sliver_reg_ofs = 0xd80;
--			phy_id = "davinci_mdio-0:00"
--			mac-address = [00 04 9F 01 1B B8];
-+		cpdma_channels = <8>;
-+		host_port_no = <0>;
-+		cpdma_reg_ofs = <0x800>;
-+		cpdma_sram_ofs = <0xa00>;
-+		ale_reg_ofs = <0xd00>;
-+		ale_entries = <1024>;
-+		host_port_reg_ofs = <0x108>;
-+		hw_stats_reg_ofs = <0x900>;
-+		bd_ram_ofs = <0x2000>;
-+		bd_ram_size = <0x2000>;
-+		no_bd_ram = <0>;
-+		rx_descs = <64>;
-+		mac_control = <0x20>;
-+		slaves = <2>;
-+		cpsw_emac0: slave@0 {
-+			slave_reg_ofs = <0x208>;
-+			sliver_reg_ofs = <0xd80>;
-+			phy_id = "davinci_mdio.16:00";
-+			/* Filled in by U-Boot */
-+			mac-address = [ 00 00 00 00 00 00 ];
- 		};
--		slave@1 {
--			slave_reg_ofs = 0x208;
--			sliver_reg_ofs = 0xd80;
--			phy_id = "davinci_mdio-0:01"
--			mac-address = [00 04 9F 01 1B B9];
-+		cpsw_emac1: slave@1 {
-+			slave_reg_ofs = <0x308>;
-+			sliver_reg_ofs = <0xdc0>;
-+			phy_id = "davinci_mdio.16:01";
-+			/* Filled in by U-Boot */
-+			mac-address = [ 00 00 00 00 00 00 ];
- 		};
--
- 	};
--- 
-1.7.0.4
-
+It's good practice to have an explict compatible string even if the
+default happens to work in order to avoid any name clashes.
