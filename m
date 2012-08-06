@@ -1,95 +1,72 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v6 01/11] drivers: usb: otg: add a new driver for omap
- usb2 phy
-Date: Mon, 6 Aug 2012 12:44:02 +0300
-Message-ID: <20120806094401.GI17551@arwen.pp.htv.fi>
-References: <1343639400-28725-1-git-send-email-kishon@ti.com>
- <1343639400-28725-2-git-send-email-kishon@ti.com>
- <20120803132708.GC8269@arwen.pp.htv.fi>
- <CAAe_U6K15Nm5aNs2Vn71G7ELZWka1zB2E3VGZWTc0VjyViJ6Yw@mail.gmail.com>
- <20120806084928.GD17551@arwen.pp.htv.fi>
- <CAAe_U6LhfrRk7PP-Td7BTXPngo7+chvTp4LwwKR_GbsjE4jNJQ@mail.gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
+Date: Mon, 6 Aug 2012 12:14:08 +0200
+Message-ID: <CAORVsuUDo7VB3FnbQWJo=zowrviNDNbPM4DtqQMNrYAmOOat4w@mail.gmail.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
+	<878ve5j8se.fsf@ti.com>
+	<1343637607.9847.13.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UthUFkbMtH2ceUK2"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6LhfrRk7PP-Td7BTXPngo7+chvTp4LwwKR_GbsjE4jNJQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40139 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752402Ab2HFKOK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 06:14:10 -0400
+Received: by lagy9 with SMTP id y9so632273lag.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 03:14:08 -0700 (PDT)
+In-Reply-To: <1343637607.9847.13.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
+Hi Tero,
 
---UthUFkbMtH2ceUK2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jul 30, 2012 at 10:40 AM, Tero Kristo <t-kristo@ti.com> wrote:
+> On Fri, 2012-07-27 at 12:36 -0700, Kevin Hilman wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>>
+>> > mpu / core powerdomain usecounts are now statically increased
+>> > by 1 during MPU activity. This allows the domains to reflect
+>> > actual usage, and will allow the usecount to reach 0 just before
+>> > all CPUs are ready to idle. Proper powerdomain usecounts are
+>> > propageted to voltagedomain level also, and will allow vc
+>> > callbacks to be triggered at right point of time.
+>> >
+>> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> > Cc: Paul Walmsley <paul@pwsan.com>
+>> > Cc: Kevin Hilman <khilman@ti.com>
+>>
+>> IMO, the idea is fine, but I'm not crazy about the implementation in
+>> powerdomain.c, which is meant for pwrdm generic code.   In particular,
+>> I'm not crazy about the pwrdm lookups in powerdomain.c.
+>>
+>> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
+>> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
+>
+> I think this was how the patch was in some earlier rev but I thought I'd
+> try to be more clever with this. :) I can revert the implementation back
+> to this.
+Furthermore after the changes in pre/post transitions [1], some more
+checks will be needed to identify the transitions on the mpu and core
+power domains.
 
-On Mon, Aug 06, 2012 at 03:14:42PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> >> >> +static int omap_usb2_runtime_resume(struct device *dev)
-> >> >> +{
-> >> >> +     u32 ret =3D 0;
-> >> >> +     struct platform_device  *pdev =3D to_platform_device(dev);
-> >> >> +     struct omap_usb *phy =3D platform_get_drvdata(pdev);
-> >> >> +
-> >> >> +     ret =3D clk_enable(phy->wkupclk);
-> >> >> +     if (ret < 0)
-> >> >> +             dev_err(phy->dev, "Failed to enable wkupclk %d\n", re=
-t);
-> >> >> +
-> >> >> +     return ret;
-> >> >> +}
-> >> >> +
-> >> >> +static const struct dev_pm_ops omap_usb2_pm_ops =3D {
-> >> >> +     SET_RUNTIME_PM_OPS(omap_usb2_runtime_suspend, omap_usb2_runti=
-me_resume,
-> >> >> +             NULL)
-> >> >
-> >> > only runtime ? What about static suspend ? We need this to work also
-> >> > after a traditional echo mem > /sys/power/state ;-)
-> >>
-> >> The static suspend case is handled by users of this phy using
-> >> set_suspend hooks.
-> >
-> > I'm not sure if that's too wise, what if your user enabled USB, but
-> > for whatever reason loaded only the phy driver and not musb or dwc3. It
-> > will fail, right ?
->=20
-> The enabling and disabling of phy is solely governed by usb controller
-> driver (musb/dwc3). So if you dont have musb/dwc3 loaded, the phy will
-> be for sure disabled.
+[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=e055548953355b6e69c56f9e54388845b29b4e97
 
-fair enough... that's ok then ;-)
+Regards,
+Jean
 
---=20
-balbi
-
---UthUFkbMtH2ceUK2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQH5HhAAoJEIaOsuA1yqREFAYP/0Tg9jYi+w6+3EISdUAnuQXj
-g8RJET/C2H72vx/2MS7PbqLhNb22pAw1+NrEB1hq3z450DTln+yRg0xVsYL7/OkQ
-qLrW4ARCG7CUd54n1gDPuIlOkH1qpcNxenpJfxxOuTbs+vejXWBulBzoRfbFZySy
-uh8GA3mFOvrBqmkeWhNlPQ2qoWhETEXgxqkmylX0FSW67arB/qWvkwVuPuGv/O70
-y1MnXvUPeoYUVRm30m8TKzFMWrX58A5YqfPuwEmuOhziJpHT0lUKxL3xJhDD//qZ
-zD9P4D5KXKnx23ruFlfRCdfFMs8SNPRTgQvdTr9gQnM+U0eaHUQFSRFiVYZHHdB0
-EQZPqWp0qUhAGAJendrDXhfPjaUo8cyvVFdWx4uOAkObn5AutP2s+FOZIF6HmGg8
-ewAmRcB4uKgeG9DNiVyfhCh3s3C7nLMgAn9/adQFmfXRK3Z+bos4Hr1BJ9+RXAL1
-2o0imPpz2x7fucPoXoQBYoKJME+29d5slCfpK42ypHo9CS8Q/yUaxmSS1DUhpTmM
-Y5T0pGNmHHXnZAHT2vdR31OaUnMpMFgGA1jk/76grdnA62eAEgtEXp4A7TqAzL14
-6HQahuxXnPZuoDH/WZJtvVOpEDdFI/MuCJVw0t8dM2U7bgjQD0ep7U94TNFSVm6N
-kiZ5+IO93rKVrF0oxTCv
-=nEBC
------END PGP SIGNATURE-----
-
---UthUFkbMtH2ceUK2--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> Also, the changelog should be a bit more specific about why CORE
+>> powerdomain is also handled here when most of the code only talks about
+>> the CPU.
+>
+> Yea, I'll add some beef to this also.
+>
+> -Tero
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
