@@ -1,72 +1,58 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
-Date: Mon, 6 Aug 2012 12:14:08 +0200
-Message-ID: <CAORVsuUDo7VB3FnbQWJo=zowrviNDNbPM4DtqQMNrYAmOOat4w@mail.gmail.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
-	<878ve5j8se.fsf@ti.com>
-	<1343637607.9847.13.camel@sokoban>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] OMAPDSS: OMAPFB: fix framebuffer console colors
+Date: Mon, 06 Aug 2012 13:15:34 +0300
+Message-ID: <501F9946.3030504@compulab.co.il>
+References: <1344097153-13903-1-git-send-email-notasas@gmail.com> <1344232816.6227.0.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40139 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752402Ab2HFKOK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 06:14:10 -0400
-Received: by lagy9 with SMTP id y9so632273lag.19
-        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 03:14:08 -0700 (PDT)
-In-Reply-To: <1343637607.9847.13.camel@sokoban>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:42629 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755785Ab2HFKPl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Aug 2012 06:15:41 -0400
+In-Reply-To: <1344232816.6227.0.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Tero,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Mon, Jul 30, 2012 at 10:40 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> On Fri, 2012-07-27 at 12:36 -0700, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->>
->> > mpu / core powerdomain usecounts are now statically increased
->> > by 1 during MPU activity. This allows the domains to reflect
->> > actual usage, and will allow the usecount to reach 0 just before
->> > all CPUs are ready to idle. Proper powerdomain usecounts are
->> > propageted to voltagedomain level also, and will allow vc
->> > callbacks to be triggered at right point of time.
->> >
->> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> > Cc: Paul Walmsley <paul@pwsan.com>
->> > Cc: Kevin Hilman <khilman@ti.com>
->>
->> IMO, the idea is fine, but I'm not crazy about the implementation in
->> powerdomain.c, which is meant for pwrdm generic code.   In particular,
->> I'm not crazy about the pwrdm lookups in powerdomain.c.
->>
->> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
->> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
->
-> I think this was how the patch was in some earlier rev but I thought I'd
-> try to be more clever with this. :) I can revert the implementation back
-> to this.
-Furthermore after the changes in pre/post transitions [1], some more
-checks will be needed to identify the transitions on the mpu and core
-power domains.
+On 08/06/12 09:00, Tomi Valkeinen wrote:
+> On Sat, 2012-08-04 at 19:19 +0300, Grazvydas Ignotas wrote:
+>> omapfb does not currently set pseudo palette correctly for color depths
+>> above 16bpp, making red text invisible, command like
+>>   echo -e '\e[0;31mRED' > /dev/tty1
+>> will display nothing on framebuffer console in 24bpp mode.
+>> This is because temporary variable is declared incorrectly, fix it.
+> 
+> Thanks, applied to OMAP DSS tree.
 
-[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=e055548953355b6e69c56f9e54388845b29b4e97
+Is it also applicable to stable?
+If yes, Tomi, can you please add the Cc tag?
 
+Thanks
+
+- -- 
 Regards,
-Jean
+Igor.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
->
->> Also, the changelog should be a bit more specific about why CORE
->> powerdomain is also handled here when most of the code only talks about
->> the CPU.
->
-> Yea, I'll add some beef to this also.
->
-> -Tero
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJQH5lGAAoJEBDE8YO64Efak/YP/3APyqQ3d4TLB8sG7oHSF/Vn
+zmwMl8kH2B70WIPWU1iIExodfrDd3Gms8UeGqjhj04kLHvqYUs3/lepTA6gkEnH0
+U4vyO6WTMYtWBHUGXJhZk5GpOByn4aLdk4UGV22NNMmUI/xWqcVGSnntLjmRcUyu
+Y1JRQqhlrXrYXH5A866J7yrwSwhhZ/sZXs4k1N5keCNaT8ieqn0HXvu02ma7bjF7
+SvhWDPNOOWUuEOGsope8F2A8Mot4ToManqRHDTUSnq/cpWziGiy6/7I7ngVIMUgD
+/nmiLISgU72wkoNDl0AxGQDVQ8HFUspzGe2e12VliG+ErmFkGfKr9XdI6fx7gKh2
+ks7qL+uMBau9MpWYcRPhPvYrVn7tg6V9seN2/bG5gp2IgMFbu1wmibVMNyCGhQeX
+1OhshGEKeR58s+R8KZ7+UzbjspDuSnlnFH2wVbbb3wr30Swc6VZA/rWlwNg3Bgz5
+/h63a5SOwTF9nmV+3/O/ky4gyMORbbJyOBK/xWVmQkZ4lNNW02RnMaa6KP8fKlbb
+Cc7x1P07jcMH83LKGyyhsvZrK/4JCloYEDTvuYHprf9Wb+WsXNCLsRiYMngUIwPc
+eLrBVOlELQvS237eGAwMIfo4Lm3tI3WMyr8cjGy2aRqn8voDJW+qEN2NUNwkNDqS
+kGYrOE0t5VRNx5egrv+J
+=kydA
+-----END PGP SIGNATURE-----
