@@ -1,255 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 1/2] drivers: bus: add a new driver for omap-ocp2scp
-Date: Mon, 6 Aug 2012 14:50:20 +0300
-Message-ID: <20120806115018.GB28645@arwen.pp.htv.fi>
-References: <1344252331-18456-1-git-send-email-kishon@ti.com>
- <1344252331-18456-2-git-send-email-kishon@ti.com>
-Reply-To: balbi@ti.com
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] OMAPDSS: OMAPFB: fix framebuffer console colors
+Date: Mon, 06 Aug 2012 15:26:57 +0300
+Message-ID: <501FB811.1070101@compulab.co.il>
+References: <1344097153-13903-1-git-send-email-notasas@gmail.com>  <1344232816.6227.0.camel@lappyti> <501F9946.3030504@compulab.co.il> <1344252160.12136.13.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XF85m9dhOBO43t/C"
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1344252331-18456-2-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, balbi@ti.com, arnd@arndb.de, rob@landley.net, linux@arm.linux.org.uk, ohad@wizery.com, linus.walleij@linaro.org, myungjoo.ham@samsung.com, rusty@rustcorp.com.au, swarren@nvidia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:53234 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754341Ab2HFM1E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Aug 2012 08:27:04 -0400
+In-Reply-To: <1344252160.12136.13.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
---XF85m9dhOBO43t/C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 06, 2012 at 04:55:30PM +0530, Kishon Vijay Abraham I wrote:
-> Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
-> creating all the devices that is connected to OCP2SCP. In the case of OMA=
-P4,
-> USB2PHY is connected to ocp2scp.
->=20
-> This also includes device tree support for ocp2scp driver and
-> the documentation with device tree binding information is updated.
->=20
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 +++
->  drivers/Kconfig                                    |    2 +
->  drivers/Makefile                                   |    2 +
->  drivers/bus/Kconfig                                |   15 ++++
->  drivers/bus/Makefile                               |    5 ++
->  drivers/bus/omap-ocp2scp.c                         |   88 ++++++++++++++=
-++++++
->  6 files changed, 122 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
->  create mode 100644 drivers/bus/Kconfig
->  create mode 100644 drivers/bus/Makefile
->  create mode 100644 drivers/bus/omap-ocp2scp.c
->=20
-> diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Doc=
-umentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> new file mode 100644
-> index 0000000..d2fe064
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> @@ -0,0 +1,10 @@
-> +* OMAP OCP2SCP - ocp interface to scp interface
-> +
-> +properties:
-> +- compatible : Should be "ti,omap-ocp2scp"
-> +- #address-cells, #size-cells : Must be present if the device has sub-no=
-des
-> +- ranges : the child address space are mapped 1:1 onto the parent addres=
-s space
-> +- ti,hwmods : must be "ocp2scp_usb_phy"
-> +
-> +Sub-nodes:
-> +All the devices connected to ocp2scp are described using sub-node to ocp=
-2scp
-> diff --git a/drivers/Kconfig b/drivers/Kconfig
-> index ece958d..324e958 100644
-> --- a/drivers/Kconfig
-> +++ b/drivers/Kconfig
-> @@ -2,6 +2,8 @@ menu "Device Drivers"
-> =20
->  source "drivers/base/Kconfig"
-> =20
-> +source "drivers/bus/Kconfig"
-> +
->  source "drivers/connector/Kconfig"
-> =20
->  source "drivers/mtd/Kconfig"
-> diff --git a/drivers/Makefile b/drivers/Makefile
-> index 5b42184..f8cdeeb 100644
-> --- a/drivers/Makefile
-> +++ b/drivers/Makefile
-> @@ -5,6 +5,8 @@
->  # Rewritten to use lists instead of if-statements.
->  #
-> =20
-> +obj-y				+=3D bus/
-> +
->  # GPIO must come after pinctrl as gpios may need to mux pins etc
->  obj-y				+=3D pinctrl/
->  obj-y				+=3D gpio/
-> diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-> new file mode 100644
-> index 0000000..6270415
-> --- /dev/null
-> +++ b/drivers/bus/Kconfig
-> @@ -0,0 +1,15 @@
-> +#
-> +# Bus Devices
-> +#
-> +
-> +menu "Bus devices"
-> +
-> +config OMAP_OCP2SCP
-> +	tristate "OMAP OCP2SCP DRIVER"
-> +	help
-> +	  Driver to enable ocp2scp module which transforms ocp interface
-> +	  protocol to scp protocol. In OMAP4, USB PHY is connected via
-> +	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
-> +	  OCP2SCP.
-> +
-> +endmenu
-> diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-> new file mode 100644
-> index 0000000..0ec50bc
-> --- /dev/null
-> +++ b/drivers/bus/Makefile
-> @@ -0,0 +1,5 @@
-> +#
-> +# Makefile for the bus drivers.
-> +#
-> +
-> +obj-$(CONFIG_OMAP_OCP2SCP)	+=3D omap-ocp2scp.o
-> diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-> new file mode 100644
-> index 0000000..881d5bb
-> --- /dev/null
-> +++ b/drivers/bus/omap-ocp2scp.c
-> @@ -0,0 +1,88 @@
-> +/*
-> + * omap-ocp2scp.c - transform ocp interface protocol to scp protocol
-> + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/err.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
-> +
-> +static int ocp2scp_remove_devices(struct device *dev, void *c)
-> +{
-> +	struct platform_device *pdev =3D to_platform_device(dev);
-> +
-> +	platform_device_unregister(pdev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
-> +{
-> +	int			ret;
-> +	struct device_node	*np =3D pdev->dev.of_node;
-> +
-> +	if (np) {
-> +		ret =3D of_platform_populate(np, NULL, NULL, &pdev->dev);
-> +		if (ret) {
-> +			dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
-> +			goto err0;
-> +		}
-> +	}
-> +	pm_runtime_enable(&pdev->dev);
-> +
-> +	return 0;
-> +
-> +err0:
-> +	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __devexit omap_ocp2scp_remove(struct platform_device *pdev)
-> +{
-> +	pm_runtime_disable(&pdev->dev);
-> +	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-> +
-> +	return 0;
-> +}
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id omap_ocp2scp_id_table[] =3D {
-> +	{ .compatible =3D "ti,omap-ocp2scp" },
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
-> +#endif
-> +
-> +static struct platform_driver omap_ocp2scp_driver =3D {
-> +	.probe		=3D omap_ocp2scp_probe,
-> +	.remove		=3D __devexit_p(omap_ocp2scp_remove),
-> +	.driver		=3D {
-> +		.name	=3D "omap-ocp2scp",
-> +		.owner	=3D THIS_MODULE,
-> +		.of_match_table =3D of_match_ptr(omap_ocp2scp_id_table),
-> +	},
-> +};
-> +
-> +module_platform_driver(omap_ocp2scp_driver);
-> +
-> +MODULE_ALIAS("platform: omap-ocp2scp");
-> +MODULE_AUTHOR("Texas Instruments Inc.");
-> +MODULE_DESCRIPTION("OMAP OCP2SCP DRIVER");
+On 08/06/12 14:22, Tomi Valkeinen wrote:
+> On Mon, 2012-08-06 at 13:15 +0300, Igor Grinberg wrote:
+>> On 08/06/12 09:00, Tomi Valkeinen wrote:
+>>> On Sat, 2012-08-04 at 19:19 +0300, Grazvydas Ignotas wrote:
+>>>> omapfb does not currently set pseudo palette correctly for color depths
+>>>> above 16bpp, making red text invisible, command like
+>>>>   echo -e '\e[0;31mRED' > /dev/tty1
+>>>> will display nothing on framebuffer console in 24bpp mode.
+>>>> This is because temporary variable is declared incorrectly, fix it.
+>>>
+>>> Thanks, applied to OMAP DSS tree.
+>>
+>> Is it also applicable to stable?
+>> If yes, Tomi, can you please add the Cc tag?
+> 
+> Yes, the bug has been there from the beginning.
+> 
+> I can add the Cc tag. But I wonder is it enough just to have the tag, or
+> should I also send the patch forward? And does it only get applied to
+> the latest stable tree, not the earlier ones?
 
-driver isn't an acronym, so it need not be all uppercase. (nit-picking,
-I know :-)
+Well, the Documentation/stable_kernel_rules.txt says:
 
-> +MODULE_LICENSE("GPLv2");
+ - To have the patch automatically included in the stable tree, add the tag
+     Cc: stable@vger.kernel.org
+   in the sign-off area. Once the patch is merged it will be applied to
+   the stable tree without anything else needing to be done by the author
+   or subsystem maintainer.
+ 
+So I guess, you don't need to resend it.
 
-it should be "GPL v2" with a space. See <linux/module.h>.
+Also, IIUC, if you can identify all the stable kernels it applies to,
+you can specify them like:
+Cc: <stable@vger.kernel.org> # 3.x, 2.6.x
+This can save some work for those responsible for adding the patch to stable.
+Now, if you say, it is applicable to all kernels since the omapfb support was
+merged, I think, the above example it the right choice.
 
---=20
-balbi
+Anyway, Greg, please correct me if I've got anything wrong.
 
---XF85m9dhOBO43t/C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks
 
+- -- 
+Regards,
+Igor.
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v2.0.17 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iQIcBAEBAgAGBQJQH696AAoJEIaOsuA1yqRE1J4P/0J4Vq7VG7xuzFLiew+Pxu+i
-sg4ecIXwzOvIqMPfr3kJVrx5OLI+FVPg5N4H5/Z3pBhXrz1fZF2rp7CVYpogXvvw
-npBVOLvXQU9/zXG4CWKeObWCZ0JdwN5e7q9oPZu++lmpjx1dVkmYO80V4+I3hKCu
-m0Vbx5hTOMzAOW0DwCg+i7Feod4qH/sqQV8uLMqdtzZ9KoW1odpcIPkVaaJXpPB/
-IlG5StEGskWjTymqZmHudmM82N3QnHYBEw9+KwXCzy4wLMY3Lf2gP7dSephgKMOB
-UDkT0skM96Bo05HFflZylswA6yqprYP0Xi1F5Z4esEQL4tvVGZLFhwqwOtG96UoY
-sIWeTDNPEzIKmcBfZaDGT2mWySWvt1P8UCmAw2rJtMEt6CL0QdXs5ita1PJOasrH
-jBjTK7uMkG7jN5/gPrMhYW+vcvJsGQD7AMFzznXUogUhqJnCKrrGFzKU8vUYjXQn
-05RSVj6tSiKod+1Hfnezrss743hJeN1RTGy9Lh3lH+eok3zipaON5NM2Ruk9QuXX
-2E7hl2xh31RS3p597lxFV+C4yA1MtlYnG7WhcPeBQDjMjZaIoWUmcXH4JZeusoQa
-RHHswpDno2rgNddk3dVc1vx5OJ91Daxhlrm1jN//DLpYyrJ92Cgq/8Do7J62oFJg
-qoKpM6YYKlSvavD1Sqp2
-=bwWr
+iQIcBAEBAgAGBQJQH7gRAAoJEBDE8YO64EfakCAP/izNPA/HcFhxE3cRJJhlh5xw
+Caf4h6gXjdTNekSfLEppyo+uf6F2ef8ojZFoim1x59phjC9N9TQWyqTgV6qTGWul
+o8YtCo3CMXPTVnxgoYtIFNDIngiuZFVATEWdoHlxlpWwBXWcr6K101Rg+x0hlvzl
+CAqquuwjO+GFmPn+6hLns3sFJcnD02e2Rb0tX29Yg/SdFCMPDIRA3NUANVqILcxN
+do6mWpZ3tKOmPzobUDr1tswJxK94oc0pIjKMjxy71qAxpLMtY2bVNKavKuGsgaRr
+Nl7Bml5e1vCvAJNtYTpiMKvjomTvS1gktBoAa43u81THDrvwzJNO/mUq88CuMOg0
+D0k8ohKrv0/WyKr+LZe9W4l4I9lIvbutvF5oxcU+1gC01pMlr9qghO8J3Oz5/UTi
+/Swd7Q5I6X29TtudIuAsZ8g5didNBTLYgih+DODviTRzaca7msF+VfNkcg2IeOuA
+MvkMwiZSZX15ggriH07dEr+Z2XF7mMYVMgn492RokMzeXx31VXeHYv9pNGXcF+xn
+xV55Z03RT2jcnIPJVSfnzXAXIhTdkM2MVBaS/iNKckPW1Q1quiY/7IeWJaX59LBl
+bWUIFC02HJ+n8S2Tyqbr+7+0ue6v3xVocw/fcwx0PCLx0HltxhrAJJzTB+o4SDya
+DpSx1+W2seaVbd7AgkmN
+=qbs/
 -----END PGP SIGNATURE-----
-
---XF85m9dhOBO43t/C--
