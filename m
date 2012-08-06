@@ -1,217 +1,141 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 1/2] drivers: bus: add a new driver for omap-ocp2scp
-Date: Mon, 6 Aug 2012 16:55:30 +0530
-Message-ID: <1344252331-18456-2-git-send-email-kishon@ti.com>
-References: <1344252331-18456-1-git-send-email-kishon@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] arm/dts: AM33XX: Set the default status of module to "disabled" state
+Date: Mon, 6 Aug 2012 16:59:04 +0530
+Message-ID: <1344252544-26130-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1344252331-18456-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
-Cc: ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37350 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755954Ab2HFL3Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Aug 2012 07:29:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
 
-Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
-creating all the devices that is connected to OCP2SCP. In the case of OMAP4,
-USB2PHY is connected to ocp2scp.
+Ideally in common SoC dtsi file we should set all modules
+to "disabled" state and it should get enabled in respective
+EVM/Board dts file as per usage.
 
-This also includes device tree support for ocp2scp driver and
-the documentation with device tree binding information is updated.
+This patch sets default status of all modules to "disabled"
+state in am33xx.dtsi file, and as per board requirement, enabled
+in board dts file (like, bone, evm, etc...).
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>
+CC: Tony Lindgren <tony@atomide.com>
 ---
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 +++
- drivers/Kconfig                                    |    2 +
- drivers/Makefile                                   |    2 +
- drivers/bus/Kconfig                                |   15 ++++
- drivers/bus/Makefile                               |    5 ++
- drivers/bus/omap-ocp2scp.c                         |   88 ++++++++++++++++++++
- 6 files changed, 122 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
- create mode 100644 drivers/bus/Kconfig
- create mode 100644 drivers/bus/Makefile
- create mode 100644 drivers/bus/omap-ocp2scp.c
+This patch is tested on BeagleBone platform.
 
-diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-new file mode 100644
-index 0000000..d2fe064
---- /dev/null
-+++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-@@ -0,0 +1,10 @@
-+* OMAP OCP2SCP - ocp interface to scp interface
+ arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
+ arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
+ arch/arm/boot/dts/am33xx.dtsi     |    9 +++++++++
+ 3 files changed, 21 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+index a9af4db..df672b4 100644
+--- a/arch/arm/boot/dts/am335x-bone.dts
++++ b/arch/arm/boot/dts/am335x-bone.dts
+@@ -17,4 +17,10 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
 +
-+properties:
-+- compatible : Should be "ti,omap-ocp2scp"
-+- #address-cells, #size-cells : Must be present if the device has sub-nodes
-+- ranges : the child address space are mapped 1:1 onto the parent address space
-+- ti,hwmods : must be "ocp2scp_usb_phy"
++	ocp {
++		uart1: serial@44E09000 {
++			       status = "okay";
++		       };
++	};
+ };
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index d6a97d9..00bbae8 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -17,4 +17,10 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
 +
-+Sub-nodes:
-+All the devices connected to ocp2scp are described using sub-node to ocp2scp
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index ece958d..324e958 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -2,6 +2,8 @@ menu "Device Drivers"
- 
- source "drivers/base/Kconfig"
- 
-+source "drivers/bus/Kconfig"
-+
- source "drivers/connector/Kconfig"
- 
- source "drivers/mtd/Kconfig"
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 5b42184..f8cdeeb 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -5,6 +5,8 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
-+obj-y				+= bus/
-+
- # GPIO must come after pinctrl as gpios may need to mux pins etc
- obj-y				+= pinctrl/
- obj-y				+= gpio/
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-new file mode 100644
-index 0000000..6270415
---- /dev/null
-+++ b/drivers/bus/Kconfig
-@@ -0,0 +1,15 @@
-+#
-+# Bus Devices
-+#
-+
-+menu "Bus devices"
-+
-+config OMAP_OCP2SCP
-+	tristate "OMAP OCP2SCP DRIVER"
-+	help
-+	  Driver to enable ocp2scp module which transforms ocp interface
-+	  protocol to scp protocol. In OMAP4, USB PHY is connected via
-+	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
-+	  OCP2SCP.
-+
-+endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-new file mode 100644
-index 0000000..0ec50bc
---- /dev/null
-+++ b/drivers/bus/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for the bus drivers.
-+#
-+
-+obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-new file mode 100644
-index 0000000..881d5bb
---- /dev/null
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -0,0 +1,88 @@
-+/*
-+ * omap-ocp2scp.c - transform ocp interface protocol to scp protocol
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+
-+static int ocp2scp_remove_devices(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	platform_device_unregister(pdev);
-+
-+	return 0;
-+}
-+
-+static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
-+{
-+	int			ret;
-+	struct device_node	*np = pdev->dev.of_node;
-+
-+	if (np) {
-+		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
-+		if (ret) {
-+			dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
-+			goto err0;
-+		}
-+	}
-+	pm_runtime_enable(&pdev->dev);
-+
-+	return 0;
-+
-+err0:
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return ret;
-+}
-+
-+static int __devexit omap_ocp2scp_remove(struct platform_device *pdev)
-+{
-+	pm_runtime_disable(&pdev->dev);
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id omap_ocp2scp_id_table[] = {
-+	{ .compatible = "ti,omap-ocp2scp" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
-+#endif
-+
-+static struct platform_driver omap_ocp2scp_driver = {
-+	.probe		= omap_ocp2scp_probe,
-+	.remove		= __devexit_p(omap_ocp2scp_remove),
-+	.driver		= {
-+		.name	= "omap-ocp2scp",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(omap_ocp2scp_id_table),
-+	},
-+};
-+
-+module_platform_driver(omap_ocp2scp_driver);
-+
-+MODULE_ALIAS("platform: omap-ocp2scp");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("OMAP OCP2SCP DRIVER");
-+MODULE_LICENSE("GPLv2");
--- 
-1.7.9.5
++	ocp {
++		uart1: serial@44E09000 {
++			       status = "okay";
++		       };
++	};
+ };
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 59509c4..5f6c8e3 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -102,36 +102,42 @@
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		uart2: serial@48022000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		uart3: serial@48024000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		uart4: serial@481A6000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		uart5: serial@481A8000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart5";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		uart6: serial@481AA000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart6";
+ 			clock-frequency = <48000000>;
++			status = "disabled";
+ 		};
+
+ 		i2c1: i2c@44E0B000 {
+@@ -139,6 +145,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c1";
++			status = "disabled";
+ 		};
+
+ 		i2c2: i2c@4802A000 {
+@@ -146,6 +153,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c2";
++			status = "disabled";
+ 		};
+
+ 		i2c3: i2c@4819C000 {
+@@ -153,6 +161,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
++			status = "disabled";
+ 		};
+ 	};
+ };
+--
+1.7.0.4
+
