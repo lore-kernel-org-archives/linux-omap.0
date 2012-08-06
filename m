@@ -1,90 +1,63 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 2/8] ARM: OMAP3+: voltage/pwrdm/clkdm/clock add recursive usecount tracking
-Date: Mon, 06 Aug 2012 16:31:10 -0700
-Message-ID: <87ipcv4myp.fsf@ti.com>
+Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
+Date: Mon, 06 Aug 2012 16:32:16 -0700
+Message-ID: <87ehnj4mwv.fsf@ti.com>
 References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	<1342189185-5306-3-git-send-email-t-kristo@ti.com>
+	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
+	<878ve5j8se.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:36505 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756268Ab2HFXbR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 19:31:17 -0400
-Received: by pbcmd12 with SMTP id md12so5141722pbc.37
-        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 16:31:12 -0700 (PDT)
-In-Reply-To: <1342189185-5306-3-git-send-email-t-kristo@ti.com> (Tero Kristo's
-	message of "Fri, 13 Jul 2012 17:19:39 +0300")
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:52256 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756965Ab2HFXcS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 19:32:18 -0400
+Received: by pbcxa7 with SMTP id xa7so1718703pbc.39
+        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 16:32:17 -0700 (PDT)
+In-Reply-To: <878ve5j8se.fsf@ti.com> (Kevin Hilman's message of "Fri, 27 Jul
+	2012 12:36:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+Kevin Hilman <khilman@ti.com> writes:
 
-> This patch fixes the usecount tracking for omap3+, previously the
-> usecount numbers were rather bogus and were not really useful for
-> any purpose. Now usecount numbers track the number of really active
-> clients on each domain. This patch also adds support for usecount
-> tracking on powerdomain level and autoidle flag for clocks that
-> are hardware controlled and should be skipped in usecount
-> calculations.
+> Tero Kristo <t-kristo@ti.com> writes:
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+>> mpu / core powerdomain usecounts are now statically increased
+>> by 1 during MPU activity. This allows the domains to reflect
+>> actual usage, and will allow the usecount to reach 0 just before
+>> all CPUs are ready to idle. Proper powerdomain usecounts are
+>> propageted to voltagedomain level also, and will allow vc
+>> callbacks to be triggered at right point of time.
+>>
+>> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>
+> IMO, the idea is fine, but I'm not crazy about the implementation in
+> powerdomain.c, which is meant for pwrdm generic code.   In particular,
+> I'm not crazy about the pwrdm lookups in powerdomain.c.
+>
+> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
+> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
+>
+> Also, the changelog should be a bit more specific about why CORE
+> powerdomain is also handled here when most of the code only talks about
+> the CPU.
 
-[...]
+After playing with this some more, and doing a test hack of my idea
+above, along with the per-pwrdm pre/post changes now in mainline, I
+thinks this series should go one step further.
 
->  /* Clock control for DPLL outputs */
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 9611490..68bdf36 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -981,6 +981,41 @@ int pwrdm_state_switch(struct powerdomain *pwrdm)
->  	return ret;
->  }
->  
-> +/**
-> + * pwrdm_clkdm_enable - increment powerdomain usecount
-> + * @pwrdm: struct powerdomain *
-> + *
-> + * Increases the usecount for a powerdomain. Called from clockdomain
-> + * code once a clockdomain's usecount reaches zero, i.e. it is ready
-> + * to idle.
-> + */
-
-I think the comment here is wrong.
-
-> +void pwrdm_clkdm_enable(struct powerdomain *pwrdm)
-> +{
-> +	if (!pwrdm)
-> +		return;
-> +
-> +	atomic_inc(&pwrdm->usecount);
-> +}
-> +
-> +/**
-> + * pwrdm_clkdm_disable - decrease powerdomain usecount
-> + * @pwrdm: struct powerdomain *
-> + *
-> + * Decreases the usecount for a powerdomain. Called from clockdomain
-> + * code once a clockdomain becomes active.
-> + */
-
-Looks like these two comments need to be swapped?
-
-> +void pwrdm_clkdm_disable(struct powerdomain *pwrdm)
-> +{
-> +	int val;
-> +
-> +	if (!pwrdm)
-> +		return;
-> +
-> +	val = atomic_dec_return(&pwrdm->usecount);
-> +
-> +	BUG_ON(val < 0);
-> +}
-> +
+Basically, we should be able to get rid of the calls to
+prdm_pre|post_transition that are outside the powerdomain code.  With
+the addition of pwrdm_clkdm_enable|disable, it seems that the pre|post
+transition calls should be called directly from
+pwrdm_clkdm_enable|disable when the usecount transitions to/from zero.
 
 Kevin
+
+
+
