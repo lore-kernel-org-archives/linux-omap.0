@@ -1,51 +1,144 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: Re: [PATCH v7 00/11] usb: musb: adding multi instance support
-Date: Sun, 05 Aug 2012 21:52:53 +0200
-Message-ID: <501ECF15.2040409@gmail.com>
-References: <1343909574-15633-1-git-send-email-ravibabu@ti.com> <501AFA6B.4010005@gmail.com> <6C6B28D4DC342643927BEAFCE8707BF63E9DB6AE@DBDE01.ent.ti.com> <501B8997.2070307@gmail.com> <F20D4CDD972CFA4D89D3A083D2D561967FF1F67DE3@BGMAIL01.nvidia.com> <501B93AB.7050501@gmail.com> <79CD15C6BA57404B839C016229A409A83EA7F4A3@DBDE01.ent.ti.com> <501BB8F2.8030909@gmail.com> <79CD15C6BA57404B839C016229A409A83EA7FB18@DBDE01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [GPIO] Crashed when not using
+Date: Mon, 6 Aug 2012 11:16:47 +0530
+Message-ID: <CAMQu2gwbqdA1bjFWCFyCAUVsU5x=fr91xX17k4xiZQh4F44Jng@mail.gmail.com>
+References: <CAKdam54gXixs4F-a07ajj9GNMth46d4NTdoUL3GokzvjuWaGyg@mail.gmail.com>
+ <CAC83ZvKnOw+UBOWYtt294k-5Xk8S6Gy1pChSF7aXGmGjLGSeCA@mail.gmail.com>
+ <CAKdam56QEXY55SYC7YND4BP=tQmiyAa=avVCADTj3Ym6X9cCvg@mail.gmail.com>
+ <87fw89gf4w.fsf@ti.com> <CAKdam57xtXnKAgvneqATSTr0ng978T5HbkTB0T3sYp96N=Qfww@mail.gmail.com>
+ <20120731065224.GE6004@arwen.pp.htv.fi> <CAMQu2gxXX+4gtKVnAMMK4qr9ihJuP-OwjOYgr=6VrGZ2DWSf2A@mail.gmail.com>
+ <CAKdam55cixHXzEsOQ-1QYr6k-i6Ge1UpULF8jgS5Nq47Ax03rQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:33116 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754887Ab2HETw5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Aug 2012 15:52:57 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7FB18@DBDE01.ent.ti.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:47891 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752600Ab2HFFrL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 01:47:11 -0400
+Received: by ghbf1 with SMTP id f1so2579805ghb.23
+        for <linux-omap@vger.kernel.org>; Sun, 05 Aug 2012 22:47:08 -0700 (PDT)
+In-Reply-To: <CAKdam55cixHXzEsOQ-1QYr6k-i6Ge1UpULF8jgS5Nq47Ax03rQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Ajay Gupta <ajayg@nvidia.com>, "B, Ravi" <ravibabu@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>, "ajayguptaj@gmail.com" <ajayguptaj@gmail.com>
+To: "Poddar, Sourav" <sourav.poddar@ti.com>
+Cc: balbi@ti.com, Kevin Hilman <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, lo <linux-omap@vger.kernel.org>, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 
-On 03.08.2012 17:48, Hiremath, Vaibhav wrote:
-> On Fri, Aug 03, 2012 at 17:11:38, Daniel Mack wrote:
->> On 03.08.2012 11:07, Hiremath, Vaibhav wrote:
->>> I have just pushed the code (V7 which Ravi submitted), so can you please try 
->>> with below branch? 
+On Tue, Jul 31, 2012 at 6:26 PM, Poddar, Sourav <sourav.poddar@ti.com> wrote:
+> Hi Santosh,
+>
+> On Tue, Jul 31, 2012 at 6:02 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+>> On Tue, Jul 31, 2012 at 8:52 AM, Felipe Balbi <balbi@ti.com> wrote:
 >>>
->>> https://github.com/hvaibhav/am335x-linux/tree/am335x-upstream-staging-usb
+>>> Hi,
+>>>
+>>> On Tue, Jul 31, 2012 at 10:23:16AM +0530, Poddar, Sourav wrote:
+>>> > >>>> The device tree data for acquiring the above GPIO interrupt line
+>>> > >>>> looks
+>>> > >>>> like this.
+>>> > >>>>
+>>> > >>>> +++ linux-omap-storage/arch/arm/boot/dts/omap5-evm.dts  2012-07-30
+>>> > >>>> 14:11:08.931694001 +0530
+>>> > >>>> @@ -42,7 +42,8 @@
+>>> > >>>>         tsl2771@39 {
+>>> > >>>>                 compatible = "taos,tsl2771";
+>>> > >>>>                 reg = <0x39>;
+>>> > >>>> +                interrupt-parent = <&gpio5>;
+>>> > >>>> +                interrupts = <21>; /* gpio line 149 */
+>>> > >>>>         };
+>>> > >>>>  };
+>>> > >>>>
+>>> > >>>> Note: using "gpio_request_one" in the driver solves the issue.
+>>> > >>>> Is using this api in the driver required?
+>>> > >>>> Any pointer on the above crash?
+>>> > >>>
+>>> > >> Hi Tarun,
+>>> > >>> Any user/client driver of GPIO is supposed to go through
+>>> > >>> gpio_request() API so that module clock
+>>> > >>> is enabled correctly. Overriding of APIs would put the power
+>>> > >>> management state machine in jeopardy.
+>>> > >>> --
+>>> > >> I tried putting "pm_runtime_get_sync" in gpio_irq_type api where the
+>>> > >> kernel
+>>> > >> is crashing and the crash is no longer observed. So indeed, its about
+>>> > >> enabling clocks.
+>>> > >>
+>>> > >> One doubt: Can't we put runtime apis in "gpio_irq_type" and eliminate
+>>> > >> the use of
+>>> > >> "gpio_request_one"??
+>>> > >
+>>> > > No.
+>>> > >
+>>> > > You must use the GPIO requiest/free APIs to tell the GPIO core that
+>>> > > the GPIO line is in use.
+>>> > >
+>>> > Thanks for this confirmation.
+>>> > > Why do you want to avoid using gpio_request/gpio_free?
+>>> > >
+>>> > I was assuming that DT based gpio IRQ registration will automatically
+>>> > take care of
+>>> > the above APIs. But since that is not the case(as mentioned by
+>>> > santosh),  we need to use the
+>>> > gpio_request/free apis.
+>>>
+>>> Hang on for a while, let's try to get to the bottom of this debate first
+>>> ;-)
+>>>
+>>> We have a canonical way of passing IRQ numbers to drivers through DT and
+>>> that is the "interrupts" attribute. It shouldn't matter if that IRQ pin
+>>> is connected to a real IRQ line or through a GPIO controller. In both
+>>> cases we should use the "interrupts" attribute.
+>>>
+>>> If DT core doesn't allocate the GPIO for us then how does this work:
+>>>
+>>> (omap4-sdp.dts)
+>>>
+>>> 127 &mcspi1 {
+>>> 128         eth@0 {
+>>> 129                 compatible = "ks8851";
+>>> 130                 spi-max-frequency = <24000000>;
+>>> 131                 reg = <0>;
+>>> 132                 interrupt-parent = <&gpio2>;
+>>> 133                 interrupts = <2>; /* gpio line 34 */
+>>> 134                 vdd-supply = <&vdd_eth>;
+>>> 135         };
+>>> 136 };
+>>>
+>>>
+>>> There's no gpio request on the driver:
+>>>
+>>> $ git grep -e gpio_request drivers/net/ethernet/micrel/ks8851.c
+>>> $
+>>>
+>>> Since Benoit was the one who added that to the dts file (commit
+>>> e7c64db9), I assume he tested his patch before posting, so again I ask -
+>>> How does that work and why doesn't this work for Sourav's tsl2771
+>>> controller ?
+>>>
+>>> This is either a regression on drivers/of, or commit e7c64db9 is also
+>>> broken...
+>>>
+>>> Benoit, do you know how should this work ?
+>>>
+>> I had a discussion with Benoit on this. In fact there is a way to actually
+>> trigger the GPIO request.
 >>
->> Thanks for doing this, but I'm unfortunately getting tons of merge
->> conflicts when I try to put this on top of 3.6-rc1. Still pondering
->> which way around is the easiest to get this solved.
+>>> 132                 interrupt-parent = <&gpio2>;
+>>> 133                 interrupts = <2>; /* gpio line 34 */
 >>
->> OTOH, I wonder whether your staging branches would need to rebased
->> sooner or later anyway?
+>> As above you can see, GPIO2 bank and 2nd line.
+>> And then it will make use of gpio_irq chip properties
+>> to probe the GPIO line.
 >>
-> 
-> I have already pushed branch based on v3.6-rc1 (boot tested),
-> 
-> https://github.com/hvaibhav/am335x-linux/tree/am335x-linux-next-master
+>> Saurabh can try this out for his use case.
+>>
+> I am using the above properties only and seeing the issue.
+>
+There seeems to be an issue with the GPIO DT probing. The Ethernet
+works because there is another GPIO line from BANK2 is probed and since
+BANK2 shares the clock, you won't see any issue.
 
-Sorry, I don't get it yet. Your am335x-linux-next-master can be merged
-into v3.6-rc1 without problems, but it doesn't contain Ravi's patches.
-And am335x-upstream-staging-usb doesn't apply on top of either
-am335x-linux-next-master or v3.6-rc1.
+We are looking at fixing the issue. Will keep the thread posted.
 
-Maybe I just miss a detail here. Could you again explain which branch
-will you publish for merging in the 3.7 merge window, and what are its
-dependencies?
-
-
-Thanks for your work,
-Daniel
+Regards
+Santosh
