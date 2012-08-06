@@ -1,73 +1,70 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] mfd/regulator: tps65217: Move regulator plat data
- handling to regulator
-Date: Mon, 6 Aug 2012 07:10:10 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA0B4D9@DBDE01.ent.ti.com>
-References: <1342776601-8773-1-git-send-email-anilkumar@ti.com>
- <20120727124816.GM16859@sortiz-mobl>
- <331ABD5ECB02734CA317220B2BBEABC13EA06F79@DBDE01.ent.ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA07402@DBDE01.ent.ti.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCH] hwmon: tmp102: Add device tree support
+Date: Mon, 6 Aug 2012 13:05:34 +0530
+Message-ID: <CAKdam54Zshr-d502E_AS+vw5+vLQnTBrAGRPTy-9-hZy1QEFbA@mail.gmail.com>
+References: <1343997350-676-1-git-send-email-sourav.poddar@ti.com>
+	<501BE6B1.9000100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA07402@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-next-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
-Cc: "'broonie@opensource.wolfsonmicro.com'" <broonie@opensource.wolfsonmicro.com>, "'dan.carpenter@oracle.com'" <dan.carpenter@oracle.com>, "'rdunlap@xenotime.net'" <rdunlap@xenotime.net>, "'sfr@canb.auug.org.au'" <sfr@canb.auug.org.au>, "'linux-next@vger.kernel.org'" <linux-next@vger.kernel.org>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <501BE6B1.9000100@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: khali@linux-fr.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-+stable
+Hi Benoit,
 
-Hi Samuel,
+On Fri, Aug 3, 2012 at 8:26 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> Hi Sourav,
+>
+> On 08/03/2012 02:35 PM, Sourav Poddar wrote:
+>> update tmp102 temperature sensor to also use device tree.
+>>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> ---
+>>  drivers/hwmon/tmp102.c |   14 +++++++++++++-
+>>  1 files changed, 13 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/hwmon/tmp102.c b/drivers/hwmon/tmp102.c
+>> index 0d466b9..a8a9060 100644
+>> --- a/drivers/hwmon/tmp102.c
+>> +++ b/drivers/hwmon/tmp102.c
+>> @@ -26,6 +26,7 @@
+>>  #include <linux/err.h>
+>>  #include <linux/mutex.h>
+>>  #include <linux/device.h>
+>> +#include <linux/of.h>
+>>
+>>  #define      DRIVER_NAME "tmp102"
+>>
+>> @@ -284,8 +285,19 @@ static const struct i2c_device_id tmp102_id[] = {
+>>  };
+>>  MODULE_DEVICE_TABLE(i2c, tmp102_id);
+>>
+>> +#ifdef CONFIG_OF
+>> +static const struct of_device_id temperature_dt_match[] = {
+>> +     { .compatible = "ti,tmp102" },
+>
+> Are you sure this is needed for this device?
+>
+> There is an automatic binding done for I2C devices in the of_i2c core
+> code. So in theory, DT will be able to bind to any I2C device using the
+> already existing table: MODULE_DEVICE_TABLE(i2c, tmp102_id).
+>
+> So I think this patch should not be needed.
+>
+Indeed. Checked it just now, this patch is not required and the already
+existing table is enough for the device to work fine.
 
-On Wed, Aug 01, 2012 at 10:55:26, AnilKumar, Chimata wrote:
-> Hi Samuel,
-> 
-> On Tue, Jul 31, 2012 at 20:00:21, AnilKumar, Chimata wrote:
-> > Hi Samuel,
-> > 
-> > On Fri, Jul 27, 2012 at 18:18:17, Samuel Ortiz wrote:
-> > > Hi Anilkumar,
-> > > 
-> > > On Fri, Jul 20, 2012 at 03:00:01PM +0530, AnilKumar Ch wrote:
-> > > > Regulator platform data handling was mistakenly added to MFD
-> > > > driver. So we will see build errors if we compile MFD drivers
-> > > > without CONFIG_REGULATOR. This patch moves regulator platform
-> > > > data handling from TPS65217 MFD driver to regulator driver.
-> > > > 
-> > > > This makes MFD driver independent of REGULATOR framework so
-> > > > build error is fixed if CONFIG_REGULATOR is not set.
-> > > > 
-> > > > drivers/built-in.o: In function `tps65217_probe':
-> > > > tps65217.c:(.devinit.text+0x13e37): undefined reference
-> > > > to `of_regulator_match'
-> > > > 
-> > > > This patch is based on linux-next (20120720) tree
-> > > > 
-> > > > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> > > > ---
-> > > >  drivers/mfd/tps65217.c                 |  130 +++++++++++---------------------
-> > > >  drivers/regulator/tps65217-regulator.c |  124 ++++++++++++++++++++++++++----
-> > > >  include/linux/mfd/tps65217.h           |   12 ++-
-> > > >  3 files changed, 161 insertions(+), 105 deletions(-)
-> > > It doesn't apply to my for-next branch. Could you please re-send this one
-> > > after the merge window is closed ? I'll push that as part of the MFD fixes for
-> > > 3.6.
-> > > 
-> > 
-> > I fetch regulator tree and applied on top of for-next branch and it is cleanly
-> > applied.
-> > 
-> 
-> My bad I picked up wrong tree, I will send the new version (if require) based on
-> "MFD for-next" tree once the merge window closed.
-> 
+Thanks for the information.
 
-This patch is applied on top of your "MFD master" branch.
-Could you please pull this patch ASAP, this patch fixs the
-build break.
-
-Thanks
-AnilKumar
+This patch is abandoned.
+~Sourav
+> Regards,
+> Benoit
+>
