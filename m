@@ -1,92 +1,260 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] Revert "ARM: OMAP3: PM: call pre/post transition per powerdomain"
-Date: Tue,  7 Aug 2012 13:41:47 -0700
-Message-ID: <1344372107-17786-1-git-send-email-khilman@ti.com>
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: Re: [PATCH] backlight: Add TPS65217 WLED driver
+Date: Tue, 7 Aug 2012 22:43:06 +0200
+Message-ID: <20120807204305.GA30282@darwin>
+References: <20120731194838.GJ4701@darwin>
+ <331ABD5ECB02734CA317220B2BBEABC13EA0D18A@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43341 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752081Ab2HGUlv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 16:41:51 -0400
-Received: by ggnl2 with SMTP id l2so50604ggn.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 13:41:49 -0700 (PDT)
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:45328 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753667Ab2HGUn4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 16:43:56 -0400
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA0D18A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This reverts commit 58f0829b7186150318c79515f0e0850c5e7a9c89.
+Hi AnilKumar,
 
-Converstion to per-pwrdm per/post transition calls was a bit
-premature.  Only tracking MPU, PER & CORE in the idle path means we
-lose the accounting for all the other powerdomains which may also
-transition in idle.  On OMAP3, due to autodeps, several powerdomains
-transition along with MPU (e.g. DSS, USBHOST), and the accounting for
-these was lost with this patch.
+thanks for your comments
 
-This patch should be revisited when the upcoming clkdm/pwrmdm/voltdm
-use-counting seires is merged since then we can properly do accounting
-without relying on a call in the idle path.
+El Tue, Aug 07, 2012 at 08:59:17AM +0000 AnilKumar, Chimata ha dit:
 
-Cc: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Tero Kristo <t-kristo@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Reported-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+> Can you re-submit the patch based on linux-next tree?
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e4fc88c..05bd8f0 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -272,21 +272,16 @@ void omap_sram_idle(void)
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
- 
--	if (mpu_next_state < PWRDM_POWER_ON) {
--		pwrdm_pre_transition(mpu_pwrdm);
--		pwrdm_pre_transition(neon_pwrdm);
--	}
-+	pwrdm_pre_transition(NULL);
- 
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
--		pwrdm_pre_transition(per_pwrdm);
- 		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 	}
- 
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
--		pwrdm_pre_transition(core_pwrdm);
- 		if (core_next_state == PWRDM_POWER_OFF) {
- 			omap3_core_save_context();
- 			omap3_cm_save_context();
-@@ -339,20 +334,14 @@ void omap_sram_idle(void)
- 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
- 					       OMAP3430_GR_MOD,
- 					       OMAP3_PRM_VOLTCTRL_OFFSET);
--		pwrdm_post_transition(core_pwrdm);
- 	}
- 	omap3_intc_resume_idle();
- 
-+	pwrdm_post_transition(NULL);
-+
- 	/* PER */
--	if (per_next_state < PWRDM_POWER_ON) {
-+	if (per_next_state < PWRDM_POWER_ON)
- 		omap2_gpio_resume_after_idle();
--		pwrdm_post_transition(per_pwrdm);
--	}
--
--	if (mpu_next_state < PWRDM_POWER_ON) {
--		pwrdm_post_transition(mpu_pwrdm);
--		pwrdm_post_transition(neon_pwrdm);
--	}
- }
- 
- static void omap3_pm_idle(void)
+will do
+
+> Comments inline
+> 
+> On Wed, Aug 01, 2012 at 01:18:38, Matthias Kaehlcke wrote:
+> > The TPS65217 chip contains a boost converter and current sinks which can be
+> > used to drive LEDs for use as backlights. Expose this functionality via the
+> > backlight API.
+> 
+> Can you provide more details here, like patch is based on which
+> tree?
+
+this patch was based on current mainline at the time of submission
+
+> Testing details of the driver?
+
+the driver has been tested (without device tree) on a custom AM335x
+board, running an Androidized 3.2 kernel with AM335x support (rowboat
+project)
+
+> > +#if defined(CONFIG_BACKLIGHT_TPS65217) || defined(CONFIG_BACKLIGHT_TPS65217_MODULE)
+> > +#define tps_has_bl() true
+> > +#else
+> > +#define tps_has_bl() false
+> > +#endif
+> > +
+> 
+> Is this really required?
+
+was inspired by the twl-core driver, but can do without it
+
+> >  /**
+> >   * tps65217_reg_read: Read a single tps65217 register.
+> >   *
+> > @@ -174,6 +180,47 @@ static struct tps65217_board *tps65217_parse_dt(struct i2c_client *client)
+> >  		pdata->of_node[i] = reg_matches[i].of_node;
+> >  	}
+> >  
+> > +	if (tps_has_bl()) {
+> > +		struct device_node *np = of_find_node_by_name(node, "backlight");
+> > +		if (np) {
+> 
+> This can be changed to
+> np = of_find_node_by_name(node, "backlight");
+> if (np) {
+> }
+> 
+> else fall into non-backlight case.
+
+ok
+
+> > +			u32 val;
+> > +
+> > +			pdata->bl_pdata = devm_kzalloc(&client->dev, sizeof(*pdata->bl_pdata), GFP_KERNEL);
+> > +			if (!pdata->bl_pdata)
+> > +				return NULL;
+> > +
+> > +			if (!of_property_read_u32(np, "isel", &val)) {
+> > +				if (val == 1) {
+> > +					pdata->bl_pdata->isel = TPS65217_BL_ISET1;
+> > +				} else if (val == 2) {
+> > +					pdata->bl_pdata->isel = TPS65217_BL_ISET2;
+> > +				} else {
+> > +					dev_err(&client->dev, "invalid value for backlight current limit selection in the device tree\n");
+> 
+> fix checkpatch.pl errors before submitting the patches. More than
+> 80 ch.
+
+in this case it will be hard to read the 80 character limit without
+modifying the log string or breaking it artifically into several
+lines. i understand the 80 character limit is a soft limit, which can
+be violated if readability is actually improve by the violation. i'd
+suggest to make the line slightly shorter by putting the log string in
+it's own line, but not break the string in between just to reach the
+80 char limit
+
+> > +					return NULL;
+> 
+> Should not return here, need to handle rest of dt portion.
+
+ok
+
+> > +				}
+> > +			} else {
+> > +				pdata->bl_pdata->isel = TPS65217_BL_ISET1;
+> > +			}
+> 
+> This can be changed to
+> 
+> pdata->bl_pdata->isel = TPS65217_BL_ISET1;
+> of_property_read_u32(np, "isel", &val)
+> if (val > TPS65217_BL_ISET2 || val < TPS65217_BL_ISET1) {
+> 	dev_err(...);
+> 	goto rest_dt_portion;
+> } else {
+> 	pdata->bl_pdata->isel = val;
+> }
+
+ok, this also requires the TPS65217_BL_ISETx enum to start at 1
+
+> > +
+> > +			if (!of_property_read_u32(np, "fdim", &val)) {
+> > +				if (val == 100) {
+> > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_100HZ;
+> > +				} else if (val == 200) {
+> > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_200HZ;
+> > +				} else if (val == 500) {
+> > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_500HZ;
+> > +				} else if (val == 1000) {
+> > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_1000HZ;
+> > +				} else {
+> > +					dev_err(&client->dev, "invalid value for backlight dimming frequency in the device tree\n");
+> > +					return NULL;
+> > +				}
+> > +			} else {
+> > +				pdata->bl_pdata->fdim = TPS65217_BL_FDIM_200HZ;
+> > +			}
+> > +		}
+> > +	}
+> 
+> Same here.
+
+not exactly, the value specified in the device tree for the dimming
+frequency will be a frequency, not a value corresponding to the enum,
+so a range check + assignment isn't enough. if you'd like to see a
+similar handling an option would be to set TPS65217_BL_FDIM_100HZ to
+100, TPS..._200HZ to 200, ..., and do:
+
+switch (val) {
+  case TPS65217_BL_FDIM_100HZ:
+  case TPS65217_BL_FDIM_200HZ:
+  ...
+    pdata->bl_pdata->fdim	= val;
+    break;
+
+  default:
+    /* error handling */
+}
+
+> > +struct tps65217_bl_pdata tps65217_bl_default_pdata = {
+> > +	.isel	= TPS65217_BL_ISET1,
+> > +	.fdim	= TPS65217_BL_FDIM_200HZ
+> 
+> Comma missed at the end, if some other parameters added to this
+> struct after some time then this line should be updated. Which is
+> not necessary if we take care now.
+
+ok
+
+> > +static int tps65217_bl_hw_init(struct tps65217_bl *tps65217_bl, struct tps65217_bl_pdata *pdata)
+> 
+> Greater than 80 Chs
+
+ok
+
+> > +		/* select ISET2 current level */
+> > +		rc = tps65217_set_bits(tps65217_bl->tps,
+> > +				TPS65217_REG_WLEDCTRL1,
+> > +				TPS65217_WLEDCTRL1_ISEL,
+> > +				TPS65217_WLEDCTRL1_ISEL,
+> > +				TPS65217_PROTECT_NONE);
+> 
+> Can reduce number of lines and should not exceed 80 ch. Same can be done
+> at other places.
+
+ok
+
+> 
+> > +		if (rc) {
+> > +			dev_err(tps65217_bl->dev,
+> > +				"failed to select ISET2 current level: %d\n", rc);
+> > +			return rc;
+> > +		}
+> > +
+> > +		dev_dbg(tps65217_bl->dev, "selected ISET2 current level\n");
+> > +	}
+> 
+> Switch gives better readability.
+
+ok
+
+> > +static int tps65217_bl_probe(struct platform_device *pdev)
+> > +{
+> > +	int rc;
+> > +	struct i2c_client *i2c_client = to_i2c_client(pdev->dev.parent);
+> > +	struct tps65217 *tps = i2c_get_clientdata(i2c_client);
+> > +	struct tps65217_bl *tps65217_bl;
+> > +	struct tps65217_bl_pdata *pdata;
+> > +	struct backlight_properties bl_props;
+> > +
+> > +	tps65217_bl = kzalloc(GFP_KERNEL, sizeof(*tps65217_bl));
+> > +	if (tps65217_bl == NULL) {
+> > +		dev_err(&pdev->dev, "allocation of struct tps65217_bl failed\n");
+> > +		return -ENOMEM;
+> > +	}
+> > +
+> > +	tps65217_bl->tps = tps;
+> > +	tps65217_bl->dev = &pdev->dev;
+> > +	tps65217_bl->on = 0;
+> > +
+> 
+> DT handling for backlight should be done here.
+
+ok
+
+> > +static int tps65217_bl_remove(struct platform_device *pdev)
+> > +{
+> > +	struct tps65217_bl *tps65217_bl = (struct tps65217_bl *)platform_get_drvdata(pdev);
+> 
+> type cast is not required.
+
+ok
+
+> > +MODULE_LICENSE("GPL");
+> 
+> GPLv2
+
+ok
+
+best regards
+
 -- 
-1.7.9.2
+Matthias Kaehlcke
+Embedded Linux Developer
+Amsterdam
 
+     La guerra es un acto abominable en el que se matan personas que no
+      se conocen, dirigidas por personas que se conocen y no se matan
+                                                                 .''`.
+    using free software / Debian GNU/Linux | http://debian.org  : :'  :
+                                                                `. `'`
+gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
