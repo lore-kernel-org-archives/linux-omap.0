@@ -1,133 +1,98 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] i2c: omap: sanitize exit path
-Date: Tue,  7 Aug 2012 08:51:29 +0300
-Message-ID: <1344318689-24522-1-git-send-email-balbi@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] Revert "ARM: OMAP3530evm: set pendown_state and debounce
+ time for ads7846"
+Date: Tue, 07 Aug 2012 08:58:09 +0300
+Message-ID: <5020AE71.1060405@compulab.co.il>
+References: <876298iv9s.fsf@ti.com> <1344284535-16717-1-git-send-email-grinberg@compulab.co.il> <871ujj7ngd.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:40704 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608Ab2HGFzE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 01:55:04 -0400
-Received: by lbbgk8 with SMTP id gk8so1014386lbb.41
-        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 22:55:02 -0700 (PDT)
+Received: from softlayer.compulab.co.il ([50.23.254.55]:58664 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab2HGF6Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Aug 2012 01:58:16 -0400
+In-Reply-To: <871ujj7ngd.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <shubhrajyoti@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Zumeng Chen <zumeng.chen@windriver.com>, Arnd Bergmann <arnd@arndb.de>
 
-move the goto out label one line down, so that
-it can be used when stat is read as zero. All
-other exits, can be done with a break statement.
+On 08/06/12 23:52, Kevin Hilman wrote:
+> Igor Grinberg <grinberg@compulab.co.il> writes:
+> 
+>> 1) The above commit introduced a common ->get_pendown_state() function
+>> into the generic code, but that function was board-specific for the
+>> OMAP3EVM and thus broke most other boards using this code.
+>>
+>> 2) The above commit was mis-merged introducing another bug which
+>> prevents the ads7846 driver probe function to succeed.
+>> The omap_ads7846_init() function frees the pendown GPIO in case there is
+>> no ->get_pendown_state() function set by the caller (board specific
+>> code), so it can be requested later by the ads7846 driver.
+>> The above commit add a common ->get_pendown_state() function without
+>> removing the gpio_free() call and thus once the ads7846 driver tries
+>> to use the pendown GPIO, it crashes as the pendown GPIO has not been
+>> requested.
+>>
+>> 3) The above commit introduces NO new functionality as
+>> get_pendown_state() function is already implemented in a suitable way by
+>> the ads7846 driver and the debounce time handling has already been
+>> fixed by commit 97ee9f01 (ARM: OMAP: fix the ads7846 init code).
+>>
+>> This reverts commit 16aced80f6739beb2a6ff7b6f96c83ba80d331e8.
+>>
+>> Conflicts:
+>> 	arch/arm/mach-omap2/common-board-devices.c
+>>
+>> Solved by taking the working version prior to the above commit.
+>>
+>> Cc: Zumeng Chen <zumeng.chen@windriver.com>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>> ---
+>> Kevin, sorry for the late reply.
+>> How about the above commit message and the below patch?
+>>
+>> The patch applies cleanly to Tony's master branch (6 Aug 2012)
+>> or Kevin's kevin-omap-pm/for_3.6/fixes/ads7846
+>> after resetting two top most commits.
+> 
+> Now that v3.6-rc1 is out, it should probalby be applied on top of -rc1.
+> I've taken care of that and tested as well.
+> 
+>> This patch has been tested on both above branches on cm-t3730.
+>> Any other board tested will be greately appreciated.
+>>
+>> Also, if after all said in the commit message, you still don't
+>> want to revert the original patch, feel free to post your thoughts.
+> 
+> After all the digging I did, I agree that the revert is the best
+> solution.  
+> 
+> While it's a slightly different problem/bug, I think the gpio_free() in
+> common-board-devices.c should still be unconditonal since the
+> gpio_request() is now unconditional.  That can be a separate patch though.
 
-While at that, also break out as soon as we
-complete draining IRQ, since at that time
-we know we transferred everything there was
-to be transferred.
+Well, the logic behind the conditional gpio_free() is:
+if a board specific code provides a board specific get_pendown_state()
+function (which is different from the one in the ads7846 driver),
+that board will not need to re-request the pendown GPIO (duplicate code).
+If we free the pendown GPIO unconditionally, then the board specific code
+will have to re-request it.
+So, I think, no - it should be conditional.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/i2c/busses/i2c-omap.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+> 
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> Tested-by: Kevin Hilman <khilman@ti.com>
+> 
+> Tested on 3430/n900, 3530/Overo, 3730/Overo STORM, 3730/BB-xM.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 22efaba..57c2824 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -898,27 +898,26 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 		if (!stat) {
- 			/* my work here is done */
--			spin_unlock_irqrestore(&dev->lock, flags);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
--			goto out;
-+			break;
- 		}
- 
- 		/*
-@@ -931,7 +930,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 						OMAP_I2C_STAT_XRDY |
- 						OMAP_I2C_STAT_XDR |
- 						OMAP_I2C_STAT_ARDY));
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RDR) {
-@@ -946,7 +945,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 				i2c_omap_errata_i207(dev, stat);
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
--			continue;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RRDY) {
-@@ -969,10 +968,10 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
- 			if (ret < 0)
--				goto out;
-+				break;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
--			continue;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XRDY) {
-@@ -984,7 +983,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
- 			if (ret < 0)
--				goto out;
-+				break;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
- 			continue;
-@@ -994,19 +993,20 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 			dev_err(dev->dev, "Receive overrun\n");
- 			err |= OMAP_I2C_STAT_ROVR;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			err |= OMAP_I2C_STAT_XUDF;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
--			goto out;
-+			break;
- 		}
- 	} while (stat);
- 
--out:
- 	omap_i2c_complete_cmd(dev, err);
-+
-+out:
- 	spin_unlock_irqrestore(&dev->lock, flags);
- 
- 	return IRQ_HANDLED;
+Thanks!
+
+[...]
+
+
 -- 
-1.7.12.rc0
-
+Regards,
+Igor.
