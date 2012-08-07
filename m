@@ -1,62 +1,85 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH 3/4] arm/dts: omap5-evm: Add keypad data
-Date: Tue, 7 Aug 2012 14:54:22 +0200
-Message-ID: <2AE404CF-E456-408A-B7A2-D9B3D331C58E@dominion.thruhere.net>
-References: <1343997486-710-1-git-send-email-sourav.poddar@ti.com> <1343997486-710-4-git-send-email-sourav.poddar@ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1343997486-710-4-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/6] OMAPDSS: DISPC: Remove cpu_is_xxxx checks
+Date: Tue, 07 Aug 2012 16:00:56 +0300
+Message-ID: <1344344456.7216.59.camel@lappyti>
+References: <cover.1343912532.git.cmahapatra@ti.com>
+	  <5344e530a125ef5c5dfeb00e54b7d32df6169aa9.1343912532.git.cmahapatra@ti.com>
+	 <1344336723.7216.44.camel@lappyti> <502108A3.9060903@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-7WVbOYoUtuc5zJj001vG"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:50495 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752630Ab2HGNBC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 09:01:02 -0400
+Received: by lbbgf7 with SMTP id gf7so1617573lbb.22
+        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 06:00:59 -0700 (PDT)
+In-Reply-To: <502108A3.9060903@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
-Op 3 aug. 2012, om 14:38 heeft Sourav Poddar <sourav.poddar@ti.com> het volgende geschreven:
+--=-7WVbOYoUtuc5zJj001vG
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Add keypad data node in omap5 device tree file.
-> Also fill the device tree binding parameters
-> with the required value in "omap5-evm" dts file.
-> 
-> Tested on omap5430 evm with 3.5 custom kernel.
-> 
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> arch/arm/boot/dts/omap5-evm.dts |   12 ++++++++++++
-> arch/arm/boot/dts/omap5.dtsi    |    5 +++++
-> 2 files changed, 17 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-> index 45a8aeb..09fe941 100644
-> --- a/arch/arm/boot/dts/omap5-evm.dts
-> +++ b/arch/arm/boot/dts/omap5-evm.dts
-> @@ -17,6 +17,18 @@
-> 		device_type = "memory";
-> 		reg = <0x80000000 0x40000000>; /* 1 GB */
-> 	};
-> +
-> +	keypad {
-> +		keypad,num-rows = <8>;
-> +		keypad,num-columns = <8>;
-> +		linux,keymap = < 0x02020073
-> +			0x02030072
-> +			0x020400e7
-> +			0x02050066
-> +			0x0206006b
-> +			0x020700d9 >;
-> +		linux,input-no-autorepeat;
-> +	};
+On Tue, 2012-08-07 at 17:52 +0530, Chandrabhanu Mahapatra wrote:
 
-Again not a coment on your patch, but on DT:
+> Yes, this seems good to me. Its better to have all cpu_is checks of
+> dispc.c and dss.c in their probe functions and by the time
+> implementation of DSS version come to picture these can be move to dss
+> features or any other place appropriate. But how to handle OMAP revision
+> specific functions. Will Dss version handle that too, as like DSS1,
+> DSS1.1, DSS1.1.1, DSS2 say?
 
-If DT bindings must be OS independent, what then, is that linux keycode doing there?
+Yes, something like that.
 
-regards,
+I'm not sure how the version numbers should be created, though. If we
+had only OMAP, we could use the OMAP version as the DSS major version,
+and increasing minor version whenever the DSS is changed. So DSS3.2
+could be the DSS used on OMAP3 SoCs, and it's the second revision,
+meaning that early OMAP3 versions would have had an different DSS
+version.
 
-Koen
+However, the same DSS is used for other SoCs also, so the versioning is
+not that simple. I guess the other SoCs still always use a DSS that is
+designed for OMAP, so the major version would be solved by that. For
+example, AM3xxx DSS version would be DSS3.x. Minor version is more
+tricky, because OMAP and AM3 DSS can evolve separately, which means that
+a higher minor version may not contain the fix that exists in a lower
+minor version.
+
+Well, at least currently the AM3xxx's DSS is almost the same as OMAP3's,
+so perhaps I'm worrying too much.
+
+ Tomi
+
+
+--=-7WVbOYoUtuc5zJj001vG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQIRGIAAoJEPo9qoy8lh71qPUP/1cBNfEDppV7F0yHhqjDOU5b
+RNDMw+H93D13gUO6M887Tg+ik9osqSYyvpgcJtekvFwcEA10MdkyzkSzBw+PdFwo
+GmRdZF5e45geRmsBvXcNIGxzs8jhwS/k31qppSiEuSVbwR/WEAnQJ+pNIjyZKAMl
+tX1PG768AbBcIid50+aTWsqiBbU1xQdeg9+jhZ9Lz6XBJX0NEps9n6S7DNe9+j1c
+EfFAuRfyciVuvuieBMCJQa30VGyDhv75weslMTtEpd32b3R18rWSOhsX3m069iUP
+VtG097V+vOsmiopVmXNBhb0f7Wapjnu4Et6k7BKCgSJ+FhgXHl6mwVIqypipj0f2
+JKUsPrknkFekHANyZ1ZPiuwXD+/T51BjF+3KIIthclhSC7XBbndrnHCbC2Zx3E6W
+RHWmOuF91BYkvBp8fgZT4YrTQQ9YNjNV3Cjl8UAjeqVLD42GTMZ4Xfq2jwMQW4jH
+Nc4TAnxMFZqim8dqsZl0/+sMWPxW00iYTYMNpwh73HmeLN2lut+RIlRxKka8npUx
+qQMQOK6vORYy7uTG5B7Uu/ggUT/WgI25fmnVozt+iv2dNktnvQmRxgZ3sZ3qzM2x
+Y8hkn+OV5Q4IexA9icJbMAMzRZ4DwPn+jXOk6bPnn9F0iFyKXeFq2x8gh7uEHZTr
+CW1omFb9QRuWJyPSRr67
+=MaAm
+-----END PGP SIGNATURE-----
+
+--=-7WVbOYoUtuc5zJj001vG--
+
