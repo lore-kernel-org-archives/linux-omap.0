@@ -1,58 +1,80 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V3] ARM: OMAP2+: cpu: Add am33xx device under cpu_class_is_omap2
-Date: Tue, 7 Aug 2012 19:44:01 +0530
-Message-ID: <1344348841-19868-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH] ARM: AM33XX: board-generic: Add of_dev_auxdata to fix dev_id for CAN module
+Date: Tue, 7 Aug 2012 19:07:16 +0530
+Message-ID: <1344346636-28072-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33195 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752932Ab2HGOPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Aug 2012 10:15:22 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:54569 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754587Ab2HGOQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 10:16:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-AM33XX device falls under omap2 class, so make cpu_class_is_omap2()
-macro true by adding soc_is_am33xx() to existing list of cpu/soc
-check.
-This is required to unblock the basic boot support on AM335x platform.
+If the module requires only one clocksource to function, then
+driver can very well call clk_get() api with "con_id = NULL",
 
-Having done that, we still need to sort out properly from
-common zImage point of view without having to maintain this
-cpu/soc_is_xxx list.
+       clk = clk_get(dev, NULL);
+
+And platform code should respect this and return valid clk handle.
+That means, now the clk_get() api would rely on dev_id, and platform
+code should either have clk node with matching dev_id (with con_id=NULL)
+or return dummy clk node.
+
+With DT support, we can fix the dev_id for particular module
+using "struct of_dev_auxdata" to satisfy above clk framework requirement.
+
+In case of AM33XX, we required this for the DCAN module, so this
+patch adds "of_dev_auxdata" for both DCAN_0/1 instances.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 ---
-This patch is boot tested on BeagleBone
-(using already accepted hwmod patches)
+This patch is boot tested on BeagleBone platform, and checked for
+clk_get() return value in d_can module driver.
 
-Changes from V2:
-	- This change is dropped now, since it breaks common zImage support.
+ arch/arm/mach-omap2/board-generic.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
 
-Changes from V1:
-	- No code change, added detailed description for common zImage
-	  support.
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 6f93a20..c9b7903 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -37,11 +37,27 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ }
+ };
 
- arch/arm/plat-omap/include/plat/cpu.h |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
++/*
++ * Lookup table for attaching a specific name and platform_data pointer to
++ * devices as they get created by of_platform_populate(). Ideally this table
++ * would not exist, but the current clock implementation depends on some devices
++ * having a specific name OR to satisfy NULL con_id requirement from driver.
++ */
++static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
++	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, "d_can.0", NULL),
++	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, "d_can.1", NULL),
++	{ },
++};
++
+ static void __init omap_generic_init(void)
+ {
+ 	omap_sdrc_init(NULL, NULL);
 
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 68b180e..bb5d08a 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -372,7 +372,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define cpu_class_is_omap1()	(cpu_is_omap7xx() || cpu_is_omap15xx() || \
- 				cpu_is_omap16xx())
- #define cpu_class_is_omap2()	(cpu_is_omap24xx() || cpu_is_omap34xx() || \
--				cpu_is_omap44xx() || soc_is_omap54xx())
-+				cpu_is_omap44xx() || soc_is_omap54xx() || \
-+				soc_is_am33xx())
+-	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
++	if (of_machine_is_compatible("ti,am33xx"))
++		of_platform_populate(NULL, omap_dt_match_table,
++				am33xx_auxdata_lookup, NULL);
++	else
++		of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
 
- /* Various silicon revisions for omap2 */
- #define OMAP242X_CLASS		0x24200024
+ #ifdef CONFIG_SOC_OMAP2420
 --
 1.7.0.4
 
