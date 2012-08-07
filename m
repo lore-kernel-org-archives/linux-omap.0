@@ -1,53 +1,102 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS and USBHOST powerdomains not entering low-power states on 37xx EVM
-Date: Tue, 07 Aug 2012 13:48:02 -0700
-Message-ID: <87628u2zul.fsf@ti.com>
-References: <alpine.DEB.2.00.1208031355450.28888@utopia.booyaka.com>
-	<877gtb6723.fsf@ti.com>
-	<alpine.DEB.2.00.1208070401530.21945@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: omap_device: keep track of driver bound
+ status
+Date: Tue, 7 Aug 2012 15:26:00 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1208071518370.28250@utopia.booyaka.com>
+References: <1341961324-19657-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41001 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753667Ab2HGUsJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 16:48:09 -0400
-Received: by yenm2 with SMTP id m2so70833yen.23
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 13:48:02 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1208070401530.21945@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 7 Aug 2012 04:05:33 -0600 (MDT)")
+Received: from utopia.booyaka.com ([72.9.107.138]:47439 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756682Ab2HGV0A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 17:26:00 -0400
+In-Reply-To: <1341961324-19657-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Paul Walmsley <paul@pwsan.com> writes:
+Hi Kevin
 
-> Hi Kevin,
->
-> On Mon, 6 Aug 2012, Kevin Hilman wrote:
->
->> Is this only happening on this 37xx platform?    Just curious, because
->> it seems to be a problem on any OMAP3xxx SoC.
->
-> So far I've only run the baseline tests on 37xx, so wanted to state only 
-> what was observed here.
->
->> ...it must be the usecounts that are not being updated.  This seems to
->> be a side effect of the pre/post transition optimization I did.  A quick
->> hack seems to indicate that that's indeed the case[1].  By default,
->> omap_sram_idle() is now only calling the pre/post callbacks for MPU,
->> NEON, PER, and CORE, and only if those domains are transitioning, so any
->> other domains not explicitly managed by the idle path have lots their
->> usecounting.  Oops.
->> 
->> I guess Tero's usecounting series should fix this up.
->
-> Thanks for the diagnosis.  Care to put together a patch to fix this for 
-> v3.6-rc?  
+a couple of minor comments
 
-Done.
+On Tue, 10 Jul 2012, Kevin Hilman wrote:
 
-http://marc.info/?l=linux-omap&m=134437239010649&w=2
+> Use the bus notifier to keep track of driver bound status by adding a
+> new internal field to struct omap_device: _driver_staus.
 
-Kevin
+"_driver_status"
+
+> This will be useful for follow-up patches which need to know whether
+> or not a driver is bound in order to make intelligent omap_device
+> enable/idle decisions.
+> 
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+>  arch/arm/plat-omap/omap_device.c              |   14 +++++++++-----
+>  2 files changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 4327b2c..e0486cb 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -60,6 +60,7 @@ extern struct dev_pm_domain omap_device_pm_domain;
+>   * @_dev_wakeup_lat_limit: dev wakeup latency limit in nsec - set by OMAP PM
+>   * @_state: one of OMAP_DEVICE_STATE_* (see above)
+>   * @flags: device flags
+> + * @_driver_status: one of BUS_NOTIFY_*_DRIVER from <linux/device.h>
+>   *
+>   * Integrates omap_hwmod data into Linux platform_device.
+>   *
+> @@ -78,6 +79,7 @@ struct omap_device {
+>  	u8				hwmods_cnt;
+>  	u8				_state;
+>  	u8                              flags;
+> +	u8				_driver_status;
+>  };
+>  
+>  /* Device driver interface (call via platform_data fn ptrs) */
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index c490240..1d1b5ff 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -385,17 +385,21 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+>  				      unsigned long event, void *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_device *od;
+>  
+>  	switch (event) {
+> -	case BUS_NOTIFY_ADD_DEVICE:
+> -		if (pdev->dev.of_node)
+> -			omap_device_build_from_dt(pdev);
+> -		break;
+> -
+>  	case BUS_NOTIFY_DEL_DEVICE:
+>  		if (pdev->archdata.od)
+>  			omap_device_delete(pdev->archdata.od);
+>  		break;
+> +	case BUS_NOTIFY_ADD_DEVICE:
+> +		if (pdev->dev.of_node)
+> +			omap_device_build_from_dt(pdev);
+> +		/* fall through */
+> +	default:
+> +		od = to_omap_device(pdev);
+> +		if (od)
+> +			od->_driver_status = event;
+
+_driver_status is a u8, but event is an unsigned long.  Might be worth 
+adding a WARN() to complain if event is greater than (2^8)-1.
+
+>  	}
+>  
+>  	return NOTIFY_DONE;
+> -- 
+> 1.7.9.2
+> 
+
+
+- Paul
