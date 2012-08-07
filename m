@@ -1,54 +1,104 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP5: Add minimal OMAP5 SOC support for 3.6
-Date: Tue, 7 Aug 2012 12:46:32 +0530
-Message-ID: <CAMQu2gw14uCAsobTd3MQPeLkBsxB=h1qwrLQB-WdEh0P4kfp+Q@mail.gmail.com>
-References: <1341846143-11137-1-git-send-email-santosh.shilimkar@ti.com>
- <20120710083354.GM1122@atomide.com> <CAMQu2gwNeYUm7iL+30wwoHCNGZ3dXF2k+w-PE=tw-pMSO9F3NQ@mail.gmail.com>
- <20120807070056.GI11011@atomide.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] arm/dts: omap5: Add mmc controller nodes and board data
+Date: Tue, 7 Aug 2012 12:48:21 +0530
+Message-ID: <1344323901-20342-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:55940 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750862Ab2HGHQz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:16:55 -0400
-Received: by ghrr13 with SMTP id r13so2317676ghr.27
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 00:16:53 -0700 (PDT)
-In-Reply-To: <20120807070056.GI11011@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: arnd@arndb.de, tony@atomide.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rob.herring@calxeda.com
+Cc: linux-mmc@vger.kernel.org, balbi@ti.com, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Aug 7, 2012 at 12:30 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120726 00:27]:
->> On Tue, Jul 10, 2012 at 10:33 AM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [120709 08:07]:
->> >> Tony,
->> >>
->> >> Please pull below OMAP5 SOC minimal support. It is generated against the
->> >> cleanup-part2 branch of yours. As you suggested, I have dropped CK_54XX
->> >> flag changes to avoid conflicts.
->> >
->> > OK seems to merge fine now, pulled into devel-omap5.
->> >
->> Now OMAP5 support appearing in mainline. In case you would like
->> to boot mainline on your OMAP5 board, you need to merge a
->> OMAP5 SOC hwmod/clock data which is out of tree. I have
->> put that on a branch and same is available [1]. Please note
->> that the only DT boot supported.
->
-> Nice to see it being a small set :) Have these changes been
-> posted to the mailing lists for review?
->
-Not yet. Benoit was looking into the database difference between
-the current and next version of the silicon. Since there is a difference
-between the data, the idea was to submit the final version of data to
-avoid potential huge patching.
+Add OMAP MMC related device tree data for OMAP5.
 
-Regards
-santosh
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |   31 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi    |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+), 0 deletions(-)
 
->
->
->> [1] git://github.com/SantoshShilimkar/linux.git out-of-tree/omap5-data
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index 200c39a..7bb0c9d 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -17,4 +17,35 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
++
++	vmmcsd_fixed: fixedregulator-mmcsd {
++		compatible = "regulator-fixed";
++		regulator-name = "vmmcsd_fixed";
++		regulator-min-microvolt = <3000000>;
++		regulator-max-microvolt = <3000000>;
++	};
++};
++
++&mmc1 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	bus-width = <4>;
++};
++
++&mmc2 {
++	vmmc-supply = <&vmmcsd_fixed>;
++	bus-width = <8>;
++	ti,non-removable;
++};
++
++&mmc3 {
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++&mmc4 {
++	status = "disabled";
++};
++
++&mmc5 {
++	status = "disabled";
+ };
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 57e5270..881d60c 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -180,5 +180,36 @@
+ 			ti,hwmods = "uart6";
+ 			clock-frequency = <48000000>;
+ 		};
++
++		mmc1: mmc@4809c000 {
++			compatible = "ti,omap4-hsmmc";
++			ti,hwmods = "mmc1";
++			ti,dual-volt;
++			ti,needs-special-reset;
++		};
++
++		mmc2: mmc@480b4000 {
++			compatible = "ti,omap4-hsmmc";
++			ti,hwmods = "mmc2";
++			ti,needs-special-reset;
++		};
++
++		mmc3: mmc@480ad000 {
++			compatible = "ti,omap4-hsmmc";
++			ti,hwmods = "mmc3";
++			ti,needs-special-reset;
++		};
++
++		mmc4: mmc@480d1000 {
++			compatible = "ti,omap4-hsmmc";
++			ti,hwmods = "mmc4";
++			ti,needs-special-reset;
++		};
++
++		mmc5: mmc@480d5000 {
++			compatible = "ti,omap4-hsmmc";
++			ti,hwmods = "mmc5";
++			ti,needs-special-reset;
++		};
+ 	};
+ };
+-- 
+1.7.5.4
+
