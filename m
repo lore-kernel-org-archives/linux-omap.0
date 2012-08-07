@@ -1,100 +1,64 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH] ARM: AM33XX: board-generic: Add of_dev_auxdata to fix dev_id for CAN module
-Date: Tue, 7 Aug 2012 19:42:23 +0200
-Message-ID: <87D16BF2-6A3B-4B7D-AB61-EB606FA88A68@dominion.thruhere.net>
-References: <1344346636-28072-1-git-send-email-hvaibhav@ti.com> <50213214.7050505@gmail.com> <79CD15C6BA57404B839C016229A409A83EA88BDF@DBDE01.ent.ti.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Fix dmtimer set source clock failure
+Date: Tue, 07 Aug 2012 11:21:40 -0700
+Message-ID: <87boim36mj.fsf@ti.com>
+References: <1342210323-2129-1-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50656 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184Ab2HGRm0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 13:42:26 -0400
-Received: by eaac11 with SMTP id c11so1270417eaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 10:42:24 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA88BDF@DBDE01.ent.ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:35714 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753016Ab2HGSVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 14:21:41 -0400
+Received: by pbbrq13 with SMTP id rq13so46462pbb.22
+        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 11:21:40 -0700 (PDT)
+In-Reply-To: <1342210323-2129-1-git-send-email-jon-hunter@ti.com> (Jon
+	Hunter's message of "Fri, 13 Jul 2012 15:12:03 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+Jon Hunter <jon-hunter@ti.com> writes:
 
-Op 7 aug. 2012, om 17:53 heeft "Hiremath, Vaibhav" <hvaibhav@ti.com> het volgende geschreven:
+> Calling the dmtimer function omap_dm_timer_set_source() fails if following a
+> call to pm_runtime_put() to disable the timer. For example the following
+> sequence would fail to set the parent clock ...
+>
+> 	omap_dm_timer_stop(gptimer);
+> 	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
+>
+> The following error message would be seen ...
+>
+> omap_dm_timer_set_source: failed to set timer_32k_ck as parent
+>
+> The problem is that, by design, pm_runtime_put() simply decrements the usage
+> count and returns before the timer has actually been disabled. Therefore,
+> setting the parent clock failed because the timer was still active when the
+> trying to set the parent clock. Setting a parent clock will fail if the clock
+> you are setting the parent of has a non-zero usage count. To ensure that this
+> does not fail use pm_runtime_put_sync() when disabling the timer.
+>
+> Note that this will not be seen on OMAP1 devices, because these devices do
+> not use the clock framework for dmtimers.
+>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-> On Tue, Aug 07, 2012 at 20:49:48, Rob Herring wrote:
->> On 08/07/2012 08:37 AM, Vaibhav Hiremath wrote:
->>> If the module requires only one clocksource to function, then
->>> driver can very well call clk_get() api with "con_id = NULL",
->>> 
->>>       clk = clk_get(dev, NULL);
->>> 
->>> And platform code should respect this and return valid clk handle.
->>> That means, now the clk_get() api would rely on dev_id, and platform
->>> code should either have clk node with matching dev_id (with con_id=NULL)
->>> or return dummy clk node.
->>> 
->>> With DT support, we can fix the dev_id for particular module
->>> using "struct of_dev_auxdata" to satisfy above clk framework requirement.
->>> 
->>> In case of AM33XX, we required this for the DCAN module, so this
->>> patch adds "of_dev_auxdata" for both DCAN_0/1 instances.
->>> 
->>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Cc: Paul Walmsley <paul@pwsan.com>
->>> Cc: Benoit Cousson <b-cousson@ti.com>
->>> Cc: Grant Likely <grant.likely@secretlab.ca>
->>> ---
->>> This patch is boot tested on BeagleBone platform, and checked for
->>> clk_get() return value in d_can module driver.
->>> 
->>> arch/arm/mach-omap2/board-generic.c |   18 +++++++++++++++++-
->>> 1 files changed, 17 insertions(+), 1 deletions(-)
->>> 
->>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->>> index 6f93a20..c9b7903 100644
->>> --- a/arch/arm/mach-omap2/board-generic.c
->>> +++ b/arch/arm/mach-omap2/board-generic.c
->>> @@ -37,11 +37,27 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->>> 	{ }
->>> };
->>> 
->>> +/*
->>> + * Lookup table for attaching a specific name and platform_data pointer to
->>> + * devices as they get created by of_platform_populate(). Ideally this table
->>> + * would not exist, but the current clock implementation depends on some devices
->>> + * having a specific name OR to satisfy NULL con_id requirement from driver.
->>> + */
->>> +static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
->>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, "d_can.0", NULL),
->>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, "d_can.1", NULL),
->>> +	{ },
->>> +};
->> 
->> Adding an additional clkdev lookup accomplishes the same thing and is a
->> cleaner solution.
->> 
-> 
-> That is also required and I have submitted patch for the same -
-> 
-> http://www.spinics.net/lists/arm-kernel/msg187998.html
-> 
-> 
-> With DT support, I am getting dev_id as -
-> 
-> - Without "reg" property: d_can.16 and d_can.17,
->   (I believe it changes dynamically here)
-> 
-> - With "reg" property: 481cc000.d_can and 481d0000.d_can
-> 
-> Which is not so intuitive, I would like to see them as per Spec/TRM, so 
-> doesn't this patch make sense?
-> 
-> Similar thing has already been done for other platforms too.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-Davinci-mdio has a similar problem
-
-regards,
-
-Koen
+> ---
+>  arch/arm/plat-omap/dmtimer.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 626ad8c..7b6689a 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -258,7 +258,7 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
+>  
+>  void omap_dm_timer_disable(struct omap_dm_timer *timer)
+>  {
+> -	pm_runtime_put(&timer->pdev->dev);
+> +	pm_runtime_put_sync(&timer->pdev->dev);
+>  }
+>  EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
