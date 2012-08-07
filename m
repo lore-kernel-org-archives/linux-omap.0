@@ -1,45 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] spi: omap2-mcspi: In case of dma errors fall back to
- pio
-Date: Tue, 7 Aug 2012 00:47:40 -0700
-Message-ID: <20120807074740.GR11011@atomide.com>
-References: <1343197229-15188-1-git-send-email-shubhrajyoti@ti.com>
+Subject: Re: [PATCH] omap2: mux: remove comment for nonexistent member
+Date: Tue, 7 Aug 2012 00:51:18 -0700
+Message-ID: <20120807075117.GS11011@atomide.com>
+References: <1343317484-23228-1-git-send-email-michael.jones@matrix-vision.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23532 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab2HGHvU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:51:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1343197229-15188-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1343317484-23228-1-git-send-email-michael.jones@matrix-vision.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: linux-omap@vger.kernel.org
 
-* Shubhrajyoti D <shubhrajyoti@ti.com> [120724 23:26]:
-> In case there are dma errors currently the driver exits.
-> Make the spi driver fall back to pio mode in case of dma errors.
+* Michael Jones <michael.jones@matrix-vision.de> [120726 08:54]:
 > 
-> If the DMA engine is not selected the driver
-> exits.This patch makes the spi fall back to pio in that case.
-> 
-> Also adds a field dma_unusable to struct omap2_mcspi.
->  
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 > ---
->  drivers/spi/spi-omap2-mcspi.c |   21 +++++++++++++--------
->  1 files changed, 13 insertions(+), 8 deletions(-)
+>  arch/arm/mach-omap2/mux.h |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index bc47781..f243a39 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -129,6 +129,7 @@ struct omap2_mcspi {
->  	struct omap2_mcspi_dma	*dma_channels;
->  	struct device		*dev;
->  	struct omap2_mcspi_regs ctx;
-> +	int dma_unusable;
->  };
+> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> index 471e62a..76f9b3c 100644
+> --- a/arch/arm/mach-omap2/mux.h
+> +++ b/arch/arm/mach-omap2/mux.h
+> @@ -127,7 +127,6 @@ struct omap_mux_partition {
+>   * @gpio:	GPIO number
+>   * @muxnames:	available signal modes for a ball
+>   * @balls:	available balls on the package
+> - * @partition:	mux partition
+>   */
+>  struct omap_mux {
+>  	u16	reg_offset;
 
-Don't you need to check separately for rx and tx dma? There's a slight
-chance that you get a channel for one but not for the other..
+Thanks applying into fixes.
 
 Tony
