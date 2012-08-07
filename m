@@ -1,82 +1,95 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCH 3/4] arm/dts: omap5-evm: Add keypad data
-Date: Tue, 7 Aug 2012 21:19:15 +0530
-Message-ID: <CAKdam56BCGkfwM8XKnULJ0bXDu6UF+mZqcyMgdqDZJ=oLZp3Gg@mail.gmail.com>
-References: <1343997486-710-1-git-send-email-sourav.poddar@ti.com>
-	<1343997486-710-4-git-send-email-sourav.poddar@ti.com>
-	<2AE404CF-E456-408A-B7A2-D9B3D331C58E@dominion.thruhere.net>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: AM33XX: board-generic: Add of_dev_auxdata to fix
+ dev_id for CAN module
+Date: Tue, 7 Aug 2012 15:53:08 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA88BDF@DBDE01.ent.ti.com>
+References: <1344346636-28072-1-git-send-email-hvaibhav@ti.com>
+ <50213214.7050505@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:51086 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754738Ab2HGPtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 11:49:17 -0400
-Received: by vcbfw7 with SMTP id fw7so3829635vcb.25
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 08:49:15 -0700 (PDT)
-In-Reply-To: <2AE404CF-E456-408A-B7A2-D9B3D331C58E@dominion.thruhere.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:39426 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753262Ab2HGPxW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 11:53:22 -0400
+In-Reply-To: <50213214.7050505@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Koen,
+On Tue, Aug 07, 2012 at 20:49:48, Rob Herring wrote:
+> On 08/07/2012 08:37 AM, Vaibhav Hiremath wrote:
+> > If the module requires only one clocksource to function, then
+> > driver can very well call clk_get() api with "con_id = NULL",
+> > 
+> >        clk = clk_get(dev, NULL);
+> > 
+> > And platform code should respect this and return valid clk handle.
+> > That means, now the clk_get() api would rely on dev_id, and platform
+> > code should either have clk node with matching dev_id (with con_id=NULL)
+> > or return dummy clk node.
+> > 
+> > With DT support, we can fix the dev_id for particular module
+> > using "struct of_dev_auxdata" to satisfy above clk framework requirement.
+> > 
+> > In case of AM33XX, we required this for the DCAN module, so this
+> > patch adds "of_dev_auxdata" for both DCAN_0/1 instances.
+> > 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Grant Likely <grant.likely@secretlab.ca>
+> > ---
+> > This patch is boot tested on BeagleBone platform, and checked for
+> > clk_get() return value in d_can module driver.
+> > 
+> >  arch/arm/mach-omap2/board-generic.c |   18 +++++++++++++++++-
+> >  1 files changed, 17 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> > index 6f93a20..c9b7903 100644
+> > --- a/arch/arm/mach-omap2/board-generic.c
+> > +++ b/arch/arm/mach-omap2/board-generic.c
+> > @@ -37,11 +37,27 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+> >  	{ }
+> >  };
+> > 
+> > +/*
+> > + * Lookup table for attaching a specific name and platform_data pointer to
+> > + * devices as they get created by of_platform_populate(). Ideally this table
+> > + * would not exist, but the current clock implementation depends on some devices
+> > + * having a specific name OR to satisfy NULL con_id requirement from driver.
+> > + */
+> > +static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
+> > +	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, "d_can.0", NULL),
+> > +	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, "d_can.1", NULL),
+> > +	{ },
+> > +};
+> 
+> Adding an additional clkdev lookup accomplishes the same thing and is a
+> cleaner solution.
+> 
 
-On Tue, Aug 7, 2012 at 6:24 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
->
-> Op 3 aug. 2012, om 14:38 heeft Sourav Poddar <sourav.poddar@ti.com> het volgende geschreven:
->
->> Add keypad data node in omap5 device tree file.
->> Also fill the device tree binding parameters
->> with the required value in "omap5-evm" dts file.
->>
->> Tested on omap5430 evm with 3.5 custom kernel.
->>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Cc: Felipe Balbi <balbi@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Acked-by: Felipe Balbi <balbi@ti.com>
->> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->> ---
->> arch/arm/boot/dts/omap5-evm.dts |   12 ++++++++++++
->> arch/arm/boot/dts/omap5.dtsi    |    5 +++++
->> 2 files changed, 17 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
->> index 45a8aeb..09fe941 100644
->> --- a/arch/arm/boot/dts/omap5-evm.dts
->> +++ b/arch/arm/boot/dts/omap5-evm.dts
->> @@ -17,6 +17,18 @@
->>               device_type = "memory";
->>               reg = <0x80000000 0x40000000>; /* 1 GB */
->>       };
->> +
->> +     keypad {
->> +             keypad,num-rows = <8>;
->> +             keypad,num-columns = <8>;
->> +             linux,keymap = < 0x02020073
->> +                     0x02030072
->> +                     0x020400e7
->> +                     0x02050066
->> +                     0x0206006b
->> +                     0x020700d9 >;
->> +             linux,input-no-autorepeat;
->> +     };
->
-> Again not a coment on your patch, but on DT:
->
-> If DT bindings must be OS independent, what then, is that linux keycode doing there?
->
-Currently, for all matrix connected keyboards the keymap are defined
-in the scope of the
-linux key code since that is a stable and standardized interface at this time.
+That is also required and I have submitted patch for the same -
 
-For the above reason , computation of the  keymap uses linux keycode
+http://www.spinics.net/lists/arm-kernel/msg187998.html
 
-  row << 24 | column << 16 | linux-key-code
-I think this is the primary reason for keeping "linux" prefix with this
-property.
-> regards,
->
-> Koen
->
+
+With DT support, I am getting dev_id as -
+
+ - Without "reg" property: d_can.16 and d_can.17,
+   (I believe it changes dynamically here)
+
+ - With "reg" property: 481cc000.d_can and 481d0000.d_can
+
+Which is not so intuitive, I would like to see them as per Spec/TRM, so 
+doesn't this patch make sense?
+
+Similar thing has already been done for other platforms too.
+
+Thanks,
+Vaibhav
