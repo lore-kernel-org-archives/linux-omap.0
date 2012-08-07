@@ -1,63 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
-Date: Mon, 06 Aug 2012 16:32:16 -0700
-Message-ID: <87ehnj4mwv.fsf@ti.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
-	<878ve5j8se.fsf@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
+Date: Mon, 06 Aug 2012 17:28:44 -0700
+Message-ID: <87wr1b35qb.fsf@ti.com>
+References: <1340761532-27231-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:52256 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756965Ab2HFXcS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Aug 2012 19:32:18 -0400
-Received: by pbcxa7 with SMTP id xa7so1718703pbc.39
-        for <linux-omap@vger.kernel.org>; Mon, 06 Aug 2012 16:32:17 -0700 (PDT)
-In-Reply-To: <878ve5j8se.fsf@ti.com> (Kevin Hilman's message of "Fri, 27 Jul
-	2012 12:36:33 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1340761532-27231-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org> (Kevin
+	Hilman's message of "Tue, 26 Jun 2012 18:45:32 -0700")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman <khilman@ti.com> writes:
+Hi Wolfram,
 
-> Tero Kristo <t-kristo@ti.com> writes:
->
->> mpu / core powerdomain usecounts are now statically increased
->> by 1 during MPU activity. This allows the domains to reflect
->> actual usage, and will allow the usecount to reach 0 just before
->> all CPUs are ready to idle. Proper powerdomain usecounts are
->> propageted to voltagedomain level also, and will allow vc
->> callbacks to be triggered at right point of time.
->>
->> Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->
-> IMO, the idea is fine, but I'm not crazy about the implementation in
-> powerdomain.c, which is meant for pwrdm generic code.   In particular,
-> I'm not crazy about the pwrdm lookups in powerdomain.c.
->
-> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
-> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
->
-> Also, the changelog should be a bit more specific about why CORE
-> powerdomain is also handled here when most of the code only talks about
-> the CPU.
+Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> writes:
 
-After playing with this some more, and doing a test hack of my idea
-above, along with the per-pwrdm pre/post changes now in mainline, I
-thinks this series should go one step further.
+> In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
+> failure.
+>
+> Without this, after a failed xfer, the runtime PM usecount will have
+> been incremented, but not decremented causing the usecount to never
+> reach zero after a failure.  This keeps the device always runtime PM
+> enabled which keeps the enclosing power domain active, and prevents
+> full-chip retention/off from happening during idle.
+>
+> Cc: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> ---
+> This patch applies to current i2c-embedded/for-next branch
 
-Basically, we should be able to get rid of the calls to
-prdm_pre|post_transition that are outside the powerdomain code.  With
-the addition of pwrdm_clkdm_enable|disable, it seems that the pre|post
-transition calls should be called directly from
-pwrdm_clkdm_enable|disable when the usecount transitions to/from zero.
+This one is needed for v3.6.  Can you queue this up as a fix for
+v3.6-rc?
+
+Thanks,
 
 Kevin
 
-
-
+>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 9895fa7..b105733 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -582,7 +582,7 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
+>  
+>  	r = pm_runtime_get_sync(dev->dev);
+>  	if (IS_ERR_VALUE(r))
+> -		return r;
+> +		goto out;
+>  
+>  	r = omap_i2c_wait_for_bb(dev);
+>  	if (r < 0)
