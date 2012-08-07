@@ -1,50 +1,41 @@
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: [PATCH] omap: Fix multi.h when only ARCH_OMAP3 and SOC_AM33XX are selected
-Date: Tue,  7 Aug 2012 18:29:45 +0200
-Message-ID: <1344356985-21801-1-git-send-email-jlu@pengutronix.de>
+From: Warner Losh <imp@bsdimp.com>
+Subject: Re: [PATCH] driver: misc: bmp085: remove "of_match_table" property.
+Date: Tue, 7 Aug 2012 11:23:40 -0600
+Message-ID: <4CEA7FE1-B4B7-4702-BD94-C04154014763@bsdimp.com>
+References: <1344245324-16704-1-git-send-email-sourav.poddar@ti.com> <20120806093033.GH17551@arwen.pp.htv.fi> <20120806154214.GC29272@sirena.org.uk> <20120807054342.GF8468@arwen.pp.htv.fi> <20120807105225.GT16861@opensource.wolfsonmicro.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43531 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754069Ab2HGQ3y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 12:29:54 -0400
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:35754 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab2HGRXo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 13:23:44 -0400
+Received: by obbuo13 with SMTP id uo13so7769972obb.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 10:23:43 -0700 (PDT)
+In-Reply-To: <20120807105225.GT16861@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Jan Luebbe <jlu@pengutronix.de>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-When only ARCH_OMAP3 (or -2,-4,...) and SOC_AM33XX are selected, multi.h
-doesn't set MULTI_OMAP2. In this case, cpu.h will simply define
-cpu_is_omap24xx() as 1.
 
-This causes problems for example for omap_hwmod.c:omap_hwmod_init which
-checks for cpu_is_omap24xx() first, using the wrong soc_ops for AM33xx.
+On Aug 7, 2012, at 4:52 AM, Mark Brown wrote:
 
-Fix this by defining MULTI_OMAP2 when using SOC_AM33XX together with
-something else.
+> On Tue, Aug 07, 2012 at 08:43:44AM +0300, Felipe Balbi wrote:
+>> On Mon, Aug 06, 2012 at 04:42:14PM +0100, Mark Brown wrote:
+> 
+>>> It's good practice to have an explict compatible string even if the
+>>> default happens to work in order to avoid any name clashes.
+> 
+>> of_i2c.c makes no use whatsoever of the compatible string. See that it
+>> will build an i2c_boardinfo and register a new device. That compatible
+> 
+> If that's all that's done it seems like a bug frankly, certainly based
+> on previous discussions it ought to be.  There are collisions out there,
+> they've just happened to not bite us yet
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
----
- arch/arm/plat-omap/include/plat/multi.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Also keep in mind that the device tree is supposed to be a description of the hardware, and different implementations of the device tree may use the compatible string.
 
-diff --git a/arch/arm/plat-omap/include/plat/multi.h b/arch/arm/plat-omap/include/plat/multi.h
-index 045e320..324d31b 100644
---- a/arch/arm/plat-omap/include/plat/multi.h
-+++ b/arch/arm/plat-omap/include/plat/multi.h
-@@ -108,4 +108,13 @@
- # endif
- #endif
- 
-+#ifdef CONFIG_SOC_AM33XX
-+# ifdef OMAP_NAME
-+#  undef  MULTI_OMAP2
-+#  define MULTI_OMAP2
-+# else
-+#  define OMAP_NAME am33xx
-+# endif
-+#endif
-+
- #endif	/* __PLAT_OMAP_MULTI_H */
--- 
-1.7.10.4
+Warner
 
