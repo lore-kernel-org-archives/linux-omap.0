@@ -1,73 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v3] i2c: omap: switch over to autosuspend API
-Date: Tue,  7 Aug 2012 15:38:07 +0300
-Message-ID: <1344343087-8947-1-git-send-email-balbi@ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EB3087D@DBDE01.ent.ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:35666 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753817Ab2HGMmC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 08:42:02 -0400
-Received: by lbbgk8 with SMTP id gk8so2234567lbb.27
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 05:41:40 -0700 (PDT)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB3087D@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH 3/4] arm/dts: omap5-evm: Add keypad data
+Date: Tue, 7 Aug 2012 14:54:22 +0200
+Message-ID: <2AE404CF-E456-408A-B7A2-D9B3D331C58E@dominion.thruhere.net>
+References: <1343997486-710-1-git-send-email-sourav.poddar@ti.com> <1343997486-710-4-git-send-email-sourav.poddar@ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1485\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1343997486-710-4-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti Datta <shubhrajyoti@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, w.sang@pengutronix.de, vaibhav.bedia@ti.com, Felipe Balbi <balbi@ti.com>
 
-this helps us reduce unnecessary pm transitions
-in case we have another i2c message starting soon.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/i2c/busses/i2c-omap.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Op 3 aug. 2012, om 14:38 heeft Sourav Poddar <sourav.poddar@ti.com> het volgende geschreven:
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 60928f2..35e8207 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -55,6 +55,9 @@
- /* timeout waiting for the controller to respond */
- #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
- 
-+/* timeout for pm runtime autosuspend */
-+#define OMAP_I2C_PM_TIMEOUT		1000	/* ms */
-+
- /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
- enum {
- 	OMAP_I2C_REV_REG = 0,
-@@ -645,7 +648,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
- 
- 	omap_i2c_wait_for_bb(dev);
- out:
--	pm_runtime_put(dev->dev);
-+	pm_runtime_mark_last_busy(dev->dev);
-+	pm_runtime_put_autosuspend(dev->dev);
- 	return r;
- }
- 
-@@ -1113,6 +1117,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 		dev->regs = (u8 *)reg_map_ip_v1;
- 
- 	pm_runtime_enable(dev->dev);
-+	pm_runtime_set_autosuspend_delay(dev->dev, OMAP_I2C_PM_TIMEOUT);
-+	pm_runtime_use_autosuspend(dev->dev);
-+
- 	r = pm_runtime_get_sync(dev->dev);
- 	if (IS_ERR_VALUE(r))
- 		goto err_free_mem;
-@@ -1189,7 +1196,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	of_i2c_register_devices(adap);
- 
--	pm_runtime_put(dev->dev);
-+	pm_runtime_mark_last_busy(dev->dev);
-+	pm_runtime_put_autosuspend(dev->dev);
- 
- 	return 0;
- 
--- 
-1.7.12.rc0
+> Add keypad data node in omap5 device tree file.
+> Also fill the device tree binding parameters
+> with the required value in "omap5-evm" dts file.
+> 
+> Tested on omap5430 evm with 3.5 custom kernel.
+> 
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> arch/arm/boot/dts/omap5-evm.dts |   12 ++++++++++++
+> arch/arm/boot/dts/omap5.dtsi    |    5 +++++
+> 2 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+> index 45a8aeb..09fe941 100644
+> --- a/arch/arm/boot/dts/omap5-evm.dts
+> +++ b/arch/arm/boot/dts/omap5-evm.dts
+> @@ -17,6 +17,18 @@
+> 		device_type = "memory";
+> 		reg = <0x80000000 0x40000000>; /* 1 GB */
+> 	};
+> +
+> +	keypad {
+> +		keypad,num-rows = <8>;
+> +		keypad,num-columns = <8>;
+> +		linux,keymap = < 0x02020073
+> +			0x02030072
+> +			0x020400e7
+> +			0x02050066
+> +			0x0206006b
+> +			0x020700d9 >;
+> +		linux,input-no-autorepeat;
+> +	};
 
+Again not a coment on your patch, but on DT:
+
+If DT bindings must be OS independent, what then, is that linux keycode doing there?
+
+regards,
+
+Koen
