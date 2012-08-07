@@ -1,85 +1,188 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] OMAPDSS: DISPC: Remove cpu_is_xxxx checks
-Date: Tue, 07 Aug 2012 16:00:56 +0300
-Message-ID: <1344344456.7216.59.camel@lappyti>
-References: <cover.1343912532.git.cmahapatra@ti.com>
-	  <5344e530a125ef5c5dfeb00e54b7d32df6169aa9.1343912532.git.cmahapatra@ti.com>
-	 <1344336723.7216.44.camel@lappyti> <502108A3.9060903@ti.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-7WVbOYoUtuc5zJj001vG"
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 resend] ARM: OMAP4: twl-common: Support for additional devices on i2c1 bus
+Date: Tue,  7 Aug 2012 16:12:25 +0300
+Message-ID: <1344345145-32125-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:50495 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752630Ab2HGNBC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 09:01:02 -0400
-Received: by lbbgf7 with SMTP id gf7so1617573lbb.22
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 06:00:59 -0700 (PDT)
-In-Reply-To: <502108A3.9060903@ti.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:35218 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751324Ab2HGNMh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 09:12:37 -0400
+Received: by qaeb19 with SMTP id b19so1276574qae.8
+        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 06:12:35 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related devices.
+Manufacturers can opt to use different codec than twl6040 and also can add
+audio related IC to the bus (external amplifier for example on SDP4430).
 
---=-7WVbOYoUtuc5zJj001vG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Make it possible to add different set of additional devices to i2c1 bus on
+OMAP4 boards.
 
-On Tue, 2012-08-07 at 17:52 +0530, Chandrabhanu Mahapatra wrote:
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
 
-> Yes, this seems good to me. Its better to have all cpu_is checks of
-> dispc.c and dss.c in their probe functions and by the time
-> implementation of DSS version come to picture these can be move to dss
-> features or any other place appropriate. But how to handle OMAP revision
-> specific functions. Will Dss version handle that too, as like DSS1,
-> DSS1.1, DSS1.1.1, DSS2 say?
+Hi Tony,
 
-Yes, something like that.
+The v2 patch applied cleanly on top of today's mainline (with 2 offset).
+It would be really great if this could make it to 3.6, but it is not a big issue
+if this can only scheduled for 3.7.
 
-I'm not sure how the version numbers should be created, though. If we
-had only OMAP, we could use the OMAP version as the DSS major version,
-and increasing minor version whenever the DSS is changed. So DSS3.2
-could be the DSS used on OMAP3 SoCs, and it's the second revision,
-meaning that early OMAP3 versions would have had an different DSS
-version.
+Regards,
+Peter 
 
-However, the same DSS is used for other SoCs also, so the versioning is
-not that simple. I guess the other SoCs still always use a DSS that is
-designed for OMAP, so the major version would be solved by that. For
-example, AM3xxx DSS version would be DSS3.x. Minor version is more
-tricky, because OMAP and AM3 DSS can evolve separately, which means that
-a higher minor version may not contain the fix that exists in a lower
-minor version.
+ arch/arm/mach-omap2/board-4430sdp.c    |   12 ++++++++-
+ arch/arm/mach-omap2/board-omap4panda.c |   12 ++++++++-
+ arch/arm/mach-omap2/twl-common.c       |   37 +++++++++----------------------
+ arch/arm/mach-omap2/twl-common.h       |    3 +-
+ 4 files changed, 33 insertions(+), 31 deletions(-)
 
-Well, at least currently the AM3xxx's DSS is almost the same as OMAP3's,
-so perhaps I'm worrying too much.
-
- Tomi
-
-
---=-7WVbOYoUtuc5zJj001vG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQIRGIAAoJEPo9qoy8lh71qPUP/1cBNfEDppV7F0yHhqjDOU5b
-RNDMw+H93D13gUO6M887Tg+ik9osqSYyvpgcJtekvFwcEA10MdkyzkSzBw+PdFwo
-GmRdZF5e45geRmsBvXcNIGxzs8jhwS/k31qppSiEuSVbwR/WEAnQJ+pNIjyZKAMl
-tX1PG768AbBcIid50+aTWsqiBbU1xQdeg9+jhZ9Lz6XBJX0NEps9n6S7DNe9+j1c
-EfFAuRfyciVuvuieBMCJQa30VGyDhv75weslMTtEpd32b3R18rWSOhsX3m069iUP
-VtG097V+vOsmiopVmXNBhb0f7Wapjnu4Et6k7BKCgSJ+FhgXHl6mwVIqypipj0f2
-JKUsPrknkFekHANyZ1ZPiuwXD+/T51BjF+3KIIthclhSC7XBbndrnHCbC2Zx3E6W
-RHWmOuF91BYkvBp8fgZT4YrTQQ9YNjNV3Cjl8UAjeqVLD42GTMZ4Xfq2jwMQW4jH
-Nc4TAnxMFZqim8dqsZl0/+sMWPxW00iYTYMNpwh73HmeLN2lut+RIlRxKka8npUx
-qQMQOK6vORYy7uTG5B7Uu/ggUT/WgI25fmnVozt+iv2dNktnvQmRxgZ3sZ3qzM2x
-Y8hkn+OV5Q4IexA9icJbMAMzRZ4DwPn+jXOk6bPnn9F0iFyKXeFq2x8gh7uEHZTr
-CW1omFb9QRuWJyPSRr67
-=MaAm
------END PGP SIGNATURE-----
-
---=-7WVbOYoUtuc5zJj001vG--
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index d4831b6..bcbcad1 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -550,6 +550,14 @@ static struct twl6040_platform_data twl6040_data = {
+ 	.irq_base	= TWL6040_CODEC_IRQ_BASE,
+ };
+ 
++static struct i2c_board_info __initdata sdp4430_i2c_1_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6040", 0x4b),
++		.irq = OMAP44XX_IRQ_SYS_2N,
++		.platform_data = &twl6040_data,
++	},
++};
++
+ static struct twl4030_platform_data sdp4430_twldata = {
+ 	/* Regulators */
+ 	.vusim		= &sdp4430_vusim,
+@@ -583,8 +591,8 @@ static int __init omap4_i2c_init(void)
+ 			TWL_COMMON_REGULATOR_CLK32KG |
+ 			TWL_COMMON_REGULATOR_V1V8 |
+ 			TWL_COMMON_REGULATOR_V2V1);
+-	omap4_pmic_init("twl6030", &sdp4430_twldata,
+-			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
++	omap4_pmic_init("twl6030", &sdp4430_twldata, sdp4430_i2c_1_boardinfo,
++			ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+ 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 70f6d1d..5e18927 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -266,6 +266,14 @@ static struct twl6040_platform_data twl6040_data = {
+ 	.irq_base	= TWL6040_CODEC_IRQ_BASE,
+ };
+ 
++static struct i2c_board_info __initdata panda_i2c_1_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("twl6040", 0x4b),
++		.irq = OMAP44XX_IRQ_SYS_2N,
++		.platform_data = &twl6040_data,
++	},
++};
++
+ /* Panda board uses the common PMIC configuration */
+ static struct twl4030_platform_data omap4_panda_twldata;
+ 
+@@ -293,8 +301,8 @@ static int __init omap4_panda_i2c_init(void)
+ 			TWL_COMMON_REGULATOR_CLK32KG |
+ 			TWL_COMMON_REGULATOR_V1V8 |
+ 			TWL_COMMON_REGULATOR_V2V1);
+-	omap4_pmic_init("twl6030", &omap4_panda_twldata,
+-			&twl6040_data, OMAP44XX_IRQ_SYS_2N);
++	omap4_pmic_init("twl6030", &omap4_panda_twldata, panda_i2c_1_boardinfo,
++			ARRAY_SIZE(panda_i2c_1_boardinfo));
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	/*
+ 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index de47f17..d52be85 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -39,16 +39,6 @@ static struct i2c_board_info __initdata pmic_i2c_board_info = {
+ 	.flags		= I2C_CLIENT_WAKE,
+ };
+ 
+-static struct i2c_board_info __initdata omap4_i2c1_board_info[] = {
+-	{
+-		.addr		= 0x48,
+-		.flags		= I2C_CLIENT_WAKE,
+-	},
+-	{
+-		I2C_BOARD_INFO("twl6040", 0x4b),
+-	},
+-};
+-
+ #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static int twl_set_voltage(void *data, int target_uV)
+ {
+@@ -77,30 +67,25 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+ 
+ void __init omap4_pmic_init(const char *pmic_type,
+ 		    struct twl4030_platform_data *pmic_data,
+-		    struct twl6040_platform_data *twl6040_data, int twl6040_irq)
++		    struct i2c_board_info *devices, int nr_devices)
+ {
+ 	/* PMIC part*/
+ 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_WAKEUPENABLE);
+-	strncpy(omap4_i2c1_board_info[0].type, pmic_type,
+-		sizeof(omap4_i2c1_board_info[0].type));
+-	omap4_i2c1_board_info[0].irq = OMAP44XX_IRQ_SYS_1N;
+-	omap4_i2c1_board_info[0].platform_data = pmic_data;
+-
+-	/* TWL6040 audio IC part */
+-	omap4_i2c1_board_info[1].irq = twl6040_irq;
+-	omap4_i2c1_board_info[1].platform_data = twl6040_data;
+-
+-	omap_register_i2c_bus(1, 400, omap4_i2c1_board_info, 2);
++	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
+ 
++	/* Register additional devices on i2c1 bus if needed */
++	if (devices)
++		i2c_register_board_info(1, devices, nr_devices);
+ }
+ 
+ void __init omap_pmic_late_init(void)
+ {
+-	/* Init the OMAP TWL parameters (if PMIC has been registered) */
+-	if (pmic_i2c_board_info.irq)
+-		omap3_twl_init();
+-	if (omap4_i2c1_board_info[0].irq)
+-		omap4_twl_init();
++	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
++	if (!pmic_i2c_board_info.irq)
++		return;
++
++	omap3_twl_init();
++	omap4_twl_init();
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+index 8fe71cf..de062c7 100644
+--- a/arch/arm/mach-omap2/twl-common.h
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -32,6 +32,7 @@
+ 
+ struct twl4030_platform_data;
+ struct twl6040_platform_data;
++struct i2c_board_info;
+ 
+ void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+ 		    struct twl4030_platform_data *pmic_data);
+@@ -51,7 +52,7 @@ static inline void omap3_pmic_init(const char *pmic_type,
+ 
+ void omap4_pmic_init(const char *pmic_type,
+ 		    struct twl4030_platform_data *pmic_data,
+-		    struct twl6040_platform_data *audio_data, int twl6040_irq);
++		    struct i2c_board_info *devices, int nr_devices);
+ 
+ void omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 			   u32 pdata_flags, u32 regulators_flags);
+-- 
+1.7.8.6
 
