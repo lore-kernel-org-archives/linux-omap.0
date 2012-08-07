@@ -1,70 +1,65 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 4/4] i2c: omap: switch over to autosuspend API
-Date: Tue, 07 Aug 2012 17:08:04 +0530
-Message-ID: <5020FE1C.2010005@ti.com>
-References: <1344262737-6662-1-git-send-email-balbi@ti.com> <1344262737-6662-5-git-send-email-balbi@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2 1/2] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Tue, 7 Aug 2012 11:40:40 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA0D423@DBDE01.ent.ti.com>
+References: <1343219012-19472-1-git-send-email-anilkumar@ti.com>
+ <1343219012-19472-2-git-send-email-anilkumar@ti.com>
+ <501B6F99.4020506@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:54127 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754429Ab2HGLiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 07:38:10 -0400
-Received: by obbun3 with SMTP id un3so7187453obb.41
-        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 04:38:09 -0700 (PDT)
-In-Reply-To: <1344262737-6662-5-git-send-email-balbi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46744 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751690Ab2HGLlD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 07:41:03 -0400
+In-Reply-To: <501B6F99.4020506@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, w.sang@pengutronix.de
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "mkl@pengutronix.de" <mkl@pengutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Felipe,
-On Monday 06 August 2012 07:48 PM, Felipe Balbi wrote:
-> this helps us reduce unnecessary pm transitions
-> in case we have another i2c message been started
-> soon.
->
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 60928f2..22efaba 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -645,7 +645,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->  
->  	omap_i2c_wait_for_bb(dev);
->  out:
-> -	pm_runtime_put(dev->dev);
-> +	pm_runtime_mark_last_busy(dev->dev);
-> +	pm_runtime_put_autosuspend(dev->dev);
->  	return r;
->  }
->  
-> @@ -1113,6 +1114,9 @@ omap_i2c_probe(struct platform_device *pdev)
->  		dev->regs = (u8 *)reg_map_ip_v1;
->  
->  	pm_runtime_enable(dev->dev);
-> +	pm_runtime_set_autosuspend_delay(dev->dev, 1000);
-> +	pm_runtime_use_autosuspend(dev->dev);
-> +
->  	r = pm_runtime_get_sync(dev->dev);
->  	if (IS_ERR_VALUE(r))
->  		goto err_free_mem;
-> @@ -1189,7 +1193,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  
->  	of_i2c_register_devices(adap);
->  
-> -	pm_runtime_put(dev->dev);
-Should we mark it last busy stamp here here?
-Or it may not take effect till the first transaction.
+Vaibhav,
 
+Thanks for the review.
 
-> +	pm_runtime_put_autosuspend(dev->dev);
->  
->  	return 0;
->  
+On Fri, Aug 03, 2012 at 11:58:41, Hiremath, Vaibhav wrote:
+> 
+> 
+> On 7/25/2012 5:53 PM, AnilKumar Ch wrote:
+> > Add Bosch D_CAN controller device tree data to AM33XX dtsi file
+> > by adding d_can device node with all the necessary parameters.
+> > 
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> > ---
+> >  arch/arm/boot/dts/am33xx.dtsi |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index 9b974dc..2db2ffb 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -163,5 +163,10 @@
+> >  			#size-cells = <0>;
+> >  			ti,hwmods = "i2c3";
+> >  		};
+> > +
+> > +		dcan1: d_can@481D0000 {
+> > +			compatible = "bosch,d_can";
+> > +			ti,hwmods = "d_can1";
+> > +		};
+> 
+> Anil,
+> 
+> Any reason why we are only specifying dcan1 instance? Shouldn't we
+> specify dcan0 as well here?
+> 
 
+Yes, I agree dcan0 needs to add because SoC support two instances. I
+have added d_can1 only because on AM335x-EVM d_can1 is available and
+in other case AM335x-bone have two instances available. I will send next
+version of these patches.
+
+Regards
+AnilKumar
