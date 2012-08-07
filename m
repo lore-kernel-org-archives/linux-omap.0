@@ -1,76 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP: Configuring CONTROL_DEVCONF0 register via DT with pinctrl
-Date: Tue, 7 Aug 2012 04:10:42 -0700
-Message-ID: <20120807111041.GY11011@atomide.com>
-References: <501262B5.1080004@ti.com>
+Subject: Re: [PATCH 1/6] OMAPDSS: DISPC: Remove cpu_is_xxxx checks
+Date: Tue, 7 Aug 2012 04:14:43 -0700
+Message-ID: <20120807111442.GZ11011@atomide.com>
+References: <cover.1343912532.git.cmahapatra@ti.com>
+ <5344e530a125ef5c5dfeb00e54b7d32df6169aa9.1343912532.git.cmahapatra@ti.com>
+ <20120807084815.GK8468@arwen.pp.htv.fi>
+ <1344330329.4091.16.camel@deskari>
+ <20120807091415.GN8468@arwen.pp.htv.fi>
+ <1344331672.4091.22.camel@deskari>
+ <20120807093207.GO8468@arwen.pp.htv.fi>
+ <1344333436.7216.32.camel@lappyti>
+ <20120807102712.GP8468@arwen.pp.htv.fi>
+ <1344337046.4091.32.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65129 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621Ab2HGLKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 07:10:44 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15328 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667Ab2HGLOp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 07:14:45 -0400
 Content-Disposition: inline
-In-Reply-To: <501262B5.1080004@ti.com>
+In-Reply-To: <1344337046.4091.32.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: balbi@ti.com, Chandrabhanu Mahapatra <cmahapatra@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120727 02:47]:
-> Hello,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120807 03:57]:
+> On Tue, 2012-08-07 at 13:27 +0300, Felipe Balbi wrote:
+> > Hi,
 > 
-> I need to find a solution to control 2 bits in CONTROL_DEVCONF0 on OMAP2/3 for
-> McBSP1 CLKR/FSR signal routing.
-> In boards using McBSP1 we might need to change bit 3 and 4 based on the audio
-> setup (how the board has been wired).
+> > > Yes, they can be overridden, but I think it's still quite difficult to
+> > > manage. DSS is modeled with multiple blocks, also in DT data. So you'd
+> > > need to override multiple entries.
+> > > 
+> > > And it'd also require a new dts file for each version of your board with
+> > > different ES version.
+> > > 
+> > > Also, I don't really see why this information would need to be present
+> > > in the DT data (especially as it's not simple). It's all trivially found
+> > > out in the code, by using cpu_is & soc_is.
+> > 
+> > Fair enough. I just think we should remove all cpu_is_* and soc_is_*
+> > from drivers.
 > 
-> So far I have come up with the following idea to handle to but not really sure
-> if it is the correct way (I have taken the idea from the arm/dts: Add AM33XX
-> basic pinctrl support series).
+> I agree, that's part of the idea here. Instead of having cpu_is checks
+> all around, we'll have them in only certain centralized places. Then
+> it's easier to implement a way to move them totally out of the driver,
+> when we come up with a good idea how to accomplish that.
 
-You need to also consider that CONTROL_DEVCONF0 has the MMC/SDIO module input
-clock selection. So pinctrl-single binding would have to be expanded to also
-support one-bit-per-mux type registers in addition to one-register-per-mux
-registers. And then this could also be used for the MMC/SDIO module input clock.
-
-> In .dtsi file of the SoC:
-> 
-> control_devconf0: pinmux@48002274 {
-> 	compatible = "pinctrl-single";
-> 	reg = <0x48002274 4>;	/* Single register */
-> 	#address-cells = <1>;
-> 	#size-cells = <0>;
-> 	pinctrl-single,register-width = <32>;
-> 	pinctrl-single,function-mask = <0x5F>;
-> };
-
-The pinctrl-single,function-mask is for all the registers in the range,
-we also need something to specify the device specific mux bits.
-
-> In the .dts file of the board which needs to change the CLKR/FSR configuration:
-> 
-> &control_devconf0 {
-> 	pinctrl-names = "default";
-> 	pinctrl-0 = <&mcbsp1_pins>;
-> 
-> 	mcbsp1_pins: pinmux_mcbsp1_pins {
-> 		pinctrl-single,pins = <0x00 0x18>; /* CLKR/FSR from CLKX/FSX
-> 						    * pin */
-> 	};
-> 
-> };
-
-I think adding support for one-bit-per-mux would require adding something
-like this for the binding:
-
- 	mcbsp1_pins: pinmux_mcbsp1_pins {
-		/*                   offset bits mask */
- 		pinctrl-single,bits = <0x00 0x18 0x18>;
-	};
-
-As otherwise you would not know which bits to clear for alternative
-named modes. Or got any better ideas?
+Yes limiting them to driver init and setting some driver specific flags
+based on that is a good start. But eventually no drivers should have
+those checks.
 
 Regards,
 
