@@ -1,78 +1,47 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: v3.6-rc1 DSS issues/regression
-Date: Tue, 7 Aug 2012 12:05:53 +0530
-Message-ID: <5020B749.8060303@ti.com>
-References: <20120806164732.GB1298@harshnoise.musicnaut.iki.fi> <1344273868.12136.50.camel@deskari> <5020009C.1080308@ti.com> <20120806221424.GD1298@harshnoise.musicnaut.iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
+ used on both cpus
+Date: Mon, 6 Aug 2012 23:50:55 -0700
+Message-ID: <20120807065054.GH11011@atomide.com>
+References: <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
+ <501B7AE6.8080405@gmail.com>
+ <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
+ <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
+ <CAMQu2gxLAVk-LN8R1xBeeL1=iZ-mLSRmtZe4wpQYQPTBsY5RMA@mail.gmail.com>
+ <FF29FBF3-67EC-478E-9A74-65F8A2870BDC@dominion.thruhere.net>
+ <79CD15C6BA57404B839C016229A409A83EA7F59B@DBDE01.ent.ti.com>
+ <A6396D46-C6B9-44A4-A960-657668AF08E4@dominion.thruhere.net>
+ <CAMQu2gz-93W9zWD_v3m1nQkqmnvFwcWKDTxNsf0v39y9_rhQPA@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA7F6C3@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39448 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751072Ab2HGGh2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Aug 2012 02:37:28 -0400
-In-Reply-To: <20120806221424.GD1298@harshnoise.musicnaut.iki.fi>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54231 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721Ab2HGGu7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 02:50:59 -0400
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7F6C3@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ccross@android.com" <ccross@android.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tuesday 07 August 2012 03:44 AM, Aaro Koskinen wrote:
-> Hi,
->
-> On Mon, Aug 06, 2012 at 11:06:28PM +0530, Archit Taneja wrote:
->>> On Mon, 2012-08-06 at 19:47 +0300, Aaro Koskinen wrote:
->>>> I can't get the display on N900 (SDI, acx565akm) to work with v3.6-rc1
->>>> kernel, it's just full of flicker/noise.
->>>>
->>>> According to git-bisect, the problem is introduced by the commit:
->>>>
->>>>      commit f476ae9dab3234532d41d36beb4ba7be838fa786
->>>>      Author: Archit Taneja <archit@ti.com>
->>>>      Date:   Fri Jun 29 14:37:03 2012 +0530
->>>>
->>>>      OMAPDSS: APPLY: Remove DISPC writes to manager's lcd parameters in interface
->
-> [...]
->
->> The diff I have shared introduces the register writes back. This
->> should make it work like before. But we need to figure out which
->> parameter write needs to be done immediately. If this works, could
->> you remove each dispc register write turn by turn, and point out
->> which is the culprit one?
->
-> Thanks, the following one makes the display to work again:
->
-> diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-> index 5d31699..3c9f598 100644
-> --- a/drivers/video/omap2/dss/sdi.c
-> +++ b/drivers/video/omap2/dss/sdi.c
-> @@ -46,6 +46,9 @@ static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
->   	sdi.mgr_config.video_port_width = 24;
->   	sdi.mgr_config.lcden_sig_polarity = 1;
->
-> +	dispc_mgr_set_clock_div(dssdev->manager->id,
-> +				&sdi.mgr_config.clock_info);
-> +
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120803 03:34]:
+> 
+> Actually its not that.
+> AM335x needs to be added as part of cpu_class_is_omap2(), without this it 
+> gets into issues. 
+> The patch has been already submitted to the list, but still not merged by 
+> Tony.
 
-Thanks for finding this. It's a bit peculiar why this is happening. The 
-DISPC_DIVISOR is a shadow register for sure.
+Let's just add it to the list of cpu_class_is_omap2() with a proper patch
+description for the fix. Then we still need to sort it out properly from
+common zImage point of view without having to maintain that list.
 
-I don't know much about SDI, but it looks like the SDI PLL needs the 
-free running pixel clock from the LCD manager. To achieve this, we set 
-PCKFREEENABLE. The thing I don't understand is that whether the free 
-running pixel clock at this point would be derived out of the old LCD 
-and PCD values, or the new ones? It should have been old since LCD and 
-PCD are shadowed registers.
+Vaibhav, can you please post your original patch with the description
+updated for v3.6-rc1?
 
-In other words, I am suspecting that the field PCKFREEENABLE does a copy 
-of the LCD and PCD dividers from the shadow registers to the working 
-registers.
+Regards,
 
-The regdump shows that there were issues in SDI initialization.
-
-Tomi,
-
-Any ideas about this?
-
-Archit
+Tony
