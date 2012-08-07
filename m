@@ -1,28 +1,28 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH v3] i2c: omap: switch over to autosuspend API
-Date: Tue, 7 Aug 2012 14:40:46 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB30BDA@DBDE01.ent.ti.com>
-References: <B5906170F1614E41A8A28DE3B8D121433EB3087D@DBDE01.ent.ti.com>
- <1344343087-8947-1-git-send-email-balbi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: clean up some smatch warnings, fix some
+ printk(KERN_ERR ...
+Date: Tue, 7 Aug 2012 09:00:02 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1208070859190.23956@utopia.booyaka.com>
+References: <20120807103009.8053.69389.stgit@dusk.lan> <20120807103439.8053.65054.stgit@dusk.lan> <20120807104023.GV11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35059 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753571Ab2HGOlC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 10:41:02 -0400
-In-Reply-To: <1344343087-8947-1-git-send-email-balbi@ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:45907 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab2HGPAD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 11:00:03 -0400
+In-Reply-To: <20120807104023.GV11011@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "w.sang@pengutronix.de" <w.sang@pengutronix.de>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 07, 2012 at 18:08:07, Balbi, Felipe wrote:
-> this helps us reduce unnecessary pm transitions
-> in case we have another i2c message starting soon.
-> 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
+On Tue, 7 Aug 2012, Tony Lindgren wrote:
 
-FWIW, Acked-by: Vaibhav Bedia <vaibhav.bedia@ti.com> 
+> I think these will cause new randconfig warnings without CONFIG_BUG set.
+
+Thanks for the comment.  Did not know BUG() could be disabled.  Will drop 
+those changes.
+
+
+- Paul
