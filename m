@@ -1,47 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: timer: allow gp timer clock-event to be
- used on both cpus
-Date: Mon, 6 Aug 2012 23:50:55 -0700
-Message-ID: <20120807065054.GH11011@atomide.com>
-References: <1333114048-26136-2-git-send-email-santosh.shilimkar@ti.com>
- <501B7AE6.8080405@gmail.com>
- <76308EBE-F802-411A-973A-7BBC7575FE5A@dominion.thruhere.net>
- <BDB76D4F-31B0-47D0-B1A1-64A743D091D3@dominion.thruhere.net>
- <CAMQu2gxLAVk-LN8R1xBeeL1=iZ-mLSRmtZe4wpQYQPTBsY5RMA@mail.gmail.com>
- <FF29FBF3-67EC-478E-9A74-65F8A2870BDC@dominion.thruhere.net>
- <79CD15C6BA57404B839C016229A409A83EA7F59B@DBDE01.ent.ti.com>
- <A6396D46-C6B9-44A4-A960-657668AF08E4@dominion.thruhere.net>
- <CAMQu2gz-93W9zWD_v3m1nQkqmnvFwcWKDTxNsf0v39y9_rhQPA@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A83EA7F6C3@DBDE01.ent.ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: Add minimal OMAP5 SOC support for 3.6
+Date: Tue, 7 Aug 2012 00:00:57 -0700
+Message-ID: <20120807070056.GI11011@atomide.com>
+References: <1341846143-11137-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120710083354.GM1122@atomide.com>
+ <CAMQu2gwNeYUm7iL+30wwoHCNGZ3dXF2k+w-PE=tw-pMSO9F3NQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54231 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721Ab2HGGu7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 02:50:59 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31276 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750966Ab2HGHA7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:00:59 -0400
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA7F6C3@DBDE01.ent.ti.com>
+In-Reply-To: <CAMQu2gwNeYUm7iL+30wwoHCNGZ3dXF2k+w-PE=tw-pMSO9F3NQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Daniel Mack <zonque@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ccross@android.com" <ccross@android.com>, Paul Walmsley <paul@pwsan.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120803 03:34]:
-> 
-> Actually its not that.
-> AM335x needs to be added as part of cpu_class_is_omap2(), without this it 
-> gets into issues. 
-> The patch has been already submitted to the list, but still not merged by 
-> Tony.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120726 00:27]:
+> On Tue, Jul 10, 2012 at 10:33 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [120709 08:07]:
+> >> Tony,
+> >>
+> >> Please pull below OMAP5 SOC minimal support. It is generated against the
+> >> cleanup-part2 branch of yours. As you suggested, I have dropped CK_54XX
+> >> flag changes to avoid conflicts.
+> >
+> > OK seems to merge fine now, pulled into devel-omap5.
+> >
+> Now OMAP5 support appearing in mainline. In case you would like
+> to boot mainline on your OMAP5 board, you need to merge a
+> OMAP5 SOC hwmod/clock data which is out of tree. I have
+> put that on a branch and same is available [1]. Please note
+> that the only DT boot supported.
 
-Let's just add it to the list of cpu_class_is_omap2() with a proper patch
-description for the fix. Then we still need to sort it out properly from
-common zImage point of view without having to maintain that list.
-
-Vaibhav, can you please post your original patch with the description
-updated for v3.6-rc1?
+Nice to see it being a small set :) Have these changes been
+posted to the mailing lists for review?
 
 Regards,
 
 Tony
+
+ 
+> [1] git://github.com/SantoshShilimkar/linux.git out-of-tree/omap5-data
