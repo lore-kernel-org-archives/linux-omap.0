@@ -1,36 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 1/6] ARM: OMAP3: PRM: move prcm interrupt handlers to PRM
- driver code
-Date: Tue, 7 Aug 2012 00:28:52 -0700
-Message-ID: <20120807072852.GN11011@atomide.com>
-References: <1342197459-7920-1-git-send-email-t-kristo@ti.com>
- <1342197459-7920-2-git-send-email-t-kristo@ti.com>
- <87ipd4g4a5.fsf@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [GIT PULL 1/5] omap device tree changes for v3.6 merge window
+Date: Tue, 7 Aug 2012 07:29:06 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9B1B0C@DBDE01.ent.ti.com>
+References: <pull-1341925556-888624>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9A8BE1@DBDE01.ent.ti.com>
+ <20120713064147.GG1122@atomide.com> <20120713075658.GQ1122@atomide.com>
+ <20120807071351.GK11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14290 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498Ab2HGH2z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:28:55 -0400
-Content-Disposition: inline
-In-Reply-To: <87ipd4g4a5.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34529 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916Ab2HGH3P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:29:15 -0400
+In-Reply-To: <20120807071351.GK11011@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Kevin Hilman <khilman@ti.com> [120730 17:36]:
+On Tue, Aug 07, 2012 at 12:43:51, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [120713 01:01]:
+> > * Tony Lindgren <tony@atomide.com> [120712 23:46]:
+
+> > > my scripts when applying patches. We'll have to apply this as a fix.
+> > Arnd and Olof, let me know if you want me to resubmit a new branch instead
+> > of the already pulled devel-dt branch. That branch should not have other
+> > dependencies as it's based on -rc5. Of course is it's buried into other
+> > DT patches it's too late.
 > 
-> At first, I wasn't sure why this was happening on Overo boards and not
-> on the other boards, but then I notcied there was a *lot* more pm_wkup
-> interrupts during boot on Overo compared to the other boards.  This is
-> because of the GPIO IRQ for the network interface as well as the network
-> stack itself setting timers, resulting in a lot more pm_wkup events
-> during boot and making the race more likely.
+> Now with -rc1 out, I'll queue the following fix.
 
-Also happens if you may have somehow both edges selected for GPIO
-interrupts. Might be worth checking at least just in case of bugs
-somewhere..
+Thanks Tony
 
-Tony
+Regards
+Afzal
