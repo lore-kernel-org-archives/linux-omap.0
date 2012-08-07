@@ -1,41 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] ARM: OMAP4: twl-common: Support for additional
- devices on i2c1 bus
-Date: Tue, 7 Aug 2012 00:20:42 -0700
-Message-ID: <20120807072041.GL11011@atomide.com>
-References: <1342168682-15888-1-git-send-email-peter.ujfalusi@ti.com>
- <500D0FA5.3020208@ti.com>
+Subject: Re: [PATCH] OMAP2+: Fix random config build break with
+ !ARM_CPU_SUSPEND
+Date: Tue, 7 Aug 2012 00:23:01 -0700
+Message-ID: <20120807072300.GM11011@atomide.com>
+References: <1342176307-6435-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:11066 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752068Ab2HGHUp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:20:45 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52095 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366Ab2HGHXE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 03:23:04 -0400
 Content-Disposition: inline
-In-Reply-To: <500D0FA5.3020208@ti.com>
+In-Reply-To: <1342176307-6435-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120723 01:52]:
-> Hi Tony,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [120713 03:50]:
+> The random config builds with PM and !ARM_CPU_SUSPEND breaks with below
+> error on omap2plus_defconfig.
 > 
-> On 07/13/2012 10:38 AM, Peter Ujfalusi wrote:
-> > On OMAP4 the i2c1 bus is dedicated for the PMIC and audio related devices.
-> > Manufacturers can opt to use different codec than twl6040 and also can add
-> > audio related IC to the bus (external amplifier for example on SDP4430).
-> > 
-> > Make it possible to add differnet set of additional devices to i2c1 bus on
-> > OMAP4 boards.
+> arch/arm/mach-omap2/sleep44xx.S:323: undefined reference to `cpu_resume'
+> arch/arm/mach-omap2/omap-mpuss-lowpower.c:278: undefined reference to `cpu_suspend'
 > 
-> Would it be possible to queue this patch for 3.6?
+> This is because recently merged OMAP5 platform shares the common files
+> with OMAP4 but doesn't select ARM_CPU_SUSPEND. Without the ARM_CPU_SUSPEND
+> the sleep code is meaningless.
+> 
+> Fix the same by adding ARM_CPU_SUSPEND for OMAP5. The suggestion came from
+> Russell King in an off-list discussion.
 
-Sorry things were getting already too complex for v3.6 merge window..
-So v3.7 it will be. Looks like this need to be updated against v3.6-rc1
-to apply.
-
-Regards,
+Thanks applying into fixes.
 
 Tony
