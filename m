@@ -1,119 +1,74 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH 6/6] OMAPDSS: DPI: Remove cpu_is_xxxx checks
-Date: Tue, 7 Aug 2012 13:59:28 +0530
-Message-ID: <a2f1395d6f92b4e3c6fd33ba4b658f9c22e56e97.1343912533.git.cmahapatra@ti.com>
-References: <cover.1343912532.git.cmahapatra@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH RESEND v2 1/2] arm/dts: Add AM33XX basic pinctrl support
+Date: Tue, 7 Aug 2012 08:50:44 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA0D156@DBDE01.ent.ti.com>
+References: <1343144719-26352-1-git-send-email-anilkumar@ti.com>
+ <1343144719-26352-2-git-send-email-anilkumar@ti.com>
+ <50125B1C.8000209@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA06E4B@DBDE01.ent.ti.com>
+ <20120807074348.GQ11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37752 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45868 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751466Ab2HGIbj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Aug 2012 04:31:39 -0400
-In-Reply-To: <cover.1343912532.git.cmahapatra@ti.com>
+	id S1751621Ab2HGIu4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Aug 2012 04:50:56 -0400
+In-Reply-To: <20120807074348.GQ11011@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-The OMAP3 checks have been removed and replaced by a dss feature
-FEAT_DPI_USES_VDDS_DSI for cleaner implementation. The patches
-"OMAP: DSS2: enable VDDS_DSI when using DPI" (8a2cfea8cc) by Tomi Valkeinen
-<tomi.valkeinen@nokia.com> and "ARM: omap: fix oops in
-drivers/video/omap2/dss/dpi.c" (4041071571) by Russell King
-<rmk+kernel@arm.linux.org.uk> had introduced these checks. As it is evident
-from these patches a dependency exists for some DSS pins on VDDS_DSI which is
-better shown by dss feature FEAT_DPI_USES_VDDS_DSI.
+Hi Tony,
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dpi.c          |   12 +++++++-----
- drivers/video/omap2/dss/dss_features.c |    1 +
- drivers/video/omap2/dss/dss_features.h |    1 +
- 3 files changed, 9 insertions(+), 5 deletions(-)
+On Tue, Aug 07, 2012 at 13:13:48, Tony Lindgren wrote:
+> * AnilKumar, Chimata <anilkumar@ti.com> [120731 06:37]:
+> > Hi Peter,
+> > 
+> > On Fri, Jul 27, 2012 at 14:40:52, Ujfalusi, Peter wrote:
+> > > Hi,
+> > > 
+> > > On 07/24/2012 06:45 PM, AnilKumar Ch wrote:
+> > > > Adds basic pinctrl support for AM33XX family of devices. This patch
+> > > > is based on the pinctrl-simple driver submitted by Tony Lindgren's
+> > > > here: http://lwn.net/Articles/496075/
+> > > > 
+> > > > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> > > > ---
+> > > >  arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
+> > > >  1 file changed, 9 insertions(+)
+> > > > 
+> > > > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > > > index 59509c4..9b974dc 100644
+> > > > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > > > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > > > @@ -40,6 +40,15 @@
+> > > >  		};
+> > > >  	};
+> > > >  
+> > > > +	am3358_pinmux: pinmux@44E10800 {
+> > > > +		compatible = "pinctrl-single";
+> > > > +		reg = <0x44E10800 0x0338>;
+> > > 
+> > > I'm just curious about the size here: how it ended up as 0x0338?
+> > > While looking at the TRM of AM335x I can come up with 0x0238 (0x44e10800 -
+> > > 0x44e10a38), but I don't see any sings of the remaining 0x0100 to be
+> > > documented at least.
+> > 
+> > No, pinmux registers are available till 0x44E10B38, look at AM335x latest TRM
+> > or pinmux utility (we cannot find the exact offsets but pins we can find after
+> > 0x0A38, conf_ddr_resetn) at http://www.ti.com/tool/pinmuxtool
+> 
+> If you have a hole inbetween the registers it sounds like you also have core and
+> wkup domains? In that case those should be set up as separate controllers as other
+> SCM registers may be inbetween those domains.
+> 
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 3266be2..b97f7b8 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -34,6 +34,7 @@
- #include <plat/cpu.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- static struct {
- 	struct regulator *vdds_dsi_reg;
-@@ -169,7 +170,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
--	if (cpu_is_omap34xx() && !dpi.vdds_dsi_reg) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) && !dpi.vdds_dsi_reg) {
- 		DSSERR("no VDSS_DSI regulator\n");
- 		return -ENODEV;
- 	}
-@@ -185,7 +186,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- 		goto err_start_dev;
- 	}
- 
--	if (cpu_is_omap34xx()) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI)) {
- 		r = regulator_enable(dpi.vdds_dsi_reg);
- 		if (r)
- 			goto err_reg_enable;
-@@ -229,7 +230,7 @@ err_dsi_pll_init:
- err_get_dsi:
- 	dispc_runtime_put();
- err_get_dispc:
--	if (cpu_is_omap34xx())
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
- 		regulator_disable(dpi.vdds_dsi_reg);
- err_reg_enable:
- 	omap_dss_stop_device(dssdev);
-@@ -250,7 +251,7 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
- 
- 	dispc_runtime_put();
- 
--	if (cpu_is_omap34xx())
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
- 		regulator_disable(dpi.vdds_dsi_reg);
- 
- 	omap_dss_stop_device(dssdev);
-@@ -329,7 +330,8 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
- 
--	if (cpu_is_omap34xx() && dpi.vdds_dsi_reg == NULL) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
-+					dpi.vdds_dsi_reg == NULL) {
- 		struct regulator *vdds_dsi;
- 
- 		vdds_dsi = dss_get_vdds_dsi();
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 6b35200..ba70de5 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -373,6 +373,7 @@ static const enum dss_feat_id omap3430_dss_feat_list[] = {
- 	FEAT_ALPHA_FIXED_ZORDER,
- 	FEAT_FIFO_MERGE,
- 	FEAT_OMAP3_DSI_FIFO_BUG,
-+	FEAT_DPI_USES_VDDS_DSI,
- };
- 
- static const enum dss_feat_id omap3630_dss_feat_list[] = {
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index aa1e4b6..9c18fe3 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -50,6 +50,7 @@ enum dss_feat_id {
- 	FEAT_DSI_VC_OCP_WIDTH,
- 	FEAT_DSI_REVERSE_TXCLKESC,
- 	FEAT_DSI_GNQ,
-+	FEAT_DPI_USES_VDDS_DSI,
- 	FEAT_HDMI_CTS_SWMODE,
- 	FEAT_HDMI_AUDIO_USE_MCLK,
- 	FEAT_HANDLE_UV_SEPARATE,
--- 
-1.7.10
+In case of AM33XX we have only one padconf domain and it do not have any holes
+in between.
 
+Regards
+AnilKumar
