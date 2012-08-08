@@ -1,132 +1,113 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2] Revert "ARM: OMAP3: PM: call pre/post transition per powerdomain"
-Date: Wed, 08 Aug 2012 10:06:54 -0700
-Message-ID: <87sjbxwbwx.fsf@ti.com>
-References: <1344379659-26152-1-git-send-email-khilman@ti.com>
-	<CANOLnONQhqYcqW8ZAfn+5ceZQ_h2W_yKZVZrnrP5cUJDooTrQg@mail.gmail.com>
+Subject: Re: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
+Date: Wed, 08 Aug 2012 10:10:07 -0700
+Message-ID: <87k3x9wbrk.fsf@ti.com>
+References: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:37837 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758934Ab2HHRGy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 13:06:54 -0400
-Received: by pbbro2 with SMTP id ro2so2139815pbb.26
-        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 10:06:53 -0700 (PDT)
-In-Reply-To: <CANOLnONQhqYcqW8ZAfn+5ceZQ_h2W_yKZVZrnrP5cUJDooTrQg@mail.gmail.com>
-	(Grazvydas Ignotas's message of "Wed, 8 Aug 2012 13:56:33 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 8 Aug 2012 19:28:36 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Grazvydas Ignotas <notasas@gmail.com> writes:
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-> On Wed, Aug 8, 2012 at 1:47 AM, Kevin Hilman <khilman@ti.com> wrote:
->> This reverts commit 58f0829b7186150318c79515f0e0850c5e7a9c89.
->>
->> Converstion to per-pwrdm per/post transition calls was a bit
->> premature.  Only tracking MPU, PER & CORE in the idle path means we
->> lose the accounting for all the other powerdomains which may also
->> transition in idle.  On OMAP3, due to autodeps, several powerdomains
->> transition along with MPU (e.g. DSS, USBHOST), and the accounting for
->> these was lost with this patch.  Since the accounting includes the
->> context loss counters, drivers for devices in those power domains
->> would never notice context lost, so would likely hang after any
->> off-mode transitions.
+> Add *remove* callback so that necessary cleanup operations are
+> performed when device is unregistered. The device is deleted
+> from the list and associated clock handle is released by
+> calling clk_put() and irq descriptor is released using the
+> irq_free_desc() api.
 >
-> That's a shame, pwrdm_pre_transition/pwrdm_post_transition are the
-> main contributors to idle latency and cause large performance loss on
-> small and frequent loads, like short DMAs. Could we perhaps only do it
-> when PM_DEBUG is on or when off transitions happen instead?
-
-Unfortunately, that's also where we're currently doing the accounting 
-for when power domains lose context.  Drivers rely on this to determine
-whether or not to restore context, so it's not a debug only feature.
-
->> This patch should be revisited when the upcoming clkdm/pwrmdm/voltdm
->> use-counting seires is merged since then we can properly do accounting
->> without relying on a call in the idle path.
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Reported-by: Paul Walmsley <paul@pwsan.com>
+> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+> v2:
+> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
 >
-> So all hope of getting rid of those pre/post transition calls goes here then?
-> Small typo with 'seires'..
+> (1) Use irq_free_descs() instead of irq_free_desc().
+>     Besides, irq_free_desc() was using wrong parameter,
+>     irq_base, instead of bank->irq.
+> (2) irq_free_descs() moved outside spin_lock/unlock_*()
+>     in order to avoid exception warnings.
+>
+> (3) pm_runtime_disable() added so that bind can happen successfully
+>
+> Test Detail:
+> Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
+> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
+>
+> Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
+> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
+>
+> Step 3: Execute read/write GPIO test case.
 
-Yes.  The goal of the use-counting series is so that proper accounting
-can be done when the usecount changes so that not all of them have to be
-done in the idle path.
+What happens when GPIOs are in use (requested)?   
 
 Kevin
 
->> In addition, the original patch had another bug because the PER
->> powerdomain accounting was not updated until after the GPIO resume
->> hook is called.  Since gpio_resume_after_idle() checks the context
->> loss count (which is not yet updated) it would not properly restore
->> context, leaving the GPIO banks in an undefined state.
->>
->> Cc: Jean Pihet <jean.pihet@newoldbits.com>
->> Cc: Tero Kristo <t-kristo@ti.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->>  arch/arm/mach-omap2/pm34xx.c |   19 ++++---------------
->>  1 file changed, 4 insertions(+), 15 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->> index e4fc88c..05bd8f0 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -272,21 +272,16 @@ void omap_sram_idle(void)
->>         per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
->>         core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->>
->> -       if (mpu_next_state < PWRDM_POWER_ON) {
->> -               pwrdm_pre_transition(mpu_pwrdm);
->> -               pwrdm_pre_transition(neon_pwrdm);
->> -       }
->> +       pwrdm_pre_transition(NULL);
->>
->>         /* PER */
->>         if (per_next_state < PWRDM_POWER_ON) {
->> -               pwrdm_pre_transition(per_pwrdm);
->>                 per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
->>                 omap2_gpio_prepare_for_idle(per_going_off);
->>         }
->>
->>         /* CORE */
->>         if (core_next_state < PWRDM_POWER_ON) {
->> -               pwrdm_pre_transition(core_pwrdm);
->>                 if (core_next_state == PWRDM_POWER_OFF) {
->>                         omap3_core_save_context();
->>                         omap3_cm_save_context();
->> @@ -339,20 +334,14 @@ void omap_sram_idle(void)
->>                         omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
->>                                                OMAP3430_GR_MOD,
->>                                                OMAP3_PRM_VOLTCTRL_OFFSET);
->> -               pwrdm_post_transition(core_pwrdm);
->>         }
->>         omap3_intc_resume_idle();
->>
->> +       pwrdm_post_transition(NULL);
->> +
->>         /* PER */
->> -       if (per_next_state < PWRDM_POWER_ON) {
->> +       if (per_next_state < PWRDM_POWER_ON)
->>                 omap2_gpio_resume_after_idle();
->> -               pwrdm_post_transition(per_pwrdm);
->> -       }
->> -
->> -       if (mpu_next_state < PWRDM_POWER_ON) {
->> -               pwrdm_post_transition(mpu_pwrdm);
->> -               pwrdm_post_transition(neon_pwrdm);
->> -       }
->>  }
->>
->>  static void omap3_pm_idle(void)
->> --
->> 1.7.9.2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/gpio/gpio-omap.c |   35 +++++++++++++++++++++++++++++++++++
+>  1 files changed, 35 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index e6efd77..50de875 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -1152,6 +1152,40 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  	return ret;
+>  }
+>  
+> +/**
+> + * omap_gpio_remove - cleanup a registered gpio device
+> + * @pdev:       pointer to current gpio platform device
+> + *
+> + * Called by driver framework whenever a gpio device is unregistered.
+> + * GPIO is deleted from the list and associated clock handle freed.
+> + */
+> +static int __devexit omap_gpio_remove(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct gpio_bank *bank;
+> +	unsigned long flags;
+> +	int ret = -EINVAL;
+> +
+> +	list_for_each_entry(bank, &omap_gpio_list, node) {
+> +		spin_lock_irqsave(&bank->lock, flags);
+> +		if (bank->dev == dev) {
+> +			clk_put(bank->dbck);
+> +			list_del(&bank->node);
+> +			ret = 0;
+> +			spin_unlock_irqrestore(&bank->lock, flags);
+> +			break;
+> +		}
+> +		spin_unlock_irqrestore(&bank->lock, flags);
+> +	}
+> +
+> +	if (!ret) {
+> +		pm_runtime_disable(bank->dev);
+> +		irq_free_descs(bank->irq_base, bank->width);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  #ifdef CONFIG_ARCH_OMAP2PLUS
+>  
+>  #if defined(CONFIG_PM_RUNTIME)
+> @@ -1478,6 +1512,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
+>  
+>  static struct platform_driver omap_gpio_driver = {
+>  	.probe		= omap_gpio_probe,
+> +	.remove = __devexit_p(omap_gpio_remove),
+>  	.driver		= {
+>  		.name	= "omap_gpio",
+>  		.pm	= &gpio_pm_ops,
