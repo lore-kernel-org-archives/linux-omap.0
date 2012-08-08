@@ -1,98 +1,72 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [RFC 00/17] OMAPDSS: Change way of passing timings from panel
- driver to interface
-Date: Wed, 8 Aug 2012 14:54:53 +0530
-Message-ID: <50223065.8070302@ti.com>
-References: <1343817088-29645-1-git-send-email-archit@ti.com>     <1344349948.7216.82.camel@lappyti> <502201B7.9030205@ti.com>    <1344407158.17575.21.camel@lappyti> <50220B94.5040303@ti.com>   <1344410835.17575.54.camel@lappyti> <50221C4D.8000503@ti.com>  <1344413580.4932.5.camel@deskari> <50222575.6050807@ti.com> <1344415685.4932.14.camel@deskari>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 00/11] MFD/ASoC/Input: twl4030-audio submodule
+	DT support
+Date: Wed,  8 Aug 2012 12:41:16 +0300
+Message-ID: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33083 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757927Ab2HHJ0T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Aug 2012 05:26:19 -0400
-In-Reply-To: <1344415685.4932.14.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sumit.semwal@ti.com, rob@ti.com
 
-On Wednesday 08 August 2012 02:18 PM, Tomi Valkeinen wrote:
-> On Wed, 2012-08-08 at 14:08 +0530, Archit Taneja wrote:
->> On Wednesday 08 August 2012 01:43 PM, Tomi Valkeinen wrote:
->>> On Wed, 2012-08-08 at 13:29 +0530, Archit Taneja wrote:
->>>
->>>> Okay, one thing which I want to align on is that most of these functions
->>>> don't really do the actual configurations. That is, they'll just update
->>>> the private data, and the actual configuration will only happen on enable.
->>>>
->>>> We would want set_timings() op to have a direct impact. But we wouldn't
->>>> want the same for setting the data lines, that could be clubbed with
->>>> other configurations at enable. That's okay, right?
->>>
->>> I'm not sure we want/need set_timings to have direct impact. Changing
->>> the timings on the fly has some problems, like the output size changing
->>> to smaller than the overlays, and we perhaps may need to adjust the
->>> clock dividers (dispc's, DSI PLL's or PRCM's).
->>>
->>> It feels just much easier and safer to require that the mgr is disabled
->>> when these changes are made. And as far as I can see, there shouldn't be
->>> any need to change the timings via the shadow registers, as quickly as
->>> possible and during vblank...
->>
->> That makes sense. But currently set_timings for DPI has a direct impact.
->> HDMI/VENC/SDI take the easier route of disabling and enabling the interface.
->>
->> I agree it's safer and easier to make sure things are disabled first,
->> but maybe it's good to have the capability set hdmi timings on the fly
->> in the future, it would make the switch faster, same goes for reading edid.
->
-> When do we need to switch mode quickly? Reading edid should not require
-> disabling the output for sure.
+Hello,
 
-I think I'm just finding excuses to find a use for my work done in 
-APPLYing manager related registers.
+The following series adds DT support for the twl4030 audio submodule which
+provides audio codec and vibra functionality.
 
-You are right about edid. Changing HDMI timings take a couple of seconds 
-now, I was wondering how much that has to do with us completely 
-disabling/enabling hdmi. it may be just the slowness of the monitors 
-which causes this.
+The MFD core driver is probed via DT, it will create the needed child devices
+based on the provided information in the DT blob.
+Child drivers (vibra, ASoC codec) will parse the core's node if needed to get
+the needed parameters for their configuration.
 
->
-> HDMI is a bit broken currently, though. I think we first enable the
-> whole stuff, including video output using VGA, then we read EDID, then
-> we change the mode.
->
-> We should just enable enough of HDMI to be able to read EDID, and start
-> the video output with the correct mode. This needs some restructuring of
-> the driver, though. I tried it once quickly, but it turned out not to be
-> trivial.
+In the ASoC codec driver the hs_extmute callback (which was used to toggle a
+GPIO line) has been removed. The codec driver will receive the GPIO number
+(if it is needed on the platform) and also the level to disable the mute.
 
-Right. Most likely this restructuring would allow us to modify only the 
-hdmi timings part when setting a new timing. We could check how much 
-time we save then :)
+If the series is OK (and no objections from the maintainers), it would be good
+if this can go via audio. Changed files are well contained within the
+twl4030-audio stack so I do not expect merge issues later.
 
->
->> What I meant to ask was whether we should do the same for something like
->> dpi_set_data_lines(), that is, disable dpi, update the data_lines
->> private data with a new value, and enable dpi again.
->
-> Hmm, I think it's better to leave disabling and enabling the output to
-> the panel driver. So when the panel driver wants to use
-> dpi_set_data_lines(), it needs to first disable the DPI output. If it
-> doesn't, dpi_set_data_lines() returns -EBUSY.
->
-> Otherwise if the panel driver does something like:
->
-> dpi_set_foo()
-> dpi_set_bar()
->
-> Both of those could first disable output, change setting, enable output.
-> Instead the panel should first disable, then call those, and then
-> enable.
+The series has been tested on BeagleBoard (with the McBSP DT series, and with
+the upcoming DT audio support for BeagleBoard).
 
-Right, that makes sense.
+Regards,
+Peter
+---
+Peter Ujfalusi (11):
+  MFD: twl4030-audio: Clean up MODULE_* and platform_driver part
+  MFD: twl4030-audio: Convert to use devm_kzalloc
+  MFD: twl4030-audio: Rearange and clean-up the probe function
+  MFD: twl4030-audio: Add DT support
+  Input: twl4030-vibra: Support for DT booted kernel
+  ASoC: twl4030: Move hs_extmute GPIO handling to driver
+  ARM: OMAP/ASoC: Zoom2: Let the codec to handle the hs_extmute GPIO
+  ASoC/MFD: twl4030: Remove set_hs_extmute callback from platform data
+  ASoC: twl4030: Convert to use devm_kzalloc
+  ASoC: twl4030: Add pointer to pdata within the private data
+  ASoC: twl4030: Support for DT booted kernel
 
-Archit
+ .../devicetree/bindings/mfd/twl4030-audio.txt      |   51 +++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |    9 +-
+ arch/arm/mach-omap2/include/mach/board-zoom.h      |    2 -
+ drivers/input/misc/twl4030-vibra.c                 |   20 +++-
+ drivers/mfd/twl4030-audio.c                        |  114 +++++++++++++------
+ include/linux/i2c/twl.h                            |    4 +-
+ sound/soc/codecs/twl4030.c                         |  117 ++++++++++++++++----
+ sound/soc/omap/zoom2.c                             |    4 -
+ 8 files changed, 250 insertions(+), 71 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
 
+-- 
+1.7.8.6
