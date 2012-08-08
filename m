@@ -1,57 +1,90 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4: Register the OPP table only for 4430
- device
-Date: Wed, 08 Aug 2012 10:18:48 -0700
-Message-ID: <87628twbd3.fsf@ti.com>
+Subject: Re: [PATCH 1/2] cpufreq: OMAP: Handle missing frequency table on SMP systems
+Date: Wed, 08 Aug 2012 10:28:50 -0700
+Message-ID: <87wr19uwbx.fsf@ti.com>
 References: <1344423254-3475-1-git-send-email-rnayak@ti.com>
- <1344423254-3475-3-git-send-email-rnayak@ti.com>
+	<1344423254-3475-2-git-send-email-rnayak@ti.com>
+	<CAMQu2gyooQ4x=ZGDZFg5BuBaEkgQx2kTAvtiGLEjXwOYvF_wMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1344423254-3475-3-git-send-email-rnayak@ti.com> (Rajendra
- Nayak's message of "Wed, 8 Aug 2012 16:24:14 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:37243 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758973Ab2HHR2u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 13:28:50 -0400
+Received: by yenl1 with SMTP id l1so20728yen.14
+        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 10:28:48 -0700 (PDT)
+In-Reply-To: <CAMQu2gyooQ4x=ZGDZFg5BuBaEkgQx2kTAvtiGLEjXwOYvF_wMQ@mail.gmail.com>
+	(Santosh Shilimkar's message of "Wed, 8 Aug 2012 17:00:10 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org
 
-Rajendra Nayak <rnayak@ti.com> writes:
+"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 
-> The 4430 OPP table was being registered for all other OMAP4 variants
-> too, like 4460 and 4470 causing issues with cpufreq driver
-> enabled. 4460 and 4470 devices have different OPPs as compared to
-> 4430, and they should be populated seperately. As long as that
-> happens, let the OPP table registeration happen only on 4430 device.
+> On Wed, Aug 8, 2012 at 4:24 PM, Rajendra Nayak <rnayak@ti.com> wrote:
+>>
+>> On OMAP4, if the first CPU fails to get a valid frequency table (this
+>> could happen if the platform does not register any OPP table), the
+>> subsequent CPU instances end up dealing with a NULL freq_table and
+>> crash. Add a check for a NULL freq_table to help error the rest
+>> of the CPU instances out.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Cc: <linux-pm@vger.kernel.org>
+>> ---
+>>  drivers/cpufreq/omap-cpufreq.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/cpufreq/omap-cpufreq.c
+>> b/drivers/cpufreq/omap-cpufreq.c
+>> index 17fa04d..0ee824c 100644
+>> --- a/drivers/cpufreq/omap-cpufreq.c
+>> +++ b/drivers/cpufreq/omap-cpufreq.c
+>> @@ -221,7 +221,7 @@ static int __cpuinit omap_cpu_init(struct
+>> cpufreq_policy *policy)
+>>         if (atomic_inc_return(&freq_table_users) == 1)
+>>                 result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+>>
+>> -       if (result) {
+>> +       if (result || !freq_table) {
+>>                 dev_err(mpu_dev, "%s: cpu%d: failed creating freq
+>> table[%d]\n",
+>>                                 __func__, policy->cpu, result);
+>>                 goto fail_ck;
 >
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> The freq_table use count seems to be buggy in that case.
+> Something like below should fix the issue.
+> Feel free to update your patch with below if you agree.
+>
+> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+> index 17fa04d..fd97c3d 100644
+> --- a/drivers/cpufreq/omap-cpufreq.c
+> +++ b/drivers/cpufreq/omap-cpufreq.c
+> @@ -218,7 +218,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *po
+>
+>         policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
+>
+> -       if (atomic_inc_return(&freq_table_users) == 1)
+> +       if (freq_table)
 
-Thanks, adding to PM fixes for v3.6-rc (branch: for_3.6/fixes/pm)
+I think you meant 'if (!freq_table)' ?
 
 Kevin
 
-> ---
->  arch/arm/mach-omap2/opp4xxx_data.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>                 result = opp_init_cpufreq_table(mpu_dev, &freq_table);
 >
-> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-> index 2293ba2..c95415d 100644
-> --- a/arch/arm/mach-omap2/opp4xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
-> @@ -94,7 +94,7 @@ int __init omap4_opp_init(void)
->  {
->  	int r = -ENODEV;
->  
-> -	if (!cpu_is_omap44xx())
-> +	if (!cpu_is_omap443x())
->  		return r;
->  
->  	r = omap_init_opp_table(omap44xx_opp_def_list,
+>         if (result) {
+> @@ -227,6 +227,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *po
+>                 goto fail_ck;
+>         }
+>
+> +       atomic_inc_return(&freq_table_users);
+>         result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+>         if (result)
+>                 goto fail_table;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
