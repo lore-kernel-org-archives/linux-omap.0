@@ -1,121 +1,102 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 11/11] ASoC: twl4030: Support for DT booted kernel
-Date: Wed,  8 Aug 2012 12:41:27 +0300
-Message-ID: <1344418887-5262-12-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 07/11] ARM: OMAP/ASoC: Zoom2: Let the codec to
+	handle the hs_extmute GPIO
+Date: Wed,  8 Aug 2012 12:41:23 +0300
+Message-ID: <1344418887-5262-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When the kernel has been booted with DT blob the platform data is NULL for
-the driver.
-We need to construct the pdata based on the DT information for runtime use.
+Remove the use of set_hs_extmute callback and let the codec driver to
+handle the extmute GPIO.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/codecs/twl4030.c |   67 ++++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 59 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |    9 ++-------
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 --
+ sound/soc/omap/zoom2.c                        |    4 ----
+ 3 files changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index bf0240d..68495a2 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -26,6 +26,7 @@
- #include <linux/pm.h>
- #include <linux/i2c.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
- #include <linux/i2c/twl.h>
- #include <linux/slab.h>
- #include <linux/gpio.h>
-@@ -295,13 +296,70 @@ static inline void twl4030_reset_registers(struct snd_soc_codec *codec)
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index b797cb2..a7d3b04 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -34,6 +34,7 @@
+ #include "common-board-devices.h"
  
+ #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
++#define ZOOM2_HEADSET_EXTMUTE_GPIO	(153)
+ #define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
+ 
+ #define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
+@@ -244,12 +245,6 @@ static int zoom_twl_gpio_setup(struct device *dev,
+ 	return ret;
  }
  
--static void twl4030_init_chip(struct snd_soc_codec *codec)
-+static void twl4030_setup_pdata_of(struct twl4030_codec_data *pdata,
-+				   struct device_node *node)
-+{
-+	int value;
-+
-+	of_property_read_u32(node, "ti,digimic_delay",
-+			     &pdata->digimic_delay);
-+	of_property_read_u32(node, "ti,ramp_delay_value",
-+			     &pdata->ramp_delay_value);
-+	of_property_read_u32(node, "ti,offset_cncl_path",
-+			     &pdata->offset_cncl_path);
-+	if (!of_property_read_u32(node, "ti,hs_extmute", &value))
-+		pdata->hs_extmute = value;
-+	else
-+		pdata->hs_extmute = 0;
-+
-+	if (pdata->hs_extmute) {
-+		int ret = of_property_read_u32(node, "ti,hs_extmute_gpio",
-+					       &pdata->hs_extmute_gpio);
-+		if (!ret) {
-+			if (!of_property_read_u32(node,
-+						  "ti,hs_extmute_disable_level",
-+						  &value)) {
-+				pdata->hs_extmute_disable_level = value;
-+			}
-+		} else {
-+			pdata->hs_extmute_gpio = -1;
-+		}
-+	}
-+}
-+
-+static struct twl4030_codec_data *twl4030_get_pdata(struct snd_soc_codec *codec)
- {
- 	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
-+	struct device_node *twl4030_codec_node = NULL;
-+
-+#ifdef CONFIG_OF
-+	twl4030_codec_node = of_find_node_by_name(codec->dev->parent->of_node,
-+						  "codec");
-+#endif
-+
-+	if (!pdata && twl4030_codec_node) {
-+		pdata = devm_kzalloc(codec->dev,
-+				     sizeof(struct twl4030_codec_data),
-+				     GFP_KERNEL);
-+		if (!pdata) {
-+			dev_err(codec->dev, "Can not allocate memory\n");
-+			return NULL;
-+		}
-+		twl4030_setup_pdata_of(pdata, twl4030_codec_node);
-+	}
-+
-+	return pdata;
-+}
-+
-+static void twl4030_init_chip(struct snd_soc_codec *codec)
-+{
-+	struct twl4030_codec_data *pdata;
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	u8 reg, byte;
- 	int i = 0;
- 
-+	pdata = twl4030_get_pdata(codec);
-+
- 	if (pdata && pdata->hs_extmute &&
- 	    gpio_is_valid(pdata->hs_extmute_gpio)) {
- 		int ret, level;
-@@ -2288,13 +2346,6 @@ static struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
- 
- static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- {
--	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
+-/* EXTMUTE callback function */
+-static void zoom2_set_hs_extmute(int mute)
+-{
+-	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
+-}
 -
--	if (!pdata) {
--		dev_err(&pdev->dev, "platform_data is missing\n");
--		return -EINVAL;
--	}
+ static struct twl4030_gpio_platform_data zoom_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -279,7 +274,7 @@ static int __init omap_i2c_init(void)
+ 
+ 		codec_data->ramp_delay_value = 3;	/* 161 ms */
+ 		codec_data->hs_extmute = 1;
+-		codec_data->set_hs_extmute = zoom2_set_hs_extmute;
++		codec_data->hs_extmute_gpio = ZOOM2_HEADSET_EXTMUTE_GPIO;
+ 	}
+ 	omap_pmic_init(1, 2400, "twl5030", INT_34XX_SYS_NIRQ, &zoom_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h b/arch/arm/mach-omap2/include/mach/board-zoom.h
+index 775fdc3..2e94869 100644
+--- a/arch/arm/mach-omap2/include/mach/board-zoom.h
++++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
+@@ -8,5 +8,3 @@
+ extern int __init zoom_debugboard_init(void);
+ extern void __init zoom_peripherals_init(void);
+ extern void __init zoom_display_init(void);
 -
- 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_twl4030,
- 			twl4030_dai, ARRAY_SIZE(twl4030_dai));
+-#define ZOOM2_HEADSET_EXTMUTE_GPIO	153
+diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
+index 920e0d9..df97a41 100644
+--- a/sound/soc/omap/zoom2.c
++++ b/sound/soc/omap/zoom2.c
+@@ -191,9 +191,6 @@ static int __init zoom2_soc_init(void)
+ 	BUG_ON(gpio_request(ZOOM2_HEADSET_MUX_GPIO, "hs_mux") < 0);
+ 	gpio_direction_output(ZOOM2_HEADSET_MUX_GPIO, 0);
+ 
+-	BUG_ON(gpio_request(ZOOM2_HEADSET_EXTMUTE_GPIO, "ext_mute") < 0);
+-	gpio_direction_output(ZOOM2_HEADSET_EXTMUTE_GPIO, 0);
+-
+ 	return 0;
+ 
+ err1:
+@@ -207,7 +204,6 @@ module_init(zoom2_soc_init);
+ static void __exit zoom2_soc_exit(void)
+ {
+ 	gpio_free(ZOOM2_HEADSET_MUX_GPIO);
+-	gpio_free(ZOOM2_HEADSET_EXTMUTE_GPIO);
+ 
+ 	platform_device_unregister(zoom2_snd_device);
  }
 -- 
 1.7.8.6
