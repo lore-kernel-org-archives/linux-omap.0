@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/7] mfd: omap: control: core system
-	control driver
-Date: Wed, 8 Aug 2012 06:48:50 -0700
-Message-ID: <20120808134849.GC11011@atomide.com>
-References: <4FEB4B46.9020904@dev.rtsoft.ru>
+Subject: Re: [PATCH v3 3/7] OMAP2+: use control module mfd driver
+ in omap_type
+Date: Wed, 8 Aug 2012 06:50:00 -0700
+Message-ID: <20120808135000.GD11011@atomide.com>
+References: <4FEB4B4A.1040204@dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-pm-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <4FEB4B46.9020904@dev.rtsoft.ru>
+In-Reply-To: <4FEB4B4A.1040204@dev.rtsoft.ru>
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
 	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
 List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
@@ -23,20 +23,40 @@ Cc: amit.kucheria@linaro.org, kishon@ti.com, balbi@ti.com, linux-pm@lists.linux-
 List-Id: linux-omap@vger.kernel.org
 
 * Konstantin Baydarov <kbaidarov@dev.rtsoft.ru> [120627 11:09]:
-> +
-> +/* TODO: Add helpers for 16bit and byte access */
-> +#ifdef CONFIG_MFD_OMAP_CONTROL
-> +u32 omap_control_status_read(u16 offset);
-> +#else
-> +static inline u32 omap_control_status_read(u16 offset)
-> +{
-> +	return 0;
-> +}
-> +#endif
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+>  #include <linux/io.h>
+> +#include <linux/mfd/omap_control.h>
+>  
+>  #include <asm/cputype.h>
+>  
+> @@ -43,13 +44,13 @@ int omap_type(void)
+>  	u32 val = 0;
+>  
+>  	if (cpu_is_omap24xx()) {
+> -		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
+> +		val = omap_control_status_read(OMAP24XX_CONTROL_STATUS);
+>  	} else if (cpu_is_am33xx()) {
+> -		val = omap_ctrl_readl(AM33XX_CONTROL_STATUS);
+> +		val = omap_control_status_read(AM33XX_CONTROL_STATUS);
+>  	} else if (cpu_is_omap34xx()) {
+> -		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
+> +		val = omap_control_status_read(OMAP343X_CONTROL_STATUS);
+>  	} else if (cpu_is_omap44xx()) {
+> -		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
+> +		val = omap_control_status_read(OMAP4_CTRL_MODULE_CORE_STATUS);
+>  	} else {
+>  		pr_err("Cannot detect omap type!\n");
+>  		goto out;
 
-This should be an exported function instead. And it should
-not need the offset as a parameter as the SCM core should know
-where to find it's control_status register.
+I think I already commented on this.. This needs to become just:
+
+val = omap_control_status_read();
+
+with no need to pass the status register as a parameter.
 
 Regards,
 
