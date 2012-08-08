@@ -1,47 +1,43 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
-Date: Wed, 8 Aug 2012 17:41:47 +0200
-Message-ID: <502288BB.6020709@ti.com>
-References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
- <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
- <5022529D.3090406@ti.com>
- <20120808125252.GR16861@opensource.wolfsonmicro.com>
- <50227936.3040701@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
+ match exists for a hwmod class
+Date: Wed, 8 Aug 2012 16:34:15 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
+References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
+ <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <50227936.3040701@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54241 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758805Ab2HHQeX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 12:34:23 -0400
+In-Reply-To: <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/08/2012 04:35 PM, Peter Ujfalusi wrote:
-> On 08/08/2012 03:52 PM, Mark Brown wrote:
->> On Wed, Aug 08, 2012 at 01:50:53PM +0200, Benoit Cousson wrote:
->>
->>> That being said, since we do have the clock binding now, maybe we should
->>> create a clock provider at board level for the sys_clk and thus you will
->>> just have to create a phandle to it in your audio description.
->>
->> Yes, we should be doing this.
-> 
-> Does this needs the common clock framework on the platform? OMAP3 certainly
-> does not have it enabled since it has not been adopted.
+Hi Paul,
+
+On Wed, Aug 08, 2012 at 19:35:50, Paul Walmsley wrote:
+[...]
+> It doesn't seem to me that this would necessarily always be an error.  
+> Suppose some init code to create cpsw devices is running on an OMAP3430.  
+> Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
+> wouldn't be an error, right?
 > 
 
-Yeah, good point, we are still not there yet. Rajendra is still working
-on it and I hope we can get something for 3.7, but let's avoid having a
-strong dependency on that migration for the moment.
+Well, I think a failed lookup operation will be a bit expensive since it
+iterates over the whole list of registered hwmods and hence put in the
+pr_err(). But I don't see how the SoC specific example that you pointed out
+could be handled without putting in cpu_is_* checks in the registration
+process itself :(
+
+Would a pr_debug() be ok?
 
 Regards,
-Benoit
+Vaibhav B.
+
