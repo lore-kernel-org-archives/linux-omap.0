@@ -1,234 +1,98 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
-Date: Wed, 8 Aug 2012 13:50:53 +0200
-Message-ID: <5022529D.3090406@ti.com>
-References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
- <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: OMAP: Configuring CONTROL_DEVCONF0 register via DT with pinctrl
+Date: Wed, 08 Aug 2012 14:53:16 +0300
+Message-ID: <5022532C.9060804@ti.com>
+References: <501262B5.1080004@ti.com> <20120807111041.GY11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:51133 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756170Ab2HHLxR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 07:53:17 -0400
+Received: by obhx4 with SMTP id x4so1085122obh.28
+        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 04:53:15 -0700 (PDT)
+In-Reply-To: <20120807111041.GY11011@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Peter,
+On 08/07/2012 02:10 PM, Tony Lindgren wrote:
+> You need to also consider that CONTROL_DEVCONF0 has the MMC/SDIO modu=
+le input
+> clock selection. So pinctrl-single binding would have to be expanded =
+to also
+> support one-bit-per-mux type registers in addition to one-register-pe=
+r-mux
+> registers. And then this could also be used for the MMC/SDIO module i=
+nput clock.
 
-On 08/08/2012 11:41 AM, Peter Ujfalusi wrote:
-> Support for loading the twl4030 audio module via devicetree.
-> Sub devices for codec and vibra will be created as mfd devices once the
-> core MFD driver is loaded when the kernel is booted with a DT blob.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  .../devicetree/bindings/mfd/twl4030-audio.txt      |   51 +++++++++++++++
->  drivers/mfd/twl4030-audio.c                        |   65 +++++++++++++++++---
->  2 files changed, 108 insertions(+), 8 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/mfd/twl4030-audio.txt b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
-> new file mode 100644
-> index 0000000..bc45025
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
-> @@ -0,0 +1,51 @@
-> +Texas Instruments TWL family (twl4030) audio module
-> +
-> +The audio module inside the TWL family consist of an audio codec and a vibra
-> +driver.
-> +
-> +Required properties:
-> +- compatible : must be "ti,twl4030-audio"
-> +- ti,audio_mclk: Master clock frequency used on the board. Supported
-> +	         frequencies: 19200000, 26000000 and 38400000
+Or if the clock selection for MMC/SDIO also static on a board we can ju=
+st do
+the mux config once, configuring McBSP1 and MMC/SDIO at the same time?
 
-Since you care about the frequency only you can use the generic
-attribute: clock-frequency (in your example, I2C is using it).
+>> In .dtsi file of the SoC:
+>>
+>> control_devconf0: pinmux@48002274 {
+>> 	compatible =3D "pinctrl-single";
+>> 	reg =3D <0x48002274 4>;	/* Single register */
+>> 	#address-cells =3D <1>;
+>> 	#size-cells =3D <0>;
+>> 	pinctrl-single,register-width =3D <32>;
+>> 	pinctrl-single,function-mask =3D <0x5F>;
+>> };
+>=20
+> The pinctrl-single,function-mask is for all the registers in the rang=
+e,
+> we also need something to specify the device specific mux bits.
+
+Yes, I understand that.
+I think this all depends if we want to change the mux configurations ru=
+ntime,
+on the fly as well. If it is only done once at boot time why not just s=
+et up
+the register (mux) as the board design dictates?
+
+>> In the .dts file of the board which needs to change the CLKR/FSR con=
+figuration:
+>>
+>> &control_devconf0 {
+>> 	pinctrl-names =3D "default";
+>> 	pinctrl-0 =3D <&mcbsp1_pins>;
+>>
+>> 	mcbsp1_pins: pinmux_mcbsp1_pins {
+>> 		pinctrl-single,pins =3D <0x00 0x18>; /* CLKR/FSR from CLKX/FSX
+>> 						    * pin */
+>> 	};
+>>
+>> };
+>=20
+> I think adding support for one-bit-per-mux would require adding somet=
+hing
+> like this for the binding:
+>=20
+>  	mcbsp1_pins: pinmux_mcbsp1_pins {
+> 		/*                   offset bits mask */
+>  		pinctrl-single,bits =3D <0x00 0x18 0x18>;
+> 	};
+>=20
+> As otherwise you would not know which bits to clear for alternative
+> named modes. Or got any better ideas?
+
+I was also thought that this type of feature might be useful at some po=
+int in
+pinctrl.
+However if we have static mux configuration on a boards vendors can set=
+ up the
+mux for their devices using the currently available bindings.
 
 
-That being said, since we do have the clock binding now, maybe we should
-create a clock provider at board level for the sys_clk and thus you will
-just have to create a phandle to it in your audio description.
-
-In theory OMAP and other components will thus have to use that sys_clock
-reference as well.
-
-Regards,
-Benoit
-
-
-> +
-> +Optional properties, nodes:
-> +
-> +Audio functionality:
-> +- codec { }: Need to be present if the audio functionality is used. Within this
-> +	     section the following options can be used:
-> +- ti,digimic_delay: Delay need after enabling the digimic to reduce artifacts
-> +		    from the start of the recorded sample (in ms)
-> +-ti,ramp_delay_value: HS ramp delay configuration to reduce pop noise
-> +-ti,hs_extmute: Use external mute for HS pop reduction
-> +-ti,hs_extmute_gpio: Use external GPIO to control the external mute
-> +-ti,hs_extmute_disable_level: The desired level of the GPIO line when the
-> +			      external mute is disabled. valuse: 0 or 1
-> +-ti,offset_cncl_path: Offset cancellation path selection, refer to TRM for the
-> +		      valid values.
-> +
-> +Vibra functionality
-> +- ti,enable-vibra: Need to be set to <1> if the vibra functionality is used. if
-> +		   missing or it is 0, the vibra functionality is disabled.
-> +
-> +Example:
-> +&i2c1 {
-> +	clock-frequency = <2600000>;
-> +
-> +	twl: twl@48 {
-> +		reg = <0x48>;
-> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-> +		interrupt-parent = <&intc>;
-> +
-> +		twl_audio: audio {
-> +			compatible = "ti,twl4030-audio";
-> +			ti,audio_mclk = <26000000>;
-> +
-> +			ti,enable-vibra = <1>;
-> +
-> +			codec {
-> +				ti,ramp_delay_value = <3>;
-> +			};
-> +
-> +		};
-> +	};
-> +};
-> diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-> index ca2d669..a4df8b3a 100644
-> --- a/drivers/mfd/twl4030-audio.c
-> +++ b/drivers/mfd/twl4030-audio.c
-> @@ -28,6 +28,8 @@
->  #include <linux/kernel.h>
->  #include <linux/fs.h>
->  #include <linux/platform_device.h>
-> +#include <linux/of.h>
-> +#include <linux/of_platform.h>
->  #include <linux/i2c/twl.h>
->  #include <linux/mfd/core.h>
->  #include <linux/mfd/twl4030-audio.h>
-> @@ -156,15 +158,46 @@ unsigned int twl4030_audio_get_mclk(void)
->  }
->  EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
->  
-> +static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
-> +			      struct device_node *node)
-> +{
-> +	if (pdata && pdata->codec)
-> +		return true;
-> +
-> +#ifdef CONFIG_OF
-> +	if (of_find_node_by_name(node, "codec"))
-> +		return true;
-> +#endif
-> +
-> +	return false;
-> +}
-> +
-> +static bool twl4030_audio_has_vibra(struct twl4030_audio_data *pdata,
-> +			      struct device_node *node)
-> +{
-> +	int vibra;
-> +
-> +	if (pdata && pdata->vibra)
-> +		return true;
-> +
-> +#ifdef CONFIG_OF
-> +	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
-> +		return true;
-> +#endif
-> +
-> +	return false;
-> +}
-> +
->  static int __devinit twl4030_audio_probe(struct platform_device *pdev)
->  {
->  	struct twl4030_audio *audio;
->  	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
-> +	struct device_node *node = pdev->dev.of_node;
->  	struct mfd_cell *cell = NULL;
->  	int ret, childs = 0;
->  	u8 val;
->  
-> -	if (!pdata) {
-> +	if (!pdata && !node) {
->  		dev_err(&pdev->dev, "Platform data is missing\n");
->  		return -EINVAL;
->  	}
-> @@ -175,7 +208,12 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  
->  	mutex_init(&audio->mutex);
-> -	audio->audio_mclk = pdata->audio_mclk;
-> +	if (pdata)
-> +		audio->audio_mclk = pdata->audio_mclk;
-> +#ifdef CONFIG_OF
-> +	else
-> +		of_property_read_u32(node, "ti,audio_mclk", &audio->audio_mclk);
-> +#endif
->  
->  	/* Configure APLL_INFREQ and disable APLL if enabled */
->  	switch (audio->audio_mclk) {
-> @@ -202,18 +240,22 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
->  	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
->  	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
->  
-> -	if (pdata->codec) {
-> +	if (twl4030_audio_has_codec(pdata, node)) {
->  		cell = &audio->cells[childs];
->  		cell->name = "twl4030-codec";
-> -		cell->platform_data = pdata->codec;
-> -		cell->pdata_size = sizeof(*pdata->codec);
-> +		if (pdata) {
-> +			cell->platform_data = pdata->codec;
-> +			cell->pdata_size = sizeof(*pdata->codec);
-> +		}
->  		childs++;
->  	}
-> -	if (pdata->vibra) {
-> +	if (twl4030_audio_has_vibra(pdata, node)) {
->  		cell = &audio->cells[childs];
->  		cell->name = "twl4030-vibra";
-> -		cell->platform_data = pdata->vibra;
-> -		cell->pdata_size = sizeof(*pdata->vibra);
-> +		if (pdata) {
-> +			cell->platform_data = pdata->vibra;
-> +			cell->pdata_size = sizeof(*pdata->vibra);
-> +		}
->  		childs++;
->  	}
->  
-> @@ -245,10 +287,17 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
->  	return 0;
->  }
->  
-> +static const struct of_device_id twl4030_audio_of_match[] = {
-> +	{.compatible = "ti,twl4030-audio", },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, twl4030_audio_of_match);
-> +
->  static struct platform_driver twl4030_audio_driver = {
->  	.driver		= {
->  		.owner	= THIS_MODULE,
->  		.name	= "twl4030-audio",
-> +		.of_match_table = twl4030_audio_of_match,
->  	},
->  	.probe		= twl4030_audio_probe,
->  	.remove		= __devexit_p(twl4030_audio_remove),
-> 
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
