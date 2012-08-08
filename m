@@ -1,106 +1,89 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
-Date: Wed, 8 Aug 2012 19:28:36 +0530
-Message-ID: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 08/11] ARM: OMAP3: Remove callback for
+ McBSP sidetone ICLK workaround
+Date: Wed, 08 Aug 2012 17:00:36 +0300
+Message-ID: <50227104.3040506@ti.com>
+References: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344417101-5015-9-git-send-email-peter.ujfalusi@ti.com>
+ <502268B1.9040506@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <502268B1.9040506@bitmer.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add *remove* callback so that necessary cleanup operations are
-performed when device is unregistered. The device is deleted
-from the list and associated clock handle is released by
-calling clk_put() and irq descriptor is released using the
-irq_free_desc() api.
+Hi Jarkko,
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reported-by: Paul Walmsley <paul@pwsan.com>
-Reviewed-by: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-v2:
-Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
+On 08/08/2012 04:25 PM, Jarkko Nikula wrote:
+> On 08/08/2012 12:11 PM, Peter Ujfalusi wrote:
+>> We can achieve the same result with SIDLEMODE field within McBSP SYSCONF=
+IG
+>> register.
+>> The ASoC driver has been modified to use this method and we can now remo=
+ve
+>> the workaround using the control module register.
+>>
+> Are you sure it works without any changes to sidetone audio quality or
+> current consumption? What I remember idlemode was broken at least on
+> 3430 and caused bad sidetone audio if autoidle was set and a little bit
+> higher current consumption (something like 2-3 mA higher where reference
+> consumption was around 10 mA) when McBSP was set to no-idle.
 
-(1) Use irq_free_descs() instead of irq_free_desc().
-    Besides, irq_free_desc() was using wrong parameter,
-    irq_base, instead of bank->irq.
-(2) irq_free_descs() moved outside spin_lock/unlock_*()
-    in order to avoid exception warnings.
+Yes, the idelmode settings are still broken in the sidetone block. However =
+we
+are toggling the SIDLEMODE of the corresponding McBSP instance where the ST
+block is attached.
+This should have the same effect as doing the same down in PRCM level since
+the McBSP SIDLEMODE does work correctly preventing ICLK to be gated when it=
+ is
+set to no-idle.
 
-(3) pm_runtime_disable() added so that bind can happen successfully
+Unfortunately I can not get my BeagleBoard to start gating iclk even if I
+remove the ICLK gating prevention (on top of 3.6-rc1). So I can not really =
+say
+for 100% this is equivalent to the the PRCM level workaround.
+However I have also spend long time hacking around in McBSP, and I know that
+the SIDLEMODE in McBSP is working correctly.
+Do you know how can I get OMAP3 to start gating the clocks (to idle)?
 
-Test Detail:
-Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
-#echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
+> Here's the old thread:
+> =
 
-Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
-#echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg52024.html
+> =
 
-Step 3: Execute read/write GPIO test case.
+> I think I tested all of this by using arecord >/dev/null | aplay
+> /dev/zero with threshold based DMA transfers with all bells and whistles
+> set for dynamic retention idle in order to hear only McBSP sidetone
+> while measuring current consumption.
 
- drivers/gpio/gpio-omap.c |   35 +++++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
+I'm doing the same test on BeagleBoard, but this thing does not want to hit
+retention despite all the effort :(
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index e6efd77..50de875 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1152,6 +1152,40 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
-+/**
-+ * omap_gpio_remove - cleanup a registered gpio device
-+ * @pdev:       pointer to current gpio platform device
-+ *
-+ * Called by driver framework whenever a gpio device is unregistered.
-+ * GPIO is deleted from the list and associated clock handle freed.
-+ */
-+static int __devexit omap_gpio_remove(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct gpio_bank *bank;
-+	unsigned long flags;
-+	int ret = -EINVAL;
-+
-+	list_for_each_entry(bank, &omap_gpio_list, node) {
-+		spin_lock_irqsave(&bank->lock, flags);
-+		if (bank->dev == dev) {
-+			clk_put(bank->dbck);
-+			list_del(&bank->node);
-+			ret = 0;
-+			spin_unlock_irqrestore(&bank->lock, flags);
-+			break;
-+		}
-+		spin_unlock_irqrestore(&bank->lock, flags);
-+	}
-+
-+	if (!ret) {
-+		pm_runtime_disable(bank->dev);
-+		irq_free_descs(bank->irq_base, bank->width);
-+	}
-+
-+	return ret;
-+}
-+
- #ifdef CONFIG_ARCH_OMAP2PLUS
- 
- #if defined(CONFIG_PM_RUNTIME)
-@@ -1478,6 +1512,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
- 
- static struct platform_driver omap_gpio_driver = {
- 	.probe		= omap_gpio_probe,
-+	.remove = __devexit_p(omap_gpio_remove),
- 	.driver		= {
- 		.name	= "omap_gpio",
- 		.pm	= &gpio_pm_ops,
--- 
-1.7.0.4
+> But I guess 2-3 mA higher consumption is ok if it simplifies SW a lot
+> and base consumption is anyway much higher than 10 mA when sidetone is
+> in real use (my test above was artificial where actual use is under a
+> phone call with heavy consumption from cellular modem etc).
+
+Well 2-3 mA is quite big number in my book...
+I'm still not sure if I ever measured the difference between the PRCM level
+autoidle prevention compared to the McBSP SIDLEMODE(no_idle).
+
+Having said that, it is suspicious how we ended up doing the ICLK fixup in
+PRCM level...
+
+-- =
+
+P=E9ter
