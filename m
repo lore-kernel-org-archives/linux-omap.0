@@ -1,113 +1,69 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
-Date: Wed, 08 Aug 2012 10:10:07 -0700
-Message-ID: <87k3x9wbrk.fsf@ti.com>
-References: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: sleep: Save the complete used register stack frame
+Date: Wed, 08 Aug 2012 10:15:20 -0700
+Message-ID: <87d331wbiv.fsf@ti.com>
+References: <1342183715-13734-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Wed, 8 Aug 2012 19:28:36 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52070 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030458Ab2HHRPT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 13:15:19 -0400
+Received: by ghbg2 with SMTP id g2so966503ghb.38
+        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 10:15:18 -0700 (PDT)
+In-Reply-To: <1342183715-13734-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Fri, 13 Jul 2012 18:18:34 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> Add *remove* callback so that necessary cleanup operations are
-> performed when device is unregistered. The device is deleted
-> from the list and associated clock handle is released by
-> calling clk_put() and irq descriptor is released using the
-> irq_free_desc() api.
+> OMAP4 sleep entry code even though itself don't use many CPU registers
+> makes call to the v7_flush_dcache_all() which uses them. Since
+> v7_flush_dcache_all() doesn't make use of stack, the caller must take
+> care of the stack frame. Otherwise it will lead to corrupted stack frame.
 >
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+> Fix it by saving used registers.
+>
+> Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Cousson, Benoit <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
-> v2:
-> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
->
-> (1) Use irq_free_descs() instead of irq_free_desc().
->     Besides, irq_free_desc() was using wrong parameter,
->     irq_base, instead of bank->irq.
-> (2) irq_free_descs() moved outside spin_lock/unlock_*()
->     in order to avoid exception warnings.
->
-> (3) pm_runtime_disable() added so that bind can happen successfully
->
-> Test Detail:
-> Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
-> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
->
-> Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
-> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
->
-> Step 3: Execute read/write GPIO test case.
 
-What happens when GPIOs are in use (requested)?   
+Please add a brief comment in the code as well explaining why the
+additional registers are saved/restored.
+
+After that, I'll add to my PM fixes queue for v3.6-rc.
+
+Thanks for the fix.
 
 Kevin
 
->  drivers/gpio/gpio-omap.c |   35 +++++++++++++++++++++++++++++++++++
->  1 files changed, 35 insertions(+), 0 deletions(-)
+> ---
+>  arch/arm/mach-omap2/sleep44xx.S |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index e6efd77..50de875 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -1152,6 +1152,40 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->  	return ret;
->  }
+> diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+> index 9f6b83d..b5823e9 100644
+> --- a/arch/arm/mach-omap2/sleep44xx.S
+> +++ b/arch/arm/mach-omap2/sleep44xx.S
+> @@ -58,7 +58,7 @@ ppa_por_params:
+>   * CPU failed to transition to targeted OFF/DORMANT state.
+>   */
+>  ENTRY(omap4_finish_suspend)
+> -	stmfd	sp!, {lr}
+> +	stmfd	sp!, {r4-r12, lr}
+>  	cmp	r0, #0x0
+>  	beq	do_WFI				@ No lowpower state, jump to WFI
 >  
-> +/**
-> + * omap_gpio_remove - cleanup a registered gpio device
-> + * @pdev:       pointer to current gpio platform device
-> + *
-> + * Called by driver framework whenever a gpio device is unregistered.
-> + * GPIO is deleted from the list and associated clock handle freed.
-> + */
-> +static int __devexit omap_gpio_remove(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct gpio_bank *bank;
-> +	unsigned long flags;
-> +	int ret = -EINVAL;
-> +
-> +	list_for_each_entry(bank, &omap_gpio_list, node) {
-> +		spin_lock_irqsave(&bank->lock, flags);
-> +		if (bank->dev == dev) {
-> +			clk_put(bank->dbck);
-> +			list_del(&bank->node);
-> +			ret = 0;
-> +			spin_unlock_irqrestore(&bank->lock, flags);
-> +			break;
-> +		}
-> +		spin_unlock_irqrestore(&bank->lock, flags);
-> +	}
-> +
-> +	if (!ret) {
-> +		pm_runtime_disable(bank->dev);
-> +		irq_free_descs(bank->irq_base, bank->width);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  #ifdef CONFIG_ARCH_OMAP2PLUS
+> @@ -226,7 +226,7 @@ scu_gp_clear:
+>  skip_scu_gp_clear:
+>  	isb
+>  	dsb
+> -	ldmfd	sp!, {pc}
+> +	ldmfd	sp!, {r4-r12, pc}
+>  ENDPROC(omap4_finish_suspend)
 >  
->  #if defined(CONFIG_PM_RUNTIME)
-> @@ -1478,6 +1512,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
->  
->  static struct platform_driver omap_gpio_driver = {
->  	.probe		= omap_gpio_probe,
-> +	.remove = __devexit_p(omap_gpio_remove),
->  	.driver		= {
->  		.name	= "omap_gpio",
->  		.pm	= &gpio_pm_ops,
+>  /*
