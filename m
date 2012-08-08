@@ -1,38 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
- match exists for a hwmod class
-Date: Wed, 8 Aug 2012 08:05:50 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
-References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
+Date: Wed, 8 Aug 2012 19:38:07 +0530
+Message-ID: <CAC83ZvK9KVpH=7K9eAHQY3WDtEbw_W_Drxqhk=6v+wZzcOYHDw@mail.gmail.com>
+References: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
+	<CAMQu2gzi0_NS_W_DN=D=+3n6sNw_NTfkaNzaqV3QPG4mL+RoRg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47163 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754763Ab2HHOFv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 10:05:51 -0400
-In-Reply-To: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMQu2gzi0_NS_W_DN=D=+3n6sNw_NTfkaNzaqV3QPG4mL+RoRg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Cc: b-cousson@ti.com, paul@pswan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello Vaibhav,
-
-On Wed, 8 Aug 2012, Vaibhav Bedia wrote:
-
-> If no match is found for a hwmod class, omap_hwmod_for_each_by_class()
-> currently does not spit out any error messages. To make debugging
-> issues related to non-existent hwmod classes simpler make this function
-> print an error message in case no match is found for the supplied hwmod
-> class.
-> 
-> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-
-It doesn't seem to me that this would necessarily always be an error.  
-Suppose some init code to create cpsw devices is running on an OMAP3430.  
-Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
-wouldn't be an error, right?
-
-
-- Paul
+On Wed, Aug 8, 2012 at 7:33 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Wed, Aug 8, 2012 at 7:28 PM, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
+>> Add *remove* callback so that necessary cleanup operations are
+>> performed when device is unregistered. The device is deleted
+>> from the list and associated clock handle is released by
+>> calling clk_put() and irq descriptor is released using the
+>> irq_free_desc() api.
+>>
+>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> Reported-by: Paul Walmsley <paul@pwsan.com>
+>> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> Cc: Rajendra Nayak <rnayak@ti.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> ---
+>> v2:
+>> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+>> Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
+>>
+>> (1) Use irq_free_descs() instead of irq_free_desc().
+>>     Besides, irq_free_desc() was using wrong parameter,
+>>     irq_base, instead of bank->irq.
+>> (2) irq_free_descs() moved outside spin_lock/unlock_*()
+>>     in order to avoid exception warnings.
+>>
+>> (3) pm_runtime_disable() added so that bind can happen successfully
+>>
+>> Test Detail:
+>> Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
+>> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
+>>
+>> Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
+>> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
+>>
+>> Step 3: Execute read/write GPIO test case.
+>>
+> Thanks details about test. Whe  you to "Unbind->bind", do
+> you see that PM is not broken.
+>
+> In other words, can you also test and ensure that the OMAP3 suspend and
+> CPUIDLE are not broken because of this patch.
+> PER and CORE domains should transition to low power states.
+Sure, I will do the PM test on OMAP3 and confirm this.
+---
+Tarun
+>
+> Regards
+> Santosh
