@@ -1,85 +1,141 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 03/11] MFD: twl4030-audio: Rearange and clean-up the probe function
-Date: Wed,  8 Aug 2012 12:41:19 +0300
-Message-ID: <1344418887-5262-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 06/11] ASoC: twl4030: Move hs_extmute GPIO
+	handling to driver
+Date: Wed,  8 Aug 2012 12:41:22 +0300
+Message-ID: <1344418887-5262-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-To facilitate the device tree support the probe function need to be rearanged.
-Small cleanup in the APLL frequency selection part as well.
+The external mute (if it is in use) is handled by a GPIO line. Prepare to
+remove the set_hs_extmute callback and replace it with two sets of platform
+data:
+hs_extmute_gpio: the GPIO number to use for external mute
+hs_extmute_disable_level: the GPIO level to use when the external mute is
+not enabled.
+
+The codec driver can handle the external mute functionality based on these
+parameters and when the users of set_hs_extmute has been converted the
+callback can be removed.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl4030-audio.c |   34 ++++++++++++++++------------------
- 1 files changed, 16 insertions(+), 18 deletions(-)
+ include/linux/i2c/twl.h    |    6 +++++-
+ sound/soc/codecs/twl4030.c |   36 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 39 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index efa2d42..ca2d669 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -169,35 +169,30 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 7ea898c..75ce6d1 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -666,7 +666,11 @@ struct twl4030_codec_data {
+ 	unsigned int check_defaults:1;
+ 	unsigned int reset_registers:1;
+ 	unsigned int hs_extmute:1;
+-	void (*set_hs_extmute)(int mute);
++	void (*set_hs_extmute)(int mute); /* Deprecated, use hs_extmute_gpio and
++					     hs_extmute_disable_level */
++	int hs_extmute_gpio;
++	unsigned int hs_extmute_disable_level:1; /* the GPIO state to disable
++						    the extmute */
+ };
  
-+	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
-+			     GFP_KERNEL);
-+	if (!audio)
-+		return -ENOMEM;
-+
-+	mutex_init(&audio->mutex);
-+	audio->audio_mclk = pdata->audio_mclk;
-+
- 	/* Configure APLL_INFREQ and disable APLL if enabled */
--	val = 0;
--	switch (pdata->audio_mclk) {
-+	switch (audio->audio_mclk) {
- 	case 19200000:
--		val |= TWL4030_APLL_INFREQ_19200KHZ;
-+		val = TWL4030_APLL_INFREQ_19200KHZ;
- 		break;
- 	case 26000000:
--		val |= TWL4030_APLL_INFREQ_26000KHZ;
-+		val = TWL4030_APLL_INFREQ_26000KHZ;
- 		break;
- 	case 38400000:
--		val |= TWL4030_APLL_INFREQ_38400KHZ;
-+		val = TWL4030_APLL_INFREQ_38400KHZ;
- 		break;
- 	default:
- 		dev_err(&pdev->dev, "Invalid audio_mclk\n");
- 		return -EINVAL;
- 	}
--	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
--					val, TWL4030_REG_APLL_CTL);
--
--	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
--			     GFP_KERNEL);
--	if (!audio)
--		return -ENOMEM;
--
--	platform_set_drvdata(pdev, audio);
--
--	twl4030_audio_dev = pdev;
--	mutex_init(&audio->mutex);
--	audio->audio_mclk = pdata->audio_mclk;
-+	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE, val, TWL4030_REG_APLL_CTL);
+ struct twl4030_vibra_data {
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 391fcfc..0630040 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -28,6 +28,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/slab.h>
++#include <linux/gpio.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -302,6 +303,24 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
+ 	u8 reg, byte;
+ 	int i = 0;
  
- 	/* Codec power */
- 	audio->resource[TWL4030_AUDIO_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
-@@ -222,6 +217,9 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		childs++;
- 	}
- 
-+	platform_set_drvdata(pdev, audio);
-+	twl4030_audio_dev = pdev;
++	if (pdata && pdata->hs_extmute &&
++	    gpio_is_valid(pdata->hs_extmute_gpio)) {
++		int ret, level;
 +
- 	if (childs)
- 		ret = mfd_add_devices(&pdev->dev, pdev->id, audio->cells,
- 				      childs, NULL, 0);
++		if (!pdata->hs_extmute_gpio)
++			dev_warn(codec->dev,
++				 "Extmute GPIO is 0 is this correct?\n");
++
++		level = pdata->hs_extmute_disable_level;
++		ret = gpio_request_one(pdata->hs_extmute_gpio, level ?
++				       GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW,
++				       "hs_extmute");
++		if (ret) {
++			dev_err(codec->dev, "Failed to get hs_extmute GPIO\n");
++			pdata->hs_extmute_gpio = -1;
++		}
++	}
++
+ 	/* Check defaults, if instructed before anything else */
+ 	if (pdata && pdata->check_defaults)
+ 		twl4030_check_defaults(codec);
+@@ -748,7 +767,11 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 	/* Enable external mute control, this dramatically reduces
+ 	 * the pop-noise */
+ 	if (pdata && pdata->hs_extmute) {
+-		if (pdata->set_hs_extmute) {
++		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
++			gpio_set_value(pdata->hs_extmute_gpio,
++				       !pdata->hs_extmute_disable_level);
++		} else if (pdata->set_hs_extmute) {
++			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+ 			pdata->set_hs_extmute(1);
+ 		} else {
+ 			hs_pop |= TWL4030_EXTMUTE;
+@@ -786,7 +809,11 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 
+ 	/* Disable external mute */
+ 	if (pdata && pdata->hs_extmute) {
+-		if (pdata->set_hs_extmute) {
++		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
++			gpio_set_value(pdata->hs_extmute_gpio,
++				       pdata->hs_extmute_disable_level);
++		} else if (pdata->set_hs_extmute) {
++			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+ 			pdata->set_hs_extmute(0);
+ 		} else {
+ 			hs_pop &= ~TWL4030_EXTMUTE;
+@@ -2230,12 +2257,17 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
+ 
+ static int twl4030_soc_remove(struct snd_soc_codec *codec)
+ {
++	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
+ 
+ 	/* Reset registers to their chip default before leaving */
+ 	twl4030_reset_registers(codec);
+ 	twl4030_set_bias_level(codec, SND_SOC_BIAS_OFF);
+ 	kfree(twl4030);
++
++	if (pdata && pdata->hs_extmute && gpio_is_valid(pdata->hs_extmute_gpio))
++		gpio_free(pdata->hs_extmute_gpio);
++
+ 	return 0;
+ }
+ 
 -- 
 1.7.8.6
