@@ -1,43 +1,77 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
-Date: Wed, 08 Aug 2012 17:35:34 +0300
-Message-ID: <50227936.3040701@ti.com>
-References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
- <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
- <5022529D.3090406@ti.com>
- <20120808125252.GR16861@opensource.wolfsonmicro.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [linux-pm] [PATCH v4 2/4] mfd: omap: control: core system
+ control driver
+Date: Wed, 8 Aug 2012 07:39:30 -0700
+Message-ID: <20120808143929.GJ11011@atomide.com>
+References: <500FD2EC.7060208@dev.rtsoft.ru>
+ <20120808140507.GF11011@atomide.com>
+ <20120808141051.GG11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120808125252.GR16861@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33117 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757174Ab2HHOjg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 10:39:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20120808141051.GG11011@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 08/08/2012 03:52 PM, Mark Brown wrote:
-> On Wed, Aug 08, 2012 at 01:50:53PM +0200, Benoit Cousson wrote:
-> =
+* Tony Lindgren <tony@atomide.com> [120808 07:11]:
+> * Tony Lindgren <tony@atomide.com> [120808 07:05]:
+> > * Konstantin Baydarov <kbaidarov@dev.rtsoft.ru> [120725 04:10]:
+> > > +
+> > > +u32 omap_control_status_read(void)
+> > > +{
+> > > +	return __raw_readl(omap_control_base);
+> > > +}
+> > 
+> > Ah OK it's changed here.. Sorry I was looking at the older
+> > version.
+> > 
+> > > +void __init of_omap_control_init(const struct of_device_id *matches)
+> > > +{
+> > > +	struct device_node *np;
+> > > +	struct property *pp = 0;
+> > > +
+> > > +	for_each_matching_node(np, matches) {
+> > > +		pp = of_find_property(np, "reg", NULL);
+> > > +		if(pp) {
+> > > +			omap_control_phys_base = (unsigned long)be32_to_cpup(pp->value);
+> > > +			omap_control_mapsize = (size_t)be32_to_cpup( (void*)((char*)pp->value + 4) );
+> > > +			/*
+> > > +			 * Map control module register CONTROL_STATUS register:
+> > > +			 * omap24xx - OMAP24XX_CONTROL_STATUS
+> > > +			 * am33xx   - AM33XX_CONTROL_STATUS
+> > > +			 * omap34xx - OMAP343X_CONTROL_STATUS
+> > > +			 * omap44xx - OMAP4_CTRL_MODULE_CORE_STATUS
+> > > +			 * omap54xx - OMAP5XXX_CONTROL_STATUS
+> > > +			 */
+> > > +			omap_control_base = ioremap(omap_control_phys_base, omap_control_mapsize);
+> > > +		}
+> > > +	}
+> > > +}
+> > 
+> > You should probably add a function for setting omap_control_base
+> > separately from *set_globals* in arch/arm/mach-omap2/common.c.
+> > That way it's initialized early for id.c, and you can initialize
+> > everything else later as regular device drivers.
+> > 
+> > FYI, we want to initialize as much as possible late so we have
+> > proper debugging console set up in case things go wrong.
+> 
+> Hmm it seems that omap_control_base is now only initialized for DT boot
+> case? This will break booting on almost all systems..
 
->> That being said, since we do have the clock binding now, maybe we should
->> create a clock provider at board level for the sys_clk and thus you will
->> just have to create a phandle to it in your audio description.
-> =
+Looking at things more, looks like omap_type() is getting called
+early from timer.c. So maybe just let set_globals initialize
+omap_control_base and let omap_type() read that directly. That way
+the SCM core driver can behave like a regular device driver and it
+does not need to be initialized early.
 
-> Yes, we should be doing this.
+Regards,
 
-Does this needs the common clock framework on the platform? OMAP3 certainly
-does not have it enabled since it has not been adopted.
-
--- =
-
-P=E9ter
+Tony
