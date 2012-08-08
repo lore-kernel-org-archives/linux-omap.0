@@ -1,258 +1,95 @@
 From: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Subject: [PATCH 1/3] remoteproc: add rproc_report_crash function to notify
- rproc crashes
-Date: Wed,  8 Aug 2012 18:07:42 -0500
-Message-ID: <1344467264-5128-2-git-send-email-fernando.lugo@ti.com>
+Subject: [PATCH 2/3] remoteproc: recover a remoteproc when it has crashed
+Date: Wed,  8 Aug 2012 18:07:43 -0500
+Message-ID: <1344467264-5128-3-git-send-email-fernando.lugo@ti.com>
 References: <1344467264-5128-1-git-send-email-fernando.lugo@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34304 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758803Ab2HHXIF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 19:08:05 -0400
+Received: by yenl7 with SMTP id l7so2116072yen.27
+        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 16:08:03 -0700 (PDT)
 In-Reply-To: <1344467264-5128-1-git-send-email-fernando.lugo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: ohad@wizery.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-This patch is exporting the rproc_report_crash function which can be used
-to report a rproc crash to the remoteproc core. This function is specially
-thought to be called by low-level remoteproc driver code in case of
-detecting a crash (remoteproc is not functional anymore). Using this
-function from another driver (non rproc driver) should be analyzed very
-carefully most of the time that will be considered wrong.
-
-rproc_report_crash function can be called from any context, that means,
-it can be called from atomic context without any problem. The reporter
-function is creating a new thread (workqueue work) in charge of handling
-the crash (if possible).
-
-Creating this new thread is done for two main reasons. First reason is
-to be able to call it from atomic context, due to the fact that many
-crashes trigger an interrupt, so this function can be called directly
-from ISR context. Second reason is avoid any deadlock condition which
-could happen if the rproc_report_crash function is called from a
-function which is indirectly holding a rproc lock.
-
-The reporter function is scheduling the crash handler task. This task
-is thought to have some features like:
-
--remoteproc register dump
--remoteproc stack dump
--remoteproc core dump
--Saving of the remoteproc traces in order to be visible after the crash
--Reseting the remoteproc in order to make it functional again (hard recovery)
-
-Right now, it is only printing the crash type which was detected. The
-types of crashes are represented by an enum. I have only added mmufault
-crash type. Remoteproc low-level drivers can add more types when needed.
+This patch is introducing rproc_trigger_recover function which is in
+charge of recovering the rproc. One way to recover the rproc after a crash
+is resetting all its virtio devices. Doing that, all rpmsg drivers are
+restored along with the rpmsg devices and that also causes the reset of
+the remoteproc making the rpmsg communication with the remoteproc
+functional again. So far, rproc_trigger_recover function is only resetting
+all virtio devices, if in the future other rproc features are introduced
+and need to be reset too, rproc_trigger_recover function should take care
+of that.
 
 Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
 ---
- Documentation/remoteproc.txt         |    7 +++
- drivers/remoteproc/remoteproc_core.c |   80 +++++++++++++++++++++++++++++++---
- include/linux/remoteproc.h           |   18 ++++++++
- 3 files changed, 98 insertions(+), 7 deletions(-)
+ drivers/remoteproc/remoteproc_core.c     |   28 +++++++++++++++++++++++++++-
+ drivers/remoteproc/remoteproc_internal.h |    1 +
+ 2 files changed, 28 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/remoteproc.txt b/Documentation/remoteproc.txt
-index 23a09b8..e6469fd 100644
---- a/Documentation/remoteproc.txt
-+++ b/Documentation/remoteproc.txt
-@@ -129,6 +129,13 @@ int dummy_rproc_example(struct rproc *my_rproc)
- 
-       Returns 0 on success and -EINVAL if @rproc isn't valid.
- 
-+  void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type)
-+    - Report a crash in a remoteproc
-+      This function must be called every time a crash is detected by the
-+      platform specific rproc implementation. This should not be called from a
-+      non-remoteproc driver. This function can be called from atomic/interrupt
-+      context.
-+
- 5. Implementation callbacks
- 
- These callbacks should be provided by platform-specific remoteproc
 diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index d5c2dbf..3a6f1a1 100644
+index 3a6f1a1..c879069 100644
 --- a/drivers/remoteproc/remoteproc_core.c
 +++ b/drivers/remoteproc/remoteproc_core.c
-@@ -50,6 +50,18 @@ typedef int (*rproc_handle_resource_t)(struct rproc *rproc, void *, int avail);
- /* Unique indices for remoteproc devices */
- static DEFINE_IDA(rproc_dev_index);
- 
-+static const char * const rproc_crash_names[] = {
-+	[RPROC_MMUFAULT]	= "mmufault",
-+};
-+
-+/* translate rproc_crash_type to string */
-+static const char *rproc_crash_to_string(enum rproc_crash_type type)
-+{
-+	if (type < ARRAY_SIZE(rproc_crash_names))
-+		return rproc_crash_names[type];
-+	return "unkown";
-+}
-+
- /*
-  * This is the IOMMU fault handler we register with the IOMMU API
-  * (when relevant; not all remote processors access memory through
-@@ -57,19 +69,17 @@ static DEFINE_IDA(rproc_dev_index);
-  *
-  * IOMMU core will invoke this handler whenever the remote processor
-  * will try to access an unmapped device address.
-- *
-- * Currently this is mostly a stub, but it will be later used to trigger
-- * the recovery of the remote processor.
-  */
- static int rproc_iommu_fault(struct iommu_domain *domain, struct device *dev,
- 		unsigned long iova, int flags, void *token)
- {
-+	struct rproc *rproc = token;
-+
- 	dev_err(dev, "iommu fault: da 0x%lx flags 0x%x\n", iova, flags);
- 
--	/*
--	 * Let the iommu core know we're not really handling this fault;
--	 * we just plan to use this as a recovery trigger.
--	 */
-+	rproc_report_crash(rproc, RPROC_MMUFAULT);
-+
-+	/* Let the iommu core know we're not really handling this fault; */
- 	return -ENOSYS;
- }
- 
-@@ -872,6 +882,34 @@ out:
+@@ -882,6 +882,32 @@ out:
  }
  
  /**
-+ * rproc_crash_handler_work() - handle a crash
++ * rproc_trigger_recover() - recover a remoteproc
++ * @rproc: the remote processor
 + *
-+ * This function needs to handle everything related to a crash, like cpu
-+ * registers and stack dump, information to help to debug the fatal error, etc.
++ * The recovery is done by reseting all the virtio devices, that way all the
++ * rpmsg drivers will be reseted along with the remote processor making the
++ * remoteproc functional again.
++ *
++ * This function can sleep, so that it cannot be called from atomic context.
 + */
-+static void rproc_crash_handler_work(struct work_struct *work)
++int rproc_trigger_recover(struct rproc *rproc)
 +{
-+	struct rproc *rproc = container_of(work, struct rproc, crash_handler);
-+	struct device *dev = &rproc->dev;
++	struct rproc_vdev *rvdev, *rvtmp;
 +
-+	dev_dbg(dev, "enter %s\n", __func__);
++	dev_err(&rproc->dev, "recovering %s\n", rproc->name);
 +
-+	mutex_lock(&rproc->lock);
-+	if (rproc->state == RPROC_CRASHED || rproc->state == RPROC_OFFLINE) {
-+		/* handle only the first crash detected */
-+		mutex_unlock(&rproc->lock);
-+		return;
-+	}
++	/* clean up remote vdev entries */
++	list_for_each_entry_safe(rvdev, rvtmp, &rproc->rvdevs, node)
++		rproc_remove_virtio_dev(rvdev);
 +
-+	rproc->state = RPROC_CRASHED;
-+	dev_err(&rproc->dev, "handling crash #%u in %s\n",
-+		++rproc->crash_cnt, rproc->name);
-+	mutex_unlock(&rproc->lock);
-+
-+	/* TODO: handle crash */
++	/* run rproc_fw_config_virtio to create vdevs again */
++	return request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
++			rproc->firmware, &rproc->dev, GFP_KERNEL,
++			rproc, rproc_fw_config_virtio);
 +}
 +
 +/**
-  * rproc_boot() - boot a remote processor
-  * @rproc: handle of a remote processor
+  * rproc_crash_handler_work() - handle a crash
   *
-@@ -1165,6 +1203,8 @@ struct rproc *rproc_alloc(struct device *dev, const char *name,
- 	INIT_LIST_HEAD(&rproc->traces);
- 	INIT_LIST_HEAD(&rproc->rvdevs);
+  * This function needs to handle everything related to a crash, like cpu
+@@ -906,7 +932,7 @@ static void rproc_crash_handler_work(struct work_struct *work)
+ 		++rproc->crash_cnt, rproc->name);
+ 	mutex_unlock(&rproc->lock);
  
-+	INIT_WORK(&rproc->crash_handler, rproc_crash_handler_work);
-+
- 	rproc->state = RPROC_OFFLINE;
- 
- 	return rproc;
-@@ -1221,6 +1261,32 @@ int rproc_del(struct rproc *rproc)
+-	/* TODO: handle crash */
++	rproc_trigger_recover(rproc);
  }
- EXPORT_SYMBOL(rproc_del);
- 
-+/**
-+ * rproc_report_crash() - rproc crash reporter function
-+ * @rproc: remote processor
-+ * @type: crash type
-+ *
-+ * This function must be called every time a crash is detected by the low-level
-+ * drivers implementing a specific remoteproc. This should not be called from a
-+ * non-remoteproc driver.
-+ *
-+ * This function can be called from atomic/interrupt context.
-+ */
-+void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type)
-+{
-+	if (!rproc) {
-+		pr_err("NULL rproc pointer\n");
-+		return;
-+	}
-+
-+	dev_err(&rproc->dev, "crash detected in %s: type %s\n",
-+		rproc->name, rproc_crash_to_string(type));
-+
-+	/* create a new task to handle the error */
-+	schedule_work(&rproc->crash_handler);
-+}
-+EXPORT_SYMBOL(rproc_report_crash);
-+
- static int __init remoteproc_init(void)
- {
- 	rproc_init_debugfs();
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 131b539..a46ed27 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -361,6 +361,19 @@ enum rproc_state {
- };
  
  /**
-+ * enum rproc_crash_type - remote processor crash types
-+ * @RPROC_MMUFAULT:	iommu fault
-+ *
-+ * Each element of the enum is used as an array index. So that, the value of
-+ * the elements should be always something sane.
-+ *
-+ * Feel free to add more types when needed.
-+ */
-+enum rproc_crash_type {
-+	RPROC_MMUFAULT,
-+};
-+
-+/**
-  * struct rproc - represents a physical remote processor device
-  * @node: klist node of this rproc object
-  * @domain: iommu domain
-@@ -383,6 +396,8 @@ enum rproc_state {
-  * @rvdevs: list of remote virtio devices
-  * @notifyids: idr for dynamically assigning rproc-wide unique notify ids
-  * @index: index of this rproc device
-+ * @crash_handler: workqueue for handling a crash
-+ * @crash_cnt: crash counter
-  */
- struct rproc {
- 	struct klist_node node;
-@@ -406,6 +421,8 @@ struct rproc {
- 	struct list_head rvdevs;
- 	struct idr notifyids;
- 	int index;
-+	struct work_struct crash_handler;
-+	unsigned crash_cnt;
- };
+diff --git a/drivers/remoteproc/remoteproc_internal.h b/drivers/remoteproc/remoteproc_internal.h
+index a690ebe..d9c0730 100644
+--- a/drivers/remoteproc/remoteproc_internal.h
++++ b/drivers/remoteproc/remoteproc_internal.h
+@@ -63,6 +63,7 @@ void rproc_free_vring(struct rproc_vring *rvring);
+ int rproc_alloc_vring(struct rproc_vdev *rvdev, int i);
  
- /* we currently support only two vrings per rvdev */
-@@ -460,6 +477,7 @@ int rproc_del(struct rproc *rproc);
+ void *rproc_da_to_va(struct rproc *rproc, u64 da, int len);
++int rproc_trigger_recover(struct rproc *rproc);
  
- int rproc_boot(struct rproc *rproc);
- void rproc_shutdown(struct rproc *rproc);
-+void rproc_report_crash(struct rproc *rproc, enum rproc_crash_type type);
- 
- static inline struct rproc_vdev *vdev_to_rvdev(struct virtio_device *vdev)
- {
+ static inline
+ int rproc_fw_sanity_check(struct rproc *rproc, const struct firmware *fw)
 -- 
 1.7.1
+
