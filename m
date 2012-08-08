@@ -1,32 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 5/7] ARM: OMAP4+: thermal: introduce
- bandgap temperature sensor
-Date: Wed, 8 Aug 2012 06:55:28 -0700
-Message-ID: <20120808135527.GE11011@atomide.com>
-References: <4FEB4B4F.9040709@dev.rtsoft.ru>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
+Date: Wed, 8 Aug 2012 19:28:36 +0530
+Message-ID: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <4FEB4B4F.9040709@dev.rtsoft.ru>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
-Cc: amit.kucheria@linaro.org, kishon@ti.com, balbi@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Konstantin Baydarov <kbaidarov@dev.rtsoft.ru> [120627 11:09]:
-> +
-> +module_platform_driver(omap_bandgap_sensor_driver);
-> +early_platform_init("early_omap_temperature", &omap_bandgap_sensor_driver);
+Add *remove* callback so that necessary cleanup operations are
+performed when device is unregistered. The device is deleted
+from the list and associated clock handle is released by
+calling clk_put() and irq descriptor is released using the
+irq_free_desc() api.
 
-Why does this need to be early_platform_init?
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+v2:
+Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
 
-Tony
+(1) Use irq_free_descs() instead of irq_free_desc().
+    Besides, irq_free_desc() was using wrong parameter,
+    irq_base, instead of bank->irq.
+(2) irq_free_descs() moved outside spin_lock/unlock_*()
+    in order to avoid exception warnings.
+
+(3) pm_runtime_disable() added so that bind can happen successfully
+
+Test Detail:
+Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
+#echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
+
+Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
+#echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
+
+Step 3: Execute read/write GPIO test case.
+
+ drivers/gpio/gpio-omap.c |   35 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 35 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index e6efd77..50de875 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1152,6 +1152,40 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
++/**
++ * omap_gpio_remove - cleanup a registered gpio device
++ * @pdev:       pointer to current gpio platform device
++ *
++ * Called by driver framework whenever a gpio device is unregistered.
++ * GPIO is deleted from the list and associated clock handle freed.
++ */
++static int __devexit omap_gpio_remove(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct gpio_bank *bank;
++	unsigned long flags;
++	int ret = -EINVAL;
++
++	list_for_each_entry(bank, &omap_gpio_list, node) {
++		spin_lock_irqsave(&bank->lock, flags);
++		if (bank->dev == dev) {
++			clk_put(bank->dbck);
++			list_del(&bank->node);
++			ret = 0;
++			spin_unlock_irqrestore(&bank->lock, flags);
++			break;
++		}
++		spin_unlock_irqrestore(&bank->lock, flags);
++	}
++
++	if (!ret) {
++		pm_runtime_disable(bank->dev);
++		irq_free_descs(bank->irq_base, bank->width);
++	}
++
++	return ret;
++}
++
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+ 
+ #if defined(CONFIG_PM_RUNTIME)
+@@ -1478,6 +1512,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
+ 
+ static struct platform_driver omap_gpio_driver = {
+ 	.probe		= omap_gpio_probe,
++	.remove = __devexit_p(omap_gpio_remove),
+ 	.driver		= {
+ 		.name	= "omap_gpio",
+ 		.pm	= &gpio_pm_ops,
+-- 
+1.7.0.4
