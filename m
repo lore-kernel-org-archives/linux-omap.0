@@ -1,51 +1,58 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH RESEND v2 1/2] arm/dts: Add AM33XX basic pinctrl support
-Date: Wed, 08 Aug 2012 15:05:44 +0300
-Message-ID: <50225618.9070501@ti.com>
-References: <1343144719-26352-1-git-send-email-anilkumar@ti.com> <1343144719-26352-2-git-send-email-anilkumar@ti.com> <50125B1C.8000209@ti.com> <331ABD5ECB02734CA317220B2BBEABC13EA06E4B@DBDE01.ent.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 3/4] ARM: OMAP3: Switch to use the unified audio driver
+ (omap-twl4030) for selected boards
+Date: Wed, 08 Aug 2012 15:24:36 +0300
+Message-ID: <50225A84.5010008@compulab.co.il>
+References: <1344419650-5389-1-git-send-email-peter.ujfalusi@ti.com> <1344419650-5389-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44150 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755967Ab2HHMGT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 08:06:19 -0400
-Received: by obqv19 with SMTP id v19so1657262obq.30
-        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 05:06:18 -0700 (PDT)
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA06E4B@DBDE01.ent.ti.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:35770 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753554Ab2HHMYq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Aug 2012 08:24:46 -0400
+In-Reply-To: <1344419650-5389-4-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>, Anuj Aggarwal <anuj.aggarwal@ti.com>, devicetree-discuss@lists.ozlabs.org
 
-On 07/31/2012 04:37 PM, AnilKumar, Chimata wrote:
->> I'm just curious about the size here: how it ended up as 0x0338?
->> While looking at the TRM of AM335x I can come up with 0x0238 (0x44e1=
-0800 -
->> 0x44e10a38), but I don't see any sings of the remaining 0x0100 to be
->> documented at least.
->=20
-> No, pinmux registers are available till 0x44E10B38, look at AM335x la=
-test TRM
-> or pinmux utility (we cannot find the exact offsets but pins we can f=
-ind after
-> 0x0A38, conf_ddr_resetn) at http://www.ti.com/tool/pinmuxtool
+Hi Peter,
 
-I have looked at the latest TRM (Rev F, SPRUH73F -  public TRM) and the=
-re is
-not mention of registers between 0x0a34 and 0x0e00.
-I can not even find any reference of conf_ddr_resetn register either in=
- the TRM.
-I can not check with the pinmuxtool since it is crashing with wine unde=
-r Linux.
-There could be registers after 0x0a34, but they are not publicly docume=
-nted...
+Thank you very much for the patch series.
+I probably will have some time to look into it more deeply on the next week.
+Currently, only a small comment, please see below.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 08/08/12 12:54, Peter Ujfalusi wrote:
+> These boards have similar audio setup and they can all use the same driver
+> for audio support if it is enabled in the kernel config.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-cm-t35.c      |    1 +
+>  arch/arm/mach-omap2/board-devkit8000.c  |    1 +
+>  arch/arm/mach-omap2/board-igep0020.c    |    1 +
+>  arch/arm/mach-omap2/board-omap3beagle.c |    1 +
+>  arch/arm/mach-omap2/board-omap3evm.c    |    1 +
+>  arch/arm/mach-omap2/board-overo.c       |    1 +
+>  6 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> index 97d7190..b73fa5c 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -731,6 +731,7 @@ static void __init cm_t3x_common_init(void)
+>  	cm_t35_init_ethernet();
+>  	cm_t35_init_led();
+>  	cm_t35_init_display();
+> +	omap_twl4030_audio_init("overo", 26000000);
+
+Can the card_name here be "cm-t3x" ?
+
+[...]
+
+
+-- 
+Regards,
+Igor.
