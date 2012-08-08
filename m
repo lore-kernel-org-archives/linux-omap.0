@@ -1,157 +1,234 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: AM33XX: board-generic: Add of_dev_auxdata to fix
- dev_id for CAN module
-Date: Wed, 8 Aug 2012 11:43:25 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA897EA@DBDE01.ent.ti.com>
-References: <1344346636-28072-1-git-send-email-hvaibhav@ti.com>
- <50213214.7050505@gmail.com>
- <79CD15C6BA57404B839C016229A409A83EA88BDF@DBDE01.ent.ti.com>
- <5021CA01.2020206@gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
+Date: Wed, 8 Aug 2012 13:50:53 +0200
+Message-ID: <5022529D.3090406@ti.com>
+References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59103 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754825Ab2HHLng convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 07:43:36 -0400
-In-Reply-To: <5021CA01.2020206@gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Aug 08, 2012 at 07:38:01, Rob Herring wrote:
-> On 08/07/2012 10:53 AM, Hiremath, Vaibhav wrote:
-> > On Tue, Aug 07, 2012 at 20:49:48, Rob Herring wrote:
-> >> On 08/07/2012 08:37 AM, Vaibhav Hiremath wrote:
-> >>> If the module requires only one clocksource to function, then
-> >>> driver can very well call clk_get() api with "con_id = NULL",
-> >>>
-> >>>        clk = clk_get(dev, NULL);
-> >>>
-> >>> And platform code should respect this and return valid clk handle.
-> >>> That means, now the clk_get() api would rely on dev_id, and platform
-> >>> code should either have clk node with matching dev_id (with con_id=NULL)
-> >>> or return dummy clk node.
-> >>>
-> >>> With DT support, we can fix the dev_id for particular module
-> >>> using "struct of_dev_auxdata" to satisfy above clk framework requirement.
-> >>>
-> >>> In case of AM33XX, we required this for the DCAN module, so this
-> >>> patch adds "of_dev_auxdata" for both DCAN_0/1 instances.
-> >>>
-> >>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >>> Cc: Tony Lindgren <tony@atomide.com>
-> >>> Cc: Paul Walmsley <paul@pwsan.com>
-> >>> Cc: Benoit Cousson <b-cousson@ti.com>
-> >>> Cc: Grant Likely <grant.likely@secretlab.ca>
-> >>> ---
-> >>> This patch is boot tested on BeagleBone platform, and checked for
-> >>> clk_get() return value in d_can module driver.
-> >>>
-> >>>  arch/arm/mach-omap2/board-generic.c |   18 +++++++++++++++++-
-> >>>  1 files changed, 17 insertions(+), 1 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> >>> index 6f93a20..c9b7903 100644
-> >>> --- a/arch/arm/mach-omap2/board-generic.c
-> >>> +++ b/arch/arm/mach-omap2/board-generic.c
-> >>> @@ -37,11 +37,27 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
-> >>>  	{ }
-> >>>  };
-> >>>
-> >>> +/*
-> >>> + * Lookup table for attaching a specific name and platform_data pointer to
-> >>> + * devices as they get created by of_platform_populate(). Ideally this table
-> >>> + * would not exist, but the current clock implementation depends on some devices
-> >>> + * having a specific name OR to satisfy NULL con_id requirement from driver.
-> >>> + */
-> >>> +static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
-> >>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, "d_can.0", NULL),
-> >>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, "d_can.1", NULL),
-> >>> +	{ },
-> >>> +};
-> >>
-> >> Adding an additional clkdev lookup accomplishes the same thing and is a
-> >> cleaner solution.
-> >>
-> > 
-> > That is also required and I have submitted patch for the same -
-> > 
-> > http://www.spinics.net/lists/arm-kernel/msg187998.html
+Hi Peter,
+
+On 08/08/2012 11:41 AM, Peter Ujfalusi wrote:
+> Support for loading the twl4030 audio module via devicetree.
+> Sub devices for codec and vibra will be created as mfd devices once the
+> core MFD driver is loaded when the kernel is booted with a DT blob.
 > 
-> That only adds the non-DT name. What I'm saying is you can have 2 lookup
-> names for the same clock.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  .../devicetree/bindings/mfd/twl4030-audio.txt      |   51 +++++++++++++++
+>  drivers/mfd/twl4030-audio.c                        |   65 +++++++++++++++++---
+>  2 files changed, 108 insertions(+), 8 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
 > 
-> > 
-> > With DT support, I am getting dev_id as -
-> > 
-> >  - Without "reg" property: d_can.16 and d_can.17,
-> >    (I believe it changes dynamically here)
-> > 
-> >  - With "reg" property: 481cc000.d_can and 481d0000.d_can
-> > 
-> > Which is not so intuitive, I would like to see them as per Spec/TRM, so 
-> > doesn't this patch make sense?
+> diff --git a/Documentation/devicetree/bindings/mfd/twl4030-audio.txt b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+> new file mode 100644
+> index 0000000..bc45025
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+> @@ -0,0 +1,51 @@
+> +Texas Instruments TWL family (twl4030) audio module
+> +
+> +The audio module inside the TWL family consist of an audio codec and a vibra
+> +driver.
+> +
+> +Required properties:
+> +- compatible : must be "ti,twl4030-audio"
+> +- ti,audio_mclk: Master clock frequency used on the board. Supported
+> +	         frequencies: 19200000, 26000000 and 38400000
+
+Since you care about the frequency only you can use the generic
+attribute: clock-frequency (in your example, I2C is using it).
+
+
+That being said, since we do have the clock binding now, maybe we should
+create a clock provider at board level for the sys_clk and thus you will
+just have to create a phandle to it in your audio description.
+
+In theory OMAP and other components will thus have to use that sys_clock
+reference as well.
+
+Regards,
+Benoit
+
+
+> +
+> +Optional properties, nodes:
+> +
+> +Audio functionality:
+> +- codec { }: Need to be present if the audio functionality is used. Within this
+> +	     section the following options can be used:
+> +- ti,digimic_delay: Delay need after enabling the digimic to reduce artifacts
+> +		    from the start of the recorded sample (in ms)
+> +-ti,ramp_delay_value: HS ramp delay configuration to reduce pop noise
+> +-ti,hs_extmute: Use external mute for HS pop reduction
+> +-ti,hs_extmute_gpio: Use external GPIO to control the external mute
+> +-ti,hs_extmute_disable_level: The desired level of the GPIO line when the
+> +			      external mute is disabled. valuse: 0 or 1
+> +-ti,offset_cncl_path: Offset cancellation path selection, refer to TRM for the
+> +		      valid values.
+> +
+> +Vibra functionality
+> +- ti,enable-vibra: Need to be set to <1> if the vibra functionality is used. if
+> +		   missing or it is 0, the vibra functionality is disabled.
+> +
+> +Example:
+> +&i2c1 {
+> +	clock-frequency = <2600000>;
+> +
+> +	twl: twl@48 {
+> +		reg = <0x48>;
+> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +		interrupt-parent = <&intc>;
+> +
+> +		twl_audio: audio {
+> +			compatible = "ti,twl4030-audio";
+> +			ti,audio_mclk = <26000000>;
+> +
+> +			ti,enable-vibra = <1>;
+> +
+> +			codec {
+> +				ti,ramp_delay_value = <3>;
+> +			};
+> +
+> +		};
+> +	};
+> +};
+> diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
+> index ca2d669..a4df8b3a 100644
+> --- a/drivers/mfd/twl4030-audio.c
+> +++ b/drivers/mfd/twl4030-audio.c
+> @@ -28,6 +28,8 @@
+>  #include <linux/kernel.h>
+>  #include <linux/fs.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/of.h>
+> +#include <linux/of_platform.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/mfd/core.h>
+>  #include <linux/mfd/twl4030-audio.h>
+> @@ -156,15 +158,46 @@ unsigned int twl4030_audio_get_mclk(void)
+>  }
+>  EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
+>  
+> +static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
+> +			      struct device_node *node)
+> +{
+> +	if (pdata && pdata->codec)
+> +		return true;
+> +
+> +#ifdef CONFIG_OF
+> +	if (of_find_node_by_name(node, "codec"))
+> +		return true;
+> +#endif
+> +
+> +	return false;
+> +}
+> +
+> +static bool twl4030_audio_has_vibra(struct twl4030_audio_data *pdata,
+> +			      struct device_node *node)
+> +{
+> +	int vibra;
+> +
+> +	if (pdata && pdata->vibra)
+> +		return true;
+> +
+> +#ifdef CONFIG_OF
+> +	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
+> +		return true;
+> +#endif
+> +
+> +	return false;
+> +}
+> +
+>  static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+>  {
+>  	struct twl4030_audio *audio;
+>  	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
+> +	struct device_node *node = pdev->dev.of_node;
+>  	struct mfd_cell *cell = NULL;
+>  	int ret, childs = 0;
+>  	u8 val;
+>  
+> -	if (!pdata) {
+> +	if (!pdata && !node) {
+>  		dev_err(&pdev->dev, "Platform data is missing\n");
+>  		return -EINVAL;
+>  	}
+> @@ -175,7 +208,12 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+>  		return -ENOMEM;
+>  
+>  	mutex_init(&audio->mutex);
+> -	audio->audio_mclk = pdata->audio_mclk;
+> +	if (pdata)
+> +		audio->audio_mclk = pdata->audio_mclk;
+> +#ifdef CONFIG_OF
+> +	else
+> +		of_property_read_u32(node, "ti,audio_mclk", &audio->audio_mclk);
+> +#endif
+>  
+>  	/* Configure APLL_INFREQ and disable APLL if enabled */
+>  	switch (audio->audio_mclk) {
+> @@ -202,18 +240,22 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+>  	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
+>  	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
+>  
+> -	if (pdata->codec) {
+> +	if (twl4030_audio_has_codec(pdata, node)) {
+>  		cell = &audio->cells[childs];
+>  		cell->name = "twl4030-codec";
+> -		cell->platform_data = pdata->codec;
+> -		cell->pdata_size = sizeof(*pdata->codec);
+> +		if (pdata) {
+> +			cell->platform_data = pdata->codec;
+> +			cell->pdata_size = sizeof(*pdata->codec);
+> +		}
+>  		childs++;
+>  	}
+> -	if (pdata->vibra) {
+> +	if (twl4030_audio_has_vibra(pdata, node)) {
+>  		cell = &audio->cells[childs];
+>  		cell->name = "twl4030-vibra";
+> -		cell->platform_data = pdata->vibra;
+> -		cell->pdata_size = sizeof(*pdata->vibra);
+> +		if (pdata) {
+> +			cell->platform_data = pdata->vibra;
+> +			cell->pdata_size = sizeof(*pdata->vibra);
+> +		}
+>  		childs++;
+>  	}
+>  
+> @@ -245,10 +287,17 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> +static const struct of_device_id twl4030_audio_of_match[] = {
+> +	{.compatible = "ti,twl4030-audio", },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, twl4030_audio_of_match);
+> +
+>  static struct platform_driver twl4030_audio_driver = {
+>  	.driver		= {
+>  		.owner	= THIS_MODULE,
+>  		.name	= "twl4030-audio",
+> +		.of_match_table = twl4030_audio_of_match,
+>  	},
+>  	.probe		= twl4030_audio_probe,
+>  	.remove		= __devexit_p(twl4030_audio_remove),
 > 
-> The spec doesn't have a base address for the module? This name is going
-> to get used in sysfs anyway, and the old name should be going away.
-> 
-
-This is certainly going to change user interface change, and I thought we 
-should not change the user interface irrespective of whether it is DT or 
-non-DT.
-Few points, which I do care about, are,
-
-1. request_irq():
-   For the driver if I am using dev_name(dev) as for the 3rd argument, which 
-   will now different with DT support - brings change in user interface.
-
-   Non-DT:
-    #cat /proc/interrupts
-               CPU0
-    52:          0      INTC  xxx0
-    55:          0      INTC  xxx1
-
-   DT:
-    #cat /proc/interrupts
-               CPU0
-    52:          0      INTC  481cc000.xxx
-    55:          0      INTC  481d0000.xxx
-
-
-2. SYSFS:
-   For example,
-   Without auxdata:
-     /sys/devices/481cc000.xxx/
-     /sys/devices/481d0000.xxx/
-
-   With auxdata:
-     /sys/devices/xxx.0/
-     /sys/devices/xxx.1/
-
-   From user perspective, I still would not want to change the existing 
-   naming convention.
-
-3. Certainly I don't want user to go back to spec everytime to find out 
-   which address is mapped to which instance of module.
-   Also, in addition to that, in case of SoC's like AM33xx (for that matter, 
-   any embedded SoC) we have different domains and modules are placed in 
-   different domains as per use-cases.
-   For example, in this case, can0 is places in wakeup domain and can1 is 
-   placed in per-domain. Some boards might use only one instance or some 
-   board might use both of them.
-
-   I still would like to keep instance number wherever user interface comes 
-   into picture and populate base address as an additional info to user.
-
-
-I may be missing something, may be I am not able to see the bigger picture 
-here.
-
-Grant/Benoit, May be you can conform and put your opinion on this.
-
-Thanks,
-Vaibhav
