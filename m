@@ -1,37 +1,44 @@
 From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [RFC 13/17] OMAPDSS: SDI: Create a function to set timings
-Date: Wed, 8 Aug 2012 11:28:54 +0530
-Message-ID: <5022001E.5050105@ti.com>
-References: <1343817088-29645-1-git-send-email-archit@ti.com>  <1343817088-29645-14-git-send-email-archit@ti.com> <1344349218.7216.80.camel@lappyti>
+Subject: Re: [RFC 00/17] OMAPDSS: Change way of passing timings from panel
+ driver to interface
+Date: Wed, 8 Aug 2012 11:35:43 +0530
+Message-ID: <502201B7.9030205@ti.com>
+References: <1343817088-29645-1-git-send-email-archit@ti.com> <1344349948.7216.82.camel@lappyti>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45781 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51764 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755426Ab2HHGAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Aug 2012 02:00:33 -0400
-In-Reply-To: <1344349218.7216.80.camel@lappyti>
+	id S1751415Ab2HHGHJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Aug 2012 02:07:09 -0400
+In-Reply-To: <1344349948.7216.82.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sumit.semwal@ti.com, rob@ti.com
 
-On Tuesday 07 August 2012 07:50 PM, Tomi Valkeinen wrote:
+On Tuesday 07 August 2012 08:02 PM, Tomi Valkeinen wrote:
 > On Wed, 2012-08-01 at 16:01 +0530, Archit Taneja wrote:
->> Create function omapdss_sdi_set_timings(), this can be used by a SDI panel
->> driver without disabling/enabling the SDI interface. This is similar to the
->> set_timings op of the DPI interface driver. It calls sdi_set_mode() which only
->> configures the DISPC timings and DSS/DISPC clock dividers.
+>> This series tries to make interface drivers less dependent on omap_dss_device
+>> which represents a panel/device connected to that interface. The current way of
+>> configuring an interface is to populate the panel's omap_dss_device instance
+>> with parameters common to the panel and the interface, they are either populated
+>> in the board file, or in the panel driver. Panel timings, number of lanes
+>> connected to interface, and pixel format are examples of such parameters, these
+>> are then extracted by the interface driver to configure itself.
 >
-> I don't think this works, as the SDI PLL uses pclk-free, and if pclk
-> changes, PLL lock probably breaks.
->
-> OMAP3430 TRM explains the sequence how to configure settings on the fly,
-> but that's not very simple. Just turning the output off and on is much
-> easier.
+> The series looks good. I had only a few comments to make, but obviously
+> this needs quite a bit of testing. I'll try it out.
 
-Right, I'll make set_timings() just disable and enable SDI like before.
+One thing I'm not sure about is whether these new functions should be 
+aware of the state of the output. For example, if we call set_timings() 
+with DSI video mode which is already enabled, the timings won't really 
+take any impact.
+
+Similar issues would occur when we try to make other ops like 
+set_data_lines() or set_pixel_format(). These need to be called before 
+the output is enabled. I was wondering if we would need to add 
+intelligence here to make panel drivers less likely to make mistakes.
 
 Archit
-
