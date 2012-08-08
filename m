@@ -1,66 +1,71 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
-Date: Wed, 8 Aug 2012 19:38:07 +0530
-Message-ID: <CAC83ZvK9KVpH=7K9eAHQY3WDtEbw_W_Drxqhk=6v+wZzcOYHDw@mail.gmail.com>
-References: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
-	<CAMQu2gzi0_NS_W_DN=D=+3n6sNw_NTfkaNzaqV3QPG4mL+RoRg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 2/4] mfd: omap: control: core system
+ control driver
+Date: Wed, 8 Aug 2012 07:10:51 -0700
+Message-ID: <20120808141051.GG11011@atomide.com>
+References: <500FD2EC.7060208@dev.rtsoft.ru>
+	<20120808140507.GF11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMQu2gzi0_NS_W_DN=D=+3n6sNw_NTfkaNzaqV3QPG4mL+RoRg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20120808140507.GF11011@atomide.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+Cc: balbi@ti.com, kishon@ti.com, amit.kucheria@linaro.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Aug 8, 2012 at 7:33 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Wed, Aug 8, 2012 at 7:28 PM, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
->> Add *remove* callback so that necessary cleanup operations are
->> performed when device is unregistered. The device is deleted
->> from the list and associated clock handle is released by
->> calling clk_put() and irq descriptor is released using the
->> irq_free_desc() api.
->>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Cousson, Benoit <b-cousson@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> ---
->> v2:
->> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->> Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
->>
->> (1) Use irq_free_descs() instead of irq_free_desc().
->>     Besides, irq_free_desc() was using wrong parameter,
->>     irq_base, instead of bank->irq.
->> (2) irq_free_descs() moved outside spin_lock/unlock_*()
->>     in order to avoid exception warnings.
->>
->> (3) pm_runtime_disable() added so that bind can happen successfully
->>
->> Test Detail:
->> Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
->> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
->>
->> Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
->> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
->>
->> Step 3: Execute read/write GPIO test case.
->>
-> Thanks details about test. Whe  you to "Unbind->bind", do
-> you see that PM is not broken.
->
-> In other words, can you also test and ensure that the OMAP3 suspend and
-> CPUIDLE are not broken because of this patch.
-> PER and CORE domains should transition to low power states.
-Sure, I will do the PM test on OMAP3 and confirm this.
----
-Tarun
->
-> Regards
-> Santosh
+* Tony Lindgren <tony@atomide.com> [120808 07:05]:
+> * Konstantin Baydarov <kbaidarov@dev.rtsoft.ru> [120725 04:10]:
+> > +
+> > +u32 omap_control_status_read(void)
+> > +{
+> > +	return __raw_readl(omap_control_base);
+> > +}
+> 
+> Ah OK it's changed here.. Sorry I was looking at the older
+> version.
+> 
+> > +void __init of_omap_control_init(const struct of_device_id *matches)
+> > +{
+> > +	struct device_node *np;
+> > +	struct property *pp = 0;
+> > +
+> > +	for_each_matching_node(np, matches) {
+> > +		pp = of_find_property(np, "reg", NULL);
+> > +		if(pp) {
+> > +			omap_control_phys_base = (unsigned long)be32_to_cpup(pp->value);
+> > +			omap_control_mapsize = (size_t)be32_to_cpup( (void*)((char*)pp->value + 4) );
+> > +			/*
+> > +			 * Map control module register CONTROL_STATUS register:
+> > +			 * omap24xx - OMAP24XX_CONTROL_STATUS
+> > +			 * am33xx   - AM33XX_CONTROL_STATUS
+> > +			 * omap34xx - OMAP343X_CONTROL_STATUS
+> > +			 * omap44xx - OMAP4_CTRL_MODULE_CORE_STATUS
+> > +			 * omap54xx - OMAP5XXX_CONTROL_STATUS
+> > +			 */
+> > +			omap_control_base = ioremap(omap_control_phys_base, omap_control_mapsize);
+> > +		}
+> > +	}
+> > +}
+> 
+> You should probably add a function for setting omap_control_base
+> separately from *set_globals* in arch/arm/mach-omap2/common.c.
+> That way it's initialized early for id.c, and you can initialize
+> everything else later as regular device drivers.
+> 
+> FYI, we want to initialize as much as possible late so we have
+> proper debugging console set up in case things go wrong.
+
+Hmm it seems that omap_control_base is now only initialized for DT boot
+case? This will break booting on almost all systems..
+
+Tony
