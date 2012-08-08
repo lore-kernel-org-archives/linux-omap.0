@@ -1,123 +1,55 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v2] Revert "ARM: OMAP3: PM: call pre/post transition per powerdomain"
-Date: Wed, 8 Aug 2012 13:56:33 +0300
-Message-ID: <CANOLnONQhqYcqW8ZAfn+5ceZQ_h2W_yKZVZrnrP5cUJDooTrQg@mail.gmail.com>
-References: <1344379659-26152-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 1/2] ARM: pgtable: add pgprot_writethrough() macro
+Date: Wed, 8 Aug 2012 14:07:55 +0300
+Message-ID: <CANOLnOMTFLMNidjyML5XFF3Wz4oXWCnRH1WCqvFD7FqOgO20Sg@mail.gmail.com>
+References: <1337716444-30139-1-git-send-email-siarhei.siamashka@gmail.com>
+	<1337716444-30139-2-git-send-email-siarhei.siamashka@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42568 "EHLO
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63138 "EHLO
 	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876Ab2HHK4e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 06:56:34 -0400
-Received: by yenl2 with SMTP id l2so589860yen.19
-        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 03:56:34 -0700 (PDT)
-In-Reply-To: <1344379659-26152-1-git-send-email-khilman@ti.com>
+	with ESMTP id S1751967Ab2HHLH4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 07:07:56 -0400
+In-Reply-To: <1337716444-30139-2-git-send-email-siarhei.siamashka@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <jean.pihet@newoldbits.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Siarhei Siamashka <siarhei.siamashka@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com
 
-On Wed, Aug 8, 2012 at 1:47 AM, Kevin Hilman <khilman@ti.com> wrote:
-> This reverts commit 58f0829b7186150318c79515f0e0850c5e7a9c89.
->
-> Converstion to per-pwrdm per/post transition calls was a bit
-> premature.  Only tracking MPU, PER & CORE in the idle path means we
-> lose the accounting for all the other powerdomains which may also
-> transition in idle.  On OMAP3, due to autodeps, several powerdomains
-> transition along with MPU (e.g. DSS, USBHOST), and the accounting for
-> these was lost with this patch.  Since the accounting includes the
-> context loss counters, drivers for devices in those power domains
-> would never notice context lost, so would likely hang after any
-> off-mode transitions.
+On Tue, May 22, 2012 at 10:54 PM, Siarhei Siamashka
+<siarhei.siamashka@gmail.com> wrote:
+> Needed for remapping pages with write-through cacheable
+> attribute. May be useful for framebuffers.
 
-That's a shame, pwrdm_pre_transition/pwrdm_post_transition are the
-main contributors to idle latency and cause large performance loss on
-small and frequent loads, like short DMAs. Could we perhaps only do it
-when PM_DEBUG is on or when off transitions happen instead?
+With this series applied, some of my framebuffer programs get over 70%
+performance improvement, could we get this patch in? OMAP DSS
+maintainer agreed to take the second patch if this can be merged.
 
-> This patch should be revisited when the upcoming clkdm/pwrmdm/voltdm
-> use-counting seires is merged since then we can properly do accountin=
-g
-> without relying on a call in the idle path.
-
-So all hope of getting rid of those pre/post transition calls goes here=
- then?
-Small typo with 'seires'..
-
-> In addition, the original patch had another bug because the PER
-> powerdomain accounting was not updated until after the GPIO resume
-> hook is called.  Since gpio_resume_after_idle() checks the context
-> loss count (which is not yet updated) it would not properly restore
-> context, leaving the GPIO banks in an undefined state.
->
-> Cc: Jean Pihet <jean.pihet@newoldbits.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Reported-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Siarhei Siamashka <siarhei.siamashka@gmail.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   19 ++++---------------
->  1 file changed, 4 insertions(+), 15 deletions(-)
+>  arch/arm/include/asm/pgtable.h |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index e4fc88c..05bd8f0 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -272,21 +272,16 @@ void omap_sram_idle(void)
->         per_next_state =3D pwrdm_read_next_pwrst(per_pwrdm);
->         core_next_state =3D pwrdm_read_next_pwrst(core_pwrdm);
+> diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pg=
+table.h
+> index f66626d..04297fa 100644
+> --- a/arch/arm/include/asm/pgtable.h
+> +++ b/arch/arm/include/asm/pgtable.h
+> @@ -103,6 +103,9 @@ extern pgprot_t             pgprot_kernel;
+>  #define pgprot_stronglyordered(prot) \
+>         __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_UNCACHED)
 >
-> -       if (mpu_next_state < PWRDM_POWER_ON) {
-> -               pwrdm_pre_transition(mpu_pwrdm);
-> -               pwrdm_pre_transition(neon_pwrdm);
-> -       }
-> +       pwrdm_pre_transition(NULL);
->
->         /* PER */
->         if (per_next_state < PWRDM_POWER_ON) {
-> -               pwrdm_pre_transition(per_pwrdm);
->                 per_going_off =3D (per_next_state =3D=3D PWRDM_POWER_=
-OFF) ? 1 : 0;
->                 omap2_gpio_prepare_for_idle(per_going_off);
->         }
->
->         /* CORE */
->         if (core_next_state < PWRDM_POWER_ON) {
-> -               pwrdm_pre_transition(core_pwrdm);
->                 if (core_next_state =3D=3D PWRDM_POWER_OFF) {
->                         omap3_core_save_context();
->                         omap3_cm_save_context();
-> @@ -339,20 +334,14 @@ void omap_sram_idle(void)
->                         omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OF=
-=46_MASK,
->                                                OMAP3430_GR_MOD,
->                                                OMAP3_PRM_VOLTCTRL_OFF=
-SET);
-> -               pwrdm_post_transition(core_pwrdm);
->         }
->         omap3_intc_resume_idle();
->
-> +       pwrdm_post_transition(NULL);
+> +#define pgprot_writethrough(prot) \
+> +       __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_WRITETHROUGH)
 > +
->         /* PER */
-> -       if (per_next_state < PWRDM_POWER_ON) {
-> +       if (per_next_state < PWRDM_POWER_ON)
->                 omap2_gpio_resume_after_idle();
-> -               pwrdm_post_transition(per_pwrdm);
-> -       }
-> -
-> -       if (mpu_next_state < PWRDM_POWER_ON) {
-> -               pwrdm_post_transition(mpu_pwrdm);
-> -               pwrdm_post_transition(neon_pwrdm);
-> -       }
->  }
->
->  static void omap3_pm_idle(void)
+>  #ifdef CONFIG_ARM_DMA_MEM_BUFFERABLE
+>  #define pgprot_dmacoherent(prot) \
+>         __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_BUFFERABLE | L_=
+PTE_XN)
 > --
-> 1.7.9.2
+> 1.7.3.4
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap"=
