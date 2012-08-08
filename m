@@ -1,281 +1,157 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH 3/6] OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
-Date: Wed, 8 Aug 2012 17:08:19 +0530
-Message-ID: <1344425899-28267-1-git-send-email-cmahapatra@ti.com>
-References: <19a46cc15dc7add0671dd8c32f5398249c0420ab.1343912533.git.cmahapatra@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: AM33XX: board-generic: Add of_dev_auxdata to fix
+ dev_id for CAN module
+Date: Wed, 8 Aug 2012 11:43:25 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA897EA@DBDE01.ent.ti.com>
+References: <1344346636-28072-1-git-send-email-hvaibhav@ti.com>
+ <50213214.7050505@gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA88BDF@DBDE01.ent.ti.com>
+ <5021CA01.2020206@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33684 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59103 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755967Ab2HHLkn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Aug 2012 07:40:43 -0400
-In-Reply-To: <19a46cc15dc7add0671dd8c32f5398249c0420ab.1343912533.git.cmahapatra@ti.com>
+	id S1754825Ab2HHLng convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 07:43:36 -0400
+In-Reply-To: <5021CA01.2020206@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-All the cpu_is checks have been moved to dss_init_features function providing a
-much more generic and cleaner interface. The OMAP version and revision specific
-functions are initialized by dss_features structure local to dss.c.
+On Wed, Aug 08, 2012 at 07:38:01, Rob Herring wrote:
+> On 08/07/2012 10:53 AM, Hiremath, Vaibhav wrote:
+> > On Tue, Aug 07, 2012 at 20:49:48, Rob Herring wrote:
+> >> On 08/07/2012 08:37 AM, Vaibhav Hiremath wrote:
+> >>> If the module requires only one clocksource to function, then
+> >>> driver can very well call clk_get() api with "con_id = NULL",
+> >>>
+> >>>        clk = clk_get(dev, NULL);
+> >>>
+> >>> And platform code should respect this and return valid clk handle.
+> >>> That means, now the clk_get() api would rely on dev_id, and platform
+> >>> code should either have clk node with matching dev_id (with con_id=NULL)
+> >>> or return dummy clk node.
+> >>>
+> >>> With DT support, we can fix the dev_id for particular module
+> >>> using "struct of_dev_auxdata" to satisfy above clk framework requirement.
+> >>>
+> >>> In case of AM33XX, we required this for the DCAN module, so this
+> >>> patch adds "of_dev_auxdata" for both DCAN_0/1 instances.
+> >>>
+> >>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> >>> Cc: Tony Lindgren <tony@atomide.com>
+> >>> Cc: Paul Walmsley <paul@pwsan.com>
+> >>> Cc: Benoit Cousson <b-cousson@ti.com>
+> >>> Cc: Grant Likely <grant.likely@secretlab.ca>
+> >>> ---
+> >>> This patch is boot tested on BeagleBone platform, and checked for
+> >>> clk_get() return value in d_can module driver.
+> >>>
+> >>>  arch/arm/mach-omap2/board-generic.c |   18 +++++++++++++++++-
+> >>>  1 files changed, 17 insertions(+), 1 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> >>> index 6f93a20..c9b7903 100644
+> >>> --- a/arch/arm/mach-omap2/board-generic.c
+> >>> +++ b/arch/arm/mach-omap2/board-generic.c
+> >>> @@ -37,11 +37,27 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+> >>>  	{ }
+> >>>  };
+> >>>
+> >>> +/*
+> >>> + * Lookup table for attaching a specific name and platform_data pointer to
+> >>> + * devices as they get created by of_platform_populate(). Ideally this table
+> >>> + * would not exist, but the current clock implementation depends on some devices
+> >>> + * having a specific name OR to satisfy NULL con_id requirement from driver.
+> >>> + */
+> >>> +static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
+> >>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, "d_can.0", NULL),
+> >>> +	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, "d_can.1", NULL),
+> >>> +	{ },
+> >>> +};
+> >>
+> >> Adding an additional clkdev lookup accomplishes the same thing and is a
+> >> cleaner solution.
+> >>
+> > 
+> > That is also required and I have submitted patch for the same -
+> > 
+> > http://www.spinics.net/lists/arm-kernel/msg187998.html
+> 
+> That only adds the non-DT name. What I'm saying is you can have 2 lookup
+> names for the same clock.
+> 
+> > 
+> > With DT support, I am getting dev_id as -
+> > 
+> >  - Without "reg" property: d_can.16 and d_can.17,
+> >    (I believe it changes dynamically here)
+> > 
+> >  - With "reg" property: 481cc000.d_can and 481d0000.d_can
+> > 
+> > Which is not so intuitive, I would like to see them as per Spec/TRM, so 
+> > doesn't this patch make sense?
+> 
+> The spec doesn't have a base address for the module? This name is going
+> to get used in sysfs anyway, and the old name should be going away.
+> 
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dss.c |  154 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 114 insertions(+), 40 deletions(-)
+This is certainly going to change user interface change, and I thought we 
+should not change the user interface irrespective of whether it is DT or 
+non-DT.
+Few points, which I do care about, are,
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 7b1c6ac..f5971ac 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -65,6 +65,20 @@ struct dss_reg {
- static int dss_runtime_get(void);
- static void dss_runtime_put(void);
- 
-+static bool check_dss_cinfo_fck(void);
-+static bool check_dss_cinfo_fck_34xx(void);
-+
-+static int dss_get_clk_24xx(struct clk *clk);
-+static int dss_get_clk_3xxx(struct clk *clk);
-+static int dss_get_clk_44xx(struct clk *clk);
-+
-+struct dss_features {
-+	u16 fck_div_max;
-+	int factor;
-+	bool (*check_cinfo_fck) (void);
-+	int (*get_clk) (struct clk *clk);
-+};
-+
- static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
-@@ -83,6 +97,8 @@ static struct {
- 
- 	bool		ctx_valid;
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
-+
-+	const struct dss_features *feat;
- } dss;
- 
- static const char * const dss_generic_clk_source_names[] = {
-@@ -91,6 +107,34 @@ static const char * const dss_generic_clk_source_names[] = {
- 	[OMAP_DSS_CLK_SRC_FCK]			= "DSS_FCK",
- };
- 
-+static const struct dss_features omap2_dss_features = {
-+	.fck_div_max		=	16,
-+	.factor			=	2,
-+	.check_cinfo_fck	=	check_dss_cinfo_fck,
-+	.get_clk		=	dss_get_clk_24xx,
-+};
-+
-+static const struct dss_features omap34_dss_features = {
-+	.fck_div_max		=	16,
-+	.factor			=	2,
-+	.check_cinfo_fck	=	check_dss_cinfo_fck_34xx,
-+	.get_clk		=	dss_get_clk_3xxx,
-+};
-+
-+static const struct dss_features omap36_dss_features = {
-+	.fck_div_max		=	32,
-+	.factor			=	1,
-+	.check_cinfo_fck	=	check_dss_cinfo_fck,
-+	.get_clk		=	dss_get_clk_3xxx,
-+};
-+
-+static const struct dss_features omap4_dss_features = {
-+	.fck_div_max		=	32,
-+	.factor			=	1,
-+	.check_cinfo_fck	=	check_dss_cinfo_fck,
-+	.get_clk		=	dss_get_clk_44xx,
-+};
-+
- static inline void dss_write_reg(const struct dss_reg idx, u32 val)
- {
- 	__raw_writel(val, dss.base + idx.idx);
-@@ -236,7 +280,6 @@ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src)
- 	return dss_generic_clk_source_names[clk_src];
- }
- 
--
- void dss_dump_clocks(struct seq_file *s)
- {
- 	unsigned long dpll4_ck_rate;
-@@ -259,18 +302,10 @@ void dss_dump_clocks(struct seq_file *s)
- 
- 		seq_printf(s, "dpll4_ck %lu\n", dpll4_ck_rate);
- 
--		if (cpu_is_omap3630() || cpu_is_omap44xx())
--			seq_printf(s, "%s (%s) = %lu / %lu  = %lu\n",
--					fclk_name, fclk_real_name,
--					dpll4_ck_rate,
--					dpll4_ck_rate / dpll4_m4_ck_rate,
--					fclk_rate);
--		else
--			seq_printf(s, "%s (%s) = %lu / %lu * 2 = %lu\n",
--					fclk_name, fclk_real_name,
--					dpll4_ck_rate,
--					dpll4_ck_rate / dpll4_m4_ck_rate,
--					fclk_rate);
-+		seq_printf(s, "%s (%s) = %lu / %lu * %d  = %lu\n",
-+				fclk_name, fclk_real_name, dpll4_ck_rate,
-+				dpll4_ck_rate / dpll4_m4_ck_rate,
-+				dss.feat->factor, fclk_rate);
- 	} else {
- 		seq_printf(s, "%s (%s) = %lu\n",
- 				fclk_name, fclk_real_name,
-@@ -461,6 +496,25 @@ unsigned long dss_get_dpll4_rate(void)
- 		return 0;
- }
- 
-+static bool check_dss_cinfo_fck_34xx(void)
-+{
-+	unsigned long prate = dss_get_dpll4_rate();
-+	unsigned long fck = clk_get_rate(dss.dss_clk);
-+
-+	if (prate == dss.cache_prate || dss.cache_dss_cinfo.fck == fck)
-+		return true;
-+	return false;
-+}
-+
-+static bool check_dss_cinfo_fck(void)
-+{
-+	unsigned long fck = clk_get_rate(dss.dss_clk);
-+
-+	if (dss.cache_dss_cinfo.fck == fck)
-+		return true;
-+	return false;
-+}
-+
- int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
- 		struct dispc_clock_info *dispc_cinfo)
- {
-@@ -470,7 +524,7 @@ int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
- 
- 	unsigned long fck, max_dss_fck;
- 
--	u16 fck_div, fck_div_max = 16;
-+	u16 fck_div;
- 
- 	int match = 0;
- 	int min_fck_per_pck;
-@@ -479,10 +533,7 @@ int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
- 
- 	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
- 
--	fck = clk_get_rate(dss.dss_clk);
--	if (req_pck == dss.cache_req_pck &&
--			((cpu_is_omap34xx() && prate == dss.cache_prate) ||
--			 dss.cache_dss_cinfo.fck == fck)) {
-+	if (req_pck == dss.cache_req_pck && dss.feat->check_cinfo_fck()) {
- 		DSSDBG("dispc clock info found from cache.\n");
- 		*dss_cinfo = dss.cache_dss_cinfo;
- 		*dispc_cinfo = dss.cache_dispc_cinfo;
-@@ -519,13 +570,10 @@ retry:
- 
- 		goto found;
- 	} else {
--		if (cpu_is_omap3630() || cpu_is_omap44xx())
--			fck_div_max = 32;
--
--		for (fck_div = fck_div_max; fck_div > 0; --fck_div) {
-+		for (fck_div = dss.feat->fck_div_max; fck_div > 0; --fck_div) {
- 			struct dispc_clock_info cur_dispc;
- 
--			if (fck_div_max == 32)
-+			if (dss.feat->fck_div_max == 32)
- 				fck = prate / fck_div;
- 			else
- 				fck = prate / fck_div * 2;
-@@ -619,6 +667,32 @@ enum dss_hdmi_venc_clk_source_select dss_get_hdmi_venc_clk_source(void)
- 	return REG_GET(DSS_CONTROL, 15, 15);
- }
- 
-+static int dss_get_clk_24xx(struct clk *clk)
-+{
-+	clk = NULL;
-+	return true;
-+}
-+
-+static int dss_get_clk_3xxx(struct clk *clk)
-+{
-+	clk = clk_get(NULL, "dpll4_m4_ck");
-+	if (IS_ERR(clk)) {
-+		DSSERR("Failed to get dpll4_m4_ck\n");
-+		return PTR_ERR(clk);
-+	}
-+	return true;
-+}
-+
-+static int dss_get_clk_44xx(struct clk *clk)
-+{
-+	clk = clk_get(NULL, "dpll_per_m5x2_ck");
-+	if (IS_ERR(clk)) {
-+		DSSERR("Failed to get dpll_per_m5x2_ck\n");
-+		return PTR_ERR(clk);
-+	}
-+	return true;
-+}
-+
- static int dss_get_clocks(void)
- {
- 	struct clk *clk;
-@@ -633,23 +707,9 @@ static int dss_get_clocks(void)
- 
- 	dss.dss_clk = clk;
- 
--	if (cpu_is_omap34xx()) {
--		clk = clk_get(NULL, "dpll4_m4_ck");
--		if (IS_ERR(clk)) {
--			DSSERR("Failed to get dpll4_m4_ck\n");
--			r = PTR_ERR(clk);
--			goto err;
--		}
--	} else if (cpu_is_omap44xx()) {
--		clk = clk_get(NULL, "dpll_per_m5x2_ck");
--		if (IS_ERR(clk)) {
--			DSSERR("Failed to get dpll_per_m5x2_ck\n");
--			r = PTR_ERR(clk);
--			goto err;
--		}
--	} else { /* omap24xx */
--		clk = NULL;
--	}
-+	r = dss.feat->get_clk(clk);
-+	if (r != true)
-+		goto err;
- 
- 	dss.dpll4_m4_ck = clk;
- 
-@@ -704,6 +764,18 @@ void dss_debug_dump_clocks(struct seq_file *s)
- }
- #endif
- 
-+static void dss_init_features(void)
-+{
-+	if (cpu_is_omap24xx())
-+		dss.feat = &omap2_dss_features;
-+	else if (cpu_is_omap34xx())
-+		dss.feat = &omap34_dss_features;
-+	else if (cpu_is_omap3630())
-+		dss.feat = &omap36_dss_features;
-+	else
-+		dss.feat = &omap4_dss_features;
-+}
-+
- /* DSS HW IP initialisation */
- static int __init omap_dsshw_probe(struct platform_device *pdev)
- {
-@@ -750,6 +822,8 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 	dss.lcd_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
- 	dss.lcd_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
- 
-+	dss_init_features();
-+
- 	rev = dss_read_reg(DSS_REVISION);
- 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
- 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
--- 
-1.7.10
+1. request_irq():
+   For the driver if I am using dev_name(dev) as for the 3rd argument, which 
+   will now different with DT support - brings change in user interface.
 
+   Non-DT:
+    #cat /proc/interrupts
+               CPU0
+    52:          0      INTC  xxx0
+    55:          0      INTC  xxx1
+
+   DT:
+    #cat /proc/interrupts
+               CPU0
+    52:          0      INTC  481cc000.xxx
+    55:          0      INTC  481d0000.xxx
+
+
+2. SYSFS:
+   For example,
+   Without auxdata:
+     /sys/devices/481cc000.xxx/
+     /sys/devices/481d0000.xxx/
+
+   With auxdata:
+     /sys/devices/xxx.0/
+     /sys/devices/xxx.1/
+
+   From user perspective, I still would not want to change the existing 
+   naming convention.
+
+3. Certainly I don't want user to go back to spec everytime to find out 
+   which address is mapped to which instance of module.
+   Also, in addition to that, in case of SoC's like AM33xx (for that matter, 
+   any embedded SoC) we have different domains and modules are placed in 
+   different domains as per use-cases.
+   For example, in this case, can0 is places in wakeup domain and can1 is 
+   placed in per-domain. Some boards might use only one instance or some 
+   board might use both of them.
+
+   I still would like to keep instance number wherever user interface comes 
+   into picture and populate base address as an additional info to user.
+
+
+I may be missing something, may be I am not able to see the bigger picture 
+here.
+
+Grant/Benoit, May be you can conform and put your opinion on this.
+
+Thanks,
+Vaibhav
