@@ -1,53 +1,28 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] MMC/omap_hsmmc: handle failure of regulator_get better.
-Date: Wed, 08 Aug 2012 00:07:15 -0400
-Message-ID: <874noeuivg.fsf@octavius.laptop.org>
-References: <20120730101245.7dbe72b0@notabene.brown>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH RFC] mmc: omap_hsmmc: Fix the warning
+Date: Wed, 08 Aug 2012 11:14:34 +0530
+Message-ID: <5021FCC2.7090908@ti.com>
+References: <1343119640-24516-1-git-send-email-shubhrajyoti@ti.com> <87pq72xfgg.fsf@octavius.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120730101245.7dbe72b0@notabene.brown> (NeilBrown's message of
-	"Mon, 30 Jul 2012 10:12:45 +1000")
-Sender: linux-mmc-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:58550 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751856Ab2HHFol (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 01:44:41 -0400
+Received: by obc16 with SMTP id 16so676314obc.34
+        for <linux-omap@vger.kernel.org>; Tue, 07 Aug 2012 22:44:40 -0700 (PDT)
+In-Reply-To: <87pq72xfgg.fsf@octavius.laptop.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 
-Hi,
+On Wednesday 08 August 2012 08:22 AM, Chris Ball wrote:
+> I think you must be confused
+Yes
+http://permalink.gmane.org/gmane.linux.ports.arm.omap/80525
+confused me looks like got fixed I missed the same.
 
-On Sun, Jul 29 2012, NeilBrown wrote:
-> 1/ if regulator_get fails, return an error.  This is important
->    if it failed with EPROBE_DEFER, as the probe needs to be
->    deferred.
->
-> 2/ Don't set .set_power until the regulator has been found, or
->    the deferred probe will not bother calling omap_hsmmc_reg_get().
->
-> Signed-off-by: NeilBrown <neilb@suse.de>
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 389a3ee..f052c29 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -299,12 +299,12 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->  	struct regulator *reg;
->  	int ocr_value = 0;
->  
-> -	mmc_slot(host).set_power = omap_hsmmc_set_power;
-> -
->  	reg = regulator_get(host->dev, "vmmc");
->  	if (IS_ERR(reg)) {
->  		dev_dbg(host->dev, "vmmc regulator missing\n");
-> +		return PTR_ERR(reg);
->  	} else {
-> +		mmc_slot(host).set_power = omap_hsmmc_set_power;
->  		host->vcc = reg;
->  		ocr_value = mmc_regulator_get_ocrmask(reg);
->  		if (!mmc_slot(host).ocr_mask) {
-
-Thanks, pushed to mmc-next for 3.7.
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Thanks
