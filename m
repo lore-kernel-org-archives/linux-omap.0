@@ -1,69 +1,57 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: sleep: Save the complete used register stack frame
-Date: Wed, 08 Aug 2012 10:15:20 -0700
-Message-ID: <87d331wbiv.fsf@ti.com>
-References: <1342183715-13734-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP4: Register the OPP table only for 4430
+ device
+Date: Wed, 08 Aug 2012 10:18:48 -0700
+Message-ID: <87628twbd3.fsf@ti.com>
+References: <1344423254-3475-1-git-send-email-rnayak@ti.com>
+ <1344423254-3475-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:52070 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030458Ab2HHRPT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 13:15:19 -0400
-Received: by ghbg2 with SMTP id g2so966503ghb.38
-        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 10:15:18 -0700 (PDT)
-In-Reply-To: <1342183715-13734-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Fri, 13 Jul 2012 18:18:34 +0530")
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1344423254-3475-3-git-send-email-rnayak@ti.com> (Rajendra
+ Nayak's message of "Wed, 8 Aug 2012 16:24:14 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> OMAP4 sleep entry code even though itself don't use many CPU registers
-> makes call to the v7_flush_dcache_all() which uses them. Since
-> v7_flush_dcache_all() doesn't make use of stack, the caller must take
-> care of the stack frame. Otherwise it will lead to corrupted stack frame.
+> The 4430 OPP table was being registered for all other OMAP4 variants
+> too, like 4460 and 4470 causing issues with cpufreq driver
+> enabled. 4460 and 4470 devices have different OPPs as compared to
+> 4430, and they should be populated seperately. As long as that
+> happens, let the OPP table registeration happen only on 4430 device.
 >
-> Fix it by saving used registers.
->
-> Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Please add a brief comment in the code as well explaining why the
-additional registers are saved/restored.
-
-After that, I'll add to my PM fixes queue for v3.6-rc.
-
-Thanks for the fix.
+Thanks, adding to PM fixes for v3.6-rc (branch: for_3.6/fixes/pm)
 
 Kevin
 
 > ---
->  arch/arm/mach-omap2/sleep44xx.S |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/opp4xxx_data.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
-> index 9f6b83d..b5823e9 100644
-> --- a/arch/arm/mach-omap2/sleep44xx.S
-> +++ b/arch/arm/mach-omap2/sleep44xx.S
-> @@ -58,7 +58,7 @@ ppa_por_params:
->   * CPU failed to transition to targeted OFF/DORMANT state.
->   */
->  ENTRY(omap4_finish_suspend)
-> -	stmfd	sp!, {lr}
-> +	stmfd	sp!, {r4-r12, lr}
->  	cmp	r0, #0x0
->  	beq	do_WFI				@ No lowpower state, jump to WFI
+> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+> index 2293ba2..c95415d 100644
+> --- a/arch/arm/mach-omap2/opp4xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
+> @@ -94,7 +94,7 @@ int __init omap4_opp_init(void)
+>  {
+>  	int r = -ENODEV;
 >  
-> @@ -226,7 +226,7 @@ scu_gp_clear:
->  skip_scu_gp_clear:
->  	isb
->  	dsb
-> -	ldmfd	sp!, {pc}
-> +	ldmfd	sp!, {r4-r12, pc}
->  ENDPROC(omap4_finish_suspend)
+> -	if (!cpu_is_omap44xx())
+> +	if (!cpu_is_omap443x())
+>  		return r;
 >  
->  /*
+>  	r = omap_init_opp_table(omap44xx_opp_def_list,
