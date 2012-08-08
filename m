@@ -1,76 +1,53 @@
 From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH RFC] mmc: omap_hsmmc: Fix the warning
-Date: Tue, 07 Aug 2012 22:52:47 -0400
-Message-ID: <87pq72xfgg.fsf@octavius.laptop.org>
-References: <1343119640-24516-1-git-send-email-shubhrajyoti@ti.com>
+Subject: Re: [PATCH] MMC/omap_hsmmc: handle failure of regulator_get better.
+Date: Wed, 08 Aug 2012 00:07:15 -0400
+Message-ID: <874noeuivg.fsf@octavius.laptop.org>
+References: <20120730101245.7dbe72b0@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1343119640-24516-1-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Tue, 24 Jul 2012 14:17:20 +0530")
+In-Reply-To: <20120730101245.7dbe72b0@notabene.brown> (NeilBrown's message of
+	"Mon, 30 Jul 2012 10:12:45 +1000")
 Sender: linux-mmc-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: NeilBrown <neilb@suse.de>
+Cc: Venkatraman S <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 Hi,
 
-On Tue, Jul 24 2012, Shubhrajyoti D wrote:
-> The commit 9c17d08 [mmc: omap_hsmmc: ensure probe returns error upon
-> resource failure] introduced the below warning.
+On Sun, Jul 29 2012, NeilBrown wrote:
+> 1/ if regulator_get fails, return an error.  This is important
+>    if it failed with EPROBE_DEFER, as the probe needs to be
+>    deferred.
 >
->   CC      drivers/of/of_net.o
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_probe':
-> drivers/mmc/host/omap_hsmmc.c:1936: warning: statement with no effect
+> 2/ Don't set .set_power until the regulator has been found, or
+>    the deferred probe will not bother calling omap_hsmmc_reg_get().
 >
-> Fix the same by assigning the error value to ret.
->
-> Cc: Kevin Hilman <khilman@ti.com>
-> Reported-by: Archit Taneja <archit@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> Signed-off-by: NeilBrown <neilb@suse.de>
 >
 > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index be8631d..3a09f93 100644
+> index 389a3ee..f052c29 100644
 > --- a/drivers/mmc/host/omap_hsmmc.c
 > +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1933,7 +1933,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
->  	host->tx_chan = dma_request_channel(mask, omap_dma_filter_fn, &tx_req);
->  	if (!host->tx_chan) {
->  		dev_err(mmc_dev(host->mmc), "unable to obtain TX DMA engine channel %u\n", tx_req);
-> -		ret -ENXIO;
-> +		ret = -ENXIO;
->  		goto err_irq;
->  	}
+> @@ -299,12 +299,12 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>  	struct regulator *reg;
+>  	int ocr_value = 0;
+>  
+> -	mmc_slot(host).set_power = omap_hsmmc_set_power;
+> -
+>  	reg = regulator_get(host->dev, "vmmc");
+>  	if (IS_ERR(reg)) {
+>  		dev_dbg(host->dev, "vmmc regulator missing\n");
+> +		return PTR_ERR(reg);
+>  	} else {
+> +		mmc_slot(host).set_power = omap_hsmmc_set_power;
+>  		host->vcc = reg;
+>  		ocr_value = mmc_regulator_get_ocrmask(reg);
+>  		if (!mmc_slot(host).ocr_mask) {
 
-I think you must be confused -- this warning isn't present in mainline, and
-the line in commit 9c17d08 is already correct:
+Thanks, pushed to mmc-next for 3.7.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=9c17d08ca183b92c9cfab6537069914a5e0e7e81
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index a9227a7..bc28627 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1931,6 +1931,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
- 	if (!res) {
- 		dev_err(mmc_dev(host->mmc), "cannot get DMA TX channel\n");
-+		ret = -ENXIO;
- 		goto err_irq;
- 	}
- 	host->dma_line_tx = res->start;
-@@ -1938,6 +1939,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
- 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
- 	if (!res) {
- 		dev_err(mmc_dev(host->mmc), "cannot get DMA RX channel\n");
-+		ret = -ENXIO;
- 		goto err_irq;
- 	}
- 	host->dma_line_rx = res->start;
-
+- Chris.
 -- 
 Chris Ball   <cjb@laptop.org>   <http://printf.net/>
 One Laptop Per Child
