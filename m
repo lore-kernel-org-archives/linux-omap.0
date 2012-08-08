@@ -1,68 +1,34 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 1/2] ARM: pgtable: add pgprot_writethrough() macro
-Date: Wed, 8 Aug 2012 14:07:55 +0300
-Message-ID: <CANOLnOMTFLMNidjyML5XFF3Wz4oXWCnRH1WCqvFD7FqOgO20Sg@mail.gmail.com>
-References: <1337716444-30139-1-git-send-email-siarhei.siamashka@gmail.com>
-	<1337716444-30139-2-git-send-email-siarhei.siamashka@gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 00/11] ARM/ASoC: OMAP McBSP device tree
+	support
+Date: Wed, 8 Aug 2012 12:21:32 +0100
+Message-ID: <20120808112132.GN16861@opensource.wolfsonmicro.com>
+References: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:63138 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967Ab2HHLH4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 07:07:56 -0400
-In-Reply-To: <1337716444-30139-2-git-send-email-siarhei.siamashka@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Siarhei Siamashka <siarhei.siamashka@gmail.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, tomi.valkeinen@ti.com
 
-On Tue, May 22, 2012 at 10:54 PM, Siarhei Siamashka
-<siarhei.siamashka@gmail.com> wrote:
-> Needed for remapping pages with write-through cacheable
-> attribute. May be useful for framebuffers.
+On Wed, Aug 08, 2012 at 12:11:30PM +0300, Peter Ujfalusi wrote:
 
-With this series applied, some of my framebuffer programs get over 70%
-performance improvement, could we get this patch in? OMAP DSS
-maintainer agreed to take the second patch if this can be merged.
+> The series changes McBSP related files mostly. It would be great if the whole
+> series could go via audio tree (if the patches are OK and it is fine by Tony).
 
-> Signed-off-by: Siarhei Siamashka <siarhei.siamashka@gmail.com>
-> ---
->  arch/arm/include/asm/pgtable.h |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pg=
-table.h
-> index f66626d..04297fa 100644
-> --- a/arch/arm/include/asm/pgtable.h
-> +++ b/arch/arm/include/asm/pgtable.h
-> @@ -103,6 +103,9 @@ extern pgprot_t             pgprot_kernel;
->  #define pgprot_stronglyordered(prot) \
->         __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_UNCACHED)
->
-> +#define pgprot_writethrough(prot) \
-> +       __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_WRITETHROUGH)
-> +
->  #ifdef CONFIG_ARM_DMA_MEM_BUFFERABLE
->  #define pgprot_dmacoherent(prot) \
->         __pgprot_modify(prot, L_PTE_MT_MASK, L_PTE_MT_BUFFERABLE | L_=
-PTE_XN)
-> --
-> 1.7.3.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm OK with all the patches, if Tony's happy with me applying them then
+I'll put them in a separate branch so they can easily be merged into the
+OMAP trees (or similarly if it's applied in an OMAP tree having a branch
+I can merge if needed would be good).
