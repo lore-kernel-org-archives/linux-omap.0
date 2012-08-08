@@ -1,87 +1,86 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 05/11] Input: twl4030-vibra: Support for DT
-	booted kernel
-Date: Wed,  8 Aug 2012 12:41:21 +0300
-Message-ID: <1344418887-5262-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 10/11] ASoC: twl4030: Add pointer to pdata within the private data
+Date: Wed,  8 Aug 2012 12:41:26 +0300
+Message-ID: <1344418887-5262-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:33285 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030307Ab2HHJmN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 05:42:13 -0400
+Received: by obbuo19 with SMTP id uo19so837329obb.11
+        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 02:42:12 -0700 (PDT)
 In-Reply-To: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-Add support when the kernel has been booted with DT blob. In this case the
-pdata is NULL, we need to reach up to the core node and check if the codec
-part has been enabled to determine if we need to coexist with the codec or
-not.
+Access the pdata via a pointer within the twl4030_priv structure.
+In preparation for DeviceTree support.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/input/misc/twl4030-vibra.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+ sound/soc/codecs/twl4030.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-index d1e1a7e..2cfc6c7 100644
---- a/drivers/input/misc/twl4030-vibra.c
-+++ b/drivers/input/misc/twl4030-vibra.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/jiffies.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
- #include <linux/workqueue.h>
- #include <linux/i2c/twl.h>
- #include <linux/mfd/twl4030-audio.h>
-@@ -194,13 +195,28 @@ static int twl4030_vibra_resume(struct device *dev)
- static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
- 			 twl4030_vibra_suspend, twl4030_vibra_resume);
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 6a00c01..bf0240d 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -153,8 +153,7 @@ struct twl4030_priv {
+ 	u8 predrivel_enabled, predriver_enabled;
+ 	u8 carkitl_enabled, carkitr_enabled;
  
-+static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-+			      struct device_node *node)
-+{
-+	if (pdata && pdata->coexist)
-+		return true;
-+
-+#ifdef CONFIG_OF
-+	if (of_find_node_by_name(node, "codec"))
-+		return true;
-+#endif
-+
-+	return false;
-+}
-+
- static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
+-	/* Delay needed after enabling the digimic interface */
+-	unsigned int digimic_delay;
++	struct twl4030_codec_data *pdata;
+ };
+ 
+ /*
+@@ -350,7 +349,7 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
+ 	if (!pdata)
+ 		return;
+ 
+-	twl4030->digimic_delay = pdata->digimic_delay;
++	twl4030->pdata = pdata;
+ 
+ 	reg = twl4030_read_reg_cache(codec, TWL4030_REG_HS_POPN_SET);
+ 	reg &= ~TWL4030_RAMP_DELAY;
+@@ -751,9 +750,9 @@ static int aif_event(struct snd_soc_dapm_widget *w,
+ 
+ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
  {
- 	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
-+	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
- 	struct vibra_info *info;
- 	int ret;
+-	struct twl4030_codec_data *pdata = codec->dev->platform_data;
+ 	unsigned char hs_gain, hs_pop;
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
+ 	/* Base values for ramp delay calculation: 2^19 - 2^26 */
+ 	unsigned int ramp_base[] = {524288, 1048576, 2097152, 4194304,
+ 				    8388608, 16777216, 33554432, 67108864};
+@@ -868,9 +867,10 @@ static int digimic_event(struct snd_soc_dapm_widget *w,
+ 		struct snd_kcontrol *kcontrol, int event)
+ {
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(w->codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
  
--	if (!pdata) {
-+	if (!pdata && !twl4030_core_node) {
- 		dev_dbg(&pdev->dev, "platform_data not available\n");
- 		return -EINVAL;
- 	}
-@@ -210,7 +226,7 @@ static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+-	if (twl4030->digimic_delay)
+-		twl4030_wait_ms(twl4030->digimic_delay);
++	if (pdata && pdata->digimic_delay)
++		twl4030_wait_ms(pdata->digimic_delay);
+ 	return 0;
+ }
  
- 	info->dev = &pdev->dev;
--	info->coexist = pdata->coexist;
-+	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
- 	INIT_WORK(&info->play_work, vibra_play_work);
+@@ -2252,8 +2252,8 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
  
- 	info->input_dev = input_allocate_device();
+ static int twl4030_soc_remove(struct snd_soc_codec *codec)
+ {
+-	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
+ 
+ 	/* Reset registers to their chip default before leaving */
+ 	twl4030_reset_registers(codec);
 -- 
 1.7.8.6
+
