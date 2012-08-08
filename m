@@ -1,53 +1,108 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
- match exists for a hwmod class
-Date: Wed, 8 Aug 2012 14:19:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
-References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com> <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com> <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: Re: [PATCH] backlight: Add TPS65217 WLED driver
+Date: Wed, 8 Aug 2012 22:29:17 +0200
+Message-ID: <20120808202917.GC30282@darwin>
+References: <20120731194838.GJ4701@darwin>
+ <331ABD5ECB02734CA317220B2BBEABC13EA0D18A@DBDE01.ent.ti.com>
+ <20120807204305.GA30282@darwin>
+ <331ABD5ECB02734CA317220B2BBEABC13EA0E4D1@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38054 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753427Ab2HHUTg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 16:19:36 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:51995 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759221Ab2HHUaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Aug 2012 16:30:09 -0400
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA0E4D1@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Vaibhav
+Hi AnilKumar,
 
-On Wed, 8 Aug 2012, Bedia, Vaibhav wrote:
+El Wed, Aug 08, 2012 at 09:25:29AM +0000 AnilKumar, Chimata ha dit:
 
-> On Wed, Aug 08, 2012 at 19:35:50, Paul Walmsley wrote:
->
-> > It doesn't seem to me that this would necessarily always be an error.  
-> > Suppose some init code to create cpsw devices is running on an OMAP3430.  
-> > Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
-> > wouldn't be an error, right?
+> Cross check with mfd/master also.
+
+ok
+
+> > > > +			if (!of_property_read_u32(np, "fdim", &val)) {
+> > > > +				if (val == 100) {
+> > > > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_100HZ;
+> > > > +				} else if (val == 200) {
+> > > > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_200HZ;
+> > > > +				} else if (val == 500) {
+> > > > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_500HZ;
+> > > > +				} else if (val == 1000) {
+> > > > +					pdata->bl_pdata->fdim = TPS65217_BL_FDIM_1000HZ;
+> > > > +				} else {
+> > > > +					dev_err(&client->dev, "invalid value for backlight dimming frequency in the device tree\n");
+> > > > +					return NULL;
+> > > > +				}
+> > > > +			} else {
+> > > > +				pdata->bl_pdata->fdim = TPS65217_BL_FDIM_200HZ;
+> > > > +			}
+> > > > +		}
+> > > > +	}
+> > > 
+> > > Same here.
+> > 
+> > not exactly, the value specified in the device tree for the dimming
+> > frequency will be a frequency, not a value corresponding to the enum,
+> > so a range check + assignment isn't enough. if you'd like to see a
+> > similar handling an option would be to set TPS65217_BL_FDIM_100HZ to
+> > 100, TPS..._200HZ to 200, ..., and do:
+> > 
+> > switch (val) {
+> >   case TPS65217_BL_FDIM_100HZ:
+> >   case TPS65217_BL_FDIM_200HZ:
+> >   ...
+> >     pdata->bl_pdata->fdim	= val;
+> >     break;
+> > 
+> >   default:
+> >     /* error handling */
+> > }
+> > 
 > 
-> Well, I think a failed lookup operation will be a bit expensive since it
-> iterates over the whole list of registered hwmods and hence put in the
-> pr_err().
+> This looks better.
 
-If performance is a serious problem there, we can maintain a list of hwmod 
-pointers inside each struct omap_hwmod_class, updated when the hwmods are 
-registered.  But as far as I know, performance hasn't been an issue here 
-yet.  If performance is the real motivation, I'd rather see an 
-implementation of per-class lists as described above.
+taking a closer look i noticed that unfortunately it won't work that
+way, as the constants TPS65217_BL_FDIM_*HZ are the values which are
+written to the WLEDCTRL1 registers
 
-> But I don't see how the SoC specific example that you pointed out
-> could be handled without putting in cpu_is_* checks in the registration
-> process itself :(
+so the outcome will be:
 
-Hmm, why not?
+switch (val) {
+  case 100:
+    pdata->bl_pdata->fdim	= TPS65217_BL_FDIM_100HZ;
+    break;
 
-To continue the earlier example, the init code in the platform code simply 
-calls omap_hwmod_for_each_by_class(), and creates the appropriate device 
-if anything was found.  If no cpsw IP blocks are present on a given SoC, 
-nothing would happen.  No cpu_is_*() would be needed.
+	case 200:
 
+  ...
 
-- Paul
+	default:
+    /* error handling */
+}
+
+or the initial solution, which is slightly shorter, but i
+think you prefer the switch construct
+
+regards
+
+-- 
+Matthias Kaehlcke
+Embedded Linux Developer
+Amsterdam
+
+   Programming is not just an act of telling a computer what to do:
+  it is also an act of telling other programmers what you wished the
+   computer to do. Both are important, and the latter deserves care
+                          (Andrew Morton)
+                                                                 .''`.
+    using free software / Debian GNU/Linux | http://debian.org  : :'  :
+                                                                `. `'`
+gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
