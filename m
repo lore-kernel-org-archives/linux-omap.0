@@ -1,52 +1,53 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 3/4] ARM: OMAP3: Switch to use the unified audio driver
- (omap-twl4030) for selected boards
-Date: Wed, 08 Aug 2012 16:06:12 +0300
-Message-ID: <50226444.4060100@compulab.co.il>
-References: <1344419650-5389-1-git-send-email-peter.ujfalusi@ti.com> <1344419650-5389-4-git-send-email-peter.ujfalusi@ti.com> <50225A84.5010008@compulab.co.il> <50225BB5.3000407@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
+Date: Wed, 8 Aug 2012 14:13:56 +0100
+Message-ID: <20120808131356.GS16861@opensource.wolfsonmicro.com>
+References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:41312 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757805Ab2HHNGU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Aug 2012 09:06:20 -0400
-In-Reply-To: <50225BB5.3000407@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-input-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>, Anuj Aggarwal <anuj.aggarwal@ti.com>, devicetree-discuss@lists.ozlabs.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On 08/08/12 15:29, Peter Ujfalusi wrote:
-> Hi Igor,
-> 
-> On 08/08/2012 03:24 PM, Igor Grinberg wrote:
->>> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
->>> index 97d7190..b73fa5c 100644
->>> --- a/arch/arm/mach-omap2/board-cm-t35.c
->>> +++ b/arch/arm/mach-omap2/board-cm-t35.c
->>> @@ -731,6 +731,7 @@ static void __init cm_t3x_common_init(void)
->>>  	cm_t35_init_ethernet();
->>>  	cm_t35_init_led();
->>>  	cm_t35_init_display();
->>> +	omap_twl4030_audio_init("overo", 26000000);
->>
->> Can the card_name here be "cm-t3x" ?
-> 
-> I have used the "overo" as card name here since what I gathered is that cm-t35
-> used the sound/soc/omap/overo.c machine driver for audio support.
-> If the card name is changing your existing user space might get confused by
-> the card name change.
-> But sure, I can change the card name to "cm-t3x" if it is better for you.
+On Wed, Aug 08, 2012 at 12:41:20PM +0300, Peter Ujfalusi wrote:
 
-Well, yes I know we will need to adjust the user space.
-I wanted to change that for a long time and did not get to it...
-Now, with your patches, it seems like the best time for doing this.
+> +Required properties:
+> +- compatible : must be "ti,twl4030-audio"
 
-Thanks
+So, as I mentioned before I find this sort of direct mapping of the
+Linux device representation into the device tree really troubling.
+I'm just way too aware of the fact that even the Linux split of these
+things can change over time and often represents internal Linux
+considerations.
 
+> +-ti,hs_extmute: Use external mute for HS pop reduction
+> +-ti,hs_extmute_gpio: Use external GPIO to control the external mute
+> +-ti,hs_extmute_disable_level: The desired level of the GPIO line when the
+> +			      external mute is disabled. valuse: 0 or 1
 
--- 
-Regards,
-Igor.
+This doesn't seem like something that should be in the CODEC driver
+really, there's a general need for something which can unmute controls
+at the end of the power up sequence and mute before power down.  Also,
+if this is going to be part of the binding shouldn't we just omit the
+first property and simply check for the presence of the property which
+specifies the GPIO?
+
+> +#ifdef CONFIG_OF
+> +	if (of_find_node_by_name(node, "codec"))
+> +		return true;
+> +#endif
+
+This really seems like we should be stubbing out of_find_node_by_name()
+to return false in non-OF cases.
+
+> +#ifdef CONFIG_OF
+> +	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
+> +		return true;
+> +#endif
+
+Similarly here.
