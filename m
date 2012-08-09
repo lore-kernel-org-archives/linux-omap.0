@@ -1,138 +1,164 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 04/13] OMAPDSS: DSI: Add function to set panel size for command mode panels
-Date: Thu, 9 Aug 2012 17:19:40 +0530
-Message-ID: <1344512989-4071-5-git-send-email-archit@ti.com>
+Subject: [PATCH v2 06/13] OMAPDSS: HDMI: Use our own omap_video_timings field when setting interface timings
+Date: Thu, 9 Aug 2012 17:19:42 +0530
+Message-ID: <1344512989-4071-7-git-send-email-archit@ti.com>
 References: <1343817088-29645-1-git-send-email-archit@ti.com>
  <1344512989-4071-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59760 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59780 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417Ab2HILve (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 07:51:34 -0400
+	with ESMTP id S932115Ab2HILvm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 07:51:42 -0400
 In-Reply-To: <1344512989-4071-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-DSI command mode panels don't need to configure a full set of timings to
-configure DSI, they only require the width and the height of the panel in
-pixels.
+The hdmi driver currently updates only the 'code' member of hdmi_config when
+the op omapdss_hdmi_display_set_timing() is called by the hdmi panel driver.
+The 'timing' field of hdmi_config is updated only when hdmi_power_on is called.
+It makes more sense to configure the whole hdmi_config field in the set_timing
+op called by the panel driver. This way, we don't need to call both functions
+to ensure that our hdmi_config is configured correctly. Also, we don't need to
+calculate hdmi_config during hdmi_power_on, or rely on the omap_video_timings
+in the panel's omap_dss_device struct.
 
-Use omapdss_dsi_set_size for command mode panels, omapdss_dsi_set_timings is
-meant for video mode panels. When performing rotation via chaning the address
-mode of the panel, we would need to swap width and height when doing 90 or 270
-rotation. Make sure that omapdss_dsi_set_size() makes the new width and height
-visible to DSI.
+A default timing is now configured in hdmi's probe if the panel driver doesn't
+set any timing, or doesn't set a valid timing before enabling the panel. Also,
+when setting manager timings, use the omap_video_timing calculated by
+hdmi_get_timings(), this returns the timings as specified in the CEA/VESA
+tables, don't use the one provided by the panel driver directly.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |   14 ++++++++++++++
- drivers/video/omap2/dss/dsi.c             |   23 ++++++++++++++++-------
- include/video/omapdss.h                   |    1 +
- 3 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/video/omap2/dss/dss.h        |    3 ++-
+ drivers/video/omap2/dss/hdmi.c       |   41 +++++++++++++++++-----------------
+ drivers/video/omap2/dss/hdmi_panel.c |    2 +-
+ 3 files changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 3f5acc7..c3bca2f 100644
---- a/drivers/video/omap2/displays/panel-taal.c
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -1060,6 +1060,9 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 		goto err0;
- 	};
- 
-+	omapdss_dsi_set_size(dssdev, dssdev->panel.timings.x_res,
-+		dssdev->panel.timings.y_res);
-+
- 	r = omapdss_dsi_display_enable(dssdev);
- 	if (r) {
- 		dev_err(&dssdev->dev, "failed to enable DSI\n");
-@@ -1487,6 +1490,7 @@ static int taal_get_te(struct omap_dss_device *dssdev)
- static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 8a9630b..7e38ffd 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -485,7 +485,8 @@ static inline unsigned long hdmi_get_pixel_clock(void)
+ #endif
+ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_hdmi_display_disable(struct omap_dss_device *dssdev);
+-void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev);
++void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings);
+ int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
+ 					struct omap_video_timings *timings);
+ int omapdss_hdmi_read_edid(u8 *buf, int len);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 6635b09..bdf1c33 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -462,7 +462,6 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
  {
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	u16 dw, dh;
+ 	const struct omapdss_clock_config *clks;
  	int r;
+-	const struct hdmi_config *timing;
+ 	struct omap_video_timings *p;
+ 	unsigned long phy;
  
- 	dev_dbg(&dssdev->dev, "rotate %d\n", rotate);
-@@ -1508,6 +1512,16 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
- 			goto err;
- 	}
+@@ -472,22 +471,10 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
  
-+	if (rotate == 0 || rotate == 2) {
-+		dw = dssdev->panel.timings.x_res;
-+		dh = dssdev->panel.timings.y_res;
-+	} else {
-+		dw = dssdev->panel.timings.y_res;
-+		dh = dssdev->panel.timings.x_res;
-+	}
-+
-+	omapdss_dsi_set_size(dssdev, dw, dh);
-+
- 	td->rotate = rotate;
+ 	dss_mgr_disable(dssdev->manager);
  
- 	dsi_bus_unlock(dssdev);
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 815b606..eb364d4 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -4330,7 +4330,8 @@ int omap_dsi_update(struct omap_dss_device *dssdev, int channel,
- 	dsi->framedone_callback = callback;
- 	dsi->framedone_data = data;
+-	p = &dssdev->panel.timings;
++	p = &hdmi.ip_data.cfg.timings;
  
--	dssdev->driver->get_resolution(dssdev, &dw, &dh);
-+	dw = dsi->timings.x_res;
-+	dh = dsi->timings.y_res;
+-	DSSDBG("hdmi_power_on x_res= %d y_res = %d\n",
+-		dssdev->panel.timings.x_res,
+-		dssdev->panel.timings.y_res);
++	DSSDBG("hdmi_power_on x_res= %d y_res = %d\n", p->x_res, p->y_res);
  
- #ifdef DEBUG
- 	dsi->update_bytes = dw * dh *
-@@ -4378,12 +4379,6 @@ static int dsi_display_init_dispc(struct omap_dss_device *dssdev)
- 	u32 irq = 0;
+-	timing = hdmi_get_timings();
+-	if (timing == NULL) {
+-		/* HDMI code 4 corresponds to 640 * 480 VGA */
+-		hdmi.ip_data.cfg.cm.code = 4;
+-		/* DVI mode 1 corresponds to HDMI 0 to DVI */
+-		hdmi.ip_data.cfg.cm.mode = HDMI_DVI;
+-		hdmi.ip_data.cfg = vesa_timings[0];
+-	} else {
+-		hdmi.ip_data.cfg = *timing;
+-	}
+ 	phy = p->pixel_clock;
  
- 	if (dssdev->panel.dsi_mode == OMAP_DSS_DSI_CMD_MODE) {
--		u16 dw, dh;
--
--		dssdev->driver->get_resolution(dssdev, &dw, &dh);
--
--		dsi->timings.x_res = dw;
--		dsi->timings.y_res = dh;
- 		dsi->timings.hsw = 1;
- 		dsi->timings.hfp = 1;
- 		dsi->timings.hbp = 1;
-@@ -4702,6 +4697,20 @@ void omapdss_dsi_set_timings(struct omap_dss_device *dssdev,
+ 	hdmi_compute_pll(phy, &hdmi.ip_data.pll_data);
+@@ -525,7 +512,7 @@ static int hdmi_power_on(struct omap_dss_device *dssdev)
+ 	dispc_enable_gamma_table(0);
+ 
+ 	/* tv size */
+-	dss_mgr_set_timings(dssdev->manager, &dssdev->panel.timings);
++	dss_mgr_set_timings(dssdev->manager, p);
+ 
+ 	r = hdmi.ip_data.ops->video_enable(&hdmi.ip_data);
+ 	if (r)
+@@ -571,13 +558,18 @@ int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
+ 
  }
- EXPORT_SYMBOL(omapdss_dsi_set_timings);
  
-+void omapdss_dsi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h)
-+{
-+	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-+	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-+
-+	mutex_lock(&dsi->lock);
-+
-+	dsi->timings.x_res = w;
-+	dsi->timings.y_res = h;
-+
-+	mutex_unlock(&dsi->lock);
-+}
-+EXPORT_SYMBOL(omapdss_dsi_set_size);
-+
- static int __init dsi_init_display(struct omap_dss_device *dssdev)
+-void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
++void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
  {
- 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index a2cd133..a85b3fb 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -738,6 +738,7 @@ void omapdss_dsi_vc_enable_hs(struct omap_dss_device *dssdev, int channel,
- int omapdss_dsi_enable_te(struct omap_dss_device *dssdev, bool enable);
- void omapdss_dsi_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings);
-+void omapdss_dsi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h);
+ 	struct hdmi_cm cm;
++	const struct hdmi_config *t;
++
++	cm = hdmi_get_code(timings);
++	hdmi.ip_data.cfg.cm = cm;
  
- int omap_dsi_update(struct omap_dss_device *dssdev, int channel,
- 		void (*callback)(int, void *), void *data);
+-	cm = hdmi_get_code(&dssdev->panel.timings);
+-	hdmi.ip_data.cfg.cm.code = cm.code;
+-	hdmi.ip_data.cfg.cm.mode = cm.mode;
++	t = hdmi_get_timings();
++	if (t != NULL)
++		hdmi.ip_data.cfg = *t;
+ 
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+ 		int r;
+@@ -588,7 +580,7 @@ void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev)
+ 		if (r)
+ 			DSSERR("failed to power on device\n");
+ 	} else {
+-		dss_mgr_set_timings(dssdev->manager, &dssdev->panel.timings);
++		dss_mgr_set_timings(dssdev->manager, &t->timings);
+ 	}
+ }
+ 
+@@ -933,6 +925,13 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
+ 	hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
+ 	hdmi.ip_data.phy_offset = HDMI_PHY;
++
++	/*
++	 * initialize hdmi timings to default value:
++	 * HDMI code 4(VGA) and HDMI mode 1(DVI)
++	 */
++	hdmi.ip_data.cfg = vesa_timings[0];
++
+ 	mutex_init(&hdmi.ip_data.lock);
+ 
+ 	hdmi_panel_init();
+diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
+index e10844f..8dce206 100644
+--- a/drivers/video/omap2/dss/hdmi_panel.c
++++ b/drivers/video/omap2/dss/hdmi_panel.c
+@@ -336,8 +336,8 @@ static void hdmi_set_timings(struct omap_dss_device *dssdev,
+ 	 */
+ 	hdmi_panel_audio_disable(dssdev);
+ 
++	omapdss_hdmi_display_set_timing(dssdev, timings);
+ 	dssdev->panel.timings = *timings;
+-	omapdss_hdmi_display_set_timing(dssdev);
+ 
+ 	mutex_unlock(&hdmi.lock);
+ }
 -- 
 1.7.9.5
 
