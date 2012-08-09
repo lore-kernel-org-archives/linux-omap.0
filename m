@@ -1,67 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v2 1/2] cpufreq: OMAP: Handle missing frequency table on SMP systems
-Date: Thu, 9 Aug 2012 11:32:14 +0200
-Message-ID: <201208091132.14992.rjw@sisk.pl>
-References: <1344496102-24451-1-git-send-email-rnayak@ti.com> <1344496102-24451-2-git-send-email-rnayak@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
+Date: Thu, 09 Aug 2012 13:18:50 +0300
+Message-ID: <50238E8A.5030902@ti.com>
+References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com> <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com> <20120808131356.GS16861@opensource.wolfsonmicro.com> <50226CF4.1010202@ti.com> <20120808135253.GC16861@opensource.wolfsonmicro.com> <502274DA.9020204@ti.com> <20120808141849.GA24328@opensource.wolfsonmicro.com> <50227837.10400@ti.com> <20120808144933.GC24328@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([193.178.161.156]:50263 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753998Ab2HIJ0U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 05:26:20 -0400
-In-Reply-To: <1344496102-24451-2-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20120808144933.GC24328@opensource.wolfsonmicro.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: khilman@ti.com
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@vger.kernel.org
 
-On Thursday, August 09, 2012, Rajendra Nayak wrote:
-> On OMAP4, if the first CPU fails to get a valid frequency table (this
-> could happen if the platform does not register any OPP table), the
-> subsequent CPU instances end up dealing with a NULL freq_table and
-> crash.
-> 
-> Check for an already existing freq_table, before trying to create one,
-> and increment the freq_table_users only if the table is sucessfully
-> created.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: <linux-pm@vger.kernel.org>
+On 08/08/2012 05:49 PM, Mark Brown wrote:
+> That makes sense if the GPIO is actively driven, open drain should be
+> better here, but it's still a generic thing which it'd be nice to
+> extract.
 
-Kevin, are you going to merge this?
+Yes, the idea in it's core is generic, but right now I can not think of=
+ a
+generic implementation which would work.
+In case of twl4030 this is how it looks like:
 
-Rafael
+1. if extmute is requested
+ 1.1. if GPIO number is not valid
+   Use the internal MUTE functionality (HS_POPN_SET register, EXTMUTE b=
+it)
+ 1.2. if GPIO number is valid
+   set the GPIO to 1
+2. Execute the sequence for the power up/down
+3. if extmute is requested
+ 3.1. if GPIO number is not valid
+   Use the internal MUTE functionality (HS_POPN_SET register, EXTMUTE b=
+it)
+ 3.2. if GPIO number is valid
+   set the GPIO to 0
 
+=46or other devices it could be simpler:
+1. Set GPIO for mute
+2. Toggle a bit in the codec
+3. Clear the GPIO to unmute
 
-> ---
->  drivers/cpufreq/omap-cpufreq.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-> index 17fa04d..b47034e 100644
-> --- a/drivers/cpufreq/omap-cpufreq.c
-> +++ b/drivers/cpufreq/omap-cpufreq.c
-> @@ -218,7 +218,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  
->  	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
->  
-> -	if (atomic_inc_return(&freq_table_users) == 1)
-> +	if (!freq_table)
->  		result = opp_init_cpufreq_table(mpu_dev, &freq_table);
->  
->  	if (result) {
-> @@ -227,6 +227,8 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  		goto fail_ck;
->  	}
->  
-> +	atomic_inc_return(&freq_table_users);
-> +
->  	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
->  	if (result)
->  		goto fail_table;
-> 
+another device would need a sequence in step 2 instead of a single bit =
+change.
 
+To cover all of this in a generic way is not that straight forward IMHO=
+=2E
+
+> Still, the main thing here was the fact that we should be able to dro=
+p
+> the flag for the feature in the first place.
+
+Which flag you are referring?
+I can (and have dropped) the hs_extmute_disable_level flag, but separat=
+e
+hs_extmute, hs_extmute_gpio is needed for this device.
+
+hs_extmute tells that the board implemented some sort of HS extmute fun=
+ctionality.
+hs_extmute_gpio tells if the board is _not_ using the built in function=
+ality,
+but it is using external GPIO line to enable/disable the mute.
+
+Sure I could do this:
+hs_extmute: if only this is set we shall use the chip built in function=
+ality
+hs_extmute_gpio: if this is set we use the extmute feature but with ext=
+ernal
+                 GPIO.
+
+But both need to be documented and supported.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
