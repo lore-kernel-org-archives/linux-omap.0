@@ -1,134 +1,66 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 4/5] OMAPDSS: DPI: Add locking for DPI interface
-Date: Thu, 9 Aug 2012 14:37:09 +0530
-Message-ID: <1344503230-18550-5-git-send-email-archit@ti.com>
+Subject: [PATCH v2 1/5] OMAPDSS: APPLY: Constify timings argument in dss_mgr_set_timings
+Date: Thu, 9 Aug 2012 14:37:06 +0530
+Message-ID: <1344503230-18550-2-git-send-email-archit@ti.com>
 References: <1344503230-18550-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45964 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45952 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757113Ab2HIJJC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 05:09:02 -0400
+	id S1755741Ab2HIJIs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 05:08:48 -0400
 In-Reply-To: <1344503230-18550-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The DPI interface driver currently relies on the panel driver to ensure calls
-like omapdss_dpi_display_enable() and omapdss_dpi_display_disable() are executed
-sequentially. Also, currently, there is no way to protect the DPI driver data.
-
-All DPI panel drivers don't ensure this, and in general, a DPI panel driver
-should use it's lock to that ensure it's own driver data and omap_dss_device
-states are taken care of, and not worry about the DPI interface.
-
-Add mutex locking in the DPI enable/disable/set_timings ops.
+The function dss_mgr_set_timings is supposed to apply timings passed by an
+interface driver. It is not supposed to change the timings. Add const qualifier
+to the omap_video_timings pointer argument in dss_mgr_set_timings().
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dpi.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ drivers/video/omap2/dss/apply.c |    4 ++--
+ drivers/video/omap2/dss/dss.h   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index c20fe23..add47fe 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -39,6 +39,8 @@ static struct {
- 	struct regulator *vdds_dsi_reg;
- 	struct platform_device *dsidev;
- 
-+	struct mutex lock;
-+
- 	struct dss_lcd_mgr_config mgr_config;
- } dpi;
- 
-@@ -184,14 +186,18 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
-+	mutex_lock(&dpi.lock);
-+
- 	if (cpu_is_omap34xx() && !dpi.vdds_dsi_reg) {
- 		DSSERR("no VDSS_DSI regulator\n");
--		return -ENODEV;
-+		r = -ENODEV;
-+		goto err_no_reg;
- 	}
- 
- 	if (dssdev->manager == NULL) {
- 		DSSERR("failed to enable display: no manager\n");
--		return -ENODEV;
-+		r = -ENODEV;
-+		goto err_no_mgr;
- 	}
- 
- 	if (dpi_use_dsi_pll(dssdev)) {
-@@ -238,6 +244,8 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_mgr_enable;
- 
-+	mutex_unlock(&dpi.lock);
-+
- 	return 0;
- 
- err_mgr_enable:
-@@ -255,12 +263,17 @@ err_get_dispc:
- err_reg_enable:
- 	omap_dss_stop_device(dssdev);
- err_start_dev:
-+err_no_mgr:
-+err_no_reg:
-+	mutex_unlock(&dpi.lock);
- 	return r;
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 0fefc68..52a5940 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -1302,7 +1302,7 @@ err:
  }
- EXPORT_SYMBOL(omapdss_dpi_display_enable);
  
- void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings)
++		const struct omap_video_timings *timings)
  {
-+	mutex_lock(&dpi.lock);
-+
- 	dss_mgr_disable(dssdev->manager);
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
  
- 	if (dpi_use_dsi_pll(dssdev)) {
-@@ -275,6 +288,8 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
- 		regulator_disable(dpi.vdds_dsi_reg);
- 
- 	omap_dss_stop_device(dssdev);
-+
-+	mutex_unlock(&dpi.lock);
+@@ -1311,7 +1311,7 @@ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
  }
- EXPORT_SYMBOL(omapdss_dpi_display_disable);
  
-@@ -284,6 +299,9 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
- 	int r;
- 
- 	DSSDBG("dpi_set_timings\n");
-+
-+	mutex_lock(&dpi.lock);
-+
- 	dssdev->panel.timings = *timings;
- 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
- 		r = dispc_runtime_get();
-@@ -296,6 +314,8 @@ void dpi_set_timings(struct omap_dss_device *dssdev,
- 	} else {
- 		dss_mgr_set_timings(dssdev->manager, timings);
- 	}
-+
-+	mutex_unlock(&dpi.lock);
- }
- EXPORT_SYMBOL(dpi_set_timings);
- 
-@@ -392,6 +412,8 @@ static void __init dpi_probe_pdata(struct platform_device *pdev)
- 
- static int __init omap_dpi_probe(struct platform_device *pdev)
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings)
++		const struct omap_video_timings *timings)
  {
-+	mutex_init(&dpi.lock);
-+
- 	dpi_probe_pdata(pdev);
+ 	unsigned long flags;
  
- 	return 0;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 335ee93..8a9630b 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -207,7 +207,7 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_device *dssdev);
+ int dss_mgr_unset_device(struct omap_overlay_manager *mgr);
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+-		struct omap_video_timings *timings);
++		const struct omap_video_timings *timings);
+ void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+ 		const struct dss_lcd_mgr_config *config);
+ const struct omap_video_timings *dss_mgr_get_timings(struct omap_overlay_manager *mgr);
 -- 
 1.7.9.5
 
