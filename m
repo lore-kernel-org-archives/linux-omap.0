@@ -1,66 +1,52 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 1/5] OMAPDSS: APPLY: Constify timings argument in dss_mgr_set_timings
-Date: Thu, 9 Aug 2012 14:37:06 +0530
-Message-ID: <1344503230-18550-2-git-send-email-archit@ti.com>
-References: <1344503230-18550-1-git-send-email-archit@ti.com>
+Subject: [PATCH v2 0/5] OMAPDSS: Misc Cleanups/Fixes
+Date: Thu, 9 Aug 2012 14:37:05 +0530
+Message-ID: <1344503230-18550-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45952 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45947 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755741Ab2HIJIs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 05:08:48 -0400
-In-Reply-To: <1344503230-18550-1-git-send-email-archit@ti.com>
+	id S1753689Ab2HIJIn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 05:08:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The function dss_mgr_set_timings is supposed to apply timings passed by an
-interface driver. It is not supposed to change the timings. Add const qualifier
-to the omap_video_timings pointer argument in dss_mgr_set_timings().
+These are minor cleanups and fixes which make some of the future work of making
+outputs less dependant a bit easier. Some patches remove a few omap_dss_device
+references which aren't needed any more after the patch:
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/apply.c |    4 ++--
- drivers/video/omap2/dss/dss.h   |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+"OMAPDSS: move clock settings from dssdev to dss pdata"
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 0fefc68..52a5940 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -1302,7 +1302,7 @@ err:
- }
- 
- static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
--		struct omap_video_timings *timings)
-+		const struct omap_video_timings *timings)
- {
- 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
- 
-@@ -1311,7 +1311,7 @@ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
- }
- 
- void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
--		struct omap_video_timings *timings)
-+		const struct omap_video_timings *timings)
- {
- 	unsigned long flags;
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 335ee93..8a9630b 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -207,7 +207,7 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
- 		struct omap_dss_device *dssdev);
- int dss_mgr_unset_device(struct omap_overlay_manager *mgr);
- void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
--		struct omap_video_timings *timings);
-+		const struct omap_video_timings *timings);
- void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
- 		const struct dss_lcd_mgr_config *config);
- const struct omap_video_timings *dss_mgr_get_timings(struct omap_overlay_manager *mgr);
+The rest add locking required in the DPI driver and the generic dpi panel
+driver.
+
+The commits are on the tree:
+
+git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git misc_cleanup_3_7
+
+Changes since v2:
+- Misc patches just taken out from the series which changes the way of passing
+  timings from panel to interace driver.
+
+Archit Taneja (5):
+  OMAPDSS: APPLY: Constify timings argument in dss_mgr_set_timings
+  OMAPDSS: DPI: Remove omap_dss_device arguments in
+    dpi_set_dsi_clk/dpi_set_dispc_clk
+  OMAPDSS: HDMI: Remove omap_dss_device argument from hdmi_compute_pll
+  OMAPDSS: DPI: Add locking for DPI interface
+  OMAPDSS: Displays: Add locking in generic DPI panel driver
+
+
+ drivers/video/omap2/displays/panel-generic-dpi.c |   69 +++++++++++++++++++---
+ drivers/video/omap2/dss/apply.c                  |    4 +-
+ drivers/video/omap2/dss/dpi.c                    |   40 +++++++++----
+ drivers/video/omap2/dss/dss.h                    |    2 +-
+ drivers/video/omap2/dss/hdmi.c                   |    5 +-
+ 5 files changed, 97 insertions(+), 23 deletions(-)
+
 -- 
 1.7.9.5
 
