@@ -1,226 +1,139 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v2] gpio/omap: add *remove* callback in platform_driver
-Date: Thu, 9 Aug 2012 09:36:05 +0530
-Message-ID: <CAC83ZvLKk71O=+9U16FoTUU_-ffg+iJsHPgnJx+bzbHhBDXzhQ@mail.gmail.com>
-References: <1344434316-21141-1-git-send-email-tarun.kanti@ti.com>
-	<87k3x9wbrk.fsf@ti.com>
+From: Andy Gross <andy.gross@ti.com>
+Subject: [PATCH] staging: omapdrm: Remove unnecessary memcpy
+Date: Thu, 9 Aug 2012 00:13:41 -0500
+Message-ID: <1344489221-16687-1-git-send-email-andy.gross@ti.com>
+References: <y>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:57769 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777Ab2HIEGH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 00:06:07 -0400
-Received: by obbun3 with SMTP id un3so83132obb.27
-        for <linux-omap@vger.kernel.org>; Wed, 08 Aug 2012 21:06:05 -0700 (PDT)
-In-Reply-To: <87k3x9wbrk.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42540 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752096Ab2HIFOW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 01:14:22 -0400
+In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: Rob Clark <rob@ti.com>, Greg Kroah-Hartman <greg@kroah.com>, Andy Gross <andy.gross@ti.com>
 
-On Wed, Aug 8, 2012 at 10:40 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> Add *remove* callback so that necessary cleanup operations are
->> performed when device is unregistered. The device is deleted
->> from the list and associated clock handle is released by
->> calling clk_put() and irq descriptor is released using the
->> irq_free_desc() api.
->>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Reviewed-by: Jon Hunter <jon-hunter@ti.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Cousson, Benoit <b-cousson@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> ---
->> v2:
->> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->> Commit: 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee (Linux 3.6-rc1)
->>
->> (1) Use irq_free_descs() instead of irq_free_desc().
->>     Besides, irq_free_desc() was using wrong parameter,
->>     irq_base, instead of bank->irq.
->> (2) irq_free_descs() moved outside spin_lock/unlock_*()
->>     in order to avoid exception warnings.
->>
->> (3) pm_runtime_disable() added so that bind can happen successfully
->>
->> Test Detail:
->> Step 1: Unbind gpio.5 device in order to invoke the *remove* callback.
->> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/unbind
->>
->> Step 2: Bind gpio.5 device and confirm probe() for the device succeeds.
->> #echo "omap_gpio.5" > sys/bus/platform/drivers/omap_gpio/bind
->>
->> Step 3: Execute read/write GPIO test case.
->
-> What happens when GPIOs are in use (requested)?
-If I try to unbind a currently active GPIO bank then I see an exception
-after the irq descriptor is freed by the remove. I believe this is expected
-because interrupt raised by the system would not be handled.
+Removed the unnecessary copy of the memory page addresses when
+programming the DMM/PAT and all support code for the lut copy.
+The original intent was to have this code in place for
+suspend/resume functionality w.r.t. DEVICE_OFF.
 
-[   18.859405] irq_free_descs: calling free_desc(192)...
-[   18.866180] irq_free_descs: calling free_desc(192)...
-[   18.872680] irq_free_descs: calling free_desc(192)...
-[   18.877990] irq_free_descs: calling free_desc(192)...
-[   18.883270] irq_free_descs: calling free_desc(192)...
-[   18.888549] irq_free_descs: calling free_desc(192)...
-[   18.893859] irq_free_descs: calling free_desc(192)...
-[   18.899139] irq_free_descs: calling free_desc(192)...
-[   18.904418] irq_free_descs: calling free_desc(192)...
-[   18.909729] irq_free_descs: calling free_desc(192)...
-[   18.915008] irq_free_descs: calling free_desc(192)...
-[   18.920288] irq_free_descs: calling free_desc(192)...
-[   18.925598] irq_free_descs: calling free_desc(192)...
-[   18.930877] irq_free_descs: calling free_desc(192)...
-[   18.936157] irq_free_descs: calling free_desc(192)...
-[   18.941467] irq_free_descs: calling free_desc(192)...
-[   18.946746] irq_free_descs: calling free_desc(192)...
-[   18.952026] irq_free_descs: calling free_desc(192)...
-[   18.957336] irq_free_descs: calling free_desc(192)...
-[   18.962615] irq_free_descs: calling free_desc(192)...
-[   18.967895] irq_free_descs: calling free_desc(192)...
-[   18.973205] irq_free_descs: calling free_desc(192)...
-[   18.978485] irq_free_descs: calling free_desc(192)...
-[   18.983764] irq_free_descs: calling free_desc(192)...
-[   18.989074] irq_free_descs: calling free_desc(192)...
-[   18.994354] irq_free_descs: calling free_desc(192)...
-[   18.999633] irq_free_descs: calling free_desc(192)...
-[   19.004913] irq_free_descs: calling free_desc(192)...
-[   19.010223] irq_free_descs: calling free_desc(192)...
-[   19.015502] irq_free_descs: calling free_desc(192)...
-[   19.020782] irq_free_descs: calling free_desc(192)...
-[   19.026092] irq_free_descs: calling free_desc(192)...
-[   19.032440] irq 194, desc: c072f340, depth: 1, count: 0, unhandled: 0
-[   19.039154] ->handle_irq():  c00a3e08, handle_bad_irq+0x0/0x260
-[   19.045379] ->irq_data.chip(): c078ff7c, no_irq_chip+0x0/0x5c
-[   19.051391] ->action(): ef0d42c0
-[   19.054748] ->action->handler(): c0399ee0, ks8851_irq+0x0/0x1c
-[   19.060852]    IRQ_NOPROBE set
-[   19.064056]  IRQ_NOREQUEST set
-[   19.067230] Unable to handle kernel paging request at virtual address 203a6c9
-[   19.074768] pgd = c0004000
-[   19.077606] [203a6c99] *pgd=00000000
-[   19.081329] Internal error: Oops: 5 [#1] SMP ARM
-[   19.086151] Modules linked in:
-[   19.089355] CPU: 0    Not tainted  (3.6.0-rc1-00003-g43a916d-dirty #885)
-[   19.096374] PC is at gpio_irq_handler+0x7c/0x26c
-[   19.101165] LR is at handle_bad_irq+0x1cc/0x260
-[   19.105895] pc : [<c02e13b0>]    lr : [<c00a3fd4>]    psr: 60000093
-[   19.105895] sp : c0725df8  ip : 00006fc6  fp : 00000001
-[   19.117889] r10: 00000000  r9 : fa05502c  r8 : 00000020
-[   19.123352] r7 : 00000000  r6 : 00000000  r5 : 00000000  r4 : ef0bbe10
-[   19.130157] r3 : ef0c1980  r2 : 203a6c65  r1 : 00000034  r0 : 00000000
-[   19.136993] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kel
-[   19.144714] Control: 10c53c7d  Table: ae89804a  DAC: 00000017
-[   19.150695] Process swapper/0 (pid: 0, stack limit = 0xc07242f8)
-[   19.156982] Stack: (0xc0725df8 to 0xc0726000)
-[   19.161529] 5de0:                                                       c0740
-[   19.170074] 5e00: c0724000 c0724000 c07440d8 c07224a4 0000003e 00000000 c0740
-[   19.178619] 5e20: c0725edc c00a3670 000001da c0015380 fa24010c c0742d30 c0720
-[   19.187164] 5e40: 00000001 c000846c c0746980 c04f8c74 20000013 ffffffff c0724
-[   19.195709] 5e60: 0005ebb2 00000001 00000000 c0746980 c1530ac0 ee8cfe00 c1530
-[   19.204223] 5e80: 00000001 c07440d8 ee8cfe00 c0725edc 00000001 c0725ea8 00054
-[   19.212768] 5ea0: 20000013 ffffffff c0724000 c007425c 00000002 00000000 c0077
-[   19.221313] 5ec0: ef320b00 c0746980 00000000 c1530ac0 ef320b00 c0722ac0 c0720
-[   19.229858] 5ee0: c152ec20 c00696cc 00000000 00000000 c0724000 c0724000 c1524
-[   19.238403] 5f00: c152ec20 c0015e14 c0722ac0 c0722ac0 c0722ac0 c0722ac0 c0720
-[   19.246948] 5f20: c0722ac0 c0722ac0 6e6b0f0d 00000004 00000000 00000000 c0080
-[   19.255493] 5f40: 00000001 00000000 00000000 501539bc 00000004 c0091654 c1528
-[   19.264038] 5f60: c07d55b8 5006c071 00000000 c008cab8 00000000 00000002 50064
-[   19.272552] 5f80: c0748078 c0724000 c07c0548 c0504510 c0747e60 00000000 411f8
-[   19.281097] 5fa0: 00000000 c0015e14 00000000 c0743e1c c07c0480 c07057dc bfffa
-[   19.289642] 5fc0: 00000000 c06d48d8 ffffffff ffffffff c06d4450 00000000 0000c
-[   19.298187] 5fe0: 00000000 10c53c7d c0742d08 c07057ac c0747e54 80008044 00000
-[   19.306732] [<c02e13b0>] (gpio_irq_handler+0x7c/0x26c) from [<c00a3670>] (ge)
-[   19.316558] [<c00a3670>] (generic_handle_irq+0x34/0x44) from [<c0015380>] (h)
-[   19.325744] [<c0015380>] (handle_IRQ+0x4c/0xac) from [<c000846c>] (gic_handl)
-[   19.334564] [<c000846c>] (gic_handle_irq+0x2c/0x60) from [<c04f8ee4>] (__irq)
-[   19.343292] Exception stack(0xc0725e60 to 0xc0725ea8)
-[   19.348571] 5e60: 0005ebb2 00000001 00000000 c0746980 c1530ac0 ee8cfe00 c1530
-[   19.357116] 5e80: 00000001 c07440d8 ee8cfe00 c0725edc 00000001 c0725ea8 00054
-[   19.365631] 5ea0: 20000013 ffffffff
-[   19.369293] [<c04f8ee4>] (__irq_svc+0x44/0x5c) from [<c04f8c74>] (_raw_spin_)
-[   19.378570] [<c04f8c74>] (_raw_spin_unlock_irq+0x28/0x2c) from [<c007425c>] )
-[   19.388732] [<c007425c>] (finish_task_switch+0x84/0x198) from [<c04f7760>] ()
-[   19.398193] [<c04f7760>] (__schedule+0x404/0x870) from [<c0015e14>] (cpu_idl)
-[   19.406768] [<c0015e14>] (cpu_idle+0xe8/0x114) from [<c06d48d8>] (start_kern)
-[   19.415466] Code: e59480e4 e1d311b4 e5d36034 e1a0a81b (e7920001)
-[   19.421844] ---[ end trace 3eb9bf4b81babe15 ]---
-[   19.426666] Kernel panic - not syncing: Fatal exception in interrupt
-[   19.433288] CPU1: stopping
-[   19.436157] [<c001beac>] (unwind_backtrace+0x0/0xf4) from [<c0019db4>] (hand)
-[   19.445220] [<c0019db4>] (handle_IPI+0x130/0x15c) from [<c0008498>] (gic_han)
-[   19.454223] [<c0008498>] (gic_handle_irq+0x58/0x60) from [<c04f8ee4>] (__irq)
-[   19.462951] Exception stack(0xef06ff88 to 0xef06ffd0)
-[   19.468231] ff80:                   c079f960 c079f960 00000000 00000000 ef068
-[   19.476745] ffa0: c0504510 c0747e60 00000000 411fc092 c0748078 00000000 00000
-[   19.485290] ffc0: c0015570 c0015574 60000113 ffffffff
-[   19.490570] [<c04f8ee4>] (__irq_svc+0x44/0x5c) from [<c0015574>] (default_id)
-[   19.499114] [<c0015574>] (default_idle+0x20/0x44) from [<c0015dc8>] (cpu_idl)
-[   19.507659] [<c0015dc8>] (cpu_idle+0x9c/0x114) from [<804f1d94>] (0x804f1d94)
+Performance analysis showed that the extra copy from uncached memory
+led to a fairly hefty penalty when programming large 1D or 2D
+buffers.  This can be implemented in a more efficient manner when we
+actually have to support DEVICE_OFF suspend/resume operations.
+
+Signed-off-by: Andy Gross <andy.gross@ti.com>
 ---
-Tarun
->
-> Kevin
->
->>  drivers/gpio/gpio-omap.c |   35 +++++++++++++++++++++++++++++++++++
->>  1 files changed, 35 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index e6efd77..50de875 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1152,6 +1152,40 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->>       return ret;
->>  }
->>
->> +/**
->> + * omap_gpio_remove - cleanup a registered gpio device
->> + * @pdev:       pointer to current gpio platform device
->> + *
->> + * Called by driver framework whenever a gpio device is unregistered.
->> + * GPIO is deleted from the list and associated clock handle freed.
->> + */
->> +static int __devexit omap_gpio_remove(struct platform_device *pdev)
->> +{
->> +     struct device *dev = &pdev->dev;
->> +     struct gpio_bank *bank;
->> +     unsigned long flags;
->> +     int ret = -EINVAL;
->> +
->> +     list_for_each_entry(bank, &omap_gpio_list, node) {
->> +             spin_lock_irqsave(&bank->lock, flags);
->> +             if (bank->dev == dev) {
->> +                     clk_put(bank->dbck);
->> +                     list_del(&bank->node);
->> +                     ret = 0;
->> +                     spin_unlock_irqrestore(&bank->lock, flags);
->> +                     break;
->> +             }
->> +             spin_unlock_irqrestore(&bank->lock, flags);
->> +     }
->> +
->> +     if (!ret) {
->> +             pm_runtime_disable(bank->dev);
->> +             irq_free_descs(bank->irq_base, bank->width);
->> +     }
->> +
->> +     return ret;
->> +}
->> +
->>  #ifdef CONFIG_ARCH_OMAP2PLUS
->>
->>  #if defined(CONFIG_PM_RUNTIME)
->> @@ -1478,6 +1512,7 @@ MODULE_DEVICE_TABLE(of, omap_gpio_match);
->>
->>  static struct platform_driver omap_gpio_driver = {
->>       .probe          = omap_gpio_probe,
->> +     .remove = __devexit_p(omap_gpio_remove),
->>       .driver         = {
->>               .name   = "omap_gpio",
->>               .pm     = &gpio_pm_ops,
+ drivers/staging/omapdrm/omap_dmm_priv.h  |    6 ------
+ drivers/staging/omapdrm/omap_dmm_tiler.c |   25 +------------------------
+ 2 files changed, 1 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/staging/omapdrm/omap_dmm_priv.h b/drivers/staging/omapdrm/omap_dmm_priv.h
+index 08b22e9..09ebc50 100644
+--- a/drivers/staging/omapdrm/omap_dmm_priv.h
++++ b/drivers/staging/omapdrm/omap_dmm_priv.h
+@@ -141,9 +141,6 @@ struct refill_engine {
+ 	/* only one trans per engine for now */
+ 	struct dmm_txn txn;
+ 
+-	/* offset to lut associated with container */
+-	u32 *lut_offset;
+-
+ 	wait_queue_head_t wait_for_refill;
+ 
+ 	struct list_head idle_node;
+@@ -176,9 +173,6 @@ struct dmm {
+ 	/* array of LUT - TCM containers */
+ 	struct tcm **tcm;
+ 
+-	/* LUT table storage */
+-	u32 *lut;
+-
+ 	/* allocation list and lock */
+ 	struct list_head alloc_head;
+ };
+diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
+index ec7a5c8..80d3f8a 100644
+--- a/drivers/staging/omapdrm/omap_dmm_tiler.c
++++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
+@@ -24,7 +24,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+-#include <linux/vmalloc.h>
+ #include <linux/delay.h>
+ #include <linux/mm.h>
+ #include <linux/time.h>
+@@ -184,9 +183,6 @@ static int dmm_txn_append(struct dmm_txn *txn, struct pat_area *area,
+ 	int columns = (1 + area->x1 - area->x0);
+ 	int rows = (1 + area->y1 - area->y0);
+ 	int i = columns*rows;
+-	u32 *lut = omap_dmm->lut + (engine->tcm->lut_id * omap_dmm->lut_width *
+-			omap_dmm->lut_height) +
+-			(area->y0 * omap_dmm->lut_width) + area->x0;
+ 
+ 	pat = alloc_dma(txn, sizeof(struct pat), &pat_pa);
+ 
+@@ -209,10 +205,6 @@ static int dmm_txn_append(struct dmm_txn *txn, struct pat_area *area,
+ 			page_to_phys(pages[n]) : engine->dmm->dummy_pa;
+ 	}
+ 
+-	/* fill in lut with new addresses */
+-	for (i = 0; i < rows; i++, lut += omap_dmm->lut_width)
+-		memcpy(lut, &data[i*columns], columns * sizeof(u32));
+-
+ 	txn->last_pat = pat;
+ 
+ 	return 0;
+@@ -504,8 +496,6 @@ static int omap_dmm_remove(struct platform_device *dev)
+ 		if (omap_dmm->dummy_page)
+ 			__free_page(omap_dmm->dummy_page);
+ 
+-		vfree(omap_dmm->lut);
+-
+ 		if (omap_dmm->irq > 0)
+ 			free_irq(omap_dmm->irq, omap_dmm);
+ 
+@@ -521,7 +511,7 @@ static int omap_dmm_probe(struct platform_device *dev)
+ {
+ 	int ret = -EFAULT, i;
+ 	struct tcm_area area = {0};
+-	u32 hwinfo, pat_geom, lut_table_size;
++	u32 hwinfo, pat_geom;
+ 	struct resource *mem;
+ 
+ 	omap_dmm = kzalloc(sizeof(*omap_dmm), GFP_KERNEL);
+@@ -593,16 +583,6 @@ static int omap_dmm_probe(struct platform_device *dev)
+ 	 */
+ 	writel(0x7e7e7e7e, omap_dmm->base + DMM_PAT_IRQENABLE_SET);
+ 
+-	lut_table_size = omap_dmm->lut_width * omap_dmm->lut_height *
+-			omap_dmm->num_lut;
+-
+-	omap_dmm->lut = vmalloc(lut_table_size * sizeof(*omap_dmm->lut));
+-	if (!omap_dmm->lut) {
+-		dev_err(&dev->dev, "could not allocate lut table\n");
+-		ret = -ENOMEM;
+-		goto fail;
+-	}
+-
+ 	omap_dmm->dummy_page = alloc_page(GFP_KERNEL | __GFP_DMA32);
+ 	if (!omap_dmm->dummy_page) {
+ 		dev_err(&dev->dev, "could not allocate dummy page\n");
+@@ -685,9 +665,6 @@ static int omap_dmm_probe(struct platform_device *dev)
+ 		.p1.y = omap_dmm->container_height - 1,
+ 	};
+ 
+-	for (i = 0; i < lut_table_size; i++)
+-		omap_dmm->lut[i] = omap_dmm->dummy_pa;
+-
+ 	/* initialize all LUTs to dummy page entries */
+ 	for (i = 0; i < omap_dmm->num_lut; i++) {
+ 		area.tcm = omap_dmm->tcm[i];
+-- 
+1.7.5.4
+
