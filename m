@@ -1,72 +1,102 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/2] media: rc: Introduce RX51 IR transmitter driver
-Date: Thu, 09 Aug 2012 16:20:58 +0300
-Message-ID: <5023B93A.8050707@compulab.co.il>
-References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-2-git-send-email-timo.t.kokkonen@iki.fi>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
+Date: Thu, 09 Aug 2012 16:53:26 +0300
+Message-ID: <5023C0D6.8040600@ti.com>
+References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
+ <20120808131356.GS16861@opensource.wolfsonmicro.com>
+ <50226CF4.1010202@ti.com>
+ <20120808135253.GC16861@opensource.wolfsonmicro.com>
+ <502274DA.9020204@ti.com>
+ <20120808141849.GA24328@opensource.wolfsonmicro.com> <50227837.10400@ti.com>
+ <20120808144933.GC24328@opensource.wolfsonmicro.com>
+ <50238E8A.5030902@ti.com>
+ <20120809103600.GI24328@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1344516086-24615-2-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20120809103600.GI24328@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/09/12 15:41, Timo Kokkonen wrote:
-> This is the driver for the IR transmitter diode found on the Nokia
-> N900 (also known as RX51) device. The driver is mostly the same as
-> found in the original 2.6.28 based kernel that comes with the device.
-> 
-> The following modifications have been made compared to the original
-> driver version:
-> 
-> - Adopt to the changes that has happen in the kernel during the past
->   five years, such as the change in the include paths
-> 
-> - The OMAP DM-timers require much more care nowadays. The timers need
->   to be enabled and disabled or otherwise many actions fail. Timers
->   must not be freed without first stopping them or otherwise the timer
->   cannot be requested again.
-> 
-> The code has been tested with sending IR codes with N900 device
-> running Debian userland. The device receiving the codes was Anysee
-> DVB-C USB receiver.
-> 
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> ---
->  drivers/media/rc/Kconfig   |   10 +
->  drivers/media/rc/Makefile  |    1 +
->  drivers/media/rc/ir-rx51.c |  496 ++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/rc/ir-rx51.h |   10 +
+On 08/09/2012 01:36 PM, Mark Brown wrote:
+> On Thu, Aug 09, 2012 at 01:18:50PM +0300, Peter Ujfalusi wrote:
+>> On 08/08/2012 05:49 PM, Mark Brown wrote:
+> =
 
-I think the file ir-rx51.h should be placed in include/media instead.
+>>> That makes sense if the GPIO is actively driven, open drain should be
+>>> better here, but it's still a generic thing which it'd be nice to
+>>> extract.
+> =
 
-[...]
+>> To cover all of this in a generic way is not that straight forward IMHO.
+> =
 
->  4 files changed, 517 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/rc/ir-rx51.c
->  create mode 100644 drivers/media/rc/ir-rx51.h
+> The sequence is just:
+> =
 
-[...]
+>   1. Enable mutes (at _PRE time)
+>   2. Do whatever the device needs
+>   3. Disable the mutes (at _POST time)
+> =
 
-> diff --git a/drivers/media/rc/ir-rx51.h b/drivers/media/rc/ir-rx51.h
-> new file mode 100644
-> index 0000000..104aa89
-> --- /dev/null
-> +++ b/drivers/media/rc/ir-rx51.h
-> @@ -0,0 +1,10 @@
-> +#ifndef _LIRC_RX51_H
-> +#define _LIRC_RX51_H
-> +
-> +struct lirc_rx51_platform_data {
-> +	int pwm_timer;
-> +
-> +	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
-> +};
-> +
-> +#endif
+> I'm not sure there's any reason for you not to use the internal mute
+> even if the external mute is present but if there is that's the only
+> thing that's weird here.  If there's no reason not to do it it just goes
+> into step 2 and then it's fine, even if there is you can make it
+> conditional in step 2.
 
--- 
-Regards,
-Igor.
+Not sure, but it should not cause issues. The PIN is multiplexed between
+GPIO6/PWM0/MUTE functionality.
+For that matter probably I could just don't care about flags here and
+configure the extmute (the internal one) all the time. Not sure, it has bee=
+n a
+long time I have dealt with the twl4030...
+
+>> Sure I could do this:
+>> hs_extmute: if only this is set we shall use the chip built in functiona=
+lity
+>> hs_extmute_gpio: if this is set we use the extmute feature but with exte=
+rnal
+>>                  GPIO.
+> =
+
+>> But both need to be documented and supported.
+> =
+
+> Is there any actual case where an external mute is supplied via a
+> mechanism other than a GPIO, and if there is would it not either need
+> its own DT property or already need to interact with the driver from
+> code, making the DT property redundant?
+
+Not with my knowledge. The only board using it is the zoom2 upstream. I know
+other boards (not in upstream) which either uses the internal mute or GPIO.
+
+> My thinking here is that the
+> flag should be redundant because we already need to specify how we do
+> the mute, what I'd expect is that we activate the external mute
+> functionality as a result of being given another way of doing it so we
+> don't need to provide a flag.
+
+I perfectly understand your point. However how would you imagine this in th=
+e core?
+We should have something similar to DAPM_SUPPLY which we can attach to the
+widget which needs this sort of mute, but how big change we would need in t=
+he
+core to do this I'm not sure.
+I can take a look at this, but I would do it as a follow up series.
+
+-- =
+
+P=E9ter
