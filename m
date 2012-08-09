@@ -1,111 +1,67 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 07/11] ASoC: omap-mcbsp: Sidetone: Use
- SIDLE bits in SYSCONFIG register to select noidle mode
-Date: Thu, 9 Aug 2012 10:15:39 -0500
-Message-ID: <5023D41B.7090104@ti.com>
-References: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
- <1344417101-5015-8-git-send-email-peter.ujfalusi@ti.com>
- <5022E46A.4010909@ti.com> <5023614E.3030308@ti.com>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: Re: [PATCH] staging: omapdrm: Fix DMM sparse warnings
+Date: Thu, 9 Aug 2012 11:56:16 -0500
+Message-ID: <CAF6AEGtVAGHd__H5_JQ0+FrYTkz7A6C4c1yr_=X_X_KbYuvM4g@mail.gmail.com>
+References: <1344489296-16722-1-git-send-email-andy.gross@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5023614E.3030308@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:63211 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab2HIQ4R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 12:56:17 -0400
+Received: by vbbff1 with SMTP id ff1so164617vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Aug 2012 09:56:16 -0700 (PDT)
+In-Reply-To: <1344489296-16722-1-git-send-email-andy.gross@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andy Gross <andy.gross@ti.com>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Greg Kroah-Hartman <greg@kroah.com>
 
-Hi Peter,
+On Thu, Aug 9, 2012 at 12:14 AM, Andy Gross <andy.gross@ti.com> wrote:
+> Fix the following sparse warnings:
+>
+> drivers/staging/omapdrm/omap_dmm_tiler.c:123:13:
+>    warning: symbol 'omap_dmm_irq_handler' was not declared.
+>    Should it be static?
+>
+> drivers/staging/omapdrm/omap_dmm_tiler.c:370:24:
+>    warning: Using plain integer as NULL pointer
+>
+> Signed-off-by: Andy Gross <andy.gross@ti.com>
 
-On 08/09/2012 02:05 AM, Peter Ujfalusi wrote:
-> Hi Ricardo,
->
-> On 08/09/2012 01:12 AM, Ricardo Neri wrote:
->> Is this another case in which it is required to change the idle-mode on a
->> per-use-case basis? In the past I was trying to do the same with HDMI [1]. In
->> that case it was decided to add the HWMOD_SWSUP_SIDLE to hwmod data with the
->> drawback of using no-idle/force-idle rather than smart-idle[2][3].
->
-> This only concerns use case on OMAP3 when the sidetone is in use. In all other
-> use cases we want to use smart-idle (music playback, FM TX/RX, etc).
-> The main problem here is that the sidetone block have broken sidle line, it
-> can not prevent McBSP iclk to be gated.
-> The sidetone block is using the ICLK of the McBSP port (OMAP3 has ST block
-> attached to McBSP2 and 3 ports only).
+Signed-off-by: Rob Clark <rob.clark@linaro.org>
 
-The situation was similar with HDMI. We need no-idle only when playing 
-audio and smart-idle in all other use cases. With HWMOD_SWSUP_SIDLE we 
-are in no-idle/force-idle all the time. :/
+> ---
+>  drivers/staging/omapdrm/omap_dmm_tiler.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 >
+> diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
+> index 8619783..ec7a5c8 100644
+> --- a/drivers/staging/omapdrm/omap_dmm_tiler.c
+> +++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
+> @@ -120,7 +120,7 @@ static int wait_status(struct refill_engine *engine, uint32_t wait_mask)
+>         return 0;
+>  }
 >
->> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60226.html
->> [2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70463.html
->> [3] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70653.html
->>>
->>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->>> ---
->>>    sound/soc/omap/mcbsp.c |   18 ++++++++++++++----
->>>    sound/soc/omap/mcbsp.h |    1 +
->>>    2 files changed, 15 insertions(+), 4 deletions(-)
->>>
->>> diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
->>> index c870023..e008898 100644
->>> --- a/sound/soc/omap/mcbsp.c
->>> +++ b/sound/soc/omap/mcbsp.c
->>> @@ -257,8 +257,15 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
->>>    {
->>>        unsigned int w;
->>>
->>> -    if (mcbsp->pdata->enable_st_clock)
->>> -        mcbsp->pdata->enable_st_clock(mcbsp->id, 1);
->>> +    /*
->>> +     * Sidetone uses McBSP ICLK - which must not idle when sidetones
->>> +     * are enabled or sidetones start sounding ugly.
->>> +     */
->>> +    w = MCBSP_READ(mcbsp, SYSCON);
->>> +    mcbsp->st_data->mcbsp_sidle = (w >> 3) & 0x3;
->>> +    w &= ~SIDLEMODE(0x3);
->>> +    w |= SIDLEMODE(0x1);
->>> +    MCBSP_WRITE(mcbsp, SYSCON, w);
->>
->> Wouldn't this create a mismatch between the SYSCONFIG register and McBSP
->> omap_hwmod._sysc_cache?
+> -irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
+> +static irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
+>  {
+>         struct dmm *dmm = arg;
+>         uint32_t status = readl(dmm->base + DMM_PAT_IRQSTATUS);
+> @@ -367,7 +367,7 @@ struct tiler_block *tiler_reserve_1d(size_t size)
+>         int num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
 >
-> We modify the bits runtime (if the ST is enabled), after the hwmod already
-> configured the McBSP port to s-idle. We change the McBSP port's s-idle mode
-> back to it's original before pm_runtime_put().
+>         if (!block)
+> -               return 0;
+> +               return ERR_PTR(-ENOMEM);
 >
-> Previously we did the same thing in PRCM level which was as ugly as this
-> workaround with the penalty of a callback function to mach-omap2 since we can
-> only got access to PRCM register API there.
+>         block->fmt = TILFMT_PAGE;
 >
->> Perhaps this could be done with a future omap_hwmod API?
+> --
+> 1.7.5.4
 >
-> But there's no such an API and I'm not aware any ongoing effort to have one.
-> Still the issue mostly remains since we need to modify other block's s-idle
-> mode. If sidetone block is enabled we need to change the McBSP port's s-idle
-> mode to no-idle.
-
-Would omap_hwmod_set_slave_idlemode make the workaround look less ugly? 
-In this case you are changing other block's idle-mode, though.
->
-> In most of the use cases the McBSP need to be in smart-idle mode since it
-> provides significant power saving.
-
-Yes, I was just trying to use this case to justify the need of a driver 
-to be able to set the idle-mode for particular use cases. It would be 
-nice to be able to use an API (present or future) to set to no-idle if 
-required by a particular use-case and still be able to take advantage of 
-smart-idle in other use cases.
-
-Ricardo
->
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
