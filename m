@@ -1,102 +1,102 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
-Date: Thu, 09 Aug 2012 16:53:26 +0300
-Message-ID: <5023C0D6.8040600@ti.com>
-References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
- <1344418887-5262-5-git-send-email-peter.ujfalusi@ti.com>
- <20120808131356.GS16861@opensource.wolfsonmicro.com>
- <50226CF4.1010202@ti.com>
- <20120808135253.GC16861@opensource.wolfsonmicro.com>
- <502274DA.9020204@ti.com>
- <20120808141849.GA24328@opensource.wolfsonmicro.com> <50227837.10400@ti.com>
- <20120808144933.GC24328@opensource.wolfsonmicro.com>
- <50238E8A.5030902@ti.com>
- <20120809103600.GI24328@opensource.wolfsonmicro.com>
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51
+ data
+Date: Thu, 09 Aug 2012 17:09:14 +0300
+Message-ID: <5023C48A.2070509@iki.fi>
+References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi> <5023B8E9.6040105@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120809103600.GI24328@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <5023B8E9.6040105@compulab.co.il>
+Sender: linux-media-owner@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/09/2012 01:36 PM, Mark Brown wrote:
-> On Thu, Aug 09, 2012 at 01:18:50PM +0300, Peter Ujfalusi wrote:
->> On 08/08/2012 05:49 PM, Mark Brown wrote:
-> =
+On 08/09/12 16:19, Igor Grinberg wrote:
+> Hi Timo,
+> 
+> On 08/09/12 15:41, Timo Kokkonen wrote:
+>> The IR diode on the RX51 is connected to the GPT9. This data is needed
+>> for the IR driver to function.
+>>
+>> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+>> ---
+>>  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
+>>  1 files changed, 30 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> index df2534d..4a5a71b 100644
+>> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> @@ -34,6 +34,7 @@
+>>  #include <plat/gpmc.h>
+>>  #include <plat/onenand.h>
+>>  #include <plat/gpmc-smc91x.h>
+>> +#include <plat/omap-pm.h>
+>>  
+>>  #include <mach/board-rx51.h>
+>>  
+>> @@ -46,6 +47,10 @@
+>>  #include <../drivers/staging/iio/light/tsl2563.h>
+>>  #include <linux/lis3lv02d.h>
+>>  
+>> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+>> +#include "../../../drivers/media/rc/ir-rx51.h"
+>> +#endif
+> 
+> That is not really nice...
+> You should place the struct lirc_rx51_platform_data and
+> other stuff used outside of the driver in: include/media/
+> so you will not have to add that long and ugly relative path.
+> 
 
->>> That makes sense if the GPIO is actively driven, open drain should be
->>> better here, but it's still a generic thing which it'd be nice to
->>> extract.
-> =
+Yeah, you're right. I'll change that. Thanks.
 
->> To cover all of this in a generic way is not that straight forward IMHO.
-> =
+-Timo
 
-> The sequence is just:
-> =
-
->   1. Enable mutes (at _PRE time)
->   2. Do whatever the device needs
->   3. Disable the mutes (at _POST time)
-> =
-
-> I'm not sure there's any reason for you not to use the internal mute
-> even if the external mute is present but if there is that's the only
-> thing that's weird here.  If there's no reason not to do it it just goes
-> into step 2 and then it's fine, even if there is you can make it
-> conditional in step 2.
-
-Not sure, but it should not cause issues. The PIN is multiplexed between
-GPIO6/PWM0/MUTE functionality.
-For that matter probably I could just don't care about flags here and
-configure the extmute (the internal one) all the time. Not sure, it has bee=
-n a
-long time I have dealt with the twl4030...
-
->> Sure I could do this:
->> hs_extmute: if only this is set we shall use the chip built in functiona=
-lity
->> hs_extmute_gpio: if this is set we use the extmute feature but with exte=
-rnal
->>                  GPIO.
-> =
-
->> But both need to be documented and supported.
-> =
-
-> Is there any actual case where an external mute is supplied via a
-> mechanism other than a GPIO, and if there is would it not either need
-> its own DT property or already need to interact with the driver from
-> code, making the DT property redundant?
-
-Not with my knowledge. The only board using it is the zoom2 upstream. I know
-other boards (not in upstream) which either uses the internal mute or GPIO.
-
-> My thinking here is that the
-> flag should be redundant because we already need to specify how we do
-> the mute, what I'd expect is that we activate the external mute
-> functionality as a result of being given another way of doing it so we
-> don't need to provide a flag.
-
-I perfectly understand your point. However how would you imagine this in th=
-e core?
-We should have something similar to DAPM_SUPPLY which we can attach to the
-widget which needs this sort of mute, but how big change we would need in t=
-he
-core to do this I'm not sure.
-I can take a look at this, but I would do it as a follow up series.
-
--- =
-
-P=E9ter
+>> +
+>>  #include "mux.h"
+>>  #include "hsmmc.h"
+>>  #include "common-board-devices.h"
+>> @@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
+>>  				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
+>>  }
+>>  
+>> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+>> +static struct lirc_rx51_platform_data rx51_lirc_data = {
+>> +	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+>> +	.pwm_timer = 9, /* Use GPT 9 for CIR */
+>> +};
+>> +
+>> +static struct platform_device rx51_lirc_device = {
+>> +	.name           = "lirc_rx51",
+>> +	.id             = -1,
+>> +	.dev            = {
+>> +		.platform_data = &rx51_lirc_data,
+>> +	},
+>> +};
+>> +
+>> +static void __init rx51_init_lirc(void)
+>> +{
+>> +	platform_device_register(&rx51_lirc_device);
+>> +}
+>> +#else
+>> +static void __init rx51_init_lirc(void)
+>> +{
+>> +}
+>> +#endif
+>> +
+>>  void __init rx51_peripherals_init(void)
+>>  {
+>>  	rx51_i2c_init();
+>> @@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
+>>  	rx51_init_wl1251();
+>>  	rx51_init_tsc2005();
+>>  	rx51_init_si4713();
+>> +	rx51_init_lirc();
+>>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+>>  
+> 
