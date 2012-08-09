@@ -1,102 +1,71 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51
- data
-Date: Thu, 09 Aug 2012 16:19:37 +0300
-Message-ID: <5023B8E9.6040105@compulab.co.il>
-References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCH 1/2] media: rc: Introduce RX51 IR transmitter driver
+Date: Thu, 09 Aug 2012 16:20:58 +0300
+Message-ID: <5023B93A.8050707@compulab.co.il>
+References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-2-git-send-email-timo.t.kokkonen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:51234 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756889Ab2HINTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 09:19:44 -0400
-In-Reply-To: <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1344516086-24615-2-git-send-email-timo.t.kokkonen@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
 To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-
-Hi Timo,
+List-Id: linux-omap@vger.kernel.org
 
 On 08/09/12 15:41, Timo Kokkonen wrote:
-> The IR diode on the RX51 is connected to the GPT9. This data is needed
-> for the IR driver to function.
+> This is the driver for the IR transmitter diode found on the Nokia
+> N900 (also known as RX51) device. The driver is mostly the same as
+> found in the original 2.6.28 based kernel that comes with the device.
+> 
+> The following modifications have been made compared to the original
+> driver version:
+> 
+> - Adopt to the changes that has happen in the kernel during the past
+>   five years, such as the change in the include paths
+> 
+> - The OMAP DM-timers require much more care nowadays. The timers need
+>   to be enabled and disabled or otherwise many actions fail. Timers
+>   must not be freed without first stopping them or otherwise the timer
+>   cannot be requested again.
+> 
+> The code has been tested with sending IR codes with N900 device
+> running Debian userland. The device receiving the codes was Anysee
+> DVB-C USB receiver.
 > 
 > Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 > ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
->  1 files changed, 30 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index df2534d..4a5a71b 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -34,6 +34,7 @@
->  #include <plat/gpmc.h>
->  #include <plat/onenand.h>
->  #include <plat/gpmc-smc91x.h>
-> +#include <plat/omap-pm.h>
->  
->  #include <mach/board-rx51.h>
->  
-> @@ -46,6 +47,10 @@
->  #include <../drivers/staging/iio/light/tsl2563.h>
->  #include <linux/lis3lv02d.h>
->  
-> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-> +#include "../../../drivers/media/rc/ir-rx51.h"
-> +#endif
+>  drivers/media/rc/Kconfig   |   10 +
+>  drivers/media/rc/Makefile  |    1 +
+>  drivers/media/rc/ir-rx51.c |  496 ++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/rc/ir-rx51.h |   10 +
 
-That is not really nice...
-You should place the struct lirc_rx51_platform_data and
-other stuff used outside of the driver in: include/media/
-so you will not have to add that long and ugly relative path.
+I think the file ir-rx51.h should be placed in include/media instead.
 
+[...]
+
+>  4 files changed, 517 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/rc/ir-rx51.c
+>  create mode 100644 drivers/media/rc/ir-rx51.h
+
+[...]
+
+> diff --git a/drivers/media/rc/ir-rx51.h b/drivers/media/rc/ir-rx51.h
+> new file mode 100644
+> index 0000000..104aa89
+> --- /dev/null
+> +++ b/drivers/media/rc/ir-rx51.h
+> @@ -0,0 +1,10 @@
+> +#ifndef _LIRC_RX51_H
+> +#define _LIRC_RX51_H
 > +
->  #include "mux.h"
->  #include "hsmmc.h"
->  #include "common-board-devices.h"
-> @@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
->  				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
->  }
->  
-> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
-> +static struct lirc_rx51_platform_data rx51_lirc_data = {
-> +	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
-> +	.pwm_timer = 9, /* Use GPT 9 for CIR */
+> +struct lirc_rx51_platform_data {
+> +	int pwm_timer;
+> +
+> +	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
 > +};
 > +
-> +static struct platform_device rx51_lirc_device = {
-> +	.name           = "lirc_rx51",
-> +	.id             = -1,
-> +	.dev            = {
-> +		.platform_data = &rx51_lirc_data,
-> +	},
-> +};
-> +
-> +static void __init rx51_init_lirc(void)
-> +{
-> +	platform_device_register(&rx51_lirc_device);
-> +}
-> +#else
-> +static void __init rx51_init_lirc(void)
-> +{
-> +}
 > +#endif
-> +
->  void __init rx51_peripherals_init(void)
->  {
->  	rx51_i2c_init();
-> @@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
->  	rx51_init_wl1251();
->  	rx51_init_tsc2005();
->  	rx51_init_si4713();
-> +	rx51_init_lirc();
->  	spi_register_board_info(rx51_peripherals_spi_board_info,
->  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
->  
 
 -- 
 Regards,
