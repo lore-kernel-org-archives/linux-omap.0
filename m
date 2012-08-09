@@ -1,52 +1,67 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 0/5] OMAPDSS: Misc Cleanups/Fixes
-Date: Thu, 9 Aug 2012 14:37:05 +0530
-Message-ID: <1344503230-18550-1-git-send-email-archit@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 1/2] cpufreq: OMAP: Handle missing frequency table on SMP systems
+Date: Thu, 9 Aug 2012 11:32:14 +0200
+Message-ID: <201208091132.14992.rjw@sisk.pl>
+References: <1344496102-24451-1-git-send-email-rnayak@ti.com> <1344496102-24451-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45947 "EHLO arroyo.ext.ti.com"
+Received: from ogre.sisk.pl ([193.178.161.156]:50263 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753689Ab2HIJIn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 05:08:43 -0400
+	id S1753998Ab2HIJ0U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 05:26:20 -0400
+In-Reply-To: <1344496102-24451-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: khilman@ti.com
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@vger.kernel.org
 
-These are minor cleanups and fixes which make some of the future work of making
-outputs less dependant a bit easier. Some patches remove a few omap_dss_device
-references which aren't needed any more after the patch:
+On Thursday, August 09, 2012, Rajendra Nayak wrote:
+> On OMAP4, if the first CPU fails to get a valid frequency table (this
+> could happen if the platform does not register any OPP table), the
+> subsequent CPU instances end up dealing with a NULL freq_table and
+> crash.
+> 
+> Check for an already existing freq_table, before trying to create one,
+> and increment the freq_table_users only if the table is sucessfully
+> created.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: <linux-pm@vger.kernel.org>
 
-"OMAPDSS: move clock settings from dssdev to dss pdata"
+Kevin, are you going to merge this?
 
-The rest add locking required in the DPI driver and the generic dpi panel
-driver.
-
-The commits are on the tree:
-
-git://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone.git misc_cleanup_3_7
-
-Changes since v2:
-- Misc patches just taken out from the series which changes the way of passing
-  timings from panel to interace driver.
-
-Archit Taneja (5):
-  OMAPDSS: APPLY: Constify timings argument in dss_mgr_set_timings
-  OMAPDSS: DPI: Remove omap_dss_device arguments in
-    dpi_set_dsi_clk/dpi_set_dispc_clk
-  OMAPDSS: HDMI: Remove omap_dss_device argument from hdmi_compute_pll
-  OMAPDSS: DPI: Add locking for DPI interface
-  OMAPDSS: Displays: Add locking in generic DPI panel driver
+Rafael
 
 
- drivers/video/omap2/displays/panel-generic-dpi.c |   69 +++++++++++++++++++---
- drivers/video/omap2/dss/apply.c                  |    4 +-
- drivers/video/omap2/dss/dpi.c                    |   40 +++++++++----
- drivers/video/omap2/dss/dss.h                    |    2 +-
- drivers/video/omap2/dss/hdmi.c                   |    5 +-
- 5 files changed, 97 insertions(+), 23 deletions(-)
-
--- 
-1.7.9.5
+> ---
+>  drivers/cpufreq/omap-cpufreq.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+> index 17fa04d..b47034e 100644
+> --- a/drivers/cpufreq/omap-cpufreq.c
+> +++ b/drivers/cpufreq/omap-cpufreq.c
+> @@ -218,7 +218,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  
+>  	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
+>  
+> -	if (atomic_inc_return(&freq_table_users) == 1)
+> +	if (!freq_table)
+>  		result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+>  
+>  	if (result) {
+> @@ -227,6 +227,8 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  		goto fail_ck;
+>  	}
+>  
+> +	atomic_inc_return(&freq_table_users);
+> +
+>  	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+>  	if (result)
+>  		goto fail_table;
+> 
 
