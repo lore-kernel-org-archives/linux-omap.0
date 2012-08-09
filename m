@@ -1,63 +1,49 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2] ARM: OMAP4: sleep: Save the complete used register stack frame
-Date: Thu, 9 Aug 2012 12:35:48 +0530
-Message-ID: <1344495948-3490-1-git-send-email-santosh.shilimkar@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/2] OMAP cpufreq fixes
+Date: Thu, 9 Aug 2012 12:38:20 +0530
+Message-ID: <1344496102-24451-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48027 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39400 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754866Ab2HIHFz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 03:05:55 -0400
+	id S1755422Ab2HIHIf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 03:08:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.or, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-OMAP4 sleep entry code even though itself don't use many CPU registers
-makes call to the v7_flush_dcache_all() which uses them. Since
-v7_flush_dcache_all() doesn't make use of stack, the caller must take
-care of the stack frame. Otherwise it will lead to corrupted stack frame.
+Changes in v2:
+Fixed the handling of freq_table_users in Patch 1/2 as
+suggested by Santosh. Patch 2/2 is unchanged.
 
-Fix it by saving used registers.
+Hi Kevin,
 
-Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-v2: Added comment in the code.
+While testing cpufreq on 3.6-rc1, I noticed strange issues on OMAP4,
+like a lockup when booting with 'performace' governer as default,
+and crashes when using 'usespace' (which booted up) and switching
+to higher OPPs.
+It took me a while to realise I was using a 4460 device. The OPPs
+registered though seemed to be for 4430 and hence were causing
+issues on the 4460 device. 
 
- arch/arm/mach-omap2/sleep44xx.S |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+This series basically avoids registering the 4430 OPPs on other
+varients like 4460 and 4470 (and hence causing random issues)
+and also fixes a subsequent bug uncovered by doing this in
+OMAP cpufreq driver.
 
-diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
-index 9f6b83d..91e71d8 100644
---- a/arch/arm/mach-omap2/sleep44xx.S
-+++ b/arch/arm/mach-omap2/sleep44xx.S
-@@ -56,9 +56,13 @@ ppa_por_params:
-  * The restore function pointer is stored at CPUx_WAKEUP_NS_PA_ADDR_OFFSET.
-  * It returns to the caller for CPU INACTIVE and ON power states or in case
-  * CPU failed to transition to targeted OFF/DORMANT state.
-+ *
-+ * omap4_finish_suspend() calls v7_flush_dcache_all() which doesn't save
-+ * stack frame and it expects the caller to take care of it. Hence the entire
-+ * stack frame is saved to avoid possible stack corruption.
-  */
- ENTRY(omap4_finish_suspend)
--	stmfd	sp!, {lr}
-+	stmfd	sp!, {r4-r12, lr}
- 	cmp	r0, #0x0
- 	beq	do_WFI				@ No lowpower state, jump to WFI
- 
-@@ -226,7 +230,7 @@ scu_gp_clear:
- skip_scu_gp_clear:
- 	isb
- 	dsb
--	ldmfd	sp!, {pc}
-+	ldmfd	sp!, {r4-r12, pc}
- ENDPROC(omap4_finish_suspend)
- 
- /*
+regards,
+Rajendra 
+
+Rajendra Nayak (2):
+  cpufreq: OMAP: Handle missing frequency table on SMP systems
+  ARM: OMAP4: Register the OPP table only for 4430 device
+
+ arch/arm/mach-omap2/opp4xxx_data.c |    2 +-
+ drivers/cpufreq/omap-cpufreq.c     |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
 -- 
 1.7.9.5
 
