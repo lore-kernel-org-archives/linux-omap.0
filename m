@@ -1,73 +1,176 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 2/5] OMAPDSS: DPI: Remove omap_dss_device arguments in dpi_set_dsi_clk/dpi_set_dispc_clk
-Date: Thu, 9 Aug 2012 14:37:07 +0530
-Message-ID: <1344503230-18550-3-git-send-email-archit@ti.com>
+Subject: [PATCH v2 5/5] OMAPDSS: Displays: Add locking in generic DPI panel driver
+Date: Thu, 9 Aug 2012 14:37:10 +0530
+Message-ID: <1344503230-18550-6-git-send-email-archit@ti.com>
 References: <1344503230-18550-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51772 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:51787 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045Ab2HIJIy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 05:08:54 -0400
+	with ESMTP id S1755770Ab2HIJJH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 05:09:07 -0400
 In-Reply-To: <1344503230-18550-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The clock related info for DSS modules is not tied anymore to a panel's
-omap_dss_device struct. It's now passed via platform data. The functions
-dpi_set_dsi_clk() and dpi_set_dispc_clk() do not need the omap_dss_device
-argument to retieve these clocks. They use the api dss_get_platform_clock_config
-to get the clocks. Remove the omap_dss_device arguments from these functions.
+The generic DPI panel driver doesn't currently have locking to ensure that
+the display states and the driver data is maintained correctly. Add mutex
+locking to take care of this. Add a new get_timings driver op to override the
+default get_timings op. The new driver op contains locking to ensure the correct
+panel timings are seen when a DSS2 user calls device->driver->get_timings.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dpi.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/video/omap2/displays/panel-generic-dpi.c |   69 +++++++++++++++++++---
+ 1 file changed, 62 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 5fec180..c20fe23 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -80,9 +80,8 @@ static bool dpi_use_dsi_pll(struct omap_dss_device *dssdev)
- 		lcd_src == OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC;
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index bc5af25..69e78a5 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -545,6 +545,8 @@ struct panel_drv_data {
+ 	struct omap_dss_device *dssdev;
+ 
+ 	struct panel_config *panel_config;
++
++	struct mutex lock;
+ };
+ 
+ static inline struct panel_generic_dpi_data
+@@ -634,6 +636,8 @@ static int generic_dpi_panel_probe(struct omap_dss_device *dssdev)
+ 	drv_data->dssdev = dssdev;
+ 	drv_data->panel_config = panel_config;
+ 
++	mutex_init(&drv_data->lock);
++
+ 	dev_set_drvdata(&dssdev->dev, drv_data);
+ 
+ 	return 0;
+@@ -652,56 +656,106 @@ static void __exit generic_dpi_panel_remove(struct omap_dss_device *dssdev)
+ 
+ static int generic_dpi_panel_enable(struct omap_dss_device *dssdev)
+ {
+-	int r = 0;
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&drv_data->lock);
+ 
+ 	r = generic_dpi_panel_power_on(dssdev);
+ 	if (r)
+-		return r;
++		goto err;
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++err:
++	mutex_unlock(&drv_data->lock);
+ 
+-	return 0;
++	return r;
  }
  
--static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
--		unsigned long pck_req, unsigned long *fck, int *lck_div,
--		int *pck_div)
-+static int dpi_set_dsi_clk(unsigned long pck_req, unsigned long *fck,
-+		int *lck_div, int *pck_div)
+ static void generic_dpi_panel_disable(struct omap_dss_device *dssdev)
  {
- 	const struct omapdss_clock_config *clks;
- 	struct dsi_clock_info dsi_cinfo;
-@@ -111,9 +110,8 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev,
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&drv_data->lock);
++
+ 	generic_dpi_panel_power_off(dssdev);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&drv_data->lock);
+ }
+ 
+ static int generic_dpi_panel_suspend(struct omap_dss_device *dssdev)
+ {
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&drv_data->lock);
++
+ 	generic_dpi_panel_power_off(dssdev);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
+ 
++	mutex_unlock(&drv_data->lock);
++
  	return 0;
  }
  
--static int dpi_set_dispc_clk(struct omap_dss_device *dssdev,
--		unsigned long pck_req, unsigned long *fck, int *lck_div,
--		int *pck_div)
-+static int dpi_set_dispc_clk(unsigned long pck_req, unsigned long *fck,
-+		int *lck_div, int *pck_div)
+ static int generic_dpi_panel_resume(struct omap_dss_device *dssdev)
  {
- 	struct dss_clock_info dss_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-@@ -145,10 +143,10 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
- 	int r = 0;
+-	int r = 0;
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&drv_data->lock);
  
- 	if (dpi_use_dsi_pll(dssdev))
--		r = dpi_set_dsi_clk(dssdev, t->pixel_clock * 1000, &fck,
-+		r = dpi_set_dsi_clk(t->pixel_clock * 1000, &fck,
- 				&lck_div, &pck_div);
- 	else
--		r = dpi_set_dispc_clk(dssdev, t->pixel_clock * 1000, &fck,
-+		r = dpi_set_dispc_clk(t->pixel_clock * 1000, &fck,
- 				&lck_div, &pck_div);
+ 	r = generic_dpi_panel_power_on(dssdev);
  	if (r)
- 		return r;
+-		return r;
++		goto err;
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 
+-	return 0;
++err:
++	mutex_unlock(&drv_data->lock);
++
++	return r;
+ }
+ 
+ static void generic_dpi_panel_set_timings(struct omap_dss_device *dssdev,
+ 		struct omap_video_timings *timings)
+ {
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&drv_data->lock);
++
+ 	dpi_set_timings(dssdev, timings);
++
++	mutex_unlock(&drv_data->lock);
++}
++
++static void generic_dpi_panel_get_timings(struct omap_dss_device *dssdev,
++		struct omap_video_timings *timings)
++{
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&drv_data->lock);
++
++	*timings = dssdev->panel.timings;
++
++	mutex_unlock(&drv_data->lock);
+ }
+ 
+ static int generic_dpi_panel_check_timings(struct omap_dss_device *dssdev,
+ 		struct omap_video_timings *timings)
+ {
+-	return dpi_check_timings(dssdev, timings);
++	struct panel_drv_data *drv_data = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&drv_data->lock);
++
++	r = dpi_check_timings(dssdev, timings);
++
++	mutex_unlock(&drv_data->lock);
++
++	return r;
+ }
+ 
+ static struct omap_dss_driver dpi_driver = {
+@@ -714,6 +768,7 @@ static struct omap_dss_driver dpi_driver = {
+ 	.resume		= generic_dpi_panel_resume,
+ 
+ 	.set_timings	= generic_dpi_panel_set_timings,
++	.get_timings	= generic_dpi_panel_get_timings,
+ 	.check_timings	= generic_dpi_panel_check_timings,
+ 
+ 	.driver         = {
 -- 
 1.7.9.5
 
