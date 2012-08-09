@@ -1,102 +1,75 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: Re: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51
- data
-Date: Thu, 09 Aug 2012 17:09:14 +0300
-Message-ID: <5023C48A.2070509@iki.fi>
-References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi> <5023B8E9.6040105@compulab.co.il>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
+ match exists for a hwmod class
+Date: Thu, 9 Aug 2012 14:24:15 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com>
+References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
+ <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
+ <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5023B8E9.6040105@compulab.co.il>
-Sender: linux-media-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39570 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030183Ab2HIOYX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 10:24:23 -0400
+In-Reply-To: <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/09/12 16:19, Igor Grinberg wrote:
-> Hi Timo,
+Hi Paul,
+
+On Thu, Aug 09, 2012 at 01:49:34, Paul Walmsley wrote:
+> Hi Vaibhav
 > 
-> On 08/09/12 15:41, Timo Kokkonen wrote:
->> The IR diode on the RX51 is connected to the GPT9. This data is needed
->> for the IR driver to function.
->>
->> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
->> ---
->>  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
->>  1 files changed, 30 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> index df2534d..4a5a71b 100644
->> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
->> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> @@ -34,6 +34,7 @@
->>  #include <plat/gpmc.h>
->>  #include <plat/onenand.h>
->>  #include <plat/gpmc-smc91x.h>
->> +#include <plat/omap-pm.h>
->>  
->>  #include <mach/board-rx51.h>
->>  
->> @@ -46,6 +47,10 @@
->>  #include <../drivers/staging/iio/light/tsl2563.h>
->>  #include <linux/lis3lv02d.h>
->>  
->> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
->> +#include "../../../drivers/media/rc/ir-rx51.h"
->> +#endif
+> On Wed, 8 Aug 2012, Bedia, Vaibhav wrote:
 > 
-> That is not really nice...
-> You should place the struct lirc_rx51_platform_data and
-> other stuff used outside of the driver in: include/media/
-> so you will not have to add that long and ugly relative path.
+> > On Wed, Aug 08, 2012 at 19:35:50, Paul Walmsley wrote:
+> >
+> > > It doesn't seem to me that this would necessarily always be an error.  
+> > > Suppose some init code to create cpsw devices is running on an OMAP3430.  
+> > > Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
+> > > wouldn't be an error, right?
+> > 
+> > Well, I think a failed lookup operation will be a bit expensive since it
+> > iterates over the whole list of registered hwmods and hence put in the
+> > pr_err().
+> 
+> If performance is a serious problem there, we can maintain a list of hwmod 
+> pointers inside each struct omap_hwmod_class, updated when the hwmods are 
+> registered.  But as far as I know, performance hasn't been an issue here 
+> yet.  If performance is the real motivation, I'd rather see an 
+> implementation of per-class lists as described above.
 > 
 
-Yeah, you're right. I'll change that. Thanks.
+Ok. I'll try to do some profiling using a timer to see how much time we
+spend over here. On AM335x there are 2 such lookups, one for the dma
+and one for the mcbsp. I could get this done today but will get to it
+tomorrow. Based on how this goes I'll try out the omap_hwmod_class list
+like you suggested.
 
--Timo
-
->> +
->>  #include "mux.h"
->>  #include "hsmmc.h"
->>  #include "common-board-devices.h"
->> @@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
->>  				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
->>  }
->>  
->> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
->> +static struct lirc_rx51_platform_data rx51_lirc_data = {
->> +	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
->> +	.pwm_timer = 9, /* Use GPT 9 for CIR */
->> +};
->> +
->> +static struct platform_device rx51_lirc_device = {
->> +	.name           = "lirc_rx51",
->> +	.id             = -1,
->> +	.dev            = {
->> +		.platform_data = &rx51_lirc_data,
->> +	},
->> +};
->> +
->> +static void __init rx51_init_lirc(void)
->> +{
->> +	platform_device_register(&rx51_lirc_device);
->> +}
->> +#else
->> +static void __init rx51_init_lirc(void)
->> +{
->> +}
->> +#endif
->> +
->>  void __init rx51_peripherals_init(void)
->>  {
->>  	rx51_i2c_init();
->> @@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
->>  	rx51_init_wl1251();
->>  	rx51_init_tsc2005();
->>  	rx51_init_si4713();
->> +	rx51_init_lirc();
->>  	spi_register_board_info(rx51_peripherals_spi_board_info,
->>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
->>  
+> > But I don't see how the SoC specific example that you pointed out
+> > could be handled without putting in cpu_is_* checks in the registration
+> > process itself :(
 > 
+> Hmm, why not?
+> 
+> To continue the earlier example, the init code in the platform code simply 
+> calls omap_hwmod_for_each_by_class(), and creates the appropriate device 
+> if anything was found.  If no cpsw IP blocks are present on a given SoC, 
+> nothing would happen.  No cpu_is_*() would be needed.
+> 
+> 
+
+I was thinking of avoiding the lookup process itself and hence mentioned
+the need for cpu checks surrounding the platform init code. The current
+API does help avoid all this in an excellent manner.
+
+Regards,
+Vaibhav B. 
+
