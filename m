@@ -1,67 +1,46 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH] staging: omapdrm: Fix DMM sparse warnings
-Date: Thu, 9 Aug 2012 11:56:16 -0500
-Message-ID: <CAF6AEGtVAGHd__H5_JQ0+FrYTkz7A6C4c1yr_=X_X_KbYuvM4g@mail.gmail.com>
-References: <1344489296-16722-1-git-send-email-andy.gross@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2 1/2] cpufreq: OMAP: Handle missing frequency table on SMP systems
+Date: Thu, 9 Aug 2012 21:32:24 +0200
+Message-ID: <201208092132.25141.rjw@sisk.pl>
+References: <1344496102-24451-1-git-send-email-rnayak@ti.com> <201208091132.14992.rjw@sisk.pl> <87d330glel.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:63211 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab2HIQ4R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 12:56:17 -0400
-Received: by vbbff1 with SMTP id ff1so164617vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Aug 2012 09:56:16 -0700 (PDT)
-In-Reply-To: <1344489296-16722-1-git-send-email-andy.gross@ti.com>
+Received: from ogre.sisk.pl ([193.178.161.156]:51390 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759223Ab2HIT0b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 15:26:31 -0400
+In-Reply-To: <87d330glel.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Gross <andy.gross@ti.com>
-Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, Greg Kroah-Hartman <greg@kroah.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@vger.kernel.org
 
-On Thu, Aug 9, 2012 at 12:14 AM, Andy Gross <andy.gross@ti.com> wrote:
-> Fix the following sparse warnings:
->
-> drivers/staging/omapdrm/omap_dmm_tiler.c:123:13:
->    warning: symbol 'omap_dmm_irq_handler' was not declared.
->    Should it be static?
->
-> drivers/staging/omapdrm/omap_dmm_tiler.c:370:24:
->    warning: Using plain integer as NULL pointer
->
-> Signed-off-by: Andy Gross <andy.gross@ti.com>
+On Thursday, August 09, 2012, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Thursday, August 09, 2012, Rajendra Nayak wrote:
+> >> On OMAP4, if the first CPU fails to get a valid frequency table (this
+> >> could happen if the platform does not register any OPP table), the
+> >> subsequent CPU instances end up dealing with a NULL freq_table and
+> >> crash.
+> >> 
+> >> Check for an already existing freq_table, before trying to create one,
+> >> and increment the freq_table_users only if the table is sucessfully
+> >> created.
+> >> 
+> >> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> Cc: <linux-pm@vger.kernel.org>
+> >
+> > Kevin, are you going to merge this?
+> >
+> 
+> Yes, I plan to queue this with 2/2 for v3.6-rc.
 
-Signed-off-by: Rob Clark <rob.clark@linaro.org>
+If you have any cpufreq patches for v3.7, can you please tell me where to
+pull them from (and when)?
 
-> ---
->  drivers/staging/omapdrm/omap_dmm_tiler.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
-> index 8619783..ec7a5c8 100644
-> --- a/drivers/staging/omapdrm/omap_dmm_tiler.c
-> +++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
-> @@ -120,7 +120,7 @@ static int wait_status(struct refill_engine *engine, uint32_t wait_mask)
->         return 0;
->  }
->
-> -irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
-> +static irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
->  {
->         struct dmm *dmm = arg;
->         uint32_t status = readl(dmm->base + DMM_PAT_IRQSTATUS);
-> @@ -367,7 +367,7 @@ struct tiler_block *tiler_reserve_1d(size_t size)
->         int num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
->
->         if (!block)
-> -               return 0;
-> +               return ERR_PTR(-ENOMEM);
->
->         block->fmt = TILFMT_PAGE;
->
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
