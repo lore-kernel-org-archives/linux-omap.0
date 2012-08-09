@@ -1,32 +1,102 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 3/4] ARM: OMAP3: Switch to use the unified audio driver
- (omap-twl4030) for selected boards
-Date: Thu, 09 Aug 2012 16:12:13 +0300
-Message-ID: <5023B72D.9030005@compulab.co.il>
-References: <1344419650-5389-1-git-send-email-peter.ujfalusi@ti.com> <1344419650-5389-4-git-send-email-peter.ujfalusi@ti.com> <50225A84.5010008@compulab.co.il> <50225BB5.3000407@ti.com> <50226444.4060100@compulab.co.il> <50238F37.2030302@ti.com>
+Subject: Re: [PATCH 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51
+ data
+Date: Thu, 09 Aug 2012 16:19:37 +0300
+Message-ID: <5023B8E9.6040105@compulab.co.il>
+References: <1344516086-24615-1-git-send-email-timo.t.kokkonen@iki.fi> <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:51577 "EHLO
+Received: from softlayer.compulab.co.il ([50.23.254.55]:51234 "EHLO
 	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752310Ab2HINM0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Aug 2012 09:12:26 -0400
-In-Reply-To: <50238F37.2030302@ti.com>
+	id S1756889Ab2HINTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Aug 2012 09:19:44 -0400
+In-Reply-To: <1344516086-24615-3-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>, Anuj Aggarwal <anuj.aggarwal@ti.com>, devicetree-discuss@lists.ozlabs.org
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-On 08/09/12 13:21, Peter Ujfalusi wrote:
-> On 08/08/2012 04:06 PM, Igor Grinberg wrote:
->> Well, yes I know we will need to adjust the user space.
->> I wanted to change that for a long time and did not get to it...
->> Now, with your patches, it seems like the best time for doing this.
+Hi Timo,
+
+On 08/09/12 15:41, Timo Kokkonen wrote:
+> The IR diode on the RX51 is connected to the GPT9. This data is needed
+> for the IR driver to function.
 > 
-> Done for the v2. You will have card named "cm-t3x".
+> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
+>  1 files changed, 30 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index df2534d..4a5a71b 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -34,6 +34,7 @@
+>  #include <plat/gpmc.h>
+>  #include <plat/onenand.h>
+>  #include <plat/gpmc-smc91x.h>
+> +#include <plat/omap-pm.h>
+>  
+>  #include <mach/board-rx51.h>
+>  
+> @@ -46,6 +47,10 @@
+>  #include <../drivers/staging/iio/light/tsl2563.h>
+>  #include <linux/lis3lv02d.h>
+>  
+> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+> +#include "../../../drivers/media/rc/ir-rx51.h"
+> +#endif
 
-Thanks!
+That is not really nice...
+You should place the struct lirc_rx51_platform_data and
+other stuff used outside of the driver in: include/media/
+so you will not have to add that long and ugly relative path.
+
+> +
+>  #include "mux.h"
+>  #include "hsmmc.h"
+>  #include "common-board-devices.h"
+> @@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
+>  				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
+>  }
+>  
+> +#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+> +static struct lirc_rx51_platform_data rx51_lirc_data = {
+> +	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+> +	.pwm_timer = 9, /* Use GPT 9 for CIR */
+> +};
+> +
+> +static struct platform_device rx51_lirc_device = {
+> +	.name           = "lirc_rx51",
+> +	.id             = -1,
+> +	.dev            = {
+> +		.platform_data = &rx51_lirc_data,
+> +	},
+> +};
+> +
+> +static void __init rx51_init_lirc(void)
+> +{
+> +	platform_device_register(&rx51_lirc_device);
+> +}
+> +#else
+> +static void __init rx51_init_lirc(void)
+> +{
+> +}
+> +#endif
+> +
+>  void __init rx51_peripherals_init(void)
+>  {
+>  	rx51_i2c_init();
+> @@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
+>  	rx51_init_wl1251();
+>  	rx51_init_tsc2005();
+>  	rx51_init_si4713();
+> +	rx51_init_lirc();
+>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+>  
 
 -- 
 Regards,
