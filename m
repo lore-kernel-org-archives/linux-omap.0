@@ -1,87 +1,87 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH v2 3/3] ARM: OMAP: omap_device: idle devices with no driver bound
-Date: Fri, 10 Aug 2012 11:39:13 -0700
-Message-ID: <1344623953-26434-4-git-send-email-khilman@ti.com>
+Subject: [PATCH v2 1/3] ARM: OMAP: omap_device: keep track of driver bound status
+Date: Fri, 10 Aug 2012 11:39:11 -0700
+Message-ID: <1344623953-26434-2-git-send-email-khilman@ti.com>
 References: <1344623953-26434-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:47888 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759914Ab2HJSjT (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39367 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759915Ab2HJSjT (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Fri, 10 Aug 2012 14:39:19 -0400
-Received: by pbbro8 with SMTP id ro8so2658191pbb.10
-        for <linux-omap@vger.kernel.org>; Fri, 10 Aug 2012 11:39:18 -0700 (PDT)
+Received: by yhmm54 with SMTP id m54so2073723yhm.33
+        for <linux-omap@vger.kernel.org>; Fri, 10 Aug 2012 11:39:16 -0700 (PDT)
 In-Reply-To: <1344623953-26434-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Under some circumstances, drivers may leave an omap_device enabled due
-to driver programming errors, or due to a failure in the drivers
-probe method.
+Use the bus notifier to keep track of driver bound status by adding a
+new internal field to struct omap_device: _driver_status.
 
-Using the recently added omap_device driver_status field, we can
-detect conditions where an omap_device is enabled but has no driver
-bound and then ensure that the device is properly idled until it can
-be probed again.
-
-The goal of this feature is not only to detect and warn on these error
-conditions, but also to ensure that devices are properly put in
-low-power states so they do not prevent SoC-wide low-power states.
+This will be useful for follow-up patches which need to know whether
+or not a driver is bound in order to make intelligent omap_device
+enable/idle decisions.
 
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/omap_device.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+ arch/arm/plat-omap/omap_device.c              |   14 +++++++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 4327b2c..e7259c0 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -60,6 +60,7 @@ extern struct dev_pm_domain omap_device_pm_domain;
+  * @_dev_wakeup_lat_limit: dev wakeup latency limit in nsec - set by OMAP PM
+  * @_state: one of OMAP_DEVICE_STATE_* (see above)
+  * @flags: device flags
++ * @_driver_status: one of BUS_NOTIFY_*_DRIVER from <linux/device.h>
+  *
+  * Integrates omap_hwmod data into Linux platform_device.
+  *
+@@ -73,6 +74,7 @@ struct omap_device {
+ 	struct omap_device_pm_latency	*pm_lats;
+ 	u32				dev_wakeup_lat;
+ 	u32				_dev_wakeup_lat_limit;
++	unsigned long			_driver_status;
+ 	u8				pm_lats_cnt;
+ 	s8				pm_lat_level;
+ 	u8				hwmods_cnt;
 diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 150112e..0693260 100644
+index c490240..1d1b5ff 100644
 --- a/arch/arm/plat-omap/omap_device.c
 +++ b/arch/arm/plat-omap/omap_device.c
-@@ -1133,3 +1133,41 @@ static int __init omap_device_init(void)
- 	return 0;
- }
- core_initcall(omap_device_init);
-+
-+/**
-+ * omap_device_late_idle - idle devices without drivers
-+ * @dev: struct device * associated with omap_device
-+ * @data: unused
-+ *
-+ * Check the driver bound status of this device, and idle it
-+ * if there is no driver attached.
-+ */
-+static int __init omap_device_late_idle(struct device *dev, void *data)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omap_device *od = to_omap_device(pdev);
-+
-+	if (!od)
-+		return 0;
-+
-+	/*
-+	 * If omap_device state is enabled, but has no driver bound,
-+	 * idle it.
-+	 */
-+	if (od->_driver_status != BUS_NOTIFY_BOUND_DRIVER) {
-+		if (od->_state == OMAP_DEVICE_STATE_ENABLED) {
-+			dev_warn(dev, "%s: enabled but no driver.  Idling\n",
-+				__func__);
-+			omap_device_idle(pdev);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init omap_device_late_init(void)
-+{
-+	bus_for_each_dev(&platform_bus_type, NULL, NULL, omap_device_late_idle);
-+	return 0;
-+}
-+late_initcall(omap_device_late_init);
+@@ -385,17 +385,21 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+ 				      unsigned long event, void *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *od;
+ 
+ 	switch (event) {
+-	case BUS_NOTIFY_ADD_DEVICE:
+-		if (pdev->dev.of_node)
+-			omap_device_build_from_dt(pdev);
+-		break;
+-
+ 	case BUS_NOTIFY_DEL_DEVICE:
+ 		if (pdev->archdata.od)
+ 			omap_device_delete(pdev->archdata.od);
+ 		break;
++	case BUS_NOTIFY_ADD_DEVICE:
++		if (pdev->dev.of_node)
++			omap_device_build_from_dt(pdev);
++		/* fall through */
++	default:
++		od = to_omap_device(pdev);
++		if (od)
++			od->_driver_status = event;
+ 	}
+ 
+ 	return NOTIFY_DONE;
 -- 
 1.7.9.2
 
