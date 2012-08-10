@@ -1,26 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/11] ARM: OMAP/ASoC: Zoom2: Let the codec to handle
- the hs_extmute GPIO
-Date: Thu, 9 Aug 2012 23:28:00 -0700
-Message-ID: <20120810062800.GO11011@atomide.com>
-References: <1344418887-5262-1-git-send-email-peter.ujfalusi@ti.com>
- <1344418887-5262-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP: twl-common: Add helper
+ function to register the omap-twl4030 audio driver
+Date: Thu, 9 Aug 2012 23:29:17 -0700
+Message-ID: <20120810062916.GP11011@atomide.com>
+References: <1344419650-5389-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344419650-5389-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51259 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355Ab2HJG2J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 02:28:09 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1344418887-5262-8-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1344419650-5389-3-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Dmitry Torokhov <dtor@mail.ru>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+Cc: alsa-devel@alsa-project.org, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Anuj Aggarwal <anuj.aggarwal@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
+List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120808 02:42]:
-> Remove the use of set_hs_extmute callback and let the codec driver to
-> handle the extmute GPIO.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120808 02:54]:
+> Since several OMAP3 based boards will be using the unified simple audio
+> driver it is better to not have duplicated code in the board files for this
+> purpose.
+> Board files can call omap_twl4030_audio_init(); to set up the needed device
+> for the audio support.
+> 
+> For example:
+> omap_twl4030_audio_init("omap3beagle", 26000000);
 
 Acked-by: Tony Lindgren <tony@atomide.com>
