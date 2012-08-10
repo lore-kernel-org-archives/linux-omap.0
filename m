@@ -1,66 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
- match exists for a hwmod class
-Date: Fri, 10 Aug 2012 09:49:37 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1208100946340.11420@utopia.booyaka.com>
-References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com> <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com> <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com> <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
- <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com> <B5906170F1614E41A8A28DE3B8D121433EB375A9@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] ARM: OMAP: PM fixes for v3.6-rc
+Date: Fri, 10 Aug 2012 10:44:42 -0700
+Message-ID: <878vdmfxpx.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41219 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842Ab2HJPti (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 11:49:38 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB375A9@DBDE01.ent.ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48236 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758616Ab2HJRop (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Aug 2012 13:44:45 -0400
+Received: by yenl7 with SMTP id l7so2219626yen.13
+        for <linux-omap@vger.kernel.org>; Fri, 10 Aug 2012 10:44:44 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hello Vaibhav
+Tony,
 
-On Fri, 10 Aug 2012, Bedia, Vaibhav wrote:
+Please pull the following PM related fixes for v3.6-rc.
 
-> > Ok. I'll try to do some profiling using a timer to see how much time we
-> > spend over here. On AM335x there are 2 such lookups, one for the dma
-> > and one for the mcbsp. I could get this done today but will get to it
-> > tomorrow. Based on how this goes I'll try out the omap_hwmod_class list
-> > like you suggested.
-> 
-> I used a dmtimer clocked at 24MHz (41ns resolution) to get the time
-> spent in the lookup. There are two failed lookups that happen in AM335x
-> and following are the times taken
-> 
-> Run1
-> Lookup for dma - 435 cycles -> 17.835 usecs
-> Lookup for mcbsp - 83 cycles -> 3.4 usecs
-> 
-> Run2
-> Lookup for dma - 503 cycles -> 20.623 usecs
-> Lookup for mcbsp - 90 cycles -> 3.69 usescs
-> 
-> Run3
-> Lookup for dma - 375 cycles -> 15.375 usecs
-> Lookup for mcbsp - 91 cycles -> 3.731 usecs
-> 
-> The 2nd lookup happens immediately after the 1st one so probably
-> the difference is coming due to the data sitting in the cache?
-> 
-> The average times don't look too high to me but I guess you already
-> knew that ;)
-> 
-> If you are ok with a pr_debug() instead of a pr_err() I'll resubmit
-> the patch with this change.
+One of them is a fix for drivers/cpufreq/omap-cpufreq.c, but it needs to
+go along with the arch/arm change.  I'm listed in MAINTAINERS for the
+OMAP CPUfreq driver now, so this should be OK.
 
-Well I'd much rather see a patch that maintains a list of hwmods 
-pertaining to each class.  That would solve the performance issue at 
-fairly minimal cost (especially if those lists were freed after kernel 
-init). 
+Kevin
 
-It sounds like the basic difference in opinion is about whether an 
-omap_hwmod_for_each_by_class() that doesn't find anything is an error 
-condition or not.  My sense is that it is not.
+The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
 
+  Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
 
-- Paul
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.6/fixes/pm
+
+for you to fetch changes up to 196449de0c886e64b48d01bd7ee153656db92884:
+
+  ARM: OMAP4: Register the OPP table only for 4430 device (2012-08-09 08:07:54 -0700)
+
+----------------------------------------------------------------
+Kevin Hilman (2):
+      ARM: OMAP3: TWL4030: ensure sys_nirq1 is mux'd and wakeup enabled
+      Revert "ARM: OMAP3: PM: call pre/post transition per powerdomain"
+
+Rajendra Nayak (2):
+      cpufreq: OMAP: Handle missing frequency table on SMP systems
+      ARM: OMAP4: Register the OPP table only for 4430 device
+
+Santosh Shilimkar (1):
+      ARM: OMAP4: sleep: Save the complete used register stack frame
+
+ arch/arm/mach-omap2/opp4xxx_data.c |    2 +-
+ arch/arm/mach-omap2/pm34xx.c       |   19 ++++---------------
+ arch/arm/mach-omap2/sleep44xx.S    |    8 ++++++--
+ arch/arm/mach-omap2/twl-common.c   |    1 +
+ drivers/cpufreq/omap-cpufreq.c     |    4 +++-
+ 5 files changed, 15 insertions(+), 19 deletions(-)
