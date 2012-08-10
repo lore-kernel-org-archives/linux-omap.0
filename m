@@ -1,81 +1,74 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
- match exists for a hwmod class
-Date: Fri, 10 Aug 2012 15:21:57 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB375A9@DBDE01.ent.ti.com>
-References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
- <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
- <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
- <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 08/11] ARM: OMAP3: Remove callback for
+ McBSP sidetone ICLK workaround
+Date: Fri, 10 Aug 2012 18:39:11 +0300
+Message-ID: <50252B1F.2040107@ti.com>
+References: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344417101-5015-9-git-send-email-peter.ujfalusi@ti.com>
+ <502268B1.9040506@bitmer.com> <50227104.3040506@ti.com>
+ <502505D4.2030308@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33967 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758656Ab2HJPWH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 11:22:07 -0400
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <502505D4.2030308@bitmer.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Paul,
+Hi Jarkko,
 
-[...]
+On 08/10/2012 04:00 PM, Jarkko Nikula wrote:
+> I got some odd current consumption results from Beagle to really compare
+> different kernel versions but I was able get sensible results from N900.
 
-> > > On Wed, Aug 08, 2012 at 19:35:50, Paul Walmsley wrote:
-> > >
-> > > > It doesn't seem to me that this would necessarily always be an error.  
-> > > > Suppose some init code to create cpsw devices is running on an OMAP3430.  
-> > > > Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
-> > > > wouldn't be an error, right?
-> > > 
-> > > Well, I think a failed lookup operation will be a bit expensive since it
-> > > iterates over the whole list of registered hwmods and hence put in the
-> > > pr_err().
-> > 
-> > If performance is a serious problem there, we can maintain a list of hwmod 
-> > pointers inside each struct omap_hwmod_class, updated when the hwmods are 
-> > registered.  But as far as I know, performance hasn't been an issue here 
-> > yet.  If performance is the real motivation, I'd rather see an 
-> > implementation of per-class lists as described above.
-> > 
-> 
-> Ok. I'll try to do some profiling using a timer to see how much time we
-> spend over here. On AM335x there are 2 such lookups, one for the dma
-> and one for the mcbsp. I could get this done today but will get to it
-> tomorrow. Based on how this goes I'll try out the omap_hwmod_class list
-> like you suggested.
-> 
+I still use my n900 as a main phone so I can not really hack on it :(
 
-I used a dmtimer clocked at 24MHz (41ns resolution) to get the time
-spent in the lookup. There are two failed lookups that happen in AM335x
-and following are the times taken
+> I tested your set on top of 196973c of sound.git.
+> =
 
-Run1
-Lookup for dma - 435 cycles -> 17.835 usecs
-Lookup for mcbsp - 83 cycles -> 3.4 usecs
+> First consumption when using threshold based transfer has remained the
+> same between 2.6.38-3.6.0-rc1 (wau!).
 
-Run2
-Lookup for dma - 503 cycles -> 20.623 usecs
-Lookup for mcbsp - 90 cycles -> 3.69 usescs
+Cool!
 
-Run3
-Lookup for dma - 375 cycles -> 15.375 usecs
-Lookup for mcbsp - 91 cycles -> 3.731 usecs
+> Active sidetone under "arecord -f
+> dat >/dev/null |aplay -f dat /dev/zero" test increases consumption from
+> plain playback about 17 mA in 3.4 and 3.6.0-rc1.
+> =
 
-The 2nd lookup happens immediately after the 1st one so probably
-the difference is coming due to the data sitting in the cache?
+> With your set applied consumption increases 28 mA when the sidetone is
+> active (i.e. +11 mA higher than on top of 196973c). Plain threshold
+> based playback remains still the same.
 
-The average times don't look too high to me but I guess you already
-knew that ;)
+Oh. 11mA is huge... Really strange. I would expected smaller (actually zero)
+difference since in essence both workaround should be doing the same.
+Only if the OMAP pm core making different decisions runtime when it see that
+the no-idle is selected in the SYSCONFIG register of McBSP2. But the
+autogating of clocks should work without SW.
 
-If you are ok with a pr_debug() instead of a pr_err() I'll resubmit
-the patch with this change.
+So it seams that we need to do this down at PRCM level?
 
-Regards,
-Vaibhav B.
+>> I'm doing the same test on BeagleBoard, but this thing does not want to =
+hit
+>> retention despite all the effort :(
+>>
+> Could it be display subsystem which keeps it active? At least on N900 I
+> need to get DSS drivers activated in order to be able to blank the
+> display after bootloader and thus be able to reach the retention idle.
+
+I tried that as well, but nothing helps. It must be something else which I
+have overlooked...
+
+-- =
+
+P=E9ter
