@@ -1,55 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 1/2] cpufreq: OMAP: Handle missing frequency table on SMP systems
-Date: Thu, 09 Aug 2012 14:25:39 -0700
-Message-ID: <874nobhi5o.fsf@ti.com>
-References: <1344496102-24451-1-git-send-email-rnayak@ti.com>
-	<201208091132.14992.rjw@sisk.pl> <87d330glel.fsf@ti.com>
-	<201208092132.25141.rjw@sisk.pl>
+From: Axel Lin <axel.lin@gmail.com>
+Subject: [PATCH 5/6] regulator: twl: Remove get_voltage implementation for
+ single voltage regulators
+Date: Fri, 10 Aug 2012 09:37:09 +0800
+Message-ID: <1344562629.2996.5.camel@phoenix>
+References: <1344562353.2996.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:47371 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753544Ab2HIVZm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Aug 2012 17:25:42 -0400
-Received: by pbbrp2 with SMTP id rp2so1425157pbb.41
-        for <linux-omap@vger.kernel.org>; Thu, 09 Aug 2012 14:25:41 -0700 (PDT)
-In-Reply-To: <201208092132.25141.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Thu, 9 Aug 2012 21:32:24 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344562353.2996.1.camel@phoenix>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, loml <linux-omap@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-pm@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+This is not required after commit f7df20ec
+"regulator: core: Use list_voltage() to read single voltage regulators"
 
-> On Thursday, August 09, 2012, Kevin Hilman wrote:
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->> 
->> > On Thursday, August 09, 2012, Rajendra Nayak wrote:
->> >> On OMAP4, if the first CPU fails to get a valid frequency table (this
->> >> could happen if the platform does not register any OPP table), the
->> >> subsequent CPU instances end up dealing with a NULL freq_table and
->> >> crash.
->> >> 
->> >> Check for an already existing freq_table, before trying to create one,
->> >> and increment the freq_table_users only if the table is sucessfully
->> >> created.
->> >> 
->> >> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> >> Cc: <linux-pm@vger.kernel.org>
->> >
->> > Kevin, are you going to merge this?
->> >
->> 
->> Yes, I plan to queue this with 2/2 for v3.6-rc.
->
-> If you have any cpufreq patches for v3.7, can you please tell me where to
-> pull them from (and when)?
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+ drivers/regulator/twl-regulator.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-Yes, I will. 
-
-Thanks,
-
-Kevin
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index f2f49e2..2d9a2a8 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -624,18 +624,9 @@ static int twlfixed_list_voltage(struct regulator_dev *rdev, unsigned index)
+ 	return info->min_mV * 1000;
+ }
+ 
+-static int twlfixed_get_voltage(struct regulator_dev *rdev)
+-{
+-	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+-
+-	return info->min_mV * 1000;
+-}
+-
+ static struct regulator_ops twl4030fixed_ops = {
+ 	.list_voltage	= twlfixed_list_voltage,
+ 
+-	.get_voltage	= twlfixed_get_voltage,
+-
+ 	.enable		= twl4030reg_enable,
+ 	.disable	= twl4030reg_disable,
+ 	.is_enabled	= twl4030reg_is_enabled,
+@@ -648,8 +639,6 @@ static struct regulator_ops twl4030fixed_ops = {
+ static struct regulator_ops twl6030fixed_ops = {
+ 	.list_voltage	= twlfixed_list_voltage,
+ 
+-	.get_voltage	= twlfixed_get_voltage,
+-
+ 	.enable		= twl6030reg_enable,
+ 	.disable	= twl6030reg_disable,
+ 	.is_enabled	= twl6030reg_is_enabled,
+-- 
+1.7.9.5
