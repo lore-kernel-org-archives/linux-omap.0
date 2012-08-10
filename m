@@ -1,43 +1,121 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 00/11] ARM/ASoC: OMAP McBSP device tree
-	support
-Date: Fri, 10 Aug 2012 16:15:26 +0300
-Message-ID: <5025096E.8030300@bitmer.com>
-References: <1344417101-5015-1-git-send-email-peter.ujfalusi@ti.com>
- <20120808112132.GN16861@opensource.wolfsonmicro.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Fri, 10 Aug 2012 17:05:58 +0300
+Message-ID: <1344607558-15481-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120808112132.GN16861@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:51296 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756320Ab2HJOGV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 10:06:21 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: khilman@ti.com, paul@pwswan.com, jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-On 08/08/2012 02:21 PM, Mark Brown wrote:
-> On Wed, Aug 08, 2012 at 12:11:30PM +0300, Peter Ujfalusi wrote:
-> 
->> The series changes McBSP related files mostly. It would be great if the whole
->> series could go via audio tree (if the patches are OK and it is fine by Tony).
-> 
-> I'm OK with all the patches, if Tony's happy with me applying them then
-> I'll put them in a separate branch so they can easily be merged into the
-> OMAP trees (or similarly if it's applied in an OMAP tree having a branch
-> I can merge if needed would be good).
+gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
 
-I suppose we could apply 1/11, 3-6/11 and 9-10 right away (2/11 perhaps
-should go near 11/11?) and apply 7-8/11 (sidetone patches that increase
-consumption) later?
+[   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+[   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+[   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
 
-My ack to patches 1, 3-6 and 9-10:
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/clock.c       |    9 ++++++---
+ arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+ arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index ea3f565..06747b6 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+ 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+ 
+ 	if (clk->ops && clk->ops->disable) {
+-		trace_clock_disable(clk->name, 0, smp_processor_id());
++		trace_clock_disable(clk->name, 0, get_cpu());
++		put_cpu();
+ 		clk->ops->disable(clk);
+ 	}
+ 
+@@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+ 	}
+ 
+ 	if (clk->ops && clk->ops->enable) {
+-		trace_clock_enable(clk->name, 1, smp_processor_id());
++		trace_clock_enable(clk->name, 1, get_cpu());
++		put_cpu();
+ 		ret = clk->ops->enable(clk);
+ 		if (ret) {
+ 			WARN(1, "clock: %s: could not enable: %d\n",
+@@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+ 	if (clk->set_rate) {
+-		trace_clock_set_rate(clk->name, rate, smp_processor_id());
++		trace_clock_set_rate(clk->name, rate, get_cpu());
++		put_cpu();
+ 		ret = clk->set_rate(clk, rate);
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e4fc88c..81fec2e 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -357,18 +357,22 @@ void omap_sram_idle(void)
+ 
+ static void omap3_pm_idle(void)
+ {
++	unsigned cpu;
++
+ 	local_fiq_disable();
+ 
+ 	if (omap_irq_pending())
+ 		goto out;
+ 
+-	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+-	trace_cpu_idle(1, smp_processor_id());
++	cpu = get_cpu();
++	trace_power_start(POWER_CSTATE, 1, cpu);
++	trace_cpu_idle(1, cpu);
+ 
+ 	omap_sram_idle();
+ 
+-	trace_power_end(smp_processor_id());
+-	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
++	trace_power_end(cpu);
++	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
++	put_cpu();
+ 
+ out:
+ 	local_fiq_enable();
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 69b36e1..138bf86 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 				       ((state & OMAP_POWERSTATE_MASK) << 8) |
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+ 			trace_power_domain_target(pwrdm->name, trace_state,
+-						  smp_processor_id());
++						  get_cpu());
++			put_cpu();
+ 		}
+ 		break;
+ 	default:
+@@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+ 		trace_power_domain_target(pwrdm->name, pwrst,
+-					  smp_processor_id());
++					  get_cpu());
++		put_cpu();
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
+-- 
+1.7.4.1
+
