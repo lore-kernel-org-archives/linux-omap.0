@@ -1,59 +1,89 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCH 0/2] Add Nokia N900 (RX51) IR diode support
-Date: Fri, 10 Aug 2012 13:16:35 +0300
-Message-ID: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
+Subject: [PATCHv2 2/2] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
+Date: Fri, 10 Aug 2012 13:16:37 +0300
+Message-ID: <1344593797-15819-3-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mta-out.inet.fi ([195.156.147.13]:51185 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752021Ab2HJKQm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Aug 2012 06:16:42 -0400
+In-Reply-To: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-List-Id: linux-omap@vger.kernel.org
 
-These patches add the support for sending IR remote controller codes
-on the Nokia N900 phone. The code is taken from the public N900 kernel
-release and modified to work with today's kernel.
+The IR diode on the RX51 is connected to the GPT9. This data is needed
+for the IR driver to function.
 
-The code has been tested with a real Nokia N900 device and confirmed
-to work. I can identify only one known issue; The IR pulses being sent
-become *veeery* long if the device chooses to go into any sleep modes
-during transmitting the IR pulses. The driver makes an attempt to set
-up PM latency constraints, but apparently those don't apply as there
-is currently only no-op PM layer available. Therefore, I guess this
-driver doesn't actually work properly unless there is some background
-load that prevents the device from enterint sleep modes or the sleep
-modes are disabled altogether. However, once a proper PM layer
-implementation becomes available, I expect this problem to resolve
-itself. The same code used to work with the actual N900 kernel that
-has those implemented.
-
-Any comments regarding the patches are welcome.
-
-I guess media list won't take in omap patches and omap list doesn't
-take media patches. So I wrote the patches so that they can be applied
-independently. If you want me to remove the #ifdef hacks from the
-board file (that is needed to break the build dependency between the
-patches), then the ir-rx51.c patch needs to be applied before the
-board file patch. But I though it would be more flexible this way. I'm
-open to suggestions on how you are willing to accept the patches.
-
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
-Changes since v1:
-
-- Move ir-rx51.h into include/media directory
-
-
-Timo Kokkonen (2):
-  media: rc: Introduce RX51 IR transmitter driver
-  ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++
- drivers/media/rc/Kconfig                     |   10 +
- drivers/media/rc/Makefile                    |    1 +
- drivers/media/rc/ir-rx51.c                   |  496 ++++++++++++++++++++++++++
- include/media/ir-rx51.h                      |   10 +
- 5 files changed, 547 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/rc/ir-rx51.c
- create mode 100644 include/media/ir-rx51.h
-
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index df2534d..ca07264 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -34,6 +34,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
++#include <plat/omap-pm.h>
+ 
+ #include <mach/board-rx51.h>
+ 
+@@ -46,6 +47,10 @@
+ #include <../drivers/staging/iio/light/tsl2563.h>
+ #include <linux/lis3lv02d.h>
+ 
++#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
++#include <media/ir-rx51.h>
++#endif
++
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "common-board-devices.h"
+@@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
+ 				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
+ }
+ 
++#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
++static struct lirc_rx51_platform_data rx51_lirc_data = {
++	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
++	.pwm_timer = 9, /* Use GPT 9 for CIR */
++};
++
++static struct platform_device rx51_lirc_device = {
++	.name           = "lirc_rx51",
++	.id             = -1,
++	.dev            = {
++		.platform_data = &rx51_lirc_data,
++	},
++};
++
++static void __init rx51_init_lirc(void)
++{
++	platform_device_register(&rx51_lirc_device);
++}
++#else
++static void __init rx51_init_lirc(void)
++{
++}
++#endif
++
+ void __init rx51_peripherals_init(void)
+ {
+ 	rx51_i2c_init();
+@@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
+ 	rx51_init_wl1251();
+ 	rx51_init_tsc2005();
+ 	rx51_init_si4713();
++	rx51_init_lirc();
+ 	spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+ 
 -- 
 1.7.8.6
+
