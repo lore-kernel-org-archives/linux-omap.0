@@ -1,58 +1,74 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH 5/6] regulator: twl: Remove get_voltage implementation for
- single voltage regulators
-Date: Fri, 10 Aug 2012 09:37:09 +0800
-Message-ID: <1344562629.2996.5.camel@phoenix>
-References: <1344562353.2996.1.camel@phoenix>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH] staging: omapdrm: Fix DMM sparse warnings
+Date: Fri, 10 Aug 2012 11:29:34 +0530
+Message-ID: <CAB2ybb8n9QToFvPEMEXUgHk4U_1ucd9bJT4UJfbGG+nac021sA@mail.gmail.com>
+References: <1344489296-16722-1-git-send-email-andy.gross@ti.com> <CAF6AEGtVAGHd__H5_JQ0+FrYTkz7A6C4c1yr_=X_X_KbYuvM4g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344562353.2996.1.camel@phoenix>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, loml <linux-omap@vger.kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:51359 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753002Ab2HJF74 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Aug 2012 01:59:56 -0400
+Received: by pbbrp2 with SMTP id rp2so2235393pbb.13
+        for <linux-omap@vger.kernel.org>; Thu, 09 Aug 2012 22:59:55 -0700 (PDT)
+In-Reply-To: <CAF6AEGtVAGHd__H5_JQ0+FrYTkz7A6C4c1yr_=X_X_KbYuvM4g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Andy Gross <andy.gross@ti.com>, Greg Kroah-Hartman <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 
-This is not required after commit f7df20ec
-"regulator: core: Use list_voltage() to read single voltage regulators"
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/regulator/twl-regulator.c |   11 -----------
- 1 file changed, 11 deletions(-)
-
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index f2f49e2..2d9a2a8 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -624,18 +624,9 @@ static int twlfixed_list_voltage(struct regulator_dev *rdev, unsigned index)
- 	return info->min_mV * 1000;
- }
- 
--static int twlfixed_get_voltage(struct regulator_dev *rdev)
--{
--	struct twlreg_info	*info = rdev_get_drvdata(rdev);
--
--	return info->min_mV * 1000;
--}
--
- static struct regulator_ops twl4030fixed_ops = {
- 	.list_voltage	= twlfixed_list_voltage,
- 
--	.get_voltage	= twlfixed_get_voltage,
--
- 	.enable		= twl4030reg_enable,
- 	.disable	= twl4030reg_disable,
- 	.is_enabled	= twl4030reg_is_enabled,
-@@ -648,8 +639,6 @@ static struct regulator_ops twl4030fixed_ops = {
- static struct regulator_ops twl6030fixed_ops = {
- 	.list_voltage	= twlfixed_list_voltage,
- 
--	.get_voltage	= twlfixed_get_voltage,
--
- 	.enable		= twl6030reg_enable,
- 	.disable	= twl6030reg_disable,
- 	.is_enabled	= twl6030reg_is_enabled,
--- 
-1.7.9.5
+On Thu, Aug 9, 2012 at 10:26 PM, Rob Clark <rob.clark@linaro.org> wrote:
+> On Thu, Aug 9, 2012 at 12:14 AM, Andy Gross <andy.gross@ti.com> wrote:
+>> Fix the following sparse warnings:
+>>
+>> drivers/staging/omapdrm/omap_dmm_tiler.c:123:13:
+>>    warning: symbol 'omap_dmm_irq_handler' was not declared.
+>>    Should it be static?
+>>
+>> drivers/staging/omapdrm/omap_dmm_tiler.c:370:24:
+>>    warning: Using plain integer as NULL pointer
+>>
+>> Signed-off-by: Andy Gross <andy.gross@ti.com>
+>
+> Signed-off-by: Rob Clark <rob.clark@linaro.org>
+Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
+>
+>> ---
+>>  drivers/staging/omapdrm/omap_dmm_tiler.c |    4 ++--
+>>  1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.c b/drivers/staging/omapdrm/omap_dmm_tiler.c
+>> index 8619783..ec7a5c8 100644
+>> --- a/drivers/staging/omapdrm/omap_dmm_tiler.c
+>> +++ b/drivers/staging/omapdrm/omap_dmm_tiler.c
+>> @@ -120,7 +120,7 @@ static int wait_status(struct refill_engine *engine, uint32_t wait_mask)
+>>         return 0;
+>>  }
+>>
+>> -irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
+>> +static irqreturn_t omap_dmm_irq_handler(int irq, void *arg)
+>>  {
+>>         struct dmm *dmm = arg;
+>>         uint32_t status = readl(dmm->base + DMM_PAT_IRQSTATUS);
+>> @@ -367,7 +367,7 @@ struct tiler_block *tiler_reserve_1d(size_t size)
+>>         int num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>>
+>>         if (!block)
+>> -               return 0;
+>> +               return ERR_PTR(-ENOMEM);
+>>
+>>         block->fmt = TILFMT_PAGE;
+>>
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
