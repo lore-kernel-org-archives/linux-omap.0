@@ -1,121 +1,81 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
-Date: Fri, 10 Aug 2012 17:05:58 +0300
-Message-ID: <1344607558-15481-1-git-send-email-rogerq@ti.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH 1/1] ARM: OMAP2+: hwmod: Print an error message if no
+ match exists for a hwmod class
+Date: Fri, 10 Aug 2012 15:21:57 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433EB375A9@DBDE01.ent.ti.com>
+References: <1344422117-20707-1-git-send-email-vaibhav.bedia@ti.com>
+ <alpine.DEB.2.00.1208080803560.5447@utopia.booyaka.com>
+ <B5906170F1614E41A8A28DE3B8D121433EB32ABA@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1208081411010.6819@utopia.booyaka.com>
+ <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51296 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756320Ab2HJOGV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 10:06:21 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:33967 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758656Ab2HJPWH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Aug 2012 11:22:07 -0400
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433EB34624@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: khilman@ti.com, paul@pwswan.com, jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "paul@pswan.com" <paul@pswan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+Hi Paul,
 
-[   28.832916] debug_smp_processor_id: 18 callbacks suppressed
-[   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
-[   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+[...]
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/clock.c       |    9 ++++++---
- arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
- arch/arm/mach-omap2/powerdomain.c |    6 ++++--
- 3 files changed, 18 insertions(+), 9 deletions(-)
+> > > On Wed, Aug 08, 2012 at 19:35:50, Paul Walmsley wrote:
+> > >
+> > > > It doesn't seem to me that this would necessarily always be an error.  
+> > > > Suppose some init code to create cpsw devices is running on an OMAP3430.  
+> > > > Then a omap_hwmod_for_each_by_class() that doesn't locate anything 
+> > > > wouldn't be an error, right?
+> > > 
+> > > Well, I think a failed lookup operation will be a bit expensive since it
+> > > iterates over the whole list of registered hwmods and hence put in the
+> > > pr_err().
+> > 
+> > If performance is a serious problem there, we can maintain a list of hwmod 
+> > pointers inside each struct omap_hwmod_class, updated when the hwmods are 
+> > registered.  But as far as I know, performance hasn't been an issue here 
+> > yet.  If performance is the real motivation, I'd rather see an 
+> > implementation of per-class lists as described above.
+> > 
+> 
+> Ok. I'll try to do some profiling using a timer to see how much time we
+> spend over here. On AM335x there are 2 such lookups, one for the dma
+> and one for the mcbsp. I could get this done today but will get to it
+> tomorrow. Based on how this goes I'll try out the omap_hwmod_class list
+> like you suggested.
+> 
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index ea3f565..06747b6 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
- 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
- 
- 	if (clk->ops && clk->ops->disable) {
--		trace_clock_disable(clk->name, 0, smp_processor_id());
-+		trace_clock_disable(clk->name, 0, get_cpu());
-+		put_cpu();
- 		clk->ops->disable(clk);
- 	}
- 
-@@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
- 	}
- 
- 	if (clk->ops && clk->ops->enable) {
--		trace_clock_enable(clk->name, 1, smp_processor_id());
-+		trace_clock_enable(clk->name, 1, get_cpu());
-+		put_cpu();
- 		ret = clk->ops->enable(clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable: %d\n",
-@@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
- 	if (clk->set_rate) {
--		trace_clock_set_rate(clk->name, rate, smp_processor_id());
-+		trace_clock_set_rate(clk->name, rate, get_cpu());
-+		put_cpu();
- 		ret = clk->set_rate(clk, rate);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e4fc88c..81fec2e 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -357,18 +357,22 @@ void omap_sram_idle(void)
- 
- static void omap3_pm_idle(void)
- {
-+	unsigned cpu;
-+
- 	local_fiq_disable();
- 
- 	if (omap_irq_pending())
- 		goto out;
- 
--	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
--	trace_cpu_idle(1, smp_processor_id());
-+	cpu = get_cpu();
-+	trace_power_start(POWER_CSTATE, 1, cpu);
-+	trace_cpu_idle(1, cpu);
- 
- 	omap_sram_idle();
- 
--	trace_power_end(smp_processor_id());
--	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-+	trace_power_end(cpu);
-+	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
-+	put_cpu();
- 
- out:
- 	local_fiq_enable();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 69b36e1..138bf86 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 				       ((state & OMAP_POWERSTATE_MASK) << 8) |
- 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
- 			trace_power_domain_target(pwrdm->name, trace_state,
--						  smp_processor_id());
-+						  get_cpu());
-+			put_cpu();
- 		}
- 		break;
- 	default:
-@@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
- 		/* Trace the pwrdm desired target state */
- 		trace_power_domain_target(pwrdm->name, pwrst,
--					  smp_processor_id());
-+					  get_cpu());
-+		put_cpu();
- 		/* Program the pwrdm desired target state */
- 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	}
--- 
-1.7.4.1
+I used a dmtimer clocked at 24MHz (41ns resolution) to get the time
+spent in the lookup. There are two failed lookups that happen in AM335x
+and following are the times taken
 
+Run1
+Lookup for dma - 435 cycles -> 17.835 usecs
+Lookup for mcbsp - 83 cycles -> 3.4 usecs
+
+Run2
+Lookup for dma - 503 cycles -> 20.623 usecs
+Lookup for mcbsp - 90 cycles -> 3.69 usescs
+
+Run3
+Lookup for dma - 375 cycles -> 15.375 usecs
+Lookup for mcbsp - 91 cycles -> 3.731 usecs
+
+The 2nd lookup happens immediately after the 1st one so probably
+the difference is coming due to the data sitting in the cache?
+
+The average times don't look too high to me but I guess you already
+knew that ;)
+
+If you are ok with a pr_debug() instead of a pr_err() I'll resubmit
+the patch with this change.
+
+Regards,
+Vaibhav B.
