@@ -1,126 +1,55 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 5/5] OMAPDSS: SDI: Maintain copy of data pairs in driver data
-Date: Fri, 10 Aug 2012 16:07:06 +0530
-Message-ID: <1344595026-10607-6-git-send-email-archit@ti.com>
-References: <1344595026-10607-1-git-send-email-archit@ti.com>
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCHv2 1/2] media: rc: Introduce RX51 IR transmitter driver
+Date: Fri, 10 Aug 2012 14:06:38 +0300
+Message-ID: <5024EB3E.7060806@iki.fi>
+References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi> <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48571 "EHLO comal.ext.ti.com"
+Received: from mta-out.inet.fi ([195.156.147.13]:48009 "EHLO kirsi1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754345Ab2HJKiy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Aug 2012 06:38:54 -0400
-In-Reply-To: <1344595026-10607-1-git-send-email-archit@ti.com>
+	id S1756042Ab2HJLGo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Aug 2012 07:06:44 -0400
+In-Reply-To: <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-The SDI driver currently relies on the omap_dss_device struct to configure the
-number of data pairs as specified by the panel. This makes the SDI interface
-driver dependent on the omap_dss_device struct.
+I should have probably tried this before, but when I enabled lock
+debugging with this driver, I got this:
 
-Make the SDI driver data maintain it's own data lines field. A panel driver
-is expected to call omapdss_sdi_set_datapairs() before enabling the interface.
-Even though we configure the number of data pairs here, this function would be
-finally mapped to a generic interface op called set_data_lines. The datapairs
-argument type has been changed from u8 to int at some places to be in sync with
-the 'set_data_lines' ops of other interfaces.
+> [  663.848083] BUG: sleeping function called from invalid context at kernel/mutex.c:269
+> [  663.856262] in_atomic(): 1, irqs_disabled(): 128, pid: 889, name: lircd
+> [  663.863220] 1 lock held by lircd/889:
+> [  663.867065]  #0:  (dm_timer_lock){......}, at: [<c00343e4>] omap_dm_timer_request_specific+0x18/0xc4
+> [  663.876739] irq event stamp: 1770
+> [  663.880218] hardirqs last  enabled at (1769): [<c050e4fc>] __mutex_unlock_slowpath+0xe0/0x15c
+> [  663.889221] hardirqs last disabled at (1770): [<c05102e8>] _raw_spin_lock_irqsave+0x1c/0x60
+> [  663.898010] softirqs last  enabled at (1674): [<c04bcc14>] unix_create1+0x148/0x174
+> [  663.906066] softirqs last disabled at (1672): [<c04bcbfc>] unix_create1+0x130/0x174
+> [  663.914154] [<c0019a90>] (unwind_backtrace+0x0/0xf8) from [<c050e11c>] (mutex_lock_nested+0x28/0x328)
+> [  663.923858] [<c050e11c>] (mutex_lock_nested+0x28/0x328) from [<c04196bc>] (clk_get_sys+0x1c/0xfc)
+> [  663.933197] [<c04196bc>] (clk_get_sys+0x1c/0xfc) from [<c0034344>] (omap_dm_timer_prepare+0xe4/0x16c)
+> [  663.942901] [<c0034344>] (omap_dm_timer_prepare+0xe4/0x16c) from [<c0034440>] (omap_dm_timer_request_specific+0x74/0xc4)
+> [  663.954345] [<c0034440>] (omap_dm_timer_request_specific+0x74/0xc4) from [<c03e7554>] (lirc_rx51_open+0x50/0x154)
+> [  663.965148] [<c03e7554>] (lirc_rx51_open+0x50/0x154) from [<c0103cf0>] (chrdev_open+0x98/0x16c)
+> [  663.974304] [<c0103cf0>] (chrdev_open+0x98/0x16c) from [<c00fd608>] (do_dentry_open+0x1dc/0x264)
+> [  663.983551] [<c00fd608>] (do_dentry_open+0x1dc/0x264) from [<c00fd9ec>] (finish_open+0x44/0x5c)
+> [  663.992706] [<c00fd9ec>] (finish_open+0x44/0x5c) from [<c010e230>] (do_last.isra.21+0x598/0xba8)
+> [  664.001953] [<c010e230>] (do_last.isra.21+0x598/0xba8) from [<c010e8e8>] (path_openat+0xa8/0x47c)
+> [  664.011291] [<c010e8e8>] (path_openat+0xa8/0x47c) from [<c010efb4>] (do_filp_open+0x2c/0x80)
+> [  664.020172] [<c010efb4>] (do_filp_open+0x2c/0x80) from [<c00fe674>] (do_sys_open+0xe0/0x174)
+> [  664.029052] [<c00fe674>] (do_sys_open+0xe0/0x174) from [<c0013a60>] (ret_fast_syscall+0x0/0x3c)
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/displays/panel-acx565akm.c |    1 +
- drivers/video/omap2/dss/dss.c                  |    2 +-
- drivers/video/omap2/dss/dss.h                  |    2 +-
- drivers/video/omap2/dss/sdi.c                  |   10 +++++++++-
- include/video/omapdss.h                        |    1 +
- 5 files changed, 13 insertions(+), 3 deletions(-)
+It appears that in omap_dm_timer_request() there is a call to
+spin_lock_irqsave() and then, as visible on the back trace,
+clk_get_sys() takes a mutex lock while the spinlock is still held.
 
-diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
-index 77fe59f..c835aa7 100644
---- a/drivers/video/omap2/displays/panel-acx565akm.c
-+++ b/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -601,6 +601,7 @@ static int acx_panel_power_on(struct omap_dss_device *dssdev)
- 	mutex_lock(&md->mutex);
- 
- 	omapdss_sdi_set_timings(dssdev, &dssdev->panel.timings);
-+	omapdss_sdi_set_datapairs(dssdev, dssdev->phy.sdi.datapairs);
- 
- 	r = omapdss_sdi_display_enable(dssdev);
- 	if (r) {
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 04b4586..d692047 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -144,7 +144,7 @@ static void dss_restore_context(void)
- #undef SR
- #undef RR
- 
--void dss_sdi_init(u8 datapairs)
-+void dss_sdi_init(int datapairs)
- {
- 	u32 l;
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 3fe76c0..e70e702 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -280,7 +280,7 @@ void dss_dump_clocks(struct seq_file *s);
- void dss_debug_dump_clocks(struct seq_file *s);
- #endif
- 
--void dss_sdi_init(u8 datapairs);
-+void dss_sdi_init(int datapairs);
- int dss_sdi_enable(void);
- void dss_sdi_disable(void);
- 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 243e96d..c667ef1 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -35,6 +35,7 @@ static struct {
- 
- 	struct dss_lcd_mgr_config mgr_config;
- 	struct omap_video_timings timings;
-+	int datapairs;
- } sdi;
- 
- static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
-@@ -106,7 +107,8 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 
- 	sdi_config_lcd_manager(dssdev);
- 
--	dss_sdi_init(dssdev->phy.sdi.datapairs);
-+	dss_sdi_init(sdi.datapairs);
-+
- 	r = dss_sdi_enable();
- 	if (r)
- 		goto err_sdi_enable;
-@@ -164,6 +166,12 @@ void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
- }
- EXPORT_SYMBOL(omapdss_sdi_set_timings);
- 
-+void omapdss_sdi_set_datapairs(struct omap_dss_device *dssdev, int datapairs)
-+{
-+	sdi.datapairs = datapairs;
-+}
-+EXPORT_SYMBOL(omapdss_sdi_set_datapairs);
-+
- static int __init sdi_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("SDI init\n");
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 47f29b7..bb77dc2 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -766,6 +766,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev);
- void omapdss_sdi_display_disable(struct omap_dss_device *dssdev);
- void omapdss_sdi_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings);
-+void omapdss_sdi_set_datapairs(struct omap_dss_device *dssdev, int datapairs);
- 
- int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev);
- void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev);
--- 
-1.7.9.5
+To me it appears commit 3392cdd33a0 might have introduced this problem,
+but I'm not sure.
 
+Any thoughts?
+
+-Timo
