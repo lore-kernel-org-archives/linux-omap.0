@@ -1,36 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: PM fixes for v3.6-rc
-Date: Fri, 10 Aug 2012 23:24:27 -0700
-Message-ID: <20120811062427.GU11011@atomide.com>
-References: <878vdmfxpx.fsf@ti.com>
+From: John <contact@santamonicawebdesigner.com>
+Subject: whatisjtag.com
+Date: Sat, 11 Aug 2012 04:26:05 -0400
+Message-ID: <d75cf365d4f0db6c4d6c518c1fde56c1@static.newdomain10.com>
+Reply-To: contact@santamonicawebdesigner.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <878vdmfxpx.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from newdomain10.com ([209.173.135.146]:42188 "EHLO
+	centos.newdomain10.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab2HKI0I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Aug 2012 04:26:08 -0400
+Received: from localhost ([127.0.0.1]:43584 helo=static.newdomain10.com)
+	by centos.newdomain10.com with esmtpa (Exim 4.77)
+	(envelope-from <contact@santamonicawebdesigner.com>)
+	id 1T071J-0001aT-Dt
+	for linux-omap@vger.kernel.org; Sat, 11 Aug 2012 04:26:05 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@ti.com> [120810 10:45]:
-> Tony,
-> 
-> Please pull the following PM related fixes for v3.6-rc.
-> 
-> One of them is a fix for drivers/cpufreq/omap-cpufreq.c, but it needs to
-> go along with the arch/arm change.  I'm listed in MAINTAINERS for the
-> OMAP CPUfreq driver now, so this should be OK.
+Hi,
+I would like to know if you would have an interest in purchasing whatisjtag.com.
 
-OK thanks pulling into fixes.
+whatisjtag.com can provide a SEO boost in this market, which can provide lead generation and
+increase your overall traffic. It can also help improve, secure, and protect your web branding
+identity.
 
-Tony
+The price for this domain is just $275.  I am reaching out to other related businesses in the next
+few days, and this domain will go to the first company who replies.
+
+Once payment is received, your domain will be transferred by the end of the business day.
+
+Thank you,
+John
+1-513-386-9808
+1040 Hosbrook Dr. Cincinnati, OH 45236
+I do my best to only send very targeted emails to people who I think will benefit from them.
+If you feel that you received this email in error or would not like to receive any future
+opportunities:
+Unsubscribe: http://webdevelopmentincincinnati.com/unsubscribe.php?id=1551138&h=c8bc73
+
+
