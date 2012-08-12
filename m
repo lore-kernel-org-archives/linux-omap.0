@@ -1,67 +1,46 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] Allow memblock steal operations to remove memory from anywhere
-Date: Sun, 12 Aug 2012 18:16:57 +0530
-Message-ID: <CAMQu2gz=omKAEv+obBW8EuS_ug=dZUkeXb_iP21-JLTxPNj3dw@mail.gmail.com>
-References: <20120812105708.GD18957@n2100.arm.linux.org.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
+Date: Sun, 12 Aug 2012 19:50:12 +0100
+Message-ID: <20120812185012.GB10627@opensource.wolfsonmicro.com>
+References: <20120808131356.GS16861@opensource.wolfsonmicro.com>
+ <50226CF4.1010202@ti.com>
+ <20120808135253.GC16861@opensource.wolfsonmicro.com>
+ <502274DA.9020204@ti.com>
+ <20120808141849.GA24328@opensource.wolfsonmicro.com>
+ <50227837.10400@ti.com>
+ <20120808144933.GC24328@opensource.wolfsonmicro.com>
+ <50238E8A.5030902@ti.com>
+ <20120809103600.GI24328@opensource.wolfsonmicro.com>
+ <5023C0D6.8040600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54099 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751464Ab2HLMrT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 12 Aug 2012 08:47:19 -0400
-Received: by obbun3 with SMTP id un3so6986495obb.3
-        for <linux-omap@vger.kernel.org>; Sun, 12 Aug 2012 05:47:18 -0700 (PDT)
-In-Reply-To: <20120812105708.GD18957@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <5023C0D6.8040600@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>
 
-On Sun, Aug 12, 2012 at 4:27 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> Found this with the cubox, which wants to obtain large blocks of
-> RAM for the GPU and VPU devices at boot time.  I don't believe
-> any other platforms care where the memory comes from, so I think
-> this is safe.
->
-Agree.
+On Thu, Aug 09, 2012 at 04:53:26PM +0300, Peter Ujfalusi wrote:
+> On 08/09/2012 01:36 PM, Mark Brown wrote:
 
-> However, OMAP and iMX folk should check this patch - thanks.
->
-Works for OMAP without any issues.
+> > Is there any actual case where an external mute is supplied via a
+> > mechanism other than a GPIO, and if there is would it not either need
+> > its own DT property or already need to interact with the driver from
+> > code, making the DT property redundant?
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Not with my knowledge. The only board using it is the zoom2 upstream. I know
+> other boards (not in upstream) which either uses the internal mute or GPIO.
 
-> 8<===
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
-> Subject: ARM: Allow arm_memblock_steal() to remove memory from any RAM region
->
-> Allow arm_memblock_steal() to remove memory from any RAM region,
-> including highmem areas.  This allows memory to be stolen from the
-> very top of declared memory, including highmem areas, rather than
-> our precious lowmem.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  arch/arm/mm/init.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-> index f54d592..04632f3 100644
-> --- a/arch/arm/mm/init.c
-> +++ b/arch/arm/mm/init.c
-> @@ -324,7 +324,7 @@ phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
->
->         BUG_ON(!arm_memblock_steal_permitted);
->
-> -       phys = memblock_alloc(size, align);
-> +       phys = memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE);
->         memblock_free(phys, size);
->         memblock_remove(phys, size);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK, so we can probably only support GPIO for now then worry about other
+external mutes when there's something to work with.
