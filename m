@@ -1,68 +1,52 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCH 1/1] omap: dmtimers: Fix locking issue in omap_dm_timer_request*()
-Date: Sun, 12 Aug 2012 13:45:34 +0300
-Message-ID: <1344768334-1969-1-git-send-email-timo.t.kokkonen@iki.fi>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH] Allow memblock steal operations to remove memory from
+	anywhere
+Date: Sun, 12 Aug 2012 11:57:08 +0100
+Message-ID: <20120812105708.GD18957@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:33613 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898Ab2HLKpt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 12 Aug 2012 06:45:49 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60634 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838Ab2HLK72 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Aug 2012 06:59:28 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>
 
-Calling omap_dm_timer_prepare while the spinlock is held is not
-allowed as sleeping functions are called later on during the
-preparation (namely within clk_get()).
+Found this with the cubox, which wants to obtain large blocks of
+RAM for the GPU and VPU devices at boot time.  I don't believe
+any other platforms care where the memory comes from, so I think
+this is safe.
 
-dm_timer_lock is only required for protecting the
-omap_timer_list. After the timer is marked as reserved, the lock is no
-longer needed and should be freed.
+However, OMAP and iMX folk should check this patch - thanks.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+8<===
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: ARM: Allow arm_memblock_steal() to remove memory from any RAM region
+
+Allow arm_memblock_steal() to remove memory from any RAM region,
+including highmem areas.  This allows memory to be stolen from the
+very top of declared memory, including highmem areas, rather than
+our precious lowmem.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/plat-omap/dmtimer.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mm/init.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 626ad8c..1f66cac 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -189,6 +189,7 @@ struct omap_dm_timer *omap_dm_timer_request(void)
- 		timer->reserved = 1;
- 		break;
- 	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index f54d592..04632f3 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -324,7 +324,7 @@ phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
  
- 	if (timer) {
- 		ret = omap_dm_timer_prepare(timer);
-@@ -197,7 +198,6 @@ struct omap_dm_timer *omap_dm_timer_request(void)
- 			timer = NULL;
- 		}
- 	}
--	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 	BUG_ON(!arm_memblock_steal_permitted);
  
- 	if (!timer)
- 		pr_debug("%s: timer request failed!\n", __func__);
-@@ -220,6 +220,7 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- 			break;
- 		}
- 	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
+-	phys = memblock_alloc(size, align);
++	phys = memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
  
- 	if (timer) {
- 		ret = omap_dm_timer_prepare(timer);
-@@ -228,7 +229,6 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- 			timer = NULL;
- 		}
- 	}
--	spin_unlock_irqrestore(&dm_timer_lock, flags);
- 
- 	if (!timer)
- 		pr_debug("%s: timer%d request failed!\n", __func__, id);
--- 
-1.7.8.6
-
