@@ -1,44 +1,52 @@
-From: John <contact@santamonicawebdesigner.com>
-Subject: whatisjtag.com
-Date: Sat, 11 Aug 2012 04:26:05 -0400
-Message-ID: <d75cf365d4f0db6c4d6c518c1fde56c1@static.newdomain10.com>
-Reply-To: contact@santamonicawebdesigner.com
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/1] omap3: Provide means for changing CSI2 PHY
+ configuration
+Date: Sun, 12 Aug 2012 09:13:26 +0300
+Message-ID: <20120812061326.GO29636@valkosipuli.retiisi.org.uk>
+References: <1336539641-28424-1-git-send-email-sakari.ailus@iki.fi>
+ <alpine.DEB.2.00.1207040452120.6760@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from newdomain10.com ([209.173.135.146]:42188 "EHLO
-	centos.newdomain10.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752565Ab2HKI0I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Aug 2012 04:26:08 -0400
-Received: from localhost ([127.0.0.1]:43584 helo=static.newdomain10.com)
-	by centos.newdomain10.com with esmtpa (Exim 4.77)
-	(envelope-from <contact@santamonicawebdesigner.com>)
-	id 1T071J-0001aT-Dt
-	for linux-omap@vger.kernel.org; Sat, 11 Aug 2012 04:26:05 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58787 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750929Ab2HLGTQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 12 Aug 2012 02:19:16 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1207040452120.6760@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, laurent.pinchart@ideasonboard.com
 
-Hi,
-I would like to know if you would have an interest in purchasing whatisjtag.com.
+Hi Paul,
 
-whatisjtag.com can provide a SEO boost in this market, which can provide lead generation and
-increase your overall traffic. It can also help improve, secure, and protect your web branding
-identity.
+On Wed, Jul 04, 2012 at 04:53:32AM -0600, Paul Walmsley wrote:
+> Hello Sakari,
+> 
+> On Wed, 9 May 2012, Sakari Ailus wrote:
+> 
+> > The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+> > the actual CSI-2 receivers outside the ISP itself. Allow changing this
+> > configuration from the ISP driver.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> just checking on this one.  Any update?
 
-The price for this domain is just $275.  I am reaching out to other related businesses in the next
-few days, and this domain will go to the first company who replies.
+Not yet; I need to address Laurent's comments also. I might have time to do
+that during the next week.
 
-Once payment is received, your domain will be transferred by the end of the business day.
+> A few comments: it would be nice to have some kerneldoc for this function.  
+> Also it would be nice to use macros rather than the raw bitshifts in this 
+> function.  And one level of indentation can be saved if you bail out early 
+> if the function is not running on a 3630.
 
-Thank you,
-John
-1-513-386-9808
-1040 Hosbrook Dr. Cincinnati, OH 45236
-I do my best to only send very targeted emails to people who I think will benefit from them.
-If you feel that you received this email in error or would not like to receive any future
-opportunities:
-Unsubscribe: http://webdevelopmentincincinnati.com/unsubscribe.php?id=1551138&h=c8bc73
+Thanks. I'll do the changes for the next version.
 
+Cheers,
 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
