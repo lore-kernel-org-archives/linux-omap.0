@@ -1,52 +1,68 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] omap3: Provide means for changing CSI2 PHY
- configuration
-Date: Sun, 12 Aug 2012 09:13:26 +0300
-Message-ID: <20120812061326.GO29636@valkosipuli.retiisi.org.uk>
-References: <1336539641-28424-1-git-send-email-sakari.ailus@iki.fi>
- <alpine.DEB.2.00.1207040452120.6760@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: [PATCH 1/1] omap: dmtimers: Fix locking issue in omap_dm_timer_request*()
+Date: Sun, 12 Aug 2012 13:45:34 +0300
+Message-ID: <1344768334-1969-1-git-send-email-timo.t.kokkonen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58787 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750929Ab2HLGTQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 12 Aug 2012 02:19:16 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1207040452120.6760@utopia.booyaka.com>
+Received: from mta-out.inet.fi ([195.156.147.13]:33613 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750898Ab2HLKpt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 12 Aug 2012 06:45:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, laurent.pinchart@ideasonboard.com
+To: linux-omap@vger.kernel.org
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, Tony Lindgren <tony@atomide.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi Paul,
+Calling omap_dm_timer_prepare while the spinlock is held is not
+allowed as sleeping functions are called later on during the
+preparation (namely within clk_get()).
 
-On Wed, Jul 04, 2012 at 04:53:32AM -0600, Paul Walmsley wrote:
-> Hello Sakari,
-> 
-> On Wed, 9 May 2012, Sakari Ailus wrote:
-> 
-> > The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
-> > the actual CSI-2 receivers outside the ISP itself. Allow changing this
-> > configuration from the ISP driver.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> just checking on this one.  Any update?
+dm_timer_lock is only required for protecting the
+omap_timer_list. After the timer is marked as reserved, the lock is no
+longer needed and should be freed.
 
-Not yet; I need to address Laurent's comments also. I might have time to do
-that during the next week.
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ arch/arm/plat-omap/dmtimer.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> A few comments: it would be nice to have some kerneldoc for this function.  
-> Also it would be nice to use macros rather than the raw bitshifts in this 
-> function.  And one level of indentation can be saved if you bail out early 
-> if the function is not running on a 3630.
-
-Thanks. I'll do the changes for the next version.
-
-Cheers,
-
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 626ad8c..1f66cac 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -189,6 +189,7 @@ struct omap_dm_timer *omap_dm_timer_request(void)
+ 		timer->reserved = 1;
+ 		break;
+ 	}
++	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 
+ 	if (timer) {
+ 		ret = omap_dm_timer_prepare(timer);
+@@ -197,7 +198,6 @@ struct omap_dm_timer *omap_dm_timer_request(void)
+ 			timer = NULL;
+ 		}
+ 	}
+-	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 
+ 	if (!timer)
+ 		pr_debug("%s: timer request failed!\n", __func__);
+@@ -220,6 +220,7 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 
+ 	if (timer) {
+ 		ret = omap_dm_timer_prepare(timer);
+@@ -228,7 +229,6 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
+ 			timer = NULL;
+ 		}
+ 	}
+-	spin_unlock_irqrestore(&dm_timer_lock, flags);
+ 
+ 	if (!timer)
+ 		pr_debug("%s: timer%d request failed!\n", __func__, id);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.6
+
