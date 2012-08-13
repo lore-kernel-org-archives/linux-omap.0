@@ -1,12 +1,10 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 3/4] arm/dts: omap5-evm: Add keypad data
-Date: Mon, 13 Aug 2012 15:35:12 +0530
-Message-ID: <1344852313-30484-4-git-send-email-sourav.poddar@ti.com>
-References: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCHv2 3/4] arm/dts: omap5-evm: Add keypad data
+Date: Mon, 13 Aug 2012 15:58:54 +0530
+Message-ID: <1344853735-16313-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
