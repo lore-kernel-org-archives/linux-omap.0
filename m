@@ -1,107 +1,50 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Infinite looping in omap2430.c USB driver
-Date: Mon, 13 Aug 2012 12:34:53 +1000
-Message-ID: <20120813123453.4cba14ca@notabene.brown>
-References: <20120707083949.2cf91eeb@notabene.brown>
-	<20120809111549.GT12174@arwen.pp.htv.fi>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH RESEND v2 1/2] arm/dts: Add AM33XX basic pinctrl support
+Date: Mon, 13 Aug 2012 04:33:59 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA10824@DBDE01.ent.ti.com>
+References: <1343144719-26352-1-git-send-email-anilkumar@ti.com>
+ <1343144719-26352-2-git-send-email-anilkumar@ti.com>
+ <50125B1C.8000209@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA06E4B@DBDE01.ent.ti.com>
+ <50225618.9070501@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/IAnIF=EIPIm1aK7eCXcbeMK"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120809111549.GT12174@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36732 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834Ab2HMEeS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 00:34:18 -0400
+In-Reply-To: <50225618.9070501@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
---Sig_/IAnIF=EIPIm1aK7eCXcbeMK
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Peter,
 
-On Thu, 9 Aug 2012 14:15:51 +0300 Felipe Balbi <balbi@ti.com> wrote:
+On Wed, Aug 08, 2012 at 17:35:44, Ujfalusi, Peter wrote:
+> On 07/31/2012 04:37 PM, AnilKumar, Chimata wrote:
+> >> I'm just curious about the size here: how it ended up as 0x0338?
+> >> While looking at the TRM of AM335x I can come up with 0x0238 (0x44e10800 -
+> >> 0x44e10a38), but I don't see any sings of the remaining 0x0100 to be
+> >> documented at least.
+> > 
+> > No, pinmux registers are available till 0x44E10B38, look at AM335x latest TRM
+> > or pinmux utility (we cannot find the exact offsets but pins we can find after
+> > 0x0A38, conf_ddr_resetn) at http://www.ti.com/tool/pinmuxtool
+> 
+> I have looked at the latest TRM (Rev F, SPRUH73F -  public TRM) and there is
+> not mention of registers between 0x0a34 and 0x0e00.
+> I can not even find any reference of conf_ddr_resetn register either in the TRM.
+> I can not check with the pinmuxtool since it is crashing with wine under Linux.
+> There could be registers after 0x0a34, but they are not publicly documented...
+> 
 
+Thanks for pointing this, I was referring older version (Rev C) of TRM which have
+the details which is not present in latest TRM. These pins are dedicated ones so
+pinmuxing is not required. I will submit new version.
 
-> hehe, that's nasty. Please send a patch converting to a try count and a
-> udelay_range(), or something.
->=20
-
-how's this?
-
-Thanks,
-NeilBrown
-
-
-From: NeilBrown <neilb@suse.de>
-Date: Mon, 13 Aug 2012 12:32:58 +1000
-Subject: [PATCH] omap2430: don't loop indefinitely in interrupt.
-
-When called during resume_irqs, omap2430_musb_set_vbus() is run with
-interrupts disabled,  In that case 'jiffies' never changes so the loop
-can loop forever.
-
-So impose a maximum loop count and add an 'mdelay' to ensure we wait
-a reasonable amount of time for bit to be cleared.
-
-This fixes a hang on resume.
-
-Signed-of-by: NeilBrown <neilb@suse.de>
-
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index c7785e8..8a93381 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -34,6 +34,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/pm_runtime.h>
- #include <linux/err.h>
-+#include <linux/delay.h>
-=20
- #include "musb_core.h"
- #include "omap2430.h"
-@@ -145,6 +146,7 @@ static void omap2430_musb_set_vbus(struct musb *musb, i=
-nt is_on)
-=20
- 	if (is_on) {
- 		if (musb->xceiv->state =3D=3D OTG_STATE_A_IDLE) {
-+			int loops =3D 100;
- 			/* start the session */
- 			devctl |=3D MUSB_DEVCTL_SESSION;
- 			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-@@ -154,9 +156,11 @@ static void omap2430_musb_set_vbus(struct musb *musb, =
-int is_on)
- 			 */
- 			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
-=20
-+				mdelay(5);
- 				cpu_relax();
-=20
--				if (time_after(jiffies, timeout)) {
-+				if (time_after(jiffies, timeout)
-+				    || loops-- <=3D 0) {
- 					dev_err(musb->controller,
- 					"configured as A device timeout");
- 					ret =3D -EINVAL;
-
---Sig_/IAnIF=EIPIm1aK7eCXcbeMK
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBUChnzTnsnt1WYoG5AQK+fBAAlv2n740UiFMpfbLBf2OLnfnHsTcy1WVE
-KTuJL4sJroEW6u17Z9DaZ8Fh7IHN+zqZfgzR7H54x5V4sx7DtEFU5vAM6hzB96r9
-SkglQKvwYD9XCq8Oqfod9ru6/g0zptH1oVbV1vLA54RwU6EbZpo7KSGjnNHRrp+Y
-lUKfYw39T1JKmZsFmcbP9ZUAFButXFGsYs0KRFrBVziHc8xFBY031LXLmWtSLyI+
-fMC/R4rn+dAdCpWSVt2WTxyiiz6wEY7ynNG3TBHGtG22Vsw3EZM37ViBN+857FQL
-M/tL8nSKbHC3OF01AVwsssjS1ce/sNyYs0M0MbT0n0B6p1XDxnMLG4sfFd5N7j8a
-Bj2eIBKJcOwKsOchbJLlOy7Qu7NzwXAT64bR8v7goEO0LmLs1hZeRaqFuCCU2Etb
-xLAPvG4JwUSKehvQw2R8yG9uiSuYGfPR0m3Wv9r9UUOzo/BS8ZXqBJY3A0WaUxy8
-+ly3IITsCQmptwSGv9itbnCZDxIUZwDYLLP86zFfyargf93v7UJIvSeKibybzM8Z
-2g51OxcLrMfNmuyAtxA6yC/X+de4PZzmZG4w8Ce8+27k2YNSLn+oOdKM6japMPms
-CejNOKqXbD1KK6qkrlMGnHORD8SPEoxvooIJoOrIHwYhOmnCXcEjzFlMhS1LjqAy
-P6r3UFoiZcs=
-=mWBd
------END PGP SIGNATURE-----
-
---Sig_/IAnIF=EIPIm1aK7eCXcbeMK--
+Thanks
+AnilKumar
