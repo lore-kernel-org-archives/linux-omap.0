@@ -1,32 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] omap: dmtimers: Fix locking issue in
- omap_dm_timer_request*()
-Date: Mon, 13 Aug 2012 06:24:11 -0700
-Message-ID: <20120813132411.GY11011@atomide.com>
-References: <1344768334-1969-1-git-send-email-timo.t.kokkonen@iki.fi>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH] mfd/regulator: tps65217: Move regulator plat data
+ handling to regulator
+Date: Mon, 13 Aug 2012 13:35:55 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA11ABF@DBDE01.ent.ti.com>
+References: <1342776601-8773-1-git-send-email-anilkumar@ti.com>
+ <20120813082732.GA31722@darwin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27286 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258Ab2HMNYP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 09:24:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1344768334-1969-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20120813082732.GA31722@darwin>
+Content-Language: en-US
+Sender: linux-next-owner@vger.kernel.org
+To: Matthias Kaehlcke <matthias.list@kaehlcke.net>
+Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "rdunlap@xenotime.net" <rdunlap@xenotime.net>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: linux-omap@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [120812 03:46]:
-> Calling omap_dm_timer_prepare while the spinlock is held is not
-> allowed as sleeping functions are called later on during the
-> preparation (namely within clk_get()).
+Hi Matthias,
+
+On Mon, Aug 13, 2012 at 13:57:32, Matthias Kaehlcke wrote:
+> Hi,
 > 
-> dm_timer_lock is only required for protecting the
-> omap_timer_list. After the timer is marked as reserved, the lock is no
-> longer needed and should be freed.
+> El Fri, Jul 20, 2012 at 03:00:01PM +0530 AnilKumar Ch ha dit:
+> 
+> > Regulator platform data handling was mistakenly added to MFD
+> > driver. So we will see build errors if we compile MFD drivers
+> > without CONFIG_REGULATOR. This patch moves regulator platform
+> > data handling from TPS65217 MFD driver to regulator driver.
+> > 
+> >
+> > diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+> > index 6caa222..9730f1d 100644
+> > --- a/drivers/regulator/tps65217-regulator.c
+> > +++ b/drivers/regulator/tps65217-regulator.c
+> >
+> > +static struct tps65217_board *tps65217_parse_dt(struct platform_device *pdev)
+> > +{
+> > +	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
+> > +	struct device_node *node = tps->dev->of_node;
+> > +	struct tps65217_board *pdata;
+> > +	struct device_node *regs;
+> > +	int i, count;
+> > +
+> > +	regs = of_find_node_by_name(node, "regulators");
+> > +	if (!regs)
+> > +		return NULL;
+> > +
+> > +	count = of_regulator_match(pdev->dev.parent, regs,
+> > +				reg_matches, TPS65217_NUM_REGULATOR);
+> > +	of_node_put(regs);
+> > +	if ((count < 0) || (count > TPS65217_NUM_REGULATOR))
+> > +		return NULL;
+> > +
+> > +	pdata = devm_kzalloc(&pdev->dev, count * sizeof(*pdata),
+> > GFP_KERNEL);
+> 
+> this allocates a struct tps65217_board for each regulator specified in
+> the device tree. the structure itself provides arrays for the pointers
+> to the regulator init data and the regulator device tree node, so only
+> one instance of it is needed
 
-Thanks applying into fixes.
+Agree, I will fix that issue in my next version of patch
 
-Tony
+> 
+> also the tps65217_board structure should be renamed to something like
+> tps65217_regulators, now that it is specific to the regulator
+
+Not required because tps65217_board might contain platform data for WLED/
+Battery charger driver if require. So the struct was named as tps65217_board
+
+Regards
+AnilKumar
