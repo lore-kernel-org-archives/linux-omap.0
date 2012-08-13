@@ -1,52 +1,32 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] mfd/regulator: tps65217: Move regulator plat data
- handling to regulator
-Date: Mon, 13 Aug 2012 08:23:54 -0700
-Message-ID: <20120813152354.GB5745@kroah.com>
-References: <1344870365-11645-1-git-send-email-anilkumar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v2 1/9] ARM/ASoC: omap-mcbsp: Move OMAP2+
+	clock	parenting code to ASoC driver
+Date: Mon, 13 Aug 2012 16:35:54 +0100
+Message-ID: <20120813153554.GA31662@n2100.arm.linux.org.uk>
+References: <1344867768-26335-1-git-send-email-peter.ujfalusi@ti.com>
+ <1344867768-26335-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:40992 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab2HMPYA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 11:24:00 -0400
-Received: by yenl14 with SMTP id l14so2038650yen.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 08:23:59 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1344870365-11645-1-git-send-email-anilkumar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1344867768-26335-2-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, dan.carpenter@oracle.com, rdunlap@xenotime.net, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org
 
-On Mon, Aug 13, 2012 at 08:36:05PM +0530, AnilKumar Ch wrote:
-> Regulator platform data handling was mistakenly added to MFD
-> driver. So we will see build errors if we compile MFD drivers
-> without CONFIG_REGULATOR. This patch moves regulator platform
-> data handling from TPS65217 MFD driver to regulator driver.
-> 
-> This makes MFD driver independent of REGULATOR framework so
-> build error is fixed if CONFIG_REGULATOR is not set.
-> 
-> drivers/built-in.o: In function `tps65217_probe':
-> tps65217.c:(.devinit.text+0x13e37): undefined reference
-> to `of_regulator_match'
-> 
-> This patch also fix allocation size of tps65217 platform data.
-> Current implementation allocates a struct tps65217_board for each
-> regulator specified in the device tree. But the structure itself
-> provides array of regulators so one instance of it is sufficient.
-> 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
-> This patch is tested on BeagleBone with regulator device node
-> additions. And this is based on mfd/master.
+On Mon, Aug 13, 2012 at 05:22:40PM +0300, Peter Ujfalusi wrote:
+> +	fck_src = clk_get(mcbsp->dev, src);
+> +	if (IS_ERR_OR_NULL(fck_src)) {
 
-<formletter>
-
-This is not the correct way to submit patches for inclusion in the
-stable kernel tree.  Please read Documentation/stable_kernel_rules.txt
-for how to do this properly.
-
-</formletter>
+I know the same error is in the original code, but let's stop propagating
+it.  IS_ERR() only here please.
