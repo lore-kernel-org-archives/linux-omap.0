@@ -1,73 +1,209 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
-Date: Mon, 13 Aug 2012 16:30:22 +0530
-Message-ID: <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/5] dt: device tree bindings for LPDDR2 memories
+Date: Mon, 13 Aug 2012 16:30:19 +0530
+Message-ID: <1344855623-14879-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55897 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56244 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751463Ab2HMLAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Aug 2012 07:00:33 -0400
+	id S1751571Ab2HMLAc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Aug 2012 07:00:32 -0400
 In-Reply-To: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.or, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-arm-kernel@lists.infradead.or, tony@atomide.com, Aneesh V <aneesh@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This provides PL310 Level 2 Cache Controller Device Tree
-support for OMAP4 based devices.
+From: Aneesh V <aneesh@ti.com>
 
-Cc: Benoit Cousson <b-cousson@ti.com>
+device tree bindings for LPDDR2 SDRAM memories compliant
+to JESD209-2 standard.
+
+The 'lpddr2' binding in-turn uses another binding 'lpddr2-timings'
+for specifying the AC timing parameters of the memory device at
+different speed-bins.
+
+Reviewed-by: Benoit Cousson <b-cousson@ti.com>
+Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
+Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Aneesh V <aneesh@ti.com>
+[santosh.shilimkar@ti.com: Rebased against 3.6-rc]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi       |    7 +++++++
- arch/arm/mach-omap2/omap4-common.c |    6 +++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   52 ++++++++++
+ .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 ++++++++++++++++++++
+ 2 files changed, 154 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 6717c71..cf1efb6 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -36,6 +36,13 @@
- 		};
- 	};
- 
-+	L2: l2-cache-controller {
-+		compatible = "arm,pl310-cache";
-+		reg = <0x48242000 0x1000>;
-+		cache-unified;
-+		cache-level = <2>;
+diff --git a/Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt b/Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+new file mode 100644
+index 0000000..9ceb19e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+@@ -0,0 +1,52 @@
++* AC timing parameters of LPDDR2(JESD209-2) memories for a given speed-bin
++
++Required properties:
++- compatible : Should be "jedec,lpddr2-timings"
++- min-freq : minimum DDR clock frequency for the speed-bin. Type is <u32>
++- max-freq : maximum DDR clock frequency for the speed-bin. Type is <u32>
++
++Optional properties:
++
++The following properties represent AC timing parameters from the memory
++data-sheet of the device for a given speed-bin. All these properties are
++of type <u32> and the default unit is ps (pico seconds). Parameters with
++a different unit have a suffix indicating the unit such as 'tRAS-max-ns'
++- tRCD
++- tWR
++- tRAS-min
++- tRRD
++- tWTR
++- tXP
++- tRTP
++- tDQSCK-max
++- tFAW
++- tZQCS
++- tZQinit
++- tRPab
++- tZQCL
++- tCKESR
++- tRAS-max-ns
++- tDQSCK-max-derated
++
++Example:
++
++timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
++	compatible	= "jedec,lpddr2-timings";
++	min-freq	= <10000000>;
++	max-freq	= <400000000>;
++	tRPab		= <21000>;
++	tRCD		= <18000>;
++	tWR		= <15000>;
++	tRAS-min	= <42000>;
++	tRRD		= <10000>;
++	tWTR		= <7500>;
++	tXP		= <7500>;
++	tRTP		= <7500>;
++	tCKESR		= <15000>;
++	tDQSCK-max	= <5500>;
++	tFAW		= <50000>;
++	tZQCS		= <90000>;
++	tZQCL		= <360000>;
++	tZQinit		= <1000000>;
++	tRAS-max-ns	= <70000>;
++};
+diff --git a/Documentation/devicetree/bindings/lpddr2/lpddr2.txt b/Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+new file mode 100644
+index 0000000..58354a0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+@@ -0,0 +1,102 @@
++* LPDDR2 SDRAM memories compliant to JEDEC JESD209-2
++
++Required properties:
++- compatible : Should be one of - "jedec,lpddr2-nvm", "jedec,lpddr2-s2",
++  "jedec,lpddr2-s4"
++
++  "ti,jedec-lpddr2-s2" should be listed if the memory part is LPDDR2-S2 type
++
++  "ti,jedec-lpddr2-s4" should be listed if the memory part is LPDDR2-S4 type
++
++  "ti,jedec-lpddr2-nvm" should be listed if the memory part is LPDDR2-NVM type
++
++- density  : <u32> representing density in Mb (Mega bits)
++
++- io-width : <u32> representing bus width. Possible values are 8, 16, and 32
++
++Optional properties:
++
++The following optional properties represent the minimum value of some AC
++timing parameters of the DDR device in terms of number of clock cycles.
++These values shall be obtained from the device data-sheet.
++- tRRD-min-tck
++- tWTR-min-tck
++- tXP-min-tck
++- tRTP-min-tck
++- tCKE-min-tck
++- tRPab-min-tck
++- tRCD-min-tck
++- tWR-min-tck
++- tRASmin-min-tck
++- tCKESR-min-tck
++- tFAW-min-tck
++
++Child nodes:
++- The lpddr2 node may have one or more child nodes of type "lpddr2-timings".
++  "lpddr2-timings" provides AC timing parameters of the device for
++  a given speed-bin. The user may provide the timings for as many
++  speed-bins as is required. Please see Documentation/devicetree/
++  bindings/lpddr2/lpddr2-timings.txt for more information on "lpddr2-timings"
++
++Example:
++
++elpida_ECB240ABACN : lpddr2 {
++	compatible	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
++	density		= <2048>;
++	io-width	= <32>;
++
++	tRPab-min-tck	= <3>;
++	tRCD-min-tck	= <3>;
++	tWR-min-tck	= <3>;
++	tRASmin-min-tck	= <3>;
++	tRRD-min-tck	= <2>;
++	tWTR-min-tck	= <2>;
++	tXP-min-tck	= <2>;
++	tRTP-min-tck	= <2>;
++	tCKE-min-tck	= <3>;
++	tCKESR-min-tck	= <3>;
++	tFAW-min-tck	= <8>;
++
++	timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
++		compatible	= "jedec,lpddr2-timings";
++		min-freq	= <10000000>;
++		max-freq	= <400000000>;
++		tRPab		= <21000>;
++		tRCD		= <18000>;
++		tWR		= <15000>;
++		tRAS-min	= <42000>;
++		tRRD		= <10000>;
++		tWTR		= <7500>;
++		tXP		= <7500>;
++		tRTP		= <7500>;
++		tCKESR		= <15000>;
++		tDQSCK-max	= <5500>;
++		tFAW		= <50000>;
++		tZQCS		= <90000>;
++		tZQCL		= <360000>;
++		tZQinit		= <1000000>;
++		tRAS-max-ns	= <70000>;
 +	};
 +
- 	/*
- 	 * The soc node represents the soc top level view. It is uses for IPs
- 	 * that are not memory mapped in the MPU view or for the MPU itself.
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index c29dee9..6f95992 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -16,6 +16,7 @@
- #include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/memblock.h>
-+#include <linux/of.h>
- 
- #include <asm/hardware/gic.h>
- #include <asm/hardware/cache-l2x0.h>
-@@ -171,7 +172,10 @@ static int __init omap_l2_cache_init(void)
- 	/* Enable PL310 L2 Cache controller */
- 	omap_smc1(0x102, 0x1);
- 
--	l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
-+	if (of_have_populated_dt())
-+		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
-+	else
-+		l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
- 
- 	/*
- 	 * Override default outer_cache.disable with a OMAP4
++	timings_elpida_ECB240ABACN_200mhz: lpddr2-timings@1 {
++		compatible	= "jedec,lpddr2-timings";
++		min-freq	= <10000000>;
++		max-freq	= <200000000>;
++		tRPab		= <21000>;
++		tRCD		= <18000>;
++		tWR		= <15000>;
++		tRAS-min	= <42000>;
++		tRRD		= <10000>;
++		tWTR		= <10000>;
++		tXP		= <7500>;
++		tRTP		= <7500>;
++		tCKESR		= <15000>;
++		tDQSCK-max	= <5500>;
++		tFAW		= <50000>;
++		tZQCS		= <90000>;
++		tZQCL		= <360000>;
++		tZQinit		= <1000000>;
++		tRAS-max-ns	= <70000>;
++	};
++
++}
 -- 
 1.7.9.5
 
