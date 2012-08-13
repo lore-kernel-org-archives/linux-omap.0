@@ -1,237 +1,38 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v6] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
- controller
-Date: Mon, 13 Aug 2012 14:10:22 +0200
-Message-ID: <5028EEAE.6090402@pengutronix.de>
-References: <1344840599-19545-1-git-send-email-anilkumar@ti.com>
+From: repittec <repittec@fapesb.ba.gov.br>
+Subject: =?iso-8859-1?Q?ATEN=C7=C3O_ATEN=C7=C3O_(aviso_de_alerta_QUOTA)?=
+Date: Mon, 13 Aug 2012 09:01:49 -0300
+Message-ID: <40014C94A4D17D49A7EB927F07366E09535E15307D@SRVEX01>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig3E73F25E3A35BA6C9F4A26E0"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1344840599-19545-1-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fapesbnav.fapesb.ba.gov.br ([200.128.1.254]:3114 "EHLO
+	fapesbnav.fapesb.ba.gov.br" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751665Ab2HMMYa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Aug 2012 08:24:30 -0400
+Content-Language: pt-BR
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3E73F25E3A35BA6C9F4A26E0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Caro usu=E1rio Webmail,
 
-On 08/13/2012 08:49 AM, AnilKumar Ch wrote:
-> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-> register of C_CAN/D_CAN IP when clock is turned off.
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Sua caixa de correio excedeu seu limite, o seu webmail est=E1 sendo exe=
+cutado 99,7% do seu limite de cota de 100%. Voc=EA n=E3o pode enviar ou=
+ receber e-mail corretamente at=E9 que voc=EA tenha atualizado e actual=
+izar a sua conta de webmail. Para atualizar sua conta de webmail, cliqu=
+e no link abaixo e cole no seu navegador para solicitar a atualiza=E7=E3=
+o.
 
-Looks good, minor style suggestion inline.
+http://www.gps-recruiting.com/contact/use/download/form1.html
 
-Marc
+Estamos sinceramente desculpas por qualquer inconveniente que isso poss=
+a causar-lhe, n=F3s tendemos a servi-lo melhor.
 
-> ---
-> This patch has been tested on AM335X EVM. Due to lack of hardware
-> I am not able to test c_can functionality. I appreciate if anyone
-> can test c_can functionality with this patch.
->=20
-> This patch is based on "can-next/master"=20
->=20
-> Changes from v5:
-> 	- Incorporated Marc's commets on v5
-> 	  * changed runtime pm calls in c_can driver to handle
-> 	    the drivers which are not using platform drivers.
-> 	  * added device pointer protection in c_can driver if
-> 	    not passed from platform/pci driver.
->=20
-> Changes from v4:
-> 	- Incorporated Vaibhav H review comments on v4.
-> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
-> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
-> 	  patch series. Rest of the patches in this series were applied
-> 	  so this v5 contains only this patch.
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  drivers/net/can/c_can/c_can.c          |   25 ++++++++++++++++++++++++=
--
->  drivers/net/can/c_can/c_can.h          |    1 +
->  drivers/net/can/c_can/c_can_platform.c |    6 ++++++
->  3 files changed, 31 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
-n.c
-> index 4c538e3..64344b8 100644
-> --- a/drivers/net/can/c_can/c_can.c
-> +++ b/drivers/net/can/c_can/c_can.c
-> @@ -34,6 +34,8 @@
->  #include <linux/if_ether.h>
->  #include <linux/list.h>
->  #include <linux/io.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/platform_device.h>
-            ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Is this still needed?
-
-> =20
->  #include <linux/can.h>
->  #include <linux/can/dev.h>
-> @@ -201,6 +203,18 @@ static const struct can_bittiming_const c_can_bitt=
-iming_const =3D {
->  	.brp_inc =3D 1,
->  };
-> =20
-> +static inline void c_can_pm_runtime_get_sync(struct device *dev)
-
-Use priv as parameter, not dev.
-
-> +{
-> +	if (dev)
-> +		pm_runtime_get_sync(dev);
-> +}
-> +
-> +static inline void c_can_pm_runtime_put_sync(struct device *dev)
-
-dito
-
-> +{
-> +	if (dev)
-> +		pm_runtime_put_sync(dev);
-> +}
-> +
->  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
->  {
->  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
-> @@ -673,11 +687,15 @@ static int c_can_get_berr_counter(const struct ne=
-t_device *dev,
->  	unsigned int reg_err_counter;
->  	struct c_can_priv *priv =3D netdev_priv(dev);
-> =20
-> +	c_can_pm_runtime_get_sync(priv->device);
-> +
->  	reg_err_counter =3D priv->read_reg(priv, C_CAN_ERR_CNT_REG);
->  	bec->rxerr =3D (reg_err_counter & ERR_CNT_REC_MASK) >>
->  				ERR_CNT_REC_SHIFT;
->  	bec->txerr =3D reg_err_counter & ERR_CNT_TEC_MASK;
-> =20
-> +	c_can_pm_runtime_put_sync(priv->device);
-> +
->  	return 0;
->  }
-> =20
-> @@ -1053,11 +1071,13 @@ static int c_can_open(struct net_device *dev)
->  	int err;
->  	struct c_can_priv *priv =3D netdev_priv(dev);
-> =20
-> +	c_can_pm_runtime_get_sync(priv->device);
-> +
->  	/* open the can device */
->  	err =3D open_candev(dev);
->  	if (err) {
->  		netdev_err(dev, "failed to open can device\n");
-> -		return err;
-> +		goto exit_open_fail;
->  	}
-> =20
->  	/* register interrupt handler */
-> @@ -1079,6 +1099,8 @@ static int c_can_open(struct net_device *dev)
-> =20
->  exit_irq_fail:
->  	close_candev(dev);
-> +exit_open_fail:
-> +	c_can_pm_runtime_put_sync(priv->device);
->  	return err;
->  }
-> =20
-> @@ -1091,6 +1113,7 @@ static int c_can_close(struct net_device *dev)
->  	c_can_stop(dev);
->  	free_irq(dev->irq, dev);
->  	close_candev(dev);
-> +	c_can_pm_runtime_put_sync(priv->device);
-> =20
->  	return 0;
->  }
-> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
-n.h
-> index 4e56baa..1437a6d 100644
-> --- a/drivers/net/can/c_can/c_can.h
-> +++ b/drivers/net/can/c_can/c_can.h
-> @@ -153,6 +153,7 @@ struct c_can_priv {
->  	struct can_priv can;	/* must be the first member */
->  	struct napi_struct napi;
->  	struct net_device *dev;
-> +	struct device *device;
->  	int tx_object;
->  	int current_status;
->  	int last_status;
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
-_can/c_can_platform.c
-> index d0a66cf..197683b 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -32,6 +32,7 @@
->  #include <linux/clk.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/pm_runtime.h>
-> =20
->  #include <linux/can/dev.h>
-> =20
-> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platf=
-orm_device *pdev)
->  		goto exit_free_device;
->  	}
-> =20
-> +	pm_runtime_enable(&pdev->dev);
-> +
->  	dev->irq =3D irq;
->  	priv->base =3D addr;
-> +	priv->device =3D &pdev->dev;
->  	priv->can.clock.freq =3D clk_get_rate(clk);
->  	priv->priv =3D clk;
-> =20
-> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platfo=
-rm_device *pdev)
-> =20
->  exit_free_device:
->  	platform_set_drvdata(pdev, NULL);
-> +	pm_runtime_disable(&pdev->dev);
->  	free_c_can_dev(dev);
->  exit_iounmap:
->  	iounmap(addr);
-> @@ -226,6 +231,7 @@ static int __devexit c_can_plat_remove(struct platf=
-orm_device *pdev)
->  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	release_mem_region(mem->start, resource_size(mem));
-> =20
-> +	pm_runtime_disable(&pdev->dev);
->  	clk_put(priv->priv);
-> =20
->  	return 0;
->=20
-
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enig3E73F25E3A35BA6C9F4A26E0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAlAo7rEACgkQjTAFq1RaXHORwACfR4hMsaJBapn4JjswLf73Mout
-c3sAni4CQeinypg5elA4vyWebK2a/mZ6
-=IuxK
------END PGP SIGNATURE-----
-
---------------enig3E73F25E3A35BA6C9F4A26E0--
+Obrigado por sua coopera=E7=E3o.
+Webmail Equipe Update.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
