@@ -1,194 +1,71 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Add initialisation for the real-time counter.
-Date: Mon, 13 Aug 2012 23:05:04 +0530
-Message-ID: <50293AC8.7010403@ti.com>
-References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com> <1344856045-15134-2-git-send-email-santosh.shilimkar@ti.com>
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCHv2 0/2] Add Nokia N900 (RX51) IR diode support
+Date: Mon, 13 Aug 2012 21:05:42 +0300
+Message-ID: <502941F6.3080809@iki.fi>
+References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51388 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124Ab2HMRfN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 13:35:13 -0400
-In-Reply-To: <1344856045-15134-2-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orig, tony@atomide.com
 
+Hi,
 
-
-On 8/13/2012 4:37 PM, Santosh Shilimkar wrote:
-> The real time counter also called master counter, is a free-running
-> counter. It produces the count used by the CPU local timer peripherals
-> in the MPU cluster. The timer counts at a rate of 6.144 MHz.
+On 08/10/12 13:16, Timo Kokkonen wrote:
+> These patches add the support for sending IR remote controller codes
+> on the Nokia N900 phone. The code is taken from the public N900 kernel
+> release and modified to work with today's kernel.
 > 
-> The ratio registers needs to be configured based on system clock
-> only onetime. After initialisation, hardware takes care of adjusting
-> the clock in different low power modes to keep counter rate constant.
+> The code has been tested with a real Nokia N900 device and confirmed
+> to work. I can identify only one known issue; The IR pulses being sent
+> become *veeery* long if the device chooses to go into any sleep modes
+> during transmitting the IR pulses. The driver makes an attempt to set
+> up PM latency constraints, but apparently those don't apply as there
+> is currently only no-op PM layer available. Therefore, I guess this
+> driver doesn't actually work properly unless there is some background
+> load that prevents the device from enterint sleep modes or the sleep
+> modes are disabled altogether. However, once a proper PM layer
+> implementation becomes available, I expect this problem to resolve
+> itself. The same code used to work with the actual N900 kernel that
+> has those implemented.
 > 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Any comments regarding the patches are welcome.
+> 
+> I guess media list won't take in omap patches and omap list doesn't
+> take media patches. So I wrote the patches so that they can be applied
+> independently. If you want me to remove the #ifdef hacks from the
+> board file (that is needed to break the build dependency between the
+> patches), then the ir-rx51.c patch needs to be applied before the
+> board file patch. But I though it would be more flexible this way. I'm
+> open to suggestions on how you are willing to accept the patches.
+> 
 > ---
->  arch/arm/mach-omap2/Kconfig |    4 ++
->  arch/arm/mach-omap2/timer.c |   89 ++++++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 92 insertions(+), 1 deletion(-)
 > 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index dd2db02..2120f90 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -24,6 +24,9 @@ config ARCH_OMAP2PLUS_TYPICAL
->  config SOC_HAS_OMAP2_SDRC
->  	bool "OMAP2 SDRAM Controller support"
->  
-> +config SOC_HAS_REALTIME_COUNTER
-> +	bool "Real time free running counter"
-> +
->  config ARCH_OMAP2
->  	bool "TI OMAP2"
->  	depends on ARCH_OMAP2PLUS
-> @@ -69,6 +72,7 @@ config SOC_OMAP5
->  	select CPU_V7
->  	select ARM_GIC
->  	select HAVE_SMP
-> +	select SOC_HAS_REALTIME_COUNTER
->  
->  comment "OMAP Core Type"
->  	depends on ARCH_OMAP2
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 2ff6d41..9b17e6c 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -69,6 +69,11 @@
->  #define OMAP3_SECURE_TIMER	1
->  #endif
->  
-> +#define REALTIME_COUNTER_BASE				0x48243200
-> +#define INCREMENTER_NUMERATOR_OFFSET			0x10
-> +#define INCREMENTER_DENUMERATOR_RELOAD_OFFSET		0x14
-> +#define NUMERATOR_DENUMERATOR_MASK			0xfffff000
-> +
->  /* Clockevent code */
->  
->  static struct omap_dm_timer clkev;
-> @@ -339,6 +344,83 @@ static void __init omap2_clocksource_init(int gptimer_id,
->  		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
->  }
->  
-> +#ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
-> +/*
-> + * The realtime counter also called master counter, is a free-running
-> + * counter, which is related to real time. It produces the count used
-> + * by the CPU local timer peripherals in the MPU cluster. The timer counts
-> + * at a rate of 6.144 MHz. Because the device operates on different clocks
-> + * in different power modes, the master counter shifts operation between
-> + * clocks, adjusting the increment per clock in hardware accordingly to
-> + * maintain a constant count rate.
-> + */
-> +static void __init realtime_counter_init(void)
-> +{
-> +	void __iomem *base;
-> +	static struct clk *sys_clk;
-> +	unsigned long rate;
-> +	unsigned int reg, num, den;
-> +
-> +	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
-> +	if (!base) {
-> +		pr_err("%s: ioremap failed\n", __func__);
-> +		return;
-> +	}
-> +	sys_clk = clk_get(NULL, "sys_clkin_ck");
-> +	if (!sys_clk) {
-> +		pr_err("%s: failed to get system clock handle\n", __func__);
-> +		return;
+> Changes since v1:
+> 
+> - Move ir-rx51.h into include/media directory
+> 
 
-Don't want to unmap the ioremap'ed space?
+Any comments on these? Anything still missing before you can consider
+accepting these? Thanks!
 
-> +	}
-> +
-> +	rate = clk_get_rate(sys_clk);
-> +	switch (rate) {
-> +	case 1200000:
-> +		num = 64;
-> +		den = 125;
-> +		break;
-> +	case 1300000:
-> +		num = 768;
-> +		den = 1625;
-> +		break;
-> +	case 19200000:
-> +		num = 8;
-> +		den = 25;
-> +		break;
-> +	case 2600000:
-> +		num = 384;
-> +		den = 1625;
-> +		break;
-> +	case 2700000:
-> +		num = 256;
-> +		den = 1125;
-> +		break;
-> +	case 38400000:
-> +		num = 4;
-> +		den = 25;
-> +		break;
-> +	default:
-> +		/* Program it for 38.4 MHz */
-> +		num = 4;
-> +		den = 25;
-> +		break;
+-Timo
 
-You can simply do something like,
-
-	case 38400000:
-	/* Program it for 38.4 MHz */
-	default:
-		num = 4;
-		den = 25;
-		break;
-
-Also, suggest to mention about why 38.4MHz as default? I believe it is
-reset value, right?
-
-Also, does it make sense to get rid of hardcoded values above?
-
-
-Thanks,
-Vaibhav
-> +	}
-> +
-> +	/* Program numerator and denumerator registers */
-> +	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
-> +			NUMERATOR_DENUMERATOR_MASK;
-> +	reg |= num;
-> +	__raw_writel(reg, base + INCREMENTER_NUMERATOR_OFFSET);
-> +
-> +	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
-> +			NUMERATOR_DENUMERATOR_MASK;
-> +	reg |= den;
-> +	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
-> +}
-> +#else
-> +static inline void __init realtime_counter_init(void)
-> +{}
-> +#endif
-> +
->  #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
->  				clksrc_nr, clksrc_src)			\
->  static void __init omap##name##_timer_init(void)			\
-> @@ -396,7 +478,12 @@ OMAP_SYS_TIMER(4)
->  #endif
->  
->  #ifdef CONFIG_SOC_OMAP5
-> -OMAP_SYS_TIMER_INIT(5, 1, OMAP4_CLKEV_SOURCE, 2, OMAP4_MPU_SOURCE)
-> +static void __init omap5_timer_init(void)
-> +{
-> +	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
-> +	omap2_clocksource_init(2, OMAP4_MPU_SOURCE);
-> +	realtime_counter_init();
-> +}
->  OMAP_SYS_TIMER(5)
->  #endif
->  
+> 
+> Timo Kokkonen (2):
+>   media: rc: Introduce RX51 IR transmitter driver
+>   ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
+> 
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++
+>  drivers/media/rc/Kconfig                     |   10 +
+>  drivers/media/rc/Makefile                    |    1 +
+>  drivers/media/rc/ir-rx51.c                   |  496 ++++++++++++++++++++++++++
+>  include/media/ir-rx51.h                      |   10 +
+>  5 files changed, 547 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/rc/ir-rx51.c
+>  create mode 100644 include/media/ir-rx51.h
 > 
