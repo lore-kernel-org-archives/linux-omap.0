@@ -1,38 +1,36 @@
-From: repittec <repittec@fapesb.ba.gov.br>
-Subject: =?iso-8859-1?Q?ATEN=C7=C3O_ATEN=C7=C3O_(aviso_de_alerta_QUOTA)?=
-Date: Mon, 13 Aug 2012 09:01:49 -0300
-Message-ID: <40014C94A4D17D49A7EB927F07366E09535E15307D@SRVEX01>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: ELM module support in OMAP?
+Date: Mon, 13 Aug 2012 13:19:04 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E98AE8B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fapesbnav.fapesb.ba.gov.br ([200.128.1.254]:3114 "EHLO
-	fapesbnav.fapesb.ba.gov.br" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665Ab2HMMYa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:24:30 -0400
-Content-Language: pt-BR
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39317 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751046Ab2HMNUM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 09:20:12 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q7DDKA6I021494
+	for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 08:20:11 -0500
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q7DDK98e013098
+	for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 18:50:10 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-Caro usu=E1rio Webmail,
+Hi,
 
-Sua caixa de correio excedeu seu limite, o seu webmail est=E1 sendo exe=
-cutado 99,7% do seu limite de cota de 100%. Voc=EA n=E3o pode enviar ou=
- receber e-mail corretamente at=E9 que voc=EA tenha atualizado e actual=
-izar a sua conta de webmail. Para atualizar sua conta de webmail, cliqu=
-e no link abaixo e cole no seu navegador para solicitar a atualiza=E7=E3=
-o.
+I am planning to support BCH8 error correction using ELM module
+in AM33xx.
+Please let me know if any work or plan is there to support ELM
+module in OMAP?
 
-http://www.gps-recruiting.com/contact/use/download/form1.html
+Thanks
+Avinash Philip
 
-Estamos sinceramente desculpas por qualquer inconveniente que isso poss=
-a causar-lhe, n=F3s tendemos a servi-lo melhor.
 
-Obrigado por sua coopera=E7=E3o.
-Webmail Equipe Update.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
