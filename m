@@ -1,67 +1,129 @@
-From: Matthias Kaehlcke <matthias.list@kaehlcke.net>
-Subject: Re: [PATCH] mfd/regulator: tps65217: Move regulator plat data
- handling to regulator
-Date: Mon, 13 Aug 2012 22:02:50 +0200
-Message-ID: <20120813200250.GA3822@darwin>
-References: <1342776601-8773-1-git-send-email-anilkumar@ti.com>
- <20120813082732.GA31722@darwin>
- <331ABD5ECB02734CA317220B2BBEABC13EA11ABF@DBDE01.ent.ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: Infinite looping in omap2430.c USB driver
+Date: Tue, 14 Aug 2012 07:46:59 +1000
+Message-ID: <20120814074659.3c48fa41@notabene.brown>
+References: <20120707083949.2cf91eeb@notabene.brown>
+	<20120809111549.GT12174@arwen.pp.htv.fi>
+	<20120813123453.4cba14ca@notabene.brown>
+	<20120813143233.GJ14781@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from a83-160-107-163.adsl.xs4all.nl ([83.160.107.163]:39140 "EHLO
-	d4rwin.no-ip.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072Ab2HMUDt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 16:03:49 -0400
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA11ABF@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/O3/YEC0cfVz6AADutU7CybN"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120813143233.GJ14781@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "rdunlap@xenotime.net" <rdunlap@xenotime.net>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi AnilKumar,
+--Sig_/O3/YEC0cfVz6AADutU7CybN
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-El Mon, Aug 13, 2012 at 01:35:55PM +0000 AnilKumar, Chimata ha dit:
+On Mon, 13 Aug 2012 17:32:34 +0300 Felipe Balbi <balbi@ti.com> wrote:
 
-> > also the tps65217_board structure should be renamed to something li=
-ke
-> > tps65217_regulators, now that it is specific to the regulator
+> Hi,
 >=20
-> Not required because tps65217_board might contain platform data for W=
-LED/
-> Battery charger driver if require. So the struct was named as tps6521=
-7_board
+> On Mon, Aug 13, 2012 at 12:34:53PM +1000, NeilBrown wrote:
+> > On Thu, 9 Aug 2012 14:15:51 +0300 Felipe Balbi <balbi@ti.com> wrote:
+> >=20
+> >=20
+> > > hehe, that's nasty. Please send a patch converting to a try count and=
+ a
+> > > udelay_range(), or something.
+> > >=20
+> >=20
+> > how's this?
+> >=20
+> > Thanks,
+> > NeilBrown
+> >=20
+> >=20
+> > From: NeilBrown <neilb@suse.de>
+> > Date: Mon, 13 Aug 2012 12:32:58 +1000
+> > Subject: [PATCH] omap2430: don't loop indefinitely in interrupt.
+> >=20
+> > When called during resume_irqs, omap2430_musb_set_vbus() is run with
+> > interrupts disabled,  In that case 'jiffies' never changes so the loop
+> > can loop forever.
+> >=20
+> > So impose a maximum loop count and add an 'mdelay' to ensure we wait
+> > a reasonable amount of time for bit to be cleared.
+> >=20
+> > This fixes a hang on resume.
+> >=20
+> > Signed-of-by: NeilBrown <neilb@suse.de>
+> >=20
+> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> > index c7785e8..8a93381 100644
+> > --- a/drivers/usb/musb/omap2430.c
+> > +++ b/drivers/usb/musb/omap2430.c
+> > @@ -34,6 +34,7 @@
+> >  #include <linux/dma-mapping.h>
+> >  #include <linux/pm_runtime.h>
+> >  #include <linux/err.h>
+> > +#include <linux/delay.h>
+> > =20
+> >  #include "musb_core.h"
+> >  #include "omap2430.h"
+> > @@ -145,6 +146,7 @@ static void omap2430_musb_set_vbus(struct musb *mus=
+b, int is_on)
+> > =20
+> >  	if (is_on) {
+> >  		if (musb->xceiv->state =3D=3D OTG_STATE_A_IDLE) {
+> > +			int loops =3D 100;
+> >  			/* start the session */
+> >  			devctl |=3D MUSB_DEVCTL_SESSION;
+> >  			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+> > @@ -154,9 +156,11 @@ static void omap2430_musb_set_vbus(struct musb *mu=
+sb, int is_on)
+> >  			 */
+> >  			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
+> > =20
+> > +				mdelay(5);
+>=20
+> I would prefer udelay_range() as it will let scheduler group timers.
+> Something like:
+>=20
+> udelay_range(3000, 5000);
+>=20
+> should do, I gues...
+>=20
 
-the patch moves the allocation of the structure to the regulator
-driver, so either it should be a subdevice specific structure or a
-chip specific one which is allocated in the mfd driver. otherwise the
-regulator driver will allocate memory which is never used when struct
-tps65217_board is extended for other subdevices. and the same would
-happen in the other subdevice drivers if they choose to allocate their
-own struct tps65217_board instead of a sub-structure with just the
-fields needed by the specific driver
+Except that there is no udelay_range :-(
+There is a usleep_range, but that can only be used from non-atomic context
+and in the problem case interrupts are disabled and a spinlock is held so we
+very definitely are not in non-atomic context.  If we need a delay at all, =
+it
+has to be udelay or mdelay.
+If we could do this in a work function rather than directly from the
+interrupt handler that would be best but I have no idea what dependencies
+there are..  Would it be safe for musb_stage0_irq() to ask a workqueue to r=
+un
+musb_platform_set_vbus rather than doing it directly?
 
-regards
+NeilBrown
 
---=20
-Matthias Kaehlcke
-Embedded Linux Developer
-Amsterdam
+--Sig_/O3/YEC0cfVz6AADutU7CybN
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-    Yo soy como soy y t=FA eres como eres, construyamos un mundo donde =
-yo
-    pueda ser sin dejar de ser yo, donde t=FA puedas ser sin dejar de s=
-er
-    t=FA, y donde ni yo ni t=FA obliguemos al otro a ser como yo o como=
- t=FA
-                                                                 .''`.
-    using free software / Debian GNU/Linux | http://debian.org  : :'  :
-                                                                `. `'`
-gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBUCl11Dnsnt1WYoG5AQJJsg/9FnUwDskgksBvUVtvUG2VvFkcuuTt4rlX
+6Dfrokw3Bow+I8o4KQW6F1FK+uvPM3D7laDhTOTMDsFG96gkqb7VkL8iwiTVmCNw
+uIvTQvvkbi8/VTIcIYpS4SEvujC2uYpkXC0NNx+4DlBJBpeAxCOH8hMGcvSoS2jP
+KmhXxzt8lQhpL6OYHjL4vsiMG1ehywQamkY7X5vnj1aloT1itTWjvE6yJ33fzND3
+3MhDQ6g84r2AfK3gWnx2B4Uer/h4rZYVf+SJiDgvI4uXfm0rU1lhVbHcH28qujq+
+VGHa+ruGX9dihFmgkFKgD4E7ELDCc20rtIWlmhr0rnRiqJSqxa5kvMFUAl4wjKQu
+aJnjhQmnk6R+B/hYN6dPBzI+yjKZD9soqlH5uG8YsoaWpOYh3O/wWp2rEj03gNjH
+2eLyLKg6BaTa02t8PXCvPYRiFRt3LVj6yzpzUbb1dyF23+XhvbjRN8CHsSb+hLNo
+Rz6L5FKvOHzeUnsZXkNnUWptqVr77BGMPyGdomX/+XgDEY3A8UjmlHGMwkSVnpdz
+RKGDebEL4CRQVKrsmGff2bpJ9yhTT28SBG8wPT1iH3wJOktepLk3O1KIDNKLU2l+
+qsm92WyYSNtIisVq4SQMJjyZDpgIMLyubWJM33I8v17P9T047AWrJHRnFdScBaMm
+GTO3mYZYups=
+=RrmW
+-----END PGP SIGNATURE-----
+
+--Sig_/O3/YEC0cfVz6AADutU7CybN--
