@@ -1,46 +1,107 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 04/11] MFD: twl4030-audio: Add DT support
-Date: Sun, 12 Aug 2012 19:50:12 +0100
-Message-ID: <20120812185012.GB10627@opensource.wolfsonmicro.com>
-References: <20120808131356.GS16861@opensource.wolfsonmicro.com>
- <50226CF4.1010202@ti.com>
- <20120808135253.GC16861@opensource.wolfsonmicro.com>
- <502274DA.9020204@ti.com>
- <20120808141849.GA24328@opensource.wolfsonmicro.com>
- <50227837.10400@ti.com>
- <20120808144933.GC24328@opensource.wolfsonmicro.com>
- <50238E8A.5030902@ti.com>
- <20120809103600.GI24328@opensource.wolfsonmicro.com>
- <5023C0D6.8040600@ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: Infinite looping in omap2430.c USB driver
+Date: Mon, 13 Aug 2012 12:34:53 +1000
+Message-ID: <20120813123453.4cba14ca@notabene.brown>
+References: <20120707083949.2cf91eeb@notabene.brown>
+	<20120809111549.GT12174@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <5023C0D6.8040600@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/IAnIF=EIPIm1aK7eCXcbeMK"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120809111549.GT12174@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 09, 2012 at 04:53:26PM +0300, Peter Ujfalusi wrote:
-> On 08/09/2012 01:36 PM, Mark Brown wrote:
+--Sig_/IAnIF=EIPIm1aK7eCXcbeMK
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> > Is there any actual case where an external mute is supplied via a
-> > mechanism other than a GPIO, and if there is would it not either need
-> > its own DT property or already need to interact with the driver from
-> > code, making the DT property redundant?
+On Thu, 9 Aug 2012 14:15:51 +0300 Felipe Balbi <balbi@ti.com> wrote:
 
-> Not with my knowledge. The only board using it is the zoom2 upstream. I know
-> other boards (not in upstream) which either uses the internal mute or GPIO.
 
-OK, so we can probably only support GPIO for now then worry about other
-external mutes when there's something to work with.
+> hehe, that's nasty. Please send a patch converting to a try count and a
+> udelay_range(), or something.
+>=20
+
+how's this?
+
+Thanks,
+NeilBrown
+
+
+From: NeilBrown <neilb@suse.de>
+Date: Mon, 13 Aug 2012 12:32:58 +1000
+Subject: [PATCH] omap2430: don't loop indefinitely in interrupt.
+
+When called during resume_irqs, omap2430_musb_set_vbus() is run with
+interrupts disabled,  In that case 'jiffies' never changes so the loop
+can loop forever.
+
+So impose a maximum loop count and add an 'mdelay' to ensure we wait
+a reasonable amount of time for bit to be cleared.
+
+This fixes a hang on resume.
+
+Signed-of-by: NeilBrown <neilb@suse.de>
+
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index c7785e8..8a93381 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -34,6 +34,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/err.h>
++#include <linux/delay.h>
+=20
+ #include "musb_core.h"
+ #include "omap2430.h"
+@@ -145,6 +146,7 @@ static void omap2430_musb_set_vbus(struct musb *musb, i=
+nt is_on)
+=20
+ 	if (is_on) {
+ 		if (musb->xceiv->state =3D=3D OTG_STATE_A_IDLE) {
++			int loops =3D 100;
+ 			/* start the session */
+ 			devctl |=3D MUSB_DEVCTL_SESSION;
+ 			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+@@ -154,9 +156,11 @@ static void omap2430_musb_set_vbus(struct musb *musb, =
+int is_on)
+ 			 */
+ 			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
+=20
++				mdelay(5);
+ 				cpu_relax();
+=20
+-				if (time_after(jiffies, timeout)) {
++				if (time_after(jiffies, timeout)
++				    || loops-- <=3D 0) {
+ 					dev_err(musb->controller,
+ 					"configured as A device timeout");
+ 					ret =3D -EINVAL;
+
+--Sig_/IAnIF=EIPIm1aK7eCXcbeMK
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBUChnzTnsnt1WYoG5AQK+fBAAlv2n740UiFMpfbLBf2OLnfnHsTcy1WVE
+KTuJL4sJroEW6u17Z9DaZ8Fh7IHN+zqZfgzR7H54x5V4sx7DtEFU5vAM6hzB96r9
+SkglQKvwYD9XCq8Oqfod9ru6/g0zptH1oVbV1vLA54RwU6EbZpo7KSGjnNHRrp+Y
+lUKfYw39T1JKmZsFmcbP9ZUAFButXFGsYs0KRFrBVziHc8xFBY031LXLmWtSLyI+
+fMC/R4rn+dAdCpWSVt2WTxyiiz6wEY7ynNG3TBHGtG22Vsw3EZM37ViBN+857FQL
+M/tL8nSKbHC3OF01AVwsssjS1ce/sNyYs0M0MbT0n0B6p1XDxnMLG4sfFd5N7j8a
+Bj2eIBKJcOwKsOchbJLlOy7Qu7NzwXAT64bR8v7goEO0LmLs1hZeRaqFuCCU2Etb
+xLAPvG4JwUSKehvQw2R8yG9uiSuYGfPR0m3Wv9r9UUOzo/BS8ZXqBJY3A0WaUxy8
++ly3IITsCQmptwSGv9itbnCZDxIUZwDYLLP86zFfyargf93v7UJIvSeKibybzM8Z
+2g51OxcLrMfNmuyAtxA6yC/X+de4PZzmZG4w8Ce8+27k2YNSLn+oOdKM6japMPms
+CejNOKqXbD1KK6qkrlMGnHORD8SPEoxvooIJoOrIHwYhOmnCXcEjzFlMhS1LjqAy
+P6r3UFoiZcs=
+=mWBd
+-----END PGP SIGNATURE-----
+
+--Sig_/IAnIF=EIPIm1aK7eCXcbeMK--
