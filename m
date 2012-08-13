@@ -1,147 +1,443 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Mon, 13 Aug 2012 20:23:43 +0530
-Message-ID: <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
-References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
-	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
-	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
-	<20120723140830.GA8155@arwen.pp.htv.fi>
-	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
-	<CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
-	<CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
-	<20120813140928.GH14781@arwen.pp.htv.fi>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v2] mfd/regulator: tps65217: Move regulator plat data handling to regulator
+Date: Mon, 13 Aug 2012 20:36:05 +0530
+Message-ID: <1344870365-11645-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:39058 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438Ab2HMOxp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Aug 2012 10:53:45 -0400
-Received: by yhoo21 with SMTP id o21so7288768yho.1
-        for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 07:53:43 -0700 (PDT)
-In-Reply-To: <20120813140928.GH14781@arwen.pp.htv.fi>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46061 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751438Ab2HMPGd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Aug 2012 11:06:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
-Cc: Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
+To: sameo@linux.intel.com
+Cc: broonie@opensource.wolfsonmicro.com, dan.carpenter@oracle.com, rdunlap@xenotime.net, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-omap@vger.kernel.org, stable@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-On Mon, Aug 13, 2012 at 7:39 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Aug 13, 2012 at 06:52:13PM +0530, Munegowda, Keshava wrote:
->> On Fri, Jul 27, 2012 at 5:44 PM, Munegowda, Keshava
->> <keshava_mgowda@ti.com> wrote:
->> > On Mon, Jul 23, 2012 at 8:04 PM, Munegowda, Keshava
->> > <keshava_mgowda@ti.com> wrote:
->> >> On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
->> >>> Hi,
->> >>>
->> >>> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
->> >>>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
->> >>>> <keshava_mgowda@ti.com> wrote:
->> >>>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
->> >>>> > <keshava_mgowda@ti.com> wrote:
->> >>>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
->> >>>> >> the host controller. Basically this TLL operates like USB PHY which allows
->> >>>> >> the user to connect two USB transceiver interfaces together directly
->> >>>> >> without the use of differential transceivers in omap3 and later chips.
->> >>>> >> The TLL configuration is removed from the UHH driver and implemented as
->> >>>> >> a seperate platform driver. Now, the UHH driver configures the TLL
->> >>>> >> through API's exported by the TLL platform driver.
->> >>>> >>
->> >>>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> >>>> >>
->> >>>> >> In v4:
->> >>>> >>     - rebased on top of linux kernel version 3.5.rc7
->> >>>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
->> >>>> >>
->> >>>> >> In v3:
->> >>>> >>   - rebased on top V3 of Russ dill's patch
->> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
->> >>>> >>        while initializing the EHCI controller
->> >>>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
->> >>>> >>
->> >>>> >>   - rebased on top of patch
->> >>>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
->> >>>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
->> >>>> >>
->> >>>> >> In V2:
->> >>>> >>     - covered review comments from linux omap and usb community
->> >>>> >>     - rebased on top Russ dill's patch
->> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
->> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
->> >>>> >>        while initializing the EHCI controller
->> >>>> >>
->> >>>> >> Keshava Munegowda (5):
->> >>>> >>   ARM: OMAP: Add the USB TLL clocks device name
->> >>>> >>   ARM: OMAP: USB: HOST TLL platform driver
->> >>>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
->> >>>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
->> >>>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
->> >>>> >>
->> >>>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
->> >>>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
->> >>>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
->> >>>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
->> >>>> >>  drivers/mfd/Kconfig                   |    2 +-
->> >>>> >>  drivers/mfd/Makefile                  |    2 +-
->> >>>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
->> >>>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
->> >>>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
->> >>>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
->> >>>> >>
->> >>>> >> --
->> >>>> >> 1.7.9.5
->> >>>> >
->> >>>> >
->> >>>> > Felipe/ Paul
->> >>>> >       please let me know if you have any review comments on this v4 series.
->> >>>> >
->> >>>> > regards
->> >>>> > keshava
->> >>>>
->> >>>> Hi Felipe
->> >>>>           please let me know if you have any review comments on this series now.
->> >>>
->> >>> looks ok... pretty much just moving code around.
->> >>>
->> >>> --
->> >>> balbi
->> >>
->> >>
->> >> Thanks Felipe
->> >>
->> >> then I request please give your Ack by for this series.
->> >>
->> >> regards
->> >> keshava
->> >
->> > Hi Paul
->> >     do you have any review comments on this series?
->> > Felipe is OK with this series.  if there are no review comments on this series
->> > I request your ack by for the same.
->> > Once this series gets in to mainline. i will start the Device tree
->> > conversion for usb2 host.
->> >
->> > regards
->> > keshava
->>
->> Hi Felipe
->>        please give you ack by this series , so that I request
->> samuel to merge to mainline.
->
-> sure, here you go
->
-> Acked-by: Felipe Balbi <balbi@ti.com>
->
-> --
-> balbi
+Regulator platform data handling was mistakenly added to MFD
+driver. So we will see build errors if we compile MFD drivers
+without CONFIG_REGULATOR. This patch moves regulator platform
+data handling from TPS65217 MFD driver to regulator driver.
 
+This makes MFD driver independent of REGULATOR framework so
+build error is fixed if CONFIG_REGULATOR is not set.
 
-Thanks Felipe
+drivers/built-in.o: In function `tps65217_probe':
+tps65217.c:(.devinit.text+0x13e37): undefined reference
+to `of_regulator_match'
 
-Samuel
-      I request please queue this series for the next merge window.
+This patch also fix allocation size of tps65217 platform data.
+Current implementation allocates a struct tps65217_board for each
+regulator specified in the device tree. But the structure itself
+provides array of regulators so one instance of it is sufficient.
 
-regards
-keshava
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+This patch is tested on BeagleBone with regulator device node
+additions. And this is based on mfd/master.
+
+Changes from v1:
+	- Incorporated Matthias Kaehlcke's commets on v1
+	  * Fixed allocation size of tps65217 platform data
+
+ drivers/mfd/tps65217.c                 |  130 +++++++++++---------------------
+ drivers/regulator/tps65217-regulator.c |  124 ++++++++++++++++++++++++++----
+ include/linux/mfd/tps65217.h           |   12 ++-
+ 3 files changed, 161 insertions(+), 105 deletions(-)
+
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index 61c097a..3bc2744 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -24,11 +24,18 @@
+ #include <linux/slab.h>
+ #include <linux/regmap.h>
+ #include <linux/err.h>
+-#include <linux/regulator/of_regulator.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ 
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/tps65217.h>
+ 
++static struct mfd_cell tps65217s[] = {
++	{
++		.name = "tps65217-pmic",
++	},
++};
++
+ /**
+  * tps65217_reg_read: Read a single tps65217 register.
+  *
+@@ -133,83 +140,48 @@ int tps65217_clear_bits(struct tps65217 *tps, unsigned int reg,
+ }
+ EXPORT_SYMBOL_GPL(tps65217_clear_bits);
+ 
+-#ifdef CONFIG_OF
+-static struct of_regulator_match reg_matches[] = {
+-	{ .name = "dcdc1", .driver_data = (void *)TPS65217_DCDC_1 },
+-	{ .name = "dcdc2", .driver_data = (void *)TPS65217_DCDC_2 },
+-	{ .name = "dcdc3", .driver_data = (void *)TPS65217_DCDC_3 },
+-	{ .name = "ldo1", .driver_data = (void *)TPS65217_LDO_1 },
+-	{ .name = "ldo2", .driver_data = (void *)TPS65217_LDO_2 },
+-	{ .name = "ldo3", .driver_data = (void *)TPS65217_LDO_3 },
+-	{ .name = "ldo4", .driver_data = (void *)TPS65217_LDO_4 },
+-};
+-
+-static struct tps65217_board *tps65217_parse_dt(struct i2c_client *client)
+-{
+-	struct device_node *node = client->dev.of_node;
+-	struct tps65217_board *pdata;
+-	struct device_node *regs;
+-	int count = ARRAY_SIZE(reg_matches);
+-	int ret, i;
+-
+-	regs = of_find_node_by_name(node, "regulators");
+-	if (!regs)
+-		return NULL;
+-
+-	ret = of_regulator_match(&client->dev, regs, reg_matches, count);
+-	of_node_put(regs);
+-	if ((ret < 0) || (ret > count))
+-		return NULL;
+-
+-	count = ret;
+-	pdata = devm_kzalloc(&client->dev, count * sizeof(*pdata), GFP_KERNEL);
+-	if (!pdata)
+-		return NULL;
+-
+-	for (i = 0; i < count; i++) {
+-		if (!reg_matches[i].init_data || !reg_matches[i].of_node)
+-			continue;
+-
+-		pdata->tps65217_init_data[i] = reg_matches[i].init_data;
+-		pdata->of_node[i] = reg_matches[i].of_node;
+-	}
+-
+-	return pdata;
+-}
+-
+-static struct of_device_id tps65217_of_match[] = {
+-	{ .compatible = "ti,tps65217", },
+-	{ },
+-};
+-#else
+-static struct tps65217_board *tps65217_parse_dt(struct i2c_client *client)
+-{
+-	return NULL;
+-}
+-#endif
+-
+ static struct regmap_config tps65217_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ };
+ 
++static const struct of_device_id tps65217_of_match[] = {
++	{ .compatible = "ti,tps65217", .data = (void *)TPS65217 },
++	{ /* sentinel */ },
++};
++
+ static int __devinit tps65217_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *ids)
+ {
+ 	struct tps65217 *tps;
+-	struct regulator_init_data *reg_data;
+-	struct tps65217_board *pdata = client->dev.platform_data;
+-	int i, ret;
+ 	unsigned int version;
++	unsigned int chip_id = ids->driver_data;
++	const struct of_device_id *match;
++	int ret;
+ 
+-	if (!pdata && client->dev.of_node)
+-		pdata = tps65217_parse_dt(client);
++	if (client->dev.of_node) {
++		match = of_match_device(tps65217_of_match, &client->dev);
++		if (!match) {
++			dev_err(&client->dev,
++				"Failed to find matching dt id\n");
++			return -EINVAL;
++		}
++		chip_id = (unsigned int)match->data;
++	}
++
++	if (!chip_id) {
++		dev_err(&client->dev, "id is null.\n");
++		return -ENODEV;
++	}
+ 
+ 	tps = devm_kzalloc(&client->dev, sizeof(*tps), GFP_KERNEL);
+ 	if (!tps)
+ 		return -ENOMEM;
+ 
+-	tps->pdata = pdata;
++	i2c_set_clientdata(client, tps);
++	tps->dev = &client->dev;
++	tps->id = chip_id;
++
+ 	tps->regmap = devm_regmap_init_i2c(client, &tps65217_regmap_config);
+ 	if (IS_ERR(tps->regmap)) {
+ 		ret = PTR_ERR(tps->regmap);
+@@ -218,8 +190,12 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
+-	i2c_set_clientdata(client, tps);
+-	tps->dev = &client->dev;
++	ret = mfd_add_devices(tps->dev, -1, tps65217s,
++					ARRAY_SIZE(tps65217s), NULL, 0);
++	if (ret < 0) {
++		dev_err(tps->dev, "mfd_add_devices failed: %d\n", ret);
++		return ret;
++	}
+ 
+ 	ret = tps65217_reg_read(tps, TPS65217_REG_CHIPID, &version);
+ 	if (ret < 0) {
+@@ -232,41 +208,21 @@ static int __devinit tps65217_probe(struct i2c_client *client,
+ 			(version & TPS65217_CHIPID_CHIP_MASK) >> 4,
+ 			version & TPS65217_CHIPID_REV_MASK);
+ 
+-	for (i = 0; i < TPS65217_NUM_REGULATOR; i++) {
+-		struct platform_device *pdev;
+-
+-		pdev = platform_device_alloc("tps65217-pmic", i);
+-		if (!pdev) {
+-			dev_err(tps->dev, "Cannot create regulator %d\n", i);
+-			continue;
+-		}
+-
+-		pdev->dev.parent = tps->dev;
+-		pdev->dev.of_node = pdata->of_node[i];
+-		reg_data = pdata->tps65217_init_data[i];
+-		platform_device_add_data(pdev, reg_data, sizeof(*reg_data));
+-		tps->regulator_pdev[i] = pdev;
+-
+-		platform_device_add(pdev);
+-	}
+-
+ 	return 0;
+ }
+ 
+ static int __devexit tps65217_remove(struct i2c_client *client)
+ {
+ 	struct tps65217 *tps = i2c_get_clientdata(client);
+-	int i;
+ 
+-	for (i = 0; i < TPS65217_NUM_REGULATOR; i++)
+-		platform_device_unregister(tps->regulator_pdev[i]);
++	mfd_remove_devices(tps->dev);
+ 
+ 	return 0;
+ }
+ 
+ static const struct i2c_device_id tps65217_id_table[] = {
+-	{"tps65217", 0xF0},
+-	{/* end of list */}
++	{"tps65217", TPS65217},
++	{ /* sentinel */ }
+ };
+ MODULE_DEVICE_TABLE(i2c, tps65217_id_table);
+ 
+diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
+index 6caa222..ab00cab 100644
+--- a/drivers/regulator/tps65217-regulator.c
++++ b/drivers/regulator/tps65217-regulator.c
+@@ -22,6 +22,7 @@
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ 
++#include <linux/regulator/of_regulator.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/mfd/tps65217.h>
+@@ -281,37 +282,130 @@ static const struct regulator_desc regulators[] = {
+ 			   NULL),
+ };
+ 
++#ifdef CONFIG_OF
++static struct of_regulator_match reg_matches[] = {
++	{ .name = "dcdc1", .driver_data = (void *)TPS65217_DCDC_1 },
++	{ .name = "dcdc2", .driver_data = (void *)TPS65217_DCDC_2 },
++	{ .name = "dcdc3", .driver_data = (void *)TPS65217_DCDC_3 },
++	{ .name = "ldo1", .driver_data = (void *)TPS65217_LDO_1 },
++	{ .name = "ldo2", .driver_data = (void *)TPS65217_LDO_2 },
++	{ .name = "ldo3", .driver_data = (void *)TPS65217_LDO_3 },
++	{ .name = "ldo4", .driver_data = (void *)TPS65217_LDO_4 },
++};
++
++static struct tps65217_board *tps65217_parse_dt(struct platform_device *pdev)
++{
++	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
++	struct device_node *node = tps->dev->of_node;
++	struct tps65217_board *pdata;
++	struct device_node *regs;
++	int i, count;
++
++	regs = of_find_node_by_name(node, "regulators");
++	if (!regs)
++		return NULL;
++
++	count = of_regulator_match(pdev->dev.parent, regs,
++				reg_matches, TPS65217_NUM_REGULATOR);
++	of_node_put(regs);
++	if ((count < 0) || (count > TPS65217_NUM_REGULATOR))
++		return NULL;
++
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++
++	for (i = 0; i < count; i++) {
++		if (!reg_matches[i].init_data || !reg_matches[i].of_node)
++			continue;
++
++		pdata->tps65217_init_data[i] = reg_matches[i].init_data;
++		pdata->of_node[i] = reg_matches[i].of_node;
++	}
++
++	return pdata;
++}
++#else
++static struct tps65217_board *tps65217_parse_dt(struct platform_device *pdev)
++{
++	return NULL;
++}
++#endif
++
+ static int __devinit tps65217_regulator_probe(struct platform_device *pdev)
+ {
++	struct tps65217 *tps = dev_get_drvdata(pdev->dev.parent);
++	struct tps65217_board *pdata = dev_get_platdata(tps->dev);
++	struct regulator_init_data *reg_data;
+ 	struct regulator_dev *rdev;
+-	struct tps65217 *tps;
+-	struct tps_info *info = &tps65217_pmic_regs[pdev->id];
+ 	struct regulator_config config = { };
++	int i, ret;
+ 
+-	/* Already set by core driver */
+-	tps = dev_to_tps65217(pdev->dev.parent);
+-	tps->info[pdev->id] = info;
++	if (tps->dev->of_node)
++		pdata = tps65217_parse_dt(pdev);
+ 
+-	config.dev = &pdev->dev;
+-	config.of_node = pdev->dev.of_node;
+-	config.init_data = pdev->dev.platform_data;
+-	config.driver_data = tps;
++	if (!pdata) {
++		dev_err(&pdev->dev, "Platform data not found\n");
++		return -EINVAL;
++	}
+ 
+-	rdev = regulator_register(&regulators[pdev->id], &config);
+-	if (IS_ERR(rdev))
+-		return PTR_ERR(rdev);
++	if (tps65217_chip_id(tps) != TPS65217) {
++		dev_err(&pdev->dev, "Invalid tps chip version\n");
++		return -ENODEV;
++	}
+ 
+-	platform_set_drvdata(pdev, rdev);
++	platform_set_drvdata(pdev, tps);
+ 
++	for (i = 0; i < TPS65217_NUM_REGULATOR; i++) {
++
++		reg_data = pdata->tps65217_init_data[i];
++
++		/*
++		 * Regulator API handles empty constraints but not NULL
++		 * constraints
++		 */
++		if (!reg_data)
++			continue;
++
++		/* Register the regulators */
++		tps->info[i] = &tps65217_pmic_regs[i];
++
++		config.dev = tps->dev;
++		config.init_data = reg_data;
++		config.driver_data = tps;
++		config.regmap = tps->regmap;
++		if (tps->dev->of_node)
++			config.of_node = pdata->of_node[i];
++
++		rdev = regulator_register(&regulators[i], &config);
++		if (IS_ERR(rdev)) {
++			dev_err(tps->dev, "failed to register %s regulator\n",
++				pdev->name);
++			ret = PTR_ERR(rdev);
++			goto err_unregister_regulator;
++		}
++
++		/* Save regulator for cleanup */
++		tps->rdev[i] = rdev;
++	}
+ 	return 0;
++
++err_unregister_regulator:
++	while (--i >= 0)
++		regulator_unregister(tps->rdev[i]);
++
++	return ret;
+ }
+ 
+ static int __devexit tps65217_regulator_remove(struct platform_device *pdev)
+ {
+-	struct regulator_dev *rdev = platform_get_drvdata(pdev);
++	struct tps65217 *tps = platform_get_drvdata(pdev);
++	unsigned int i;
++
++	for (i = 0; i < TPS65217_NUM_REGULATOR; i++)
++		regulator_unregister(tps->rdev[i]);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	regulator_unregister(rdev);
+ 
+ 	return 0;
+ }
+diff --git a/include/linux/mfd/tps65217.h b/include/linux/mfd/tps65217.h
+index 12c0687..7cd83d8 100644
+--- a/include/linux/mfd/tps65217.h
++++ b/include/linux/mfd/tps65217.h
+@@ -22,6 +22,9 @@
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+ 
++/* TPS chip id list */
++#define TPS65217			0xF0
++
+ /* I2C ID for TPS65217 part */
+ #define TPS65217_I2C_ID			0x24
+ 
+@@ -248,13 +251,11 @@ struct tps_info {
+ struct tps65217 {
+ 	struct device *dev;
+ 	struct tps65217_board *pdata;
++	unsigned int id;
+ 	struct regulator_desc desc[TPS65217_NUM_REGULATOR];
+ 	struct regulator_dev *rdev[TPS65217_NUM_REGULATOR];
+ 	struct tps_info *info[TPS65217_NUM_REGULATOR];
+ 	struct regmap *regmap;
+-
+-	/* Client devices */
+-	struct platform_device *regulator_pdev[TPS65217_NUM_REGULATOR];
+ };
+ 
+ static inline struct tps65217 *dev_to_tps65217(struct device *dev)
+@@ -262,6 +263,11 @@ static inline struct tps65217 *dev_to_tps65217(struct device *dev)
+ 	return dev_get_drvdata(dev);
+ }
+ 
++static inline int tps65217_chip_id(struct tps65217 *tps65217)
++{
++	return tps65217->id;
++}
++
+ int tps65217_reg_read(struct tps65217 *tps, unsigned int reg,
+ 					unsigned int *val);
+ int tps65217_reg_write(struct tps65217 *tps, unsigned int reg,
+-- 
+1.7.9.5
+
