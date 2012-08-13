@@ -1,34 +1,46 @@
 From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv2 0/4] Add device tree data for omap5
-Date: Mon, 13 Aug 2012 15:35:09 +0530
-Message-ID: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+Subject: [PATCH 4/4] arm/dts: omap5-evm: Add bmp085 sensor support
+Date: Mon, 13 Aug 2012 15:35:13 +0530
+Message-ID: <1344852313-30484-5-git-send-email-sourav.poddar@ti.com>
+References: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53215 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab2HMKEP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Aug 2012 06:04:15 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-The following patch series add i2c support for omap5.
-As well as enable I2C based devices like pressure and temperature
-through device tree. Also add onchip keypad dts data.
+Add bmp085 pressure sensor data in omap5 evm dts file.
+
+Tested on omap5430 evm with 3.5 custom kernel.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ arch/arm/boot/dts/omap5-evm.dts |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Sourav Poddar (4):
-  arm/dts: omap5-evm: Add I2C support
-  arm/dts: omap5-evm: Add tmp102 sensor support
-  arm/dts: omap5-evm: Add keypad data
-  arm/dts: omap5-evm: Add bmp085 sensor support
-
- arch/arm/boot/dts/omap5-evm.dts |   30 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap5.dtsi    |   40 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 0 deletions(-)
-
+diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+index c2ea189..18e499c 100644
+--- a/arch/arm/boot/dts/omap5-evm.dts
++++ b/arch/arm/boot/dts/omap5-evm.dts
+@@ -39,3 +39,12 @@
+ 		reg = <0x48>;
+ 	};
+ };
++
++&i2c2 {
++	clock-frequency = <400000>;
++
++	bmp085@77 {
++		compatible = "bosch,bmp085";
++		reg = <0x77>;
++	};
++};
+-- 
+1.7.1
