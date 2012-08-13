@@ -1,158 +1,184 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v4 4/4] memory: emif: add device tree support to emif
- driver
-Date: Mon, 13 Aug 2012 10:57:06 +0530
-Message-ID: <CAMQu2gyBQ-iJCLCtPziX8eRm6_eXZfAoDDO0DusKCBQYpaR8jQ@mail.gmail.com>
-References: <1340977407-7594-1-git-send-email-santosh.shilimkar@ti.com>
- <1340977407-7594-5-git-send-email-santosh.shilimkar@ti.com>
- <CAMQu2gz6jdcR4hQPPbmyO8vrkdmppHeCkZmV3_9w27LOzKrUuA@mail.gmail.com>
- <20120630042356.GC1816@kroah.com>
- <CAMQu2gy0MmP4JLW4P1FreJqMMEBYSTjkLHJb8WX=aXLA6hxtZg@mail.gmail.com>
- <CAMQu2gxZ-tWJXAOeh20NsF1uyvs9fqwYtggFv=d7-qX+WFumRQ@mail.gmail.com>
- <CAMQu2gw_ZB7gVyL95B-h27B1fQh0d-YB3weaWRN6DNaGtSypDw@mail.gmail.com>
- <20120717163602.GA7167@kroah.com>
- <CAMQu2gw2Zt3E8byD=_nUXya-xU=gOA71arbbSh7gzxQhet0Vtg@mail.gmail.com>
- <20120717175832.GA20806@kroah.com>
- <CAMQu2gy5dkzoUDy0eFXAKqA-GkBvmmBdQwkfHUaySuKGqF9MKw@mail.gmail.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v6] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN controller
+Date: Mon, 13 Aug 2012 12:19:59 +0530
+Message-ID: <1344840599-19545-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gy5dkzoUDy0eFXAKqA-GkBvmmBdQwkfHUaySuKGqF9MKw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, Aneesh V <aneesh@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42330 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752526Ab2HMGuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Aug 2012 02:50:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
 
-Greg,
+Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+register of C_CAN/D_CAN IP when clock is turned off.
 
-On Wed, Jul 18, 2012 at 12:14 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Tue, Jul 17, 2012 at 11:28 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->> On Tue, Jul 17, 2012 at 10:37:45PM +0530, Shilimkar, Santosh wrote:
->>> On Tue, Jul 17, 2012 at 10:06 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->>> > On Mon, Jul 09, 2012 at 07:02:36PM +0530, Shilimkar, Santosh wrote:
->>> >> Greg,
->>> >>
->
-> [..]
->
->>> >From 74688a87fd490909e9122bf757c0096480e9fc11 Mon Sep 17 00:00:00 2001
->>> From: Aneesh V <aneesh@ti.com>
->>> Date: Mon, 30 Jan 2012 20:06:30 +0530
->>> Subject: [PATCH 4/4] memory: emif: add device tree support to emif driver
->>>
->>> Device tree support for the EMIF driver. LPDDR2 generic timings
->>> extraction from device is managed using couple of helper
->>> functions which can be used by other memory controller
->>> drivers.
->>>
->>> Reviewed-by: Benoit Cousson <b-cousson@ti.com>
->>> Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
->>> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
->>> Signed-off-by: Aneesh V <aneesh@ti.com>
->>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->>> ---
->>>  drivers/memory/Makefile    |    1 +
->>>  drivers/memory/emif.c      |  182 +++++++++++++++++++++++++++++++++++++++++++-
->>>  drivers/memory/of_memory.c |  153 +++++++++++++++++++++++++++++++++++++
->>>  drivers/memory/of_memory.h |   36 +++++++++
->>>  4 files changed, 371 insertions(+), 1 deletion(-)
->>>  create mode 100644 drivers/memory/of_memory.c
->>>  create mode 100644 drivers/memory/of_memory.h
->>>
->>> diff --git a/drivers/memory/Makefile b/drivers/memory/Makefile
->>> index 42b3ce9..cd8486b 100644
->>> --- a/drivers/memory/Makefile
->>> +++ b/drivers/memory/Makefile
->>> @@ -2,6 +2,7 @@
->>>  # Makefile for memory devices
->>>  #
->>>
->>> +obj-$(CONFIG_OF)             += of_memory.o
->>>  obj-$(CONFIG_TI_EMIF)                += emif.o
->>>  obj-$(CONFIG_TEGRA20_MC)     += tegra20-mc.o
->>>  obj-$(CONFIG_TEGRA30_MC)     += tegra30-mc.o
->>> diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
->>> index 33a4396..06b4eb7 100644
->>> --- a/drivers/memory/emif.c
->>> +++ b/drivers/memory/emif.c
->>> @@ -18,6 +18,7 @@
->>>  #include <linux/platform_device.h>
->>>  #include <linux/interrupt.h>
->>>  #include <linux/slab.h>
->>> +#include <linux/of.h>
->>>  #include <linux/debugfs.h>
->>>  #include <linux/seq_file.h>
->>>  #include <linux/module.h>
->>> @@ -25,6 +26,7 @@
->>>  #include <linux/spinlock.h>
->>>  #include <memory/jedec_ddr.h>
->>>  #include "emif.h"
->>> +#include "of_memory.h"
->>>
->>>  /**
->>>   * struct emif_data - Per device static data for driver's use
->>> @@ -49,6 +51,7 @@
->>>   *                           frequency in effect at the moment)
->>>   * @plat_data:                       Pointer to saved platform data.
->>>   * @debugfs_root:            dentry to the root folder for EMIF in debugfs
->>> + * @np_ddr:                  Pointer to ddr device tree node
->>>   */
->>>  struct emif_data {
->>>       u8                              duplicate;
->>> @@ -63,6 +66,7 @@ struct emif_data {
->>>       struct emif_regs                *curr_regs;
->>>       struct emif_platform_data       *plat_data;
->>>       struct dentry                   *debugfs_root;
->>> +     struct device_node              *np_ddr;
->>>  };
->>>
->>>  static struct emif_data *emif1;
->>> @@ -1148,6 +1152,168 @@ static int is_custom_config_valid(struct
->>> emif_custom_configs *cust_cfgs,
->>>       return valid;
->>>  }
->>>
->>> +#if defined(CONFIG_OF)
->>> +static void __init_or_module of_get_custom_configs(struct device_node *np_emif,
->>> +             struct emif_data *emif)
->>
->> Why can't all of this code be in the of_memory.c file?
->>
-> Primarily because the parameters are very much specific to EMIF
-> memory controller and won't be of much use for other memory controllers.
->
-> Currently the information extracted from DT with these function is like:
-> - EMIF controller IP version : EMIF_4D or EMIF_4D5
-> - Which analog phy is integrated : EMIF_ATTILAPHY or EMIF_ATTILAPHY
-> - IP hardware interface: EMIF Low latency port or sys port interface.
-> - EMIF connections - Whether EMIF1 only, EMIF2 only or EMIF1 & EMIF2
-> - Memory connections to EMIF - Same type and size memories or asymmetric
-> - Chip select usage per controller: Whether CS0, CS1, CS0 & CS1
-> - ZQ calibration - Per chip select or enable EMIF dual calibration feature.
-> - Enable/disable EMIF Low power mode and temperature alerts.
-> - EMIF low power mode configuration:
->       - Clock stop, self refresh, Deep power down.
->       - Low power time out values for performance and power mode.
->       - DDR frequency threshold to switch between power and
-> performance settings.
-> - EMIF temperature polling cycle configuration.
->
-> As you can see these are very specific to the EMIF memory controller and hence
-> I didn't move them to of_memory.c
->
-Do you have any more comment on this patch? If not, I can go ahead and
-post the refreshed version of the patch.
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+This patch has been tested on AM335X EVM. Due to lack of hardware
+I am not able to test c_can functionality. I appreciate if anyone
+can test c_can functionality with this patch.
 
-Regards
-Santosh
+This patch is based on "can-next/master" 
+
+Changes from v5:
+	- Incorporated Marc's commets on v5
+	  * changed runtime pm calls in c_can driver to handle
+	    the drivers which are not using platform drivers.
+	  * added device pointer protection in c_can driver if
+	    not passed from platform/pci driver.
+
+Changes from v4:
+	- Incorporated Vaibhav H review comments on v4.
+	  * Moved pm_runtime put/get_sync calls to appropriate positions.
+	- This patch is from "Add DT support to C_CAN/D_CAN controller"
+	  patch series. Rest of the patches in this series were applied
+	  so this v5 contains only this patch.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ drivers/net/can/c_can/c_can.c          |   25 ++++++++++++++++++++++++-
+ drivers/net/can/c_can/c_can.h          |    1 +
+ drivers/net/can/c_can/c_can_platform.c |    6 ++++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 4c538e3..64344b8 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -34,6 +34,8 @@
+ #include <linux/if_ether.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
++#include <linux/pm_runtime.h>
++#include <linux/platform_device.h>
+ 
+ #include <linux/can.h>
+ #include <linux/can/dev.h>
+@@ -201,6 +203,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
+ 	.brp_inc = 1,
+ };
+ 
++static inline void c_can_pm_runtime_get_sync(struct device *dev)
++{
++	if (dev)
++		pm_runtime_get_sync(dev);
++}
++
++static inline void c_can_pm_runtime_put_sync(struct device *dev)
++{
++	if (dev)
++		pm_runtime_put_sync(dev);
++}
++
+ static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+ {
+ 	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+@@ -673,11 +687,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
+ 	unsigned int reg_err_counter;
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
++	c_can_pm_runtime_get_sync(priv->device);
++
+ 	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
+ 	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
+ 				ERR_CNT_REC_SHIFT;
+ 	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
+ 
++	c_can_pm_runtime_put_sync(priv->device);
++
+ 	return 0;
+ }
+ 
+@@ -1053,11 +1071,13 @@ static int c_can_open(struct net_device *dev)
+ 	int err;
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
++	c_can_pm_runtime_get_sync(priv->device);
++
+ 	/* open the can device */
+ 	err = open_candev(dev);
+ 	if (err) {
+ 		netdev_err(dev, "failed to open can device\n");
+-		return err;
++		goto exit_open_fail;
+ 	}
+ 
+ 	/* register interrupt handler */
+@@ -1079,6 +1099,8 @@ static int c_can_open(struct net_device *dev)
+ 
+ exit_irq_fail:
+ 	close_candev(dev);
++exit_open_fail:
++	c_can_pm_runtime_put_sync(priv->device);
+ 	return err;
+ }
+ 
+@@ -1091,6 +1113,7 @@ static int c_can_close(struct net_device *dev)
+ 	c_can_stop(dev);
+ 	free_irq(dev->irq, dev);
+ 	close_candev(dev);
++	c_can_pm_runtime_put_sync(priv->device);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+index 4e56baa..1437a6d 100644
+--- a/drivers/net/can/c_can/c_can.h
++++ b/drivers/net/can/c_can/c_can.h
+@@ -153,6 +153,7 @@ struct c_can_priv {
+ 	struct can_priv can;	/* must be the first member */
+ 	struct napi_struct napi;
+ 	struct net_device *dev;
++	struct device *device;
+ 	int tx_object;
+ 	int current_status;
+ 	int last_status;
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index d0a66cf..197683b 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -32,6 +32,7 @@
+ #include <linux/clk.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <linux/can/dev.h>
+ 
+@@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 		goto exit_free_device;
+ 	}
+ 
++	pm_runtime_enable(&pdev->dev);
++
+ 	dev->irq = irq;
+ 	priv->base = addr;
++	priv->device = &pdev->dev;
+ 	priv->can.clock.freq = clk_get_rate(clk);
+ 	priv->priv = clk;
+ 
+@@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 
+ exit_free_device:
+ 	platform_set_drvdata(pdev, NULL);
++	pm_runtime_disable(&pdev->dev);
+ 	free_c_can_dev(dev);
+ exit_iounmap:
+ 	iounmap(addr);
+@@ -226,6 +231,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(mem->start, resource_size(mem));
+ 
++	pm_runtime_disable(&pdev->dev);
+ 	clk_put(priv->priv);
+ 
+ 	return 0;
+-- 
+1.7.9.5
+
