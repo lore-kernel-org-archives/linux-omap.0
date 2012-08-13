@@ -1,101 +1,105 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: Re: [PATCHv2 1/2] media: rc: Introduce RX51 IR transmitter driver
-Date: Mon, 13 Aug 2012 22:41:09 +0300
-Message-ID: <50295855.3020707@iki.fi>
-References: <1344593797-15819-1-git-send-email-timo.t.kokkonen@iki.fi> <1344593797-15819-2-git-send-email-timo.t.kokkonen@iki.fi> <20120813183647.GA32660@pequod.mess.org>
+From: Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [git:v4l-dvb/for_v3.7] [media] ARM: mach-omap2:
+	board-rx51-peripherals: Add lirc-rx51 data
+Date: Mon, 13 Aug 2012 21:54:26 +0200
+Message-ID: <E1T10iu-0000Xe-JR@www.linuxtv.org>
+Reply-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20120813183647.GA32660@pequod.mess.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Sean Young <sean@mess.org>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Return-path: <linuxtv-commits-bounces+gcvl-linuxtv-commits=m.gmane.org-dJidKbW2IEtAfugRpC6u6w@public.gmane.org>
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linuxtv-commits>,
+	<mailto:linuxtv-commits-request-dJidKbW2IEtAfugRpC6u6w@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:linuxtv-commits-dJidKbW2IEtAfugRpC6u6w@public.gmane.org>
+List-Help: <mailto:linuxtv-commits-request-dJidKbW2IEtAfugRpC6u6w@public.gmane.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits>,
+	<mailto:linuxtv-commits-request-dJidKbW2IEtAfugRpC6u6w@public.gmane.org?subject=subscribe>
+Sender: linuxtv-commits-bounces-dJidKbW2IEtAfugRpC6u6w@public.gmane.org
+Errors-To: linuxtv-commits-bounces+gcvl-linuxtv-commits=m.gmane.org-dJidKbW2IEtAfugRpC6u6w@public.gmane.org
+To: linuxtv-commits-dJidKbW2IEtAfugRpC6u6w@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Timo Kokkonen <timo.t.kokkonen-X3B1VOXEql0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 08/13/12 21:36, Sean Young wrote:
-> On Fri, Aug 10, 2012 at 01:16:36PM +0300, Timo Kokkonen wrote:
->> +static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->> +			  size_t n, loff_t *ppos)
->> +{
->> +	int count, i;
->> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
->> +
->> +	if (n % sizeof(int))
->> +		return -EINVAL;
->> +
->> +	count = n / sizeof(int);
->> +	if ((count > WBUF_LEN) || (count % 2 == 0))
->> +		return -EINVAL;
->> +
->> +	/* Wait any pending transfers to finish */
->> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-> 
-> If a signal arrives then this could return ERESTARTSYS and the condition
-> might not have evaluated to true.
+This is an automatic generated email to let you know that the following patch were queued at the 
+http://git.linuxtv.org/media_tree.git tree:
 
-hmm.. The whole point of it is to wait if for any possibly pending
-transfers to finish. However, we don't allow the device to be opened
-more than once and parallel access doesn't make much sense here anyway.
-Only way we can end up waiting here is that the process is having
-multiple threads writing to the same file descriptor (or has inherited
-it from its parent), which doesn't make any sense.
+Subject: [media] ARM: mach-omap2: board-rx51-peripherals: Add lirc-rx51 data
+Author:  Timo Kokkonen <timo.t.kokkonen-X3B1VOXEql0@public.gmane.org>
+Date:    Fri Aug 10 06:16:37 2012 -0300
 
-I think we could simply return -EBUSY in case previous transfer is still
-going on. I don't see any reason why we should wait here.
+The IR diode on the RX51 is connected to the GPT9. This data is needed
+for the IR driver to function.
 
-> 
->> +
->> +	if (copy_from_user(lirc_rx51->wbuf, buf, n))
->> +		return -EFAULT;
->> +
->> +	/* Sanity check the input pulses */
->> +	for (i = 0; i < count; i++)
->> +		if (lirc_rx51->wbuf[i] < 0)
->> +			return -EINVAL;
->> +
->> +	init_timing_params(lirc_rx51);
->> +	if (count < WBUF_LEN)
->> +		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
->> +
->> +	/*
->> +	 * Adjust latency requirements so the device doesn't go in too
->> +	 * deep sleep states
->> +	 */
->> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
->> +
->> +	lirc_rx51_on(lirc_rx51);
->> +	lirc_rx51->wbuf_index = 1;
->> +	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
->> +
->> +	/*
->> +	 * Don't return back to the userspace until the transfer has
->> +	 * finished
->> +	 */
->> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
-> 
-> same here.
-> 
-> BTW so the semantics for lirc write() are that they complete when the 
-> data has been transmitted. This doesn't play well with signals, polling 
-> or non-blocking I/O. Is this deliberate or historical?
-> 
-> I guess a lirc write() handler should ignore signals completely.
-> 
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen-X3B1VOXEql0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-I'll change it to wait_event_timeout instead.
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   30 ++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
->> +
->> +struct platform_driver lirc_rx51_platform_driver = {
->> +	.probe		= lirc_rx51_probe,
->> +	.remove		= __exit_p(lirc_rx51_remove),
->> +	.suspend	= lirc_rx51_suspend,
->> +	.resume		= lirc_rx51_resume,
->> +	.remove		= __exit_p(lirc_rx51_remove),
-> 
-> .remove is here twice.
+---
 
-hehe.. I remember I was supposed to write a patch for that five years
-ago but I was busy :) Thanks for your review. Will send round three.
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=322c183cdc5f041d0f6a25fe519c7836649a6c8b
 
--Timo
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index df2534d..ca07264 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -34,6 +34,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
++#include <plat/omap-pm.h>
+ 
+ #include <mach/board-rx51.h>
+ 
+@@ -46,6 +47,10 @@
+ #include <../drivers/staging/iio/light/tsl2563.h>
+ #include <linux/lis3lv02d.h>
+ 
++#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
++#include <media/ir-rx51.h>
++#endif
++
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "common-board-devices.h"
+@@ -1220,6 +1225,30 @@ static void __init rx51_init_tsc2005(void)
+ 				gpio_to_irq(RX51_TSC2005_IRQ_GPIO);
+ }
+ 
++#if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
++static struct lirc_rx51_platform_data rx51_lirc_data = {
++	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
++	.pwm_timer = 9, /* Use GPT 9 for CIR */
++};
++
++static struct platform_device rx51_lirc_device = {
++	.name           = "lirc_rx51",
++	.id             = -1,
++	.dev            = {
++		.platform_data = &rx51_lirc_data,
++	},
++};
++
++static void __init rx51_init_lirc(void)
++{
++	platform_device_register(&rx51_lirc_device);
++}
++#else
++static void __init rx51_init_lirc(void)
++{
++}
++#endif
++
+ void __init rx51_peripherals_init(void)
+ {
+ 	rx51_i2c_init();
+@@ -1230,6 +1259,7 @@ void __init rx51_peripherals_init(void)
+ 	rx51_init_wl1251();
+ 	rx51_init_tsc2005();
+ 	rx51_init_si4713();
++	rx51_init_lirc();
+ 	spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
