@@ -1,121 +1,147 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: Infinite looping in omap2430.c USB driver
-Date: Mon, 13 Aug 2012 17:32:34 +0300
-Message-ID: <20120813143233.GJ14781@arwen.pp.htv.fi>
-References: <20120707083949.2cf91eeb@notabene.brown>
- <20120809111549.GT12174@arwen.pp.htv.fi>
- <20120813123453.4cba14ca@notabene.brown>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Mon, 13 Aug 2012 20:23:43 +0530
+Message-ID: <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
+	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+	<20120723140830.GA8155@arwen.pp.htv.fi>
+	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
+	<CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
+	<CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
+	<20120813140928.GH14781@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+Hr//EUsa8//ouuB"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120813123453.4cba14ca-wvvUuzkyo1EYVZTmpyfIwg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:39058 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751438Ab2HMOxp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Aug 2012 10:53:45 -0400
+Received: by yhoo21 with SMTP id o21so7288768yho.1
+        for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 07:53:43 -0700 (PDT)
+In-Reply-To: <20120813140928.GH14781@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Cc: Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
+
+On Mon, Aug 13, 2012 at 7:39 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Aug 13, 2012 at 06:52:13PM +0530, Munegowda, Keshava wrote:
+>> On Fri, Jul 27, 2012 at 5:44 PM, Munegowda, Keshava
+>> <keshava_mgowda@ti.com> wrote:
+>> > On Mon, Jul 23, 2012 at 8:04 PM, Munegowda, Keshava
+>> > <keshava_mgowda@ti.com> wrote:
+>> >> On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> >>> Hi,
+>> >>>
+>> >>> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
+>> >>>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
+>> >>>> <keshava_mgowda@ti.com> wrote:
+>> >>>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
+>> >>>> > <keshava_mgowda@ti.com> wrote:
+>> >>>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
+>> >>>> >> the host controller. Basically this TLL operates like USB PHY which allows
+>> >>>> >> the user to connect two USB transceiver interfaces together directly
+>> >>>> >> without the use of differential transceivers in omap3 and later chips.
+>> >>>> >> The TLL configuration is removed from the UHH driver and implemented as
+>> >>>> >> a seperate platform driver. Now, the UHH driver configures the TLL
+>> >>>> >> through API's exported by the TLL platform driver.
+>> >>>> >>
+>> >>>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> >>>> >>
+>> >>>> >> In v4:
+>> >>>> >>     - rebased on top of linux kernel version 3.5.rc7
+>> >>>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
+>> >>>> >>
+>> >>>> >> In v3:
+>> >>>> >>   - rebased on top V3 of Russ dill's patch
+>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>> >>>> >>        while initializing the EHCI controller
+>> >>>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
+>> >>>> >>
+>> >>>> >>   - rebased on top of patch
+>> >>>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>> >>>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
+>> >>>> >>
+>> >>>> >> In V2:
+>> >>>> >>     - covered review comments from linux omap and usb community
+>> >>>> >>     - rebased on top Russ dill's patch
+>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>> >>>> >>        while initializing the EHCI controller
+>> >>>> >>
+>> >>>> >> Keshava Munegowda (5):
+>> >>>> >>   ARM: OMAP: Add the USB TLL clocks device name
+>> >>>> >>   ARM: OMAP: USB: HOST TLL platform driver
+>> >>>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>> >>>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>> >>>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
+>> >>>> >>
+>> >>>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+>> >>>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+>> >>>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
+>> >>>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
+>> >>>> >>  drivers/mfd/Kconfig                   |    2 +-
+>> >>>> >>  drivers/mfd/Makefile                  |    2 +-
+>> >>>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
+>> >>>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+>> >>>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
+>> >>>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
+>> >>>> >>
+>> >>>> >> --
+>> >>>> >> 1.7.9.5
+>> >>>> >
+>> >>>> >
+>> >>>> > Felipe/ Paul
+>> >>>> >       please let me know if you have any review comments on this v4 series.
+>> >>>> >
+>> >>>> > regards
+>> >>>> > keshava
+>> >>>>
+>> >>>> Hi Felipe
+>> >>>>           please let me know if you have any review comments on this series now.
+>> >>>
+>> >>> looks ok... pretty much just moving code around.
+>> >>>
+>> >>> --
+>> >>> balbi
+>> >>
+>> >>
+>> >> Thanks Felipe
+>> >>
+>> >> then I request please give your Ack by for this series.
+>> >>
+>> >> regards
+>> >> keshava
+>> >
+>> > Hi Paul
+>> >     do you have any review comments on this series?
+>> > Felipe is OK with this series.  if there are no review comments on this series
+>> > I request your ack by for the same.
+>> > Once this series gets in to mainline. i will start the Device tree
+>> > conversion for usb2 host.
+>> >
+>> > regards
+>> > keshava
+>>
+>> Hi Felipe
+>>        please give you ack by this series , so that I request
+>> samuel to merge to mainline.
+>
+> sure, here you go
+>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+>
+> --
+> balbi
 
 
---+Hr//EUsa8//ouuB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks Felipe
 
-Hi,
+Samuel
+      I request please queue this series for the next merge window.
 
-On Mon, Aug 13, 2012 at 12:34:53PM +1000, NeilBrown wrote:
-> On Thu, 9 Aug 2012 14:15:51 +0300 Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
->=20
->=20
-> > hehe, that's nasty. Please send a patch converting to a try count and a
-> > udelay_range(), or something.
-> >=20
->=20
-> how's this?
->=20
-> Thanks,
-> NeilBrown
->=20
->=20
-> From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-> Date: Mon, 13 Aug 2012 12:32:58 +1000
-> Subject: [PATCH] omap2430: don't loop indefinitely in interrupt.
->=20
-> When called during resume_irqs, omap2430_musb_set_vbus() is run with
-> interrupts disabled,  In that case 'jiffies' never changes so the loop
-> can loop forever.
->=20
-> So impose a maximum loop count and add an 'mdelay' to ensure we wait
-> a reasonable amount of time for bit to be cleared.
->=20
-> This fixes a hang on resume.
->=20
-> Signed-of-by: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
->=20
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index c7785e8..8a93381 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -34,6 +34,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/err.h>
-> +#include <linux/delay.h>
-> =20
->  #include "musb_core.h"
->  #include "omap2430.h"
-> @@ -145,6 +146,7 @@ static void omap2430_musb_set_vbus(struct musb *musb,=
- int is_on)
-> =20
->  	if (is_on) {
->  		if (musb->xceiv->state =3D=3D OTG_STATE_A_IDLE) {
-> +			int loops =3D 100;
->  			/* start the session */
->  			devctl |=3D MUSB_DEVCTL_SESSION;
->  			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-> @@ -154,9 +156,11 @@ static void omap2430_musb_set_vbus(struct musb *musb=
-, int is_on)
->  			 */
->  			while (musb_readb(musb->mregs, MUSB_DEVCTL) & 0x80) {
-> =20
-> +				mdelay(5);
-
-I would prefer udelay_range() as it will let scheduler group timers.
-Something like:
-
-udelay_range(3000, 5000);
-
-should do, I gues...
-
---=20
-balbi
-
---+Hr//EUsa8//ouuB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQKRAAAAoJEIaOsuA1yqREYkYP/3eO3fpTDiSZv5iLdR2jmj9O
-1Q1Fp0ry7ZhDdqeQfGNprnYKfSRQB9YR7hbjvpZNOAmLxCiC4qV9jNDC0bSmYeov
-d9fP0+MR4/iyvMU+unzd6iRAnDaTrfh3FkTmln/fkrC4SUmfPh+JWT1vU+x7M/qg
-Lla4KUQCAaMQCNaJLxknMTFcfA3L5ytt1kgNPpjWUVStfZXofn8MIgXdXJ/aPhDR
-WQ6K9BuPYr/L5waE3eftU6jo4m5LhiDCWmm8HEsQbnOuDZ/g1RVUVOswvVW/O7/k
-PnYnHroOk3ZeG3DtvoP14yNqx5QB2faDLPuyqyG9f+i1bfrPinaoStndGwZlRrmg
-3hhBCWZEzGImZQI4n96qlFWlKhGBy4CmSBjVhplHsFZ8u8VV1HLg2MLz+VhZ5ExZ
-qkDWY42X6Uf9B24OzzizqA3CvcTqzFKPm3+d5hMuO2rfxp/r/15lIayxmIIikXRa
-mLLsCcTgL1bSsUbzN7ZKYc9u5ikwYNVGUxWuJBy0S4dIgOfXxwJAQKPXJkp7ITdT
-ADkF/gvbveYccZgdhksYD8AIBFmKy0GIwcXxYHiZDDokjt67Tf9CQw0nTR8brFum
-52aO4WpATwbkOqcM3aA7/xr+g7yG8gcw/iYXRvLl0AAjBn2SHZWzcfIoUxHEuKWM
-BuuwcjdpOf/C+CFzHKzw
-=vOt8
------END PGP SIGNATURE-----
-
---+Hr//EUsa8//ouuB--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+keshava
