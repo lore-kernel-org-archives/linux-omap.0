@@ -1,243 +1,237 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH 3/6] OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
-Date: Mon, 13 Aug 2012 17:29:36 +0530
-Message-ID: <1344859176-4512-1-git-send-email-cmahapatra@ti.com>
-References: <1344425899-28267-1-git-send-email-cmahapatra@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v6] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
+ controller
+Date: Mon, 13 Aug 2012 14:10:22 +0200
+Message-ID: <5028EEAE.6090402@pengutronix.de>
+References: <1344840599-19545-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58687 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751653Ab2HMMCy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Aug 2012 08:02:54 -0400
-In-Reply-To: <1344425899-28267-1-git-send-email-cmahapatra@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig3E73F25E3A35BA6C9F4A26E0"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1344840599-19545-1-git-send-email-anilkumar@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-All the cpu_is checks have been moved to dss_init_features function providing a
-much more generic and cleaner interface. The OMAP version and revision specific
-initializations in various functions are cleaned and the necessary data are
-moved to dss_features structure which is local to dss.c.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig3E73F25E3A35BA6C9F4A26E0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dss.c |  115 ++++++++++++++++++++++++++---------------
- 1 file changed, 74 insertions(+), 41 deletions(-)
+On 08/13/2012 08:49 AM, AnilKumar Ch wrote:
+> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+> register of C_CAN/D_CAN IP when clock is turned off.
+>=20
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 7b1c6ac..6ab236e 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -31,6 +31,7 @@
- #include <linux/clk.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/dma-mapping.h>
- 
- #include <video/omapdss.h>
- 
-@@ -65,6 +66,13 @@ struct dss_reg {
- static int dss_runtime_get(void);
- static void dss_runtime_put(void);
- 
-+struct dss_features {
-+	u16 fck_div_max;
-+	int factor;
-+	char *clk_name;
-+	bool (*check_cinfo_fck) (void);
-+};
-+
- static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
-@@ -83,6 +91,8 @@ static struct {
- 
- 	bool		ctx_valid;
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
-+
-+	const struct dss_features *feat;
- } dss;
- 
- static const char * const dss_generic_clk_source_names[] = {
-@@ -91,6 +101,30 @@ static const char * const dss_generic_clk_source_names[] = {
- 	[OMAP_DSS_CLK_SRC_FCK]			= "DSS_FCK",
- };
- 
-+static const struct __initdata dss_features omap2_dss_features = {
-+	.fck_div_max		=	16,
-+	.factor			=	2,
-+	.clk_name		=	NULL,
-+};
-+
-+static const struct __initdata dss_features omap34_dss_features = {
-+	.fck_div_max		=	16,
-+	.factor			=	2,
-+	.clk_name		=	"dpll4_m4_ck",
-+};
-+
-+static const struct __initdata dss_features omap36_dss_features = {
-+	.fck_div_max		=	32,
-+	.factor			=	1,
-+	.clk_name		=	"dpll4_m4_ck",
-+};
-+
-+static const struct __initdata dss_features omap4_dss_features = {
-+	.fck_div_max		=	32,
-+	.factor			=	1,
-+	.clk_name		=	"dpll_per_m5x2_ck",
-+};
-+
- static inline void dss_write_reg(const struct dss_reg idx, u32 val)
- {
- 	__raw_writel(val, dss.base + idx.idx);
-@@ -236,7 +270,6 @@ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src)
- 	return dss_generic_clk_source_names[clk_src];
- }
- 
+Looks good, minor style suggestion inline.
+
+Marc
+
+> ---
+> This patch has been tested on AM335X EVM. Due to lack of hardware
+> I am not able to test c_can functionality. I appreciate if anyone
+> can test c_can functionality with this patch.
+>=20
+> This patch is based on "can-next/master"=20
+>=20
+> Changes from v5:
+> 	- Incorporated Marc's commets on v5
+> 	  * changed runtime pm calls in c_can driver to handle
+> 	    the drivers which are not using platform drivers.
+> 	  * added device pointer protection in c_can driver if
+> 	    not passed from platform/pci driver.
+>=20
+> Changes from v4:
+> 	- Incorporated Vaibhav H review comments on v4.
+> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
+> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
+> 	  patch series. Rest of the patches in this series were applied
+> 	  so this v5 contains only this patch.
+>=20
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  drivers/net/can/c_can/c_can.c          |   25 ++++++++++++++++++++++++=
 -
- void dss_dump_clocks(struct seq_file *s)
- {
- 	unsigned long dpll4_ck_rate;
-@@ -259,18 +292,10 @@ void dss_dump_clocks(struct seq_file *s)
- 
- 		seq_printf(s, "dpll4_ck %lu\n", dpll4_ck_rate);
- 
--		if (cpu_is_omap3630() || cpu_is_omap44xx())
--			seq_printf(s, "%s (%s) = %lu / %lu  = %lu\n",
--					fclk_name, fclk_real_name,
--					dpll4_ck_rate,
--					dpll4_ck_rate / dpll4_m4_ck_rate,
--					fclk_rate);
--		else
--			seq_printf(s, "%s (%s) = %lu / %lu * 2 = %lu\n",
--					fclk_name, fclk_real_name,
--					dpll4_ck_rate,
--					dpll4_ck_rate / dpll4_m4_ck_rate,
--					fclk_rate);
-+		seq_printf(s, "%s (%s) = %lu / %lu * %d  = %lu\n",
-+				fclk_name, fclk_real_name, dpll4_ck_rate,
-+				dpll4_ck_rate / dpll4_m4_ck_rate,
-+				dss.feat->factor, fclk_rate);
- 	} else {
- 		seq_printf(s, "%s (%s) = %lu\n",
- 				fclk_name, fclk_real_name,
-@@ -470,7 +495,7 @@ int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
- 
- 	unsigned long fck, max_dss_fck;
- 
--	u16 fck_div, fck_div_max = 16;
-+	u16 fck_div;
- 
- 	int match = 0;
- 	int min_fck_per_pck;
-@@ -480,9 +505,8 @@ int dss_calc_clock_div(unsigned long req_pck, struct dss_clock_info *dss_cinfo,
- 	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
- 
- 	fck = clk_get_rate(dss.dss_clk);
--	if (req_pck == dss.cache_req_pck &&
--			((cpu_is_omap34xx() && prate == dss.cache_prate) ||
--			 dss.cache_dss_cinfo.fck == fck)) {
-+	if (req_pck == dss.cache_req_pck && prate == dss.cache_prate &&
-+		dss.cache_dss_cinfo.fck == fck) {
- 		DSSDBG("dispc clock info found from cache.\n");
- 		*dss_cinfo = dss.cache_dss_cinfo;
- 		*dispc_cinfo = dss.cache_dispc_cinfo;
-@@ -519,16 +543,10 @@ retry:
- 
- 		goto found;
- 	} else {
--		if (cpu_is_omap3630() || cpu_is_omap44xx())
--			fck_div_max = 32;
--
--		for (fck_div = fck_div_max; fck_div > 0; --fck_div) {
-+		for (fck_div = dss.feat->fck_div_max; fck_div > 0; --fck_div) {
- 			struct dispc_clock_info cur_dispc;
- 
--			if (fck_div_max == 32)
--				fck = prate / fck_div;
--			else
--				fck = prate / fck_div * 2;
-+			fck = prate / fck_div * dss.feat->factor;
- 
- 			if (fck > max_dss_fck)
- 				continue;
-@@ -633,22 +651,11 @@ static int dss_get_clocks(void)
- 
- 	dss.dss_clk = clk;
- 
--	if (cpu_is_omap34xx()) {
--		clk = clk_get(NULL, "dpll4_m4_ck");
--		if (IS_ERR(clk)) {
--			DSSERR("Failed to get dpll4_m4_ck\n");
--			r = PTR_ERR(clk);
--			goto err;
--		}
--	} else if (cpu_is_omap44xx()) {
--		clk = clk_get(NULL, "dpll_per_m5x2_ck");
--		if (IS_ERR(clk)) {
--			DSSERR("Failed to get dpll_per_m5x2_ck\n");
--			r = PTR_ERR(clk);
--			goto err;
--		}
--	} else { /* omap24xx */
--		clk = NULL;
-+	clk = clk_get(NULL, dss.feat->clk_name);
-+	if (IS_ERR(clk)) {
-+		DSSERR("Failed to get %s\n", dss.feat->clk_name);
-+		r = PTR_ERR(clk);
-+		goto err;
- 	}
- 
- 	dss.dpll4_m4_ck = clk;
-@@ -704,6 +711,26 @@ void dss_debug_dump_clocks(struct seq_file *s)
- }
- #endif
- 
-+static int __init dss_init_features(struct device *dev)
-+{
-+	dss.feat = devm_kzalloc(dev, sizeof(*dss.feat), GFP_KERNEL);
-+	if (!dss.feat) {
-+		dev_err(dev, "Failed to allocate local DSS Features\n");
-+		return -ENOMEM;
-+	}
-+
-+	if (cpu_is_omap24xx())
-+		dss.feat = &omap2_dss_features;
-+	else if (cpu_is_omap34xx())
-+		dss.feat = &omap34_dss_features;
-+	else if (cpu_is_omap3630())
-+		dss.feat = &omap36_dss_features;
-+	else
-+		dss.feat = &omap4_dss_features;
-+
-+	return 0;
-+}
-+
- /* DSS HW IP initialisation */
- static int __init omap_dsshw_probe(struct platform_device *pdev)
- {
-@@ -750,6 +777,10 @@ static int __init omap_dsshw_probe(struct platform_device *pdev)
- 	dss.lcd_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
- 	dss.lcd_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
- 
-+	r = dss_init_features(&dss.pdev->dev);
-+	if (r)
-+		return r;
-+
- 	rev = dss_read_reg(DSS_REVISION);
- 	printk(KERN_INFO "OMAP DSS rev %d.%d\n",
- 			FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-@@ -772,6 +803,8 @@ static int __exit omap_dsshw_remove(struct platform_device *pdev)
- 
- 	dss_put_clocks();
- 
-+	devm_kfree(&dss.pdev->dev, (void *)dss.feat);
-+
- 	return 0;
- }
- 
--- 
-1.7.10
+>  drivers/net/can/c_can/c_can.h          |    1 +
+>  drivers/net/can/c_can/c_can_platform.c |    6 ++++++
+>  3 files changed, 31 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
+n.c
+> index 4c538e3..64344b8 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -34,6 +34,8 @@
+>  #include <linux/if_ether.h>
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/platform_device.h>
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Is this still needed?
+
+> =20
+>  #include <linux/can.h>
+>  #include <linux/can/dev.h>
+> @@ -201,6 +203,18 @@ static const struct can_bittiming_const c_can_bitt=
+iming_const =3D {
+>  	.brp_inc =3D 1,
+>  };
+> =20
+> +static inline void c_can_pm_runtime_get_sync(struct device *dev)
+
+Use priv as parameter, not dev.
+
+> +{
+> +	if (dev)
+> +		pm_runtime_get_sync(dev);
+> +}
+> +
+> +static inline void c_can_pm_runtime_put_sync(struct device *dev)
+
+dito
+
+> +{
+> +	if (dev)
+> +		pm_runtime_put_sync(dev);
+> +}
+> +
+>  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+>  {
+>  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+> @@ -673,11 +687,15 @@ static int c_can_get_berr_counter(const struct ne=
+t_device *dev,
+>  	unsigned int reg_err_counter;
+>  	struct c_can_priv *priv =3D netdev_priv(dev);
+> =20
+> +	c_can_pm_runtime_get_sync(priv->device);
+> +
+>  	reg_err_counter =3D priv->read_reg(priv, C_CAN_ERR_CNT_REG);
+>  	bec->rxerr =3D (reg_err_counter & ERR_CNT_REC_MASK) >>
+>  				ERR_CNT_REC_SHIFT;
+>  	bec->txerr =3D reg_err_counter & ERR_CNT_TEC_MASK;
+> =20
+> +	c_can_pm_runtime_put_sync(priv->device);
+> +
+>  	return 0;
+>  }
+> =20
+> @@ -1053,11 +1071,13 @@ static int c_can_open(struct net_device *dev)
+>  	int err;
+>  	struct c_can_priv *priv =3D netdev_priv(dev);
+> =20
+> +	c_can_pm_runtime_get_sync(priv->device);
+> +
+>  	/* open the can device */
+>  	err =3D open_candev(dev);
+>  	if (err) {
+>  		netdev_err(dev, "failed to open can device\n");
+> -		return err;
+> +		goto exit_open_fail;
+>  	}
+> =20
+>  	/* register interrupt handler */
+> @@ -1079,6 +1099,8 @@ static int c_can_open(struct net_device *dev)
+> =20
+>  exit_irq_fail:
+>  	close_candev(dev);
+> +exit_open_fail:
+> +	c_can_pm_runtime_put_sync(priv->device);
+>  	return err;
+>  }
+> =20
+> @@ -1091,6 +1113,7 @@ static int c_can_close(struct net_device *dev)
+>  	c_can_stop(dev);
+>  	free_irq(dev->irq, dev);
+>  	close_candev(dev);
+> +	c_can_pm_runtime_put_sync(priv->device);
+> =20
+>  	return 0;
+>  }
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
+n.h
+> index 4e56baa..1437a6d 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -153,6 +153,7 @@ struct c_can_priv {
+>  	struct can_priv can;	/* must be the first member */
+>  	struct napi_struct napi;
+>  	struct net_device *dev;
+> +	struct device *device;
+>  	int tx_object;
+>  	int current_status;
+>  	int last_status;
+> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
+_can/c_can_platform.c
+> index d0a66cf..197683b 100644
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+> =20
+>  #include <linux/can/dev.h>
+> =20
+> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platf=
+orm_device *pdev)
+>  		goto exit_free_device;
+>  	}
+> =20
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	dev->irq =3D irq;
+>  	priv->base =3D addr;
+> +	priv->device =3D &pdev->dev;
+>  	priv->can.clock.freq =3D clk_get_rate(clk);
+>  	priv->priv =3D clk;
+> =20
+> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platfo=
+rm_device *pdev)
+> =20
+>  exit_free_device:
+>  	platform_set_drvdata(pdev, NULL);
+> +	pm_runtime_disable(&pdev->dev);
+>  	free_c_can_dev(dev);
+>  exit_iounmap:
+>  	iounmap(addr);
+> @@ -226,6 +231,7 @@ static int __devexit c_can_plat_remove(struct platf=
+orm_device *pdev)
+>  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	release_mem_region(mem->start, resource_size(mem));
+> =20
+> +	pm_runtime_disable(&pdev->dev);
+>  	clk_put(priv->priv);
+> =20
+>  	return 0;
+>=20
+
+
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--------------enig3E73F25E3A35BA6C9F4A26E0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAlAo7rEACgkQjTAFq1RaXHORwACfR4hMsaJBapn4JjswLf73Mout
+c3sAni4CQeinypg5elA4vyWebK2a/mZ6
+=IuxK
+-----END PGP SIGNATURE-----
+
+--------------enig3E73F25E3A35BA6C9F4A26E0--
