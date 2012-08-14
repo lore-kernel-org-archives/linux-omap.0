@@ -1,191 +1,61 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 07/14] MFD: twl4030-audio: Add DT support
-Date: Tue, 14 Aug 2012 17:22:35 +0300
-Message-ID: <1344954162-7985-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 11/14] ASoC/MFD: twl4030: Remove set_hs_extmute callback from platform data
+Date: Tue, 14 Aug 2012 17:22:39 +0300
+Message-ID: <1344954162-7985-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:39956 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752243Ab2HNOW6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 10:22:58 -0400
-Received: by obbup19 with SMTP id up19so621622obb.12
-        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 07:22:57 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Support for loading the twl4030 audio module via devicetree.
-Sub devices for codec and vibra will be created as mfd devices once the
-core MFD driver is loaded when the kernel is booted with a DT blob.
+We no longer have users for the set_hs_extmute callback which has been
+replaced by hs_extmute_gpio so the codec driver can handle the external
+mute if it is needed by the board.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- .../devicetree/bindings/mfd/twl4030-audio.txt      |   46 ++++++++++++++++
- drivers/mfd/twl4030-audio.c                        |   56 +++++++++++++++++---
- 2 files changed, 95 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+ include/linux/i2c/twl.h    |    2 --
+ sound/soc/codecs/twl4030.c |    6 ------
+ 2 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/mfd/twl4030-audio.txt b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
-new file mode 100644
-index 0000000..414d2ae
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
-@@ -0,0 +1,46 @@
-+Texas Instruments TWL family (twl4030) audio module
-+
-+The audio module inside the TWL family consist of an audio codec and a vibra
-+driver.
-+
-+Required properties:
-+- compatible : must be "ti,twl4030-audio"
-+
-+Optional properties, nodes:
-+
-+Audio functionality:
-+- codec { }: Need to be present if the audio functionality is used. Within this
-+	     section the following options can be used:
-+- ti,digimic_delay: Delay need after enabling the digimic to reduce artifacts
-+		    from the start of the recorded sample (in ms)
-+-ti,ramp_delay_value: HS ramp delay configuration to reduce pop noise
-+-ti,hs_extmute: Use external mute for HS pop reduction
-+-ti,hs_extmute_gpio: Use external GPIO to control the external mute
-+-ti,offset_cncl_path: Offset cancellation path selection, refer to TRM for the
-+		      valid values.
-+
-+Vibra functionality
-+- ti,enable-vibra: Need to be set to <1> if the vibra functionality is used. if
-+		   missing or it is 0, the vibra functionality is disabled.
-+
-+Example:
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+
-+			ti,enable-vibra = <1>;
-+
-+			codec {
-+				ti,ramp_delay_value = <3>;
-+			};
-+
-+		};
-+	};
-+};
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index a48bf3a..ed9c5d9 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -28,6 +28,8 @@
- #include <linux/kernel.h>
- #include <linux/fs.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
- #include <linux/i2c/twl.h>
- #include <linux/mfd/core.h>
- #include <linux/mfd/twl4030-audio.h>
-@@ -156,15 +158,44 @@ unsigned int twl4030_audio_get_mclk(void)
- }
- EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 2040309..a4885a6 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -667,8 +667,6 @@ struct twl4030_codec_data {
+ 	unsigned int check_defaults:1;
+ 	unsigned int reset_registers:1;
+ 	unsigned int hs_extmute:1;
+-	void (*set_hs_extmute)(int mute); /* Deprecated, use hs_extmute_gpio and
+-					     hs_extmute_disable_level */
+ 	int hs_extmute_gpio;
+ };
  
-+static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
-+			      struct device_node *node)
-+{
-+	if (pdata && pdata->codec)
-+		return true;
-+
-+#ifdef CONFIG_OF
-+	if (of_find_node_by_name(node, "codec"))
-+		return true;
-+#endif
-+
-+	return false;
-+}
-+
-+static bool twl4030_audio_has_vibra(struct twl4030_audio_data *pdata,
-+			      struct device_node *node)
-+{
-+	int vibra;
-+
-+	if (pdata && pdata->vibra)
-+		return true;
-+
-+	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
-+		return true;
-+
-+	return false;
-+}
-+
- static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- {
- 	struct twl4030_audio *audio;
- 	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
-+	struct device_node *node = pdev->dev.of_node;
- 	struct mfd_cell *cell = NULL;
- 	int ret, childs = 0;
- 	u8 val;
- 
--	if (!pdata) {
-+	if (!pdata && !node) {
- 		dev_err(&pdev->dev, "Platform data is missing\n");
- 		return -EINVAL;
- 	}
-@@ -202,18 +233,22 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
- 	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
- 
--	if (pdata->codec) {
-+	if (twl4030_audio_has_codec(pdata, node)) {
- 		cell = &audio->cells[childs];
- 		cell->name = "twl4030-codec";
--		cell->platform_data = pdata->codec;
--		cell->pdata_size = sizeof(*pdata->codec);
-+		if (pdata) {
-+			cell->platform_data = pdata->codec;
-+			cell->pdata_size = sizeof(*pdata->codec);
-+		}
- 		childs++;
- 	}
--	if (pdata->vibra) {
-+	if (twl4030_audio_has_vibra(pdata, node)) {
- 		cell = &audio->cells[childs];
- 		cell->name = "twl4030-vibra";
--		cell->platform_data = pdata->vibra;
--		cell->pdata_size = sizeof(*pdata->vibra);
-+		if (pdata) {
-+			cell->platform_data = pdata->vibra;
-+			cell->pdata_size = sizeof(*pdata->vibra);
-+		}
- 		childs++;
- 	}
- 
-@@ -245,10 +280,17 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct of_device_id twl4030_audio_of_match[] = {
-+	{.compatible = "ti,twl4030-audio", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, twl4030_audio_of_match);
-+
- static struct platform_driver twl4030_audio_driver = {
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "twl4030-audio",
-+		.of_match_table = twl4030_audio_of_match,
- 	},
- 	.probe		= twl4030_audio_probe,
- 	.remove		= __devexit_p(twl4030_audio_remove),
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 5fc271a..27ccea4 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -767,9 +767,6 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 	if (pdata && pdata->hs_extmute) {
+ 		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
+ 			gpio_set_value(pdata->hs_extmute_gpio, 1);
+-		} else if (pdata->set_hs_extmute) {
+-			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+-			pdata->set_hs_extmute(1);
+ 		} else {
+ 			hs_pop |= TWL4030_EXTMUTE;
+ 			twl4030_write(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
+@@ -808,9 +805,6 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 	if (pdata && pdata->hs_extmute) {
+ 		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
+ 			gpio_set_value(pdata->hs_extmute_gpio, 0);
+-		} else if (pdata->set_hs_extmute) {
+-			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+-			pdata->set_hs_extmute(0);
+ 		} else {
+ 			hs_pop &= ~TWL4030_EXTMUTE;
+ 			twl4030_write(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
 -- 
 1.7.8.6
-
