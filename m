@@ -1,8 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 03/14] MFD: twl4030-audio: Rearange and clean-up the probe
- function
-Date: Tue, 14 Aug 2012 17:22:31 +0300
-Message-ID: <1344954162-7985-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 04/14] MFD: twl-core: Add API to query the HFCLK rate
+Date: Tue, 14 Aug 2012 17:22:32 +0300
+Message-ID: <1344954162-7985-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,76 +22,73 @@ To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane
 Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-To facilitate the device tree support the probe function need to be rearanged.
-Small cleanup in the APLL frequency selection part as well.
+CFG_BOOT register's HFCLK_FREQ field hold information about the used HFCLK
+frequency.
+Add possibility for users to get the configured rate based on this
+register.
+This register was configured during boot, without it the chip would not
+operate correctly, so we can trust on this information.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/mfd/twl4030-audio.c |   34 ++++++++++++++++------------------
- 1 files changed, 16 insertions(+), 18 deletions(-)
+ drivers/mfd/twl-core.c  |   32 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h |    1 +
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index efa2d42..ca2d669 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -169,35 +169,30 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 1c32afe..f162b68 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -552,6 +552,38 @@ int twl_get_version(void)
+ }
+ EXPORT_SYMBOL_GPL(twl_get_version);
  
-+	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
-+			     GFP_KERNEL);
-+	if (!audio)
-+		return -ENOMEM;
++/**
++ * twl_get_hfclk_rate - API to get TWL external HFCLK clock rate.
++ *
++ * Api to get the TWL HFCLK rate based on BOOT_CFG register.
++ */
++int twl_get_hfclk_rate(void)
++{
++	u8 ctrl;
++	int rate;
 +
-+	mutex_init(&audio->mutex);
-+	audio->audio_mclk = pdata->audio_mclk;
++	twl_i2c_read_u8(TWL_MODULE_PM_MASTER, &ctrl, R_CFG_BOOT);
 +
- 	/* Configure APLL_INFREQ and disable APLL if enabled */
--	val = 0;
--	switch (pdata->audio_mclk) {
-+	switch (audio->audio_mclk) {
- 	case 19200000:
--		val |= TWL4030_APLL_INFREQ_19200KHZ;
-+		val = TWL4030_APLL_INFREQ_19200KHZ;
- 		break;
- 	case 26000000:
--		val |= TWL4030_APLL_INFREQ_26000KHZ;
-+		val = TWL4030_APLL_INFREQ_26000KHZ;
- 		break;
- 	case 38400000:
--		val |= TWL4030_APLL_INFREQ_38400KHZ;
-+		val = TWL4030_APLL_INFREQ_38400KHZ;
- 		break;
- 	default:
- 		dev_err(&pdev->dev, "Invalid audio_mclk\n");
- 		return -EINVAL;
- 	}
--	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
--					val, TWL4030_REG_APLL_CTL);
--
--	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
--			     GFP_KERNEL);
--	if (!audio)
--		return -ENOMEM;
--
--	platform_set_drvdata(pdev, audio);
--
--	twl4030_audio_dev = pdev;
--	mutex_init(&audio->mutex);
--	audio->audio_mclk = pdata->audio_mclk;
-+	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE, val, TWL4030_REG_APLL_CTL);
++	switch (ctrl & 0x3) {
++	case HFCLK_FREQ_19p2_MHZ:
++		rate = 19200000;
++		break;
++	case HFCLK_FREQ_26_MHZ:
++		rate = 26000000;
++		break;
++	case HFCLK_FREQ_38p4_MHZ:
++		rate = 38400000;
++		break;
++	default:
++		pr_err("TWL4030: HFCLK is not configured\n");
++		rate = -EINVAL;
++		break;
++	}
++
++	return rate;
++}
++EXPORT_SYMBOL_GPL(twl_get_hfclk_rate);
++
+ static struct device *
+ add_numbered_child(unsigned chip, const char *name, int num,
+ 		void *pdata, unsigned pdata_len,
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 7ea898c..ac6488c 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -188,6 +188,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
  
- 	/* Codec power */
- 	audio->resource[TWL4030_AUDIO_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
-@@ -222,6 +217,9 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		childs++;
- 	}
+ int twl_get_type(void);
+ int twl_get_version(void);
++int twl_get_hfclk_rate(void);
  
-+	platform_set_drvdata(pdev, audio);
-+	twl4030_audio_dev = pdev;
-+
- 	if (childs)
- 		ret = mfd_add_devices(&pdev->dev, pdev->id, audio->cells,
- 				      childs, NULL, 0);
+ int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
 -- 
 1.7.8.6
