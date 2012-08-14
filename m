@@ -1,75 +1,51 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 08/14] Input: twl4030-vibra: Support for DT booted kernel
-Date: Tue, 14 Aug 2012 17:22:36 +0300
-Message-ID: <1344954162-7985-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 06/14] dt: Add empty of_find_node_by_name()
+	function
+Date: Tue, 14 Aug 2012 17:22:34 +0300
+Message-ID: <1344954162-7985-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
-Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Add support when the kernel has been booted with DT blob. In this case the
-pdata is NULL, we need to reach up to the core node and check if the codec
-part has been enabled to determine if we need to coexist with the codec or
-not.
+This commit adds an empty of_find_node_by_name() function for !CONFIG_OF
+builds.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/input/misc/twl4030-vibra.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+ include/linux/of.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-index d1e1a7e..2cfc6c7 100644
---- a/drivers/input/misc/twl4030-vibra.c
-+++ b/drivers/input/misc/twl4030-vibra.c
-@@ -26,6 +26,7 @@
- #include <linux/module.h>
- #include <linux/jiffies.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
- #include <linux/workqueue.h>
- #include <linux/i2c/twl.h>
- #include <linux/mfd/twl4030-audio.h>
-@@ -194,13 +195,28 @@ static int twl4030_vibra_resume(struct device *dev)
- static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
- 			 twl4030_vibra_suspend, twl4030_vibra_resume);
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 5919ee3..c90e59a 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -308,6 +308,12 @@ static inline const char* of_node_full_name(struct device_node *np)
+ 	return "<no-node>";
+ }
  
-+static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-+			      struct device_node *node)
++static inline device_node *of_find_node_by_name(struct device_node *from,
++	const char *name)
 +{
-+	if (pdata && pdata->coexist)
-+		return true;
-+
-+#ifdef CONFIG_OF
-+	if (of_find_node_by_name(node, "codec"))
-+		return true;
-+#endif
-+
-+	return false;
++	return NULL;
 +}
 +
- static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
+ static inline bool of_have_populated_dt(void)
  {
- 	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
-+	struct device_node *twl4030_core_node = pdev->dev.parent->of_node;
- 	struct vibra_info *info;
- 	int ret;
- 
--	if (!pdata) {
-+	if (!pdata && !twl4030_core_node) {
- 		dev_dbg(&pdev->dev, "platform_data not available\n");
- 		return -EINVAL;
- 	}
-@@ -210,7 +226,7 @@ static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	info->dev = &pdev->dev;
--	info->coexist = pdata->coexist;
-+	info->coexist = twl4030_vibra_check_coexist(pdata, twl4030_core_node);
- 	INIT_WORK(&info->play_work, vibra_play_work);
- 
- 	info->input_dev = input_allocate_device();
+ 	return false;
 -- 
 1.7.8.6
