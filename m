@@ -1,69 +1,98 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/6] OMAPDSS: DISPC: cleanup cpu_is_xxxx checks
-Date: Tue, 14 Aug 2012 12:58:58 +0300
-Message-ID: <1344938338.2345.20.camel@deskari>
-References: <1344425874-28222-1-git-send-email-cmahapatra@ti.com>
-	 <1344859135-4470-1-git-send-email-cmahapatra@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv2 2/4] arm/dts: omap5-evm: Add tmp102 sensor support
+Date: Tue, 14 Aug 2012 12:59:26 +0300
+Message-ID: <20120814095923.GB11416@arwen.pp.htv.fi>
+References: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+ <1344852313-30484-3-git-send-email-sourav.poddar@ti.com>
+ <502A20DD.5030707@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-6ExtNbK0U9z9/O71WLFD"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:39125 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752975Ab2HNJ7D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 05:59:03 -0400
-Received: by lbon3 with SMTP id n3so128269lbo.28
-        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 02:59:01 -0700 (PDT)
-In-Reply-To: <1344859135-4470-1-git-send-email-cmahapatra@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aVD9QWMuhilNxW9f"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <502A20DD.5030707@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-6ExtNbK0U9z9/O71WLFD
-Content-Type: text/plain; charset="UTF-8"
+--aVD9QWMuhilNxW9f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-08-13 at 17:28 +0530, Chandrabhanu Mahapatra wrote:
-> All the cpu_is checks have been moved to dispc_init_features function pro=
-viding
-> a much more generic and cleaner interface. The OMAP version and revision
-> specific functions and data are initialized by dispc_features structure w=
-hich is
-> local to dispc.c.
+On Tue, Aug 14, 2012 at 11:56:45AM +0200, Benoit Cousson wrote:
+> On 08/13/2012 12:05 PM, Sourav Poddar wrote:
+> > Add tmp102 temperature sensor data in omap5 evm dts file.
+> >=20
+> > Tested on omap5430 evm with 3.5 custom kernel.
+> >=20
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Felipe Balbi <balbi@ti.com>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Acked-by: Felipe Balbi <balbi@ti.com>
+> > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> > ---
+> >  arch/arm/boot/dts/omap5-evm.dts |    9 +++++++++
+> >  1 files changed, 9 insertions(+), 0 deletions(-)
+> >=20
+> > diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-=
+evm.dts
+> > index 200c39a..45a8aeb 100644
+> > --- a/arch/arm/boot/dts/omap5-evm.dts
+> > +++ b/arch/arm/boot/dts/omap5-evm.dts
+> > @@ -18,3 +18,12 @@
+> >  		reg =3D <0x80000000 0x40000000>; /* 1 GB */
+> >  	};
+> >  };
+> > +
+> > +&i2c4 {
+> > +	clock-frequency =3D <400000>;
+>=20
+> Have you checked if we cannot run at faster speed? Reducing the speed
+> will impact every devices on the bus.
+> It might be needed, I just wanted to be sure.
+>=20
+> You should maybe just add a small comment to explain what the device is
+> doing with potentially a link to the HW spec if available.
+>=20
+> The same comments are applicable to the bmp085 patch.
 
-The comments I gave for the dss.c patch apply to this one also, about
-devm_free, __initdata, and the names of the feat arrays.
+that sort of information should be placed on
+Documentation/devicetree/bindings/*/$device.txt, right ? Why should we
+replicate it on all dts files ? Besides, there are only two such entries
+on all ARM DTS files. Do we really want to make dts files bigger with
+links to documentation which can even be moved at any time to other
+location by the manufacturer's choice ? Will anyone actually keep track
+of such links to make sure they aren't broken ? And even if someone does
+track those links, do we really want to keep sending such patches for
+the dts files ?
 
-Otherwise, looks good.
+--=20
+balbi
 
- Tomi
-
-
---=-6ExtNbK0U9z9/O71WLFD
+--aVD9QWMuhilNxW9f
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJQKiFiAAoJEPo9qoy8lh71ZdgP/jZ7mMKzkMkEJk3I4DVTwGkt
-GlbmIb/y1Ln9FqMP7sUxEkWwjCXT5mzQGEGw0eiZEnL0169qmCDlNh8zWbPc72bg
-sK/Vi49ryAY6yW+zl5tdVh0dmu0W3TsjT/nCENA+XkZRB7O+53t7WKMYUzlRHzjg
-pHcUuUYd7QJq7XKN8uA5G9MFbz7TVOtriJxEcpYrLsR3o3czhXT3dVboI1nqz3My
-/u9/0lMyzq3vHo/xrgTNAXjnBulK1tnc8azAqa3ZvukCGV39dBavnScs7A/6VbzB
-cOs9n+q3aWkHoGFkUF6nloOCHQYa0b4ldJ+KKRSP+r2Mp4W4VE7CyixqjezeRcps
-hE8zc2jpckNrfPlELabHpx3XsWlYRmG0C1jN9wKNqt9BQj6y9EVwmuYJnhpaeBTO
-Bm/xWFyp9SwiDEqyuCFGxJsO4brN4lXXrGNCBZGTmB63T5p1NLS1liLMk3U2s0Jb
-ZW8weDZKerRWeH0eAO63CZWlCtELjb+pVXdKZQhmWgVt5Jwd3Hr1e4Sllnf9GqCv
-H1Ilvvzg65WPbsCSeZhXUjSKNP2pk0ah72+IRkDOVvJOsHVxCtXggef/sYbT+ROP
-ZM2uJOkDyYqaFZY6/GWSBwp3L0E14q2lFh3PK/sqZEHsGXYaQS/bh/YYUT02KmhM
-VRDQhDSHJu2RBDUfKqri
-=tMx4
+iQIcBAEBAgAGBQJQKiF7AAoJEIaOsuA1yqREh28P/0xhK3vmuH4f8+glpT+QJGQU
+cA/y3F/BS2655o3kyEUpSVeylvhY237alABksiDUSoddGuxGdfoHTwmTGTUp4UZf
+2cr0kz83eRvGQBnMqU0PbujI6c6UZqde23Bv1QhsMy4jD3jlJSjWgaSLbh8BHzx8
+6W1jK+yAXeauVK9+d88Cpv8/pzoYjCNeVKRYb3LEpWFf51iDsg1Pu2+C0RSU14Hi
+gvUfNn3TqgleABQ5MX5HSemFn6icMoefUyy9nUHm+arPUcBsuvSmVLJr3xG6Iqbc
+5dAiSI0BztQLRh+kEcMNBmvybzZINtcCRBbo1TtKAkwIrQcxwhNY7A2Es3mnPej+
+fS/h/dqBIKpfrRBg9QV8P5f3w6E8OgpYMXYmgYm0BUNteNa4ENAlNAOK9uL+fN3B
+VwIqARNanC/q0lmHS52kTrpJ4kVxR4glYl7v6o/jK/xI2ralx4kw7QEkJB2/bJ14
+sYaNyQk1qDpsHZg7BACDD1uw7rw4lZNGUFEgvSChTDlED1pSTLRHQjv84CvDGxM7
+xcXW6GWngbJhXKwP8/+o0jDsFKZNsn2b1pXFL1m76mvKj1GvUDHB0t04r5uW4HjE
+yPvm1asb/thS3ufcCeEnRfzKhiAQgfGgaEhX3zBzSYJoWX7ut7cEsAM4SznumFkc
+gvQd3WeaSUsfJG2wzsEa
+=1ORa
 -----END PGP SIGNATURE-----
 
---=-6ExtNbK0U9z9/O71WLFD--
-
+--aVD9QWMuhilNxW9f--
