@@ -1,99 +1,107 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH v2 07/13] OMAPDSS: HDMI: Add a get_timing function for
- HDMI interface
-Date: Tue, 14 Aug 2012 22:46:52 +0530
-Message-ID: <502A8804.5080101@ti.com>
-References: <1343817088-29645-1-git-send-email-archit@ti.com>   <1344512989-4071-1-git-send-email-archit@ti.com>   <1344512989-4071-8-git-send-email-archit@ti.com>  <1344949348.4845.46.camel@lappyti> <502A4F62.5050400@ti.com> <1344953420.4845.72.camel@lappyti>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 09/13] OMAPDSS: SDI: Create a function to set timings
+Date: Tue, 14 Aug 2012 20:33:20 +0300
+Message-ID: <1344965600.2345.70.camel@deskari>
+References: <1343817088-29645-1-git-send-email-archit@ti.com>
+	  <1344512989-4071-1-git-send-email-archit@ti.com>
+	  <1344512989-4071-10-git-send-email-archit@ti.com>
+	 <1344951845.4845.58.camel@lappyti> <502A8322.6000309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-JslMYqJWCSwidz20NEbw"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44153 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754640Ab2HNRQz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 13:16:55 -0400
-In-Reply-To: <1344953420.4845.72.camel@lappyti>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33985 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755233Ab2HNRdZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Aug 2012 13:33:25 -0400
+Received: by lbao2 with SMTP id o2so384034lba.24
+        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 10:33:22 -0700 (PDT)
+In-Reply-To: <502A8322.6000309@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>, Rob Clark <rob@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tuesday 14 August 2012 07:40 PM, Tomi Valkeinen wrote:
-> On Tue, 2012-08-14 at 18:45 +0530, Archit Taneja wrote:
->> On Tuesday 14 August 2012 06:32 PM, Tomi Valkeinen wrote:
->>> Hi,
->>>
->>> On Thu, 2012-08-09 at 17:19 +0530, Archit Taneja wrote:
->>>> Add function omapdss_hdmi_display_get_timing() which returns the timings
->>>> maintained by the HDMI interface driver in it's hdmi_config field. This
->>>> prevents the need for the panel driver to configure default timings in it's
->>>> probe.
->>>>
->>>> This function is just intended to be used once during the panel driver's probe.
->>>> It makes sense for those interfaces which can be configured to a default timing.
->>>
->>> I'm not sure about this patch. So I think the basic idea here is that
->>> HDMI will use VGA video mode if, for whatever reason, no better mode is
->>> found out.
->>>
->>> After this change, the panel driver doesn't seem to do that. Instead it
->>> uses whatever mode was used previously by the hdmi output driver.
->>>
->>> Is the only reason for this patch to clean up the hdmi_panel driver? We
->>> could have a dss helper function which returns the timings for VGA
->>> (well, just a public const variable would be enough), and the panel
->>> driver could use that to initialize the timings struct.
->>
->> Yes, that's the only reason, basically, to sync the panel with the
->> timings to which the hdmi output driver configured itself during it's
->> probe. We don't use hdmi_get_timing anywhere apart from here.
->
-> Does the hdmi output driver even need to configure any defaults?
-> Wouldn't it be ok to presume that the panel driver configures the
-> timings?
->
-> I don't think it's sensible to think about default values in the output
-> driver generally (well, at least for things like timings). Although in
-> HDMI's case VGA is quite sensible default, but that's not the case for
-> any other output.
->
-> So I think generally we should just trust the panel driver to tell the
-> output driver what configuration should be used before the panel driver
-> enables the output.
->
-> That said, it doesn't hurt that the output drivers initialize their own
-> datastructures to something relatively sane to avoid any BUG() or WARN()
-> calls in the omapdss. Although we could also somehow track if the
-> timings has been set, and return an error when enabling the display if
-> timings hasn't been set. But that requires an extra flag, so perhaps
-> it's simpler to have some initial values in the output driver also.
->
->> I thought it would be clean to retrieve the timings by taking whatever
->> is stored in the hdmi output driver, but we could leave it to a
->> hardcoded VGA as before.
->
-> My main worry is that it's not easily clear what is going on if you look
-> at the panel code. It looks that the panel just uses whatever is in the
-> output driver. It's not clear that it is always VGA. What if the
-> previous mode was something else?
->
-> I think it's much clearer if the panel driver sets the timings
-> explicitly before enabling the output. It doesn't have to be in panel's
-> probe, although that's perhaps the easiest place for it.
->
->> I have done the same for venc, let me know if you think these should be
->> removed.
->
-> Well, I agree that the initial timings code in hdmi and venc is a bit
-> ugly. I don't think it's bad as such, just that the timings are standard
-> ones, and instead of having all the timings numbers there, we should
-> have a common place for them.
 
-Okay, I'll remove the get_timing ops, keep defaults in the panel 
-driver's probe, have a const variable for the defaults to make it look 
-less ugly, and make sure that there is a set_timings for the output in 
-the hdmi and venc panel drivers before they are enabled, it sort of okay 
-for hdmi and venc panel drivers as there is going to be only one of them 
-and be in our control.
+--=-JslMYqJWCSwidz20NEbw
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Archit
+On Tue, 2012-08-14 at 22:26 +0530, Archit Taneja wrote:
+> On Tuesday 14 August 2012 07:14 PM, Tomi Valkeinen wrote:
+
+> I guess it depends on how drm/fb want to use it. I guess an output=20
+> should have a set_timings() kind of op if it can do it seamlessly. I=20
+> guess we can do that easily in DPI, for example, we could reduce the fps=
+=20
+> from 60 to 30 without causing an artefacts(I think). For outputs which=
+=20
+
+Yes, that kind of thing is easy to do by just changing the pck divider,
+which is in a shadow register. I mean, "easy" in theory, at least. Our
+clock calculation doesn't work like that currently, though, so it could
+end up changing DSS fck.
+
+> can't do it, we could remove the set_timings totally.
+
+But we do need set_timings for other outputs also (like sdi). We just
+can't change them just like that. Only outputs that do not need timings
+are DSI command mode and rfbi.
+
+> However, it'll be kind of inconsistent for some outputs to set timings,=
+=20
+> and for others to not, and if in the future drm/fb gets exposed to ops=
+=20
+> too, we may have dirty checks to see if set_timings is populated or not.
+>=20
+> The easiest way would be to make all set_timings just update the copy of=
+=20
+> the timings output has, and expect drm/fb to disable and re enable the=
+=20
+> panel. We may end up doing unnecessary gpio resets and configuration of=
+=20
+> the panels though.
+
+I think changing things like timings is quite a rare operation. The only
+case it'd be necessary to change timings often, with speed, and without
+artifacts would be the fps drop you mentioned, for lower power use with
+panels that don't mind the fps drop.
+
+If I understood correctly, Rob said that drm already disables the output
+when changing the mode, when I asked if it's ok for the apply's
+set_timings to require the output to be off.
+
+In any case this is not a big issue, I mean, it's not causing any
+problems. Somebody is going to disable the output anyway when changing
+the timings. Perhaps even these patches are good, because they make the
+set_timings consistent across the output drivers (don't they?).
+
+ Tomi
+
+
+--=-JslMYqJWCSwidz20NEbw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQKovgAAoJEPo9qoy8lh717lMP/A053sRFCptQ+Gi6w3oVy8OJ
+fzC8RE5m0XUfNku8XpcVEV93p1lJNvjvEGZcVHQpNd4Oe66gThEy5BGi5+HSB8qK
+n+jDMuV09UWTqztCXFty0cd16Qfuuj0C3XlV2pyLfKEQdntu2w4w4GE20qlh1PRR
+azfTYRm4H9NQUY8kEXpgywnfd+tsKyUj7N/aXu6v5FkatUK7k1ObWcvEKXqbR0f6
+UTf6xPaybPNffnXvhRWr5/2lyJBKWHBuhvdOFH/lfGwfAxwtyxIDyiWG4bmYKhKz
+87lqvU2+BhgUzaX6mwxXuDf90d1qzcUMRw9eDXjXi04xqTxrqUUHwkTQFJ34eZls
+gpQwj1fhyko9W0dBxObNCRVfPNAZX1QQ+5jGNQK5mWRWJBmVykDAxYIp5LW9c1KR
+IStVUKuSJN9Dwq+3lstfc5STAqXBoty4flQcQwjCtzxU7BRm2UWuaFiwKSmV4pbq
+4Zp8QVOJA7khsIC+5i8t+p+twKR8fft+4WbHX/d80bOK9Ts4p32l0jtYYH2Qh0s/
+IgDEyReZdlNu2rodh6XcI3+T7nbWu//qOxasaBmxKkyWrhyDA+ESvUxfJDUrJKi+
+nI5x0v5Ej181EGyle8ehz8K2e9AmBVSawM7QMJNzYJ9blUgmUtC0lfn8PqQAHBpO
+Pwj1wmv6aBNoIdqbveN/
+=lZ3d
+-----END PGP SIGNATURE-----
+
+--=-JslMYqJWCSwidz20NEbw--
+
