@@ -1,51 +1,131 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 06/14] dt: Add empty of_find_node_by_name()
-	function
-Date: Tue, 14 Aug 2012 17:22:34 +0300
-Message-ID: <1344954162-7985-7-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 09/14] ASoC: twl4030: Move hs_extmute GPIO handling to
+ driver
+Date: Tue, 14 Aug 2012 17:22:37 +0300
+Message-ID: <1344954162-7985-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This commit adds an empty of_find_node_by_name() function for !CONFIG_OF
-builds.
+The external mute (if it is in use) is handled by a GPIO line. Prepare to
+remove the set_hs_extmute callback and replace it with:
+hs_extmute_gpio: the GPIO number to use for external mute
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+When the users of set_hs_extmute has been converted the callback can be removed.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/of.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ include/linux/i2c/twl.h    |    4 +++-
+ sound/soc/codecs/twl4030.c |   32 ++++++++++++++++++++++++++++++--
+ 2 files changed, 33 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 5919ee3..c90e59a 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -308,6 +308,12 @@ static inline const char* of_node_full_name(struct device_node *np)
- 	return "<no-node>";
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index ac6488c..2040309 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -667,7 +667,9 @@ struct twl4030_codec_data {
+ 	unsigned int check_defaults:1;
+ 	unsigned int reset_registers:1;
+ 	unsigned int hs_extmute:1;
+-	void (*set_hs_extmute)(int mute);
++	void (*set_hs_extmute)(int mute); /* Deprecated, use hs_extmute_gpio and
++					     hs_extmute_disable_level */
++	int hs_extmute_gpio;
+ };
+ 
+ struct twl4030_vibra_data {
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 391fcfc..5fc271a 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -28,6 +28,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/slab.h>
++#include <linux/gpio.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
+@@ -302,6 +303,22 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
+ 	u8 reg, byte;
+ 	int i = 0;
+ 
++	if (pdata && pdata->hs_extmute &&
++	    gpio_is_valid(pdata->hs_extmute_gpio)) {
++		int ret;
++
++		if (!pdata->hs_extmute_gpio)
++			dev_warn(codec->dev,
++				 "Extmute GPIO is 0 is this correct?\n");
++
++		ret = gpio_request_one(pdata->hs_extmute_gpio,
++				       GPIOF_OUT_INIT_LOW, "hs_extmute");
++		if (ret) {
++			dev_err(codec->dev, "Failed to get hs_extmute GPIO\n");
++			pdata->hs_extmute_gpio = -1;
++		}
++	}
++
+ 	/* Check defaults, if instructed before anything else */
+ 	if (pdata && pdata->check_defaults)
+ 		twl4030_check_defaults(codec);
+@@ -748,7 +765,10 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 	/* Enable external mute control, this dramatically reduces
+ 	 * the pop-noise */
+ 	if (pdata && pdata->hs_extmute) {
+-		if (pdata->set_hs_extmute) {
++		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
++			gpio_set_value(pdata->hs_extmute_gpio, 1);
++		} else if (pdata->set_hs_extmute) {
++			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+ 			pdata->set_hs_extmute(1);
+ 		} else {
+ 			hs_pop |= TWL4030_EXTMUTE;
+@@ -786,7 +806,10 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
+ 
+ 	/* Disable external mute */
+ 	if (pdata && pdata->hs_extmute) {
+-		if (pdata->set_hs_extmute) {
++		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
++			gpio_set_value(pdata->hs_extmute_gpio, 0);
++		} else if (pdata->set_hs_extmute) {
++			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
+ 			pdata->set_hs_extmute(0);
+ 		} else {
+ 			hs_pop &= ~TWL4030_EXTMUTE;
+@@ -2230,12 +2253,17 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
+ 
+ static int twl4030_soc_remove(struct snd_soc_codec *codec)
+ {
++	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
+ 
+ 	/* Reset registers to their chip default before leaving */
+ 	twl4030_reset_registers(codec);
+ 	twl4030_set_bias_level(codec, SND_SOC_BIAS_OFF);
+ 	kfree(twl4030);
++
++	if (pdata && pdata->hs_extmute && gpio_is_valid(pdata->hs_extmute_gpio))
++		gpio_free(pdata->hs_extmute_gpio);
++
+ 	return 0;
  }
  
-+static inline device_node *of_find_node_by_name(struct device_node *from,
-+	const char *name)
-+{
-+	return NULL;
-+}
-+
- static inline bool of_have_populated_dt(void)
- {
- 	return false;
 -- 
 1.7.8.6
