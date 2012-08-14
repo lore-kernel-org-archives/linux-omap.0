@@ -1,121 +1,79 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv6 05/24] i2c: omap: simplify omap_i2c_ack_stat()
-Date: Tue, 14 Aug 2012 19:48:47 +0530
-Message-ID: <1344953946-13005-6-git-send-email-shubhrajyoti@ti.com>
-References: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58970 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905Ab2HNOUE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 10:20:04 -0400
-In-Reply-To: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 00/14] MFD/ASoC/Input: twl4030-audio submodule DT support
+Date: Tue, 14 Aug 2012 17:22:28 +0300
+Message-ID: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+Hello,
 
-stat & BIT(1) is the same as BIT(1), so let's
-simplify things a bit by removing "stat &" from
-all omap_i2c_ack_stat() calls.
+Changes since v1:
+- Get the MCLK frequencey from twl-core driver (via new API)
+- hs_extmute_disable_level parameter has been removed
+- empty of_find_node_by_name() in of.h for !CONFIG_OF builds
 
-Code snippet (extremely simplified):
+Mark: the extmute GPIO handling (when it is used) remained in the codec driver
+for now. I can think more on how to add support for this type of mute control.
+If you can point me to other codec needing this it would help on designing
+something which is common enough for other users.
+As for now I have a separate series to add GPIO controlled output amps (hp/spk).
+I will send that to review soon.
 
-if (stat & NACK) {
-        ...
-        omap_i2c_ack_stat(dev, stat & NACK);
-}
+Introl mail from v1:
 
-if (stat & RDR) {
-        ...
-        omap_i2c_ack_stat(dev, stat & RDR);
-}
+The following series adds DT support for the twl4030 audio submodule which
+provides audio codec and vibra functionality.
 
-and so on. The tricky place is only WRT errata handling, for example:
+The MFD core driver is probed via DT, it will create the needed child devices
+based on the provided information in the DT blob.
+Child drivers (vibra, ASoC codec) will parse the core's node if needed to get
+the needed parameters for their configuration.
 
-if (*stat & (NACK | AL)) {
-        omap_i2c_ack_stat(dev, *stat & (XRDY | XDR));
-        ...
-}
+In the ASoC codec driver the hs_extmute callback (which was used to toggle a
+GPIO line) has been removed. The codec driver will receive the GPIO number
+(if it is needed on the platform).
 
-but in this case, the errata says we must clear XRDY and XDR if that
-errata triggers, so if they just got enabled or not, it doesn't matter.
+If the series is OK (and no objections from the maintainers), it would be good
+if this can go via audio. Changed files are well contained within the
+twl4030-audio stack so I do not expect merge issues later.
 
-Another tricky place is RDR | RRDY (likewise for XDR | XRDY):
+The series has been tested on BeagleBoard (with the McBSP DT series, and with
+the upcoming DT audio support for BeagleBoard).
 
-if (stat & (RDR | RRDY)) {
-        ...
-        omap_i2c_ack_stat(dev, stat & (RDR | RRDY));
-}
-
-again here there will be no issues because those IRQs never fire
-simultaneously and one will only after after we have handled the
-previous, that's because the same FIFO is used anyway and we won't shift
-data into FIFO until we tell the IP "hey, I'm done with the FIFO, you
-can shift more data"
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
-[Added the explaination from the discurssion to the commit logs]
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Regards,
+Peter
 ---
- drivers/i2c/busses/i2c-omap.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+Peter Ujfalusi (14):
+  MFD: twl4030-audio: Clean up MODULE_* and platform_driver part
+  MFD: twl4030-audio: Convert to use devm_kzalloc
+  MFD: twl4030-audio: Rearange and clean-up the probe function
+  MFD: twl-core: Add API to query the HFCLK rate
+  MFD: twl4030-audio: Get audio MCLK via twl-core API instead of pdata
+  dt: Add empty of_find_node_by_name() function
+  MFD: twl4030-audio: Add DT support
+  Input: twl4030-vibra: Support for DT booted kernel
+  ASoC: twl4030: Move hs_extmute GPIO handling to driver
+  ARM: OMAP/ASoC: Zoom2: Let the codec to handle the hs_extmute GPIO
+  ASoC/MFD: twl4030: Remove set_hs_extmute callback from platform data
+  ASoC: twl4030: Convert to use devm_kzalloc
+  ASoC: twl4030: Add pointer to pdata within the private data
+  ASoC: twl4030: Support for DT booted kernel
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index dbc5a3c..8009095 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -731,7 +731,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
- 
- 	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
- 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
--			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
- 			return -ETIMEDOUT;
- 		}
-@@ -792,10 +792,11 @@ complete:
- 		 */
- 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
- 					OMAP_I2C_STAT_AL)) {
--			omap_i2c_ack_stat(dev, stat &
--				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
--				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
--				OMAP_I2C_STAT_ARDY));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
-+						OMAP_I2C_STAT_RDR |
-+						OMAP_I2C_STAT_XRDY |
-+						OMAP_I2C_STAT_XDR |
-+						OMAP_I2C_STAT_ARDY));
- 			omap_i2c_complete_cmd(dev, err);
- 			return IRQ_HANDLED;
- 		}
-@@ -842,8 +843,8 @@ complete:
- 					}
- 				}
- 			}
--			omap_i2c_ack_stat(dev,
--				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
-+						OMAP_I2C_STAT_RDR));
- 			continue;
- 		}
- 
-@@ -890,8 +891,8 @@ complete:
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
--			omap_i2c_ack_stat(dev,
--				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
-+						OMAP_I2C_STAT_XDR));
- 			continue;
- 		}
- 
+ .../devicetree/bindings/mfd/twl4030-audio.txt      |   46 +++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |    9 +--
+ arch/arm/mach-omap2/include/mach/board-zoom.h      |    2 -
+ drivers/input/misc/twl4030-vibra.c                 |   20 ++++-
+ drivers/mfd/twl-core.c                             |   32 ++++++
+ drivers/mfd/twl4030-audio.c                        |  107 +++++++++++++-------
+ include/linux/i2c/twl.h                            |    3 +-
+ include/linux/of.h                                 |    6 +
+ sound/soc/codecs/twl4030.c                         |  103 +++++++++++++++----
+ sound/soc/omap/zoom2.c                             |    4 -
+ 10 files changed, 261 insertions(+), 71 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+
 -- 
-1.7.5.4
-
+1.7.8.6
