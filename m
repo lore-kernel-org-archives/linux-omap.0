@@ -1,192 +1,144 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 1/2] ARM: OMAP: Add initialisation for the real-time
- counter.
-Date: Tue, 14 Aug 2012 06:22:03 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA8E131@DBDE01.ent.ti.com>
-References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
- <1344856045-15134-2-git-send-email-santosh.shilimkar@ti.com>
- <50293AC8.7010403@ti.com>
- <CAMQu2gw=W7J5Yy029XRb68H_J2yXYT9u93480vSr9J23C5jZ3g@mail.gmail.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv7] arm/dts: omap4-sdp: Add keypad data
+Date: Tue, 14 Aug 2012 11:53:18 +0530
+Message-ID: <CAKdam54ifAW=W86qLj3+JR6k7i00EjDSQgK5B1X--NCg18jJmw@mail.gmail.com>
+References: <1342780715-25618-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60354 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218Ab2HNGWN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Aug 2012 02:22:13 -0400
-In-Reply-To: <CAMQu2gw=W7J5Yy029XRb68H_J2yXYT9u93480vSr9J23C5jZ3g@mail.gmail.com>
-Content-Language: en-US
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:52469 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752218Ab2HNGXT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Aug 2012 02:23:19 -0400
+Received: by obbwd20 with SMTP id wd20so75902obb.9
+        for <linux-omap@vger.kernel.org>; Mon, 13 Aug 2012 23:23:18 -0700 (PDT)
+In-Reply-To: <1342780715-25618-1-git-send-email-sourav.poddar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.orig" <linux-arm-kernel@lists.infradead.orig>, "tony@atomide.com" <tony@atomide.com>
+To: tony@atomide.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kishon@ti.com, Sourav Poddar <sourav.poddar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>
 
-On Tue, Aug 14, 2012 at 11:46:35, Shilimkar, Santosh wrote:
-> On Mon, Aug 13, 2012 at 11:05 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
-> >
-> >
-> >
-> > On 8/13/2012 4:37 PM, Santosh Shilimkar wrote:
-> > > The real time counter also called master counter, is a free-running
-> > > counter. It produces the count used by the CPU local timer peripherals
-> > > in the MPU cluster. The timer counts at a rate of 6.144 MHz.
-> > >
-> > > The ratio registers needs to be configured based on system clock
-> > > only onetime. After initialisation, hardware takes care of adjusting
-> > > the clock in different low power modes to keep counter rate constant.
-> > >
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/Kconfig |    4 ++
-> > >  arch/arm/mach-omap2/timer.c |   89
-> > > ++++++++++++++++++++++++++++++++++++++++++-
-> > >  2 files changed, 92 insertions(+), 1 deletion(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> > > index dd2db02..2120f90 100644
-> > > --- a/arch/arm/mach-omap2/Kconfig
-> > > +++ b/arch/arm/mach-omap2/Kconfig
-> > > @@ -24,6 +24,9 @@ config ARCH_OMAP2PLUS_TYPICAL
-> > >  config SOC_HAS_OMAP2_SDRC
-> > >       bool "OMAP2 SDRAM Controller support"
-> > >
-> > > +config SOC_HAS_REALTIME_COUNTER
-> > > +     bool "Real time free running counter"
-> > > +
-> > >  config ARCH_OMAP2
-> > >       bool "TI OMAP2"
-> > >       depends on ARCH_OMAP2PLUS
-> > > @@ -69,6 +72,7 @@ config SOC_OMAP5
-> > >       select CPU_V7
-> > >       select ARM_GIC
-> > >       select HAVE_SMP
-> > > +     select SOC_HAS_REALTIME_COUNTER
-> > >
-> > >  comment "OMAP Core Type"
-> > >       depends on ARCH_OMAP2
-> > > diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> > > index 2ff6d41..9b17e6c 100644
-> > > --- a/arch/arm/mach-omap2/timer.c
-> > > +++ b/arch/arm/mach-omap2/timer.c
-> > > @@ -69,6 +69,11 @@
-> > >  #define OMAP3_SECURE_TIMER   1
-> > >  #endif
-> > >
-> > > +#define REALTIME_COUNTER_BASE                                0x48243200
-> > > +#define INCREMENTER_NUMERATOR_OFFSET                 0x10
-> > > +#define INCREMENTER_DENUMERATOR_RELOAD_OFFSET                0x14
-> > > +#define NUMERATOR_DENUMERATOR_MASK                   0xfffff000
-> > > +
-> > >  /* Clockevent code */
-> > >
-> > >  static struct omap_dm_timer clkev;
-> > > @@ -339,6 +344,83 @@ static void __init omap2_clocksource_init(int
-> > > gptimer_id,
-> > >               omap2_gptimer_clocksource_init(gptimer_id, fck_source);
-> > >  }
-> > >
-> > > +#ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
-> > > +/*
-> > > + * The realtime counter also called master counter, is a free-running
-> > > + * counter, which is related to real time. It produces the count used
-> > > + * by the CPU local timer peripherals in the MPU cluster. The timer
-> > > counts
-> > > + * at a rate of 6.144 MHz. Because the device operates on different
-> > > clocks
-> > > + * in different power modes, the master counter shifts operation
-> > > between
-> > > + * clocks, adjusting the increment per clock in hardware accordingly to
-> > > + * maintain a constant count rate.
-> > > + */
-> > > +static void __init realtime_counter_init(void)
-> > > +{
-> > > +     void __iomem *base;
-> > > +     static struct clk *sys_clk;
-> > > +     unsigned long rate;
-> > > +     unsigned int reg, num, den;
-> > > +
-> > > +     base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
-> > > +     if (!base) {
-> > > +             pr_err("%s: ioremap failed\n", __func__);
-> > > +             return;
-> > > +     }
-> > > +     sys_clk = clk_get(NULL, "sys_clkin_ck");
-> > > +     if (!sys_clk) {
-> > > +             pr_err("%s: failed to get system clock handle\n",
-> > > __func__);
-> > > +             return;
-> >
-> > Don't want to unmap the ioremap'ed space?
-> >
-> yep. Infact at the end of this function I wanted to unmap the
-> space since this is one time init. Will fix that in next version.
-> 
-> > > +     }
-> > > +
-> > > +     rate = clk_get_rate(sys_clk);
-> > > +     switch (rate) {
-> > > +     case 1200000:
-> > > +             num = 64;
-> > > +             den = 125;
-> > > +             break;
-> > > +     case 1300000:
-> > > +             num = 768;
-> > > +             den = 1625;
-> > > +             break;
-> > > +     case 19200000:
-> > > +             num = 8;
-> > > +             den = 25;
-> > > +             break;
-> > > +     case 2600000:
-> > > +             num = 384;
-> > > +             den = 1625;
-> > > +             break;
-> > > +     case 2700000:
-> > > +             num = 256;
-> > > +             den = 1125;
-> > > +             break;
-> > > +     case 38400000:
-> > > +             num = 4;
-> > > +             den = 25;
-> > > +             break;
-> > > +     default:
-> > > +             /* Program it for 38.4 MHz */
-> > > +             num = 4;
-> > > +             den = 25;
-> > > +             break;
-> >
-> > You can simply do something like,
-> >
-> >         case 38400000:
-> >         /* Program it for 38.4 MHz */
-> >         default:
-> >                 num = 4;
-> >                 den = 25;
-> >                 break;
-> >
-> Yes.
-> 
-> > Also, suggest to mention about why 38.4MHz as default? I believe it is
-> > reset value, right?
-> >
-> This is the default sys clock rate assumed in most of the documentation
-> and also expected to be a default sys clock rate. Reset values as you
-> said in many other registers also assume 38.4 MHz.
-> 
-> > Also, does it make sense to get rid of hardcoded values above?
-> >
-> Actually not. Because the values are fixed since the counter
-> clock-rate is hardwired to be 6.144 MHz and hence all the
-> other numbers becomes constant. All these numbers are
-> coming from TRM and not from any formula. I don't wanted
-> to go on mathematical equation path since all the values
-> are well documented.
-> 
+Hi,
 
-Yes, I looked at the TRM and they are well documented there.
-I would atleast suggest you to state that, these values are coming directly 
-from TRM and possibly give reference to the TRM section here.
+On Fri, Jul 20, 2012 at 4:08 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
+> Add keypad data node in omap4 device tree file.
+> Also fill the device tree binding parameters
+> with the required value in "omap4-sdp" dts file.
+>
+> Tested on omap4430 sdp with 3.5-rc6 kernel.
+>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> Changes since v6:
+> -remove address from the node since reg property
+> is not used.
+>  arch/arm/boot/dts/omap4-sdp.dts |   70 +++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi    |    5 +++
+>  2 files changed, 75 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 72216e9..80cd016 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -113,6 +113,76 @@
+>                         "DMic", "Digital Mic",
+>                         "Digital Mic", "Digital Mic1 Bias";
+>         };
+> +
+> +       keypad {
+> +               keypad,num-rows = <8>;
+> +               keypad,num-columns = <8>;
+> +               linux,keymap = < 0x00000012
+> +                       0x00010013
+> +                       0x00020014
+> +                       0x00030066
+> +                       0x0004003f
+> +                       0x000500f0
+> +                       0x00060017
+> +                       0x0007002a
+> +                       0x01000020
+> +                       0x01010021
+> +                       0x01020022
+> +                       0x010300e7
+> +                       0x01040040
+> +                       0x010500f0
+> +                       0x01060025
+> +                       0x0107001c
+> +                       0x0200002d
+> +                       0x0201002e
+> +                       0x0202002f
+> +                       0x0203006b
+> +                       0x02040041
+> +                       0x020500f0
+> +                       0x02060034
+> +                       0x0207003a
+> +                       0x0300002c
+> +                       0x0301004e
+> +                       0x03020030
+> +                       0x0303003b
+> +                       0x03040042
+> +                       0x030500f0
+> +                       0x03060018
+> +                       0x03070039
+> +                       0x04000011
+> +                       0x04010015
+> +                       0x04020016
+> +                       0x0403003c
+> +                       0x04040073
+> +                       0x040500f0
+> +                       0x04060026
+> +                       0x04070069
+> +                       0x0500001f
+> +                       0x05010023
+> +                       0x05020024
+> +                       0x0503003d
+> +                       0x05040043
+> +                       0x05050072
+> +                       0x05060032
+> +                       0x0507006a
+> +                       0x06000010
+> +                       0x0601001e
+> +                       0x06020031
+> +                       0x0603009e
+> +                       0x0604000e
+> +                       0x060500f0
+> +                       0x06060019
+> +                       0x06070067
+> +                       0x07000094
+> +                       0x07010095
+> +                       0x070200ca
+> +                       0x070300cb
+> +                       0x0704003e
+> +                       0x070500f0
+> +                       0x07060160
+> +                       0x0707006c >;
+> +               linux,input-no-autorepeat;
+> +       };
+>  };
+>
+>  &i2c1 {
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 04cbbcb..e78a1f1 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -296,4 +296,9 @@
+>                         ti,hwmods = "dmic";
+>                 };
+>         };
+> +
+> +       keypad {
+> +               compatible = "ti,omap4-keypad";
+> +               ti,hwmods = "kbd";
+> +       };
+>  };
+> --
+> 1.7.1
+>
+Any more comments on this patch?
 
-Thanks,
-Vaibhav
+~Sourav
