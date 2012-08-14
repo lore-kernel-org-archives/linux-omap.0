@@ -1,15 +1,15 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv6 16/24] i2c: omap: resize fifos before each message
-Date: Tue, 14 Aug 2012 19:48:58 +0530
-Message-ID: <1344953946-13005-17-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv6 01/24] i2c: omap: switch to devm_* API
+Date: Tue, 14 Aug 2012 19:48:43 +0530
+Message-ID: <1344953946-13005-2-git-send-email-shubhrajyoti@ti.com>
 References: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59849 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60176 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755355Ab2HNOUN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 10:20:13 -0400
+	id S1755360Ab2HNOUM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Aug 2012 10:20:12 -0400
 In-Reply-To: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,188 +18,129 @@ Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@f
 
 From: Felipe Balbi <balbi@ti.com>
 
-This patch will try to avoid the usage of
-draining feature by reconfiguring the FIFO
-the start condition of each message based
-on the message's size.
-
-By doing that, we will be better utilizing
-the FIFO when doing big transfers.
-
-While at that also drop the now unneeded
-check for dev->buf_len as we always know
-the amount of data to be transmitted.
+that helps deleting some boiler plate code
+and lets driver-core manage our resources
+for us.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   83 +++++++++++++++++++++++++----------------
- 1 files changed, 51 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   41 ++++++++++++-----------------------------
+ 1 files changed, 12 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index b0b1705..dfbf667 100644
+index 6849635..6449383 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -193,6 +193,7 @@ struct omap_i2c_dev {
- 	u8			*regs;
- 	size_t			buf_len;
- 	struct i2c_adapter	adapter;
-+	u8			threshold;
- 	u8			fifo_size;	/* use as flag and value
- 						 * fifo_size==0 implies no fifo
- 						 * if set, should be trsh+1
-@@ -418,13 +419,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+@@ -943,7 +943,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+-	struct resource		*mem, *irq, *ioarea;
++	struct resource		*mem, *irq;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+@@ -962,17 +962,16 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
  
--	if (dev->fifo_size) {
--		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
--		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
--			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
+-	ioarea = request_mem_region(mem->start, resource_size(mem),
+-			pdev->name);
+-	if (!ioarea) {
+-		dev_err(&pdev->dev, "I2C region already claimed\n");
+-		return -EBUSY;
++	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
++	if (!dev) {
++		dev_err(&pdev->dev, "Menory allocation failed\n");
++		return -ENOMEM;
+ 	}
+ 
+-	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
+-	if (!dev) {
+-		r = -ENOMEM;
+-		goto err_release_region;
++	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
++	if (!dev->base) {
++		dev_err(&pdev->dev, "I2C region already claimed\n");
++		return -ENOMEM;
+ 	}
+ 
+ 	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
+@@ -995,11 +994,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	dev->dev = &pdev->dev;
+ 	dev->irq = irq->start;
+-	dev->base = ioremap(mem->start, resource_size(mem));
+-	if (!dev->base) {
+-		r = -ENOMEM;
+-		goto err_free_mem;
 -	}
--
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
  
-@@ -462,6 +456,45 @@ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
+ 	platform_set_drvdata(pdev, dev);
+ 	init_completion(&dev->cmd_complete);
+@@ -1057,7 +1051,8 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
+ 								   omap_i2c_isr;
+-	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
++	r = devm_request_irq(&pdev->dev, dev->irq, isr, IRQF_NO_SUSPEND,
++			     pdev->name, dev);
+ 
+ 	if (r) {
+ 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
+@@ -1081,7 +1076,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	r = i2c_add_numbered_adapter(adap);
+ 	if (r) {
+ 		dev_err(dev->dev, "failure adding adapter\n");
+-		goto err_free_irq;
++		goto err_unuse_clocks;
+ 	}
+ 
+ 	of_i2c_register_devices(adap);
+@@ -1090,18 +1085,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-err_free_irq:
+-	free_irq(dev->irq, dev);
+ err_unuse_clocks:
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(dev->dev);
+-	iounmap(dev->base);
+ 	pm_runtime_disable(&pdev->dev);
+ err_free_mem:
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(dev);
+-err_release_region:
+-	release_mem_region(mem->start, resource_size(mem));
+ 
+ 	return r;
+ }
+@@ -1109,12 +1098,10 @@ err_release_region:
+ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+-	struct resource		*mem;
+ 	int ret;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	free_irq(dev->irq, dev);
+ 	i2c_del_adapter(&dev->adapter);
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (IS_ERR_VALUE(ret))
+@@ -1123,10 +1110,6 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(dev->base);
+-	kfree(dev);
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(mem->start, resource_size(mem));
  	return 0;
  }
  
-+static void omap_i2c_resize_fifo(struct omap_i2c_dev *dev, u8 size, bool is_rx)
-+{
-+	u16		buf;
-+
-+	if (dev->flags & OMAP_I2C_FLAG_NO_FIFO)
-+		return;
-+
-+	/*
-+	 * Set up notification threshold based on message size. We're doing
-+	 * this to try and avoid draining feature as much as possible. Whenever
-+	 * we have big messages to transfer (bigger than our total fifo size)
-+	 * then we might use draining feature to transfer the remaining bytes.
-+	 */
-+
-+	dev->threshold = clamp(size, (u8) 1, dev->fifo_size);
-+
-+	buf = omap_i2c_read_reg(dev, OMAP_I2C_BUF_REG);
-+
-+	if (is_rx) {
-+		/* Clear RX Threshold */
-+		buf &= ~(0x3f << 8);
-+		buf |= ((dev->threshold - 1) << 8) | OMAP_I2C_BUF_RXFIF_CLR;
-+	} else {
-+		/* Clear TX Threshold */
-+		buf &= ~0x3f;
-+		buf |= (dev->threshold - 1) | OMAP_I2C_BUF_TXFIF_CLR;
-+	}
-+
-+	omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
-+
-+	if (dev->rev < OMAP_I2C_REV_ON_3630_4430)
-+		dev->b_hw = 1; /* Enable hardware fixes */
-+
-+	/* calculate wakeup latency constraint for MPU */
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->latency = (1000000 * dev->threshold) /
-+			(1000 * dev->speed / 8);
-+}
-+
- /*
-  * Low level master read/write transaction.
-  */
-@@ -478,6 +511,9 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	if (msg->len == 0)
- 		return -EINVAL;
- 
-+	dev->receiver = !!(msg->flags & I2C_M_RD);
-+	omap_i2c_resize_fifo(dev, msg->len, dev->receiver);
-+
- 	omap_i2c_write_reg(dev, OMAP_I2C_SA_REG, msg->addr);
- 
- 	/* REVISIT: Could the STB bit of I2C_CON be used with probing? */
-@@ -493,7 +529,6 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 
- 	INIT_COMPLETION(dev->cmd_complete);
- 	dev->cmd_err = 0;
--	dev->receiver = !!(msg->flags & I2C_M_RD);
- 
- 	w = OMAP_I2C_CON_EN | OMAP_I2C_CON_MST | OMAP_I2C_CON_STT;
- 
-@@ -760,12 +795,6 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 	u16		w;
- 
- 	while (num_bytes--) {
--		if (!dev->buf_len) {
--			dev_err(dev->dev, "%s without data",
--					is_rdr ? "RDR" : "RRDY");
--			break;
--		}
--
- 		w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
- 		*dev->buf++ = w;
- 		dev->buf_len--;
-@@ -775,10 +804,8 @@ static void omap_i2c_receive_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 		 * omap4 is 8 bit wide
- 		 */
- 		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--			if (dev->buf_len) {
--				*dev->buf++ = w >> 8;
--				dev->buf_len--;
--			}
-+			*dev->buf++ = w >> 8;
-+			dev->buf_len--;
- 		}
- 	}
- }
-@@ -789,12 +816,6 @@ static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 	u16		w;
- 
- 	while (num_bytes--) {
--		if (!dev->buf_len) {
--			dev_err(dev->dev, "%s without data",
--					is_xdr ? "XDR" : "XRDY");
--			break;
--		}
--
- 		w = *dev->buf++;
- 		dev->buf_len--;
- 
-@@ -803,10 +824,8 @@ static int omap_i2c_transmit_data(struct omap_i2c_dev *dev, u8 num_bytes,
- 		 * omap4 is 8 bit wide
- 		 */
- 		if (dev->flags & OMAP_I2C_FLAG_16BIT_DATA_REG) {
--			if (dev->buf_len) {
--				w |= *dev->buf++ << 8;
--				dev->buf_len--;
--			}
-+			w |= *dev->buf++ << 8;
-+			dev->buf_len--;
- 		}
- 
- 		if (dev->errata & I2C_OMAP_ERRATA_I462) {
-@@ -901,8 +920,8 @@ complete:
- 		if (stat & OMAP_I2C_STAT_RRDY) {
- 			u8 num_bytes = 1;
- 
--			if (dev->fifo_size)
--				num_bytes = dev->fifo_size;
-+			if (dev->threshold)
-+				num_bytes = dev->threshold;
- 
- 			omap_i2c_receive_data(dev, num_bytes, false);
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
-@@ -929,8 +948,8 @@ complete:
- 			u8 num_bytes = 1;
- 			int ret;
- 
--			if (dev->fifo_size)
--				num_bytes = dev->fifo_size;
-+			if (dev->threshold)
-+				num_bytes = dev->threshold;
- 
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
- 			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
 -- 
 1.7.5.4
 
