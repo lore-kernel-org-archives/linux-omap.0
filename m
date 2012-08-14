@@ -1,43 +1,66 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCHv2 0/4] Add device tree data for omap5
-Date: Tue, 14 Aug 2012 12:24:00 +0200
-Message-ID: <502A2740.9000206@ti.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2 2/4] arm/dts: omap5-evm: Add tmp102 sensor support
+Date: Tue, 14 Aug 2012 15:57:50 +0530
+Message-ID: <CAKdam57ri9HxCt5q1yhJzRFfHkVk2oGO8=aqLvYqwWWoYASdVw@mail.gmail.com>
 References: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+	<1344852313-30484-3-git-send-email-sourav.poddar@ti.com>
+	<502A20DD.5030707@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344852313-30484-1-git-send-email-sourav.poddar@ti.com>
+In-Reply-To: <502A20DD.5030707@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
 Cc: linux-kernel@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sourav,
+Hi Benoit,
 
-On 08/13/2012 12:05 PM, Sourav Poddar wrote:
-> The following patch series add i2c support for omap5.
-> As well as enable I2C based devices like pressure and temperature
-> through device tree. Also add onchip keypad dts data.
+On Tue, Aug 14, 2012 at 3:26 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> On 08/13/2012 12:05 PM, Sourav Poddar wrote:
+>> Add tmp102 temperature sensor data in omap5 evm dts file.
+>>
+>> Tested on omap5430 evm with 3.5 custom kernel.
+>>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap5-evm.dts |    9 +++++++++
+>>  1 files changed, 9 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
+>> index 200c39a..45a8aeb 100644
+>> --- a/arch/arm/boot/dts/omap5-evm.dts
+>> +++ b/arch/arm/boot/dts/omap5-evm.dts
+>> @@ -18,3 +18,12 @@
+>>               reg = <0x80000000 0x40000000>; /* 1 GB */
+>>       };
+>>  };
+>> +
+>> +&i2c4 {
+>> +     clock-frequency = <400000>;
+>
+> Have you checked if we cannot run at faster speed? Reducing the speed
+> will impact every devices on the bus.
+> It might be needed, I just wanted to be sure.
+>
+Indeed, tmp 102(i2c4) and bmp085(i2c2) can run at speed upto 3.4 MHz.
 
-That series does not seems to apply on top of 3.6-rc1, what based did
-you use?
+Though, there are other devices on i2c2(tsl2771) and i2c4
+(touchscreen) that will eventually come, support upto
+400 KHz.  May be I will change this to 3.4 MHz for now?And when
+tsl2771 and touch device are added, I will
+change it back to 400 kHz??
 
-Benoit
-
-
-> 
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
-> Sourav Poddar (4):
->   arm/dts: omap5-evm: Add I2C support
->   arm/dts: omap5-evm: Add tmp102 sensor support
->   arm/dts: omap5-evm: Add keypad data
->   arm/dts: omap5-evm: Add bmp085 sensor support
-> 
->  arch/arm/boot/dts/omap5-evm.dts |   30 +++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap5.dtsi    |   40 +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 70 insertions(+), 0 deletions(-)
-> 
+~Sourav
+> You should maybe just add a small comment to explain what the device is
+> doing with potentially a link to the HW spec if available.
+>
+> The same comments are applicable to the bmp085 patch.
+>
+> Regards,
+> Benoit
+>
