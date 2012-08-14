@@ -1,48 +1,90 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 05/14] MFD: twl4030-audio: Get audio MCLK via twl-core API
- instead of pdata
-Date: Tue, 14 Aug 2012 17:22:33 +0300
-Message-ID: <1344954162-7985-6-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 10/14] ARM: OMAP/ASoC: Zoom2: Let the codec to handle the hs_extmute GPIO
+Date: Tue, 14 Aug 2012 17:22:38 +0300
+Message-ID: <1344954162-7985-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-Cc: alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1344954162-7985-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-twl-core has API to get the boot time configured HFCLK rate which has the
-same rate as the audio MCLK.
+Remove the use of set_hs_extmute callback and let the codec driver to
+handle the extmute GPIO.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl4030-audio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |    9 ++-------
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 --
+ sound/soc/omap/zoom2.c                        |    4 ----
+ 3 files changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index ca2d669..a48bf3a 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -175,7 +175,7 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index b797cb2..a7d3b04 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -34,6 +34,7 @@
+ #include "common-board-devices.h"
  
- 	mutex_init(&audio->mutex);
--	audio->audio_mclk = pdata->audio_mclk;
-+	audio->audio_mclk = twl_get_hfclk_rate();
+ #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
++#define ZOOM2_HEADSET_EXTMUTE_GPIO	(153)
+ #define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
  
- 	/* Configure APLL_INFREQ and disable APLL if enabled */
- 	switch (audio->audio_mclk) {
+ #define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
+@@ -244,12 +245,6 @@ static int zoom_twl_gpio_setup(struct device *dev,
+ 	return ret;
+ }
+ 
+-/* EXTMUTE callback function */
+-static void zoom2_set_hs_extmute(int mute)
+-{
+-	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
+-}
+-
+ static struct twl4030_gpio_platform_data zoom_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -279,7 +274,7 @@ static int __init omap_i2c_init(void)
+ 
+ 		codec_data->ramp_delay_value = 3;	/* 161 ms */
+ 		codec_data->hs_extmute = 1;
+-		codec_data->set_hs_extmute = zoom2_set_hs_extmute;
++		codec_data->hs_extmute_gpio = ZOOM2_HEADSET_EXTMUTE_GPIO;
+ 	}
+ 	omap_pmic_init(1, 2400, "twl5030", INT_34XX_SYS_NIRQ, &zoom_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/include/mach/board-zoom.h b/arch/arm/mach-omap2/include/mach/board-zoom.h
+index 775fdc3..2e94869 100644
+--- a/arch/arm/mach-omap2/include/mach/board-zoom.h
++++ b/arch/arm/mach-omap2/include/mach/board-zoom.h
+@@ -8,5 +8,3 @@
+ extern int __init zoom_debugboard_init(void);
+ extern void __init zoom_peripherals_init(void);
+ extern void __init zoom_display_init(void);
+-
+-#define ZOOM2_HEADSET_EXTMUTE_GPIO	153
+diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
+index 920e0d9..df97a41 100644
+--- a/sound/soc/omap/zoom2.c
++++ b/sound/soc/omap/zoom2.c
+@@ -191,9 +191,6 @@ static int __init zoom2_soc_init(void)
+ 	BUG_ON(gpio_request(ZOOM2_HEADSET_MUX_GPIO, "hs_mux") < 0);
+ 	gpio_direction_output(ZOOM2_HEADSET_MUX_GPIO, 0);
+ 
+-	BUG_ON(gpio_request(ZOOM2_HEADSET_EXTMUTE_GPIO, "ext_mute") < 0);
+-	gpio_direction_output(ZOOM2_HEADSET_EXTMUTE_GPIO, 0);
+-
+ 	return 0;
+ 
+ err1:
+@@ -207,7 +204,6 @@ module_init(zoom2_soc_init);
+ static void __exit zoom2_soc_exit(void)
+ {
+ 	gpio_free(ZOOM2_HEADSET_MUX_GPIO);
+-	gpio_free(ZOOM2_HEADSET_EXTMUTE_GPIO);
+ 
+ 	platform_device_unregister(zoom2_snd_device);
+ }
 -- 
 1.7.8.6
