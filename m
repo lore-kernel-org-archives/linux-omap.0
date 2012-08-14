@@ -1,147 +1,60 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv6 03/24] i2c: omap: decrease indentation level on data handling
-Date: Tue, 14 Aug 2012 19:48:45 +0530
-Message-ID: <1344953946-13005-4-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv6 24/24] i2c: omap: Prevent NULL pointer dereference in remove
+Date: Tue, 14 Aug 2012 19:49:06 +0530
+Message-ID: <1344953946-13005-25-git-send-email-shubhrajyoti@ti.com>
 References: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60178 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59006 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755433Ab2HNOUQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Aug 2012 10:20:16 -0400
+	id S1755750Ab2HNOUX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Aug 2012 10:20:23 -0400
 In-Reply-To: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+Prevent the NULL pointer access by moving the platform_set_drvdata function
+after the access of the pdev.
 
-The patch intends to decrease the indentation level on the
-data handling
-by using the fact that else of if (dev->buf_len) is same as
-if (!dev->buf_len)
+[  654.961761] Unable to handle kernel NULL pointer dereference at virtual address 00000070
+[  654.970611] pgd = df254000
+[  654.973480] [00000070] *pgd=9f1da831, *pte=00000000, *ppte=00000000
+[  654.980163] Internal error: Oops: 17 [#1] SMP ARM
+[  654.985076] Modules linked in:
+[  654.988281] CPU: 1    Not tainted  (3.6.0-rc1-00031-ge547de1-dirty #339)
+[  654.995330] PC is at omap_i2c_runtime_resume+0x8/0x148
+[  655.000732] LR is at omap_i2c_runtime_resume+0x8/0x148
 
-if (dev->buf_len) {
-	aaa;
-} else {
-	bbb;
-	break;
-}
-
-to
-
-if (!dev->buf_len) {
-        bbb;
-        break;
-}
-aaa;
-
-Hence no functional changes.
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   63 ++++++++++++++++++++---------------------
- 1 files changed, 31 insertions(+), 32 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 9b003a3..81ef0a7 100644
+index 3df6f92..49dbff1 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -813,22 +813,7 @@ complete:
- 							>> 8) & 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
--				if (dev->buf_len) {
--					*dev->buf++ = w;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							*dev->buf++ = w >> 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_RRDY)
- 						dev_err(dev->dev,
- 							"RRDY IRQ while no data"
-@@ -839,6 +824,21 @@ complete:
- 								" requested\n");
- 					break;
- 				}
-+
-+				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
-+				*dev->buf++ = w;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						*dev->buf++ = w >> 8;
-+						dev->buf_len--;
-+					}
-+				}
- 			}
- 			omap_i2c_ack_stat(dev,
- 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
-@@ -855,22 +855,7 @@ complete:
- 							& 0x3F;
- 			}
- 			while (num_bytes--) {
--				w = 0;
--				if (dev->buf_len) {
--					w = *dev->buf++;
--					dev->buf_len--;
--					/*
--					 * Data reg in 2430, omap3 and
--					 * omap4 is 8 bit wide
--					 */
--					if (dev->flags &
--						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
--						if (dev->buf_len) {
--							w |= *dev->buf++ << 8;
--							dev->buf_len--;
--						}
--					}
--				} else {
-+				if (!dev->buf_len) {
- 					if (stat & OMAP_I2C_STAT_XRDY)
- 						dev_err(dev->dev,
- 							"XRDY IRQ while no "
-@@ -882,6 +867,20 @@ complete:
- 					break;
- 				}
+@@ -1217,8 +1217,6 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+ 	int ret;
  
-+				w = *dev->buf++;
-+				dev->buf_len--;
-+				/*
-+				 * Data reg in 2430, omap3 and
-+				 * omap4 is 8 bit wide
-+				 */
-+				if (dev->flags &
-+						OMAP_I2C_FLAG_16BIT_DATA_REG) {
-+					if (dev->buf_len) {
-+						w |= *dev->buf++ << 8;
-+						dev->buf_len--;
-+					}
-+				}
+-	platform_set_drvdata(pdev, NULL);
+-
+ 	i2c_del_adapter(&dev->adapter);
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (IS_ERR_VALUE(ret))
+@@ -1227,6 +1225,8 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
++	platform_set_drvdata(pdev, NULL);
 +
- 				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
- 				    errata_omap3_i462(dev, &stat, &err))
- 					goto complete;
+ 	return 0;
+ }
+ 
 -- 
 1.7.5.4
 
