@@ -1,35 +1,56 @@
-From: "Regina Michalski-Karl" <regina.michalski-karl@univie.ac.at>
-Subject: Re: Cash Awaiting Pick Up
-Date: Tue, 14 Aug 2012 23:16:29 +0200
-Message-ID: <0b8546414ccd9ed70ebeac8eee6c7d6c.squirrel__20901.0465340272$1344980682$gmane$org@webmail.univie.ac.at>
-Reply-To: wutransfer01@rogers.com
-Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from grace.univie.ac.at ([131.130.3.115]:38952 "EHLO
-	grace.univie.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548Ab2HNVoR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Aug 2012 17:44:17 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] regulator: twl-regulator: fix up VINTANA1/VINTANA2
+Date: Wed, 15 Aug 2012 01:10:04 +0300
+Message-ID: <1344982205-21186-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rnayak@ti.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+It seems commit 2098e95ce9bb039ff2e7bf836df358d18a176139 (regulator: twl:
+adapt twl-regulator driver to dt) accidentally deleted VINTANA1. Also
+the same commit defines VINTANA2 twice with TWL4030_ADJUSTABLE_LDO and
+TWL4030_FIXED_LDO. This patch changes the fixed one to be VINTANA1.
 
+I noticed this when auditing my N900 boot logs. I could not notice any
+change in device behaviour, though, except that the boot logs are now
+like before:
 
+	...
+	[    0.282928] VDAC: 1800 mV normal standby
+	[    0.284027] VCSI: 1800 mV normal standby
+	[    0.285400] VINTANA1: 1500 mV normal standby
+	[    0.286865] VINTANA2: 2750 mV normal standby
+	[    0.288208] VINTDIG: 1500 mV normal standby
+	[    0.289978] VSDI_CSI: 1800 mV normal standby
+	...
 
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/regulator/twl-regulator.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 242fe90..8168271 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -1037,7 +1037,7 @@ TWL6025_ADJUSTABLE_LDO(LDO7, 0x74, 1000, 3300);
+ TWL6025_ADJUSTABLE_LDO(LDO6, 0x60, 1000, 3300);
+ TWL6025_ADJUSTABLE_LDO(LDOLN, 0x64, 1000, 3300);
+ TWL6025_ADJUSTABLE_LDO(LDOUSB, 0x70, 1000, 3300);
+-TWL4030_FIXED_LDO(VINTANA2, 0x3f, 1500, 11, 100, 0x08);
++TWL4030_FIXED_LDO(VINTANA1, 0x3f, 1500, 11, 100, 0x08);
+ TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08);
+ TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17, 100, 0x08);
+ TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18, 100, 0x08);
+@@ -1117,7 +1117,7 @@ static const struct of_device_id twl_of_match[] __devinitconst = {
+ 	TWL6025_OF_MATCH("ti,twl6025-ldo6", LDO6),
+ 	TWL6025_OF_MATCH("ti,twl6025-ldoln", LDOLN),
+ 	TWL6025_OF_MATCH("ti,twl6025-ldousb", LDOUSB),
+-	TWLFIXED_OF_MATCH("ti,twl4030-vintana2", VINTANA2),
++	TWLFIXED_OF_MATCH("ti,twl4030-vintana1", VINTANA1),
+ 	TWLFIXED_OF_MATCH("ti,twl4030-vintdig", VINTDIG),
+ 	TWLFIXED_OF_MATCH("ti,twl4030-vusb1v5", VUSB1V5),
+ 	TWLFIXED_OF_MATCH("ti,twl4030-vusb1v8", VUSB1V8),
 -- 
-This is to re-notify you of the 500,000.00(DOLLARS) was deposited here by
-the Heritage Lottery Board in the western union office in your name is
-available for pickup. Contact this email wutransfer@xtra.co.nz for your
-M.T.C.N Numbers.
-
-Contact Person: Mrs. Hillary Florence
-Email: wutransfer@xtra.co.nz
-
-
-Mr. Greg Steve
-Western Union Branch Coordinator.
-Transaction Managing Director.
-Phone: +447-035-927-183
-............................
-
+1.7.2.5
