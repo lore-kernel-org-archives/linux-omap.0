@@ -1,102 +1,94 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
-Date: Wed, 15 Aug 2012 09:10:57 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA8F4CD@DBDE01.ent.ti.com>
-References: <1343214422-28718-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1207251438210.23542@utopia.booyaka.com>
- <alpine.DEB.2.00.1207261359500.14468@utopia.booyaka.com>
- <20120814082911.GG11011@atomide.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Wed, 15 Aug 2012 14:41:57 +0530
+Message-ID: <502B67DD.6050904@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <500D6CAB.4030504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34678 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32978 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752607Ab2HOJLH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Aug 2012 05:11:07 -0400
-In-Reply-To: <20120814082911.GG11011@atomide.com>
-Content-Language: en-US
+	id S1751463Ab2HOJMO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 05:12:14 -0400
+In-Reply-To: <500D6CAB.4030504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Aug 14, 2012 at 13:59:12, Tony Lindgren wrote:
-> Hi,
+
+
+On 7/23/2012 8:54 PM, Jon Hunter wrote:
+> Hi Rob,
 > 
-> * Paul Walmsley <paul@pwsan.com> [120726 13:07]:
-> > On Wed, 25 Jul 2012, Paul Walmsley wrote:
-> > 
-> > > These IP blocks and the ECAP IP blocks have periods in their names.
-> > > The rest of the IP block named in the file don't use periods -- which
-> > > is also the style used by the rest of the OMAP SoCs.  Is there
-> > > some reason that these have periods in their names?
-> > 
-> > I've changed those to match the rest of the names, and queued the 
-> > following for 3.7.
-> > 
-> > Thanks again for all the hard work you all put into this.  I realize that 
-> > with all the upstream changes, this was probably a little painful for you. 
-> > But from my perspective you've been a pleasure to work with through the 
-> > process.
+> On 07/16/2012 10:56 AM, Jon Hunter wrote:
+>> Hi Rob,
+>>
+>> On 07/13/2012 09:15 PM, Rob Herring wrote:
+>>> On 07/13/2012 05:26 PM, Jon Hunter wrote:
+>>>> Add the 12 GP timers nodes present in OMAP3.
+>>>> Add the 11 GP timers nodes present in OMAP4.
+>>>>
+>>>> Add documentation for timer properties specific to OMAP.
+>>>>
+>>>> For each timer an alias is being added. The purpose for doing this is because
+>>>> the OMAP dmtimer driver uses an ID to distinguish between the different timer
+>>>> instances. For example, a timer can be requested by its ID. By adding an alias
+>>>> for each timer we can then use the function of_alias_get_id() to extract the
+>>>> ID for each timer from the alias name. The same method is used for the TTY
+>>>> serial devices. If it is preferred that such an alias is not added and there
+>>>> is a better way to pass an ID from device-tree let me know.
+>>>
+>>> I'm not sure this is really a good use of aliases. UARTs use aliases
+>>> because it is important that the UART number to tty number is known and
+>>> fixed. IIUC, as an example you are picking timer1 because it has
+>>> properties X, Y and Z. If so, then you should describe those h/w
+>>> properties within the timer nodes so you can pick which timer to use
+>>> based on it's h/w properties.
+>>
+>> Thanks for the feedback. What you suggest could definitely work for most
+>> timers. The only item that I would need to resolve here is the handling
+>> of system timers (ie. those used for clockevents and clocksource). These
+>> system timers (for OMAP) are reserved during early boot based upon the
+>> timer ID today and so this is before the actual main timer driver has
+>> been probed and all the attributes of the timers has been read for
+>> device-tree.
+>>
+>> One thought would be to move the reservation of the system timers out of
+>> the kernel and into device-tree itself. Then we query device tree on
+>> start-up to see which we should use. I am wondering if this could be a
+>> better use of alias? For example, say I want to use timer1 as my
+>> clockevent timer and so I could have an alias of ...
+>>
+>> alias {
+>> 	clockevent_timer = &timer1;
+>> }
+>>
+>> However, I am not sure if this is even correct, because there does not
+>> appear to be an API to search the aliases by name and return the
+>> phandle, just of_alias_get_id(). Alternatively, I could add another
+>> property called "ti,timer-clockevent" that is populated for the timer
+>> used as the clockevent timer.
 > 
-> As am33xx and omap5 are DT only, we should start moving towards getting
-> rid of grep -E "irq|pa_start|pa_end|dma" in this patch and get the standard
-> data from .dtsi files instead.
+> Do you have any inputs on the above? Does it make sense to reserve timer
+> resources for kernel system timers in device-tree?
 > 
 
-It may not be so straight, given the fact that hwmod layer 
-requires these resources, as hwmod is responsible to configure SYSCONF 
-register of the device (happens very early at core_init level).
+Hey Jon,
 
-Somehow we have to have some mechanism to initialize " _mpu_rt_va" before 
-core_init call, which will take DT resources and initialize accordingly.
-
-Another dependency we will have is on system timers, Jon has already done 
-some initial work on this, but I believe we did not concluded on the it.
-I will re-start the thread again, since in any case DT support in timer is 
-required.
-
-
-> Alternatively we could get rid of the names and match the module based on
-> pa_start and pa_end.
-> 
-
-Just FYI, from resource perspective, I have changed omap_device layer for DT 
-resources only (still need hwmod resources as explained above) and patch 
-looks something like (and it works) -
-
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index c490240..cb481fe 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -528,10 +528,15 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
-         * HACK: Ideally the resources from DT should match, and hwmod
-         * should just add the missing ones. Since the name is not
-         * properly populated by DT, stick to hwmod resources only.
-+        *
-+        * But in case of all new devices, like AM33XX and OMAP5, where
-+        * only DT boot is supported,  stick to DT resources only.
-         */
--       if (pdev->num_resources && pdev->resource)
-+       if (pdev->num_resources && pdev->resource) {
-                dev_warn(&pdev->dev, "%s(): resources already allocated %d\n",
-                        __func__, pdev->num_resources);
-+               goto skip_res_override;
-+       }
-
-        res_count = omap_device_count_resources(od);
-        if (res_count > 0) {
-@@ -550,6 +555,7 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
-                        goto oda_exit3;
-        }
-
-+skip_res_override:
-        if (!pm_lats) {
-                pm_lats = omap_default_latency;
-                pm_lats_cnt = ARRAY_SIZE(omap_default_latency);
+Did we get conclude on this? I haven't got anything further on this
+thread, this may block baseport support for the new devices in omap2
+family, like AM33xx and OMAP5.
 
 
 Thanks,
 Vaibhav
+
+> Cheers
+> Jon
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
