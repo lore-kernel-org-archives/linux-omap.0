@@ -1,39 +1,39 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap fixes for v3.6-rc1
-Date: Wed, 15 Aug 2012 12:32:36 +0000
-Message-ID: <201208151232.36587.arnd@arndb.de>
-References: <20120814084314.GH11011@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 3/4] arm/dts: Add tps65910 regulator DT data to
+ am335x-evm.dts
+Date: Wed, 15 Aug 2012 13:53:39 +0100
+Message-ID: <20120815125338.GA13544@opensource.wolfsonmicro.com>
+References: <1343110735-10640-1-git-send-email-anilkumar@ti.com>
+ <1343110735-10640-4-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1293E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58722 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576Ab2HOMco (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Aug 2012 08:32:44 -0400
-In-Reply-To: <20120814084314.GH11011@atomide.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56827 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754150Ab2HOMxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 08:53:41 -0400
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA1293E@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Tuesday 14 August 2012, Tony Lindgren wrote:
-> Here are some omap fixes, these are probably too late for -rc1,
-> we're fine getting them in for -rc2 as well.
-> 
-> The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
-> 
->   Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.6-rc1
-> 
+On Tue, Aug 14, 2012 at 02:25:18PM +0000, AnilKumar, Chimata wrote:
 
-Applied, thanks!
+> AM335x EVM have one dedicated input supply which provide supplies to all
+> the PMIC regulators. According to tps65910 "VDD1 regulator" input supply
+> is from vcc1 so we have to create a dummy/parent/some node to handle this.
+> Example below has the details.
 
-I'll probably send these out in the next few days, whichever -rc that
-ends up being.
+Your device tree should accurately reflect the hardware.
 
-	Arnd
+> Similarly we have to add 7 more fixed regulators entries to provide input
+> supply to different PMIC regulators.
+
+If you have all these unrelated supplies in the system then your device
+tree should accurately reflect that.  However this would be a very
+unusual hardware design.  Usually there would be a very small set of
+system supply rails, frequently only one.
