@@ -1,77 +1,200 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v5 0/8] ARM: OMAP2+: PM: introduce the power domains
- functional states
-Date: Wed, 15 Aug 2012 22:35:33 +0530
-Message-ID: <CAMQu2gxznhsbK3--nyQmYdHqyGjwpCSa3CJx8aYpF4wwR1qBSg@mail.gmail.com>
-References: <1345024968-28951-1-git-send-email-j-pihet@ti.com>
+From: Raphael Assenat <raph@8d.com>
+Subject: [PATCH v2] OMAPDSS: Do not require a VDDS_DSI regulator on am35xx
+Date: Wed, 15 Aug 2012 15:16:27 -0400
+Message-ID: <20120815191627.GA22993@renkinjitsu.usine.8d.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55877 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752208Ab2HORFz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Aug 2012 13:05:55 -0400
-Received: by ggna5 with SMTP id a5so2013129ggn.4
-        for <linux-omap@vger.kernel.org>; Wed, 15 Aug 2012 10:05:54 -0700 (PDT)
-In-Reply-To: <1345024968-28951-1-git-send-email-j-pihet@ti.com>
+Received: from roc.holo.8d.com ([64.254.227.115]:54611 "EHLO roc.holo.8d.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753873Ab2HOTQa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 15:16:30 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com
 
-Jean,
+On our AM3505 based board, dpi.c complains that there is no VDSS_DSI re=
+gulator
+and the framebuffer cannot be enabled. However, this check does not see=
+m to
+apply to AM3505/17 chips.
 
-On Wed, Aug 15, 2012 at 3:32 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
->
-> Here is a re-spin after some comments and suggestions after review.
->
-> Implement the functional states for the power domains:
-> - unify the API to use the functional states. pwrdm_set_next_fpwrst
->   now is the function to control the power domains power and logic
->   states,
-> - reorganize the powerdomain API in internal and external parts,
->   in powerdomain.h [1]
-> - protect the power domain state change by a lock in
->   pwrdm_set_next_fpwrst,
-> - introduce the functional states for power domains power states and
->   logic power states, and the conversion functions between the
->   functional and internal states,
-> - program the logic power state of power domains from the functional
->   states, in pwrdm_set_next_fpwrst
-> - convert the OMAP2/3/4 PM code to use the updated API,
-> - provide the power domains statistics by functional states,
-> - provide ftrace tracepoints with the functional state,
-> - provide error logs in critical code, which makes the development
->   easier.
->
-> Note: [1] the physical split of internal and external APIs into
->       different header files is not part of this series, it comes as
->       a separate patch set.
->
->
-> Based on mainline kernel 3.6.0-rc1.
->
-> Tested on OMAP3 Beagleboard, with suspend and cpuidle in RET and
-> OFF modes.
->
-I didn't find any mention here about why are we going in this path and not
-in the direction proposed in another RFC [1]
-I have already given my comments[2] against the introduction of another PD
-layer which can be avoided easily as demonstrated by the RFC[1]. The comments
-are still applicable for this series too.
+Taking into account comments received after my first patch[1], I have a=
+dded
+entries to dss_features.c to support the am35xx soc. Then in dpi.c, ins=
+tead
+of using cpu_is_omap34xx() and soc_is_am35xx(), a call to dss_has_featu=
+re()
+is used.
 
-We really need to reduce OMAP specific framework overhead and
-move towards more generic PM frameworks. For me, this series is
-a step back-ward from that direction. Am really sorry for being critical
-again but I remain unconvinced about this series and the problem it
-is trying to solve.
+[1] http://marc.info/?l=3Dlinux-fbdev&m=3D134272967203409&w=3D2
 
-May be you have valid reasons not to follow the approach in [1] and in
-that case, it will be good to clarify that so that some of us get
-to know your rationale.
+Signed-off-by: Rapha=EBl Ass=E9nat <raph@8d.com>
 
-Regards
-Santosh
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg71732.html
-[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg69081.html
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dp=
+i.c
+index 3266be2..0e83054 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -31,9 +31,9 @@
+ #include <linux/regulator/consumer.h>
+=20
+ #include <video/omapdss.h>
+-#include <plat/cpu.h>
+=20
+ #include "dss.h"
++#include "dss_features.h"
+=20
+ static struct {
+ 	struct regulator *vdds_dsi_reg;
+@@ -169,11 +169,6 @@ int omapdss_dpi_display_enable(struct omap_dss_dev=
+ice *dssdev)
+ {
+ 	int r;
+=20
+-	if (cpu_is_omap34xx() && !dpi.vdds_dsi_reg) {
+-		DSSERR("no VDSS_DSI regulator\n");
+-		return -ENODEV;
+-	}
+-
+ 	if (dssdev->manager =3D=3D NULL) {
+ 		DSSERR("failed to enable display: no manager\n");
+ 		return -ENODEV;
+@@ -185,7 +180,7 @@ int omapdss_dpi_display_enable(struct omap_dss_devi=
+ce *dssdev)
+ 		goto err_start_dev;
+ 	}
+=20
+-	if (cpu_is_omap34xx()) {
++	if (dpi.vdds_dsi_reg) {
+ 		r =3D regulator_enable(dpi.vdds_dsi_reg);
+ 		if (r)
+ 			goto err_reg_enable;
+@@ -229,7 +224,7 @@ err_dsi_pll_init:
+ err_get_dsi:
+ 	dispc_runtime_put();
+ err_get_dispc:
+-	if (cpu_is_omap34xx())
++	if (dpi.vdds_dsi_reg)
+ 		regulator_disable(dpi.vdds_dsi_reg);
+ err_reg_enable:
+ 	omap_dss_stop_device(dssdev);
+@@ -250,7 +245,7 @@ void omapdss_dpi_display_disable(struct omap_dss_de=
+vice *dssdev)
+=20
+ 	dispc_runtime_put();
+=20
+-	if (cpu_is_omap34xx())
++	if (dpi.vdds_dsi_reg)
+ 		regulator_disable(dpi.vdds_dsi_reg);
+=20
+ 	omap_dss_stop_device(dssdev);
+@@ -329,7 +324,7 @@ static int __init dpi_init_display(struct omap_dss_=
+device *dssdev)
+ {
+ 	DSSDBG("init_display\n");
+=20
+-	if (cpu_is_omap34xx() && dpi.vdds_dsi_reg =3D=3D NULL) {
++	if (dss_has_feature(FEAT_VDDS_DSI) && dpi.vdds_dsi_reg =3D=3D NULL) {
+ 		struct regulator *vdds_dsi;
+=20
+ 		vdds_dsi =3D dss_get_vdds_dsi();
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/oma=
+p2/dss/dss_features.c
+index 9387097..6d4b6c5 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -373,6 +373,26 @@ static const enum dss_feat_id omap3430_dss_feat_li=
+st[] =3D {
+ 	FEAT_ALPHA_FIXED_ZORDER,
+ 	FEAT_FIFO_MERGE,
+ 	FEAT_OMAP3_DSI_FIFO_BUG,
++	FEAT_VDDS_DSI,
++};
++
++static const enum dss_feat_id am35xx_dss_feat_list[] =3D {
++	FEAT_LCDENABLEPOL,
++	FEAT_LCDENABLESIGNAL,
++	FEAT_PCKFREEENABLE,
++	FEAT_FUNCGATED,
++	FEAT_LINEBUFFERSPLIT,
++	FEAT_ROWREPEATENABLE,
++	FEAT_RESIZECONF,
++	FEAT_DSI_PLL_FREQSEL,
++	FEAT_DSI_REVERSE_TXCLKESC,
++	FEAT_VENC_REQUIRES_TV_DAC_CLK,
++	FEAT_CPR,
++	FEAT_PRELOAD,
++	FEAT_FIR_COEF_V,
++	FEAT_ALPHA_FIXED_ZORDER,
++	FEAT_FIFO_MERGE,
++	FEAT_OMAP3_DSI_FIFO_BUG,
+ };
+=20
+ static const enum dss_feat_id omap3630_dss_feat_list[] =3D {
+@@ -487,6 +507,27 @@ static const struct omap_dss_features omap3430_dss=
+_features =3D {
+ 	.burst_size_unit =3D 8,
+ };
+=20
++/* AM35xx DSS Features. This is basically OMAP3 DSS Features without
++   the vdds_dsi regulator. */
++static const struct omap_dss_features am35xx_dss_features =3D {
++	.reg_fields =3D omap3_dss_reg_fields,
++	.num_reg_fields =3D ARRAY_SIZE(omap3_dss_reg_fields),
++
++	.features =3D am35xx_dss_feat_list,
++	.num_features =3D ARRAY_SIZE(am35xx_dss_feat_list),
++
++	.num_mgrs =3D 2,
++	.num_ovls =3D 3,
++	.supported_displays =3D omap3430_dss_supported_displays,
++	.supported_color_modes =3D omap3_dss_supported_color_modes,
++	.overlay_caps =3D omap3430_dss_overlay_caps,
++	.clksrc_names =3D omap3_dss_clk_source_names,
++	.dss_params =3D omap3_dss_param_range,
++	.supported_rotation_types =3D OMAP_DSS_ROT_DMA | OMAP_DSS_ROT_VRFB,
++	.buffer_size_unit =3D 1,
++	.burst_size_unit =3D 8,
++};
++
+ static const struct omap_dss_features omap3630_dss_features =3D {
+ 	.reg_fields =3D omap3_dss_reg_fields,
+ 	.num_reg_fields =3D ARRAY_SIZE(omap3_dss_reg_fields),
+@@ -694,8 +735,12 @@ void dss_features_init(void)
+ 		omap_current_dss_features =3D &omap2_dss_features;
+ 	else if (cpu_is_omap3630())
+ 		omap_current_dss_features =3D &omap3630_dss_features;
+-	else if (cpu_is_omap34xx())
+-		omap_current_dss_features =3D &omap3430_dss_features;
++	else if (cpu_is_omap34xx()) {
++		if (soc_is_am35xx())
++			omap_current_dss_features =3D &am35xx_dss_features;
++		else
++			omap_current_dss_features =3D &omap3430_dss_features;
++	}
+ 	else if (omap_rev() =3D=3D OMAP4430_REV_ES1_0)
+ 		omap_current_dss_features =3D &omap4430_es1_0_dss_features;
+ 	else if (omap_rev() =3D=3D OMAP4430_REV_ES2_0 ||
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/oma=
+p2/dss/dss_features.h
+index 996ffcb..8a68ebf 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -64,6 +64,7 @@ enum dss_feat_id {
+ 	/* An unknown HW bug causing the normal FIFO thresholds not to work *=
+/
+ 	FEAT_OMAP3_DSI_FIFO_BUG,
+ 	FEAT_BURST_2D,
++	FEAT_VDDS_DSI,
+ };
+=20
+ /* DSS register field id */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
