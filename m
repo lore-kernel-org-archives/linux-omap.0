@@ -1,123 +1,144 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 09/13] OMAPDSS: SDI: Create a function to set timings
-Date: Wed, 15 Aug 2012 09:43:26 +0300
-Message-ID: <1345013006.11980.14.camel@lappyti>
-References: <1343817088-29645-1-git-send-email-archit@ti.com>
-	   <1344512989-4071-1-git-send-email-archit@ti.com>
-	   <1344512989-4071-10-git-send-email-archit@ti.com>
-	  <1344951845.4845.58.camel@lappyti> <502A8322.6000309@ti.com>
-	 <1344965600.2345.70.camel@deskari> <502AA232.1040305@ti.com>
+Subject: Re: v3.6-rc1 DSS issues/regression
+Date: Wed, 15 Aug 2012 09:50:04 +0300
+Message-ID: <1345013404.11980.17.camel@lappyti>
+References: <20120806164732.GB1298@harshnoise.musicnaut.iki.fi>
+	 <1344273868.12136.50.camel@deskari> <5020009C.1080308@ti.com>
+	 <20120806221424.GD1298@harshnoise.musicnaut.iki.fi>
+	 <5020B749.8060303@ti.com> <1344345722.7216.70.camel@lappyti>
+	 <20120814213129.GA747@harshnoise.musicnaut.iki.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-zj86KZQ7MY3NrZHmty5P"
+	boundary="=-zkwoKvajVK+1ii1dsk/7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:47030 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751566Ab2HOGnc (ORCPT
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:50152 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751519Ab2HOGuK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Aug 2012 02:43:32 -0400
-Received: by lagp5 with SMTP id p5so623744lag.9
-        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 23:43:29 -0700 (PDT)
-In-Reply-To: <502AA232.1040305@ti.com>
+	Wed, 15 Aug 2012 02:50:10 -0400
+Received: by lbbgj3 with SMTP id gj3so753451lbb.33
+        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 23:50:07 -0700 (PDT)
+In-Reply-To: <20120814213129.GA747@harshnoise.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: Rob Clark <rob@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org
 
 
---=-zj86KZQ7MY3NrZHmty5P
+--=-zkwoKvajVK+1ii1dsk/7
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-08-15 at 00:38 +0530, Archit Taneja wrote:
-> On Tuesday 14 August 2012 11:03 PM, Tomi Valkeinen wrote:
-> > On Tue, 2012-08-14 at 22:26 +0530, Archit Taneja wrote:
-> >> On Tuesday 14 August 2012 07:14 PM, Tomi Valkeinen wrote:
-> >
-> >> I guess it depends on how drm/fb want to use it. I guess an output
-> >> should have a set_timings() kind of op if it can do it seamlessly. I
-> >> guess we can do that easily in DPI, for example, we could reduce the f=
-ps
-> >> from 60 to 30 without causing an artefacts(I think). For outputs which
-> >
-> > Yes, that kind of thing is easy to do by just changing the pck divider,
-> > which is in a shadow register. I mean, "easy" in theory, at least. Our
-> > clock calculation doesn't work like that currently, though, so it could
-> > end up changing DSS fck.
-> >
-> >> can't do it, we could remove the set_timings totally.
-> >
-> > But we do need set_timings for other outputs also (like sdi). We just
-> > can't change them just like that. Only outputs that do not need timings
-> > are DSI command mode and rfbi.
-> >
-> >> However, it'll be kind of inconsistent for some outputs to set timings=
-,
-> >> and for others to not, and if in the future drm/fb gets exposed to ops
-> >> too, we may have dirty checks to see if set_timings is populated or no=
-t.
-> >>
-> >> The easiest way would be to make all set_timings just update the copy =
-of
-> >> the timings output has, and expect drm/fb to disable and re enable the
-> >> panel. We may end up doing unnecessary gpio resets and configuration o=
-f
-> >> the panels though.
-> >
-> > I think changing things like timings is quite a rare operation. The onl=
-y
-> > case it'd be necessary to change timings often, with speed, and without
-> > artifacts would be the fps drop you mentioned, for lower power use with
-> > panels that don't mind the fps drop.
-> >
-> > If I understood correctly, Rob said that drm already disables the outpu=
-t
-> > when changing the mode, when I asked if it's ok for the apply's
-> > set_timings to require the output to be off.
-> >
-> > In any case this is not a big issue, I mean, it's not causing any
-> > problems. Somebody is going to disable the output anyway when changing
-> > the timings. Perhaps even these patches are good, because they make the
-> > set_timings consistent across the output drivers (don't they?).
+On Wed, 2012-08-15 at 00:31 +0300, Aaro Koskinen wrote:
+> Hi,
 >=20
-> Yes, they do, there isn't a set_timings for RFBI though, only a=20
-> set_size, and DSI has set_timings for video mode and a set_size for=20
-> command mode, I haven't put checks in the ops for a panel driver to=20
-> wrongly call set_timings in commmand mode, and set_size in video mode.
-
-Ok. Well, perhaps we should go forward with these patches then. They
-make things consistent, and we don't really know which would be the best
-way to handle this, so the method in your patches is as good as some
-other.
-
-The dssdev->state needs to be removed at some point, but that can be a
-separate task.
-
-> I haven't done that yet because a future patch of mine will have a DSI=
+> On Tue, Aug 07, 2012 at 04:22:02PM +0300, Tomi Valkeinen wrote:
+> > On Tue, 2012-08-07 at 12:05 +0530, Archit Taneja wrote:
+> > > On Tuesday 07 August 2012 03:44 AM, Aaro Koskinen wrote:
+> > > > On Mon, Aug 06, 2012 at 11:06:28PM +0530, Archit Taneja wrote:
+> > > >>> On Mon, 2012-08-06 at 19:47 +0300, Aaro Koskinen wrote:
+> > > >>>> I can't get the display on N900 (SDI, acx565akm) to work with v3=
+.6-rc1
+> > > >>>> kernel, it's just full of flicker/noise.
+> > > >>>>
+> > > >>>> According to git-bisect, the problem is introduced by the commit=
+:
+> > > >>>>
+> > > >>>>      commit f476ae9dab3234532d41d36beb4ba7be838fa786
+> > > >>>>      Author: Archit Taneja <archit@ti.com>
+> > > >>>>      Date:   Fri Jun 29 14:37:03 2012 +0530
+> > > >>>>
+> > > >>>>      OMAPDSS: APPLY: Remove DISPC writes to manager's lcd parame=
+ters in interface
+> > > >
+> > > > [...]
+> > > >
+> > > >> The diff I have shared introduces the register writes back. This
+> > > >> should make it work like before. But we need to figure out which
+> > > >> parameter write needs to be done immediately. If this works, could
+> > > >> you remove each dispc register write turn by turn, and point out
+> > > >> which is the culprit one?
+> > > >
+> > > > Thanks, the following one makes the display to work again:
+> > > >
+> > > > diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/ds=
+s/sdi.c
+> > > > index 5d31699..3c9f598 100644
+> > > > --- a/drivers/video/omap2/dss/sdi.c
+> > > > +++ b/drivers/video/omap2/dss/sdi.c
+> > > > @@ -46,6 +46,9 @@ static void sdi_config_lcd_manager(struct omap_ds=
+s_device *dssdev)
+> > > >   	sdi.mgr_config.video_port_width =3D 24;
+> > > >   	sdi.mgr_config.lcden_sig_polarity =3D 1;
+> > > >
+> > > > +	dispc_mgr_set_clock_div(dssdev->manager->id,
+> > > > +				&sdi.mgr_config.clock_info);
+> > > > +
+> > >=20
+> > > Thanks for finding this. It's a bit peculiar why this is happening. T=
+he=20
+> > > DISPC_DIVISOR is a shadow register for sure.
+> > >=20
+> > > I don't know much about SDI, but it looks like the SDI PLL needs the=
 =20
-> specific op called set_operation_mode() to make us independent of=20
-> dssdev->panel.dsi_mode, there is no guarantee that the panel driver to=
+> > > free running pixel clock from the LCD manager. To achieve this, we se=
+t=20
+> > > PCKFREEENABLE. The thing I don't understand is that whether the free=
 =20
-> first call set_operation_mode(), and then set_timings(), so I'm not sure=
+> > > running pixel clock at this point would be derived out of the old LCD=
 =20
-> yet how to deal with that. Probably having a mode/state which says that=
+> > > and PCD values, or the new ones? It should have been old since LCD an=
+d=20
+> > > PCD are shadowed registers.
+> > >=20
+> > > In other words, I am suspecting that the field PCKFREEENABLE does a c=
+opy=20
+> > > of the LCD and PCD dividers from the shadow registers to the working=
 =20
-> a field is unintialized might help, but that would overcomplicate things.
+> > > registers.
+> > >=20
+> > > The regdump shows that there were issues in SDI initialization.
+> > >=20
+> > > Tomi,
+> > >=20
+> > > Any ideas about this?
+> >=20
+> > No real ideas. I think adding the line above, and a big HACK comment
+> > above it, is ok for the time being. It's quite simple hack and shouldn'=
+t
+> > cause any problems anywhere.
+>=20
+> Will you be sending a patch (i.e. the HACK mentioned above) to fix this
+> during the 3.6-rc cycle?
 
-Well, we can define that set_operation_mode needs to be called before
-any other dsi functions. They are kernel drivers, we can presume they
-act correctly (although we should of course try to handle error cases
-anyway). If they don't, we need to fix them.
+Yes, I'll queue it up.
 
-If you want to be extra safe there, you could add third value to the
-dsi_mode enum: UNDEFINED or such (I guess this is what you meant also).
-By default dsi's mode would be undefined, and functions could check it.
-But I agree it'd add lots of checks all around.
+> > Aaro, if you have spare time, you could test and move the call to
+> > dispc_mgr_set_clock_div later, and see where calling it stops fixing th=
+e
+> > issue.=20
+> >=20
+> > My guess is that calling it after dss_sdi_init() will still work, but
+> > calling it after dss_sdi_enable() does not work. And most likely inside
+> > dss_sdi_enable() it won't work if placed after dispc_pck_free_enable().=
+=20
+>=20
+> You are right that dss_sdi_enable() is the critical function. According
+> to my tests, the exact breaking point is the
+>=20
+> 	/* Waiting for PLL to lock */
+>=20
+> loop. If dispc_mgr_set_clock_div() is called before it works, but if I
+> put it after the loop the display fails to work.
+
+That's interesting. I think that basically tells us that the shadow
+register mechanism is somehow bypassed for pck-free. And if so, then the
+above hack is not really a hack at all, but something required.
 
  Tomi
 
 
---=-zj86KZQ7MY3NrZHmty5P
+--=-zkwoKvajVK+1ii1dsk/7
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -125,20 +146,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQK0UOAAoJEPo9qoy8lh71dnIP/RbR3fx18cgizFtBUbroWz2j
-TSrIQdAqr+e7rt3k/QgvH5WwhODXbm9LihGv7MzG0ARqeCxP8xifHg8Q0s/AV1zV
-/ZX3u61aRuur3jawGC2daDDmpIsieENlbLNn76HDw5OIbpQultSinECIwXO58qQL
-e8ZsmWpm3FEKWE5GikjL2HNMq/FFNk+VyDeMcGbvwK+m3XfoTxWTxSM1e3QYpnaS
-leduxNuW5sbKUeRvK8A20f0zjscs6OfjfW2lSaxf3RqX4upeQqQ2XBj5OOqRU5eU
-dlsF1/LUhZhGG4KmIRZc38SAdmkdFrOWmg8iRwyNbTP7jGFLxGy4AfnL8LQy/qiC
-wYNSL6iBa6HSJBpS6/WIZULXYmpxO+wXuox5dsopCeznkpzB+0oNqEr7ppRwtiIS
-nAJxRo/d8ceBZmVP6TrVtQxtt4Xbo6PQ+sdqDGtraP104bGRYcytR2H89FgvhG/Z
-9Z0mPFGnFbBM9VyoKmbBZiO8739E/uxzJriHdqpjZFYwcD9d/3IVyBwE2898QOHy
-KGku0HkSvt/URGNEO7B+W6FMhXqd/pJX/fc2ned1RsBvXINZp0WqmUD09DURMUIo
-tPrRuHZS7LwgC5gm5spfLQjgEwomimpGu/jOz44saS89H4w6Oakqnfj4jzmwj1bF
-EFhTVE7nVZ3AA/p5tLkn
-=bAaK
+iQIcBAABAgAGBQJQK0acAAoJEPo9qoy8lh71bIsQAJjQXVlkCfnPhRea3QJ1ZlCN
+CNr6z317g1uUiIn1p3NeoJB6D05eKRyl90LPG3OUzOWcGhWZ5+8g6oeELZgUcAjG
+OYrnSQdm3kNOUK6lG5YIL+zPI+84VeganqeoAsMPLRp0JhCw5V88cVL75mwnsM1Y
+6/XVQE2PvKmRaPqiR4ZZxqtJJf2/gWwP1k3Oe8evOCcrnToRvX9CyWMhEwHOkBsV
+xQBahi9yUOLwx5GFddEHGPXTSQtIeeSaVMgQeL9d8ejdcbzVMUbohjOvxb6NSqKJ
+pV98hn8jwbTG9AWWPMPnY1nWo/4S0Y9VNuK3a/gQSStzNJkOpyPlUNlfxACREJlY
+O0Wm6RKYRy86nuP+01cuh9TOQ22d/KFbPW5FH92GyObpzWjML+cj+BGq55wdcB8X
+U7aUVkvsHKlVF9A7lkZOWIeTfaw5azHL/ANE81yJPE/YPoZSte0VilsKGrjmE1lr
+xaQZDFBIHzc6PS+UFBzTK2XUN2DGsfOheVEwdyyBW08Hv2xIJF6/clnPo691j21/
+Ff2i2q6ObEXMRbkLGuDgXMKXl19emGdSAnDuCriZsSdEhyQIpYISsFu3XEv7HKyW
+sCUMVaELHH87RnQu7WTlJf+KobL6iRW0DNNDGmFoiVpAtKRm4rmJpR8vRVvByKvY
+u6YqOJ9Pf4cxiukSxW+4
+=KchI
 -----END PGP SIGNATURE-----
 
---=-zj86KZQ7MY3NrZHmty5P--
+--=-zkwoKvajVK+1ii1dsk/7--
 
