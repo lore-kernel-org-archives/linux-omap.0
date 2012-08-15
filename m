@@ -1,97 +1,97 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv6 24/24] i2c: omap: Prevent NULL pointer dereference in
- remove
-Date: Wed, 15 Aug 2012 09:03:13 +0300
-Message-ID: <20120815060312.GE23637@arwen.pp.htv.fi>
-References: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
- <1344953946-13005-25-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP4: 4430sdp: OTG: increase max allowed output current
+Date: Wed, 15 Aug 2012 09:05:27 +0300
+Message-ID: <20120815060525.GF23637@arwen.pp.htv.fi>
+References: <1342099542-13862-1-git-send-email-ruslan.bilovol@ti.com>
+ <CAAe_U6Kza7Zc2SF-ve761Kb2_0Q-9K19qkAZ2eahh-AHrsfh8w@mail.gmail.com>
+ <CAEa47Nqu_b_KGou30u64gsQC_Qwz-X=P9_a5YRTTCCE0mwS2mg@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wtjvnLv0o8UUzur2"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="w2JjAQZceEVGylhD"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:49787 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751204Ab2HOGJQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 02:09:16 -0400
+Received: by lahm15 with SMTP id m15so817500lah.17
+        for <linux-omap@vger.kernel.org>; Tue, 14 Aug 2012 23:09:13 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1344953946-13005-25-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+In-Reply-To: <CAEa47Nqu_b_KGou30u64gsQC_Qwz-X=P9_a5YRTTCCE0mwS2mg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ruslan Bilovol <ruslan.bilovol@ti.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, balbi@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
 
---wtjvnLv0o8UUzur2
+--w2JjAQZceEVGylhD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 14, 2012 at 07:49:06PM +0530, Shubhrajyoti D wrote:
-> Prevent the NULL pointer access by moving the platform_set_drvdata functi=
-on
-> after the access of the pdev.
+On Wed, Jul 18, 2012 at 12:43:22PM +0300, Ruslan Bilovol wrote:
+> Hi,
 >=20
-> [  654.961761] Unable to handle kernel NULL pointer dereference at virtua=
-l address 00000070
-> [  654.970611] pgd =3D df254000
-> [  654.973480] [00000070] *pgd=3D9f1da831, *pte=3D00000000, *ppte=3D00000=
-000
-> [  654.980163] Internal error: Oops: 17 [#1] SMP ARM
-> [  654.985076] Modules linked in:
-> [  654.988281] CPU: 1    Not tainted  (3.6.0-rc1-00031-ge547de1-dirty #33=
-9)
-> [  654.995330] PC is at omap_i2c_runtime_resume+0x8/0x148
-> [  655.000732] LR is at omap_i2c_runtime_resume+0x8/0x148
+> On Fri, Jul 13, 2012 at 8:53 AM, ABRAHAM, KISHON VIJAY <kishon@ti.com>
+> wrote:
+> >
+> > Hi,
+> >
+> > On Thu, Jul 12, 2012 at 6:55 PM, Ruslan Bilovol <ruslan.bilovol@ti.com>
+> > wrote:
+> > > TWL6030/32 that is used on 4430sdp board can deliver up to 200mA
+> > > for OTG port power supply in the HOST mode.
+> > >
+> > > Signed-off-by: Ruslan Bilovol <ruslan.bilovol@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/board-4430sdp.c |    2 +-
+> > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/board-4430sdp.c
+> > > b/arch/arm/mach-omap2/board-4430sdp.c
+> > > index 8e17284..10223f5 100644
+> > > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > > @@ -429,7 +429,7 @@ static struct platform_device *sdp4430_devices[]
+> > > __initdata =3D {
+> > >  static struct omap_musb_board_data musb_board_data =3D {
+> > >         .interface_type         =3D MUSB_INTERFACE_UTMI,
+> > >         .mode                   =3D MUSB_OTG,
+> > > -       .power                  =3D 100,
+> > > +       .power                  =3D 200,
+> > >  };
+> >
+> > Shouldn't this change be made for omap4 panda as well.
 >=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 3df6f92..49dbff1 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1217,8 +1217,6 @@ static int __devexit omap_i2c_remove(struct platfor=
-m_device *pdev)
->  	struct omap_i2c_dev	*dev =3D platform_get_drvdata(pdev);
->  	int ret;
-> =20
-> -	platform_set_drvdata(pdev, NULL);
-> -
->  	i2c_del_adapter(&dev->adapter);
->  	ret =3D pm_runtime_get_sync(&pdev->dev);
->  	if (IS_ERR_VALUE(ret))
-> @@ -1227,6 +1225,8 @@ static int __devexit omap_i2c_remove(struct platfor=
-m_device *pdev)
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  	pm_runtime_put(&pdev->dev);
->  	pm_runtime_disable(&pdev->dev);
-> +	platform_set_drvdata(pdev, NULL);
+> Yes, omap4 panda uses same TWL IC. Should I fix this patch or send
+> separate for panda?
 
-in fact this platform_set_drvdata(pdev, NULL) can be removed. The
-platform_device object will be destroyed anyway.
+Fix this patch would be nicer.
 
 --=20
 balbi
 
---wtjvnLv0o8UUzur2
+--w2JjAQZceEVGylhD
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQKzugAAoJEIaOsuA1yqREHL0P/0hHahS6hVMfFyUFDoEIiVAW
-PE/DYICsfSWfSyAaUz55Z2Ofw7P6gPXT0uphLPTGxLEQFTQqF4bcB1AgeIc7L3E9
-dowQ3l1dCHwKfxGXYxnRHbwTqXEyi+mCYMWzHIRSAlqInpKRNahNUBzE9oSkivv4
-GWR/cpY4X/KbmUpAmoBUqExoKPyJvQOda5oJg0aE2EcS4MH+RA1v3u3xcD+WXWg4
-dfLiaT3gjYlNt01pqBKBDNnB8be4pQgiGtnlU0SiCrhlT7YfgMq6Bf7lqndlcGq1
-/iA8ToBeVxPXay+TsClQsHO/0vynuZq9Ixqd5CX7Ud/Cw1VAU8GMesczxMgrWUs8
-2hifkofQ+S3SvAZB0wYLP3aPYOeViLa7iKEC/iSKRjATw5DT5+xRgzCGd/XqlzGo
-jbH98w4JL4vj5YYeBZKAGI6cWWvMR6RmYhlWIksSOzEbfTp2zhzVN0wVnxf7smvy
-SrR4R1++46ejOSt8IELQcp1WpoRD2s/Fo7j3BX1sFaBV5Hx6WsUjxlnsveXpx8h0
-gLmdFcxe0eoJkfGOvjSgnHs+YLylkE9IvCqW9mRnv5tEZ1fpj2IqP/M4Zc0PdJtB
-gSU5+Yek3ZVz0csd4mKVuc8Fk7MWKofVjGiiKNnh07/xs6mEpVGtY3V0TOZNqITd
-z0iFVOKDGSUQ2zgqApVQ
-=jYV2
+iQIcBAEBAgAGBQJQKzwlAAoJEIaOsuA1yqREZuQQAKwVJYfca9ROh+hgYuyitp0/
+Cwv6bXw37II5o1B6EG4m78ss1cutgHpdzcxgS2ray8x9tQjF554GJ2N7ba+3ru9v
+Yp1NYYr8yFN5CWZfvbTthtiTwumJA1FuqNOhAhEfUlbCLsfFgofQXOQ/RgsCBspo
+hUWytl8hdee34ShkT9UTF1jRN6VTj5yvsbz3aDd0gcZGMBVpeL+EVlJ857XixhC4
+8grRh4qsIrUifKLwowqrxf/qpyUVe+z6xM3A+xQ0HlsaL9UhlxF6oF7XpmGV9yij
+gjh9Q74zYIBgOPvHohkORK4IGnpbyOnRphi9EGpgg+LrzHk2XnwXpx9HOX0njl6D
+5Ky2o9OYXofm+5i+gcJ7eVzYD86erM3f4QfUQSFR8ov6TEszclB8omRX8UIrEZ6v
+gQNqrrn6fqHI+Tv1Vk4BBU6ec9fQNpr18wHe0Gd0JYXug2Jr2sNy58FpnOMXdE9z
+GuruQLvSeKl7UlTpjErLXAKLHVq6Wgt7+V+riYIGcr0he7JWA4ZSH5Blz9A32qO2
+tMMvYyxxo8lZ0bq9SGvTxmJj3RfnpHzLc5zEonb2sERGO4e/Y5v7nVQEz94t3DGj
+uh5nszcMKtVdp+2JbTrABRYmRFAf7dPYmi6TOtQjlY5zrvKvLv0X7pVYB+LG+2jH
+Jh7Jy321cNkEKzTK5ISO
+=ESXj
 -----END PGP SIGNATURE-----
 
---wtjvnLv0o8UUzur2--
+--w2JjAQZceEVGylhD--
