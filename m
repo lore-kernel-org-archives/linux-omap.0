@@ -1,783 +1,182 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] media: rc: Introduce RX51 IR transmitter
- driver
-Date: Wed, 15 Aug 2012 22:46:43 +0300
-Message-ID: <502BFCA3.5040905@iki.fi>
-References: <E1T10iu-0000Xo-L8@www.linuxtv.org> <20120815160621.GV29636@valkosipuli.retiisi.org.uk>
+From: Radek Pilar <mrkva@mrkva.eu>
+Subject: Fate of OMAP3-Touchbook board
+Date: Wed, 15 Aug 2012 22:52:04 +0200
+Message-ID: <502C0BF4.4010502@mrkva.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig4B5D5C4F7F9FD23726BC2D71"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:51577 "EHLO jenni2.inet.fi"
+Received: from mrkva.eu ([83.167.228.102]:42730 "EHLO mail.mrkva.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755403Ab2HOTqr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Aug 2012 15:46:47 -0400
-In-Reply-To: <20120815160621.GV29636@valkosipuli.retiisi.org.uk>
+	id S1756359Ab2HOU7I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 16:59:08 -0400
+Received: from [192.168.1.104] (unknown [94.127.132.46])
+	by mail.mrkva.eu (Postfix) with ESMTPSA id 35A2C12F40EC
+	for <linux-omap@vger.kernel.org>; Wed, 15 Aug 2012 22:52:31 +0200 (CEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Terve Sakari,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig4B5D5C4F7F9FD23726BC2D71
+Content-Type: multipart/mixed;
+ boundary="------------020403080603070301040102"
 
-Long time no see.
+This is a multi-part message in MIME format.
+--------------020403080603070301040102
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On 08/15/12 19:06, Sakari Ailus wrote:
-> Heippa,
-> 
-> Thanks for the patch! I know Mauro has already applied this so any changes
-> would make a separate patch.
-> 
+Hello,
+a few months ago, Always Innovating - a company behind their OMAP3 based
+product Touchbook basically stopped production. I've been porting some
+specific drivers for current kernels since then and I'd like to push at
+least some of them to the mainline.
+However, I found  a bug in mainline that prevents this device from
+booting - and looks like noone has reported it for a few months.
+So, I'd like to ask - do you want to keep this board in mainline (in
+this case, I can send a few patches adding few drivers (backlight,
+accelerometer, soundcard, keyboard). Or do you want to remove it from
+the mainline altogether?
+Thanks for the answer
+Radek Pilar
 
-Patches are cheap :) I'll have also couple of changes from Sean's comments.
+--------------020403080603070301040102
+Content-Type: application/pgp-keys;
+ name="0xE60DBF0D.asc"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="0xE60DBF0D.asc"
 
-> I have tested this up to the point I can see that the IR LED blinks  ---
-> using my phone's camera. :-) But I have no receivers so the testing ends to
-> this.
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Thanks for your thorough review and testing.
+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
+lwC5nSPK2jCoESLE87iiKLYyXBm/Gss/
+=3DAGI8
+-----END PGP PUBLIC KEY BLOCK-----
 
-> 
-> On Mon, Aug 13, 2012 at 09:53:45PM +0200, Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/media_tree.git tree:
->>
->> Subject: [media] media: rc: Introduce RX51 IR transmitter driver
->> Author:  Timo Kokkonen <timo.t.kokkonen@iki.fi>
->> Date:    Fri Aug 10 06:16:36 2012 -0300
->>
->> This is the driver for the IR transmitter diode found on the Nokia
->> N900 (also known as RX51) device. The driver is mostly the same as
->> found in the original 2.6.28 based kernel that comes with the device.
->>
->> The following modifications have been made compared to the original
->> driver version:
->>
->> - Adopt to the changes that has happen in the kernel during the past
->>   five years, such as the change in the include paths
->>
->> - The OMAP DM-timers require much more care nowadays. The timers need
->>   to be enabled and disabled or otherwise many actions fail. Timers
->>   must not be freed without first stopping them or otherwise the timer
->>   cannot be requested again.
->>
->> The code has been tested with sending IR codes with N900 device
->> running Debian userland. The device receiving the codes was Anysee
->> DVB-C USB receiver.
-> 
-> Just a general question: how much this driver actually depends on the N900?
-> I can see there's a dependency to OMAP DM timers, but couldn't you use the
-> same driver if you just wired the IR LED there? Even the timer configuration
-> is there, so it looks a lot more generic than N900-specific.
-> 
+--------------020403080603070301040102--
 
-Yeah, I was thinking that there are no other boards that have an IR
-diode connected to the PWM timer pin. But that doesn't stop anyone from
-soldering a diode one to his/her board.
+--------------enig4B5D5C4F7F9FD23726BC2D71
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
->> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: linux-omap@vger.kernel.org
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->>  drivers/media/rc/Kconfig   |   10 +
->>  drivers/media/rc/Makefile  |    1 +
->>  drivers/media/rc/ir-rx51.c |  496 ++++++++++++++++++++++++++++++++++++++++++++
->>  include/media/ir-rx51.h    |   10 +
->>  4 files changed, 517 insertions(+), 0 deletions(-)
->>
->> ---
->>
->> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=c332e8472d7db67766bcad33390c607fdd9ac5bc
->>
->> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->> index 64be610..016f9ab 100644
->> --- a/drivers/media/rc/Kconfig
->> +++ b/drivers/media/rc/Kconfig
->> @@ -287,6 +287,16 @@ config IR_TTUSBIR
->>  	   To compile this driver as a module, choose M here: the module will
->>  	   be called ttusbir.
->>  
->> +config IR_RX51
->> +	tristate "Nokia N900 IR transmitter diode
->> +	depends on MACH_NOKIA_RX51 && OMAP_DM_TIMER
-> 
-> You also should depend on LIRC.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-Yes. And if one had the diode in some other board than RX51, maybe this
-wouldn't need to depend on MACH_NOKIA_RX51 either.
+iQIcBAEBAgAGBQJQLAv4AAoJEIiYJZPmDb8NoiQP/0f+SL2WzN/yCkl83pj8cwA9
+W4A21eGh6F9GV6sul1GhkynLuyHahKCmY88ga0bfTE4xYgVE92X4tPKkjgp/x47w
+rpPEzzSOcvCAvH3y5aaFgjNiZhOX96M5cvs7mXlQXnReXep/Su0u3QsWsEb6aaEn
+hPiH1A3hmIMsNSQwYzRyWz61dsHrymtCjjdS0FHBjscEDrRWYnDPI3ohSKelOBaw
+euHT7QLHtDXE+L191mnYGNvqKNxCeP3Y67N4KUUdgUAUUS1kchVAwhuBQ68yXuFL
+YoJjmTyu2I5K09pciqWyw2J6B1VDpNPczWT2d9TiVS8R8AKjyTM6SLVXo/eyNpD6
+BI5qtBDO67TmD6Rgi+SYAIC/GjmfSUmkIifuZ479zLknYXc/RNLkxiQqtiQ2AYG9
+T6DHY0Hdo6qlo6AeTdlP5uF02vr9Mj/HKDanNO9YsI2g4jYo4Bu2znZiIed5JWH8
+8oF+RK2mHp4tHS+cALTFqIcWzwYfaRWznN0aYir+NOeOOpkhb7yIAXFJaY2XDx5F
+ffJtu+beV6/MoZNNG/DLTEOC3+SDDz+7fzrGqfZaZLa0nl+ba9xqPwXJOfP/ukmH
+l28J6hw2kR+c2BO0z9N1ffdGK7hkYoOD4Gp/2/8PEAhJ2B6dsG3Lg4tn3pFNcXVJ
+7lwEvy143YW7WegpIYZS
+=93Oq
+-----END PGP SIGNATURE-----
 
-...
-
-
-Which gave me an idea. We have this new PWM subsystem that I know
-nothing about. If the omap timer PWM routines were exposed through this
-API, we could modify this driver to a generic PWM lirc driver. I don't
-know how well the PWM api suits for that purpose, but it could be an
-interesting idea.. :)
-
-> 
->> +	---help---
->> +	   Say Y or M here if you want to enable support for the IR
->> +	   transmitter diode built in the Nokia N900 (RX51) device.
->> +
->> +	   The driver uses omap DM timers for gereating the carrier
-> 
-> s/gereating/renerating/
-> 
-
-Uh oh, will fix..
-
->> +	   wave and pulses.
->> +
->>  config RC_LOOPBACK
->>  	tristate "Remote Control Loopback Driver"
->>  	depends on RC_CORE
->> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
->> index 66c8bae..56bacf0 100644
->> --- a/drivers/media/rc/Makefile
->> +++ b/drivers/media/rc/Makefile
->> @@ -23,6 +23,7 @@ obj-$(CONFIG_IR_FINTEK) += fintek-cir.o
->>  obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
->>  obj-$(CONFIG_IR_ENE) += ene_ir.o
->>  obj-$(CONFIG_IR_REDRAT3) += redrat3.o
->> +obj-$(CONFIG_IR_RX51) += ir-rx51.o
->>  obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
->>  obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
->>  obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
->> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
->> new file mode 100644
->> index 0000000..9487dd3
->> --- /dev/null
->> +++ b/drivers/media/rc/ir-rx51.c
->> @@ -0,0 +1,496 @@
->> +/*
->> + *  Copyright (C) 2008 Nokia Corporation
->> + *
->> + *  Based on lirc_serial.c
->> + *
->> + *  This program is free software; you can redistribute it and/or modify
->> + *  it under the terms of the GNU General Public License as published by
->> + *  the Free Software Foundation; either version 2 of the License, or
->> + *  (at your option) any later version.
->> + *
->> + *  This program is distributed in the hope that it will be useful,
->> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + *  GNU General Public License for more details.
->> + *
->> + *  You should have received a copy of the GNU General Public License
->> + *  along with this program; if not, write to the Free Software
->> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->> + *
->> + */
->> +
->> +#include <linux/module.h>
->> +#include <linux/interrupt.h>
->> +#include <linux/uaccess.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/sched.h>
->> +#include <linux/wait.h>
->> +
->> +#include <plat/dmtimer.h>
->> +#include <plat/clock.h>
->> +#include <plat/omap-pm.h>
->> +
->> +#include <media/lirc.h>
->> +#include <media/lirc_dev.h>
->> +#include <media/ir-rx51.h>
->> +
->> +#define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
->> +				   LIRC_CAN_SET_SEND_CARRIER |		\
->> +				   LIRC_CAN_SEND_PULSE)
->> +
->> +#define DRIVER_NAME "lirc_rx51"
->> +
->> +#define WBUF_LEN 256
->> +
->> +#define TIMER_MAX_VALUE 0xffffffff
->> +
->> +struct lirc_rx51 {
->> +	struct omap_dm_timer *pwm_timer;
->> +	struct omap_dm_timer *pulse_timer;
->> +	struct device	     *dev;
->> +	struct lirc_rx51_platform_data *pdata;
->> +	wait_queue_head_t     wqueue;
->> +
->> +	unsigned long	fclk_khz;
->> +	unsigned int	freq;		/* carrier frequency */
->> +	unsigned int	duty_cycle;	/* carrier duty cycle */
->> +	unsigned int	irq_num;
->> +	unsigned int	match;
-
-And I just noticed this match variable has absolutely no useful purpose
-at all..
-
->> +	int		wbuf[WBUF_LEN];
->> +	int		wbuf_index;
->> +	unsigned long	device_is_open;
->> +	unsigned int	pwm_timer_num;
-> 
-> pwm_timer is signed in platform data. Shouldn't this one be as well?
-> 
-
-Yes, it should.
-
->> +};
->> +
->> +static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
->> +{
->> +	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
->> +			      OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE);
->> +}
->> +
->> +static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
->> +{
->> +	omap_dm_timer_set_pwm(lirc_rx51->pwm_timer, 0, 1,
->> +			      OMAP_TIMER_TRIGGER_NONE);
->> +}
->> +
->> +static int init_timing_params(struct lirc_rx51 *lirc_rx51)
->> +{
->> +	u32 load, match;
->> +
->> +	load = -(lirc_rx51->fclk_khz * 1000 / lirc_rx51->freq);
->> +	match = -(lirc_rx51->duty_cycle * -load / 100);
->> +	omap_dm_timer_set_load(lirc_rx51->pwm_timer, 1, load);
->> +	omap_dm_timer_set_match(lirc_rx51->pwm_timer, 1, match);
->> +	omap_dm_timer_write_counter(lirc_rx51->pwm_timer, TIMER_MAX_VALUE - 2);
->> +	omap_dm_timer_start(lirc_rx51->pwm_timer);
->> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
->> +	omap_dm_timer_start(lirc_rx51->pulse_timer);
->> +
->> +	lirc_rx51->match = 0;
->> +
->> +	return 0;
->> +}
->> +
->> +#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
->> +
->> +static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
->> +{
->> +	int counter;
-> 
-> Shouldn't counter be unsigned int?
-> 
-
-Actually no. From here..
-
->> +	BUG_ON(usec < 0);
->> +
->> +	if (lirc_rx51->match == 0)
->> +		counter = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
->> +	else
->> +		counter = lirc_rx51->match;
->> +
->> +	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
->> +	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
->> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
->> +				     OMAP_TIMER_INT_MATCH);
-
-..to here the sign doesn't count.
-
->> +	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
->> +		       counter)) {
-> 
-> Do you really need the macro and the casting to long it does? You could
-> replace this with
-> 
-> return (int)(omap_dm_timer_read_counter(lirc_rx51->pulse_timer) - counter) < 0;
-> 
-
-But here we need the types to be signed so that the comparison can
-become negative. And we can't just test whether counter variable is less
-than the timer counter as those can overflow quite rapidly..
-
-I'll have it this way:
-
-> 	int counter, counter_now;
-> 
-[snip]
-> 
-> 	counter_now = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
-> 	return (counter_now - counter) < 0;
-
-..which I hope should be quite readable, at least compared to the
-original code.
-
->> +		return 1;
->> +	}
->> +	return 0;
->> +}
->> +
->> +static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
->> +{
->> +	unsigned int retval;
->> +	struct lirc_rx51 *lirc_rx51 = ptr;
->> +
->> +	retval = omap_dm_timer_read_status(lirc_rx51->pulse_timer);
->> +	if (!retval)
->> +		return IRQ_NONE;
->> +
->> +	if ((retval & ~OMAP_TIMER_INT_MATCH))
-> 
-> Unneeded parenthesis.
-> 
-
-Extra parenthesis removed.
-
->> +		dev_err_ratelimited(lirc_rx51->dev,
->> +				": Unexpected interrupt source: %x\n", retval);
->> +
->> +	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
-> 
-> What does "7" actually signify?
-> 
-
-I had to browse through the TRM to figure out what I had in my mind back
-then. Apparently I just wanted to ensure all possible IRQ flags were
-cleared from the interrupt status register. It shouldn't happen that
-there are anything else than the match bit set, but I'm just being
-overly cautious. I'll replace that magic seven with this:
-
-	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
-				OMAP_TIMER_INT_MATCH	|
-				OMAP_TIMER_INT_OVERFLOW	|
-				OMAP_TIMER_INT_CAPTURE);
-
->> +	if (lirc_rx51->wbuf_index < 0) {
->> +		dev_err_ratelimited(lirc_rx51->dev,
->> +				": BUG wbuf_index has value of %i\n",
->> +				lirc_rx51->wbuf_index);
->> +		goto end;
->> +	}
->> +
->> +	/*
->> +	 * If we happen to hit an odd latency spike, loop through the
->> +	 * pulses until we catch up.
->> +	 */
->> +	do {
->> +		if (lirc_rx51->wbuf_index >= WBUF_LEN)
->> +			goto end;
->> +		if (lirc_rx51->wbuf[lirc_rx51->wbuf_index] == -1)
->> +			goto end;
->> +
->> +		if (lirc_rx51->wbuf_index % 2)
->> +			lirc_rx51_off(lirc_rx51);
->> +		else
->> +			lirc_rx51_on(lirc_rx51);
->> +
->> +		retval = pulse_timer_set_timeout(lirc_rx51,
->> +					lirc_rx51->wbuf[lirc_rx51->wbuf_index]);
->> +		lirc_rx51->wbuf_index++;
->> +
->> +	} while (retval);
->> +
->> +	return IRQ_HANDLED;
->> +end:
->> +	/* Stop TX here */
->> +	lirc_rx51_off(lirc_rx51);
->> +	lirc_rx51->wbuf_index = -1;
->> +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
->> +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
->> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
->> +	wake_up_interruptible(&lirc_rx51->wqueue);
->> +
->> +	return IRQ_HANDLED;
->> +}
->> +
->> +static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
->> +{
->> +	struct clk *clk_fclk;
->> +	int retval, pwm_timer = lirc_rx51->pwm_timer_num;
->> +
->> +	lirc_rx51->pwm_timer = omap_dm_timer_request_specific(pwm_timer);
->> +	if (lirc_rx51->pwm_timer == NULL) {
->> +		dev_err(lirc_rx51->dev, ": Error requesting GPT%d timer\n",
->> +			pwm_timer);
->> +		return -EBUSY;
->> +	}
->> +
->> +	lirc_rx51->pulse_timer = omap_dm_timer_request();
->> +	if (lirc_rx51->pulse_timer == NULL) {
->> +		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
->> +		retval = -EBUSY;
->> +		goto err1;
->> +	}
->> +
->> +	omap_dm_timer_set_source(lirc_rx51->pwm_timer, OMAP_TIMER_SRC_SYS_CLK);
->> +	omap_dm_timer_set_source(lirc_rx51->pulse_timer,
->> +				OMAP_TIMER_SRC_SYS_CLK);
->> +
->> +	omap_dm_timer_enable(lirc_rx51->pwm_timer);
->> +	omap_dm_timer_enable(lirc_rx51->pulse_timer);
->> +
->> +	lirc_rx51->irq_num = omap_dm_timer_get_irq(lirc_rx51->pulse_timer);
->> +	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
->> +			     IRQF_DISABLED | IRQF_SHARED,
->> +			     "lirc_pulse_timer", lirc_rx51);
->> +	if (retval) {
->> +		dev_err(lirc_rx51->dev, ": Failed to request interrupt line\n");
->> +		goto err2;
->> +	}
->> +
->> +	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
->> +	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
->> +
->> +	return 0;
->> +
->> +err2:
->> +	omap_dm_timer_free(lirc_rx51->pulse_timer);
->> +err1:
->> +	omap_dm_timer_free(lirc_rx51->pwm_timer);
->> +
->> +	return retval;
->> +}
->> +
->> +static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
->> +{
->> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
->> +	free_irq(lirc_rx51->irq_num, lirc_rx51);
->> +	lirc_rx51_off(lirc_rx51);
->> +	omap_dm_timer_disable(lirc_rx51->pwm_timer);
->> +	omap_dm_timer_disable(lirc_rx51->pulse_timer);
->> +	omap_dm_timer_free(lirc_rx51->pwm_timer);
->> +	omap_dm_timer_free(lirc_rx51->pulse_timer);
->> +	lirc_rx51->wbuf_index = -1;
->> +
->> +	return 0;
->> +}
->> +
->> +static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->> +			  size_t n, loff_t *ppos)
->> +{
->> +	int count, i;
->> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
->> +
->> +	if (n % sizeof(int))
->> +		return -EINVAL;
->> +
->> +	count = n / sizeof(int);
->> +	if ((count > WBUF_LEN) || (count % 2 == 0))
->> +		return -EINVAL;
->> +
->> +	/* Wait any pending transfers to finish */
->> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
->> +
->> +	if (copy_from_user(lirc_rx51->wbuf, buf, n))
->> +		return -EFAULT;
->> +
->> +	/* Sanity check the input pulses */
->> +	for (i = 0; i < count; i++)
->> +		if (lirc_rx51->wbuf[i] < 0)
->> +			return -EINVAL;
->> +
->> +	init_timing_params(lirc_rx51);
->> +	if (count < WBUF_LEN)
->> +		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
->> +
->> +	/*
->> +	 * Adjust latency requirements so the device doesn't go in too
->> +	 * deep sleep states
->> +	 */
->> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
->> +
->> +	lirc_rx51_on(lirc_rx51);
->> +	lirc_rx51->wbuf_index = 1;
->> +	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
->> +
->> +	/*
->> +	 * Don't return back to the userspace until the transfer has
->> +	 * finished
->> +	 */
->> +	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
->> +
->> +	/* We can sleep again */
->> +	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
->> +
->> +	return n;
->> +}
->> +
->> +static long lirc_rx51_ioctl(struct file *filep,
->> +			unsigned int cmd, unsigned long arg)
->> +{
->> +	int result;
->> +	unsigned long value;
->> +	unsigned int ivalue;
->> +	struct lirc_rx51 *lirc_rx51 = filep->private_data;
->> +
->> +	switch (cmd) {
->> +	case LIRC_GET_SEND_MODE:
->> +		result = put_user(LIRC_MODE_PULSE, (unsigned long *)arg);
->> +		if (result)
->> +			return result;
->> +		break;
->> +
->> +	case LIRC_SET_SEND_MODE:
->> +		result = get_user(value, (unsigned long *)arg);
->> +		if (result)
->> +			return result;
->> +
->> +		/* only LIRC_MODE_PULSE supported */
->> +		if (value != LIRC_MODE_PULSE)
->> +			return -ENOSYS;
->> +		break;
->> +
->> +	case LIRC_GET_REC_MODE:
->> +		result = put_user(0, (unsigned long *) arg);
->> +		if (result)
->> +			return result;
->> +		break;
->> +
->> +	case LIRC_GET_LENGTH:
->> +		return -ENOSYS;
->> +		break;
->> +
->> +	case LIRC_SET_SEND_DUTY_CYCLE:
->> +		result = get_user(ivalue, (unsigned int *) arg);
->> +		if (result)
->> +			return result;
->> +
->> +		if (ivalue <= 0 || ivalue > 100) {
->> +			dev_err(lirc_rx51->dev, ": invalid duty cycle %d\n",
->> +				ivalue);
->> +			return -EINVAL;
->> +		}
->> +
->> +		lirc_rx51->duty_cycle = ivalue;
->> +		break;
->> +
->> +	case LIRC_SET_SEND_CARRIER:
->> +		result = get_user(ivalue, (unsigned int *) arg);
->> +		if (result)
->> +			return result;
->> +
->> +		if (ivalue > 500000 || ivalue < 20000) {
->> +			dev_err(lirc_rx51->dev, ": invalid carrier freq %d\n",
->> +				ivalue);
->> +			return -EINVAL;
->> +		}
->> +
->> +		lirc_rx51->freq = ivalue;
->> +		break;
->> +
->> +	case LIRC_GET_FEATURES:
->> +		result = put_user(LIRC_RX51_DRIVER_FEATURES,
->> +				  (unsigned long *) arg);
->> +		if (result)
->> +			return result;
->> +		break;
->> +
->> +	default:
->> +		return -ENOIOCTLCMD;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int lirc_rx51_open(struct inode *inode, struct file *file)
->> +{
->> +	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
->> +	BUG_ON(!lirc_rx51);
-> 
-> BUG_ON() here seems a little harsh. I'd remove it and check platform data in
-> probe() instead --- which isn't done btw.
-> 
-
-I'll move the check there and make it return -ENODEV in case platform
-data is missing.
-
->> +
->> +	file->private_data = lirc_rx51;
->> +
->> +	if (test_and_set_bit(1, &lirc_rx51->device_is_open))
->> +		return -EBUSY;
->> +
->> +	return lirc_rx51_init_port(lirc_rx51);
->> +}
->> +
->> +static int lirc_rx51_release(struct inode *inode, struct file *file)
->> +{
->> +	struct lirc_rx51 *lirc_rx51 = file->private_data;
->> +
->> +	lirc_rx51_free_port(lirc_rx51);
->> +
->> +	clear_bit(1, &lirc_rx51->device_is_open);
->> +
->> +	return 0;
->> +}
->> +
->> +static struct lirc_rx51 lirc_rx51 = {
->> +	.freq		= 38000,
->> +	.duty_cycle	= 50,
->> +	.wbuf_index	= -1,
->> +};
->> +
->> +static const struct file_operations lirc_fops = {
->> +	.owner		= THIS_MODULE,
->> +	.write		= lirc_rx51_write,
->> +	.unlocked_ioctl	= lirc_rx51_ioctl,
->> +	.read		= lirc_dev_fop_read,
->> +	.poll		= lirc_dev_fop_poll,
->> +	.open		= lirc_rx51_open,
->> +	.release	= lirc_rx51_release,
->> +};
->> +
->> +static struct lirc_driver lirc_rx51_driver = {
->> +	.name		= DRIVER_NAME,
->> +	.minor		= -1,
->> +	.code_length	= 1,
->> +	.data		= &lirc_rx51,
->> +	.fops		= &lirc_fops,
->> +	.owner		= THIS_MODULE,
->> +};
-> 
-> Could you allocate lirc_driver and lirc_rx51 dynamically instead? I guess
-> no-one is going to add a second IR transmitter to RX-51 but as noted
-> earlier, the driver is more generic than that.
-> 
-
-hmm.. I wonder if it makes any sense at all to have multiple IR
-transmitter diodes acting as independent transmitters. Thinking about
-the interference.. But, yes, I guess there is no technical limitation so
-why not..
-
->> +#ifdef CONFIG_PM
->> +
->> +static int lirc_rx51_suspend(struct platform_device *dev, pm_message_t state)
->> +{
->> +	/*
->> +	 * In case the device is still open, do not suspend. Normally
->> +	 * this should not be a problem as lircd only keeps the device
->> +	 * open only for short periods of time. We also don't want to
->> +	 * get involved with race conditions that might happen if we
->> +	 * were in a middle of a transmit. Thus, we defer any suspend
->> +	 * actions until transmit has completed.
->> +	 */
->> +	if (test_and_set_bit(1, &lirc_rx51.device_is_open))
->> +		return -EAGAIN;
->> +
->> +	clear_bit(1, &lirc_rx51.device_is_open);
->> +
->> +	return 0;
->> +}
->> +
->> +static int lirc_rx51_resume(struct platform_device *dev)
->> +{
->> +	return 0;
->> +}
->> +
->> +#else
->> +
->> +#define lirc_rx51_suspend	NULL
->> +#define lirc_rx51_resume	NULL
->> +
->> +#endif /* CONFIG_PM */
->> +
->> +static int __devinit lirc_rx51_probe(struct platform_device *dev)
->> +{
->> +	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
->> +	lirc_rx51.pdata = dev->dev.platform_data;
->> +	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
->> +	lirc_rx51.dev = &dev->dev;
->> +	lirc_rx51_driver.dev = &dev->dev;
->> +	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
->> +	init_waitqueue_head(&lirc_rx51.wqueue);
->> +
->> +	if (lirc_rx51_driver.minor < 0) {
->> +		dev_err(lirc_rx51.dev, ": lirc_register_driver failed: %d\n",
->> +		       lirc_rx51_driver.minor);
->> +		return lirc_rx51_driver.minor;
->> +	}
->> +	dev_info(lirc_rx51.dev, "registration ok, minor: %d, pwm: %d\n",
->> +		 lirc_rx51_driver.minor, lirc_rx51.pwm_timer_num);
->> +
->> +	return 0;
->> +}
->> +
->> +static int __exit lirc_rx51_remove(struct platform_device *dev)
->> +{
->> +	return lirc_unregister_driver(lirc_rx51_driver.minor);
->> +}
->> +
->> +struct platform_driver lirc_rx51_platform_driver = {
->> +	.probe		= lirc_rx51_probe,
->> +	.remove		= __exit_p(lirc_rx51_remove),
->> +	.suspend	= lirc_rx51_suspend,
->> +	.resume		= lirc_rx51_resume,
->> +	.remove		= __exit_p(lirc_rx51_remove),
->> +	.driver		= {
->> +		.name	= DRIVER_NAME,
->> +		.owner	= THIS_MODULE,
->> +	},
->> +};
->> +
->> +static int __init lirc_rx51_init(void)
->> +{
->> +	return platform_driver_register(&lirc_rx51_platform_driver);
->> +}
->> +module_init(lirc_rx51_init);
->> +
->> +static void __exit lirc_rx51_exit(void)
->> +{
->> +	platform_driver_unregister(&lirc_rx51_platform_driver);
->> +}
->> +module_exit(lirc_rx51_exit);
-> 
-> You could use module_platform_driver macro.
-> 
->> +MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
->> +MODULE_AUTHOR("Nokia Corporation");
->> +MODULE_LICENSE("GPL");
->> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
->> new file mode 100644
->> index 0000000..104aa89
->> --- /dev/null
->> +++ b/include/media/ir-rx51.h
->> @@ -0,0 +1,10 @@
->> +#ifndef _LIRC_RX51_H
->> +#define _LIRC_RX51_H
->> +
->> +struct lirc_rx51_platform_data {
->> +	int pwm_timer;
->> +
->> +	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
-> 
-> Could we call directly omap_pm_set_max_mpu_wakeup_lat() instead of having a
-> pointer in the platform data? The issue with that, however, is that the
-> function isn't exported to modules, forcing to link ir-rx51 into the kernel
-> directly.
-> 
-
-It was an requirement back then that this driver needs to be a module as
-99% of the N900 owners still don't even know they have this kind of
-capability on their devices, so it doesn't make sense to keep the module
-loaded unless the user actually needs it.
-
-> The board code has to be converted to device tree anyway and I don't think
-> we can have pointers to the kernel binary there. You may also get a NAK on
-> patches adding new things to board code files.
-> 
-> One example of how to do this is arch/arm/plat-omap/i2c.c .
-> 
-> I think that the OMAP 3 ISP suffers from exactly the same issue of not being
-> able to wake up the MPU. For the ISP it's been handled here:
-> 
-> 	arch/arm/mach-omap2/cpuidle34xx.c
-> 
-> Look for "CAM". I wonder if we should / could do something similar for DM
-> timers.
-> 
-> The discussion on the issue with the ISP is here:
-> 
-> <URL:http://www.spinics.net/lists/linux-omap/msg63736.html>
-> 
-
-That is something I will take a closer look at.
-
-Thanks for the very good comments!
-
-> Terveisin,
-> 
-
+--------------enig4B5D5C4F7F9FD23726BC2D71--
