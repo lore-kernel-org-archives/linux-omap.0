@@ -1,81 +1,52 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 2/2] Expose the OMAP Z-Order property through DRM
-Date: Wed, 15 Aug 2012 15:18:02 -0500
-Message-ID: <1345061882-9743-3-git-send-email-rob.clark@linaro.org>
-References: <1345061882-9743-1-git-send-email-rob.clark@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430
+ SOC
+Date: Wed, 15 Aug 2012 16:26:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1208151618590.1731@utopia.booyaka.com>
+References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com> <1341566515-22665-5-git-send-email-santosh.shilimkar@ti.com> <4FFA9B61.8030808@ti.com> <20120709131156.GH1122@atomide.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:35087 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755528Ab2HOUSn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Aug 2012 16:18:43 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so2563161obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Aug 2012 13:18:43 -0700 (PDT)
-In-Reply-To: <1345061882-9743-1-git-send-email-rob.clark@linaro.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42515 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923Ab2HOW0n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Aug 2012 18:26:43 -0400
+In-Reply-To: <20120709131156.GH1122@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Andre Renaud <andre@bluewatersys.com>, Rob Clark <rob@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
 
-From: Andre Renaud <andre@bluewatersys.com>
+Hi
 
-Added support for zorder changes through DRM plane properties
+On Mon, 9 Jul 2012, Tony Lindgren wrote:
 
-Signed-off-by: Andre Renaud <andre@bluewatersys.com>
-Signed-off-by: Rob Clark <rob@ti.com>
----
- drivers/staging/omapdrm/omap_drv.h   |    1 +
- drivers/staging/omapdrm/omap_plane.c |   19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+> Below (untested) is what could be done in the short term.
 
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index b103d28..9dc72d1 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -62,6 +62,7 @@ struct omap_drm_private {
- 
- 	/* properties: */
- 	struct drm_property *rotation_prop;
-+	struct drm_property *zorder_prop;
- };
- 
- /* this should probably be in drm-core to standardize amongst drivers */
-diff --git a/drivers/staging/omapdrm/omap_plane.c b/drivers/staging/omapdrm/omap_plane.c
-index 6931d06..4bde639 100644
---- a/drivers/staging/omapdrm/omap_plane.c
-+++ b/drivers/staging/omapdrm/omap_plane.c
-@@ -433,6 +433,15 @@ void omap_plane_install_properties(struct drm_plane *plane,
- 		priv->rotation_prop = prop;
- 	}
- 	drm_object_attach_property(obj, prop, 0);
-+
-+        prop = priv->zorder_prop;
-+        if (!prop) {
-+		prop = drm_property_create_range(dev, 0, "zorder", 0, 3);
-+		if (prop == NULL)
-+			return;
-+		priv->zorder_prop = prop;
-+	}
-+	drm_object_attach_property(obj, prop, 0);
- }
- 
- int omap_plane_set_property(struct drm_plane *plane,
-@@ -452,6 +461,16 @@ int omap_plane_set_property(struct drm_plane *plane,
- 			ret = omap_plane_dpms(plane, DRM_MODE_DPMS_ON);
- 		else
- 			ret = 0;
-+	} else if (property == priv->zorder_prop) {
-+		struct omap_overlay *ovl = omap_plane->ovl;
-+
-+		DBG("%s: zorder: %d", ovl->name, (uint32_t)val);
-+		omap_plane->info.zorder = val;
-+
-+		if (ovl->is_enabled(ovl))
-+			ret = omap_plane_dpms(plane, DRM_MODE_DPMS_ON);
-+		else
-+			ret = 0;
- 	}
- 
- 	return ret;
--- 
-1.7.9.5
+That's fine with me.  Do you want to queue it or do you want me to queue 
+it?
 
+> Heh these CK_XXXX defines are now running out of the u16 cpu_mask.
+> 
+> They really should be replaced with SoC specific lists of clocks
+> rather than bloating the cpu_mask and repeating it for every clock
+> that's compiled in for 800+ times.
+
+Frankly, an extra 1.6KB -- uncompressed -- is pretty low on my list of 
+bloat concerns for multi-OMAP kernels.  If it were up to me, I'd just 
+change it to a u32 and be done with the problem for the foreseeable 
+future.
+
+> I wonder if we could #define CK_OMAP_DUMMY 0 that's always set
+> for non-shared clocks if they only get set in some *_data.c
+> file in a unique way?
+> 
+> Paul got any better ideas?
+
+Aside from using u32?  Not really.  As we've discussed in the past, at 
+some point we should convert the clock initialization to using some kind 
+of per-SoC list.  But it doesn't seem worth spending too much time on that 
+while the common clock framework conversion is higher priority.
+
+
+- Paul
