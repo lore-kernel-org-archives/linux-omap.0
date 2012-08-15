@@ -1,46 +1,73 @@
-From: Christopher Harvey <charvey-S5bRKkedoTbQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v7 00/11] usb: musb: adding multi instance support
-Date: Wed, 15 Aug 2012 10:39:05 -0400
-Message-ID: <20120815143905.GA14088@harvey-pc.matrox.com>
-References: <1343909574-15633-1-git-send-email-ravibabu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1343909574-15633-1-git-send-email-ravibabu-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ajayguptaj-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Juan Gutierrez <jgutierrez@ti.com>
+Subject: [PATCH] omap: remoteproc: set bootaddr support
+Date: Wed, 15 Aug 2012 10:25:48 -0500
+Message-ID: <1345044348-19898-1-git-send-email-jgutierrez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53796 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752064Ab2HOP0C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Aug 2012 11:26:02 -0400
+Received: by obbup19 with SMTP id up19so2511966obb.12
+        for <linux-omap@vger.kernel.org>; Wed, 15 Aug 2012 08:26:01 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ohad@wizery.com
+Cc: Juan Gutierrez <jgutierrez@ti.com>, Suman Anna <s-anna@ti.com>
 
-On Thu, Aug 02, 2012 at 05:42:43PM +0530, Ravi Babu wrote:
-> This series of patches adds,
-> a) Multi instances support in musb driver
-> b) DT support for musb_dsps glue layer
-> c) DT support for NOP transceiver
-> 
-> AM33xx and TI81xx has dual musb controller and has two usb PHY of same type.
-> This patch series uses 'phandle' based API devm_usb_get_phy_by_phandle() to
-> get the PHY of same type. This API support is being added by Kishon's patch
-> discussed at [1]
-> 
-> The series applies to linux-omap (master branch)
-> 	+ Vaibhav baseport patches on his tree at [3]
-> 	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
-> 	+ Kishon's patch on phandle at [1]
-> 	+ AM33xx musb glue compile and bugfix patches at [4], [5], [6] and [7]
-> 	+ Damodar's recent patch at [2] 
-> 
-> and have been tested on Beaglebone board.
+Some remote processors (like Omap4's DSP) need to explicitly
+set a boot address from which they start executing code when
+taken out of reset.
 
-Any hints as to if or when this will be applied to the following
-repository?
+Support for this has been added to remoteproc code through
+a set_bootaddr function in the platform data which, if needed,
+must be set according to the backend rproc.
 
-http://arago-project.org/git/projects/linux-omap3.git?p=projects/linux-omap3.git;a=summary
+For omap4's dsp we can use the next control funtion:
 
-thanks,
-Chris
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  .set_bootaddr  = omap_ctrl_write_dsp_boot_addr
+
+Signed-off-by: Juan Gutierrez <jgutierrez@ti.com>
+Signed-off-by: Suman Anna <s-anna@ti.com>
+---
+ arch/arm/plat-omap/include/plat/remoteproc.h |    2 ++
+ drivers/remoteproc/omap_remoteproc.c         |    3 +++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/remoteproc.h b/arch/arm/plat-omap/include/plat/remoteproc.h
+index b10eac8..3c1c644 100644
+--- a/arch/arm/plat-omap/include/plat/remoteproc.h
++++ b/arch/arm/plat-omap/include/plat/remoteproc.h
+@@ -30,6 +30,7 @@ struct platform_device;
+  * @ops: start/stop rproc handlers
+  * @device_enable: omap-specific handler for enabling a device
+  * @device_shutdown: omap-specific handler for shutting down a device
++ * @set_bootaddr: omap-specific handler for setting the rproc boot address
+  */
+ struct omap_rproc_pdata {
+ 	const char *name;
+@@ -40,6 +41,7 @@ struct omap_rproc_pdata {
+ 	const struct rproc_ops *ops;
+ 	int (*device_enable) (struct platform_device *pdev);
+ 	int (*device_shutdown) (struct platform_device *pdev);
++	void(*set_bootaddr)(u32);
+ };
+ 
+ #if defined(CONFIG_OMAP_REMOTEPROC) || defined(CONFIG_OMAP_REMOTEPROC_MODULE)
+diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+index a1f7ac1..a0c168c 100644
+--- a/drivers/remoteproc/omap_remoteproc.c
++++ b/drivers/remoteproc/omap_remoteproc.c
+@@ -116,6 +116,9 @@ static int omap_rproc_start(struct rproc *rproc)
+ 	struct omap_rproc_pdata *pdata = pdev->dev.platform_data;
+ 	int ret;
+ 
++	if (pdata->set_bootaddr)
++		pdata->set_bootaddr(rproc->bootaddr);
++
+ 	oproc->nb.notifier_call = omap_rproc_mbox_callback;
+ 
+ 	/* every omap rproc is assigned a mailbox instance for messaging */
+-- 
+1.7.1
+
