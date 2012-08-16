@@ -1,57 +1,51 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 6/9] ASoC: omap-mcbsp: Remove unused defines
-Date: Thu, 16 Aug 2012 16:41:05 +0300
-Message-ID: <1345124468-8876-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 8/9] ARM: OMAP2+: McBSP: Do not create legacy devices when booting with DT data
+Date: Thu, 16 Aug 2012 16:41:07 +0300
+Message-ID: <1345124468-8876-9-git-send-email-peter.ujfalusi@ti.com>
 References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:46776 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753853Ab2HPNlR (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:33887 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753853Ab2HPNlX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 09:41:17 -0400
-Received: by obbwd20 with SMTP id wd20so4731375obb.37
-        for <linux-omap@vger.kernel.org>; Thu, 16 Aug 2012 06:41:15 -0700 (PDT)
+	Thu, 16 Aug 2012 09:41:23 -0400
+Received: by obbuo13 with SMTP id uo13so3694291obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Aug 2012 06:41:21 -0700 (PDT)
 In-Reply-To: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
 Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-NUM_LINKS is no longer in use by the code.
+Only create the devices in a legacy way if we do not have the DT data.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 ---
- sound/soc/omap/omap-mcbsp.h |   16 ----------------
- 1 files changed, 0 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.h b/sound/soc/omap/omap-mcbsp.h
-index baebcee..ba8386a 100644
---- a/sound/soc/omap/omap-mcbsp.h
-+++ b/sound/soc/omap/omap-mcbsp.h
-@@ -39,22 +39,6 @@ enum omap_mcbsp_div {
- 	OMAP_MCBSP_CLKGDV,		/* Sample rate generator divider */
- };
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 660e00b..d57a357 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -15,6 +15,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
  
--#if defined(CONFIG_SOC_OMAP2420)
--#define NUM_LINKS	2
--#endif
--#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
--#undef  NUM_LINKS
--#define NUM_LINKS	3
--#endif
--#if defined(CONFIG_ARCH_OMAP4)
--#undef  NUM_LINKS
--#define NUM_LINKS	4
--#endif
--#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_SOC_OMAP2430)
--#undef  NUM_LINKS
--#define NUM_LINKS	5
--#endif
--
- int omap_mcbsp_st_add_controls(struct snd_soc_pcm_runtime *rtd);
+@@ -113,7 +114,8 @@ static int __init omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
  
- #endif
+ static int __init omap2_mcbsp_init(void)
+ {
+-	omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
++	if (!of_have_populated_dt())
++		omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
+ 
+ 	return 0;
+ }
 -- 
 1.7.8.6
 
