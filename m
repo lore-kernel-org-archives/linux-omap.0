@@ -1,137 +1,208 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 2/3] mfd: twl6040: Add twl6040-gpio child
-Date: Thu, 16 Aug 2012 15:13:14 +0300
-Message-ID: <1345119195-7490-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 3/3] gpio: Add basic support for TWL6040 GPOs
+Date: Thu, 16 Aug 2012 15:13:15 +0300
+Message-ID: <1345119195-7490-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:33898 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753855Ab2HPMNH (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:52445 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753855Ab2HPMNK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 08:13:07 -0400
-Received: by obbta17 with SMTP id ta17so4302861obb.8
-        for <linux-omap@vger.kernel.org>; Thu, 16 Aug 2012 05:13:06 -0700 (PDT)
+	Thu, 16 Aug 2012 08:13:10 -0400
+Received: by obbuo13 with SMTP id uo13so4143677obb.33
+        for <linux-omap@vger.kernel.org>; Thu, 16 Aug 2012 05:13:09 -0700 (PDT)
 In-Reply-To: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
 Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, peter.ujfalusi@ti.com, Sergio Aguirre <saaguirre@ti.com>
 
-Add needed platform data structure and code to be able to load
-the GPO child of twl6040.
-Update the devicetree binding documentation at the same time.
+TWL6040 provides GPO lines to be used for controlling external devices.The number
+of lines different between versions: twl6040 have 3 GPO while TWL6041 have 1.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 ---
- Documentation/devicetree/bindings/mfd/twl6040.txt |    9 ++++++---
- drivers/mfd/twl6040-core.c                        |   15 +++++++++++++++
- include/linux/mfd/twl6040.h                       |    9 ++++++++-
- 3 files changed, 29 insertions(+), 4 deletions(-)
+ drivers/gpio/Kconfig        |    7 ++
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/gpio-twl6040.c |  137 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 145 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/gpio/gpio-twl6040.c
 
-diff --git a/Documentation/devicetree/bindings/mfd/twl6040.txt b/Documentation/devicetree/bindings/mfd/twl6040.txt
-index c855240..0f5dd70 100644
---- a/Documentation/devicetree/bindings/mfd/twl6040.txt
-+++ b/Documentation/devicetree/bindings/mfd/twl6040.txt
-@@ -1,7 +1,7 @@
- Texas Instruments TWL6040 family
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index b16c8a7..f74633e 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -402,6 +402,13 @@ config GPIO_TWL4030
+ 	  Say yes here to access the GPIO signals of various multi-function
+ 	  power management chips from Texas Instruments.
  
--The TWL6040s are 8-channel high quality low-power audio codecs providing audio
--and vibra functionality on OMAP4+ platforms.
-+The TWL6040s are 8-channel high quality low-power audio codecs providing audio,
-+vibra and GPO functionality on OMAP4+ platforms.
- They are connected ot the host processor via i2c for commands, McPDM for audio
- data and commands.
- 
-@@ -10,6 +10,8 @@ Required properties:
- - reg: must be 0x4b for i2c address
- - interrupts: twl6040 has one interrupt line connecteded to the main SoC
- - interrupt-parent: The parent interrupt controller
-+- gpio-controller:
-+- #gpio-cells = <1>: twl6040 provides GPO lines.
- - twl6040,audpwron-gpio: Power on GPIO line for the twl6040
- 
- - vio-supply: Regulator for the twl6040 VIO supply
-@@ -37,7 +39,6 @@ Example:
- &i2c1 {
- 	twl6040: twl@4b {
- 		compatible = "ti,twl6040";
--		reg = <0x4b>;
- 
- 		interrupts = <0 119 4>;
- 		interrupt-parent = <&gic>;
-@@ -60,3 +61,5 @@ Example:
- 		};
- 	};
- };
++config GPIO_TWL6040
++	tristate "TWL6040 GPO"
++	depends on TWL6040_CORE
++	help
++	  Say yes here to access the GPO signals of twl6040
++	  audio chip from Texas Instruments.
 +
-+/include/ "twl6040.dtsi"
-diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
-index b0fad0f..413df8e 100644
---- a/drivers/mfd/twl6040-core.c
-+++ b/drivers/mfd/twl6040-core.c
-@@ -631,6 +631,21 @@ static int __devinit twl6040_probe(struct i2c_client *client,
- 		children++;
- 	}
- 
-+	/*
-+	 * Enable the GPO driver in the following cases:
-+	 * DT booted kernel or legacy boot with valid gpo platform_data
-+	 */
-+	if (!pdata || (pdata && pdata->gpo)) {
-+		cell = &twl6040->cells[children];
-+		cell->name = "twl6040-gpo";
+ config GPIO_WM831X
+ 	tristate "WM831x GPIOs"
+ 	depends on MFD_WM831X
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 153cace..f857b46 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -67,6 +67,7 @@ obj-$(CONFIG_GPIO_TPS6586X)	+= gpio-tps6586x.o
+ obj-$(CONFIG_GPIO_TPS65910)	+= gpio-tps65910.o
+ obj-$(CONFIG_GPIO_TPS65912)	+= gpio-tps65912.o
+ obj-$(CONFIG_GPIO_TWL4030)	+= gpio-twl4030.o
++obj-$(CONFIG_GPIO_TWL6040)	+= gpio-twl6040.o
+ obj-$(CONFIG_GPIO_UCB1400)	+= gpio-ucb1400.o
+ obj-$(CONFIG_GPIO_VR41XX)	+= gpio-vr41xx.o
+ obj-$(CONFIG_GPIO_VX855)	+= gpio-vx855.o
+diff --git a/drivers/gpio/gpio-twl6040.c b/drivers/gpio/gpio-twl6040.c
+new file mode 100644
+index 0000000..dd58e8b
+--- /dev/null
++++ b/drivers/gpio/gpio-twl6040.c
+@@ -0,0 +1,137 @@
++/*
++ * Access to GPOs on TWL6040 chip
++ *
++ * Copyright (C) 2012 Texas Instruments, Inc.
++ *
++ * Authors:
++ *	Sergio Aguirre <saaguirre@ti.com>
++ *	Peter Ujfalusi <peter.ujfalusi@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
 +
-+		if (pdata) {
-+			cell->platform_data = pdata->gpo;
-+			cell->pdata_size = sizeof(*pdata->gpo);
-+		}
-+		children++;
-+	}
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/kthread.h>
++#include <linux/irq.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/of.h>
 +
- 	ret = mfd_add_devices(&client->dev, -1, twl6040->cells, children,
- 			      NULL, 0);
- 	if (ret)
-diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-index 269b706..8991532 100644
---- a/include/linux/mfd/twl6040.h
-+++ b/include/linux/mfd/twl6040.h
-@@ -158,7 +158,7 @@
- #define TWL6040_VIBROCDET		0x20
- #define TWL6040_TSHUTDET                0x40
- 
--#define TWL6040_CELLS			2
-+#define TWL6040_CELLS			3
- 
- #define TWL6040_REV_ES1_0		0x00
- #define TWL6040_REV_ES1_1		0x01 /* Rev ES1.1 and ES1.2 */
-@@ -176,6 +176,8 @@
- #define TWL6040_SYSCLK_SEL_LPPLL	0
- #define TWL6040_SYSCLK_SEL_HPPLL	1
- 
-+#define TWL6040_GPO_MAX	3
++#include <linux/mfd/twl6040.h>
 +
- struct twl6040_codec_data {
- 	u16 hs_left_step;
- 	u16 hs_right_step;
-@@ -192,12 +194,17 @@ struct twl6040_vibra_data {
- 	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
- };
- 
-+struct twl6040_gpo_data {
-+	int gpio_base;
++static struct gpio_chip twl6040gpo_chip;
++
++static int twl6040gpo_get(struct gpio_chip *chip, unsigned offset)
++{
++	struct twl6040 *twl6040 = dev_get_drvdata(chip->dev->parent);
++	int ret = 0;
++
++	ret = twl6040_reg_read(twl6040, TWL6040_REG_GPOCTL);
++	if (ret < 0)
++		return ret;
++
++	return (ret >> offset) & 1;
++}
++
++static int twl6040gpo_direction_out(struct gpio_chip *chip, unsigned offset,
++				    int value)
++{
++	/* This only drives GPOs, and can't change direction */
++	return 0;
++}
++
++static void twl6040gpo_set(struct gpio_chip *chip, unsigned offset, int value)
++{
++	struct twl6040 *twl6040 = dev_get_drvdata(chip->dev->parent);
++	int ret;
++	u8 gpoctl;
++
++	ret = twl6040_reg_read(twl6040, TWL6040_REG_GPOCTL);
++	if (ret < 0)
++		return;
++
++	if (value)
++		gpoctl = ret | (1 << offset);
++	else
++		gpoctl = ret & ~(1 << offset);
++
++	twl6040_reg_write(twl6040, TWL6040_REG_GPOCTL, gpoctl);
++}
++
++static struct gpio_chip twl6040gpo_chip = {
++	.label			= "twl6040",
++	.owner			= THIS_MODULE,
++	.get			= twl6040gpo_get,
++	.direction_output	= twl6040gpo_direction_out,
++	.set			= twl6040gpo_set,
++	.can_sleep		= 1,
 +};
 +
- struct twl6040_platform_data {
- 	int audpwron_gpio;	/* audio power-on gpio */
- 	unsigned int irq_base;
- 
- 	struct twl6040_codec_data *codec;
- 	struct twl6040_vibra_data *vibra;
-+	struct twl6040_gpo_data *gpo;
- };
- 
- struct regmap;
++/*----------------------------------------------------------------------*/
++
++static int __devinit gpo_twl6040_probe(struct platform_device *pdev)
++{
++	struct twl6040_gpo_data *pdata = pdev->dev.platform_data;
++	struct device *twl6040_core_dev = pdev->dev.parent;
++	struct twl6040 *twl6040 = dev_get_drvdata(twl6040_core_dev);
++	int ret;
++
++	if (pdata)
++		twl6040gpo_chip.base = pdata->gpio_base;
++	else
++		twl6040gpo_chip.base = -1;
++
++	if (twl6040_get_revid(twl6040) < TWL6041_REV_ES2_0)
++		twl6040gpo_chip.ngpio = 3; /* twl6040 have 3 GPO */
++	else
++		twl6040gpo_chip.ngpio = 1; /* twl6041 have 1 GPO */
++
++	twl6040gpo_chip.dev = &pdev->dev;
++#ifdef CONFIG_OF_GPIO
++	twl6040gpo_chip.of_node = twl6040_core_dev->of_node;
++#endif
++
++	ret = gpiochip_add(&twl6040gpo_chip);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "could not register gpiochip, %d\n", ret);
++		twl6040gpo_chip.ngpio = 0;
++	}
++
++	return ret;
++}
++
++static int __devexit gpo_twl6040_remove(struct platform_device *pdev)
++{
++	return gpiochip_remove(&twl6040gpo_chip);
++}
++
++/* Note:  this hardware lives inside an I2C-based multi-function device. */
++MODULE_ALIAS("platform:twl6040-gpo");
++
++static struct platform_driver gpo_twl6040_driver = {
++	.driver = {
++		.name	= "twl6040-gpo",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= gpo_twl6040_probe,
++	.remove		= gpo_twl6040_remove,
++};
++
++module_platform_driver(gpo_twl6040_driver);
++
++MODULE_AUTHOR("Texas Instruments, Inc.");
++MODULE_DESCRIPTION("GPO interface for TWL6040");
++MODULE_LICENSE("GPL");
 -- 
 1.7.8.6
 
