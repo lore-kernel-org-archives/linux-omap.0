@@ -1,114 +1,73 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 07/24] i2c: omap: improve i462 errata handling
-Date: Thu, 16 Aug 2012 19:33:38 +0530
-Message-ID: <1345125835-15524-8-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv7 04/24] i2c: omap: add blank lines
+Date: Thu, 16 Aug 2012 19:33:35 +0530
+Message-ID: <1345125835-15524-5-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36400 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757313Ab2HPOFL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 10:05:11 -0400
+In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 
-Make it not depend on ISR's local variables
-in order to make it easier to re-factor the
-transmit data loop.
-Also since we are waiting for XUDF(Transmitter underflow) just before
-writing data lets not flag the underflow.
-This is anyways going to go once we write
-the data.
+trivial patch to aid readability. No functional
+changes.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   43 ++++++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 13 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 139602f..0067875 100644
+index 81ef0a7..dbc5a3c 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -725,27 +725,30 @@ omap_i2c_omap1_isr(int this_irq, void *dev_id)
-  * data to DATA_REG. Otherwise some data bytes can be lost while transferring
-  * them from the memory to the I2C interface.
-  */
--static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
-+static int errata_omap3_i462(struct omap_i2c_dev *dev)
- {
- 	unsigned long timeout = 10000;
-+	u16 stat;
- 
--	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
--		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-+	do {
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		if (stat & OMAP_I2C_STAT_XUDF)
-+			break;
-+
-+		if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
- 			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
--			return -ETIMEDOUT;
-+			return -EIO;
+@@ -786,6 +786,7 @@ complete:
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
  		}
- 
- 		cpu_relax();
--		*stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
-+	} while (--timeout);
- 
- 	if (!timeout) {
- 		dev_err(dev->dev, "timeout waiting on XUDF bit\n");
- 		return 0;
- 	}
- 
--	*err |= OMAP_I2C_STAT_XUDF;
- 	return 0;
- }
- 
-@@ -903,9 +906,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
 +
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
+ 		/*
+ 		 * ProDB0017052: Clear ARDY bit twice
+ 		 */
+@@ -798,6 +799,7 @@ complete:
+ 			omap_i2c_complete_cmd(dev, err);
+ 			return IRQ_HANDLED;
+ 		}
 +
-+					if (ret < 0)
-+						goto complete;
-+				}
+ 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
+ 			u8 num_bytes = 1;
  
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
-@@ -943,9 +953,16 @@ complete:
- 					}
- 				}
- 
--				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
--				    errata_omap3_i462(dev, &stat, &err))
--					goto complete;
-+				if (dev->errata & I2C_OMAP_ERRATA_I462) {
-+					int ret;
+@@ -844,6 +846,7 @@ complete:
+ 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
+ 			continue;
+ 		}
 +
-+					ret = errata_omap3_i462(dev);
-+					stat = omap_i2c_read_reg(dev,
-+							OMAP_I2C_STAT_REG);
+ 		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
+ 			u8 num_bytes = 1;
+ 			if (dev->fifo_size) {
+@@ -891,10 +894,12 @@ complete:
+ 				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+ 			continue;
+ 		}
 +
-+					if (ret < 0)
-+						goto complete;
-+				}
- 
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
+ 		if (stat & OMAP_I2C_STAT_ROVR) {
+ 			dev_err(dev->dev, "Receive overrun\n");
+ 			dev->cmd_err |= OMAP_I2C_STAT_ROVR;
+ 		}
++
+ 		if (stat & OMAP_I2C_STAT_XUDF) {
+ 			dev_err(dev->dev, "Transmit underflow\n");
+ 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
 -- 
 1.7.5.4
+
