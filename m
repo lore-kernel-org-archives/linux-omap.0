@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 18/24] i2c: omap: remove redundant status read
-Date: Thu, 16 Aug 2012 19:33:49 +0530
-Message-ID: <1345125835-15524-19-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 06/24] i2c: omap: split out [XR]DR and [XR]RDY
+Date: Thu, 16 Aug 2012 19:33:37 +0530
+Message-ID: <1345125835-15524-7-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,35 +9,207 @@ Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Remove the redundant read of the status register.
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
+While they do pretty much the same thing, there
+are a few peculiarities. Specially WRT erratas,
+it's best to split those out and re-factor the
+read/write loop to another function which both
+cases call.
+
+This last part will be done on another patch.
+
+While at that, also avoid an unncessary register
+read since dev->fifo_len will always contain the
+correct amount of data to be transferred.
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |  126 ++++++++++++++++++++++++++++++-----------
+ 1 files changed, 92 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index dfdcc2b..2dd2301 100644
+index 8009095..139602f 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -946,7 +946,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 				num_bytes = dev->buf_len;
+@@ -801,36 +801,62 @@ complete:
+ 			return IRQ_HANDLED;
+ 		}
  
- 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
--			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 			if (ret < 0)
- 				goto out;
+-		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
++		if (stat & OMAP_I2C_STAT_RDR) {
+ 			u8 num_bytes = 1;
  
-@@ -962,7 +961,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 				num_bytes = dev->threshold;
++			if (dev->fifo_size)
++				num_bytes = dev->buf_len;
++
++			while (num_bytes--) {
++				if (!dev->buf_len) {
++					dev_err(dev->dev,
++							"RDR IRQ while no data"
++							" requested\n");
++					break;
++				}
++
++				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
++				*dev->buf++ = w;
++				dev->buf_len--;
++
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						*dev->buf++ = w >> 8;
++						dev->buf_len--;
++					}
++				}
++			}
++
+ 			if (dev->errata & I2C_OMAP_ERRATA_I207)
+ 				i2c_omap_errata_i207(dev, stat);
  
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
--			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 			if (ret < 0)
- 				goto out;
+-			if (dev->fifo_size) {
+-				if (stat & OMAP_I2C_STAT_RRDY)
+-					num_bytes = dev->fifo_size;
+-				else    /* read RXSTAT on RDR interrupt */
+-					num_bytes = (omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG)
+-							>> 8) & 0x3F;
+-			}
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
++			continue;
++		}
++
++		if (stat & OMAP_I2C_STAT_RRDY) {
++			u8 num_bytes = 1;
++
++			if (dev->fifo_size)
++				num_bytes = dev->fifo_size;
++
+ 			while (num_bytes--) {
+ 				if (!dev->buf_len) {
+-					if (stat & OMAP_I2C_STAT_RRDY)
+-						dev_err(dev->dev,
++					dev_err(dev->dev,
+ 							"RRDY IRQ while no data"
+-								" requested\n");
+-					if (stat & OMAP_I2C_STAT_RDR)
+-						dev_err(dev->dev,
+-							"RDR IRQ while no data"
+-								" requested\n");
++							" requested\n");
+ 					break;
+ 				}
+ 
+ 				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+ 				*dev->buf++ = w;
+ 				dev->buf_len--;
++
+ 				/*
+ 				 * Data reg in 2430, omap3 and
+ 				 * omap4 is 8 bit wide
+@@ -843,36 +869,68 @@ complete:
+ 					}
+ 				}
+ 			}
+-			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
+-						OMAP_I2C_STAT_RDR));
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RRDY);
+ 			continue;
+ 		}
+ 
+-		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
++		if (stat & OMAP_I2C_STAT_XDR) {
+ 			u8 num_bytes = 1;
+-			if (dev->fifo_size) {
+-				if (stat & OMAP_I2C_STAT_XRDY)
+-					num_bytes = dev->fifo_size;
+-				else    /* read TXSTAT on XDR interrupt */
+-					num_bytes = omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG)
+-							& 0x3F;
++
++			if (dev->fifo_size)
++				num_bytes = dev->buf_len;
++
++			while (num_bytes--) {
++				if (!dev->buf_len) {
++					dev_err(dev->dev,
++							"XDR IRQ while no "
++							"data to send\n");
++					break;
++				}
++
++				w = *dev->buf++;
++				dev->buf_len--;
++
++				/*
++				 * Data reg in 2430, omap3 and
++				 * omap4 is 8 bit wide
++				 */
++				if (dev->flags &
++						OMAP_I2C_FLAG_16BIT_DATA_REG) {
++					if (dev->buf_len) {
++						w |= *dev->buf++ << 8;
++						dev->buf_len--;
++					}
++				}
++
++				if ((dev->errata & I2C_OMAP_ERRATA_I462) &&
++				    errata_omap3_i462(dev, &stat, &err))
++					goto complete;
++
++				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
++			continue;
++		}
++
++		if (stat & OMAP_I2C_STAT_XRDY) {
++			u8 num_bytes = 1;
++
++			if (dev->fifo_size)
++				num_bytes = dev->fifo_size;
++
+ 			while (num_bytes--) {
+ 				if (!dev->buf_len) {
+-					if (stat & OMAP_I2C_STAT_XRDY)
+-						dev_err(dev->dev,
++					dev_err(dev->dev,
+ 							"XRDY IRQ while no "
+ 							"data to send\n");
+-					if (stat & OMAP_I2C_STAT_XDR)
+-						dev_err(dev->dev,
+-							"XDR IRQ while no "
+-							"data to send\n");
+ 					break;
+ 				}
+ 
+ 				w = *dev->buf++;
+ 				dev->buf_len--;
++
+ 				/*
+ 				 * Data reg in 2430, omap3 and
+ 				 * omap4 is 8 bit wide
+@@ -891,8 +949,8 @@ complete:
+ 
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+-			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
+-						OMAP_I2C_STAT_XDR));
++
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
+ 			continue;
+ 		}
  
 -- 
 1.7.5.4
