@@ -1,89 +1,92 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCHv7 00/24] I2C big cleanup
-Date: Thu, 16 Aug 2012 16:15:38 +0200
-Message-ID: <20120816141538.GA13740@pengutronix.de>
-References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Thu, 16 Aug 2012 10:04:14 -0500
+Message-ID: <502D0BEE.3010609@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <500D6CAB.4030504@ti.com> <502B67DD.6050904@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47769 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751815Ab2HPOPm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Aug 2012 10:15:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58196 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752677Ab2HPPET (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 11:04:19 -0400
+In-Reply-To: <502B67DD.6050904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+Hi Vaibhav,
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 08/15/2012 04:11 AM, Vaibhav Hiremath wrote:
+> 
+> 
+> On 7/23/2012 8:54 PM, Jon Hunter wrote:
+>> Hi Rob,
+>>
+>> On 07/16/2012 10:56 AM, Jon Hunter wrote:
+>>> Hi Rob,
+>>>
+>>> On 07/13/2012 09:15 PM, Rob Herring wrote:
+>>>> On 07/13/2012 05:26 PM, Jon Hunter wrote:
+>>>>> Add the 12 GP timers nodes present in OMAP3.
+>>>>> Add the 11 GP timers nodes present in OMAP4.
+>>>>>
+>>>>> Add documentation for timer properties specific to OMAP.
+>>>>>
+>>>>> For each timer an alias is being added. The purpose for doing this is because
+>>>>> the OMAP dmtimer driver uses an ID to distinguish between the different timer
+>>>>> instances. For example, a timer can be requested by its ID. By adding an alias
+>>>>> for each timer we can then use the function of_alias_get_id() to extract the
+>>>>> ID for each timer from the alias name. The same method is used for the TTY
+>>>>> serial devices. If it is preferred that such an alias is not added and there
+>>>>> is a better way to pass an ID from device-tree let me know.
+>>>>
+>>>> I'm not sure this is really a good use of aliases. UARTs use aliases
+>>>> because it is important that the UART number to tty number is known and
+>>>> fixed. IIUC, as an example you are picking timer1 because it has
+>>>> properties X, Y and Z. If so, then you should describe those h/w
+>>>> properties within the timer nodes so you can pick which timer to use
+>>>> based on it's h/w properties.
+>>>
+>>> Thanks for the feedback. What you suggest could definitely work for most
+>>> timers. The only item that I would need to resolve here is the handling
+>>> of system timers (ie. those used for clockevents and clocksource). These
+>>> system timers (for OMAP) are reserved during early boot based upon the
+>>> timer ID today and so this is before the actual main timer driver has
+>>> been probed and all the attributes of the timers has been read for
+>>> device-tree.
+>>>
+>>> One thought would be to move the reservation of the system timers out of
+>>> the kernel and into device-tree itself. Then we query device tree on
+>>> start-up to see which we should use. I am wondering if this could be a
+>>> better use of alias? For example, say I want to use timer1 as my
+>>> clockevent timer and so I could have an alias of ...
+>>>
+>>> alias {
+>>> 	clockevent_timer = &timer1;
+>>> }
+>>>
+>>> However, I am not sure if this is even correct, because there does not
+>>> appear to be an API to search the aliases by name and return the
+>>> phandle, just of_alias_get_id(). Alternatively, I could add another
+>>> property called "ti,timer-clockevent" that is populated for the timer
+>>> used as the clockevent timer.
+>>
+>> Do you have any inputs on the above? Does it make sense to reserve timer
+>> resources for kernel system timers in device-tree?
+>>
+> 
+> Hey Jon,
+> 
+> Did we get conclude on this? I haven't got anything further on this
+> thread, this may block baseport support for the new devices in omap2
+> family, like AM33xx and OMAP5.
 
-On Thu, Aug 16, 2012 at 07:33:31PM +0530, Shubhrajyoti D wrote:
-> Changes since v1:
->        - removed tabification on patch 6/17
->        - removed dev_err() which was introduced on patch 09/17
-> Changes since v2:
->         - do not set full fifo depth in the RDR interrupt.
->         - some changelog updates.
->         - rebase to the Wolfram's tree.
-> Changes since v3:
->         - Remove a redundant read of status register
->         - Read the dev->buf_len variable instead of the register
->         as the information of the remaining bytes is there.
-> Changes since v4:
->         - Ack the arbitration lost.
->         - Rebase to the i2c-embedded/for-next branch.
-> Changes since v5:
->         - Rebase to latest mainline
->         - Added some more cleanup patches so as have a consolidated serie=
-s.
-> Changes since v6:
->         - Fix comments on setting the pdev to NULL.
->         - Trivial changelog update
->=20
-> Tested on omap4sdp and 3430sdp.
->=20
-> The following changes since commit 3bf671af14d591ede9251acb0085e8017f3705=
-e7:
->=20
->   Merge branch 'fixes-for-3.6' of git://git.kernel.org/pub/scm/linux/kern=
-el/git/cooloney/linux-leds (2012-08-13 09:59:04 +0300)
->=20
-> are available in the git repository at:
->=20
->   git://gitorious.org/linus-tree/linus-tree.git for_3.6/i2c/big_cleanup
+Sorry I have been out of the office. However, no update on this so far.
+I need to check with Tony if he has any preference for handling this. I
+will follow-up with him and keep you posted.
 
-A GIT tree, thanks for that!
-
-Since the series is quite huge, I'd appreciate it if you could wait for
-reviews a little bit (a few days) and collect the issues raised there
-before resending. I know "release early & often", yet the traffic causes
-some overhead here :)
-
-Thanks,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAlAtAIoACgkQD27XaX1/VRsxHACeKJ8p59AzCiEwpBNm6rFQ1yft
-DsIAn0P9xM0DPsvGyy6yXy6UgKl/H+RS
-=owlh
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+Cheers
+Jon
