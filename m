@@ -1,15 +1,15 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 14/24] i2c: omap: always return IRQ_HANDLED
-Date: Thu, 16 Aug 2012 19:33:45 +0530
-Message-ID: <1345125835-15524-15-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 19/24] i2c: omap: always return IRQ_HANDLED
+Date: Thu, 16 Aug 2012 19:33:50 +0530
+Message-ID: <1345125835-15524-20-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36321 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36330 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932307Ab2HPOEg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:04:36 -0400
+	id S932638Ab2HPOEk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 10:04:40 -0400
 In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,29 +18,28 @@ Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@f
 
 From: Felipe Balbi <balbi@ti.com>
 
-Always return IRQ_HANDLED otherwise we could get our IRQ line disabled due
-to many spurious IRQs.
+even if our clocks are disabled, we still
+handled the IRQ, so we should return IRQ_HANDLED.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
-[Trivial changes to commitlogs]
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
  drivers/i2c/busses/i2c-omap.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 80ebcf5..eb6898b 100644
+index 2dd2301..f5eafb7 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -962,7 +962,7 @@ complete:
- 		}
- 	} while (stat);
+@@ -862,7 +862,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 	int err = 0, count = 0;
  
--	return count ? IRQ_HANDLED : IRQ_NONE;
-+	return IRQ_HANDLED;
- }
+ 	if (pm_runtime_suspended(dev->dev))
+-		return IRQ_NONE;
++		return IRQ_HANDLED;
  
- static const struct i2c_algorithm omap_i2c_algo = {
+ 	do {
+ 		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
 -- 
 1.7.5.4
 
