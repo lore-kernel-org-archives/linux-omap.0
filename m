@@ -1,92 +1,59 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
-Date: Thu, 16 Aug 2012 10:04:14 -0500
-Message-ID: <502D0BEE.3010609@ti.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <500D6CAB.4030504@ti.com> <502B67DD.6050904@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] spi: omap2-mcspi: Remove the call to
+	platform_set_drvdata(pdev, NULL)
+Date: Thu, 16 Aug 2012 20:49:30 +0530
+Message-ID: <1345130370-18815-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58196 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752677Ab2HPPET (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 11:04:19 -0400
-In-Reply-To: <502B67DD.6050904@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Vaibhav,
+Remove the call of platform_set_drvdata(pdev, NULL) as they are not
+needed anymore.
 
-On 08/15/2012 04:11 AM, Vaibhav Hiremath wrote:
-> 
-> 
-> On 7/23/2012 8:54 PM, Jon Hunter wrote:
->> Hi Rob,
->>
->> On 07/16/2012 10:56 AM, Jon Hunter wrote:
->>> Hi Rob,
->>>
->>> On 07/13/2012 09:15 PM, Rob Herring wrote:
->>>> On 07/13/2012 05:26 PM, Jon Hunter wrote:
->>>>> Add the 12 GP timers nodes present in OMAP3.
->>>>> Add the 11 GP timers nodes present in OMAP4.
->>>>>
->>>>> Add documentation for timer properties specific to OMAP.
->>>>>
->>>>> For each timer an alias is being added. The purpose for doing this is because
->>>>> the OMAP dmtimer driver uses an ID to distinguish between the different timer
->>>>> instances. For example, a timer can be requested by its ID. By adding an alias
->>>>> for each timer we can then use the function of_alias_get_id() to extract the
->>>>> ID for each timer from the alias name. The same method is used for the TTY
->>>>> serial devices. If it is preferred that such an alias is not added and there
->>>>> is a better way to pass an ID from device-tree let me know.
->>>>
->>>> I'm not sure this is really a good use of aliases. UARTs use aliases
->>>> because it is important that the UART number to tty number is known and
->>>> fixed. IIUC, as an example you are picking timer1 because it has
->>>> properties X, Y and Z. If so, then you should describe those h/w
->>>> properties within the timer nodes so you can pick which timer to use
->>>> based on it's h/w properties.
->>>
->>> Thanks for the feedback. What you suggest could definitely work for most
->>> timers. The only item that I would need to resolve here is the handling
->>> of system timers (ie. those used for clockevents and clocksource). These
->>> system timers (for OMAP) are reserved during early boot based upon the
->>> timer ID today and so this is before the actual main timer driver has
->>> been probed and all the attributes of the timers has been read for
->>> device-tree.
->>>
->>> One thought would be to move the reservation of the system timers out of
->>> the kernel and into device-tree itself. Then we query device tree on
->>> start-up to see which we should use. I am wondering if this could be a
->>> better use of alias? For example, say I want to use timer1 as my
->>> clockevent timer and so I could have an alias of ...
->>>
->>> alias {
->>> 	clockevent_timer = &timer1;
->>> }
->>>
->>> However, I am not sure if this is even correct, because there does not
->>> appear to be an API to search the aliases by name and return the
->>> phandle, just of_alias_get_id(). Alternatively, I could add another
->>> property called "ti,timer-clockevent" that is populated for the timer
->>> used as the clockevent timer.
->>
->> Do you have any inputs on the above? Does it make sense to reserve timer
->> resources for kernel system timers in device-tree?
->>
-> 
-> Hey Jon,
-> 
-> Did we get conclude on this? I haven't got anything further on this
-> thread, this may block baseport support for the new devices in omap2
-> family, like AM33xx and OMAP5.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-Sorry I have been out of the office. However, no update on this so far.
-I need to check with Tony if he has any preference for handling this. I
-will follow-up with him and keep you posted.
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index bc47781..84aeaf0 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1240,7 +1240,6 @@ dma_chnl_free:
+ 	kfree(mcspi->dma_channels);
+ free_master:
+ 	kfree(master);
+-	platform_set_drvdata(pdev, NULL);
+ 	return status;
+ }
+ 
+@@ -1259,7 +1258,6 @@ static int __devexit omap2_mcspi_remove(struct platform_device *pdev)
+ 
+ 	spi_unregister_master(master);
+ 	kfree(dma_channels);
+-	platform_set_drvdata(pdev, NULL);
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
 
-Cheers
-Jon
+
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
