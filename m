@@ -1,59 +1,58 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] spi: omap2-mcspi: Remove the call to
-	platform_set_drvdata(pdev, NULL)
-Date: Thu, 16 Aug 2012 20:49:30 +0530
-Message-ID: <1345130370-18815-1-git-send-email-shubhrajyoti@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] media: rc: Introduce RX51 IR
+ transmitter driver
+Date: Thu, 16 Aug 2012 19:34:58 +0300
+Message-ID: <20120816163458.GA29636@valkosipuli.retiisi.org.uk>
+References: <E1T10iu-0000Xo-L8@www.linuxtv.org>
+ <20120815160621.GV29636@valkosipuli.retiisi.org.uk>
+ <502BFCA3.5040905@iki.fi>
+ <20120816102328.GW29636@valkosipuli.retiisi.org.uk>
+ <20120816112103.GA1429@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60519 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932996Ab2HPQfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 12:35:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20120816112103.GA1429@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sebastian Reichel <sre@ring0.de>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Timo Kokkonen <timo.t.kokkonen@iki.fi>
 
-Remove the call of platform_set_drvdata(pdev, NULL) as they are not
-needed anymore.
+Hi Sebastian,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/spi/spi-omap2-mcspi.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+On Thu, Aug 16, 2012 at 01:21:04PM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> > > It was an requirement back then that this driver needs to be a module as
+> > > 99% of the N900 owners still don't even know they have this kind of
+> > > capability on their devices, so it doesn't make sense to keep the module
+> > > loaded unless the user actually needs it.
+> > 
+> > I don't think that's so important --- currently the vast majority of the
+> > N900 users using the mainline kernel compile it themselves. It's more
+> > important to have a clean implementation at this point.
+> 
+> I would like to enable this feature for the Debian OMAP kernel,
+> which is not only used for N900, but also for Pandaboard, etc.
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index bc47781..84aeaf0 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -1240,7 +1240,6 @@ dma_chnl_free:
- 	kfree(mcspi->dma_channels);
- free_master:
- 	kfree(master);
--	platform_set_drvdata(pdev, NULL);
- 	return status;
- }
- 
-@@ -1259,7 +1258,6 @@ static int __devexit omap2_mcspi_remove(struct platform_device *pdev)
- 
- 	spi_unregister_master(master);
- 	kfree(dma_channels);
--	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
- }
+Fair enough. Thanks for the info!
+
+Timo: thinking this a little more, do you think the call is really needed?
+AFAIU it doesn't really achieve what it's supposed to, keeping the CPU from
+going to sleep. I noticed exactly the same problem you did, it was bad to
+the extent irsend failed due to a timeout unless I kept the CPU busy.
+
+So I think we can remove the call, which results in two things: the driver
+can be built as a module and the platform data does not contain a function
+pointer any longer.
+
+Cheers,
+
 -- 
-1.7.5.4
-
-
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
