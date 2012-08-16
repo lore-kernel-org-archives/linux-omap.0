@@ -1,45 +1,43 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 19/24] i2c: omap: always return IRQ_HANDLED
-Date: Thu, 16 Aug 2012 19:33:50 +0530
-Message-ID: <1345125835-15524-20-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv7 18/24] i2c: omap: remove redundant status read
+Date: Thu, 16 Aug 2012 19:33:49 +0530
+Message-ID: <1345125835-15524-19-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36330 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932638Ab2HPOEk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:04:40 -0400
-In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+Remove the redundant read of the status register.
 
-even if our clocks are disabled, we still
-handled the IRQ, so we should return IRQ_HANDLED.
-
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2dd2301..f5eafb7 100644
+index dfdcc2b..2dd2301 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -862,7 +862,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	int err = 0, count = 0;
+@@ -946,7 +946,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->buf_len;
  
- 	if (pm_runtime_suspended(dev->dev))
--		return IRQ_NONE;
-+		return IRQ_HANDLED;
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
  
- 	do {
- 		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+@@ -962,7 +961,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				num_bytes = dev->threshold;
+ 
+ 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
+-			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+ 			if (ret < 0)
+ 				goto out;
+ 
 -- 
 1.7.5.4
-
