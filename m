@@ -1,65 +1,59 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 0/8] ARM: OMAP2+: PM: introduce the power domains
- functional states
-Date: Wed, 15 Aug 2012 18:48:13 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1208151842380.8833@utopia.booyaka.com>
-References: <1345024968-28951-1-git-send-email-j-pihet@ti.com> <CAMQu2gxznhsbK3--nyQmYdHqyGjwpCSa3CJx8aYpF4wwR1qBSg@mail.gmail.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCHv6 14/24] i2c: omap: always return IRQ_HANDLED
+Date: Thu, 16 Aug 2012 03:18:48 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA5F5B6@DBDE01.ent.ti.com>
+References: <1344953946-13005-1-git-send-email-shubhrajyoti@ti.com>
+ <1344953946-13005-15-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-19803156-1345078093=:8833"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45848 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754310Ab2HPAsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Aug 2012 20:48:14 -0400
-In-Reply-To: <CAMQu2gxznhsbK3--nyQmYdHqyGjwpCSa3CJx8aYpF4wwR1qBSg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1344953946-13005-15-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, Aug 14, 2012 at 19:48:56, Datta, Shubhrajyoti wrote:
+> From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> 
+> otherwise we could get our IRQ line disabled due
+> to many spurious IRQs.
 
---155748971-19803156-1345078093=:8833
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Patch description should be readable by itself. It is not a continuation of
+subject line.
 
-Hi Santosh,
-
-On Wed, 15 Aug 2012, Shilimkar, Santosh wrote:
-
-> On Wed, Aug 15, 2012 at 3:32 PM, Jean Pihet <jean.pihet@newoldbits.com> w=
-rote:
->
-> I didn't find any mention here about why are we going in this path and no=
-t
-> in the direction proposed in another RFC [1]
-> I have already given my comments[2] against the introduction of another P=
-D
-> layer which can be avoided easily as demonstrated by the RFC[1]. The comm=
-ents
-> are still applicable for this series too.
->=20
-> We really need to reduce OMAP specific framework overhead and
-> move towards more generic PM frameworks. For me, this series is
-> a step back-ward from that direction. Am really sorry for being critical
-> again but I remain unconvinced about this series and the problem it
-> is trying to solve.
->=20
-> May be you have valid reasons not to follow the approach in [1] and in
-> that case, it will be good to clarify that so that some of us get
-> to know your rationale.
-
-I've asked Jean to handle the work of evaluating and/or integrating any=20
-feedback from you and Rajendra into this series.  Jean, has this latest=20
-series fully considered those issues?  Or are there still some areas of=20
-misalignment / lack of clarity?
-
-Anyway.  If there's a problem with this process, it sounds like you,=20
-Rajendra, Jean, Beno=EEt and I should schedule some time to talk over the=
-=20
-same issues that you discussed with me on the phone.  Perhaps next week?
+> 
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 80ebcf5..eb6898b 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -962,7 +962,7 @@ complete:
+>  		}
+>  	} while (stat);
+>  
+> -	return count ? IRQ_HANDLED : IRQ_NONE;
+> +	return IRQ_HANDLED;
+>  }
+>  
+>  static const struct i2c_algorithm omap_i2c_algo = {
+> -- 
+> 1.7.5.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
 
 
-- Paul
---155748971-19803156-1345078093=:8833--
+Regards, 
+Gururaja
