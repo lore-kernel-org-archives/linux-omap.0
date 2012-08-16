@@ -1,65 +1,53 @@
-From: Sebastian Reichel <sre@ring0.de>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] media: rc: Introduce RX51 IR
- transmitter driver
-Date: Thu, 16 Aug 2012 13:21:04 +0200
-Message-ID: <20120816112103.GA1429@earth.universe>
-References: <E1T10iu-0000Xo-L8@www.linuxtv.org>
- <20120815160621.GV29636@valkosipuli.retiisi.org.uk>
- <502BFCA3.5040905@iki.fi>
- <20120816102328.GW29636@valkosipuli.retiisi.org.uk>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 3/6] OMAPDSS: DSI: Maintain copy of video mode timings
+ in driver data
+Date: Thu, 16 Aug 2012 17:27:10 +0530
+Message-ID: <502CE016.6060404@ti.com>
+References: <343817088-29645-1-git-send-email-archit@ti.com>  <1345102594-6222-1-git-send-email-archit@ti.com>  <1345102594-6222-4-git-send-email-archit@ti.com> <1345116666.15132.4.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120816102328.GW29636@valkosipuli.retiisi.org.uk>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55167 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752574Ab2HPL6k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 07:58:40 -0400
+In-Reply-To: <1345116666.15132.4.camel@lappyti>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+On Thursday 16 August 2012 05:01 PM, Tomi Valkeinen wrote:
+> On Thu, 2012-08-16 at 13:06 +0530, Archit Taneja wrote:
+>> The DSI driver currently relies on the omap_dss_device struct to receive the
+>> video mode timings requested by the panel driver. This makes the DSI interface
+>> driver dependent on the omap_dss_device struct.
+>>
+>> Make the DSI driver data maintain it's own video mode timings field. The panel
+>> driver is expected to call omapdss_dsi_set_videomode_timings() to configure the
+>> video mode timings before the interface is enabled. The function takes in a
+>> void pointer rather than a pointer to omap_dss_dsi_videomode_timings struct.
+>> This is because this function will finally be an output op shared across
+>> different outputs to set custom or private timings.
+>
+> I don't think the function should take a void * in any case. If we want
+> to share the function, it should take a struct that perhaps contains an
+> union of rfbi and dsi timings.
+>
+> But I'm not sure if there's any benefit for that...
+>
+> So do you see us having just one set_timings, which would take either
+> the normal video timings, rfbi timings or dsi timings?
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I thought of having 2 timing ops, one is a standard "modeline like" 
+set_timings(), and the other a vague-ish set_custom_timings(). For 
+us(OMAP), we need to use it for DSI videomode and RFBI, we may reduce 
+that to only RFBI later if we calculate for DSI timings automatically.
 
-Hi,
+For these extra timings to be consistent across SoCs, we would need to 
+align to get a common struct of some sort, which could then have unions 
+as you said. For now, I thought having a void pointer might suffice.
 
-> > It was an requirement back then that this driver needs to be a module as
-> > 99% of the N900 owners still don't even know they have this kind of
-> > capability on their devices, so it doesn't make sense to keep the module
-> > loaded unless the user actually needs it.
->=20
-> I don't think that's so important --- currently the vast majority of the
-> N900 users using the mainline kernel compile it themselves. It's more
-> important to have a clean implementation at this point.
+Archit
 
-I would like to enable this feature for the Debian OMAP kernel,
-which is not only used for N900, but also for Pandaboard, etc.
-
--- Sebastian
-
---KsGdsel6WgEHnImy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJQLNefAAoJENju1/PIO/qa9qoP+wR3iLyJ516w08aAuagLuajR
-/o2djTYUIHkhJ1D2Z7jSnN5rQTvrLVZG31KS+ytxf16zzRzVCmoeK20ReYSBAcBY
-j8Ebutps9CHLHmwf3ca/5w4/O5FUL1s1NuOLV/ztKT9whRamzeDfOhwqkesKDdCK
-7H6xjB/SRB8iwQpW5wdemVaZU9QSdBfhBZ4i1EkUgsYcmQversZLAas8J32BygLP
-ENzz/3y17aVi7Muw0xf3EBU13bgOHiRO4ZktzlK1+ErwlK4wOh4fnVNqmP4NkLyz
-R4CcYQQXyO/4ZK6M3nKm6pID/v23b5ocTrNprm+XhcLqs1wxArDKD3J26Yxpov4Q
-BDeHVzUKWJfLJCjhAkCPIfB6DyZR//M94XJ74p1SQKc7aBAVGiu58yE5k7HlnCjQ
-LS/20BQtVIXJKfCpbtVVpSYEqcUUjbIkxfGU3isNh+oJT305T4hbLkcR5Td31O8w
-2bcqY4sOsChGXJ7VdYgddDX1fAgBuyFjZDmU/cKixTWW5sstS4K3IkMfWa1j9YPy
-MDBMm6x9LkyqFcjtblIDsSdR16HQ993IB9A/HPqcYZOdTwtSeRwxAoCDjShKmv4O
-lbTkE/TkvIKvD+RfNrWonCGdXkls/0+camSmRs2PGI/hbGKtdTxXPSb4e6inlhLD
-sXvXF6/nnDppPyftTS+f
-=XXqc
------END PGP SIGNATURE-----
-
---KsGdsel6WgEHnImy--
