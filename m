@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 15/24] i2c: omap: simplify IRQ exit path
-Date: Thu, 16 Aug 2012 19:33:46 +0530
-Message-ID: <1345125835-15524-16-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 01/24] i2c: omap: switch to devm_* API
+Date: Thu, 16 Aug 2012 19:33:32 +0530
+Message-ID: <1345125835-15524-2-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,79 +14,127 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-instead of having multiple return points, use
-a goto statement to make that clearer.
+that helps deleting some boiler plate code
+and lets driver-core manage our resources
+for us.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   41 ++++++++++++-----------------------------
+ 1 files changed, 12 insertions(+), 29 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index eb6898b..b0b1705 100644
+index 6849635..6449383 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -853,24 +853,21 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+@@ -943,7 +943,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+-	struct resource		*mem, *irq, *ioarea;
++	struct resource		*mem, *irq;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+@@ -962,17 +962,16 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
  
- complete:
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+-	ioarea = request_mem_region(mem->start, resource_size(mem),
+-			pdev->name);
+-	if (!ioarea) {
+-		dev_err(&pdev->dev, "I2C region already claimed\n");
+-		return -EBUSY;
++	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
++	if (!dev) {
++		dev_err(&pdev->dev, "Menory allocation failed\n");
++		return -ENOMEM;
+ 	}
  
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+-	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
+-	if (!dev) {
+-		r = -ENOMEM;
+-		goto err_release_region;
++	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
++	if (!dev->base) {
++		dev_err(&pdev->dev, "I2C region already claimed\n");
++		return -ENOMEM;
+ 	}
  
- 		/*
-@@ -883,8 +880,7 @@ complete:
- 						OMAP_I2C_STAT_XRDY |
- 						OMAP_I2C_STAT_XDR |
- 						OMAP_I2C_STAT_ARDY));
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+ 	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
+@@ -995,11 +994,6 @@ omap_i2c_probe(struct platform_device *pdev)
  
- 		if (stat & OMAP_I2C_STAT_RDR) {
-@@ -949,19 +945,19 @@ complete:
- 			dev_err(dev->dev, "Receive overrun\n");
- 			err |= OMAP_I2C_STAT_ROVR;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+ 	dev->dev = &pdev->dev;
+ 	dev->irq = irq->start;
+-	dev->base = ioremap(mem->start, resource_size(mem));
+-	if (!dev->base) {
+-		r = -ENOMEM;
+-		goto err_free_mem;
+-	}
  
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			err |= OMAP_I2C_STAT_XUDF;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 	} while (stat);
+ 	platform_set_drvdata(pdev, dev);
+ 	init_completion(&dev->cmd_complete);
+@@ -1057,7 +1051,8 @@ omap_i2c_probe(struct platform_device *pdev)
  
-+out:
-+	omap_i2c_complete_cmd(dev, err);
- 	return IRQ_HANDLED;
+ 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
+ 								   omap_i2c_isr;
+-	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
++	r = devm_request_irq(&pdev->dev, dev->irq, isr, IRQF_NO_SUSPEND,
++			     pdev->name, dev);
+ 
+ 	if (r) {
+ 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
+@@ -1081,7 +1076,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	r = i2c_add_numbered_adapter(adap);
+ 	if (r) {
+ 		dev_err(dev->dev, "failure adding adapter\n");
+-		goto err_free_irq;
++		goto err_unuse_clocks;
+ 	}
+ 
+ 	of_i2c_register_devices(adap);
+@@ -1090,18 +1085,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ 
+ 	return 0;
+ 
+-err_free_irq:
+-	free_irq(dev->irq, dev);
+ err_unuse_clocks:
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(dev->dev);
+-	iounmap(dev->base);
+ 	pm_runtime_disable(&pdev->dev);
+ err_free_mem:
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(dev);
+-err_release_region:
+-	release_mem_region(mem->start, resource_size(mem));
+ 
+ 	return r;
+ }
+@@ -1109,12 +1098,10 @@ err_release_region:
+ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
+-	struct resource		*mem;
+ 	int ret;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	free_irq(dev->irq, dev);
+ 	i2c_del_adapter(&dev->adapter);
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (IS_ERR_VALUE(ret))
+@@ -1123,10 +1110,6 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
+ 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+ 	pm_runtime_put(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(dev->base);
+-	kfree(dev);
+-	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	release_mem_region(mem->start, resource_size(mem));
+ 	return 0;
  }
  
 -- 
