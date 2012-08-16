@@ -1,138 +1,89 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 23/24] i2c: omap: sanitize exit path
-Date: Thu, 16 Aug 2012 19:33:54 +0530
-Message-ID: <1345125835-15524-24-git-send-email-shubhrajyoti@ti.com>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCHv7 00/24] I2C big cleanup
+Date: Thu, 16 Aug 2012 16:15:38 +0200
+Message-ID: <20120816141538.GA13740@pengutronix.de>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54519 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932664Ab2HPOE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:04:56 -0400
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47769 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815Ab2HPOPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Aug 2012 10:15:42 -0400
+Content-Disposition: inline
 In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
 
-From: Felipe Balbi <balbi@ti.com>
 
-move the goto out label one line down, so that
-it can be used when stat is read as zero. All
-other exits, can be done with a break statement.
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-While at that, also break out as soon as we
-complete draining IRQ, since at that time
-we know we transferred everything there was
-to be transferred.
+On Thu, Aug 16, 2012 at 07:33:31PM +0530, Shubhrajyoti D wrote:
+> Changes since v1:
+>        - removed tabification on patch 6/17
+>        - removed dev_err() which was introduced on patch 09/17
+> Changes since v2:
+>         - do not set full fifo depth in the RDR interrupt.
+>         - some changelog updates.
+>         - rebase to the Wolfram's tree.
+> Changes since v3:
+>         - Remove a redundant read of status register
+>         - Read the dev->buf_len variable instead of the register
+>         as the information of the remaining bytes is there.
+> Changes since v4:
+>         - Ack the arbitration lost.
+>         - Rebase to the i2c-embedded/for-next branch.
+> Changes since v5:
+>         - Rebase to latest mainline
+>         - Added some more cleanup patches so as have a consolidated serie=
+s.
+> Changes since v6:
+>         - Fix comments on setting the pdev to NULL.
+>         - Trivial changelog update
+>=20
+> Tested on omap4sdp and 3430sdp.
+>=20
+> The following changes since commit 3bf671af14d591ede9251acb0085e8017f3705=
+e7:
+>=20
+>   Merge branch 'fixes-for-3.6' of git://git.kernel.org/pub/scm/linux/kern=
+el/git/cooloney/linux-leds (2012-08-13 09:59:04 +0300)
+>=20
+> are available in the git repository at:
+>=20
+>   git://gitorious.org/linus-tree/linus-tree.git for_3.6/i2c/big_cleanup
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+A GIT tree, thanks for that!
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d81189a..3df6f92 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -901,27 +901,26 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 		if (!stat) {
- 			/* my work here is done */
--			spin_unlock_irqrestore(&dev->lock, flags);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
--			goto out;
-+			break;
- 		}
- 
- 		/*
-@@ -934,7 +933,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 						OMAP_I2C_STAT_XRDY |
- 						OMAP_I2C_STAT_XDR |
- 						OMAP_I2C_STAT_ARDY));
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RDR) {
-@@ -949,7 +948,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 				i2c_omap_errata_i207(dev, stat);
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_RDR);
--			continue;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_RRDY) {
-@@ -972,10 +971,10 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 			ret = omap_i2c_transmit_data(dev, num_bytes, true);
- 			if (ret < 0)
--				goto out;
-+				break;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XDR);
--			continue;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XRDY) {
-@@ -987,7 +986,7 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 
- 			ret = omap_i2c_transmit_data(dev, num_bytes, false);
- 			if (ret < 0)
--				goto out;
-+				break;
- 
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XRDY);
- 			continue;
-@@ -997,19 +996,20 @@ omap_i2c_isr_thread(int this_irq, void *dev_id)
- 			dev_err(dev->dev, "Receive overrun\n");
- 			err |= OMAP_I2C_STAT_ROVR;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
--			goto out;
-+			break;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			err |= OMAP_I2C_STAT_XUDF;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
--			goto out;
-+			break;
- 		}
- 	} while (stat);
- 
--out:
- 	omap_i2c_complete_cmd(dev, err);
-+
-+out:
- 	spin_unlock_irqrestore(&dev->lock, flags);
- 
- 	return IRQ_HANDLED;
--- 
-1.7.5.4
+Since the series is quite huge, I'd appreciate it if you could wait for
+reviews a little bit (a few days) and collect the issues raised there
+before resending. I know "release early & often", yet the traffic causes
+some overhead here :)
 
+Thanks,
+
+   Wolfram
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlAtAIoACgkQD27XaX1/VRsxHACeKJ8p59AzCiEwpBNm6rFQ1yft
+DsIAn0P9xM0DPsvGyy6yXy6UgKl/H+RS
+=owlh
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
