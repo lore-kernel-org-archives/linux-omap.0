@@ -1,28 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430
- SOC
-Date: Thu, 16 Aug 2012 01:39:24 -0700
-Message-ID: <20120816083923.GK11011@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH v2 04/14] ARM: OMAP5: Add minimal support for OMAP5430 SOC
+Date: Thu, 16 Aug 2012 09:36:44 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA91188@DBDE01.ent.ti.com>
 References: <1341566515-22665-1-git-send-email-santosh.shilimkar@ti.com>
  <1341566515-22665-5-git-send-email-santosh.shilimkar@ti.com>
- <4FFA9B61.8030808@ti.com>
- <20120709131156.GH1122@atomide.com>
+ <4FFA9B61.8030808@ti.com> <20120709131156.GH1122@atomide.com>
  <alpine.DEB.2.00.1208151618590.1731@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45944 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955Ab2HPIj2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Aug 2012 04:39:28 -0400
-Content-Disposition: inline
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <alpine.DEB.2.00.1208151618590.1731@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: "R, Sricharan" <r.sricharan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar,
+ Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
 
-* Paul Walmsley <paul@pwsan.com> [120815 15:27]:
+On Thu, Aug 16, 2012 at 03:56:42, Paul Walmsley wrote:
 > Hi
 > 
 > On Mon, 9 Jul 2012, Tony Lindgren wrote:
@@ -31,9 +35,7 @@ Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.
 > 
 > That's fine with me.  Do you want to queue it or do you want me to queue 
 > it?
-
-Probably best for you to take it along with other related patches.
- 
+> 
 > > Heh these CK_XXXX defines are now running out of the u16 cpu_mask.
 > > 
 > > They really should be replaced with SoC specific lists of clocks
@@ -44,9 +46,7 @@ Probably best for you to take it along with other related patches.
 > bloat concerns for multi-OMAP kernels.  If it were up to me, I'd just 
 > change it to a u32 and be done with the problem for the foreseeable 
 > future.
-
-And then we're wasting that 1.6KB..
- 
+> 
 > > I wonder if we could #define CK_OMAP_DUMMY 0 that's always set
 > > for non-shared clocks if they only get set in some *_data.c
 > > file in a unique way?
@@ -57,9 +57,14 @@ And then we're wasting that 1.6KB..
 > some point we should convert the clock initialization to using some kind 
 > of per-SoC list.  But it doesn't seem worth spending too much time on that 
 > while the common clock framework conversion is higher priority.
+> 
+> 
 
-Right, let's do the ifdef else thing then.
+This reminds me for AM33xx clock-tree migration to common-clock framework,
+so just wanted to update on this, I have already converted the clock-tree to 
+common-clock fw, on top of Rajendra's repository.
 
-Regards,
+Now waiting on Rajendra for his next series...
 
-Tony
+Thanks,
+Vaibhav
