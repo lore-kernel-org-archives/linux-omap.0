@@ -1,104 +1,114 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 4/6] OMAPDSS: RFBI: Maitain copy of rfbi timings in driver data
-Date: Thu, 16 Aug 2012 13:06:32 +0530
-Message-ID: <1345102594-6222-5-git-send-email-archit@ti.com>
+Subject: [PATCH 5/6] OMAPDSS: VENC: Maintain copy of venc type in driver data
+Date: Thu, 16 Aug 2012 13:06:33 +0530
+Message-ID: <1345102594-6222-6-git-send-email-archit@ti.com>
 References: <343817088-29645-1-git-send-email-archit@ti.com>
  <1345102594-6222-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42135 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42141 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753102Ab2HPHiV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 03:38:21 -0400
+	id S1751606Ab2HPHiZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 03:38:25 -0400
 In-Reply-To: <1345102594-6222-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The RFBI driver currently relies on the omap_dss_device struct to receive the
-rfbi specific timings requested by the panel driver. This makes the RFBI
-interface driver dependent on the omap_dss_device struct.
+The VENC driver currently relies on the omap_dss_device struct to configure the
+venc type. This makes the VENC interface driver dependent on the omap_dss_device
+struct.
 
-Make the RFBI driver data maintain it's own rfbi specific timings field. The
-panel driver is expected to call omapdss_rfbi_set_interface_timings() to
-configure the rfbi timings before the interface is enabled. The function takes
-a void pointer rather than a pointer to rfbi_timings struct. This is because
-this function will finally be an output op shared across different outputs to
-set custom or private timings.
+Make the VENC driver data maintain it's own 'venc type' field. A panel driver
+is expected to call omapdss_venc_set_type() before enabling the interface or
+changing the type via display sysfs attributes.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-n8x0.c |    2 ++
- drivers/video/omap2/dss/rfbi.c            |   14 +++++++++++---
- include/video/omapdss.h                   |    2 ++
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/video/omap2/dss/dss.h        |    2 ++
+ drivers/video/omap2/dss/venc.c       |   15 +++++++++++++--
+ drivers/video/omap2/dss/venc_panel.c |    2 ++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-index 3ffd987..14adc1d 100644
---- a/drivers/video/omap2/displays/panel-n8x0.c
-+++ b/drivers/video/omap2/displays/panel-n8x0.c
-@@ -307,6 +307,8 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
- 		dssdev->panel.timings.y_res);
- 	omapdss_rfbi_set_pixel_size(dssdev, dssdev->ctrl.pixel_size);
- 	omapdss_rfbi_set_data_lines(dssdev, dssdev->phy.rfbi.data_lines);
-+	omapdss_rfbi_set_interface_timings(dssdev,
-+		(void *) &dssdev->ctrl.rfbi_timings);
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index f919dc8..c17d298 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -477,6 +477,8 @@ int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
+ 		struct omap_video_timings *timings);
+ u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev);
+ int omapdss_venc_set_wss(struct omap_dss_device *dssdev, u32 wss);
++void omapdss_venc_set_type(struct omap_dss_device *dssdev,
++		enum omap_dss_venc_type type);
+ int venc_panel_init(void);
+ void venc_panel_exit(void);
  
- 	r = omapdss_rfbi_display_enable(dssdev);
- 	if (r)
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 698d5b9..b5b0bc6 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -115,6 +115,7 @@ static struct {
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index d96025e..2d90fcf 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -302,6 +302,7 @@ static struct {
+ 	struct clk	*tv_dac_clk;
+ 
  	struct omap_video_timings timings;
- 	int pixel_size;
- 	int data_lines;
-+	struct rfbi_timings intf_timings;
- } rfbi;
++	enum omap_dss_venc_type type;
+ } venc;
  
- static inline void rfbi_write_reg(const struct rfbi_reg idx, u32 val)
-@@ -799,6 +800,15 @@ void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
+ static inline void venc_write_reg(int idx, u32 val)
+@@ -436,12 +437,12 @@ static int venc_power_on(struct omap_dss_device *dssdev)
+ 	venc_reset();
+ 	venc_write_config(venc_timings_to_config(&venc.timings));
+ 
+-	dss_set_venc_output(dssdev->phy.venc.type);
++	dss_set_venc_output(venc.type);
+ 	dss_set_dac_pwrdn_bgz(1);
+ 
+ 	l = 0;
+ 
+-	if (dssdev->phy.venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE)
++	if (venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE)
+ 		l |= 1 << 1;
+ 	else /* S-Video */
+ 		l |= (1 << 0) | (1 << 2);
+@@ -628,6 +629,16 @@ err:
+ 	return r;
  }
- EXPORT_SYMBOL(omapdss_rfbi_set_data_lines);
  
-+void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
-+		void *timings)
++void omapdss_venc_set_type(struct omap_dss_device *dssdev,
++		enum omap_dss_venc_type type)
 +{
-+	struct rfbi_timings *t = (struct rfbi_timings *) timings;
++	mutex_lock(&venc.venc_lock);
 +
-+	rfbi.intf_timings = *t;
++	venc.type = type;
++
++	mutex_unlock(&venc.venc_lock);
 +}
-+EXPORT_SYMBOL(omapdss_rfbi_set_interface_timings);
 +
- static void rfbi_dump_regs(struct seq_file *s)
+ static int __init venc_init_display(struct omap_dss_device *dssdev)
  {
- #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
-@@ -907,9 +917,7 @@ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
- 	rfbi_configure(dssdev->phy.rfbi.channel, rfbi.pixel_size,
- 			rfbi.data_lines);
+ 	DSSDBG("init_display\n");
+diff --git a/drivers/video/omap2/dss/venc_panel.c b/drivers/video/omap2/dss/venc_panel.c
+index 8096369..ef21361 100644
+--- a/drivers/video/omap2/dss/venc_panel.c
++++ b/drivers/video/omap2/dss/venc_panel.c
+@@ -68,6 +68,7 @@ static ssize_t display_output_type_store(struct device *dev,
  
--	rfbi_set_timings(dssdev->phy.rfbi.channel,
--			 &dssdev->ctrl.rfbi_timings);
--
-+	rfbi_set_timings(dssdev->phy.rfbi.channel, &rfbi.intf_timings);
+ 	if (dssdev->phy.venc.type != new_type) {
+ 		dssdev->phy.venc.type = new_type;
++		omapdss_venc_set_type(dssdev, new_type);
+ 		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+ 			omapdss_venc_display_disable(dssdev);
+ 			omapdss_venc_display_enable(dssdev);
+@@ -128,6 +129,7 @@ static int venc_panel_enable(struct omap_dss_device *dssdev)
+ 	}
  
- 	return 0;
- err1:
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index faac986..91eba93 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -765,5 +765,7 @@ void omapdss_rfbi_set_pixel_size(struct omap_dss_device *dssdev,
- 		int pixel_size);
- void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev,
- 		int data_lines);
-+void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
-+		void *timings);
+ 	omapdss_venc_set_timings(dssdev, &dssdev->panel.timings);
++	omapdss_venc_set_type(dssdev, dssdev->phy.venc.type);
  
- #endif
+ 	r = omapdss_venc_display_enable(dssdev);
+ 	if (r)
 -- 
 1.7.9.5
 
