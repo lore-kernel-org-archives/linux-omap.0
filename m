@@ -1,116 +1,75 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv7 05/24] i2c: omap: simplify omap_i2c_ack_stat()
-Date: Thu, 16 Aug 2012 19:33:36 +0530
-Message-ID: <1345125835-15524-6-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv7 11/24] i2c: omap: switch to platform_get_irq()
+Date: Thu, 16 Aug 2012 19:33:42 +0530
+Message-ID: <1345125835-15524-12-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36358 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932660Ab2HPOEz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Aug 2012 10:04:55 -0400
+In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 
-stat & BIT(1) is the same as BIT(1), so let's
-simplify things a bit by removing "stat &" from
-all omap_i2c_ack_stat() calls.
+that's a nice helper from drivers core which
+will give us the exact IRQ number, instead
+of a pointer to an IRQ resource.
 
-Code snippet (extremely simplified):
-
-if (stat & NACK) {
-        ...
-        omap_i2c_ack_stat(dev, stat & NACK);
-}
-
-if (stat & RDR) {
-        ...
-        omap_i2c_ack_stat(dev, stat & RDR);
-}
-
-and so on. The tricky place is only WRT errata handling, for example:
-
-if (*stat & (NACK | AL)) {
-        omap_i2c_ack_stat(dev, *stat & (XRDY | XDR));
-        ...
-}
-
-but in this case, the errata says we must clear XRDY and XDR if that
-errata triggers, so if they just got enabled or not, it doesn't matter.
-
-Another tricky place is RDR | RRDY (likewise for XDR | XRDY):
-
-if (stat & (RDR | RRDY)) {
-        ...
-        omap_i2c_ack_stat(dev, stat & (RDR | RRDY));
-}
-
-again here there will be no issues because those IRQs never fire
-simultaneously and one will only after after we have handled the
-previous, that's because the same FIFO is used anyway and we won't shift
-data into FIFO until we tell the IP "hey, I'm done with the FIFO, you
-can shift more data"
-
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Reviewed-by : Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-[Added the explaination from the discurssion to the commit logs]
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index dbc5a3c..8009095 100644
+index 0adbfb1..e9907b5 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -731,7 +731,7 @@ static int errata_omap3_i462(struct omap_i2c_dev *dev, u16 *stat, int *err)
+@@ -993,11 +993,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+-	struct resource		*mem, *irq;
++	struct resource		*mem;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 	irq_handler_t isr;
++	int irq;
+ 	int r;
  
- 	while (--timeout && !(*stat & OMAP_I2C_STAT_XUDF)) {
- 		if (*stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
--			omap_i2c_ack_stat(dev, *stat & (OMAP_I2C_STAT_XRDY |
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
- 							OMAP_I2C_STAT_XDR));
- 			return -ETIMEDOUT;
- 		}
-@@ -792,10 +792,11 @@ complete:
- 		 */
- 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
- 					OMAP_I2C_STAT_AL)) {
--			omap_i2c_ack_stat(dev, stat &
--				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
--				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
--				OMAP_I2C_STAT_ARDY));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
-+						OMAP_I2C_STAT_RDR |
-+						OMAP_I2C_STAT_XRDY |
-+						OMAP_I2C_STAT_XDR |
-+						OMAP_I2C_STAT_ARDY));
- 			omap_i2c_complete_cmd(dev, err);
- 			return IRQ_HANDLED;
- 		}
-@@ -842,8 +843,8 @@ complete:
- 					}
- 				}
- 			}
--			omap_i2c_ack_stat(dev,
--				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_RRDY |
-+						OMAP_I2C_STAT_RDR));
- 			continue;
- 		}
+ 	/* NOTE: driver uses the static register mapping */
+@@ -1006,10 +1007,11 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "no mem resource?\n");
+ 		return -ENODEV;
+ 	}
+-	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!irq) {
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
+ 		dev_err(&pdev->dev, "no irq resource?\n");
+-		return -ENODEV;
++		return irq;
+ 	}
  
-@@ -890,8 +891,8 @@ complete:
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
+@@ -1043,7 +1045,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	}
  
- 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
--			omap_i2c_ack_stat(dev,
--				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-+			omap_i2c_ack_stat(dev, (OMAP_I2C_STAT_XRDY |
-+						OMAP_I2C_STAT_XDR));
- 			continue;
- 		}
+ 	dev->dev = &pdev->dev;
+-	dev->irq = irq->start;
++	dev->irq = irq;
  
+ 	platform_set_drvdata(pdev, dev);
+ 	init_completion(&dev->cmd_complete);
 -- 
 1.7.5.4
+
