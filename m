@@ -1,24 +1,39 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] regulator: twl-regulator: fix up VINTANA1/VINTANA2
-Date: Thu, 16 Aug 2012 13:21:54 +0530
-Message-ID: <502CA69A.2000500@ti.com>
-References: <1344982205-21186-1-git-send-email-aaro.koskinen@iki.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Fate of OMAP3-Touchbook board
+Date: Thu, 16 Aug 2012 01:35:40 -0700
+Message-ID: <20120816083540.GJ11011@atomide.com>
+References: <502C0BF4.4010502@mrkva.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1344982205-21186-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41622 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab2HPIfn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Aug 2012 04:35:43 -0400
+Content-Disposition: inline
+In-Reply-To: <502C0BF4.4010502@mrkva.eu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Radek Pilar <mrkva@mrkva.eu>
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 15 August 2012 03:40 AM, Aaro Koskinen wrote:
-> It seems commit 2098e95ce9bb039ff2e7bf836df358d18a176139 (regulator: twl:
-> adapt twl-regulator driver to dt) accidentally deleted VINTANA1. Also
-> the same commit defines VINTANA2 twice with TWL4030_ADJUSTABLE_LDO and
-> TWL4030_FIXED_LDO. This patch changes the fixed one to be VINTANA1.
+* Radek Pilar <mrkva@mrkva.eu> [120815 14:00]:
+> Hello,
+> a few months ago, Always Innovating - a company behind their OMAP3 based
+> product Touchbook basically stopped production. I've been porting some
+> specific drivers for current kernels since then and I'd like to push at
+> least some of them to the mainline.
+> However, I found  a bug in mainline that prevents this device from
+> booting - and looks like noone has reported it for a few months.
+> So, I'd like to ask - do you want to keep this board in mainline (in
+> this case, I can send a few patches adding few drivers (backlight,
+> accelerometer, soundcard, keyboard). Or do you want to remove it from
+> the mainline altogether?
 
-Thanks for the fix, the commit does seem to have mixed up things.
+The fix should be posted for -rc cycle. Minimal patches for the board-*.c
+files are OK, but we should put most effort making things usable with
+device tree based booting.
 
-Acked-by: Rajendra Nayak <rnayak@ti.com>
+Regards,
+
+Tony
