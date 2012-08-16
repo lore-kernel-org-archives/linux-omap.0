@@ -1,73 +1,56 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 04/24] i2c: omap: add blank lines
-Date: Thu, 16 Aug 2012 19:33:35 +0530
-Message-ID: <1345125835-15524-5-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv7 02/24] i2c: omap: simplify num_bytes handling
+Date: Thu, 16 Aug 2012 19:33:33 +0530
+Message-ID: <1345125835-15524-3-git-send-email-shubhrajyoti@ti.com>
 References: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36400 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757313Ab2HPOFL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Aug 2012 10:05:11 -0400
-In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1345125835-15524-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-trivial patch to aid readability. No functional
-changes.
+trivial patch, no functional changes
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+If the fifo is disabled or fifo_size is 0 the num_bytes
+is set to 1. Else it is set to fifo_size or in case of a
+draining interrupt the remaining bytes in the buff stat.
+So the zero check is redundant and can be safely optimised.
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Reviewed-by : Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 81ef0a7..dbc5a3c 100644
+index 6449383..9b003a3 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -786,6 +786,7 @@ complete:
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 		}
-+
- 		/*
- 		 * ProDB0017052: Clear ARDY bit twice
- 		 */
-@@ -798,6 +799,7 @@ complete:
- 			omap_i2c_complete_cmd(dev, err);
- 			return IRQ_HANDLED;
- 		}
-+
- 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
- 			u8 num_bytes = 1;
- 
-@@ -844,6 +846,7 @@ complete:
- 				stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR));
- 			continue;
- 		}
-+
- 		if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
- 			u8 num_bytes = 1;
- 			if (dev->fifo_size) {
-@@ -891,10 +894,12 @@ complete:
- 				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
- 			continue;
- 		}
-+
- 		if (stat & OMAP_I2C_STAT_ROVR) {
- 			dev_err(dev->dev, "Receive overrun\n");
- 			dev->cmd_err |= OMAP_I2C_STAT_ROVR;
- 		}
-+
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
+@@ -812,8 +812,7 @@ complete:
+ 							OMAP_I2C_BUFSTAT_REG)
+ 							>> 8) & 0x3F;
+ 			}
+-			while (num_bytes) {
+-				num_bytes--;
++			while (num_bytes--) {
+ 				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
+ 				if (dev->buf_len) {
+ 					*dev->buf++ = w;
+@@ -855,8 +854,7 @@ complete:
+ 							OMAP_I2C_BUFSTAT_REG)
+ 							& 0x3F;
+ 			}
+-			while (num_bytes) {
+-				num_bytes--;
++			while (num_bytes--) {
+ 				w = 0;
+ 				if (dev->buf_len) {
+ 					w = *dev->buf++;
 -- 
 1.7.5.4
-
