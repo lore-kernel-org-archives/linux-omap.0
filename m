@@ -1,86 +1,212 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-V3] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
-Date: Fri, 17 Aug 2012 01:40:47 -0700
-Message-ID: <20120817084047.GN11011@atomide.com>
-References: <1343214422-28718-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1207251438210.23542@utopia.booyaka.com>
- <alpine.DEB.2.00.1207261359500.14468@utopia.booyaka.com>
- <20120814082911.GG11011@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA8F4CD@DBDE01.ent.ti.com>
- <20120817074934.GL11011@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA92062@DBDE01.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Add initialisation for the real-time counter.
+Date: Fri, 17 Aug 2012 14:17:31 +0530
+Message-ID: <CAMQu2gwe-6u6-i5xktr604BFSmSfJuDZzF=NE6ZzX0OngKDsvQ@mail.gmail.com>
+References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
+ <1344856045-15134-2-git-send-email-santosh.shilimkar@ti.com>
+ <50293AC8.7010403@ti.com> <CAMQu2gw=W7J5Yy029XRb68H_J2yXYT9u93480vSr9J23C5jZ3g@mail.gmail.com>
+ <79CD15C6BA57404B839C016229A409A83EA8E131@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59378 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755265Ab2HQIkv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Aug 2012 04:40:51 -0400
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA92062@DBDE01.ent.ti.com>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:48624 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755440Ab2HQIrx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Aug 2012 04:47:53 -0400
+Received: by yhjj56 with SMTP id j56so4107995yhj.6
+        for <linux-omap@vger.kernel.org>; Fri, 17 Aug 2012 01:47:51 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA8E131@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.orig" <linux-arm-kernel@lists.infradead.orig>, "tony@atomide.com" <tony@atomide.com>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120817 01:22]:
-> On Fri, Aug 17, 2012 at 13:19:34, Tony Lindgren wrote:
-> > * Hiremath, Vaibhav <hvaibhav@ti.com> [120815 02:11]:
-> > > 
-> > > Somehow we have to have some mechanism to initialize " _mpu_rt_va" before 
-> > > core_init call, which will take DT resources and initialize accordingly.
-> > 
-> > That's for the device reset/idle? We should not do that in hwmod code
-> > except in late_initcall for unclaimed devices as discussed earlier. We
-> > discussed setting up the reset function in the device specific headers
-> > so both device and hwmod code can call them as needed.
-> 
-> May be I didn't understand your above statement, can you please elaborate 
-> more on "device specific header file"?
+On Tue, Aug 14, 2012 at 11:52 AM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+>
+> On Tue, Aug 14, 2012 at 11:46:35, Shilimkar, Santosh wrote:
+> > On Mon, Aug 13, 2012 at 11:05 PM, Vaibhav Hiremath <hvaibhav@ti.com>
+> > wrote:
+> > >
 
-We should have the device drivers idle and reset the devices. But also
-hwmod may need to do that for the unclaimed devices for PM to work. 
-As the driver may not be even compiled in, the driver specific reset and
-idle functions should be static inline functions in the device specific
-header file so hwmod code can still call those.
- 
-> Just to highlight, its not only during late_initcall, the _enable and _idle 
-> functions are getting executed as part of every runtime_pm_get\put_sync from 
-> the driver.
+[...]
 
-Right, so no need to initialize those until at driver probe time.
- 
-> Are you saying as part of late_initcall, we should initialize " _mpu_rt_va" 
-> of "struct omap_hwmod"???
+> > > Also, does it make sense to get rid of hardcoded values above?
+> > >
+> > Actually not. Because the values are fixed since the counter
+> > clock-rate is hardwired to be 6.144 MHz and hence all the
+> > other numbers becomes constant. All these numbers are
+> > coming from TRM and not from any formula. I don't wanted
+> > to go on mathematical equation path since all the values
+> > are well documented.
+> >
+>
+> Yes, I looked at the TRM and they are well documented there.
+> I would atleast suggest you to state that, these values are coming
+> directly
+> from TRM and possibly give reference to the TRM section here.
+>
+Added the TRM chapter information and iounmap() change.
+Updated patch at end of the email.
 
-I guess either at driver probe for the claimed devices, or at late_initcall
-for the unclaimeded devices.
+Regards
+Santosh
 
-> Also, as far unclaimed resources is concerned, somewhere you should have 
-> base addr of the device maintained, right? Currently, hwmod is maintaining 
-> this data and the execution goes something like,
-> 
-> Core_initcall()
-> 	-> _setup()
-> 		-> _setup_reset()
-> 		-> _idle()
+>From aae85431b1a0e985bbc5611972642e96a1501368 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 13 Aug 2012 14:24:24 +0530
+Subject: [PATCH 1/2] ARM: OMAP: Add initialisation for the real-time counter.
 
-For the DT only case also the unclaimed devices can from DT with
-status = "disabled". 
- 
-> Another biggest worry is, if I play here, it may break existing omap3/4 
-> Functionality, especially may impact from PM perspective. So I believe, we 
-> need to have something which adds/cleans-up things in stages.
+The real time counter also called master counter, is a free-running
+counter. It produces the count used by the CPU local timer peripherals
+in the MPU cluster. The timer counts at a rate of 6.144 MHz.
 
-It seems that we need three stages: Something early for the timers only,
-initialize most things during driver probe, then late_initcall for the
-unclaimed devices.
+The ratio registers needs to be configured based on system clock
+only onetime. After initialisation, hardware takes care of adjusting
+the clock in different low power modes to keep counter rate constant.
 
-> May be get rid of resource overwriting for AM33xx and OMAP5 alone as of 
-> now??
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/Kconfig |    4 ++
+ arch/arm/mach-omap2/timer.c |   90 ++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 93 insertions(+), 1 deletion(-)
 
-Sorry I don't follow this part, care to explain a little more?
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index dd2db02..2120f90 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -24,6 +24,9 @@ config ARCH_OMAP2PLUS_TYPICAL
+ config SOC_HAS_OMAP2_SDRC
+ 	bool "OMAP2 SDRAM Controller support"
 
-Regards,
++config SOC_HAS_REALTIME_COUNTER
++	bool "Real time free running counter"
++
+ config ARCH_OMAP2
+ 	bool "TI OMAP2"
+ 	depends on ARCH_OMAP2PLUS
+@@ -69,6 +72,7 @@ config SOC_OMAP5
+ 	select CPU_V7
+ 	select ARM_GIC
+ 	select HAVE_SMP
++	select SOC_HAS_REALTIME_COUNTER
 
-Tony
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 2ff6d41..fd5c048 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -69,6 +69,11 @@
+ #define OMAP3_SECURE_TIMER	1
+ #endif
+
++#define REALTIME_COUNTER_BASE				0x48243200
++#define INCREMENTER_NUMERATOR_OFFSET			0x10
++#define INCREMENTER_DENUMERATOR_RELOAD_OFFSET		0x14
++#define NUMERATOR_DENUMERATOR_MASK			0xfffff000
++
+ /* Clockevent code */
+
+ static struct omap_dm_timer clkev;
+@@ -339,6 +344,84 @@ static void __init omap2_clocksource_init(int gptimer_id,
+ 		omap2_gptimer_clocksource_init(gptimer_id, fck_source);
+ }
+
++#ifdef CONFIG_SOC_HAS_REALTIME_COUNTER
++/*
++ * The realtime counter also called master counter, is a free-running
++ * counter, which is related to real time. It produces the count used
++ * by the CPU local timer peripherals in the MPU cluster. The timer counts
++ * at a rate of 6.144 MHz. Because the device operates on different clocks
++ * in different power modes, the master counter shifts operation between
++ * clocks, adjusting the increment per clock in hardware accordingly to
++ * maintain a constant count rate.
++ */
++static void __init realtime_counter_init(void)
++{
++	void __iomem *base;
++	static struct clk *sys_clk;
++	unsigned long rate;
++	unsigned int reg, num, den;
++
++	base = ioremap(REALTIME_COUNTER_BASE, SZ_32);
++	if (!base) {
++		pr_err("%s: ioremap failed\n", __func__);
++		return;
++	}
++	sys_clk = clk_get(NULL, "sys_clkin_ck");
++	if (!sys_clk) {
++		pr_err("%s: failed to get system clock handle\n", __func__);
++		iounmap(base);
++		return;
++	}
++
++	rate = clk_get_rate(sys_clk);
++	/* Numerator/denumerator values refer TRM Realtime Counter section */
++	switch (rate) {
++	case 1200000:
++		num = 64;
++		den = 125;
++		break;
++	case 1300000:
++		num = 768;
++		den = 1625;
++		break;
++	case 19200000:
++		num = 8;
++		den = 25;
++		break;
++	case 2600000:
++		num = 384;
++		den = 1625;
++		break;
++	case 2700000:
++		num = 256;
++		den = 1125;
++		break;
++	case 38400000:
++	default:
++		/* Program it for 38.4 MHz */
++		num = 4;
++		den = 25;
++		break;
++	}
++
++	/* Program numerator and denumerator registers */
++	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
++			NUMERATOR_DENUMERATOR_MASK;
++	reg |= num;
++	__raw_writel(reg, base + INCREMENTER_NUMERATOR_OFFSET);
++
++	reg = __raw_readl(base + INCREMENTER_NUMERATOR_OFFSET) &
++			NUMERATOR_DENUMERATOR_MASK;
++	reg |= den;
++	__raw_writel(reg, base + INCREMENTER_DENUMERATOR_RELOAD_OFFSET);
++
++	iounmap(base);
++}
++#else
++static inline void __init realtime_counter_init(void)
++{}
++#endif
++
+ #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
+ 				clksrc_nr, clksrc_src)			\
+ static void __init omap##name##_timer_init(void)			\
+@@ -396,7 +479,12 @@ OMAP_SYS_TIMER(4)
+ #endif
+
+ #ifdef CONFIG_SOC_OMAP5
+-OMAP_SYS_TIMER_INIT(5, 1, OMAP4_CLKEV_SOURCE, 2, OMAP4_MPU_SOURCE)
++static void __init omap5_timer_init(void)
++{
++	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
++	omap2_clocksource_init(2, OMAP4_MPU_SOURCE);
++	realtime_counter_init();
++}
+ OMAP_SYS_TIMER(5)
+ #endif
+
+-- 
+1.7.9.5
