@@ -1,179 +1,170 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH-V3] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
-Date: Fri, 17 Aug 2012 13:43:11 +0200
-Message-ID: <502E2E4F.9040301@ti.com>
-References: <1343214422-28718-1-git-send-email-hvaibhav@ti.com> <alpine.DEB.2.00.1207251438210.23542@utopia.booyaka.com> <alpine.DEB.2.00.1207261359500.14468@utopia.booyaka.com> <20120814082911.GG11011@atomide.com> <79CD15C6BA57404B839C016229A409A83EA8F4CD@DBDE01.ent.ti.com> <20120817074934.GL11011@atomide.com> <79CD15C6BA57404B839C016229A409A83EA92062@DBDE01.ent.ti.com> <20120817084047.GN11011@atomide.com> <79CD15C6BA57404B839C016229A409A83EA9220D@DBDE01.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC RESEND 2/4] ARM: OMAP3: Dynamically disable secure timer
+ nodes for secure devices
+Date: Fri, 17 Aug 2012 07:24:09 -0500
+Message-ID: <502E37E9.3060201@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-3-git-send-email-jon-hunter@ti.com> <502B6838.9080907@ti.com> <502D2686.4090107@ti.com> <79CD15C6BA57404B839C016229A409A83EA91D63@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45276 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34759 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757171Ab2HQLnT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Aug 2012 07:43:19 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA9220D@DBDE01.ent.ti.com>
+	id S1751602Ab2HQMYL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Aug 2012 08:24:11 -0400
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA91D63@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Vaibhav,
 
-On 08/17/2012 11:51 AM, Hiremath, Vaibhav wrote:
-> On Fri, Aug 17, 2012 at 14:10:47, Tony Lindgren wrote:
->> * Hiremath, Vaibhav <hvaibhav@ti.com> [120817 01:22]:
->>> On Fri, Aug 17, 2012 at 13:19:34, Tony Lindgren wrote:
->>>> * Hiremath, Vaibhav <hvaibhav@ti.com> [120815 02:11]:
->>>>>
->>>>> Somehow we have to have some mechanism to initialize " _mpu_rt_va" before 
->>>>> core_init call, which will take DT resources and initialize accordingly.
+On 08/17/2012 12:32 AM, Hiremath, Vaibhav wrote:
+> On Thu, Aug 16, 2012 at 22:27:42, Hunter, Jon wrote:
+>>
+>> On 08/15/2012 04:13 AM, Vaibhav Hiremath wrote:
+>>>
+>>>
+>>> On 7/14/2012 3:56 AM, Jon Hunter wrote:
+>>>> OMAP3 devices may or may not have security features enabled. Security enabled
+>>>> devices are known as high-secure (HS) and devices without security are known as
+>>>> general purpose (GP).
 >>>>
->>>> That's for the device reset/idle? We should not do that in hwmod code
->>>> except in late_initcall for unclaimed devices as discussed earlier. We
->>>> discussed setting up the reset function in the device specific headers
->>>> so both device and hwmod code can call them as needed.
+>>>> For OMAP3 devices there are 12 general purpose timers available. On secure
+>>>> devices the 12th timer is reserved for secure usage and so cannot be used by
+>>>> the kernel, where as for a GP device it is available. We can detect the OMAP
+>>>> device type, secure or GP, at runtime via an on-chip register. Today, when not
+>>>> using DT, we do not register the 12th timer as a linux device if the device is
+>>>> secure.
+>>>>
+>>>> When using device tree, device tree is going to register all the timer devices
+>>>> it finds in the device tree blob. To prevent device tree from registering 12th
+>>>> timer on a secure OMAP3 device we can add a status property to the timer
+>>>> binding with the value "disabled" at boot time. Note that timer 12 on a OMAP3
+>>>> device has a property "ti,timer-secure" to indicate that it will not be
+>>>> available on a secure device and so for secure OMAP3 devices, we search for
+>>>> timers with this property and then disable them. Using the prom_add_property()
+>>>> function to dynamically add a property was a recommended approach suggested by
+>>>> Rob Herring [1].
+>>>>
+>>>> I have tested this on an OMAP3 GP device and faking it to pretend to be a
+>>>> secure device to ensure that any timers marked with "ti,timer-secure" are not
+>>>> registered on boot. I have also made sure that all timers are registered as
+>>>> expected on a GP device by default.
+>>>>
+>>>> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/79203
+>>>>
+>>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>>>> ---
+>>>>  arch/arm/mach-omap2/board-generic.c |    1 +
+>>>>  arch/arm/mach-omap2/common.h        |    1 +
+>>>>  arch/arm/mach-omap2/timer.c         |   36 +++++++++++++++++++++++++++++++++++
+>>>>  3 files changed, 38 insertions(+)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+>>>> index 6f93a20..20124d7 100644
+>>>> --- a/arch/arm/mach-omap2/board-generic.c
+>>>> +++ b/arch/arm/mach-omap2/board-generic.c
+>>>> @@ -40,6 +40,7 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+>>>>  static void __init omap_generic_init(void)
+>>>>  {
+>>>>  	omap_sdrc_init(NULL, NULL);
+>>>> +	omap_dmtimer_init();
+>>>>  
+>>>>  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+>>>>  }
+>>>> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+>>>> index 1f65b18..d6a4875 100644
+>>>> --- a/arch/arm/mach-omap2/common.h
+>>>> +++ b/arch/arm/mach-omap2/common.h
+>>>> @@ -326,6 +326,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+>>>>  				      struct omap_sdrc_params *sdrc_cs1);
+>>>>  struct omap2_hsmmc_info;
+>>>>  extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
+>>>> +extern void omap_dmtimer_init(void);
+>>>>  
+>>>>  #endif /* __ASSEMBLER__ */
+>>>>  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+>>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>>>> index 13d20c8..e3b9931 100644
+>>>> --- a/arch/arm/mach-omap2/timer.c
+>>>> +++ b/arch/arm/mach-omap2/timer.c
+>>>> @@ -36,6 +36,7 @@
+>>>>  #include <linux/clocksource.h>
+>>>>  #include <linux/clockchips.h>
+>>>>  #include <linux/slab.h>
+>>>> +#include <linux/of.h>
+>>>>  
+>>>>  #include <asm/mach/time.h>
+>>>>  #include <plat/dmtimer.h>
+>>>> @@ -482,6 +483,41 @@ static int __init omap2_dm_timer_init(void)
+>>>>  }
+>>>>  arch_initcall(omap2_dm_timer_init);
+>>>>  
+>>>> +static struct property timer_disabled = {
+>>>> +	.name = "status",
+>>>> +	.length = sizeof("disabled"),
+>>>> +	.value = "disabled",
+>>>> +};
+>>>> +
+>>>> +static struct of_device_id omap3_timer_match[] __initdata = {
+>>>> +	{ .compatible = "ti,omap3-timer", },
+>>>> +	{ }
+>>>> +};
+>>>> +
+>>>> +/**
+>>>> + * omap_dmtimer_init - initialisation function when device tree is used
+>>>> + *
+>>>> + * For secure OMAP3 devices, timers with device type "timer-secure" cannot
+>>>> + * be used by the kernel as they are reserved. Therefore, to prevent the
+>>>> + * kernel registering these devices remove them dynamically from the device
+>>>> + * tree on boot.
+>>>> + */
+>>>> +void __init omap_dmtimer_init(void)
+>>>> +{
+>>>> +	struct device_node *np;
+>>>> +
+>>>> +	if (!cpu_is_omap34xx())
+>>>> +		return;
+>>>> +
 >>>
->>> May be I didn't understand your above statement, can you please elaborate 
->>> more on "device specific header file"?
+>>> Sorry for responding so late, but why only omap34xx check here?
+>>> Isn't this applicable to all omap & non-omap devices?
 >>
->> We should have the device drivers idle and reset the devices. But also
->> hwmod may need to do that for the unclaimed devices for PM to work. 
->> As the driver may not be even compiled in, the driver specific reset and
->> idle functions should be static inline functions in the device specific
->> header file so hwmod code can still call those.
->>  
-> 
-> How about mapping the address of the devices?
-> 
-> Some more thoughts on the similar line on unclaimed devices -
-> As par of late_initcall(), traverse all the DTB nodes and for each node with 
-> "state = disabled", we can do something like,
-
-Yes, in fact we should duplicate the same mechanism that will be used to
-init a regular device during probe.
-
-> Late_initcall()
-> 	-> Traverse DTB nodes and check for "state = disabled"
-> 		-> Read the "ti,hwmod" entry and get offsets like, sys_config 
-> 		   and reset.
-> 		-> Map the base address
-> 		-> Enable the module/clock
-> 		-> Reset the device
-> 		-> Write to sysc register offset
-> 		-> Disable the module/clock
-> 
-> 
-> 
->>> Just to highlight, its not only during late_initcall, the _enable and _idle 
->>> functions are getting executed as part of every runtime_pm_get\put_sync from 
->>> the driver.
+>> It is only applicable to omap3 devices as far as omap is concerned.
 >>
->> Right, so no need to initialize those until at driver probe time.
->>  
-> 
-> Agreed.
-> 
->>> Are you saying as part of late_initcall, we should initialize " _mpu_rt_va" 
->>> of "struct omap_hwmod"???
+>> By non-omap, you are referring to the AMxxx stuff?
 >>
->> I guess either at driver probe for the claimed devices, or at late_initcall
->> for the unclaimeded devices.
->>
->>> Also, as far unclaimed resources is concerned, somewhere you should have 
->>> base addr of the device maintained, right? Currently, hwmod is maintaining 
->>> this data and the execution goes something like,
->>>
->>> Core_initcall()
->>> 	-> _setup()
->>> 		-> _setup_reset()
->>> 		-> _idle()
->>
->> For the DT only case also the unclaimed devices can from DT with
->> status = "disabled". 
->>  
->>> Another biggest worry is, if I play here, it may break existing omap3/4 
->>> Functionality, especially may impact from PM perspective. So I believe, we 
->>> need to have something which adds/cleans-up things in stages.
->>
->> It seems that we need three stages: Something early for the timers only,
->> initialize most things during driver probe, then late_initcall for the
->> unclaimed devices.
+>> Do AMxxx devices even support security (ie. secure boot and have secure
+>> peripherals)? If not then this will work for AMxxx devices too.
 >>
 > 
-> Most likely yes, or it may even get into more stages.
+> Yes it does. 
 > 
-> At the current stage, I really think it would be really nice and beneficial 
-> for driver developers from the community if they get Linux Boot from 
-> linux-next/master branch. I have seen lot of community folks are struggling 
-> with it and they are blocked because we do not have booting kernel on 
-> BeagleBone.
-> They always end up patching kernel with HWMOD patch and submit the driver 
-> patches. So request to consider this cleanup as sequential patch on top of 
-> original HWMOD patch?
-> 
-> 
->>> May be get rid of resource overwriting for AM33xx and OMAP5 alone as of 
->>> now??
+> AM33xx has 8 timers and Timer-0 is a secure timer. As in case of OMAP3, we 
+> do not even register timer-0 to kernel.
+
+Ok, however, please note that the omap3 timer 12 is a special case,
+because on a non-secure device it is available for general purpose use
+and only reserved for secure use on a secure device.
+
+For omap4/5 timer 12 is always a secure timer and so we never register
+it for any device (secure or non-secure) by using the "ti,timer-secure"
+property in DT.
+
+So, for AM33xx, is timer0 always reserved for secure used on non-secure
+and secure devices? If so, then timer0 just needs to add the
+"ti,timer-secure" property in device-tree file and it will not be
+registered and no change is needed in the above code.
+
+>> Let me know if the changelog is not clear why this is needed for an
+>> omap3 device.
 >>
->> Sorry I don't follow this part, care to explain a little more?
->>
 > 
-> As per current implementation, we are using HWMOD information to fill the 
-> platform_device->resources. Even if you pass "reg" and "interrupt" property 
-> from DT, omap_device layer overwrites it with HWMOD data information.
-> 
-> So what I am trying to propose here is, avoid this overwrite and resources 
-> (address and interrupt) should strictly gets used from DT blob. Since AM33xx 
-> and OMAP5 devices are the new devices and supports DT boot only, we can 
-> implement it easily for them.
+> The changelog description is clear, but it is not only restricted to OMAP3.
 
-Well, the point is that that mechanism is still common to OMAP2+
-devices, so the tricky part is that a legacy mode will still be needed.
+Not exactly, per the above it depends on whether the timer is always
+secure for all device types or not.
 
-> Only issue her is, DMA resources, I was going through some of the old email 
-> archives today, submitted by Benoit and later Jon, but I am still not sure 
-> how to pass dma_channel to driver as a resource.
-
-There is no way currently :-(.
-
-> Below logic works for me, I have tested it on both BeagleBone and AM37xEVM -
-> 
-> omap_device_alloc ()
-> {
-> 	...
-> 
-> 	res_count = omap_device_count_resources(od);
-> 	if (res_count > pdev->num_resources) {
-> 		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
-> 	      if (!res)
->       		goto oda_exit3;
-> 
-> 		if (pdev->num_resources && pdev->resource) {
-> 			omap_device_fill_dma_resources(od, res);
-> 			memcpy(&res[pdev->num_resources], pdev->resource,
-> 				sizeof(struct resource) * pdev->num_resources);
-> 			} else {
-> 				omap_device_fill_resources(od, res);
-> 			}
-> 	
-> 		ret = platform_device_add_resources(pdev, res, res_count);
-> 		kfree(res);
-> 	}
-> 
-> 	...
-> }
-
-Yeah, or we can potentially define a custom ti DMA binding for the time
-being. In fact Tegra and Exynios are currently using some custom DMA
-binding. I wanted to avoid that with a generic binding RFC, but as
-already said, that series is not progressing really fast whereas our
-need for SDMA/EDMA is pretty simple. Well at least for SDMA.
-
-Anyway, your approach is the proper one to me and something we've been
-discussing for a while with Tony. I've just never had the time to
-progress on that. I'll be more than happy to support you on OMAP4+
-devices to validate that code if you can work on it.
-
-Thanks,
-Benoit
-
+Cheers
+Jon
