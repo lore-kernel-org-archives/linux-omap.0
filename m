@@ -1,170 +1,209 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [RFC RESEND 2/4] ARM: OMAP3: Dynamically disable secure timer
- nodes for secure devices
-Date: Fri, 17 Aug 2012 07:24:09 -0500
-Message-ID: <502E37E9.3060201@ti.com>
-References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-3-git-send-email-jon-hunter@ti.com> <502B6838.9080907@ti.com> <502D2686.4090107@ti.com> <79CD15C6BA57404B839C016229A409A83EA91D63@DBDE01.ent.ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: OMAP HWMOD: Query regarding parent<->child support
+Date: Fri, 17 Aug 2012 14:30:54 +0200
+Message-ID: <502E397E.50904@ti.com>
+References: <5004212C.5030807@ti.com> <502E1914.3050502@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34759 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51507 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751602Ab2HQMYL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Aug 2012 08:24:11 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EA91D63@DBDE01.ent.ti.com>
+	id S1756738Ab2HQMa7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Aug 2012 08:30:59 -0400
+In-Reply-To: <502E1914.3050502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Paul Walmsley <paul@pwsan.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mugunthan V N <mugunthanvnm@ti.com>, Avinash Philip <avinashphilip@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
 
+Hi Vaibhav,
 
-On 08/17/2012 12:32 AM, Hiremath, Vaibhav wrote:
-> On Thu, Aug 16, 2012 at 22:27:42, Hunter, Jon wrote:
->>
->> On 08/15/2012 04:13 AM, Vaibhav Hiremath wrote:
->>>
->>>
->>> On 7/14/2012 3:56 AM, Jon Hunter wrote:
->>>> OMAP3 devices may or may not have security features enabled. Security enabled
->>>> devices are known as high-secure (HS) and devices without security are known as
->>>> general purpose (GP).
->>>>
->>>> For OMAP3 devices there are 12 general purpose timers available. On secure
->>>> devices the 12th timer is reserved for secure usage and so cannot be used by
->>>> the kernel, where as for a GP device it is available. We can detect the OMAP
->>>> device type, secure or GP, at runtime via an on-chip register. Today, when not
->>>> using DT, we do not register the 12th timer as a linux device if the device is
->>>> secure.
->>>>
->>>> When using device tree, device tree is going to register all the timer devices
->>>> it finds in the device tree blob. To prevent device tree from registering 12th
->>>> timer on a secure OMAP3 device we can add a status property to the timer
->>>> binding with the value "disabled" at boot time. Note that timer 12 on a OMAP3
->>>> device has a property "ti,timer-secure" to indicate that it will not be
->>>> available on a secure device and so for secure OMAP3 devices, we search for
->>>> timers with this property and then disable them. Using the prom_add_property()
->>>> function to dynamically add a property was a recommended approach suggested by
->>>> Rob Herring [1].
->>>>
->>>> I have tested this on an OMAP3 GP device and faking it to pretend to be a
->>>> secure device to ensure that any timers marked with "ti,timer-secure" are not
->>>> registered on boot. I have also made sure that all timers are registered as
->>>> expected on a GP device by default.
->>>>
->>>> [1] http://comments.gmane.org/gmane.linux.ports.arm.omap/79203
->>>>
->>>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/board-generic.c |    1 +
->>>>  arch/arm/mach-omap2/common.h        |    1 +
->>>>  arch/arm/mach-omap2/timer.c         |   36 +++++++++++++++++++++++++++++++++++
->>>>  3 files changed, 38 insertions(+)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
->>>> index 6f93a20..20124d7 100644
->>>> --- a/arch/arm/mach-omap2/board-generic.c
->>>> +++ b/arch/arm/mach-omap2/board-generic.c
->>>> @@ -40,6 +40,7 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->>>>  static void __init omap_generic_init(void)
->>>>  {
->>>>  	omap_sdrc_init(NULL, NULL);
->>>> +	omap_dmtimer_init();
->>>>  
->>>>  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->>>>  }
->>>> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
->>>> index 1f65b18..d6a4875 100644
->>>> --- a/arch/arm/mach-omap2/common.h
->>>> +++ b/arch/arm/mach-omap2/common.h
->>>> @@ -326,6 +326,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
->>>>  				      struct omap_sdrc_params *sdrc_cs1);
->>>>  struct omap2_hsmmc_info;
->>>>  extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
->>>> +extern void omap_dmtimer_init(void);
->>>>  
->>>>  #endif /* __ASSEMBLER__ */
->>>>  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
->>>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->>>> index 13d20c8..e3b9931 100644
->>>> --- a/arch/arm/mach-omap2/timer.c
->>>> +++ b/arch/arm/mach-omap2/timer.c
->>>> @@ -36,6 +36,7 @@
->>>>  #include <linux/clocksource.h>
->>>>  #include <linux/clockchips.h>
->>>>  #include <linux/slab.h>
->>>> +#include <linux/of.h>
->>>>  
->>>>  #include <asm/mach/time.h>
->>>>  #include <plat/dmtimer.h>
->>>> @@ -482,6 +483,41 @@ static int __init omap2_dm_timer_init(void)
->>>>  }
->>>>  arch_initcall(omap2_dm_timer_init);
->>>>  
->>>> +static struct property timer_disabled = {
->>>> +	.name = "status",
->>>> +	.length = sizeof("disabled"),
->>>> +	.value = "disabled",
->>>> +};
->>>> +
->>>> +static struct of_device_id omap3_timer_match[] __initdata = {
->>>> +	{ .compatible = "ti,omap3-timer", },
->>>> +	{ }
->>>> +};
->>>> +
->>>> +/**
->>>> + * omap_dmtimer_init - initialisation function when device tree is used
->>>> + *
->>>> + * For secure OMAP3 devices, timers with device type "timer-secure" cannot
->>>> + * be used by the kernel as they are reserved. Therefore, to prevent the
->>>> + * kernel registering these devices remove them dynamically from the device
->>>> + * tree on boot.
->>>> + */
->>>> +void __init omap_dmtimer_init(void)
->>>> +{
->>>> +	struct device_node *np;
->>>> +
->>>> +	if (!cpu_is_omap34xx())
->>>> +		return;
->>>> +
->>>
->>> Sorry for responding so late, but why only omap34xx check here?
->>> Isn't this applicable to all omap & non-omap devices?
->>
->> It is only applicable to omap3 devices as far as omap is concerned.
->>
->> By non-omap, you are referring to the AMxxx stuff?
->>
->> Do AMxxx devices even support security (ie. secure boot and have secure
->> peripherals)? If not then this will work for AMxxx devices too.
+On 08/17/2012 12:12 PM, Vaibhav Hiremath wrote:
+> 
+> 
+> On 7/16/2012 7:41 PM, Vaibhav Hiremath wrote:
+>> Hi All,
 >>
 > 
-> Yes it does. 
+> Paul,
 > 
-> AM33xx has 8 timers and Timer-0 is a secure timer. As in case of OMAP3, we 
-> do not even register timer-0 to kernel.
+> From last couple of days I am almost spending my whole time trying to
+> get to somewhere on below issue and based on my understanding and
+> learning so far I started feeling that, probably we might have made
+> wrong decision to remove all leaf-nodes from the clock-tree. Instead we
+> should have it removed from hwmod. :)
+> 
+> Let's take a example of PWM Module (which is the context of my debugging) -
+> 
+> As I mentioned before, PWM module present in AM33XX looks something like -
+> 
+> 
+>     ----------------------------------
+>    |            --------              |
+>    |           |  PWMSS |             |
+>    |            --------              |
+>    |  -------   --------   ---------  |
+>    | |  eCAP | |  ePWM  | |  eQEP   | |
+>    |  -------   --------   ---------  |
+>     ----------------------------------
+> 
+> PWMSS: This actually controls all PM related signals like idle,
+>        standby, etc...
+> eCAP/ePWM/eQEP: Technically it is independent module, reused from
+>                 Davinci devices and is implemented as independent
+>                 drivers in kernel.
+> 
+> In case of AM33xx, the basic resources like, clock, idle signal and
+> standby signal are abstracted at PWMSS level.
+> This means the core IP (eCAP/ePWM/eQEP) have not changed from their
+> original implementation.
+> 
+> These core IP's (eCAP/ePWM/eQEP) are being used in Davinci family of
+> devices, but without encapsulation of PWMSS, unlike AM33XX. This means,
+> each module has its own clock enable/disable control mechanism and there
+> is no dependency between them, unlike AM33XX.
+> 
+> Options to support:
+> 
+> 1. Use existing Clock Framework infrastructure to handle, which
+> basically supports clock enable/disable function based on usecount and
+> parent<->child relation. Driver will simply work, without knowing
+> anything about underneath platform, which is what expected.
+> So create a dummy-clocks for submodules, making PWMSS clock as a parent
+> will solve the issue here.
+> 
+> And nothing wrong here, we are just treating,
+>    clock-enable = module-enable
 
-Ok, however, please note that the omap3 timer 12 is a special case,
-because on a non-secure device it is available for general purpose use
-and only reserved for secure use on a secure device.
+Yeah, but that looks like a hack to me. That clock hierarchy does not
+exist for real and the pm_runtime infrastructure can handle that
+properly. In that case you do have a PM dependency and not necessarily a
+clock dependency.
 
-For omap4/5 timer 12 is always a secure timer and so we never register
-it for any device (secure or non-secure) by using the "ti,timer-secure"
-property in DT.
+> The only issue here is sysconf register access at hwmod level, if you
+> leave sysconf idle and standby configuration at smart state, it works
+> properly. I have validated it at my end.
+> 
+> 2. MFD Driver: I think it will be miss-use of MFD driver and should be
+> explored at all.
 
-So, for AM33xx, is timer0 always reserved for secure used on non-secure
-and secure devices? If so, then timer0 just needs to add the
-"ti,timer-secure" property in device-tree file and it will not be
-registered and no change is needed in the above code.
+I do think this is the proper use of MFD. In fact with DT, you don't
+even need an MFD. The DT nodes hierarchy will create the parent-child
+link automatically.
 
->> Let me know if the changelog is not clear why this is needed for an
->> omap3 device.
+pm_runtime events are taking care of the parent state. It means that if
+you are enabling a child, the parent will be enabled first automatically
+by the PM fmwk.
+
+This is how the DSS will/was be modified to handle the similar issue you
+are facing today. I'm not sure that code is upstream yet, but was tested
+on OMAP5.
+
+The only drawback in your case is that the Davinci drivers must be
+pm_runtime adapted, which might not be the case already :-(.
+
+Regards,
+Benoit
+
+
+> I certainly vote for option-1.
+> Paul, if you agree with me, I will submit the patch for option-1.
+> 
+> NOTE: Same thing is applicable for CPSW driver, where two independent
+> drivers (MDIO and CPSW) share common clock and needs similar fix.
+> 
+> Thanks,
+> Vaibhav
+> 
+>> During migration to run-time PM we came across unique (I believe) issue
+>> with respect to CPSW driver and eHRPWM. I am looking for pointers to
+>> handle these use-cases, as I am still going through the code and trying
+>> to understand myself on how can we handle this.
 >>
-> 
-> The changelog description is clear, but it is not only restricted to OMAP3.
+>> CPSW:
+>> =====
+>> CPSW Subsystem is built with 5 sub-modules,
+>> 	- CPSW SS (BaseAddr@0x4A100000, rst@0x8)
+>> 	- MDIO (BaseAddr@0x4A101000)
+>> 	- CPSW WR (0x4A101200, rst@0x4)
+>> 	- CPSW SL1 (0x4A100D80, rst@0xc)
+>> 	- CPSW SL2 (0x4A100DC0, rst@0xc)
+>> 	- CPSW CPDMA (0x4A100800, rst@0x1c)
+>>
+>>   Issue1:
+>>   -------
+>>     IP's are reused from legacy devices, for example, we have 2
+>>     separate platform driver for MDIO and cpsw, used between Davinci
+>>    and AM335x.
+>>
+>>     Everything is controlled through one MODULEMODE register in PRCM.
+>>     So now we have 2 different modules accessing same resources
+>>    (CLKCTRL.MODULEMODE), it is tricky to handle this usecase.
+>>     Earlier with clock api's, it was easy, since clock framework used
+>>     to handle ref_count for this and was sufficient here but with
+>>     migration to runtime PM, we no longer use clk api's.
+>>
+>>     Option1:
+>> 	It must be handled at driver level, and there will be
+>> 	handshaking between both the drivers. Which might impact legacy
+>> 	devices.
+>>
+>>    Option2:
+>> 	It must be handled at SoC level, and parent and child creation
+>> 	is required here. parent->child creation is possible with
+>> 	platform device, but not sure about how it can be integrated
+>> 	with omap_device and hwmod.
+>>
+>> 	I am reading code and trying to understand how can this be
+>> 	handled? what is right place to create this parent<->child
+>> 	relation?
+>>
+>>   Issue2:
+>>   -------
+>>     Due to one of the HW bug, we have assert ocp-reset 4 sub-modules of
+>>     CPSW before disabling clock/module (MODULEMODE=0) everytime.
+>>     So for example, in every suspend-resume code before disabling the
+>>     module, we have to assert ocp-reset and then disable the module.
+>>     Also, please note that, the MDIO driver is separate and independent
+>>     and requires clock to access sysconf register.
+>>
+>>     We can have hwmod_class->reset function here, but the reset offset
+>>     is different for every module, which makes it even difficult to
+>>     handle.
+>>
+>>     So if we have parent-child relation at some level, Where, we can
+>>     register custom reset function to handle this scenario is required,
+>>     like,
+>> 	CPSW
+>> 	    -> MDIO
+>> 	    -> CPSW WR
+>> 	    -> CPSW SL1
+>> 	    -> CPSW SL2
+>> 	    -> CPDMA
+>>
+>>     Currently, as part of internal release we implemented in hackish
+>>     way, where we pass base address of sub-modules (- 0x8) so that we
+>>     can access rst_off in common function with,
+>>       omap_hwmod_addr_space->pa_start + class.rst_offs
+>>
+>> eHRPWM1/2/3:
+>> ============
+>>   Here we have same issue as issue1 mentioned above for CPSW. eHRPWM is
+>>   built with 2 independent sub-modules (eCAP and HRPWM) with single
+>>   resource access (MODULEMODE).
+>>
+>>   Functionality point-of-view both can work independently, except
+>>   clock/module enable disable (which is shared between both).
+>>
+>>   Will MFD solve this issue? and will it be right approach? Would it
+>>   make sense to have MFD for such small small independent drivers?
+>>
+>> Thanks,
+>> Vaibhav
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
-Not exactly, per the above it depends on whether the timer is always
-secure for all device types or not.
-
-Cheers
-Jon
