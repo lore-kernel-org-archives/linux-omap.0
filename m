@@ -1,143 +1,181 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3] ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
-Date: Fri, 17 Aug 2012 10:09:05 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA922AA@DBDE01.ent.ti.com>
-References: <1343214422-28718-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1207251438210.23542@utopia.booyaka.com>
- <alpine.DEB.2.00.1207261359500.14468@utopia.booyaka.com>
- <20120814082911.GG11011@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA8F4CD@DBDE01.ent.ti.com>
- <20120817074934.GL11011@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA92062@DBDE01.ent.ti.com>
- <20120817084047.GN11011@atomide.com>
- <79CD15C6BA57404B839C016229A409A83EA9220D@DBDE01.ent.ti.com>
- <20120817095851.GX11011@atomide.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: OMAP HWMOD: Query regarding parent<->child support
+Date: Fri, 17 Aug 2012 15:42:36 +0530
+Message-ID: <502E1914.3050502@ti.com>
+References: <5004212C.5030807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57459 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45158 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757335Ab2HQKJT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Aug 2012 06:09:19 -0400
-In-Reply-To: <20120817095851.GX11011@atomide.com>
-Content-Language: en-US
+	id S1757326Ab2HQKMn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Aug 2012 06:12:43 -0400
+In-Reply-To: <5004212C.5030807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Mugunthan V N <mugunthanvnm@ti.com>, Avinash Philip <avinashphilip@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Jon Hunter <jon-hunter@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On Fri, Aug 17, 2012 at 15:28:51, Tony Lindgren wrote:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120817 02:51]:
-> > On Fri, Aug 17, 2012 at 14:10:47, Tony Lindgren wrote:
-> > > * Hiremath, Vaibhav <hvaibhav@ti.com> [120817 01:22]:
-> > > > On Fri, Aug 17, 2012 at 13:19:34, Tony Lindgren wrote:
-> > > > > * Hiremath, Vaibhav <hvaibhav@ti.com> [120815 02:11]:
-> > > > > > 
-> > > > > > Somehow we have to have some mechanism to initialize " _mpu_rt_va" before 
-> > > > > > core_init call, which will take DT resources and initialize accordingly.
-> > > > > 
-> > > > > That's for the device reset/idle? We should not do that in hwmod code
-> > > > > except in late_initcall for unclaimed devices as discussed earlier. We
-> > > > > discussed setting up the reset function in the device specific headers
-> > > > > so both device and hwmod code can call them as needed.
-> > > > 
-> > > > May be I didn't understand your above statement, can you please elaborate 
-> > > > more on "device specific header file"?
-> > > 
-> > > We should have the device drivers idle and reset the devices. But also
-> > > hwmod may need to do that for the unclaimed devices for PM to work. 
-> > > As the driver may not be even compiled in, the driver specific reset and
-> > > idle functions should be static inline functions in the device specific
-> > > header file so hwmod code can still call those.
-> > >  
-> > 
-> > How about mapping the address of the devices?
-> 
-> That should be done based on the iorange coming from DT during the driver
-> probe. The range in hwmod can be populated at that point too if needed.
->  
 
-There will not be any driver probe for unclaimed devices, right? 
 
-> > Some more thoughts on the similar line on unclaimed devices -
-> > As par of late_initcall(), traverse all the DTB nodes and for each node with 
-> > "state = disabled", we can do something like,
-> > 
-> > Late_initcall()
-> > 	-> Traverse DTB nodes and check for "state = disabled"
-> > 		-> Read the "ti,hwmod" entry and get offsets like, sys_config 
-> > 		   and reset.
-> > 		-> Map the base address
-> > 		-> Enable the module/clock
-> > 		-> Reset the device
-> > 		-> Write to sysc register offset
-> > 		-> Disable the module/clock
-> > 
-> > 
-> > 
-> > > > Just to highlight, its not only during late_initcall, the _enable and _idle 
-> > > > functions are getting executed as part of every runtime_pm_get\put_sync from 
-> > > > the driver.
-> 
-> Heh, but the unclaimed devices do not have a driver :) So there's no runtime_pm
-> calls for the unclaimed devicdes.
+On 7/16/2012 7:41 PM, Vaibhav Hiremath wrote:
+> Hi All,
 > 
 
-I think you mixed two responses here, this was not part of my last response.
-Just only read above code execution steps, I think they still make sense and 
-we may end up doing something similar.
+Paul,
 
-> > At the current stage, I really think it would be really nice and beneficial 
-> > for driver developers from the community if they get Linux Boot from 
-> > linux-next/master branch. I have seen lot of community folks are struggling 
-> > with it and they are blocked because we do not have booting kernel on 
-> > BeagleBone.
-> > They always end up patching kernel with HWMOD patch and submit the driver 
-> > patches. So request to consider this cleanup as sequential patch on top of 
-> > original HWMOD patch?
-> 
-> Yes I'm fine merging the data as is, just trying to figure out how to sort
-> out the issues for future. 
->  
+>From last couple of days I am almost spending my whole time trying to
+get to somewhere on below issue and based on my understanding and
+learning so far I started feeling that, probably we might have made
+wrong decision to remove all leaf-nodes from the clock-tree. Instead we
+should have it removed from hwmod. :)
 
-Thanks a lot Tony.
-Paul, Care to add it in your next pull request.
+Let's take a example of PWM Module (which is the context of my debugging) -
 
-> > > > May be get rid of resource overwriting for AM33xx and OMAP5 alone as of 
-> > > > now??
-> > > 
-> > > Sorry I don't follow this part, care to explain a little more?
-> > > 
-> > 
-> > As per current implementation, we are using HWMOD information to fill the 
-> > platform_device->resources. Even if you pass "reg" and "interrupt" property 
-> > from DT, omap_device layer overwrites it with HWMOD data information.
-> > 
-> > So what I am trying to propose here is, avoid this overwrite and resources 
-> > (address and interrupt) should strictly gets used from DT blob. Since AM33xx 
-> > and OMAP5 devices are the new devices and supports DT boot only, we can 
-> > implement it easily for them.
-> 
-> Yes I agree. And then we should also drop the data from hwmod when it's no
-> longer needed.
->  
+As I mentioned before, PWM module present in AM33XX looks something like -
 
-Exactly, I will submit RFC for this.
 
-> > Only issue her is, DMA resources, I was going through some of the old email 
-> > archives today, submitted by Benoit and later Jon, but I am still not sure 
-> > how to pass dma_channel to driver as a resource.
-> 
-> Hmm I thought that got merged already? 
+    ----------------------------------
+   |            --------              |
+   |           |  PWMSS |             |
+   |            --------              |
+   |  -------   --------   ---------  |
+   | |  eCAP | |  ePWM  | |  eQEP   | |
+   |  -------   --------   ---------  |
+    ----------------------------------
 
-No, atleast didn't find in 3.6-rc1.
+PWMSS: This actually controls all PM related signals like idle,
+       standby, etc...
+eCAP/ePWM/eQEP: Technically it is independent module, reused from
+                Davinci devices and is implemented as independent
+                drivers in kernel.
 
-> Anyways, the iorange and interrupts
-> are standard resources that should exist in every device entry in .dts files.
-> 
+In case of AM33xx, the basic resources like, clock, idle signal and
+standby signal are abstracted at PWMSS level.
+This means the core IP (eCAP/ePWM/eQEP) have not changed from their
+original implementation.
 
-Agreed, I am submitting patch for this as well.
+These core IP's (eCAP/ePWM/eQEP) are being used in Davinci family of
+devices, but without encapsulation of PWMSS, unlike AM33XX. This means,
+each module has its own clock enable/disable control mechanism and there
+is no dependency between them, unlike AM33XX.
+
+Options to support:
+
+1. Use existing Clock Framework infrastructure to handle, which
+basically supports clock enable/disable function based on usecount and
+parent<->child relation. Driver will simply work, without knowing
+anything about underneath platform, which is what expected.
+So create a dummy-clocks for submodules, making PWMSS clock as a parent
+will solve the issue here.
+
+And nothing wrong here, we are just treating,
+   clock-enable = module-enable
+
+The only issue here is sysconf register access at hwmod level, if you
+leave sysconf idle and standby configuration at smart state, it works
+properly. I have validated it at my end.
+
+2. MFD Driver: I think it will be miss-use of MFD driver and should be
+explored at all.
+
+
+I certainly vote for option-1.
+Paul, if you agree with me, I will submit the patch for option-1.
+
+NOTE: Same thing is applicable for CPSW driver, where two independent
+drivers (MDIO and CPSW) share common clock and needs similar fix.
 
 Thanks,
 Vaibhav
+
+> During migration to run-time PM we came across unique (I believe) issue
+> with respect to CPSW driver and eHRPWM. I am looking for pointers to
+> handle these use-cases, as I am still going through the code and trying
+> to understand myself on how can we handle this.
+> 
+> CPSW:
+> =====
+> CPSW Subsystem is built with 5 sub-modules,
+> 	- CPSW SS (BaseAddr@0x4A100000, rst@0x8)
+> 	- MDIO (BaseAddr@0x4A101000)
+> 	- CPSW WR (0x4A101200, rst@0x4)
+> 	- CPSW SL1 (0x4A100D80, rst@0xc)
+> 	- CPSW SL2 (0x4A100DC0, rst@0xc)
+> 	- CPSW CPDMA (0x4A100800, rst@0x1c)
+> 
+>   Issue1:
+>   -------
+>     IP's are reused from legacy devices, for example, we have 2
+>     separate platform driver for MDIO and cpsw, used between Davinci
+>    and AM335x.
+> 
+>     Everything is controlled through one MODULEMODE register in PRCM.
+>     So now we have 2 different modules accessing same resources
+>    (CLKCTRL.MODULEMODE), it is tricky to handle this usecase.
+>     Earlier with clock api's, it was easy, since clock framework used
+>     to handle ref_count for this and was sufficient here but with
+>     migration to runtime PM, we no longer use clk api's.
+> 
+>     Option1:
+> 	It must be handled at driver level, and there will be
+> 	handshaking between both the drivers. Which might impact legacy
+> 	devices.
+> 
+>    Option2:
+> 	It must be handled at SoC level, and parent and child creation
+> 	is required here. parent->child creation is possible with
+> 	platform device, but not sure about how it can be integrated
+> 	with omap_device and hwmod.
+> 
+> 	I am reading code and trying to understand how can this be
+> 	handled? what is right place to create this parent<->child
+> 	relation?
+> 
+>   Issue2:
+>   -------
+>     Due to one of the HW bug, we have assert ocp-reset 4 sub-modules of
+>     CPSW before disabling clock/module (MODULEMODE=0) everytime.
+>     So for example, in every suspend-resume code before disabling the
+>     module, we have to assert ocp-reset and then disable the module.
+>     Also, please note that, the MDIO driver is separate and independent
+>     and requires clock to access sysconf register.
+> 
+>     We can have hwmod_class->reset function here, but the reset offset
+>     is different for every module, which makes it even difficult to
+>     handle.
+> 
+>     So if we have parent-child relation at some level, Where, we can
+>     register custom reset function to handle this scenario is required,
+>     like,
+> 	CPSW
+> 	    -> MDIO
+> 	    -> CPSW WR
+> 	    -> CPSW SL1
+> 	    -> CPSW SL2
+> 	    -> CPDMA
+> 
+>     Currently, as part of internal release we implemented in hackish
+>     way, where we pass base address of sub-modules (- 0x8) so that we
+>     can access rst_off in common function with,
+>       omap_hwmod_addr_space->pa_start + class.rst_offs
+> 
+> eHRPWM1/2/3:
+> ============
+>   Here we have same issue as issue1 mentioned above for CPSW. eHRPWM is
+>   built with 2 independent sub-modules (eCAP and HRPWM) with single
+>   resource access (MODULEMODE).
+> 
+>   Functionality point-of-view both can work independently, except
+>   clock/module enable disable (which is shared between both).
+> 
+>   Will MFD solve this issue? and will it be right approach? Would it
+>   make sense to have MFD for such small small independent drivers?
+> 
+> Thanks,
+> Vaibhav
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
