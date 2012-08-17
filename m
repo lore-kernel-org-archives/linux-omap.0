@@ -1,31 +1,24 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 0/9] ARM/ASoC: OMAP McBSP device tree
-	support
-Date: Fri, 17 Aug 2012 11:18:39 +0100
-Message-ID: <20120817101838.GB30548@opensource.wolfsonmicro.com>
-References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
+From: "Hang Seng Bank Ltd Central Officer" <dfv.enquiry@hsbc.com.hk>
+Subject: 17/08/2012.
+Date: Fri, 17 Aug 2012 11:51:02 +0200
+Message-ID: <201208170955.q7H9aBAn011399__3396.37209331176$1345199322$gmane$org@mail.ucla.edu>
+Reply-To: draymndch8@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from out-67.smtp.ucla.edu ([169.232.46.173]:39407 "EHLO
+	out-67.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757759Ab2HQK2Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Aug 2012 06:28:24 -0400
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <dfv.enquiry@hsbc.com.hk>
 
-On Thu, Aug 16, 2012 at 04:40:59PM +0300, Peter Ujfalusi wrote:
+!PARTNER WITH ME.!
+An Iraqi Engineer named Mr. Thahi Hammud made a fixed deposit of $16,000.000.00 in my bank branch where I am a Deputy Chief Executive and he died with his entire family in the war leaving behind no next of kin. I Propose to present you as next of kin to claim the funds. Get back to me on this email ( draymndch8@yahoo.co.jp) only if interested with your full name, and telephone number to reach you and most importantly, a confirmation of acceptance from you after which I shall furnish you with the full details of this transaction.
 
-> in order to be able to add DT support for the McBSP driver which is used on all
-> OMAP platforms (OMAP1/2/3/4/5) I needed to make some cleanups to the stack:
-
-Tony, are you OK with these changes going via ASoC?
+Yours Truly, 
+Dr Raymond Chien Kuo Fung.
+draymndch8@yahoo.co.jp
