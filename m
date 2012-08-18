@@ -1,55 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use
-	for OMAP2430
-Date: Fri, 17 Aug 2012 23:08:10 -0700
-Message-ID: <20120818060810.GH11011@atomide.com>
-References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
- <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
- <20120817130723.GZ11011@atomide.com> <502E43BC.30708@bitmer.com>
- <502E4F2B.6060403@ti.com>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
+Date: Sat, 18 Aug 2012 10:13:00 +0200
+Message-ID: <20120818081300.GE24639@pengutronix.de>
+References: <1340761532-27231-1-git-send-email-khilman@ti.com>
+ <87wr1b35qb.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KuLpqunXa7jZSBt+"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53745 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752312Ab2HRINF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Aug 2012 04:13:05 -0400
 Content-Disposition: inline
-In-Reply-To: <502E4F2B.6060403@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <87wr1b35qb.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120817 07:03]:
-> On 08/17/2012 04:14 PM, Jarkko Nikula wrote:
-> > On 08/17/2012 04:07 PM, Tony Lindgren wrote:
-> >> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120816 06:41]:
-> >>> On OMAP2430 all McBSP ports have 128 word long buffer, enable the use of
-> >>> the FIFO for the audio stack.
-> >> Is this the case also for 2420? I thought some only had a FIFO at
-> >> one port?
-> >>
-> > IRCC (I don't have specs), nope. Only 2430 (as noted by Peter) and
-> > onwards have FIFO.
-> > 
-> > But that's true that FIFO sizes differ between the ports. E.g. only
-> > ports 2 and 3 have 1024+128 deep FIFOs in OMAP3.
-> > 
-> 
-> OMAP2420 McBSP does not have FIFO (the IP is closer to OMAP1 McBSP).
-> OMAP2430, OMAP4, OMAP5 has 128 word long FIFO on all McBSP ports.
-> On OMAP3: McBSP2 have 1024+256 (1280) word FIFO the rest of the ports have 128
-> long FIFO.
 
-Thanks, is this patch still correct so it does not try to enable FIFO
-for 2420?
+--KuLpqunXa7jZSBt+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On Mon, Aug 06, 2012 at 05:28:44PM -0700, Kevin Hilman wrote:
+> Hi Wolfram,
+>=20
+> Kevin Hilman <khilman@ti.com> writes:
+>=20
+> > In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
+> > failure.
+> >
+> > Without this, after a failed xfer, the runtime PM usecount will have
+> > been incremented, but not decremented causing the usecount to never
+> > reach zero after a failure.  This keeps the device always runtime PM
+> > enabled which keeps the enclosing power domain active, and prevents
+> > full-chip retention/off from happening during idle.
+> >
+> > Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > Signed-off-by: Kevin Hilman <khilman@ti.com>
+> > ---
+> > This patch applies to current i2c-embedded/for-next branch
+>=20
+> This one is needed for v3.6.  Can you queue this up as a fix for
+> v3.6-rc?
 
-Tony
+Done, applied to -current, thanks!
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--KuLpqunXa7jZSBt+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAlAvTowACgkQD27XaX1/VRvHagCdFt7xlJ91Z97p3QZp8wmDm4zD
+/T4AoLGEWoPGu4bl86uqWKkFEW2L8uTf
+=IhI+
+-----END PGP SIGNATURE-----
+
+--KuLpqunXa7jZSBt+--
