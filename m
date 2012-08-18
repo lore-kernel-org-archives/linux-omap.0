@@ -1,68 +1,43 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH] I2C: OMAP: xfer: fix runtime PM get/put balance on error
-Date: Sat, 18 Aug 2012 10:13:00 +0200
-Message-ID: <20120818081300.GE24639@pengutronix.de>
-References: <1340761532-27231-1-git-send-email-khilman@ti.com>
- <87wr1b35qb.fsf@ti.com>
+From: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use for OMAP2430
+Date: Sat, 18 Aug 2012 17:58:10 +0200
+Message-ID: <CAPo=G1w5N5GVra7TK=En9xnaFmNNP1Zb7g2tZSjg8CO8wewOwA@mail.gmail.com>
+References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
+	<1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
+	<20120817130723.GZ11011@atomide.com>
+	<502E43BC.30708@bitmer.com>
+	<502E4F2B.6060403@ti.com>
+	<20120818060810.GH11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KuLpqunXa7jZSBt+"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53745 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752312Ab2HRINF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Aug 2012 04:13:05 -0400
-Content-Disposition: inline
-In-Reply-To: <87wr1b35qb.fsf@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:37439 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751669Ab2HRP6M convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Aug 2012 11:58:12 -0400
+Received: by yenq9 with SMTP id q9so5364909yen.8
+        for <linux-omap@vger.kernel.org>; Sat, 18 Aug 2012 08:58:10 -0700 (PDT)
+In-Reply-To: <20120818060810.GH11011@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
+Hi Tony,
 
---KuLpqunXa7jZSBt+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sat, Aug 18, 2012 at 8:08 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> Thanks, is this patch still correct so it does not try to enable FIFO
+> for 2420?
 
-On Mon, Aug 06, 2012 at 05:28:44PM -0700, Kevin Hilman wrote:
-> Hi Wolfram,
->=20
-> Kevin Hilman <khilman@ti.com> writes:
->=20
-> > In omap_i2c_xfer(), ensure pm_runtime_put() is called, even on
-> > failure.
-> >
-> > Without this, after a failed xfer, the runtime PM usecount will have
-> > been incremented, but not decremented causing the usecount to never
-> > reach zero after a failure.  This keeps the device always runtime PM
-> > enabled which keeps the enclosing power domain active, and prevents
-> > full-chip retention/off from happening during idle.
-> >
-> > Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
-> > Signed-off-by: Kevin Hilman <khilman@ti.com>
-> > ---
-> > This patch applies to current i2c-embedded/for-next branch
->=20
-> This one is needed for v3.6.  Can you queue this up as a fix for
-> v3.6-rc?
-
-Done, applied to -current, thanks!
+Yes it only enables the FIFO for 2430, 2420 is not affected.
 
 --=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---KuLpqunXa7jZSBt+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAlAvTowACgkQD27XaX1/VRvHagCdFt7xlJ91Z97p3QZp8wmDm4zD
-/T4AoLGEWoPGu4bl86uqWKkFEW2L8uTf
-=IhI+
------END PGP SIGNATURE-----
-
---KuLpqunXa7jZSBt+--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
