@@ -1,37 +1,55 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2-mcspi: Remove the call to
-	platform_set_drvdata(pdev, NULL)
-Date: Fri, 17 Aug 2012 22:56:47 +0100
-Message-ID: <20120817215646.GE18871@opensource.wolfsonmicro.com>
-References: <1345130370-18815-1-git-send-email-shubhrajyoti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use
+	for OMAP2430
+Date: Fri, 17 Aug 2012 23:08:10 -0700
+Message-ID: <20120818060810.GH11011@atomide.com>
+References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
+ <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
+ <20120817130723.GZ11011@atomide.com> <502E43BC.30708@bitmer.com>
+ <502E4F2B.6060403@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1345130370-18815-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <502E4F2B.6060403@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 16, 2012 at 08:49:30PM +0530, Shubhrajyoti D wrote:
-> Remove the call of platform_set_drvdata(pdev, NULL) as they are not
-> needed anymore.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120817 07:03]:
+> On 08/17/2012 04:14 PM, Jarkko Nikula wrote:
+> > On 08/17/2012 04:07 PM, Tony Lindgren wrote:
+> >> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120816 06:41]:
+> >>> On OMAP2430 all McBSP ports have 128 word long buffer, enable the use of
+> >>> the FIFO for the audio stack.
+> >> Is this the case also for 2420? I thought some only had a FIFO at
+> >> one port?
+> >>
+> > IRCC (I don't have specs), nope. Only 2430 (as noted by Peter) and
+> > onwards have FIFO.
+> > 
+> > But that's true that FIFO sizes differ between the ports. E.g. only
+> > ports 2 and 3 have 1024+128 deep FIFOs in OMAP3.
+> > 
+> 
+> OMAP2420 McBSP does not have FIFO (the IP is closer to OMAP1 McBSP).
+> OMAP2430, OMAP4, OMAP5 has 128 word long FIFO on all McBSP ports.
+> On OMAP3: McBSP2 have 1024+256 (1280) word FIFO the rest of the ports have 128
+> long FIFO.
 
-Applied, thanks.  These calls were never *needed* people just like to
-put them in.
+Thanks, is this patch still correct so it does not try to enable FIFO
+for 2420?
 
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+Regards,
+
+Tony
