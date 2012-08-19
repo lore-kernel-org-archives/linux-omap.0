@@ -1,57 +1,39 @@
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 4/9] sound/soc/omap/am3517evm.c: fix error return code
-Date: Sun, 19 Aug 2012 09:03:00 +0200
-Message-ID: <1345359780-18647-10-git-send-email-Julia.Lawall@lip6.fr>
-References: <1345359780-18647-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345359780-18647-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: kernel-janitors@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+From: Andreas Kemnade <andreas@kemnade.info>
+Subject: [PATCH] omap-mcbsp: properly check for availablity of mcbsp mux settings
+Date: Sun, 19 Aug 2012 21:14:52 +0200
+Message-ID: <1345403692-20829-1-git-send-email-andreas@kemnade.info>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from h1355771.stratoserver.net ([85.214.105.140]:34738 "EHLO
+	h1355771.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790Ab2HSTnI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Aug 2012 15:43:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: peter.ujfalusi@ti.com, jarkko.nikula@bitmer.com, linux-omap@vger.kernel.org
+Cc: Andreas Kemnade <andreas@kemnade.info>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+The code did return -EINVAl when the mux_signal function pointer is available.
+If not, the corresponding function (the NULL pointer) is called.
+This patch inverts that logic.
 
-It was forgotten to initialize ret to the result of calling
-snd_soc_dai_set_sysclk, unlike at the other calls in the same function.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- sound/soc/omap/am3517evm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/soc/omap/mcbsp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-index 009533a..df65f98 100644
---- a/sound/soc/omap/am3517evm.c
-+++ b/sound/soc/omap/am3517evm.c
-@@ -59,7 +59,7 @@ static int am3517evm_hw_params(struct snd_pcm_substream *substream,
- 		return ret;
- 	}
+diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
+index 34835e8..d33c48b 100644
+--- a/sound/soc/omap/mcbsp.c
++++ b/sound/soc/omap/mcbsp.c
+@@ -745,7 +745,7 @@ int omap_mcbsp_6pin_src_mux(struct omap_mcbsp *mcbsp, u8 mux)
+ {
+ 	const char *signal, *src;
  
--	snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
-+	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
- 				SND_SOC_CLOCK_IN);
- 	if (ret < 0) {
- 		printk(KERN_ERR "can't set CPU system clock OMAP_MCBSP_FSR_SRC_FSX\n");
+-	if (mcbsp->pdata->mux_signal)
++	if (!mcbsp->pdata->mux_signal)
+ 		return -EINVAL;
+ 
+ 	switch (mux) {
+-- 
+1.7.2.5
+
