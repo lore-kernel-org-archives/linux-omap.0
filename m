@@ -1,43 +1,57 @@
-From: "Mr.Bojan Limsley" <Limsley@ey.com>
-Subject: MAIL 18.08.2012
-Date: Sun, 19 Aug 2012 00:55:24 +0200
-Message-ID: <201208182259.q7IMpuOj019382@mail.ucla.edu>
-Reply-To: bojan_limsley@aol.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out-73.smtp.ucla.edu ([169.232.46.180]:47605 "EHLO
-	out-73.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753515Ab2HRXIc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Aug 2012 19:08:32 -0400
-Content-Description: Mail message body
-Sender: linux-omap-owner@vger.kernel.org
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 4/9] sound/soc/omap/am3517evm.c: fix error return code
+Date: Sun, 19 Aug 2012 09:03:00 +0200
+Message-ID: <1345359780-18647-10-git-send-email-Julia.Lawall@lip6.fr>
+References: <1345359780-18647-1-git-send-email-Julia.Lawall@lip6.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1345359780-18647-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: kernel-janitors@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <Limsley@ey.com>
 
-Dear Friend,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-My name is Mr.Bojan Limsley, an Armenia national. I work as an external auditor for Bank of United Kingdom. I Work as part of a bigger team that covers the entire Scotland and England region. I have taken pains to find your contact through personal endeavours.
+It was forgotten to initialize ret to the result of calling
+snd_soc_dai_set_sysclk, unlike at the other calls in the same function.
 
-I wish to discuss with you an issue of immense benefit to us. Your prompt response will be highly appreciated. Contact me only through my private email address: bojan_limsley@aol.com 
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
-Kind Regards, 
+// </smpl>
 
-Bojan Limsley.
-Ernst & Young
-E:Limsley@ey.com
-http://www.ey.com/
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
+---
+ sound/soc/omap/am3517evm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-_____________________________________________________________________ 
-This e-mail originated from the Internet and has been scanned for known viruses by the Messagelabs SkyScan Service. 
-*********************************************************************************** 
-This e-mail is intended for the addressee(s) named above and any other use is prohibited. It may contain confidential information. If you received this e-mail in error please contact the sender by return e-mail. 
-
-Ernst & Young does not accept legal responsibility for the contents of this message if it has reached you via the Internet, as Internet communications are not secure. Any opinions expressed are those of the author and are not necessarily endorsed by Ernst & Young. 
-
-Recipients are advised to apply their own virus checks to this message . 
-***********************************************************************************
+diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
+index 009533a..df65f98 100644
+--- a/sound/soc/omap/am3517evm.c
++++ b/sound/soc/omap/am3517evm.c
+@@ -59,7 +59,7 @@ static int am3517evm_hw_params(struct snd_pcm_substream *substream,
+ 		return ret;
+ 	}
+ 
+-	snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
++	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
+ 				SND_SOC_CLOCK_IN);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "can't set CPU system clock OMAP_MCBSP_FSR_SRC_FSX\n");
