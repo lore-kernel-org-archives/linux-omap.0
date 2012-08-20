@@ -1,184 +1,107 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv7] arm/dts: omap4-sdp: Add keypad data
-Date: Mon, 20 Aug 2012 14:34:49 +0300
-Message-ID: <20120820113448.GO17455@arwen.pp.htv.fi>
-References: <1344942937-4685-1-git-send-email-sourav.poddar@ti.com>
- <CAKdam57n1jA5_7EOLcsB=u5X4wX6hPVXoZ2HLrnpEKS3kLZ=OQ@mail.gmail.com>
+Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
+Date: Mon, 20 Aug 2012 14:36:25 +0300
+Message-ID: <20120820113624.GP17455@arwen.pp.htv.fi>
+References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
+ <CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
+ <20120820095421.GL17455@arwen.pp.htv.fi>
+ <CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
+ <20120820102641.GM17455@arwen.pp.htv.fi>
+ <CAAe_U6JsPJ0b3HszOuCcu1LqEkXnC=LTQG00qwQzdB6pBnpryA@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GYaKytDE8aa4+VVK"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="kERJ49nCKmnv470N"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:58995 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752600Ab2HTLkX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 07:40:23 -0400
+Received: by lagy9 with SMTP id y9so3580538lag.5
+        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 04:40:20 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <CAKdam57n1jA5_7EOLcsB=u5X4wX6hPVXoZ2HLrnpEKS3kLZ=OQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>
+In-Reply-To: <CAAe_U6JsPJ0b3HszOuCcu1LqEkXnC=LTQG00qwQzdB6pBnpryA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: balbi@ti.com, Peter Meerwald <pmeerw@pmeerw.net>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
 
---GYaKytDE8aa4+VVK
+--kERJ49nCKmnv470N
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 20, 2012 at 04:49:36PM +0530, Poddar, Sourav wrote:
-> Hi All,
+On Mon, Aug 20, 2012 at 04:37:28PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
 >=20
-> On Tue, Aug 14, 2012 at 4:45 PM, Sourav Poddar <sourav.poddar@ti.com> wro=
-te:
-> > Add keypad data node in omap4 device tree file.
-> > Also fill the device tree binding parameters
-> > with the required value in "omap4-sdp" dts file.
+> On Mon, Aug 20, 2012 at 3:56 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Mon, Aug 20, 2012 at 03:46:07PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> >> Hi,
+> >>
+> >> On Mon, Aug 20, 2012 at 3:24 PM, Felipe Balbi <balbi@ti.com> wrote:
+> >> > On Mon, Aug 20, 2012 at 11:06:34AM +0530, ABRAHAM, KISHON VIJAY wrot=
+e:
+> >> >> Hi,
+> >> >>
+> >> >> On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.net>=
+ wrote:
+> >> >> >
+> >> >> > 3.6-rc2 fails to compile with
+> >> >> > CONFIG_USB_MUSB_HDRC=3Dm
+> >> >> > CONFIG_USB_MUSB_OMAP2PLUS=3Dm
+> >> >> >
+> >> >> >   LD      init/built-in.o
+> >> >> > drivers/built-in.o: In function `twl4030_usb_irq':
+> >> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: und=
+efined reference to `omap_musb_mailbox'
+> >> >> > drivers/built-in.o: In function `twl4030_usb_phy_init':
+> >> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: und=
+efined reference to `omap_musb_mailbox'
+> >> >>
+> >> >> Having TWL4030_USB as a module will get rid of this.
+> >> >> I'll see how this can be resolved when some modules are *built-in* =
+and
+> >> >> some are made as *modules*.
+> >> >
+> >> > EXPORT_SYMBOL_GPL() should sort that out, right ?
+> >>
+> >> No :-( I already have EXPORT_SYMBOL_GPL() in omap2430.c.
 > >
-> > Tested on omap4430 sdp.
-> >
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Rob Herring <rob.herring@calxeda.com>
-> > Cc: Grant Likely <grant.likely@secretlab.ca>
-> > Cc: Felipe Balbi <balbi@ti.com>
-
-to me it looks good. you've even added comments on each key for easy
-human parsing.
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-> > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> > ---
-> > v6->v7
-> > Add key name as a comment.
-> >  arch/arm/boot/dts/omap4-sdp.dts |   70 +++++++++++++++++++++++++++++++=
-++++++++
-> >  arch/arm/boot/dts/omap4.dtsi    |    5 +++
-> >  2 files changed, 75 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-=
-sdp.dts
-> > index 72216e9..8e200f4 100644
-> > --- a/arch/arm/boot/dts/omap4-sdp.dts
-> > +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> > @@ -113,6 +113,76 @@
-> >                         "DMic", "Digital Mic",
-> >                         "Digital Mic", "Digital Mic1 Bias";
-> >         };
-> > +
-> > +       keypad {
-> > +               keypad,num-rows =3D <8>;
-> > +               keypad,num-columns =3D <8>;
-> > +               linux,keymap =3D < 0x00000012 /* KEY_E */
-> > +                       0x00010013 /* KEY_R */
-> > +                       0x00020014 /* KEY_T */
-> > +                       0x00030066 /* KEY_HOME */
-> > +                       0x0004003f /* KEY_F5 */
-> > +                       0x000500f0 /* KEY_UNKNOWN */
-> > +                       0x00060017 /* KEY_I */
-> > +                       0x0007002a /* KEY_LEFTSHIFT */
-> > +                       0x01000020 /* KEY_D*/
-> > +                       0x01010021 /* KEY_F */
-> > +                       0x01020022 /* KEY_G */
-> > +                       0x010300e7 /* KEY_SEND */
-> > +                       0x01040040 /* KEY_F6 */
-> > +                       0x010500f0 /* KEY_UNKNOWN */
-> > +                       0x01060025 /* KEY_K */
-> > +                       0x0107001c /* KEY_ENTER */
-> > +                       0x0200002d /* KEY_X */
-> > +                       0x0201002e /* KEY_C */
-> > +                       0x0202002f /* KEY_V */
-> > +                       0x0203006b /* KEY_END */
-> > +                       0x02040041 /* KEY_F7 */
-> > +                       0x020500f0 /* KEY_UNKNOWN */
-> > +                       0x02060034 /* KEY_DOT */
-> > +                       0x0207003a /* KEY_CAPSLOCK */
-> > +                       0x0300002c /* KEY_Z */
-> > +                       0x0301004e /* KEY_KPLUS */
-> > +                       0x03020030 /* KEY_B */
-> > +                       0x0303003b /* KEY_F1 */
-> > +                       0x03040042 /* KEY_F8 */
-> > +                       0x030500f0 /* KEY_UNKNOWN */
-> > +                       0x03060018 /* KEY_O */
-> > +                       0x03070039 /* KEY_SPACE */
-> > +                       0x04000011 /* KEY_W */
-> > +                       0x04010015 /* KEY_Y */
-> > +                       0x04020016 /* KEY_U */
-> > +                       0x0403003c /* KEY_F2 */
-> > +                       0x04040073 /* KEY_VOLUMEUP */
-> > +                       0x040500f0 /* KEY_UNKNOWN */
-> > +                       0x04060026 /* KEY_L */
-> > +                       0x04070069 /* KEY_LEFT */
-> > +                       0x0500001f /* KEY_S */
-> > +                       0x05010023 /* KEY_H */
-> > +                       0x05020024 /* KEY_J */
-> > +                       0x0503003d /* KEY_F3 */
-> > +                       0x05040043 /* KEY_F9 */
-> > +                       0x05050072 /* KEY_VOLUMEDOWN */
-> > +                       0x05060032 /* KEY_M */
-> > +                       0x0507006a /* KEY_RIGHT */
-> > +                       0x06000010 /* KEY_Q */
-> > +                       0x0601001e /* KEY_A */
-> > +                       0x06020031 /* KEY_N */
-> > +                       0x0603009e /* KEY_BACK */
-> > +                       0x0604000e /* KEY_BACKSPACE */
-> > +                       0x060500f0 /* KEY_UNKNOWN */
-> > +                       0x06060019 /* KEY_P */
-> > +                       0x06070067 /* KEY_UP */
-> > +                       0x07000094 /* KEY_PROG1 */
-> > +                       0x07010095 /* KEY_PROG2 */
-> > +                       0x070200ca /* KEY_PROG3 */
-> > +                       0x070300cb /* KEY_PROG4 */
-> > +                       0x0704003e /* KEY_F4 */
-> > +                       0x070500f0 /* KEY_UNKNOWN */
-> > +                       0x07060160 /* KEY_OK */
-> > +                       0x0707006c >; /* KEY_DOWN */
-> > +               linux,input-no-autorepeat;
-> > +       };
-> >  };
-> >
-> >  &i2c1 {
-> > diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> > index 04cbbcb..e78a1f1 100644
-> > --- a/arch/arm/boot/dts/omap4.dtsi
-> > +++ b/arch/arm/boot/dts/omap4.dtsi
-> > @@ -296,4 +296,9 @@
-> >                         ti,hwmods =3D "dmic";
-> >                 };
-> >         };
-> > +
-> > +       keypad {
-> > +               compatible =3D "ti,omap4-keypad";
-> > +               ti,hwmods =3D "kbd";
-> > +       };
-> >  };
-> > --
-> > 1.7.1
-> >
-> Any more comments on this?
+> > I see you're missing an "extern" on the function prototype (on the
+> > header). Not sure how modules.dep is generated, but maybe it needs the
+> > "extern" there. Can you check it out ?
 >=20
-> ~Sourav
+> That isn't helping either.
+
+oh, ok... twl4030-usb is built-in... now that makes sense. Since
+twl4030-usb uses a symbol from omap2430, then it should depend on it,
+otherwise this will always happen.
 
 --=20
 balbi
 
---GYaKytDE8aa4+VVK
+--kERJ49nCKmnv470N
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQMiDYAAoJEIaOsuA1yqRE0aEP/0aTYNCZg3CzZQ8MbmzV6N5I
-TjZsGxUnKVovMnJCkWZMvoXeQrcbWACOtmV2lmKaWflAe1+8OC8VsFTzBqlP4cLP
-+ZJc/aa1uem0UcMrbDZa1EQjJoELvu790uoMxdUXEWM4zMNuBZu2RXMFdc9xaU6x
-DmQ+T76bRyUpNAb8AulrGvqLcHkzPyeS4s8247ZpESvq68cg9P6GiH2RyxNUoyq0
-KPGDGLlZD3y61HL+lyii8gqJ5naqLgQU2TYUDpUK+Y9CDkDvVfR6t10ILt8t/qtj
-Pch1YX1DV0Eswd0gqFp/fMjs0iZajZ3E5mXfl4HfWAPHNtJ3X1ElyMhhKd9dTzpO
-cRjoCPOKpVNGYh+Ka1oXbCL5jYRh1vEPVC/83ZtGr7rhAeIQ6w2kXzVmdsZ57WBV
-VwyoHfrfkITj+N0zBndFZzCYI/RYgF8SRkWy4gJ3NcoMvNjNlha0bBqeXHue4ZWQ
-bAWAKVyvpMNptgtc2LPeYmrgoV4mggrI5zwxNda5aLMuScovaQ1WrdwQAnZ66Ml+
-wFcdIbZvckoBZt/gNNtLoWotTzfAtPXLRVi+wmYphhMv7cjTpbQ6bAeQ6cQJHt+I
-Zu5XGqctBgI5c4mwuUj1fWugzzMi2dSHG9u1MhpKJxlQn0UkhAnFKPtJYKxzBW3z
-eLrnP1om3yHFOl+wz6tO
-=r4cn
+iQIcBAEBAgAGBQJQMiE4AAoJEIaOsuA1yqREP64P/25b1gQ8FCpm67pKLvfG9An4
+uRd9bUvK7vwpSH+KTCT1O2w2i+qosWB4oZx9Lga0+FyJxHnyGhhxZU+2KVkg4j94
+Yg+wniL+Lcvg0Xk76XIizMvLZ+ZBrxy3iLx/xyfSPwp73GFvKelGkIwJzV01dl6N
+DvP94FFdBJD5xMUL5kzWqNxd41SdJdFHaJABe1d8mSM3b0fQ3IEnSti1qFQ076IE
+zDlq4lVeDIVWE77woA+aaLGw7FC+UnxO8Gza1u7upQI6vqe8iQWPEiBPu0wzihlh
+2mrIw7v/HGed0Rshw+mZJnF8I+jFoV5rI3LeUFkCLqfdwRqbBk+BiIsc5f3o0R0c
+Df6Mri6ps3ZgHzGXV0etayGheJLnlnYKTXm1lWDjX69SlSk3pXjmA6ZTR4rL4LX9
+kxfaatj61IyPqYqbfPPqk8PfB1YW/09e5PYiQor+ApQ4DhxNKzJpz0Xxai2XBPz+
+WoHaOSandos09JJiYYEoxsyOkn9C35jhYCEPrskM3NURt6Izj7CGDNiCvf30gHGv
+13JrKyEg/Y/SD+ncFjr4yO2CWNAK9SODgQ/ziNYvPLTm7oDm2mVYyWB8uWJk6WkL
+j5L8/pl58Abhs7FKBgkxi2NNcpjBknY48M2ZQ0Ow+hx/AWt9mI5W8auXCul5Aa4+
+yKDVkEoNdguDBe0dMgdZ
+=OAmL
 -----END PGP SIGNATURE-----
 
---GYaKytDE8aa4+VVK--
+--kERJ49nCKmnv470N--
