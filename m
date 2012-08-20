@@ -1,74 +1,37 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] omap-hsmmc: Implementation of i761 errata
-Date: Mon, 20 Aug 2012 12:25:12 +0530
-Message-ID: <CAMQu2gzc4o_fYGk8Jgtd5tf89xh1N2e4DhN8MKE_Zm=eg_e1=Q@mail.gmail.com>
-References: <1345219546-6646-1-git-send-email-semen.protsenko@ti.com>
- <CANfBPZ9NqZGN1LPNu+5DVWdkut2AL3O_8TWtWhBTufpdRZYZ_Q@mail.gmail.com>
- <CANwLT1SADwqn2Hgj2etiYyRu=TboT8DOfBsqjg02rrk6CYcFTw@mail.gmail.com> <CANfBPZ9iAuMmwGC_QuhM9k4MyAt4mgAYVSG3K3uMq=mOH_dewg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use for OMAP2430
+Date: Sun, 19 Aug 2012 23:57:41 -0700
+Message-ID: <20120820065740.GK11011@atomide.com>
+References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
+ <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
+ <20120817130723.GZ11011@atomide.com>
+ <502E43BC.30708@bitmer.com>
+ <502E4F2B.6060403@ti.com>
+ <20120818060810.GH11011@atomide.com>
+ <CAPo=G1w5N5GVra7TK=En9xnaFmNNP1Zb7g2tZSjg8CO8wewOwA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANfBPZ9iAuMmwGC_QuhM9k4MyAt4mgAYVSG3K3uMq=mOH_dewg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Puttagunta, Viswanath" <vishp@ti.com>
-Cc: Semen Protsenko <semen.protsenko@ti.com>, linux-omap@vger.kernel.org, Volodymyr Ryazantsev <x0153367@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:25880 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752375Ab2HTG5v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 02:57:51 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPo=G1w5N5GVra7TK=En9xnaFmNNP1Zb7g2tZSjg8CO8wewOwA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-On Mon, Aug 20, 2012 at 12:08 PM, S, Venkatraman <svenkatr@ti.com> wrote:
->
-> On Fri, Aug 17, 2012 at 11:43 PM, Puttagunta, Viswanath <vishp@ti.com>
-> wrote:
-> > On Fri, Aug 17, 2012 at 12:28 PM, S, Venkatraman <svenkatr@ti.com>
-> > wrote:
-> >> On Fri, Aug 17, 2012 at 9:35 PM, Semen Protsenko
-> >> <semen.protsenko@ti.com> wrote:
-> >>> Errata description:
-> >>> Due to a bad behavior of an internal signal, the Card Error interrupt
-> >>> bit
-> >>> MMCHS_STAT[28] CERR may not be set sometimes when an error occurred in
-> >>> the
-> >>> card response.
-> >>>
-> >>> Workaround:
-> >>> After responses of type R1/R1b for all cards and responses of type
-> >>> R5/R5b/R6
-> >>> for SD and SDIO cards, software must read two registers: MMCHS_RSP10
-> >>> and
-> >>> MMCHS_CSRE. When a MMCHS_CSRE[i] bit is set to 1, if the corresponding
-> >>> bit at
-> >>> the same position in the response MMCHS_RSP10[i] is set to 1, the host
-> >>> controller indicates a card error and software should proceed in the
-> >>> same way
-> >>> as if a CERR interrupt would have been detected in the MMCHS_STAT
-> >>> register.
-> >>>
-> >>> Note:
-> >>> This errata is applicable for omap44xx.
-> >>>
-> >>> Signed-off-by: Semen Protsenko <semen.protsenko@ti.com>
-> >>
-> >> The implementation looks fine, but can we simply not set the errata
-> >> flag and make this as default
-> >> behaviour ? I suppose the documented behaviour with CSRE and RSP10 is
-> >> independent of the
-> >> errata..
-> >>
-> >> Also, please send it to the linux-mmc list as well.
-> >
-> > Vish>> We don't know if this errata effects OMAP5 as well. So, I think
-> > we should only do this if we are OMAP4.
-> >
-> That's precisely why the code shouldn't check for cpu_() flags. There are
-> other
-> OMAP variants as well and we can't check all of them
-> What I mean is to make the check for RSP10 and CSRE all the time as part
-> of the IRQ check.
->   Then it equally applies to silcon with or without errata.
+* Ujfalusi, Peter <peter.ujfalusi@ti.com> [120818 08:58]:
+> Hi Tony,
+> 
+> On Sat, Aug 18, 2012 at 8:08 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > Thanks, is this patch still correct so it does not try to enable FIFO
+> > for 2420?
+> 
+> Yes it only enables the FIFO for 2430, 2420 is not affected.
 
-Apart from above comment, please don't add the cpu_is_xxx() check inside
-device driver. You can pass that information from platform code
-while registering the MMC controllers using a flag and then just
-use that flag to enable/disable errata in the driver.
+OK thanks for the clarification.
 
-Regards
-Santosh
+Tony
