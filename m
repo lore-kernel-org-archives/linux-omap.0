@@ -1,58 +1,79 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCHv3 0/4] Add device tree data for omap5
-Date: Mon, 20 Aug 2012 14:19:52 +0200
-Message-ID: <50322B68.8060906@ti.com>
-References: <1344961473-13675-1-git-send-email-sourav.poddar@ti.com> <CAKdam57L8txFtE9ahy3u3vLW0XRP5z4QaNQKVFj9KaEFZE1qvg@mail.gmail.com> <503229F5.4030405@ti.com> <CAKdam543ATO96rbhgCWKtGUGRQ_+=KSyAk-nGBknjC+BvJSmOw@mail.gmail.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH V5 0/6] OMAPDSS: Cleanup cpu_is checks
+Date: Mon, 20 Aug 2012 18:51:20 +0530
+Message-ID: <cover.1345468541.git.cmahapatra@ti.com>
+References: <cover.1343912532.git.cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKdam543ATO96rbhgCWKtGUGRQ_+=KSyAk-nGBknjC+BvJSmOw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39286 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105Ab2HTN0X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 09:26:23 -0400
+In-Reply-To: <cover.1343912532.git.cmahapatra@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, tony@atomide.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-On 08/20/2012 02:17 PM, Poddar, Sourav wrote:
-> Hi Benoit,
-> 
-> On Mon, Aug 20, 2012 at 5:43 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->> On 08/20/2012 02:10 PM, Poddar, Sourav wrote:
->>> Hi All,
->>>
->>> On Tue, Aug 14, 2012 at 9:54 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
->>>> The following patch series add i2c support for omap5.
->>>> As well as enable I2C based devices like pressure and temperature
->>>> through device tree. Also add onchip keypad dts data.
->>>>
->>>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>> Cc: Felipe Balbi <balbi@ti.com>
->>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>
->>>> Sourav Poddar (4):
->>>>   arm/dts: omap5-evm: Add I2C support
->>>>   arm/dts: omap5-evm: Add tmp102 sensor support
->>>>   arm/dts: omap5-evm: Add keypad data
->>>>   arm/dts: omap5-evm: Add bmp085 sensor support
->>>>
->>>> v2->v3
->>>> - Rebased on 3.6-rc1
->>>> - Add comments for tmp102 and bmp085
->>>>  arch/arm/boot/dts/omap5-evm.dts |   32 +++++++++++++++++++++++++++++++
->>>>  arch/arm/boot/dts/omap5.dtsi    |   40 +++++++++++++++++++++++++++++++++++++++
->>>>  2 files changed, 72 insertions(+), 0 deletions(-)
->>>>
->>> Any comment on this series?
->>
->> Didn't we mentioned updating the trivial-devices.txt in the
->> documentation to list these devices?
->>
-> I had posted a patch for updating the Documentation, though I created
-> a seperate
-> hwmon/tmp102.txt file. There is a comment to add it to trivial devices. So,
-> I will post a single patch doing so.
+Hi everyone,
+this patch series aims at cleaning up of DSS of cpu_is checks thereby making it
+more generic.
 
-Cool, I'll take it on top of this one then.
+The 1st patch cleans up cpu_is checks from DISPC code.
+The 2nd patch removes unused functions from DSS code.
+The 3rd patch cleans up cpu_is checks from DSS code.
+The 4th patch removes cpu_is checks from VENC code.
+The 5th patch disables VENC support on OMAP4.
+The 6th patch removes cpu_is checks from DPI code and replaces it with a
+dss feature.
 
-Thanks,
-Benoit
+Changes with respect to V1 series:
+ 1st patch :
+	* moved dispc_ops structure definitions from dss_features.c to dispc.c
+	  and renamed it to dispc_features
+	* moved dispc_features definitions close to dispc_init_features() thereby
+	  eliminating various functions declarations from top of dispc.c
+	* used __initconst before dispc_features definitions and __init before
+	  dispc_init_features()
+	* removed definitions of _dispc_lcd_timings_ok_24xx,
+	  _dispc_lcd_timings_ok_44xx, _dispc_mgr_set_lcd_timings_hv_24xx and
+	  _dispc_mgr_set_lcd_timings_hv_44xx replacing them with appropiate variables
+	* renamed various dispc_features structures to give consistent naming
+
+ 3rd patch :
+	* moved dss_ops structure definitions from dss_features.c to dss.c and
+	  renamed it to dss_features
+	* removed all functions from dss_features structure and replaced them with
+	  appropiate variables
+	* used __initconst before dss_features definitions and __init before 
+	  dss_init_features()
+	* renamed various dss_features structures to give consistent naming
+	* renamed factor variable of dss_features structure to dss_fck_multiplier
+
+All your comments and suggestions are welcome.
+
+Refenence Tree:
+git@gitorious.org:~chandrabhanu/linux-omap-dss2/chandrabhanus-linux.git dss_cleanup
+
+Chandrabhanu Mahapatra (6):
+  OMAPDSS: DISPC: cleanup cpu_is_xxxx checks
+  OMAPDSS: DSS: Remove redundant functions
+  OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
+  OMAPDSS: VENC: Remove cpu_is_xxxx checks
+  ARM: OMAP: Disable venc for OMAP4
+  OMAPDSS: DPI: Remove cpu_is_xxxx checks
+
+ arch/arm/mach-omap2/display.c          |    1 -
+ drivers/video/omap2/dss/dispc.c        |  433 ++++++++++++++++++++------------
+ drivers/video/omap2/dss/dpi.c          |   12 +-
+ drivers/video/omap2/dss/dss.c          |  162 ++++++------
+ drivers/video/omap2/dss/dss.h          |    2 -
+ drivers/video/omap2/dss/dss_features.c |    1 +
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ drivers/video/omap2/dss/venc.c         |   11 -
+ 8 files changed, 363 insertions(+), 260 deletions(-)
+
+-- 
+1.7.10
+
