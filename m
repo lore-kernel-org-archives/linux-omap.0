@@ -1,51 +1,56 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
-Date: Mon, 20 Aug 2012 15:46:07 +0530
-Message-ID: <CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
-References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
-	<CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
-	<20120820095421.GL17455@arwen.pp.htv.fi>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP: hwmod: revise deassert sequence
+Date: Mon, 20 Aug 2012 12:21:56 +0200
+Message-ID: <50320FC4.2020100@ti.com>
+References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org> <1342466485-1050-3-git-send-email-omar.luna@linaro.org> <alpine.DEB.2.00.1208020150240.4177@utopia.booyaka.com> <CALLhW=6-b+kjfG-u3+uXiD64UwoNEdufjJKu0Mx-sGWp6n9csg@mail.gmail.com> <501B609F.9030403@ti.com> <CALLhW=7yJTq_cfB=KGY5VT8fNO1u_hrY118ysihFuQA+gVFRuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:55698 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100Ab2HTKQJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:16:09 -0400
-Received: by vbbff1 with SMTP id ff1so5134043vbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 03:16:07 -0700 (PDT)
-In-Reply-To: <20120820095421.GL17455@arwen.pp.htv.fi>
+Received: from bear.ext.ti.com ([192.94.94.41]:52471 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751647Ab2HTKWO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 06:22:14 -0400
+In-Reply-To: <CALLhW=7yJTq_cfB=KGY5VT8fNO1u_hrY118ysihFuQA+gVFRuQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Peter Meerwald <pmeerw@pmeerw.net>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi,
+Hi Omar,
 
-On Mon, Aug 20, 2012 at 3:24 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Aug 20, 2012 at 11:06:34AM +0530, ABRAHAM, KISHON VIJAY wrote:
->> Hi,
+On 08/03/2012 05:52 PM, Omar Ramirez Luna wrote:
+> On 3 August 2012 00:24, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>> On 8/3/2012 3:50 AM, Omar Ramirez Luna wrote:
+>>> So in _enable:
+>>>
+>>>         _enable_clocks(oh);
+>>>         if (soc_ops.enable_module)
+>>>                 soc_ops.enable_module(oh);
+>>>
+>>> The enable_module part seems redundant to me, since the module should
+>>> be already enabled by the first call to _enable_clocks.
 >>
->> On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.net> wrote:
->> >
->> > 3.6-rc2 fails to compile with
->> > CONFIG_USB_MUSB_HDRC=m
->> > CONFIG_USB_MUSB_OMAP2PLUS=m
->> >
->> >   LD      init/built-in.o
->> > drivers/built-in.o: In function `twl4030_usb_irq':
->> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: undefined reference to `omap_musb_mailbox'
->> > drivers/built-in.o: In function `twl4030_usb_phy_init':
->> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: undefined reference to `omap_musb_mailbox'
->>
->> Having TWL4030_USB as a module will get rid of this.
->> I'll see how this can be resolved when some modules are *built-in* and
->> some are made as *modules*.
->
-> EXPORT_SYMBOL_GPL() should sort that out, right ?
+>> Yes they do same thing, I believe the plan is to get rid of all clock
+>> leaf-nodes in the near future, and let hwmod handle module
+>> enable/disable part.
+> 
+> If this is the case then an enable_module call is needed in my patch
+> for when these changes are made. The original works fine but only
+> because currently clock framework does what enable_module is doing.
 
-No :-( I already have EXPORT_SYMBOL_GPL() in omap2430.c.
+Yes, that's the case, but I plan to remove most of the leaf clocks ASAP,
+so we cannot rely on that.
 
-Thanks
-Kishon
+> Please let me know if you want me to resend with this change.
+
+Yes, could you please repost with that change?
+
+It will be good as well that you remove the leaf clock and use the
+parent clock of current leaf as the main_clock. In that case it will
+ensure that this is the hwmod fmwk that does enable the modulemode and
+not the clock fmwk.
+
+Regards,
+Benoit
+
