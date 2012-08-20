@@ -1,95 +1,60 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v8] can: c_can: Add runtime PM support to Bosch
- C_CAN/D_CAN controller
-Date: Mon, 20 Aug 2012 11:06:48 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA19F35@DBDE01.ent.ti.com>
-References: <1345452359-1137-1-git-send-email-anilkumar@ti.com>
- <5032144C.2090007@pengutronix.de> <50321831.1070106@pengutronix.de>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
+Date: Mon, 20 Aug 2012 16:37:28 +0530
+Message-ID: <CAAe_U6JsPJ0b3HszOuCcu1LqEkXnC=LTQG00qwQzdB6pBnpryA@mail.gmail.com>
+References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
+	<CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
+	<20120820095421.GL17455@arwen.pp.htv.fi>
+	<CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
+	<20120820102641.GM17455@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>, Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120820102641.GM17455-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 20, 2012 at 16:33:43, AnilKumar, Chimata wrote:
-> On Mon, Aug 20, 2012 at 16:27:53, Marc Kleine-Budde wrote:
-> > On 08/20/2012 12:41 PM, Marc Kleine-Budde wrote:
-> > > On 08/20/2012 10:45 AM, AnilKumar Ch wrote:
-> > >> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-> > >> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-> > >> register of C_CAN/D_CAN IP when clock is turned off.
-> > >>
-> > >> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> > >> ---
-> > >> This patch has been tested on AM335X EVM. Due to lack of hardware
-> > >> I am not able to test c_can functionality. I appreciate if anyone
-> > >> can test c_can functionality with this patch.
-> > >>
-> > >> This patch is based on "can-next/master" 
-> > >>
-> > >> Changes from v7:
-> > >> 	- Incorporated Marc's commets on v7
-> > >> 	  * changed device pointer to c_can_priv pointer
-> > > 
-> > > looks good.
-> > > 
-> > > [...]
-> > > 
-> > >> --- a/drivers/net/can/c_can/c_can_platform.c
-> > >> +++ b/drivers/net/can/c_can/c_can_platform.c
-> > >> @@ -32,6 +32,7 @@
-> > >>  #include <linux/clk.h>
-> > >>  #include <linux/of.h>
-> > >>  #include <linux/of_device.h>
-> > >> +#include <linux/pm_runtime.h>
-> > >>  
-> > >>  #include <linux/can/dev.h>
-> > >>  
-> > >> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
-> > >>  		goto exit_free_device;
-> > >                      ^^^^^^^^^^^^^^^^
-> > >>  	}
-> > >>  
-> > >> +	pm_runtime_enable(&pdev->dev);
-> > >> +
-> > >>  	dev->irq = irq;
-> > >>  	priv->base = addr;
-> > >> +	priv->device = &pdev->dev;
-> > >>  	priv->can.clock.freq = clk_get_rate(clk);
-> > >>  	priv->priv = clk;
-> > >>  
-> > >> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
-> > >>  
-> > >>  exit_free_device:
-> > >>  	platform_set_drvdata(pdev, NULL);
-> > >> +	pm_runtime_disable(&pdev->dev);
-> > > 
-> > > I think this will end up in a NULL pointer deferf.
-> > 
-> > Should be no problem, as you're using pdev->dev not priv->device.
-> > 
-> > Sorry for the noise :)
-> > 
-> 
-> One more catch here, return path is not proper.
-> 
-> exit_free_device: should contain only free_c_can_dev(dev);
+Hi,
 
-And second goto exit_free_device; call should modify to
-goto exit_clear_drvdata;
+On Mon, Aug 20, 2012 at 3:56 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Mon, Aug 20, 2012 at 03:46:07PM +0530, ABRAHAM, KISHON VIJAY wrote:
+>> Hi,
+>>
+>> On Mon, Aug 20, 2012 at 3:24 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+>> > On Mon, Aug 20, 2012 at 11:06:34AM +0530, ABRAHAM, KISHON VIJAY wrote:
+>> >> Hi,
+>> >>
+>> >> On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org> wrote:
+>> >> >
+>> >> > 3.6-rc2 fails to compile with
+>> >> > CONFIG_USB_MUSB_HDRC=m
+>> >> > CONFIG_USB_MUSB_OMAP2PLUS=m
+>> >> >
+>> >> >   LD      init/built-in.o
+>> >> > drivers/built-in.o: In function `twl4030_usb_irq':
+>> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: undefined reference to `omap_musb_mailbox'
+>> >> > drivers/built-in.o: In function `twl4030_usb_phy_init':
+>> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: undefined reference to `omap_musb_mailbox'
+>> >>
+>> >> Having TWL4030_USB as a module will get rid of this.
+>> >> I'll see how this can be resolved when some modules are *built-in* and
+>> >> some are made as *modules*.
+>> >
+>> > EXPORT_SYMBOL_GPL() should sort that out, right ?
+>>
+>> No :-( I already have EXPORT_SYMBOL_GPL() in omap2430.c.
+>
+> I see you're missing an "extern" on the function prototype (on the
+> header). Not sure how modules.dep is generated, but maybe it needs the
+> "extern" there. Can you check it out ?
 
-return path looks like this
+That isn't helping either.
 
-exit_clear_drvdata:
-	platform_set_drvdata(pdev, NULL);
-	pm_runtime_disable(&pdev->dev);
-exit_free_device:
-	free_c_can_dev(dev);
-...
-
-Regards
-AnilKumar
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
