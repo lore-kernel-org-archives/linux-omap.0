@@ -1,92 +1,118 @@
-From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
-Subject: Re: [PATCH V4 3/6] OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
-Date: Mon, 20 Aug 2012 16:06:44 +0530
-Message-ID: <CAF0AtAtePhxTsoCyatfXWR+e4sc3WHmg=Wq_ZXkowoGpOg63FA@mail.gmail.com>
-References: <1344859176-4512-1-git-send-email-cmahapatra@ti.com>
-	<1345115913-6773-1-git-send-email-cmahapatra@ti.com>
-	<1345211692.3158.160.camel@deskari>
-	<1345452124.2684.7.camel@deskari>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v8] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
+ controller
+Date: Mon, 20 Aug 2012 12:41:16 +0200
+Message-ID: <5032144C.2090007@pengutronix.de>
+References: <1345452359-1137-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig079661ED6B9131F98E7F447A"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36565 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100Ab2HTKgp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:36:45 -0400
-Received: by vbkv13 with SMTP id v13so5993619vbk.0
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 03:36:44 -0700 (PDT)
-In-Reply-To: <1345452124.2684.7.camel@deskari>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54373 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038Ab2HTKl1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 06:41:27 -0400
+In-Reply-To: <1345452359-1137-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 
-On Mon, Aug 20, 2012 at 2:12 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Fri, 2012-08-17 at 16:54 +0300, Tomi Valkeinen wrote:
->> On Thu, 2012-08-16 at 16:48 +0530, Chandrabhanu Mahapatra wrote:
->> > All the cpu_is checks have been moved to dss_init_features function providing a
->> > much more generic and cleaner interface. The OMAP version and revision specific
->> > initializations in various functions are cleaned and the necessary data are
->> > moved to dss_features structure which is local to dss.c.
->> >
->> > Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
->>
->> > +static int __init dss_init_features(struct device *dev)
->> > +{
->> > +   dss.feat = devm_kzalloc(dev, sizeof(*dss.feat), GFP_KERNEL);
->> > +   if (!dss.feat) {
->> > +           dev_err(dev, "Failed to allocate local DSS Features\n");
->> > +           return -ENOMEM;
->> > +   }
->> > +
->> > +   if (cpu_is_omap24xx())
->> > +           dss.feat = &omap24xx_dss_features;
->> > +   else if (cpu_is_omap34xx())
->> > +           dss.feat = &omap34xx_dss_features;
->> > +   else if (cpu_is_omap3630())
->> > +           dss.feat = &omap3630_dss_features;
->> > +   else if (cpu_is_omap44xx())
->> > +           dss.feat = &omap44xx_dss_features;
->> > +   else
->> > +           return -ENODEV;
->> > +
->> > +   return 0;
->> > +}
->>
->> This is not correct (and same problem in dispc). You allocate the feat
->> struct and assign the pointer to dss.feat, but then overwrite dss.feat
->> pointer with the pointer to omap24xx_dss_features (which is freed
->> later). You need to memcpy it.
->>
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig079661ED6B9131F98E7F447A
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Ok.
+On 08/20/2012 10:45 AM, AnilKumar Ch wrote:
+> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+> register of C_CAN/D_CAN IP when clock is turned off.
+>=20
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+> This patch has been tested on AM335X EVM. Due to lack of hardware
+> I am not able to test c_can functionality. I appreciate if anyone
+> can test c_can functionality with this patch.
+>=20
+> This patch is based on "can-next/master"=20
+>=20
+> Changes from v7:
+> 	- Incorporated Marc's commets on v7
+> 	  * changed device pointer to c_can_priv pointer
 
->> I also get a crash on omap3 overo board when loading omapdss:
->
+looks good.
 
-During recent tests I never saw the crash happen. The kernel used to
-freeze during booting after printing
-"Uncompressing Linux... done, booting the kernel."
+[...]
 
-> The crash happens because dss_get_clocks uses the feat stuff, but the
-> dss_init_features is only called later. Did you test this? I can't see
-> how that can work on any board.
->
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+> =20
+>  #include <linux/can/dev.h>
+> =20
+> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platf=
+orm_device *pdev)
+>  		goto exit_free_device;
+                     ^^^^^^^^^^^^^^^^
+>  	}
+> =20
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	dev->irq =3D irq;
+>  	priv->base =3D addr;
+> +	priv->device =3D &pdev->dev;
+>  	priv->can.clock.freq =3D clk_get_rate(clk);
+>  	priv->priv =3D clk;
+> =20
+> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platfo=
+rm_device *pdev)
+> =20
+>  exit_free_device:
+>  	platform_set_drvdata(pdev, NULL);
+> +	pm_runtime_disable(&pdev->dev);
 
-Thanks for pointing that out. Correcting above fixed the problem.
+I think this will end up in a NULL pointer deferf.
 
-> Also, in the current place you have dss_init_features call, in case
-> there's an error you can't just return, you need to release the
-> resources. The same problem is in the dispc.c.
->
->  Tomi
->
+>  	free_c_can_dev(dev);
+>  exit_iounmap:
+>  	iounmap(addr);
+> @@ -226,6 +231,7 @@ static int __devexit c_can_plat_remove(struct platf=
+orm_device *pdev)
+>  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	release_mem_region(mem->start, resource_size(mem));
+> =20
+> +	pm_runtime_disable(&pdev->dev);
+>  	clk_put(priv->priv);
+> =20
+>  	return 0;
+>=20
 
-By releasing resources did you mean the dss.feat memory? I think
-dss_init_features call is wrongly placed and should be placed at the
-very beginning of the probe function.
+Marc
 
--- 
-Chandrabhanu Mahapatra
-Texas Instruments India Pvt. Ltd.
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--------------enig079661ED6B9131F98E7F447A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAlAyFE8ACgkQjTAFq1RaXHMPoACfS2zGSSP+Bimg/p3obYXwxJE1
+scEAn1sok7IKH74um3fr6pvHVq5TLXqj
+=dn3g
+-----END PGP SIGNATURE-----
+
+--------------enig079661ED6B9131F98E7F447A--
