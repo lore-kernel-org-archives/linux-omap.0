@@ -1,68 +1,101 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 4/9] sound/soc/omap/am3517evm.c: fix error return code
-Date: Mon, 20 Aug 2012 09:09:35 +0300
-Message-ID: <5031D49F.7050301@bitmer.com>
-References: <1345359780-18647-1-git-send-email-Julia.Lawall@lip6.fr> <1345359780-18647-10-git-send-email-Julia.Lawall@lip6.fr>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2 3/4] arm/dts: Add tps65910 regulator DT data to
+ am335x-evm.dts
+Date: Mon, 20 Aug 2012 06:27:01 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA19A81@DBDE01.ent.ti.com>
+References: <1343110735-10640-1-git-send-email-anilkumar@ti.com>
+ <1343110735-10640-4-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1293E@DBDE01.ent.ti.com>
+ <20120815125338.GA13544@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13118@DBDE01.ent.ti.com>
+ <20120815165431.GF15365@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13D18@DBDE01.ent.ti.com>
+ <20120816140056.GK15365@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:46131 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751501Ab2HTGJp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 02:09:45 -0400
-In-Reply-To: <1345359780-18647-10-git-send-email-Julia.Lawall@lip6.fr>
+Received: from devils.ext.ti.com ([198.47.26.153]:48019 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753782Ab2HTG1P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 02:27:15 -0400
+In-Reply-To: <20120816140056.GK15365@opensource.wolfsonmicro.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, kernel-janitors@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On 08/19/2012 10:03 AM, Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> It was forgotten to initialize ret to the result of calling
-> snd_soc_dai_set_sysclk, unlike at the other calls in the same function.
-> 
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> (
-> if@p1 (\(ret < 0\|ret != 0\))
->  { ... return ret; }
-> |
-> ret@p1 = 0
-> )
-> ... when != ret = e1
->     when != &ret
-> *if(...)
-> {
->   ... when != ret = e2
->       when forall
->  return ret;
-> }
-> 
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> ---
->  sound/soc/omap/am3517evm.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-> index 009533a..df65f98 100644
-> --- a/sound/soc/omap/am3517evm.c
-> +++ b/sound/soc/omap/am3517evm.c
-> @@ -59,7 +59,7 @@ static int am3517evm_hw_params(struct snd_pcm_substream *substream,
->  		return ret;
->  	}
->  
-> -	snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
-> +	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
->  				SND_SOC_CLOCK_IN);
->  	if (ret < 0) {
->  		printk(KERN_ERR "can't set CPU system clock OMAP_MCBSP_FSR_SRC_FSX\n");
-> 
+Hi Mark,
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Thu, Aug 16, 2012 at 19:30:56, Mark Brown wrote:
+> On Thu, Aug 16, 2012 at 01:22:27PM +0000, AnilKumar, Chimata wrote:
+> 
+> > But problem here is single input supply battery/main is not sufficient.
+> 
+> What makes you say this?
+> 
+> > pmic->desc[i].supply_name = info->vin_name;
+> > with this assignment regulator core searches for exact supply name vcc1 or
+> > vcc2 etc if there are no matches then it will not register any regulators. 
+> 
+> Why does this mean you need multiple regulators?  A single regulator can
+> of course supply multiple devices.
+
+I got your point but tps65910 driver is failing if we add single fixed
+regulator. Solution is driver needs to change or add multiple fixed
+regulators.
+
+Let's take this example
+
+ocp {
+        vcc5v_supply: fixedregulator@0 {
+                compatible = "regulator-fixed";
+                regulator-name = "vcc5v";
+                regulator-boot-on;
+        };
+};
+
+/include/ "tps65910.dtsi"
+
+&tps {
+        regulators {
+                vcc1-supply = <&vcc5v_supply>;
+                vcc2-supply = <&vcc5v_supply>;
+                vcc3-supply = <&vcc5v_supply>;
+                vcc4-supply = <&vcc5v_supply>;
+                vcc5-supply = <&vcc5v_supply>;
+                vcc6-supply = <&vcc5v_supply>;
+                vcc7-supply = <&vcc5v_supply>;
+                vccio-supply = <&vcc5v_supply>;
+
+                vrtc_reg: regulator@0 { /* vrtc input is vcc7 */
+                        regulator-always-on;
+                };
+
+                ... 
+                ...
+        };
+};
+
+These changes are added to am335x-evm.dts file after this change I
+am seeing below error.
+
+vrtc:
+tps65910 0-002d: Failed to find supply vcc7
+tps65910 0-002d: failed to register tps65910-pmic regulator
+
+To get rid of this error we have to change the driver like this
+
+if (info->vin_name) {
+         snprintf(in_supply, 32, "%s-supply", info->vin_name);
+         if (of_find_property(np, in_supply, 0))
+                  pmic_plat_data->input_supply[idx] = info->vin_name;
+}
+
+And
+
+pmic->desc[i].supply_name = pmic_plat_data->input_supply[i];
+
+Regards
+AnilKumar
