@@ -1,119 +1,118 @@
-From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V5 6/6] OMAPDSS: DPI: Remove cpu_is_xxxx checks
-Date: Mon, 20 Aug 2012 18:54:59 +0530
-Message-ID: <41ec21395229bc8671d68165a0d6b5198f7b87fc.1345468541.git.cmahapatra@ti.com>
-References: <cover.1343912532.git.cmahapatra@ti.com> <cover.1345468541.git.cmahapatra@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
+Date: Mon, 20 Aug 2012 15:51:43 +0200
+Message-ID: <503240EF.4050805@ti.com>
+References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com> <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60964 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36514 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756014Ab2HTN30 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 09:29:26 -0400
-In-Reply-To: <cover.1345468541.git.cmahapatra@ti.com>
+	id S1754817Ab2HTNvs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 09:51:48 -0400
+In-Reply-To: <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
 
-The OMAP3 checks have been removed and replaced by a dss feature
-FEAT_DPI_USES_VDDS_DSI for cleaner implementation. The patches
-"OMAP: DSS2: enable VDDS_DSI when using DPI" (8a2cfea8cc) by Tomi Valkeinen
-<tomi.valkeinen@nokia.com> and "ARM: omap: fix oops in
-drivers/video/omap2/dss/dpi.c" (4041071571) by Russell King
-<rmk+kernel@arm.linux.org.uk> had introduced these checks. As it is evident
-from these patches a dependency exists for some DSS pins on VDDS_DSI which is
-better shown by dss feature FEAT_DPI_USES_VDDS_DSI.
+Hi Santosh,
 
-Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
----
- drivers/video/omap2/dss/dpi.c          |   12 +++++++-----
- drivers/video/omap2/dss/dss_features.c |    1 +
- drivers/video/omap2/dss/dss_features.h |    1 +
- 3 files changed, 9 insertions(+), 5 deletions(-)
+On 08/13/2012 01:00 PM, Santosh Shilimkar wrote:
+> This provides PL310 Level 2 Cache Controller Device Tree
+> support for OMAP4 based devices.
+> 
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/boot/dts/omap4.dtsi       |    7 +++++++
+>  arch/arm/mach-omap2/omap4-common.c |    6 +++++-
+>  2 files changed, 12 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 6717c71..cf1efb6 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -36,6 +36,13 @@
+>  		};
+>  	};
+>  
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 3266be2..b97f7b8 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -34,6 +34,7 @@
- #include <plat/cpu.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- static struct {
- 	struct regulator *vdds_dsi_reg;
-@@ -169,7 +170,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- {
- 	int r;
- 
--	if (cpu_is_omap34xx() && !dpi.vdds_dsi_reg) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) && !dpi.vdds_dsi_reg) {
- 		DSSERR("no VDSS_DSI regulator\n");
- 		return -ENODEV;
- 	}
-@@ -185,7 +186,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
- 		goto err_start_dev;
- 	}
- 
--	if (cpu_is_omap34xx()) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI)) {
- 		r = regulator_enable(dpi.vdds_dsi_reg);
- 		if (r)
- 			goto err_reg_enable;
-@@ -229,7 +230,7 @@ err_dsi_pll_init:
- err_get_dsi:
- 	dispc_runtime_put();
- err_get_dispc:
--	if (cpu_is_omap34xx())
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
- 		regulator_disable(dpi.vdds_dsi_reg);
- err_reg_enable:
- 	omap_dss_stop_device(dssdev);
-@@ -250,7 +251,7 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
- 
- 	dispc_runtime_put();
- 
--	if (cpu_is_omap34xx())
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
- 		regulator_disable(dpi.vdds_dsi_reg);
- 
- 	omap_dss_stop_device(dssdev);
-@@ -329,7 +330,8 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
- {
- 	DSSDBG("init_display\n");
- 
--	if (cpu_is_omap34xx() && dpi.vdds_dsi_reg == NULL) {
-+	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
-+					dpi.vdds_dsi_reg == NULL) {
- 		struct regulator *vdds_dsi;
- 
- 		vdds_dsi = dss_get_vdds_dsi();
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 9387097..2fe39d6 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -373,6 +373,7 @@ static const enum dss_feat_id omap3430_dss_feat_list[] = {
- 	FEAT_ALPHA_FIXED_ZORDER,
- 	FEAT_FIFO_MERGE,
- 	FEAT_OMAP3_DSI_FIFO_BUG,
-+	FEAT_DPI_USES_VDDS_DSI,
- };
- 
- static const enum dss_feat_id omap3630_dss_feat_list[] = {
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 996ffcb..26d43a4 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -50,6 +50,7 @@ enum dss_feat_id {
- 	FEAT_DSI_VC_OCP_WIDTH,
- 	FEAT_DSI_REVERSE_TXCLKESC,
- 	FEAT_DSI_GNQ,
-+	FEAT_DPI_USES_VDDS_DSI,
- 	FEAT_HDMI_CTS_SWMODE,
- 	FEAT_HDMI_AUDIO_USE_MCLK,
- 	FEAT_HANDLE_UV_SEPARATE,
--- 
-1.7.10
+> +	L2: l2-cache-controller {
+
+The reg offset is missing: l2-cache-controller@48242000
+
+> +		compatible = "arm,pl310-cache";
+> +		reg = <0x48242000 0x1000>;
+> +		cache-unified;
+> +		cache-level = <2>;
+> +	};
+> +
+
+In theory, the L2 cache should be referenced from the CPUs.
+
+Here is the way it is done for mpc8541cdc.dts for example:
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		PowerPC,8541@0 {
+			device_type = "cpu";
+			reg = <0x0>;
+			d-cache-line-size = <32>;	// 32 bytes
+			i-cache-line-size = <32>;	// 32 bytes
+			d-cache-size = <0x8000>;		// L1, 32K
+			i-cache-size = <0x8000>;		// L1, 32K
+			timebase-frequency = <0>;	//  33 MHz, from uboot
+			bus-frequency = <0>;	// 166 MHz
+			clock-frequency = <0>;	// 825 MHz, from uboot
+			next-level-cache = <&L2>;
+		};
+	};
+
+...
+
+		L2: l2-cache-controller@20000 {
+			compatible = "fsl,mpc8541-l2-cache-controller";
+			reg = <0x20000 0x1000>;
+			cache-line-size = <32>;	// 32 bytes
+			cache-size = <0x40000>;	// L2, 256K
+			interrupt-parent = <&mpic>;
+			interrupts = <16 2>;
+		};
+
+
+Regards,
+Benoit
+
+>  	/*
+>  	 * The soc node represents the soc top level view. It is uses for IPs
+>  	 * that are not memory mapped in the MPU view or for the MPU itself.
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+> index c29dee9..6f95992 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/io.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/memblock.h>
+> +#include <linux/of.h>
+>  
+>  #include <asm/hardware/gic.h>
+>  #include <asm/hardware/cache-l2x0.h>
+> @@ -171,7 +172,10 @@ static int __init omap_l2_cache_init(void)
+>  	/* Enable PL310 L2 Cache controller */
+>  	omap_smc1(0x102, 0x1);
+>  
+> -	l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
+> +	if (of_have_populated_dt())
+> +		l2x0_of_init(aux_ctrl, L2X0_AUX_CTRL_MASK);
+> +	else
+> +		l2x0_init(l2cache_base, aux_ctrl, L2X0_AUX_CTRL_MASK);
+>  
+>  	/*
+>  	 * Override default outer_cache.disable with a OMAP4
+> 
 
