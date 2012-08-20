@@ -1,126 +1,144 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v8] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
- controller
-Date: Mon, 20 Aug 2012 13:11:46 +0200
-Message-ID: <50321B72.5010500@pengutronix.de>
-References: <1345452359-1137-1-git-send-email-anilkumar@ti.com> <5032144C.2090007@pengutronix.de> <50321831.1070106@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC13EA19F35@DBDE01.ent.ti.com>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv7] arm/dts: omap4-sdp: Add keypad data
+Date: Mon, 20 Aug 2012 16:49:36 +0530
+Message-ID: <CAKdam57n1jA5_7EOLcsB=u5X4wX6hPVXoZ2HLrnpEKS3kLZ=OQ@mail.gmail.com>
+References: <1344942937-4685-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig8606303AF2A12BFD12515A25"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA19F35@DBDE01.ent.ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
-List-Id: linux-omap@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig8606303AF2A12BFD12515A25
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:58094 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753412Ab2HTLTi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 07:19:38 -0400
+Received: by vcbgb22 with SMTP id gb22so5035883vcb.41
+        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 04:19:36 -0700 (PDT)
+In-Reply-To: <1344942937-4685-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sourav Poddar <sourav.poddar@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>
 
-On 08/20/2012 01:06 PM, AnilKumar, Chimata wrote:
-> On Mon, Aug 20, 2012 at 16:33:43, AnilKumar, Chimata wrote:
->> On Mon, Aug 20, 2012 at 16:27:53, Marc Kleine-Budde wrote:
->>> On 08/20/2012 12:41 PM, Marc Kleine-Budde wrote:
->>>> On 08/20/2012 10:45 AM, AnilKumar Ch wrote:
->>>>> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
->>>>> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
->>>>> register of C_CAN/D_CAN IP when clock is turned off.
->>>>>
->>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->>>>> ---
->>>>> This patch has been tested on AM335X EVM. Due to lack of hardware
->>>>> I am not able to test c_can functionality. I appreciate if anyone
->>>>> can test c_can functionality with this patch.
->>>>>
->>>>> This patch is based on "can-next/master"=20
->>>>>
->>>>> Changes from v7:
->>>>> 	- Incorporated Marc's commets on v7
->>>>> 	  * changed device pointer to c_can_priv pointer
->>>>
->>>> looks good.
->>>>
->>>> [...]
->>>>
->>>>> --- a/drivers/net/can/c_can/c_can_platform.c
->>>>> +++ b/drivers/net/can/c_can/c_can_platform.c
->>>>> @@ -32,6 +32,7 @@
->>>>>  #include <linux/clk.h>
->>>>>  #include <linux/of.h>
->>>>>  #include <linux/of_device.h>
->>>>> +#include <linux/pm_runtime.h>
->>>>> =20
->>>>>  #include <linux/can/dev.h>
->>>>> =20
->>>>> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct p=
-latform_device *pdev)
->>>>>  		goto exit_free_device;
->>>>                      ^^^^^^^^^^^^^^^^
->>>>>  	}
->>>>> =20
->>>>> +	pm_runtime_enable(&pdev->dev);
->>>>> +
->>>>>  	dev->irq =3D irq;
->>>>>  	priv->base =3D addr;
->>>>> +	priv->device =3D &pdev->dev;
->>>>>  	priv->can.clock.freq =3D clk_get_rate(clk);
->>>>>  	priv->priv =3D clk;
->>>>> =20
->>>>> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct pl=
-atform_device *pdev)
->>>>> =20
->>>>>  exit_free_device:
->>>>>  	platform_set_drvdata(pdev, NULL);
->>>>> +	pm_runtime_disable(&pdev->dev);
->>>>
->>>> I think this will end up in a NULL pointer deferf.
->>>
->>> Should be no problem, as you're using pdev->dev not priv->device.
->>>
->>> Sorry for the noise :)
->>>
->>
->> One more catch here, return path is not proper.
->>
->> exit_free_device: should contain only free_c_can_dev(dev);
->=20
-> And second goto exit_free_device; call should modify to
-> goto exit_clear_drvdata;
->=20
-> return path looks like this
->=20
-> exit_clear_drvdata:
-> 	platform_set_drvdata(pdev, NULL);
-> 	pm_runtime_disable(&pdev->dev);
-> exit_free_device:
-> 	free_c_can_dev(dev);
-> ...
+Hi All,
 
-yes, please send a V9
+On Tue, Aug 14, 2012 at 4:45 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
+> Add keypad data node in omap4 device tree file.
+> Also fill the device tree binding parameters
+> with the required value in "omap4-sdp" dts file.
+>
+> Tested on omap4430 sdp.
+>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> v6->v7
+> Add key name as a comment.
+>  arch/arm/boot/dts/omap4-sdp.dts |   70 +++++++++++++++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi    |    5 +++
+>  2 files changed, 75 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 72216e9..8e200f4 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -113,6 +113,76 @@
+>                         "DMic", "Digital Mic",
+>                         "Digital Mic", "Digital Mic1 Bias";
+>         };
+> +
+> +       keypad {
+> +               keypad,num-rows = <8>;
+> +               keypad,num-columns = <8>;
+> +               linux,keymap = < 0x00000012 /* KEY_E */
+> +                       0x00010013 /* KEY_R */
+> +                       0x00020014 /* KEY_T */
+> +                       0x00030066 /* KEY_HOME */
+> +                       0x0004003f /* KEY_F5 */
+> +                       0x000500f0 /* KEY_UNKNOWN */
+> +                       0x00060017 /* KEY_I */
+> +                       0x0007002a /* KEY_LEFTSHIFT */
+> +                       0x01000020 /* KEY_D*/
+> +                       0x01010021 /* KEY_F */
+> +                       0x01020022 /* KEY_G */
+> +                       0x010300e7 /* KEY_SEND */
+> +                       0x01040040 /* KEY_F6 */
+> +                       0x010500f0 /* KEY_UNKNOWN */
+> +                       0x01060025 /* KEY_K */
+> +                       0x0107001c /* KEY_ENTER */
+> +                       0x0200002d /* KEY_X */
+> +                       0x0201002e /* KEY_C */
+> +                       0x0202002f /* KEY_V */
+> +                       0x0203006b /* KEY_END */
+> +                       0x02040041 /* KEY_F7 */
+> +                       0x020500f0 /* KEY_UNKNOWN */
+> +                       0x02060034 /* KEY_DOT */
+> +                       0x0207003a /* KEY_CAPSLOCK */
+> +                       0x0300002c /* KEY_Z */
+> +                       0x0301004e /* KEY_KPLUS */
+> +                       0x03020030 /* KEY_B */
+> +                       0x0303003b /* KEY_F1 */
+> +                       0x03040042 /* KEY_F8 */
+> +                       0x030500f0 /* KEY_UNKNOWN */
+> +                       0x03060018 /* KEY_O */
+> +                       0x03070039 /* KEY_SPACE */
+> +                       0x04000011 /* KEY_W */
+> +                       0x04010015 /* KEY_Y */
+> +                       0x04020016 /* KEY_U */
+> +                       0x0403003c /* KEY_F2 */
+> +                       0x04040073 /* KEY_VOLUMEUP */
+> +                       0x040500f0 /* KEY_UNKNOWN */
+> +                       0x04060026 /* KEY_L */
+> +                       0x04070069 /* KEY_LEFT */
+> +                       0x0500001f /* KEY_S */
+> +                       0x05010023 /* KEY_H */
+> +                       0x05020024 /* KEY_J */
+> +                       0x0503003d /* KEY_F3 */
+> +                       0x05040043 /* KEY_F9 */
+> +                       0x05050072 /* KEY_VOLUMEDOWN */
+> +                       0x05060032 /* KEY_M */
+> +                       0x0507006a /* KEY_RIGHT */
+> +                       0x06000010 /* KEY_Q */
+> +                       0x0601001e /* KEY_A */
+> +                       0x06020031 /* KEY_N */
+> +                       0x0603009e /* KEY_BACK */
+> +                       0x0604000e /* KEY_BACKSPACE */
+> +                       0x060500f0 /* KEY_UNKNOWN */
+> +                       0x06060019 /* KEY_P */
+> +                       0x06070067 /* KEY_UP */
+> +                       0x07000094 /* KEY_PROG1 */
+> +                       0x07010095 /* KEY_PROG2 */
+> +                       0x070200ca /* KEY_PROG3 */
+> +                       0x070300cb /* KEY_PROG4 */
+> +                       0x0704003e /* KEY_F4 */
+> +                       0x070500f0 /* KEY_UNKNOWN */
+> +                       0x07060160 /* KEY_OK */
+> +                       0x0707006c >; /* KEY_DOWN */
+> +               linux,input-no-autorepeat;
+> +       };
+>  };
+>
+>  &i2c1 {
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 04cbbcb..e78a1f1 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -296,4 +296,9 @@
+>                         ti,hwmods = "dmic";
+>                 };
+>         };
+> +
+> +       keypad {
+> +               compatible = "ti,omap4-keypad";
+> +               ti,hwmods = "kbd";
+> +       };
+>  };
+> --
+> 1.7.1
+>
+Any more comments on this?
 
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enig8606303AF2A12BFD12515A25
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAlAyG3gACgkQjTAFq1RaXHMINgCghnPxon7V2/ZVUztkfYgh4gS3
-2lQAn0g8o0Dif5/2TTkXAc9glJn3A/Jw
-=DiKF
------END PGP SIGNATURE-----
-
---------------enig8606303AF2A12BFD12515A25--
+~Sourav
