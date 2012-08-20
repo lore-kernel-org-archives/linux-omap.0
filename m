@@ -1,68 +1,106 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V4 3/6] OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
-Date: Mon, 20 Aug 2012 13:46:22 +0300
-Message-ID: <1345459582.2684.9.camel@deskari>
-References: <1344859176-4512-1-git-send-email-cmahapatra@ti.com>
-	 <1345115913-6773-1-git-send-email-cmahapatra@ti.com>
-	 <1345211692.3158.160.camel@deskari> <1345452124.2684.7.camel@deskari>
-	 <CAF0AtAtePhxTsoCyatfXWR+e4sc3WHmg=Wq_ZXkowoGpOg63FA@mail.gmail.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v8] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
+ controller
+Date: Mon, 20 Aug 2012 12:57:53 +0200
+Message-ID: <50321831.1070106@pengutronix.de>
+References: <1345452359-1137-1-git-send-email-anilkumar@ti.com> <5032144C.2090007@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-bDEtVfhFTiIa77Of8X68"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:43597 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752678Ab2HTKq3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:46:29 -0400
-Received: by lagr15 with SMTP id r15so3943053lag.21
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 03:46:27 -0700 (PDT)
-In-Reply-To: <CAF0AtAtePhxTsoCyatfXWR+e4sc3WHmg=Wq_ZXkowoGpOg63FA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig3204E88F035F50721AD1423A"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <5032144C.2090007@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-
---=-bDEtVfhFTiIa77Of8X68
-Content-Type: text/plain; charset="UTF-8"
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig3204E88F035F50721AD1423A
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-08-20 at 16:06 +0530, Mahapatra, Chandrabhanu wrote:
+On 08/20/2012 12:41 PM, Marc Kleine-Budde wrote:
+> On 08/20/2012 10:45 AM, AnilKumar Ch wrote:
+>> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+>> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+>> register of C_CAN/D_CAN IP when clock is turned off.
+>>
+>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>> ---
+>> This patch has been tested on AM335X EVM. Due to lack of hardware
+>> I am not able to test c_can functionality. I appreciate if anyone
+>> can test c_can functionality with this patch.
+>>
+>> This patch is based on "can-next/master"=20
+>>
+>> Changes from v7:
+>> 	- Incorporated Marc's commets on v7
+>> 	  * changed device pointer to c_can_priv pointer
+>=20
+> looks good.
+>=20
+> [...]
+>=20
+>> --- a/drivers/net/can/c_can/c_can_platform.c
+>> +++ b/drivers/net/can/c_can/c_can_platform.c
+>> @@ -32,6 +32,7 @@
+>>  #include <linux/clk.h>
+>>  #include <linux/of.h>
+>>  #include <linux/of_device.h>
+>> +#include <linux/pm_runtime.h>
+>> =20
+>>  #include <linux/can/dev.h>
+>> =20
+>> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct plat=
+form_device *pdev)
+>>  		goto exit_free_device;
+>                      ^^^^^^^^^^^^^^^^
+>>  	}
+>> =20
+>> +	pm_runtime_enable(&pdev->dev);
+>> +
+>>  	dev->irq =3D irq;
+>>  	priv->base =3D addr;
+>> +	priv->device =3D &pdev->dev;
+>>  	priv->can.clock.freq =3D clk_get_rate(clk);
+>>  	priv->priv =3D clk;
+>> =20
+>> @@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platf=
+orm_device *pdev)
+>> =20
+>>  exit_free_device:
+>>  	platform_set_drvdata(pdev, NULL);
+>> +	pm_runtime_disable(&pdev->dev);
+>=20
+> I think this will end up in a NULL pointer deferf.
 
-> By releasing resources did you mean the dss.feat memory? I think
-> dss_init_features call is wrongly placed and should be placed at the
-> very beginning of the probe function.
+Should be no problem, as you're using pdev->dev not priv->device.
 
-I meant e.g. pm_runtime_disable() etc. But if the call is moved t the
-beginning, there's nothing to release.
+Sorry for the noise :)
 
- Tomi
+Marc
 
 
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
---=-bDEtVfhFTiIa77Of8X68
+
+--------------enig3204E88F035F50721AD1423A
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iQIcBAABAgAGBQJQMhV+AAoJEPo9qoy8lh71ljkP/0R9L1ziunE67/SOmmyLE/KN
-J0eKRSjOr48znKXaAgw758mkvtc+MscoF8vJjHGAQiTMnMXyP3obWQFk0inIsmTI
-KYXGJGkRWMkNCq4/y0Dr9SZ7YC0BVY0+ORlbczf6Tbrj+jlY/CMCeaLwaD8DWo8/
-FEg4d4Upgbyv2nq3YWeNsnQMml+TPCBW9nIbvTuAlwliTCR/fxfLnJCY+kfx8mEJ
-M2iwVecU8iJZxJmsu33/SAFNj4NiKeeWlrw5yfYiFIteITghGlpcnNH0vPLGkeWA
-uSveE5xL2KIG70/FGfJ1e69hYRrV+W/YEDCfoOcqlOqRyNaM7JEV6gtWqkQqMvSX
-kNrozxCnuPpHGT1ILsmX1pbybifOXTBPR0mUPKRsyKjomf+j1cTs2EZifpyuwViz
-lsstPcvn0UfBgO1qIi7lZtWzoMRAceeKbC67me91WYFXgMpRQmrozFaCljFA5TRB
-K5n2a3+uXmGLP/y23PZg491KeX1mrknEaWhDOqfJ4Uejh5ZBFs+St3IuCyszc6gV
-oOg9YUHDo0CKI/lNpqsrFPaKGPHZXTAesoQcTT4L7LnJrwLx2MgTcT2yuw7genef
-Q+D6yC2lvT27ZEEo5tthDMWBKMlXmOzwOTBetal5e0o1jYsEMzbnROrUWh92NJAV
-LA3wQp5BHygf7KIxaX9O
-=6U+6
+iEYEARECAAYFAlAyGDEACgkQjTAFq1RaXHPVowCfVAbwIyOtEJ6d8P/auRJQCCIr
+mw0An3oRmy1Iu0maXwvB2vsucEDJZ0JX
+=/Nr/
 -----END PGP SIGNATURE-----
 
---=-bDEtVfhFTiIa77Of8X68--
-
+--------------enig3204E88F035F50721AD1423A--
