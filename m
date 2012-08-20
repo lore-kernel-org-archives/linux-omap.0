@@ -1,41 +1,38 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
-Date: Mon, 20 Aug 2012 11:06:34 +0530
-Message-ID: <CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
-References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] omap-mcbsp: properly check for availablity of mcbsp mux
+ settings
+Date: Mon, 20 Aug 2012 09:02:30 +0300
+Message-ID: <5031D2F6.3020905@bitmer.com>
+References: <1345403692-20829-1-git-send-email-andreas@kemnade.info>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44338 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754480Ab2HTFgf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 01:36:35 -0400
-Received: by vbip1 with SMTP id p1so4801958vbi.4
-        for <linux-omap@vger.kernel.org>; Sun, 19 Aug 2012 22:36:34 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
+Received: from bitmer.com ([213.157.87.50]:46121 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752742Ab2HTGCh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 02:02:37 -0400
+In-Reply-To: <1345403692-20829-1-git-send-email-andreas@kemnade.info>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
 
-Hi,
+Hi
 
-On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.net> wrote:
->
-> 3.6-rc2 fails to compile with
-> CONFIG_USB_MUSB_HDRC=m
-> CONFIG_USB_MUSB_OMAP2PLUS=m
->
->   LD      init/built-in.o
-> drivers/built-in.o: In function `twl4030_usb_irq':
-> /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: undefined reference to `omap_musb_mailbox'
-> drivers/built-in.o: In function `twl4030_usb_phy_init':
-> /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: undefined reference to `omap_musb_mailbox'
+On 08/19/2012 10:14 PM, Andreas Kemnade wrote:
+> The code did return -EINVAl when the mux_signal function pointer is available.
+> If not, the corresponding function (the NULL pointer) is called.
+> This patch inverts that logic.
+> 
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+Thanks for the patch. Fortunately Peter has already the same fix d0db84e
+(ASoC: omap-mcbsp: Fix 6pin mux configuration) for it in:
 
-Having TWL4030_USB as a module will get rid of this.
-I'll see how this can be resolved when some modules are *built-in* and
-some are made as *modules*.
+git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git
 
-Thanks
-Kishon
+I expect fix to hit 3.6-rc and 3.4-3.5 stable soon.
+
+-- 
+Jarkko
