@@ -1,144 +1,201 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCHv7] arm/dts: omap4-sdp: Add keypad data
-Date: Mon, 20 Aug 2012 16:49:36 +0530
-Message-ID: <CAKdam57n1jA5_7EOLcsB=u5X4wX6hPVXoZ2HLrnpEKS3kLZ=OQ@mail.gmail.com>
-References: <1344942937-4685-1-git-send-email-sourav.poddar@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v9] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN controller
+Date: Mon, 20 Aug 2012 16:50:54 +0530
+Message-ID: <1345461654-439-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:58094 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753412Ab2HTLTi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 07:19:38 -0400
-Received: by vcbgb22 with SMTP id gb22so5035883vcb.41
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 04:19:36 -0700 (PDT)
-In-Reply-To: <1344942937-4685-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sourav Poddar <sourav.poddar@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>
 
-Hi All,
+Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+register of C_CAN/D_CAN IP when clock is turned off.
 
-On Tue, Aug 14, 2012 at 4:45 PM, Sourav Poddar <sourav.poddar@ti.com> wrote:
-> Add keypad data node in omap4 device tree file.
-> Also fill the device tree binding parameters
-> with the required value in "omap4-sdp" dts file.
->
-> Tested on omap4430 sdp.
->
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> ---
-> v6->v7
-> Add key name as a comment.
->  arch/arm/boot/dts/omap4-sdp.dts |   70 +++++++++++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi    |    5 +++
->  2 files changed, 75 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index 72216e9..8e200f4 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -113,6 +113,76 @@
->                         "DMic", "Digital Mic",
->                         "Digital Mic", "Digital Mic1 Bias";
->         };
-> +
-> +       keypad {
-> +               keypad,num-rows = <8>;
-> +               keypad,num-columns = <8>;
-> +               linux,keymap = < 0x00000012 /* KEY_E */
-> +                       0x00010013 /* KEY_R */
-> +                       0x00020014 /* KEY_T */
-> +                       0x00030066 /* KEY_HOME */
-> +                       0x0004003f /* KEY_F5 */
-> +                       0x000500f0 /* KEY_UNKNOWN */
-> +                       0x00060017 /* KEY_I */
-> +                       0x0007002a /* KEY_LEFTSHIFT */
-> +                       0x01000020 /* KEY_D*/
-> +                       0x01010021 /* KEY_F */
-> +                       0x01020022 /* KEY_G */
-> +                       0x010300e7 /* KEY_SEND */
-> +                       0x01040040 /* KEY_F6 */
-> +                       0x010500f0 /* KEY_UNKNOWN */
-> +                       0x01060025 /* KEY_K */
-> +                       0x0107001c /* KEY_ENTER */
-> +                       0x0200002d /* KEY_X */
-> +                       0x0201002e /* KEY_C */
-> +                       0x0202002f /* KEY_V */
-> +                       0x0203006b /* KEY_END */
-> +                       0x02040041 /* KEY_F7 */
-> +                       0x020500f0 /* KEY_UNKNOWN */
-> +                       0x02060034 /* KEY_DOT */
-> +                       0x0207003a /* KEY_CAPSLOCK */
-> +                       0x0300002c /* KEY_Z */
-> +                       0x0301004e /* KEY_KPLUS */
-> +                       0x03020030 /* KEY_B */
-> +                       0x0303003b /* KEY_F1 */
-> +                       0x03040042 /* KEY_F8 */
-> +                       0x030500f0 /* KEY_UNKNOWN */
-> +                       0x03060018 /* KEY_O */
-> +                       0x03070039 /* KEY_SPACE */
-> +                       0x04000011 /* KEY_W */
-> +                       0x04010015 /* KEY_Y */
-> +                       0x04020016 /* KEY_U */
-> +                       0x0403003c /* KEY_F2 */
-> +                       0x04040073 /* KEY_VOLUMEUP */
-> +                       0x040500f0 /* KEY_UNKNOWN */
-> +                       0x04060026 /* KEY_L */
-> +                       0x04070069 /* KEY_LEFT */
-> +                       0x0500001f /* KEY_S */
-> +                       0x05010023 /* KEY_H */
-> +                       0x05020024 /* KEY_J */
-> +                       0x0503003d /* KEY_F3 */
-> +                       0x05040043 /* KEY_F9 */
-> +                       0x05050072 /* KEY_VOLUMEDOWN */
-> +                       0x05060032 /* KEY_M */
-> +                       0x0507006a /* KEY_RIGHT */
-> +                       0x06000010 /* KEY_Q */
-> +                       0x0601001e /* KEY_A */
-> +                       0x06020031 /* KEY_N */
-> +                       0x0603009e /* KEY_BACK */
-> +                       0x0604000e /* KEY_BACKSPACE */
-> +                       0x060500f0 /* KEY_UNKNOWN */
-> +                       0x06060019 /* KEY_P */
-> +                       0x06070067 /* KEY_UP */
-> +                       0x07000094 /* KEY_PROG1 */
-> +                       0x07010095 /* KEY_PROG2 */
-> +                       0x070200ca /* KEY_PROG3 */
-> +                       0x070300cb /* KEY_PROG4 */
-> +                       0x0704003e /* KEY_F4 */
-> +                       0x070500f0 /* KEY_UNKNOWN */
-> +                       0x07060160 /* KEY_OK */
-> +                       0x0707006c >; /* KEY_DOWN */
-> +               linux,input-no-autorepeat;
-> +       };
->  };
->
->  &i2c1 {
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 04cbbcb..e78a1f1 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -296,4 +296,9 @@
->                         ti,hwmods = "dmic";
->                 };
->         };
-> +
-> +       keypad {
-> +               compatible = "ti,omap4-keypad";
-> +               ti,hwmods = "kbd";
-> +       };
->  };
-> --
-> 1.7.1
->
-Any more comments on this?
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+This patch has been tested on AM335X EVM. Due to lack of hardware
+I am not able to test c_can functionality. I appreciate if anyone
+can test c_can functionality with this patch.
 
-~Sourav
+This patch is based on "can-next/master" 
+
+Changes from v8:
+	- corrected the return path sequence in c_can_probe()
+
+Changes from v7:
+	- Incorporated Marc's comments on v7
+	  * changed device pointer to c_can_priv pointer
+
+Changes from v6:
+	- Incorporated Marc's comments on v6
+	  * changed dev pointer to priv
+	  * removed platform_device.h include from c_can.c
+
+Changes from v5:
+	- Incorporated Marc's comments on v5
+	  * changed runtime pm calls in c_can driver to handle
+	    the drivers which are not using platform drivers.
+	  * added device pointer protection in c_can driver if
+	    not passed from platform/pci driver.
+
+Changes from v4:
+	- Incorporated Vaibhav H review comments on v4.
+	  * Moved pm_runtime put/get_sync calls to appropriate positions.
+	- This patch is from "Add DT support to C_CAN/D_CAN controller"
+	  patch series. Rest of the patches in this series were applied
+	  so this v5 contains only this patch.
+
+ drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-
+ drivers/net/can/c_can/c_can.h          |    1 +
+ drivers/net/can/c_can/c_can_platform.c |   11 +++++++++--
+ 3 files changed, 33 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index 4c538e3..966d318 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -34,6 +34,7 @@
+ #include <linux/if_ether.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <linux/can.h>
+ #include <linux/can/dev.h>
+@@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
+ 	.brp_inc = 1,
+ };
+ 
++static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
++{
++	if (priv->device)
++		pm_runtime_get_sync(priv->device);
++}
++
++static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
++{
++	if (priv->device)
++		pm_runtime_put_sync(priv->device);
++}
++
+ static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+ {
+ 	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+@@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
+ 	unsigned int reg_err_counter;
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
++	c_can_pm_runtime_get_sync(priv);
++
+ 	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
+ 	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
+ 				ERR_CNT_REC_SHIFT;
+ 	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
+ 
++	c_can_pm_runtime_put_sync(priv);
++
+ 	return 0;
+ }
+ 
+@@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
+ 	int err;
+ 	struct c_can_priv *priv = netdev_priv(dev);
+ 
++	c_can_pm_runtime_get_sync(priv);
++
+ 	/* open the can device */
+ 	err = open_candev(dev);
+ 	if (err) {
+ 		netdev_err(dev, "failed to open can device\n");
+-		return err;
++		goto exit_open_fail;
+ 	}
+ 
+ 	/* register interrupt handler */
+@@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
+ 
+ exit_irq_fail:
+ 	close_candev(dev);
++exit_open_fail:
++	c_can_pm_runtime_put_sync(priv);
+ 	return err;
+ }
+ 
+@@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
+ 	c_can_stop(dev);
+ 	free_irq(dev->irq, dev);
+ 	close_candev(dev);
++	c_can_pm_runtime_put_sync(priv);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+index 4e56baa..1437a6d 100644
+--- a/drivers/net/can/c_can/c_can.h
++++ b/drivers/net/can/c_can/c_can.h
+@@ -153,6 +153,7 @@ struct c_can_priv {
+ 	struct can_priv can;	/* must be the first member */
+ 	struct napi_struct napi;
+ 	struct net_device *dev;
++	struct device *device;
+ 	int tx_object;
+ 	int current_status;
+ 	int last_status;
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index d0a66cf..90801c4 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -32,6 +32,7 @@
+ #include <linux/clk.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <linux/can/dev.h>
+ 
+@@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 		goto exit_free_device;
+ 	}
+ 
++	pm_runtime_enable(&pdev->dev);
++
+ 	dev->irq = irq;
+ 	priv->base = addr;
++	priv->device = &pdev->dev;
+ 	priv->can.clock.freq = clk_get_rate(clk);
+ 	priv->priv = clk;
+ 
+@@ -189,15 +193,17 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
+ 			KBUILD_MODNAME, ret);
+-		goto exit_free_device;
++		goto exit_clear_drvdata;
+ 	}
+ 
+ 	dev_info(&pdev->dev, "%s device registered (regs=%p, irq=%d)\n",
+ 		 KBUILD_MODNAME, priv->base, dev->irq);
+ 	return 0;
+ 
+-exit_free_device:
++exit_clear_drvdata:
+ 	platform_set_drvdata(pdev, NULL);
++	pm_runtime_disable(&pdev->dev);
++exit_free_device:
+ 	free_c_can_dev(dev);
+ exit_iounmap:
+ 	iounmap(addr);
+@@ -226,6 +232,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(mem->start, resource_size(mem));
+ 
++	pm_runtime_disable(&pdev->dev);
+ 	clk_put(priv->priv);
+ 
+ 	return 0;
+-- 
+1.7.9.5
+
