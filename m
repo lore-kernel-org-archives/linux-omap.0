@@ -1,50 +1,61 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: OMAP3 Overo: Crash on boot with Linus' master
-Date: Mon, 20 Aug 2012 14:26:34 +0530
-Message-ID: <CAMQu2gyvdnW6LOGXYXZjsEHSx=K8jyC_JSwBbe-9FckYkv0O6g@mail.gmail.com>
-References: <1343903452.2686.15.camel@deskari> <1344249504.12136.3.camel@deskari>
- <1345450118.2684.3.camel@deskari> <CAMQu2gwFSNFy8oKpnAWiey_bUvkRXOT_x=Ej=KYA+dLN-Q6S9Q@mail.gmail.com>
- <1345452870.2684.8.camel@deskari>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH] omap-hsmmc: Implementation of i761 errata
+Date: Mon, 20 Aug 2012 14:30:01 +0530
+Message-ID: <CAM=Q2cs+oX6pYe=ME9At49QXfzJjsMjy0g0YidFD5F7JNBVYzQ@mail.gmail.com>
+References: <1345219546-6646-1-git-send-email-semen.protsenko@ti.com>
+	<CANfBPZ9NqZGN1LPNu+5DVWdkut2AL3O_8TWtWhBTufpdRZYZ_Q@mail.gmail.com>
+	<CANwLT1SADwqn2Hgj2etiYyRu=TboT8DOfBsqjg02rrk6CYcFTw@mail.gmail.com>
+	<CANfBPZ9iAuMmwGC_QuhM9k4MyAt4mgAYVSG3K3uMq=mOH_dewg@mail.gmail.com>
+	<CAMQu2gzc4o_fYGk8Jgtd5tf89xh1N2e4DhN8MKE_Zm=eg_e1=Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40517 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753821Ab2HTI44 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 04:56:56 -0400
-Received: by iaeh11 with SMTP id h11so2531323iae.9
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 01:56:55 -0700 (PDT)
-In-Reply-To: <1345452870.2684.8.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAMQu2gzc4o_fYGk8Jgtd5tf89xh1N2e4DhN8MKE_Zm=eg_e1=Q@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Puttagunta, Viswanath" <vishp@ti.com>, Semen Protsenko <semen.protsenko@ti.com>, linux-omap@vger.kernel.org, Volodymyr Ryazantsev <x0153367@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, tarun.kanti@ti.com, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Mon, Aug 20, 2012 at 2:24 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Hi,
->
-> On Mon, 2012-08-20 at 13:58 +0530, Shilimkar, Santosh wrote:
->> Tomi,
+On Mon, Aug 20, 2012 at 12:25 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Mon, Aug 20, 2012 at 12:08 PM, S, Venkatraman <svenkatr@ti.com> wrote:
 >>
->> On Mon, Aug 20, 2012 at 1:38 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > Hi,
+>> On Fri, Aug 17, 2012 at 11:43 PM, Puttagunta, Viswanath <vishp@ti.com>
+>> wrote:
+[...]
+>> >>> Signed-off-by: Semen Protsenko <semen.protsenko@ti.com>
+>> >>
+>> >> The implementation looks fine, but can we simply not set the errata
+>> >> flag and make this as default
+>> >> behaviour ? I suppose the documented behaviour with CSRE and RSP10 is
+>> >> independent of the
+>> >> errata..
+>> >>
+>> >> Also, please send it to the linux-mmc list as well.
 >> >
->> > Anyone ideas what could I do to debug this further? The problem exists
->> > on v3.6-rc2.
+>> > Vish>> We don't know if this errata effects OMAP5 as well. So, I think
+>> > we should only do this if we are OMAP4.
 >> >
->> Can you try merging [1] {[GIT PULL] arm-soc: bug fixes for v3.6-rc3}
->> and see if it helps.
->>
->> Regards
->> Santosh
->>
->> [1] https://lkml.org/lkml/2012/8/20/120
+>> That's precisely why the code shouldn't check for cpu_() flags. There are
+>> other
+>> OMAP variants as well and we can't check all of them
+>> What I mean is to make the check for RSP10 and CSRE all the time as part
+>> of the IRQ check.
+>>   Then it equally applies to silcon with or without errata.
 >
-> Merging that branch seems to fix the issue. Good to know, thanks!
->
-Cool !!
-Thanks for confirming it.
+> Apart from above comment, please don't add the cpu_is_xxx() check inside
+> device driver. You can pass that information from platform code
+> while registering the MMC controllers using a flag and then just
+> use that flag to enable/disable errata in the driver.
 
-Regards
-Santosh
+The other option is to check something like MMCHS_HL_REV to get the ip revision
+and decide.
+
+
+>
+> Regards
+> Santosh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
