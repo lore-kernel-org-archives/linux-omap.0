@@ -1,186 +1,79 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v8] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN controller
-Date: Mon, 20 Aug 2012 14:15:59 +0530
-Message-ID: <1345452359-1137-1-git-send-email-anilkumar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP3 Overo: Crash on boot with Linus' master
+Date: Mon, 20 Aug 2012 11:54:30 +0300
+Message-ID: <1345452870.2684.8.camel@deskari>
+References: <1343903452.2686.15.camel@deskari>
+	 <1344249504.12136.3.camel@deskari> <1345450118.2684.3.camel@deskari>
+	 <CAMQu2gwFSNFy8oKpnAWiey_bUvkRXOT_x=Ej=KYA+dLN-Q6S9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-can-owner@vger.kernel.org>
-Sender: linux-can-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-TSGTRDNEekndf9zEufyh"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:37934 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751687Ab2HTIyf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 04:54:35 -0400
+Received: by lbbgm13 with SMTP id gm13so3499849lbb.32
+        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 01:54:32 -0700 (PDT)
+In-Reply-To: <CAMQu2gwFSNFy8oKpnAWiey_bUvkRXOT_x=Ej=KYA+dLN-Q6S9Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, tarun.kanti@ti.com, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
-Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-register of C_CAN/D_CAN IP when clock is turned off.
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
-This patch has been tested on AM335X EVM. Due to lack of hardware
-I am not able to test c_can functionality. I appreciate if anyone
-can test c_can functionality with this patch.
+--=-TSGTRDNEekndf9zEufyh
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This patch is based on "can-next/master" 
+Hi,
 
-Changes from v7:
-	- Incorporated Marc's commets on v7
-	  * changed device pointer to c_can_priv pointer
+On Mon, 2012-08-20 at 13:58 +0530, Shilimkar, Santosh wrote:
+> Tomi,
+>=20
+> On Mon, Aug 20, 2012 at 1:38 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > Hi,
+> >
+> > Anyone ideas what could I do to debug this further? The problem exists
+> > on v3.6-rc2.
+> >
+> Can you try merging [1] {[GIT PULL] arm-soc: bug fixes for v3.6-rc3}
+> and see if it helps.
+>=20
+> Regards
+> Santosh
+>=20
+> [1] https://lkml.org/lkml/2012/8/20/120
 
-Changes from v6:
-	- Incorporated Marc's commets on v6
-	  * changed dev pointer to priv
-	  * removed platform_device.h include from c_can.c
+Merging that branch seems to fix the issue. Good to know, thanks!
 
-Changes from v5:
-	- Incorporated Marc's commets on v5
-	  * changed runtime pm calls in c_can driver to handle
-	    the drivers which are not using platform drivers.
-	  * added device pointer protection in c_can driver if
-	    not passed from platform/pci driver.
+ Tomi
 
-Changes from v4:
-	- Incorporated Vaibhav H review comments on v4.
-	  * Moved pm_runtime put/get_sync calls to appropriate positions.
-	- This patch is from "Add DT support to C_CAN/D_CAN controller"
-	  patch series. Rest of the patches in this series were applied
-	  so this v5 contains only this patch.
 
- drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-
- drivers/net/can/c_can/c_can.h          |    1 +
- drivers/net/can/c_can/c_can_platform.c |    6 ++++++
- 3 files changed, 30 insertions(+), 1 deletion(-)
+--=-TSGTRDNEekndf9zEufyh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-index 4c538e3..966d318 100644
---- a/drivers/net/can/c_can/c_can.c
-+++ b/drivers/net/can/c_can/c_can.c
-@@ -34,6 +34,7 @@
- #include <linux/if_ether.h>
- #include <linux/list.h>
- #include <linux/io.h>
-+#include <linux/pm_runtime.h>
- 
- #include <linux/can.h>
- #include <linux/can/dev.h>
-@@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
- 	.brp_inc = 1,
- };
- 
-+static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
-+{
-+	if (priv->device)
-+		pm_runtime_get_sync(priv->device);
-+}
-+
-+static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
-+{
-+	if (priv->device)
-+		pm_runtime_put_sync(priv->device);
-+}
-+
- static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
- {
- 	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
-@@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
- 	unsigned int reg_err_counter;
- 	struct c_can_priv *priv = netdev_priv(dev);
- 
-+	c_can_pm_runtime_get_sync(priv);
-+
- 	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
- 	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
- 				ERR_CNT_REC_SHIFT;
- 	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
- 
-+	c_can_pm_runtime_put_sync(priv);
-+
- 	return 0;
- }
- 
-@@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
- 	int err;
- 	struct c_can_priv *priv = netdev_priv(dev);
- 
-+	c_can_pm_runtime_get_sync(priv);
-+
- 	/* open the can device */
- 	err = open_candev(dev);
- 	if (err) {
- 		netdev_err(dev, "failed to open can device\n");
--		return err;
-+		goto exit_open_fail;
- 	}
- 
- 	/* register interrupt handler */
-@@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
- 
- exit_irq_fail:
- 	close_candev(dev);
-+exit_open_fail:
-+	c_can_pm_runtime_put_sync(priv);
- 	return err;
- }
- 
-@@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
- 	c_can_stop(dev);
- 	free_irq(dev->irq, dev);
- 	close_candev(dev);
-+	c_can_pm_runtime_put_sync(priv);
- 
- 	return 0;
- }
-diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-index 4e56baa..1437a6d 100644
---- a/drivers/net/can/c_can/c_can.h
-+++ b/drivers/net/can/c_can/c_can.h
-@@ -153,6 +153,7 @@ struct c_can_priv {
- 	struct can_priv can;	/* must be the first member */
- 	struct napi_struct napi;
- 	struct net_device *dev;
-+	struct device *device;
- 	int tx_object;
- 	int current_status;
- 	int last_status;
-diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-index d0a66cf..197683b 100644
---- a/drivers/net/can/c_can/c_can_platform.c
-+++ b/drivers/net/can/c_can/c_can_platform.c
-@@ -32,6 +32,7 @@
- #include <linux/clk.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/pm_runtime.h>
- 
- #include <linux/can/dev.h>
- 
-@@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
- 		goto exit_free_device;
- 	}
- 
-+	pm_runtime_enable(&pdev->dev);
-+
- 	dev->irq = irq;
- 	priv->base = addr;
-+	priv->device = &pdev->dev;
- 	priv->can.clock.freq = clk_get_rate(clk);
- 	priv->priv = clk;
- 
-@@ -198,6 +202,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
- 
- exit_free_device:
- 	platform_set_drvdata(pdev, NULL);
-+	pm_runtime_disable(&pdev->dev);
- 	free_c_can_dev(dev);
- exit_iounmap:
- 	iounmap(addr);
-@@ -226,6 +231,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(mem->start, resource_size(mem));
- 
-+	pm_runtime_disable(&pdev->dev);
- 	clk_put(priv->priv);
- 
- 	return 0;
--- 
-1.7.9.5
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQMftGAAoJEPo9qoy8lh71gHsP/2+O3AhajzpWy1sIUv2xNoim
+6z0JxCpyzxk36QFL87xXjP4XwONJrz6mhwQRPOV8hIac01AVYaw4xkXGV+ApZNss
+22QdDJempx8gcsbuiYdAJxOj1QXI7PnfENMyZLE8fJHCYut3CRb8aShYnf0Kzn91
+R6QHdJw3nmjPo6vHIbXAdaMvOyBnLQVEeTtHTfQ1oy4QSDZo1aA/Xg9gznopXXus
+MSXT/3vg0MKVbrFW/5UdYK9RjH62NS/OUrxjH/7IEpc98wXUPFU/9IV0rC3AZTZK
+7PgPWuNOtNjB4ZCTa3m4QJFHz3q+jjq+pNDCyiTXyl5HomkprgU3S1rQSqmU4Jv1
+7JC+ZwBeE3lY1Qokbpq8abLrN3bCgeL7haPRsIzSSvolToNXdI/2uYk8puDQ54bC
+/vMnl9eThqK1h7KjF4tUpJxTr7/GI5tVNxzuk3HuyzgNAaXifgnhW/xcz1BqpKgm
+bZ7/i+r3Fp9FzKfth6JuM7kNYv997Hj208Y6gQ0YhL7Ba8vfCkrkigoW1/YgIUUc
+8cPF7AefQWxUTTjPyB6b9Zj1JjEiNr34er4Pvzzv/mPMvRM2Z0HfZZFeKLWE7bxU
+ihFVjx+djJ4IYDbUZXE7iIl9wO7u3pbPpaKAX0TCTfOeP9XDMTqFkdZCCdu0YTmj
+EdB8i/0QK6vYcS2pSPpv
+=qKqT
+-----END PGP SIGNATURE-----
+
+--=-TSGTRDNEekndf9zEufyh--
 
