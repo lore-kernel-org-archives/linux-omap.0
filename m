@@ -1,101 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
-Date: Mon, 20 Aug 2012 18:59:32 +0300
-Message-ID: <20120820155930.GD8786@arwen.pp.htv.fi>
-References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
- <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
- <503240EF.4050805@ti.com>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 3/4] arm/dts: Add tps65910 regulator DT data to
+ am335x-evm.dts
+Date: Mon, 20 Aug 2012 21:07:15 +0100
+Message-ID: <20120820200715.GT26991@opensource.wolfsonmicro.com>
+References: <1343110735-10640-1-git-send-email-anilkumar@ti.com>
+ <1343110735-10640-4-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1293E@DBDE01.ent.ti.com>
+ <20120815125338.GA13544@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13118@DBDE01.ent.ti.com>
+ <20120815165431.GF15365@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13D18@DBDE01.ent.ti.com>
+ <20120816140056.GK15365@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA19A81@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="llIrKcgUOe3dCx0c"
+	protocol="application/pgp-signature"; boundary="5tINJiUS2/Dn5Rhr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:48811 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752860Ab2HTQEA (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54015 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751691Ab2HTUHR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 12:04:00 -0400
-Received: by lbok6 with SMTP id k6so3163243lbo.9
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 09:03:27 -0700 (PDT)
+	Mon, 20 Aug 2012 16:07:17 -0400
 Content-Disposition: inline
-In-Reply-To: <503240EF.4050805@ti.com>
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA19A81@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
 
---llIrKcgUOe3dCx0c
+--5tINJiUS2/Dn5Rhr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 20, 2012 at 03:51:43PM +0200, Benoit Cousson wrote:
-> > +		compatible =3D "arm,pl310-cache";
-> > +		reg =3D <0x48242000 0x1000>;
-> > +		cache-unified;
-> > +		cache-level =3D <2>;
-> > +	};
-> > +
->=20
-> In theory, the L2 cache should be referenced from the CPUs.
->=20
-> Here is the way it is done for mpc8541cdc.dts for example:
->=20
-> 	cpus {
-> 		#address-cells =3D <1>;
-> 		#size-cells =3D <0>;
->=20
-> 		PowerPC,8541@0 {
-> 			device_type =3D "cpu";
-> 			reg =3D <0x0>;
-> 			d-cache-line-size =3D <32>;	// 32 bytes
-> 			i-cache-line-size =3D <32>;	// 32 bytes
-> 			d-cache-size =3D <0x8000>;		// L1, 32K
-> 			i-cache-size =3D <0x8000>;		// L1, 32K
-> 			timebase-frequency =3D <0>;	//  33 MHz, from uboot
-> 			bus-frequency =3D <0>;	// 166 MHz
-> 			clock-frequency =3D <0>;	// 825 MHz, from uboot
-> 			next-level-cache =3D <&L2>;
-> 		};
-> 	};
->=20
-> ...
->=20
-> 		L2: l2-cache-controller@20000 {
-> 			compatible =3D "fsl,mpc8541-l2-cache-controller";
-> 			reg =3D <0x20000 0x1000>;
-> 			cache-line-size =3D <32>;	// 32 bytes
-> 			cache-size =3D <0x40000>;	// L2, 256K
-> 			interrupt-parent =3D <&mpic>;
-> 			interrupts =3D <16 2>;
-> 		};
+On Mon, Aug 20, 2012 at 06:27:01AM +0000, AnilKumar, Chimata wrote:
+> On Thu, Aug 16, 2012 at 19:30:56, Mark Brown wrote:
 
-that's actually outside of the cpus {} block.
+> > Why does this mean you need multiple regulators?  A single regulator can
+> > of course supply multiple devices.
 
---=20
-balbi
+> I got your point but tps65910 driver is failing if we add single fixed
+> regulator. Solution is driver needs to change or add multiple fixed
+> regulators.
 
---llIrKcgUOe3dCx0c
+No, really.  One regulator can supply many things, not being a.
+
+> vrtc:
+> tps65910 0-002d: Failed to find supply vcc7
+> tps65910 0-002d: failed to register tps65910-pmic regulator
+
+So you've specified a whole bunch of supplies and this one individual
+supply is not matching (and it's not the first...).  You should
+investigate what's gone wrong there rather than bodging around the
+problem.  I can't immediately say anything much based on the information
+you've given.
+
+--5tINJiUS2/Dn5Rhr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQMl7iAAoJEIaOsuA1yqREQAUQAKbwcbDKKbGh7nVYDoOdXbME
-czWlfYEFlo20GWzllMNFSWzgZRFfwVAX18iV91zj1NbnkdLGbWe9oYkTonaAtnxj
-Y5ET3nua7XKPRYVESnS+G/XYLAYzlKFtdU3h4pVgHNKaJUeescmpfyZF5/oVcAtU
-dTawxDDtm03tRuSv9QHUrP0GyvO0Q/smkhdJkgRT210VPDXo77QhQ5DeE8UDPU+b
-6ArH9wdQ5qKuApfqlvYKxoGrPfkdCbspg8QIdPynd6ovU4jTdwqVFdyXUrdKeVT7
-YWkQ3I/d3S0EhPj9POq26CAJ/IH7QsfIyrPnyKRip4S2CASQpI1kNNdSZWudeh9O
-sxxePcOCC5rp7REvfbkZU7V2/I76p5tNrgwD6Z4Pwum/SsuyZJpGLAin6Y2VWVeD
-YSY4rEaidtUoJgAWd+3ycPSDvseobhlhyW/Og2+A9D3TsfXofaPyhKTflO7uEM4A
-THn0ukqBc6IXruBALjtH+4u5b5vro2ev+hU9FcOlwAXyfbuZhfPGfj6rWrCdP74L
-2t3mDbjIODeDX0VTrS+IjnPagI7sqiBIyDMEQWP1dwIw8YaX0fZaWnkDg4P7WjbC
-AESOilh6/U4+e9hHHRZ9QE+ImjIaQI2FS+dq7udKuTb+PzuflhWSmI20wmfxLzIu
-izpWTPUqc8ntnPZQ8zE4
-=S7lT
+iQIcBAEBAgAGBQJQMpjsAAoJEFJkBDiqVpZ4tw4QAIY/lyBEQDDyMB6MNozX5AM0
+gJkyY6AhFeZQ6BqHpUpY7H2zFN3IhWsHXGJqzFdfGRSx2RuHOe7D+sbJ6tDNk5j2
+Wl4VSclfyGKM2AZ8BKe8YH6kKECrqlPCQ4sHRCuaX0VMzHljWKZuHbkTgc4Duvq1
+je2Q4pLXuQkJTddsIXDFIsSGlaKfJ6+8xHro7+m1ZJS4ALAKx1Bmp8iDmXC2QSsy
+aLIxvaQoYcHkPtCSYMV0nFj4/CsJAvGuk9OlAmdWgwXnNLu/e8XRed/qxqN5s1ce
+eT3aEoXDgM1sRXrHYL3IlFkD0I4wdXdF2X8y347+zYUBbvbNv+ANwNIS9dQXXkpX
+EYFx5n65NioOdH6GgO1R28W9Z2IhOeZMLWk42ZNof0/7z14+mfQ92B91h+a78zbV
+B263ZK8mCuj5gVUEW84IgPmpMNTiDoEX9+lZ5y+LgUXm6jvyCBMqGEQCLQdgJBe8
+HE2SVeip7qbgb/vSZ9RQvxgaYNkTVrCop8IpqlsJdjDOe7mVH9BeSo2V++qK/jPZ
+Sz/cVkzwJhX8EDwsARhN10/wg9FZ9u//PiGfLhLvt5nBu8fijfMMX4DXppF/VbHV
+BiJN9XuMWzDw56BBiosMO4ysY3hZ43Yjypl/ErBz+tRmCUWHUEnn+lYyfYkwEXX1
+66JCkLULUHrGpWEjtuYX
+=dLfo
 -----END PGP SIGNATURE-----
 
---llIrKcgUOe3dCx0c--
+--5tINJiUS2/Dn5Rhr--
