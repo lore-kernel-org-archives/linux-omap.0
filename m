@@ -1,52 +1,41 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v7] can: c_can: Add runtime PM support to Bosch
- C_CAN/D_CAN controller
-Date: Mon, 20 Aug 2012 04:33:59 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA1937D@DBDE01.ent.ti.com>
-References: <1344866802-15980-1-git-send-email-anilkumar@ti.com>
- <502FEE11.7070305@pengutronix.de>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
+Date: Mon, 20 Aug 2012 11:06:34 +0530
+Message-ID: <CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
+References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42707 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab2HTEeR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 00:34:17 -0400
-In-Reply-To: <502FEE11.7070305@pengutronix.de>
-Content-Language: en-US
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44338 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754480Ab2HTFgf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 01:36:35 -0400
+Received: by vbip1 with SMTP id p1so4801958vbi.4
+        for <linux-omap@vger.kernel.org>; Sun, 19 Aug 2012 22:36:34 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Marc,
+Hi,
 
-On Sun, Aug 19, 2012 at 01:03:37, Marc Kleine-Budde wrote:
-> On 08/13/2012 04:06 PM, AnilKumar Ch wrote:
-> > Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-> > APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-> > register of C_CAN/D_CAN IP when clock is turned off.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> > ---
-> > This patch has been tested on AM335X EVM. Due to lack of hardware
-> > I am not able to test c_can functionality. I appreciate if anyone
-> > can test c_can functionality with this patch.
-> > 
-> > This patch is based on "can-next/master" 
-> > 
-> > Changes from v6:
-> > 	- Incorporated Marc's commets on v6
-> > 	  * changed dev pointer to priv
-> 
-> Sorry, I meant not to rename the variable, but change the signature of
-> the function to:
-> 
->   static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
-> 
+On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.net> wrote:
+>
+> 3.6-rc2 fails to compile with
+> CONFIG_USB_MUSB_HDRC=m
+> CONFIG_USB_MUSB_OMAP2PLUS=m
+>
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `twl4030_usb_irq':
+> /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: undefined reference to `omap_musb_mailbox'
+> drivers/built-in.o: In function `twl4030_usb_phy_init':
+> /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: undefined reference to `omap_musb_mailbox'
 
-I will change in v8
+Having TWL4030_USB as a module will get rid of this.
+I'll see how this can be resolved when some modules are *built-in* and
+some are made as *modules*.
 
 Thanks
-AnilKumar
+Kishon
