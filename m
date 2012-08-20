@@ -1,93 +1,92 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
-Date: Mon, 20 Aug 2012 13:26:42 +0300
-Message-ID: <20120820102641.GM17455@arwen.pp.htv.fi>
-References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
- <CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
- <20120820095421.GL17455@arwen.pp.htv.fi>
- <CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
+Subject: Re: [PATCH V4 3/6] OMAPDSS: DSS: Cleanup cpu_is_xxxx checks
+Date: Mon, 20 Aug 2012 16:06:44 +0530
+Message-ID: <CAF0AtAtePhxTsoCyatfXWR+e4sc3WHmg=Wq_ZXkowoGpOg63FA@mail.gmail.com>
+References: <1344859176-4512-1-git-send-email-cmahapatra@ti.com>
+	<1345115913-6773-1-git-send-email-cmahapatra@ti.com>
+	<1345211692.3158.160.camel@deskari>
+	<1345452124.2684.7.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mI5TpPl/qDRoXxBg"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:32907 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100Ab2HTKak (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36565 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751100Ab2HTKgp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Aug 2012 06:30:40 -0400
-Received: by lage12 with SMTP id e12so5308339lag.27
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 03:30:37 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
+	Mon, 20 Aug 2012 06:36:45 -0400
+Received: by vbkv13 with SMTP id v13so5993619vbk.0
+        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 03:36:44 -0700 (PDT)
+In-Reply-To: <1345452124.2684.7.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: balbi@ti.com, Peter Meerwald <pmeerw@pmeerw.net>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+On Mon, Aug 20, 2012 at 2:12 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Fri, 2012-08-17 at 16:54 +0300, Tomi Valkeinen wrote:
+>> On Thu, 2012-08-16 at 16:48 +0530, Chandrabhanu Mahapatra wrote:
+>> > All the cpu_is checks have been moved to dss_init_features function providing a
+>> > much more generic and cleaner interface. The OMAP version and revision specific
+>> > initializations in various functions are cleaned and the necessary data are
+>> > moved to dss_features structure which is local to dss.c.
+>> >
+>> > Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+>>
+>> > +static int __init dss_init_features(struct device *dev)
+>> > +{
+>> > +   dss.feat = devm_kzalloc(dev, sizeof(*dss.feat), GFP_KERNEL);
+>> > +   if (!dss.feat) {
+>> > +           dev_err(dev, "Failed to allocate local DSS Features\n");
+>> > +           return -ENOMEM;
+>> > +   }
+>> > +
+>> > +   if (cpu_is_omap24xx())
+>> > +           dss.feat = &omap24xx_dss_features;
+>> > +   else if (cpu_is_omap34xx())
+>> > +           dss.feat = &omap34xx_dss_features;
+>> > +   else if (cpu_is_omap3630())
+>> > +           dss.feat = &omap3630_dss_features;
+>> > +   else if (cpu_is_omap44xx())
+>> > +           dss.feat = &omap44xx_dss_features;
+>> > +   else
+>> > +           return -ENODEV;
+>> > +
+>> > +   return 0;
+>> > +}
+>>
+>> This is not correct (and same problem in dispc). You allocate the feat
+>> struct and assign the pointer to dss.feat, but then overwrite dss.feat
+>> pointer with the pointer to omap24xx_dss_features (which is freed
+>> later). You need to memcpy it.
+>>
 
---mI5TpPl/qDRoXxBg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ok.
 
-On Mon, Aug 20, 2012 at 03:46:07PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> Hi,
->=20
-> On Mon, Aug 20, 2012 at 3:24 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Mon, Aug 20, 2012 at 11:06:34AM +0530, ABRAHAM, KISHON VIJAY wrote:
-> >> Hi,
-> >>
-> >> On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.net> wr=
-ote:
-> >> >
-> >> > 3.6-rc2 fails to compile with
-> >> > CONFIG_USB_MUSB_HDRC=3Dm
-> >> > CONFIG_USB_MUSB_OMAP2PLUS=3Dm
-> >> >
-> >> >   LD      init/built-in.o
-> >> > drivers/built-in.o: In function `twl4030_usb_irq':
-> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518: undefi=
-ned reference to `omap_musb_mailbox'
-> >> > drivers/built-in.o: In function `twl4030_usb_phy_init':
-> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540: undefi=
-ned reference to `omap_musb_mailbox'
-> >>
-> >> Having TWL4030_USB as a module will get rid of this.
-> >> I'll see how this can be resolved when some modules are *built-in* and
-> >> some are made as *modules*.
-> >
-> > EXPORT_SYMBOL_GPL() should sort that out, right ?
->=20
-> No :-( I already have EXPORT_SYMBOL_GPL() in omap2430.c.
+>> I also get a crash on omap3 overo board when loading omapdss:
+>
 
-I see you're missing an "extern" on the function prototype (on the
-header). Not sure how modules.dep is generated, but maybe it needs the
-"extern" there. Can you check it out ?
+During recent tests I never saw the crash happen. The kernel used to
+freeze during booting after printing
+"Uncompressing Linux... done, booting the kernel."
 
---=20
-balbi
+> The crash happens because dss_get_clocks uses the feat stuff, but the
+> dss_init_features is only called later. Did you test this? I can't see
+> how that can work on any board.
+>
 
---mI5TpPl/qDRoXxBg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Thanks for pointing that out. Correcting above fixed the problem.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> Also, in the current place you have dss_init_features call, in case
+> there's an error you can't just return, you need to release the
+> resources. The same problem is in the dispc.c.
+>
+>  Tomi
+>
 
-iQIcBAEBAgAGBQJQMhDhAAoJEIaOsuA1yqREEUMQAJh2MTFG6u9TmjiDbgz/gdVN
-eDKsHsZlLo7s4C54ttehCY5eOJ/jdLQnNmmdCm5HkfULPmRYsLzkQxy0T5Mr4Xwu
-TZomOlfJoUWIoOfj2k7psCoQbrS/D3hyks+opXBJoQ/ST8FnQ5C0b9V9J3/3K+2M
-eb97lmJtMF6P51CVtU5lgIBNXuzucqRP+oGnFbaDMtUVBLsrtdPzkB0Fi6do65un
-YyZ0N0nmsfCi1zWethMlR6Rp4cLExbTXHgy8RzAsgWaPQmeIFXuXLu2cm4sIBjey
-0VaspTnonVRx3h1KU3OBj4iA6KimXCy5PNe/2mLxd9acDnQ47eE1xMKu4fn342Me
-zKv6ne6FQKg4EbSkf0FztiMqyA6MTQsLlWJbnEV/o6BO8t6emduzXHoqGJ/98IAe
-LprExXluGPgOL5Y8hGSs+nyz90Nl0uaNK0o7xzPZrpht6khnH2pBIVwdQDXF3FB8
-0vqVz0I1iXR3iHvxJ8AvFigZoPYQwDY6xxT+f0iEjcjFWD6RTjwgO1+HOr56Z9XC
-6qOSmkompoAwpxkWbF98rB05z1+Ze4DJjm2o3ILx7bYXx4iYIbsh8ZHqsa/eQAek
-W+L6P6NmW2TRhUPcsTAPqYiBzZXsH8RYZPRdeRt73F9zL1Tf2pXspsmHJcQI4ili
-yirEitWHGIhVOwN26iix
-=eX+i
------END PGP SIGNATURE-----
+By releasing resources did you mean the dss.feat memory? I think
+dss_init_features call is wrongly placed and should be placed at the
+very beginning of the probe function.
 
---mI5TpPl/qDRoXxBg--
+-- 
+Chandrabhanu Mahapatra
+Texas Instruments India Pvt. Ltd.
