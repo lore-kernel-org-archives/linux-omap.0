@@ -1,165 +1,66 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: hwmod: partially un-reset hwmods might
- not be properly enabled
-Date: Mon, 20 Aug 2012 16:49:40 +0200
-Message-ID: <50324E84.6080407@ti.com>
-References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org> <1342466485-1050-2-git-send-email-omar.luna@linaro.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
+Date: Mon, 20 Aug 2012 21:21:58 +0530
+Message-ID: <CAMQu2gxgSasF4mmEFiZq-gsZfQwYn07DKyVGBVPWqjYkTSTu6g@mail.gmail.com>
+References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
+ <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com> <503240EF.4050805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1342466485-1050-2-git-send-email-omar.luna@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:59041 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753221Ab2HTPxh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Aug 2012 11:53:37 -0400
+Received: by yenm2 with SMTP id m2so5913378yen.37
+        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 08:52:19 -0700 (PDT)
+In-Reply-To: <503240EF.4050805@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
 
-Hi Omar,
+On Mon, Aug 20, 2012 at 7:21 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> Hi Santosh,
+>
+> On 08/13/2012 01:00 PM, Santosh Shilimkar wrote:
+>> This provides PL310 Level 2 Cache Controller Device Tree
+>> support for OMAP4 based devices.
+>>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> ---
+>>  arch/arm/boot/dts/omap4.dtsi       |    7 +++++++
+>>  arch/arm/mach-omap2/omap4-common.c |    6 +++++-
+>>  2 files changed, 12 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> index 6717c71..cf1efb6 100644
+>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> @@ -36,6 +36,13 @@
+>>               };
+>>       };
+>>
+>
+>> +     L2: l2-cache-controller {
+>
+> The reg offset is missing: l2-cache-controller@48242000
+>
+>> +             compatible = "arm,pl310-cache";
+>> +             reg = <0x48242000 0x1000>;
+>> +             cache-unified;
+>> +             cache-level = <2>;
+>> +     };
+>> +
+>
+> In theory, the L2 cache should be referenced from the CPUs.
+>
+Agree.
 
-On 07/16/2012 09:21 PM, Omar Ramirez Luna wrote:
-> Some IP blocks might not be using/controlling more than one
-> reset line, this check loosens the restriction to fully use
-> hwmod framework for those drivers.
-> 
-> E.g.: ipu has reset lines: mmu_cache, cpu0 and cpu1.
-> - cpu1 might not be used and hence (with previous check)
->   won't be fully enabled by hwmod code.
+> Here is the way it is done for mpc8541cdc.dts for example:
+>
+I will move it under CPU. Thanks
 
-You mean that you might have some case where you need to enable the
-mmu_cache and cpu0 and thus deassert only the mmu/cpu0 while keeping the
-cpu1 under reset?
-
-So the any_hardreset is indeed not appropriate in that case.
-
-In fact, since the hardreset cannot be handled at all by the hwmod fmwk,
-I'm even wondering if we should take care of checking the state at all.
-But as Paul stated, if was done due to the lack of understanding about
-the diver usage, so maybe things will become clearer once we will have
-that code available.
-
-So I guess that checking for all the lines for the hardreset state is
-anyway already a first step toward a good understanding of the reset
-need for the remote processors.
-
-The patch looks fine to me considering that we do not have a lot of
-information about the usage :-(
-
-Maybe you could add more information in the changelog to explain the way
-you are going to use the reset API.
-
-Regards,
-Benoit
-
-
-> While at it, prevent _omap4_module_disable if all the hardreset
-> lines on an IP block are not under reset.
-
-
-> 
-> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |   37 ++++++++++++++++++++++---------------
->  1 files changed, 22 insertions(+), 15 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 3215dad..091c199 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1558,25 +1558,28 @@ static int _read_hardreset(struct omap_hwmod *oh, const char *name)
->  }
->  
->  /**
-> - * _are_any_hardreset_lines_asserted - return true if part of @oh is hard-reset
-> + * _are_all_hardreset_lines_asserted - return true if the @oh is hard-reset
->   * @oh: struct omap_hwmod *
->   *
-> - * If any hardreset line associated with @oh is asserted, then return true.
-> - * Otherwise, if @oh has no hardreset lines associated with it, or if
-> - * no hardreset lines associated with @oh are asserted, then return false.
-> + * If all hardreset lines associated with @oh are asserted, then return true.
-> + * Otherwise, if part of @oh is out hardreset or if no hardreset lines
-> + * associated with @oh are asserted, then return false.
->   * This function is used to avoid executing some parts of the IP block
-> - * enable/disable sequence if a hardreset line is set.
-> + * enable/disable sequence if its hardreset line is set.
->   */
-> -static bool _are_any_hardreset_lines_asserted(struct omap_hwmod *oh)
-> +static bool _are_all_hardreset_lines_asserted(struct omap_hwmod *oh)
->  {
-> -	int i;
-> +	int i, rst_cnt = 0;
->  
->  	if (oh->rst_lines_cnt == 0)
->  		return false;
->  
->  	for (i = 0; i < oh->rst_lines_cnt; i++)
->  		if (_read_hardreset(oh, oh->rst_lines[i].name) > 0)
-> -			return true;
-> +			rst_cnt++;
-> +
-> +	if (oh->rst_lines_cnt == rst_cnt)
-> +		return true;
->  
->  	return false;
->  }
-> @@ -1595,6 +1598,13 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
->  	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
->  		return -EINVAL;
->  
-> +	/*
-> +	 * Since integration code might still be doing something, only
-> +	 * disable if all lines are under hardreset.
-> +	 */
-> +	if (!_are_all_hardreset_lines_asserted(oh))
-> +		return 0;
-> +
->  	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
->  
->  	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
-> @@ -1602,9 +1612,6 @@ static int _omap4_disable_module(struct omap_hwmod *oh)
->  				    oh->clkdm->clkdm_offs,
->  				    oh->prcm.omap4.clkctrl_offs);
->  
-> -	if (_are_any_hardreset_lines_asserted(oh))
-> -		return 0;
-> -
->  	v = _omap4_wait_target_disable(oh);
->  	if (v)
->  		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-> @@ -1830,7 +1837,7 @@ static int _enable(struct omap_hwmod *oh)
->  	}
->  
->  	/*
-> -	 * If an IP block contains HW reset lines and any of them are
-> +	 * If an IP block contains HW reset lines and all of them are
->  	 * asserted, we let integration code associated with that
->  	 * block handle the enable.  We've received very little
->  	 * information on what those driver authors need, and until
-> @@ -1838,7 +1845,7 @@ static int _enable(struct omap_hwmod *oh)
->  	 * posted to the public lists, this is probably the best we
->  	 * can do.
->  	 */
-> -	if (_are_any_hardreset_lines_asserted(oh))
-> +	if (_are_all_hardreset_lines_asserted(oh))
->  		return 0;
->  
->  	/* Mux pins for device runtime if populated */
-> @@ -1918,7 +1925,7 @@ static int _idle(struct omap_hwmod *oh)
->  		return -EINVAL;
->  	}
->  
-> -	if (_are_any_hardreset_lines_asserted(oh))
-> +	if (_are_all_hardreset_lines_asserted(oh))
->  		return 0;
->  
->  	if (oh->class->sysc)
-> @@ -2006,7 +2013,7 @@ static int _shutdown(struct omap_hwmod *oh)
->  		return -EINVAL;
->  	}
->  
-> -	if (_are_any_hardreset_lines_asserted(oh))
-> +	if (_are_all_hardreset_lines_asserted(oh))
->  		return 0;
->  
->  	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
-> 
+regards
+Santosh
