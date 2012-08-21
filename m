@@ -1,70 +1,60 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 1/4] arm/dts: regulator: Add tps65910 device tree data
-Date: Tue, 21 Aug 2012 17:38:05 +0100
-Message-ID: <20120821163805.GW7995@opensource.wolfsonmicro.com>
-References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
- <1345547850-29761-2-git-send-email-anilkumar@ti.com>
- <5033ADC5.4030002@wwwdotorg.org>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 1/3] ARM: OMAP: hwmod: partially un-reset hwmods might not
+ be properly enabled
+Date: Tue, 21 Aug 2012 12:48:16 -0500
+Message-ID: <CALLhW=50Ro5T=u7KTObT6g7eF=835Ywj9sQ+z8kZ_+5U7U7fJA@mail.gmail.com>
+References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
+	<1342466485-1050-2-git-send-email-omar.luna@linaro.org>
+	<50324E84.6080407@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OFtM20PmL5gDcvsL"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35209 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756147Ab2HUQiI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 12:38:08 -0400
-Content-Disposition: inline
-In-Reply-To: <5033ADC5.4030002@wwwdotorg.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:39833 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932139Ab2HURsR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 13:48:17 -0400
+Received: by vbbff1 with SMTP id ff1so83826vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 10:48:17 -0700 (PDT)
+In-Reply-To: <50324E84.6080407@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: AnilKumar Ch <anilkumar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
+On 20 August 2012 09:49, Benoit Cousson <b-cousson@ti.com> wrote:
+> On 07/16/2012 09:21 PM, Omar Ramirez Luna wrote:
+>> Some IP blocks might not be using/controlling more than one
+>> reset line, this check loosens the restriction to fully use
+>> hwmod framework for those drivers.
+>>
+>> E.g.: ipu has reset lines: mmu_cache, cpu0 and cpu1.
+>> - cpu1 might not be used and hence (with previous check)
+>>   won't be fully enabled by hwmod code.
+>
+> You mean that you might have some case where you need to enable the
+> mmu_cache and cpu0 and thus deassert only the mmu/cpu0 while keeping the
+> cpu1 under reset?
 
---OFtM20PmL5gDcvsL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Looks like I didn't reply to this question.
 
-On Tue, Aug 21, 2012 at 09:48:21AM -0600, Stephen Warren wrote:
+Yes, initially cpu1 might not be used and kept under reset. Or even
+the mmu can be taken out of reset and configured, and cpu0 after it,
+creating a small window where one is taken out and the other is under
+reset.
 
-> This .dtsi file adds a node for every single regulator within the
-> TPS65910, which in turn means that of_regulator_match() will find a node
-> for every regulator, and in turn every regulator will be registered. On
-> some boards, not all of those regulators will be used, and hence we
-> don't want all of them to be registered.
+> So the any_hardreset is indeed not appropriate in that case.
+>
+> In fact, since the hardreset cannot be handled at all by the hwmod fmwk,
+> I'm even wondering if we should take care of checking the state at all.
+> But as Paul stated, if was done due to the lack of understanding about
+> the diver usage, so maybe things will become clearer once we will have
+> that code available.
 
-This isn't the general view for the regualtor API - we generally want
-all regulators to be registered in order to allow us to see what's going
-on with things even if we've not figured them out from software.
+I still think it can, in fact all the code I'm using comes from the
+hwmod fmwk. _deassert_reset is almost the same as _enable, I left it
+this way to avoid reintroducing the issues that caused reset code to
+be stripped out from _enable path.
 
-> If dtc allowed /include/ inside a node rather than just at the
-> top-level, that might solve this. Or, #defines to the board .dts could
-> define the label name, and the .dtsi reference that label name.
+Regards,
 
-I do constantly wish that more of the people churning out DT stuff would
-look at the tooling around it :/
-
---OFtM20PmL5gDcvsL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQM7lhAAoJEFJkBDiqVpZ4w/cQALnhfQAWNZczJRqiJqWMf7lP
-7V5Npg46RqaDwYq32DwgllBUphEQXZkcMbnf6Qpjd+YEog9Ro2bVVZ29Db09PvOG
-3hFgsLaRJafELyFdNjw++TyVWSeDpHrJZj2jE771X81NL6/+3GwwM2sFkCGxCRyn
-WzBjaXL+Fg402GhBwhGjCeWWhr03kSytRyyPA7x9QjWMo4dJGS5W88kCN4s66KiA
-Kr4xBpNxGKRslwFKKLD6PQmtjb1zu2H+AbG9O/o/PTKybuX5TrHCKPSND+u4hly9
-AhVKanj0Ac0pR/bRHnSQSO0Y9vkvTRrekr+tcrDn5V+Y1ESNF4lr2PGbpapgOI4N
-wpx80VaqezuMtwvyffvPyjvh1oXGuka5BxhVm6/Pxgpw8X8iphj8TrDyo1D8XqHJ
-k1mVm4ETGW8pzDGZs4rUOQhwvzrfZxAL9YuyN97T+EUnAxhWCowDwsczgHnX8/3W
-gg23ilhfkJ0utONnfdstie+xCQG9yyHR66lgXMI9yL/RLokEoUDAisBFG2zf0iuM
-9tvcdBKGXlPGaV5JqmjOabKp+I5qqT3WWpgMaqILtf2hMYEKIRPhNkcL+l+kh+18
-a6kACn73YumxECuQuRK5sj0obqUgZRBOQh0pMU/G3Df1JKZfp8EeejZGd6jX/PGr
-huUW0/R+D5z+hbOEROPt
-=Nr0I
------END PGP SIGNATURE-----
-
---OFtM20PmL5gDcvsL--
+Omar
