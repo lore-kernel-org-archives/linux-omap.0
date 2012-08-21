@@ -1,90 +1,105 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V5 5/6] ARM: OMAP: Disable venc for OMAP4
-Date: Tue, 21 Aug 2012 13:32:39 +0300
-Message-ID: <1345545159.4085.45.camel@deskari>
-References: <cover.1343912532.git.cmahapatra@ti.com>
-	 <cover.1345468541.git.cmahapatra@ti.com>
-	 <a07a3a216827e830cfa249f4f39ad26e75dc0afd.1345468541.git.cmahapatra@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
+Date: Tue, 21 Aug 2012 16:02:38 +0530
+Message-ID: <CAMQu2gy46sVEBH0hvaXrwOLMfcKH+fwyExFmwzAPzxQKoYwhhA@mail.gmail.com>
+References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
+ <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
+ <503240EF.4050805@ti.com> <CAMQu2gxgSasF4mmEFiZq-gsZfQwYn07DKyVGBVPWqjYkTSTu6g@mail.gmail.com>
+ <CAMQu2gyL4-j9QSKMpNi5QQFsLqex8Q=bW9uNQtsewXVyrTumOQ@mail.gmail.com> <20120821102455.GM10347@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-VFDOLI4TAz7ehIS3V98n"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:52552 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756253Ab2HUKco (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:53121 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755086Ab2HUKc7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:32:44 -0400
-Received: by lage12 with SMTP id e12so6318372lag.27
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:32:42 -0700 (PDT)
-In-Reply-To: <a07a3a216827e830cfa249f4f39ad26e75dc0afd.1345468541.git.cmahapatra@ti.com>
+	Tue, 21 Aug 2012 06:32:59 -0400
+Received: by iaky10 with SMTP id y10so3908066iak.34
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:32:58 -0700 (PDT)
+In-Reply-To: <20120821102455.GM10347@arwen.pp.htv.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: balbi@ti.com
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
 
+On Tue, Aug 21, 2012 at 3:54 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Tue, Aug 21, 2012 at 03:11:51PM +0530, Shilimkar, Santosh wrote:
+>> On Mon, Aug 20, 2012 at 9:21 PM, Shilimkar, Santosh
+>> <santosh.shilimkar@ti.com> wrote:
+>> > On Mon, Aug 20, 2012 at 7:21 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+>> >> Hi Santosh,
+>> >>
+>> >> On 08/13/2012 01:00 PM, Santosh Shilimkar wrote:
+>> >>> This provides PL310 Level 2 Cache Controller Device Tree
+>> >>> support for OMAP4 based devices.
+>> >>>
+>> >>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> >>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >>> ---
+>> >>>  arch/arm/boot/dts/omap4.dtsi       |    7 +++++++
+>> >>>  arch/arm/mach-omap2/omap4-common.c |    6 +++++-
+>> >>>  2 files changed, 12 insertions(+), 1 deletion(-)
+>> >>>
+>> >>> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+>> >>> index 6717c71..cf1efb6 100644
+>> >>> --- a/arch/arm/boot/dts/omap4.dtsi
+>> >>> +++ b/arch/arm/boot/dts/omap4.dtsi
+>> >>> @@ -36,6 +36,13 @@
+>> >>>               };
+>> >>>       };
+>> >>>
+>> >>
+>> >>> +     L2: l2-cache-controller {
+>> >>
+>> >> The reg offset is missing: l2-cache-controller@48242000
+>> >>
+>> >>> +             compatible = "arm,pl310-cache";
+>> >>> +             reg = <0x48242000 0x1000>;
+>> >>> +             cache-unified;
+>> >>> +             cache-level = <2>;
+>> >>> +     };
+>> >>> +
+>> >>
+>> >> In theory, the L2 cache should be referenced from the CPUs.
+>> >>
+>> > Agree.
+>> >
+>> I have added the reference for the L2 controller in CPUs.
+>> Other information like L1 cache size etc can be added in cpu
+>> DT node with another patch.
+>>
+>> Updated patch below. Have also updated git branch
+>> accordingly.
+>>
+>> Regards
+>> Santosh
+>>
+>> From 91d6cb4f999061c8cfc844a3916ee3384f2e488a Mon Sep 17 00:00:00 2001
+>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Date: Wed, 4 Jul 2012 17:57:34 +0530
+>> Subject: [PATCH 1/2 v2] ARM: OMAP4: Add L2 Cache Controller in Device Tree
+>>
+>> This provides PL310 Level 2 Cache Controller Device Tree
+>> support for OMAP4 based devices.
+>>
+>> Cc: Benoit Cousson <b-cousson@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>
+> nice work :-)
+>
+> FWIW this looks good to me:
+>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+>
+Thanks.
 
---=-VFDOLI4TAz7ehIS3V98n
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> just one thing, will a similar patch for omap3 be sent ?
+>
+OMAP3 has an integrated L2 cache controller so there
+won't any additional DT node for L2.
 
-On Mon, 2012-08-20 at 18:54 +0530, Chandrabhanu Mahapatra wrote:
-> This is a alternative to "HACK: OMAP: DSS2: VENC: disable VENC on OMAP4 t=
-o
-> prevent crash" (ba02fa37de) by Tomi Valkeinen <tomi.valkeinen@ti.com> to =
-prevent
-> VENC from crashing OMAP4 kernel. This prevents OMAPDSS from initial regis=
-tration
-> of a device for VENC on OMAP4.
->=20
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> ---
->  arch/arm/mach-omap2/display.c |    1 -
->  1 file changed, 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.=
-c
-> index af1ed7d..ee40739 100644
-> --- a/arch/arm/mach-omap2/display.c
-> +++ b/arch/arm/mach-omap2/display.c
-> @@ -95,7 +95,6 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod=
-_data[] __initdata =3D {
->  	{ "dss_core", "omapdss_dss", -1 },
->  	{ "dss_dispc", "omapdss_dispc", -1 },
->  	{ "dss_rfbi", "omapdss_rfbi", -1 },
-> -	{ "dss_venc", "omapdss_venc", -1 },
->  	{ "dss_dsi1", "omapdss_dsi", 0 },
->  	{ "dss_dsi2", "omapdss_dsi", 1 },
->  	{ "dss_hdmi", "omapdss_hdmi", -1 },
+OMAP3 CPU DT node can be updated with l1/l2 cache
+size etc related information though.
 
-You need to reorder this and the previous patch. If you first remove the
-workaround from the previous patch, the kernel will crash if after that
-patch. So this one should be before the previous patch.
-
- Tomi
-
-
---=-VFDOLI4TAz7ehIS3V98n
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQM2PHAAoJEPo9qoy8lh71kvYQAKmrX5C+65ceDZjYFvwqQUqy
-iPn6jVn/prVPueaYF7H0AG8QPDNTjG47OO73BYBLKxWN/JVAD5AZMP1oY18mQhlu
-lIF71iGNxYnPV3Ae1MxLIlMnBCQewAfJ+foFrheWb3zHZjOgmOzeDMVEuaTd/hVr
-1+OyMEqTqYFiCqLEpt3Xvr6wo0FUbRMYwCkL/bN5G4iJiyAiFeb9DdB9U2ihXS24
-A2qJsIJB4Re4Ahjxo7lcQkUBgb+6Pll495cpcZ5jGw69as6Ilr4ATVg15TSGjYkc
-2YpiMU84D8onf/eS05Br2KFv//6oYK7nu9CNVGeJglVhhCI9wUhDCCRm9M7YeePV
-LMQLQ9u4MqBk1UWYqQlLwA66E7Qa/j5AIVDUFt/nY9bLGc0f51PTHOM6z9Nm0Vm1
-snqARFpwZMOS+Ea/b4f6MvHebjW7jjPqlAhVxdSdoK2wHXUDmgsFn5+ye4LNr0+w
-rXdtkflosxMeapMh138cmEvpApNhA18FnNSIOCsyUM4AJ4oPYJJ5mgga1gxrDl0q
-uiInjMsFT5zxf6z9pNVM8j2KKwwfHvT0wN6RBRtPgEDgMlRZqRpQky2ceYHnWxFA
-du1H5wWJ6wPRVILkLfyx12qUdcixMryAUva4GpDuEz/so+1emkdewz7M3LXVyYDd
-vFfYSUyOfOUqifjS7vMx
-=1tvx
------END PGP SIGNATURE-----
-
---=-VFDOLI4TAz7ehIS3V98n--
-
+Regards
+Santosh
