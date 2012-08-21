@@ -1,98 +1,197 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/10] Assorted MMC / OMAP HSMMC patches
-Date: Tue, 21 Aug 2012 13:43:31 +0300
-Message-ID: <20120821104330.GS10347@arwen.pp.htv.fi>
-References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
-Reply-To: balbi@ti.com
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v6 08/10] ARM: OMAP2+: onenand: generic timing calculation
+Date: Tue, 21 Aug 2012 16:15:53 +0530
+Message-ID: <998aae9cb10d5eb1574dde792954b1cb08c425b6.1345524670.git.afzal@ti.com>
+References: <cover.1345524670.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aJ74fq0Y6SrIeKCM"
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47662 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756539Ab2HUKqA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 06:46:00 -0400
+In-Reply-To: <cover.1345524670.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
+Generic gpmc timing calculation helper is available now, use
+it instead of custom timing calculation.
 
---aJ74fq0Y6SrIeKCM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-onenand.c |  124 ++++++++++++------------------------
+ 1 files changed, 41 insertions(+), 83 deletions(-)
 
-Hi,
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+index e139e3f..700f9a6 100644
+--- a/arch/arm/mach-omap2/gpmc-onenand.c
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -49,6 +49,7 @@ static struct platform_device gpmc_onenand_device = {
+ 
+ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings t;
+ 
+ 	const int t_cer = 15;
+@@ -58,35 +59,22 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ 	const int t_aa = 76;
+ 	const int t_oe = 20;
+ 	const int t_cez = 20; /* max of t_cez, t_oez */
+-	const int t_ds = 30;
+ 	const int t_wpl = 40;
+ 	const int t_wph = 30;
+ 
+-	memset(&t, 0, sizeof(t));
+-	t.sync_clk = 0;
+-	t.cs_on = 0;
+-	t.adv_on = 0;
+-
+-	/* Read */
+-	t.adv_rd_off = gpmc_round_ns_to_ticks(max_t(int, t_avdp, t_cer));
+-	t.oe_on  = t.adv_rd_off + gpmc_round_ns_to_ticks(t_aavdh);
+-	t.access = t.adv_on + gpmc_round_ns_to_ticks(t_aa);
+-	t.access = max_t(int, t.access, t.cs_on + gpmc_round_ns_to_ticks(t_ce));
+-	t.access = max_t(int, t.access, t.oe_on + gpmc_round_ns_to_ticks(t_oe));
+-	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
+-	t.cs_rd_off = t.oe_off;
+-	t.rd_cycle  = t.cs_rd_off + gpmc_round_ns_to_ticks(t_cez);
+-
+-	/* Write */
+-	t.adv_wr_off = t.adv_rd_off;
+-	t.we_on  = t.oe_on;
+-	if (cpu_is_omap34xx()) {
+-		t.wr_data_mux_bus = t.we_on;
+-		t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
+-	}
+-	t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
+-	t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
+-	t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
++	memset(&dev_t, 0, sizeof(dev_t));
++
++	dev_t.mux = true;
++	dev_t.t_avdp_r = dev_t.t_avdp_w = max_t(int, t_avdp, t_cer) * 1000;
++	dev_t.t_aavdh = t_aavdh * 1000;
++	dev_t.t_aa = t_aa * 1000;
++	dev_t.t_ce = t_ce * 1000;
++	dev_t.t_oe = t_oe * 1000;
++	dev_t.t_cez_r = dev_t.t_cez_w = t_cez * 1000;
++	dev_t.t_wpl = t_wpl * 1000;
++	dev_t.t_wph = t_wph * 1000;
++
++	gpmc_calc_timings(&t, &dev_t);
+ 
+ 	return t;
+ }
+@@ -172,16 +160,15 @@ static struct gpmc_timings
+ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 						int freq)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings t;
+ 	const int t_cer  = 15;
+ 	const int t_avdp = 12;
+ 	const int t_cez  = 20; /* max of t_cez, t_oez */
+-	const int t_ds   = 30;
+ 	const int t_wpl  = 40;
+ 	const int t_wph  = 30;
+ 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
+-	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
+-	int ticks_cez;
++	int div, gpmc_clk_ns;
+ 
+ 	if (cfg->flags & ONENAND_SYNC_READ)
+ 		onenand_flags = ONENAND_FLAG_SYNCREAD;
+@@ -248,62 +235,33 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 		latency = 4;
+ 
+ 	/* Set synchronous read timings */
+-	memset(&t, 0, sizeof(t));
++	memset(&dev_t, 0, sizeof(dev_t));
+ 
+-	if (div == 1) {
+-		t.bool_timings.cs_extra_delay = true;
+-		t.bool_timings.adv_extra_delay = true;
+-		t.bool_timings.oe_extra_delay = true;
+-		t.bool_timings.we_extra_delay = true;
+-	}
+-
+-	t.sync_clk = min_gpmc_clk_period;
+-	t.cs_on = 0;
+-	t.adv_on = 0;
+-	fclk_offset_ns = gpmc_round_ns_to_ticks(max_t(int, t_ces, t_avds));
+-	fclk_offset = gpmc_ns_to_ticks(fclk_offset_ns);
+-	t.page_burst_access = gpmc_clk_ns;
+-
+-	/* Read */
+-	t.adv_rd_off = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_avdh));
+-	t.oe_on = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_ach));
+-	/* Force at least 1 clk between AVD High to OE Low */
+-	if (t.oe_on <= t.adv_rd_off)
+-		t.oe_on = t.adv_rd_off + gpmc_round_ns_to_ticks(1);
+-	t.access = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div);
+-	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
+-	t.cs_rd_off = t.oe_off;
+-	ticks_cez = ((gpmc_ns_to_ticks(t_cez) + div - 1) / div) * div;
+-	t.rd_cycle = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div +
+-		     ticks_cez);
+-
+-	t.clk_activation = fclk_offset_ns;
+-
+-	/* Write */
+-	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
+-		t.adv_wr_off = t.adv_rd_off;
+-		t.we_on  = 0;
+-		t.we_off = t.cs_rd_off;
+-		t.cs_wr_off = t.cs_rd_off;
+-		t.wr_cycle  = t.rd_cycle;
+-		if (cpu_is_omap34xx()) {
+-			t.wr_data_mux_bus = gpmc_ticks_to_ns(fclk_offset +
+-					gpmc_ps_to_ticks(min_gpmc_clk_period +
+-					t_rdyo * 1000));
+-			t.wr_access = t.access;
+-		}
+-	} else {
+-		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int,
+-							t_avdp, t_cer));
+-		t.we_on  = t.adv_wr_off + gpmc_round_ns_to_ticks(t_aavdh);
+-		t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
+-		t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
+-		t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
+-		if (cpu_is_omap34xx()) {
+-			t.wr_data_mux_bus = t.we_on;
+-			t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
+-		}
++	dev_t.mux = true;
++	dev_t.sync_read = true;
++	if (onenand_flags & ONENAND_FLAG_SYNCWRITE)
++		dev_t.sync_write = true;
++	else {
++		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
++		dev_t.t_wpl = t_wpl * 1000;
++		dev_t.t_wph = t_wph * 1000;
++		dev_t.t_aavdh = t_aavdh * 1000;
+ 	}
++	dev_t.ce_xdelay = true;
++	dev_t.avd_xdelay = true;
++	dev_t.oe_xdelay = true;
++	dev_t.we_xdelay = true;
++	dev_t.clk = dev_t.t_bacc = min_gpmc_clk_period;
++	dev_t.t_ces = t_ces * 1000;
++	dev_t.t_avds = t_avds * 1000;
++	dev_t.t_avdh = t_avdh * 1000;
++	dev_t.t_ach = t_ach * 1000;
++	dev_t.cyc_iaa = (latency + 1);
++	dev_t.t_cez_r = dev_t.t_cez_w = t_cez * 1000;
++	dev_t.cyc_aavdh_oe = 1;
++	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
++
++	gpmc_calc_timings(&t, &dev_t);
+ 
+ 	return t;
+ }
+-- 
+1.7.1
 
-On Sat, Aug 18, 2012 at 12:22:20AM +0530, Venkatraman S wrote:
-> Essentially, a lot of cleanups leading up to adding a new
-> feature for OMAP HSMMC. The idea is to convert to the use
-> of software timer instead of IP timer for timekeeping, due
-> to the limitations of the counting range of the IP timer.
->=20
-> Also added myself as OMAP HSMMC maintainer.
->=20
-> Patch 9/10 is in draft state and needs more testing.
->=20
-> These patches are also available at
->   git://github.com/svenkatr/linux.git my/mmc/3.6/hrtimer_updates
-
-other than the small comments I had to patch 9, this series looks very
-good:
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
->=20
-> Venkatraman S (10):
->   mmc: core: Add TRANsfer state to non-HPI state
->   mmc: debugfs: Print ext_csd in ascending order
->   mmc: omap: remove unused variables and includes
->   mmc: omap: fix mmc_omap_report_irq to use dev_dbg macros
->   mmc: omap_hsmmc: remove unused vars and includes
->   mmc: omap_hsmmc: remove access to SYSCONFIG register
->   mmc: omap_hsmmc: consolidate flush posted writes for HSMMC IRQs
->   mmc: omap_hsmmc: consolidate error report handling of HSMMC IRQ
->   mmc: omap_hsmmc: convert from IP timer to hrtimer
->   mmc: omap_hsmmc: Move to Maintained state in MAINTAINERS
->=20
->  MAINTAINERS                   |   4 +-
->  drivers/mmc/core/core.c       |   3 +-
->  drivers/mmc/core/debugfs.c    |   2 +-
->  drivers/mmc/host/omap.c       |  39 ++++----
->  drivers/mmc/host/omap_hsmmc.c | 212 ++++++++++++++++--------------------=
-------
->  5 files changed, 103 insertions(+), 157 deletions(-)
->=20
-> --=20
-> 1.7.11.1.25.g0e18bef
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---=20
-balbi
-
---aJ74fq0Y6SrIeKCM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQM2ZSAAoJEIaOsuA1yqRECLUQAIrOOZnksxoELte8GhKS5VMl
-VxjD2Ahz99t5UxxmicxiSfkdU3XowYTROFVoTw1tMbrqsKRU1aP2wXK+FITv9nkH
-zp1XxAHYPbf+Keo9wdMXDGQ31ga3oxjBc5EerLfBsfONfHo09ks6lm/dfScyX5Q9
-iim5AuxjGSokt6O6QcDurQrHK2vIJinlTPjbNOfBVtGX5IjOD7pjtlGS34hGBheP
-4A1LIUPwJB6Sx7fWVlkB+otrakuk/a5n7Pxl+p6ELdtGmAvVgfj4cXWoDlKHIaqQ
-40FI+Gvk76x8v2mBVBM+xTp7nMqR/aYQbZV/FzbAMx8AbLteAIMeGPIPf008UIZI
-OPL2Vc4YsntTIhr/oH1XZhBJI7ii4IjRPJsh0pdL6GISnDii4LzOa7xH3F1v3Bz+
-Zj3wCDUUpjwmOUSoCLRYBa1ZrkLRvGZeWdFWX4Lri/cl8B7HNClA/dwhOVdw09fS
-fZGi2oc1ha/OaAPFxE5kmlcbx3WWbqToyHvo13y+ihs7JeRZPk+EkStJIPiXglgY
-hSqzZQrzw9eIKeXXrUS0eOO6vbChDmm8VUQxTHZ9XfKxBVFuNZPbb6Ynq5AHL0w2
-FD4QPRN33u1i2Xux96ZyPIRc6NiW3LkSvGBiv6hoa62D8XAkkwt0/avciILiNYCa
-bSZRV97Bwgjdut9RAHTi
-=qg4J
------END PGP SIGNATURE-----
-
---aJ74fq0Y6SrIeKCM--
