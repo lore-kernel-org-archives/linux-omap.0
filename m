@@ -1,78 +1,97 @@
-From: =?UTF-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and G121X1-L01
- LCD displays
-Date: Tue, 21 Aug 2012 10:29:14 -0400
-Message-ID: <50339B3A.3020005@8d.com>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>  <1345023063.3494.20.camel@deskari> <502BBFBB.6090303@8d.com> <1345546189.4085.52.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ASoC: omap-mcbsp: Device tree binding documentation update
+Date: Tue, 21 Aug 2012 17:33:56 +0300
+Message-ID: <1345559636-23370-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from roc.holo.8d.com ([64.254.227.115]:34444 "EHLO roc.holo.8d.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751165Ab2HUO3Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 10:29:16 -0400
-In-Reply-To: <1345546189.4085.52.camel@deskari>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:46420 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754738Ab2HUOeN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 10:34:13 -0400
+Received: by eekc41 with SMTP id c41so1576762eek.25
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 07:34:11 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-On 21/08/12 06:49 AM, Tomi Valkeinen wrote:
-> On Wed, 2012-08-15 at 11:26 -0400, Rapha=C3=ABl Ass=C3=A9nat wrote:
->=20
->>> +
->>> +	/* ChiMei G121S1-L01 */
->>> +	{
->>> +		{
->>
->> ...
->>
->>> +			.vsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
->>> +			.hsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
->>> +			.data_pclk_edge	=3D OMAPDSS_DRIVE_SIG_RISING_EDGE,
->>> +			.de_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
->>> +			.sync_pclk_edge	=3D OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
->>
->> Actually those 3 panels only use the DE signal. The hsync/vsync sign=
-als
->> are not used and on our system we mux them out to make sure they are
->> kept low as recommended in the panel datasheets.
->>
->> Since vsync/hsync are not used, I think the vsync_level, hsync_level=
- and
->> sync_pclk_edge entries could be removed. Otherwise the updated patch
->> works fine as is.
->=20
-> Okay. How do panels like that work? How can they know where a new fra=
-me
-> starts?
+To reflect the final devicetree node structure of McBSPs.
 
-By DE being inactive for a different number of pixel clock cycles durin=
-g
-the vertical and horizontal blanking periods.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
 
+Hello,
 
-> Actually, I now googled for those panels, and they are all LVDS panel=
-s,
-> not DPI panels. So the patch doesn't look correct at all.
->=20
-> Do you have a DPI-to-LVDS converter chip on your board?
+the initial OMAP McBSP DT structure was not able to describe the IP (and it's
+versions) correctly.
+The main issue was the sidetone block of McBSP2/3 on OMAP3.
+With this change in the DT description the OS can get the needed information
+about the IP.
 
-Yes, we do. Depending on the board, we use a SN75LVDS83B or a SN65LVDS8=
-4.
+The sidetone is still not supported when the Linux kernel is booted with DT
+since we still depend on hwmod to fill the resources.
 
-The reason for using this approach was that the panels covered by
-this patch seemed not to be compatible with Flatlink 3G, which meant
-driving them directly from the AM35xx SDI serial interface was not poss=
-ible.
-We unfortunately do not get to select which LVDS deserializer is
-used at the panel side..
+This patch depend on the McBSP DT support series going via audio tree.
 
-Best regards,
-Rapha=C3=ABl Ass=C3=A9nat
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Peter
+
+ .../devicetree/bindings/sound/omap-mcbsp.txt       |   28 +++++++------------
+ 1 files changed, 10 insertions(+), 18 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/sound/omap-mcbsp.txt b/Documentation/devicetree/bindings/sound/omap-mcbsp.txt
+index 447cb13..17cce44 100644
+--- a/Documentation/devicetree/bindings/sound/omap-mcbsp.txt
++++ b/Documentation/devicetree/bindings/sound/omap-mcbsp.txt
+@@ -8,38 +8,30 @@ Required properties:
+ - reg: Register location and size, for OMAP4+ as an array:
+        <MPU access base address, size>,
+        <L3 interconnect address, size>;
++- reg-names: Array of strings associated with the address space
+ - interrupts: Interrupt numbers for the McBSP port, as an array in case the
+ 	      McBSP IP have more interrupt lines:
+ 	<OCP compliant irq>,
+ 	<TX irq>,
+ 	<RX irq>;
++- interrupt-names: Array of strings associated with the interrupt numbers
+ - interrupt-parent: The parent interrupt controller
+ - ti,buffer-size: Size of the FIFO on the port (OMAP2430 and newer SoC)
+ - ti,hwmods: Name of the hwmod associated to the McBSP port
+ 
+-Sidetone support for OMAP3 McBSP2 and 3 ports:
+-- sidetone { }: Within this section the following parameters are required:
+-- reg: Register location and size for the ST block
+-- interrupts: The interrupt number for the ST block
+-- interrupt-parent: The parent interrupt controller for the ST block
+-
+ Example:
+ 
+ mcbsp2: mcbsp@49022000 {
+ 	compatible = "ti,omap3-mcbsp";
+-	#address-cells = <1>;
+-	#size-cells = <1>;
+-	reg = <0x49022000 0xff>;
+-	interrupts = <0 17 0x4>, /* OCP compliant interrup */
+-		     <0 62 0x4>, /* TX interrup */
+-		     <0 63 0x4>; /* RX interrup */
++	reg = <0x49022000 0xff>,
++	      <0x49028000 0xff>;
++	reg-names = "mpu", "sidetone";
++	interrupts = <0 17 0x4>, /* OCP compliant interrupt */
++		     <0 62 0x4>, /* TX interrupt */
++		     <0 63 0x4>, /* RX interrupt */
++		     <0 4 0x4>;  /* Sidetone */
++	interrupt-names = "common", "tx", "rx", "sidetone";
+ 	interrupt-parent = <&intc>;
+ 	ti,buffer-size = <1280>;
+ 	ti,hwmods = "mcbsp2";
+-
+-	sidetone {
+-		reg = <0x49028000 0xff>;
+-		interrupts = <0 4 0x4>;
+-		interrupt-parent = <&intc>;
+-	};
+ };
+-- 
+1.7.8.6
+
