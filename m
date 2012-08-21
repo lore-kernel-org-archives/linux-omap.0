@@ -1,60 +1,37 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH 1/3] ARM: OMAP: hwmod: partially un-reset hwmods might not
- be properly enabled
-Date: Tue, 21 Aug 2012 12:48:16 -0500
-Message-ID: <CALLhW=50Ro5T=u7KTObT6g7eF=835Ywj9sQ+z8kZ_+5U7U7fJA@mail.gmail.com>
-References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
-	<1342466485-1050-2-git-send-email-omar.luna@linaro.org>
-	<50324E84.6080407@ti.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH v3 1/4] arm/dts: regulator: Add tps65910 device tree data
+Date: Tue, 21 Aug 2012 12:05:15 -0600
+Message-ID: <5033CDDB.808@wwwdotorg.org>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com> <1345547850-29761-2-git-send-email-anilkumar@ti.com> <5033ADC5.4030002@wwwdotorg.org> <20120821163805.GW7995@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:39833 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932139Ab2HURsR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 13:48:17 -0400
-Received: by vbbff1 with SMTP id ff1so83826vbb.19
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 10:48:17 -0700 (PDT)
-In-Reply-To: <50324E84.6080407@ti.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:55519 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754161Ab2HUSFT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 14:05:19 -0400
+In-Reply-To: <20120821163805.GW7995@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: AnilKumar Ch <anilkumar@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 20 August 2012 09:49, Benoit Cousson <b-cousson@ti.com> wrote:
-> On 07/16/2012 09:21 PM, Omar Ramirez Luna wrote:
->> Some IP blocks might not be using/controlling more than one
->> reset line, this check loosens the restriction to fully use
->> hwmod framework for those drivers.
->>
->> E.g.: ipu has reset lines: mmu_cache, cpu0 and cpu1.
->> - cpu1 might not be used and hence (with previous check)
->>   won't be fully enabled by hwmod code.
->
-> You mean that you might have some case where you need to enable the
-> mmu_cache and cpu0 and thus deassert only the mmu/cpu0 while keeping the
-> cpu1 under reset?
+On 08/21/2012 10:38 AM, Mark Brown wrote:
+> On Tue, Aug 21, 2012 at 09:48:21AM -0600, Stephen Warren wrote:
+> 
+>> This .dtsi file adds a node for every single regulator within
+>> the TPS65910, which in turn means that of_regulator_match() will
+>> find a node for every regulator, and in turn every regulator will
+>> be registered. On some boards, not all of those regulators will
+>> be used, and hence we don't want all of them to be registered.
+> 
+> This isn't the general view for the regualtor API - we generally
+> want all regulators to be registered in order to allow us to see
+> what's going on with things even if we've not figured them out from
+> software.
 
-Looks like I didn't reply to this question.
-
-Yes, initially cpu1 might not be used and kept under reset. Or even
-the mmu can be taken out of reset and configured, and cpu0 after it,
-creating a small window where one is taken out and the other is under
-reset.
-
-> So the any_hardreset is indeed not appropriate in that case.
->
-> In fact, since the hardreset cannot be handled at all by the hwmod fmwk,
-> I'm even wondering if we should take care of checking the state at all.
-> But as Paul stated, if was done due to the lack of understanding about
-> the diver usage, so maybe things will become clearer once we will have
-> that code available.
-
-I still think it can, in fact all the code I'm using comes from the
-hwmod fmwk. _deassert_reset is almost the same as _enable, I left it
-this way to avoid reintroducing the issues that caused reset code to
-be stripped out from _enable path.
-
-Regards,
-
-Omar
+Oh, I said the above specifically because when I added the LDO
+configuration for the regulators that weren't used to the Tegra .dts
+files, you told me to remove it, based on the comment I put in there
+that they weren't used on the board.
