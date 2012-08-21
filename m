@@ -1,128 +1,69 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V5 1/6] OMAPDSS: DISPC: cleanup cpu_is_xxxx checks
-Date: Tue, 21 Aug 2012 13:31:42 +0300
-Message-ID: <1345545102.4085.44.camel@deskari>
+Subject: Re: [PATCH V5 5/6] ARM: OMAP: Disable venc for OMAP4
+Date: Tue, 21 Aug 2012 13:32:39 +0300
+Message-ID: <1345545159.4085.45.camel@deskari>
 References: <cover.1343912532.git.cmahapatra@ti.com>
 	 <cover.1345468541.git.cmahapatra@ti.com>
-	 <978118e2c23e2da40ceb740665fd19f86810b58a.1345468541.git.cmahapatra@ti.com>
+	 <a07a3a216827e830cfa249f4f39ad26e75dc0afd.1345468541.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-1EKOmOgCFTNJsn0vIvFC"
+	boundary="=-VFDOLI4TAz7ehIS3V98n"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:48469 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756279Ab2HUKbr (ORCPT
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:52552 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756253Ab2HUKco (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:31:47 -0400
-Received: by lbbgf7 with SMTP id gf7so4543480lbb.8
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:31:44 -0700 (PDT)
-In-Reply-To: <978118e2c23e2da40ceb740665fd19f86810b58a.1345468541.git.cmahapatra@ti.com>
+	Tue, 21 Aug 2012 06:32:44 -0400
+Received: by lage12 with SMTP id e12so6318372lag.27
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:32:42 -0700 (PDT)
+In-Reply-To: <a07a3a216827e830cfa249f4f39ad26e75dc0afd.1345468541.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-1EKOmOgCFTNJsn0vIvFC
+--=-VFDOLI4TAz7ehIS3V98n
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-08-20 at 18:52 +0530, Chandrabhanu Mahapatra wrote:
-> All the cpu_is checks have been moved to dispc_init_features function pro=
-viding
-> a much more generic and cleaner interface. The OMAP version and revision
-> specific functions and data are initialized by dispc_features structure w=
-hich is
-> local to dispc.c.
+On Mon, 2012-08-20 at 18:54 +0530, Chandrabhanu Mahapatra wrote:
+> This is a alternative to "HACK: OMAP: DSS2: VENC: disable VENC on OMAP4 t=
+o
+> prevent crash" (ba02fa37de) by Tomi Valkeinen <tomi.valkeinen@ti.com> to =
+prevent
+> VENC from crashing OMAP4 kernel. This prevents OMAPDSS from initial regis=
+tration
+> of a device for VENC on OMAP4.
 >=20
 > Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 > ---
->  drivers/video/omap2/dss/dispc.c |  433 +++++++++++++++++++++++++--------=
-------
->  1 file changed, 278 insertions(+), 155 deletions(-)
+>  arch/arm/mach-omap2/display.c |    1 -
+>  1 file changed, 1 deletion(-)
 >=20
-> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/di=
-spc.c
-> index ff52702..3fad33a 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -81,6 +81,23 @@ struct dispc_irq_stats {
->  	unsigned irqs[32];
->  };
-> =20
-> +struct dispc_features {
-> +	int hp_max;
-> +	int vp_max;
-> +	int sw_max;
-> +	int sw_start;
-> +	int fp_start;
-> +	int bp_start;
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.=
+c
+> index af1ed7d..ee40739 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -95,7 +95,6 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod=
+_data[] __initdata =3D {
+>  	{ "dss_core", "omapdss_dss", -1 },
+>  	{ "dss_dispc", "omapdss_dispc", -1 },
+>  	{ "dss_rfbi", "omapdss_rfbi", -1 },
+> -	{ "dss_venc", "omapdss_venc", -1 },
+>  	{ "dss_dsi1", "omapdss_dsi", 0 },
+>  	{ "dss_dsi2", "omapdss_dsi", 1 },
+>  	{ "dss_hdmi", "omapdss_hdmi", -1 },
 
-Here you could use a bit smaller datatype. u16 should probably be more
-than enough.
-
-> +static int __init dispc_init_features(struct device *dev)
-> +{
-> +	struct dispc_features *feat =3D devm_kzalloc(dev, sizeof(*feat),
-> +								GFP_KERNEL);
-> +	if (!feat) {
-> +		dev_err(dev, "Failed to allocate DISPC Features\n");
-> +		return -ENOMEM;
-> +	}
-> +
-> +	if (cpu_is_omap24xx()) {
-> +		memcpy(feat, &omap24xx_dispc_feats, sizeof(*feat));
-> +	} else if (cpu_is_omap34xx()) {
-> +		if (omap_rev() < OMAP3430_REV_ES3_0)
-> +			memcpy(feat, &omap34xx_rev1_0_dispc_feats,
-> +							sizeof(*feat));
-> +		else
-> +			memcpy(feat, &omap34xx_rev3_0_dispc_feats,
-> +							sizeof(*feat));
-> +	} else if (cpu_is_omap44xx()) {
-> +		memcpy(feat, &omap44xx_dispc_feats, sizeof(*feat));
-> +	} else {
-> +		return -ENODEV;
-> +	}
-> +
-> +	dispc.feat =3D feat;
-> +
-> +	return 0;
-> +}
-
-This becomes much cleaner with something like the following (same could
-be used in dss.c also):
-
-	const struct dispc_features *src;
-	struct dispc_features *dst;
-
-	dst =3D devm_kzalloc(dev, sizeof(*dst), GFP_KERNEL);
-	if (!dsst) {
-		dev_err(dev, "Failed to allocate DISPC Features\n");
-		return -ENOMEM;
-	}
-
-	if (cpu_is_omap24xx()) {
-		src =3D &omap24xx_dispc_feats;
-	} else if (cpu_is_omap34xx()) {
-		if (omap_rev() < OMAP3430_REV_ES3_0)
-			src =3D &omap34xx_rev1_0_dispc_feats;
-		else
-			src =3D &omap34xx_rev3_0_dispc_feats;
-	} else if (cpu_is_omap44xx()) {
-		src =3D &omap44xx_dispc_feats;
-	} else {
-		return -ENODEV;
-	}
-
-	memcpy(dst, src, sizeof(*dst));
-
-	dispc.feat =3D dst;
+You need to reorder this and the previous patch. If you first remove the
+workaround from the previous patch, the kernel will crash if after that
+patch. So this one should be before the previous patch.
 
  Tomi
 
 
---=-1EKOmOgCFTNJsn0vIvFC
+--=-VFDOLI4TAz7ehIS3V98n
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -130,20 +71,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQM2OOAAoJEPo9qoy8lh71wQQP/R5Etq9s7LJ4a/7Tb7nM0Qfr
-Jp0R3mz7vh482nZuSxCIDW7MB0a+snXZCAlr9Bxyat0Lct3pwaJpXW5rE8BP0JDI
-6c/MQI8n3JaOGw1/x79iKrc+lzEsotEHjGecF/J2wHpi2ivHPMdSfOeWnLYf28GN
-w9dj/ud42pgwj0NQdWxT08QdHa/4vi++OCN28ufcyrM5hcpc2Yujpto1Q7wLs8MV
-23ptVODrXjRYFqjHIUCTZ42MdKW9gV1c2YtG7r9cMjeYgaEWAoMW8g94y3MibEPP
-Zwp6YqcEksVPXZJbG3D5+EgIgFUeISMRczyH8dLstRDbyIHVJkDwf7V47Ihlefqw
-XqKkdRbik3vpaY0PDWEpwBt3fS1yvueasqS2XMSCvBqecgFxrkYK1d8otaoba6Hi
-qkfH/qc2yQ23xYiFDJwceAOwPZOIb9tQBlDe5ODEhNF1vDVtWghYGs8rG9LMLaws
-PQ+OAoMkAx/O02F38tnkTfYaaTpUhy17XXjTjGtQnxh4d5eG2M0X7qC28prWDc5J
-TGYMOPD98//xfXvFW0qUI1ML0W0OaRnZ1yvynF0mkv3yMkYe7AQ8fDsPzOBjULnw
-sHYNRPFbK4w+1uF23IgdlZ01STU9iciWLxhvnsNynYxOAV/so04w9AufnZky5+5z
-kGHa3IOukVdjHyTttyFC
-=Baaa
+iQIcBAABAgAGBQJQM2PHAAoJEPo9qoy8lh71kvYQAKmrX5C+65ceDZjYFvwqQUqy
+iPn6jVn/prVPueaYF7H0AG8QPDNTjG47OO73BYBLKxWN/JVAD5AZMP1oY18mQhlu
+lIF71iGNxYnPV3Ae1MxLIlMnBCQewAfJ+foFrheWb3zHZjOgmOzeDMVEuaTd/hVr
+1+OyMEqTqYFiCqLEpt3Xvr6wo0FUbRMYwCkL/bN5G4iJiyAiFeb9DdB9U2ihXS24
+A2qJsIJB4Re4Ahjxo7lcQkUBgb+6Pll495cpcZ5jGw69as6Ilr4ATVg15TSGjYkc
+2YpiMU84D8onf/eS05Br2KFv//6oYK7nu9CNVGeJglVhhCI9wUhDCCRm9M7YeePV
+LMQLQ9u4MqBk1UWYqQlLwA66E7Qa/j5AIVDUFt/nY9bLGc0f51PTHOM6z9Nm0Vm1
+snqARFpwZMOS+Ea/b4f6MvHebjW7jjPqlAhVxdSdoK2wHXUDmgsFn5+ye4LNr0+w
+rXdtkflosxMeapMh138cmEvpApNhA18FnNSIOCsyUM4AJ4oPYJJ5mgga1gxrDl0q
+uiInjMsFT5zxf6z9pNVM8j2KKwwfHvT0wN6RBRtPgEDgMlRZqRpQky2ceYHnWxFA
+du1H5wWJ6wPRVILkLfyx12qUdcixMryAUva4GpDuEz/so+1emkdewz7M3LXVyYDd
+vFfYSUyOfOUqifjS7vMx
+=1tvx
 -----END PGP SIGNATURE-----
 
---=-1EKOmOgCFTNJsn0vIvFC--
+--=-VFDOLI4TAz7ehIS3V98n--
 
