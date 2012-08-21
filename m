@@ -1,88 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and
- G121X1-L01 LCD displays
-Date: Tue, 21 Aug 2012 13:49:49 +0300
-Message-ID: <1345546189.4085.52.camel@deskari>
-References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>
-	 <1345023063.3494.20.camel@deskari> <502BBFBB.6090303@8d.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] Input: keypad: Add smsc ece1099 keypad driver
+Date: Tue, 21 Aug 2012 13:46:48 +0300
+Message-ID: <20120821104647.GU10347@arwen.pp.htv.fi>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+ <1345545940-2232-3-git-send-email-sourav.poddar@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-kq8+dePPdzNcOhCtqfaf"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:52839 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539Ab2HUKty (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:49:54 -0400
-Received: by lagy9 with SMTP id y9so4124774lag.33
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:49:52 -0700 (PDT)
-In-Reply-To: <502BBFBB.6090303@8d.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CYcXvPfqKSDi0QhV"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1345545940-2232-3-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Rapha=EBl_Ass=E9nat?= <raph@8d.com>
-Cc: linux-omap@vger.kernel.org
 
 
---=-kq8+dePPdzNcOhCtqfaf
-Content-Type: text/plain; charset="UTF-8"
+--CYcXvPfqKSDi0QhV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-08-15 at 11:26 -0400, Rapha=C3=ABl Ass=C3=A9nat wrote:
+Hi,
 
-> > +
-> > +	/* ChiMei G121S1-L01 */
-> > +	{
-> > +		{
->=20
-> ...
->=20
-> > +			.vsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
-> > +			.hsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
-> > +			.data_pclk_edge	=3D OMAPDSS_DRIVE_SIG_RISING_EDGE,
-> > +			.de_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
-> > +			.sync_pclk_edge	=3D OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
->=20
-> Actually those 3 panels only use the DE signal. The hsync/vsync signals
-> are not used and on our system we mux them out to make sure they are
-> kept low as recommended in the panel datasheets.
->=20
-> Since vsync/hsync are not used, I think the vsync_level, hsync_level and
-> sync_pclk_edge entries could be removed. Otherwise the updated patch
-> works fine as is.
+On Tue, Aug 21, 2012 at 04:15:38PM +0530, Sourav Poddar wrote:
+> +static struct platform_driver smsc_driver =3D {
+> +	.driver =3D {
+> +		.name	=3D "smsc-keypad",
+> +		.of_match_table =3D of_match_ptr(smsc_keypad_dt_match),
+> +		.owner  =3D THIS_MODULE,
+> +	},
+> +	.probe		=3D smsc_probe,
+> +	.remove		=3D smsc_remove,
 
-Okay. How do panels like that work? How can they know where a new frame
-starts?
+one extra comment which I forgot. You probably should put your remove on
+__devexit and add __devexit_p(smsc_remove) here.
 
-Actually, I now googled for those panels, and they are all LVDS panels,
-not DPI panels. So the patch doesn't look correct at all.
+--=20
+balbi
 
-Do you have a DPI-to-LVDS converter chip on your board?
-
- Tomi
-
-
---=-kq8+dePPdzNcOhCtqfaf
+--CYcXvPfqKSDi0QhV
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAABAgAGBQJQM2fNAAoJEPo9qoy8lh71S1sP/jKPflNHqGyCU1+ur9AnSowq
-6gG/Xf4mnTv8tEOfrhIW18lu+ixekOwHm37w/SBnxN6fr0KcUCI+XdLk7ksotyR3
-1e1PD3ieFAzbiqwMdNmhcM6etcUW+qGbxwr4csOGlAFknOgh8W7h7sQVnxBR+9wJ
-yhLWMVauNFMgEkgCjCCB0qRrLxq6sduMUos1PPGVN0G8HuizHUHOSEkoeuzFJlLR
-NcCzL4GyOiBvKV5ninT0QEvX0pof/qR+F9WCUnzoGhvOEkiJQAWwcOs92PIuBGUd
-YEMfViz+vSjAToBMKbmfjc/d49Dz90SmU0Cte2dRcDaqgil9PiqEJePoIahFAkf9
-TC/oD51eVvQED52Ouw0mokEq3Q11MtA2sJS5GU6J81TIEw7UTyvOlvTbNQpAYIxA
-AMxG+NLZ2N+H1zp5+N7HtbvDl6ZNPDhS5pFKBxczYW9pTsayWUwnPs0nL5VvnloK
-L7H0Z6Wceg4HNBQ0bdKcBb4UwoAiRFta8I+iB199sCoyjNDPZ6X9ewYv9TrnJcug
-g50BqoYRn1eWo9ySvDWFC2yLPd0CLx600jc0CMe37JK0CBN34tM6xaVfmUySUZZq
-ZpDk5vYaFtRqBIy6j6sY4Ehwtkn9c5jfsCkXblGIaCRT6Co6y5PhWg/AeYBnyDyI
-Urv5JEoOnhEC9akBez6s
-=uLst
+iQIcBAEBAgAGBQJQM2cXAAoJEIaOsuA1yqREPmUP/AvfScXSgoi2kWD4jh7ksRu+
+RdNDVUDRgngMphOkYn5xIqGsVXPauweofTJqGl+8XRAnotS9WxnmHPww4sB7lbA3
+n4HlfLKw8j6PDeWO9JslvyN6HLI3IJIHIVLOv97XUsra7cPHrHyuwivjp8pLx7I2
+agIEbqpe+Cm9yzdm39J+qmF7+qrgRO8krRIEAwwiad6GWlDblBSjh0hSN2mzkDNy
+Zr+OjXc69gxCXpzaFCi/W+XNL+/h4eVNtCF6AsIKRaq44iE2LunF2mJdZsE6NbC0
+p0AKuQ4ZoqDZegZmnTTHWOS9JXfWrYaiPiVtqRFl9og3tDHTPJXUKd01cbeN6WSy
+E45GJaEMh/+JDcBJFyc6tJbQjvaM5hMVWISsnqWS545h1G3Y5IX9k380+7sffQ5j
++NA5YRYXxZ8106Yl/WqLHWI92vvcuP2FwBDd9uFEAtNxb+5GOHX7L1Sg9f3qskYX
++GiaYFzgrLcMAfeRP5RkMCrO4j577bIgkPu5/zIWKeUWhxFmmLQQLVvr9RyVGFX0
+QrSinE9Vg2RuXwW6EvWRa57f89u0En0EGU2bzV6oEA8oPTf8vNEwbgHdo1bK8brz
+VZ3YoHS1byeE+u1IYyUeGomOM8BdTY0on5LxcMrvrlG/2Ia7DQk+YJJvY/OFCzX5
+OCu1V+LGo9eM7E7Glyw3
+=Swyd
 -----END PGP SIGNATURE-----
 
---=-kq8+dePPdzNcOhCtqfaf--
-
+--CYcXvPfqKSDi0QhV--
