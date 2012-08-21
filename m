@@ -1,99 +1,121 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 07/10] mmc: omap_hsmmc: consolidate flush posted writes
- for HSMMC IRQs
-Date: Tue, 21 Aug 2012 20:51:41 +0530
-Message-ID: <CANrkHUZLHO4nPvd37AaO43F37uCKB1LnsRxBOia5R3osF1ONvw@mail.gmail.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH 06/10] mmc: omap_hsmmc: remove access to SYSCONFIG register
+Date: Tue, 21 Aug 2012 21:08:11 +0530
+Message-ID: <CAM=Q2cv=YmZpXOVwzJt6qXGYkL9DpHbhv4CRNEkhWL8Mn+EOeg@mail.gmail.com>
 References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
-	<1345229550-8672-8-git-send-email-svenkatr@ti.com>
+	<1345229550-8672-7-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:55368 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755200Ab2HUPVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 11:21:43 -0400
-Received: by vbbfn1 with SMTP id fn1so7698880vbb.24
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 08:21:42 -0700 (PDT)
-In-Reply-To: <1345229550-8672-8-git-send-email-svenkatr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1345229550-8672-7-git-send-email-svenkatr@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
 To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, vishp@ti.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
+List-Id: linux-omap@vger.kernel.org
+
+Hi Venkat,
+Some doubts below.
 
 On Sat, Aug 18, 2012 at 12:22 AM, Venkatraman S <svenkatr@ti.com> wrote:
-> Flushing spurious IRQs from HSMMC IP is done twice in
-> omap_hsmmc_irq and omap_hsmmc_do_irq.
+> SYSCONFIG register of HSMMC IP is managed by the omap hwmod
+> abstraction layer.
 
-spurious IRQ is flushed in start of omap_hsmmc_do_irq
-and irq acked at the end of omap_hsmmc_do_irq
+At init only right?
 
-> Consolidate them to one location.
 
-if you wanted to consolidated ...
+> Resetting the IP and configuring the correct
+> SYSCONFIG mode is centrally managed by hwmod.
+>
+> Remove code which manipulates IP reset and SYSCONFIG directly in the
+> driver.
+
+I am not sure if mmc needs a reset.
+
+However IMHO
+In case it needs a reset
+
+the hwmod way could be to use  omap_hwmod_reset
+However I  fear it may be an issue with dt.
+or
+may be sysc could be restored something like [1]
+
+
+
+if it doesnt need reset even the check for the SYSSTATUS could be
+considered for removal.
+
+[1] http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg12041.html
+
+
 
 >
 > Signed-off-by: Venkatraman S <svenkatr@ti.com>
 > ---
->  drivers/mmc/host/omap_hsmmc.c | 17 ++++-------------
->  1 file changed, 4 insertions(+), 13 deletions(-)
+>  drivers/mmc/host/omap_hsmmc.c | 24 ++----------------------
+>  1 file changed, 2 insertions(+), 22 deletions(-)
 >
 > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4bc55ac..20453c8 100644
+> index da4f5a7..4bc55ac 100644
 > --- a/drivers/mmc/host/omap_hsmmc.c
 > +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -969,15 +969,6 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
->         struct mmc_data *data;
->         int end_cmd = 0, end_trans = 0;
+> @@ -44,7 +44,6 @@
+>  #include <plat/cpu.h>
 >
-> -       if (!host->req_in_progress) {
-
-just do a return from here
-
-> -               do {
-> -                       OMAP_HSMMC_WRITE(host->base, STAT, status);
-> -                       /* Flush posted write */
-> -                       status = OMAP_HSMMC_READ(host->base, STAT);
-> -               } while (status & INT_EN_MASK);
-> -               return;
-> -       }
+>  /* OMAP HSMMC Host Controller Registers */
+> -#define OMAP_HSMMC_SYSCONFIG   0x0010
+>  #define OMAP_HSMMC_SYSSTATUS   0x0014
+>  #define OMAP_HSMMC_CON         0x002C
+>  #define OMAP_HSMMC_BLK         0x0104
+> @@ -576,21 +575,8 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
+>         if (host->context_loss == context_loss)
+>                 return 1;
+>
+> -       /* Wait for hardware reset */
+> -       timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
+> -       while ((OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE) != RESETDONE
+> -               && time_before(jiffies, timeout))
+> -               ;
 > -
->         data = host->data;
->         dev_vdbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->
-> @@ -1028,8 +1019,6 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
->                 }
->         }
->
-> -       OMAP_HSMMC_WRITE(host->base, STAT, status);
+> -       /* Do software reset */
+> -       OMAP_HSMMC_WRITE(host->base, SYSCONFIG, SOFTRESET);
+> -       timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
+> -       while ((OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE) != RESETDONE
+> -               && time_before(jiffies, timeout))
+> -               ;
 > -
->         if (end_cmd || ((status & CC) && host->cmd))
->                 omap_hsmmc_cmd_done(host, host->cmd);
->         if ((end_trans || (status & TC)) && host->mrq)
-> @@ -1045,11 +1034,13 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
->         int status;
+> -       OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
+> -                       OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
+> +       if (!OMAP_HSMMC_READ(host->base, SYSSTATUS) & RESETDONE)
+> +               return 1;
+Should this check be removed.
+
 >
->         status = OMAP_HSMMC_READ(host->base, STAT);
-> -       do {
-> +       while (status & INT_EN_MASK && host->req_in_progress) {
-
-and remove the check for host->req_in_progress
-I think do while loop can be retained as it will get executed once anyway.
-
->                 omap_hsmmc_do_irq(host, status);
-> +
-
->                 /* Flush posted write */
-
-comment is misplaced
-
-> +               OMAP_HSMMC_WRITE(host->base, STAT, status);
->                 status = OMAP_HSMMC_READ(host->base, STAT);
-> -       } while (status & INT_EN_MASK);
-> +       }
+>         if (host->pdata->controller_flags & OMAP_HSMMC_SUPPORTS_DUAL_VOLT) {
+>                 if (host->power_mode != MMC_POWER_OFF &&
+> @@ -1593,10 +1579,6 @@ static void omap_hsmmc_conf_bus_power(struct omap_hsmmc_host *host)
+>         value = OMAP_HSMMC_READ(host->base, CAPA);
+>         OMAP_HSMMC_WRITE(host->base, CAPA, value | capa);
 >
->         return IRQ_HANDLED;
+> -       /* Set the controller to AUTO IDLE mode */
+> -       value = OMAP_HSMMC_READ(host->base, SYSCONFIG);
+> -       OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
+> -
+>         /* Set SD bus power bit */
+>         set_sd_bus_power(host);
 >  }
+> @@ -1654,8 +1636,6 @@ static int omap_hsmmc_regs_show(struct seq_file *s, void *data)
+>
+>         pm_runtime_get_sync(host->dev);
+>
+> -       seq_printf(s, "SYSCONFIG:\t0x%08x\n",
+> -                       OMAP_HSMMC_READ(host->base, SYSCONFIG));
+>         seq_printf(s, "CON:\t\t0x%08x\n",
+>                         OMAP_HSMMC_READ(host->base, CON));
+>         seq_printf(s, "HCTL:\t\t0x%08x\n",
 > --
 > 1.7.11.1.25.g0e18bef
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
