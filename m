@@ -1,264 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 08/13] serial: omap: refactor receive_chars() into rdi/rlsi handlers
-Date: Tue, 21 Aug 2012 12:15:50 +0300
-Message-ID: <1345540555-24359-9-git-send-email-balbi@ti.com>
-References: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: alan@linux.intel.com
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v3 00/10] Prepare for GPMC driver conversion (w.r.t MTD)
+Date: Tue, 21 Aug 2012 15:08:24 +0530
+Message-ID: <cover.1344609341.git.afzal@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44233 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817Ab2HUJii (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 05:38:38 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: ivan.djelic@parrot.com, Afzal Mohammed <afzal@ti.com>
 
-receive_chars() was getting too big and too difficult
-to follow. By splitting it into separate RDI and RSLI
-handlers, we have smaller functions which are easy
-to understand and only touch the pieces which they need
-to touch.
+Hi,
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/tty/serial/omap-serial.c | 203 +++++++++++++++++++--------------------
- 1 file changed, 100 insertions(+), 103 deletions(-)
+This is a RESEND of the series that was sent on 10-August-2012,
+which unfortunately did not make it to mailing lists.
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 1ca08b8..74a4f0a 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -195,74 +195,6 @@ static void serial_omap_stop_rx(struct uart_port *port)
- 	pm_runtime_put_autosuspend(up->dev);
- }
- 
--static inline void receive_chars(struct uart_omap_port *up,
--		unsigned int *status)
--{
--	struct tty_struct *tty = up->port.state->port.tty;
--	unsigned int flag, lsr = *status;
--	unsigned char ch = 0;
--	int max_count = 256;
--
--	do {
--		if (likely(lsr & UART_LSR_DR))
--			ch = serial_in(up, UART_RX);
--		flag = TTY_NORMAL;
--		up->port.icount.rx++;
--
--		if (unlikely(lsr & UART_LSR_BRK_ERROR_BITS)) {
--			/*
--			 * For statistics only
--			 */
--			if (lsr & UART_LSR_BI) {
--				lsr &= ~(UART_LSR_FE | UART_LSR_PE);
--				up->port.icount.brk++;
--				/*
--				 * We do the SysRQ and SAK checking
--				 * here because otherwise the break
--				 * may get masked by ignore_status_mask
--				 * or read_status_mask.
--				 */
--				if (uart_handle_break(&up->port))
--					goto ignore_char;
--			} else if (lsr & UART_LSR_PE) {
--				up->port.icount.parity++;
--			} else if (lsr & UART_LSR_FE) {
--				up->port.icount.frame++;
--			}
--
--			if (lsr & UART_LSR_OE)
--				up->port.icount.overrun++;
--
--			/*
--			 * Mask off conditions which should be ignored.
--			 */
--			lsr &= up->port.read_status_mask;
--
--#ifdef CONFIG_SERIAL_OMAP_CONSOLE
--			if (up->port.line == up->port.cons->index) {
--				/* Recover the break flag from console xmit */
--				lsr |= up->lsr_break_flag;
--			}
--#endif
--			if (lsr & UART_LSR_BI)
--				flag = TTY_BREAK;
--			else if (lsr & UART_LSR_PE)
--				flag = TTY_PARITY;
--			else if (lsr & UART_LSR_FE)
--				flag = TTY_FRAME;
--		}
--
--		if (uart_handle_sysrq_char(&up->port, ch))
--			goto ignore_char;
--		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
--ignore_char:
--		lsr = serial_in(up, UART_LSR);
--	} while ((lsr & (UART_LSR_DR | UART_LSR_BI)) && (max_count-- > 0));
--	spin_unlock(&up->port.lock);
--	tty_flip_buffer_push(tty);
--	spin_lock(&up->port.lock);
--}
--
- static void transmit_chars(struct uart_omap_port *up)
- {
- 	struct circ_buf *xmit = &up->port.state->xmit;
-@@ -341,6 +273,68 @@ static unsigned int check_modem_status(struct uart_omap_port *up)
- 	return status;
- }
- 
-+static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int lsr)
-+{
-+	unsigned int flag;
-+
-+	up->port.icount.rx++;
-+	flag = TTY_NORMAL;
-+
-+	if (lsr & UART_LSR_BI) {
-+		flag = TTY_BREAK;
-+		lsr &= ~(UART_LSR_FE | UART_LSR_PE);
-+		up->port.icount.brk++;
-+		/*
-+		 * We do the SysRQ and SAK checking
-+		 * here because otherwise the break
-+		 * may get masked by ignore_status_mask
-+		 * or read_status_mask.
-+		 */
-+		if (uart_handle_break(&up->port))
-+			return;
-+
-+	}
-+
-+	if (lsr & UART_LSR_PE) {
-+		flag = TTY_PARITY;
-+		up->port.icount.parity++;
-+	}
-+
-+	if (lsr & UART_LSR_FE) {
-+		flag = TTY_FRAME;
-+		up->port.icount.frame++;
-+	}
-+
-+	if (lsr & UART_LSR_OE)
-+		up->port.icount.overrun++;
-+
-+#ifdef CONFIG_SERIAL_OMAP_CONSOLE
-+	if (up->port.line == up->port.cons->index) {
-+		/* Recover the break flag from console xmit */
-+		lsr |= up->lsr_break_flag;
-+	}
-+#endif
-+	uart_insert_char(&up->port, lsr, UART_LSR_OE, 0, flag);
-+}
-+
-+static void serial_omap_rdi(struct uart_omap_port *up, unsigned int lsr)
-+{
-+	unsigned char ch = 0;
-+	unsigned int flag;
-+
-+	if (!(lsr & UART_LSR_DR))
-+		return;
-+
-+	ch = serial_in(up, UART_RX);
-+	flag = TTY_NORMAL;
-+	up->port.icount.rx++;
-+
-+	if (uart_handle_sysrq_char(&up->port, ch))
-+		return;
-+
-+	uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
-+}
-+
- /**
-  * serial_omap_irq() - This handles the interrupt from one port
-  * @irq: uart port irq number
-@@ -349,52 +343,55 @@ static unsigned int check_modem_status(struct uart_omap_port *up)
- static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- {
- 	struct uart_omap_port *up = dev_id;
-+	struct tty_struct *tty = up->port.state->port.tty;
- 	unsigned int iir, lsr;
- 	unsigned int type;
- 	unsigned long flags;
-+	int max_count = 256;
- 
- 	spin_lock_irqsave(&up->port.lock, flags);
- 	pm_runtime_get_sync(up->dev);
--	iir = serial_in(up, UART_IIR);
--again:
--	if (iir & UART_IIR_NO_INT)
--		goto out;
- 
--	lsr = serial_in(up, UART_LSR);
-+	do {
-+		iir = serial_in(up, UART_IIR);
-+		if (iir & UART_IIR_NO_INT)
-+			break;
- 
--	/* extract IRQ type from IIR register */
--	type = iir & 0x3e;
-+		lsr = serial_in(up, UART_LSR);
- 
--	switch (type) {
--	case UART_IIR_MSI:
--		check_modem_status(up);
--		break;
--	case UART_IIR_THRI:
--		if (lsr & UART_LSR_THRE)
--			transmit_chars(up);
--		break;
--	case UART_IIR_RDI:
--		if (lsr & UART_LSR_DR)
--			receive_chars(up, &lsr);
--		break;
--	case UART_IIR_RLSI:
--		if (lsr & UART_LSR_BRK_ERROR_BITS)
--			receive_chars(up, &lsr);
--		break;
--	case UART_IIR_RX_TIMEOUT:
--		receive_chars(up, &lsr);
--		break;
--	case UART_IIR_CTS_RTS_DSR:
--		iir = serial_in(up, UART_IIR);
--		goto again;
--	case UART_IIR_XOFF:
--		/* FALLTHROUGH */
--	default:
--		break;
--	}
-+		/* extract IRQ type from IIR register */
-+		type = iir & 0x3e;
-+
-+		switch (type) {
-+		case UART_IIR_MSI:
-+			check_modem_status(up);
-+			break;
-+		case UART_IIR_THRI:
-+			if (lsr & UART_LSR_THRE)
-+				transmit_chars(up);
-+			break;
-+		case UART_IIR_RX_TIMEOUT:
-+			/* FALLTHROUGH */
-+		case UART_IIR_RDI:
-+			serial_omap_rdi(up, lsr);
-+			break;
-+		case UART_IIR_RLSI:
-+			serial_omap_rlsi(up, lsr);
-+			break;
-+		case UART_IIR_CTS_RTS_DSR:
-+			/* simply try again */
-+			break;
-+		case UART_IIR_XOFF:
-+			/* FALLTHROUGH */
-+		default:
-+			break;
-+		}
-+	} while (!(iir & UART_IIR_NO_INT) && max_count--);
- 
--out:
- 	spin_unlock_irqrestore(&up->port.lock, flags);
-+
-+	tty_flip_buffer_push(tty);
-+
- 	pm_runtime_mark_last_busy(up->dev);
- 	pm_runtime_put_autosuspend(up->dev);
- 	up->port_activity = jiffies;
--- 
-1.7.12.rc3
+This series cleans up gpmc mtd interactions so that GPMC driver
+conversion which is going to happen shortly would happen smoothly
+by not creating much disturbance outside of arch/arm/*omap*/
+
+This series,
+1. provides the ability for OMAP NAND driver to configure GPMC-NAND
+   registers by NAND driver itself instead of using exported GPMC
+   symbols
+2. modifies GPMC to provide OMAP ONENAND & NAND drivers with GPMC
+   allocated address space as resource
+3. creates a fictitious GPMC interrupt chip and provide the clients
+   with interrupts that could be handled using standard APIs (helps
+   in removing the requirement for driver of peripheral connected to
+   GPMC having the knowledge about GPMC interrupt handling). The
+   only user is OMAP NAND driver, it has also been modified to take
+   advantage of this
+
+This series has been made over linux-omap master & can be applied
+over 3.6-rc1 too. This has been tested on omap3evm. Artem's Acked-by
+has been added to mtd patches except for 10/10 where a change has
+been made to handle error path properly.
+
+Regards
+Afzal
+
+v3: Handle error path properly
+v2: simplify omap_prefetch_enable()
+
+
+Afzal Mohammed (10):
+  ARM: OMAP2+: gpmc: update nand register helper
+  ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
+  mtd: nand: omap2: handle nand on gpmc
+  ARM: OMAP2+: gpmc-nand: update resource with memory
+  ARM: OMAP2+: gpmc-onenand: provide memory as resource
+  mtd: nand: omap2: obtain memory from resource
+  mtd: onenand: omap2: obtain memory from resource
+  ARM: OMAP2+: gpmc: Modify interrupt handling
+  ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
+  mtd: nand: omap2: use gpmc provided irqs
+
+ arch/arm/mach-omap2/gpmc-nand.c        |   28 +++-
+ arch/arm/mach-omap2/gpmc-onenand.c     |   23 +++-
+ arch/arm/mach-omap2/gpmc.c             |  156 +++++++++++++++--
+ arch/arm/plat-omap/include/plat/gpmc.h |   19 ++
+ arch/arm/plat-omap/include/plat/nand.h |    2 +-
+ drivers/mtd/nand/omap2.c               |  299 ++++++++++++++++++++++++--------
+ drivers/mtd/onenand/omap2.c            |   29 ++--
+ 7 files changed, 443 insertions(+), 113 deletions(-)
+
