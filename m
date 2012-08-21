@@ -1,139 +1,48 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 10/13] serial: omap: stick to put_autosuspend
-Date: Tue, 21 Aug 2012 12:15:52 +0300
-Message-ID: <1345540555-24359-11-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 02/13] serial: omap: always return IRQ_HANDLED
+Date: Tue, 21 Aug 2012 12:15:44 +0300
+Message-ID: <1345540555-24359-3-git-send-email-balbi@ti.com>
 References: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: alan@linux.intel.com
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Everytime we're done using our TTY, we want
-the pm timer to be reinitilized. By sticking
-to pm_runtime_pm_autosuspend() we make sure
-that this will always be the case.
+Even if we enter our IRQ handler just to notice
+that the our device didn't generate the IRQ,
+that still means "handling" and IRQ, so let's
+return IRQ_HANDLED.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ drivers/tty/serial/omap-serial.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 6ea24c5..458d77c 100644
+index 5c0d0bc..b4b95fc 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -164,7 +164,8 @@ static void serial_omap_enable_ms(struct uart_port *port)
- 	pm_runtime_get_sync(up->dev);
- 	up->ier |= UART_IER_MSI;
- 	serial_out(up, UART_IER, up->ier);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_stop_tx(struct uart_port *port)
-@@ -412,7 +413,8 @@ static unsigned int serial_omap_tx_empty(struct uart_port *port)
- 	spin_lock_irqsave(&up->port.lock, flags);
- 	ret = serial_in(up, UART_LSR) & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	return ret;
- }
- 
-@@ -424,7 +426,8 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
- 
- 	pm_runtime_get_sync(up->dev);
- 	status = check_modem_status(up);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 
- 	dev_dbg(up->port.dev, "serial_omap_get_mctrl+%d\n", up->port.line);
- 
-@@ -460,7 +463,8 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 	up->mcr = serial_in(up, UART_MCR);
- 	up->mcr |= mcr;
- 	serial_out(up, UART_MCR, up->mcr);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_break_ctl(struct uart_port *port, int break_state)
-@@ -477,7 +481,8 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
- 		up->lcr &= ~UART_LCR_SBC;
- 	serial_out(up, UART_LCR, up->lcr);
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_startup(struct uart_port *port)
-@@ -575,7 +580,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	if (serial_in(up, UART_LSR) & UART_LSR_DR)
- 		(void) serial_in(up, UART_RX);
- 
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
- }
- 
-@@ -846,7 +852,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_omap_configure_xonxoff(up, termios);
- 
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->port.line);
- }
- 
-@@ -877,7 +884,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 			pm_runtime_allow(up->dev);
+@@ -417,7 +417,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ 	if (iir & UART_IIR_NO_INT) {
+ 		pm_runtime_mark_last_busy(&up->pdev->dev);
+ 		pm_runtime_put_autosuspend(&up->pdev->dev);
+-		return IRQ_NONE;
++		return IRQ_HANDLED;
  	}
  
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_release_port(struct uart_port *port)
-@@ -959,7 +967,8 @@ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
- 	pm_runtime_get_sync(up->dev);
- 	wait_for_xmitr(up);
- 	serial_out(up, UART_TX, ch);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_poll_get_char(struct uart_port *port)
-@@ -973,7 +982,8 @@ static int serial_omap_poll_get_char(struct uart_port *port)
- 		return NO_POLL_CHAR;
- 
- 	status = serial_in(up, UART_RX);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	return status;
- }
- 
-@@ -1305,7 +1315,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_add_port;
- 
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	platform_set_drvdata(pdev, up);
- 	return 0;
- 
+ 	spin_lock_irqsave(&up->port.lock, flags);
 -- 
 1.7.12.rc3
-
