@@ -1,457 +1,438 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 07/10] ARM: OMAP2+: gpmc: generic timing calculation
-Date: Tue, 21 Aug 2012 16:15:47 +0530
-Message-ID: <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com>
-References: <cover.1345524670.git.afzal@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [RFC/PATCH 4/4] gpio: smscece: Add support for gpio IO expander feature
+Date: Tue, 21 Aug 2012 16:15:40 +0530
+Message-ID: <1345545940-2232-5-git-send-email-sourav.poddar@ti.com>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47663 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756606Ab2HUKqA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:46:00 -0400
-In-Reply-To: <cover.1345524670.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
 
-Presently there are three peripherals that gets it timing
-by runtime calculation. Those peripherals can work with
-frequency scaling that affects gpmc clock. But timing
-calculation for them are in different ways.
+smsc can be used as an gpio io expander device also. So adding
+support for configuring smsc pins as a gpio.
 
-Here a generic runtime calculation method is proposed. Input
-to this function were selected so that they represent timing
-variables that are present in peripheral datasheets. Motive
-behind this was to achieve DT bindings for the inputs as is.
-Even though a few of the tusb6010 timings could not be made
-directly related to timings normally found on peripherals,
-expressions used were translated to those that could be
-justified.
-
-There are possibilities of improving the calculations, like
-calculating timing for read & write operations in a more
-similar way. Expressions derived here were tested for async
-onenand on omap3evm (as vanilla Kernel does not have omap3evm
-onenand support, local patch was used). Other peripherals,
-tusb6010, smc91x calculations were validated by simulating
-on omap3evm.
-
-Regarding "we_on" for onenand async, it was found that even
-for muxed address/data, it need not be greater than
-"adv_wr_off", but rather could be derived from write setup
-time for peripheral from start of access time, hence would
-more be in line with peripheral timings. With this method
-it was working fine. If it is required in some cases to
-have "we_on" same as "wr_data_mux_bus" (i.e. greater than
-"adv_wr_off"), another variable could be added to indicate
-it. But such a requirement is not expected though.
-
-Whole of this exercise is being done to achieve driver and
-DT conversion. If timings could not be calculated in a
-peripheral agnostic way, either gpmc driver would have to
-be peripheral gnostic or a wrapper arrangement over gpmc
-driver would be required.
-
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 ---
- arch/arm/mach-omap2/gpmc.c             |  302 ++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc.h |   61 +++++++
- 2 files changed, 363 insertions(+), 0 deletions(-)
+ drivers/gpio/Kconfig        |    7 +
+ drivers/gpio/Makefile       |    1 +
+ drivers/gpio/gpio-smscece.c |  373 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 381 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/gpio/gpio-smscece.c
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index d005b3a..d8e5b08 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -233,6 +233,18 @@ unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
- 	return ticks * gpmc_get_fclk_period() / 1000;
- }
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index b16c8a7..e883929 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -444,6 +444,13 @@ config GPIO_ADP5588_IRQ
+ 	  Say yes here to enable the adp5588 to be used as an interrupt
+ 	  controller. It requires the driver to be built in the kernel.
  
-+unsigned int gpmc_ticks_to_ps(unsigned int ticks)
-+{
-+	return ticks * gpmc_get_fclk_period();
-+}
++config GPIO_SMSCECE
++	tristate "SMSCECE 1099 I2C GPIO expander"
++	depends on I2C
++	help
++	  This option enables support for 18 GPIOs found
++	  on SMSC ECE 1099 GPIO Expanders.
 +
-+unsigned int gpmc_round_ps_to_ticks(unsigned int time_ps)
-+{
-+	unsigned long ticks = gpmc_ps_to_ticks(time_ps);
-+
-+	return ticks * gpmc_get_fclk_period();
-+}
-+
- static inline void gpmc_cs_modify_reg(int cs, int reg, u32 mask, bool value)
- {
- 	u32 l;
-@@ -884,6 +896,296 @@ static void __init gpmc_mem_init(void)
- 	}
- }
+ comment "PCI GPIO expanders:"
  
-+static u32 gpmc_round_ps_to_sync_clk(u32 time_ps, u32 sync_clk)
-+{
-+	u32 temp;
-+	int div;
+ config GPIO_CS5535
+diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+index 153cace..7c803c5 100644
+--- a/drivers/gpio/Makefile
++++ b/drivers/gpio/Makefile
+@@ -12,6 +12,7 @@ obj-$(CONFIG_GPIO_74X164)	+= gpio-74x164.o
+ obj-$(CONFIG_GPIO_AB8500)	+= gpio-ab8500.o
+ obj-$(CONFIG_GPIO_ADP5520)	+= gpio-adp5520.o
+ obj-$(CONFIG_GPIO_ADP5588)	+= gpio-adp5588.o
++obj-$(CONFIG_GPIO_SMSCECE)      += gpio-smscece.o
+ obj-$(CONFIG_GPIO_AMD8111)	+= gpio-amd8111.o
+ obj-$(CONFIG_GPIO_ARIZONA)	+= gpio-arizona.o
+ obj-$(CONFIG_GPIO_BT8XX)	+= gpio-bt8xx.o
+diff --git a/drivers/gpio/gpio-smscece.c b/drivers/gpio/gpio-smscece.c
+new file mode 100644
+index 0000000..0cb0959
+--- /dev/null
++++ b/drivers/gpio/gpio-smscece.c
+@@ -0,0 +1,373 @@
++/*
++ * GPIO Chip driver for smsc
++ * SMSC I/O Expander and QWERTY Keypad Controller
++ *
++ * Copyright 2012 Texas Instruments Inc.
++ *
++ * Licensed under the GPL-2 or later.
++ */
 +
-+	div = gpmc_calc_divider(sync_clk);
-+	temp = gpmc_ps_to_ticks(time_ps);
-+	temp = (temp + div - 1) / div;
-+	return gpmc_ticks_to_ps(temp * div);
-+}
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/gpio.h>
++#include <linux/interrupt.h>
++#include <linux/irqdomain.h>
++#include <linux/irq.h>
++#include <linux/mfd/smsc.h>
++#include <linux/err.h>
 +
-+/* can the cycles be avoided ? */
-+static int gpmc_calc_sync_read_timings(struct gpmc_timings *gpmc_t,
-+				struct gpmc_device_timings *dev_t)
-+{
-+	bool mux = dev_t->mux;
-+	u32 temp;
-+
-+	/* adv_rd_off */
-+	temp = dev_t->t_avdp_r;
-+	/* mux check required ? */
-+	if (mux) {
-+		/* t_avdp not to be required for sync, only added for tusb this
-+		 * indirectly necessitates requirement of t_avdp_r & t_avdp_w
-+		 * instead of having a single t_avdp
-+		 */
-+		temp = max_t(u32, temp,	gpmc_t->clk_activation * 1000 +
-+							dev_t->t_avdh);
-+		temp = max_t(u32,
-+			(gpmc_t->adv_on + gpmc_ticks_to_ns(1)) * 1000, temp);
-+	}
-+	gpmc_t->adv_rd_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* oe_on */
-+	temp = dev_t->t_oeasu; /* remove this ? */
-+	if (mux) {
-+		temp = max_t(u32, temp,
-+			gpmc_t->clk_activation * 1000 + dev_t->t_ach);
-+		temp = max_t(u32, temp, (gpmc_t->adv_rd_off +
-+				gpmc_ticks_to_ns(dev_t->cyc_aavdh_oe)) * 1000);
-+	}
-+	gpmc_t->oe_on = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* access */
-+	/* any scope for improvement ?, by combining oe_on & clk_activation,
-+	 * need to check whether access = clk_activation + round to sync clk ?
-+	 */
-+	temp = max_t(u32, dev_t->t_iaa,	dev_t->cyc_iaa * gpmc_t->sync_clk);
-+	temp += gpmc_t->clk_activation * 1000;
-+	if (dev_t->cyc_oe)
-+		temp = max_t(u32, temp, (gpmc_t->oe_on +
-+				gpmc_ticks_to_ns(dev_t->cyc_oe)) * 1000);
-+	gpmc_t->access = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	gpmc_t->oe_off = gpmc_t->access + gpmc_ticks_to_ns(1);
-+	gpmc_t->cs_rd_off = gpmc_t->oe_off;
-+
-+	/* rd_cycle */
-+	temp = max_t(u32, dev_t->t_cez_r, dev_t->t_oez);
-+	temp = gpmc_round_ps_to_sync_clk(temp, gpmc_t->sync_clk) +
-+							gpmc_t->access * 1000;
-+	/* barter t_ce_rdyz with t_cez_r ? */
-+	if (dev_t->t_ce_rdyz)
-+		temp = max_t(u32, temp,
-+				gpmc_t->cs_rd_off * 1000 + dev_t->t_ce_rdyz);
-+	gpmc_t->rd_cycle = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	return 0;
-+}
-+
-+static int gpmc_calc_sync_write_timings(struct gpmc_timings *gpmc_t,
-+				struct gpmc_device_timings *dev_t)
-+{
-+	bool mux = dev_t->mux;
-+	u32 temp;
-+
-+	/* adv_wr_off */
-+	temp = dev_t->t_avdp_w;
-+	if (mux) {
-+		temp = max_t(u32, temp,
-+			gpmc_t->clk_activation * 1000 + dev_t->t_avdh);
-+		temp = max_t(u32,
-+			(gpmc_t->adv_on + gpmc_ticks_to_ns(1)) * 1000, temp);
-+	}
-+	gpmc_t->adv_wr_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* wr_data_mux_bus */
-+	temp = max_t(u32, dev_t->t_weasu,
-+			gpmc_t->clk_activation * 1000 + dev_t->t_rdyo);
-+	/* shouldn't mux be kept as a whole for wr_data_mux_bus ?,
-+	 * and in that case remember to handle we_on properly
-+	 */
-+	if (mux) {
-+		temp = max_t(u32, temp,
-+			gpmc_t->adv_wr_off * 1000 + dev_t->t_aavdh);
-+		temp = max_t(u32, temp, (gpmc_t->adv_wr_off +
-+				gpmc_ticks_to_ns(dev_t->cyc_aavdh_we)) * 1000);
-+	}
-+	gpmc_t->wr_data_mux_bus = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* we_on */
-+	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
-+		gpmc_t->we_on = gpmc_round_ps_to_ticks(dev_t->t_weasu) / 1000;
-+	else
-+		gpmc_t->we_on = gpmc_t->wr_data_mux_bus;
-+
-+	/* wr_access */
-+	/* gpmc_capability check reqd ? , even if not, will not harm */
-+	gpmc_t->wr_access = gpmc_t->access;
-+
-+	/* we_off */
-+	temp = gpmc_t->we_on * 1000 + dev_t->t_wpl;
-+	temp = max_t(u32, temp,
-+			(gpmc_t->wr_access + gpmc_ticks_to_ns(1)) * 1000);
-+	temp = max_t(u32, temp,
-+		(gpmc_t->we_on + gpmc_ticks_to_ns(dev_t->cyc_wpl)) * 1000);
-+	gpmc_t->we_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	gpmc_t->cs_wr_off = gpmc_round_ps_to_ticks(gpmc_t->we_off * 1000 +
-+							dev_t->t_wph) / 1000;
-+
-+	/* wr_cycle */
-+	temp = gpmc_round_ps_to_sync_clk(dev_t->t_cez_w, gpmc_t->sync_clk);
-+	temp += gpmc_t->wr_access * 1000;
-+	/* barter t_ce_rdyz with t_cez_w ? */
-+	if (dev_t->t_ce_rdyz)
-+		temp = max_t(u32, temp,
-+				 gpmc_t->cs_wr_off * 1000 + dev_t->t_ce_rdyz);
-+	gpmc_t->wr_cycle = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	return 0;
-+}
-+
-+static int gpmc_calc_async_read_timings(struct gpmc_timings *gpmc_t,
-+				struct gpmc_device_timings *dev_t)
-+{
-+	bool mux = dev_t->mux;
-+	u32 temp;
-+
-+	/* adv_rd_off */
-+	temp = dev_t->t_avdp_r;
-+	if (mux)
-+		temp = max_t(u32,
-+			(gpmc_t->adv_on + gpmc_ticks_to_ns(1)) * 1000, temp);
-+	gpmc_t->adv_rd_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* oe_on */
-+	temp = dev_t->t_oeasu;
-+	if (mux)
-+		temp = max_t(u32, temp,
-+			gpmc_t->adv_rd_off * 1000 + dev_t->t_aavdh);
-+	gpmc_t->oe_on = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* access */
-+	temp = max_t(u32, dev_t->t_iaa, /* remove t_iaa in async ? */
-+				gpmc_t->oe_on * 1000 + dev_t->t_oe);
-+	temp = max_t(u32, temp,
-+				gpmc_t->cs_on * 1000 + dev_t->t_ce);
-+	temp = max_t(u32, temp,
-+				gpmc_t->adv_on * 1000 + dev_t->t_aa);
-+	gpmc_t->access = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	gpmc_t->oe_off = gpmc_t->access + gpmc_ticks_to_ns(1);
-+	gpmc_t->cs_rd_off = gpmc_t->oe_off;
-+
-+	/* rd_cycle */
-+	temp = max_t(u32, dev_t->t_rd_cycle,
-+			gpmc_t->cs_rd_off * 1000 + dev_t->t_cez_r);
-+	temp = max_t(u32, temp,
-+			gpmc_t->oe_off * 1000 + dev_t->t_oez);
-+	gpmc_t->rd_cycle = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	return 0;
-+}
-+
-+static int gpmc_calc_async_write_timings(struct gpmc_timings *gpmc_t,
-+				struct gpmc_device_timings *dev_t)
-+{
-+	bool mux = dev_t->mux;
-+	u32 temp;
-+
-+	/* adv_wr_off */
-+	temp = dev_t->t_avdp_w;
-+	if (mux)
-+		temp = max_t(u32,
-+			(gpmc_t->adv_on + gpmc_ticks_to_ns(1)) * 1000, temp);
-+	gpmc_t->adv_wr_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* wr_data_mux_bus */
-+	temp = dev_t->t_weasu;
-+	if (mux) {
-+		temp = max_t(u32, temp,
-+			gpmc_t->adv_wr_off * 1000 + dev_t->t_aavdh);
-+		temp = max_t(u32, temp, (gpmc_t->adv_wr_off +
-+				gpmc_ticks_to_ns(dev_t->cyc_aavdh_we)) * 1000);
-+	}
-+	gpmc_t->wr_data_mux_bus = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	/* we_on */
-+	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
-+		gpmc_t->we_on = gpmc_round_ps_to_ticks(dev_t->t_weasu) / 1000;
-+	else
-+		gpmc_t->we_on = gpmc_t->wr_data_mux_bus;
-+
-+	/* we_off */
-+	temp = gpmc_t->we_on * 1000 + dev_t->t_wpl;
-+	gpmc_t->we_off = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	gpmc_t->cs_wr_off = gpmc_round_ps_to_ticks((gpmc_t->we_off * 1000 +
-+				dev_t->t_wph)) / 1000;
-+
-+	/* wr_cycle */
-+	temp = max_t(u32, dev_t->t_wr_cycle,
-+				gpmc_t->cs_wr_off * 1000 + dev_t->t_cez_w);
-+	gpmc_t->wr_cycle = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	return 0;
-+}
-+
-+static int gpmc_calc_sync_common_timings(struct gpmc_timings *gpmc_t,
-+			struct gpmc_device_timings *dev_t)
-+{
-+	u32 temp;
-+
-+	gpmc_t->sync_clk = gpmc_calc_divider(dev_t->clk) *
-+						gpmc_get_fclk_period();
-+
-+	gpmc_t->page_burst_access = gpmc_round_ps_to_sync_clk(
-+					dev_t->t_bacc,
-+					gpmc_t->sync_clk) / 1000;
-+
-+	temp = max_t(u32, dev_t->t_ces, dev_t->t_avds);
-+	gpmc_t->clk_activation = gpmc_round_ps_to_ticks(temp) / 1000;
-+
-+	if (gpmc_calc_divider(gpmc_t->sync_clk) != 1)
-+		return 0;
-+
-+	if (dev_t->ce_xdelay)
-+		gpmc_t->bool_timings.cs_extra_delay = true;
-+	if (dev_t->avd_xdelay)
-+		gpmc_t->bool_timings.adv_extra_delay = true;
-+	if (dev_t->oe_xdelay)
-+		gpmc_t->bool_timings.oe_extra_delay = true;
-+	if (dev_t->we_xdelay)
-+		gpmc_t->bool_timings.we_extra_delay = true;
-+
-+	return 0;
-+}
-+
-+static int gpmc_calc_common_timings(struct gpmc_timings *gpmc_t,
-+			struct gpmc_device_timings *dev_t)
-+{
-+	u32 temp;
-+
-+	/* cs_on */
-+	gpmc_t->cs_on = gpmc_round_ns_to_ticks(dev_t->t_ceasu / 1000);
-+
-+	/* adv_on */
-+	temp = dev_t->t_avdasu;
-+	if (dev_t->t_ce_avd)
-+		temp = max_t(u32, temp,
-+				gpmc_t->cs_on * 1000 + dev_t->t_ce_avd);
-+	gpmc_t->adv_on = gpmc_round_ns_to_ticks(temp / 1000);
-+
-+	if (dev_t->sync_write || dev_t->sync_read)
-+		gpmc_calc_sync_common_timings(gpmc_t, dev_t);
-+
-+	return 0;
-+}
-+
-+int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
-+			struct gpmc_device_timings *dev_t)
-+{
-+	memset(gpmc_t, 0, sizeof(*gpmc_t));
-+
-+	gpmc_calc_common_timings(gpmc_t, dev_t);
-+
-+	if (dev_t->sync_read)
-+		gpmc_calc_sync_read_timings(gpmc_t, dev_t);
-+	else
-+		gpmc_calc_async_read_timings(gpmc_t, dev_t);
-+
-+	if (dev_t->sync_write)
-+		gpmc_calc_sync_write_timings(gpmc_t, dev_t);
-+	else
-+		gpmc_calc_async_write_timings(gpmc_t, dev_t);
-+
-+	return 0;
-+}
-+
- static int __init gpmc_init(void)
- {
- 	u32 l;
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index 1cafbfd..e59a932 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -152,6 +152,67 @@ struct gpmc_timings {
- 	struct gpmc_bool_timings bool_timings;
- };
- 
-+/* Device timings in picoseconds */
-+struct gpmc_device_timings {
-+	u32     t_ceasu;	/* address setup to CS valid */
-+	u32     t_avdasu;	/* address setup to ADV valid */
-+	/* XXX: try to combine t_avdp_r & t_avdp_w. Issue is
-+	 * of tusb using these timings even for sync whilst
-+	 * ideally for adv_rd/(wr)_off it should have considered
-+	 * t_avdh instead. This indirectly necessitates r/w
-+	 * variations of t_avdp as it is possible to have one
-+	 * sync & other async
-+	 */
-+	u32	t_avdp_r;	/* ADV low time (what about t_cer ?) */
-+	u32	t_avdp_w;
-+	u32	t_aavdh;	/* address hold time */
-+	u32     t_oeasu;	/* address setup to OE valid */
-+	u32     t_aa;		/* access time from ADV assertion */
-+	u32     t_iaa;		/* initial access time */
-+	u32     t_oe;		/* access time from OE assertion */
-+	u32     t_ce;		/* access time from CS asertion */
-+	u32     t_rd_cycle;	/* read cycle time */
-+	u32     t_cez_r;	/* read CS deassertion to high Z */
-+	u32     t_cez_w;	/* write CS deassertion to high Z */
-+	u32     t_oez;		/* OE deassertion to high Z */
-+	u32     t_weasu;	/* address setup to WE valid */
-+	u32     t_wpl;		/* write assertion time */
-+	u32     t_wph;		/* write deassertion time */
-+	u32     t_wr_cycle;	/* write cycle time */
-+
-+	u32	clk;
-+	u32	t_bacc;		/* burst access valid clock to output delay */
-+	u32	t_ces;		/* CS setup time to clk */
-+	u32	t_avds;		/* ADV setup time to clk */
-+	u32	t_avdh;		/* ADV hold time from clk */
-+	u32     t_ach;		/* address hold time from clk */
-+	u32	t_rdyo;		/* clk to ready valid */
-+
-+	u32	t_ce_rdyz;	/* XXX: description ?, or use t_cez instead */
-+	u32	t_ce_avd;	/* CS on to ADV on delay */
-+
-+	/* XXX: check the possibility of combining
-+	 * cyc_aavhd_oe & cyc_aavdh_we
-+	 */
-+	u8	cyc_aavdh_oe;
-+	u8	cyc_aavdh_we;
-+	u8	cyc_oe;
-+	u8	cyc_wpl;
-+	u32     cyc_iaa;
-+
-+	bool	mux;		/* address & data muxed */
-+	bool	sync_write;	/* synchronous write */
-+	bool	sync_read;	/* synchronous read */
-+
-+	bool	ce_xdelay;
-+	bool	avd_xdelay;
-+	bool	oe_xdelay;
-+	bool	we_xdelay;
++struct smsc_gpio {
++	struct device *dev;
++	struct smsc *smsc;
++	struct gpio_chip gpio_chip;
++	struct mutex lock;	/* protect cached dir, dat_out */
++	/* protect serialized access to the interrupt controller bus */
++	struct mutex irq_lock;
++	unsigned gpio_start;
++	int type;
++	int flags;
++	int irq;
++	int irq_base;
++	unsigned int gpio_base;
++	unsigned int dat_out[5];
++	unsigned int dir[5];
++	unsigned int int_lvl[5];
++	unsigned int int_en[5];
++	unsigned int irq_mask[5];
++	unsigned int irq_stat[5];
 +};
 +
-+extern int gpmc_calc_timings(struct gpmc_timings *gpmc_t,
-+				struct gpmc_device_timings *dev_t);
++static int smsc_gpio_get_value(struct gpio_chip *chip, unsigned off)
++{
++	struct smsc_gpio *sg =
++		container_of(chip, struct smsc_gpio, gpio_chip);
++	unsigned int get;
++	return !!(smsc_read(sg->dev,
++		(SMSC_GPIO_DATA_IN_START + SMSC_BANK(off)) & SMSC_BIT(off),
++					&get));
++}
 +
- struct gpmc_nand_regs {
- 	void __iomem	*gpmc_status;
- 	void __iomem	*gpmc_nand_command;
++static void smsc_gpio_set_value(struct gpio_chip *chip,
++			unsigned off, int val)
++{
++	unsigned bank, bit;
++	struct smsc_gpio *sg =
++		container_of(chip, struct smsc_gpio, gpio_chip);
++
++	bank = SMSC_BANK(off);
++	bit = SMSC_BIT(off);
++
++	mutex_lock(&sg->lock);
++	if (val)
++		sg->dat_out[bank] |= bit;
++	else
++		sg->dat_out[bank] &= ~bit;
++
++	smsc_write(sg->dev, SMSC_GPIO_DATA_OUT_START + bank,
++			   sg->dat_out[bank]);
++	mutex_unlock(&sg->lock);
++}
++
++static int smsc_gpio_direction_input(struct gpio_chip *chip, unsigned off)
++{
++	unsigned int reg;
++	struct smsc_gpio *sg =
++	    container_of(chip, struct smsc_gpio, gpio_chip);
++	int reg_dir;
++
++	mutex_lock(&sg->lock);
++	reg_dir = SMSC_CFG_START + off;
++	smsc_read(sg->dev, reg_dir, &reg);
++	reg |= SMSC_GPIO_INPUT_LOW;
++	mutex_unlock(&sg->lock);
++
++	return smsc_write(sg->dev, reg_dir, reg);
++}
++
++static int smsc_gpio_direction_output(struct gpio_chip *chip,
++					 unsigned off, int val)
++{
++	unsigned int reg;
++	struct smsc_gpio *sg =
++	    container_of(chip, struct smsc_gpio, gpio_chip);
++	int reg_dir;
++
++	mutex_lock(&sg->lock);
++	reg_dir = SMSC_CFG_START + off;
++	smsc_read(sg->dev, reg_dir, &reg);
++	reg |= SMSC_GPIO_OUTPUT_PP;
++	mutex_unlock(&sg->lock);
++
++	return smsc_write(sg->dev, reg_dir, reg);
++}
++
++static int smsc_gpio_to_irq(struct gpio_chip *chip, unsigned off)
++{
++	struct smsc_gpio *sg =
++		container_of(chip, struct smsc_gpio, gpio_chip);
++	return sg->irq_base + off;
++}
++
++static void smsc_irq_bus_lock(struct irq_data *d)
++{
++	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
++
++	mutex_lock(&sg->irq_lock);
++}
++
++static void smsc_irq_bus_sync_unlock(struct irq_data *d)
++{
++	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
++	int i;
++
++	for (i = 0; i < SMSC_BANK(SMSC_MAXGPIO); i++)
++		if (sg->int_en[i] ^ sg->irq_mask[i]) {
++			sg->int_en[i] = sg->irq_mask[i];
++			smsc_write(sg->dev, SMSC_GPIO_INT_MASK_START + i,
++					   sg->int_en[i]);
++		}
++
++	mutex_unlock(&sg->irq_lock);
++}
++
++static void smsc_irq_mask(struct irq_data *d)
++{
++	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
++	unsigned gpio = d->irq - sg->irq_base;
++
++	sg->irq_mask[SMSC_BANK(gpio)] &= ~SMSC_BIT(gpio);
++}
++
++static void smsc_irq_unmask(struct irq_data *d)
++{
++	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
++	unsigned gpio = d->irq - sg->irq_base;
++
++	sg->irq_mask[SMSC_BANK(gpio)] |= SMSC_BIT(gpio);
++}
++
++static int smsc_irq_set_type(struct irq_data *d, unsigned int type)
++{
++	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
++	uint16_t gpio = d->irq - sg->irq_base;
++	unsigned bank, bit;
++
++	if ((type & IRQ_TYPE_EDGE_BOTH)) {
++		dev_err(sg->dev, "irq %d: unsupported type %d\n",
++			d->irq, type);
++		return -EINVAL;
++	}
++
++	bank = SMSC_BANK(gpio);
++	bit = SMSC_BIT(gpio);
++
++	if (type & IRQ_TYPE_LEVEL_HIGH)
++		sg->int_lvl[bank] |= bit;
++	else if (type & IRQ_TYPE_LEVEL_LOW)
++		sg->int_lvl[bank] &= ~bit;
++	else
++		return -EINVAL;
++
++	smsc_gpio_direction_input(&sg->gpio_chip, gpio);
++	smsc_write(sg->dev, SMSC_CFG_START + gpio,
++			sg->int_lvl[bank]);
++
++	return 0;
++}
++
++static struct irq_chip smsc_irq_chip = {
++	.name			= "smsc",
++	.irq_mask		= smsc_irq_mask,
++	.irq_unmask		= smsc_irq_unmask,
++	.irq_bus_lock		= smsc_irq_bus_lock,
++	.irq_bus_sync_unlock	= smsc_irq_bus_sync_unlock,
++	.irq_set_type		= smsc_irq_set_type,
++};
++
++static int smsc_gpio_read_intstat(struct smsc_gpio *sg,
++				unsigned int *buf, int i)
++{
++	int ret = smsc_read(sg->dev,
++			SMSC_GPIO_INT_STAT_START + i, buf);
++
++	if (ret < 0)
++		dev_err(sg->dev, "Read INT_STAT Error\n");
++
++	return ret;
++}
++
++static irqreturn_t smsc_irq_handler(int irq, void *devid)
++{
++	struct smsc_gpio *sg = devid;
++	unsigned int status, bank, pending;
++	int ret;
++	smsc_read(sg->dev, GRP_INT_STAT, &status);
++
++	if (!(status & SMSC_GPI_INT))
++		goto out;
++
++	for (bank = 0; bank <= SMSC_BANK(SMSC_MAXGPIO);
++		bank++) {
++		pending = sg->irq_stat[bank] & sg->irq_mask[bank];
++		ret = smsc_gpio_read_intstat(sg,
++				&sg->irq_stat[bank], bank);
++		if (ret < 0)
++			memset(&sg->irq_stat[bank], 0,
++				ARRAY_SIZE(sg->irq_stat));
++
++		while (pending) {
++			unsigned long   bit = __ffs(pending);
++			unsigned int    irq;
++
++			pending &= ~BIT(bit);
++			irq = bit + sg->irq_base;
++			handle_nested_irq(irq);
++		}
++	}
++
++out:
++	smsc_write(sg->dev, GRP_INT_STAT, status); /* Status is W1C */
++
++	return IRQ_HANDLED;
++}
++
++static int smsc_irq_setup(struct smsc_gpio *sg)
++{
++	unsigned gpio;
++	int ret;
++
++	mutex_init(&sg->irq_lock);
++
++	for (gpio = 0; gpio < sg->gpio_chip.ngpio; gpio++) {
++		int irq = gpio + sg->irq_base;
++		irq_set_chip_data(irq, sg);
++		irq_set_chip_and_handler(irq, &smsc_irq_chip,
++				handle_level_irq);
++		irq_set_nested_thread(irq, 1);
++#ifdef CONFIG_ARM
++		set_irq_flags(irq, IRQF_VALID);
++#else
++		irq_set_noprobe(irq);
++#endif
++	}
++
++	ret = request_threaded_irq(sg->irq, NULL,
++			smsc_irq_handler, sg->flags,
++			"smsc_gpio", sg);
++	if (ret) {
++		dev_err(sg->dev, "failed to request irq %d\n",
++			sg->irq);
++	}
++
++	sg->gpio_chip.to_irq = smsc_gpio_to_irq;
++
++	return 0;
++}
++
++static int __devinit smsc_gpio_probe(struct platform_device *pdev)
++{
++	struct smsc_gpio *sg;
++	struct gpio_chip *gc;
++	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
++	int ret, i, temp;
++	struct device *dev = &pdev->dev;
++	struct device_node *np = dev->of_node;
++	int irq_base;
++
++	sg = devm_kzalloc(dev, sizeof(*sg), GFP_KERNEL);
++	if (sg == NULL) {
++		dev_err(&pdev->dev, "failed to alloc memory\n");
++		return -ENOMEM;
++	}
++
++	sg->irq = platform_get_irq(pdev, 0);
++	if (np) {
++		of_property_read_u32(np, "gpio,base", &temp);
++		of_property_read_u32(np, "flags", &sg->flags);
++	}
++
++	gc = &sg->gpio_chip;
++	gc->direction_input = smsc_gpio_direction_input;
++	gc->direction_output = smsc_gpio_direction_output;
++	gc->get = smsc_gpio_get_value;
++	gc->set = smsc_gpio_set_value;
++	gc->can_sleep = 1;
++
++	gc->base = temp;
++	gc->ngpio = SMSC_MAXGPIO;
++	gc->owner = THIS_MODULE;
++
++	sg->smsc = smsc;
++	sg->dev = dev;
++	mutex_init(&sg->lock);
++
++	for (i = 0; i <= SMSC_BANK(SMSC_MAXGPIO); i++)
++		smsc_read(sg->dev, SMSC_GPIO_DATA_OUT_START + i,
++					&sg->dat_out[i]);
++
++	for (i = 0; i < SMSC_MAXGPIO; i++)
++		smsc_read(sg->dev, SMSC_CFG_START + i, &sg->dir[i]);
++
++	irq_base = irq_alloc_descs(-1, 0, sg->gpio_chip.ngpio, 0);
++	if (IS_ERR_VALUE(irq_base)) {
++		dev_err(sg->dev, "Fail to allocate IRQ descs\n");
++		return irq_base;
++	}
++	sg->irq_base = irq_base;
++
++	irq_domain_add_legacy(pdev->dev.of_node, sg->gpio_chip.ngpio,
++		sg->irq_base, 0, &irq_domain_simple_ops, NULL);
++
++	ret = smsc_irq_setup(sg);
++	if (ret)
++		goto err;
++
++	ret = gpiochip_add(&sg->gpio_chip);
++	if (ret)
++		goto err;
++
++	return 0;
++
++err:
++	kfree(sg);
++
++	return ret;
++}
++
++static int __devexit smsc_gpio_remove(struct platform_device *pdev)
++{
++	struct smsc_gpio *sg = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	ret = gpiochip_remove(&sg->gpio_chip);
++	if (ret) {
++		dev_err(&pdev->dev, "gpiochip_remove failed %d\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static const struct of_device_id smsc_gpio_dt_match[] = {
++	{ .compatible = "smsc,gpio" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, smsc_gpio_dt_match);
++
++static struct platform_driver smsc_gpio_driver = {
++	.driver = {
++		   .name = "smsc_gpio",
++		   .of_match_table = of_match_ptr(smsc_gpio_dt_match),
++		   },
++	.probe = smsc_gpio_probe,
++	.remove = __devexit_p(smsc_gpio_remove),
++};
++
++module_platform_driver(smsc_gpio_driver);
++
++MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
++MODULE_DESCRIPTION("GPIO SMSC Driver");
++MODULE_LICENSE("GPL v2");
 -- 
 1.7.1
-
