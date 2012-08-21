@@ -1,241 +1,370 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 09/10] mmc: omap_hsmmc: convert from IP timer to hrtimer
-Date: Tue, 21 Aug 2012 13:42:49 +0300
-Message-ID: <20120821104248.GR10347@arwen.pp.htv.fi>
-References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
- <1345229550-8672-10-git-send-email-svenkatr@ti.com>
-Reply-To: balbi@ti.com
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
+Date: Tue, 21 Aug 2012 16:15:37 +0530
+Message-ID: <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SWsnvgFfkTS2ATo5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:54744 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756659Ab2HUKqs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:46:48 -0400
-Received: by lbbgg6 with SMTP id gg6so3442377lbb.3
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:46:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1345229550-8672-10-git-send-email-svenkatr@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
 
+smsc ece1099 is a keyboard scan or gpio expansion device.
+The patch create keypad and gpio expander child for this
+multi function smsc driver.
 
---SWsnvgFfkTS2ATo5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+ Documentation/smsc_ece1099.txt |   56 ++++++++++++++++
+ drivers/mfd/Kconfig            |   10 +++
+ drivers/mfd/Makefile           |    1 +
+ drivers/mfd/smsc-ece1099.c     |  139 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/mfd/smsc.h       |   89 +++++++++++++++++++++++++
+ 5 files changed, 295 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/smsc_ece1099.txt
+ create mode 100644 drivers/mfd/smsc-ece1099.c
+ create mode 100644 include/linux/mfd/smsc.h
 
-On Sat, Aug 18, 2012 at 12:22:29AM +0530, Venkatraman S wrote:
-> omap hsmmc controller IP has an inbuilt timer that can be programmed to
-                                  ^^^^^^^
-				  built-in
-> guard against unresponsive operations. But it's range is very narrow,
-                                             ^^^^
-					     its
-
-
-> and it's maximum countable time is a few seconds.
-      ^^^^
-      its
-
-
-> Card maintenance operations like BKOPS and SECURE DISCARD and long
-> stream writes like packed command require timers of order of
-> several minutes.
-> So get rid of using the IP timer entirely and use kernel's hrtimer
-> functionality for guarding the device operations.
-> As part of this change, a workaround that disabled timeouts for
-> MMC_ERASE commands is removed, and the arbitary timing of 100ms
-> is used only when the timeout is not explicitly specified by core.
->=20
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c | 96 ++++++++++++++++++++++---------------=
-------
->  1 file changed, 50 insertions(+), 46 deletions(-)
->=20
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 9afdd20..8f7cebc 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -79,7 +79,7 @@
->  #define CLKD_SHIFT		6
->  #define DTO_MASK		0x000F0000
->  #define DTO_SHIFT		16
-> -#define INT_EN_MASK		0x307F0033
-> +#define INT_EN_MASK		0x306E0033
-
-not related to this patch in particular, but it would be nice if this
-was converted to something more meaningfull, like ORing a bunch of bit
-defines.
-
->  #define BWR_ENABLE		(1 << 4)
->  #define BRR_ENABLE		(1 << 5)
->  #define DTO_ENABLE		(1 << 20)
-> @@ -160,6 +160,7 @@ struct omap_hsmmc_host {
->  	unsigned int		dma_sg_idx;
->  	unsigned char		bus_mode;
->  	unsigned char		power_mode;
-> +	unsigned int		ns_per_clk_cycle;
->  	int			suspended;
->  	int			irq;
->  	int			use_dma, dma_ch;
-> @@ -172,6 +173,7 @@ struct omap_hsmmc_host {
->  	int			reqs_blocked;
->  	int			use_reg;
->  	int			req_in_progress;
-> +	struct hrtimer	guard_timer;
->  	struct omap_hsmmc_next	next_data;
-> =20
->  	struct	omap_mmc_platform_data	*pdata;
-> @@ -455,10 +457,6 @@ static void omap_hsmmc_enable_irq(struct omap_hsmmc_=
-host *host,
->  	else
->  		irq_mask =3D INT_EN_MASK;
-> =20
-> -	/* Disable timeout for erases */
-> -	if (cmd->opcode =3D=3D MMC_ERASE)
-> -		irq_mask &=3D ~DTO_ENABLE;
-> -
->  	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->  	OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
->  	OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
-> @@ -508,6 +506,9 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_ho=
-st *host)
->  		&& time_before(jiffies, timeout))
->  		cpu_relax();
-> =20
-> +	if (ios->clock)
-> +		host->ns_per_clk_cycle =3D DIV_ROUND_UP(NSEC_PER_SEC, ios->clock);
-> +
->  	omap_hsmmc_start_clock(host);
->  }
-> =20
-> @@ -824,7 +825,7 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, st=
-ruct mmc_data *data)
->  		omap_hsmmc_request_done(host, mrq);
->  		return;
->  	}
-> -
-> +	hrtimer_cancel(&host->guard_timer);
->  	host->data =3D NULL;
-> =20
->  	if (!data->error)
-> @@ -859,8 +860,11 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, st=
-ruct mmc_command *cmd)
->  			cmd->resp[0] =3D OMAP_HSMMC_READ(host->base, RSP10);
->  		}
->  	}
-> -	if ((host->data =3D=3D NULL && !host->response_busy) || cmd->error)
-> +	if ((host->data =3D=3D NULL && !host->response_busy) || cmd->error) {
-
-could just go ahead and make this check uniform by:
-
-if ((!host->data && !host->response_busy)) || cmd->error)
-
-> +		if (cmd->error !=3D -ETIMEDOUT)
-> +			hrtimer_cancel(&host->guard_timer);
->  		omap_hsmmc_request_done(host, cmd->mrq);
-> +	}
->  }
-> =20
->  /*
-> @@ -992,7 +996,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host =
-*host, int status)
->  			hsmmc_command_incomplete(host, -EILSEQ);
-> =20
->  		end_cmd =3D 1;
-> -		if (host->data || host->response_busy) {
-> +		if (data || host->response_busy) {
-
-This doesn't seem like it belongs to $SUBJECT...
-
->  			end_trans =3D 1;
->  			host->response_busy =3D 0;
->  		}
-> @@ -1292,41 +1296,35 @@ static int omap_hsmmc_start_dma_transfer(struct o=
-map_hsmmc_host *host,
->  	return 0;
->  }
-> =20
-> -static void set_data_timeout(struct omap_hsmmc_host *host,
-> -			     unsigned int timeout_ns,
-> -			     unsigned int timeout_clks)
-> +static void set_guard_timer(struct omap_hsmmc_host *host,
-> +		unsigned long timeout_ms, unsigned long timeout_ns,
-> +		unsigned int timeout_clks)
->  {
-> -	unsigned int timeout, cycle_ns;
-> -	uint32_t reg, clkd, dto =3D 0;
-> +	ktime_t gtime;
-> +	unsigned int sec, nsec;
-> =20
-> -	reg =3D OMAP_HSMMC_READ(host->base, SYSCTL);
-> -	clkd =3D (reg & CLKD_MASK) >> CLKD_SHIFT;
-> -	if (clkd =3D=3D 0)
-> -		clkd =3D 1;
-> +	sec =3D timeout_ms / MSEC_PER_SEC;
-> +	nsec =3D (timeout_ms % MSEC_PER_SEC) * NSEC_PER_MSEC + timeout_ns;
-> =20
-> -	cycle_ns =3D 1000000000 / (clk_get_rate(host->fclk) / clkd);
-> -	timeout =3D timeout_ns / cycle_ns;
-> -	timeout +=3D timeout_clks;
-> -	if (timeout) {
-> -		while ((timeout & 0x80000000) =3D=3D 0) {
-> -			dto +=3D 1;
-> -			timeout <<=3D 1;
-> -		}
-> -		dto =3D 31 - dto;
-> -		timeout <<=3D 1;
-> -		if (timeout && dto)
-> -			dto +=3D 1;
-> -		if (dto >=3D 13)
-> -			dto -=3D 13;
-> -		else
-> -			dto =3D 0;
-> -		if (dto > 14)
-> -			dto =3D 14;
-> -	}
-> +	nsec +=3D timeout_clks * host->ns_per_clk_cycle;
-> +	gtime =3D ktime_set(sec, nsec);
-> =20
-> -	reg &=3D ~DTO_MASK;
-> -	reg |=3D dto << DTO_SHIFT;
-> -	OMAP_HSMMC_WRITE(host->base, SYSCTL, reg);
-> +	hrtimer_start(&host->guard_timer, gtime, HRTIMER_MODE_REL);
-> +}
-> +
-> +enum hrtimer_restart omap_hsmmc_timedout(struct hrtimer *gtimer)
-
-static ?
-
---=20
-balbi
-
---SWsnvgFfkTS2ATo5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQM2YoAAoJEIaOsuA1yqREjKMP/R/eojIx632OiW/TWDaTG1I6
-xcHwjEUETbABbj5kyBTo8EKzN9dbcf/hJEeHihgoAmVrP13Xvw2macrrX/E56Thn
-2JtACsEuyHHe+CAC10YLj5MGkOVwPHt0VKpaFp0bCiaov5zbW3SAl5NQDt9zjKN/
-h2umsh1s3XLy8Khw8la7Jt8N5ZyBLH136OcF1nUm63V4+c9bKSotNO0vZfQ/Yfoh
-EKJi2VQ7DPQPxv1qcSIhIFMZBQaItJWnGWkQlak4F5rluSrhddWIYbqIHsokan5O
-XHKdK6bfwhdWHjb6/dGsMW6YIY3UVLjUdAVY+L4Yj5vr9LltjZDb3XX4afnqEwWR
-zYSjnqAiDFUAKeUjB3l5tqE//LkmR3Xdhd9VB1SlXRQ9ymvOd690SyAgnYFx2x+x
-CR8llV5eRUfEOS9QdUysYZk83bKnNrnuozG1mUIfUn9Adaj4XLrztbsw2yC3p58u
-TUWRdsmgWhdFYPjatxCtxuBYfq+81ZWnHBixB9UU0FZpCSM44rQJPql0GS8Kk1t7
-mgKCntZNzEj8YGT9ddWy09x+bQ9HVBFs2TsqLLilDKqgJhJciX+d4736efmN9LQ5
-ANKiqeJisMqYqhE3j7ynp2cnG9afkCFm0lD3IMvf+5VIQQubRREWF6xNfb2T5RQR
-N0pafXQK5F/L+gHxHRjj
-=vW/H
------END PGP SIGNATURE-----
-
---SWsnvgFfkTS2ATo5--
+diff --git a/Documentation/smsc_ece1099.txt b/Documentation/smsc_ece1099.txt
+new file mode 100644
+index 0000000..6b492e8
+--- /dev/null
++++ b/Documentation/smsc_ece1099.txt
+@@ -0,0 +1,56 @@
++What is smsc-ece1099?
++----------------------
++
++The ECE1099 is a 40-Pin 3.3V Keyboard Scan Expansion
++or GPIO Expansion device. The device supports a keyboard
++scan matrix of 23x8. The device is connected to a Master
++via the SMSC BC-Link interface or via the SMBus.
++Keypad scan Input(KSI) and Keypad Scan Output(KSO) signals
++are multiplexed with GPIOs.
++
++Interrupt generation
++--------------------
++
++Interrupts can be generated by an edge detection on a GPIO
++pin or an edge detection on one of the bus interface pins.
++Interrupts can also be detected on the keyboard scan interface.
++The bus interrupt pin (BC_INT# or SMBUS_INT#) is asserted if
++any bit in one of the Interrupt Status registers is 1 and
++the corresponding Interrupt Mask bit is also 1.
++
++In order for software to determine which device is the source
++of an interrupt, it should first read the Group Interrupt Status Register
++to determine which Status register group is a source for the interrupt.
++Software should read both the Status register and the associated Mask register,
++then AND the two values together. Bits that are 1 in the result of the AND
++are active interrupts. Software clears an interrupt by writing a 1 to the
++corresponding bit in the Status register.
++
++Communication Protocol
++----------------------
++
++- SMbus slave Interface
++	The host processor communicates with the ECE1099 device
++	through a series of read/write registers via the SMBus
++	interface. SMBus is a serial communication protocol between
++	a computer host and its peripheral devices. The SMBus data
++	rate is 10KHz minimum to 400 KHz maximum
++
++- Slave Bus Interface
++	The ECE1099 device SMBus implementation is a subset of the
++	SMBus interface to the host. The device is a slave-only SMBus device.
++	The implementation in the device is a subset of SMBus since it
++	only supports four protocols.
++
++	The Write Byte, Read Byte, Send Byte, and Receive Byte protocols are the
++	only valid SMBus protocols for the device.
++
++- BC-LinkTM Interface
++	The BC-Link is a proprietary bus that allows communication
++	between a Master device and a Companion device. The Master
++	device uses this serial bus to read and write registers
++	located on the Companion device. The bus comprises three signals,
++	BC_CLK, BC_DAT and BC_INT#. The Master device always provides the
++	clock, BC_CLK, and the Companion device is the source for an
++	independent asynchronous interrupt signal, BC_INT#. The ECE1099
++	supports BC-Link speeds up to 24MHz.
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index d1facef..3b81c17 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -385,6 +385,16 @@ config MFD_T7L66XB
+ 	help
+ 	  Support for Toshiba Mobile IO Controller T7L66XB
+ 
++config MFD_SMSC
++       bool "Support for the SMSC ECE1099 series chips"
++       depends on I2C=y && MFD_CORE && REGMAP_I2C
++       help
++        If you say yes here you get support for the
++        ece1099 chips from SMSC.
++
++        To compile this driver as a module, choose M here: the
++        module will be called smsc.
++
+ config MFD_TC6387XB
+ 	bool "Support Toshiba TC6387XB"
+ 	depends on ARM && HAVE_CLK
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 79dd22d..f587d91 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -77,6 +77,7 @@ obj-$(CONFIG_EZX_PCAP)		+= ezx-pcap.o
+ obj-$(CONFIG_MCP)		+= mcp-core.o
+ obj-$(CONFIG_MCP_SA11X0)	+= mcp-sa11x0.o
+ obj-$(CONFIG_MCP_UCB1200)	+= ucb1x00-core.o
++obj-$(CONFIG_MFD_SMSC)        += smsc.o
+ obj-$(CONFIG_MCP_UCB1200_TS)	+= ucb1x00-ts.o
+ 
+ ifeq ($(CONFIG_SA1100_ASSABET),y)
+diff --git a/drivers/mfd/smsc-ece1099.c b/drivers/mfd/smsc-ece1099.c
+new file mode 100644
+index 0000000..6ba06b8
+--- /dev/null
++++ b/drivers/mfd/smsc-ece1099.c
+@@ -0,0 +1,139 @@
++/*
++ * TI SMSC MFD Driver
++ *
++ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
++ *
++ * Author: Sourav Poddar <sourav.poddar@ti.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under  the terms of the GNU General  Public License as published by the
++ *  Free Software Foundation;  GPL v2.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/gpio.h>
++#include <linux/workqueue.h>
++#include <linux/irq.h>
++#include <linux/regmap.h>
++#include <linux/err.h>
++#include <linux/mfd/core.h>
++#include <linux/mfd/smsc.h>
++#include <linux/of_platform.h>
++
++struct smsc {
++	struct device *dev;
++	struct i2c_client *i2c_clients[SMSC_NUM_CLIENTS];
++	struct regmap *regmap;
++	int clk;
++	/* Stored chip id */
++	int id;
++};
++
++int smsc_read(struct device *child, unsigned int reg,
++	unsigned int *dest)
++{
++	struct smsc     *smsc = dev_get_drvdata(child->parent);
++
++	return regmap_read(smsc->regmap, reg, dest);
++}
++EXPORT_SYMBOL_GPL(smsc_read);
++
++int smsc_write(struct device *child, unsigned int reg,
++	unsigned int value)
++{
++	struct smsc     *smsc = dev_get_drvdata(child->parent);
++
++	return regmap_write(smsc->regmap, reg, value);
++}
++EXPORT_SYMBOL_GPL(smsc_write);
++
++static struct regmap_config smsc_regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++		.cache_type = REGCACHE_COMPRESSED,
++};
++
++static const struct of_device_id of_smsc_match[] = {
++	{ .compatible = "smsc,ece1099", },
++	{ },
++};
++
++static int smsc_i2c_probe(struct i2c_client *i2c,
++			const struct i2c_device_id *id)
++{
++	struct device_node              *node = i2c->dev.of_node;
++	struct smsc *smsc;
++	int ret = 0;
++
++	smsc = devm_kzalloc(&i2c->dev, sizeof(struct smsc),
++				GFP_KERNEL);
++
++	smsc->regmap = devm_regmap_init_i2c(i2c, &smsc_regmap_config);
++	if (IS_ERR(smsc->regmap)) {
++		ret = PTR_ERR(smsc->regmap);
++		goto err;
++	}
++
++	i2c_set_clientdata(i2c, smsc);
++	smsc->dev = &i2c->dev;
++
++	of_property_read_u32(node, "clock", &smsc->clk);
++
++	regmap_read(smsc->regmap, SMSC_DEV_ID, &ret);
++	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
++
++	regmap_read(smsc->regmap, SMSC_DEV_REV, &ret);
++	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
++
++	regmap_read(smsc->regmap, SMSC_VEN_ID_L, &ret);
++	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
++
++	regmap_read(smsc->regmap, SMSC_VEN_ID_H, &ret);
++	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
++
++	ret = regmap_write(smsc->regmap, SMSC_CLK_CTRL, smsc->clk);
++	if (ret)
++		goto err;
++
++	if (node)
++		ret = of_platform_populate(node, NULL, NULL, &i2c->dev);
++
++	return ret;
++
++err:
++	kfree(smsc);
++	return ret;
++}
++
++static int smsc_i2c_remove(struct i2c_client *i2c)
++{
++	return 0;
++}
++
++static const struct i2c_device_id smsc_i2c_id[] = {
++	{ "smsc", 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, smsc_i2c_id);
++
++static struct i2c_driver smsc_i2c_driver = {
++	.driver = {
++		   .name = "smsc",
++		   .of_match_table = of_smsc_match,
++		   .owner = THIS_MODULE,
++	},
++	.probe = smsc_i2c_probe,
++	.remove = smsc_i2c_remove,
++	.id_table = smsc_i2c_id,
++};
++
++module_i2c_driver(smsc_i2c_driver);
++
++MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
++MODULE_DESCRIPTION("SMSC chip multi-function driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/mfd/smsc.h b/include/linux/mfd/smsc.h
+new file mode 100644
+index 0000000..0b048c6
+--- /dev/null
++++ b/include/linux/mfd/smsc.h
+@@ -0,0 +1,89 @@
++/*
++ * SMSC ECE1099
++ *
++ * Copyright 2012 Texas Instruments Inc.
++ *
++ * Author: Sourav Poddar <sourav.poddar@ti.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify it
++ *  under  the terms of the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the License, or (at your
++ *  option) any later version.
++ *
++ */
++
++#ifndef __LINUX_MFD_SMSC_H
++#define __LINUX_MFD_SMSC_H
++
++#include <linux/regmap.h>
++
++#define SMSC_ID_ECE1099			1
++#define SMSC_NUM_CLIENTS		2
++
++#define SMSC_BASE_ADDR			0x38
++#define OMAP_GPIO_SMSC_IRQ		151
++
++#define SMSC_MAXGPIO         32
++#define SMSC_BANK(offs)      ((offs) >> 3)
++#define SMSC_BIT(offs)       (1u << ((offs) & 0x7))
++
++struct smsc_gpio;
++struct smsc_keypad;
++
++int smsc_read(struct device *child, unsigned int reg,
++	unsigned int *dest);
++int smsc_write(struct device *child, unsigned int reg,
++	unsigned int value);
++
++/* Registers for SMSC */
++#define SMSC_RESET						0xF5
++#define SMSC_GRP_INT						0xF9
++#define SMSC_CLK_CTRL						0xFA
++#define SMSC_WKUP_CTRL						0xFB
++#define SMSC_DEV_ID						0xFC
++#define SMSC_DEV_REV						0xFD
++#define SMSC_VEN_ID_L						0xFE
++#define SMSC_VEN_ID_H						0xFF
++
++/* CLK VALUE */
++#define SMSC_CLK_VALUE						0x13
++
++/* Registers for function GPIO INPUT */
++#define SMSC_GPIO_DATA_IN_START					0x00
++
++/* Registers for function GPIO OUPUT */
++#define SMSC_GPIO_DATA_OUT_START                                       0x05
++
++/* Definitions for SMSC GPIO CONFIGURATION REGISTER*/
++#define SMSC_GPIO_INPUT_LOW					0x01
++#define SMSC_GPIO_INPUT_RISING					0x09
++#define SMSC_GPIO_INPUT_FALLING					0x11
++#define SMSC_GPIO_INPUT_BOTH_EDGE				0x19
++#define SMSC_GPIO_OUTPUT_PP					0x21
++#define SMSC_GPIO_OUTPUT_OP					0x31
++
++#define GRP_INT_STAT						0xf9
++#define	SMSC_GPI_INT						0x0f
++#define SMSC_CFG_START						0x0A
++
++/* Registers for SMSC GPIO INTERRUPT STATUS REGISTER*/
++#define SMSC_GPIO_INT_STAT_START                                  0x32
++
++/* Registers for SMSC GPIO INTERRUPT MASK REGISTER*/
++#define SMSC_GPIO_INT_MASK_START                               0x37
++
++/* Registers for SMSC function KEYPAD*/
++#define SMSC_KP_OUT						0x40
++#define SMSC_KP_IN						0x41
++#define SMSC_KP_INT_STAT					0x42
++#define SMSC_KP_INT_MASK					0x43
++
++/* Definitions for keypad */
++#define SMSC_KP_KSO           0x70
++#define SMSC_KP_KSI           0x51
++#define SMSC_KSO_ALL_LOW        0x20
++#define SMSC_KP_SET_LOW_PWR        0x0B
++#define SMSC_KP_SET_HIGH           0xFF
++#define SMSC_KSO_EVAL           0x00
++
++#endif /*  __LINUX_MFD_SMSC_H */
+-- 
+1.7.1
