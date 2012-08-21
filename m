@@ -1,197 +1,211 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 08/10] ARM: OMAP2+: onenand: generic timing calculation
-Date: Tue, 21 Aug 2012 16:15:53 +0530
-Message-ID: <998aae9cb10d5eb1574dde792954b1cb08c425b6.1345524670.git.afzal@ti.com>
-References: <cover.1345524670.git.afzal@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] Input: keypad: Add smsc ece1099 keypad driver
+Date: Tue, 21 Aug 2012 13:45:49 +0300
+Message-ID: <20120821104549.GT10347@arwen.pp.htv.fi>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+ <1345545940-2232-3-git-send-email-sourav.poddar@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47662 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756539Ab2HUKqA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:46:00 -0400
-In-Reply-To: <cover.1345524670.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zpd1bWBxfrI+71+6"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1345545940-2232-3-git-send-email-sourav.poddar@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Sourav Poddar <sourav.poddar@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
 
-Generic gpmc timing calculation helper is available now, use
-it instead of custom timing calculation.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/gpmc-onenand.c |  124 ++++++++++++------------------------
- 1 files changed, 41 insertions(+), 83 deletions(-)
+--zpd1bWBxfrI+71+6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index e139e3f..700f9a6 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -49,6 +49,7 @@ static struct platform_device gpmc_onenand_device = {
- 
- static struct gpmc_timings omap2_onenand_calc_async_timings(void)
- {
-+	struct gpmc_device_timings dev_t;
- 	struct gpmc_timings t;
- 
- 	const int t_cer = 15;
-@@ -58,35 +59,22 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
- 	const int t_aa = 76;
- 	const int t_oe = 20;
- 	const int t_cez = 20; /* max of t_cez, t_oez */
--	const int t_ds = 30;
- 	const int t_wpl = 40;
- 	const int t_wph = 30;
- 
--	memset(&t, 0, sizeof(t));
--	t.sync_clk = 0;
--	t.cs_on = 0;
--	t.adv_on = 0;
--
--	/* Read */
--	t.adv_rd_off = gpmc_round_ns_to_ticks(max_t(int, t_avdp, t_cer));
--	t.oe_on  = t.adv_rd_off + gpmc_round_ns_to_ticks(t_aavdh);
--	t.access = t.adv_on + gpmc_round_ns_to_ticks(t_aa);
--	t.access = max_t(int, t.access, t.cs_on + gpmc_round_ns_to_ticks(t_ce));
--	t.access = max_t(int, t.access, t.oe_on + gpmc_round_ns_to_ticks(t_oe));
--	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
--	t.cs_rd_off = t.oe_off;
--	t.rd_cycle  = t.cs_rd_off + gpmc_round_ns_to_ticks(t_cez);
--
--	/* Write */
--	t.adv_wr_off = t.adv_rd_off;
--	t.we_on  = t.oe_on;
--	if (cpu_is_omap34xx()) {
--		t.wr_data_mux_bus = t.we_on;
--		t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
--	}
--	t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
--	t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
--	t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
-+	memset(&dev_t, 0, sizeof(dev_t));
-+
-+	dev_t.mux = true;
-+	dev_t.t_avdp_r = dev_t.t_avdp_w = max_t(int, t_avdp, t_cer) * 1000;
-+	dev_t.t_aavdh = t_aavdh * 1000;
-+	dev_t.t_aa = t_aa * 1000;
-+	dev_t.t_ce = t_ce * 1000;
-+	dev_t.t_oe = t_oe * 1000;
-+	dev_t.t_cez_r = dev_t.t_cez_w = t_cez * 1000;
-+	dev_t.t_wpl = t_wpl * 1000;
-+	dev_t.t_wph = t_wph * 1000;
-+
-+	gpmc_calc_timings(&t, &dev_t);
- 
- 	return t;
- }
-@@ -172,16 +160,15 @@ static struct gpmc_timings
- omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 						int freq)
- {
-+	struct gpmc_device_timings dev_t;
- 	struct gpmc_timings t;
- 	const int t_cer  = 15;
- 	const int t_avdp = 12;
- 	const int t_cez  = 20; /* max of t_cez, t_oez */
--	const int t_ds   = 30;
- 	const int t_wpl  = 40;
- 	const int t_wph  = 30;
- 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
--	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
--	int ticks_cez;
-+	int div, gpmc_clk_ns;
- 
- 	if (cfg->flags & ONENAND_SYNC_READ)
- 		onenand_flags = ONENAND_FLAG_SYNCREAD;
-@@ -248,62 +235,33 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 		latency = 4;
- 
- 	/* Set synchronous read timings */
--	memset(&t, 0, sizeof(t));
-+	memset(&dev_t, 0, sizeof(dev_t));
- 
--	if (div == 1) {
--		t.bool_timings.cs_extra_delay = true;
--		t.bool_timings.adv_extra_delay = true;
--		t.bool_timings.oe_extra_delay = true;
--		t.bool_timings.we_extra_delay = true;
--	}
--
--	t.sync_clk = min_gpmc_clk_period;
--	t.cs_on = 0;
--	t.adv_on = 0;
--	fclk_offset_ns = gpmc_round_ns_to_ticks(max_t(int, t_ces, t_avds));
--	fclk_offset = gpmc_ns_to_ticks(fclk_offset_ns);
--	t.page_burst_access = gpmc_clk_ns;
--
--	/* Read */
--	t.adv_rd_off = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_avdh));
--	t.oe_on = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_ach));
--	/* Force at least 1 clk between AVD High to OE Low */
--	if (t.oe_on <= t.adv_rd_off)
--		t.oe_on = t.adv_rd_off + gpmc_round_ns_to_ticks(1);
--	t.access = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div);
--	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
--	t.cs_rd_off = t.oe_off;
--	ticks_cez = ((gpmc_ns_to_ticks(t_cez) + div - 1) / div) * div;
--	t.rd_cycle = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div +
--		     ticks_cez);
--
--	t.clk_activation = fclk_offset_ns;
--
--	/* Write */
--	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
--		t.adv_wr_off = t.adv_rd_off;
--		t.we_on  = 0;
--		t.we_off = t.cs_rd_off;
--		t.cs_wr_off = t.cs_rd_off;
--		t.wr_cycle  = t.rd_cycle;
--		if (cpu_is_omap34xx()) {
--			t.wr_data_mux_bus = gpmc_ticks_to_ns(fclk_offset +
--					gpmc_ps_to_ticks(min_gpmc_clk_period +
--					t_rdyo * 1000));
--			t.wr_access = t.access;
--		}
--	} else {
--		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int,
--							t_avdp, t_cer));
--		t.we_on  = t.adv_wr_off + gpmc_round_ns_to_ticks(t_aavdh);
--		t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
--		t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
--		t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
--		if (cpu_is_omap34xx()) {
--			t.wr_data_mux_bus = t.we_on;
--			t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
--		}
-+	dev_t.mux = true;
-+	dev_t.sync_read = true;
-+	if (onenand_flags & ONENAND_FLAG_SYNCWRITE)
-+		dev_t.sync_write = true;
-+	else {
-+		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
-+		dev_t.t_wpl = t_wpl * 1000;
-+		dev_t.t_wph = t_wph * 1000;
-+		dev_t.t_aavdh = t_aavdh * 1000;
- 	}
-+	dev_t.ce_xdelay = true;
-+	dev_t.avd_xdelay = true;
-+	dev_t.oe_xdelay = true;
-+	dev_t.we_xdelay = true;
-+	dev_t.clk = dev_t.t_bacc = min_gpmc_clk_period;
-+	dev_t.t_ces = t_ces * 1000;
-+	dev_t.t_avds = t_avds * 1000;
-+	dev_t.t_avdh = t_avdh * 1000;
-+	dev_t.t_ach = t_ach * 1000;
-+	dev_t.cyc_iaa = (latency + 1);
-+	dev_t.t_cez_r = dev_t.t_cez_w = t_cez * 1000;
-+	dev_t.cyc_aavdh_oe = 1;
-+	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
-+
-+	gpmc_calc_timings(&t, &dev_t);
- 
- 	return t;
- }
--- 
-1.7.1
+On Tue, Aug 21, 2012 at 04:15:38PM +0530, Sourav Poddar wrote:
+> From: G, Manjunath Kondaiah <manjugk@ti.com>
+>=20
+> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
+> supports a keypad scan matrix of 23*8.This driver uses this
+> device as a keypad driver.
+>=20
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
 
+looks good. If you just fix my comment on free_irq() below, you can add:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+> +static int __devinit
+> +smsc_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev =3D &pdev->dev;
+> +	struct smsc *smsc =3D dev_get_drvdata(pdev->dev.parent);
+> +	struct input_dev *input;
+> +	struct smsc_keypad *kp;
+> +	int ret =3D 0, error;
+> +	int col, i, max_keys, row_shift;
+> +	int irq;
+> +	int addr_start, addr;
+> +
+> +	kp =3D devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
+> +
+> +	input =3D input_allocate_device();
+> +	if (!kp || !input) {
+> +		error =3D -ENOMEM;
+> +		goto err1;
+> +	}
+> +
+> +	error =3D smsc_keypad_parse_dt(&pdev->dev, kp);
+> +	if (error)
+> +		return error;
+> +
+> +	/* Get the debug Device */
+> +	kp->input =3D input;
+> +	kp->smsc =3D smsc;
+> +	kp->irq =3D platform_get_irq(pdev, 0);
+> +	kp->dev =3D dev;
+> +
+> +	for (col =3D 0; col < 16; col++) {
+> +		kp->last_key_state[col] =3D 0;
+> +		kp->last_key_ms[col] =3D 0;
+> +	}
+> +
+> +	/* setup input device */
+> +	 __set_bit(EV_KEY, input->evbit);
+> +
+> +	/* Enable auto repeat feature of Linux input subsystem */
+> +	if (!(kp->no_autorepeat))
+> +		__set_bit(EV_REP, input->evbit);
+> +
+> +	input_set_capability(input, EV_MSC, MSC_SCAN);
+> +	input->name             =3D "SMSC Keypad";
+> +	input->phys             =3D "smsc_keypad/input0";
+> +	input->dev.parent       =3D &pdev->dev;
+> +	input->id.bustype       =3D BUS_HOST;
+> +	input->id.vendor        =3D 0x0001;
+> +	input->id.product       =3D 0x0001;
+> +	input->id.version       =3D 0x0003;
+> +
+> +	error =3D input_register_device(input);
+> +	if (error) {
+> +		dev_err(kp->dev,
+> +			"Unable to register twl4030 keypad device\n");
+> +		goto err1;
+> +	}
+> +
+> +	/* Mask all GPIO interrupts (0x37-0x3B) */
+> +	for (addr =3D 0x37; addr < 0x3B; addr++)
+> +		smsc_write(dev, addr, 0);
+> +
+> +	/* Set all outputs high (0x05-0x09) */
+> +	for (addr =3D 0x05; addr < 0x09; addr++)
+> +		smsc_write(dev, addr, 0xff);
+> +
+> +	/* Clear all GPIO interrupts (0x32-0x36) */
+> +	for (addr =3D 0x32; addr < 0x36; addr++)
+> +		smsc_write(dev, addr, 0xff);
+> +
+> +	addr_start =3D 0x12;
+> +	for (i =3D 0; i <=3D kp->rows; i++) {
+> +		addr =3D 0x12 + i;
+> +		smsc_write(dev, addr, SMSC_KP_KSI);
+> +	}
+> +
+> +	addr_start =3D  0x1A;
+> +	for (i =3D 0; i <=3D kp->cols; i++) {
+> +		addr =3D 0x1A + i;
+> +		smsc_write(dev, addr, SMSC_KP_KSO);
+> +	}
+> +
+> +	addr =3D SMSC_KP_INT_STAT;
+> +	smsc_write(dev, addr, SMSC_KP_SET_HIGH);
+> +
+> +	addr =3D SMSC_WKUP_CTRL;
+> +	smsc_write(dev, addr, SMSC_KP_SET_LOW_PWR);
+> +
+> +	addr =3D SMSC_KP_OUT;
+> +	smsc_write(dev, addr, SMSC_KSO_ALL_LOW);
+> +
+> +	row_shift =3D get_count_order(kp->cols);
+> +	max_keys =3D kp->rows << row_shift;
+> +
+> +	kp->row_shift =3D row_shift;
+> +	kp->keymap =3D kzalloc(max_keys * sizeof(kp->keymap[0]),
+> +					GFP_KERNEL);
+> +	if (!kp->keymap) {
+> +		dev_err(&pdev->dev, "Not enough memory for keymap\n");
+> +		error =3D -ENOMEM;
+> +	}
+> +
+> +	matrix_keypad_build_keymap(NULL, NULL, kp->rows,
+> +			kp->cols, kp->keymap, input);
+> +
+> +	/*
+> +	* This ISR will always execute in kernel thread context because of
+> +	* the need to access the SMSC over the I2C bus.
+> +	*/
+> +	ret =3D devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
+> +			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
+> +	if (ret) {
+> +		dev_dbg(&pdev->dev, "request_irq failed for irq no=3D%d\n",
+> +			irq);
+> +		goto err2;
+> +	}
+> +
+> +	/* Enable smsc keypad interrupts */
+> +	ret =3D smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
+> +	if (ret < 0)
+> +		goto err2;
+> +
+> +	return 0;
+> +
+> +err2:
+> +	input_unregister_device(input);
+> +	free_irq(kp->irq, NULL);
+
+you're using devm_request_threaded_irq, this is unnecessary
+
+> +err1:
+> +	input_free_device(input);
+> +	return ret;
+> +}
+> +
+> +static int smsc_remove(struct platform_device *pdev)
+> +{
+> +	struct smsc_keypad *kp =3D platform_get_drvdata(pdev);
+> +	free_irq(kp->irq, kp);
+
+ditto.
+
+
+--=20
+balbi
+
+--zpd1bWBxfrI+71+6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQM2bdAAoJEIaOsuA1yqREJeQP/A2punS/wXhdUtGToTI1bI6k
+gb35BA8HWCEiUpC9ln73fTq4HFxKqUDLehgSbli8nJFkPTTtd7oWECT1+w2d1Drb
+3rJ2RsRqr50HNjVjYkm6NIchheMP8X4VsVQR27hHXPOArFQ9TfBockuU+QtWz2Up
+AKigg6hf7zQ+PGof3A0uqV38aGh/NcSR0deZVST8goHmAtBKg+3TYI+kyDkQjZRQ
+gBrbxFE4zYo2HFD9bHCIk9rguh0ln3LvGREiz0i3qY8cF40QS1MqnJqG3CbSrcLx
+U8Qo8GZ0yeauEJxcLStP8ZPuzFIvs490hAOjbcwml29nS1cwgIPm5kvm8QaHL/Hz
+Rg1XM5+BQfGkyjjTPR9aGE1wYY3FFrZNKuWp3833hpqHj4RXYVeaU5T26/IA5yxo
+W6+7jw1NKFDYakbwKtHl2/1aVVioZNZtPBWqEdAFT4130YtjqCzAWa2ziliFWfmm
+bycIYGr74pB4fwgO0ESl0f6hVS+3w/RNJevNBI802dH+o0BgTV3Z8J7Q37uBz8Z2
+NnKfVEHVeoO+5UPEGNPb1PmOZd3MlKr/C0cenKMGdsR11iBASGTEIE5tTQGRN7q5
+mrEpNpJTWE98Yt12fPB/cmYhUL7OU7DSBaGReTAVNJHxV8Riwb/qS8kJYPCvuLK5
+saN/SFwEHJSl6i27tHH+
+=VYEi
+-----END PGP SIGNATURE-----
+
+--zpd1bWBxfrI+71+6--
