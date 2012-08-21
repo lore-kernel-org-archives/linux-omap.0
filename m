@@ -1,94 +1,84 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 05/13] serial: omap: drop DMA support
-Date: Tue, 21 Aug 2012 13:34:39 +0300
-Message-ID: <20120821103438.GQ10347@arwen.pp.htv.fi>
-References: <1345540555-24359-1-git-send-email-balbi@ti.com>
- <1345540555-24359-6-git-send-email-balbi@ti.com>
- <CAMQu2gw93ES=u9J1FfWK_CKkgUq8V487+tmKtQ34p8O7VJ6aHA@mail.gmail.com>
- <20120821102045.GL10347@arwen.pp.htv.fi>
- <CAMQu2gyGVhB63rn+G6B3nFLki5ib40C_2o2Bh1mBd8sw8wT_Ng@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: Do not require a VDDS_DSI regulator on
+ am35xx
+Date: Tue, 21 Aug 2012 13:39:44 +0300
+Message-ID: <1345545584.4085.49.camel@deskari>
+References: <20120815191627.GA22993@renkinjitsu.usine.8d.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UJEqbsikIZBgizPR"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-Wg/Yy/qKmwwEdEHUTfCx"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:40480 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756371Ab2HUKii (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:48630 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756441Ab2HUKjt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:38:38 -0400
-Received: by lahl5 with SMTP id l5so3885568lah.29
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:38:35 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gyGVhB63rn+G6B3nFLki5ib40C_2o2Bh1mBd8sw8wT_Ng@mail.gmail.com>
+	Tue, 21 Aug 2012 06:39:49 -0400
+Received: by lagk11 with SMTP id k11so4550713lag.30
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:39:46 -0700 (PDT)
+In-Reply-To: <20120815191627.GA22993@renkinjitsu.usine.8d.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org
 
 
---UJEqbsikIZBgizPR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-Wg/Yy/qKmwwEdEHUTfCx
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 21, 2012 at 04:05:22PM +0530, Shilimkar, Santosh wrote:
-> On Tue, Aug 21, 2012 at 3:50 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Tue, Aug 21, 2012 at 03:14:19PM +0530, Shilimkar, Santosh wrote:
-> >> On Tue, Aug 21, 2012 at 2:45 PM, Felipe Balbi <balbi@ti.com> wrote:
-> >> > The current support is known to be broken and
-> >> > a later patch will come re-adding it using
-> >> > dma engine API.
-> >> >
-> >> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> >> > ---
-> >> Thanks Felipe !!
-> >
-> > no problem.
-> >
-> >> One less driver now towards OMAP DMA
-> >> engine conversion.
-> >
-> > indeed :-) I'll take a closer look into rx timeout IRQ, but it looks
-> > like we can use it to kick dma only for "big" transfers... need to play
-> > with it for a while first, though.
-> >
-> Yep. The RX path with DMA is bit of difficult part to manage for
-> UART.
+Hi,
+
+On Wed, 2012-08-15 at 15:16 -0400, Raphael Assenat wrote:
+> On our AM3505 based board, dpi.c complains that there is no VDSS_DSI regu=
+lator
+> and the framebuffer cannot be enabled. However, this check does not seem =
+to
+> apply to AM3505/17 chips.
 >=20
-> >> FWIW,
-> >> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >
-> > is this Ack for this patch only or the entire series ??
-> >
-> Two more patches to review and then I will do it for
-> full series on top of the cover-letter :-)
+> Taking into account comments received after my first patch[1], I have add=
+ed
+> entries to dss_features.c to support the am35xx soc. Then in dpi.c, inste=
+ad
+> of using cpu_is_omap34xx() and soc_is_am35xx(), a call to dss_has_feature=
+()
+> is used.
+>=20
+> [1] http://marc.info/?l=3Dlinux-fbdev&m=3D134272967203409&w=3D2
+>=20
+> Signed-off-by: Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com>
 
-cool, thanks
+Chandrabhanu has posted a series that removes a bunch of cpu_is checks
+from omapdss. On of them is the use of VDDS_DSI in dpi.c.
 
---=20
-balbi
+Can you wait until I've merged those patches to omapdss master branch
+(probably a few days), and then create a new patch that adds AM35xx to
+dss_features?
 
---UJEqbsikIZBgizPR
+ Tomi
+
+
+--=-Wg/Yy/qKmwwEdEHUTfCx
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQM2Q+AAoJEIaOsuA1yqREI+0P/i1WowkakjnJRnsPwZGIrJ7x
-8EiEcFq/DE40yIn1VDlNWUbhzSGB6G+8J2ldXUsIxoj2JVdvbWmIknShly3Cg7LT
-NZB/DU6Srw2HwP1nGvwpDj1GqeZu2KYjh5tYJu25dtTvoVJ48N7il4G9qcmjF2X4
-WA4194aG0/P0ixWadXEWR+LVzBBlz/EU0X9lzaenVIYzhBPJuydr3nSo+wrxlpFQ
-QqbaVQ56A8p7B4acJ0fJxpDmaIzVgsXKPtkK5tdsHFgO1rV8CwsiHqOZV6guehy2
-8TvejxTw1UqE6fTSznzNdUqysFIIMe9lGtdQaO3HqXTEKq9iDKIyYwT/81Cqy2qe
-v6/UOWYAXfUKbMu2ji8zZloMpRAhMvuSRGeehTRF9wyRNHsaVfDdNAwftuA5vy/Y
-ptqrFizKPDNM54yAvxltAoV47SeuHXfwInXV7ubw0Nh36M6a/LFDxnH/jwXIRFkb
-1QvS3nZF9uRG1OYD08tzirHNP8kRiQ9PfHqTGpK3nZ9Q7Vt/pOS5UGVscPFy1w8n
-kPCdH45Z/uZfBlMO43z/WgTXi6rSYGrJIyQxcCWGgLWhlG76osbiRMyOmmCiR5pH
-u0+00X0T1HK6aLH/FN0UzqkBVEFBmXQKlSc9KJUxIVGNvIcKDvxCEfGUdB7PjzKJ
-GeUTmixWpRsjLD+zjeWV
-=NnQk
+iQIcBAABAgAGBQJQM2VwAAoJEPo9qoy8lh713DgP/A7JQMU0nKw0UdwvZtcBm2x/
+C/TFTT/ptBINn4rc8UJI72NFxz/hnIyZLjBtjvWb4iHhsvedf7zkwPqEPi4pMM0i
+sd5XD50iPwtU0L2b8RMkp6xAOaEq/zEZBIiKRpo0UlyIuoiVTpbCiQFROqjo4gPU
+DI1RxmMIc2I8vwYc0qOcMY4OYTKn858G3q4fgT2U0FKW+6MfusYTFGUTfiHAp38f
+Z9pTOidQYBf7utLgQrCY5WjSe4vq2u7UH83hUH0dCTxh+VmE4g7YrwZR+QDZ6UU4
+T9wrJltTsvNWxUHge4EAOHBRiXBmVVDcyfyhxxiZNaeKS8CANLdObvMgTUVnwFZ7
+ysrIvmNCssfaiOLuozaHp4mr0ofUI8QSjGH+pBJBEOv95x6wasttYtLjB0b8cQCT
+cFOWigMYLcfpvFa9ir/9UiI9QCLa/fguc1rPQgoFccBTGAzsqUeVqcBTc+rY3H5R
+QcZInACaZSD27DrfK5/4IRC+NX/aUUznKf0ywZHKiLSrlx9ud9eC673Iva9X05ID
+F21km958rrsXNPa8kZyrJ5Y5BxBys9/MttXLnbQqSuVkuFnxJUth+Vlf1ji5NCzi
+e+hmDKCrprgK+hht1yHjOwnulldue1/FEdZTXScY8Tpp/SvrrfgYe5TAjA2x6Rzb
+TYQSHlT77CKP1Nv1ym+U
+=RYXv
 -----END PGP SIGNATURE-----
 
---UJEqbsikIZBgizPR--
+--=-Wg/Yy/qKmwwEdEHUTfCx--
+
