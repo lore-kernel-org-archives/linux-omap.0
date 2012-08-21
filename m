@@ -1,315 +1,247 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 04/23] OMAPDSS: APPLY: Add manager set/unset output ops for omap_overlay_manager
-Date: Tue, 21 Aug 2012 11:28:11 +0530
-Message-ID: <1345528711-27801-5-git-send-email-archit@ti.com>
+Subject: [PATCH 06/23] OMAP_VOUT: Remove manager->device references
+Date: Tue, 21 Aug 2012 11:28:13 +0530
+Message-ID: <1345528711-27801-7-git-send-email-archit@ti.com>
 References: <1345528711-27801-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34793 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081Ab2HUGAZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 02:00:25 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:57146 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753252Ab2HUGAd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 02:00:33 -0400
 In-Reply-To: <1345528711-27801-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com, Archit Taneja <archit@ti.com>
 
-Add set_output/unset_output ops for overlay managers, these form links between
-managers and outputs. Create a function in dss features which tell all the
-output instances that connect to a manager, use it when a manager tries to set
-an output. Add a constraint of not unsetting an output when the manager is
-enabled.
+With the introduction of output entities, managers will now connect to outputs.
+Use the helper op for managers named get_device. This will abstract away the
+information on how to get the device from an overlay manager.
 
-Keep the omap_dss_device pointer and set/unset_device ops in overlay_manager for
-now to not break things. Keep the dss feature function get_supported_displays
-as it's used in some places. These will be removed later.
+Using the helper function will reduce the number of pointer dereferences a user
+of OMAPDSS needs to do and reduce risk of a NULL dereference.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/apply.c        |   70 ++++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dss.h          |    3 ++
- drivers/video/omap2/dss/dss_features.c |   52 ++++++++++++++++++++++++
- drivers/video/omap2/dss/dss_features.h |    1 +
- drivers/video/omap2/dss/manager.c      |    4 ++
- include/video/omapdss.h                |    5 +++
- 6 files changed, 135 insertions(+)
+ drivers/media/video/omap/omap_vout.c |   81 ++++++++++++++++++++++++----------
+ 1 file changed, 57 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 74f1a58..d241407 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -1311,6 +1311,76 @@ err:
- 	return r;
- }
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 88cf9d9..0ebf87e 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -454,11 +454,16 @@ static int omapvid_init(struct omap_vout_device *vout, u32 addr)
  
-+int dss_mgr_set_output(struct omap_overlay_manager *mgr,
-+		struct omap_dss_output *output)
-+{
-+	int r;
+ 	win = &vout->win;
+ 	for (i = 0; i < ovid->num_overlays; i++) {
++		struct omap_dss_device *dssdev;
 +
-+	mutex_lock(&apply_lock);
+ 		ovl = ovid->overlays[i];
+-		if (!ovl->manager || !ovl->manager->device)
++		dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
 +
-+	if (mgr->output) {
-+		DSSERR("manager %s is already connected to an output\n",
-+			mgr->name);
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	if ((mgr->supported_outputs & output->id) == 0) {
-+		DSSERR("output does not support manager %s\n",
-+			mgr->name);
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	output->manager = mgr;
-+	mgr->output = output;
-+
-+	mutex_unlock(&apply_lock);
-+
-+	return 0;
-+err:
-+	mutex_unlock(&apply_lock);
-+	return r;
-+}
-+
-+int dss_mgr_unset_output(struct omap_overlay_manager *mgr)
-+{
-+	int r;
-+	struct mgr_priv_data *mp = get_mgr_priv(mgr);
-+	unsigned long flags;
-+
-+	mutex_lock(&apply_lock);
-+
-+	if (!mgr->output) {
-+		DSSERR("failed to unset output, output not set\n");
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	spin_lock_irqsave(&data_lock, flags);
-+
-+	if (mp->enabled) {
-+		DSSERR("output can't be unset when manager is enabled\n");
-+		r = -EINVAL;
-+		goto err1;
-+	}
-+
-+	spin_unlock_irqrestore(&data_lock, flags);
-+
-+	mgr->output->manager = NULL;
-+	mgr->output = NULL;
-+
-+	mutex_unlock(&apply_lock);
-+
-+	return 0;
-+err1:
-+	spin_unlock_irqrestore(&data_lock, flags);
-+err:
-+	mutex_unlock(&apply_lock);
-+
-+	return r;
-+}
-+
- static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
- 		const struct omap_video_timings *timings)
- {
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 8a7c94c..a119506 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -205,6 +205,9 @@ void dss_mgr_get_info(struct omap_overlay_manager *mgr,
- int dss_mgr_set_device(struct omap_overlay_manager *mgr,
- 		struct omap_dss_device *dssdev);
- int dss_mgr_unset_device(struct omap_overlay_manager *mgr);
-+int dss_mgr_set_output(struct omap_overlay_manager *mgr,
-+		struct omap_dss_output *output);
-+int dss_mgr_unset_output(struct omap_overlay_manager *mgr);
- void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
- 		const struct omap_video_timings *timings);
- void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 9387097..43f8491 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -47,6 +47,7 @@ struct omap_dss_features {
- 	const int num_mgrs;
- 	const int num_ovls;
- 	const enum omap_display_type *supported_displays;
-+	const enum omap_dss_output_id *supported_outputs;
- 	const enum omap_color_mode *supported_color_modes;
- 	const enum omap_overlay_caps *overlay_caps;
- 	const char * const *clksrc_names;
-@@ -144,6 +145,46 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
- 	OMAP_DISPLAY_TYPE_DSI,
- };
++		if (!dssdev)
+ 			return -EINVAL;
  
-+static const enum omap_dss_output_id omap2_dss_supported_outputs[] = {
-+	/* OMAP_DSS_CHANNEL_LCD */
-+	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI,
-+
-+	/* OMAP_DSS_CHANNEL_DIGIT */
-+	OMAP_DSS_OUTPUT_VENC,
-+};
-+
-+static const enum omap_dss_output_id omap3430_dss_supported_outputs[] = {
-+	/* OMAP_DSS_CHANNEL_LCD */
-+	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
-+	OMAP_DSS_OUTPUT_SDI | OMAP_DSS_OUTPUT_DSI1,
-+
-+	/* OMAP_DSS_CHANNEL_DIGIT */
-+	OMAP_DSS_OUTPUT_VENC,
-+};
-+
-+static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
-+	/* OMAP_DSS_CHANNEL_LCD */
-+	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
-+	OMAP_DSS_OUTPUT_DSI1,
-+
-+	/* OMAP_DSS_CHANNEL_DIGIT */
-+	OMAP_DSS_OUTPUT_VENC,
-+};
-+
-+static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
-+	/* OMAP_DSS_CHANNEL_LCD */
-+	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
-+	OMAP_DSS_OUTPUT_DSI1,
-+
-+	/* OMAP_DSS_CHANNEL_DIGIT */
-+	OMAP_DSS_OUTPUT_VENC | OMAP_DSS_OUTPUT_HDMI |
-+	OMAP_DSS_OUTPUT_DPI,
-+
-+	/* OMAP_DSS_CHANNEL_LCD2 */
-+	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
-+	OMAP_DSS_OUTPUT_DSI2,
-+};
-+
- static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
- 	/* OMAP_DSS_GFX */
- 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-@@ -458,6 +499,7 @@ static const struct omap_dss_features omap2_dss_features = {
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
- 	.supported_displays = omap2_dss_supported_displays,
-+	.supported_outputs = omap2_dss_supported_outputs,
- 	.supported_color_modes = omap2_dss_supported_color_modes,
- 	.overlay_caps = omap2_dss_overlay_caps,
- 	.clksrc_names = omap2_dss_clk_source_names,
-@@ -478,6 +520,7 @@ static const struct omap_dss_features omap3430_dss_features = {
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
- 	.supported_displays = omap3430_dss_supported_displays,
-+	.supported_outputs = omap3430_dss_supported_outputs,
- 	.supported_color_modes = omap3_dss_supported_color_modes,
- 	.overlay_caps = omap3430_dss_overlay_caps,
- 	.clksrc_names = omap3_dss_clk_source_names,
-@@ -497,6 +540,7 @@ static const struct omap_dss_features omap3630_dss_features = {
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
- 	.supported_displays = omap3630_dss_supported_displays,
-+	.supported_outputs = omap3630_dss_supported_outputs,
- 	.supported_color_modes = omap3_dss_supported_color_modes,
- 	.overlay_caps = omap3630_dss_overlay_caps,
- 	.clksrc_names = omap3_dss_clk_source_names,
-@@ -518,6 +562,7 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
- 	.num_mgrs = 3,
- 	.num_ovls = 4,
- 	.supported_displays = omap4_dss_supported_displays,
-+	.supported_outputs = omap4_dss_supported_outputs,
- 	.supported_color_modes = omap4_dss_supported_color_modes,
- 	.overlay_caps = omap4_dss_overlay_caps,
- 	.clksrc_names = omap4_dss_clk_source_names,
-@@ -538,6 +583,7 @@ static const struct omap_dss_features omap4430_es2_0_1_2_dss_features = {
- 	.num_mgrs = 3,
- 	.num_ovls = 4,
- 	.supported_displays = omap4_dss_supported_displays,
-+	.supported_outputs = omap4_dss_supported_outputs,
- 	.supported_color_modes = omap4_dss_supported_color_modes,
- 	.overlay_caps = omap4_dss_overlay_caps,
- 	.clksrc_names = omap4_dss_clk_source_names,
-@@ -558,6 +604,7 @@ static const struct omap_dss_features omap4_dss_features = {
- 	.num_mgrs = 3,
- 	.num_ovls = 4,
- 	.supported_displays = omap4_dss_supported_displays,
-+	.supported_outputs = omap4_dss_supported_outputs,
- 	.supported_color_modes = omap4_dss_supported_color_modes,
- 	.overlay_caps = omap4_dss_overlay_caps,
- 	.clksrc_names = omap4_dss_clk_source_names,
-@@ -627,6 +674,11 @@ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel
- 	return omap_current_dss_features->supported_displays[channel];
- }
+-		timing = &ovl->manager->device->panel.timings;
++		timing = &dssdev->panel.timings;
  
-+enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel)
-+{
-+	return omap_current_dss_features->supported_outputs[channel];
-+}
+ 		outw = win->w.width;
+ 		outh = win->w.height;
+@@ -515,8 +520,12 @@ static int omapvid_apply_changes(struct omap_vout_device *vout)
+ 	struct omapvideo_info *ovid = &vout->vid_info;
+ 
+ 	for (i = 0; i < ovid->num_overlays; i++) {
++		struct omap_dss_device *dssdev;
 +
- enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane)
- {
- 	return omap_current_dss_features->supported_color_modes[plane];
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 996ffcb..89a71d1 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -103,6 +103,7 @@ int dss_feat_get_num_ovls(void);
- unsigned long dss_feat_get_param_min(enum dss_range_param param);
- unsigned long dss_feat_get_param_max(enum dss_range_param param);
- enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
-+enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel);
- enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
- enum omap_overlay_caps dss_feat_get_overlay_caps(enum omap_plane plane);
- bool dss_feat_color_mode_supported(enum omap_plane plane,
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 53710fa..e15fa5f 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -549,6 +549,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 		ovl = ovid->overlays[i];
+-		if (!ovl->manager || !ovl->manager->device)
++		dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
++		if (!dssdev)
+ 			return -EINVAL;
+ 		ovl->manager->apply(ovl->manager);
+ 	}
+@@ -579,12 +588,15 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
  
- 		mgr->set_device = &dss_mgr_set_device;
- 		mgr->unset_device = &dss_mgr_unset_device;
-+		mgr->set_output = &dss_mgr_set_output;
-+		mgr->unset_output = &dss_mgr_unset_output;
- 		mgr->apply = &omap_dss_mgr_apply;
- 		mgr->set_manager_info = &dss_mgr_set_info;
- 		mgr->get_manager_info = &dss_mgr_get_info;
-@@ -558,6 +560,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 		mgr->caps = 0;
- 		mgr->supported_displays =
- 			dss_feat_get_supported_displays(mgr->id);
-+		mgr->supported_outputs =
-+			dss_feat_get_supported_outputs(mgr->id);
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
+-	/* get the display device attached to the overlay */
+-	if (!ovl->manager || !ovl->manager->device)
+-		return;
  
- 		INIT_LIST_HEAD(&mgr->overlays);
+ 	mgr_id = ovl->manager->id;
+-	cur_display = ovl->manager->device;
++
++	/* get the display device attached to the overlay */
++	cur_display = ovl->manager ?
++		ovl->manager->get_device(ovl->manager) : NULL;
++
++	if (!cur_display)
++		return;
  
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 2e40f27..813672b 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -458,9 +458,11 @@ struct omap_overlay_manager {
- 	enum omap_overlay_manager_caps caps;
- 	struct list_head overlays;
- 	enum omap_display_type supported_displays;
-+	enum omap_dss_output_id supported_outputs;
+ 	spin_lock(&vout->vbq_lock);
+ 	do_gettimeofday(&timevalue);
+@@ -948,7 +960,10 @@ static int omap_vout_release(struct file *file)
+ 	/* Disable all the overlay managers connected with this interface */
+ 	for (i = 0; i < ovid->num_overlays; i++) {
+ 		struct omap_overlay *ovl = ovid->overlays[i];
+-		if (ovl->manager && ovl->manager->device)
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
++
++		if (dssdev)
+ 			ovl->disable(ovl);
+ 	}
+ 	/* Turn off the pipeline */
+@@ -1081,14 +1096,17 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *fh,
+ 	struct omapvideo_info *ovid;
+ 	struct omap_video_timings *timing;
+ 	struct omap_vout_device *vout = fh;
++	struct omap_dss_device *dssdev;
  
- 	/* dynamic fields */
- 	struct omap_dss_device *device;
-+	struct omap_dss_output *output;
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	/* get the display device attached to the overlay */
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
  
- 	/*
- 	 * The following functions do not block:
-@@ -476,6 +478,9 @@ struct omap_overlay_manager {
- 	int (*set_device)(struct omap_overlay_manager *mgr,
- 		struct omap_dss_device *dssdev);
- 	int (*unset_device)(struct omap_overlay_manager *mgr);
-+	int (*set_output)(struct omap_overlay_manager *mgr,
-+		struct omap_dss_output *output);
-+	int (*unset_output)(struct omap_overlay_manager *mgr);
+-	if (!ovl->manager || !ovl->manager->device)
++	if (!dssdev)
+ 		return -EINVAL;
+-	/* get the display device attached to the overlay */
+-	timing = &ovl->manager->device->panel.timings;
++
++	timing = &dssdev->panel.timings;
  
- 	int (*set_manager_info)(struct omap_overlay_manager *mgr,
- 			struct omap_overlay_manager_info *info);
+ 	vout->fbuf.fmt.height = timing->y_res;
+ 	vout->fbuf.fmt.width = timing->x_res;
+@@ -1105,6 +1123,7 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
+ 	struct omapvideo_info *ovid;
+ 	struct omap_video_timings *timing;
+ 	struct omap_vout_device *vout = fh;
++	struct omap_dss_device *dssdev;
+ 
+ 	if (vout->streaming)
+ 		return -EBUSY;
+@@ -1113,13 +1132,14 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
+ 
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
+ 
+ 	/* get the display device attached to the overlay */
+-	if (!ovl->manager || !ovl->manager->device) {
++	if (!dssdev) {
+ 		ret = -EINVAL;
+ 		goto s_fmt_vid_out_exit;
+ 	}
+-	timing = &ovl->manager->device->panel.timings;
++	timing = &dssdev->panel.timings;
+ 
+ 	/* We dont support RGB24-packed mode if vrfb rotation
+ 	 * is enabled*/
+@@ -1298,6 +1318,7 @@ static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *crop)
+ 	struct omapvideo_info *ovid;
+ 	struct omap_overlay *ovl;
+ 	struct omap_video_timings *timing;
++	struct omap_dss_device *dssdev;
+ 
+ 	if (vout->streaming)
+ 		return -EBUSY;
+@@ -1305,13 +1326,15 @@ static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *crop)
+ 	mutex_lock(&vout->lock);
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	/* get the display device attached to the overlay */
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
+ 
+-	if (!ovl->manager || !ovl->manager->device) {
++	if (!dssdev) {
+ 		ret = -EINVAL;
+ 		goto s_crop_err;
+ 	}
+-	/* get the display device attached to the overlay */
+-	timing = &ovl->manager->device->panel.timings;
++
++	timing = &dssdev->panel.timings;
+ 
+ 	if (is_rotation_90_or_270(vout)) {
+ 		vout->fbuf.fmt.height = timing->x_res;
+@@ -1666,8 +1689,9 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_overlay_manager *mgr = ovl->manager;
+ 
+-		if (ovl->manager && ovl->manager->device) {
++		if (mgr && mgr->get_device(mgr)) {
+ 			struct omap_overlay_info info;
+ 			ovl->get_overlay_info(ovl, &info);
+ 			info.paddr = addr;
+@@ -1690,8 +1714,10 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
+ 
+-		if (ovl->manager && ovl->manager->device) {
++		if (dssdev) {
+ 			ret = ovl->enable(ovl);
+ 			if (ret)
+ 				goto streamon_err1;
+@@ -1726,8 +1752,10 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
+ 
+-		if (ovl->manager && ovl->manager->device)
++		if (dssdev)
+ 			ovl->disable(ovl);
+ 	}
+ 
+@@ -1890,8 +1918,9 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+ 	struct video_device *vfd;
+ 	struct v4l2_pix_format *pix;
+ 	struct v4l2_control *control;
++	struct omap_overlay *ovl = vout->vid_info.overlays[0];
+ 	struct omap_dss_device *display =
+-		vout->vid_info.overlays[0]->manager->device;
++		ovl->manager->get_device(ovl->manager);
+ 
+ 	/* set the default pix */
+ 	pix = &vout->pix;
+@@ -2205,8 +2234,10 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 	 */
+ 	for (i = 1; i < vid_dev->num_overlays; i++) {
+ 		ovl = omap_dss_get_overlay(i);
+-		if (ovl->manager && ovl->manager->device) {
+-			def_display = ovl->manager->device;
++		dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) :
++				NULL;
++		if (dssdev) {
++			def_display = dssdev;
+ 		} else {
+ 			dev_warn(&pdev->dev, "cannot find display\n");
+ 			def_display = NULL;
+@@ -2253,8 +2284,10 @@ probe_err1:
+ 	for (i = 1; i < vid_dev->num_overlays; i++) {
+ 		def_display = NULL;
+ 		ovl = omap_dss_get_overlay(i);
+-		if (ovl->manager && ovl->manager->device)
+-			def_display = ovl->manager->device;
++		dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) :
++				NULL;
++		if (dssdev)
++			def_display = dssdev;
+ 
+ 		if (def_display && def_display->driver)
+ 			def_display->driver->disable(def_display);
 -- 
 1.7.9.5
 
