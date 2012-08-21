@@ -1,75 +1,106 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH 4/4] gpio: smscece: Add support for gpio IO expander
- feature
-Date: Tue, 21 Aug 2012 15:00:54 +0300
-Message-ID: <20120821120052.GD10347@arwen.pp.htv.fi>
-References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
- <1345545940-2232-5-git-send-email-sourav.poddar@ti.com>
- <20120821105333.GW10347@arwen.pp.htv.fi>
- <CAKdam56DiFpnoQwrHe1tjQWLMy5vP9ynstNj_n=OyMxkJJAUOA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
+ make	sense?
+Date: Tue, 21 Aug 2012 13:05:12 +0100
+Message-ID: <20120821120511.GB7995@opensource.wolfsonmicro.com>
+References: <5032E8A5.8070108@ti.com>
+ <s5hlih895kt.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e3HNah56eoWqGn2Q"
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKdam56DiFpnoQwrHe1tjQWLMy5vP9ynstNj_n=OyMxkJJAUOA@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: balbi@ti.com, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============2747477949912194840=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <s5hlih895kt.wl%tiwai@suse.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: alsa-devel <alsa-devel@alsa-project.org>, Ricardo Neri <ricardo.neri@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Guiriec,
+ Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---e3HNah56eoWqGn2Q
+--===============2747477949912194840==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
+Content-Disposition: inline
+
+
+--tsOsTdHNUZQcU9Ye
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Tue, Aug 21, 2012 at 07:28:34AM +0200, Takashi Iwai wrote:
+> Ricardo Neri wrote:
 
-On Tue, Aug 21, 2012 at 05:17:37PM +0530, Poddar, Sourav wrote:
-> >> +     if (type & IRQ_TYPE_LEVEL_HIGH)
-> >> +             sg->int_lvl[bank] |=3D bit;
-> >> +     else if (type & IRQ_TYPE_LEVEL_LOW)
-> >> +             sg->int_lvl[bank] &=3D ~bit;
-> >> +     else
-> >> +             return -EINVAL;
-> >
-> > this looks wrong. You could have a user who wants to trigger on both
-> > HIGH and LOW levels, no ?
-> >
-> Yes, I think there can be a scenario where gpio_keys are attached
-> to this driver and signals a "key press" at low and "key release" at
-> high. ?
->  Will figure out a way to add support to check for case where
-> both High and low levels are used.
+> > I was wondering about how much sense does it make to you guys use a=20
+> > snd_soc_jack in this case?
 
-could probably be done on a separate patch, maybe... Just now I saw that
-HIGH and LOW levels use the same bit.
+> HD-audio already uses the generic jack event for the HDMI/DP
+> connection change notification as well, so I think it would make sense
+> in general.
 
---=20
-balbi
+The whole problem here is that we don't *have* a generic jack interface.
+We've got:
 
---e3HNah56eoWqGn2Q
+ - sound/core/jack.c which was written to be a generic API and is used
+   by everything that does jack support currently.
+
+ - sound/core/ctljack.c which was added later and provides separate
+   in-kernel and userspace APIs and is currently only used by HDA.
+
+ - extcon which does have a good reason to be a separate API since that
+   it's not audio specific (and is likely to be picked up by Android as
+   the code was originally taken from there); it's currently not
+   supported by the frameworks in ALSA.  I'd suggest Pulse should be using
+   it too.
+
+This is a complete shambles for both driver authors and userspace, the
+ABI varies randomly with drivers and in theory driver authors have to
+implement everything three times which is just nuts.
+
+What I'd like to see happening is that we merge ctljack into jack (since
+only HDA is going to be affected by that change it seems like the right
+direction to make the merge) and also add extcon support, I have looked
+at the extcon support.
+
+Short term for drivers used on embedded systems I'd have to recommend
+extcon rather than anything ALSA-specific.
+
+--tsOsTdHNUZQcU9Ye
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQM3h0AAoJEIaOsuA1yqREVsEP/128t7kFxIyPtzzivHuOliqu
-fiBqNyB7VSAbkOxpsAeG7QNxjAhWdvWeIwBLRk+4PdTra5f6XRIxCDJVTvXaPaqC
-/m5TH0ELfzVSTFhilboOFmppazg036Nb+rlfHiEz+DOVJOmTokMFwWOptBVg6KRQ
-ClGhXL4E7PzSAGxxq3XhFFe3uQ09RT6ZliAuwMH6LsnFg01HnYS1vC83Q+zaC8dg
-kgmRIupGeuANI596RTrn6W9qqBDl2ee728MuwFhg2uY9CVpIqQQT4w3NeVIh4eVl
-/DvQpFuN3nl+FchZn6EXIRzSRliuJKXegnD08Geh2J61l62u3Dry3unE5C/sRkmR
-QUPcXfyL/omMoww/Sir2ztmbqvK7st/bEMXEdFnHDNI4SQpnauRT0I5QelV2N+NW
-YV9yxn3D7W9kIprKtGoTCgD1vYQUMxgCfQdqdq5Qb/MDMqd3qdrS5HNyXtuCb0PG
-P/e5wPH3BKY41OaF/kBwBr7fesoMKFvajPxlWob8xH2tdVhrTnxXGm1omapdMfpM
-AH77XTRUR+R54FLb4rzbFWO3pHU6V5oe5+qQuOsD+CzcK+XgLFQObAcuCs1UaJ93
-8Ri/BNolwB54iU9SUAW51qUkZjFqnjQ4/zZnxFJl4noBNoCILUy92WN8BoNCScQv
-o237Yirp2EgphuxxnF46
-=Jvvq
+iQIcBAEBAgAGBQJQM3cQAAoJEFJkBDiqVpZ4RUkP/3MYbWl0tz76hqaxIRdiEqjC
+VPvFOjIq2MCw+848IhHj3Gyu7U4Nb20eOZdrxXeGJXO5D79sR9bOlo9NSIIiN+Tj
+1xc6CqeVuZnUIEHXU+WvGQvemxUFVY+2n8qj1Bs8Rr1IDZoXZkha/qDsZQPqFtRT
+dMupl14B65RCtxi6C1GZ9iFXD3hVkNvfPxVskFDVP/M9SQeZZPGP5HFL9mCr5VSA
+tDKPePqHQF/dXGrE5yMzV0PxA9ex2tHq8AFTI5xk+vDx7eP67hHkNcA2HBudXZCR
+MqlSrCwcWlWfUUziEYFe137lt3hcsGRn2XvC91l70iWtth496u1WPJu76vfTp5SR
+Yr50VLCCBrzb9ynOmCxsQueORu16r9n+XDSV8cMfG/QUgW0/Z5l/4cl5J07xTgvg
+/BwwPpjBUIMTB9KaI8tg4UdIiLWD4hm4372LNLbG3cVP7RD5IXTq3DzYCyuGeDyh
+IyGTQFmH/eSK/mxDCi3NTKfhLMedBABMKS+QfVND/VoEPxWjLH6fyWYoSdw5fCO+
+6nU8memN5K3DR9pmfmUgnwYGaBjgXE3SoGzjLw0xuxISi5qmRPKzvG5JB7hcnEtJ
+tWbfAoC1POvclSDaCyEZfWJwXOM02Nab5ETBdE+y46C5vcU2sVfz6jj0KaTvJCM/
+WK8nrzcfW3BRH3xbDlEn
+=m50x
 -----END PGP SIGNATURE-----
 
---e3HNah56eoWqGn2Q--
+--tsOsTdHNUZQcU9Ye--
+
+--===============2747477949912194840==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2747477949912194840==--
