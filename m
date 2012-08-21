@@ -1,106 +1,83 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
- make	sense?
-Date: Tue, 21 Aug 2012 13:05:12 +0100
-Message-ID: <20120821120511.GB7995@opensource.wolfsonmicro.com>
-References: <5032E8A5.8070108@ti.com>
- <s5hlih895kt.wl%tiwai@suse.de>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2747477949912194840=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <s5hlih895kt.wl%tiwai@suse.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: alsa-devel <alsa-devel@alsa-project.org>, Ricardo Neri <ricardo.neri@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Guiriec,
- Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v2 00/13] OMAP Serial patches
+Date: Tue, 21 Aug 2012 15:15:58 +0300
+Message-ID: <1345551371-18862-1-git-send-email-balbi@ti.com>
+References: <1345540555-24359-1-git-send-email-balbi@ti.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1345540555-24359-1-git-send-email-balbi@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: alan@linux.intel.com
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi guys,
 
---===============2747477949912194840==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
-Content-Disposition: inline
+here's a series of cleanup patches to the OMAP serial
+driver. A later series could be made re-implementing
+DMA using the DMA Engine API. Note that for RX DMA
+we could be using RX Timeout IRQ as a hint that we better
+use PIO instead ;-)
 
+All patches were tested on my pandaboard, but I'd really
+like to receive Tested-by on other platforms.
 
---tsOsTdHNUZQcU9Ye
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+After this goes in, I'll probably try to get UART wakeup
+working again and only after that look at DMA.
 
-On Tue, Aug 21, 2012 at 07:28:34AM +0200, Takashi Iwai wrote:
-> Ricardo Neri wrote:
+Changes since v1:
 
-> > I was wondering about how much sense does it make to you guys use a=20
-> > snd_soc_jack in this case?
+	. improved commit log on patch 9/13 (formerly 10/13)
+	. removed patch 2/13
+	. added a new patch switching from spin_lock_irqsave() to spin_lock and
+		spin_unlock_irqrestore to spin_unlock
 
-> HD-audio already uses the generic jack event for the HDMI/DP
-> connection change notification as well, so I think it would make sense
-> in general.
+Retested with my pandaboard, UART continues to work:
 
-The whole problem here is that we don't *have* a generic jack interface.
-We've got:
+ # grep -i uart /proc/interrupts
+ 106:        124          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        189          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        255          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        321          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        387          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        453          0       GIC  OMAP UART2
+ #  grep -i uart /proc/interrupts
+ 106:        519          0       GIC  OMAP UART2
 
- - sound/core/jack.c which was written to be a generic API and is used
-   by everything that does jack support currently.
+cheers
 
- - sound/core/ctljack.c which was added later and provides separate
-   in-kernel and userspace APIs and is currently only used by HDA.
+ps: if anyone knows a better test for UART, let me know.
 
- - extcon which does have a good reason to be a separate API since that
-   it's not audio specific (and is likely to be picked up by Android as
-   the code was originally taken from there); it's currently not
-   supported by the frameworks in ALSA.  I'd suggest Pulse should be using
-   it too.
+for convenience of anyone testing, patches are available on my git tree [1] on
+branch uart
 
-This is a complete shambles for both driver authors and userspace, the
-ABI varies randomly with drivers and in theory driver authors have to
-implement everything three times which is just nuts.
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git uart
 
-What I'd like to see happening is that we merge ctljack into jack (since
-only HDA is going to be affected by that change it seems like the right
-direction to make the merge) and also add extcon support, I have looked
-at the extcon support.
+Felipe Balbi (13):
+  serial: omap: define and use to_uart_omap_port()
+  serial: omap: define helpers for pdata function pointers
+  serial: omap: don't access the platform_device
+  serial: omap: drop DMA support
+  serial: add OMAP-specific defines
+  serial: omap: simplify IRQ handling
+  serial: omap: refactor receive_chars() into rdi/rlsi handlers
+  serial: omap: move THRE check to transmit_chars()
+  serial: omap: stick to put_autosuspend
+  serial: omap: set dev->drvdata before enabling pm_runtime
+  serial: omap: drop unnecessary check from remove
+  serial: omap: make sure to suspend device before remove
+  serial: omap: don't save IRQ flags on hardirq
 
-Short term for drivers used on embedded systems I'd have to recommend
-extcon rather than anything ALSA-specific.
+ arch/arm/mach-omap2/serial.c                  |  15 +-
+ arch/arm/plat-omap/include/plat/omap-serial.h |  12 +-
+ drivers/tty/serial/omap-serial.c              | 713 +++++++++-----------------
+ include/linux/serial_reg.h                    |   4 +
+ 4 files changed, 254 insertions(+), 490 deletions(-)
 
---tsOsTdHNUZQcU9Ye
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+-- 
+1.7.12.rc3
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQM3cQAAoJEFJkBDiqVpZ4RUkP/3MYbWl0tz76hqaxIRdiEqjC
-VPvFOjIq2MCw+848IhHj3Gyu7U4Nb20eOZdrxXeGJXO5D79sR9bOlo9NSIIiN+Tj
-1xc6CqeVuZnUIEHXU+WvGQvemxUFVY+2n8qj1Bs8Rr1IDZoXZkha/qDsZQPqFtRT
-dMupl14B65RCtxi6C1GZ9iFXD3hVkNvfPxVskFDVP/M9SQeZZPGP5HFL9mCr5VSA
-tDKPePqHQF/dXGrE5yMzV0PxA9ex2tHq8AFTI5xk+vDx7eP67hHkNcA2HBudXZCR
-MqlSrCwcWlWfUUziEYFe137lt3hcsGRn2XvC91l70iWtth496u1WPJu76vfTp5SR
-Yr50VLCCBrzb9ynOmCxsQueORu16r9n+XDSV8cMfG/QUgW0/Z5l/4cl5J07xTgvg
-/BwwPpjBUIMTB9KaI8tg4UdIiLWD4hm4372LNLbG3cVP7RD5IXTq3DzYCyuGeDyh
-IyGTQFmH/eSK/mxDCi3NTKfhLMedBABMKS+QfVND/VoEPxWjLH6fyWYoSdw5fCO+
-6nU8memN5K3DR9pmfmUgnwYGaBjgXE3SoGzjLw0xuxISi5qmRPKzvG5JB7hcnEtJ
-tWbfAoC1POvclSDaCyEZfWJwXOM02Nab5ETBdE+y46C5vcU2sVfz6jj0KaTvJCM/
-WK8nrzcfW3BRH3xbDlEn
-=m50x
------END PGP SIGNATURE-----
-
---tsOsTdHNUZQcU9Ye--
-
---===============2747477949912194840==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2747477949912194840==--
