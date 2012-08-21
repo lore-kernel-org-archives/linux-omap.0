@@ -1,30 +1,20 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 02/13] serial: omap: always return IRQ_HANDLED
-Date: Tue, 21 Aug 2012 12:15:44 +0300
-Message-ID: <1345540555-24359-3-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 11/13] serial: omap: set dev->drvdata before enabling pm_runtime
+Date: Tue, 21 Aug 2012 12:15:53 +0300
+Message-ID: <1345540555-24359-12-git-send-email-balbi@ti.com>
 References: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1345540555-24359-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: alan@linux.intel.com
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Even if we enter our IRQ handler just to notice
-that the our device didn't generate the IRQ,
-that still means "handling" and IRQ, so let's
-return IRQ_HANDLED.
+by the time we call our first pm_runtme_get_sync()
+after enable pm_runtime, our resume method might
+be called. To avoid problems, we must make sure
+that our dev->drvdata is set correctly before
+our resume method gets called.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
@@ -32,17 +22,24 @@ Signed-off-by: Felipe Balbi <balbi@ti.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 5c0d0bc..b4b95fc 100644
+index 458d77c..ba9cdf1 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -417,7 +417,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	if (iir & UART_IIR_NO_INT) {
- 		pm_runtime_mark_last_busy(&up->pdev->dev);
- 		pm_runtime_put_autosuspend(&up->pdev->dev);
--		return IRQ_NONE;
-+		return IRQ_HANDLED;
- 	}
+@@ -1298,6 +1298,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	serial_omap_uart_wq = create_singlethread_workqueue(up->name);
+ 	INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
  
- 	spin_lock_irqsave(&up->port.lock, flags);
++	platform_set_drvdata(pdev, up);
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev,
+ 			omap_up_info->autosuspend_timeout);
+@@ -1317,7 +1318,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+-	platform_set_drvdata(pdev, up);
+ 	return 0;
+ 
+ err_add_port:
 -- 
 1.7.12.rc3
