@@ -1,116 +1,315 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
-	make sense?
-Date: Tue, 21 Aug 2012 09:01:07 +0300
-Message-ID: <1345528867.15491.12.camel@lappyti>
-References: <5032E8A5.8070108@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 04/23] OMAPDSS: APPLY: Add manager set/unset output ops for omap_overlay_manager
+Date: Tue, 21 Aug 2012 11:28:11 +0530
+Message-ID: <1345528711-27801-5-git-send-email-archit@ti.com>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2690218304647117694=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5032E8A5.8070108@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Ricardo Neri <ricardo.neri@ti.com>, Rob Clark <rob@ti.com>
-Cc: alsa-devel <alsa-devel@alsa-project.org>, "Brown,
- Mark" <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Guiriec,
- Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34793 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753081Ab2HUGAZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 02:00:25 -0400
+In-Reply-To: <1345528711-27801-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com, Archit Taneja <archit@ti.com>
 
+Add set_output/unset_output ops for overlay managers, these form links between
+managers and outputs. Create a function in dss features which tell all the
+output instances that connect to a manager, use it when a manager tries to set
+an output. Add a constraint of not unsetting an output when the manager is
+enabled.
 
---===============2690218304647117694==
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Szot05M4txkX9DqslzbM"
+Keep the omap_dss_device pointer and set/unset_device ops in overlay_manager for
+now to not break things. Keep the dss feature function get_supported_displays
+as it's used in some places. These will be removed later.
 
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/apply.c        |   70 ++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss.h          |    3 ++
+ drivers/video/omap2/dss/dss_features.c |   52 ++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ drivers/video/omap2/dss/manager.c      |    4 ++
+ include/video/omapdss.h                |    5 +++
+ 6 files changed, 135 insertions(+)
 
---=-Szot05M4txkX9DqslzbM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 74f1a58..d241407 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -1311,6 +1311,76 @@ err:
+ 	return r;
+ }
+ 
++int dss_mgr_set_output(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *output)
++{
++	int r;
++
++	mutex_lock(&apply_lock);
++
++	if (mgr->output) {
++		DSSERR("manager %s is already connected to an output\n",
++			mgr->name);
++		r = -EINVAL;
++		goto err;
++	}
++
++	if ((mgr->supported_outputs & output->id) == 0) {
++		DSSERR("output does not support manager %s\n",
++			mgr->name);
++		r = -EINVAL;
++		goto err;
++	}
++
++	output->manager = mgr;
++	mgr->output = output;
++
++	mutex_unlock(&apply_lock);
++
++	return 0;
++err:
++	mutex_unlock(&apply_lock);
++	return r;
++}
++
++int dss_mgr_unset_output(struct omap_overlay_manager *mgr)
++{
++	int r;
++	struct mgr_priv_data *mp = get_mgr_priv(mgr);
++	unsigned long flags;
++
++	mutex_lock(&apply_lock);
++
++	if (!mgr->output) {
++		DSSERR("failed to unset output, output not set\n");
++		r = -EINVAL;
++		goto err;
++	}
++
++	spin_lock_irqsave(&data_lock, flags);
++
++	if (mp->enabled) {
++		DSSERR("output can't be unset when manager is enabled\n");
++		r = -EINVAL;
++		goto err1;
++	}
++
++	spin_unlock_irqrestore(&data_lock, flags);
++
++	mgr->output->manager = NULL;
++	mgr->output = NULL;
++
++	mutex_unlock(&apply_lock);
++
++	return 0;
++err1:
++	spin_unlock_irqrestore(&data_lock, flags);
++err:
++	mutex_unlock(&apply_lock);
++
++	return r;
++}
++
+ static void dss_apply_mgr_timings(struct omap_overlay_manager *mgr,
+ 		const struct omap_video_timings *timings)
+ {
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 8a7c94c..a119506 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -205,6 +205,9 @@ void dss_mgr_get_info(struct omap_overlay_manager *mgr,
+ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_device *dssdev);
+ int dss_mgr_unset_device(struct omap_overlay_manager *mgr);
++int dss_mgr_set_output(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *output);
++int dss_mgr_unset_output(struct omap_overlay_manager *mgr);
+ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+ 		const struct omap_video_timings *timings);
+ void dss_mgr_set_lcd_config(struct omap_overlay_manager *mgr,
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 9387097..43f8491 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -47,6 +47,7 @@ struct omap_dss_features {
+ 	const int num_mgrs;
+ 	const int num_ovls;
+ 	const enum omap_display_type *supported_displays;
++	const enum omap_dss_output_id *supported_outputs;
+ 	const enum omap_color_mode *supported_color_modes;
+ 	const enum omap_overlay_caps *overlay_caps;
+ 	const char * const *clksrc_names;
+@@ -144,6 +145,46 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
+ 	OMAP_DISPLAY_TYPE_DSI,
+ };
+ 
++static const enum omap_dss_output_id omap2_dss_supported_outputs[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DSS_OUTPUT_VENC,
++};
++
++static const enum omap_dss_output_id omap3430_dss_supported_outputs[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
++	OMAP_DSS_OUTPUT_SDI | OMAP_DSS_OUTPUT_DSI1,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DSS_OUTPUT_VENC,
++};
++
++static const enum omap_dss_output_id omap3630_dss_supported_outputs[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
++	OMAP_DSS_OUTPUT_DSI1,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DSS_OUTPUT_VENC,
++};
++
++static const enum omap_dss_output_id omap4_dss_supported_outputs[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
++	OMAP_DSS_OUTPUT_DSI1,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DSS_OUTPUT_VENC | OMAP_DSS_OUTPUT_HDMI |
++	OMAP_DSS_OUTPUT_DPI,
++
++	/* OMAP_DSS_CHANNEL_LCD2 */
++	OMAP_DSS_OUTPUT_DPI | OMAP_DSS_OUTPUT_DBI |
++	OMAP_DSS_OUTPUT_DSI2,
++};
++
+ static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
+ 	/* OMAP_DSS_GFX */
+ 	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+@@ -458,6 +499,7 @@ static const struct omap_dss_features omap2_dss_features = {
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+ 	.supported_displays = omap2_dss_supported_displays,
++	.supported_outputs = omap2_dss_supported_outputs,
+ 	.supported_color_modes = omap2_dss_supported_color_modes,
+ 	.overlay_caps = omap2_dss_overlay_caps,
+ 	.clksrc_names = omap2_dss_clk_source_names,
+@@ -478,6 +520,7 @@ static const struct omap_dss_features omap3430_dss_features = {
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+ 	.supported_displays = omap3430_dss_supported_displays,
++	.supported_outputs = omap3430_dss_supported_outputs,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.overlay_caps = omap3430_dss_overlay_caps,
+ 	.clksrc_names = omap3_dss_clk_source_names,
+@@ -497,6 +540,7 @@ static const struct omap_dss_features omap3630_dss_features = {
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+ 	.supported_displays = omap3630_dss_supported_displays,
++	.supported_outputs = omap3630_dss_supported_outputs,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.overlay_caps = omap3630_dss_overlay_caps,
+ 	.clksrc_names = omap3_dss_clk_source_names,
+@@ -518,6 +562,7 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
+ 	.num_mgrs = 3,
+ 	.num_ovls = 4,
+ 	.supported_displays = omap4_dss_supported_displays,
++	.supported_outputs = omap4_dss_supported_outputs,
+ 	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.overlay_caps = omap4_dss_overlay_caps,
+ 	.clksrc_names = omap4_dss_clk_source_names,
+@@ -538,6 +583,7 @@ static const struct omap_dss_features omap4430_es2_0_1_2_dss_features = {
+ 	.num_mgrs = 3,
+ 	.num_ovls = 4,
+ 	.supported_displays = omap4_dss_supported_displays,
++	.supported_outputs = omap4_dss_supported_outputs,
+ 	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.overlay_caps = omap4_dss_overlay_caps,
+ 	.clksrc_names = omap4_dss_clk_source_names,
+@@ -558,6 +604,7 @@ static const struct omap_dss_features omap4_dss_features = {
+ 	.num_mgrs = 3,
+ 	.num_ovls = 4,
+ 	.supported_displays = omap4_dss_supported_displays,
++	.supported_outputs = omap4_dss_supported_outputs,
+ 	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.overlay_caps = omap4_dss_overlay_caps,
+ 	.clksrc_names = omap4_dss_clk_source_names,
+@@ -627,6 +674,11 @@ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel
+ 	return omap_current_dss_features->supported_displays[channel];
+ }
+ 
++enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel)
++{
++	return omap_current_dss_features->supported_outputs[channel];
++}
++
+ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane)
+ {
+ 	return omap_current_dss_features->supported_color_modes[plane];
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 996ffcb..89a71d1 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -103,6 +103,7 @@ int dss_feat_get_num_ovls(void);
+ unsigned long dss_feat_get_param_min(enum dss_range_param param);
+ unsigned long dss_feat_get_param_max(enum dss_range_param param);
+ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
++enum omap_dss_output_id dss_feat_get_supported_outputs(enum omap_channel channel);
+ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
+ enum omap_overlay_caps dss_feat_get_overlay_caps(enum omap_plane plane);
+ bool dss_feat_color_mode_supported(enum omap_plane plane,
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index 53710fa..e15fa5f 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -549,6 +549,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 
+ 		mgr->set_device = &dss_mgr_set_device;
+ 		mgr->unset_device = &dss_mgr_unset_device;
++		mgr->set_output = &dss_mgr_set_output;
++		mgr->unset_output = &dss_mgr_unset_output;
+ 		mgr->apply = &omap_dss_mgr_apply;
+ 		mgr->set_manager_info = &dss_mgr_set_info;
+ 		mgr->get_manager_info = &dss_mgr_get_info;
+@@ -558,6 +560,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 		mgr->caps = 0;
+ 		mgr->supported_displays =
+ 			dss_feat_get_supported_displays(mgr->id);
++		mgr->supported_outputs =
++			dss_feat_get_supported_outputs(mgr->id);
+ 
+ 		INIT_LIST_HEAD(&mgr->overlays);
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 2e40f27..813672b 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -458,9 +458,11 @@ struct omap_overlay_manager {
+ 	enum omap_overlay_manager_caps caps;
+ 	struct list_head overlays;
+ 	enum omap_display_type supported_displays;
++	enum omap_dss_output_id supported_outputs;
+ 
+ 	/* dynamic fields */
+ 	struct omap_dss_device *device;
++	struct omap_dss_output *output;
+ 
+ 	/*
+ 	 * The following functions do not block:
+@@ -476,6 +478,9 @@ struct omap_overlay_manager {
+ 	int (*set_device)(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_device *dssdev);
+ 	int (*unset_device)(struct omap_overlay_manager *mgr);
++	int (*set_output)(struct omap_overlay_manager *mgr,
++		struct omap_dss_output *output);
++	int (*unset_output)(struct omap_overlay_manager *mgr);
+ 
+ 	int (*set_manager_info)(struct omap_overlay_manager *mgr,
+ 			struct omap_overlay_manager_info *info);
+-- 
+1.7.9.5
 
-On Mon, 2012-08-20 at 20:47 -0500, Ricardo Neri wrote:
-> Hello!
->=20
-> I have been working on prototypes for the ASoC OMAP HDMI audio driver to=
-=20
-> propagate events from the HDMI output (e.g., display getting=20
-> enabled/disabled/suspended). This for the users of the driver to react=
-=20
-> to such events. For instance, if the display is disabled or disconected,=
-=20
-> audio could be stopped, rerouted or whatever other decision the user=20
-> makes. This is needed because, if, for instance, the  HDMI IP goes off,=
-=20
-> audio will stall and the audio users will only see a "playback write=20
-> error (DMA or IRQ trouble?)"
->=20
-> In my prototypes I have used snd_soc_jack for this purpose and I have=20
-> some questions:
->=20
-> *I see snd_soc_jack is used mostly for headsets and microphones with=20
-> actual external mechanical connections. Strictly, in my case I propagate=
-=20
-> events originated by the OMAP display driver (changes in the power=20
-> state), and not from external events. Some of these events are generated=
-=20
-> from an actual HDMI cable connection/disconnection, though.
->=20
-> *Maybe the event should be propagated by omapdss/omapdrm/drm and the=20
-> entity in charge of the audio policy should listen those events instead.
->=20
-> *I do see SND_JACK_VIDEOOUT and SND_JACK_AVOUT types so maybe it is=20
-> feasible for an audio driver to report events from an AV output.
->=20
-> I was wondering about how much sense does it make to you guys use a=20
-> snd_soc_jack in this case?
-
-How does DRM handle audio? I made a quick grep, but I see the drm
-drivers only enabling the audio in the HW, nothing else.
-
-If there's a common generic way to handle this, we should obviously use
-that. But if we need to choose between doing something custom or doing
-it in omapdrm driver, I think we should go for drm the only solution and
-forget about audio with omapfb.
-
- Tomi
-
-
---=-Szot05M4txkX9DqslzbM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQMyQjAAoJEPo9qoy8lh71hwIP/iONBQLhPP9iXI7WEYU6BNUD
-MGJoTFNDPZAUXtuZOssNXLRGFs/ISwZxPGXPLGixuh7N8Iod7kHntajS3JlFU9V4
-5lR6kUePjabWqpLfE3inmNLfDDeOcCgoGDZBOtbPeUDZICC+ajJwy6SIFsSlGKeI
-mMZbGTeuyamiaaKG56lAFHM9TwMRHrEeoSwSoDcqLg15UjQfl1GISAayzTM9dLor
-YcBVrSeG+jqBYaJL3Su/u2gDMX0zdDUfqOYk5TzU7+O2MolCgzYWxUCdHq4t8cDO
-Q1CdrZkNnJ5cfOtmpptf/QBLsaSqTGldpyAe0SgEK01Jrnr4QUDBzMdDUQf/Eezq
-d4bg1bAYaHbvS/0DGoR74DkvtUoE8Cz0igWpyEGgyu581ADZtDLucEo8Kwl5DZqq
-q9AkPt2LJZXfYFo9yUfZQ3Vta0b/OS6W7Tfh9UHRot51h+S2dHG1f4xjxEbgBfZ7
-kLgmrUxpTXX9OmvXwdeNSYjAwOBJl4Q7D2cLmgmGSVj8FfmNu9RY4Lvnj9A5YBOG
-DoatF1AsIW8xjsL2JiZ/xwOQo7tslqedrVDIvBPL16yf9K2eEoV2Rt66AjqVsIKW
-wNP+yk0aQEp7OxKpMB1bY85u1X5hgBg+x5Dd7fV2KPLlAQkgrBjxIVoYQ57yU9r4
-16icE0kjj+6gUa1yI97h
-=K9TE
------END PGP SIGNATURE-----
-
---=-Szot05M4txkX9DqslzbM--
-
-
---===============2690218304647117694==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2690218304647117694==--
