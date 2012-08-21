@@ -1,78 +1,65 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
-	make sense?
-Date: Tue, 21 Aug 2012 14:18:19 +0100
-Message-ID: <20120821131818.GE7995@opensource.wolfsonmicro.com>
-References: <5032E8A5.8070108@ti.com> <1345528867.15491.12.camel@lappyti>
- <CAO8GWq=B8wa1tWOiT5ja80T2VrxHiSKSp4U6fHydV9iyOg=+Zg@mail.gmail.com>
+Subject: Re: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
+Date: Tue, 21 Aug 2012 14:22:22 +0100
+Message-ID: <20120821132222.GF7995@opensource.wolfsonmicro.com>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+ <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
+ <20120821124146.GA21557@sirena.org.uk>
+ <20120821124243.GG10347@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============9206209195728891061=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAO8GWq=B8wa1tWOiT5ja80T2VrxHiSKSp4U6fHydV9iyOg=+Zg@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: "Clark, Rob" <rob@ti.com>
-Cc: alsa-devel <alsa-devel@alsa-project.org>, Ricardo Neri <ricardo.neri@ti.com>, DRI development list <dri-devel@lists.freedesktop.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3yNHWXBV/QO9xKNm"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120821124243.GG10347@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============9206209195728891061==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T6xhMxlHU34Bk0ad"
-Content-Disposition: inline
-
-
---T6xhMxlHU34Bk0ad
+--3yNHWXBV/QO9xKNm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 21, 2012 at 07:39:55AM -0500, Clark, Rob wrote:
+On Tue, Aug 21, 2012 at 03:42:45PM +0300, Felipe Balbi wrote:
+> On Tue, Aug 21, 2012 at 01:41:46PM +0100, Mark Brown wrote:
+> > > +	regmap_read(smsc->regmap, SMSC_DEV_ID, &ret);
+> > > +	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
 
-> Does ASoC support 'hotplug' of audio devices?  If so, maybe it makes
-> some sense to have some support in drm core.  At least all the edid
-> parsing stuff to determine if the display supports audio should be
-> generic and not driver specific.
+> > I'd make these log messages dev_info() or something.
 
-Not really (except on a card level), and it'd probably confuse most
-userspaces.  What I'd expect to happen currently is that the current
-state of the connector would get reported via extcon.
+> dev_info() ? It'lll just make boot noisier for no good reason. Which
+> user wants to see this during boot up ? That's a debugging feature for
+> develop IMHO.
 
---T6xhMxlHU34Bk0ad
+Most of the registers appeared to be chip revision information which is
+most definitely useful to tell people about, though possibly with neater
+formatting ("why is this batch of boards failing...  oh, right").  If
+they're fixed device IDs then the driver should instead be verifying
+that the registers contain the expected values and bombing out if they
+don't.  Either way dev_dbg() isn't too helpful.
+
+--3yNHWXBV/QO9xKNm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQM4qMAAoJEFJkBDiqVpZ4HpQP/Rii3kkUeHmfnWh0mTPPS/1J
-2EV9dYOt69AKOi31M3GGxuIg9AqlW/tVDnCi9vkkuTt+F6PR8A5QUTEMlcHzEcX3
-ySgkcXdB0gWoFJqkr8Iuqa/EXqcswcLvmS4lMgqWGhoa6p7BO1pHdXTQrXCWcODo
-jvTAEhgf44R8jgDeP/NXKt0OtAb3t22IRkdIQkOoIS71v/lrPwZiUtPD5HiklQTE
-sh3lOI+8SriCEX6l1Ll9s3CmJ0pjzHoaUAIcMitaBnpX82qPT/KjYvw8nr/Belbt
-Qbvaz9EqkGzJOuFcRwQOgqOeQn2tk2b+rESqLuPCom7ap1FslHIT/akjJ6vL9wNA
-b/bqWXGuRkXczliAdqv5oxX/Hry8RXqwMDG6MzrxO+zqNkRmx/VqOuf7uT1F0f1a
-bHMP3U+nOhddLq3P0zLZpV843dvn5O2amXAC7kM2PAFKrwcYKjn4UqQEUKaF6Ch1
-1t3R9GuHol8Z3vxZS+TX9QfqfuLucjtcoYJQ4ill5qsqohlxuoL1gjqjvNcU6Ae8
-tmE/BoWHRwT7UD49ykLvYpHquOt1wy08MsXfukNyA3PEAoqcy6KkSVWwKOUsVzj7
-ynx5P26w/KLXasF/TTxciE1Xu8E5WF8sBYts8+599u9d7sz+A8rFP9gJ+Uj3BYsp
-hHYYkUXkBPpyWnh9MlWl
-=8jMu
+iQIcBAEBAgAGBQJQM4t4AAoJEFJkBDiqVpZ47ycP/3WlVznBTOKwzSi3GAfbVkUN
+qLeaURQHyUCVP95PzsrrnelTdWJb0nH0fDh51RwpywlwHOjMry8fqVXba4/BVwQS
+xMsGNvhRkhcXfV7CkvqtdGEqBiGH2ZW8ksOoPB9CO2SJhcH5KpzEFnvPlDDg9+8L
+MBGlIuB37WASTj7B8lEdW66FbQe+ZAYIKt5vIolUIoK6P048Ys43bldwq0FjaYZF
+AZv2qdz0CACSDlmcoMBMfw91pavo+kdeHFIUMoThU3QVAkAhbXGyRhhPBPkalGiI
+bvHchuVz3x92IvXclt7EQRkTHFIvHgIgBddYQBsa36lD4A/GfxwGFVtwl8BsPZiX
+34tFTA+KA/oXArE3tO/OmEhXSbSG/AUYYdFfl0b54oV/5+KBGkrCOVsx+UuuysHw
+LQYj6vJPTzNrgnMaP4HyUrBtnt2fyJNZSocpjborf++8B4fTM5jVQInT6IQNnUEM
+XfluppGEUJoLnLeWTGgdev0JzCZ/mzzXaKqtUcxSQO1AELvVOa1AnbxrUcnRIk2M
+8sDnES6BYokH+4UgIOSnucieYTlhI639xCEGJq31Yom1CE2DVrG0DbcncLUhkzmm
+BD6f8h0jmeQ5CbTNGVMgt5hy9wuLK2dEBY9V+Ha1sZD5SPe3k/7Dc5AHsrEKHsIC
+Nnhomm337Jkcj5Ytlelc
+=5Dag
 -----END PGP SIGNATURE-----
 
---T6xhMxlHU34Bk0ad--
-
---===============9206209195728891061==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============9206209195728891061==--
+--3yNHWXBV/QO9xKNm--
