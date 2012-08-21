@@ -1,70 +1,55 @@
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-Subject: Re: [PATCH 2/3] ARM: OMAP: hwmod: revise deassert sequence
-Date: Mon, 20 Aug 2012 20:15:16 -0500
-Message-ID: <CALLhW=6DNiH4pimWVB3o3uoCp2sC6gqub4_DqE+MB1Chjri8sw@mail.gmail.com>
-References: <1342466485-1050-1-git-send-email-omar.luna@linaro.org>
-	<1342466485-1050-3-git-send-email-omar.luna@linaro.org>
-	<alpine.DEB.2.00.1208020150240.4177@utopia.booyaka.com>
-	<CALLhW=6-b+kjfG-u3+uXiD64UwoNEdufjJKu0Mx-sGWp6n9csg@mail.gmail.com>
-	<501B609F.9030403@ti.com>
-	<CALLhW=7yJTq_cfB=KGY5VT8fNO1u_hrY118ysihFuQA+gVFRuQ@mail.gmail.com>
-	<50320FC4.2020100@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [RFC] ASoC: snd_soc_jack for HDMI audio: does it make
+	sense?
+Date: Mon, 20 Aug 2012 20:47:17 -0500
+Message-ID: <5032E8A5.8070108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:56707 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab2HUBPR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Aug 2012 21:15:17 -0400
-Received: by vcbfk26 with SMTP id fk26so5609117vcb.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Aug 2012 18:15:16 -0700 (PDT)
-In-Reply-To: <50320FC4.2020100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Liam Girdwood <lrg@ti.com>, "Brown, Mark" <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel <alsa-devel@alsa-project.org>, "Valkeinen,
+ Tomi" <tomi.valkeinen@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Benoit,
+Hello!
 
-On 20 August 2012 05:21, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi Omar,
->
-> On 08/03/2012 05:52 PM, Omar Ramirez Luna wrote:
->> On 3 August 2012 00:24, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->>> On 8/3/2012 3:50 AM, Omar Ramirez Luna wrote:
->>>> So in _enable:
->>>>
->>>>         _enable_clocks(oh);
->>>>         if (soc_ops.enable_module)
->>>>                 soc_ops.enable_module(oh);
->>>>
->>>> The enable_module part seems redundant to me, since the module should
->>>> be already enabled by the first call to _enable_clocks.
->>>
->>> Yes they do same thing, I believe the plan is to get rid of all clock
->>> leaf-nodes in the near future, and let hwmod handle module
->>> enable/disable part.
->>
->> If this is the case then an enable_module call is needed in my patch
->> for when these changes are made. The original works fine but only
->> because currently clock framework does what enable_module is doing.
->
-> Yes, that's the case, but I plan to remove most of the leaf clocks ASAP,
-> so we cannot rely on that.
->
->> Please let me know if you want me to resend with this change.
->
-> Yes, could you please repost with that change?
+I have been working on prototypes for the ASoC OMAP HDMI audio driver to 
+propagate events from the HDMI output (e.g., display getting 
+enabled/disabled/suspended). This for the users of the driver to react 
+to such events. For instance, if the display is disabled or disconected, 
+audio could be stopped, rerouted or whatever other decision the user 
+makes. This is needed because, if, for instance, the  HDMI IP goes off, 
+audio will stall and the audio users will only see a "playback write 
+error (DMA or IRQ trouble?)"
 
-Not a problem.
+In my prototypes I have used snd_soc_jack for this purpose and I have 
+some questions:
 
-> It will be good as well that you remove the leaf clock and use the
-> parent clock of current leaf as the main_clock. In that case it will
-> ensure that this is the hwmod fmwk that does enable the modulemode and
-> not the clock fmwk.
+*I see snd_soc_jack is used mostly for headsets and microphones with 
+actual external mechanical connections. Strictly, in my case I propagate 
+events originated by the OMAP display driver (changes in the power 
+state), and not from external events. Some of these events are generated 
+from an actual HDMI cable connection/disconnection, though.
 
-Ok, let me try that.
+*Maybe the event should be propagated by omapdss/omapdrm/drm and the 
+entity in charge of the audio policy should listen those events instead.
 
-Thanks for the comments,
+*I do see SND_JACK_VIDEOOUT and SND_JACK_AVOUT types so maybe it is 
+feasible for an audio driver to report events from an AV output.
 
-Omar
+I was wondering about how much sense does it make to you guys use a 
+snd_soc_jack in this case?
+
+Thanks in advance for your comments!
+
+Ricardo
