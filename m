@@ -1,89 +1,49 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/3] spi: omap2-mcspi: At remove dont use the
- runtime_autosuspend calls
-Date: Tue, 21 Aug 2012 12:06:12 +0300
-Message-ID: <20120821090611.GD10347@arwen.pp.htv.fi>
-References: <1345529864-7937-1-git-send-email-shubhrajyoti@ti.com>
- <1345529864-7937-4-git-send-email-shubhrajyoti@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WChQLJJJfbwij+9x"
+Subject: [RFC/PATCH 00/13] OMAP UART patches
+Date: Tue, 21 Aug 2012 12:15:42 +0300
+Message-ID: <1345540555-24359-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345529864-7937-4-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: alan@linux.intel.com
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi guys,
 
---WChQLJJJfbwij+9x
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+here's a series of cleanup patches to the OMAP serial
+driver. A later series could be made re-implementing
+DMA using the DMA Engine API. Note that for RX DMA
+we could be using RX Timeout IRQ as a hint that we better
+use PIO instead ;-)
 
-On Tue, Aug 21, 2012 at 11:47:44AM +0530, Shubhrajyoti D wrote:
-> At remove we shouldnt be using the autosuspend timeout as we are
-> calling pm_runtime_disable immediately after.
->=20
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+All patches were tested on my pandaboard, but I'd really
+like to receive Tested-by on other platforms.
 
-Makes sense to me:
+After this goes in, I'll probably try to get UART wakeup
+working again and only after that look at DMA.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+cheers
 
-> ---
->  drivers/spi/spi-omap2-mcspi.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-> index 5642111..f5bf628 100644
-> --- a/drivers/spi/spi-omap2-mcspi.c
-> +++ b/drivers/spi/spi-omap2-mcspi.c
-> @@ -1243,8 +1243,7 @@ static int __devexit omap2_mcspi_remove(struct plat=
-form_device *pdev)
->  	mcspi =3D spi_master_get_devdata(master);
->  	dma_channels =3D mcspi->dma_channels;
-> =20
-> -	pm_runtime_mark_last_busy(mcspi->dev);
-> -	pm_runtime_put_autosuspend(mcspi->dev);
-> +	pm_runtime_put_sync(mcspi->dev);
->  	pm_runtime_disable(&pdev->dev);
-> =20
->  	spi_unregister_master(master);
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Felipe Balbi (13):
+  serial: omap: define and use to_uart_omap_port()
+  serial: omap: always return IRQ_HANDLED
+  serial: omap: define helpers for pdata function pointers
+  serial: omap: don't access the platform_device
+  serial: omap: drop DMA support
+  serial: add OMAP-specific defines
+  serial: omap: simplify IRQ handling
+  serial: omap: refactor receive_chars() into rdi/rlsi handlers
+  serial: omap: move THRE check to transmit_chars()
+  serial: omap: stick to put_autosuspend
+  serial: omap: set dev->drvdata before enabling pm_runtime
+  serial: omap: drop unnecessary check from remove
+  serial: omap: make sure to suspend device before remove
 
---=20
-balbi
+ arch/arm/mach-omap2/serial.c                  |  15 +-
+ arch/arm/plat-omap/include/plat/omap-serial.h |  12 +-
+ drivers/tty/serial/omap-serial.c              | 707 +++++++++-----------------
+ include/linux/serial_reg.h                    |   4 +
+ 4 files changed, 250 insertions(+), 488 deletions(-)
 
---WChQLJJJfbwij+9x
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQM0+DAAoJEIaOsuA1yqRE/ZwP/2MZJ5PLpvsPiLsoXPhGhehj
-0RCXvnpLWNdqowOqWOViwXEaKNS6lf9tJfOCM4b5KpPAWX1s6E6/YtBc4zA6OIQ4
-iLxwKVf8tTshx6p0lyu9S5JE18C4hqYUrxItLutE2p1g3p+cxqeRu+c0q0gbzHQO
-dxma5vT90JCRDlrgp1ZJLoEPz2pu/rIMrGqogOGyxDPP3XBVmCoDhAGkg4WhA/cM
-iARJ2b+lGullOsUBFxrAlxprXQf9x8TwFL1FkfQph2On80UOWZNSqUQ9BwA8jSn8
-V/oPqtcV8XQTHTmaa+fZl3yFemrsRCkCOVlQvna7by+cVc1fcRG1rH9DpxxtUERO
-QCvXDYu1O9xvuKdJxS1UxzLNTl6iyb2jD8IwM37SShoQWnhDX1dt71eKlp7nBr1z
-C4vj5Gs5a9CGT9FWi+xvGOd2w3l5+zVllup7Q7/4qO5cCXfCdkKar4/j8TtpqmMT
-Bdi+uF2f1Vax7L0l0yEyQ+yclQxl3DDKI56Gg2VdfRISIqb04eTiazFvg8hd/q9p
-dfVCYBDtqlqCXjkM73VDZXeB3ZhymN5ULS9ABFfgIvGUCwclcRrl6Mkx1WDqVr+j
-myZmCpGHiKW8AcgRk9Tl9JthwwpNtn1YB0KD0XcIMw4GEbfEzXmSJgM9VINkKBde
-toLeG9hiOomNvny80ekO
-=AmdR
------END PGP SIGNATURE-----
-
---WChQLJJJfbwij+9x--
+-- 
+1.7.12.rc3
