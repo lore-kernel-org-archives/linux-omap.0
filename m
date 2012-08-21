@@ -1,15 +1,15 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 16/23] OMAPDSS: VENC: Pass outputs from panel driver to VENC interface driver
-Date: Tue, 21 Aug 2012 11:28:23 +0530
-Message-ID: <1345528711-27801-17-git-send-email-archit@ti.com>
+Subject: [PATCH 14/23] OMAPDSS: RFBI: Pass outputs from panel driver to RFBI interface driver
+Date: Tue, 21 Aug 2012 11:28:21 +0530
+Message-ID: <1345528711-27801-15-git-send-email-archit@ti.com>
 References: <1345528711-27801-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34844 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:34830 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753359Ab2HUGBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 02:01:17 -0400
+	with ESMTP id S1753024Ab2HUGBI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 02:01:08 -0400
 In-Reply-To: <1345528711-27801-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,367 +25,308 @@ pointer related to the connected interface, which in our case is the output
 entity.
 
 With the addition of outputs. There is a possibility that an omap_dss_device
-isn't connected to an output yet. Ensure that the venc panel driver calls the
-interface functions only if output is non NULL.
+isn't connected to an output yet. Ensure that panel drivers call the interface
+functions only if outputs are non NULL.
 
-Modify VENC functions to pass omap_dss_output pointer instead of omap_dss_device
-pointer. Modify the venc panel driver to call the updated functions.
+Modify DSI functions to pass omap_dss_output pointer instead of omap_dss_device
+pointer. Modify the panel drivers to call the updated functions.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dss.h        |   16 +++++-----
- drivers/video/omap2/dss/venc.c       |   58 +++++++++++++++++-----------------
- drivers/video/omap2/dss/venc_panel.c |   53 ++++++++++++++++++++++++-------
- 3 files changed, 78 insertions(+), 49 deletions(-)
+ drivers/video/omap2/displays/panel-n8x0.c |   38 +++++++++++++++++----------
+ drivers/video/omap2/dss/rfbi.c            |   40 +++++++++++++++--------------
+ include/video/omapdss.h                   |   16 ++++++------
+ 3 files changed, 53 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index a119506..5fd3cc5 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -476,17 +476,17 @@ static inline unsigned long venc_get_pixel_clock(void)
- 	return 0;
- }
- #endif
--int omapdss_venc_display_enable(struct omap_dss_device *dssdev);
--void omapdss_venc_display_disable(struct omap_dss_device *dssdev);
--void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
-+int omapdss_venc_display_enable(struct omap_dss_output *out);
-+void omapdss_venc_display_disable(struct omap_dss_output *out);
-+void omapdss_venc_set_timings(struct omap_dss_output *out,
- 		struct omap_video_timings *timings);
--int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
-+int omapdss_venc_check_timings(struct omap_dss_output *out,
- 		struct omap_video_timings *timings);
--u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev);
--int omapdss_venc_set_wss(struct omap_dss_device *dssdev, u32 wss);
--void omapdss_venc_set_type(struct omap_dss_device *dssdev,
-+u32 omapdss_venc_get_wss(struct omap_dss_output *out);
-+int omapdss_venc_set_wss(struct omap_dss_output *out, u32 wss);
-+void omapdss_venc_set_type(struct omap_dss_output *out,
- 		enum omap_dss_venc_type type);
--void omapdss_venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
-+void omapdss_venc_invert_vid_out_polarity(struct omap_dss_output *out,
- 		bool invert_polarity);
- int venc_panel_init(void);
- void venc_panel_exit(void);
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 264c5ec..7b399e7 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -426,7 +426,7 @@ static const struct venc_config *venc_timings_to_config(
- 	return NULL;
+diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
+index 17ae85e..3601c59 100644
+--- a/drivers/video/omap2/displays/panel-n8x0.c
++++ b/drivers/video/omap2/displays/panel-n8x0.c
+@@ -116,6 +116,7 @@ static void blizzard_ctrl_setup_update(struct omap_dss_device *dssdev,
+ 		int x, int y, int w, int h)
+ {
+ 	struct panel_drv_data *ddata = get_drv_data(dssdev);
++	struct omap_dss_output *out = dssdev->output;
+ 	u8 tmp[18];
+ 	int x_end, y_end;
+ 
+@@ -150,17 +151,17 @@ static void blizzard_ctrl_setup_update(struct omap_dss_device *dssdev,
+ 			BLIZZARD_SRC_WRITE_LCD :
+ 			BLIZZARD_SRC_WRITE_LCD_DESTRUCTIVE;
+ 
+-	omapdss_rfbi_set_pixel_size(dssdev, 16);
+-	omapdss_rfbi_set_data_lines(dssdev, 8);
++	omapdss_rfbi_set_pixel_size(out, 16);
++	omapdss_rfbi_set_data_lines(out, 8);
+ 
+-	omap_rfbi_configure(dssdev);
++	omap_rfbi_configure(out);
+ 
+ 	blizzard_write(BLIZZARD_INPUT_WIN_X_START_0, tmp, 18);
+ 
+-	omapdss_rfbi_set_pixel_size(dssdev, 16);
+-	omapdss_rfbi_set_data_lines(dssdev, 16);
++	omapdss_rfbi_set_pixel_size(out, 16);
++	omapdss_rfbi_set_data_lines(out, 16);
+ 
+-	omap_rfbi_configure(dssdev);
++	omap_rfbi_configure(out);
  }
  
--static int venc_power_on(struct omap_dss_device *dssdev)
-+static int venc_power_on(struct omap_dss_output *out)
+ static void mipid_transfer(struct spi_device *spi, int cmd, const u8 *wbuf,
+@@ -288,10 +289,14 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
+ 	struct panel_n8x0_data *bdata = get_board_data(dssdev);
+ 	struct panel_drv_data *ddata = get_drv_data(dssdev);
+ 	struct spi_device *spi = ddata->spidev;
++	struct omap_dss_output *out = dssdev->output;
+ 	u8 rev, conf;
+ 	u8 display_id[3];
+ 	const char *panel_name;
+ 
++	if (out == NULL)
++		return -ENODEV;
++
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
+ 		return 0;
+ 
+@@ -303,13 +308,13 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
+ 			goto err_plat_en;
+ 	}
+ 
+-	omapdss_rfbi_set_size(dssdev, dssdev->panel.timings.x_res,
++	omapdss_rfbi_set_size(out, dssdev->panel.timings.x_res,
+ 		dssdev->panel.timings.y_res);
+-	omapdss_rfbi_set_pixel_size(dssdev, dssdev->ctrl.pixel_size);
+-	omapdss_rfbi_set_data_lines(dssdev, dssdev->phy.rfbi.data_lines);
+-	omapdss_rfbi_set_interface_timings(dssdev, &dssdev->ctrl.rfbi_timings);
++	omapdss_rfbi_set_pixel_size(out, dssdev->ctrl.pixel_size);
++	omapdss_rfbi_set_data_lines(out, dssdev->phy.rfbi.data_lines);
++	omapdss_rfbi_set_interface_timings(out, &dssdev->ctrl.rfbi_timings);
+ 
+-	r = omapdss_rfbi_display_enable(dssdev);
++	r = omapdss_rfbi_display_enable(out);
+ 	if (r)
+ 		goto err_rfbi_en;
+ 
+@@ -373,7 +378,7 @@ err_inv_panel:
+ 	 */
+ 	/* gpio_direction_output(bdata->panel_reset, 0); */
+ err_inv_chip:
+-	omapdss_rfbi_display_disable(dssdev);
++	omapdss_rfbi_display_disable(out);
+ err_rfbi_en:
+ 	if (bdata->platform_disable)
+ 		bdata->platform_disable(dssdev);
+@@ -386,6 +391,7 @@ static void n8x0_panel_power_off(struct omap_dss_device *dssdev)
+ {
+ 	struct panel_n8x0_data *bdata = get_board_data(dssdev);
+ 	struct panel_drv_data *ddata = get_drv_data(dssdev);
++	struct omap_dss_output *out = dssdev->output;
+ 	struct spi_device *spi = ddata->spidev;
+ 
+ 	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+@@ -404,7 +410,7 @@ static void n8x0_panel_power_off(struct omap_dss_device *dssdev)
+ 	 */
+ 	/* gpio_direction_output(bdata->panel_reset, 0); */
+ 	gpio_direction_output(bdata->ctrl_pwrdown, 0);
+-	omapdss_rfbi_display_disable(dssdev);
++	omapdss_rfbi_display_disable(out);
+ }
+ 
+ static const struct rfbi_timings n8x0_panel_timings = {
+@@ -637,10 +643,14 @@ static int n8x0_panel_update(struct omap_dss_device *dssdev,
+ 		u16 x, u16 y, u16 w, u16 h)
+ {
+ 	struct panel_drv_data *ddata = get_drv_data(dssdev);
++	struct omap_dss_output *out = dssdev->output;
+ 	u16 dw, dh;
+ 
+ 	dev_dbg(&dssdev->dev, "update\n");
+ 
++	if (out == NULL)
++		return -ENODEV;
++
+ 	dw = dssdev->panel.timings.x_res;
+ 	dh = dssdev->panel.timings.y_res;
+ 
+@@ -655,7 +665,7 @@ static int n8x0_panel_update(struct omap_dss_device *dssdev,
+ 
+ 	blizzard_ctrl_setup_update(dssdev, x, y, w, h);
+ 
+-	omap_rfbi_update(dssdev, update_done, NULL);
++	omap_rfbi_update(out, update_done, NULL);
+ 
+ 	mutex_unlock(&ddata->lock);
+ 
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 9d9244c..ca264e8 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -305,11 +305,12 @@ void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
+ }
+ EXPORT_SYMBOL(omap_rfbi_write_pixels);
+ 
+-static int rfbi_transfer_area(struct omap_dss_device *dssdev,
++static int rfbi_transfer_area(struct omap_dss_output *out,
+ 		void (*callback)(void *data), void *data)
  {
  	u32 l;
  	int r;
-@@ -453,13 +453,13 @@ static int venc_power_on(struct omap_dss_device *dssdev)
++	struct omap_overlay_manager *mgr = out->manager;
+ 	u16 width = rfbi.timings.x_res;
+ 	u16 height = rfbi.timings.y_res;
  
- 	venc_write_reg(VENC_OUTPUT_CONTROL, l);
+@@ -318,9 +319,9 @@ static int rfbi_transfer_area(struct omap_dss_device *dssdev,
  
--	dss_mgr_set_timings(dssdev->manager, &venc.timings);
-+	dss_mgr_set_timings(out->manager, &venc.timings);
+ 	DSSDBG("rfbi_transfer_area %dx%d\n", width, height);
  
- 	r = regulator_enable(venc.vdda_dac_reg);
- 	if (r)
- 		goto err1;
+-	dss_mgr_set_timings(dssdev->manager, &rfbi.timings);
++	dss_mgr_set_timings(mgr, &rfbi.timings);
  
 -	r = dss_mgr_enable(dssdev->manager);
-+	r = dss_mgr_enable(out->manager);
++	r = dss_mgr_enable(mgr);
  	if (r)
- 		goto err2;
+ 		return r;
  
-@@ -476,12 +476,12 @@ err0:
- 	return r;
+@@ -767,40 +768,40 @@ static int rfbi_configure(int rfbi_module, int bpp, int lines)
+ 	return 0;
  }
  
--static void venc_power_off(struct omap_dss_device *dssdev)
-+static void venc_power_off(struct omap_dss_output *out)
+-int omap_rfbi_configure(struct omap_dss_device *dssdev)
++int omap_rfbi_configure(struct omap_dss_output *out)
  {
- 	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
- 	dss_set_dac_pwrdn_bgz(0);
+-	return rfbi_configure(dssdev->phy.rfbi.channel, rfbi.pixel_size,
++	return rfbi_configure(out->device->phy.rfbi.channel, rfbi.pixel_size,
+ 			rfbi.data_lines);
+ }
+ EXPORT_SYMBOL(omap_rfbi_configure);
  
--	dss_mgr_disable(dssdev->manager);
-+	dss_mgr_disable(out->manager);
+-int omap_rfbi_update(struct omap_dss_device *dssdev, void (*callback)(void *),
++int omap_rfbi_update(struct omap_dss_output *out, void (*callback)(void *),
+ 		void *data)
+ {
+-	return rfbi_transfer_area(dssdev, callback, data);
++	return rfbi_transfer_area(out, callback, data);
+ }
+ EXPORT_SYMBOL(omap_rfbi_update);
  
- 	regulator_disable(venc.vdda_dac_reg);
+-void omapdss_rfbi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h)
++void omapdss_rfbi_set_size(struct omap_dss_output *out, u16 w, u16 h)
+ {
+ 	rfbi.timings.x_res = w;
+ 	rfbi.timings.y_res = h;
+ }
+ EXPORT_SYMBOL(omapdss_rfbi_set_size);
  
-@@ -494,7 +494,7 @@ unsigned long venc_get_pixel_clock(void)
- 	return 13500000;
+-void omapdss_rfbi_set_pixel_size(struct omap_dss_device *dssdev, int pixel_size)
++void omapdss_rfbi_set_pixel_size(struct omap_dss_output *out, int pixel_size)
+ {
+ 	rfbi.pixel_size = pixel_size;
+ }
+ EXPORT_SYMBOL(omapdss_rfbi_set_pixel_size);
+ 
+-void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev, int data_lines)
++void omapdss_rfbi_set_data_lines(struct omap_dss_output *out, int data_lines)
+ {
+ 	rfbi.data_lines = data_lines;
+ }
+ EXPORT_SYMBOL(omapdss_rfbi_set_data_lines);
+ 
+-void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
++void omapdss_rfbi_set_interface_timings(struct omap_dss_output *out,
+ 		struct rfbi_timings *timings)
+ {
+ 	rfbi.intf_timings = *timings;
+@@ -847,7 +848,7 @@ static void rfbi_dump_regs(struct seq_file *s)
+ #undef DUMPREG
  }
  
--int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
-+int omapdss_venc_display_enable(struct omap_dss_output *out)
+-static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
++static void rfbi_config_lcd_manager(struct omap_dss_output *out)
+ {
+ 	struct dss_lcd_mgr_config mgr_config;
+ 
+@@ -860,7 +861,7 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	mgr_config.video_port_width = rfbi.pixel_size;
+ 	mgr_config.lcden_sig_polarity = 0;
+ 
+-	dss_mgr_set_lcd_config(dssdev->manager, &mgr_config);
++	dss_mgr_set_lcd_config(out->manager, &mgr_config);
+ 
+ 	/*
+ 	 * Set rfbi.timings with default values, the x_res and y_res fields
+@@ -881,14 +882,15 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	rfbi.timings.de_level = OMAPDSS_SIG_ACTIVE_HIGH;
+ 	rfbi.timings.sync_pclk_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
+ 
+-	dss_mgr_set_timings(dssdev->manager, &rfbi.timings);
++	dss_mgr_set_timings(out->manager, &rfbi.timings);
+ }
+ 
+-int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
++int omapdss_rfbi_display_enable(struct omap_dss_output *out)
  {
  	int r;
- 
-@@ -502,23 +502,23 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&venc.venc_lock);
++	struct omap_dss_device *dssdev = out->device;
  
 -	if (dssdev->manager == NULL) {
 +	if (out->manager == NULL) {
- 		DSSERR("Failed to enable display: no manager\n");
- 		r = -ENODEV;
- 		goto err0;
+ 		DSSERR("failed to enable display: no manager\n");
+ 		return -ENODEV;
  	}
- 
--	r = omap_dss_start_device(dssdev);
-+	r = omap_dss_start_device(out->device);
- 	if (r) {
- 		DSSERR("failed to start device\n");
- 		goto err0;
- 	}
- 
--	if (dssdev->platform_enable)
--		dssdev->platform_enable(dssdev);
-+	if (out->device->platform_enable)
-+		out->device->platform_enable(out->device);
- 
- 
--	r = venc_power_on(dssdev);
-+	r = venc_power_on(out);
- 	if (r)
+@@ -910,7 +912,7 @@ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
  		goto err1;
+ 	}
  
-@@ -528,31 +528,31 @@ int omapdss_venc_display_enable(struct omap_dss_device *dssdev)
+-	rfbi_config_lcd_manager(dssdev);
++	rfbi_config_lcd_manager(out);
  
- 	return 0;
- err1:
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
--	omap_dss_stop_device(dssdev);
-+	if (out->device->platform_disable)
-+		out->device->platform_disable(out->device);
-+	omap_dss_stop_device(out->device);
- err0:
- 	mutex_unlock(&venc.venc_lock);
- 	return r;
+ 	rfbi_configure(dssdev->phy.rfbi.channel, rfbi.pixel_size,
+ 			rfbi.data_lines);
+@@ -926,11 +928,11 @@ err0:
  }
+ EXPORT_SYMBOL(omapdss_rfbi_display_enable);
  
--void omapdss_venc_display_disable(struct omap_dss_device *dssdev)
-+void omapdss_venc_display_disable(struct omap_dss_output *out)
+-void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev)
++void omapdss_rfbi_display_disable(struct omap_dss_output *out)
  {
- 	DSSDBG("venc_display_disable\n");
- 
- 	mutex_lock(&venc.venc_lock);
- 
--	venc_power_off(dssdev);
-+	venc_power_off(out);
- 
+ 	omap_dispc_unregister_isr(framedone_callback, NULL,
+ 			DISPC_IRQ_FRAMEDONE);
 -	omap_dss_stop_device(dssdev);
 +	omap_dss_stop_device(out->device);
  
--	if (dssdev->platform_disable)
--		dssdev->platform_disable(dssdev);
-+	if (out->device->platform_disable)
-+		out->device->platform_disable(out->device);
- 
- 	mutex_unlock(&venc.venc_lock);
+ 	rfbi_runtime_put();
  }
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index cf881c0..723f091 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -798,17 +798,17 @@ void omapdss_sdi_set_timings(struct omap_dss_output *out,
+ 		struct omap_video_timings *timings);
+ void omapdss_sdi_set_datapairs(struct omap_dss_output *out, int datapairs);
  
--void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
-+void omapdss_venc_set_timings(struct omap_dss_output *out,
- 		struct omap_video_timings *timings)
- {
- 	DSSDBG("venc_set_timings\n");
-@@ -565,23 +565,23 @@ void omapdss_venc_set_timings(struct omap_dss_device *dssdev,
+-int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev);
+-void omapdss_rfbi_display_disable(struct omap_dss_device *dssdev);
+-int omap_rfbi_update(struct omap_dss_device *dssdev, void (*callback)(void *),
++int omapdss_rfbi_display_enable(struct omap_dss_output *out);
++void omapdss_rfbi_display_disable(struct omap_dss_output *out);
++int omap_rfbi_update(struct omap_dss_output *out, void (*callback)(void *),
+ 		void *data);
+-int omap_rfbi_configure(struct omap_dss_device *dssdev);
+-void omapdss_rfbi_set_size(struct omap_dss_device *dssdev, u16 w, u16 h);
+-void omapdss_rfbi_set_pixel_size(struct omap_dss_device *dssdev,
++int omap_rfbi_configure(struct omap_dss_output *out);
++void omapdss_rfbi_set_size(struct omap_dss_output *out, u16 w, u16 h);
++void omapdss_rfbi_set_pixel_size(struct omap_dss_output *out,
+ 		int pixel_size);
+-void omapdss_rfbi_set_data_lines(struct omap_dss_device *dssdev,
++void omapdss_rfbi_set_data_lines(struct omap_dss_output *out,
+ 		int data_lines);
+-void omapdss_rfbi_set_interface_timings(struct omap_dss_device *dssdev,
++void omapdss_rfbi_set_interface_timings(struct omap_dss_output *out,
+ 		struct rfbi_timings *timings);
  
- 	venc.timings = *timings;
- 
--	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+	if (out->device->state == OMAP_DSS_DISPLAY_ACTIVE) {
- 		int r;
- 
- 		/* turn the venc off and on to get new timings to use */
--		venc_power_off(dssdev);
-+		venc_power_off(out);
- 
--		r = venc_power_on(dssdev);
-+		r = venc_power_on(out);
- 		if (r)
- 			DSSERR("failed to power on VENC\n");
- 	} else {
--		dss_mgr_set_timings(dssdev->manager, timings);
-+		dss_mgr_set_timings(out->manager, timings);
- 	}
- 
- 	mutex_unlock(&venc.venc_lock);
- }
- 
--int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
-+int omapdss_venc_check_timings(struct omap_dss_output *out,
- 		struct omap_video_timings *timings)
- {
- 	DSSDBG("venc_check_timings\n");
-@@ -595,13 +595,13 @@ int omapdss_venc_check_timings(struct omap_dss_device *dssdev,
- 	return -EINVAL;
- }
- 
--u32 omapdss_venc_get_wss(struct omap_dss_device *dssdev)
-+u32 omapdss_venc_get_wss(struct omap_dss_output *out)
- {
- 	/* Invert due to VENC_L21_WC_CTL:INV=1 */
- 	return (venc.wss_data >> 8) ^ 0xfffff;
- }
- 
--int omapdss_venc_set_wss(struct omap_dss_device *dssdev, u32 wss)
-+int omapdss_venc_set_wss(struct omap_dss_output *out, u32 wss)
- {
- 	const struct venc_config *config;
- 	int r;
-@@ -630,7 +630,7 @@ err:
- 	return r;
- }
- 
--void omapdss_venc_set_type(struct omap_dss_device *dssdev,
-+void omapdss_venc_set_type(struct omap_dss_output *out,
- 		enum omap_dss_venc_type type)
- {
- 	mutex_lock(&venc.venc_lock);
-@@ -640,7 +640,7 @@ void omapdss_venc_set_type(struct omap_dss_device *dssdev,
- 	mutex_unlock(&venc.venc_lock);
- }
- 
--void omapdss_venc_invert_vid_out_polarity(struct omap_dss_device *dssdev,
-+void omapdss_venc_invert_vid_out_polarity(struct omap_dss_output *out,
- 		bool invert_polarity)
- {
- 	mutex_lock(&venc.venc_lock);
-diff --git a/drivers/video/omap2/dss/venc_panel.c b/drivers/video/omap2/dss/venc_panel.c
-index d55b878..0669f10 100644
---- a/drivers/video/omap2/dss/venc_panel.c
-+++ b/drivers/video/omap2/dss/venc_panel.c
-@@ -67,11 +67,14 @@ static ssize_t display_output_type_store(struct device *dev,
- 	mutex_lock(&venc_panel.lock);
- 
- 	if (dssdev->phy.venc.type != new_type) {
-+		struct omap_dss_output *out = dssdev->output;
-+
- 		dssdev->phy.venc.type = new_type;
--		omapdss_venc_set_type(dssdev, new_type);
-+		omapdss_venc_set_type(out, new_type);
-+
- 		if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
--			omapdss_venc_display_disable(dssdev);
--			omapdss_venc_display_enable(dssdev);
-+			omapdss_venc_display_disable(out);
-+			omapdss_venc_display_enable(out);
- 		}
- 	}
- 
-@@ -117,10 +120,14 @@ static void venc_panel_remove(struct omap_dss_device *dssdev)
- 
- static int venc_panel_enable(struct omap_dss_device *dssdev)
- {
-+	struct omap_dss_output *out = dssdev->output;
- 	int r;
- 
- 	dev_dbg(&dssdev->dev, "venc_panel_enable\n");
- 
-+	if (out == NULL)
-+		return -ENODEV;
-+
- 	mutex_lock(&venc_panel.lock);
- 
- 	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-@@ -128,12 +135,12 @@ static int venc_panel_enable(struct omap_dss_device *dssdev)
- 		goto err;
- 	}
- 
--	omapdss_venc_set_timings(dssdev, &dssdev->panel.timings);
--	omapdss_venc_set_type(dssdev, dssdev->phy.venc.type);
--	omapdss_venc_invert_vid_out_polarity(dssdev,
-+	omapdss_venc_set_timings(out, &dssdev->panel.timings);
-+	omapdss_venc_set_type(out, dssdev->phy.venc.type);
-+	omapdss_venc_invert_vid_out_polarity(out,
- 		dssdev->phy.venc.invert_polarity);
- 
--	r = omapdss_venc_display_enable(dssdev);
-+	r = omapdss_venc_display_enable(out);
- 	if (r)
- 		goto err;
- 
-@@ -150,6 +157,8 @@ err:
- 
- static void venc_panel_disable(struct omap_dss_device *dssdev)
- {
-+	struct omap_dss_output *out = dssdev->output;
-+
- 	dev_dbg(&dssdev->dev, "venc_panel_disable\n");
- 
- 	mutex_lock(&venc_panel.lock);
-@@ -163,7 +172,7 @@ static void venc_panel_disable(struct omap_dss_device *dssdev)
- 		goto end;
- 	}
- 
--	omapdss_venc_display_disable(dssdev);
-+	omapdss_venc_display_disable(out);
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- end:
-@@ -184,11 +193,16 @@ static int venc_panel_resume(struct omap_dss_device *dssdev)
- static void venc_panel_set_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
-+	struct omap_dss_output *out = dssdev->output;
-+
- 	dev_dbg(&dssdev->dev, "venc_panel_set_timings\n");
- 
-+	if (out == NULL)
-+		return;
-+
- 	mutex_lock(&venc_panel.lock);
- 
--	omapdss_venc_set_timings(dssdev, timings);
-+	omapdss_venc_set_timings(out, timings);
- 	dssdev->panel.timings = *timings;
- 
- 	mutex_unlock(&venc_panel.lock);
-@@ -197,23 +211,38 @@ static void venc_panel_set_timings(struct omap_dss_device *dssdev,
- static int venc_panel_check_timings(struct omap_dss_device *dssdev,
- 		struct omap_video_timings *timings)
- {
-+	struct omap_dss_output *out = dssdev->output;
-+
- 	dev_dbg(&dssdev->dev, "venc_panel_check_timings\n");
- 
--	return omapdss_venc_check_timings(dssdev, timings);
-+	if (out == NULL)
-+		return -ENODEV;
-+
-+	return omapdss_venc_check_timings(out, timings);
- }
- 
- static u32 venc_panel_get_wss(struct omap_dss_device *dssdev)
- {
-+	struct omap_dss_output *out = dssdev->output;
-+
- 	dev_dbg(&dssdev->dev, "venc_panel_get_wss\n");
- 
--	return omapdss_venc_get_wss(dssdev);
-+	if (out == NULL)
-+		return -ENODEV;
-+
-+	return omapdss_venc_get_wss(out);
- }
- 
- static int venc_panel_set_wss(struct omap_dss_device *dssdev, u32 wss)
- {
-+	struct omap_dss_output *out = dssdev->output;
-+
- 	dev_dbg(&dssdev->dev, "venc_panel_set_wss\n");
- 
--	return omapdss_venc_set_wss(dssdev, wss);
-+	if (out == NULL)
-+		return -ENODEV;
-+
-+	return omapdss_venc_set_wss(out, wss);
- }
- 
- static struct omap_dss_driver venc_driver = {
+ #endif
 -- 
 1.7.9.5
 
