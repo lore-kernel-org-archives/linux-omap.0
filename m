@@ -1,100 +1,106 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/4] arm/dts: omap5-evm: Add keypad support
-Date: Tue, 21 Aug 2012 13:47:45 +0300
-Message-ID: <20120821104744.GV10347@arwen.pp.htv.fi>
-References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
- <1345545940-2232-4-git-send-email-sourav.poddar@ti.com>
-Reply-To: balbi@ti.com
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2 3/4] arm/dts: Add tps65910 regulator DT data to
+ am335x-evm.dts
+Date: Tue, 21 Aug 2012 10:57:20 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA1AC7D@DBDE01.ent.ti.com>
+References: <1343110735-10640-1-git-send-email-anilkumar@ti.com>
+ <1343110735-10640-4-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1293E@DBDE01.ent.ti.com>
+ <20120815125338.GA13544@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13118@DBDE01.ent.ti.com>
+ <20120815165431.GF15365@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA13D18@DBDE01.ent.ti.com>
+ <20120816140056.GK15365@opensource.wolfsonmicro.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA19A81@DBDE01.ent.ti.com>
+ <20120820200715.GT26991@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pbi2MkfjSbXbI4MN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345545940-2232-4-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50169 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756622Ab2HUK5c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Aug 2012 06:57:32 -0400
+In-Reply-To: <20120820200715.GT26991@opensource.wolfsonmicro.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
+Hi Mark,
 
---Pbi2MkfjSbXbI4MN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Aug 21, 2012 at 01:37:15, Mark Brown wrote:
+> On Mon, Aug 20, 2012 at 06:27:01AM +0000, AnilKumar, Chimata wrote:
+> > On Thu, Aug 16, 2012 at 19:30:56, Mark Brown wrote:
+> 
+> > > Why does this mean you need multiple regulators?  A single regulator can
+> > > of course supply multiple devices.
+> 
+> > I got your point but tps65910 driver is failing if we add single fixed
+> > regulator. Solution is driver needs to change or add multiple fixed
+> > regulators.
+> 
+> No, really.  One regulator can supply many things, not being a.
+> 
+> > vrtc:
+> > tps65910 0-002d: Failed to find supply vcc7
+> > tps65910 0-002d: failed to register tps65910-pmic regulator
+> 
+> So you've specified a whole bunch of supplies and this one individual
+> supply is not matching (and it's not the first...).  You should
+> investigate what's gone wrong there rather than bodging around the
+> problem.  I can't immediately say anything much based on the information
+> you've given.
+> 
 
-On Tue, Aug 21, 2012 at 04:15:39PM +0530, Sourav Poddar wrote:
-> Add keypad data node in omap5-evm.
->=20
-> Based on I2C support patch for omap5, which has been
-> already posted as a different series.
->=20
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Tested on omap5430 sdp with 3.5 custom kernel.
->=20
-> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Sorry for the noise in this issue, I found the root cause. I
+was defining the supply names like this which is wrong.
 
-after fixing my only comment below, you can add my:
+&tps {
+        regulators {
+                vcc1-supply = <&vcc5v_supply>;
+                vcc2-supply = <&vcc5v_supply>;
+                vcc3-supply = <&vcc5v_supply>;
+                vcc4-supply = <&vcc5v_supply>;
+                vcc5-supply = <&vcc5v_supply>;
+                vcc6-supply = <&vcc5v_supply>;
+                vcc7-supply = <&vcc5v_supply>;
+                vccio-supply = <&vcc5v_supply>;
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+                vrtc_reg: regulator@0 { /* vrtc input is vcc7 */
+                        regulator-always-on;
+                };
 
-> ---
->  arch/arm/boot/dts/omap5-evm.dts |   95 +++++++++++++++++++++++++++++++++=
-++++++
->  1 files changed, 95 insertions(+), 0 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-ev=
-m.dts
-> index 200c39a..6473983 100644
-> --- a/arch/arm/boot/dts/omap5-evm.dts
-> +++ b/arch/arm/boot/dts/omap5-evm.dts
-> @@ -18,3 +18,98 @@
->  		reg =3D <0x80000000 0x40000000>; /* 1 GB */
->  	};
->  };
-> +
-> +&i2c5 {
-> +	clock-frequency =3D <400000>;
-> +
-> +	smsc@38 {
-> +		compatible =3D "smsc";
-> +		reg =3D <0x38>;
-> +		clock =3D <0x13>;
-> +		keypad {
-> +			compatible =3D "smsc,keypad";
-> +			interrupt-parent =3D <&gpio5>;
-> +			interrupts =3D <23>; /* gpio line 151 */
-> +			keypad,num-rows =3D <8>;
-> +			keypad,num-columns =3D <16>;
-> +			linux,keymap =3D < 0x20041 /*KEY_F7*/
+                ... 
+                ...
+        };
+};
 
-please add spaces around /* and */ so it's easier to read. Ditto to all
-others.
+This was suppose to be
 
---=20
-balbi
+&tps {
+        vcc1-supply = <&vcc5v_supply>;
+        vcc2-supply = <&vcc5v_supply>;
+        vcc3-supply = <&vcc5v_supply>;
+        vcc4-supply = <&vcc5v_supply>;
+        vcc5-supply = <&vcc5v_supply>;
+        vcc6-supply = <&vcc5v_supply>;
+        vcc7-supply = <&vcc5v_supply>;
+        vccio-supply = <&vcc5v_supply>;
 
---Pbi2MkfjSbXbI4MN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+        regulators {
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+                vrtc_reg: regulator@0 { /* vrtc input is vcc7 */
+                        regulator-always-on;
+                };
 
-iQIcBAEBAgAGBQJQM2dQAAoJEIaOsuA1yqREp+gP/38+lT6kTwuvjYUTEfTaupzE
-40KShz9dqxWebvcpzKM6w3EFG7Gt66kzvMpXuv/Ih5+rD5+6wn2hvaCOiS6zPXCL
-rvhiCNEaE4HUblMH6HDK22Z6XwczEUdkrZRmfjdr5G6HHVB3sK19oOB4M8uHjt/r
-k37C6i6HT7qxa0Wi8Y3dqpq9z6aPq3ndp5aO/fbidZNkYJhXZCEszCbrtul+pRw5
-pXNCUycqjSqOlAMUzo4Jb+0qMd37FX3Ax2gRVJ81+ZF2f/lw8SwQpkP+kNwe+7j3
-IkBV+tHraXxGXG4ln0Eyp72/sqmEqqEeNeYKbotLgyB8n/xvPi1bU3kVDSHR1HsW
-MZp4OU02re52qdPwGCL4jvr3kHumNcEueQu6ZaQPTWDYxl0v3U4+0XkaLUeg4BbT
-XmuDtK0l3hS3uvOlIcD6ak9VQIzTX/C7UAxOdpY5ILzb++JO8OFTT68A5U0x52Qk
-whps3aHSAFFMU/ORjpxUw4TppbaghhpqiDVPVJ34FD6xeNVS04iDbo4z6sqZ6nyv
-zTpUMHVsSCJjN72ZpbOaezuNGF1DiNwWKaTkJMe3IBfzpFSIpkjhUjVI9YskKZM6
-jnUP+mftSqIB8ADEkQ9ncX8Vc57vsPOE+D9iS9CCMwK/8evSbrKaqgL2X3sP2J0C
-GT3rCPEzEDxbQd3Tcd6W
-=qow1
------END PGP SIGNATURE-----
+                ... 
+                ...
+        };
+};
 
---Pbi2MkfjSbXbI4MN--
+Thanks for your continuous feedback.
+
+Thanks
+AnilKumar
