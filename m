@@ -1,88 +1,50 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v6 06/10] ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
-Date: Tue, 21 Aug 2012 16:15:40 +0530
-Message-ID: <3cc7885c2ae9055763ba72cae0735b065dae403e.1345524670.git.afzal@ti.com>
-References: <cover.1345524670.git.afzal@ti.com>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCH 0/4] Add mfd driver for smsc-ece1099 chip
+Date: Tue, 21 Aug 2012 16:15:36 +0530
+Message-ID: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43532 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756378Ab2HUKpr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:45:47 -0400
-In-Reply-To: <cover.1345524670.git.afzal@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>
 
-Divider value for a certain sync clk is determined solely
-based on gpmc fclk. CS# does not have any role here, thus
-remove presence of CS# in clock divider calculation API.
+Add a smsc-ece1099 mfd driver which will work as 
+keypad scan device or a gpio expander device.
 
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/mach-omap2/gpmc-onenand.c     |    3 +--
- arch/arm/mach-omap2/gpmc.c             |    4 ++--
- arch/arm/plat-omap/include/plat/gpmc.h |    2 +-
- 3 files changed, 4 insertions(+), 5 deletions(-)
+Patch 1 creates the parent mfd driver.
+Patch 2 add keypad support. Patch 3 adds dts
+support for keypad in omap5 dts file.
+Patch 4 add gpio expansion driver for chip (RFC).
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 8a301f3..e139e3f 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -182,7 +182,6 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
- 	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
- 	int ticks_cez;
--	int cs = cfg->cs;
- 
- 	if (cfg->flags & ONENAND_SYNC_READ)
- 		onenand_flags = ONENAND_FLAG_SYNCREAD;
-@@ -229,7 +228,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 		break;
- 	}
- 
--	div = gpmc_cs_calc_divider(cs, min_gpmc_clk_period);
-+	div = gpmc_calc_divider(min_gpmc_clk_period);
- 	gpmc_clk_ns = gpmc_ticks_to_ns(div);
- 	if (gpmc_clk_ns < 15) /* >66Mhz */
- 		onenand_flags |= ONENAND_FLAG_HF;
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 68123d0..d005b3a 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -313,7 +313,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
- 		return -1
- #endif
- 
--int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
-+int gpmc_calc_divider(unsigned int sync_clk)
- {
- 	int div;
- 	u32 l;
-@@ -333,7 +333,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
- 	int div;
- 	u32 l;
- 
--	div = gpmc_cs_calc_divider(cs, t->sync_clk);
-+	div = gpmc_calc_divider(t->sync_clk);
- 	if (div < 0)
- 		return -1;
- 
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index b7c9ea6..1cafbfd 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -179,7 +179,7 @@ extern unsigned long gpmc_get_fclk_period(void);
- 
- extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
- extern u32 gpmc_cs_read_reg(int cs, int idx);
--extern int gpmc_cs_calc_divider(int cs, unsigned int sync_clk);
-+extern int gpmc_calc_divider(unsigned int sync_clk);
- extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
- extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
--- 
-1.7.1
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+G, Manjunath Kondaiah (1):
+  Input: keypad: Add smsc ece1099 keypad driver
+
+Sourav Poddar (3):
+  mfd: smsc: Add support for smsc gpio io/keypad driver
+  arm/dts: omap5-evm: Add keypad support
+  gpio: smscece: Add support for gpio IO expander feature
+
+ Documentation/smsc_ece1099.txt               |   56 ++++
+ arch/arm/boot/dts/omap5-evm.dts              |   95 +++++++
+ drivers/gpio/Kconfig                         |    7 +
+ drivers/gpio/Makefile                        |    1 +
+ drivers/gpio/gpio-smscece.c                  |  373 ++++++++++++++++++++++++++
+ drivers/input/keyboard/Kconfig               |   11 +
+ drivers/input/keyboard/Makefile              |    1 +
+ drivers/input/keyboard/smsc-ece1099-keypad.c |  308 +++++++++++++++++++++
+ drivers/mfd/Kconfig                          |   10 +
+ drivers/mfd/Makefile                         |    1 +
+ drivers/mfd/smsc-ece1099.c                   |  139 ++++++++++
+ include/linux/mfd/smsc.h                     |   89 ++++++
+ 12 files changed, 1091 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/smsc_ece1099.txt
+ create mode 100644 drivers/gpio/gpio-smscece.c
+ create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
+ create mode 100644 drivers/mfd/smsc-ece1099.c
+ create mode 100644 include/linux/mfd/smsc.h
 
