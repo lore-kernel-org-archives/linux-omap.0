@@ -1,78 +1,83 @@
-From: "Clark, Rob" <rob@ti.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it make sense?
-Date: Tue, 21 Aug 2012 07:39:55 -0500
-Message-ID: <CAO8GWq=B8wa1tWOiT5ja80T2VrxHiSKSp4U6fHydV9iyOg=+Zg@mail.gmail.com>
-References: <5032E8A5.8070108@ti.com>
-	<1345528867.15491.12.camel@lappyti>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
+Date: Tue, 21 Aug 2012 13:41:46 +0100
+Message-ID: <20120821124146.GA21557@sirena.org.uk>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+ <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:36997 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756610Ab2HUMj4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 08:39:56 -0400
-Received: by obc16 with SMTP id 16so12193150obc.20
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 05:39:55 -0700 (PDT)
-In-Reply-To: <1345528867.15491.12.camel@lappyti>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1345545940-2232-2-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, Liam Girdwood <lrg@ti.com>, "Brown, Mark" <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guiriec, Sebastien" <s-guiriec@ti.com>, DRI development list <dri-devel@lists.freedesktop.org>
 
-On Tue, Aug 21, 2012 at 1:01 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Mon, 2012-08-20 at 20:47 -0500, Ricardo Neri wrote:
->> Hello!
->>
->> I have been working on prototypes for the ASoC OMAP HDMI audio driver to
->> propagate events from the HDMI output (e.g., display getting
->> enabled/disabled/suspended). This for the users of the driver to react
->> to such events. For instance, if the display is disabled or disconected,
->> audio could be stopped, rerouted or whatever other decision the user
->> makes. This is needed because, if, for instance, the  HDMI IP goes off,
->> audio will stall and the audio users will only see a "playback write
->> error (DMA or IRQ trouble?)"
->>
->> In my prototypes I have used snd_soc_jack for this purpose and I have
->> some questions:
->>
->> *I see snd_soc_jack is used mostly for headsets and microphones with
->> actual external mechanical connections. Strictly, in my case I propagate
->> events originated by the OMAP display driver (changes in the power
->> state), and not from external events. Some of these events are generated
->> from an actual HDMI cable connection/disconnection, though.
->>
->> *Maybe the event should be propagated by omapdss/omapdrm/drm and the
->> entity in charge of the audio policy should listen those events instead.
->>
->> *I do see SND_JACK_VIDEOOUT and SND_JACK_AVOUT types so maybe it is
->> feasible for an audio driver to report events from an AV output.
->>
->> I was wondering about how much sense does it make to you guys use a
->> snd_soc_jack in this case?
->
-> How does DRM handle audio? I made a quick grep, but I see the drm
-> drivers only enabling the audio in the HW, nothing else.
+On Tue, Aug 21, 2012 at 04:15:37PM +0530, Sourav Poddar wrote:
 
-I confess to not knowing too much about audio/alsa, but what does
-audio driver need from hdmi?  Just hotplug events?
+> +config MFD_SMSC
+> +       bool "Support for the SMSC ECE1099 series chips"
+> +       depends on I2C=y && MFD_CORE && REGMAP_I2C
 
->From a quick look, it seems most of what the existing drm drivers are
-doing is detecting if the display supports audio, and then turning
-on/off the hw.. (and some infoframe stuff in some cases).
+This needs to select REGMAP_I2C not depend on it.  REGMAP_I2C will only
+be enabled by being selected.
 
-Does ASoC support 'hotplug' of audio devices?  If so, maybe it makes
-some sense to have some support in drm core.  At least all the edid
-parsing stuff to determine if the display supports audio should be
-generic and not driver specific.
+> +int smsc_read(struct device *child, unsigned int reg,
+> +	unsigned int *dest)
+> +{
+> +	struct smsc     *smsc = dev_get_drvdata(child->parent);
+> +
+> +	return regmap_read(smsc->regmap, reg, dest);
+> +}
+> +EXPORT_SYMBOL_GPL(smsc_read);
 
-BR,
--R
+I'd suggest making these static inlines in the header given that they're
+so trivial.
 
-> If there's a common generic way to handle this, we should obviously use
-> that. But if we need to choose between doing something custom or doing
-> it in omapdrm driver, I think we should go for drm the only solution and
-> forget about audio with omapfb.
->
->  Tomi
->
+> +static struct regmap_config smsc_regmap_config = {
+> +		.reg_bits = 8,
+> +		.val_bits = 8,
+> +		.cache_type = REGCACHE_COMPRESSED,
+> +};
+
+Indentation is weird here.  For the cache we should have at least
+.max_register defined and given the functionality there must surely be
+some volatile registers (I'm surprised this works at all as it is, the
+cache should break things).
+
+> +	of_property_read_u32(node, "clock", &smsc->clk);
+> +
+
+This is all unconditional, there should be a dependency on this in
+Kconfig.
+
+> +	regmap_read(smsc->regmap, SMSC_DEV_ID, &ret);
+> +	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
+
+I'd make these log messages dev_info() or something.
+
+> +err:
+> +	kfree(smsc);
+
+Use devm_kzalloc() for this.
+
+> +static const struct i2c_device_id smsc_i2c_id[] = {
+> +	{ "smsc", 0},
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(i2c, smsc_i2c_id);
+
+This should probably list the part name rather than "smsc" - that seems
+far too generic a name to use, obviously smsc produce more than one
+part!
