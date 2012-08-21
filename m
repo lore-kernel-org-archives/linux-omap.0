@@ -1,72 +1,97 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 4/5] ARM: OMAP4: Add L2 Cache Controller in Device Tree
-Date: Tue, 21 Aug 2012 16:16:25 +0530
-Message-ID: <CAMQu2gyGfeh6f+Nbg4KfvPtkQYa_KBv7gk0DGTxdY1NbXaUmDg@mail.gmail.com>
-References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
- <1344855623-14879-5-git-send-email-santosh.shilimkar@ti.com>
- <503240EF.4050805@ti.com> <CAMQu2gxgSasF4mmEFiZq-gsZfQwYn07DKyVGBVPWqjYkTSTu6g@mail.gmail.com>
- <CAMQu2gyL4-j9QSKMpNi5QQFsLqex8Q=bW9uNQtsewXVyrTumOQ@mail.gmail.com>
- <20120821102455.GM10347@arwen.pp.htv.fi> <CAMQu2gy46sVEBH0hvaXrwOLMfcKH+fwyExFmwzAPzxQKoYwhhA@mail.gmail.com>
- <5033667E.5060907@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v6 09/10] ARM: OMAP2+: smc91x: generic timing calculation
+Date: Tue, 21 Aug 2012 16:16:00 +0530
+Message-ID: <3a90c0a44f09b51fb0cbb4c0d15db4743eb36bc5.1345524670.git.afzal@ti.com>
+References: <cover.1345524670.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:57009 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756567Ab2HUKqr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 06:46:47 -0400
-Received: by yenm5 with SMTP id m5so6810809yen.17
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 03:46:46 -0700 (PDT)
-In-Reply-To: <5033667E.5060907@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45393 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756647Ab2HUKqH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 06:46:07 -0400
+In-Reply-To: <cover.1345524670.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
+To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-On Tue, Aug 21, 2012 at 4:14 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-> Hi Santosh,
->
+Generic gpmc timing calculation helper is available now, use
+it instead of custom timing calculation.
 
-[...]
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-smc91x.c |   43 ++++++++++++++----------------------
+ 1 files changed, 17 insertions(+), 26 deletions(-)
 
->>>> From 91d6cb4f999061c8cfc844a3916ee3384f2e488a Mon Sep 17 00:00:00 2001
->>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Date: Wed, 4 Jul 2012 17:57:34 +0530
->>>> Subject: [PATCH 1/2 v2] ARM: OMAP4: Add L2 Cache Controller in Device Tree
->>>>
->>>> This provides PL310 Level 2 Cache Controller Device Tree
->>>> support for OMAP4 based devices.
->>>>
->>>> Cc: Benoit Cousson <b-cousson@ti.com>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>
->>> nice work :-)
->>>
->>> FWIW this looks good to me:
->>>
->>> Acked-by: Felipe Balbi <balbi@ti.com>
->>>
->> Thanks.
->>
->>> just one thing, will a similar patch for omap3 be sent ?
->>>
->> OMAP3 has an integrated L2 cache controller so there
->> won't any additional DT node for L2.
->>
->> OMAP3 CPU DT node can be updated with l1/l2 cache
->> size etc related information though.
->
-> That's not needed if the information is available from the HW.
-> DT is only there to provide information that cannot be extracted from HW.
->
-Good to know.
+diff --git a/arch/arm/mach-omap2/gpmc-smc91x.c b/arch/arm/mach-omap2/gpmc-smc91x.c
+index ba10c24..43900f9 100644
+--- a/arch/arm/mach-omap2/gpmc-smc91x.c
++++ b/arch/arm/mach-omap2/gpmc-smc91x.c
+@@ -57,6 +57,7 @@ static struct platform_device gpmc_smc91x_device = {
+ static int smc91c96_gpmc_retime(void)
+ {
+ 	struct gpmc_timings t;
++	struct gpmc_device_timings dev_t;
+ 	const int t3 = 10;	/* Figure 12.2 read and 12.4 write */
+ 	const int t4_r = 20;	/* Figure 12.2 read */
+ 	const int t4_w = 5;	/* Figure 12.4 write */
+@@ -67,32 +68,6 @@ static int smc91c96_gpmc_retime(void)
+ 	const int t20 = 185;	/* Figure 12.2 read and 12.4 write */
+ 	u32 l;
+ 
+-	memset(&t, 0, sizeof(t));
+-
+-	/* Read timings */
+-	t.cs_on = 0;
+-	t.adv_on = t.cs_on;
+-	t.oe_on = t.adv_on + t3;
+-	t.access = t.oe_on + t5;
+-	t.oe_off = t.access;
+-	t.adv_rd_off = t.oe_off + max(t4_r, t6);
+-	t.cs_rd_off = t.oe_off;
+-	t.rd_cycle = t20 - t.oe_on;
+-
+-	/* Write timings */
+-	t.we_on = t.adv_on + t3;
+-
+-	if (cpu_is_omap34xx() && (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)) {
+-		t.wr_data_mux_bus = t.we_on;
+-		t.we_off = t.wr_data_mux_bus + t7;
+-	} else
+-		t.we_off = t.we_on + t7;
+-	if (cpu_is_omap34xx())
+-		t.wr_access = t.we_off;
+-	t.adv_wr_off = t.we_off + max(t4_w, t8);
+-	t.cs_wr_off = t.we_off + t4_w;
+-	t.wr_cycle = t20 - t.we_on;
+-
+ 	l = GPMC_CONFIG1_DEVICESIZE_16;
+ 	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
+ 		l |= GPMC_CONFIG1_MUXADDDATA;
+@@ -114,6 +89,22 @@ static int smc91c96_gpmc_retime(void)
+ 	if (gpmc_cfg->flags & GPMC_MUX_ADD_DATA)
+ 		return 0;
+ 
++	memset(&dev_t, 0, sizeof(dev_t));
++
++	dev_t.t_oeasu = t3 * 1000;
++	dev_t.t_oe = t5 * 1000;
++	dev_t.t_cez_r = t4_r * 1000;
++	dev_t.t_oez = t6 * 1000;
++	dev_t.t_rd_cycle = (t20 - t3) * 1000;
++
++	dev_t.t_weasu = t3 * 1000;
++	dev_t.t_wpl = t7 * 1000;
++	dev_t.t_wph = t8 * 1000;
++	dev_t.t_cez_w = t4_w * 1000;
++	dev_t.t_wr_cycle = (t20 - t3) * 1000;
++
++	gpmc_calc_timings(&t, &dev_t);
++
+ 	return gpmc_cs_set_timings(gpmc_cfg->cs, &t);
+ }
+ 
+-- 
+1.7.1
 
-> If CP15 registers already contains the details about caches, then there
-> is no need to add them in the DT file.
->
-True. In that case as you said, there is no need to add that information
-in DT.
-
-Regards
-Santosh
