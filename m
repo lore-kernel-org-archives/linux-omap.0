@@ -1,52 +1,70 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: receiving data from mcbsp1 in master mode
-Date: Tue, 21 Aug 2012 16:42:19 +0300
-Message-ID: <5033903B.8000009@ti.com>
-References: <20120821074205.0a36f648@kemnade.info>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
+Date: Tue, 21 Aug 2012 14:49:37 +0100
+Message-ID: <20120821134936.GH7995@opensource.wolfsonmicro.com>
+References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+ <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
+ <20120821124146.GA21557@sirena.org.uk>
+ <20120821124243.GG10347@arwen.pp.htv.fi>
+ <20120821132222.GF7995@opensource.wolfsonmicro.com>
+ <20120821132741.GI10347@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:41132 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987Ab2HUNmY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 09:42:24 -0400
-Received: by wgbdr1 with SMTP id dr1so5562140wgb.24
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 06:42:22 -0700 (PDT)
-In-Reply-To: <20120821074205.0a36f648@kemnade.info>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="54u2kuW9sGWg/X+X"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120821132741.GI10347@arwen.pp.htv.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: linux-omap@vger.kernel.org
 
-On 08/21/2012 08:42 AM, Andreas Kemnade wrote:
-> Hi,
->=20
-> I tried a couple of times with different kernels to use mcbsp1 of dm3=
-730
-> in master mode (so that it sends out clocks).
-> The result always is that I can send data out. but arecord gets no in=
-put. It
-> waits for input but does not get anything, although clocks are genera=
-ted,
-> checked that with a scope.=20
->=20
-> I even took a driver which works in master mode on another mcbsp and =
-just changed
-> the mcbsp number.
-> What needs to be done to receive data from mcbsp1?
 
-You should check the PIN mux configuration of McBSP1 FSR/CLKR pins. McB=
-SP1 on
-dm3730 have 6 pin configuration. I think the capture should work fine i=
-f you
-select the FSX as FSR source, and CLKX as CLKR source.
+--54u2kuW9sGWg/X+X
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Aug 21, 2012 at 04:27:44PM +0300, Felipe Balbi wrote:
+
+> I still beg to differ. Even if it fails, dmesg will still contain the
+> message (provided you have it enabled). I really don't think we want
+> this to print to console on every boot.
+
+Only if it's enabled which is the trick...
+
+> If you're still testing your new batch of boards, you're not just a
+> simple user and you will have debugging enabled anyway. dev_info() will
+> be visible to anyone who's got a console running. Not sure how useful
+> that would be to my neighbor.
+
+Also think about hobbyists and so on, and ideally at some point the
+people using distros.  We shouldn't be requiring kernel rebuilds for
+this sort of diagnostic information.  I guess sysfs is another option
+but frankly the overhead on boot just doesn't seem meaningful in the
+context of the overall kernel boot style - I'd really expect people who
+are bothered by this sort of output would be raising the minimum log
+level appearing on the console.
+
+--54u2kuW9sGWg/X+X
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQM5G+AAoJEFJkBDiqVpZ4KPgP/1ncZmg3IFkYUQvHIn0p9fj9
+RveFzhmi9xQC/mxxjd6lj68OU2Lz1PaU2FiD9K5Edq7QZn8Xcmt3lqYeQnD1LGWN
+Gvjaxx/igxw+C4NPDmAwlmqk0EcMkSP2gnctbpD8b+TL9nqxZqldsDHbhU59meF2
+kUDrEvfFTsuqkZ14Jpk5Ac6OVniPXS9WByH2nImXsu2jsbYjBYqlHpRrNhwYOeLF
+nzfFGoLOkYxk4anOSiB8UYEbaLqVDU0PYRFW10ufTcg2q0VP2LZ1p9H7l7+Lqz15
+euY97cCk13wc2dEhGME96xBD7j6Zce/vpm4yHD2qVpcxDpP0bTAp35gxVKLjJUjl
+UGkUoNG6eDs8c9v4ILhFhxD3ZoBM1y55V5uodAO45yJRYzpXBKy8BOasdPdExqXk
+tJo2J+CJOFeT5VGn1Sct3JKwGa3z0rWtEfv56trWhxW6mKwYqiHaKrcI5JQ6mkGF
+unPylJYGIbnuQ3YqayJU5WUT2g7IRs9iK1I7neD5ggFqNuWjoQfh9XRp7cio26tH
+3CDXsB2LzEhKBQ3jSxnI++b/J/vIKJ1p/XUMP07lz6cU1H/9pEzghVg8+VrmrCGG
+I8V2p/mT4whY423fHMQJHiMn1oqab8UMWxrO/ypic6gwLs9zfaB3N6Lpx6llA4A5
+hGi0o72Cf1SSoo1cFmt+
+=5jIw
+-----END PGP SIGNATURE-----
+
+--54u2kuW9sGWg/X+X--
