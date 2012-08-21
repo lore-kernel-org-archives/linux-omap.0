@@ -1,62 +1,219 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2 13/13] serial: omap: don't save IRQ flags on hardirq
-Date: Tue, 21 Aug 2012 15:16:11 +0300
-Message-ID: <1345551371-18862-14-git-send-email-balbi@ti.com>
+Subject: [PATCH v2 01/13] serial: omap: define and use to_uart_omap_port()
+Date: Tue, 21 Aug 2012 15:15:59 +0300
+Message-ID: <1345551371-18862-2-git-send-email-balbi@ti.com>
 References: <1345540555-24359-1-git-send-email-balbi@ti.com>
  <1345551371-18862-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:50871 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757357Ab2HUMUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 08:20:48 -0400
-Received: by lahc1 with SMTP id c1so3810875lah.40
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 05:20:45 -0700 (PDT)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1345551371-18862-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: alan@linux.intel.com
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-omap@vger.kernel.org
 
-When we're running our hardirq handler, there's
-not need to disable IRQs with spin_lock_irqsave()
-because IRQs are already disabled. It also makes
-no difference if we save or not IRQ flags.
+current code only works because struct uart_port
+is the first member on the uart_omap_port structure.
 
-Switch over to simple spin_lock/spin_unlock and
-drop the "flags" variable.
+If, for whatever reason, someone puts another
+member as the first of the structure, that cast
+won't work anymore. In order to be safe, let's use
+a container_of() which, for now, gets optimized into
+a cast anyway.
 
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |  2 ++
+ drivers/tty/serial/omap-serial.c              | 36 +++++++++++++--------------
+ 2 files changed, 20 insertions(+), 18 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index 1a52725..f3b35d9 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -137,4 +137,6 @@ struct uart_omap_port {
+ 	struct work_struct	qos_work;
+ };
+ 
++#define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
++
+ #endif /* __OMAP_SERIAL_H__ */
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index b79c4fa..a79658d 100644
+index d3cda0c..5c0d0bc 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -350,11 +350,10 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 	struct tty_struct *tty = up->port.state->port.tty;
- 	unsigned int iir, lsr;
- 	unsigned int type;
--	unsigned long flags;
- 	irqreturn_t ret = IRQ_HANDLED;
- 	int max_count = 256;
+@@ -141,7 +141,7 @@ static void serial_omap_stop_rxdma(struct uart_omap_port *up)
  
--	spin_lock_irqsave(&up->port.lock, flags);
-+	spin_lock(&up->port.lock);
- 	pm_runtime_get_sync(up->dev);
+ static void serial_omap_enable_ms(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
  
- 	do {
-@@ -394,7 +393,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
- 		}
- 	} while (!(iir & UART_IIR_NO_INT) && max_count--);
+ 	dev_dbg(up->port.dev, "serial_omap_enable_ms+%d\n", up->port.line);
  
--	spin_unlock_irqrestore(&up->port.lock, flags);
-+	spin_unlock(&up->port.lock);
+@@ -153,7 +153,7 @@ static void serial_omap_enable_ms(struct uart_port *port)
  
- 	tty_flip_buffer_push(tty);
+ static void serial_omap_stop_tx(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
  
+ 	if (up->use_dma &&
+@@ -186,7 +186,7 @@ static void serial_omap_stop_tx(struct uart_port *port)
+ 
+ static void serial_omap_stop_rx(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 
+ 	pm_runtime_get_sync(&up->pdev->dev);
+ 	if (up->use_dma)
+@@ -307,7 +307,7 @@ static inline void serial_omap_enable_ier_thri(struct uart_omap_port *up)
+ 
+ static void serial_omap_start_tx(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	struct omap_uart_port_info *pdata = up->pdev->dev.platform_data;
+ 	struct circ_buf *xmit;
+ 	unsigned int start;
+@@ -449,7 +449,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ 
+ static unsigned int serial_omap_tx_empty(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned long flags = 0;
+ 	unsigned int ret = 0;
+ 
+@@ -464,7 +464,7 @@ static unsigned int serial_omap_tx_empty(struct uart_port *port)
+ 
+ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned int status;
+ 	unsigned int ret = 0;
+ 
+@@ -487,7 +487,7 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
+ 
+ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned char mcr = 0;
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_set_mctrl+%d\n", up->port.line);
+@@ -511,7 +511,7 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ 
+ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned long flags = 0;
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_break_ctl+%d\n", up->port.line);
+@@ -528,7 +528,7 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
+ 
+ static int serial_omap_startup(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned long flags = 0;
+ 	int retval;
+ 
+@@ -606,7 +606,7 @@ static int serial_omap_startup(struct uart_port *port)
+ 
+ static void serial_omap_shutdown(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned long flags = 0;
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_shutdown+%d\n", up->port.line);
+@@ -721,7 +721,7 @@ static void
+ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 			struct ktermios *old)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned char cval = 0;
+ 	unsigned char efr = 0;
+ 	unsigned long flags = 0;
+@@ -932,7 +932,7 @@ static void
+ serial_omap_pm(struct uart_port *port, unsigned int state,
+ 	       unsigned int oldstate)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned char efr;
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_pm+%d\n", up->port.line);
+@@ -971,7 +971,7 @@ static int serial_omap_request_port(struct uart_port *port)
+ 
+ static void serial_omap_config_port(struct uart_port *port, int flags)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_config_port+%d\n",
+ 							up->port.line);
+@@ -989,7 +989,7 @@ serial_omap_verify_port(struct uart_port *port, struct serial_struct *ser)
+ static const char *
+ serial_omap_type(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 
+ 	dev_dbg(up->port.dev, "serial_omap_type+%d\n", up->port.line);
+ 	return up->name;
+@@ -1032,7 +1032,7 @@ static inline void wait_for_xmitr(struct uart_omap_port *up)
+ 
+ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 
+ 	pm_runtime_get_sync(&up->pdev->dev);
+ 	wait_for_xmitr(up);
+@@ -1042,7 +1042,7 @@ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
+ 
+ static int serial_omap_poll_get_char(struct uart_port *port)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 	unsigned int status;
+ 
+ 	pm_runtime_get_sync(&up->pdev->dev);
+@@ -1065,7 +1065,7 @@ static struct uart_driver serial_omap_reg;
+ 
+ static void serial_omap_console_putchar(struct uart_port *port, int ch)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)port;
++	struct uart_omap_port *up = to_uart_omap_port(port);
+ 
+ 	wait_for_xmitr(up);
+ 	serial_out(up, UART_TX, ch);
+@@ -1341,7 +1341,7 @@ static void serial_omap_continue_tx(struct uart_omap_port *up)
+ 
+ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
+ {
+-	struct uart_omap_port *up = (struct uart_omap_port *)data;
++	struct uart_omap_port *up = data;
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+ 
+ 	xmit->tail = (xmit->tail + up->uart_dma.tx_buf_size) & \
 -- 
 1.7.12.rc3
-
