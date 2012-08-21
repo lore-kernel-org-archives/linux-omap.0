@@ -1,133 +1,259 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCH 3/4] arm/dts: omap5-evm: Add keypad support
-Date: Tue, 21 Aug 2012 16:15:39 +0530
-Message-ID: <1345545940-2232-4-git-send-email-sourav.poddar@ti.com>
-References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing calculation
+Date: Tue, 21 Aug 2012 16:16:07 +0530
+Message-ID: <bc000ac53bb1b3ae1a951bbcf372caf6336d2a19.1345524670.git.afzal@ti.com>
+References: <cover.1345524670.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45418 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756678Ab2HUKqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 06:46:14 -0400
+In-Reply-To: <cover.1345524670.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, jon-hunter@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-Add keypad data node in omap5-evm.
+Generic gpmc timing calculation helper is available now, use
+it instead of custom timing calculation.
 
-Based on I2C support patch for omap5, which has been
-already posted as a different series.
-
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Tested on omap5430 sdp with 3.5 custom kernel.
-
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/boot/dts/omap5-evm.dts |   95 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 95 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-tusb6010.c |  181 +++++++++---------------------------
+ 1 files changed, 43 insertions(+), 138 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5-evm.dts b/arch/arm/boot/dts/omap5-evm.dts
-index 200c39a..6473983 100644
---- a/arch/arm/boot/dts/omap5-evm.dts
-+++ b/arch/arm/boot/dts/omap5-evm.dts
-@@ -18,3 +18,98 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
- };
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 7a85ebe..cce1f06 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -26,182 +26,87 @@ static u8		async_cs, sync_cs;
+ static unsigned		refclk_psec;
+ 
+ 
+-/* t2_ps, when quantized to fclk units, must happen no earlier than
+- * the clock after after t1_NS.
+- *
+- * Return a possibly updated value of t2_ps, converted to nsec.
+- */
+-static unsigned
+-next_clk(unsigned t1_NS, unsigned t2_ps, unsigned fclk_ps)
+-{
+-	unsigned	t1_ps = t1_NS * 1000;
+-	unsigned	t1_f, t2_f;
+-
+-	if ((t1_ps + fclk_ps) < t2_ps)
+-		return t2_ps / 1000;
+-
+-	t1_f = (t1_ps + fclk_ps - 1) / fclk_ps;
+-	t2_f = (t2_ps + fclk_ps - 1) / fclk_ps;
+-
+-	if (t1_f >= t2_f)
+-		t2_f = t1_f + 1;
+-
+-	return (t2_f * fclk_ps) / 1000;
+-}
+-
+ /* NOTE:  timings are from tusb 6010 datasheet Rev 1.8, 12-Sept 2006 */
+ 
+-static int tusb_set_async_mode(unsigned sysclk_ps, unsigned fclk_ps)
++static int tusb_set_async_mode(unsigned sysclk_ps)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings	t;
+ 	unsigned		t_acsnh_advnh = sysclk_ps + 3000;
+-	unsigned		tmp;
+-
+-	memset(&t, 0, sizeof(t));
+-
+-	/* CS_ON = t_acsnh_acsnl */
+-	t.cs_on = 8;
+-	/* ADV_ON = t_acsnh_advnh - t_advn */
+-	t.adv_on = next_clk(t.cs_on, t_acsnh_advnh - 7000, fclk_ps);
+-
+-	/*
+-	 * READ ... from omap2420 TRM fig 12-13
+-	 */
+-
+-	/* ADV_RD_OFF = t_acsnh_advnh */
+-	t.adv_rd_off = next_clk(t.adv_on, t_acsnh_advnh, fclk_ps);
+-
+-	/* OE_ON = t_acsnh_advnh + t_advn_oen (then wait for nRDY) */
+-	t.oe_on = next_clk(t.adv_on, t_acsnh_advnh + 1000, fclk_ps);
+-
+-	/* ACCESS = counters continue only after nRDY */
+-	tmp = t.oe_on * 1000 + 300;
+-	t.access = next_clk(t.oe_on, tmp, fclk_ps);
+-
+-	/* OE_OFF = after data gets sampled */
+-	tmp = t.access * 1000;
+-	t.oe_off = next_clk(t.access, tmp, fclk_ps);
+-
+-	t.cs_rd_off = t.oe_off;
+-
+-	tmp = t.cs_rd_off * 1000 + 7000 /* t_acsn_rdy_z */;
+-	t.rd_cycle = next_clk(t.cs_rd_off, tmp, fclk_ps);
+-
+-	/*
+-	 * WRITE ... from omap2420 TRM fig 12-15
+-	 */
+ 
+-	/* ADV_WR_OFF = t_acsnh_advnh */
+-	t.adv_wr_off = t.adv_rd_off;
++	memset(&dev_t, 0, sizeof(dev_t));
+ 
+-	/* WE_ON = t_acsnh_advnh + t_advn_wen (then wait for nRDY) */
+-	t.we_on = next_clk(t.adv_wr_off, t_acsnh_advnh + 1000, fclk_ps);
++	dev_t.mux = true;
+ 
+-	/* WE_OFF = after data gets sampled */
+-	tmp = t.we_on * 1000 + 300;
+-	t.we_off = next_clk(t.we_on, tmp, fclk_ps);
++	dev_t.t_ceasu = 8 * 1000;
++	dev_t.t_avdasu = t_acsnh_advnh - 7000;
++	dev_t.t_ce_avd = 1000;
++	dev_t.t_avdp_r = t_acsnh_advnh;
++	dev_t.t_oeasu = t_acsnh_advnh + 1000;
++	dev_t.t_oe = 300;
++	dev_t.t_cez_r = dev_t.t_cez_w = 7000;
++	dev_t.t_avdp_w = t_acsnh_advnh;
++	dev_t.t_weasu = t_acsnh_advnh + 1000;
++	dev_t.t_wpl = 300;
++	dev_t.cyc_aavdh_we = 1;
+ 
+-	t.cs_wr_off = t.we_off;
+-
+-	tmp = t.cs_wr_off * 1000 + 7000 /* t_acsn_rdy_z */;
+-	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
++	gpmc_calc_timings(&t, &dev_t);
+ 
+ 	return gpmc_cs_set_timings(async_cs, &t);
+ }
+ 
+-static int tusb_set_sync_mode(unsigned sysclk_ps, unsigned fclk_ps)
++static int tusb_set_sync_mode(unsigned sysclk_ps)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings	t;
+ 	unsigned		t_scsnh_advnh = sysclk_ps + 3000;
+-	unsigned		tmp;
+-
+-	memset(&t, 0, sizeof(t));
+-	t.cs_on = 8;
+-
+-	/* ADV_ON = t_acsnh_advnh - t_advn */
+-	t.adv_on = next_clk(t.cs_on, t_scsnh_advnh - 7000, fclk_ps);
+-
+-	/* GPMC_CLK rate = fclk rate / div */
+-	t.sync_clk = 11100 /* 11.1 nsec */;
+-	tmp = (t.sync_clk + fclk_ps - 1) / fclk_ps;
+-	if (tmp > 4)
+-		return -ERANGE;
+-	if (tmp == 0)
+-		tmp = 1;
+-	t.page_burst_access = (fclk_ps * tmp) / 1000;
+-
+-	/*
+-	 * READ ... based on omap2420 TRM fig 12-19, 12-20
+-	 */
+-
+-	/* ADV_RD_OFF = t_scsnh_advnh */
+-	t.adv_rd_off = next_clk(t.adv_on, t_scsnh_advnh, fclk_ps);
+-
+-	/* OE_ON = t_scsnh_advnh + t_advn_oen * fclk_ps (then wait for nRDY) */
+-	tmp = (t.adv_rd_off * 1000) + (3 * fclk_ps);
+-	t.oe_on = next_clk(t.adv_on, tmp, fclk_ps);
+-
+-	/* ACCESS = number of clock cycles after t_adv_eon */
+-	tmp = (t.oe_on * 1000) + (5 * fclk_ps);
+-	t.access = next_clk(t.oe_on, tmp, fclk_ps);
+-
+-	/* OE_OFF = after data gets sampled */
+-	tmp = (t.access * 1000) + (1 * fclk_ps);
+-	t.oe_off = next_clk(t.access, tmp, fclk_ps);
+ 
+-	t.cs_rd_off = t.oe_off;
+-
+-	tmp = t.cs_rd_off * 1000 + 7000 /* t_scsn_rdy_z */;
+-	t.rd_cycle = next_clk(t.cs_rd_off, tmp, fclk_ps);
+-
+-	/*
+-	 * WRITE ... based on omap2420 TRM fig 12-21
+-	 */
+-
+-	/* ADV_WR_OFF = t_scsnh_advnh */
+-	t.adv_wr_off = t.adv_rd_off;
+-
+-	/* WE_ON = t_scsnh_advnh + t_advn_wen * fclk_ps (then wait for nRDY) */
+-	tmp = (t.adv_wr_off * 1000) + (3 * fclk_ps);
+-	t.we_on = next_clk(t.adv_wr_off, tmp, fclk_ps);
+-
+-	/* WE_OFF = number of clock cycles after t_adv_wen */
+-	tmp = (t.we_on * 1000) + (6 * fclk_ps);
+-	t.we_off = next_clk(t.we_on, tmp, fclk_ps);
+-
+-	t.cs_wr_off = t.we_off;
+-
+-	tmp = t.cs_wr_off * 1000 + 7000 /* t_scsn_rdy_z */;
+-	t.wr_cycle = next_clk(t.cs_wr_off, tmp, fclk_ps);
+-
+-	t.clk_activation = gpmc_ticks_to_ns(1);
++	memset(&dev_t, 0, sizeof(dev_t));
 +
-+&i2c5 {
-+	clock-frequency = <400000>;
++	dev_t.mux = true;
++	dev_t.sync_read = true;
++	dev_t.sync_write = true;
 +
-+	smsc@38 {
-+		compatible = "smsc";
-+		reg = <0x38>;
-+		clock = <0x13>;
-+		keypad {
-+			compatible = "smsc,keypad";
-+			interrupt-parent = <&gpio5>;
-+			interrupts = <23>; /* gpio line 151 */
-+			keypad,num-rows = <8>;
-+			keypad,num-columns = <16>;
-+			linux,keymap = < 0x20041 /*KEY_F7*/
-+					0x30001 /*KEY_ESC*/
-+					0x4003e /*KEY_F4*/
-+					0x50022 /*KEY_G*/
-+					0x70023 /*KEY_H*/
-+					0x9009a /*KEY_CYCLEWINDOWS*/
-+					0xc000e /*KEY_BACKSPACE*/
-+					0xd0057 /*KEY_F11*/
-+					0xe009f /*KEY_FORWARD*/
-+					0xf006e /*KEY_INSERT*/
-+					0x1020036 /*KEY_RIGHTSHIFT*/
-+					0x1030011 /*KEY_W*/
-+					0x1040010 /*KEY_Q*/
-+					0x1050012 /*KEY_E*/
-+					0x1070013 /*KEY_R*/
-+					0x1080016 /*KEY_U*/
-+					0x10c0017 /*KEY_I*/
-+					0x10d0067 /*KEY_UP*/
-+					0x10e0018 /*KEY_O*/
-+					0x10f0019 /*KEY_LEFT*/
-+					0x2020003 /*KEY_2*/
-+					0x2040004 /*KEY_1*/
-+					0x2050005 /*KEY_3*/
-+					0x2070008 /*KEY_4*/
-+					0x2080009 /*KEY_7*/
-+					0x20b0064 /*KEY_8*/
-+					0x20c006c /*KEY_RIGHTALT*/
-+					0x20d000a /*KEY_DOWN*/
-+					0x20e0001 /*KEY_0*/
-+					0x20f006a /*KEY_RIGHT*/
-+					0x3010061 /*KEY_RIGHTCTRL*/
-+					0x302001f /*KEY_S*/
-+					0x303001e /*KEY_A*/
-+					0x3040020 /*KEY_D*/
-+					0x3050021 /*KEY_F*/
-+					0x3070024 /*KEY_J*/
-+					0x3080025 /*KEY_K*/
-+					0x30c001c /*KEY_ENTER*/
-+					0x30d0026 /*KEY_L*/
-+					0x30e0027 /*KEY_SEMICOLON*/
-+					0x400002a /*KEY_LEFTSHIFT*/
-+					0x402002d /*KEY_X*/
-+					0x403002c /*KEY_Z*/
-+					0x404002e /*KEY_C*/
-+					0x405002f /*KEY_V/
-+					0x4070032 /*KEY_M*/
-+					0x4080033 /*KEY_COMMA*/
-+					0x40c0039 /*KEY_SPACE*/
-+					0x40d0033 /*KEY_DOT*/
-+					0x40e0035 /*KEY_SLASH*/
-+					0x40f006b /*KEY_END*/
-+					0x501001d /*KEY_LEFTCTRL*/
-+					0x5020040 /*KEY_F6*/
-+					0x503000f /*KEY_TAB*/
-+					0x504003d /*KEY_F3*/
-+					0x5050014 /*KEY_T*/
-+					0x5070015 /*KEY_Y*/
-+					0x508001a /*KEY_LEFTBRACE*/
-+					0x50d0044 /*KEY_F10*/
-+					0x50e001b /*KEY_RIGHTBRACE*/
-+					0x50f0066 /*KEY_HOME*/
-+					0x602003f /*KEY_F5*/
-+					0x604003c /*KEY_F2*/
-+					0x6050006 /*KEY_5*/
-+					0x60601d0 /*KEY_FN*/
-+					0x6070007 /*KEY_6*/
-+					0x60a008b /*KEY_MENU*/
-+					0x60c002b /*KEY_BACKSLASH*/
-+					0x60d0043 /*KEY_F9*/
-+					0x7020042 /*KEY_F8*/
-+					0x703003a /*KEY_CAPSLOCK*/
-+					0x704003b /*KEY_F1*/
-+					0x7050030 /*KEY_B*/
-+					0x7070031 /*KEY_N*/
-+					0x70b0038 /*KEY_LEFTALT*/
-+					0x70d0058 /*KEY_F12*/
-+					0x70f006f >; /*KEY_DELETE*/
-+			linux,input-no-autorepeat;
-+		};
-+	};
-+};
++	dev_t.clk = 11100;
++	dev_t.t_bacc = 1000;
++	dev_t.t_ces = 1000;
++	dev_t.t_ceasu = 8 * 1000;
++	dev_t.t_avdasu = t_scsnh_advnh - 7000;
++	dev_t.t_ce_avd = 1000;
++	dev_t.t_avdp_r = t_scsnh_advnh;
++	dev_t.cyc_aavdh_oe = 3;
++	dev_t.cyc_oe = 5;
++	dev_t.t_ce_rdyz = 7000;
++	dev_t.t_avdp_w = t_scsnh_advnh;
++	dev_t.cyc_aavdh_we = 3;
++	dev_t.cyc_wpl = 6;
++	dev_t.t_ce_rdyz = 7000;
++
++	gpmc_calc_timings(&t, &dev_t);
+ 
+ 	return gpmc_cs_set_timings(sync_cs, &t);
+ }
+ 
+-extern unsigned long gpmc_get_fclk_period(void);
+-
+ /* tusb driver calls this when it changes the chip's clocking */
+ int tusb6010_platform_retime(unsigned is_refclk)
+ {
+ 	static const char	error[] =
+ 		KERN_ERR "tusb6010 %s retime error %d\n";
+ 
+-	unsigned	fclk_ps = gpmc_get_fclk_period();
+ 	unsigned	sysclk_ps;
+ 	int		status;
+ 
+-	if (!refclk_psec || fclk_ps == 0)
++	if (!refclk_psec)
+ 		return -ENODEV;
+ 
+ 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
+ 
+-	status = tusb_set_async_mode(sysclk_ps, fclk_ps);
++	status = tusb_set_async_mode(sysclk_ps);
+ 	if (status < 0) {
+ 		printk(error, "async", status);
+ 		goto done;
+ 	}
+-	status = tusb_set_sync_mode(sysclk_ps, fclk_ps);
++	status = tusb_set_sync_mode(sysclk_ps);
+ 	if (status < 0)
+ 		printk(error, "sync", status);
+ done:
 -- 
 1.7.1
+
