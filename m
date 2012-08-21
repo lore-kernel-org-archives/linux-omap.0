@@ -1,53 +1,57 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH 12/13] serial: omap: drop unnecessary check from remove
-Date: Tue, 21 Aug 2012 12:15:54 +0300
-Message-ID: <1345540555-24359-13-git-send-email-balbi@ti.com>
+Subject: [RFC/PATCH 09/13] serial: omap: move THRE check to transmit_chars()
+Date: Tue, 21 Aug 2012 12:15:51 +0300
+Message-ID: <1345540555-24359-10-git-send-email-balbi@ti.com>
 References: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:34511 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755355Ab2HUJUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 05:20:35 -0400
-Received: by lagv3 with SMTP id v3so3466254lag.6
-        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 02:20:31 -0700 (PDT)
+Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1345540555-24359-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-serial-owner@vger.kernel.org
 To: alan@linux.intel.com
 Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-if platform_get_drvdata() returns NULL, that's
-quite a nasty bug on the driver which we want to
-catch ASAP. Otherwise, that check is hugely
-unneeded.
+since all other IRQ types now do all necessary
+checks inside their handlers, transmit_chars()
+was the only one left expecting serial_omap_irq()
+to check THRE for it. We can move THRE check to
+transmit_chars() in order to make serial_omap_irq()
+more uniform.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/tty/serial/omap-serial.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index ba9cdf1..25d2055 100644
+index 74a4f0a..6ea24c5 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1334,13 +1334,10 @@ static int serial_omap_remove(struct platform_device *dev)
- {
- 	struct uart_omap_port *up = platform_get_drvdata(dev);
- 
--	if (up) {
--		pm_runtime_disable(up->dev);
--		uart_remove_one_port(&serial_omap_reg, &up->port);
--		pm_qos_remove_request(&up->pm_qos_request);
--	}
-+	pm_runtime_disable(up->dev);
-+	uart_remove_one_port(&serial_omap_reg, &up->port);
-+	pm_qos_remove_request(&up->pm_qos_request);
- 
--	platform_set_drvdata(dev, NULL);
- 	return 0;
+@@ -195,11 +195,14 @@ static void serial_omap_stop_rx(struct uart_port *port)
+ 	pm_runtime_put_autosuspend(up->dev);
  }
  
+-static void transmit_chars(struct uart_omap_port *up)
++static void transmit_chars(struct uart_omap_port *up, unsigned int lsr)
+ {
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+ 	int count;
+ 
++	if (!(lsr & UART_LSR_THRE))
++		return;
++
+ 	if (up->port.x_char) {
+ 		serial_out(up, UART_TX, up->port.x_char);
+ 		up->port.icount.tx++;
+@@ -367,8 +370,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ 			check_modem_status(up);
+ 			break;
+ 		case UART_IIR_THRI:
+-			if (lsr & UART_LSR_THRE)
+-				transmit_chars(up);
++			transmit_chars(up, lsr);
+ 			break;
+ 		case UART_IIR_RX_TIMEOUT:
+ 			/* FALLTHROUGH */
 -- 
 1.7.12.rc3
 
