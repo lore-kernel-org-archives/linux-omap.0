@@ -1,83 +1,61 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
-Date: Tue, 21 Aug 2012 13:41:46 +0100
-Message-ID: <20120821124146.GA21557@sirena.org.uk>
+Date: Tue, 21 Aug 2012 15:42:45 +0300
+Message-ID: <20120821124243.GG10347@arwen.pp.htv.fi>
 References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
  <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
+ <20120821124146.GA21557@sirena.org.uk>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J1ldk4ymECC/Y9sn"
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1345545940-2232-2-git-send-email-sourav.poddar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Sourav Poddar <sourav.poddar-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20120821124146.GA21557@sirena.org.uk>
+Sender: linux-input-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 21, 2012 at 04:15:37PM +0530, Sourav Poddar wrote:
 
-> +config MFD_SMSC
-> +       bool "Support for the SMSC ECE1099 series chips"
-> +       depends on I2C=y && MFD_CORE && REGMAP_I2C
+--J1ldk4ymECC/Y9sn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This needs to select REGMAP_I2C not depend on it.  REGMAP_I2C will only
-be enabled by being selected.
+On Tue, Aug 21, 2012 at 01:41:46PM +0100, Mark Brown wrote:
+> > +	regmap_read(smsc->regmap, SMSC_DEV_ID, &ret);
+> > +	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
+>=20
+> I'd make these log messages dev_info() or something.
 
-> +int smsc_read(struct device *child, unsigned int reg,
-> +	unsigned int *dest)
-> +{
-> +	struct smsc     *smsc = dev_get_drvdata(child->parent);
-> +
-> +	return regmap_read(smsc->regmap, reg, dest);
-> +}
-> +EXPORT_SYMBOL_GPL(smsc_read);
+dev_info() ? It'lll just make boot noisier for no good reason. Which
+user wants to see this during boot up ? That's a debugging feature for
+develop IMHO.
 
-I'd suggest making these static inlines in the header given that they're
-so trivial.
+--=20
+balbi
 
-> +static struct regmap_config smsc_regmap_config = {
-> +		.reg_bits = 8,
-> +		.val_bits = 8,
-> +		.cache_type = REGCACHE_COMPRESSED,
-> +};
+--J1ldk4ymECC/Y9sn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Indentation is weird here.  For the cache we should have at least
-.max_register defined and given the functionality there must surely be
-some volatile registers (I'm surprised this works at all as it is, the
-cache should break things).
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-> +	of_property_read_u32(node, "clock", &smsc->clk);
-> +
+iQIcBAEBAgAGBQJQM4JDAAoJEIaOsuA1yqREyHgP/2209InzsuTouGTtyopqRUTI
+8KAx2RzoVLNcP0qwGyEDd8jNyYXpcp5x4uwNsSRn3tL8zMC6RWuDl7LtWGTs7pBC
+hn4x2sEOw0IP1jVYjDucX6FICxpXO3sxG3THFU4f6Yu4LvNFZI30mDL1qkd9Dvzj
+71v33lfamXo9QIZJJqUBjNvHy5I4LX8R22kP/0x9DyrBHNcOSq0GWQ0KGqiwEY9V
+OVwsMk5zXnntU1cbj803MIgCQNsVDyJZnFpng6G8/rgcnzQHd7X2tFG/NyMbVpfz
+IrdDLeKpomui8zO7L3nVRdoofauekL4s61gNWb6Zc8Q4FrSfn/qyNZtO9xXHwdJ9
+pBl+Fit18uSWjpG5TLj5NxehpbBe6Gr3+V9wpGb8v8TGdOLn2M+mkKWplnl1yOaB
+ohKeSyrCH1W8szrDp8xQK60h61LPS1hcY8wfQIMQTPkqxtZ5lQ1ipaD1bIllGbDf
+V97Xy0peYc9Oz9PTvT5ktPQAQ6YOZkJPAoZ8FnOD9qlevQ4W2IQBjulY8FSvIV1l
+bRBayJYEfjF/wcrB9bBTqfMCKc4Q8MgbP9nHxuHvokNEbd2/QJDCpn3DnPNu+7iK
+jSjPPqKW99Kp9OIvgDPDD9k8erK1a3xASf+ZAJ3GsLMgnYo1Qf/AuB1gX8ueX6Wy
+UVrH7jQNDoVUY5S/J8LE
+=oLTt
+-----END PGP SIGNATURE-----
 
-This is all unconditional, there should be a dependency on this in
-Kconfig.
-
-> +	regmap_read(smsc->regmap, SMSC_DEV_ID, &ret);
-> +	dev_dbg(&i2c->dev, "SMSC Device ID: %d\n", ret);
-
-I'd make these log messages dev_info() or something.
-
-> +err:
-> +	kfree(smsc);
-
-Use devm_kzalloc() for this.
-
-> +static const struct i2c_device_id smsc_i2c_id[] = {
-> +	{ "smsc", 0},
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(i2c, smsc_i2c_id);
-
-This should probably list the part name rather than "smsc" - that seems
-far too generic a name to use, obviously smsc produce more than one
-part!
+--J1ldk4ymECC/Y9sn--
