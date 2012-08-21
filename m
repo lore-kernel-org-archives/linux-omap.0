@@ -1,70 +1,97 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 1/4] mfd: smsc: Add support for smsc gpio io/keypad driver
-Date: Tue, 21 Aug 2012 14:49:37 +0100
-Message-ID: <20120821134936.GH7995@opensource.wolfsonmicro.com>
+Date: Tue, 21 Aug 2012 16:52:41 +0300
+Message-ID: <20120821135240.GJ10347@arwen.pp.htv.fi>
 References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
  <1345545940-2232-2-git-send-email-sourav.poddar@ti.com>
  <20120821124146.GA21557@sirena.org.uk>
  <20120821124243.GG10347@arwen.pp.htv.fi>
  <20120821132222.GF7995@opensource.wolfsonmicro.com>
  <20120821132741.GI10347@arwen.pp.htv.fi>
+ <20120821134936.GH7995@opensource.wolfsonmicro.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="54u2kuW9sGWg/X+X"
-Return-path: <linux-input-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="aRzsUE0Mp86t8N62"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40265 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753299Ab2HUN4l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 09:56:41 -0400
+Received: by lbbgk1 with SMTP id gk1so4145637lbb.12
+        for <linux-omap@vger.kernel.org>; Tue, 21 Aug 2012 06:56:38 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20120821132741.GI10347@arwen.pp.htv.fi>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+In-Reply-To: <20120821134936.GH7995@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 
 
---54u2kuW9sGWg/X+X
+--aRzsUE0Mp86t8N62
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 21, 2012 at 04:27:44PM +0300, Felipe Balbi wrote:
+On Tue, Aug 21, 2012 at 02:49:37PM +0100, Mark Brown wrote:
+> On Tue, Aug 21, 2012 at 04:27:44PM +0300, Felipe Balbi wrote:
+>=20
+> > I still beg to differ. Even if it fails, dmesg will still contain the
+> > message (provided you have it enabled). I really don't think we want
+> > this to print to console on every boot.
+>=20
+> Only if it's enabled which is the trick...
+>=20
+> > If you're still testing your new batch of boards, you're not just a
+> > simple user and you will have debugging enabled anyway. dev_info() will
+> > be visible to anyone who's got a console running. Not sure how useful
+> > that would be to my neighbor.
+>=20
+> Also think about hobbyists and so on, and ideally at some point the
+> people using distros.  We shouldn't be requiring kernel rebuilds for
+> this sort of diagnostic information.  I guess sysfs is another option
 
-> I still beg to differ. Even if it fails, dmesg will still contain the
-> message (provided you have it enabled). I really don't think we want
-> this to print to console on every boot.
+but we don't. We have dynamic printk for that, right ?
 
-Only if it's enabled which is the trick...
+> but frankly the overhead on boot just doesn't seem meaningful in the
+> context of the overall kernel boot style - I'd really expect people who
+> are bothered by this sort of output would be raising the minimum log
+> level appearing on the console.
 
-> If you're still testing your new batch of boards, you're not just a
-> simple user and you will have debugging enabled anyway. dev_info() will
-> be visible to anyone who's got a console running. Not sure how useful
-> that would be to my neighbor.
+Well, if you consider a single driver then surely it doesn't make a
+difference. But when you add many drivers, each with its own dev_info()
+output, it can delay bootup rather significantly, actually.
 
-Also think about hobbyists and so on, and ideally at some point the
-people using distros.  We shouldn't be requiring kernel rebuilds for
-this sort of diagnostic information.  I guess sysfs is another option
-but frankly the overhead on boot just doesn't seem meaningful in the
-context of the overall kernel boot style - I'd really expect people who
-are bothered by this sort of output would be raising the minimum log
-level appearing on the console.
+Fair enough, we have "quiet", but I'm not sure that's enough argument to
+allow any simple driver to start poluting dmesg with whatever random
+messages.
 
---54u2kuW9sGWg/X+X
+my 2 cents
+
+--=20
+balbi
+
+--aRzsUE0Mp86t8N62
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQM5G+AAoJEFJkBDiqVpZ4KPgP/1ncZmg3IFkYUQvHIn0p9fj9
-RveFzhmi9xQC/mxxjd6lj68OU2Lz1PaU2FiD9K5Edq7QZn8Xcmt3lqYeQnD1LGWN
-Gvjaxx/igxw+C4NPDmAwlmqk0EcMkSP2gnctbpD8b+TL9nqxZqldsDHbhU59meF2
-kUDrEvfFTsuqkZ14Jpk5Ac6OVniPXS9WByH2nImXsu2jsbYjBYqlHpRrNhwYOeLF
-nzfFGoLOkYxk4anOSiB8UYEbaLqVDU0PYRFW10ufTcg2q0VP2LZ1p9H7l7+Lqz15
-euY97cCk13wc2dEhGME96xBD7j6Zce/vpm4yHD2qVpcxDpP0bTAp35gxVKLjJUjl
-UGkUoNG6eDs8c9v4ILhFhxD3ZoBM1y55V5uodAO45yJRYzpXBKy8BOasdPdExqXk
-tJo2J+CJOFeT5VGn1Sct3JKwGa3z0rWtEfv56trWhxW6mKwYqiHaKrcI5JQ6mkGF
-unPylJYGIbnuQ3YqayJU5WUT2g7IRs9iK1I7neD5ggFqNuWjoQfh9XRp7cio26tH
-3CDXsB2LzEhKBQ3jSxnI++b/J/vIKJ1p/XUMP07lz6cU1H/9pEzghVg8+VrmrCGG
-I8V2p/mT4whY423fHMQJHiMn1oqab8UMWxrO/ypic6gwLs9zfaB3N6Lpx6llA4A5
-hGi0o72Cf1SSoo1cFmt+
-=5jIw
+iQIcBAEBAgAGBQJQM5KoAAoJEIaOsuA1yqREQKsP/3E34vS8oEcaD3dMKz78HOZd
+StMut+NuWyEVTU1j9aqXxi76IGNzMtF6PZkmPRGWOnrTrThMNbcYObBZRoKH9AJc
+tAOww49V1UTtE+rJYHz6rh0AJweMFUST8qyvJK/f3QJjm6mpZBsC0NF/vXqFOvVk
+X11INrjKpDH+FAdiAM0psk9ZPjTcHA8F5+sobgyOUm/usqeIYqG8KSe7GPJq99yJ
+qn1uTNFAixSs2zdSbK++ZYR7xT3wvd5IWlFLFECnrJG7wf4B/Z/h33MaJXu1ji0n
+wvpVvQaXMlqfqK1j+ampSJXYq9O6YQjZYmz7xor/Ti8ymWXi/B+PmgPkBPH2CGOe
+0xkgLe0PVQlQ/uPL7SBJzYPMWwqWto0gCuHLEX0Ubf6rc9824E1qiHoa5ET5SerZ
+pw9tZeMTktYkYszlgei5dluJNvl2HuCGp7n0eaYtEgivWKOu+ppNJLQgYrxEmHjD
+V2Bk1StD3ylWbxOujYOV6zuIDZ2rDUtQz6+oBe2JeKA8pp7UrmbfYHaozcYHfAw5
+csvzrdJ/BElqwkk7lxA4nDfSHv8TVGu6EvNGlLTzYVg+AqBT1cGF33m2fLskueyv
+FDxsfgl5fHxsUA4zM/0dFF8gakeLBO0m2lMbkv/lxaUj7ZHT2wzANO3/DSlPWlHx
+/fJcLeKaYfmZRSMvJriJ
+=KzOm
 -----END PGP SIGNATURE-----
 
---54u2kuW9sGWg/X+X--
+--aRzsUE0Mp86t8N62--
