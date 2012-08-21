@@ -1,438 +1,98 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [RFC/PATCH 4/4] gpio: smscece: Add support for gpio IO expander feature
-Date: Tue, 21 Aug 2012 16:15:40 +0530
-Message-ID: <1345545940-2232-5-git-send-email-sourav.poddar@ti.com>
-References: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 00/10] Assorted MMC / OMAP HSMMC patches
+Date: Tue, 21 Aug 2012 13:43:31 +0300
+Message-ID: <20120821104330.GS10347@arwen.pp.htv.fi>
+References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345545940-2232-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aJ74fq0Y6SrIeKCM"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-smsc can be used as an gpio io expander device also. So adding
-support for configuring smsc pins as a gpio.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
- drivers/gpio/Kconfig        |    7 +
- drivers/gpio/Makefile       |    1 +
- drivers/gpio/gpio-smscece.c |  373 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 381 insertions(+), 0 deletions(-)
- create mode 100644 drivers/gpio/gpio-smscece.c
+--aJ74fq0Y6SrIeKCM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index b16c8a7..e883929 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -444,6 +444,13 @@ config GPIO_ADP5588_IRQ
- 	  Say yes here to enable the adp5588 to be used as an interrupt
- 	  controller. It requires the driver to be built in the kernel.
- 
-+config GPIO_SMSCECE
-+	tristate "SMSCECE 1099 I2C GPIO expander"
-+	depends on I2C
-+	help
-+	  This option enables support for 18 GPIOs found
-+	  on SMSC ECE 1099 GPIO Expanders.
-+
- comment "PCI GPIO expanders:"
- 
- config GPIO_CS5535
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 153cace..7c803c5 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_GPIO_74X164)	+= gpio-74x164.o
- obj-$(CONFIG_GPIO_AB8500)	+= gpio-ab8500.o
- obj-$(CONFIG_GPIO_ADP5520)	+= gpio-adp5520.o
- obj-$(CONFIG_GPIO_ADP5588)	+= gpio-adp5588.o
-+obj-$(CONFIG_GPIO_SMSCECE)      += gpio-smscece.o
- obj-$(CONFIG_GPIO_AMD8111)	+= gpio-amd8111.o
- obj-$(CONFIG_GPIO_ARIZONA)	+= gpio-arizona.o
- obj-$(CONFIG_GPIO_BT8XX)	+= gpio-bt8xx.o
-diff --git a/drivers/gpio/gpio-smscece.c b/drivers/gpio/gpio-smscece.c
-new file mode 100644
-index 0000000..0cb0959
---- /dev/null
-+++ b/drivers/gpio/gpio-smscece.c
-@@ -0,0 +1,373 @@
-+/*
-+ * GPIO Chip driver for smsc
-+ * SMSC I/O Expander and QWERTY Keypad Controller
-+ *
-+ * Copyright 2012 Texas Instruments Inc.
-+ *
-+ * Licensed under the GPL-2 or later.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/irq.h>
-+#include <linux/mfd/smsc.h>
-+#include <linux/err.h>
-+
-+struct smsc_gpio {
-+	struct device *dev;
-+	struct smsc *smsc;
-+	struct gpio_chip gpio_chip;
-+	struct mutex lock;	/* protect cached dir, dat_out */
-+	/* protect serialized access to the interrupt controller bus */
-+	struct mutex irq_lock;
-+	unsigned gpio_start;
-+	int type;
-+	int flags;
-+	int irq;
-+	int irq_base;
-+	unsigned int gpio_base;
-+	unsigned int dat_out[5];
-+	unsigned int dir[5];
-+	unsigned int int_lvl[5];
-+	unsigned int int_en[5];
-+	unsigned int irq_mask[5];
-+	unsigned int irq_stat[5];
-+};
-+
-+static int smsc_gpio_get_value(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	unsigned int get;
-+	return !!(smsc_read(sg->dev,
-+		(SMSC_GPIO_DATA_IN_START + SMSC_BANK(off)) & SMSC_BIT(off),
-+					&get));
-+}
-+
-+static void smsc_gpio_set_value(struct gpio_chip *chip,
-+			unsigned off, int val)
-+{
-+	unsigned bank, bit;
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+
-+	bank = SMSC_BANK(off);
-+	bit = SMSC_BIT(off);
-+
-+	mutex_lock(&sg->lock);
-+	if (val)
-+		sg->dat_out[bank] |= bit;
-+	else
-+		sg->dat_out[bank] &= ~bit;
-+
-+	smsc_write(sg->dev, SMSC_GPIO_DATA_OUT_START + bank,
-+			   sg->dat_out[bank]);
-+	mutex_unlock(&sg->lock);
-+}
-+
-+static int smsc_gpio_direction_input(struct gpio_chip *chip, unsigned off)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_INPUT_LOW;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_direction_output(struct gpio_chip *chip,
-+					 unsigned off, int val)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_OUTPUT_PP;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_to_irq(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	return sg->irq_base + off;
-+}
-+
-+static void smsc_irq_bus_lock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+
-+	mutex_lock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_bus_sync_unlock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	int i;
-+
-+	for (i = 0; i < SMSC_BANK(SMSC_MAXGPIO); i++)
-+		if (sg->int_en[i] ^ sg->irq_mask[i]) {
-+			sg->int_en[i] = sg->irq_mask[i];
-+			smsc_write(sg->dev, SMSC_GPIO_INT_MASK_START + i,
-+					   sg->int_en[i]);
-+		}
-+
-+	mutex_unlock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_mask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] &= ~SMSC_BIT(gpio);
-+}
-+
-+static void smsc_irq_unmask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] |= SMSC_BIT(gpio);
-+}
-+
-+static int smsc_irq_set_type(struct irq_data *d, unsigned int type)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	uint16_t gpio = d->irq - sg->irq_base;
-+	unsigned bank, bit;
-+
-+	if ((type & IRQ_TYPE_EDGE_BOTH)) {
-+		dev_err(sg->dev, "irq %d: unsupported type %d\n",
-+			d->irq, type);
-+		return -EINVAL;
-+	}
-+
-+	bank = SMSC_BANK(gpio);
-+	bit = SMSC_BIT(gpio);
-+
-+	if (type & IRQ_TYPE_LEVEL_HIGH)
-+		sg->int_lvl[bank] |= bit;
-+	else if (type & IRQ_TYPE_LEVEL_LOW)
-+		sg->int_lvl[bank] &= ~bit;
-+	else
-+		return -EINVAL;
-+
-+	smsc_gpio_direction_input(&sg->gpio_chip, gpio);
-+	smsc_write(sg->dev, SMSC_CFG_START + gpio,
-+			sg->int_lvl[bank]);
-+
-+	return 0;
-+}
-+
-+static struct irq_chip smsc_irq_chip = {
-+	.name			= "smsc",
-+	.irq_mask		= smsc_irq_mask,
-+	.irq_unmask		= smsc_irq_unmask,
-+	.irq_bus_lock		= smsc_irq_bus_lock,
-+	.irq_bus_sync_unlock	= smsc_irq_bus_sync_unlock,
-+	.irq_set_type		= smsc_irq_set_type,
-+};
-+
-+static int smsc_gpio_read_intstat(struct smsc_gpio *sg,
-+				unsigned int *buf, int i)
-+{
-+	int ret = smsc_read(sg->dev,
-+			SMSC_GPIO_INT_STAT_START + i, buf);
-+
-+	if (ret < 0)
-+		dev_err(sg->dev, "Read INT_STAT Error\n");
-+
-+	return ret;
-+}
-+
-+static irqreturn_t smsc_irq_handler(int irq, void *devid)
-+{
-+	struct smsc_gpio *sg = devid;
-+	unsigned int status, bank, pending;
-+	int ret;
-+	smsc_read(sg->dev, GRP_INT_STAT, &status);
-+
-+	if (!(status & SMSC_GPI_INT))
-+		goto out;
-+
-+	for (bank = 0; bank <= SMSC_BANK(SMSC_MAXGPIO);
-+		bank++) {
-+		pending = sg->irq_stat[bank] & sg->irq_mask[bank];
-+		ret = smsc_gpio_read_intstat(sg,
-+				&sg->irq_stat[bank], bank);
-+		if (ret < 0)
-+			memset(&sg->irq_stat[bank], 0,
-+				ARRAY_SIZE(sg->irq_stat));
-+
-+		while (pending) {
-+			unsigned long   bit = __ffs(pending);
-+			unsigned int    irq;
-+
-+			pending &= ~BIT(bit);
-+			irq = bit + sg->irq_base;
-+			handle_nested_irq(irq);
-+		}
-+	}
-+
-+out:
-+	smsc_write(sg->dev, GRP_INT_STAT, status); /* Status is W1C */
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int smsc_irq_setup(struct smsc_gpio *sg)
-+{
-+	unsigned gpio;
-+	int ret;
-+
-+	mutex_init(&sg->irq_lock);
-+
-+	for (gpio = 0; gpio < sg->gpio_chip.ngpio; gpio++) {
-+		int irq = gpio + sg->irq_base;
-+		irq_set_chip_data(irq, sg);
-+		irq_set_chip_and_handler(irq, &smsc_irq_chip,
-+				handle_level_irq);
-+		irq_set_nested_thread(irq, 1);
-+#ifdef CONFIG_ARM
-+		set_irq_flags(irq, IRQF_VALID);
-+#else
-+		irq_set_noprobe(irq);
-+#endif
-+	}
-+
-+	ret = request_threaded_irq(sg->irq, NULL,
-+			smsc_irq_handler, sg->flags,
-+			"smsc_gpio", sg);
-+	if (ret) {
-+		dev_err(sg->dev, "failed to request irq %d\n",
-+			sg->irq);
-+	}
-+
-+	sg->gpio_chip.to_irq = smsc_gpio_to_irq;
-+
-+	return 0;
-+}
-+
-+static int __devinit smsc_gpio_probe(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg;
-+	struct gpio_chip *gc;
-+	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
-+	int ret, i, temp;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *np = dev->of_node;
-+	int irq_base;
-+
-+	sg = devm_kzalloc(dev, sizeof(*sg), GFP_KERNEL);
-+	if (sg == NULL) {
-+		dev_err(&pdev->dev, "failed to alloc memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	sg->irq = platform_get_irq(pdev, 0);
-+	if (np) {
-+		of_property_read_u32(np, "gpio,base", &temp);
-+		of_property_read_u32(np, "flags", &sg->flags);
-+	}
-+
-+	gc = &sg->gpio_chip;
-+	gc->direction_input = smsc_gpio_direction_input;
-+	gc->direction_output = smsc_gpio_direction_output;
-+	gc->get = smsc_gpio_get_value;
-+	gc->set = smsc_gpio_set_value;
-+	gc->can_sleep = 1;
-+
-+	gc->base = temp;
-+	gc->ngpio = SMSC_MAXGPIO;
-+	gc->owner = THIS_MODULE;
-+
-+	sg->smsc = smsc;
-+	sg->dev = dev;
-+	mutex_init(&sg->lock);
-+
-+	for (i = 0; i <= SMSC_BANK(SMSC_MAXGPIO); i++)
-+		smsc_read(sg->dev, SMSC_GPIO_DATA_OUT_START + i,
-+					&sg->dat_out[i]);
-+
-+	for (i = 0; i < SMSC_MAXGPIO; i++)
-+		smsc_read(sg->dev, SMSC_CFG_START + i, &sg->dir[i]);
-+
-+	irq_base = irq_alloc_descs(-1, 0, sg->gpio_chip.ngpio, 0);
-+	if (IS_ERR_VALUE(irq_base)) {
-+		dev_err(sg->dev, "Fail to allocate IRQ descs\n");
-+		return irq_base;
-+	}
-+	sg->irq_base = irq_base;
-+
-+	irq_domain_add_legacy(pdev->dev.of_node, sg->gpio_chip.ngpio,
-+		sg->irq_base, 0, &irq_domain_simple_ops, NULL);
-+
-+	ret = smsc_irq_setup(sg);
-+	if (ret)
-+		goto err;
-+
-+	ret = gpiochip_add(&sg->gpio_chip);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	kfree(sg);
-+
-+	return ret;
-+}
-+
-+static int __devexit smsc_gpio_remove(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	ret = gpiochip_remove(&sg->gpio_chip);
-+	if (ret) {
-+		dev_err(&pdev->dev, "gpiochip_remove failed %d\n", ret);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id smsc_gpio_dt_match[] = {
-+	{ .compatible = "smsc,gpio" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, smsc_gpio_dt_match);
-+
-+static struct platform_driver smsc_gpio_driver = {
-+	.driver = {
-+		   .name = "smsc_gpio",
-+		   .of_match_table = of_match_ptr(smsc_gpio_dt_match),
-+		   },
-+	.probe = smsc_gpio_probe,
-+	.remove = __devexit_p(smsc_gpio_remove),
-+};
-+
-+module_platform_driver(smsc_gpio_driver);
-+
-+MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
-+MODULE_DESCRIPTION("GPIO SMSC Driver");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.1
+Hi,
+
+On Sat, Aug 18, 2012 at 12:22:20AM +0530, Venkatraman S wrote:
+> Essentially, a lot of cleanups leading up to adding a new
+> feature for OMAP HSMMC. The idea is to convert to the use
+> of software timer instead of IP timer for timekeeping, due
+> to the limitations of the counting range of the IP timer.
+>=20
+> Also added myself as OMAP HSMMC maintainer.
+>=20
+> Patch 9/10 is in draft state and needs more testing.
+>=20
+> These patches are also available at
+>   git://github.com/svenkatr/linux.git my/mmc/3.6/hrtimer_updates
+
+other than the small comments I had to patch 9, this series looks very
+good:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+>=20
+> Venkatraman S (10):
+>   mmc: core: Add TRANsfer state to non-HPI state
+>   mmc: debugfs: Print ext_csd in ascending order
+>   mmc: omap: remove unused variables and includes
+>   mmc: omap: fix mmc_omap_report_irq to use dev_dbg macros
+>   mmc: omap_hsmmc: remove unused vars and includes
+>   mmc: omap_hsmmc: remove access to SYSCONFIG register
+>   mmc: omap_hsmmc: consolidate flush posted writes for HSMMC IRQs
+>   mmc: omap_hsmmc: consolidate error report handling of HSMMC IRQ
+>   mmc: omap_hsmmc: convert from IP timer to hrtimer
+>   mmc: omap_hsmmc: Move to Maintained state in MAINTAINERS
+>=20
+>  MAINTAINERS                   |   4 +-
+>  drivers/mmc/core/core.c       |   3 +-
+>  drivers/mmc/core/debugfs.c    |   2 +-
+>  drivers/mmc/host/omap.c       |  39 ++++----
+>  drivers/mmc/host/omap_hsmmc.c | 212 ++++++++++++++++--------------------=
+------
+>  5 files changed, 103 insertions(+), 157 deletions(-)
+>=20
+> --=20
+> 1.7.11.1.25.g0e18bef
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+balbi
+
+--aJ74fq0Y6SrIeKCM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQM2ZSAAoJEIaOsuA1yqRECLUQAIrOOZnksxoELte8GhKS5VMl
+VxjD2Ahz99t5UxxmicxiSfkdU3XowYTROFVoTw1tMbrqsKRU1aP2wXK+FITv9nkH
+zp1XxAHYPbf+Keo9wdMXDGQ31ga3oxjBc5EerLfBsfONfHo09ks6lm/dfScyX5Q9
+iim5AuxjGSokt6O6QcDurQrHK2vIJinlTPjbNOfBVtGX5IjOD7pjtlGS34hGBheP
+4A1LIUPwJB6Sx7fWVlkB+otrakuk/a5n7Pxl+p6ELdtGmAvVgfj4cXWoDlKHIaqQ
+40FI+Gvk76x8v2mBVBM+xTp7nMqR/aYQbZV/FzbAMx8AbLteAIMeGPIPf008UIZI
+OPL2Vc4YsntTIhr/oH1XZhBJI7ii4IjRPJsh0pdL6GISnDii4LzOa7xH3F1v3Bz+
+Zj3wCDUUpjwmOUSoCLRYBa1ZrkLRvGZeWdFWX4Lri/cl8B7HNClA/dwhOVdw09fS
+fZGi2oc1ha/OaAPFxE5kmlcbx3WWbqToyHvo13y+ihs7JeRZPk+EkStJIPiXglgY
+hSqzZQrzw9eIKeXXrUS0eOO6vbChDmm8VUQxTHZ9XfKxBVFuNZPbb6Ynq5AHL0w2
+FD4QPRN33u1i2Xux96ZyPIRc6NiW3LkSvGBiv6hoa62D8XAkkwt0/avciILiNYCa
+bSZRV97Bwgjdut9RAHTi
+=qg4J
+-----END PGP SIGNATURE-----
+
+--aJ74fq0Y6SrIeKCM--
