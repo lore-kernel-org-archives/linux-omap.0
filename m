@@ -1,85 +1,64 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
- make	sense?
-Date: Wed, 22 Aug 2012 17:40:57 +0100
-Message-ID: <20120822164056.GS7995@opensource.wolfsonmicro.com>
-References: <5032E8A5.8070108@ti.com> <s5hlih895kt.wl%tiwai@suse.de>
- <20120821120511.GB7995@opensource.wolfsonmicro.com>
- <50337F7B.1060501@canonical.com>
- <20120821131625.GD7995@opensource.wolfsonmicro.com>
- <503434DD.8030003@ti.com>
+Subject: Re: [PATCHv2 0/3] spi: omap2-mcspi: spi cleanups
+Date: Wed, 22 Aug 2012 17:59:33 +0100
+Message-ID: <20120822165933.GU7995@opensource.wolfsonmicro.com>
+References: <1345615515-26745-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3922958154336964893=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <503434DD.8030003@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: alsa-devel <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen,
- Tomi" <tomi.valkeinen@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>, David Henningsson <david.henningsson@canonical.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="B9I4cJCE9PLEoxgz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1345615515-26745-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: spi-devel-general@lists.sourceforge.net, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============3922958154336964893==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ISCXPd1dR6/8kjof"
-Content-Disposition: inline
-
-
---ISCXPd1dR6/8kjof
+--B9I4cJCE9PLEoxgz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 21, 2012 at 08:24:45PM -0500, Ricardo Neri wrote:
+On Wed, Aug 22, 2012 at 11:35:11AM +0530, Shubhrajyoti D wrote:
+> This patch does the following
+>=20
+> Calls the pm_runtime_* functions directly.
+> Remove the MOD_REG_BIT macro usage thereby removiing un-needed branch.
+> At remove dont use the autosuspend runtime calls.
 
-> So, it seems that the way to go is extcon. I guess that ALSA will
-> use extcon just like today snd_jack uses the input driver. is this
-> correct? Is there any chance that ctrljack will propagate the events
-> through extcon? Is there any early implementation that I could look
-> at? I am asking to know how feasible is to use ctljack today and be
-> compatible with extcon in the future.
+Applied all, thanks.
 
-The ctljack API doesn't really map onto the other jack APIs at the
-minute since the in kernel representation is that it exposes the
-booleans directly to the callers rather than grouping them together into
-the overall jack.
+> The following changes since commit 23dcfa61bac244e1200ff9ad19c6e9144dcb6b=
+b5:
+>=20
+>   Merge branch 'akpm' (Andrew's patch-bomb) (2012-08-21 17:22:22 -0700)
 
---ISCXPd1dR6/8kjof
+When sending pull requests please always base them off a tag of some
+kind, normally one of Linus' is a good option if you've no special
+needs.  This one looks like it's based off -next so can't be pulled into
+any other tree, -next is rebased daily.
+
+--B9I4cJCE9PLEoxgz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQNQuRAAoJEFJkBDiqVpZ4HKEQAKUk6DIc22eiqSSb6FSGY8RO
-lvcTcGrEyt9fc953ZbOHvzeMosEdzkmabaXPGiwNgmkHN1xhXeW+fkld/aUxBJ+3
-6SZ0YtiXSVpM/sRtbu7whUl87QFRcmKd8klDSGfxhI+4Q8ECw4UvHKiReTQMPG3s
-nc0dIoWF7R+qGjohlhRnmUWF6QpbBba3hLRKZJGOsVJqyys0SYMTGtYfMPkmU4/I
-v8bdlOJ22HD+sJpsHbhYzoW/KpyWIq05Y6KO3X0NWhBKfPZYs4mrxizqIli/9D1a
-BClknYZaTS7vuyOLZtTDr07wzoUIcAhn1y8Eqn8AJlCStqb1YfNZKh4NtxZdyXku
-1VHO+fc/KeEwzUzi8N4m930Vbe/1o0yHo127/AcyyjUEbgXUJhKFpzdWzFZI+Dg9
-nhXPM3f1igsyJCc16D7RlkVHnIAhPRA96J6OvjU0d3PEGP6fZ7FBpvp0RljbJWin
-w/kzeIIQjK39wA6cy+dM0C2sycHd1YOTzCMf+LMBmpI37KOG54mCwX7QNASVp4Fr
-k+cp0PvjnbSuVyCUQZ6se9mjxiU0ZDYt4Nz+oFdGWO3yzANArBCKlcw2exp/qmM+
-KRlSEkjF+qhEw4iz9zJ0aeLOlRDpf8+zO3X1urWkeLl0HvWPKnqF+V7YOYOvFYrQ
-dm8gbOHeTUiDZ2z+eF0m
-=7Yr5
+iQIcBAEBAgAGBQJQNQ/pAAoJEFJkBDiqVpZ4bl0P/3edWnyJpaN6LXP4W/6w2XZR
+CqxH9YHjPCzLq8QGaltIofp2AItL478YENaEWGCc9nCCFdeY+qMdFwX0ypy1+faT
+rkY15ttIOrxHKsCRumnLVtO3q61oRDEDpKNnDUAilNL+T32FctfxIsU+gr3tfblm
+3FgbxBEUIBi5fRh5oP/UHW+dhRQREe1rylj1NmmxNm6lLdSPW3fuW5LdQcWD8BmO
+UxgxTOCE90ESaNOud6aT8zQVWqMuly/OJvYidmrHXi27VCW6D3ajpVVQMOPZH95+
+DpLeRTlTvvYnpyQY5fK6isZ/xKJ7FeUI9c9FGn7LhPOdv/0N2/0wYyVIb7o2ZszE
+u01VV8aBUFT+gwAU68NAB6SvYNIiLtdXLbP7/DBCNjR1qurIeDS2lt25guBmF+lm
+bKFBMuq1+olK+ao/KN+cRTlC22I3epAo6Eh5oYw/lv3bblXtcGNrjLkVeJ+iBm81
+NpyqSILb8AyHrkLTpTWMgPLG7MXxsTs1TNG20TQlR+XpPy045GcxnZwgnZotc3i6
+XduMxEjENBU0xFNxd1r61pv8O+udbxuDZdmtkLk8A6Bn18j0pP/wA4EmWkxW9b0e
+3kr225X+7C5bc5S04t6rPudMgCsY29Cznv6kjvc+KREbO4ocEeSj8RntwOHSUKJC
+829vlRehXAXxrPFbfRiv
+=rc9U
 -----END PGP SIGNATURE-----
 
---ISCXPd1dR6/8kjof--
-
---===============3922958154336964893==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============3922958154336964893==--
+--B9I4cJCE9PLEoxgz--
