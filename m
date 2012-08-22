@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 7/9] ASoC: omap-mcbsp: Remove
- cpu_is_omap* checks from the code
-Date: Wed, 22 Aug 2012 20:15:48 +0100
-Message-ID: <20120822191547.GN7995@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 8/9] ARM: OMAP2+: McBSP: Do not create
+ legacy devices when booting with DT data
+Date: Wed, 22 Aug 2012 20:16:02 +0100
+Message-ID: <20120822191601.GO7995@opensource.wolfsonmicro.com>
 References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
- <1345124468-8876-8-git-send-email-peter.ujfalusi@ti.com>
+ <1345124468-8876-9-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2189657018078826131=="
+Content-Type: multipart/mixed; boundary="===============6677746822431185107=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1345124468-8876-8-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1345124468-8876-9-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
  <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
@@ -23,52 +23,50 @@ Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgre
 List-Id: linux-omap@vger.kernel.org
 
 
---===============2189657018078826131==
+--===============6677746822431185107==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="g/o8sqaH6XVFI89B"
+	protocol="application/pgp-signature"; boundary="4QsEYJIjMB+yaydW"
 Content-Disposition: inline
 
 
---g/o8sqaH6XVFI89B
+--4QsEYJIjMB+yaydW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Aug 16, 2012 at 04:41:06PM +0300, Peter Ujfalusi wrote:
-> We can use the has_ccr flag to replace the cpu_is_omap* checks.
-> This provides future proof implementation and we do not need to update the
-> code if new OMAP revision starts to use the McBSP driver.
+On Thu, Aug 16, 2012 at 04:41:07PM +0300, Peter Ujfalusi wrote:
+> Only create the devices in a legacy way if we do not have the DT data.
 
 Applied, thanks.
 
---g/o8sqaH6XVFI89B
+--4QsEYJIjMB+yaydW
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQNS/cAAoJEFJkBDiqVpZ4Vn0QAKRZpUZv6y2vsXwzVB0rNEc9
-rjZyicIeskVKyuYywsa9gZo60n6Lho7Kyi9EssAXc+MvZ382A2Dg6G1lAS4eCaB1
-eMvTuihzQP86p/Itl8TLRr4lzFkmIPW99HN/SgtvVjWji38bLAdPuDTf1cQZ9cBe
-seRVf9tmwvNKF3m45ajmoQFaKABQR24TlzSH1gredsn26mfYLwvX4m43H7mbQk3N
-CWTErrzqPZ8Y9UjEruNK0lUnl0qXP6973xUhTxwXLhGaQE6aA53VL3psEQt5wua+
-blfGt3snMyQawZtDFr8HHhGr83wljyWkgG9dkVVRDqGMqQ6Ft+gWURTW/leBnRjQ
-c5gicDFkE02cudjonWAKAh3a4FoE5G4aMRvenkT18stjvR8xrXY1UJbVgqljpFgT
-oe0C2mS+Ja0VireadBcKkmPiPJjBmGa0AmTbaXND9IcROrAL8/NQiDxxKhECcLZC
-9E+Q2zBYja7KIWQBn4n2v7393W/Pprb5QqrHhE/g5KrQ9ngsXbbP7Yo2Ad2wnQc6
-C/pubs0/kYu/V2MkL3UXkVzr1cfL4Z6zrlrnoiKSWrwkwuRRAvUh+3DENXb1w1mS
-izyirlAZkykG+o9Wd6rLE7ejQ0jd80OW6gNrYPoFXHuJPRpIBTmQ5Nr8r0713WnW
-fP64x4gp/XXPxoWZEdtR
-=uvaF
+iQIcBAEBAgAGBQJQNS/rAAoJEFJkBDiqVpZ4LNIQAL8cHsAiC44GFa/DS+dhZTAB
+18DUdHDRZ6S7Xfm3x2UuRBHe55YOnhWy+a70FusyZCiubYqs9VFQUkqelIrz1AaU
+gss+Q+2HGbmhKORrv0Mrhsw8+xfm0oejQ5yrncU4umRj9fpby9TiO9YrmEr7zmRl
+jOWxJAYCr+xElxJUrlNeAvHm+qBfkaQWmBCVzf19wYQT64s0Rkr5xiJok7sxkqc4
+hqWPmMvzfftYWD5Uh8Y7gKfcLBsyMLpH3zHG5lZD8pcdQSjuldhSUvVEn845Saf6
+u6sajN09zMf7R03htW9tr6+eFY2JZQJJE+bVJwR6EQWgCGLY0p73ENrhxPerhT8A
+LDJNWA8/QPf4aHrs4PXwJqbqKy3SOYQqpddt0ZxX7qG+d4ZPsMKrl+c1zqlkdO63
+fTauRnwMRVYM+Tf7D/L1EyInrZQIiQLMp2FKy18MmWVCdlGJPaSHtRlvnM9oSCXs
+jPg2R4YUADY2Pd9hgL+ayWUrIIC3vVTA3NN9vUrD9jJ5gApQtSSSUu8Y/zFju3Kj
+hk9TU88E5sbDoGKwHwkgYvIlDXkXRJ3feAZd38fDQayb7Y1k/vZWuJVS1d+taf9J
+f2/Lh+bqVo8lNgfRFf4x10vbxMgOYxU+xDbRxzRKDdu7CkAZvXppXCJo9u1o9iTB
+Ha2mKI+tLaTOddkWmmsz
+=/Jwp
 -----END PGP SIGNATURE-----
 
---g/o8sqaH6XVFI89B--
+--4QsEYJIjMB+yaydW--
 
---===============2189657018078826131==
+--===============6677746822431185107==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============2189657018078826131==--
+--===============6677746822431185107==--
