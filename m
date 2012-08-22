@@ -1,75 +1,61 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 1/9] ARM/ASoC: omap-mcbsp: Move OMAP2+
- clock parenting code to ASoC driver
-Date: Wed, 22 Aug 2012 20:10:44 +0100
-Message-ID: <20120822191043.GH7995@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use for OMAP2430
+Date: Wed, 22 Aug 2012 20:11:40 +0100
+Message-ID: <20120822191139.GI7995@opensource.wolfsonmicro.com>
 References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
- <1345124468-8876-2-git-send-email-peter.ujfalusi@ti.com>
+ <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1968721904901407734=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1345124468-8876-2-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-List-Id: linux-omap@vger.kernel.org
-
-
---===============1968721904901407734==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IIdFmnBmmFp+Aeao"
+	protocol="application/pgp-signature"; boundary="e9fJn+fjquYGkO6l"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36679 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757739Ab2HVTLl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Aug 2012 15:11:41 -0400
 Content-Disposition: inline
+In-Reply-To: <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
 
---IIdFmnBmmFp+Aeao
+--e9fJn+fjquYGkO6l
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 16, 2012 at 04:41:00PM +0300, Peter Ujfalusi wrote:
-> Move the McBSP CLKS re-parenting code to ASoC driver from
-> arch/arm/mach-omap2.
-> The call fort the re-parenting has been already limited to OMAP2+ SoC in
-> the ASoC driver. There is no longer need to have callback function for it.
+On Thu, Aug 16, 2012 at 04:41:01PM +0300, Peter Ujfalusi wrote:
+> On OMAP2430 all McBSP ports have 128 word long buffer, enable the use of
+> the FIFO for the audio stack.
+>=20
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Applied, thanks.
+I applied this - Tony, from the thread it seemed you were OK even though
+you didn't explicitly ack it?
 
---IIdFmnBmmFp+Aeao
+--e9fJn+fjquYGkO6l
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQNS6tAAoJEFJkBDiqVpZ4ypgP+QHvkaPltipdOy9lHnJAP6s8
-ABmXKk4i5QBoB/Bqh9DYXhiI7sp0/W8s3mUXRrsM4STsxWJtq2hyzBj+Au0pDJeW
-CsPlDK4ioq5h3TnlJgbitaEV9Yemi6Sm5XA7EfYEKYP+O2sCbrw4xlcyXjsw+pO/
-McziGT2iIw3e07Z38izLNLqFZIk8e2pksJEf+UxGd8AyGtw2GcnKXWLmXMRmxpKG
-ihPoZz72ylpZEYU8pZR1AsCbv5NQnM/j3Nk+GRuSSFOYOqWSaGA+SoObFIAPYkdC
-uxck20nM5RHaFsN7DltJ2JZIF98lp6l6w1ljDpfRG47KYBwm6H37aB9aDmppwlWU
-byO8gpPQ5acB1xGksrtXVflg5iNxfYnROeDipZYdtI7xElZV1SsQ7Z1NFLgqBC6E
-+gPWc4rqCiyYs4FDr7hPJu5Pk5n3dO9JraU6QwQXLzhXXhouEFd+5rYtm6R7UELT
-ndCYwzDaBqSZbpdbHFcY2pcbKy/pfaHNLwaJvuJnNHDKQDngNqtoTXaTo9okE1Ti
-x140I8tPqDs4GENmm6awgaA3hTqqv86SNapOA8RkD4YNCOm7b7BY4PIw0JGZzosK
-AKghKGt59I0pbXDciaAEPbuDCtkJW2qmwDwJa+76A4A7O07JMiTWnEsU8nYjD8t4
-DgyerSL/HhlUs9VJzTKu
-=8XGd
+iQIcBAEBAgAGBQJQNS7jAAoJEFJkBDiqVpZ4QdwP/1W/Plf3eiW+pIcgcwgKrzx4
+XUQJoJemsIUVuQdcmRbocv4YnDdKAQ5TStCnOhb/7+c2sGYQ+tDn5TtMS/ZE53BC
+8/RhWXgqVw7CtO8KhQnJ25zq5uFf570lItsjqXv3po1cxXKJWu7Bw3zDJAr9j2+3
+IPf7uJNraolQd9IeJ3xdVglvGoFulKsxGeAFMUQ0fmtyMfsMBQ0So6IFnT5ug9L7
+Y69gKr0tUoWDy6oPu2HyvX+M5LjOmNgxtBPKp6yz10Zyl6QOkZkb2NG7loPFD40E
+QmILDOEHUOTiB18Ks3SFCod7FNxUDUuC9uyqrhBZ5Y/R7SpGPvUl8kKdHx/+8sBj
+SrG4MKvBfXjSIgDL/JyGeQv9rT8xNyCMlP6PXZlpPmtZu2Qz37BCLuls1zADcEv6
++e2G7iY3m8T5STUTRigYAZP07w1uJL+u654nIQV2hqqVqOuKJVxzU4tbkLpVfS6a
+PLmR7ALOb2NDcOP7P8+tQiZfvTyhsLAjgWcxO2JaUwp1GXr8DZBhdzcWwSFj1s7U
++C/OBUtZLu64O1qWypCRi8iaCcs0d78kA+l7c2Kv48/tMrK0/J7npEMwn6+7ccqO
+Kbug/uft67qt/0+9M22jj8kBjDC4f2I9hA6mGaEtsKloPxMyZi95KhqX3AIeAk+o
+NuoeCi7e6RqkJRy7wLgC
+=Bg39
 -----END PGP SIGNATURE-----
 
---IIdFmnBmmFp+Aeao--
-
---===============1968721904901407734==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============1968721904901407734==--
+--e9fJn+fjquYGkO6l--
