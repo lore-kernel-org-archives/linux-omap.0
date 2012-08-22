@@ -1,217 +1,72 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [RESEND PATCH v4 1/2] drivers: bus: add a new driver for omap-ocp2scp
-Date: Wed, 22 Aug 2012 14:10:02 +0530
-Message-ID: <1345624803-16379-2-git-send-email-kishon@ti.com>
-References: <1345624803-16379-1-git-send-email-kishon@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH V6 0/6] OMAPDSS: Cleanup cpu_is checks
+Date: Wed, 22 Aug 2012 11:44:27 +0300
+Message-ID: <1345625067.3036.19.camel@deskari>
+References: <cover.1345468541.git.cmahapatra@ti.com>
+	 <cover.1345616887.git.cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1345624803-16379-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
-Cc: ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-h6XDmBDIkbvuq3g8drL9"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:45388 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755416Ab2HVIok (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Aug 2012 04:44:40 -0400
+Received: by lahm15 with SMTP id m15so375313lah.3
+        for <linux-omap@vger.kernel.org>; Wed, 22 Aug 2012 01:44:35 -0700 (PDT)
+In-Reply-To: <cover.1345616887.git.cmahapatra@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Adds a new driver *omap-ocp2scp*. This driver takes the responsibility of
-creating all the devices that is connected to OCP2SCP. In the case of OMAP4,
-USB2PHY is connected to ocp2scp.
 
-This also includes device tree support for ocp2scp driver and
-the documentation with device tree binding information is updated.
+--=-h6XDmBDIkbvuq3g8drL9
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
----
- .../devicetree/bindings/bus/omap-ocp2scp.txt       |   10 +++
- drivers/Kconfig                                    |    2 +
- drivers/Makefile                                   |    2 +
- drivers/bus/Kconfig                                |   15 ++++
- drivers/bus/Makefile                               |    5 ++
- drivers/bus/omap-ocp2scp.c                         |   88 ++++++++++++++++++++
- 6 files changed, 122 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
- create mode 100644 drivers/bus/Kconfig
- create mode 100644 drivers/bus/Makefile
- create mode 100644 drivers/bus/omap-ocp2scp.c
+On Wed, 2012-08-22 at 12:06 +0530, Chandrabhanu Mahapatra wrote:
+> Hi everyone,
+> this patch series aims at cleaning up of DSS of cpu_is checks thereby mak=
+ing it
+> more generic.
+>=20
+> The 1st patch cleans up cpu_is checks from DISPC code.
+> The 2nd patch removes unused functions from DSS code.
+> The 3rd patch cleans up cpu_is checks from DSS code.
+> The 4th patch disables VENC support on OMAP4.
+> The 5th patch removes cpu_is checks from VENC code.
+> The 6th patch removes cpu_is checks from DPI code and replaces it with a
+> dss feature.
 
-diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-new file mode 100644
-index 0000000..d2fe064
---- /dev/null
-+++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-@@ -0,0 +1,10 @@
-+* OMAP OCP2SCP - ocp interface to scp interface
-+
-+properties:
-+- compatible : Should be "ti,omap-ocp2scp"
-+- #address-cells, #size-cells : Must be present if the device has sub-nodes
-+- ranges : the child address space are mapped 1:1 onto the parent address space
-+- ti,hwmods : must be "ocp2scp_usb_phy"
-+
-+Sub-nodes:
-+All the devices connected to ocp2scp are described using sub-node to ocp2scp
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index ece958d..324e958 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -2,6 +2,8 @@ menu "Device Drivers"
- 
- source "drivers/base/Kconfig"
- 
-+source "drivers/bus/Kconfig"
-+
- source "drivers/connector/Kconfig"
- 
- source "drivers/mtd/Kconfig"
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 5b42184..f8cdeeb 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -5,6 +5,8 @@
- # Rewritten to use lists instead of if-statements.
- #
- 
-+obj-y				+= bus/
-+
- # GPIO must come after pinctrl as gpios may need to mux pins etc
- obj-y				+= pinctrl/
- obj-y				+= gpio/
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-new file mode 100644
-index 0000000..6270415
---- /dev/null
-+++ b/drivers/bus/Kconfig
-@@ -0,0 +1,15 @@
-+#
-+# Bus Devices
-+#
-+
-+menu "Bus devices"
-+
-+config OMAP_OCP2SCP
-+	tristate "OMAP OCP2SCP DRIVER"
-+	help
-+	  Driver to enable ocp2scp module which transforms ocp interface
-+	  protocol to scp protocol. In OMAP4, USB PHY is connected via
-+	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
-+	  OCP2SCP.
-+
-+endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-new file mode 100644
-index 0000000..0ec50bc
---- /dev/null
-+++ b/drivers/bus/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for the bus drivers.
-+#
-+
-+obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-diff --git a/drivers/bus/omap-ocp2scp.c b/drivers/bus/omap-ocp2scp.c
-new file mode 100644
-index 0000000..881d5bb
---- /dev/null
-+++ b/drivers/bus/omap-ocp2scp.c
-@@ -0,0 +1,88 @@
-+/*
-+ * omap-ocp2scp.c - transform ocp interface protocol to scp protocol
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * Author: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+
-+static int ocp2scp_remove_devices(struct device *dev, void *c)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	platform_device_unregister(pdev);
-+
-+	return 0;
-+}
-+
-+static int __devinit omap_ocp2scp_probe(struct platform_device *pdev)
-+{
-+	int			ret;
-+	struct device_node	*np = pdev->dev.of_node;
-+
-+	if (np) {
-+		ret = of_platform_populate(np, NULL, NULL, &pdev->dev);
-+		if (ret) {
-+			dev_err(&pdev->dev, "failed to add resources for ocp2scp child\n");
-+			goto err0;
-+		}
-+	}
-+	pm_runtime_enable(&pdev->dev);
-+
-+	return 0;
-+
-+err0:
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return ret;
-+}
-+
-+static int __devexit omap_ocp2scp_remove(struct platform_device *pdev)
-+{
-+	pm_runtime_disable(&pdev->dev);
-+	device_for_each_child(&pdev->dev, NULL, ocp2scp_remove_devices);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id omap_ocp2scp_id_table[] = {
-+	{ .compatible = "ti,omap-ocp2scp" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, omap_usb2_id_table);
-+#endif
-+
-+static struct platform_driver omap_ocp2scp_driver = {
-+	.probe		= omap_ocp2scp_probe,
-+	.remove		= __devexit_p(omap_ocp2scp_remove),
-+	.driver		= {
-+		.name	= "omap-ocp2scp",
-+		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(omap_ocp2scp_id_table),
-+	},
-+};
-+
-+module_platform_driver(omap_ocp2scp_driver);
-+
-+MODULE_ALIAS("platform: omap-ocp2scp");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_DESCRIPTION("OMAP OCP2SCP driver");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.9.5
+Thanks, looks good. I'll apply this to omapdss tree.
+
+ Tomi
+
+
+--=-h6XDmBDIkbvuq3g8drL9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQNJvrAAoJEPo9qoy8lh71HE0P/j/XyQSVj5m+3L0RqaTK8SAb
+tpqVNn5r+n/rvgmJXE6NAviS+4dTMJqePDs4KFss56PQgrbR76ArkrEVpawE1YyC
+UOtq+lYp2eCC9LPZ5yxkAT2wQxvRPKfBrspj1MbynpL/Vvjj/G4Y/6tGXUTccY0I
+OIvpTW+95VPkInViVsPqLRgNmBdVW/3bFh6YXIZnRISgSGhXKEyI9yBaalFwz+4K
+34aq1x7mzdQHt69RNW4e31bffDQyVqfkfHqswW1tq0fwXn7mAE+VIyTwzTvja3Md
+mM3UQpW/YWm1PuikcczBydw8rRgB6wqKeykkpAo7YHrHkNhs9DeC0BY094OexYHy
+qH5SbFtMXkKB6fMISkQGAIYNTRm1NqC0xPTgZVLmGEOUMnXYeaeALgLzLhvvDCmc
+vi1vkAuCGZOQ8S/TGuoqHLiqtZoWMWi6gm2NhgBUk6g6csm1irCZRjS5QD6jLMVB
+3CHvVkOALZRPVxodSJmCaVKa9MoZhBJW0otpK+jF1RhYQ6nZPJZqQJQlPJFh/hel
+FhytT9QU8MGM8FhP0A9Cs2zDXNgOXAONQ+ODl8qdq1mkW0cyOheupBbkUVXmI/jD
+6IKCRqKQ4OMXXgT3HklUJBQFAYEOcBN7ZKGi7vZ40VI7vtHhamwLtL1fOcT3/R+X
+QESAMXC9pVFCFkgy04G3
+=WVaR
+-----END PGP SIGNATURE-----
+
+--=-h6XDmBDIkbvuq3g8drL9--
+
