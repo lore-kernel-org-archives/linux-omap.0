@@ -1,17 +1,18 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v6 05/10] ARM: OMAP2+: gpmc: find features by ip rev check
-Date: Tue, 21 Aug 2012 21:08:39 -0500
-Message-ID: <50343F27.4060101@ti.com>
-References: <cover.1345524670.git.afzal@ti.com> <0b211272d0d6f9281df7db400cb2d6a968b31222.1345524670.git.afzal@ti.com>
+Subject: Re: [PATCH v6 06/10] ARM: OMAP2+: gpmc: remove cs# in sync clk div
+ calc
+Date: Tue, 21 Aug 2012 21:11:51 -0500
+Message-ID: <50343FE7.8030207@ti.com>
+References: <cover.1345524670.git.afzal@ti.com> <3cc7885c2ae9055763ba72cae0735b065dae403e.1345524670.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36553 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43561 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754833Ab2HVCIe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Aug 2012 22:08:34 -0400
-In-Reply-To: <0b211272d0d6f9281df7db400cb2d6a968b31222.1345524670.git.afzal@ti.com>
+	id S1754998Ab2HVCLq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Aug 2012 22:11:46 -0400
+In-Reply-To: <3cc7885c2ae9055763ba72cae0735b065dae403e.1345524670.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
@@ -19,61 +20,73 @@ Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kern
 
 
 On 08/21/2012 05:45 AM, Afzal Mohammed wrote:
-> Newer IP's have wr_access and wr_data_mux_bus fields. Use
-> IP revision values to determine availability of these
-> fields and hence decide on whether to configure them.
+> Divider value for a certain sync clk is determined solely
+> based on gpmc fclk. CS# does not have any role here, thus
+> remove presence of CS# in clock divider calculation API.
 > 
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/gpmc.c |   12 ++++++++++--
->  1 files changed, 10 insertions(+), 2 deletions(-)
+>  arch/arm/mach-omap2/gpmc-onenand.c     |    3 +--
+>  arch/arm/mach-omap2/gpmc.c             |    4 ++--
+>  arch/arm/plat-omap/include/plat/gpmc.h |    2 +-
+>  3 files changed, 4 insertions(+), 5 deletions(-)
 > 
+> diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+> index 8a301f3..e139e3f 100644
+> --- a/arch/arm/mach-omap2/gpmc-onenand.c
+> +++ b/arch/arm/mach-omap2/gpmc-onenand.c
+> @@ -182,7 +182,6 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+>  	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
+>  	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
+>  	int ticks_cez;
+> -	int cs = cfg->cs;
+>  
+>  	if (cfg->flags & ONENAND_SYNC_READ)
+>  		onenand_flags = ONENAND_FLAG_SYNCREAD;
+> @@ -229,7 +228,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+>  		break;
+>  	}
+>  
+> -	div = gpmc_cs_calc_divider(cs, min_gpmc_clk_period);
+> +	div = gpmc_calc_divider(min_gpmc_clk_period);
+>  	gpmc_clk_ns = gpmc_ticks_to_ns(div);
+>  	if (gpmc_clk_ns < 15) /* >66Mhz */
+>  		onenand_flags |= ONENAND_FLAG_HF;
 > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index 070fac5..68123d0 100644
+> index 68123d0..d005b3a 100644
 > --- a/arch/arm/mach-omap2/gpmc.c
 > +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -85,6 +85,11 @@
->  #define ENABLE_PREFETCH		(0x1 << 7)
->  #define DMA_MPU_MODE		2
+> @@ -313,7 +313,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
+>  		return -1
+>  #endif
 >  
-> +#define	GPMC_REVISION_MAJOR(l)		((l >> 4) & 0xf)
-> +
-> +#define	GPMC_HAS_WR_ACCESS		0x1
-> +#define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
-> +
->  /* XXX: Only NAND irq has been considered,currently these are the only ones used
->   */
->  #define	GPMC_NR_IRQ		2
-> @@ -131,6 +136,7 @@ static DEFINE_SPINLOCK(gpmc_mem_lock);
->  static unsigned int gpmc_cs_map;	/* flag for cs which are initialized */
->  static int gpmc_ecc_used = -EINVAL;	/* cs using ecc engine */
+> -int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
+> +int gpmc_calc_divider(unsigned int sync_clk)
+>  {
+>  	int div;
+>  	u32 l;
+> @@ -333,7 +333,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
+>  	int div;
+>  	u32 l;
 >  
-> +static unsigned gpmc_capability;
->  static void __iomem *gpmc_base;
+> -	div = gpmc_cs_calc_divider(cs, t->sync_clk);
+> +	div = gpmc_calc_divider(t->sync_clk);
+>  	if (div < 0)
+>  		return -1;
 >  
->  static struct clk *gpmc_l3_clk;
-> @@ -356,10 +362,10 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
->  	GPMC_SET_ONE(GPMC_CS_CONFIG1, 18, 19, wait_monitoring);
->  	GPMC_SET_ONE(GPMC_CS_CONFIG1, 25, 26, clk_activation);
+> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
+> index b7c9ea6..1cafbfd 100644
+> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+> @@ -179,7 +179,7 @@ extern unsigned long gpmc_get_fclk_period(void);
 >  
-> -	if (cpu_is_omap34xx()) {
-> +	if (gpmc_capability & GPMC_HAS_WR_DATA_MUX_BUS)
->  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 16, 19, wr_data_mux_bus);
-> +	if (gpmc_capability & GPMC_HAS_WR_ACCESS)
->  		GPMC_SET_ONE(GPMC_CS_CONFIG6, 24, 28, wr_access);
-> -	}
->  
->  	/* caller is expected to have initialized CONFIG1 to cover
->  	 * at least sync vs async
-> @@ -922,6 +928,8 @@ static int __init gpmc_init(void)
->  	clk_enable(gpmc_l3_clk);
->  
->  	l = gpmc_read_reg(GPMC_REVISION);
-> +	if (GPMC_REVISION_MAJOR(l) > 0x4)
-> +		gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
->  	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
->  	/* Set smart idle mode and automatic L3 clock gating */
->  	l = gpmc_read_reg(GPMC_SYSCONFIG);
+>  extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
+>  extern u32 gpmc_cs_read_reg(int cs, int idx);
+> -extern int gpmc_cs_calc_divider(int cs, unsigned int sync_clk);
+> +extern int gpmc_calc_divider(unsigned int sync_clk);
+>  extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
+>  extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
+>  extern void gpmc_cs_free(int cs);
 > 
 
 Reviewed-by: Jon Hunter <jon-hunter@ti.com>
