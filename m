@@ -1,213 +1,78 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 09/10] mmc: omap_hsmmc: convert from IP timer to hrtimer
-Date: Wed, 22 Aug 2012 16:08:17 +0530
-Message-ID: <CANfBPZ-VbkDRADNgecyXSqj3YH-mAZcihEm2YRrMW8_RWpORyQ@mail.gmail.com>
+Date: Wed, 22 Aug 2012 14:28:32 +0300
+Message-ID: <20120822112830.GB27029@arwen.pp.htv.fi>
 References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
- <1345229550-8672-10-git-send-email-svenkatr@ti.com> <20120821104248.GR10347@arwen.pp.htv.fi>
+ <1345229550-8672-10-git-send-email-svenkatr@ti.com>
+ <20120821104248.GR10347@arwen.pp.htv.fi>
+ <CANfBPZ-VbkDRADNgecyXSqj3YH-mAZcihEm2YRrMW8_RWpORyQ@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8GpibOaaTibBMecb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:58348 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964Ab2HVKij (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43017 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752363Ab2HVLcd (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Aug 2012 06:38:39 -0400
-Received: by pbcmd12 with SMTP id md12so1311800pbc.37
-        for <linux-omap@vger.kernel.org>; Wed, 22 Aug 2012 03:38:37 -0700 (PDT)
-In-Reply-To: <20120821104248.GR10347@arwen.pp.htv.fi>
+	Wed, 22 Aug 2012 07:32:33 -0400
+Received: by lahd3 with SMTP id d3so584708lah.14
+        for <linux-omap@vger.kernel.org>; Wed, 22 Aug 2012 04:32:30 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CANfBPZ-VbkDRADNgecyXSqj3YH-mAZcihEm2YRrMW8_RWpORyQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: balbi@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balajitk@ti.com, vishp@ti.com
 
-On Tue, Aug 21, 2012 at 4:12 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Sat, Aug 18, 2012 at 12:22:29AM +0530, Venkatraman S wrote:
->> omap hsmmc controller IP has an inbuilt timer that can be programmed to
->                                   ^^^^^^^
->                                   built-in
->> guard against unresponsive operations. But it's range is very narrow,
->                                              ^^^^
->                                              its
->
->
->> and it's maximum countable time is a few seconds.
->       ^^^^
->       its
->
 
-Will fix.
+--8GpibOaaTibBMecb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
->> Card maintenance operations like BKOPS and SECURE DISCARD and long
->> stream writes like packed command require timers of order of
->> several minutes.
->> So get rid of using the IP timer entirely and use kernel's hrtimer
->> functionality for guarding the device operations.
->> As part of this change, a workaround that disabled timeouts for
->> MMC_ERASE commands is removed, and the arbitary timing of 100ms
->> is used only when the timeout is not explicitly specified by core.
->>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->> ---
->>  drivers/mmc/host/omap_hsmmc.c | 96 ++++++++++++++++++++++---------------------
->>  1 file changed, 50 insertions(+), 46 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 9afdd20..8f7cebc 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -79,7 +79,7 @@
->>  #define CLKD_SHIFT           6
->>  #define DTO_MASK             0x000F0000
->>  #define DTO_SHIFT            16
->> -#define INT_EN_MASK          0x307F0033
->> +#define INT_EN_MASK          0x306E0033
->
-> not related to this patch in particular, but it would be nice if this
-> was converted to something more meaningfull, like ORing a bunch of bit
-> defines.
->
+Hi,
 
-Sure. Good to do now as part of the change.
+On Wed, Aug 22, 2012 at 04:08:17PM +0530, S, Venkatraman wrote:
+> >> @@ -992,7 +996,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_ho=
+st *host, int status)
+> >>                       hsmmc_command_incomplete(host, -EILSEQ);
+> >>
+> >>               end_cmd =3D 1;
+> >> -             if (host->data || host->response_busy) {
+> >> +             if (data || host->response_busy) {
+> >
+> > This doesn't seem like it belongs to $SUBJECT...
+> >
+> I thought is was a small fix which didn't warrant a separate patch though.
 
->>  #define BWR_ENABLE           (1 << 4)
->>  #define BRR_ENABLE           (1 << 5)
->>  #define DTO_ENABLE           (1 << 20)
->> @@ -160,6 +160,7 @@ struct omap_hsmmc_host {
->>       unsigned int            dma_sg_idx;
->>       unsigned char           bus_mode;
->>       unsigned char           power_mode;
->> +     unsigned int            ns_per_clk_cycle;
->>       int                     suspended;
->>       int                     irq;
->>       int                     use_dma, dma_ch;
->> @@ -172,6 +173,7 @@ struct omap_hsmmc_host {
->>       int                     reqs_blocked;
->>       int                     use_reg;
->>       int                     req_in_progress;
->> +     struct hrtimer  guard_timer;
->>       struct omap_hsmmc_next  next_data;
->>
->>       struct  omap_mmc_platform_data  *pdata;
->> @@ -455,10 +457,6 @@ static void omap_hsmmc_enable_irq(struct omap_hsmmc_host *host,
->>       else
->>               irq_mask = INT_EN_MASK;
->>
->> -     /* Disable timeout for erases */
->> -     if (cmd->opcode == MMC_ERASE)
->> -             irq_mask &= ~DTO_ENABLE;
->> -
->>       OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->>       OMAP_HSMMC_WRITE(host->base, ISE, irq_mask);
->>       OMAP_HSMMC_WRITE(host->base, IE, irq_mask);
->> @@ -508,6 +506,9 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
->>               && time_before(jiffies, timeout))
->>               cpu_relax();
->>
->> +     if (ios->clock)
->> +             host->ns_per_clk_cycle = DIV_ROUND_UP(NSEC_PER_SEC, ios->clock);
->> +
->>       omap_hsmmc_start_clock(host);
->>  }
->>
->> @@ -824,7 +825,7 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
->>               omap_hsmmc_request_done(host, mrq);
->>               return;
->>       }
->> -
->> +     hrtimer_cancel(&host->guard_timer);
->>       host->data = NULL;
->>
->>       if (!data->error)
->> @@ -859,8 +860,11 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
->>                       cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
->>               }
->>       }
->> -     if ((host->data == NULL && !host->response_busy) || cmd->error)
->> +     if ((host->data == NULL && !host->response_busy) || cmd->error) {
->
-> could just go ahead and make this check uniform by:
->
-> if ((!host->data && !host->response_busy)) || cmd->error)
->
+sure, that's fair. But it does deserve a mention on commit log too.
+Something along the lines of "while at that, also use a 'data' variable
+which was already defined instead of dereferencing host again".
 
-Ok.
+--=20
+balbi
 
->> +             if (cmd->error != -ETIMEDOUT)
->> +                     hrtimer_cancel(&host->guard_timer);
->>               omap_hsmmc_request_done(host, cmd->mrq);
->> +     }
->>  }
->>
->>  /*
->> @@ -992,7 +996,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_host *host, int status)
->>                       hsmmc_command_incomplete(host, -EILSEQ);
->>
->>               end_cmd = 1;
->> -             if (host->data || host->response_busy) {
->> +             if (data || host->response_busy) {
->
-> This doesn't seem like it belongs to $SUBJECT...
->
-I thought is was a small fix which didn't warrant a separate patch though.
+--8GpibOaaTibBMecb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
->>                       end_trans = 1;
->>                       host->response_busy = 0;
->>               }
->> @@ -1292,41 +1296,35 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
->>       return 0;
->>  }
->>
->> -static void set_data_timeout(struct omap_hsmmc_host *host,
->> -                          unsigned int timeout_ns,
->> -                          unsigned int timeout_clks)
->> +static void set_guard_timer(struct omap_hsmmc_host *host,
->> +             unsigned long timeout_ms, unsigned long timeout_ns,
->> +             unsigned int timeout_clks)
->>  {
->> -     unsigned int timeout, cycle_ns;
->> -     uint32_t reg, clkd, dto = 0;
->> +     ktime_t gtime;
->> +     unsigned int sec, nsec;
->>
->> -     reg = OMAP_HSMMC_READ(host->base, SYSCTL);
->> -     clkd = (reg & CLKD_MASK) >> CLKD_SHIFT;
->> -     if (clkd == 0)
->> -             clkd = 1;
->> +     sec = timeout_ms / MSEC_PER_SEC;
->> +     nsec = (timeout_ms % MSEC_PER_SEC) * NSEC_PER_MSEC + timeout_ns;
->>
->> -     cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
->> -     timeout = timeout_ns / cycle_ns;
->> -     timeout += timeout_clks;
->> -     if (timeout) {
->> -             while ((timeout & 0x80000000) == 0) {
->> -                     dto += 1;
->> -                     timeout <<= 1;
->> -             }
->> -             dto = 31 - dto;
->> -             timeout <<= 1;
->> -             if (timeout && dto)
->> -                     dto += 1;
->> -             if (dto >= 13)
->> -                     dto -= 13;
->> -             else
->> -                     dto = 0;
->> -             if (dto > 14)
->> -                     dto = 14;
->> -     }
->> +     nsec += timeout_clks * host->ns_per_clk_cycle;
->> +     gtime = ktime_set(sec, nsec);
->>
->> -     reg &= ~DTO_MASK;
->> -     reg |= dto << DTO_SHIFT;
->> -     OMAP_HSMMC_WRITE(host->base, SYSCTL, reg);
->> +     hrtimer_start(&host->guard_timer, gtime, HRTIMER_MODE_REL);
->> +}
->> +
->> +enum hrtimer_restart omap_hsmmc_timedout(struct hrtimer *gtimer)
->
-> static ?
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Right!
+iQIcBAEBAgAGBQJQNMJeAAoJEIaOsuA1yqREerAP/0KwE1LQ663Z9gMKXbMQJSXI
+bk2qD0RWwDRm8tg3/1eQtGx+QyfcWIEVh9cXKo/VqbLNXrDikUNP+N0z99gki+A+
+drQ2z11BgfGPD9EM9n88a9lbtFmWkkFEbd+2+xclniGi7lax7U86hIT0+a+lPOgy
+jB2a+4xxPViXzeJp8NnJ7l8TiuuKUo3yuncnZuPe9dqM7gAS/8/TofN2VbODvhNP
+Ynu5J2oh63kBbJ4VhLLCkCRVhMKqq+eR4ptsxYxwJBP63azOcGUgb9FJGAhWV5Ez
+D0vQdDc902v5JznV2Fire+WASGaqlYO+STjrQK514zPLDOfKjYUZ6IVTZDMfudW/
+/MAuT/teY265opSZX5D9u8rPMExjV05w2WtK0P8P66EJte+Wr6CfaeCB4ehORDQF
+qEYrQXcOoX5Y9B8z8kOOBNG5z+oxsv1pqlx0xFtJ2ZA686vrvIFH0sFGp5Y8PwQu
+H7aqB8jf43I6Y4Ee9ze9H4f0acS5TZpsL9s9cnPRrco8aEnDR2eUvr+QQfjpIFBW
+70IugMoVjc+wjlBWhmxvWG8YUDxgNOENpmhtqHW+yja1ajSdMvtmqmOTEOrxlTS7
+uVY5cGEAvFdQaboibO/2dmYmA9eFY8B3/N1pt1pvQzv95CKIHv/jT/6zRmUKK/1s
+eTEDASdUV5WSO3Frp18W
+=dmek
+-----END PGP SIGNATURE-----
+
+--8GpibOaaTibBMecb--
