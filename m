@@ -1,66 +1,119 @@
 From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Subject: [PATCH V6 5/6] OMAPDSS: VENC: Remove cpu_is_xxxx checks
-Date: Wed, 22 Aug 2012 12:08:56 +0530
-Message-ID: <193f95b3016061d17fba9475f3e97e4753568661.1345616887.git.cmahapatra@ti.com>
+Subject: [PATCH V6 6/6] OMAPDSS: DPI: Remove cpu_is_xxxx checks
+Date: Wed, 22 Aug 2012 12:09:05 +0530
+Message-ID: <0bd61a836b024c59265eb1a1919f823f37c227d4.1345616887.git.cmahapatra@ti.com>
 References: <cover.1345468541.git.cmahapatra@ti.com> <cover.1345616887.git.cmahapatra@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57122 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49020 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754782Ab2HVGn3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Aug 2012 02:43:29 -0400
+	id S1755177Ab2HVGnj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Aug 2012 02:43:39 -0400
 In-Reply-To: <cover.1345616887.git.cmahapatra@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-OMAP4 checks are removed from VENC to provide it a cleaner interface. These
-checks were introduced by patches "HACK: OMAP: DSS2: VENC: disable VENC on OMAP4
-to prevent crash" (ba02fa37de) by Tomi Valkeinen <tomi.valkeinen@ti.com> and
-"OMAPDSS: VENC: fix NULL pointer dereference in DSS2 VENC sysfs debug attr on
-OMAP4" (cc1d3e032d)  by Danny Kukawka <danny.kukawka@bisect.de> to prevent VENC
-from crashing OMAP4 kernel.
+The OMAP3 checks have been removed and replaced by a dss feature
+FEAT_DPI_USES_VDDS_DSI for cleaner implementation. The patches
+"OMAP: DSS2: enable VDDS_DSI when using DPI" (8a2cfea8cc) by Tomi Valkeinen
+<tomi.valkeinen@nokia.com> and "ARM: omap: fix oops in
+drivers/video/omap2/dss/dpi.c" (4041071571) by Russell King
+<rmk+kernel@arm.linux.org.uk> had introduced these checks. As it is evident
+from these patches a dependency exists for some DSS pins on VDDS_DSI which is
+better shown by dss feature FEAT_DPI_USES_VDDS_DSI.
 
 Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
 ---
- drivers/video/omap2/dss/venc.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ drivers/video/omap2/dss/dpi.c          |   12 +++++++-----
+ drivers/video/omap2/dss/dss_features.c |    1 +
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 7d3eef8..4a6caf9 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -674,11 +674,6 @@ static void venc_dump_regs(struct seq_file *s)
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index f260343..25fb895 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -34,6 +34,7 @@
+ #include <plat/cpu.h>
+ 
+ #include "dss.h"
++#include "dss_features.h"
+ 
+ static struct {
+ 	struct regulator *vdds_dsi_reg;
+@@ -175,7 +176,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ 
+ 	mutex_lock(&dpi.lock);
+ 
+-	if (cpu_is_omap34xx() && !dpi.vdds_dsi_reg) {
++	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) && !dpi.vdds_dsi_reg) {
+ 		DSSERR("no VDSS_DSI regulator\n");
+ 		r = -ENODEV;
+ 		goto err_no_reg;
+@@ -193,7 +194,7 @@ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err_start_dev;
+ 	}
+ 
+-	if (cpu_is_omap34xx()) {
++	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI)) {
+ 		r = regulator_enable(dpi.vdds_dsi_reg);
+ 		if (r)
+ 			goto err_reg_enable;
+@@ -239,7 +240,7 @@ err_dsi_pll_init:
+ err_get_dsi:
+ 	dispc_runtime_put();
+ err_get_dispc:
+-	if (cpu_is_omap34xx())
++	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+ 		regulator_disable(dpi.vdds_dsi_reg);
+ err_reg_enable:
+ 	omap_dss_stop_device(dssdev);
+@@ -265,7 +266,7 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ 
+ 	dispc_runtime_put();
+ 
+-	if (cpu_is_omap34xx())
++	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI))
+ 		regulator_disable(dpi.vdds_dsi_reg);
+ 
+ 	omap_dss_stop_device(dssdev);
+@@ -362,7 +363,8 @@ static int __init dpi_init_display(struct omap_dss_device *dssdev)
  {
- #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
+ 	DSSDBG("init_display\n");
  
--	if (cpu_is_omap44xx()) {
--		seq_printf(s, "VENC currently disabled on OMAP44xx\n");
--		return;
--	}
--
- 	if (venc_runtime_get())
- 		return;
+-	if (cpu_is_omap34xx() && dpi.vdds_dsi_reg == NULL) {
++	if (dss_has_feature(FEAT_DPI_USES_VDDS_DSI) &&
++					dpi.vdds_dsi_reg == NULL) {
+ 		struct regulator *vdds_dsi;
  
-@@ -893,16 +888,10 @@ static struct platform_driver omap_venchw_driver = {
+ 		vdds_dsi = dss_get_vdds_dsi();
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 9387097..2fe39d6 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -373,6 +373,7 @@ static const enum dss_feat_id omap3430_dss_feat_list[] = {
+ 	FEAT_ALPHA_FIXED_ZORDER,
+ 	FEAT_FIFO_MERGE,
+ 	FEAT_OMAP3_DSI_FIFO_BUG,
++	FEAT_DPI_USES_VDDS_DSI,
+ };
  
- int __init venc_init_platform_driver(void)
- {
--	if (cpu_is_omap44xx())
--		return 0;
--
- 	return platform_driver_probe(&omap_venchw_driver, omap_venchw_probe);
- }
- 
- void __exit venc_uninit_platform_driver(void)
- {
--	if (cpu_is_omap44xx())
--		return;
--
- 	platform_driver_unregister(&omap_venchw_driver);
- }
+ static const enum dss_feat_id omap3630_dss_feat_list[] = {
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 996ffcb..26d43a4 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -50,6 +50,7 @@ enum dss_feat_id {
+ 	FEAT_DSI_VC_OCP_WIDTH,
+ 	FEAT_DSI_REVERSE_TXCLKESC,
+ 	FEAT_DSI_GNQ,
++	FEAT_DPI_USES_VDDS_DSI,
+ 	FEAT_HDMI_CTS_SWMODE,
+ 	FEAT_HDMI_AUDIO_USE_MCLK,
+ 	FEAT_HANDLE_UV_SEPARATE,
 -- 
 1.7.10
 
