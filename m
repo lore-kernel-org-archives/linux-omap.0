@@ -1,109 +1,127 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 2/3] spi: omap2-mcspi: Remove the macro MOD_REG_BIT
-Date: Wed, 22 Aug 2012 11:22:41 +0530
-Message-ID: <503473A9.4060805@ti.com>
-References: <1345529864-7937-1-git-send-email-shubhrajyoti@ti.com> <1345529864-7937-3-git-send-email-shubhrajyoti@ti.com> <20120821090508.GC10347@arwen.pp.htv.fi>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv2 1/3] spi: omap2-mcspi: Call pm_runtime_* functions directly
+Date: Wed, 22 Aug 2012 11:35:12 +0530
+Message-ID: <1345615515-26745-2-git-send-email-shubhrajyoti@ti.com>
+References: <1345615515-26745-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120821090508.GC10347@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1345615515-26745-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
-Thanks for the review
+Call the pm_runtime functions directly making room for possible
+pm optimisations. Also the runtime functions aren't just about
+enabling and disabling of clocks though it does enable clocks also.
 
-On Tuesday 21 August 2012 02:35 PM, Felipe Balbi wrote:
-> On Tue, Aug 21, 2012 at 11:47:43AM +0530, Shubhrajyoti D wrote:
->> Remove the macro MOD_REG_BIT instead make the bit field modifications
->> directly. This deletes a branch operation in cases where the the set
->> is predecided.While at it optimise two sequential bit clear in one step.
->                ^^
-> 	       you need a space here, besides you can add the ack below
-Will fix that and resend.
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
->
->> ---
->>  drivers/spi/spi-omap2-mcspi.c |   28 ++++++++++++++--------------
->>  1 files changed, 14 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
->> index dd887eb..5642111 100644
->> --- a/drivers/spi/spi-omap2-mcspi.c
->> +++ b/drivers/spi/spi-omap2-mcspi.c
->> @@ -140,13 +140,6 @@ struct omap2_mcspi_cs {
->>  	u32			chconf0;
->>  };
->>  
->> -#define MOD_REG_BIT(val, mask, set) do { \
->> -	if (set) \
->> -		val |= mask; \
->> -	else \
->> -		val &= ~mask; \
->> -} while (0)
->> -
->>  static inline void mcspi_write_reg(struct spi_master *master,
->>  		int idx, u32 val)
->>  {
->> @@ -205,7 +198,11 @@ static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
->>  	else
->>  		rw = OMAP2_MCSPI_CHCONF_DMAW;
->>  
->> -	MOD_REG_BIT(l, rw, enable);
->> +	if (enable)
->> +		l |= rw;
->> +	else
->> +		l &= ~rw;
->> +
->>  	mcspi_write_chconf0(spi, l);
->>  }
->>  
->> @@ -224,7 +221,11 @@ static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
->>  	u32 l;
->>  
->>  	l = mcspi_cached_chconf0(spi);
->> -	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
->> +	if (cs_active)
->> +		l |= OMAP2_MCSPI_CHCONF_FORCE;
->> +	else
->> +		l &= ~OMAP2_MCSPI_CHCONF_FORCE;
->> +
->>  	mcspi_write_chconf0(spi, l);
->>  }
->>  
->> @@ -239,9 +240,8 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
->>  	 * to single-channel master mode
->>  	 */
->>  	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
->> -	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_STEST, 0);
->> -	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
->> -	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
->> +	l &= ~(OMAP2_MCSPI_MODULCTRL_STEST | OMAP2_MCSPI_MODULCTRL_MS);
->> +	l |= OMAP2_MCSPI_MODULCTRL_SINGLE;
->>  	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
->>  
->>  	ctx->modulctrl = l;
->> @@ -1276,9 +1276,9 @@ static int omap2_mcspi_resume(struct device *dev)
->>  			 * We need to toggle CS state for OMAP take this
->>  			 * change in account.
->>  			 */
->> -			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 1);
->> +			cs->chconf0 |= OMAP2_MCSPI_CHCONF_FORCE;
->>  			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
->> -			MOD_REG_BIT(cs->chconf0, OMAP2_MCSPI_CHCONF_FORCE, 0);
->> +			cs->chconf0 &= ~OMAP2_MCSPI_CHCONF_FORCE;
->>  			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
->>  		}
->>  	}
->> -- 
->> 1.7.5.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/spi/spi-omap2-mcspi.c |   28 +++++++++++-----------------
+ 1 files changed, 11 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index b2fb141..f542f3d 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -260,16 +260,6 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ 	list_for_each_entry(cs, &ctx->cs, node)
+ 		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+ }
+-static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+-{
+-	pm_runtime_mark_last_busy(mcspi->dev);
+-	pm_runtime_put_autosuspend(mcspi->dev);
+-}
+-
+-static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
+-{
+-	return pm_runtime_get_sync(mcspi->dev);
+-}
+ 
+ static int omap2_prepare_transfer(struct spi_master *master)
+ {
+@@ -848,12 +838,13 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 			return ret;
+ 	}
+ 
+-	ret = omap2_mcspi_enable_clocks(mcspi);
++	ret = pm_runtime_get_sync(mcspi->dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = omap2_mcspi_setup_transfer(spi, NULL);
+-	omap2_mcspi_disable_clocks(mcspi);
++	pm_runtime_mark_last_busy(mcspi->dev);
++	pm_runtime_put_autosuspend(mcspi->dev);
+ 
+ 	return ret;
+ }
+@@ -1067,7 +1058,7 @@ static int __devinit omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	int			ret = 0;
+ 
+-	ret = omap2_mcspi_enable_clocks(mcspi);
++	ret = pm_runtime_get_sync(mcspi->dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1076,7 +1067,8 @@ static int __devinit omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
+ 	ctx->wakeupenable = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
+ 
+ 	omap2_mcspi_set_master_mode(master);
+-	omap2_mcspi_disable_clocks(mcspi);
++	pm_runtime_mark_last_busy(mcspi->dev);
++	pm_runtime_put_autosuspend(mcspi->dev);
+ 	return 0;
+ }
+ 
+@@ -1252,7 +1244,8 @@ static int __devexit omap2_mcspi_remove(struct platform_device *pdev)
+ 	mcspi = spi_master_get_devdata(master);
+ 	dma_channels = mcspi->dma_channels;
+ 
+-	omap2_mcspi_disable_clocks(mcspi);
++	pm_runtime_mark_last_busy(mcspi->dev);
++	pm_runtime_put_autosuspend(mcspi->dev);
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	spi_unregister_master(master);
+@@ -1278,7 +1271,7 @@ static int omap2_mcspi_resume(struct device *dev)
+ 	struct omap2_mcspi_regs	*ctx = &mcspi->ctx;
+ 	struct omap2_mcspi_cs	*cs;
+ 
+-	omap2_mcspi_enable_clocks(mcspi);
++	pm_runtime_get_sync(mcspi->dev);
+ 	list_for_each_entry(cs, &ctx->cs, node) {
+ 		if ((cs->chconf0 & OMAP2_MCSPI_CHCONF_FORCE) == 0) {
+ 			/*
+@@ -1291,7 +1284,8 @@ static int omap2_mcspi_resume(struct device *dev)
+ 			__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
+ 		}
+ 	}
+-	omap2_mcspi_disable_clocks(mcspi);
++	pm_runtime_mark_last_busy(mcspi->dev);
++	pm_runtime_put_autosuspend(mcspi->dev);
+ 	return 0;
+ }
+ #else
+-- 
+1.7.5.4
+
+
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
