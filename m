@@ -1,61 +1,74 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 2/9] ARM: OMAP: mcbsp: Enable FIFO use for OMAP2430
-Date: Wed, 22 Aug 2012 20:11:40 +0100
-Message-ID: <20120822191139.GI7995@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 3/9] ARM: OMAP: board-am3517evm:
+ Configure McBSP1 CLKR/FSR signal source
+Date: Wed, 22 Aug 2012 20:12:05 +0100
+Message-ID: <20120822191205.GJ7995@opensource.wolfsonmicro.com>
 References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
- <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
+ <1345124468-8876-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e9fJn+fjquYGkO6l"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36679 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757739Ab2HVTLl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Aug 2012 15:11:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1345124468-8876-3-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7139073195471427549=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1345124468-8876-4-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+List-Id: linux-omap@vger.kernel.org
 
 
---e9fJn+fjquYGkO6l
+--===============7139073195471427549==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v3iGHXxT5ZJOqjki"
+Content-Disposition: inline
+
+
+--v3iGHXxT5ZJOqjki
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 16, 2012 at 04:41:01PM +0300, Peter Ujfalusi wrote:
-> On OMAP2430 all McBSP ports have 128 word long buffer, enable the use of
-> the FIFO for the audio stack.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Thu, Aug 16, 2012 at 04:41:02PM +0300, Peter Ujfalusi wrote:
+> am3517evm board uses McBSP1 for audio with 4pin configuration.
+> The CLKR/FSR signals need to be connected to CLKX/FSX pin of the SoC in
+> this case.
 
-I applied this - Tony, from the thread it seemed you were OK even though
-you didn't explicitly ack it?
+Applied, thanks.
 
---e9fJn+fjquYGkO6l
+--v3iGHXxT5ZJOqjki
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQNS7jAAoJEFJkBDiqVpZ4QdwP/1W/Plf3eiW+pIcgcwgKrzx4
-XUQJoJemsIUVuQdcmRbocv4YnDdKAQ5TStCnOhb/7+c2sGYQ+tDn5TtMS/ZE53BC
-8/RhWXgqVw7CtO8KhQnJ25zq5uFf570lItsjqXv3po1cxXKJWu7Bw3zDJAr9j2+3
-IPf7uJNraolQd9IeJ3xdVglvGoFulKsxGeAFMUQ0fmtyMfsMBQ0So6IFnT5ug9L7
-Y69gKr0tUoWDy6oPu2HyvX+M5LjOmNgxtBPKp6yz10Zyl6QOkZkb2NG7loPFD40E
-QmILDOEHUOTiB18Ks3SFCod7FNxUDUuC9uyqrhBZ5Y/R7SpGPvUl8kKdHx/+8sBj
-SrG4MKvBfXjSIgDL/JyGeQv9rT8xNyCMlP6PXZlpPmtZu2Qz37BCLuls1zADcEv6
-+e2G7iY3m8T5STUTRigYAZP07w1uJL+u654nIQV2hqqVqOuKJVxzU4tbkLpVfS6a
-PLmR7ALOb2NDcOP7P8+tQiZfvTyhsLAjgWcxO2JaUwp1GXr8DZBhdzcWwSFj1s7U
-+C/OBUtZLu64O1qWypCRi8iaCcs0d78kA+l7c2Kv48/tMrK0/J7npEMwn6+7ccqO
-Kbug/uft67qt/0+9M22jj8kBjDC4f2I9hA6mGaEtsKloPxMyZi95KhqX3AIeAk+o
-NuoeCi7e6RqkJRy7wLgC
-=Bg39
+iQIcBAEBAgAGBQJQNS7/AAoJEFJkBDiqVpZ4t6cP/25lmyBbM+oj17wPvV+Ms+hj
+kOEyP3mMM5uDKj4cU00zYHqJhOESOG5iak0+HgcOVtZgOJB2NwjSM3pfeHeViAAC
+KhlopQdKGT7pqsjtppJ39LIi6jqgczzaCChXWFOlFeHa+Wq1Sljy/Hrhqsaq1KTV
+1SQZiso55iqNuQlTyT2xv6AbFbp/680GcM9KD/3pUE8IAS1TVtfYKnMSdh5gVDd6
+xlH9mCQ8QfA5CSxIs2ZFyBt7t/bXDsU4a4hGt19dSCvTxhHtmXwxs1TH9MXjv8QD
+T3PXkudMrfYU7EdIXlVjwjBDXJzN57hS3ojl164IyGgxGJnFTKoGerORgN0Dy9g7
+i5tImnTRAVHgoGPrvh5ukuup8INK17HP3u/VYTTjMFzF2aaTXI2piu3hBYbxslZ1
+e6gZOBYw+UdreQEF1Fyx0jXRKHmadh5kzw2L6MlLV8naGCVD+p0dSOSH53WjoeUJ
+urssYpRbBk2Gx4ZhDXdIKG1Cohy1c6YuYXNdecWFtRgHaD2kkXh/V0gQvz5sntT6
+i3MLcy68Mrza6ES7NBodq7Sgx776wUaKCiBg9g+J30uBvri/QWpbgVbyAXRTDX8m
+iW2+a77n867FDfdgRlQw1wBlbPTcyxLjDvXKZsDObkGAznpDbXVhIj3nAHK4+//W
+AguUUd/7NOZpdBcV3Fpy
+=w4pa
 -----END PGP SIGNATURE-----
 
---e9fJn+fjquYGkO6l--
+--v3iGHXxT5ZJOqjki--
+
+--===============7139073195471427549==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7139073195471427549==--
