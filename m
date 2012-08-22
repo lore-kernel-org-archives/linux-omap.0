@@ -1,64 +1,43 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
 Subject: Re: [PATCHv2 0/3] spi: omap2-mcspi: spi cleanups
-Date: Wed, 22 Aug 2012 17:59:33 +0100
-Message-ID: <20120822165933.GU7995@opensource.wolfsonmicro.com>
+Date: Wed, 22 Aug 2012 22:33:55 +0530
+Message-ID: <CAM=Q2cvEyas6r8pb-edQ7UUJOE1YSxns9j5hA8Cz5pJnd4mPYA@mail.gmail.com>
 References: <1345615515-26745-1-git-send-email-shubhrajyoti@ti.com>
+	<20120822165933.GU7995@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="B9I4cJCE9PLEoxgz"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345615515-26745-1-git-send-email-shubhrajyoti@ti.com>
+In-Reply-To: <20120822165933.GU7995@opensource.wolfsonmicro.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, spi-devel-general@lists.sourceforge.net, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, Aug 22, 2012 at 10:29 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Wed, Aug 22, 2012 at 11:35:11AM +0530, Shubhrajyoti D wrote:
+>> This patch does the following
+>>
+>> Calls the pm_runtime_* functions directly.
+>> Remove the MOD_REG_BIT macro usage thereby removiing un-needed branch.
+>> At remove dont use the autosuspend runtime calls.
+>
+> Applied all, thanks.
 
---B9I4cJCE9PLEoxgz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+thanks.
 
-On Wed, Aug 22, 2012 at 11:35:11AM +0530, Shubhrajyoti D wrote:
-> This patch does the following
->=20
-> Calls the pm_runtime_* functions directly.
-> Remove the MOD_REG_BIT macro usage thereby removiing un-needed branch.
-> At remove dont use the autosuspend runtime calls.
+>
+>> The following changes since commit 23dcfa61bac244e1200ff9ad19c6e9144dcb6bb5:
+>>
+>>   Merge branch 'akpm' (Andrew's patch-bomb) (2012-08-21 17:22:22 -0700)
+>
+> When sending pull requests please always base them off a tag of some
+> kind, normally one of Linus' is a good option if you've no special
+> needs.  This one looks like it's based off -next so can't be pulled into
+> any other tree, -next is rebased daily.
 
-Applied all, thanks.
+Actually there was a patch in your tree that I sent which is not yet
+in linus tree so I rebased
+it to linux-next to avoid any merge conflicts.
 
-> The following changes since commit 23dcfa61bac244e1200ff9ad19c6e9144dcb6b=
-b5:
->=20
->   Merge branch 'akpm' (Andrew's patch-bomb) (2012-08-21 17:22:22 -0700)
-
-When sending pull requests please always base them off a tag of some
-kind, normally one of Linus' is a good option if you've no special
-needs.  This one looks like it's based off -next so can't be pulled into
-any other tree, -next is rebased daily.
-
---B9I4cJCE9PLEoxgz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQNQ/pAAoJEFJkBDiqVpZ4bl0P/3edWnyJpaN6LXP4W/6w2XZR
-CqxH9YHjPCzLq8QGaltIofp2AItL478YENaEWGCc9nCCFdeY+qMdFwX0ypy1+faT
-rkY15ttIOrxHKsCRumnLVtO3q61oRDEDpKNnDUAilNL+T32FctfxIsU+gr3tfblm
-3FgbxBEUIBi5fRh5oP/UHW+dhRQREe1rylj1NmmxNm6lLdSPW3fuW5LdQcWD8BmO
-UxgxTOCE90ESaNOud6aT8zQVWqMuly/OJvYidmrHXi27VCW6D3ajpVVQMOPZH95+
-DpLeRTlTvvYnpyQY5fK6isZ/xKJ7FeUI9c9FGn7LhPOdv/0N2/0wYyVIb7o2ZszE
-u01VV8aBUFT+gwAU68NAB6SvYNIiLtdXLbP7/DBCNjR1qurIeDS2lt25guBmF+lm
-bKFBMuq1+olK+ao/KN+cRTlC22I3epAo6Eh5oYw/lv3bblXtcGNrjLkVeJ+iBm81
-NpyqSILb8AyHrkLTpTWMgPLG7MXxsTs1TNG20TQlR+XpPy045GcxnZwgnZotc3i6
-XduMxEjENBU0xFNxd1r61pv8O+udbxuDZdmtkLk8A6Bn18j0pP/wA4EmWkxW9b0e
-3kr225X+7C5bc5S04t6rPudMgCsY29Cznv6kjvc+KREbO4ocEeSj8RntwOHSUKJC
-829vlRehXAXxrPFbfRiv
-=rc9U
------END PGP SIGNATURE-----
-
---B9I4cJCE9PLEoxgz--
+Henceforth I will rebase it to your tree.
