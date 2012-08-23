@@ -1,155 +1,47 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v3 09/23] serial: omap: stick to put_autosuspend
-Date: Thu, 23 Aug 2012 13:32:49 +0300
-Message-ID: <1345717983-18179-10-git-send-email-balbi@ti.com>
+Subject: [PATCH v3 10/23] serial: omap: set dev->drvdata before enabling pm_runtime
+Date: Thu, 23 Aug 2012 13:32:50 +0300
+Message-ID: <1345717983-18179-11-git-send-email-balbi@ti.com>
 References: <1345717983-18179-1-git-send-email-balbi@ti.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1345717983-18179-1-git-send-email-balbi@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: alan@linux.intel.com
 Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Everytime we're done using our TTY, we want
-the pm timer to be reinitilized. By sticking
-to pm_runtime_pm_autosuspend() we make sure
-that this will always be the case.
-
-The idea behind this patch is to make sure we
-will always reinitialize the pm timer so that
-we don't fall into a situation where pm_runtime_put()
-expires right away (if timer was already about to
-expire when we made the call to pm_runtime_put()).
-
-While suspending right away wouldn't cause any
-issues, reinitializing the pm timer can help us
-avoiding unnecessary context save & restore
-operations (which are somewhat expensive) if there's
-another read/write/set_termios request coming right
-after. IOW, we are trying to make sure UART is still
-powered up while it's still under heavy usage.
+by the time we call our first pm_runtme_get_sync()
+after enable pm_runtime, our resume method might
+be called. To avoid problems, we must make sure
+that our dev->drvdata is set correctly before
+our resume method gets called.
 
 Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ drivers/tty/serial/omap-serial.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 50ba51e..e07afb3 100644
+index e07afb3..9f709d4 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -164,7 +164,8 @@ static void serial_omap_enable_ms(struct uart_port *port)
- 	pm_runtime_get_sync(up->dev);
- 	up->ier |= UART_IER_MSI;
- 	serial_out(up, UART_IER, up->ier);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
+@@ -1300,6 +1300,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	serial_omap_uart_wq = create_singlethread_workqueue(up->name);
+ 	INIT_WORK(&up->qos_work, serial_omap_uart_qos_work);
  
- static void serial_omap_stop_tx(struct uart_port *port)
-@@ -414,7 +415,8 @@ static unsigned int serial_omap_tx_empty(struct uart_port *port)
- 	spin_lock_irqsave(&up->port.lock, flags);
- 	ret = serial_in(up, UART_LSR) & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	return ret;
- }
++	platform_set_drvdata(pdev, up);
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev,
+ 			omap_up_info->autosuspend_timeout);
+@@ -1319,7 +1320,6 @@ static int serial_omap_probe(struct platform_device *pdev)
  
-@@ -426,7 +428,8 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
- 
- 	pm_runtime_get_sync(up->dev);
- 	status = check_modem_status(up);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 
- 	dev_dbg(up->port.dev, "serial_omap_get_mctrl+%d\n", up->port.line);
- 
-@@ -462,7 +465,8 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 	up->mcr = serial_in(up, UART_MCR);
- 	up->mcr |= mcr;
- 	serial_out(up, UART_MCR, up->mcr);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_break_ctl(struct uart_port *port, int break_state)
-@@ -479,7 +483,8 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
- 		up->lcr &= ~UART_LCR_SBC;
- 	serial_out(up, UART_LCR, up->lcr);
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_startup(struct uart_port *port)
-@@ -577,7 +582,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	if (serial_in(up, UART_LSR) & UART_LSR_DR)
- 		(void) serial_in(up, UART_RX);
- 
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
- }
- 
-@@ -848,7 +854,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_omap_configure_xonxoff(up, termios);
- 
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->port.line);
- }
- 
-@@ -879,7 +886,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 			pm_runtime_allow(up->dev);
- 	}
- 
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_release_port(struct uart_port *port)
-@@ -961,7 +969,8 @@ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
- 	pm_runtime_get_sync(up->dev);
- 	wait_for_xmitr(up);
- 	serial_out(up, UART_TX, ch);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_poll_get_char(struct uart_port *port)
-@@ -975,7 +984,8 @@ static int serial_omap_poll_get_char(struct uart_port *port)
- 		return NO_POLL_CHAR;
- 
- 	status = serial_in(up, UART_RX);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	return status;
- }
- 
-@@ -1307,7 +1317,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_add_port;
- 
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	platform_set_drvdata(pdev, up);
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+-	platform_set_drvdata(pdev, up);
  	return 0;
  
+ err_add_port:
 -- 
 1.7.12.rc3
-
