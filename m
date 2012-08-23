@@ -1,62 +1,80 @@
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
-Subject: Re: [PATCH v3] backlight: Add TPS65217 WLED driver
-Date: Thu, 23 Aug 2012 12:25:36 +0200
-Message-ID: <20120823102536.GA27787@darwin>
-References: <20120822210419.GA6235@darwin>
- <331ABD5ECB02734CA317220B2BBEABC13EA1E90E@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43172 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932718Ab2HWK0t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Aug 2012 06:26:49 -0400
-Content-Disposition: inline
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA1E90E@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH v3 00/23] OMAP UART patches
+Date: Thu, 23 Aug 2012 13:32:40 +0300
+Message-ID: <1345717983-18179-1-git-send-email-balbi@ti.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: alan@linux.intel.com
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi AnilKumar,
+Hi guys,
 
-thanks for your comments
+here's v3 and hopefully final version of this series. A whole bunch of new
+patches added but the good thing is that now I had another engineer's help to
+test, so he's got his Tested-by in all patches.
 
-El Thu, Aug 23, 2012 at 07:53:49AM +0000 AnilKumar, Chimata ha dit:
+Changes since v2:
+	. Added a bunch of new patches
+	. Fixed a problem where we would always return IRQ_NONE even though we
+		handled IRQ
 
-> This patch should divide into 2 patches, one patch meant for
-> MFD changes other for backlight.
+Changes since v1:
+        . improved commit log on patch 9/13 (formerly 10/13)
+        . removed patch 2/13
+        . added a new patch switching from spin_lock_irqsave() to spin_lock and
+                spin_unlock_irqrestore to spin_unlock
 
-will do
+Alan, if you prefer in pull request form, here it is:
 
-> > +struct tps65217_bl {
-> > +	struct tps65217 *tps;
-> > +	struct device *dev;
-> > +	struct backlight_device *bl;
-> > +	int on;
-> 
-> Can you use Boolean here? Change the name as well, something
-> like bool is_enabled?
+The following changes since commit d9875690d9b89a866022ff49e3fcea892345ad92:
 
-ok
+  Linux 3.6-rc2 (2012-08-16 14:51:24 -0700)
 
-> > +	pdata->fdim = TPS65217_BL_FDIM_200HZ;
-> 
-> Why 200 by default?
+are available in the git repository at:
 
-it's the default value in the register after reset
+  git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git uart
 
-best regards
+for you to fetch changes up to a29230f14d8466c9b8c25171715378bf52189453:
+
+  serial: omap: enable RX and TX FIFO usage (2012-08-23 09:25:16 +0300)
+
+----------------------------------------------------------------
+Felipe Balbi (20):
+      serial: omap: define and use to_uart_omap_port()
+      serial: omap: define helpers for pdata function pointers
+      serial: omap: don't access the platform_device
+      serial: omap: drop DMA support
+      serial: add OMAP-specific defines
+      serial: omap: simplify IRQ handling
+      serial: omap: refactor receive_chars() into rdi/rlsi handlers
+      serial: omap: move THRE check to transmit_chars()
+      serial: omap: stick to put_autosuspend
+      serial: omap: set dev->drvdata before enabling pm_runtime
+      serial: omap: drop unnecessary check from remove
+      serial: omap: make sure to suspend device before remove
+      serial: omap: don't save IRQ flags on hardirq
+      serial: omap: optimization with section annotations
+      serial: omap: drop "inline" from IRQ handler prototype
+      serial: omap: implement set_wake
+      serial: omap: make sure to put() on poll_get_char
+      serial: omap: remove unnecessary header and add a missing one
+      serial: omap: move uart_omap_port definition to C file
+      serial: omap: enable RX and TX FIFO usage
+
+Ruchika Kharwar (2):
+      serial: omap: fix sequence of pm_runtime_* calls.
+      serial: omap: unlock the port lock
+
+Vikram Pandita (1):
+      serial: omap: fix software flow control
+
+ arch/arm/mach-omap2/serial.c                  |  15 +-
+ arch/arm/plat-omap/include/plat/omap-serial.h |  47 +-
+ drivers/tty/serial/omap-serial.c              | 808 ++++++++++----------------
+ include/linux/serial_reg.h                    |   4 +
+ 4 files changed, 330 insertions(+), 544 deletions(-)
 
 -- 
-Matthias Kaehlcke
-Embedded Linux Developer
-Amsterdam
+1.7.12.rc3
 
-                If you don't know where you are going,
-               you will probably end up somewhere else
-                         (Laurence J. Peter)
-                                                                 .''`.
-    using free software / Debian GNU/Linux | http://debian.org  : :'  :
-                                                                `. `'`
-gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
