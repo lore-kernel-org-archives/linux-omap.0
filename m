@@ -1,58 +1,106 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v3 11/23] serial: omap: drop unnecessary check from remove
-Date: Thu, 23 Aug 2012 13:32:51 +0300
-Message-ID: <1345717983-18179-12-git-send-email-balbi@ti.com>
-References: <1345717983-18179-1-git-send-email-balbi@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: debug needed: twl4030 RTC wakeups: repeated attempts fail on
+ Beagle
+Date: Thu, 23 Aug 2012 16:51:41 +0530
+Message-ID: <50361245.1040504@ti.com>
+References: <87d32yd1l4.fsf@ti.com> <CANQgH-a9uiaUnR+G2Y_zzvvS3+Yh-O3b-afkZDsNkQFBWNN+9g@mail.gmail.com> <20120822184211.GA29041@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1345717983-18179-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: alan@linux.intel.com
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:41877 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752089Ab2HWLVr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Aug 2012 07:21:47 -0400
+Received: by obc16 with SMTP id 16so1345196obc.20
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 04:21:46 -0700 (PDT)
+In-Reply-To: <20120822184211.GA29041@arwen.pp.htv.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Russ Dill <russ.dill@gmail.com>
 
-if platform_get_drvdata() returns NULL, that's
-quite a nasty bug on the driver which we want to
-catch ASAP. Otherwise, that check is hugely
-unneeded.
+On Thursday 23 August 2012 12:12 AM, Felipe Balbi wrote:
+>> >  	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+>> >  		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+>> > @@ -1266,6 +1267,15 @@ static int omap_i2c_runtime_resume(struct device *dev)
+>> >  		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>> >  	}
+>> > 
+>> > +	while (!(omap_i2c_read_reg(_dev, OMAP_I2C_SYSS_REG) &
+>> > +			SYSS_RESETDONE_MASK)) {
+>> > +		if (time_after(jiffies, timeout)) {
+>> > +			dev_warn(dev, "timeout waiting for controller reset\n");
+>> > +				return -ETIMEDOUT;
+>> > +		}
+>> > +		msleep(1);
+>> > +	}
+>> > +
+>> >  	/*
+>> >  	 * Don't write to this register if the IE state is 0 as it can
+>> >  	 * cause deadlock.
+> That's weird. i2c has SYSS_HAS_RESET_STATUS set, so hwmod framework
+> should be checking that for us. And, in fact, SYSS_HAS_RESET_STATUS is
+> set on all *data.c files.
+Felipe just like writing to sysc reset.
 
-Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/tty/serial/omap-serial.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+writing
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 9f709d4..9581741 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1336,13 +1336,10 @@ static int serial_omap_remove(struct platform_device *dev)
- {
- 	struct uart_omap_port *up = platform_get_drvdata(dev);
- 
--	if (up) {
--		pm_runtime_disable(up->dev);
--		uart_remove_one_port(&serial_omap_reg, &up->port);
--		pm_qos_remove_request(&up->pm_qos_request);
--	}
-+	pm_runtime_disable(up->dev);
-+	uart_remove_one_port(&serial_omap_reg, &up->port);
-+	pm_qos_remove_request(&up->pm_qos_request);
- 
--	platform_set_drvdata(dev, NULL);
- 	return 0;
- }
- 
--- 
-1.7.12.rc3
+omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
+
+[...]
+
+omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+
+is also a reset() and the hwmod is not aware of that.
+
+1.Hardware reset: A system bus reset (PIRSTNA = 0).
+ A device reset causes the system bus reset.
+
+2. Software reset: A software reset by setting the
+	SRST bit in the I2C_SYSC register. This bit has exactly the same
+	action on the module logic as the system bus reset. 
+
+3.  Partial reset or controller reset. The I2C_EN bit in the I2C_CON
+	register can also reset a part of the I^2 C module. When
+	the system bus reset is removed (PIRSTNA  = 1), I2C_EN = 0 keeps the
+	functional part of I^2 C module in reset state and all
+	configuration registers can be accessed.
+
+
+Since the case 3 is true in my case I am checking and hwmod is not aware
+of this.
+
+This read-only bit indicates the state of the reset in case of hardware
+reset, global software reset (I2C_SYSC.SRST) or partial software reset
+(I2C_CON.I2C_EN).
+
+I am checking for case 3.
+
+
+>
+> When you wrote that patch, did you check that reset hasn't completed
+> yet ? I mean, was reset still asserted at that time ? If instead of your
+> patch, you just wait longer for reset to complete, will it work ?
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 6ca8e51..7a39c72 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -156,7 +156,7 @@
+>  #include "pm.h"
+>  
+>  /* Maximum microseconds to wait for OMAP module to softreset */
+> -#define MAX_MODULE_SOFTRESET_WAIT	10000
+> +#define MAX_MODULE_SOFTRESET_WAIT	50000
+>  
+>  /* Name of the OMAP hwmod for the MPU */
+>  #define MPU_INITIATOR_NAME		"mpu"
+>
+>
+> If it does, then reset takes longer to complete on those particular
+> boards and it would be nice to know why, but one step at a time :-)
+>
+> -- balbi
+
