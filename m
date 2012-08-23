@@ -1,40 +1,49 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH] omapdrm: use alloc_ordered_workqueue() instead of
- UNBOUND w/ max_active = 1
-Date: Thu, 23 Aug 2012 13:16:14 -0700
-Message-ID: <20120823201614.GF14962@google.com>
-References: <20120822234944.GS19212@google.com>
- <CAO8GWqmBakf9gLmFh7q3DWWkAzSiUoa09F2dP8MJ2B5E_66fRA@mail.gmail.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH 0/2] OMAPDSS: fixes for -rc
+Date: Thu, 23 Aug 2012 20:34:08 +0000
+Message-ID: <503693C0.5000103@gmx.de>
+References: <1345529388-3509-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56486 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab2HWUQT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Aug 2012 16:16:19 -0400
-Content-Disposition: inline
-In-Reply-To: <CAO8GWqmBakf9gLmFh7q3DWWkAzSiUoa09F2dP8MJ2B5E_66fRA@mail.gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:33656 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751581Ab2HWUeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Aug 2012 16:34:14 -0400
+In-Reply-To: <1345529388-3509-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Clark, Rob" <rob@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Thu, Aug 23, 2012 at 03:08:59PM -0500, Clark, Rob wrote:
-> On Wed, Aug 22, 2012 at 6:49 PM, Tejun Heo <tj@kernel.org> wrote:
-> > This is an equivalent conversion and will ease scheduled removal of
-> > WQ_NON_REENTRANT.
-> >
-> > Only compile tested.
-> >
-> > Signed-off-by: Tejun Heo <tj@kernel.org>
+Hi Tomi,
+
+On 08/21/2012 06:09 AM, Tomi Valkeinen wrote:
+> Hi Florian,
 > 
-> I've tested it
+> Here are two small fixes for omapfb and omapdss. The first one fixes an old bug
+> that causes colors to be wrong on fb console. The other fixes SDI output that
+> got broken in the previous merge window.
+
+Applied both patches. ("The first" is actually 2/2)
+
+
+Thanks,
+
+Florian Tobias Schandinat
+
 > 
-> Signed-off-by: Rob Clark <rob@ti.com>
+>  Tomi
+> 
+> Grazvydas Ignotas (1):
+>   OMAPFB: fix framebuffer console colors
+> 
+> Tomi Valkeinen (1):
+>   OMAPDSS: Fix SDI PLL locking
+> 
+>  drivers/video/omap2/dss/sdi.c            |   14 ++++++++++++++
+>  drivers/video/omap2/omapfb/omapfb-main.c |    2 +-
+>  2 files changed, 15 insertions(+), 1 deletion(-)
+> 
 
-Can you please route this with other omap patches?
-
-Thanks!
-
--- 
-tejun
