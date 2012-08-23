@@ -1,51 +1,61 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v3 05/23] serial: add OMAP-specific defines
-Date: Thu, 23 Aug 2012 13:32:45 +0300
-Message-ID: <1345717983-18179-6-git-send-email-balbi@ti.com>
+Subject: [PATCH v3 23/23] serial: omap: enable RX and TX FIFO usage
+Date: Thu, 23 Aug 2012 13:33:03 +0300
+Message-ID: <1345717983-18179-24-git-send-email-balbi@ti.com>
 References: <1345717983-18179-1-git-send-email-balbi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42986 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933898Ab2HWKiI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Aug 2012 06:38:08 -0400
+Received: by lbbgp3 with SMTP id gp3so339133lbb.29
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 03:38:05 -0700 (PDT)
 In-Reply-To: <1345717983-18179-1-git-send-email-balbi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: alan@linux.intel.com
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alan@linux.intel.com
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-OMAP has some extra Interrupt types which can
-be really useful for SW. Let's define them
-so we can later use those in OMAP's serial driver.
+enable RX FIFO for 16 characters and TX FIFO
+for 16 spaces.
 
 Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- include/linux/serial_reg.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/tty/serial/omap-serial.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/serial_reg.h b/include/linux/serial_reg.h
-index 8ce70d7..5ed325e 100644
---- a/include/linux/serial_reg.h
-+++ b/include/linux/serial_reg.h
-@@ -40,6 +40,10 @@
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 0e5ffdf..137d475 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -55,8 +55,8 @@
+ #define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK		(1 << 7)
  
- #define UART_IIR_BUSY		0x07 /* DesignWare APB Busy Detect */
+ /* FCR register bitmasks */
+-#define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
+ #define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
++#define OMAP_UART_FCR_TX_FIFO_TRIG_MASK			(0x3 << 4)
  
-+#define UART_IIR_RX_TIMEOUT	0x0c /* OMAP RX Timeout interrupt */
-+#define UART_IIR_XOFF		0x10 /* OMAP XOFF/Special Character */
-+#define UART_IIR_CTS_RTS_DSR	0x20 /* OMAP CTS/RTS/DSR Change */
-+
- #define UART_FCR	2	/* Out: FIFO Control Register */
- #define UART_FCR_ENABLE_FIFO	0x01 /* Enable the FIFO */
- #define UART_FCR_CLEAR_RCVR	0x02 /* Clear the RCVR FIFO */
+ /* MVR register bitmasks */
+ #define OMAP_UART_MVR_SCHEME_SHIFT	30
+@@ -820,9 +820,13 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
+ 
+-	/* Set receive FIFO threshold to 1 byte */
++	/* Set receive FIFO threshold to 16 characters and
++	 * transmit FIFO threshold to 16 spaces
++	 */
+ 	up->fcr &= ~OMAP_UART_FCR_RX_FIFO_TRIG_MASK;
+-	up->fcr |= (0x1 << OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT);
++	up->fcr &= ~OMAP_UART_FCR_TX_FIFO_TRIG_MASK;
++	up->fcr |= UART_FCR6_R_TRIGGER_16 | UART_FCR6_T_TRIGGER_24 |
++		UART_FCR_ENABLE_FIFO;
+ 
+ 	serial_out(up, UART_FCR, up->fcr);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
 -- 
 1.7.12.rc3
+
