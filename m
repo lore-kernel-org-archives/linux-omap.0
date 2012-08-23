@@ -1,78 +1,62 @@
-From: Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: receiving data from mcbsp1 in master mode
-Date: Thu, 23 Aug 2012 11:32:44 +0200
-Message-ID: <20120823113244.1307371d@kemnade.info>
-References: <20120821074205.0a36f648@kemnade.info>
-	<5033903B.8000009@ti.com>
-	<20120822221942.2ebb4fd3@kemnade.info>
-	<5035EE3F.9000903@ti.com>
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: Re: [PATCH v3] backlight: Add TPS65217 WLED driver
+Date: Thu, 23 Aug 2012 12:25:36 +0200
+Message-ID: <20120823102536.GA27787@darwin>
+References: <20120822210419.GA6235@darwin>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1E90E@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/j+9f6siMDX/38JipWITJ0oq"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1355771.stratoserver.net ([85.214.105.140]:35165 "EHLO
-	h1355771.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758204Ab2HWJcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Aug 2012 05:32:07 -0400
-In-Reply-To: <5035EE3F.9000903@ti.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:43172 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932718Ab2HWK0t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Aug 2012 06:26:49 -0400
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA1E90E@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---Sig_/j+9f6siMDX/38JipWITJ0oq
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi AnilKumar,
 
-On Thu, 23 Aug 2012 11:47:59 +0300
-Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+thanks for your comments
 
-> On 08/22/2012 11:19 PM, Andreas Kemnade wrote:
-> > if I understand the TRM correctly, according to Figure 21-26 in chapter=
- 21.4.2.3.
-> > if GSYNC is set, the receiver uses the signal from the sample rate gene=
-rator,
-> > so CLKX does not need to be the CLKR source.
-> > But I tried also with the DEVCONF0 MCBSP1_CLKR bit as you proposed.
-> > I tried
-> >  snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_CLKR_SRC_CLKX, 0,
-> >                                      SND_SOC_CLOCK_OUT);
-> >  snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
-> >                                      SND_SOC_CLOCK_OUT);
->=20
-> There is an issue with the 6pin mux code, try to add this patch:
-> http://mailman.alsa-project.org/pipermail/alsa-devel/2012-August/054041.h=
-tml
->=20
-That is exactly the patch I was talking about in the next line, see
-http://marc.info/?l=3Dlinux-omap&m=3D134540540412165&w=3D2
+El Thu, Aug 23, 2012 at 07:53:49AM +0000 AnilKumar, Chimata ha dit:
 
-> >  That is why I send you my patch about that mux settings. But I had no =
-success.
-     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > The CLKX as CLKR source and FSX as FSR source setting I have only seen =
-when
-> > mcbsp1 is used in slave mode. If you know any working code which uses m=
-cbsp1 in
-> > master mode then let me know.
->=20
-> No, I don't have board which uses McBSP1.
->=20
-> --=20
-> P=E9ter
->=20
->=20
+> This patch should divide into 2 patches, one patch meant for
+> MFD changes other for backlight.
 
---Sig_/j+9f6siMDX/38JipWITJ0oq
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+will do
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+> > +struct tps65217_bl {
+> > +	struct tps65217 *tps;
+> > +	struct device *dev;
+> > +	struct backlight_device *bl;
+> > +	int on;
+> 
+> Can you use Boolean here? Change the name as well, something
+> like bool is_enabled?
 
-iEYEARECAAYFAlA1+LwACgkQvUy8S31NDeaqwACgk+35zD7F6s9XoH3bbeSLKFSn
-MqEAmgMjpT5D2PyIdxv9tBOJZFbO3IG+
-=A5hp
------END PGP SIGNATURE-----
+ok
 
---Sig_/j+9f6siMDX/38JipWITJ0oq--
+> > +	pdata->fdim = TPS65217_BL_FDIM_200HZ;
+> 
+> Why 200 by default?
+
+it's the default value in the register after reset
+
+best regards
+
+-- 
+Matthias Kaehlcke
+Embedded Linux Developer
+Amsterdam
+
+                If you don't know where you are going,
+               you will probably end up somewhere else
+                         (Laurence J. Peter)
+                                                                 .''`.
+    using free software / Debian GNU/Linux | http://debian.org  : :'  :
+                                                                `. `'`
+gpg --keyserver pgp.mit.edu --recv-keys 47D8E5D4                  `-
