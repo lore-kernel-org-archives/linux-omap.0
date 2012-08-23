@@ -1,87 +1,62 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 4/6] ARM/dts: OMAP4: Add McBSP entries
-Date: Thu, 23 Aug 2012 12:29:11 +0300
-Message-ID: <1345714153-13094-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 6/6] ARM/dts: omap3-beagle: Enable audio support
+Date: Thu, 23 Aug 2012 12:29:13 +0300
+Message-ID: <1345714153-13094-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1345714153-13094-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35472 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758222Ab2HWJ3d (ORCPT
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:60385 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758285Ab2HWJ3h (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Aug 2012 05:29:33 -0400
-Received: by obbeh20 with SMTP id eh20so923661obb.10
-        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 02:29:31 -0700 (PDT)
+	Thu, 23 Aug 2012 05:29:37 -0400
+Received: by obc16 with SMTP id 16so1103722obc.34
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 02:29:36 -0700 (PDT)
 In-Reply-To: <1345714153-13094-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-Create the sections describing the McBSP ports to be able to use them via
-DT.
+Add the needed sections to enable audio support on BeagleBoard when booted
+with DT blob.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap4.dtsi |   47 ++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 47 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap3-beagle.dts |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 04cbbcb..258435f 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -295,5 +295,52 @@
- 			interrupt-parent = <&gic>;
- 			ti,hwmods = "dmic";
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index cdcb98c..28cf180 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -17,6 +17,14 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x20000000>; /* 512 MB */
+ 	};
++
++	sound {
++		compatible = "ti,omap-twl4030";
++		ti,model = "omap3beagle";
++
++		ti,mcbsp = <&mcbsp2>;
++		ti,codec = <&twl_audio>;
++	};
+ };
+ 
+ &i2c1 {
+@@ -32,6 +40,12 @@
+ 			regulator-min-microvolt = <1800000>;
+ 			regulator-max-microvolt = <3000000>;
  		};
 +
-+		mcbsp1: mcbsp@40122000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40122000 0xff>, /* MPU private access */
-+			      <0x49022000 0xff>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 17 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp1";
-+		};
-+
-+		mcbsp2: mcbsp@40124000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40124000 0xff>, /* MPU private access */
-+			      <0x49024000 0xff>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 22 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp2";
-+		};
-+
-+		mcbsp3: mcbsp@40126000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40126000 0xff>, /* MPU private access */
-+			      <0x49026000 0xff>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 23 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp3";
-+		};
-+
-+		mcbsp4: mcbsp@48096000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x48096000 0xff>; /* L4 Interconnect */
-+			reg-names = "mpu";
-+			interrupts = <0 16 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp4";
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++			codec {
++			};
 +		};
  	};
  };
+ 
 -- 
 1.7.8.6
 
