@@ -1,64 +1,57 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with devicetree
-Date: Thu, 23 Aug 2012 16:54:09 +0300
-Message-ID: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH] driver core: Check if r->name is valid in platform_get_resource_byname()
+Date: Thu, 23 Aug 2012 17:10:00 +0300
+Message-ID: <1345731000-12768-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52550 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758579Ab2HWNyU (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:53432 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932725Ab2HWOKM (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Aug 2012 09:54:20 -0400
-Received: by obbuo13 with SMTP id uo13so1813110obb.33
-        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 06:54:19 -0700 (PDT)
+	Thu, 23 Aug 2012 10:10:12 -0400
+Received: by obhx4 with SMTP id x4so2038310obh.14
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 07:10:11 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-When booted with some resource will have their name set to NULL. This can
-cause later kernel crash since this is not expected by the platform code.
-
-When we boot without DT the devices are created with platform_device_add()
-which itself fixes up the missing resource names:
-if (r->name == NULL)
-	r->name = dev_name(&pdev->dev);
-
-The of core also fixes up the resource names when taking the information
-from DT data - in __of_address_to_resource():
-r->name = name ? name : dev->full_name;
-
-When we boot OMAP with devicetree: of will create the devices based on the
-DT data so the resource names are guarantied to be not NULL. Since we have
-the 'ti,hwmod' tag, we remove the of created resources from the device and
-re-create them based on hwmod data. If the hwmod data does not specify a
-name for a resource it will be NULL.
-This can cause kernel crash if the driver uses
-platform_get_resource_byname() to get any resource.
+Safety check for the validity of the resource name before calling strcmp().
+If the resource name is NULL do not compare it, just skip it.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/plat-omap/omap_device.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index c490240..ff57b5a 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -370,6 +370,14 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
- 		goto odbfd_exit1;
+Hi Greg,
+
+I have experienced with a kernel crash because the r->name was NULL when booting
+OMAP4+ kernel with devicetree.
+I have sent a separate patch for the OMAP specific root (with analysis of the
+issue):
+http://marc.info/?l=linux-omap&m=134573006327647&w=2
+
+I agree that it is unlikely to have the name NULL, but I think it does not hurt
+if we do a safety check before comparing the strings.
+
+Best Regards,
+Peter
+
+ drivers/base/platform.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index a1a7225..d717c2b 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -99,6 +99,9 @@ struct resource *platform_get_resource_byname(struct platform_device *dev,
+ 	for (i = 0; i < dev->num_resources; i++) {
+ 		struct resource *r = &dev->resource[i];
+ 
++		if (unlikely(!r->name))
++			continue;
++
+ 		if (type == resource_type(r) && !strcmp(r->name, name))
+ 			return r;
  	}
- 
-+	/* Fix up missing resource names */
-+	for (i = 0; i < pdev->num_resources; i++) {
-+		struct resource *r = &pdev->resource[i];
-+
-+		if (r->name == NULL)
-+			r->name = dev_name(&pdev->dev);
-+	}
-+
- 	if (of_get_property(node, "ti,no_idle_on_suspend", NULL))
- 		omap_device_disable_idle_on_suspend(pdev);
- 
 -- 
 1.7.8.6
 
