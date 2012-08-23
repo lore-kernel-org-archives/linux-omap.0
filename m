@@ -1,37 +1,158 @@
-From: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
-Subject: [PATCH] usb otg: TWL4030_USB depends on USB_MUSB_OMAP2PLUS in Kconfig
-Date: Thu, 23 Aug 2012 22:38:44 +0200
-Message-ID: <1345754324-12068-1-git-send-email-pmeerw@pmeerw.net>
-References: <20120820113624.GP17455@arwen.pp.htv.fi>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120820113624.GP17455-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+From: Peter Meerwald <pmeerw@pmeerw.net>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+ hosts by default
+Date: Thu, 23 Aug 2012 23:00:42 +0200 (CEST)
+Message-ID: <alpine.DEB.2.01.1208232246530.15831@pmeerw.net>
+References: <1342485005-5178-1-git-send-email-javier@dowhile0.org> <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com> <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com> <20120718065951.GH6522@atomide.com>
+ <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
+ <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
----
- drivers/usb/otg/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wed, 18 Jul 2012, Javier Martinez Canillas wrote:
 
-diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
-index 13fd1ddf..fefca18 100644
---- a/drivers/usb/otg/Kconfig
-+++ b/drivers/usb/otg/Kconfig
-@@ -58,7 +58,7 @@ config USB_ULPI_VIEWPORT
- 
- config TWL4030_USB
- 	tristate "TWL4030 USB Transceiver Driver"
--	depends on TWL4030_CORE && REGULATOR_TWL4030
-+	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
- 	select USB_OTG_UTILS
- 	help
- 	  Enable this to support the USB OTG transceiver on TWL4030
+> On Wed, Jul 18, 2012 at 10:36 AM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> > On Wed, Jul 18, 2012 at 1:14 PM, S, Venkatraman <svenkatr@ti.com> wrote:
+> >> On Wed, Jul 18, 2012 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >>> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120718 00:09]:
+> >>>> On Wed, Jul 18, 2012 at 12:29 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >>>> > * Javier Martinez Canillas <javier@dowhile0.org> [120716 23:56]:
+> >>>> >> On Tue, Jul 17, 2012 at 8:45 AM, Shilimkar, Santosh
+> >>>> >> <santosh.shilimkar@ti.com> wrote:
+> >>>> >> > Hi,
+> >>>> >> >
+> >>>> >> > On Tue, Jul 17, 2012 at 6:00 AM, Javier Martinez Canillas
+> >>>> >> > <javier@dowhile0.org> wrote:
+> >>>> >> >> The OMAP MMC and OMAP High Speed MMC hosts now use entirely the DMA
+> >>>> >> >> engine API instead of the previous private DMA API implementation.
+> >>>> >> >>
+> >>>> >> >> So, if the kernel is built with support for any of these hosts but it
+> >>>> >> >> doesn't support DMA devices nor OMAP DMA support, it fails when trying
+> >>>> >> >> to obtain a DMA channel which leads to the following error on an OMAP3
+> >>>> >> >> IGEPv2 Rev.C board (and probably on most OMAP boards with MMC support):
+> >>>> >> >>
+> >>>> >> >> [ 2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
+> >>>> >> >> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
+> >>>> >> >>
+> >>>> >> >> selecting automatically CONFIG_DMADEVICES and CONFIG_DMA_OMAP solves it.
+> >>>> >> >>
+> >>>> >> >> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
+> >>>> >> >> ---
+> >>>> >> > Considering, we are updating drivers to select the DMA engine, can you
+> >>>> >> > also include
+> >>>> >> > "drivers/spi/spi-omap2-mcspi.c" which is also updated for DMA engine.
+> >>>> >> >
+> >>>> >> > Regards
+> >>>> >> > Santosh
+> >>>> >>
+> >>>> >> Hi Santosh,
+> >>>> >>
+> >>>> >> Ok, I'll send a v2 now which includes spi-omap2-mcspi then.
+> >>>> >
+> >>>> > I don't think we should do this, the drivers should work with and without
+> >>>> > dma. This just needs to be added to the omap2plus_defconfig.
+> >>>> >
+> >>>> Well this was not decided based on any DMA CONFIG option before for
+> >>>> the subject drivers. It is already by default enabled if the DMA is supported
+> >>>> by the driver IP. There is a possibility to disable it from driver platform/dt
+> >>>> data so that still remains.
+> >>>
+> >>> I think it should rather be that if the driver is broken and does not work
+> >>> without DMA, it should have depends on CONFIG_DMA_OMAP.
+> >>>
+> >> I can confirm that omap MMC can't work without DMA; polled mode is not
+> >> supported / implemented.
+> >
+> > Same case for SPI driver as well. It uses DMA for everything except the cases
+> > where DMA doesn't make sense like 1 byte/2 byte etc. And its not configurable,
+> >
+> > At least considering this, it is better we do this per driver than enabling
+> > it at SOC config.
+> >
+> > Regards
+> > Santosh
+> > --
+> 
+> Hi Santosh,
+> 
+> And what about enabling it at the SoC config level but making the
+> drivers dependant on CONFIG_DMADEVICES and CONFIG_DMA_OMAP? If you
+> agree I can send something like this in two different patches (one for
+> the omap2plus_defconfig and another to make the drivers dependant on
+> the config option):
+> 
+> diff --git a/arch/arm/configs/omap2plus_defconfig
+> b/arch/arm/configs/omap2plus_defconfig
+> index b152de7..e58edc3 100644
+> --- a/arch/arm/configs/omap2plus_defconfig
+> +++ b/arch/arm/configs/omap2plus_defconfig
+> @@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
+>  CONFIG_RTC_CLASS=y
+>  CONFIG_RTC_DRV_TWL92330=y
+>  CONFIG_RTC_DRV_TWL4030=y
+> +CONFIG_DMADEVICES=y
+> +CONFIG_DMA_OMAP=y
+>  CONFIG_EXT2_FS=y
+>  CONFIG_EXT3_FS=y
+>  # CONFIG_EXT3_FS_XATTR is not set
+
+above has been merged, 89269ef1f0abc72c551198123e19cd4edfd43cf4
+but I am missing the patches below in mainline (3.6-rc3) -- what happened?
+
+as Javier pointed out in https://patchwork.kernel.org/patch/1203391/, 
+MMC is broken support e.g. on beagleboard unless DMA_OMAP is defined
+
+I suggest to take below patches and help to avoid some extra gray hair for 
+people looking for a fix for non-booting beagleboards
+
+thanks, p.
+
+> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+> index aa131b3..314c7bd 100644
+> --- a/drivers/mmc/host/Kconfig
+> +++ b/drivers/mmc/host/Kconfig
+> @@ -231,7 +231,7 @@ config MMC_SDHCI_S3C_DMA
+> 
+>  config MMC_OMAP
+>  	tristate "TI OMAP Multimedia Card Interface support"
+> -	depends on ARCH_OMAP
+> +	depends on ARCH_OMAP && DMADEVICES && DMA_OMAP
+>  	select TPS65010 if MACH_OMAP_H2
+>  	help
+>  	  This selects the TI OMAP Multimedia card Interface.
+> @@ -242,7 +242,8 @@ config MMC_OMAP
+> 
+>  config MMC_OMAP_HS
+>  	tristate "TI OMAP High Speed Multimedia Card Interface support"
+> -	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
+> +	depends on (SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4) && \
+> +		    DMADEVICES && DMA_OMAP
+>  	help
+>  	  This selects the TI OMAP High Speed Multimedia card Interface.
+>  	  If you have an OMAP2430 or OMAP3 board or OMAP4 board with a
+> diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+> index cd2fe35..1c23242 100644
+> --- a/drivers/spi/Kconfig
+> +++ b/drivers/spi/Kconfig
+> @@ -237,7 +237,7 @@ config SPI_OMAP_UWIRE
+> 
+>  config SPI_OMAP24XX
+>  	tristate "McSPI driver for OMAP"
+> -	depends on ARCH_OMAP2PLUS
+> +	depends on ARCH_OMAP2PLUS && DMADEVICES && DMA_OMAP
+>  	help
+>  	  SPI master controller for OMAP24XX and later Multichannel SPI
+>  	  (McSPI) modules.
+
+
 -- 
-1.7.9.5
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter Meerwald
++43-664-2444418 (mobile)
