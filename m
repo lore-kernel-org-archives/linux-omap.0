@@ -1,112 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 00/13] OMAP Serial patches
-Date: Thu, 23 Aug 2012 09:26:47 +0300
-Message-ID: <20120823062646.GC31295@arwen.pp.htv.fi>
-References: <1345540555-24359-1-git-send-email-balbi@ti.com>
- <1345551371-18862-1-git-send-email-balbi@ti.com>
-Reply-To: balbi@ti.com
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] ARM: OMAP2+: twl-common: Fix compile time error when omap-twl4030 audio is not enabled
+Date: Thu, 23 Aug 2012 09:35:01 +0300
+Message-ID: <1345703701-27283-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nmemrqcdn5VTmUEE"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:57310 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752868Ab2HWGat (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Aug 2012 02:30:49 -0400
-Received: by lagp5 with SMTP id p5so252738lag.37
-        for <linux-omap@vger.kernel.org>; Wed, 22 Aug 2012 23:30:46 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1345551371-18862-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-next@vger.kernel.org, Brian Austin <brian.austin@cirrus.com>, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
+=46ixes:
+CC      arch/arm/mach-omap2/twl-common.o arch/arm/mach-omap2/twl-common=
+=2Ec:562: error: conflicting types for =E2=80=98omap_twl4030_audio_init=
+=E2=80=99
+arch/arm/mach-omap2/twl-common.h:62: error: previous declaration of =E2=
+=80=98omap_twl4030_audio_init=E2=80=99 was here
+make[1]: *** [arch/arm/mach-omap2/twl-common.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
---nmemrqcdn5VTmUEE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+When building the kernel with !SND_OMAP_SOC_OMAP_TWL4030
 
-Hi,
+Reported-by: Brian Austin <brian.austin@cirrus.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/twl-common.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Tue, Aug 21, 2012 at 03:15:58PM +0300, Felipe Balbi wrote:
-> Hi guys,
->=20
-> here's a series of cleanup patches to the OMAP serial
-> driver. A later series could be made re-implementing
-> DMA using the DMA Engine API. Note that for RX DMA
-> we could be using RX Timeout IRQ as a hint that we better
-> use PIO instead ;-)
->=20
-> All patches were tested on my pandaboard, but I'd really
-> like to receive Tested-by on other platforms.
->=20
-> After this goes in, I'll probably try to get UART wakeup
-> working again and only after that look at DMA.
->=20
-> Changes since v1:
->=20
-> 	. improved commit log on patch 9/13 (formerly 10/13)
-> 	. removed patch 2/13
-> 	. added a new patch switching from spin_lock_irqsave() to spin_lock and
-> 		spin_unlock_irqrestore to spin_unlock
->=20
-> Retested with my pandaboard, UART continues to work:
->=20
->  # grep -i uart /proc/interrupts
->  106:        124          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        189          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        255          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        321          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        387          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        453          0       GIC  OMAP UART2
->  #  grep -i uart /proc/interrupts
->  106:        519          0       GIC  OMAP UART2
->=20
-> cheers
->=20
-> ps: if anyone knows a better test for UART, let me know.
->=20
-> for convenience of anyone testing, patches are available on my git tree [=
-1] on
-> branch uart
->=20
-> [1] git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git uart
-
-Well, it turns out we found a small issue with one of these patches. We
-have already fixed the isse. Will re-send the series soon with a few
-more patches added. cheers
-
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl=
+-common.c
+index 1c6045a..2919d7a 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -544,7 +544,7 @@ void __init omap_twl4030_audio_init(char *card_name=
+)
+ }
+=20
+ #else /* SOC_OMAP_TWL4030 */
+-void __init omap_twl4030_audio_init(char *card_name, int codec_sysclk)
++void __init omap_twl4030_audio_init(char *card_name)
+ {
+ 	return;
+ }
 --=20
-balbi
-
---nmemrqcdn5VTmUEE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQNc0mAAoJEIaOsuA1yqRE6xMP/1nf5I87THiMnv+a0J5TCqcv
-bKIBNoRR0gp/PbPPHmwIboEhcyu8+Qu26Jvdch8usAsGFffGrOBOoDyKlFNE0879
-mDS02bCPZU7N7ncHlcfaWL19kQVcDGaAT3akGhYly1yI9RnANvZVzWxsiVMv1skA
-BQ51VB+r1fGnwRumj7v/F3T3fkMh+X6/cSW1HN65mrN7ng3cdY/RculuYWvKrLhU
-9qMBIy37PSCOZjrwIoY1rmxioUsWpuF6FWfxsD9/WIj0lOuJevggqcuyMBnatLHy
-EB3KffJC+5Ru1oVQzDYc6XgbXrGh/DBZ0SJAR6fwEh9RFW27KfLw+YgL1IU0pSgk
-vtNWMCJotpwpvNReHRLIJi4ulv88SxiciqFqWUCMfhkXqV/ngnSU5SOIX/YPWyNl
-qLGQVPiJ+BRI/TuXQBc6E2DgciFd5oUVEdp3wwI1lzEM2+B+JWkCYplPC4G5TzgG
-7Vyc8LuwgeO2T18CNrUhVw76RYd9Yh+CpW2nfPStzYT4rKzVf+g0+aF92viPcm3s
-ay7IVHHBbDUvWPjiQ97phX8hei8HUTNzTN1iGer2zZgsw75QmYGxTAH0CyUsu7kc
-HynuIXoJsRHJULqT/8MsbVmbEPGVgxkavkWCCP23IS3M0I+8S8/Qh8WSSQZ6ChJ8
-rVNGcPMB1DwO91wtBLFP
-=zppC
------END PGP SIGNATURE-----
-
---nmemrqcdn5VTmUEE--
+1.7.8.6
