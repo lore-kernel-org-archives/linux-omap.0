@@ -1,63 +1,95 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/8] OMAPDSS: Add DSI fclk maximum to dss_features
-Date: Thu, 23 Aug 2012 16:45:11 +0300
-Message-ID: <1345729514-2441-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 7/8] OMAP: 4430SDP: remove DSI clock config from board file
+Date: Thu, 23 Aug 2012 16:45:13 +0300
+Message-ID: <1345729514-2441-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:53711 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933657Ab2HWNpm (ORCPT
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:56911 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933657Ab2HWNpr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Aug 2012 09:45:42 -0400
-Received: by lahl5 with SMTP id l5so371417lah.15
-        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 06:45:39 -0700 (PDT)
+	Thu, 23 Aug 2012 09:45:47 -0400
+Received: by lbon3 with SMTP id n3so399316lbo.28
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 06:45:44 -0700 (PDT)
 In-Reply-To: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Add max value of DSI functional clock to dss_features, so that DSI
-driver can use it.
+DSI clocks are now configured dynamically by the DSI driver, so we can
+remove the hardcoded clock configuration from the board file.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- drivers/video/omap2/dss/dss_features.c |    2 ++
- drivers/video/omap2/dss/dss_features.h |    1 +
- 2 files changed, 3 insertions(+)
+ arch/arm/mach-omap2/board-4430sdp.c |   46 -----------------------------------
+ 1 file changed, 46 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 2fe39d6..c26fc1f 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -326,6 +326,7 @@ static const struct dss_param_range omap3_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 4) - 1 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 750000, 2100000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 1, (1 << 13) - 1},
-+	[FEAT_PARAM_DSI_FCK]			= { 0, 173000000 },
- 	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- 	[FEAT_PARAM_LINEWIDTH]			= { 1, 1024 },
- 	[FEAT_PARAM_MGR_WIDTH]			= { 1, 2048 },
-@@ -341,6 +342,7 @@ static const struct dss_param_range omap4_dss_param_range[] = {
- 	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
- 	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
- 	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
-+	[FEAT_PARAM_DSI_FCK]			= { 0, 170000000 },
- 	[FEAT_PARAM_DOWNSCALE]			= { 1, 4 },
- 	[FEAT_PARAM_LINEWIDTH]			= { 1, 2048 },
- 	[FEAT_PARAM_MGR_WIDTH]			= { 1, 2048 },
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 26d43a4..b81d603 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -92,6 +92,7 @@ enum dss_range_param {
- 	FEAT_PARAM_DSIPLL_REGM_DSI,
- 	FEAT_PARAM_DSIPLL_FINT,
- 	FEAT_PARAM_DSIPLL_LPDIV,
-+	FEAT_PARAM_DSI_FCK,
- 	FEAT_PARAM_DOWNSCALE,
- 	FEAT_PARAM_LINEWIDTH,
- 	FEAT_PARAM_MGR_WIDTH,
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 852e05c..4352d91 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -621,29 +621,6 @@ static struct omap_dss_device sdp4430_lcd_device = {
+ 	.phy.dsi		= {
+ 		.module		= 0,
+ 	},
+-
+-	.clocks = {
+-		.dispc = {
+-			.channel = {
+-				/* Logic Clock = 172.8 MHz */
+-				.lck_div	= 1,
+-				/* Pixel Clock = 34.56 MHz */
+-				.pck_div	= 5,
+-				.lcd_clk_src	= OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,
+-			},
+-			.dispc_fclk_src	= OMAP_DSS_CLK_SRC_FCK,
+-		},
+-
+-		.dsi = {
+-			.regn		= 16,	/* Fint = 2.4 MHz */
+-			.regm		= 180,	/* DDR Clock = 216 MHz */
+-			.regm_dispc	= 5,	/* PLL1_CLK1 = 172.8 MHz */
+-			.regm_dsi	= 5,	/* PLL1_CLK2 = 172.8 MHz */
+-
+-			.lp_clk_div	= 10,	/* LP Clock = 8.64 MHz */
+-			.dsi_fclk_src	= OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,
+-		},
+-	},
+ 	.channel		= OMAP_DSS_CHANNEL_LCD,
+ };
+ 
+@@ -668,29 +645,6 @@ static struct omap_dss_device sdp4430_lcd2_device = {
+ 
+ 		.module		= 1,
+ 	},
+-
+-	.clocks = {
+-		.dispc = {
+-			.channel = {
+-				/* Logic Clock = 172.8 MHz */
+-				.lck_div	= 1,
+-				/* Pixel Clock = 34.56 MHz */
+-				.pck_div	= 5,
+-				.lcd_clk_src	= OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DISPC,
+-			},
+-			.dispc_fclk_src	= OMAP_DSS_CLK_SRC_FCK,
+-		},
+-
+-		.dsi = {
+-			.regn		= 16,	/* Fint = 2.4 MHz */
+-			.regm		= 180,	/* DDR Clock = 216 MHz */
+-			.regm_dispc	= 5,	/* PLL1_CLK1 = 172.8 MHz */
+-			.regm_dsi	= 5,	/* PLL1_CLK2 = 172.8 MHz */
+-
+-			.lp_clk_div	= 10,	/* LP Clock = 8.64 MHz */
+-			.dsi_fclk_src	= OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI,
+-		},
+-	},
+ 	.channel		= OMAP_DSS_CHANNEL_LCD2,
+ };
+ 
 -- 
 1.7.9.5
 
