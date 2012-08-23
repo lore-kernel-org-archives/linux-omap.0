@@ -1,51 +1,56 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 5/9] ARM/ASoC: omap-mcbsp: Remove
- CLKR/FSR mux configuration code
-Date: Thu, 23 Aug 2012 11:12:46 +0300
-Message-ID: <5035E5FE.90401@ti.com>
-References: <1345124468-8876-1-git-send-email-peter.ujfalusi@ti.com>
- <1345124468-8876-6-git-send-email-peter.ujfalusi@ti.com>
- <20120822191506.GL7995@opensource.wolfsonmicro.com>
+Subject: Re: receiving data from mcbsp1 in master mode
+Date: Thu, 23 Aug 2012 11:47:59 +0300
+Message-ID: <5035EE3F.9000903@ti.com>
+References: <20120821074205.0a36f648@kemnade.info> <5033903B.8000009@ti.com> <20120822221942.2ebb4fd3@kemnade.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120822191506.GL7995@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44609 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753405Ab2HWIsF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Aug 2012 04:48:05 -0400
+Received: by obbeh20 with SMTP id eh20so873957obb.10
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 01:48:03 -0700 (PDT)
+In-Reply-To: <20120822221942.2ebb4fd3@kemnade.info>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andreas Kemnade <andreas@kemnade.info>
+Cc: linux-omap@vger.kernel.org
 
-Hi Mark,
+On 08/22/2012 11:19 PM, Andreas Kemnade wrote:
+> if I understand the TRM correctly, according to Figure 21-26 in chapt=
+er 21.4.2.3.
+> if GSYNC is set, the receiver uses the signal from the sample rate ge=
+nerator,
+> so CLKX does not need to be the CLKR source.
+> But I tried also with the DEVCONF0 MCBSP1_CLKR bit as you proposed.
+> I tried
+>  snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_CLKR_SRC_CLKX, 0,
+>                                      SND_SOC_CLOCK_OUT);
+>  snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
+>                                      SND_SOC_CLOCK_OUT);
 
-On 08/22/2012 10:15 PM, Mark Brown wrote:
-> Applied but this didn't quite apply cleanly, please check that it did so.
+There is an issue with the 6pin mux code, try to add this patch:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-August/054041=
+=2Ehtml
 
-The part which removes the omap_mcbsp_6pin_src_mux() function from
-sound/soc/omap/mcbsp.c is the one which did not made it.
+>  That is why I send you my patch about that mux settings. But I had n=
+o success.
+> The CLKX as CLKR source and FSX as FSR source setting I have only see=
+n when
+> mcbsp1 is used in slave mode. If you know any working code which uses=
+ mcbsp1 in
+> master mode then let me know.
 
-It failed to apply on top of topic/omap is that the branch does not have the
-following commit:
-d0db84e ASoC: omap-mcbsp: Fix 6pin mux configuration
+No, I don't have board which uses McBSP1.
 
-This patch is in your for-next branch. I can not find it in the for-3.6 or
-for-3.7 branch either.
-
-Commit d0db84e was planed to be part of 3.6 AFAIK. Without that patch in
-topic/omap we are going to have merge issue with 3.7.
-
-I can send a patch which removes the omap_mcbsp_6pin_src_mux() in topic/omap
-but the patch will similarly fail when we going to have d0db84e already
-applied mainline.
-
--- =
-
+--=20
 P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
