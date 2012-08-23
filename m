@@ -1,265 +1,112 @@
-From: Jon Hunter <jon-hunter@TI.COM>
-Subject: Re: [PATCH v6 07/10] ARM: OMAP2+: gpmc: generic timing calculation
-Date: Wed, 22 Aug 2012 21:58:44 -0500
-Message-ID: <50359C64.40603@ti.com>
-References: <cover.1345524670.git.afzal@ti.com> <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 00/13] OMAP Serial patches
+Date: Thu, 23 Aug 2012 09:26:47 +0300
+Message-ID: <20120823062646.GC31295@arwen.pp.htv.fi>
+References: <1345540555-24359-1-git-send-email-balbi@ti.com>
+ <1345551371-18862-1-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nmemrqcdn5VTmUEE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55517 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756653Ab2HWC6g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Aug 2012 22:58:36 -0400
-In-Reply-To: <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:57310 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752868Ab2HWGat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Aug 2012 02:30:49 -0400
+Received: by lagp5 with SMTP id p5so252738lag.37
+        for <linux-omap@vger.kernel.org>; Wed, 22 Aug 2012 23:30:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1345551371-18862-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@TI.COM>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
-Hi Afzal,
 
-On 08/21/2012 05:45 AM, Afzal Mohammed wrote:
-> Presently there are three peripherals that gets it timing
-> by runtime calculation. Those peripherals can work with
-> frequency scaling that affects gpmc clock. But timing
-> calculation for them are in different ways.
-> 
-> Here a generic runtime calculation method is proposed. Input
-> to this function were selected so that they represent timing
-> variables that are present in peripheral datasheets. Motive
-> behind this was to achieve DT bindings for the inputs as is.
-> Even though a few of the tusb6010 timings could not be made
-> directly related to timings normally found on peripherals,
-> expressions used were translated to those that could be
-> justified.
-> 
-> There are possibilities of improving the calculations, like
-> calculating timing for read & write operations in a more
-> similar way. Expressions derived here were tested for async
-> onenand on omap3evm (as vanilla Kernel does not have omap3evm
-> onenand support, local patch was used). Other peripherals,
-> tusb6010, smc91x calculations were validated by simulating
-> on omap3evm.
-> 
-> Regarding "we_on" for onenand async, it was found that even
-> for muxed address/data, it need not be greater than
-> "adv_wr_off", but rather could be derived from write setup
-> time for peripheral from start of access time, hence would
-> more be in line with peripheral timings. With this method
-> it was working fine. If it is required in some cases to
-> have "we_on" same as "wr_data_mux_bus" (i.e. greater than
-> "adv_wr_off"), another variable could be added to indicate
-> it. But such a requirement is not expected though.
-> 
-> Whole of this exercise is being done to achieve driver and
-> DT conversion. If timings could not be calculated in a
-> peripheral agnostic way, either gpmc driver would have to
-> be peripheral gnostic or a wrapper arrangement over gpmc
-> driver would be required.
-> 
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> ---
->  arch/arm/mach-omap2/gpmc.c             |  302 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/gpmc.h |   61 +++++++
->  2 files changed, 363 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index d005b3a..d8e5b08 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -233,6 +233,18 @@ unsigned int gpmc_round_ns_to_ticks(unsigned int time_ns)
->  	return ticks * gpmc_get_fclk_period() / 1000;
->  }
->  
-> +unsigned int gpmc_ticks_to_ps(unsigned int ticks)
-> +{
-> +	return ticks * gpmc_get_fclk_period();
-> +}
-> +
-> +unsigned int gpmc_round_ps_to_ticks(unsigned int time_ps)
-> +{
-> +	unsigned long ticks = gpmc_ps_to_ticks(time_ps);
-> +
-> +	return ticks * gpmc_get_fclk_period();
-> +}
-> +
->  static inline void gpmc_cs_modify_reg(int cs, int reg, u32 mask, bool value)
->  {
->  	u32 l;
-> @@ -884,6 +896,296 @@ static void __init gpmc_mem_init(void)
->  	}
->  }
->  
-> +static u32 gpmc_round_ps_to_sync_clk(u32 time_ps, u32 sync_clk)
-> +{
-> +	u32 temp;
-> +	int div;
-> +
-> +	div = gpmc_calc_divider(sync_clk);
-> +	temp = gpmc_ps_to_ticks(time_ps);
-> +	temp = (temp + div - 1) / div;
-> +	return gpmc_ticks_to_ps(temp * div);
-> +}
-> +
-> +/* can the cycles be avoided ? */
+--nmemrqcdn5VTmUEE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What is the above comment referring too?
+Hi,
 
-> +static int gpmc_calc_sync_read_timings(struct gpmc_timings *gpmc_t,
-> +				struct gpmc_device_timings *dev_t)
-> +{
-> +	bool mux = dev_t->mux;
-> +	u32 temp;
-> +
-> +	/* adv_rd_off */
-> +	temp = dev_t->t_avdp_r;
-> +	/* mux check required ? */
-> +	if (mux) {
-> +		/* t_avdp not to be required for sync, only added for tusb this
-> +		 * indirectly necessitates requirement of t_avdp_r & t_avdp_w
-> +		 * instead of having a single t_avdp
-> +		 */
-> +		temp = max_t(u32, temp,	gpmc_t->clk_activation * 1000 +
-> +							dev_t->t_avdh);
-> +		temp = max_t(u32,
-> +			(gpmc_t->adv_on + gpmc_ticks_to_ns(1)) * 1000, temp);
-> +	}
-> +	gpmc_t->adv_rd_off = gpmc_round_ps_to_ticks(temp) / 1000;
-> +
-> +	/* oe_on */
-> +	temp = dev_t->t_oeasu; /* remove this ? */
-> +	if (mux) {
-> +		temp = max_t(u32, temp,
-> +			gpmc_t->clk_activation * 1000 + dev_t->t_ach);
-> +		temp = max_t(u32, temp, (gpmc_t->adv_rd_off +
-> +				gpmc_ticks_to_ns(dev_t->cyc_aavdh_oe)) * 1000);
-> +	}
-> +	gpmc_t->oe_on = gpmc_round_ps_to_ticks(temp) / 1000;
-> +
-> +	/* access */
-> +	/* any scope for improvement ?, by combining oe_on & clk_activation,
-> +	 * need to check whether access = clk_activation + round to sync clk ?
-> +	 */
-> +	temp = max_t(u32, dev_t->t_iaa,	dev_t->cyc_iaa * gpmc_t->sync_clk);
-> +	temp += gpmc_t->clk_activation * 1000;
-> +	if (dev_t->cyc_oe)
-> +		temp = max_t(u32, temp, (gpmc_t->oe_on +
-> +				gpmc_ticks_to_ns(dev_t->cyc_oe)) * 1000);
-> +	gpmc_t->access = gpmc_round_ps_to_ticks(temp) / 1000;
-> +
-> +	gpmc_t->oe_off = gpmc_t->access + gpmc_ticks_to_ns(1);
-> +	gpmc_t->cs_rd_off = gpmc_t->oe_off;
-> +
-> +	/* rd_cycle */
-> +	temp = max_t(u32, dev_t->t_cez_r, dev_t->t_oez);
-> +	temp = gpmc_round_ps_to_sync_clk(temp, gpmc_t->sync_clk) +
-> +							gpmc_t->access * 1000;
-> +	/* barter t_ce_rdyz with t_cez_r ? */
-> +	if (dev_t->t_ce_rdyz)
-> +		temp = max_t(u32, temp,
-> +				gpmc_t->cs_rd_off * 1000 + dev_t->t_ce_rdyz);
-> +	gpmc_t->rd_cycle = gpmc_round_ps_to_ticks(temp) / 1000;
-> +
-> +	return 0;
-> +}
+On Tue, Aug 21, 2012 at 03:15:58PM +0300, Felipe Balbi wrote:
+> Hi guys,
+>=20
+> here's a series of cleanup patches to the OMAP serial
+> driver. A later series could be made re-implementing
+> DMA using the DMA Engine API. Note that for RX DMA
+> we could be using RX Timeout IRQ as a hint that we better
+> use PIO instead ;-)
+>=20
+> All patches were tested on my pandaboard, but I'd really
+> like to receive Tested-by on other platforms.
+>=20
+> After this goes in, I'll probably try to get UART wakeup
+> working again and only after that look at DMA.
+>=20
+> Changes since v1:
+>=20
+> 	. improved commit log on patch 9/13 (formerly 10/13)
+> 	. removed patch 2/13
+> 	. added a new patch switching from spin_lock_irqsave() to spin_lock and
+> 		spin_unlock_irqrestore to spin_unlock
+>=20
+> Retested with my pandaboard, UART continues to work:
+>=20
+>  # grep -i uart /proc/interrupts
+>  106:        124          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        189          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        255          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        321          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        387          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        453          0       GIC  OMAP UART2
+>  #  grep -i uart /proc/interrupts
+>  106:        519          0       GIC  OMAP UART2
+>=20
+> cheers
+>=20
+> ps: if anyone knows a better test for UART, let me know.
+>=20
+> for convenience of anyone testing, patches are available on my git tree [=
+1] on
+> branch uart
+>=20
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git uart
 
-[...]
+Well, it turns out we found a small issue with one of these patches. We
+have already fixed the isse. Will re-send the series soon with a few
+more patches added. cheers
 
-> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-> index 1cafbfd..e59a932 100644
-> --- a/arch/arm/plat-omap/include/plat/gpmc.h
-> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
-> @@ -152,6 +152,67 @@ struct gpmc_timings {
->  	struct gpmc_bool_timings bool_timings;
->  };
->  
-> +/* Device timings in picoseconds */
+--=20
+balbi
 
-Why pico seconds and not nanoseconds? I understand you may need to
-temporarily convert to pico-secs for rounding, but when providing timing
-it seems nano-secs is more suitable.
+--nmemrqcdn5VTmUEE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> +struct gpmc_device_timings {
-> +	u32     t_ceasu;	/* address setup to CS valid */
-> +	u32     t_avdasu;	/* address setup to ADV valid */
-> +	/* XXX: try to combine t_avdp_r & t_avdp_w. Issue is
-> +	 * of tusb using these timings even for sync whilst
-> +	 * ideally for adv_rd/(wr)_off it should have considered
-> +	 * t_avdh instead. This indirectly necessitates r/w
-> +	 * variations of t_avdp as it is possible to have one
-> +	 * sync & other async
-> +	 */
-> +	u32	t_avdp_r;	/* ADV low time (what about t_cer ?) */
-> +	u32	t_avdp_w;
-> +	u32	t_aavdh;	/* address hold time */
-> +	u32     t_oeasu;	/* address setup to OE valid */
-> +	u32     t_aa;		/* access time from ADV assertion */
-> +	u32     t_iaa;		/* initial access time */
-> +	u32     t_oe;		/* access time from OE assertion */
-> +	u32     t_ce;		/* access time from CS asertion */
-> +	u32     t_rd_cycle;	/* read cycle time */
-> +	u32     t_cez_r;	/* read CS deassertion to high Z */
-> +	u32     t_cez_w;	/* write CS deassertion to high Z */
-> +	u32     t_oez;		/* OE deassertion to high Z */
-> +	u32     t_weasu;	/* address setup to WE valid */
-> +	u32     t_wpl;		/* write assertion time */
-> +	u32     t_wph;		/* write deassertion time */
-> +	u32     t_wr_cycle;	/* write cycle time */
-> +
-> +	u32	clk;
-> +	u32	t_bacc;		/* burst access valid clock to output delay */
-> +	u32	t_ces;		/* CS setup time to clk */
-> +	u32	t_avds;		/* ADV setup time to clk */
-> +	u32	t_avdh;		/* ADV hold time from clk */
-> +	u32     t_ach;		/* address hold time from clk */
-> +	u32	t_rdyo;		/* clk to ready valid */
-> +
-> +	u32	t_ce_rdyz;	/* XXX: description ?, or use t_cez instead */
-> +	u32	t_ce_avd;	/* CS on to ADV on delay */
-> +
-> +	/* XXX: check the possibility of combining
-> +	 * cyc_aavhd_oe & cyc_aavdh_we
-> +	 */
-> +	u8	cyc_aavdh_oe;
-> +	u8	cyc_aavdh_we;
-> +	u8	cyc_oe;
-> +	u8	cyc_wpl;
-> +	u32     cyc_iaa;
-> +
-> +	bool	mux;		/* address & data muxed */
-> +	bool	sync_write;	/* synchronous write */
-> +	bool	sync_read;	/* synchronous read */
-> +
-> +	bool	ce_xdelay;
-> +	bool	avd_xdelay;
-> +	bool	oe_xdelay;
-> +	bool	we_xdelay;
-> +};
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-I am a little concerned about the above timings structure. For example,
-if I am adding support for a new devices it is not clear ...
+iQIcBAEBAgAGBQJQNc0mAAoJEIaOsuA1yqRE6xMP/1nf5I87THiMnv+a0J5TCqcv
+bKIBNoRR0gp/PbPPHmwIboEhcyu8+Qu26Jvdch8usAsGFffGrOBOoDyKlFNE0879
+mDS02bCPZU7N7ncHlcfaWL19kQVcDGaAT3akGhYly1yI9RnANvZVzWxsiVMv1skA
+BQ51VB+r1fGnwRumj7v/F3T3fkMh+X6/cSW1HN65mrN7ng3cdY/RculuYWvKrLhU
+9qMBIy37PSCOZjrwIoY1rmxioUsWpuF6FWfxsD9/WIj0lOuJevggqcuyMBnatLHy
+EB3KffJC+5Ru1oVQzDYc6XgbXrGh/DBZ0SJAR6fwEh9RFW27KfLw+YgL1IU0pSgk
+vtNWMCJotpwpvNReHRLIJi4ulv88SxiciqFqWUCMfhkXqV/ngnSU5SOIX/YPWyNl
+qLGQVPiJ+BRI/TuXQBc6E2DgciFd5oUVEdp3wwI1lzEM2+B+JWkCYplPC4G5TzgG
+7Vyc8LuwgeO2T18CNrUhVw76RYd9Yh+CpW2nfPStzYT4rKzVf+g0+aF92viPcm3s
+ay7IVHHBbDUvWPjiQ97phX8hei8HUTNzTN1iGer2zZgsw75QmYGxTAH0CyUsu7kc
+HynuIXoJsRHJULqT/8MsbVmbEPGVgxkavkWCCP23IS3M0I+8S8/Qh8WSSQZ6ChJ8
+rVNGcPMB1DwO91wtBLFP
+=zppC
+-----END PGP SIGNATURE-----
 
-1. Which are required
-2. Which are applicable for async, sync, address-data multiplexed etc.
-3. Exactly how these relate to the fields in the gpmc registers.
-
-I understand that this is based upon how timings for onenand and tusb
-are being calculated today, but I am not sure that this is the way to go
-for all devices. Personally, I would like to see us get away from how
-those devices are calculating timings for any new device.
-
-In general, I am concerned that we are abstracting the timings further
-from the actual register fields. For example, the timings parameter
-"t_ceasu" is described "address setup to CS valid" which is not
-incorrect but this value is really just programming the CSONTIME field
-and so why not call this cs_on?
-
-So although this may consolidate how the timings are calculated today, I
-am concerned it will be confusing to add timings for a new device. At
-least if I am calculating timings, I am taking the timing information
-for the device and translating that to the how I need to program the
-gpmc register fields.
-
-Cheers
-Jon
+--nmemrqcdn5VTmUEE--
