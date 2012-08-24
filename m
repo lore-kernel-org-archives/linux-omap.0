@@ -1,89 +1,140 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to am335x-bone.dts
-Date: Fri, 24 Aug 2012 10:02:17 +0200
-Message-ID: <45D5714B-BB2C-49BB-8C5D-F69749EC324A@dominion.thruhere.net>
-References: <1345547850-29761-1-git-send-email-anilkumar@ti.com> <1345547850-29761-5-git-send-email-anilkumar@ti.com> <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net> <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com> <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net> <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com> <6C2AC14D-1CAC-4B93-910C-B7E52D3355FD@dominion.thruhere.net>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1486\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCH 7/8] ir-rx51: Remove MPU wakeup latency adjustments
+Date: Fri, 24 Aug 2012 11:14:21 +0300
+Message-ID: <503737DD.2020802@iki.fi>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi> <1345665041-15211-8-git-send-email-timo.t.kokkonen@iki.fi> <CAORVsuXDpnP+QdfQDJMEAUGO3ekr+eGnt46SCqO9K2bsWpMdrw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41535 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab2HXICU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 04:02:20 -0400
-Received: by wicr5 with SMTP id r5so604264wic.1
-        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 01:02:19 -0700 (PDT)
-In-Reply-To: <6C2AC14D-1CAC-4B93-910C-B7E52D3355FD@dominion.thruhere.net>
+Received: from mta-out.inet.fi ([195.156.147.13]:40756 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754742Ab2HXIOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 04:14:24 -0400
+In-Reply-To: <CAORVsuXDpnP+QdfQDJMEAUGO3ekr+eGnt46SCqO9K2bsWpMdrw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
+Hi Jean,
 
-Op 24 aug. 2012, om 09:56 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+On 08/23/12 14:58, Jean Pihet wrote:
+> Hi Timo,
+> 
+> On Wed, Aug 22, 2012 at 9:50 PM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
+> That is correct. The API to use is the PM QoS API which cpuidle uses
+> to determine the next MPU state based on the allowed latency.
+> 
+>> A more appropriate fix for the problem would be to modify the idle
+>> layer so that it does not allow MPU going to too deep sleep modes when
+>> it is expected that the timers need to wake up MPU.
+> The idle layer already uses the PM QoS framework to decide the next
+> MPU state. I think the right solution is to convert from
+> omap_pm_set_max_mpu_wakeup_lat to the PM QoS API.
+> 
+> Cf. http://marc.info/?l=linux-omap&m=133968658305580&w=2 for an
+> example of the conversion.
+> 
 
-> 
-> Op 24 aug. 2012, om 09:26 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
-> 
->> Hi Koen,
->> 
->> On Fri, Aug 24, 2012 at 11:58:34, Koen Kooi wrote:
->>> 
->>> Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
->>> 
->>>> Hi Koen,
->>>> 
->>>> On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
->>>>> 
->>>>> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
->>>>> 
->>>>>> Add tps65217 regulator device tree data to AM335x-Bone by adding
->>>>>> regulator consumers with tightened constraints and regulator-name.
->>>>>> TPS65217 regulator handle can be obtained by using this regulator
->>>>>> name.
->>>>>> 
->>>>>> This patch also add I2C node with I2C frequency and tps65217 PMIC
->>>>>> I2C slave address.
->>>>>> 
->>>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->>>>> 
->>>>> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
->>>> 
->>>> Use this repo to test on beaglebone
->>>> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
->>>> 
->>>> This wiki talks about how to build and use?
->>>> https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
->>>> 
->>>> Note: Enable tps65217 regulator in kernel config.
->>> 
->>> I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
->> 
->> I tested on latest mainline after merging to
->> am335x-upstream-staging-pinctrl (voltage also changing)
->> 
->> Can you share your .config and uImage?
-> 
-> Config: https://github.com/beagleboard/kernel/blob/beaglebone-3.6/patches/configs/beaglebone
-> 
->> My config details:- (After merge)
->> 1. omap2plus_defconfig
->> 2. Enable tps65217 MFD driver
->> 3. Enable tps65217 regulator driver
-> 
-> 
-> I rebased onto latest mainline and refreshed the base patches from Vaibhav and I now get: 
-> 
-> [    0.246796] tps65217 0-0024: TPS65217 ID 0xf version 1.1
-> 
-> So it boots! I don't know what made it break before, but it's working now :)
+Thanks. It looks like really easy and straightforward conversion.
+However, I couldn't find the patch you were referring to from any trees
+I could find. So, I take that this API does not really have omap2
+support in it yet? I tried git grepping through the source and to me it
+appears there is nothing in place yet that actually restricts the MPU
+sleep states on omap2 when requested.
 
-*sigh* I'm an idiot:
+Which puzzles me.. The patch you are referring to transfers the omap I2C
+from the old omap PM API to the new QOS API is not applied yet in
+mainline. The I2C is definitely working with the old API too, I'm just
+wondering why I can't make it working with either of the APIs.. Am I
+missing something here?
 
-root@beaglebone:~# uname -a
-Linux beaglebone 3.6.0-rc3-00103-gfd02083 #86 SMP Fri Aug 24 09:45:54 CEST 2012 armv7l GNU/Linux
-root@beaglebone:~# zcat /proc/config.gz | grep 217
-CONFIG_MFD_TPS65217=y
-# CONFIG_REGULATOR_TPS65217 is not set
+>> Therefore, it makes sense to actually remove this call entirely from
+>> the ir-rx51 driver as it is both wrong and does nothing useful at the
+>> moment.
+>>
+>> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> 
+> Regards,
+> Jean
+> 
+>> ---
+>>  arch/arm/mach-omap2/board-rx51-peripherals.c | 2 --
+>>  drivers/media/rc/ir-rx51.c                   | 9 ---------
+>>  include/media/ir-rx51.h                      | 2 --
+>>  3 files changed, 13 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> index ca07264..e0750cb 100644
+>> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+>> @@ -34,7 +34,6 @@
+>>  #include <plat/gpmc.h>
+>>  #include <plat/onenand.h>
+>>  #include <plat/gpmc-smc91x.h>
+>> -#include <plat/omap-pm.h>
+>>
+>>  #include <mach/board-rx51.h>
+>>
+>> @@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
+>>
+>>  #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+>>  static struct lirc_rx51_platform_data rx51_lirc_data = {
+>> -       .set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+>>         .pwm_timer = 9, /* Use GPT 9 for CIR */
+>>  };
+>>
+>> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+>> index 7eed541..ac7d3f0 100644
+>> --- a/drivers/media/rc/ir-rx51.c
+>> +++ b/drivers/media/rc/ir-rx51.c
+>> @@ -267,12 +267,6 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>>         if (count < WBUF_LEN)
+>>                 lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+>>
+>> -       /*
+>> -        * Adjust latency requirements so the device doesn't go in too
+>> -        * deep sleep states
+>> -        */
+>> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
+>> -
+>>         lirc_rx51_on(lirc_rx51);
+>>         lirc_rx51->wbuf_index = 1;
+>>         pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
+>> @@ -292,9 +286,6 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>>          */
+>>         lirc_rx51_stop_tx(lirc_rx51);
+>>
+>> -       /* We can sleep again */
+>> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+>> -
+>>         return n;
+>>  }
+>>
+>> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+>> index 104aa89..57523f2 100644
+>> --- a/include/media/ir-rx51.h
+>> +++ b/include/media/ir-rx51.h
+>> @@ -3,8 +3,6 @@
+>>
+>>  struct lirc_rx51_platform_data {
+>>         int pwm_timer;
+>> -
+>> -       int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+>>  };
+>>
+>>  #endif
+>> --
+>> 1.7.12
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Will retry with regulator driver actually turned on in a bit.
