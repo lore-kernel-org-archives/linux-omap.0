@@ -1,192 +1,148 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 02/23] OMAPDSS: outputs: Create and initialize output
- instances
-Date: Fri, 24 Aug 2012 16:14:02 +0300
-Message-ID: <1345814042.9287.72.camel@lappyti>
-References: <1345528711-27801-1-git-send-email-archit@ti.com>
-	 <1345528711-27801-3-git-send-email-archit@ti.com>
+From: =?UTF-8?B?UmFwaGHDq2wgQXNzw6luYXQ=?= <raph@8d.com>
+Subject: Re: [PATCH] OMAPDSS: Add timings for ChiMei G121S1-L01/L02 and G121X1-L01
+ LCD displays
+Date: Fri, 24 Aug 2012 09:50:22 -0400
+Message-ID: <5037869E.9050604@8d.com>
+References: <20120717140140.GC3850@renkinjitsu.usine.8d.com>   <1345023063.3494.20.camel@deskari> <502BBFBB.6090303@8d.com>  <1345546189.4085.52.camel@deskari> <50339B3A.3020005@8d.com> <1345797509.2614.10.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-lGgKnEtEQrpXD5R+mldQ"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:42003 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759339Ab2HXNOJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 09:14:09 -0400
-Received: by lbon3 with SMTP id n3so995855lbo.28
-        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 06:14:06 -0700 (PDT)
-In-Reply-To: <1345528711-27801-3-git-send-email-archit@ti.com>
+Received: from roc.holo.8d.com ([64.254.227.115]:42002 "EHLO roc.holo.8d.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754172Ab2HXNu1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 09:50:27 -0400
+In-Reply-To: <1345797509.2614.10.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-
---=-lGgKnEtEQrpXD5R+mldQ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2012-08-21 at 11:28 +0530, Archit Taneja wrote:
-> Create output instances by having an init function in the probes of the p=
-latform
-> device drivers for different interfaces. Create a small function for each
-> interface to initialize the output entity's fields type and id.
+On 24/08/12 04:38 AM, Tomi Valkeinen wrote:
+> On Tue, 2012-08-21 at 10:29 -0400, Rapha=C3=ABl Ass=C3=A9nat wrote:
+>> On 21/08/12 06:49 AM, Tomi Valkeinen wrote:
+>>> On Wed, 2012-08-15 at 11:26 -0400, Rapha=C3=ABl Ass=C3=A9nat wrote:
+>>>
+>>>>> +
+>>>>> +	/* ChiMei G121S1-L01 */
+>>>>> +	{
+>>>>> +		{
+>>>>
+>>>> ...
+>>>>
+>>>>> +			.vsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
+>>>>> +			.hsync_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
+>>>>> +			.data_pclk_edge	=3D OMAPDSS_DRIVE_SIG_RISING_EDGE,
+>>>>> +			.de_level	=3D OMAPDSS_SIG_ACTIVE_HIGH,
+>>>>> +			.sync_pclk_edge	=3D OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES,
+>>>>
+>>>> Actually those 3 panels only use the DE signal. The hsync/vsync si=
+gnals
+>>>> are not used and on our system we mux them out to make sure they a=
+re
+>>>> kept low as recommended in the panel datasheets.
+>>>>
+>>>> Since vsync/hsync are not used, I think the vsync_level, hsync_lev=
+el and
+>>>> sync_pclk_edge entries could be removed. Otherwise the updated pat=
+ch
+>>>> works fine as is.
+>>>
+>>> Okay. How do panels like that work? How can they know where a new f=
+rame
+>>> starts?
+>>
+>> By DE being inactive for a different number of pixel clock cycles du=
+ring
+>> the vertical and horizontal blanking periods.
 >=20
-> In the probe of each interface driver, the output entities are created be=
-fore
-> the *_probe_pdata() functions intentionally. This is done to ensure that =
+> Ok. Interesting architecture. I wonder what's the reason for a design
+> like that...
+>=20
+>>> Actually, I now googled for those panels, and they are all LVDS pan=
+els,
+>>> not DPI panels. So the patch doesn't look correct at all.
+>>>
+>>> Do you have a DPI-to-LVDS converter chip on your board?
+>>
+>> Yes, we do. Depending on the board, we use a SN75LVDS83B or a SN65LV=
+DS84.
+>>
+>> The reason for using this approach was that the panels covered by
+>> this patch seemed not to be compatible with Flatlink 3G, which meant
+>> driving them directly from the AM35xx SDI serial interface was not p=
+ossible.
+>> We unfortunately do not get to select which LVDS deserializer is
+>> used at the panel side..
+>=20
+> Ok. I'm a bit reluctant to add the panels to panel-generic-dpi.c, as
+> they are not DPI panels at all. Also, you should have drivers for the
+> DPI-to-LVDS converters. However, this cannot be done properly with th=
+e
+> current DSS driver model, so I'm not sure what to do with your patch.
+
+But internally, perhaps with the exception of the "DE only" operation,
+all the same concepts apply. LVDS is just only one extra layer used to
+transmit the parallel data more effectively (differential, less
+conductors, etc).
+
+Consider the case where an LVDS transmitter is used on the main board
+in conjunction with a remote LVDS receiver on a board connected to
+a "true" DPI panel as follows:
+
+[OMAPDSS -> LVDS XMIT] -> [long cable] -> [LVDS RXCV -> DPI Panel]
+|    parallel        |     lvds serial    |        parallel      |
+
+Given the above use case, adding a new panel to panel-generic-dpi.c wou=
+ld
+be obvious since doing without LVDS and driving the panel directly may
+still happen if a specific design does not benefit from the use of LVDS=
+=2E
+
+There are a few different conventions for LVDS transmission where the t=
+otal
+number of bits transmitted by pairs as well as the bit order varies. Th=
+e
+hardware designer selects a compatible pair of chips based on the numbe=
+r of
+color bits the panel supports and other factors. But no matter which ar=
+e
+selected and how they are wired, the LVDS layer remains transparent to =
 the
-> output entity is prepared before the panels connected to the output are
-> registered. We need the output entities to be ready because OMAPDSS will =
-try
-> to make connections between overlays, managers, outputs and devices durin=
-g the
-> panel's probe.
+graphics controller and the panel.
 
-You're referring to the recheck_connections stuff? I have a patch that
-moves that to omapfb side. But of course it doesn't hurt to initialize
-the output early.
-
-We should generally do the initialization in output driver's probe more
-or less so that we first setup everything related to the output driver,
-and after that we register the dssdevs. But I think that's what is
-already done.
-
-So, no complaints =3D).
-
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/video/omap2/dss/dpi.c  |   20 ++++++++++++++++++++
->  drivers/video/omap2/dss/dsi.c  |   26 ++++++++++++++++++++++++--
->  drivers/video/omap2/dss/hdmi.c |   18 ++++++++++++++++++
->  drivers/video/omap2/dss/rfbi.c |   19 +++++++++++++++++++
->  drivers/video/omap2/dss/sdi.c  |   20 ++++++++++++++++++++
->  drivers/video/omap2/dss/venc.c |   20 ++++++++++++++++++++
->  6 files changed, 121 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.=
-c
-> index f260343..4eca2e7 100644
-> --- a/drivers/video/omap2/dss/dpi.c
-> +++ b/drivers/video/omap2/dss/dpi.c
-> @@ -408,10 +408,30 @@ static void __init dpi_probe_pdata(struct platform_=
-device *pdev)
->  	}
->  }
-> =20
-> +static int __init dpi_init_output(struct platform_device *pdev)
-> +{
-> +	struct omap_dss_output *out;
-> +
-> +	out =3D dss_create_output(pdev);
-> +	if (!out)
-> +		return -ENOMEM;
-> +
-> +	out->id =3D OMAP_DSS_OUTPUT_DPI;
-> +	out->type =3D OMAP_DISPLAY_TYPE_DPI;
-> +
-> +	return 0;
-> +}
-> +
->  static int __init omap_dpi_probe(struct platform_device *pdev)
->  {
-> +	int r;
-> +
->  	mutex_init(&dpi.lock);
-> =20
-> +	r =3D dpi_init_output(pdev);
-> +	if (r)
-> +		return r;
-> +
->  	dpi_probe_pdata(pdev);
-> =20
->  	return 0;
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.=
-c
-> index 659b6cd..22e0873 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -4903,6 +4903,23 @@ static void __init dsi_probe_pdata(struct platform=
-_device *dsidev)
->  	}
->  }
-> =20
-> +static int __init dsi_init_output(struct platform_device *dsidev,
-> +		struct dsi_data *dsi)
-> +{
-> +	struct omap_dss_output *out;
-> +
-> +	out =3D dss_create_output(dsidev);
-> +	if (!out)
-> +		return -ENOMEM;
-> +
-> +	out->id =3D dsi->module_id =3D=3D 0 ?
-> +			OMAP_DSS_OUTPUT_DSI1 : OMAP_DSS_OUTPUT_DSI2;
-> +
-> +	out->type =3D OMAP_DISPLAY_TYPE_DSI;
-> +
-> +	return 0;
-
-As I mentioned in the last email, I think this could be something like:
-
-struct omap_dss_output *out =3D &dsi->output;
-
-out->pdev =3D dsidev;
-out->id =3D xxx;
-out->type =3D yyy;
-dss_register_output(out);
+My situation is only different from the above by the fact that our pane=
+ls
+have an LVDS receiver built-in, which means the choice of transmitter i=
+s
+limited to what will be compatible and that a specific bit order (i.e.
+wiring)
+must be observed. This is why I tend to consider those LVDS panels simp=
+ly
+as DPI panels having a built-in LVDS receiver.
 
 
-> +}
-> +
->  /* DSI1 HW IP initialisation */
->  static int __init omap_dsihw_probe(struct platform_device *dsidev)
->  {
-> @@ -4997,10 +5014,14 @@ static int __init omap_dsihw_probe(struct platfor=
-m_device *dsidev)
->  	else
->  		dsi->num_lanes_supported =3D 3;
-> =20
-> -	dsi_probe_pdata(dsidev);
-> -
->  	dsi_runtime_put(dsidev);
-> =20
-> +	r =3D dsi_init_output(dsidev, dsi);
-> +	if (r)
-> +		goto err_init_output;
-> +
-> +	dsi_probe_pdata(dsidev);
-> +
+> If you had just one panel and DPI-to-LVDS chip, I'd suggest to create=
+ a
+> combined driver which handles both the chip and the panel. But you ha=
+ve
+> two chips and three panels...
 
-Why do you change the sequence here? Isn't it enough to just add the
-init_output before probe_pdata?
+I'm not sure what the chip driver would do. The LVDS layer is totally
+transparent to the operation. Why would the kernel need to be aware of
+which chip is used?
 
- Tomi
+One thing that might be useful would be the ability to control the
+enable pin, but this is not different from the enable pin on a level sh=
+ifter
+placed between the OMAP and a real DPI panel. At the moment, our usersp=
+ace
+software simply controls this using a GPIO.
 
-
---=-lGgKnEtEQrpXD5R+mldQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQN34aAAoJEPo9qoy8lh717ekP/Rp1K/Z4N77ZKi36OWLhDn/1
-ktp8903fL6ymHDU+HErnF0iQG0TCFvtQbhE0utYiE8YhYwWUj12Cg8V1tZKYtHLd
-k0u6xaE4r0TvsAlF6LwGnP0FZeDt82pG/cdifbt15RT5F5OAqPgqxpT1bDx6GVLC
-A1xXzTww6D0P58q9QvpSWHrR4cdnFDGBRzlszfd1ozjafXNlNYowl2eSh/BwyB51
-0eLTjuAlag1o/8H+0G6+OejCNXtHGXD1Ci50mO7sxwgEiO98CvDypJoqlOwdwvBs
-Uzh+qlBKnHohPDL6+PGYsQJtIb8oI0JmZkx+Plry/P75Sci8B2je3XYsJOpBYsdJ
-LaS81HxWCeFVsU38su2UezftDRRnGF+W9oOMcpPy2EZqJVj0pyXb84a8Kxw7twmU
-hbzvaNseJhws/WbUjLgcltSKvMz4CSZhTa+p/20zU/38OD8c9FPWCEwoz0FZXeZO
-QnsxlxPcTELsDyM6KEKEcz0Gv/HQuPOmab0VuJlP6TI60JtPI5S7glkOG7B76CJ9
-fCJ8RpnurTabX0TnV+flSHGnFb5V3tKb6FH7yc4u0o0YSw28eqg9mSa/NbV2tJbD
-SKphoqu0suqRZsOoS3osjrKeKZXuoj3hEdIZ2JSGKyCsPc41ODoTpY+bT7gkWQHd
-+uk7uIwcFmjfXuI9xV6Y
-=T5gw
------END PGP SIGNATURE-----
-
---=-lGgKnEtEQrpXD5R+mldQ--
-
+Best regards,
+Rapha=C3=ABl Ass=C3=A9nat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
