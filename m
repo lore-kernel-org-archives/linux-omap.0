@@ -1,39 +1,129 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
-	hosts by default
-Date: Fri, 24 Aug 2012 10:42:31 +0100
-Message-ID: <20120824094231.GA25765@n2100.arm.linux.org.uk>
-References: <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com> <20120718065951.GH6522@atomide.com> <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com> <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com> <alpine.DEB.2.01.1208232246530.15831@pmeerw.net> <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com> <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
+From: Sean Young <sean@mess.org>
+Subject: Re: [PATCH 2/8] ir-rx51: Handle signals properly
+Date: Fri, 24 Aug 2012 11:03:28 +0100
+Message-ID: <20120824100328.GA20481@pequod.mess.org>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44844 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754493Ab2HXJmu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 05:42:50 -0400
+Received: from pequod.mess.org ([93.97.41.153]:51742 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758828Ab2HXKDa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 06:03:30 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
+In-Reply-To: <1345665041-15211-3-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-On Fri, Aug 24, 2012 at 09:51:15AM +0200, Peter Meerwald wrote:
-> the commit just sets CONFIG_DMA_OMAP=y and CONFIG_DMADEVICES=y in 
-> omap2plus_defconfig; this does not help people updating the kernel while 
-> keeping the config, nor does it help people in configuring the kernel
+On Wed, Aug 22, 2012 at 10:50:35PM +0300, Timo Kokkonen wrote:
+> The lirc-dev expects the ir-code to be transmitted when the write call
+> returns back to the user space. We should not leave TX ongoing no
+> matter what is the reason we return to the user space. Easiest
+> solution for that is to simply remove interruptible sleeps.
 > 
-> there is a dependency (at least for beagleboard) between MMC_OMAP_HS and 
-> DMA_OMAP, and I think this should be made explicit
+> The first wait_event_interruptible is thus replaced with return -EBUSY
+> in case there is still ongoing transfer. This should suffice as the
+> concept of sending multiple codes in parallel does not make sense.
+> 
+> The second wait_event_interruptible call is replaced with
+> wait_even_timeout with a fixed and safe timeout that should prevent
+> the process from getting stuck in kernel for too long.
+> 
+> Also, from now on we will force the TX to stop before we return from
+> write call. If the TX happened to time out for some reason, we should
+> not leave the HW transmitting anything.
+> 
+> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> ---
+>  drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+>  1 file changed, 28 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+> index 9487dd3..a7b787a 100644
+> --- a/drivers/media/rc/ir-rx51.c
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+>  			      OMAP_TIMER_TRIGGER_NONE);
+>  }
+>  
+> +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> +{
+> +	if (lirc_rx51->wbuf_index < 0)
+> +		return;
+> +
+> +	lirc_rx51_off(lirc_rx51);
+> +	lirc_rx51->wbuf_index = -1;
+> +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> +	wake_up_interruptible(&lirc_rx51->wqueue);
 
-Well, this is where stuff starts to get really yucky, because that
-means if you have DMA_OMAP as a module, you have to have MMC_OMAP_HS
-as a module too.  Or vice versa.  Which is a real pain for further
-development of DMA_OMAP.
+Unless I'm mistaken, wait_up_interruptable() won't wake up any 
+non-interruptable sleepers. Should this not be wake_up()?
 
-Whatever, the solution here is NOT to add select statements to the
-Kconfig to force DMA engine support and DMA_OMAP to 'y' for OMAP.
-The best solution is for MMC_OMAP_HS to depend on DMA_OMAP, but that
-will just mean that you'll end up with MMC_OMAP_HS disabled in your
-config witout DMA engine support.  Another less desirable solution
-is to have MMC_OMAP_HS select DMA engine and DMA_OMAP.
+> +}
+> +
+>  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+>  {
+>  	u32 load, match;
+> @@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+>  
+>  	return IRQ_HANDLED;
+>  end:
+> -	/* Stop TX here */
+> -	lirc_rx51_off(lirc_rx51);
+> -	lirc_rx51->wbuf_index = -1;
+> -	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> -	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> -	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> -	wake_up_interruptible(&lirc_rx51->wqueue);
+> +	lirc_rx51_stop_tx(lirc_rx51);
+>  
+>  	return IRQ_HANDLED;
+>  }
+> @@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>  	if ((count > WBUF_LEN) || (count % 2 == 0))
+>  		return -EINVAL;
+>  
+> -	/* Wait any pending transfers to finish */
+> -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> +	/* We can have only one transmit at a time */
+> +	if (lirc_rx51->wbuf_index >= 0)
+> +		return -EBUSY;
+>  
+>  	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+>  		return -EFAULT;
+> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>  
+>  	/*
+>  	 * Don't return back to the userspace until the transfer has
+> -	 * finished
+> +	 * finished. However, we wish to not spend any more than 500ms
+> +	 * in kernel. No IR code TX should ever take that long.
+> +	 */
+> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
+
+Note non-interruptable sleeper.
+
+> +			HZ / 2);
+> +
+> +	/*
+> +	 * Ensure transmitting has really stopped, even if the timers
+> +	 * went mad or something else happened that caused it still
+> +	 * sending out something.
+>  	 */
+> -	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
+> +	lirc_rx51_stop_tx(lirc_rx51);
+>  
+>  	/* We can sleep again */
+>  	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
+> -- 
+> 1.7.12
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
