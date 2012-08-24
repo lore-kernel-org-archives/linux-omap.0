@@ -1,96 +1,110 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/8] OMAPDSS: HDMI: Move GPIO handling to HDMI driver
-Date: Fri, 24 Aug 2012 09:28:36 +0300
-Message-ID: <1345789716.9287.8.camel@lappyti>
+Subject: Re: [PATCH 4/8] OMAPDSS: HDMI: use vdda_hdmi_dac
+Date: Fri, 24 Aug 2012 09:41:20 +0300
+Message-ID: <1345790480.9287.14.camel@lappyti>
 References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1345729514-2441-2-git-send-email-tomi.valkeinen@ti.com>
-	 <50371899.6030706@ti.com>
+	 <1345729514-2441-5-git-send-email-tomi.valkeinen@ti.com>
+	 <50371D27.1010707@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-Qz/mRs70RCGo5TpgzdVz"
+	boundary="=-TkqYNtxIpnsiawpO4iwq"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:60844 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753218Ab2HXG2p (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:51007 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753243Ab2HXGl0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 02:28:45 -0400
-Received: by lbbgp3 with SMTP id gp3so1895223lbb.1
-        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 23:28:42 -0700 (PDT)
-In-Reply-To: <50371899.6030706@ti.com>
+	Fri, 24 Aug 2012 02:41:26 -0400
+Received: by lahl5 with SMTP id l5so768153lah.15
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 23:41:23 -0700 (PDT)
+In-Reply-To: <50371D27.1010707@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <a0393947@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---=-Qz/mRs70RCGo5TpgzdVz
+--=-TkqYNtxIpnsiawpO4iwq
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2012-08-24 at 11:30 +0530, Archit Taneja wrote:
+On Fri, 2012-08-24 at 11:50 +0530, Archit Taneja wrote:
 > On Thursday 23 August 2012 07:15 PM, Tomi Valkeinen wrote:
-> > We currently manage HDMI GPIOs in the board files via
-> > platform_enable/disable calls. This won't work with device tree, and in
-> > any case the correct place to manage the GPIOs is in the HDMI driver.
+> > The HDMI driver requires vdda_hdmi_dac power for operation, but does no=
+t
+> > enable it. This has worked because the regulator has been always
+> > enabled.
 > >
-> > This patch moves the handling of the GPIOs to the HDMI driver. The GPIO
-> > handling is moved to the common hdmi.c file, and this probably needs to
-> > be revisited when adding OMAP5 HDMI support to see if the GPIO handling
-> > needs to be moved to IP specific files.
-
-<snip>
-
-> >   static int __init hdmi_init_display(struct omap_dss_device *dssdev)
-> >   {
-> > +	int r;
-> > +
-> > +	struct gpio gpios[] =3D {
-> > +		{ hdmi.ct_cp_hpd_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ct_cp_hpd" },
-> > +		{ hdmi.ls_oe_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ls_oe" },
-> > +		{ hdmi.hpd_gpio, GPIOF_DIR_IN, "hdmi_hpd" },
-> > +	};
-> > +
-> >   	DSSDBG("init_display\n");
+> > But this may not always be the case, as I encountered when implementing
+> > HDMI device tree support.
+> >
+> > This patch changes the HDMI driver to use the vdda_hdmi_dac.
+> >
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > ---
+> >   drivers/video/omap2/dss/hdmi.c |   23 +++++++++++++++++++++++
+> >   1 file changed, 23 insertions(+)
+> >
+> > diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/h=
+dmi.c
+> > index 96a6e29..ccfc677 100644
+> > --- a/drivers/video/omap2/dss/hdmi.c
+> > +++ b/drivers/video/omap2/dss/hdmi.c
+> > @@ -33,6 +33,7 @@
+> >   #include <linux/pm_runtime.h>
+> >   #include <linux/clk.h>
+> >   #include <linux/gpio.h>
+> > +#include <linux/regulator/consumer.h>
+> >   #include <video/omapdss.h>
+> >
+> >   #include "ti_hdmi.h"
+> > @@ -62,6 +63,7 @@ static struct {
+> >   	struct hdmi_ip_data ip_data;
+> >
+> >   	struct clk *sys_clk;
+> > +	struct regulator *vdda_hdmi_dac_reg;
+> >
+> >   	int ct_cp_hpd_gpio;
+> >   	int ls_oe_gpio;
+> > @@ -331,6 +333,19 @@ static int __init hdmi_init_display(struct omap_ds=
+s_device *dssdev)
 > >
 > >   	dss_init_hdmi_ip_ops(&hdmi.ip_data);
+> >
+> > +	if (hdmi.vdda_hdmi_dac_reg =3D=3D NULL) {
+> > +		struct regulator *reg;
 > > +
-> > +	r =3D gpio_request_array(gpios, ARRAY_SIZE(gpios));
-> > +	if (r)
-> > +		return r;
-> > +
+> > +		reg =3D devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
 >=20
-> Is there a reason to request these gpios in hdmi_init_display()? Why=20
-> can't these be requested simply in the probe of the hdmi platform=20
-> device. These gpios are sort of specific to the hdmi output on OMAP,=20
-> aren't they?
+> There is no corresponding devm_regulator_put() call here, I guess that's=
+=20
+> what devm_* calls are supposed to help us with. But the only place I saw=
+=20
+> the usage of dev_regulator_get() is here:
+>=20
+> sound/soc/ux500/ux500_msp_dai.c
+>=20
+> And here, they are doing devm_regulator_put() calls to, so I was=20
+> wondering what the deal is.
 
-Well, it is a bit ugly, agreed. But I'm not sure it can be helped
-easily.
+No idea. But there are other places also: sound/soc/codecs/wm5100.c,
+sound/soc/codecs/wm8996.c, sound/soc/soc-dapm.c, and those don't use
+put().
 
-First, the struct omap_dss_hdmi_data where the gpios are passed from
-board file, is really "panel" platform data. I.e. it's attached to the
-hdmi dssdev, and thus we can't handle it in hdmi output driver's probe,
-as we don't have dssdevs there.
+Anyway, I think it's quite clear how devm_* functions are used, so the
+put call in ux500_msp_dai.c is probably just a mistake.
 
-Second, the gpios are actually not OMAP HDMI stuff. They belong to the
-tpd12s015 chip, sitting between OMAP HDMI output and the HDMI connector,
-which is the ESD/level shifter/whatnot (I don't remember exactly what it
-does =3D). So making the GPIOs a property of the OMAP HDMI device wouldn't
-be right either.
-
-tpd12s015 is rather simple chip, but it still has the gpios and require
-special handling. I think the only way to properly handle this would be
-to have a chain of external display devices, and the tpd12s015 would be
-handled by a separate driver. Until then, the gpio handling is quite
-hacky.
-
-We could move the gpios to omapdss's platform data, but it would still
-be wrong, and I'm not sure if it'd be any cleaner hack.
+I also want to mention that doing the regulator_get in
+hdmi_init_display() is somewhat strange, but the point is to do the
+regulator_get only if a hdmi display has been defined in the board file.
+If we did it unconditionally in hdmi's probe, we'd try to get the
+regulator always, and it could be that there's no regulator if the hdmi
+is not used on a particular board. This is again something that feels
+hackish, and I'd like to find a cleaner solution to it.
 
  Tomi
 
 
---=-Qz/mRs70RCGo5TpgzdVz
+--=-TkqYNtxIpnsiawpO4iwq
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -98,20 +112,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQNx8UAAoJEPo9qoy8lh71ESQP/21lx2u9jR8HgJV0Yxv9l0sz
-E3KDFmhA/owfMV6CaOxtPmv4oD82W+yB1IBbem+cZ3S61khAN4jS9yiqrFoyPed7
-dIkY3ksY7uwE2aNysKwUg2ianrSBa9qPd5LzyX//mHuHYbunTfQ28l/Ev3S0H2ny
-KDabHHYpG4HiXfZsX+Awr31cYOpZgs0OT6u4LD7kVBx0rIqwt+UUUO4DJuByIDlM
-g0QhdmNDD0AkPAc8sZyH2WPpYR1xamswdbQPTvQM2jhn62wurBldkHsr/f475uR3
-PsuyGbLIb/Bo1d7ARFHUEy0FkvEsk9nRdU7NxGWWsP/YYH9WlMx/I9yyIVjFTz/q
-vQae3lG9WB8B7QIaTZfetdXYQqbNT8R1txQx5cNO4nvcXvwTeJkq8H8VQ8YpsvMA
-p+7ha9HCVXqoMrwv6F8d/gTT2/z2DwbORavZ1oSLfA0KfSWrGVUUE6RrR4EUBUt3
-WEDYtfhc9ryI4i4J1mOxQ6lLRSoYWWzW9coLEe7UfBO75LHTgP3zVKhQVySl1Jca
-LHtN3ou5yVVQqZr42gbG7zjfE+n0OMLiOi8i1zSa25nlTp+Hz3gVkkNJdNZKIFJR
-v2HAZTOrtNh/BpPoculMZWF4lBOviWousbNUWbUyG7nLm+zUkw4tZ7StZ8kxCEy4
-3+7TRfu82SQKSj6ayv+L
-=5B6C
+iQIcBAABAgAGBQJQNyIQAAoJEPo9qoy8lh71Sl0P+gNBv0NnRxQLe1OzfvB+CmMY
+OtDFCHCYTH7DBgeR/ILKj3NV6/RAmZYuovo5VDKtahHGMaiCHM0rBLBn84vmV08N
+ZngWDae43vLhDqS3RlkmauQ/JjiKKpUWRPxxxssFP556ZtfVFFBGOrKew+5ETEko
+AT9D6n0BfBIvQbUFC89gIrrahkUYxruo42+7wldOwOmjvK74jTQFhWv1IvW2KtRx
+OzRNNme6/o6Ix9WhpWbhRwTrzrzCV1rqVzETepcB/hEQQYVZF/dzmoC70Q12jBO9
+YGr7Mok4wHz+spb1rGtvZxGE2u5mTdx0zYj+6tiLIzABV1P5oqItQqyp0sYwXimc
+oEdocXD+WZ19gju1fXDsj/1PT32TVePdQGuBaH+KbP2+lxL1bXOVFCwqCyTbWLrc
+j5PGeKcxs17P7d8MrNxNkLh2RVCSsnH7tWi6/VW1Za2AUSEyGPfnB8739UMW86ja
+Lb/hGUBQ2XFd+cMjgTkecZZzRCaoiTyBgHWWGIOU/DAxs7Fnyg2ZUJA2WYyjJ0Ah
+j9wz0uFnRZP8fRjY2tAV+f01Igce2A0jgk7gxn18wkCWBtbBcaLyrO2V7WBZydeU
+rOeChM+bSmKH4D20ekaTAezxVDSqK1fOIOYYAs9S1Kn8NRZ6MnoYGQhMj6/428wU
+q13pDMRBTepxlFaKahXJ
+=wrPq
 -----END PGP SIGNATURE-----
 
---=-Qz/mRs70RCGo5TpgzdVz--
+--=-TkqYNtxIpnsiawpO4iwq--
 
