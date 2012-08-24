@@ -1,51 +1,104 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to
- am335x-bone.dts
-Date: Fri, 24 Aug 2012 05:50:17 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
-References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
- <1345547850-29761-5-git-send-email-anilkumar@ti.com>
- <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 8/8] OMAPDSS: fix use of dssdev->caps
+Date: Fri, 24 Aug 2012 11:21:14 +0530
+Message-ID: <50371652.2000405@ti.com>
+References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com> <1345729514-2441-9-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52059 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750761Ab2HXFus convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 01:50:48 -0400
-In-Reply-To: <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:38250 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab2HXFws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 01:52:48 -0400
+In-Reply-To: <1345729514-2441-9-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Koen,
+On Thursday 23 August 2012 07:15 PM, Tomi Valkeinen wrote:
+> Recent commit dca2b1522ccab28d03fb79f6e70e70ea78033d52 (OMAPDSS: DSI:
+> Maintain copy of operation mode in driver data) broke DSI for video mode
+> displays. The commit changed the way dssdev->caps are initialized, and
+> the result was that every DSI display is initialized with manual-update
+> and tear-elim caps.
 
-On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
-> 
-> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
-> 
-> > Add tps65217 regulator device tree data to AM335x-Bone by adding
-> > regulator consumers with tightened constraints and regulator-name.
-> > TPS65217 regulator handle can be obtained by using this regulator
-> > name.
-> > 
-> > This patch also add I2C node with I2C frequency and tps65217 PMIC
-> > I2C slave address.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> 
-> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
+Ah, I didn't realise that. Thanks for catching this.
 
-Use this repo to test on beaglebone
-https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
+>
+> The code that sets dssdev->caps is not very good, even when fixed.
+> omapdss driver shouldn't be writing dssdev->caps at all.
+>
+> This patch fixes the problem with video mode displays by moving the
+> initialization of dssdev->caps to the panel driver. The same change is
+> done for RFBI.
 
-This wiki talks about how to build and use?
-https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
+Yes, it makes more sense to configure these in the panel driver.
 
-Note: Enable tps65217 regulator in kernel config.
+Archit
 
-Regards
-AnilKumar
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/displays/panel-n8x0.c |    1 +
+>   drivers/video/omap2/displays/panel-taal.c |    2 ++
+>   drivers/video/omap2/dss/dsi.c             |    5 -----
+>   drivers/video/omap2/dss/rfbi.c            |    1 -
+>   4 files changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
+> index 17ae85e..3fc5ad0 100644
+> --- a/drivers/video/omap2/displays/panel-n8x0.c
+> +++ b/drivers/video/omap2/displays/panel-n8x0.c
+> @@ -489,6 +489,7 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
+>   	dssdev->panel.timings.y_res = 480;
+>   	dssdev->ctrl.pixel_size = 16;
+>   	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
+> +	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
+>
+>   	memset(&props, 0, sizeof(props));
+>   	props.max_brightness = 127;
+> diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+> index ddda96a..7b2d7bb 100644
+> --- a/drivers/video/omap2/displays/panel-taal.c
+> +++ b/drivers/video/omap2/displays/panel-taal.c
+> @@ -884,6 +884,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
+>
+>   	dssdev->panel.timings = panel_config->timings;
+>   	dssdev->panel.dsi_pix_fmt = OMAP_DSS_DSI_FMT_RGB888;
+> +	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
+> +		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
+>
+>   	td = kzalloc(sizeof(*td), GFP_KERNEL);
+>   	if (!td) {
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+> index 340c832..254666f 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -4866,11 +4866,6 @@ static int __init dsi_init_display(struct omap_dss_device *dssdev)
+>
+>   	DSSDBG("DSI init\n");
+>
+> -	if (dsi->mode == OMAP_DSS_DSI_CMD_MODE) {
+> -		dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
+> -			OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
+> -	}
+> -
+>   	if (dsi->vdds_dsi_reg == NULL) {
+>   		struct regulator *vdds_dsi;
+>
+> diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+> index 5a9c0e9..2e520d3 100644
+> --- a/drivers/video/omap2/dss/rfbi.c
+> +++ b/drivers/video/omap2/dss/rfbi.c
+> @@ -939,7 +939,6 @@ EXPORT_SYMBOL(omapdss_rfbi_display_disable);
+>   static int __init rfbi_init_display(struct omap_dss_device *dssdev)
+>   {
+>   	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
+> -	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
+>   	return 0;
+>   }
+>
+>
+
