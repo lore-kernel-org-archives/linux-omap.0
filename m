@@ -1,47 +1,39 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [PATCH v3] backlight: Add TPS65217 WLED driver
-Date: Fri, 24 Aug 2012 11:27:38 +0200
-Message-ID: <8DC20C93-E284-4E30-85FC-F3F39D756891@dominion.thruhere.net>
-References: <20120822210419.GA6235@darwin>
-Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1486\))
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+	hosts by default
+Date: Fri, 24 Aug 2012 10:42:31 +0100
+Message-ID: <20120824094231.GA25765@n2100.arm.linux.org.uk>
+References: <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com> <20120718065951.GH6522@atomide.com> <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com> <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com> <alpine.DEB.2.01.1208232246530.15831@pmeerw.net> <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com> <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:55833 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592Ab2HXJ1k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 05:27:40 -0400
-Received: by weyx8 with SMTP id x8so904840wey.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 02:27:38 -0700 (PDT)
-In-Reply-To: <20120822210419.GA6235@darwin>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44844 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754493Ab2HXJmu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 05:42:50 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, Richard Purdie <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 
+On Fri, Aug 24, 2012 at 09:51:15AM +0200, Peter Meerwald wrote:
+> the commit just sets CONFIG_DMA_OMAP=y and CONFIG_DMADEVICES=y in 
+> omap2plus_defconfig; this does not help people updating the kernel while 
+> keeping the config, nor does it help people in configuring the kernel
+> 
+> there is a dependency (at least for beagleboard) between MMC_OMAP_HS and 
+> DMA_OMAP, and I think this should be made explicit
 
-Op 22 aug. 2012, om 23:04 heeft Matthias Kaehlcke <matthias@kaehlcke.net> het volgende geschreven:
+Well, this is where stuff starts to get really yucky, because that
+means if you have DMA_OMAP as a module, you have to have MMC_OMAP_HS
+as a module too.  Or vice versa.  Which is a real pain for further
+development of DMA_OMAP.
 
-> The TPS65217 chip contains a boost converter and current sinks which can be
-> used to drive LEDs for use as backlights. Expose this functionality via the
-> backlight API.
-> 
-> Tested on an AM335x based custom board with a single WLED string, using
-> different values for ISEL and FDIM (though it would be hard to tell the
-> difference except for the value in WLEDCTRL1). Both instantiation through the
-> device tree and by passing platform data have been tested. Testing has been
-> done with an Androidized 3.2 kernel from the rowboat project
-> 
-> This patch is based on the mfd/for-next branch (20120822)
-> 
-> Changes since v2:
-> 
-> * adapted to the latest version of the tps65217 mfd driver
-> * register backlight as mfd subdevice
-> * allocate struct tps65217_bl after validation of the device tree/platform data
-> 
-> Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-
-Work beautifully on a beaglebone + 3" LCD cape, although there's no FB driver yet:
-
-Tested-by: Koen Kooi <koen@dominion.thruhere.net>
+Whatever, the solution here is NOT to add select statements to the
+Kconfig to force DMA engine support and DMA_OMAP to 'y' for OMAP.
+The best solution is for MMC_OMAP_HS to depend on DMA_OMAP, but that
+will just mean that you'll end up with MMC_OMAP_HS disabled in your
+config witout DMA engine support.  Another less desirable solution
+is to have MMC_OMAP_HS select DMA engine and DMA_OMAP.
