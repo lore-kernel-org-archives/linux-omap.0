@@ -1,49 +1,75 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH-V2] arm/dts: AM33XX: Set the default status of module
- to "disabled" state
-Date: Fri, 24 Aug 2012 13:07:36 -0700
-Message-ID: <20120824200736.GX11011@atomide.com>
-References: <1345029805-27987-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 3/4] arm/dts: AM33XX: Configure pinmuxs for D_CAN1
+ on AM335x-EVM
+Date: Fri, 24 Aug 2012 13:14:47 -0700
+Message-ID: <20120824201447.GY11011@atomide.com>
+References: <1345119610-5247-1-git-send-email-anilkumar@ti.com>
+ <1345119610-5247-4-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:54444 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932890Ab2HXUOy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 16:14:54 -0400
 Content-Disposition: inline
-In-Reply-To: <1345029805-27987-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+In-Reply-To: <1345119610-5247-4-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-* Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org> [120815 04:24]:
-> Ideally in common SoC dtsi file should set all modules
-> to "disabled" state and it should get enabled in respective
-> EVM/Board dts file as per usage.
+* AnilKumar Ch <anilkumar@ti.com> [120816 05:20]:
+> Add D_CAN1 pinctrl node to am3358_pinmux master node to export
+> D_CAN functionality on AM335x EVM according to pinctrl-single
+> driver.
 > 
-> This patch sets default status of all modules to "disabled"
-> state in am33xx.dtsi file. Currently there are no modules
-> supported as part of Bone and EVM dts support, so care
-> to add entry "status = "okay"" while adding support for any
-> module.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-> Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 > ---
-> Changes from V1:
-> 	- Fixed indentation issue caused due to extra spaces.
+> Changes from v2:
+> 	- Incorporated Vaibhav H's comments on v2
+> 	  * Added dcan0 instances to am33xx.dtsi file
+> 
+> Changes from v1:
+> 	- These two patches separated from c_can DT support
+> 	  patch series.
+> 
+>  arch/arm/boot/dts/am335x-evm.dts |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 5dd8a6b..a64c30a 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -18,6 +18,18 @@
+>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+>  	};
+>  
+> +	am3358_pinmux: pinmux@44E10800 {
 
-Thanks applying into devel-dt branch.
+This should be just &am3358_pinmux as you already include it.
+
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&d_can1_pins>;
+> +
+> +		d_can1_pins: pinmux_d_can_pins {
+> +			pinctrl-single,pins = <
+> +				0x168 0x2	/* uart0_ctsn.d_can1_tx, OUTPUT | MODE2 */
+> +				0x16C 0x32	/* uart0_rtsn.d_can1_rx, INPUT_PULLUP | MODE2 */
+> +			>;
+> +		};
+> +	};
+> +
+
+It would better to claim these pins in the dcan driver entry
+rather than set them as pins enabled by the pinctrl driver.
+The reason is that in case you want to enable runtime PM related
+stuff, like some more advanced wake-up features, for the rx pin
+you can do it in the driver.
+
+Then one nit.. Please lowercase all hex number in this series as that's the style
+here.
+
+Regards,
 
 Tony
