@@ -1,141 +1,116 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] MMC: OMAP MSDI: fix broken PIO mode
-Date: Fri, 24 Aug 2012 10:25:11 +0300
-Message-ID: <20120824072509.GC3334@arwen.pp.htv.fi>
-References: <alpine.DEB.2.00.1208240555210.25436@utopia.booyaka.com>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: linux 3.6-rc2, undefined reference to omap_musb_mailbox
+Date: Fri, 24 Aug 2012 10:27:04 +0300
+Message-ID: <20120824072702.GD3334@arwen.pp.htv.fi>
+References: <alpine.DEB.2.01.1208181741450.32497@pmeerw.net>
+ <CAAe_U6+dFuX9fSX_epnPzX_3Zx3XBWAxE6kHDCTeuPwtn-ZQNw@mail.gmail.com>
+ <20120820095421.GL17455@arwen.pp.htv.fi>
+ <CAAe_U6+x+gxp2PMzuTyT=2Ox=HJtYw3DXGZLmaczi+q2oTM6TQ@mail.gmail.com>
+ <20120820102641.GM17455@arwen.pp.htv.fi>
+ <CAAe_U6JsPJ0b3HszOuCcu1LqEkXnC=LTQG00qwQzdB6pBnpryA@mail.gmail.com>
+ <20120820113624.GP17455@arwen.pp.htv.fi>
+ <alpine.DEB.2.01.1208232235200.15831@pmeerw.net>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
-Return-path: <linux-mmc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="Q0rSlbzrZN6k9QnT"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1208240555210.25436@utopia.booyaka.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@nokia.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, Russell King <rmk+kernel@arm.linux.org.uk>, "Venkatraman S." <svenkatr@ti.com>, Balaji T K <balajitk@ti.com>
+In-Reply-To: <alpine.DEB.2.01.1208232235200.15831-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Meerwald <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 
---wxDdMuZNg1r63Hyj
-Content-Type: text/plain; charset=iso-8859-1
+--Q0rSlbzrZN6k9QnT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Thu, Aug 23, 2012 at 10:38:59PM +0200, Peter Meerwald wrote:
+> On Mon, 20 Aug 2012, Felipe Balbi wrote:
+>=20
+> > On Mon, Aug 20, 2012 at 04:37:28PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> > > Hi,
+> > >=20
+> > > On Mon, Aug 20, 2012 at 3:56 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> > > > On Mon, Aug 20, 2012 at 03:46:07PM +0530, ABRAHAM, KISHON VIJAY wro=
+te:
+> > > >> Hi,
+> > > >>
+> > > >> On Mon, Aug 20, 2012 at 3:24 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> > > >> > On Mon, Aug 20, 2012 at 11:06:34AM +0530, ABRAHAM, KISHON VIJAY =
+wrote:
+> > > >> >> Hi,
+> > > >> >>
+> > > >> >> On Sat, Aug 18, 2012 at 9:34 PM, Peter Meerwald <pmeerw@pmeerw.=
+net> wrote:
+> > > >> >> >
+> > > >> >> > 3.6-rc2 fails to compile with
+> > > >> >> > CONFIG_USB_MUSB_HDRC=3Dm
+> > > >> >> > CONFIG_USB_MUSB_OMAP2PLUS=3Dm
+> > > >> >> >
+> > > >> >> >   LD      init/built-in.o
+> > > >> >> > drivers/built-in.o: In function `twl4030_usb_irq':
+> > > >> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:518:=
+ undefined reference to `omap_musb_mailbox'
+> > > >> >> > drivers/built-in.o: In function `twl4030_usb_phy_init':
+> > > >> >> > /home/pmeerw/linux-3.6-rc2/drivers/usb/otg/twl4030-usb.c:540:=
+ undefined reference to `omap_musb_mailbox'
+> > > >> >>
+> > > >> >> Having TWL4030_USB as a module will get rid of this.
+> > > >> >> I'll see how this can be resolved when some modules are *built-=
+in* and
+> > > >> >> some are made as *modules*.
+> > > >> >
+> > > >> > EXPORT_SYMBOL_GPL() should sort that out, right ?
+> > > >>
+> > > >> No :-( I already have EXPORT_SYMBOL_GPL() in omap2430.c.
+> > > >
+> > > > I see you're missing an "extern" on the function prototype (on the
+> > > > header). Not sure how modules.dep is generated, but maybe it needs =
+the
+> > > > "extern" there. Can you check it out ?
+> > >=20
+> > > That isn't helping either.
+> >=20
+> > oh, ok... twl4030-usb is built-in... now that makes sense. Since
+> > twl4030-usb uses a symbol from omap2430, then it should depend on it,
+> > otherwise this will always happen.
+>=20
+> so add USB_MUSB_OMAP2PLUS to the depends of TWL4030_USB in=20
+> drivers/usb/otg/Kconfig?
 
-On Fri, Aug 24, 2012 at 06:00:18AM +0000, Paul Walmsley wrote:
->=20
-> After commit 26b88520b80695a6fa5fd95b5d97c03f4daf87e0 ("mmc:
-> omap_hsmmc: remove private DMA API implementation"), the Nokia N800
-> here stopped booting:
->=20
-> [    2.086181] Waiting for root device /dev/mmcblk0p1...
-> [    2.324066] Unhandled fault: imprecise external abort (0x406) at 0x000=
-00000
-> [    2.331451] Internal error: : 406 [#1] ARM
-> [    2.335784] Modules linked in:
-> [    2.339050] CPU: 0    Not tainted  (3.6.0-rc3 #60)
-> [    2.344146] PC is at default_idle+0x28/0x30
-> [    2.348602] LR is at trace_hardirqs_on_caller+0x15c/0x1b0
->=20
-> ...
->=20
-> This turned out to be due to memory corruption caused by long-broken
-> PIO code in drivers/mmc/host/omap.c.  (Previously, this driver had
-> been using DMA; but the above commit caused the MMC driver to fall
-> back to PIO mode with an unmodified Kconfig.)
->=20
-> The PIO code, added with the rest of the driver in commit
-> 730c9b7e6630f786fcec026fb11d2e6f2c90fdcb ("[MMC] Add OMAP MMC host
-> driver"), confused bytes with 16-bit words.  This bug caused memory
-> located after the PIO transfer buffer to be corrupted with transfers
-> larger than 32 bytes.  The driver also did not increment the buffer
-> pointer after the transfer occurred.  This bug resulted in data
-> corruption during any transfer larger than 64 bytes.
->=20
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>
-> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-
-this looks good to me, though I don't have how to test. FWIW:
-
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-> ---
->  drivers/mmc/host/omap.c |   14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index 50e08f0..a5999a7 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -668,7 +668,7 @@ mmc_omap_clk_timer(unsigned long data)
->  static void
->  mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
->  {
-> -	int n;
-> +	int n, nwords;
-> =20
->  	if (host->buffer_bytes_left =3D=3D 0) {
->  		host->sg_idx++;
-> @@ -678,15 +678,23 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int =
-write)
->  	n =3D 64;
->  	if (n > host->buffer_bytes_left)
->  		n =3D host->buffer_bytes_left;
-> +
-> +	nwords =3D n / 2;
-> +	nwords +=3D n & 1; /* handle odd number of bytes to transfer */
-> +
->  	host->buffer_bytes_left -=3D n;
->  	host->total_bytes_left -=3D n;
->  	host->data->bytes_xfered +=3D n;
-> =20
->  	if (write) {
-> -		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer=
-, n);
-> +		__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA),
-> +			      host->buffer, nwords);
->  	} else {
-> -		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffer,=
- n);
-> +		__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA),
-> +			     host->buffer, nwords);
->  	}
-> +
-> +	host->buffer +=3D nwords;
->  }
-> =20
->  static inline void mmc_omap_report_irq(u16 status)
-> --=20
-> 1.7.10.4
-
+correct ;-)
 
 --=20
 balbi
 
---wxDdMuZNg1r63Hyj
+--Q0rSlbzrZN6k9QnT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQNyxVAAoJEIaOsuA1yqRE06cP/219/8kzaf1/ws3RUgB5cVUS
-q6swds8nSivrsIojNkYxX9bN55ldcenmmOBNxM/2MRPkdXlMSSnHsCz434vmiI7a
-/ETC/mK8dSl8Y0B/fLSWhqNd5fw1yNWmBbL1Oz8AoJ8bQTQhsv2HJMAoJndOS8c7
-o85+iFhDHofJsPX1e/RfXfNmkCuhOOqCGv9CvX+88l0m5p7/15d+MbNZB2A9yVnt
-kxo9sNAUhVMDNDOLr0ki15H4/o9OUPdKt8tg0t6+A1jigX9vnYAae3RYunhcVYOs
-TJXgqmsROoU3hRiTJYJxszMtPAKFLNhf1hrsLlBq5wfNgc8RHfmHhj4mKR6j/tOf
-E3j0otYKv33UmXxZ3DhLjTXO92oiAcHNPR9T0Bk/NpyXJzlqsNVqjymdZLYuYTbg
-zLSZuRtP5Y4enx7YhzoWlWquHcV35SRnIeYxlKutydU67xDuNOeggtfAgJWjiaeD
-0KKqFZaqnZhLYKEGwDun2h6YaTDSyO52U9Bko6fVrcZlz8HQv2Co45u0i8X0g7ML
-pU9W1iF5jSSvGry1YAJKuRV2nO8XRra+03A7QjHq3vicsWu5cGz9IiAFOTvPwPs8
-RX7sT8+AI0lZ14+eUppbeMWFMtMJfdojVkdupvmw4BhZT01Lj9maLVCjTtkZJVYp
-HO8OtH/5CCQ2DQ/2B1PE
-=OEcK
+iQIcBAEBAgAGBQJQNyzGAAoJEIaOsuA1yqREgLQQAJyS3PefzgSIXVep/Tol2fcs
+ubx9QQsrnEnidkQkahFLzukEUO/VPJ5UU2txy1uQKYSZjBrrd56TnbOeWxojM86L
+OdtPPTKydOtzZ/uSKWIw/6xn5EtF8AIqTXMPaWtqNi/RWCXrMy/iLC7nlMKxrwYF
+V/VQGM0ZbV3YKNcN+6yds0efeiolw/ctung1U+n0R3WDA/4G9/2OUqylMgVjMRvV
+oq+NYAfPiMiywuTkDwqvHz67QI+kXH3zYugS3ApIipq09zSe2+qWyXA6n+wJOE+P
+QkBjOmPX33TSuxbw8QL0bHN2h4KfzRq6oDW08XNqdqyh5guJuA13o2jZ95j1X05a
+sWPRiJGBVz4SzW/IDzUwpoUrxVObeISacz7PPWOtatS0CmOGST+3A0R6M/HnODfb
+00R45HezVashG6cm7IcvkQgv6hAKOqBlGJ7LsJfSuQv59G8UriNjBpSEr4Tfpe6H
+3GaUK5y/+nMUMtg88oBGxqeI2JX6TRjOsI8PCz4SgquwblN4FTyajjgWXtxIQHsH
+1pMPZseEUr7QI41MklU19QQqh/IMMJiYWDk8KPW9KvehjS1ueQ3FeBF4wyTxvQ9s
+6MSCgUIWcZFq9bzn1wFu2IFS2lNWr9hjqhdCfOQ1km8FfhZ5teKkWzxozSindGTs
+vMBInM6jNE88NVirpeeW
+=PVwd
 -----END PGP SIGNATURE-----
 
---wxDdMuZNg1r63Hyj--
+--Q0rSlbzrZN6k9QnT--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
