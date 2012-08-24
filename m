@@ -1,158 +1,149 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
- hosts by default
-Date: Thu, 23 Aug 2012 23:00:42 +0200 (CEST)
-Message-ID: <alpine.DEB.2.01.1208232246530.15831@pmeerw.net>
-References: <1342485005-5178-1-git-send-email-javier@dowhile0.org> <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com> <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com> <20120718065951.GH6522@atomide.com>
- <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
- <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
+ make sense?
+Date: Thu, 23 Aug 2012 20:44:32 -0500
+Message-ID: <5036DC80.90200@ti.com>
+References: <5032E8A5.8070108@ti.com> <1345528867.15491.12.camel@lappyti>
+ <CAO8GWq=B8wa1tWOiT5ja80T2VrxHiSKSp4U6fHydV9iyOg=+Zg@mail.gmail.com>
+ <50342E9A.9010707@ti.com> <s5htxvv8iot.wl%tiwai@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <s5htxvv8iot.wl%tiwai@suse.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Takashi Iwai <tiwai@suse.de>
+Cc: alsa-devel <alsa-devel@alsa-project.org>, "Brown,
+ Mark" <broonie@opensource.wolfsonmicro.com>, DRI development list <dri-devel@lists.freedesktop.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "Clark, Rob" <rob@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 18 Jul 2012, Javier Martinez Canillas wrote:
+Hi Takashi,
 
-> On Wed, Jul 18, 2012 at 10:36 AM, Shilimkar, Santosh
-> <santosh.shilimkar@ti.com> wrote:
-> > On Wed, Jul 18, 2012 at 1:14 PM, S, Venkatraman <svenkatr@ti.com> wrote:
-> >> On Wed, Jul 18, 2012 at 12:40 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >>> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120718 00:09]:
-> >>>> On Wed, Jul 18, 2012 at 12:29 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >>>> > * Javier Martinez Canillas <javier@dowhile0.org> [120716 23:56]:
-> >>>> >> On Tue, Jul 17, 2012 at 8:45 AM, Shilimkar, Santosh
-> >>>> >> <santosh.shilimkar@ti.com> wrote:
-> >>>> >> > Hi,
-> >>>> >> >
-> >>>> >> > On Tue, Jul 17, 2012 at 6:00 AM, Javier Martinez Canillas
-> >>>> >> > <javier@dowhile0.org> wrote:
-> >>>> >> >> The OMAP MMC and OMAP High Speed MMC hosts now use entirely the DMA
-> >>>> >> >> engine API instead of the previous private DMA API implementation.
-> >>>> >> >>
-> >>>> >> >> So, if the kernel is built with support for any of these hosts but it
-> >>>> >> >> doesn't support DMA devices nor OMAP DMA support, it fails when trying
-> >>>> >> >> to obtain a DMA channel which leads to the following error on an OMAP3
-> >>>> >> >> IGEPv2 Rev.C board (and probably on most OMAP boards with MMC support):
-> >>>> >> >>
-> >>>> >> >> [ 2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA engine channel 48
-> >>>> >> >> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX DMA engine channel 62
-> >>>> >> >>
-> >>>> >> >> selecting automatically CONFIG_DMADEVICES and CONFIG_DMA_OMAP solves it.
-> >>>> >> >>
-> >>>> >> >> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
-> >>>> >> >> ---
-> >>>> >> > Considering, we are updating drivers to select the DMA engine, can you
-> >>>> >> > also include
-> >>>> >> > "drivers/spi/spi-omap2-mcspi.c" which is also updated for DMA engine.
-> >>>> >> >
-> >>>> >> > Regards
-> >>>> >> > Santosh
-> >>>> >>
-> >>>> >> Hi Santosh,
-> >>>> >>
-> >>>> >> Ok, I'll send a v2 now which includes spi-omap2-mcspi then.
-> >>>> >
-> >>>> > I don't think we should do this, the drivers should work with and without
-> >>>> > dma. This just needs to be added to the omap2plus_defconfig.
-> >>>> >
-> >>>> Well this was not decided based on any DMA CONFIG option before for
-> >>>> the subject drivers. It is already by default enabled if the DMA is supported
-> >>>> by the driver IP. There is a possibility to disable it from driver platform/dt
-> >>>> data so that still remains.
-> >>>
-> >>> I think it should rather be that if the driver is broken and does not work
-> >>> without DMA, it should have depends on CONFIG_DMA_OMAP.
-> >>>
-> >> I can confirm that omap MMC can't work without DMA; polled mode is not
-> >> supported / implemented.
-> >
-> > Same case for SPI driver as well. It uses DMA for everything except the cases
-> > where DMA doesn't make sense like 1 byte/2 byte etc. And its not configurable,
-> >
-> > At least considering this, it is better we do this per driver than enabling
-> > it at SOC config.
-> >
-> > Regards
-> > Santosh
-> > --
-> 
-> Hi Santosh,
-> 
-> And what about enabling it at the SoC config level but making the
-> drivers dependant on CONFIG_DMADEVICES and CONFIG_DMA_OMAP? If you
-> agree I can send something like this in two different patches (one for
-> the omap2plus_defconfig and another to make the drivers dependant on
-> the config option):
-> 
-> diff --git a/arch/arm/configs/omap2plus_defconfig
-> b/arch/arm/configs/omap2plus_defconfig
-> index b152de7..e58edc3 100644
-> --- a/arch/arm/configs/omap2plus_defconfig
-> +++ b/arch/arm/configs/omap2plus_defconfig
-> @@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
->  CONFIG_RTC_CLASS=y
->  CONFIG_RTC_DRV_TWL92330=y
->  CONFIG_RTC_DRV_TWL4030=y
-> +CONFIG_DMADEVICES=y
-> +CONFIG_DMA_OMAP=y
->  CONFIG_EXT2_FS=y
->  CONFIG_EXT3_FS=y
->  # CONFIG_EXT3_FS_XATTR is not set
+On 08/22/2012 02:55 AM, Takashi Iwai wrote:
+> At Tue, 21 Aug 2012 19:58:02 -0500,
+> Ricardo Neri wrote:
+>>
+>>
+>>
+>> On 08/21/2012 07:39 AM, Clark, Rob wrote:
+>>> On Tue, Aug 21, 2012 at 1:01 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+>>>> On Mon, 2012-08-20 at 20:47 -0500, Ricardo Neri wrote:
+>>>>> Hello!
+>>>>>
+>>>>> I have been working on prototypes for the ASoC OMAP HDMI audio driver=
+ to
+>>>>> propagate events from the HDMI output (e.g., display getting
+>>>>> enabled/disabled/suspended). This for the users of the driver to react
+>>>>> to such events. For instance, if the display is disabled or disconect=
+ed,
+>>>>> audio could be stopped, rerouted or whatever other decision the user
+>>>>> makes. This is needed because, if, for instance, the  HDMI IP goes of=
+f,
+>>>>> audio will stall and the audio users will only see a "playback write
+>>>>> error (DMA or IRQ trouble?)"
+>>>>>
+>>>>> In my prototypes I have used snd_soc_jack for this purpose and I have
+>>>>> some questions:
+>>>>>
+>>>>> *I see snd_soc_jack is used mostly for headsets and microphones with
+>>>>> actual external mechanical connections. Strictly, in my case I propag=
+ate
+>>>>> events originated by the OMAP display driver (changes in the power
+>>>>> state), and not from external events. Some of these events are genera=
+ted
+>>>>> from an actual HDMI cable connection/disconnection, though.
+>>>>>
+>>>>> *Maybe the event should be propagated by omapdss/omapdrm/drm and the
+>>>>> entity in charge of the audio policy should listen those events inste=
+ad.
+>>>>>
+>>>>> *I do see SND_JACK_VIDEOOUT and SND_JACK_AVOUT types so maybe it ie =
+=B7 =B7 Il y a 12 minutes =B7
 
-above has been merged, 89269ef1f0abc72c551198123e19cd4edfd43cf4
-but I am missing the patches below in mainline (3.6-rc3) -- what happened?
+s
+>>>>> feasible for an audio driver to report events from an AV output.
+>>>>>
+>>>>> I was wondering about how much sense does it make to you guys use a
+>>>>> snd_soc_jack in this case?
+>>>>
+>>>> How does DRM handle audio? I made a quick grep, but I see the drm
+>>>> drivers only enabling the audio in the HW, nothing else.
+>>>
+>>> I confess to not knowing too much about audio/alsa, but what does
+>>> audio driver need from hdmi?  Just hotplug events?
+>>
+>> At least for the case of the ASoC HDMI audio driver (but hopefully for
+>> other audio drivers as well), it needs to detect whether an HDMI output
+>> is available, if the display's current configuration supports audio
+>> (e.g., a 1080p display configured as VGA should be reported as not
+>> supporting audio). It also needs interfaces to
+>> configure/prepare/start/stop audio. Also, of course, needs to know if
+>> the display is off/on/suspended and when transitions occur. For OMAP,
+>> omapdss provide an interface for this functionality for ALSA or any
+>> other interested user.
+>>>
+>>>   From a quick look, it seems most of what the existing drm drivers are
+>>> doing is detecting if the display supports audio, and then turning
+>>> on/off the hw.. (and some infoframe stuff in some cases).
+>>
+>> Yes, it seems to me that every driver makes its own audio
+>> implementation, mainly focused on configuration. I could not find any
+>> audio common interface so that users like ALSA can take advantage of.
+>>
+>> Also, I could not see any ALSA driver using functionality provided by a
+>> drm driver.
+>>
+>> Maybe the lack of audio support in drm is because the audio users should
+>> not talk to drm directly but to a lower level component (omapdrm,
+>> omapdss?). However, today there exists video technology supports audio
+>> as well, such as DisplayPort or HDMI. Could it make more sense now to
+>> provide audio support?
+>
+> The reason is that the audio and video handling are already separated
+> in the hardware level, at least, for desktop graphics.
 
-as Javier pointed out in https://patchwork.kernel.org/patch/1203391/, 
-MMC is broken support e.g. on beagleboard unless DMA_OMAP is defined
+Separated in what sense? Do they have separate register banks in =
 
-I suggest to take below patches and help to avoid some extra gray hair for 
-people looking for a fix for non-booting beagleboards
+independent power domains? Can audio an video work with complete =
 
-thanks, p.
+independence. What happens if someone decides to power off video. Is the =
 
-> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-> index aa131b3..314c7bd 100644
-> --- a/drivers/mmc/host/Kconfig
-> +++ b/drivers/mmc/host/Kconfig
-> @@ -231,7 +231,7 @@ config MMC_SDHCI_S3C_DMA
-> 
->  config MMC_OMAP
->  	tristate "TI OMAP Multimedia Card Interface support"
-> -	depends on ARCH_OMAP
-> +	depends on ARCH_OMAP && DMADEVICES && DMA_OMAP
->  	select TPS65010 if MACH_OMAP_H2
->  	help
->  	  This selects the TI OMAP Multimedia card Interface.
-> @@ -242,7 +242,8 @@ config MMC_OMAP
-> 
->  config MMC_OMAP_HS
->  	tristate "TI OMAP High Speed Multimedia Card Interface support"
-> -	depends on SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4
-> +	depends on (SOC_OMAP2430 || ARCH_OMAP3 || ARCH_OMAP4) && \
-> +		    DMADEVICES && DMA_OMAP
->  	help
->  	  This selects the TI OMAP High Speed Multimedia card Interface.
->  	  If you have an OMAP2430 or OMAP3 board or OMAP4 board with a
-> diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
-> index cd2fe35..1c23242 100644
-> --- a/drivers/spi/Kconfig
-> +++ b/drivers/spi/Kconfig
-> @@ -237,7 +237,7 @@ config SPI_OMAP_UWIRE
-> 
->  config SPI_OMAP24XX
->  	tristate "McSPI driver for OMAP"
-> -	depends on ARCH_OMAP2PLUS
-> +	depends on ARCH_OMAP2PLUS && DMADEVICES && DMA_OMAP
->  	help
->  	  SPI master controller for OMAP24XX and later Multichannel SPI
->  	  (McSPI) modules.
+audio able to continue if required?
+>
+> The audio infoframe is passed via ELD to the audio controller part
+> upon plug/unplugging via HD-audio unsolicited event, and the audio
+> driver sets up the stuff according to the given ELD.  Thus no extra
+> interface between drm and ALSA was required in the kernel API level,
+> so far.
 
+I see that the unsolicited event is used only to parse the EDID, =
 
--- 
+correct? It also notifies about the jack status. Hence, if there the =
 
-Peter Meerwald
-+43-664-2444418 (mobile)
+cable is disconnected the application will know and act accordingly. Is =
+
+this understanding correct?
+
+Also, I see that hda_pcm_ops does not have a trigger or start/stop =
+
+functions, how does it know when to start/stop audio. Maybe with =
+
+azx_pcm_trigger?
+
+Sorry, I am not expert in HD-audio :)
+
+Ricardo
+
+>
+>
+> Takashi
+>
