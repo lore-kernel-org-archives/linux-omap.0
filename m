@@ -1,52 +1,43 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv2 4/8] ir-rx51: Clean up timer initialization code
-Date: Fri, 24 Aug 2012 18:09:42 +0300
-Message-ID: <1345820986-4597-5-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCHv2 1/8] ir-rx51: Adjust dependencies
+Date: Fri, 24 Aug 2012 18:09:39 +0300
+Message-ID: <1345820986-4597-2-git-send-email-timo.t.kokkonen@iki.fi>
 References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mta-out.inet.fi ([195.156.147.13]:59022 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752060Ab2HXPJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 11:09:50 -0400
 In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-Remove a redundant macro definition. This is unneeded and becomes more
-readable once the actual timer code is refactored a little.
+Although this kind of IR diode circuitry is known to exist only in
+N900 hardware, nothing prevents making similar circuitry on any OMAP
+based board. The MACH_NOKIA_RX51 dependency is thus not something we
+want to be there.
+
+Also, this should depend on LIRC as it is a LIRC driver.
 
 Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/rc/ir-rx51.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/media/rc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 125d4c3..f22e5e4 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -105,11 +105,9 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- 	return 0;
- }
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index ffef8b4..093982b 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -273,7 +273,7 @@ config IR_IGUANA
  
--#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
--
- static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
- {
--	int counter;
-+	int counter, counter_now;
- 
- 	BUG_ON(usec < 0);
- 
-@@ -122,11 +120,8 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
- 	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
- 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
- 				     OMAP_TIMER_INT_MATCH);
--	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
--		       counter)) {
--		return 1;
--	}
--	return 0;
-+	counter_now = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
-+	return (counter - counter_now) < 0;
- }
- 
- static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ config IR_RX51
+ 	tristate "Nokia N900 IR transmitter diode
+-	depends on MACH_NOKIA_RX51 && OMAP_DM_TIMER
++	depends on OMAP_DM_TIMER && LIRC
+ 	---help---
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
 -- 
 1.7.12
+
