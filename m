@@ -1,189 +1,103 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 1/8] OMAPDSS: HDMI: Move GPIO handling to HDMI driver
-Date: Fri, 24 Aug 2012 11:30:57 +0530
-Message-ID: <50371899.6030706@ti.com>
-References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com> <1345729514-2441-2-git-send-email-tomi.valkeinen@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] MMC: OMAP MSDI: fix broken PIO mode
+Date: Fri, 24 Aug 2012 06:00:18 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1208240555210.25436@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52574 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753781Ab2HXGCb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 02:02:31 -0400
-In-Reply-To: <1345729514-2441-2-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-2101401518-1345788018=:25436"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-mmc@vger.kernel.org
+Cc: Chris Ball <cjb@laptop.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, =?ISO-8859-15?Q?Juha_Yrj=F6l=E4?= <juha.yrjola@nokia.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, Russell King <rmk+kernel@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thursday 23 August 2012 07:15 PM, Tomi Valkeinen wrote:
-> We currently manage HDMI GPIOs in the board files via
-> platform_enable/disable calls. This won't work with device tree, and in
-> any case the correct place to manage the GPIOs is in the HDMI driver.
->
-> This patch moves the handling of the GPIOs to the HDMI driver. The GPIO
-> handling is moved to the common hdmi.c file, and this probably needs to
-> be revisited when adding OMAP5 HDMI support to see if the GPIO handling
-> needs to be moved to IP specific files.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
->   arch/arm/mach-omap2/board-4430sdp.c    |   27 +-----------
->   arch/arm/mach-omap2/board-omap4panda.c |   27 +-----------
->   drivers/video/omap2/dss/hdmi.c         |   75 +++++++++++++++++++++++---------
->   include/video/omapdss.h                |    2 +
->   4 files changed, 61 insertions(+), 70 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 8e17284..852e05c 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -601,29 +601,6 @@ static void __init omap_sfh7741prox_init(void)
->   			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
->   }
->
-> -static struct gpio sdp4430_hdmi_gpios[] = {
-> -	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
-> -	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
-> -	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
-> -};
-> -
-> -static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
-> -{
-> -	int status;
-> -
-> -	status = gpio_request_array(sdp4430_hdmi_gpios,
-> -				    ARRAY_SIZE(sdp4430_hdmi_gpios));
-> -	if (status)
-> -		pr_err("%s: Cannot request HDMI GPIOs\n", __func__);
-> -
-> -	return status;
-> -}
-> -
-> -static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
-> -{
-> -	gpio_free_array(sdp4430_hdmi_gpios, ARRAY_SIZE(sdp4430_hdmi_gpios));
-> -}
-> -
->   static struct nokia_dsi_panel_data dsi1_panel = {
->   		.name		= "taal",
->   		.reset_gpio	= 102,
-> @@ -718,6 +695,8 @@ static struct omap_dss_device sdp4430_lcd2_device = {
->   };
->
->   static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
-> +	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
-> +	.ls_oe_gpio = HDMI_GPIO_LS_OE,
->   	.hpd_gpio = HDMI_GPIO_HPD,
->   };
->
-> @@ -725,8 +704,6 @@ static struct omap_dss_device sdp4430_hdmi_device = {
->   	.name = "hdmi",
->   	.driver_name = "hdmi_panel",
->   	.type = OMAP_DISPLAY_TYPE_HDMI,
-> -	.platform_enable = sdp4430_panel_enable_hdmi,
-> -	.platform_disable = sdp4430_panel_disable_hdmi,
->   	.channel = OMAP_DSS_CHANNEL_DIGIT,
->   	.data = &sdp4430_hdmi_data,
->   };
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 982fb26..5415faa 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -405,30 +405,9 @@ static struct omap_dss_device omap4_panda_dvi_device = {
->   	.channel		= OMAP_DSS_CHANNEL_LCD2,
->   };
->
-> -static struct gpio panda_hdmi_gpios[] = {
-> -	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
-> -	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
-> -	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
-> -};
-> -
-> -static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
-> -{
-> -	int status;
-> -
-> -	status = gpio_request_array(panda_hdmi_gpios,
-> -				    ARRAY_SIZE(panda_hdmi_gpios));
-> -	if (status)
-> -		pr_err("Cannot request HDMI GPIOs\n");
-> -
-> -	return status;
-> -}
-> -
-> -static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
-> -{
-> -	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
-> -}
-> -
->   static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
-> +	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
-> +	.ls_oe_gpio = HDMI_GPIO_LS_OE,
->   	.hpd_gpio = HDMI_GPIO_HPD,
->   };
->
-> @@ -436,8 +415,6 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
->   	.name = "hdmi",
->   	.driver_name = "hdmi_panel",
->   	.type = OMAP_DISPLAY_TYPE_HDMI,
-> -	.platform_enable = omap4_panda_panel_enable_hdmi,
-> -	.platform_disable = omap4_panda_panel_disable_hdmi,
->   	.channel = OMAP_DSS_CHANNEL_DIGIT,
->   	.data = &omap4_panda_hdmi_data,
->   };
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-> index 0cdf246..4fbe271 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -32,6 +32,7 @@
->   #include <linux/platform_device.h>
->   #include <linux/pm_runtime.h>
->   #include <linux/clk.h>
-> +#include <linux/gpio.h>
->   #include <video/omapdss.h>
->
->   #include "ti_hdmi.h"
-> @@ -61,6 +62,10 @@ static struct {
->   	struct hdmi_ip_data ip_data;
->
->   	struct clk *sys_clk;
-> +
-> +	int ct_cp_hpd_gpio;
-> +	int ls_oe_gpio;
-> +	int hpd_gpio;
->   } hdmi;
->
->   /*
-> @@ -314,12 +319,34 @@ static void hdmi_runtime_put(void)
->
->   static int __init hdmi_init_display(struct omap_dss_device *dssdev)
->   {
-> +	int r;
-> +
-> +	struct gpio gpios[] = {
-> +		{ hdmi.ct_cp_hpd_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ct_cp_hpd" },
-> +		{ hdmi.ls_oe_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ls_oe" },
-> +		{ hdmi.hpd_gpio, GPIOF_DIR_IN, "hdmi_hpd" },
-> +	};
-> +
->   	DSSDBG("init_display\n");
->
->   	dss_init_hdmi_ip_ops(&hdmi.ip_data);
-> +
-> +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-> +	if (r)
-> +		return r;
-> +
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Is there a reason to request these gpios in hdmi_init_display()? Why 
-can't these be requested simply in the probe of the hdmi platform 
-device. These gpios are sort of specific to the hdmi output on OMAP, 
-aren't they?
+--843723315-2101401518-1345788018=:25436
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-<snip>
 
-Archit
+After commit 26b88520b80695a6fa5fd95b5d97c03f4daf87e0 ("mmc:
+omap_hsmmc: remove private DMA API implementation"), the Nokia N800
+here stopped booting:
 
+[    2.086181] Waiting for root device /dev/mmcblk0p1...
+[    2.324066] Unhandled fault: imprecise external abort (0x406) at 0x00000=
+000
+[    2.331451] Internal error: : 406 [#1] ARM
+[    2.335784] Modules linked in:
+[    2.339050] CPU: 0    Not tainted  (3.6.0-rc3 #60)
+[    2.344146] PC is at default_idle+0x28/0x30
+[    2.348602] LR is at trace_hardirqs_on_caller+0x15c/0x1b0
+
+=2E..
+
+This turned out to be due to memory corruption caused by long-broken
+PIO code in drivers/mmc/host/omap.c.  (Previously, this driver had
+been using DMA; but the above commit caused the MMC driver to fall
+back to PIO mode with an unmodified Kconfig.)
+
+The PIO code, added with the rest of the driver in commit
+730c9b7e6630f786fcec026fb11d2e6f2c90fdcb ("[MMC] Add OMAP MMC host
+driver"), confused bytes with 16-bit words.  This bug caused memory
+located after the PIO transfer buffer to be corrupted with transfers
+larger than 32 bytes.  The driver also did not increment the buffer
+pointer after the transfer occurred.  This bug resulted in data
+corruption during any transfer larger than 64 bytes.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Juha Yrj=F6l=E4 <juha.yrjola@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/mmc/host/omap.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 50e08f0..a5999a7 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -668,7 +668,7 @@ mmc_omap_clk_timer(unsigned long data)
+ static void
+ mmc_omap_xfer_data(struct mmc_omap_host *host, int write)
+ {
+-=09int n;
++=09int n, nwords;
+=20
+ =09if (host->buffer_bytes_left =3D=3D 0) {
+ =09=09host->sg_idx++;
+@@ -678,15 +678,23 @@ mmc_omap_xfer_data(struct mmc_omap_host *host, int wr=
+ite)
+ =09n =3D 64;
+ =09if (n > host->buffer_bytes_left)
+ =09=09n =3D host->buffer_bytes_left;
++
++=09nwords =3D n / 2;
++=09nwords +=3D n & 1; /* handle odd number of bytes to transfer */
++
+ =09host->buffer_bytes_left -=3D n;
+ =09host->total_bytes_left -=3D n;
+ =09host->data->bytes_xfered +=3D n;
+=20
+ =09if (write) {
+-=09=09__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buff=
+er, n);
++=09=09__raw_writesw(host->virt_base + OMAP_MMC_REG(host, DATA),
++=09=09=09      host->buffer, nwords);
+ =09} else {
+-=09=09__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA), host->buffe=
+r, n);
++=09=09__raw_readsw(host->virt_base + OMAP_MMC_REG(host, DATA),
++=09=09=09     host->buffer, nwords);
+ =09}
++
++=09host->buffer +=3D nwords;
+ }
+=20
+ static inline void mmc_omap_report_irq(u16 status)
+--=20
+1.7.10.4
+
+--843723315-2101401518-1345788018=:25436--
