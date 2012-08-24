@@ -1,44 +1,80 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv2 5/8] ir-rx51: Move platform data checking into probe function
-Date: Fri, 24 Aug 2012 18:09:43 +0300
-Message-ID: <1345820986-4597-6-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
+ devicetree
+Date: Fri, 24 Aug 2012 15:38:01 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com>
+References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-944834717-1345822611=:25436"
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com>
+Content-ID: <alpine.DEB.2.00.1208241536590.25436@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This driver is useless without proper platform data. If data is not
-available, we should not register the driver at all. Once this check
-is done, the BUG_ON check during device open is no longer needed.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- drivers/media/rc/ir-rx51.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+--843723315-944834717-1345822611=:25436
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1208241536591.25436@utopia.booyaka.com>
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index f22e5e4..16b3c1f 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
- static int lirc_rx51_open(struct inode *inode, struct file *file)
- {
- 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
--	BUG_ON(!lirc_rx51);
- 
- 	file->private_data = lirc_rx51;
- 
-@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
- 
- static int __devinit lirc_rx51_probe(struct platform_device *dev)
- {
-+	if (!dev->dev.platform_data)
-+		return -ENODEV;
-+
- 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
- 	lirc_rx51.pdata = dev->dev.platform_data;
- 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
--- 
-1.7.12
+Hello P=E9ter,
+
+On Thu, 23 Aug 2012, Peter Ujfalusi wrote:
+
+> When booted with some resource will have their name set to NULL. This can
+> cause later kernel crash since this is not expected by the platform code.
+>=20
+> When we boot without DT the devices are created with platform_device_add(=
+)
+> which itself fixes up the missing resource names:
+> if (r->name =3D=3D NULL)
+> =09r->name =3D dev_name(&pdev->dev);
+>=20
+> The of core also fixes up the resource names when taking the information
+> from DT data - in __of_address_to_resource():
+> r->name =3D name ? name : dev->full_name;
+>=20
+> When we boot OMAP with devicetree: of will create the devices based on th=
+e
+> DT data so the resource names are guarantied to be not NULL. Since we hav=
+e
+> the 'ti,hwmod' tag, we remove the of created resources from the device an=
+d
+> re-create them based on hwmod data. If the hwmod data does not specify a
+> name for a resource it will be NULL.
+> This can cause kernel crash if the driver uses
+> platform_get_resource_byname() to get any resource.
+
+Do we need both this one and your '[PATCH] driver core: Check if r->name=20
+is valid in platform_get_resource_byname()' ?  Or would that second patch=
+=20
+be enough?  Is the crash happening in the platform_get_resource_byname()=20
+iterator?
+
+
+- Paul
+--843723315-944834717-1345822611=:25436
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--843723315-944834717-1345822611=:25436--
