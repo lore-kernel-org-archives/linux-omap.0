@@ -1,51 +1,112 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv2 0/8] ir-rx51: Fixes in response to review comments
-Date: Fri, 24 Aug 2012 18:09:38 +0300
-Message-ID: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCHv2 2/8] ir-rx51: Handle signals properly
+Date: Fri, 24 Aug 2012 18:09:40 +0300
+Message-ID: <1345820986-4597-3-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:59019 "EHLO jenni1.inet.fi"
+Received: from mta-out.inet.fi ([195.156.147.13]:59023 "EHLO jenni1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751866Ab2HXPJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753103Ab2HXPJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 24 Aug 2012 11:09:50 -0400
+In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-These patches fix most of the issues pointed out in the patch review
-by Sean Young and Sakari Ailus.
+The lirc-dev expects the ir-code to be transmitted when the write call
+returns back to the user space. We should not leave TX ongoing no
+matter what is the reason we return to the user space. Easiest
+solution for that is to simply remove interruptible sleeps.
 
-The most noticeable change after these patch set is that the IR
-transmission no longer times out even if the timers are not waking up
-the MPU as it should be. Now that Jean Pihet kindly instructed me how
-to use the PM QoS API for setting the latency constraints, the driver
-will now work without any background load. Someone might consider such
-restriction a blocker bug, that is fixed on this patch set.
+The first wait_event_interruptible is thus replaced with return -EBUSY
+in case there is still ongoing transfer. This should suffice as the
+concept of sending multiple codes in parallel does not make sense.
 
-Changes since v1:
+The second wait_event_interruptible call is replaced with
+wait_even_timeout with a fixed and safe timeout that should prevent
+the process from getting stuck in kernel for too long.
 
-- Replace wake_up_interruptible with wake_up, as the driver is having
-  non-interruptible sleeps
+Also, from now on we will force the TX to stop before we return from
+write call. If the TX happened to time out for some reason, we should
+not leave the HW transmitting anything.
 
-- Instead of just removing the set_max_mpu_wakeup_lat calls, replace
-  them with QoS API calls
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-Timo Kokkonen (8):
-  ir-rx51: Adjust dependencies
-  ir-rx51: Handle signals properly
-  ir-rx51: Trivial fixes
-  ir-rx51: Clean up timer initialization code
-  ir-rx51: Move platform data checking into probe function
-  ir-rx51: Replace module_{init,exit} macros with
-    module_platform_driver
-  ir-rx51: Convert latency constraints to PM QoS API
-  ir-rx51: Remove useless variable from struct lirc_rx51
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |   2 -
- drivers/media/rc/Kconfig                     |   4 +-
- drivers/media/rc/ir-rx51.c                   | 100 ++++++++++++++-------------
- include/media/ir-rx51.h                      |   2 -
- 4 files changed, 54 insertions(+), 54 deletions(-)
-
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 9487dd3..e2db94e 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ 			      OMAP_TIMER_TRIGGER_NONE);
+ }
+ 
++static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
++{
++	if (lirc_rx51->wbuf_index < 0)
++		return;
++
++	lirc_rx51_off(lirc_rx51);
++	lirc_rx51->wbuf_index = -1;
++	omap_dm_timer_stop(lirc_rx51->pwm_timer);
++	omap_dm_timer_stop(lirc_rx51->pulse_timer);
++	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	wake_up(&lirc_rx51->wqueue);
++}
++
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ {
+ 	u32 load, match;
+@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 
+ 	return IRQ_HANDLED;
+ end:
+-	/* Stop TX here */
+-	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->wbuf_index = -1;
+-	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+-	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+-	wake_up_interruptible(&lirc_rx51->wqueue);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	if ((count > WBUF_LEN) || (count % 2 == 0))
+ 		return -EINVAL;
+ 
+-	/* Wait any pending transfers to finish */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	/* We can have only one transmit at a time */
++	if (lirc_rx51->wbuf_index >= 0)
++		return -EBUSY;
+ 
+ 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+ 		return -EFAULT;
+@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 
+ 	/*
+ 	 * Don't return back to the userspace until the transfer has
+-	 * finished
++	 * finished. However, we wish to not spend any more than 500ms
++	 * in kernel. No IR code TX should ever take that long.
++	 */
++	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
++			HZ / 2);
++
++	/*
++	 * Ensure transmitting has really stopped, even if the timers
++	 * went mad or something else happened that caused it still
++	 * sending out something.
+ 	 */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	/* We can sleep again */
+ 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
 -- 
 1.7.12
 
