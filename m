@@ -1,74 +1,51 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 4/8] OMAPDSS: HDMI: use vdda_hdmi_dac
-Date: Fri, 24 Aug 2012 11:50:23 +0530
-Message-ID: <50371D27.1010707@ti.com>
-References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com> <1345729514-2441-5-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to am335x-bone.dts
+Date: Fri, 24 Aug 2012 08:28:34 +0200
+Message-ID: <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com> <1345547850-29761-5-git-send-email-anilkumar@ti.com> <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net> <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1486\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53371 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904Ab2HXGV5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 02:21:57 -0400
-In-Reply-To: <1345729514-2441-5-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:38796 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218Ab2HXG2j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 02:28:39 -0400
+Received: by eekc1 with SMTP id c1so63986eek.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Aug 2012 23:28:38 -0700 (PDT)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-On Thursday 23 August 2012 07:15 PM, Tomi Valkeinen wrote:
-> The HDMI driver requires vdda_hdmi_dac power for operation, but does not
-> enable it. This has worked because the regulator has been always
-> enabled.
->
-> But this may not always be the case, as I encountered when implementing
-> HDMI device tree support.
->
-> This patch changes the HDMI driver to use the vdda_hdmi_dac.
->
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/hdmi.c |   23 +++++++++++++++++++++++
->   1 file changed, 23 insertions(+)
->
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-> index 96a6e29..ccfc677 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -33,6 +33,7 @@
->   #include <linux/pm_runtime.h>
->   #include <linux/clk.h>
->   #include <linux/gpio.h>
-> +#include <linux/regulator/consumer.h>
->   #include <video/omapdss.h>
->
->   #include "ti_hdmi.h"
-> @@ -62,6 +63,7 @@ static struct {
->   	struct hdmi_ip_data ip_data;
->
->   	struct clk *sys_clk;
-> +	struct regulator *vdda_hdmi_dac_reg;
->
->   	int ct_cp_hpd_gpio;
->   	int ls_oe_gpio;
-> @@ -331,6 +333,19 @@ static int __init hdmi_init_display(struct omap_dss_device *dssdev)
->
->   	dss_init_hdmi_ip_ops(&hdmi.ip_data);
->
-> +	if (hdmi.vdda_hdmi_dac_reg == NULL) {
-> +		struct regulator *reg;
-> +
-> +		reg = devm_regulator_get(&hdmi.pdev->dev, "vdda_hdmi_dac");
 
-There is no corresponding devm_regulator_put() call here, I guess that's 
-what devm_* calls are supposed to help us with. But the only place I saw 
-the usage of dev_regulator_get() is here:
+Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
 
-sound/soc/ux500/ux500_msp_dai.c
+> Hi Koen,
+> 
+> On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
+>> 
+>> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
+>> 
+>>> Add tps65217 regulator device tree data to AM335x-Bone by adding
+>>> regulator consumers with tightened constraints and regulator-name.
+>>> TPS65217 regulator handle can be obtained by using this regulator
+>>> name.
+>>> 
+>>> This patch also add I2C node with I2C frequency and tps65217 PMIC
+>>> I2C slave address.
+>>> 
+>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>> 
+>> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
+> 
+> Use this repo to test on beaglebone
+> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
+> 
+> This wiki talks about how to build and use?
+> https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
+> 
+> Note: Enable tps65217 regulator in kernel config.
 
-And here, they are doing devm_regulator_put() calls to, so I was 
-wondering what the deal is.
-
-Archit
-
+I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
