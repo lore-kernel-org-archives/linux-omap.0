@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 07/10] ARM: OMAP2+: gpmc: generic timing calculation
-Date: Fri, 24 Aug 2012 12:54:47 -0700
-Message-ID: <20120824195446.GV11011@atomide.com>
-References: <cover.1345524670.git.afzal@ti.com>
- <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com>
- <50359C64.40603@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH] arm/dts: omap5: Add mmc controller nodes and board data
+Date: Fri, 24 Aug 2012 13:02:22 -0700
+Message-ID: <20120824200221.GW11011@atomide.com>
+References: <1344323901-20342-1-git-send-email-balajitk@ti.com>
+ <201208070830.01776.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24290 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760132Ab2HXTyw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 15:54:52 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <50359C64.40603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201208070830.01776.arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@TI.COM>
-Cc: Afzal Mohammed <afzal@TI.COM>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jon Hunter <jon-hunter@TI.COM> [120822 19:58]:
+* Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> [120807 02:21]:
+> On Tuesday 07 August 2012, Balaji T K wrote:
+> > 
+> > Add OMAP MMC related device tree data for OMAP5.
+> > 
+> > Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> > ---
 > 
-> So although this may consolidate how the timings are calculated today, I
-> am concerned it will be confusing to add timings for a new device. At
-> least if I am calculating timings, I am taking the timing information
-> for the device and translating that to the how I need to program the
-> gpmc register fields.
+> Acked-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-Yes agreed. Also as some values make sense only in cycles, converting them
-back and forth to time is wrong. So at least some values should have an
-option to specify them in cycles directly, and then ignore any time based
-values.
-
-Regards,
+Applying this into omap devel-dt branch. 
 
 Tony
