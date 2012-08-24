@@ -1,166 +1,192 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 01/23] OMAPDSS: outputs: Create a new entity called outputs
-Date: Fri, 24 Aug 2012 18:21:52 +0530
-Message-ID: <503778E8.2060909@ti.com>
-References: <1345528711-27801-1-git-send-email-archit@ti.com>  <1345528711-27801-2-git-send-email-archit@ti.com> <1345812069.9287.65.camel@lappyti>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 02/23] OMAPDSS: outputs: Create and initialize output
+ instances
+Date: Fri, 24 Aug 2012 16:14:02 +0300
+Message-ID: <1345814042.9287.72.camel@lappyti>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>
+	 <1345528711-27801-3-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-lGgKnEtEQrpXD5R+mldQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36477 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759339Ab2HXMxZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 08:53:25 -0400
-In-Reply-To: <1345812069.9287.65.camel@lappyti>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:42003 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759339Ab2HXNOJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 09:14:09 -0400
+Received: by lbon3 with SMTP id n3so995855lbo.28
+        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 06:14:06 -0700 (PDT)
+In-Reply-To: <1345528711-27801-3-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
 
-On Friday 24 August 2012 06:11 PM, Tomi Valkeinen wrote:
-> On Tue, 2012-08-21 at 11:28 +0530, Archit Taneja wrote:
->
->> diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/dss/output.c
->> new file mode 100644
->> index 0000000..034ebbe
->> --- /dev/null
->> +++ b/drivers/video/omap2/dss/output.c
->> @@ -0,0 +1,58 @@
->> +/*
->> + * Copyright (C) 2012 Texas Instruments Ltd
->> + * Author: Archit Taneja <archit@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify it
->> + * under the terms of the GNU General Public License version 2 as published by
->> + * the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but WITHOUT
->> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
->> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
->> + * more details.
->> + *
->> + * You should have received a copy of the GNU General Public License along with
->> + * this program.  If not, see <http://www.gnu.org/licenses/>.
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/slab.h>
->> +
->> +#include <video/omapdss.h>
->> +
->> +#include "dss.h"
->> +
->> +static struct list_head output_list;
->
-> You can do:
->
-> static LIST_HEAD(output_list);
->
-> Then you don't need to initialize it separately.
 
-Oh ok. I'll fix this.
+--=-lGgKnEtEQrpXD5R+mldQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->
->> +
->> +struct omap_dss_output *dss_create_output(struct platform_device *pdev)
->> +{
->> +	struct omap_dss_output *out;
->> +
->> +	out = kzalloc(sizeof(struct omap_dss_output *), GFP_KERNEL);
->> +	if (!out)
->> +		return NULL;
->
-> A patch that adds kzalloc but no free is always a bit suspicious =).
->
->> +
->> +	out->pdev = pdev;
->> +
->> +	list_add_tail(&out->list, &output_list);
->> +
->> +	return out;
->> +}
->
-> Instead of allocating omap_dss_output here, you could let the caller do
-> it, and only initialize it here with default values (if that's even
-> needed). Then the caller can use kzalloc, or can just embed the stuct
-> into its own data-struct, which may be often a better choice.
+On Tue, 2012-08-21 at 11:28 +0530, Archit Taneja wrote:
+> Create output instances by having an init function in the probes of the p=
+latform
+> device drivers for different interfaces. Create a small function for each
+> interface to initialize the output entity's fields type and id.
+>=20
+> In the probe of each interface driver, the output entities are created be=
+fore
+> the *_probe_pdata() functions intentionally. This is done to ensure that =
+the
+> output entity is prepared before the panels connected to the output are
+> registered. We need the output entities to be ready because OMAPDSS will =
+try
+> to make connections between overlays, managers, outputs and devices durin=
+g the
+> panel's probe.
 
-So output can be in each interface driver's private data, and we just 
-add that to our list of outputs?
+You're referring to the recheck_connections stuff? I have a patch that
+moves that to omapfb side. But of course it doesn't hurt to initialize
+the output early.
 
->
->> +struct omap_dss_output *omap_dss_get_output(enum omap_dss_output_id id)
->> +{
->> +	struct omap_dss_output *out;
->> +
->> +	list_for_each_entry(out, &output_list, list) {
->> +		if (out->id == id)
->> +			return out;
->> +	}
->> +
->> +	return NULL;
->> +}
->> +
->> +void dss_init_outputs(void)
->> +{
->> +	INIT_LIST_HEAD(&output_list);
->> +}
->> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
->> index b868123..0ba613f 100644
->> --- a/include/video/omapdss.h
->> +++ b/include/video/omapdss.h
->> @@ -207,6 +207,16 @@ enum omap_hdmi_flags {
->>   	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP = 1 << 0,
->>   };
->>
->> +enum omap_dss_output_id {
->> +	OMAP_DSS_OUTPUT_DPI	= 1 << 0,
->> +	OMAP_DSS_OUTPUT_DBI	= 1 << 1,
->> +	OMAP_DSS_OUTPUT_SDI	= 1 << 2,
->> +	OMAP_DSS_OUTPUT_DSI1	= 1 << 3,
->> +	OMAP_DSS_OUTPUT_VENC	= 1 << 4,
->> +	OMAP_DSS_OUTPUT_DSI2	= 1 << 5,
->> +	OMAP_DSS_OUTPUT_HDMI	= 1 << 6,
->> +};
->
-> I'm not sure about this. We already have enum omap_display_type. If you
-> need the instance number, you could have that as a separate int field.
->
-> Where do you need the output_id?
+We should generally do the initialization in output driver's probe more
+or less so that we first setup everything related to the output driver,
+and after that we register the dssdevs. But I think that's what is
+already done.
 
-output_id is used to take care of situations where there our multiple 
-outputs of the same type, like DSI1 and DSI2. An enum helps when we 
-check if an overlay manager supports that output instance or not. For 
-ex, on OMAP4, LCD1 connects to DSI1 and not DSI2.
+So, no complaints =3D).
 
-I add a func called dss_feat_get_supported_outputs(channel) later to 
-check for this. When setting a new output for a manager, we just do an 
-'&' to see if the output in question is in the mask of the manager's set 
-of supported outputs.
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/video/omap2/dss/dpi.c  |   20 ++++++++++++++++++++
+>  drivers/video/omap2/dss/dsi.c  |   26 ++++++++++++++++++++++++--
+>  drivers/video/omap2/dss/hdmi.c |   18 ++++++++++++++++++
+>  drivers/video/omap2/dss/rfbi.c |   19 +++++++++++++++++++
+>  drivers/video/omap2/dss/sdi.c  |   20 ++++++++++++++++++++
+>  drivers/video/omap2/dss/venc.c |   20 ++++++++++++++++++++
+>  6 files changed, 121 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.=
+c
+> index f260343..4eca2e7 100644
+> --- a/drivers/video/omap2/dss/dpi.c
+> +++ b/drivers/video/omap2/dss/dpi.c
+> @@ -408,10 +408,30 @@ static void __init dpi_probe_pdata(struct platform_=
+device *pdev)
+>  	}
+>  }
+> =20
+> +static int __init dpi_init_output(struct platform_device *pdev)
+> +{
+> +	struct omap_dss_output *out;
+> +
+> +	out =3D dss_create_output(pdev);
+> +	if (!out)
+> +		return -ENOMEM;
+> +
+> +	out->id =3D OMAP_DSS_OUTPUT_DPI;
+> +	out->type =3D OMAP_DISPLAY_TYPE_DPI;
+> +
+> +	return 0;
+> +}
+> +
+>  static int __init omap_dpi_probe(struct platform_device *pdev)
+>  {
+> +	int r;
+> +
+>  	mutex_init(&dpi.lock);
+> =20
+> +	r =3D dpi_init_output(pdev);
+> +	if (r)
+> +		return r;
+> +
+>  	dpi_probe_pdata(pdev);
+> =20
+>  	return 0;
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.=
+c
+> index 659b6cd..22e0873 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -4903,6 +4903,23 @@ static void __init dsi_probe_pdata(struct platform=
+_device *dsidev)
+>  	}
+>  }
+> =20
+> +static int __init dsi_init_output(struct platform_device *dsidev,
+> +		struct dsi_data *dsi)
+> +{
+> +	struct omap_dss_output *out;
+> +
+> +	out =3D dss_create_output(dsidev);
+> +	if (!out)
+> +		return -ENOMEM;
+> +
+> +	out->id =3D dsi->module_id =3D=3D 0 ?
+> +			OMAP_DSS_OUTPUT_DSI1 : OMAP_DSS_OUTPUT_DSI2;
+> +
+> +	out->type =3D OMAP_DISPLAY_TYPE_DSI;
+> +
+> +	return 0;
 
->
->> +
->>   /* RFBI */
->>
->>   struct rfbi_timings {
->> @@ -492,6 +502,24 @@ struct omap_dsi_pin_config {
->>   	int pins[OMAP_DSS_MAX_DSI_PINS];
->>   };
->>
->> +struct omap_dss_output {
->> +	struct list_head list;
->> +
->> +	/* display type supported by the output */
->> +	enum omap_display_type type;
->> +
->> +	/* output instance */
->> +	enum omap_dss_output_id id;
->
-> So instead of omap_dss_output_id, you'd have omap_display_type type and
-> int id, which together tell the supported output and also the output
-> driver instance.
->
->   Tomi
->
+As I mentioned in the last email, I think this could be something like:
+
+struct omap_dss_output *out =3D &dsi->output;
+
+out->pdev =3D dsidev;
+out->id =3D xxx;
+out->type =3D yyy;
+dss_register_output(out);
+
+
+> +}
+> +
+>  /* DSI1 HW IP initialisation */
+>  static int __init omap_dsihw_probe(struct platform_device *dsidev)
+>  {
+> @@ -4997,10 +5014,14 @@ static int __init omap_dsihw_probe(struct platfor=
+m_device *dsidev)
+>  	else
+>  		dsi->num_lanes_supported =3D 3;
+> =20
+> -	dsi_probe_pdata(dsidev);
+> -
+>  	dsi_runtime_put(dsidev);
+> =20
+> +	r =3D dsi_init_output(dsidev, dsi);
+> +	if (r)
+> +		goto err_init_output;
+> +
+> +	dsi_probe_pdata(dsidev);
+> +
+
+Why do you change the sequence here? Isn't it enough to just add the
+init_output before probe_pdata?
+
+ Tomi
+
+
+--=-lGgKnEtEQrpXD5R+mldQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQN34aAAoJEPo9qoy8lh717ekP/Rp1K/Z4N77ZKi36OWLhDn/1
+ktp8903fL6ymHDU+HErnF0iQG0TCFvtQbhE0utYiE8YhYwWUj12Cg8V1tZKYtHLd
+k0u6xaE4r0TvsAlF6LwGnP0FZeDt82pG/cdifbt15RT5F5OAqPgqxpT1bDx6GVLC
+A1xXzTww6D0P58q9QvpSWHrR4cdnFDGBRzlszfd1ozjafXNlNYowl2eSh/BwyB51
+0eLTjuAlag1o/8H+0G6+OejCNXtHGXD1Ci50mO7sxwgEiO98CvDypJoqlOwdwvBs
+Uzh+qlBKnHohPDL6+PGYsQJtIb8oI0JmZkx+Plry/P75Sci8B2je3XYsJOpBYsdJ
+LaS81HxWCeFVsU38su2UezftDRRnGF+W9oOMcpPy2EZqJVj0pyXb84a8Kxw7twmU
+hbzvaNseJhws/WbUjLgcltSKvMz4CSZhTa+p/20zU/38OD8c9FPWCEwoz0FZXeZO
+QnsxlxPcTELsDyM6KEKEcz0Gv/HQuPOmab0VuJlP6TI60JtPI5S7glkOG7B76CJ9
+fCJ8RpnurTabX0TnV+flSHGnFb5V3tKb6FH7yc4u0o0YSw28eqg9mSa/NbV2tJbD
+SKphoqu0suqRZsOoS3osjrKeKZXuoj3hEdIZ2JSGKyCsPc41ODoTpY+bT7gkWQHd
++uk7uIwcFmjfXuI9xV6Y
+=T5gw
+-----END PGP SIGNATURE-----
+
+--=-lGgKnEtEQrpXD5R+mldQ--
 
