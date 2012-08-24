@@ -1,104 +1,189 @@
 From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 8/8] OMAPDSS: fix use of dssdev->caps
-Date: Fri, 24 Aug 2012 11:21:14 +0530
-Message-ID: <50371652.2000405@ti.com>
-References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com> <1345729514-2441-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/8] OMAPDSS: HDMI: Move GPIO handling to HDMI driver
+Date: Fri, 24 Aug 2012 11:30:57 +0530
+Message-ID: <50371899.6030706@ti.com>
+References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com> <1345729514-2441-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38250 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab2HXFws (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 01:52:48 -0400
-In-Reply-To: <1345729514-2441-9-git-send-email-tomi.valkeinen@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52574 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753781Ab2HXGCb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 02:02:31 -0400
+In-Reply-To: <1345729514-2441-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
 On Thursday 23 August 2012 07:15 PM, Tomi Valkeinen wrote:
-> Recent commit dca2b1522ccab28d03fb79f6e70e70ea78033d52 (OMAPDSS: DSI:
-> Maintain copy of operation mode in driver data) broke DSI for video mode
-> displays. The commit changed the way dssdev->caps are initialized, and
-> the result was that every DSI display is initialized with manual-update
-> and tear-elim caps.
-
-Ah, I didn't realise that. Thanks for catching this.
-
+> We currently manage HDMI GPIOs in the board files via
+> platform_enable/disable calls. This won't work with device tree, and in
+> any case the correct place to manage the GPIOs is in the HDMI driver.
 >
-> The code that sets dssdev->caps is not very good, even when fixed.
-> omapdss driver shouldn't be writing dssdev->caps at all.
->
-> This patch fixes the problem with video mode displays by moving the
-> initialization of dssdev->caps to the panel driver. The same change is
-> done for RFBI.
-
-Yes, it makes more sense to configure these in the panel driver.
-
-Archit
-
+> This patch moves the handling of the GPIOs to the HDMI driver. The GPIO
+> handling is moved to the common hdmi.c file, and this probably needs to
+> be revisited when adding OMAP5 HDMI support to see if the GPIO handling
+> needs to be moved to IP specific files.
 >
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 > ---
->   drivers/video/omap2/displays/panel-n8x0.c |    1 +
->   drivers/video/omap2/displays/panel-taal.c |    2 ++
->   drivers/video/omap2/dss/dsi.c             |    5 -----
->   drivers/video/omap2/dss/rfbi.c            |    1 -
->   4 files changed, 3 insertions(+), 6 deletions(-)
+>   arch/arm/mach-omap2/board-4430sdp.c    |   27 +-----------
+>   arch/arm/mach-omap2/board-omap4panda.c |   27 +-----------
+>   drivers/video/omap2/dss/hdmi.c         |   75 +++++++++++++++++++++++---------
+>   include/video/omapdss.h                |    2 +
+>   4 files changed, 61 insertions(+), 70 deletions(-)
 >
-> diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-> index 17ae85e..3fc5ad0 100644
-> --- a/drivers/video/omap2/displays/panel-n8x0.c
-> +++ b/drivers/video/omap2/displays/panel-n8x0.c
-> @@ -489,6 +489,7 @@ static int n8x0_panel_probe(struct omap_dss_device *dssdev)
->   	dssdev->panel.timings.y_res = 480;
->   	dssdev->ctrl.pixel_size = 16;
->   	dssdev->ctrl.rfbi_timings = n8x0_panel_timings;
-> +	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
->
->   	memset(&props, 0, sizeof(props));
->   	props.max_brightness = 127;
-> diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-> index ddda96a..7b2d7bb 100644
-> --- a/drivers/video/omap2/displays/panel-taal.c
-> +++ b/drivers/video/omap2/displays/panel-taal.c
-> @@ -884,6 +884,8 @@ static int taal_probe(struct omap_dss_device *dssdev)
->
->   	dssdev->panel.timings = panel_config->timings;
->   	dssdev->panel.dsi_pix_fmt = OMAP_DSS_DSI_FMT_RGB888;
-> +	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
-> +		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
->
->   	td = kzalloc(sizeof(*td), GFP_KERNEL);
->   	if (!td) {
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 340c832..254666f 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -4866,11 +4866,6 @@ static int __init dsi_init_display(struct omap_dss_device *dssdev)
->
->   	DSSDBG("DSI init\n");
->
-> -	if (dsi->mode == OMAP_DSS_DSI_CMD_MODE) {
-> -		dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
-> -			OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
-> -	}
-> -
->   	if (dsi->vdds_dsi_reg == NULL) {
->   		struct regulator *vdds_dsi;
->
-> diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-> index 5a9c0e9..2e520d3 100644
-> --- a/drivers/video/omap2/dss/rfbi.c
-> +++ b/drivers/video/omap2/dss/rfbi.c
-> @@ -939,7 +939,6 @@ EXPORT_SYMBOL(omapdss_rfbi_display_disable);
->   static int __init rfbi_init_display(struct omap_dss_device *dssdev)
->   {
->   	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
-> -	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
->   	return 0;
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 8e17284..852e05c 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -601,29 +601,6 @@ static void __init omap_sfh7741prox_init(void)
+>   			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
 >   }
 >
+> -static struct gpio sdp4430_hdmi_gpios[] = {
+> -	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+> -	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+> -	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+> -};
+> -
+> -static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
+> -{
+> -	int status;
+> -
+> -	status = gpio_request_array(sdp4430_hdmi_gpios,
+> -				    ARRAY_SIZE(sdp4430_hdmi_gpios));
+> -	if (status)
+> -		pr_err("%s: Cannot request HDMI GPIOs\n", __func__);
+> -
+> -	return status;
+> -}
+> -
+> -static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
+> -{
+> -	gpio_free_array(sdp4430_hdmi_gpios, ARRAY_SIZE(sdp4430_hdmi_gpios));
+> -}
+> -
+>   static struct nokia_dsi_panel_data dsi1_panel = {
+>   		.name		= "taal",
+>   		.reset_gpio	= 102,
+> @@ -718,6 +695,8 @@ static struct omap_dss_device sdp4430_lcd2_device = {
+>   };
 >
+>   static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
+> +	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+> +	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+>   	.hpd_gpio = HDMI_GPIO_HPD,
+>   };
+>
+> @@ -725,8 +704,6 @@ static struct omap_dss_device sdp4430_hdmi_device = {
+>   	.name = "hdmi",
+>   	.driver_name = "hdmi_panel",
+>   	.type = OMAP_DISPLAY_TYPE_HDMI,
+> -	.platform_enable = sdp4430_panel_enable_hdmi,
+> -	.platform_disable = sdp4430_panel_disable_hdmi,
+>   	.channel = OMAP_DSS_CHANNEL_DIGIT,
+>   	.data = &sdp4430_hdmi_data,
+>   };
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 982fb26..5415faa 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -405,30 +405,9 @@ static struct omap_dss_device omap4_panda_dvi_device = {
+>   	.channel		= OMAP_DSS_CHANNEL_LCD2,
+>   };
+>
+> -static struct gpio panda_hdmi_gpios[] = {
+> -	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+> -	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+> -	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+> -};
+> -
+> -static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
+> -{
+> -	int status;
+> -
+> -	status = gpio_request_array(panda_hdmi_gpios,
+> -				    ARRAY_SIZE(panda_hdmi_gpios));
+> -	if (status)
+> -		pr_err("Cannot request HDMI GPIOs\n");
+> -
+> -	return status;
+> -}
+> -
+> -static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
+> -{
+> -	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
+> -}
+> -
+>   static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
+> +	.ct_cp_hpd_gpio = HDMI_GPIO_CT_CP_HPD,
+> +	.ls_oe_gpio = HDMI_GPIO_LS_OE,
+>   	.hpd_gpio = HDMI_GPIO_HPD,
+>   };
+>
+> @@ -436,8 +415,6 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
+>   	.name = "hdmi",
+>   	.driver_name = "hdmi_panel",
+>   	.type = OMAP_DISPLAY_TYPE_HDMI,
+> -	.platform_enable = omap4_panda_panel_enable_hdmi,
+> -	.platform_disable = omap4_panda_panel_disable_hdmi,
+>   	.channel = OMAP_DSS_CHANNEL_DIGIT,
+>   	.data = &omap4_panda_hdmi_data,
+>   };
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+> index 0cdf246..4fbe271 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -32,6 +32,7 @@
+>   #include <linux/platform_device.h>
+>   #include <linux/pm_runtime.h>
+>   #include <linux/clk.h>
+> +#include <linux/gpio.h>
+>   #include <video/omapdss.h>
+>
+>   #include "ti_hdmi.h"
+> @@ -61,6 +62,10 @@ static struct {
+>   	struct hdmi_ip_data ip_data;
+>
+>   	struct clk *sys_clk;
+> +
+> +	int ct_cp_hpd_gpio;
+> +	int ls_oe_gpio;
+> +	int hpd_gpio;
+>   } hdmi;
+>
+>   /*
+> @@ -314,12 +319,34 @@ static void hdmi_runtime_put(void)
+>
+>   static int __init hdmi_init_display(struct omap_dss_device *dssdev)
+>   {
+> +	int r;
+> +
+> +	struct gpio gpios[] = {
+> +		{ hdmi.ct_cp_hpd_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ct_cp_hpd" },
+> +		{ hdmi.ls_oe_gpio, GPIOF_OUT_INIT_LOW, "hdmi_ls_oe" },
+> +		{ hdmi.hpd_gpio, GPIOF_DIR_IN, "hdmi_hpd" },
+> +	};
+> +
+>   	DSSDBG("init_display\n");
+>
+>   	dss_init_hdmi_ip_ops(&hdmi.ip_data);
+> +
+> +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+> +	if (r)
+> +		return r;
+> +
+
+Is there a reason to request these gpios in hdmi_init_display()? Why 
+can't these be requested simply in the probe of the hdmi platform 
+device. These gpios are sort of specific to the hdmi output on OMAP, 
+aren't they?
+
+<snip>
+
+Archit
 
