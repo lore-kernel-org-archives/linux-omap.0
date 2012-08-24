@@ -1,88 +1,69 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
- hosts by default
-Date: Fri, 24 Aug 2012 16:15:26 +0530
-Message-ID: <CAMQu2gw-vEguFU9naxsHtDVOfJkZVsFNMWJbvbc=ZuULy7TZNA@mail.gmail.com>
-References: <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com>
- <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com>
- <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
- <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
- <alpine.DEB.2.01.1208232246530.15831@pmeerw.net> <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com>
- <alpine.DEB.2.01.1208240942100.21552@pmeerw.net> <20120824094231.GA25765@n2100.arm.linux.org.uk>
- <CAMQu2gxs0bzNMtxb0LFyFKM9s4M4yXxFpopaBO+Hah3RjhCpLA@mail.gmail.com> <20120824103913.GB25765@n2100.arm.linux.org.uk>
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCH 7/8] ir-rx51: Remove MPU wakeup latency adjustments
+Date: Fri, 24 Aug 2012 13:48:59 +0300
+Message-ID: <50375C1B.5000308@iki.fi>
+References: <1345665041-15211-1-git-send-email-timo.t.kokkonen@iki.fi> <1345665041-15211-8-git-send-email-timo.t.kokkonen@iki.fi> <CAORVsuXDpnP+QdfQDJMEAUGO3ekr+eGnt46SCqO9K2bsWpMdrw@mail.gmail.com> <503737DD.2020802@iki.fi> <CAORVsuX_J0xkYOaTN_v3KG7MLeaeFgf1zGMbQNoXikzur_MKSA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:60154 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757698Ab2HXKps (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 06:45:48 -0400
-Received: by vbkv13 with SMTP id v13so2192241vbk.0
-        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 03:45:46 -0700 (PDT)
-In-Reply-To: <20120824103913.GB25765@n2100.arm.linux.org.uk>
+Received: from mta-out.inet.fi ([195.156.147.13]:41060 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758778Ab2HXKtC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 06:49:02 -0400
+In-Reply-To: <CAORVsuX_J0xkYOaTN_v3KG7MLeaeFgf1zGMbQNoXikzur_MKSA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>, Javier Martinez Canillas <martinez.javier@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-On Fri, Aug 24, 2012 at 4:09 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Fri, Aug 24, 2012 at 03:51:26PM +0530, Shilimkar, Santosh wrote:
->> On Fri, Aug 24, 2012 at 3:12 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> >
->> > On Fri, Aug 24, 2012 at 09:51:15AM +0200, Peter Meerwald wrote:
->> > > the commit just sets CONFIG_DMA_OMAP=y and CONFIG_DMADEVICES=y in
->> > > omap2plus_defconfig; this does not help people updating the kernel while
->> > > keeping the config, nor does it help people in configuring the kernel
->> > >
->> > > there is a dependency (at least for beagleboard) between MMC_OMAP_HS and
->> > > DMA_OMAP, and I think this should be made explicit
->> >
->> > Well, this is where stuff starts to get really yucky, because that
->> > means if you have DMA_OMAP as a module, you have to have MMC_OMAP_HS
->> > as a module too.  Or vice versa.  Which is a real pain for further
->> > development of DMA_OMAP.
->> >
->> > Whatever, the solution here is NOT to add select statements to the
->> > Kconfig to force DMA engine support and DMA_OMAP to 'y' for OMAP.
->> > The best solution is for MMC_OMAP_HS to depend on DMA_OMAP, but that
->> > will just mean that you'll end up with MMC_OMAP_HS disabled in your
->> > config witout DMA engine support.  Another less desirable solution
->> > is to have MMC_OMAP_HS select DMA engine and DMA_OMAP.
+On 08/24/12 12:04, Jean Pihet wrote:
+> Hi Timo,
+> 
+> On Fri, Aug 24, 2012 at 10:14 AM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
+>> Hi Jean,
 >>
->> Part of the patch [1] does the last part.
->> MMC_OMAP_HS select DMA engine and DMA_OMAP.
+>> On 08/23/12 14:58, Jean Pihet wrote:
+>>> Hi Timo,
+>>>
+>>> On Wed, Aug 22, 2012 at 9:50 PM, Timo Kokkonen <timo.t.kokkonen@iki.fi> wrote:
+>>> That is correct. The API to use is the PM QoS API which cpuidle uses
+>>> to determine the next MPU state based on the allowed latency.
+>>>
+>>>> A more appropriate fix for the problem would be to modify the idle
+>>>> layer so that it does not allow MPU going to too deep sleep modes when
+>>>> it is expected that the timers need to wake up MPU.
+>>> The idle layer already uses the PM QoS framework to decide the next
+>>> MPU state. I think the right solution is to convert from
+>>> omap_pm_set_max_mpu_wakeup_lat to the PM QoS API.
+>>>
+>>> Cf. http://marc.info/?l=linux-omap&m=133968658305580&w=2 for an
+>>> example of the conversion.
+>>>
 >>
->> Regards
->> Santosh
->>
->> [1] https://patchwork.kernel.org/patch/1203391/
->
-> Well, I never saw that patch.  When I say "I'm going to be away for most
-> of July, and I won't be reading email, and I won't catch up with email
-> when I'm back" and when I get back I explicitly ask for stuff which needs
-> my attention sending, that's hardly surprising...
->
-> But anyway, as I said above, the "select" option is less desirable because
-> it forces stuff.  And if you've seen the kind of crap that you have to go
-> through to figure out why the hell you can't disable an option, you'll
-> understand why I consider that solution revolting.
->
-> Take, for instance, a list of dependencies spits out by menuconfig that
-> fills your entire screen, and you have to work out by reading carefully
-> through 2K of characters which combination of options is forcing the one
-> you want to turn off back on.  That is why "select" used inappropriately
-> is pure evil incarnate.
-I fully agree on the select and it's undesirable side effects.
-Since the polling mode isn't supported yet on OMAP MMC drivers, there
-was no choice. As per the previous discussion on [1], MMC and SPI driver
-folks are looking at supporting polling mode support which can remove
-the force select needed for OMAP_DMA.
+>> Thanks. It looks like really easy and straightforward conversion.
+>> However, I couldn't find the patch you were referring to from any trees
+> Correct, this patch is not applied to the mainline code yet, it is
+> provided as an example of the conversion.
+> 
+>> I could find. So, I take that this API does not really have omap2
+>> support in it yet? I tried git grepping through the source and to me it
+>> appears there is nothing in place yet that actually restricts the MPU
+>> sleep states on omap2 when requested.
+> The MPU state is controlled from the cpuidle framework, which
+> retrieves the MPU allowed latency from the PM QoS framework. This is
+> supported on OMAP2.
+> Cf. the table of states and the associated latency in
+> arch/arm/mach-omap2/cpuidle34xx.c.
+> 
 
-Regards
-santosh
+Thanks for the pointer. I took a look at the state table and adjusted
+the latency requirements in my code. If I lower the latency from 50us to
+10us, the timers are then waking up as they should be.
 
-Regards
-Santosh
+I'll replace this patch with one where I convert it using the new API.
+
+Thanks!
+
+-Timo
+
