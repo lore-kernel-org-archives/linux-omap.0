@@ -1,92 +1,188 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
- hosts by default
-Date: Fri, 24 Aug 2012 14:10:38 +0200 (CEST)
-Message-ID: <alpine.DEB.2.01.1208241404440.21552@pmeerw.net>
-References: <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
- <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com> <alpine.DEB.2.01.1208232246530.15831@pmeerw.net> <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com> <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
- <20120824094231.GA25765@n2100.arm.linux.org.uk> <CAMQu2gxs0bzNMtxb0LFyFKM9s4M4yXxFpopaBO+Hah3RjhCpLA@mail.gmail.com> <20120824103913.GB25765@n2100.arm.linux.org.uk> <CAMQu2gw-vEguFU9naxsHtDVOfJkZVsFNMWJbvbc=ZuULy7TZNA@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/23] OMAPDSS: outputs: Create a new entity called
+ outputs
+Date: Fri, 24 Aug 2012 15:41:09 +0300
+Message-ID: <1345812069.9287.65.camel@lappyti>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>
+	 <1345528711-27801-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAMQu2gw-vEguFU9naxsHtDVOfJkZVsFNMWJbvbc=ZuULy7TZNA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Javier Martinez Canillas <martinez.javier@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-+d9Q1DlkXL4vSkRCaNhO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:33446 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759298Ab2HXMlR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Aug 2012 08:41:17 -0400
+Received: by lboi15 with SMTP id i15so983760lbo.7
+        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 05:41:14 -0700 (PDT)
+In-Reply-To: <1345528711-27801-2-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
 
 
-> >> > > the commit just sets CONFIG_DMA_OMAP=y and CONFIG_DMADEVICES=y in
-> >> > > omap2plus_defconfig; this does not help people updating the kernel while
-> >> > > keeping the config, nor does it help people in configuring the kernel
-> >> > >
-> >> > > there is a dependency (at least for beagleboard) between MMC_OMAP_HS and
-> >> > > DMA_OMAP, and I think this should be made explicit
-> >> >
-> >> > Well, this is where stuff starts to get really yucky, because that
-> >> > means if you have DMA_OMAP as a module, you have to have MMC_OMAP_HS
-> >> > as a module too.  Or vice versa.  Which is a real pain for further
-> >> > development of DMA_OMAP.
-> >> >
-> >> > Whatever, the solution here is NOT to add select statements to the
-> >> > Kconfig to force DMA engine support and DMA_OMAP to 'y' for OMAP.
-> >> > The best solution is for MMC_OMAP_HS to depend on DMA_OMAP, but that
-> >> > will just mean that you'll end up with MMC_OMAP_HS disabled in your
-> >> > config witout DMA engine support.  Another less desirable solution
-> >> > is to have MMC_OMAP_HS select DMA engine and DMA_OMAP.
-> >>
-> >> Part of the patch [1] does the last part.
-> >> MMC_OMAP_HS select DMA engine and DMA_OMAP.
-> >>
-> >> Regards
-> >> Santosh
-> >>
-> >> [1] https://patchwork.kernel.org/patch/1203391/
-> >
-> > Well, I never saw that patch.  When I say "I'm going to be away for most
-> > of July, and I won't be reading email, and I won't catch up with email
-> > when I'm back" and when I get back I explicitly ask for stuff which needs
-> > my attention sending, that's hardly surprising...
-> >
-> > But anyway, as I said above, the "select" option is less desirable because
-> > it forces stuff.  And if you've seen the kind of crap that you have to go
-> > through to figure out why the hell you can't disable an option, you'll
-> > understand why I consider that solution revolting.
-> >
-> > Take, for instance, a list of dependencies spits out by menuconfig that
-> > fills your entire screen, and you have to work out by reading carefully
-> > through 2K of characters which combination of options is forcing the one
-> > you want to turn off back on.  That is why "select" used inappropriately
-> > is pure evil incarnate.
-> I fully agree on the select and it's undesirable side effects.
-> Since the polling mode isn't supported yet on OMAP MMC drivers, there
-> was no choice. As per the previous discussion on [1], MMC and SPI driver
-> folks are looking at supporting polling mode support which can remove
-> the force select needed for OMAP_DMA.
+--=-+d9Q1DlkXL4vSkRCaNhO
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-with Linux 3.6-rc3:
+On Tue, 2012-08-21 at 11:28 +0530, Archit Taneja wrote:
 
-CONFIG_DMA_OMAP=m
-CONFIG_DMA_ENGINE=y
-CONFIG_DMA_VIRTUAL_CHANNELS=m
-CONFIG_MMC_OMAP_HS=y
-CONFIG_SPI_OMAP24XX=y
-CONFIG_MTD_NAND_OMAP2=y
+> diff --git a/drivers/video/omap2/dss/output.c b/drivers/video/omap2/dss/o=
+utput.c
+> new file mode 100644
+> index 0000000..034ebbe
+> --- /dev/null
+> +++ b/drivers/video/omap2/dss/output.c
+> @@ -0,0 +1,58 @@
+> +/*
+> + * Copyright (C) 2012 Texas Instruments Ltd
+> + * Author: Archit Taneja <archit@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify =
+it
+> + * under the terms of the GNU General Public License version 2 as publis=
+hed by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but W=
+ITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License=
+ for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License alo=
+ng with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +
+> +#include <video/omapdss.h>
+> +
+> +#include "dss.h"
+> +
+> +static struct list_head output_list;
 
-  LD      init/built-in.o
-drivers/built-in.o: In function `omap2_mcspi_setup':
-/home/pmeerw/linux-pmeerw/drivers/spi/spi-omap2-mcspi.c:859: undefined reference to `omap_dma_filter_fn'
-drivers/built-in.o: In function `omap_nand_probe':
-/home/pmeerw/linux-pmeerw/drivers/mtd/nand/omap2.c:1371: undefined reference to `omap_dma_filter_fn'
-drivers/built-in.o: In function `omap_hsmmc_probe':
-/home/pmeerw/linux-pmeerw/drivers/mmc/host/omap_hsmmc.c:2039: undefined reference to `omap_dma_filter_fn'
-make: *** [vmlinux] Error 1
+You can do:
 
-in addition to SPI and MMC, there seems to be also a NAND dependency
+static LIST_HEAD(output_list);
 
-regards, p.
+Then you don't need to initialize it separately.
 
--- 
+> +
+> +struct omap_dss_output *dss_create_output(struct platform_device *pdev)
+> +{
+> +	struct omap_dss_output *out;
+> +
+> +	out =3D kzalloc(sizeof(struct omap_dss_output *), GFP_KERNEL);
+> +	if (!out)
+> +		return NULL;
 
-Peter Meerwald
-+43-664-2444418 (mobile)
+A patch that adds kzalloc but no free is always a bit suspicious =3D).
+
+> +
+> +	out->pdev =3D pdev;
+> +
+> +	list_add_tail(&out->list, &output_list);
+> +
+> +	return out;
+> +}
+
+Instead of allocating omap_dss_output here, you could let the caller do
+it, and only initialize it here with default values (if that's even
+needed). Then the caller can use kzalloc, or can just embed the stuct
+into its own data-struct, which may be often a better choice.
+
+> +struct omap_dss_output *omap_dss_get_output(enum omap_dss_output_id id)
+> +{
+> +	struct omap_dss_output *out;
+> +
+> +	list_for_each_entry(out, &output_list, list) {
+> +		if (out->id =3D=3D id)
+> +			return out;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +void dss_init_outputs(void)
+> +{
+> +	INIT_LIST_HEAD(&output_list);
+> +}
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index b868123..0ba613f 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -207,6 +207,16 @@ enum omap_hdmi_flags {
+>  	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP =3D 1 << 0,
+>  };
+> =20
+> +enum omap_dss_output_id {
+> +	OMAP_DSS_OUTPUT_DPI	=3D 1 << 0,
+> +	OMAP_DSS_OUTPUT_DBI	=3D 1 << 1,
+> +	OMAP_DSS_OUTPUT_SDI	=3D 1 << 2,
+> +	OMAP_DSS_OUTPUT_DSI1	=3D 1 << 3,
+> +	OMAP_DSS_OUTPUT_VENC	=3D 1 << 4,
+> +	OMAP_DSS_OUTPUT_DSI2	=3D 1 << 5,
+> +	OMAP_DSS_OUTPUT_HDMI	=3D 1 << 6,
+> +};
+
+I'm not sure about this. We already have enum omap_display_type. If you
+need the instance number, you could have that as a separate int field.
+
+Where do you need the output_id?
+
+> +
+>  /* RFBI */
+> =20
+>  struct rfbi_timings {
+> @@ -492,6 +502,24 @@ struct omap_dsi_pin_config {
+>  	int pins[OMAP_DSS_MAX_DSI_PINS];
+>  };
+> =20
+> +struct omap_dss_output {
+> +	struct list_head list;
+> +
+> +	/* display type supported by the output */
+> +	enum omap_display_type type;
+> +
+> +	/* output instance */
+> +	enum omap_dss_output_id id;
+
+So instead of omap_dss_output_id, you'd have omap_display_type type and
+int id, which together tell the supported output and also the output
+driver instance.
+
+ Tomi
+
+
+--=-+d9Q1DlkXL4vSkRCaNhO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQN3ZlAAoJEPo9qoy8lh71ow4QALH2jk6BLhh97pVtx7hDWbAG
++1JMP27ctqn6Uof+NEVJEheDTKIFEN+nFxMTNkdnisqpgfTkdtCu2yMlpP3vzC+e
+jjipuxBsezj7b7dGj8eTAtvZ6XP0sfE7O/hjAXP8sFEdmObCQajWPJb6pcJqsW8i
+BJ412wdoIk2XZlkF4xQEM+xtdAHNE8/miOwWj8+FqPANEPQUwDTIJI9Ek8I6nwnM
+gBOOAut7C4y74O8OsYZGO/9Ovv495U+d0sNtEhv82I5zTrmfIvfZfN16AQzOO4vM
+Gmge4F+WXrJxCdHKrLnvJ4dITsPaaL35sZyDy3isbJNGtHdxTIxlil2ZUqGN0Ots
+jluiitHXKwdb8kt+IPYiZu9eMqbKlQaLKWJGS7j6mNZSQShv32GPrnxsmGOiSOMd
+jchfV+QNlWEzXwlBj30K7/rf4Fo1h+3Pg+meepQgGfkx/if8YKI0wxH05Xw1vaSL
+kFU4HAdoDwii8BIzQF7cFQGMxVOcjvsUi0wM1eTGxoQ1VkI25pCAPtRRj/zKu/G1
+v7XplTyLM59Fj/OsbfxzbFgr8i8EaG+1dXMjdybuL+pxlwUPzzF/5azV4lHdJY2c
+heXda0pu+8auMhaG4njxQU3QSnnAMK1I8TBuY06XkmA6ILZopySndK5zgWAvyvTG
+6NwFBd1o2OI4JJ/b1Ee5
+=ksHH
+-----END PGP SIGNATURE-----
+
+--=-+d9Q1DlkXL4vSkRCaNhO--
+
