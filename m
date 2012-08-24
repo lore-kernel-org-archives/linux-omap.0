@@ -1,85 +1,111 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv2 3/8] ir-rx51: Trivial fixes
-Date: Fri, 24 Aug 2012 18:09:41 +0300
-Message-ID: <1345820986-4597-4-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS API
+Date: Fri, 24 Aug 2012 18:09:45 +0300
+Message-ID: <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
 References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:59025 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753811Ab2HXPJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 11:09:50 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
--Fix typo
+Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+API to the new PM QoS API. This allows the callback to be removed from
+the platform data structure.
 
--Change pwm_timer_num type to match type in platform data
-
--Remove extra parenthesis
-
--Replace magic constant with proper bit defintions
-
--Remove duplicate exit pointer
+The latency requirements are also adjusted to prevent the MPU from
+going into sleep mode. This is needed as the GP timers have no means
+to wake up the MPU once it has gone into sleep. The "side effect" is
+that from now on the driver actually works even if there is no
+background load keeping the MPU awake.
 
 Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/rc/Kconfig   |  2 +-
- drivers/media/rc/ir-rx51.c | 10 ++++++----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
+ drivers/media/rc/ir-rx51.c                   | 15 ++++++++++-----
+ include/media/ir-rx51.h                      |  2 --
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 093982b..4a68014 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -278,7 +278,7 @@ config IR_RX51
- 	   Say Y or M here if you want to enable support for the IR
- 	   transmitter diode built in the Nokia N900 (RX51) device.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ca07264..e0750cb 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -34,7 +34,6 @@
+ #include <plat/gpmc.h>
+ #include <plat/onenand.h>
+ #include <plat/gpmc-smc91x.h>
+-#include <plat/omap-pm.h>
  
--	   The driver uses omap DM timers for gereating the carrier
-+	   The driver uses omap DM timers for generating the carrier
- 	   wave and pulses.
+ #include <mach/board-rx51.h>
  
- config RC_LOOPBACK
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index e2db94e..125d4c3 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -59,7 +59,7 @@ struct lirc_rx51 {
- 	int		wbuf[WBUF_LEN];
- 	int		wbuf_index;
- 	unsigned long	device_is_open;
--	unsigned int	pwm_timer_num;
-+	int		pwm_timer_num;
+@@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
+ 
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+-	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+ 	.pwm_timer = 9, /* Use GPT 9 for CIR */
  };
  
- static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
-@@ -138,11 +138,14 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 	if (!retval)
- 		return IRQ_NONE;
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 6e1ffa6..008cdab 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/pm_qos.h>
  
--	if ((retval & ~OMAP_TIMER_INT_MATCH))
-+	if (retval & ~OMAP_TIMER_INT_MATCH)
- 		dev_err_ratelimited(lirc_rx51->dev,
- 				": Unexpected interrupt source: %x\n", retval);
+ #include <plat/dmtimer.h>
+ #include <plat/clock.h>
+@@ -49,6 +50,7 @@ struct lirc_rx51 {
+ 	struct omap_dm_timer *pulse_timer;
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
++	struct pm_qos_request	pm_qos_request;
+ 	wait_queue_head_t     wqueue;
  
--	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
-+	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
-+				OMAP_TIMER_INT_MATCH	|
-+				OMAP_TIMER_INT_OVERFLOW	|
-+				OMAP_TIMER_INT_CAPTURE);
- 	if (lirc_rx51->wbuf_index < 0) {
- 		dev_err_ratelimited(lirc_rx51->dev,
- 				": BUG wbuf_index has value of %i\n",
-@@ -489,7 +492,6 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	.remove		= __exit_p(lirc_rx51_remove),
- 	.suspend	= lirc_rx51_suspend,
- 	.resume		= lirc_rx51_resume,
--	.remove		= __exit_p(lirc_rx51_remove),
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
+ 	unsigned long	fclk_khz;
+@@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+ 
+ 	/*
+-	 * Adjust latency requirements so the device doesn't go in too
+-	 * deep sleep states
++	 * If the MPU is going into too deep sleep state while we are
++	 * transmitting the IR code, timers will not be able to wake
++	 * up the MPU. Thus, we need to set a strict enough latency
++	 * requirement in order to ensure the interrupts come though
++	 * properly.
+ 	 */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
++	pm_qos_add_request(&lirc_rx51->pm_qos_request,
++			PM_QOS_CPU_DMA_LATENCY,	10);
+ 
+ 	lirc_rx51_on(lirc_rx51);
+ 	lirc_rx51->wbuf_index = 1;
+@@ -292,8 +298,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	 */
+ 	lirc_rx51_stop_tx(lirc_rx51);
+ 
+-	/* We can sleep again */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
++	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
+ 
+ 	return n;
+ }
+diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+index 104aa89..57523f2 100644
+--- a/include/media/ir-rx51.h
++++ b/include/media/ir-rx51.h
+@@ -3,8 +3,6 @@
+ 
+ struct lirc_rx51_platform_data {
+ 	int pwm_timer;
+-
+-	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ };
+ 
+ #endif
 -- 
 1.7.12
-
