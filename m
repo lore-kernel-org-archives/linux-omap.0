@@ -1,56 +1,40 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
- devicetree
-Date: Fri, 24 Aug 2012 19:20:30 +0300
-Message-ID: <5037A9CE.1080809@ti.com>
-References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 03/23] serial: omap: don't access the platform_device
+Date: Fri, 24 Aug 2012 12:07:33 -0700
+Message-ID: <20120824190733.GQ11011@atomide.com>
+References: <1345717983-18179-1-git-send-email-balbi@ti.com>
+ <1345717983-18179-4-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:40656 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759797Ab2HXQUb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 12:20:31 -0400
-Received: by obhx4 with SMTP id x4so5290480obh.0
-        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 09:20:29 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1345717983-18179-4-git-send-email-balbi@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, alan@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+* Felipe Balbi <balbi@ti.com> [120823 03:37]:
+> The driver doesn't need to know about its platform_device.
+> 
+> Everything the driver needs can be done through the
+> struct device pointer. In case we need to use the
+> OMAP-specific PM function pointers, those can make
+> sure to find the device's platform_device pointer
+> so they can find the struct omap_device through
+> pdev->archdata field.
+> 
+> Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-On 08/24/2012 06:38 PM, Paul Walmsley wrote:
-> Do we need both this one and your '[PATCH] driver core: Check if r->n=
-ame=20
-> is valid in platform_get_resource_byname()' ?  Or would that second p=
-atch=20
-> be enough?  Is the crash happening in the platform_get_resource_bynam=
-e()=20
-> iterator?
-
-The crash happens in platform_get_resource_byname(). What I see as a pr=
-oblem
-that when we boot without DT the r->name is configured for the hwmods. =
-If we
-boot with DT we discard the resources created by the OF (which also hav=
-e the
-r->name configured). We replace the resources from hwmods but we do not=
- fix up
-the resource names (which is done in other cases).
-I have sent the patch for the drivers core as well since I think it is =
-a good
-practice anyway to check for NULL pointer before strcmp().
-
-Either is good, but IMHO we should fix this in omap_hwmod (at least).
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Tony Lindgren <tony@atomide.com>
