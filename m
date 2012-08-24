@@ -1,161 +1,80 @@
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
- hosts by default
-Date: Fri, 24 Aug 2012 09:51:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
-References: <1342485005-5178-1-git-send-email-javier@dowhile0.org> <CAMQu2gxaF8K78puE84+=8VJLbsdtdD97ww81XJxG6sCtYTYXww@mail.gmail.com> <CABxcv=nsmeVLspzXERYXebmPaNO6rKCsVnak7dMtvGjiYH4vOw@mail.gmail.com> <20120718065951.GH6522@atomide.com>
- <CAMQu2gzX1d1FQtE3z=cwfA6daDgxJe6UFUaSY0PzGGLQOz_-ZQ@mail.gmail.com> <20120718071039.GI6522@atomide.com> <CANfBPZ97onLov1TwXYaT5A6D5XzXxwpvk+=y09W_9FmcOne4Mw@mail.gmail.com> <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
- <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com> <alpine.DEB.2.01.1208232246530.15831@pmeerw.net> <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to am335x-bone.dts
+Date: Fri, 24 Aug 2012 09:56:30 +0200
+Message-ID: <6C2AC14D-1CAC-4B93-910C-B7E52D3355FD@dominion.thruhere.net>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com> <1345547850-29761-5-git-send-email-anilkumar@ti.com> <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net> <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com> <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net> <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.0 \(1486\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.pmeerw.net ([87.118.82.44]:37746 "EHLO pmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751244Ab2HXHvR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Aug 2012 03:51:17 -0400
-In-Reply-To: <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51467 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab2HXH4f convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 03:56:35 -0400
+Received: by weyx8 with SMTP id x8so866768wey.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 Aug 2012 00:56:33 -0700 (PDT)
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Javier Martinez Canillas <javier@dowhile0.org>, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-On Fri, 24 Aug 2012, Shilimkar, Santosh wrote:
 
-> On Fri, Aug 24, 2012 at 2:30 AM, Peter Meerwald <pmeerw@pmeerw.net> wrote:
-> >
-> > On Wed, 18 Jul 2012, Javier Martinez Canillas wrote:
-> >
-> > > On Wed, Jul 18, 2012 at 10:36 AM, Shilimkar, Santosh
-> > > <santosh.shilimkar@ti.com> wrote:
-> > > > On Wed, Jul 18, 2012 at 1:14 PM, S, Venkatraman <svenkatr@ti.com>
-> > > > wrote:
-> > > >> On Wed, Jul 18, 2012 at 12:40 PM, Tony Lindgren <tony@atomide.com>
-> > > >> wrote:
-> > > >>> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120718 00:09]:
-> > > >>>> On Wed, Jul 18, 2012 at 12:29 PM, Tony Lindgren <tony@atomide.com>
-> > > >>>> wrote:
-> > > >>>> > * Javier Martinez Canillas <javier@dowhile0.org> [120716 23:56]:
-> > > >>>> >> On Tue, Jul 17, 2012 at 8:45 AM, Shilimkar, Santosh
-> > > >>>> >> <santosh.shilimkar@ti.com> wrote:
-> > > >>>> >> > Hi,
-> > > >>>> >> >
-> > > >>>> >> > On Tue, Jul 17, 2012 at 6:00 AM, Javier Martinez Canillas
-> > > >>>> >> > <javier@dowhile0.org> wrote:
-> > > >>>> >> >> The OMAP MMC and OMAP High Speed MMC hosts now use entirely
-> > > >>>> >> >> the DMA
-> > > >>>> >> >> engine API instead of the previous private DMA API
-> > > >>>> >> >> implementation.
-> > > >>>> >> >>
-> > > >>>> >> >> So, if the kernel is built with support for any of these
-> > > >>>> >> >> hosts but it
-> > > >>>> >> >> doesn't support DMA devices nor OMAP DMA support, it fails
-> > > >>>> >> >> when trying
-> > > >>>> >> >> to obtain a DMA channel which leads to the following error on
-> > > >>>> >> >> an OMAP3
-> > > >>>> >> >> IGEPv2 Rev.C board (and probably on most OMAP boards with MMC
-> > > >>>> >> >> support):
-> > > >>>> >> >>
-> > > >>>> >> >> [ 2.199981] omap_hsmmc omap_hsmmc.1: unable to obtain RX DMA
-> > > >>>> >> >> engine channel 48
-> > > >>>> >> >> [    2.215087] omap_hsmmc omap_hsmmc.0: unable to obtain RX
-> > > >>>> >> >> DMA engine channel 62
-> > > >>>> >> >>
-> > > >>>> >> >> selecting automatically CONFIG_DMADEVICES and CONFIG_DMA_OMAP
-> > > >>>> >> >> solves it.
-> > > >>>> >> >>
-> > > >>>> >> >> Signed-off-by: Javier Martinez Canillas <javier@dowhile0.org>
-> > > >>>> >> >> ---
-> > > >>>> >> > Considering, we are updating drivers to select the DMA engine,
-> > > >>>> >> > can you
-> > > >>>> >> > also include
-> > > >>>> >> > "drivers/spi/spi-omap2-mcspi.c" which is also updated for DMA
-> > > >>>> >> > engine.
-> > > >>>> >> >
-> > > >>>> >> > Regards
-> > > >>>> >> > Santosh
-> > > >>>> >>
-> > > >>>> >> Hi Santosh,
-> > > >>>> >>
-> > > >>>> >> Ok, I'll send a v2 now which includes spi-omap2-mcspi then.
-> > > >>>> >
-> > > >>>> > I don't think we should do this, the drivers should work with and
-> > > >>>> > without
-> > > >>>> > dma. This just needs to be added to the omap2plus_defconfig.
-> > > >>>> >
-> > > >>>> Well this was not decided based on any DMA CONFIG option before for
-> > > >>>> the subject drivers. It is already by default enabled if the DMA is
-> > > >>>> supported
-> > > >>>> by the driver IP. There is a possibility to disable it from driver
-> > > >>>> platform/dt
-> > > >>>> data so that still remains.
-> > > >>>
-> > > >>> I think it should rather be that if the driver is broken and does
-> > > >>> not work
-> > > >>> without DMA, it should have depends on CONFIG_DMA_OMAP.
-> > > >>>
-> > > >> I can confirm that omap MMC can't work without DMA; polled mode is
-> > > >> not
-> > > >> supported / implemented.
-> > > >
-> > > > Same case for SPI driver as well. It uses DMA for everything except
-> > > > the cases
-> > > > where DMA doesn't make sense like 1 byte/2 byte etc. And its not
-> > > > configurable,
-> > > >
-> > > > At least considering this, it is better we do this per driver than
-> > > > enabling
-> > > > it at SOC config.
-> > > >
-> > > > Regards
-> > > > Santosh
-> > > > --
-> > >
-> > > Hi Santosh,
-> > >
-> > > And what about enabling it at the SoC config level but making the
-> > > drivers dependant on CONFIG_DMADEVICES and CONFIG_DMA_OMAP? If you
-> > > agree I can send something like this in two different patches (one for
-> > > the omap2plus_defconfig and another to make the drivers dependant on
-> > > the config option):
-> > >
-> > > diff --git a/arch/arm/configs/omap2plus_defconfig
-> > > b/arch/arm/configs/omap2plus_defconfig
-> > > index b152de7..e58edc3 100644
-> > > --- a/arch/arm/configs/omap2plus_defconfig
-> > > +++ b/arch/arm/configs/omap2plus_defconfig
-> > > @@ -193,6 +193,8 @@ CONFIG_MMC_OMAP_HS=y
-> > >  CONFIG_RTC_CLASS=y
-> > >  CONFIG_RTC_DRV_TWL92330=y
-> > >  CONFIG_RTC_DRV_TWL4030=y
-> > > +CONFIG_DMADEVICES=y
-> > > +CONFIG_DMA_OMAP=y
-> > >  CONFIG_EXT2_FS=y
-> > >  CONFIG_EXT3_FS=y
-> > >  # CONFIG_EXT3_FS_XATTR is not set
-> >
-> > above has been merged, 89269ef1f0abc72c551198123e19cd4edfd43cf4
-> > but I am missing the patches below in mainline (3.6-rc3) -- what happened?
-> >
-> > as Javier pointed out in https://patchwork.kernel.org/patch/1203391/,
-> > MMC is broken support e.g. on beagleboard unless DMA_OMAP is defined
-> >
-> > I suggest to take below patches and help to avoid some extra gray hair for
-> > people looking for a fix for non-booting beagleboards
-> >
-> May be I am missing something, but why you would need below patch
-> for beagle with "89269ef1f0abc72c551198123e19cd4edfd43cf4" commit
-> enabling the DMA_OMAP for all OMAP boards.
+Op 24 aug. 2012, om 09:26 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
 
-the commit just sets CONFIG_DMA_OMAP=y and CONFIG_DMADEVICES=y in 
-omap2plus_defconfig; this does not help people updating the kernel while 
-keeping the config, nor does it help people in configuring the kernel
+> Hi Koen,
+> 
+> On Fri, Aug 24, 2012 at 11:58:34, Koen Kooi wrote:
+>> 
+>> Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
+>> 
+>>> Hi Koen,
+>>> 
+>>> On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
+>>>> 
+>>>> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
+>>>> 
+>>>>> Add tps65217 regulator device tree data to AM335x-Bone by adding
+>>>>> regulator consumers with tightened constraints and regulator-name.
+>>>>> TPS65217 regulator handle can be obtained by using this regulator
+>>>>> name.
+>>>>> 
+>>>>> This patch also add I2C node with I2C frequency and tps65217 PMIC
+>>>>> I2C slave address.
+>>>>> 
+>>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>>>> 
+>>>> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
+>>> 
+>>> Use this repo to test on beaglebone
+>>> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
+>>> 
+>>> This wiki talks about how to build and use?
+>>> https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
+>>> 
+>>> Note: Enable tps65217 regulator in kernel config.
+>> 
+>> I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
+> 
+> I tested on latest mainline after merging to
+> am335x-upstream-staging-pinctrl (voltage also changing)
+> 
+> Can you share your .config and uImage?
 
-there is a dependency (at least for beagleboard) between MMC_OMAP_HS and 
-DMA_OMAP, and I think this should be made explicit
+Config: https://github.com/beagleboard/kernel/blob/beaglebone-3.6/patches/configs/beaglebone
 
-regards, p.
+> My config details:- (After merge)
+> 1. omap2plus_defconfig
+> 2. Enable tps65217 MFD driver
+> 3. Enable tps65217 regulator driver
 
--- 
 
-Peter Meerwald
-+43-664-2444418 (mobile)
+I rebased onto latest mainline and refreshed the base patches from Vaibhav and I now get: 
+
+[    0.246796] tps65217 0-0024: TPS65217 ID 0xf version 1.1
+
+So it boots! I don't know what made it break before, but it's working now :)
+
+regards,
+
+Koen
