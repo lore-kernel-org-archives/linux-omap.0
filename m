@@ -1,64 +1,75 @@
-From: Arun Raghavan <arun.raghavan@collabora.co.uk>
-Subject: Re: [alsa-devel] [RFC] ASoC: snd_soc_jack for HDMI audio: does it
- make	sense?
-Date: Fri, 24 Aug 2012 12:40:37 +0530
-Message-ID: <1345792237.11808.85.camel@localhost>
-References: <5032E8A5.8070108@ti.com> <s5hlih895kt.wl%tiwai@suse.de>
-	 <20120821120511.GB7995@opensource.wolfsonmicro.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to
+ am335x-bone.dts
+Date: Fri, 24 Aug 2012 07:26:09 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
+ <1345547850-29761-5-git-send-email-anilkumar@ti.com>
+ <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
+ <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:36878 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100Ab2HXHKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 03:10:35 -0400
-In-Reply-To: <20120821120511.GB7995@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Takashi Iwai <tiwai@suse.de>, alsa-devel <alsa-devel@alsa-project.org>, Ricardo Neri <ricardo.neri@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Guiriec, Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
 
-On Tue, 2012-08-21 at 13:05 +0100, Mark Brown wrote:
-> On Tue, Aug 21, 2012 at 07:28:34AM +0200, Takashi Iwai wrote:
-> > Ricardo Neri wrote:
-> 
-> > > I was wondering about how much sense does it make to you guys use a 
-> > > snd_soc_jack in this case?
-> 
-> > HD-audio already uses the generic jack event for the HDMI/DP
-> > connection change notification as well, so I think it would make sense
-> > in general.
-> 
-> The whole problem here is that we don't *have* a generic jack interface.
-> We've got:
-> 
->  - sound/core/jack.c which was written to be a generic API and is used
->    by everything that does jack support currently.
-> 
->  - sound/core/ctljack.c which was added later and provides separate
->    in-kernel and userspace APIs and is currently only used by HDA.
-> 
->  - extcon which does have a good reason to be a separate API since that
->    it's not audio specific (and is likely to be picked up by Android as
->    the code was originally taken from there); it's currently not
->    supported by the frameworks in ALSA.  I'd suggest Pulse should be using
->    it too.
-> 
-> This is a complete shambles for both driver authors and userspace, the
-> ABI varies randomly with drivers and in theory driver authors have to
-> implement everything three times which is just nuts.
-> 
-> What I'd like to see happening is that we merge ctljack into jack (since
-> only HDA is going to be affected by that change it seems like the right
-> direction to make the merge) and also add extcon support, I have looked
-> at the extcon support.
-> 
-> Short term for drivers used on embedded systems I'd have to recommend
-> extcon rather than anything ALSA-specific.
+Hi Koen,
 
-It's been in shambles for an absurdly long time. Would be good to
-actually try to tackle it again at Plumbers or sth.
+On Fri, Aug 24, 2012 at 11:58:34, Koen Kooi wrote:
+> 
+> Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
+> 
+> > Hi Koen,
+> > 
+> > On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
+> >> 
+> >> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
+> >> 
+> >>> Add tps65217 regulator device tree data to AM335x-Bone by adding
+> >>> regulator consumers with tightened constraints and regulator-name.
+> >>> TPS65217 regulator handle can be obtained by using this regulator
+> >>> name.
+> >>> 
+> >>> This patch also add I2C node with I2C frequency and tps65217 PMIC
+> >>> I2C slave address.
+> >>> 
+> >>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> >> 
+> >> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
+> > 
+> > Use this repo to test on beaglebone
+> > https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
+> > 
+> > This wiki talks about how to build and use?
+> > https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
+> > 
+> > Note: Enable tps65217 regulator in kernel config.
+> 
+> I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
 
--- Arun
+I tested on latest mainline after merging to
+am335x-upstream-staging-pinctrl (voltage also changing)
 
+Can you share your .config and uImage?
+
+My config details:- (After merge)
+1. omap2plus_defconfig
+2. Enable tps65217 MFD driver
+3. Enable tps65217 regulator driver
+
+Thanks
+AnilKumar
