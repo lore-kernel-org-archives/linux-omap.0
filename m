@@ -1,132 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS
- API
-Date: Fri, 24 Aug 2012 13:39:58 -0700
-Message-ID: <20120824203957.GC1303@atomide.com>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] mmc: host: enable OMAP DMA engine support for omap
+ hosts by default
+Date: Sat, 25 Aug 2012 08:57:42 +0100
+Message-ID: <20120825075742.GC25765@n2100.arm.linux.org.uk>
+References: <CAMQu2gy-U1WmgGOGZ+VyXjZmLem9TEWbq5kR8jzC0qXvqF-=BA@mail.gmail.com>
+ <CAAwP0s2Efuuc7vsX3bZuwz175zUjnmsOV87OcZ06p_eoe4T3Ug@mail.gmail.com>
+ <alpine.DEB.2.01.1208232246530.15831@pmeerw.net>
+ <CAMQu2gyEGPbNEE0ur0wh9RoJKuBe4B5NkQMUafQNWGVLX8t9vg@mail.gmail.com>
+ <alpine.DEB.2.01.1208240942100.21552@pmeerw.net>
+ <20120824094231.GA25765@n2100.arm.linux.org.uk>
+ <CAMQu2gxs0bzNMtxb0LFyFKM9s4M4yXxFpopaBO+Hah3RjhCpLA@mail.gmail.com>
+ <20120824103913.GB25765@n2100.arm.linux.org.uk>
+ <CAMQu2gw-vEguFU9naxsHtDVOfJkZVsFNMWJbvbc=ZuULy7TZNA@mail.gmail.com>
+ <alpine.DEB.2.01.1208241404440.21552@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:34608 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933309Ab2HXUkC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Aug 2012 16:40:02 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.01.1208241404440.21552@pmeerw.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: Kevin Hilman <khilman@ti.com>, Javier Martinez Canillas <martinez.javier@gmail.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-mmc@vger.kernel.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Chris Ball <cjb@laptop.org>, Javier Martinez Canillas <javier@dowhile0.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>, Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
-> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
-> API to the new PM QoS API. This allows the callback to be removed from
-> the platform data structure.
+On Fri, Aug 24, 2012 at 02:10:38PM +0200, Peter Meerwald wrote:
+> with Linux 3.6-rc3:
 > 
-> The latency requirements are also adjusted to prevent the MPU from
-> going into sleep mode. This is needed as the GP timers have no means
-> to wake up the MPU once it has gone into sleep. The "side effect" is
-> that from now on the driver actually works even if there is no
-> background load keeping the MPU awake.
+> CONFIG_DMA_OMAP=m
+> CONFIG_DMA_ENGINE=y
+> CONFIG_DMA_VIRTUAL_CHANNELS=m
+> CONFIG_MMC_OMAP_HS=y
+> CONFIG_SPI_OMAP24XX=y
+> CONFIG_MTD_NAND_OMAP2=y
 > 
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `omap2_mcspi_setup':
+> /home/pmeerw/linux-pmeerw/drivers/spi/spi-omap2-mcspi.c:859: undefined reference to `omap_dma_filter_fn'
+> drivers/built-in.o: In function `omap_nand_probe':
+> /home/pmeerw/linux-pmeerw/drivers/mtd/nand/omap2.c:1371: undefined reference to `omap_dma_filter_fn'
+> drivers/built-in.o: In function `omap_hsmmc_probe':
+> /home/pmeerw/linux-pmeerw/drivers/mmc/host/omap_hsmmc.c:2039: undefined reference to `omap_dma_filter_fn'
+> make: *** [vmlinux] Error 1
+> 
+> in addition to SPI and MMC, there seems to be also a NAND dependency
 
-This should get acked by Kevin ideally. Other than that:
+Yes.  Unlike the PL08x driver, OMAP has no way to pass the filter function
+into its drivers, and I didn't want the pain of fiddling around with DT
+crap to try and work out how to do this.  So what you have here is
+something that I got as far as I could, and TI then wanted it pushed into
+mainline.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
->  drivers/media/rc/ir-rx51.c                   | 15 ++++++++++-----
->  include/media/ir-rx51.h                      |  2 --
->  3 files changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index ca07264..e0750cb 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -34,7 +34,6 @@
->  #include <plat/gpmc.h>
->  #include <plat/onenand.h>
->  #include <plat/gpmc-smc91x.h>
-> -#include <plat/omap-pm.h>
->  
->  #include <mach/board-rx51.h>
->  
-> @@ -1227,7 +1226,6 @@ static void __init rx51_init_tsc2005(void)
->  
->  #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
->  static struct lirc_rx51_platform_data rx51_lirc_data = {
-> -	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
->  	.pwm_timer = 9, /* Use GPT 9 for CIR */
->  };
->  
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 6e1ffa6..008cdab 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -25,6 +25,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/sched.h>
->  #include <linux/wait.h>
-> +#include <linux/pm_qos.h>
->  
->  #include <plat/dmtimer.h>
->  #include <plat/clock.h>
-> @@ -49,6 +50,7 @@ struct lirc_rx51 {
->  	struct omap_dm_timer *pulse_timer;
->  	struct device	     *dev;
->  	struct lirc_rx51_platform_data *pdata;
-> +	struct pm_qos_request	pm_qos_request;
->  	wait_queue_head_t     wqueue;
->  
->  	unsigned long	fclk_khz;
-> @@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->  		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
->  
->  	/*
-> -	 * Adjust latency requirements so the device doesn't go in too
-> -	 * deep sleep states
-> +	 * If the MPU is going into too deep sleep state while we are
-> +	 * transmitting the IR code, timers will not be able to wake
-> +	 * up the MPU. Thus, we need to set a strict enough latency
-> +	 * requirement in order to ensure the interrupts come though
-> +	 * properly.
->  	 */
-> -	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-> +	pm_qos_add_request(&lirc_rx51->pm_qos_request,
-> +			PM_QOS_CPU_DMA_LATENCY,	10);
->  
->  	lirc_rx51_on(lirc_rx51);
->  	lirc_rx51->wbuf_index = 1;
-> @@ -292,8 +298,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->  	 */
->  	lirc_rx51_stop_tx(lirc_rx51);
->  
-> -	/* We can sleep again */
-> -	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-> +	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
->  
->  	return n;
->  }
-> diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
-> index 104aa89..57523f2 100644
-> --- a/include/media/ir-rx51.h
-> +++ b/include/media/ir-rx51.h
-> @@ -3,8 +3,6 @@
->  
->  struct lirc_rx51_platform_data {
->  	int pwm_timer;
-> -
-> -	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
->  };
->  
->  #endif
-> -- 
-> 1.7.12
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have no solution for the above at present - the long term solution is
+to sort out how to deal with DMA engine with DT etc.  At the moment,
+there has been discussion about this but no solution.
