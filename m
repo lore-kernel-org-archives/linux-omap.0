@@ -1,32 +1,44 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: timer: obey the !CONFIG_OMAP_32K_TIMER
-Date: Mon, 27 Aug 2012 15:43:04 -0700
-Message-ID: <CAMQu2gxZBq0wMw4rgbFpDT2pmA83ULKAJ-Mwv+VKvQQZMRQ4Dw@mail.gmail.com>
-References: <1346106374-3283-1-git-send-email-grinberg@compulab.co.il>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 00/10] Assorted MMC / OMAP HSMMC patches
+Date: Mon, 27 Aug 2012 19:02:11 -0400
+Message-ID: <87y5l0x7kc.fsf@octavius.laptop.org>
+References: <1345229550-8672-1-git-send-email-svenkatr@ti.com>
+	<20120821104330.GS10347@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:59250 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080Ab2H0WnZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Aug 2012 18:43:25 -0400
-Received: by iamm10 with SMTP id m10so8228833iam.15
-        for <linux-omap@vger.kernel.org>; Mon, 27 Aug 2012 15:43:24 -0700 (PDT)
-In-Reply-To: <1346106374-3283-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120821104330.GS10347@arwen.pp.htv.fi> (Felipe Balbi's message
+	of "Tue, 21 Aug 2012 13:43:31 +0300")
+Sender: linux-mmc-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Venkatraman S <svenkatr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, balajitk@ti.com, vishp@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Aug 27, 2012 at 3:26 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> Currently, omap2_sync32k_clocksource_init() function initializes the 32K
-> timer as the system clock source regardless of the CONFIG_OMAP_32K_TIMER
-> setting.
-> Fix this by providing a default implementation for
-> !CONFIG_OMAP_32K_TIMER case.
+Hi,
+
+On Tue, Aug 21 2012, Felipe Balbi wrote:
+> On Sat, Aug 18, 2012 at 12:22:20AM +0530, Venkatraman S wrote:
+>> Essentially, a lot of cleanups leading up to adding a new
+>> feature for OMAP HSMMC. The idea is to convert to the use
+>> of software timer instead of IP timer for timekeeping, due
+>> to the limitations of the counting range of the IP timer.
+>> 
+>> Also added myself as OMAP HSMMC maintainer.
+>> 
+>> Patch 9/10 is in draft state and needs more testing.
+>> 
+>> These patches are also available at
+>>   git://github.com/svenkatr/linux.git my/mmc/3.6/hrtimer_updates
 >
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Reviewed-by: Paul Walmsley <paul@pwsan.com>
-> ---
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> other than the small comments I had to patch 9, this series looks very
+> good:
+>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+
+Thanks -- I've pushed everything except 9/10 to mmc-next for 3.7.
+Venkat, please resubmit patch 9 individually whenever you're ready.
+
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
