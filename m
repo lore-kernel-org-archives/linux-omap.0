@@ -1,185 +1,61 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 2/2] arm/dts: AM33XX: Specify reg and interrupt property for
- all nodes
-Date: Mon, 27 Aug 2012 18:01:54 +0530
-Message-ID: <1346070714-6122-3-git-send-email-hvaibhav@ti.com>
-References: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v6 00/10] OMAP-GPMC: generic time calc, prepare for
+ driver
+Date: Mon, 27 Aug 2012 12:38:35 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9BA713@DBDE01.ent.ti.com>
+References: <cover.1345524670.git.afzal@ti.com> <503B6511.4050909@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57202 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751695Ab2H0Mio convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 08:38:44 -0400
+In-Reply-To: <503B6511.4050909@gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The device/node resources (like, IORESOURCE_MEM and IORESOURCE_IRQ)
-are overwritten by hwmod resources, due to all known reasons but
-that should not be the reason for not providing all the information
-in the DTS blob. Ideally we should use DTS resource and use HWMOD
-framework wherever required and for only specific things.
+Hi Daniel,
 
-Newer platforms like, OMAP5 and AM33XX, we only support DT boot mode,
-so this patch is preparation for the future where we supposed to get
-rid of hwmod dependency anyway.
+On Mon, Aug 27, 2012 at 17:46:17, Daniel Mack wrote:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/boot/dts/am33xx.dtsi |   42 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+> > Such a generic routine would help create a driver out of gpmc platform
+> > code, which would be peripheral agnostic and thus lead to DT finally.
+> > Input to generic timing calculation routine would be gpmc peripheral
+> > timings, output - translated timings that gpmc can understand. Later,
+> > to DT'ify, gpmc peripheral timings could be passed through DT. Input
+> > timings that has been used here are selected such that it represents
+> > those that are present in peripheral timing datasheets.
+> 
+> What I don't understand yet about this new approach is where the gpmc
+> client code should live in. In order to probe the drivers via DT, each
+> driver would need to call the gpmc support functions itself, right? Is
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index be43511..f0642e1 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -69,6 +69,9 @@
- 			#gpio-cells = <2>;
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
-+			reg = <0x44e07000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <96>;
- 		};
- 
- 		gpio2: gpio@4804c000 {
-@@ -78,6 +81,9 @@
- 			#gpio-cells = <2>;
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
-+			reg = <0x4804c000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <98>;
- 		};
- 
- 		gpio3: gpio@481ac000 {
-@@ -87,6 +93,9 @@
- 			#gpio-cells = <2>;
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
-+			reg = <0x481ac000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <32>;
- 		};
- 
- 		gpio4: gpio@481ae000 {
-@@ -96,12 +105,18 @@
- 			#gpio-cells = <2>;
- 			interrupt-controller;
- 			#interrupt-cells = <1>;
-+			reg = <0x481ae000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <62>;
- 		};
- 
- 		uart1: serial@44e09000 {
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart1";
- 			clock-frequency = <48000000>;
-+			reg = <0x44e09000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <72>;
- 			status = "disabled";
- 		};
- 
-@@ -109,6 +124,9 @@
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart2";
- 			clock-frequency = <48000000>;
-+			reg = <0x48022000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <73>;
- 			status = "disabled";
- 		};
- 
-@@ -116,6 +134,9 @@
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart3";
- 			clock-frequency = <48000000>;
-+			reg = <0x48024000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <74>;
- 			status = "disabled";
- 		};
- 
-@@ -123,6 +144,9 @@
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
-+			reg = <0x481a6000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <44>;
- 			status = "disabled";
- 		};
- 
-@@ -130,6 +154,9 @@
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart5";
- 			clock-frequency = <48000000>;
-+			reg = <0x481a8000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <45>;
- 			status = "disabled";
- 		};
- 
-@@ -137,6 +164,9 @@
- 			compatible = "ti,omap3-uart";
- 			ti,hwmods = "uart6";
- 			clock-frequency = <48000000>;
-+			reg = <0x481aa000 0x2000>;
-+ 			interrupt-parent = <&intc>;
-+ 			interrupts = <46>;
- 			status = "disabled";
- 		};
- 
-@@ -145,6 +175,9 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c1";
-+			reg = <0x44e0b000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <70>;
- 			status = "disabled";
- 		};
- 
-@@ -153,6 +186,9 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c2";
-+			reg = <0x4802a000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <71>;
- 			status = "disabled";
- 		};
- 
-@@ -161,12 +197,18 @@
- 			#address-cells = <1>;
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c3";
-+			reg = <0x4819c000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <30>;
- 			status = "disabled";
- 		};
- 
- 		wdt2: wdt@44e35000 {
- 			compatible = "ti,omap3-wdt";
- 			ti,hwmods = "wd_timer2";
-+			reg = <0x44e35000 0x1000>;
-+			interrupt-parent = <&intc>;
-+			interrupts = <91>;
- 		};
- 	};
- };
--- 
-1.7.0.4
+By gpmc client code, if you are referring to helper functions in
+mach-omap2/gpmc-*, if things go as per plan, with DT, they will go away
+and gpmc driver would handle those based on the information from DT.
+
+No change would be needed for client drivers like smc91x ethernet drivers,
+but NAND driver may need some change to live with DT as it is tightly
+coupled with GPMC.
+
+> the plan to obsolete helper functions like gpmc_nand_init() and move
+> that functionality to the drivers?
+
+Yes, plan is to obsolete the functions like gpmc_nand_init, those tasks
+would be handled by gpmc driver
+
+> 
+> I applied these patches locally and would like to help get the NAND
+> controller on my AX33xx DT-driven board going. Let me know if I can do
+> anything here.
+
+Thanks for offering the help, will take liberty to ask you for help
+when required. BTW, do you have any OMAP family boards ?
+
+Regards
+Afzal
