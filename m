@@ -1,45 +1,36 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] ARM: AM33XX: clock: Add dcan clock aliases for device-tree
-Date: Mon, 27 Aug 2012 18:38:36 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA99446@DBDE01.ent.ti.com>
-References: <1346061842-28714-1-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1208271717420.26953@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A83EA99396@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1208271836270.26953@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
+ make	sense?
+Date: Mon, 27 Aug 2012 11:55:42 -0700
+Message-ID: <20120827185541.GB4339@opensource.wolfsonmicro.com>
+References: <5032E8A5.8070108@ti.com> <s5hlih895kt.wl%tiwai@suse.de>
+ <20120821120511.GB7995@opensource.wolfsonmicro.com>
+ <1345792237.11808.85.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1208271836270.26953-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1345792237.11808.85.camel@localhost>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Arun Raghavan <arun.raghavan@collabora.co.uk>
+Cc: alsa-devel <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Ricardo Neri <ricardo.neri@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Guiriec,
+ Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 28, 2012 at 00:06:45, Paul Walmsley wrote:
-> On Mon, 27 Aug 2012, Hiremath, Vaibhav wrote:
-> 
-> > On Mon, Aug 27, 2012 at 22:50:12, Paul Walmsley wrote:
-> >
-> > > Is the dcan driver present in v3.6-rc kernels?  
-> > 
-> > Multiple versions have been submitted already, I have validated using them.
-> > Irrespective of this, it is independent change and required for the driver.
-> 
-> OK, will queue it for 3.7.
-> 
+On Fri, Aug 24, 2012 at 12:40:37PM +0530, Arun Raghavan wrote:
 
-Thanks Paul.
+> It's been in shambles for an absurdly long time. Would be good to
+> actually try to tackle it again at Plumbers or sth.
 
-Thanks,
-Vaibhav
+I think all this really needs is someone with the time to do the work -
+it's more a coding problem with unifying the in kernel API than an issue
+with working out what to do.
