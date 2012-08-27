@@ -1,88 +1,40 @@
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: Re: [PATCHv2 7/8] ir-rx51: Convert latency constraints to PM QoS
- API
-Date: Mon, 27 Aug 2012 14:11:13 +0300
-Message-ID: <503B55D1.9000908@iki.fi>
-References: <1345820986-4597-1-git-send-email-timo.t.kokkonen@iki.fi> <1345820986-4597-8-git-send-email-timo.t.kokkonen@iki.fi> <20120824203957.GC1303@atomide.com> <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v6 07/10] ARM: OMAP2+: gpmc: generic timing calculation
+Date: Mon, 27 Aug 2012 11:46:02 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9BA684@DBDE01.ent.ti.com>
+References: <cover.1345524670.git.afzal@ti.com>
+ <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com>
+ <50359C64.40603@ti.com> <20120824195446.GV11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:33839 "EHLO jenni2.inet.fi"
+Received: from bear.ext.ti.com ([192.94.94.41]:37588 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114Ab2H0LMh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Aug 2012 07:12:37 -0400
-In-Reply-To: <CAORVsuVXDK896dBb+f6qLq6Dct0CWjTn72q4Y88hdgjNA+T0pg@mail.gmail.com>
+	id S1750797Ab2H0LqM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 07:46:12 -0400
+In-Reply-To: <20120824195446.GV11011@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Tony Lindgren <tony@atomide.com>, mchehab@redhat.com, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 08/27/12 12:25, Jean Pihet wrote:
-> Hi Timo,
-> 
-> On Fri, Aug 24, 2012 at 10:39 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Timo Kokkonen <timo.t.kokkonen@iki.fi> [120824 08:11]:
->>> Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
->>> API to the new PM QoS API. This allows the callback to be removed from
->>> the platform data structure.
->>>
->>> The latency requirements are also adjusted to prevent the MPU from
->>> going into sleep mode. This is needed as the GP timers have no means
->>> to wake up the MPU once it has gone into sleep. The "side effect" is
->>> that from now on the driver actually works even if there is no
->>> background load keeping the MPU awake.
->>>
->>> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
->>
->> This should get acked by Kevin ideally. Other than that:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> ...
-> @@ -268,10 +270,14 @@ static ssize_t lirc_rx51_write(struct file
-> *file, const char *buf,
->                 lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
-> 
->         /*
-> -        * Adjust latency requirements so the device doesn't go in too
-> -        * deep sleep states
-> +        * If the MPU is going into too deep sleep state while we are
-> +        * transmitting the IR code, timers will not be able to wake
-> +        * up the MPU. Thus, we need to set a strict enough latency
-> +        * requirement in order to ensure the interrupts come though
-> +        * properly.
->          */
-> -       lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-> +       pm_qos_add_request(&lirc_rx51->pm_qos_request,
-> +                       PM_QOS_CPU_DMA_LATENCY, 10);
-> Minor remark: it would be nice to have more detail on where the
-> latency number 10 comes from. Is it fixed, is it linked to the baud
-> rate etc?
-> 
+Hi Tony,
 
-Yeah, it was chosen to be low enough for the MPU to receive the IRQ from
-the timers. 50us was good enough back then with the original n900
-kernel, but nowadays it is not good enough from preventing the MPU from
-going to sleep where the timer interrupts don't come through.
+On Sat, Aug 25, 2012 at 01:24:47, Tony Lindgren wrote:
 
-Yes, I should probably have stated that in the comment to make it clear.
-Can I re-send just this one patch or should I send the entire set again?
-I'm assuming these go in through Mauro's media tree as these depend on
-stuff that's already there. So, which ever is easier for him I guess :)
+> Yes agreed. Also as some values make sense only in cycles, converting them
+> back and forth to time is wrong. So at least some values should have an
+> option to specify them in cycles directly, and then ignore any time based
+> values.
 
-Thanks!
+Which values in struct gpmc_device_timings are you referring to ?
 
--Timo
+Values that need to have an option to specify in cycles has been provided
+such an option, while not updating time based field value, you can
+achieve what you mentioned above. But if you want that to be handled in
+in generic routine, I will do so.
 
-> Here is my ack for the PM QoS API part:
-> Acked-by: Jean Pihet <j-pihet@ti.com>
-> 
-> Regards,
-> Jean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Regards
+Afzal
