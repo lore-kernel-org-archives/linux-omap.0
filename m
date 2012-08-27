@@ -1,53 +1,32 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] MMC: OMAP MSDI: fix broken PIO mode
-Date: Mon, 27 Aug 2012 18:42:42 -0400
-Message-ID: <873938yn19.fsf@octavius.laptop.org>
-References: <alpine.DEB.2.00.1208240555210.25436@utopia.booyaka.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: timer: obey the !CONFIG_OMAP_32K_TIMER
+Date: Mon, 27 Aug 2012 15:43:04 -0700
+Message-ID: <CAMQu2gxZBq0wMw4rgbFpDT2pmA83ULKAJ-Mwv+VKvQQZMRQ4Dw@mail.gmail.com>
+References: <1346106374-3283-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1208240555210.25436@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 24 Aug 2012 06:00:18 +0000 (UTC)")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-mmc@vger.kernel.org, Carlos Aguiar <carlos.aguiar@indt.org.br>, tony@atomide.com, Juha =?utf-8?B?WXJqw7Zsw6Q=?= <juha.yrjola@nokia.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:59250 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751080Ab2H0WnZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Aug 2012 18:43:25 -0400
+Received: by iamm10 with SMTP id m10so8228833iam.15
+        for <linux-omap@vger.kernel.org>; Mon, 27 Aug 2012 15:43:24 -0700 (PDT)
+In-Reply-To: <1346106374-3283-1-git-send-email-grinberg@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On Fri, Aug 24 2012, Paul Walmsley wrote:
-> After commit 26b88520b80695a6fa5fd95b5d97c03f4daf87e0 ("mmc:
-> omap_hsmmc: remove private DMA API implementation"), the Nokia N800
-> here stopped booting:
+On Mon, Aug 27, 2012 at 3:26 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
+> Currently, omap2_sync32k_clocksource_init() function initializes the 32K
+> timer as the system clock source regardless of the CONFIG_OMAP_32K_TIMER
+> setting.
+> Fix this by providing a default implementation for
+> !CONFIG_OMAP_32K_TIMER case.
 >
-> [    2.086181] Waiting for root device /dev/mmcblk0p1...
-> [    2.324066] Unhandled fault: imprecise external abort (0x406) at 0x00000000
-> [    2.331451] Internal error: : 406 [#1] ARM
-> [    2.335784] Modules linked in:
-> [    2.339050] CPU: 0    Not tainted  (3.6.0-rc3 #60)
-> [    2.344146] PC is at default_idle+0x28/0x30
-> [    2.348602] LR is at trace_hardirqs_on_caller+0x15c/0x1b0
->
-> ...
->
-> This turned out to be due to memory corruption caused by long-broken
-> PIO code in drivers/mmc/host/omap.c.  (Previously, this driver had
-> been using DMA; but the above commit caused the MMC driver to fall
-> back to PIO mode with an unmodified Kconfig.)
->
-> The PIO code, added with the rest of the driver in commit
-> 730c9b7e6630f786fcec026fb11d2e6f2c90fdcb ("[MMC] Add OMAP MMC host
-> driver"), confused bytes with 16-bit words.  This bug caused memory
-> located after the PIO transfer buffer to be corrupted with transfers
-> larger than 32 bytes.  The driver also did not increment the buffer
-> pointer after the transfer occurred.  This bug resulted in data
-> corruption during any transfer larger than 64 bytes.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
-Yuck.  Thanks for tracking that down, Paul -- pushed to mmc-next for 3.6.
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> ---
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
