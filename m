@@ -1,36 +1,132 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] ASoC: snd_soc_jack for HDMI audio: does it
- make	sense?
-Date: Mon, 27 Aug 2012 11:55:42 -0700
-Message-ID: <20120827185541.GB4339@opensource.wolfsonmicro.com>
-References: <5032E8A5.8070108@ti.com> <s5hlih895kt.wl%tiwai@suse.de>
- <20120821120511.GB7995@opensource.wolfsonmicro.com>
- <1345792237.11808.85.camel@localhost>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v6 07/10] ARM: OMAP2+: gpmc: generic timing calculation
+Date: Mon, 27 Aug 2012 15:30:13 -0500
+Message-ID: <503BD8D5.5060400@ti.com>
+References: <cover.1345524670.git.afzal@ti.com> <83b963e4ebcc1009a26a8c6419c785ac6d742c0b.1345524670.git.afzal@ti.com> <50359C64.40603@ti.com> <C8443D0743D26F4388EA172BF4E2A7A93E9BA63D@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1345792237.11808.85.camel@localhost>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Arun Raghavan <arun.raghavan@collabora.co.uk>
-Cc: alsa-devel <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Ricardo Neri <ricardo.neri@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Guiriec,
- Sebastien" <s-guiriec@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45644 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754286Ab2H0UaI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Aug 2012 16:30:08 -0400
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9BA63D@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Aug 24, 2012 at 12:40:37PM +0530, Arun Raghavan wrote:
+Hi Afzal,
 
-> It's been in shambles for an absurdly long time. Would be good to
-> actually try to tackle it again at Plumbers or sth.
+On 08/27/2012 05:37 AM, Mohammed, Afzal wrote:
+> On Thu, Aug 23, 2012 at 08:28:44, Hunter, Jon wrote:
 
-I think all this really needs is someone with the time to do the work -
-it's more a coding problem with unifying the in kernel API than an issue
-with working out what to do.
+[snip]
+
+>> I understand that this is based upon how timings for onenand and tusb
+>> are being calculated today, but I am not sure that this is the way to go
+>> for all devices. Personally, I would like to see us get away from how
+>> those devices are calculating timings for any new device.
+> 
+> You cannot do away with many of the those, as logically they
+> are right. Eg. read data should be available at access time,
+> assuming a zero data hold time, we can very well derive an
+> expression as,
+
+I am not saying that we do away with them for current devices, just
+maintain them as is.
+
+> read de-assertion time (oe_off) = access time plus 1 gpmc clock,
+> 
+> and this is what the existing calculations do, and also the
+> generic routine. There could be other constraints, but this
+> certainly should be one (I do realize that oe_off could be
+> optimized to be less than access time, by relying on read
+> hold time, then again effect of it would be in similar way
+> for different peripherals, but let's forget about
+> optimization in the beginning)
+> 
+>> In general, I am concerned that we are abstracting the timings further
+>> from the actual register fields. For example, the timings parameter
+>> "t_ceasu" is described "address setup to CS valid" which is not
+>> incorrect but this value is really just programming the CSONTIME field
+>> and so why not call this cs_on?
+> 
+> Timing fields of struct gpmc_device_timings are selected such
+> that they should be bindable by DT. At least one of the peripheral
+> datasheet has these fields.
+
+Right, but these are not applicable to every device and so I worry this
+could be confusing. However, more documentation may help clear this up.
+
+> If user knows timings in terms of
+> gpmc values, he can directly use struct gpmc_timings, but
+> then all the values should be updated in struct gpmc_timings.
+> User should not update some of the values in terms of
+> peripheral timings, others in terms of gpmc timings, that
+> would make things complex and does not seem the right way
+> to me.
+> 
+> cs_on and other gpmc aware timings could be binded by DT, not as
+> peripheral timing, but as gpmc timing.
+> 
+> Bindings for peripheral DT timings should be something that
+> can be obtained from peripheral datasheet, here accidentally
+> it is same as gpmc timings, but not most timings are this way.
+> Also there could be other constraints that can come for cs_on,
+> even though I have not come across any till now.
+> 
+>>
+>> So although this may consolidate how the timings are calculated today, I
+>> am concerned it will be confusing to add timings for a new device. At
+>> least if I am calculating timings, I am taking the timing information
+>> for the device and translating that to the how I need to program the
+>> gpmc register fields.
+> 
+> If I am not wrong, GPMC IP has been present for around a
+> decade, and so far I have not come across any generic time
+> calculation method that can be applied to all peripherals.
+
+Yes not an easy problem to solve :-(
+
+> Getting to work same peripheral for a different gpmc
+> frequency is another problem.
+> 
+> Here we are trying to generalize based on the understanding of
+> gpmc & peripheral timings, as well as by a kind of reverse
+> engineering without most of the hardware or datasheet. Think of
+> this as an attempt to create one, let it evolve and become a
+> robust one. If a new user want to add a peripheral, let him add
+> support, input timings are selected such that it is found in
+> peripheral datasheet, if that does not work, let him try
+> to add any new timing field or alter existing expression
+> as he deems to be proper and verify that it does not break
+> others. And I can help provided I am not heavily loaded
+> with other works.
+
+So long as it is maintainable ;-)
+
+> And at least for initial users, they are expected to have
+> some grasp on how to calculate timings, such a user will
+> not be much worried about your 3 concerns above, anyway as
+> of now they need to have a good grasp on it.
+
+I would consider myself to be an initial user and I am concerned,
+doesn't that count?
+
+An example, would be the following where you have 4 timing parameters
+for access time. You need to dig through the code to understand how
+these are being used.
+
++	u32     t_aa;		/* access time from ADV assertion */
++	u32     t_iaa;		/* initial access time */
++	u32     t_oe;		/* access time from OE assertion */
++	u32     t_ce;		/* access time from CS asertion */
+
+> Meanwhile I will try to document more.
+
+Yes more documentation is definitely needed.
+
+Cheers
+Jon
