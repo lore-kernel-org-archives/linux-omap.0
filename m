@@ -1,91 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: Correct DISPC_IRQ bit definitions for LCD3
-Date: Mon, 27 Aug 2012 12:26:25 +0300
-Message-ID: <1346059585.14793.3.camel@deskari>
-References: <1346057599-5691-1-git-send-email-cmahapatra@ti.com>
+From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: AM33XX: clock: Add dcan clock aliases for device-tree
+Date: Mon, 27 Aug 2012 15:34:02 +0530
+Message-ID: <1346061842-28714-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-2zUeJOOQurMEIzlMzr1G"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:40356 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057Ab2H0J0b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Aug 2012 05:26:31 -0400
-Received: by lage12 with SMTP id e12so3802333lag.27
-        for <linux-omap@vger.kernel.org>; Mon, 27 Aug 2012 02:26:28 -0700 (PDT)
-In-Reply-To: <1346057599-5691-1-git-send-email-cmahapatra@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: mark.tyler@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-
-
---=-2zUeJOOQurMEIzlMzr1G
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 2012-08-27 at 14:23 +0530, Chandrabhanu Mahapatra wrote:
-> The DISPC_IRQ bit definitions pertaining to channel LCD3 as DISPC_IRQ_VSY=
-NC3,
-> DISPC_IRQ_SYNC_LOST3, DISPC_IRQ_ACBIAS_COUNT_STAT3 AND DISPC_IRQ_FRAMEDON=
-E3
-> which were incorrectly set in previous LCD3 patches have been corrected h=
-ere.
->=20
-> Reported-by: Mark Tyler <mark.tyler@ti.com>
-> Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-> ---
->  include/video/omapdss.h |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->=20
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index b868123..9c7cca3 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -48,10 +48,10 @@
->  #define DISPC_IRQ_FRAMEDONEWB		(1 << 23)
->  #define DISPC_IRQ_FRAMEDONETV		(1 << 24)
->  #define DISPC_IRQ_WBBUFFEROVERFLOW	(1 << 25)
-> -#define DISPC_IRQ_FRAMEDONE3		(1 << 26)
-> -#define DISPC_IRQ_VSYNC3		(1 << 27)
-> -#define DISPC_IRQ_ACBIAS_COUNT_STAT3	(1 << 28)
-> -#define DISPC_IRQ_SYNC_LOST3		(1 << 29)
-> +#define DISPC_IRQ_SYNC_LOST3		(1 << 27)
-> +#define DISPC_IRQ_VSYNC3		(1 << 28)
-> +#define DISPC_IRQ_ACBIAS_COUNT_STAT3	(1 << 29)
-> +#define DISPC_IRQ_FRAMEDONE3		(1 << 30)
-> =20
->  struct omap_dss_device;
->  struct omap_overlay_manager;
-
-Thanks, applied.
-
- Tomi
-
-
---=-2zUeJOOQurMEIzlMzr1G
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+List-Id: linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Currently, the device names for the dcan module follows the
+format "dcan.X", where 'X' is the dcan instance number.
+On other side, driver may request for clock with/without con_id
+and dev_id, and it is expected that platform should respect this
+request and return the requested clock handle.
 
-iQIcBAABAgAGBQJQOz1BAAoJEPo9qoy8lh71qcsP/3665t0xNTtTW3kik3D/Tq/X
-YODsDaW/KL6N4DIv97k5PuN7pYOzCfVoID0WLbpYnI3FTN1MzhYxG7Bjj/8egKkT
-sAbOa9tTYsUFm9AxVyXxruOmz7Qn4CiUGQw8bOpODpK3V9pq6ivm3apozymypgQG
-hP/cnyDqbahhj1AjU0mfzOZe98/idq4yhrhKeY7EJLp1dYePJn3YWqK18IFdSJSZ
-37T2TZlXzfzftkOhC2fBx3vCl59f51jAzi2gisC66bBIakjN+NE7C02HlVn4gMdu
-3iq/yH+DPFVJc/9tEsybA1skfwfPsd16lmO9tAoMJDcaJGZf+Z8XQP9/gbMYAY2l
-9h6Byv6hAqMn6t7iP4H4c/3ycowG1fhAtgwsvpf/fV+xH4YhbEyrT3F1juf7QqfU
-rD9VfaYzmNnFypigAkRNkhpH/isoJgB9U4MLAGEjzfH4GD/3ylDFEnts2BIi8zLw
-cUwfMDAkr6zwYZY5Bi87cVEMDkQYx90s0HxmkRxIy+dpnL9I5XETbFHa+O83jcb7
-1OffU3BDe6aSH2IG4YiGwpxpbCleOsU9LWBLbemMGETfvxoqVv3HEHvgnMgoEidf
-W81lWzc6ufk/xtec9/ehS664EYAKkaRc66Y4tC/Ku1jSCNKgDLa2QHtU+I0UQ9LO
-H4tCSd+ejqO8+OYHiiVp
-=KL/o
------END PGP SIGNATURE-----
+Now, when using device tree, the format of the device name created
+by OF layer is different, "<reg-address>.<device-name>",
+assuming that the device-tree "reg" property is specified.
+This causes the look-up failure for clock node in dcan driver
 
---=-2zUeJOOQurMEIzlMzr1G--
+To fix this add new dcan clock alias for using device-tree.
 
+Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ arch/arm/mach-omap2/clock33xx_data.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
+index ae27de8..a4006b2 100644
+--- a/arch/arm/mach-omap2/clock33xx_data.c
++++ b/arch/arm/mach-omap2/clock33xx_data.c
+@@ -1027,7 +1027,9 @@ static struct omap_clk am33xx_clks[] = {
+ 	CLK(NULL,	"cefuse_fck",		&cefuse_fck,	CK_AM33XX),
+ 	CLK(NULL,	"clkdiv32k_ick",	&clkdiv32k_ick,	CK_AM33XX),
+ 	CLK(NULL,	"dcan0_fck",		&dcan0_fck,	CK_AM33XX),
++	CLK("481cc000.d_can",	NULL,		&dcan0_fck,	CK_AM33XX),
+ 	CLK(NULL,	"dcan1_fck",		&dcan1_fck,	CK_AM33XX),
++	CLK("481d0000.d_can",	NULL,		&dcan1_fck,	CK_AM33XX),
+ 	CLK(NULL,	"debugss_ick",		&debugss_ick,	CK_AM33XX),
+ 	CLK(NULL,	"pruss_ocp_gclk",	&pruss_ocp_gclk,	CK_AM33XX),
+ 	CLK("davinci-mcasp.0",  NULL,           &mcasp0_fck,    CK_AM33XX),
+-- 
+1.7.0.4
