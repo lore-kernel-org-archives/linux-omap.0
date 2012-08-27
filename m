@@ -1,39 +1,38 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 1/4] arm/dts: regulator: Add tps65910 device tree data
-Date: Mon, 27 Aug 2012 09:51:38 -0700
-Message-ID: <20120827165137.GL4339@opensource.wolfsonmicro.com>
-References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
- <1345547850-29761-2-git-send-email-anilkumar@ti.com>
- <5033ADC5.4030002@wwwdotorg.org>
- <20120821163805.GW7995@opensource.wolfsonmicro.com>
- <5033CDDB.808@wwwdotorg.org>
- <20120821180847.GC7995@opensource.wolfsonmicro.com>
- <20120824201634.GZ11011@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP2+: am33xx: Fix the timer fck clock naming
+ convention
+Date: Mon, 27 Aug 2012 17:15:35 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1208271715240.26953@utopia.booyaka.com>
+References: <1342462158-15998-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46597 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752432Ab2H0Qvk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Aug 2012 12:51:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20120824201634.GZ11011@atomide.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:36500 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518Ab2H0RPg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 13:15:36 -0400
+In-Reply-To: <1342462158-15998-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, AnilKumar Ch <anilkumar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Fri, Aug 24, 2012 at 01:16:34PM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [120821 11:09]:
+On Mon, 16 Jul 2012, Vaibhav Hiremath wrote:
 
-> > The board shouldn't have to define the regulators, the regulator driver
-> > really ought to be able to figure out that they're there by itself if
-> > there's no configuration based purely on knowing which chip is there.
-> > From that point of view it's OK for the chip .dtsi to have them (though
-> > ideally the driver wouldn't *need* that either) which was what was
-> > happening here.
+> With commit ae6df418a21f3a361c5f9b878e32a8aba4e17692
+> Sub: ARM: OMAP2+: dmtimer: cleanup fclk usage)
+> The Timer functional clock naming convention has changed from
+> gptX_fck => timerXfck, and so as the timer init function
+> in mach-omap2/timer.c.
+> OMAP4 clocktree also has changed accordingly.
+> 
+> AM33xx Clock Tree has been merged during rc3-4 timeframe,
+> before above commit got merged, so similar change is required
+> for AM33xx as well (Change the gptX_fck => timerX_fck).
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> So I assume no changes needed here then?
+Thanks, queued for v3.6-rc.
 
-Seems that way.
+
+- Paul
