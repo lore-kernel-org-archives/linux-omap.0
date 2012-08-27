@@ -1,66 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 5/5] hwrng: OMAP: remove SoC restrictions from driver
- registration
-Date: Mon, 27 Aug 2012 17:36:12 -0600
-Message-ID: <20120827233611.15045.19688.stgit@dusk.lan>
-References: <20120827232922.15045.56522.stgit@dusk.lan>
+Subject: [PATCH 0/5] hwrng/ARM: OMAP: convert to use runtime PM
+Date: Mon, 27 Aug 2012 17:36:06 -0600
+Message-ID: <20120827232922.15045.56522.stgit@dusk.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37129 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:37111 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755037Ab2H0Xit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 19:38:49 -0400
-In-Reply-To: <20120827232922.15045.56522.stgit@dusk.lan>
+	with ESMTP id S1754322Ab2H0Xir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 19:38:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-arm-kernel@lists.infradead.org, Matt Mackall <mpm@selenic.com>
 
-Remove the SoC restriction code from the OMAP RNG driver.  The
-integration code in arch/arm/*omap* should handle this.  The device
-shouldn't be created if it doesn't exist on the currently-booted SoC.
+This series converts the OMAP hardware random number generator driver
+to use runtime PM.  Hardware integration data is added for OMAP2xxx
+systems.  I'm pretty sure this device is available on other OMAP chips
+too, but may require some experimentation with the integration details.
 
-This allows us to remove some OMAP-specific cpu_is_omap*() calls from
-the driver.  Also, if other OMAP chips have RNGs that can be used
-by Linux, there will be no need to modify the driver.
+There are still a few rough edges with this series.  Something is
+still not right with the reset behavior on OMAP2430, at least.  But it
+would be good to get acks from the hwrng folks for the three patches that
+touch files in that directory.  Will continue with the testing process
+here.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+
+- Paul
+
 ---
- arch/arm/mach-omap1/devices.c     |    3 +++
- drivers/char/hw_random/omap-rng.c |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 7f3d9d2..aedd7a4 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -377,6 +377,9 @@ static struct platform_device omap1_rng_device = {
- 
- static void omap1_init_rng(void)
- {
-+	if (!cpu_is_omap16xx())
-+		return;
-+
- 	(void) platform_device_register(&omap1_rng_device);
- }
- 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index 748fcc8..a5effd8 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -220,9 +220,6 @@ static struct platform_driver omap_rng_driver = {
- 
- static int __init omap_rng_init(void)
- {
--	if (!cpu_is_omap16xx() && !cpu_is_omap24xx())
--		return -ENODEV;
--
- 	return platform_driver_register(&omap_rng_driver);
- }
- 
+Paul Walmsley (5):
+      ARM: OMAP2/3: hwmod: add RNG integration data
+      hwrng: OMAP: store per-device data in per-device variables, not file statics
+      hwrng: OMAP: convert to use runtime PM
+      ARM: OMAP: split OMAP1, OMAP2+ RNG device registration
+      hwrng: OMAP: remove SoC restrictions from driver registration
 
+
+ arch/arm/mach-omap1/devices.c                      |   28 +++++
+ arch/arm/mach-omap2/devices.c                      |   18 +++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   17 +++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   37 ++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    5 -
+ arch/arm/plat-omap/Makefile                        |    3 
+ arch/arm/plat-omap/devices.c                       |   92 ---------------
+ drivers/char/hw_random/omap-rng.c                  |  121 ++++++++++++--------
+ 10 files changed, 176 insertions(+), 147 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/devices.c
 
