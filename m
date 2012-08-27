@@ -1,241 +1,184 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/5] hwrng: OMAP: store per-device data in per-device
- variables, not file statics
-Date: Mon, 27 Aug 2012 17:36:10 -0600
-Message-ID: <20120827233609.15045.38385.stgit@dusk.lan>
+Subject: [PATCH 1/5] ARM: OMAP2/3: hwmod: add RNG integration data
+Date: Mon, 27 Aug 2012 17:36:09 -0600
+Message-ID: <20120827233606.15045.59388.stgit@dusk.lan>
 References: <20120827232922.15045.56522.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:37117 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:37114 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755017Ab2H0Xis (ORCPT
+	with ESMTP id S1755016Ab2H0Xis (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 19:38:48 -0400
 In-Reply-To: <20120827232922.15045.56522.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Herbert Xu <herbert@gondor.apana.org.au>, Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org
 
-Encapsulate all of the RNG per-device state into a single per-device
-structure record, as opposed to a set of per-driver file variables.
+Add integration data for the hardware random number generator IP block
+on some OMAP SoCs.  This appears to be present on OMAP2xxx and OMAP3xxx
+SoCs, although it is not so easy to tell.  It may also be present on
+other OMAP2+ SoCs.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
 ---
- drivers/char/hw_random/omap-rng.c |  115 +++++++++++++++++++++++++------------
- 1 file changed, 77 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 +
+ .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   17 +++++++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   37 ++++++++++++=
+++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    5 ++-
+ 5 files changed, 59 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index 4fbdceb..e0f0b98 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/hw_random.h>
- #include <linux/delay.h>
-+#include <linux/slab.h>
- 
- #include <asm/io.h>
- 
-@@ -46,26 +47,38 @@
- #define RNG_SYSSTATUS		0x44		/* System status
- 							[0] = RESETDONE */
- 
--static void __iomem *rng_base;
--static struct clk *rng_ick;
--static struct platform_device *rng_dev;
-+/**
-+ * struct omap_rng_private_data - RNG IP block-specific data
-+ * @base: virtual address of the beginning of the RNG IP block registers
-+ * @clk: RNG clock
-+ * @mem_res: struct resource * for the IP block registers physical memory
-+ */
-+struct omap_rng_private_data {
-+	void __iomem *base;
-+	struct clk *clk;
-+	struct resource *mem_res;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_2420_data.c
+index 50cfab6..5a53287 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -587,6 +587,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp=
+_ifs[] __initdata =3D {
+ 	&omap2420_l4_core__mcbsp1,
+ 	&omap2420_l4_core__mcbsp2,
+ 	&omap2420_l4_core__msdi1,
++	&omap2xxx_l4_core__rng,
+ 	&omap2420_l4_core__hdq1w,
+ 	&omap2420_l4_wkup__counter_32k,
+ 	NULL,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_2430_data.c
+index 58b5bc1..256d8f6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -947,6 +947,7 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp=
+_ifs[] __initdata =3D {
+ 	&omap2430_l4_core__mcbsp4,
+ 	&omap2430_l4_core__mcbsp5,
+ 	&omap2430_l4_core__hdq1w,
++	&omap2xxx_l4_core__rng,
+ 	&omap2430_l4_wkup__counter_32k,
+ 	NULL,
+ };
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c b/=
+arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+index 5178e40..14dc5ca 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_interconnect_data.c
+@@ -129,6 +129,15 @@ struct omap_hwmod_addr_space omap2xxx_mcbsp2_addrs=
+[] =3D {
+ 	{ }
+ };
+=20
++static struct omap_hwmod_addr_space omap2_rng_addr_space[] =3D {
++	{
++		.pa_start	=3D 0x480a0000,
++		.pa_end		=3D 0x480a004f,
++		.flags		=3D ADDR_TYPE_RT
++	},
++	{ }
 +};
- 
--static inline u32 omap_rng_read_reg(int reg)
-+static inline u32 omap_rng_read_reg(struct omap_rng_private_data *priv, int reg)
- {
--	return __raw_readl(rng_base + reg);
-+	return __raw_readl(priv->base + reg);
- }
- 
--static inline void omap_rng_write_reg(int reg, u32 val)
-+static inline void omap_rng_write_reg(struct omap_rng_private_data *priv,
-+				      int reg, u32 val)
- {
--	__raw_writel(val, rng_base + reg);
-+	__raw_writel(val, priv->base + reg);
- }
- 
- static int omap_rng_data_present(struct hwrng *rng, int wait)
- {
-+	struct omap_rng_private_data *priv;
- 	int data, i;
- 
-+	priv = (struct omap_rng_private_data *)rng->priv;
 +
- 	for (i = 0; i < 20; i++) {
--		data = omap_rng_read_reg(RNG_STAT_REG) ? 0 : 1;
-+		data = omap_rng_read_reg(priv, RNG_STAT_REG) ? 0 : 1;
- 		if (data || !wait)
- 			break;
- 		/* RNG produces data fast enough (2+ MBit/sec, even
-@@ -80,9 +93,13 @@ static int omap_rng_data_present(struct hwrng *rng, int wait)
- 
- static int omap_rng_data_read(struct hwrng *rng, u32 *data)
- {
--	*data = omap_rng_read_reg(RNG_OUT_REG);
-+	struct omap_rng_private_data *priv;
+ /*
+  * Common interconnect data
+  */
+@@ -372,3 +381,11 @@ struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_ven=
+c =3D {
+ 	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+ };
+=20
++/* l4_core -> rng */
++struct omap_hwmod_ocp_if omap2xxx_l4_core__rng =3D {
++	.master		=3D &omap2xxx_l4_core_hwmod,
++	.slave		=3D &omap2xxx_rng_hwmod,
++	.clk		=3D "l4_ck",
++	.addr		=3D omap2_rng_addr_space,
++	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/=
+arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index afad69c..06a37db 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -745,3 +745,40 @@ struct omap_hwmod omap2xxx_counter_32k_hwmod =3D {
+ 	},
+ 	.class		=3D &omap2xxx_counter_hwmod_class,
+ };
 +
-+	priv = (struct omap_rng_private_data *)rng->priv;
++/* RNG */
 +
-+	*data = omap_rng_read_reg(priv, RNG_OUT_REG);
- 
--	return 4;
-+	return sizeof(u32);
- }
- 
- static struct hwrng omap_rng_ops = {
-@@ -93,69 +110,85 @@ static struct hwrng omap_rng_ops = {
- 
- static int __devinit omap_rng_probe(struct platform_device *pdev)
- {
--	struct resource *res;
-+	struct omap_rng_private_data *priv;
- 	int ret;
- 
--	/*
--	 * A bit ugly, and it will never actually happen but there can
--	 * be only one RNG and this catches any bork
--	 */
--	if (rng_dev)
--		return -EBUSY;
-+	priv = kzalloc(sizeof(struct omap_rng_private_data), GFP_KERNEL);
-+	if (!priv) {
-+		dev_err(&pdev->dev, "could not allocate memory\n");
-+		return -ENOMEM;
-+	};
++static struct omap_hwmod_class_sysconfig omap2_rng_sysc =3D {
++	.rev_offs	=3D 0x3c,
++	.sysc_offs	=3D 0x40,
++	.syss_offs	=3D 0x44,
++	.sysc_flags	=3D (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
++			   SYSS_HAS_RESET_STATUS),
++	.sysc_fields	=3D &omap_hwmod_sysc_type1,
++};
 +
-+	omap_rng_ops.priv = (unsigned long)priv;
-+	dev_set_drvdata(&pdev->dev, priv);
- 
- 	if (cpu_is_omap24xx()) {
--		rng_ick = clk_get(&pdev->dev, "ick");
--		if (IS_ERR(rng_ick)) {
-+		priv->clk = clk_get(&pdev->dev, "ick");
-+		if (IS_ERR(priv->clk)) {
- 			dev_err(&pdev->dev, "Could not get rng_ick\n");
--			ret = PTR_ERR(rng_ick);
-+			ret = PTR_ERR(priv->clk);
- 			return ret;
--		} else
--			clk_enable(rng_ick);
-+		} else {
-+			clk_enable(priv->clk);
-+		}
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	priv->mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!priv->mem_res) {
-+		ret = -ENOENT;
-+		goto err_ioremap;
-+	}
- 
--	rng_base = devm_request_and_ioremap(&pdev->dev, res);
--	if (!rng_base) {
-+	priv->base = devm_request_and_ioremap(&pdev->dev, priv->mem_res);
-+	if (!priv->base) {
- 		ret = -ENOMEM;
- 		goto err_ioremap;
- 	}
--	dev_set_drvdata(&pdev->dev, res);
-+	dev_set_drvdata(&pdev->dev, priv);
- 
- 	ret = hwrng_register(&omap_rng_ops);
- 	if (ret)
- 		goto err_register;
- 
- 	dev_info(&pdev->dev, "OMAP Random Number Generator ver. %02x\n",
--		omap_rng_read_reg(RNG_REV_REG));
--	omap_rng_write_reg(RNG_MASK_REG, 0x1);
-+		 omap_rng_read_reg(priv, RNG_REV_REG));
++static struct omap_hwmod_class omap2_rng_hwmod_class =3D {
++	.name		=3D "rng",
++	.sysc		=3D &omap2_rng_sysc,
++};
 +
- 
--	rng_dev = pdev;
-+	omap_rng_write_reg(priv, RNG_MASK_REG, 0x1);
- 
- 	return 0;
- 
- err_register:
--	rng_base = NULL;
-+	priv->base = NULL;
- err_ioremap:
- 	if (cpu_is_omap24xx()) {
--		clk_disable(rng_ick);
--		clk_put(rng_ick);
-+		clk_disable(priv->clk);
-+		clk_put(priv->clk);
- 	}
++static struct omap_hwmod_irq_info omap2_rng_mpu_irqs[] =3D {
++	{ .irq =3D 52 },
++	{ .irq =3D -1 }
++};
 +
-+	kfree(priv);
-+
- 	return ret;
- }
- 
- static int __exit omap_rng_remove(struct platform_device *pdev)
- {
-+	struct omap_rng_private_data *priv = dev_get_drvdata(&pdev->dev);
-+
- 	hwrng_unregister(&omap_rng_ops);
- 
--	omap_rng_write_reg(RNG_MASK_REG, 0x0);
-+	omap_rng_write_reg(priv, RNG_MASK_REG, 0x0);
-+
-+	iounmap(priv->base);
- 
- 	if (cpu_is_omap24xx()) {
--		clk_disable(rng_ick);
--		clk_put(rng_ick);
-+		clk_disable(priv->clk);
-+		clk_put(priv->clk);
- 	}
- 
--	rng_base = NULL;
-+	release_mem_region(priv->mem_res->start, resource_size(priv->mem_res));
-+
-+	kfree(priv);
- 
- 	return 0;
- }
-@@ -164,13 +197,19 @@ static int __exit omap_rng_remove(struct platform_device *pdev)
- 
- static int omap_rng_suspend(struct device *dev)
- {
--	omap_rng_write_reg(RNG_MASK_REG, 0x0);
-+	struct omap_rng_private_data *priv = dev_get_drvdata(dev);
-+
-+	omap_rng_write_reg(priv, RNG_MASK_REG, 0x0);
-+
- 	return 0;
- }
- 
- static int omap_rng_resume(struct device *dev)
- {
--	omap_rng_write_reg(RNG_MASK_REG, 0x1);
-+	struct omap_rng_private_data *priv = dev_get_drvdata(dev);
-+
-+	omap_rng_write_reg(priv, RNG_MASK_REG, 0x1);
-+
- 	return 0;
- }
- 
++struct omap_hwmod omap2xxx_rng_hwmod =3D {
++	.name		=3D "rng",
++	.mpu_irqs	=3D omap2_rng_mpu_irqs,
++	.main_clk	=3D "l4_ck",
++	.prcm		=3D {
++		.omap2 =3D {
++			.module_offs =3D CORE_MOD,
++			.prcm_reg_id =3D 4,
++			.module_bit =3D OMAP24XX_EN_RNG_SHIFT,
++			.idlest_reg_id =3D 4,
++			.idlest_idle_bit =3D OMAP24XX_ST_RNG_SHIFT,
++		},
++	},
++	.class		=3D &omap2_rng_hwmod_class,
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/ma=
+ch-omap2/omap_hwmod_common_data.h
+index e7e8eea..4363610 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -2,9 +2,8 @@
+  * omap_hwmod_common_data.h - OMAP hwmod common macros and declaration=
+s
+  *
+  * Copyright (C) 2010-2011 Nokia Corporation
++ * Copyright (C) 2010-2012 Texas Instruments, Inc.
+  * Paul Walmsley
+- *
+- * Copyright (C) 2010-2011 Texas Instruments, Inc.
+  * Beno=C3=AEt Cousson
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+@@ -76,6 +75,7 @@ extern struct omap_hwmod omap2xxx_gpio4_hwmod;
+ extern struct omap_hwmod omap2xxx_mcspi1_hwmod;
+ extern struct omap_hwmod omap2xxx_mcspi2_hwmod;
+ extern struct omap_hwmod omap2xxx_counter_32k_hwmod;
++extern struct omap_hwmod omap2xxx_rng_hwmod;
+=20
+ /* Common interface data across OMAP2xxx */
+ extern struct omap_hwmod_ocp_if omap2xxx_l3_main__l4_core;
+@@ -102,6 +102,7 @@ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__d=
+ss;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_dispc;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_rfbi;
+ extern struct omap_hwmod_ocp_if omap2xxx_l4_core__dss_venc;
++extern struct omap_hwmod_ocp_if omap2xxx_l4_core__rng;
+=20
+ /* Common IP block data */
+ extern struct omap_hwmod_dma_info omap2_uart1_sdma_reqs[];
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
