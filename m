@@ -1,72 +1,241 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
-Date: Tue, 28 Aug 2012 02:26:13 +0300
-Message-ID: <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
-References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
- <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
- <20120827220254.GA783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/5] hwrng: OMAP: store per-device data in per-device
+ variables, not file statics
+Date: Mon, 27 Aug 2012 17:36:10 -0600
+Message-ID: <20120827233609.15045.38385.stgit@dusk.lan>
+References: <20120827232922.15045.56522.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri5.pp.htv.fi ([213.243.153.188]:35712 "EHLO
-	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754322Ab2H0X12 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 19:27:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:37117 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755017Ab2H0Xis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 19:38:48 -0400
+In-Reply-To: <20120827232922.15045.56522.stgit@dusk.lan>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, Matt Mackall <mpm@selenic.com>, linux-kernel@vger.kernel.org
 
-On Mon, Aug 27, 2012 at 03:12:07PM -0700, Shilimkar, Santosh wrote:
-> On Mon, Aug 27, 2012 at 3:02 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > Hi,
-> >
-> > On Mon, Aug 27, 2012 at 02:35:57PM -0700, Shilimkar, Santosh wrote:
-> >> > -       pr_err("%s seen by %s %s at address %x\n",
-> >> > +       pr_err_ratelimited("%s seen by %s %s at address %x\n",
-> >> >                         omap3_l3_code_string(code),
-> >> >                         omap3_l3_initiator_string(initid),
-> >> >                         multi ? "Multiple Errors" : "", address);
-> >> > -       WARN_ON(1);
-> >> > +       WARN_ON_ONCE(1);
-> >> >
-> >> The issue needs to be fixed instead of WARN_ON_ONCE() and then
-> >> just moving ahead. Interconnect in bad states is really bad state and you
-> >> won't have reliable operations post that on SOC.
-> >
-> > How printing megabytes of identical stack traces helps anything?
-> >
-> It just says repeatedly and  loudly... Fix the issue :-)
-> 
-> > This has been there always (since the L3 driver was added) on every boot
-> > with N950/N9 (which BTW are HS devices, not sure if that has anything
-> > to do with it). There is no apparent effect on device functionality,
-> > at least nothing unusual has been observed...
-> >
-> I assumed this is secure device when I saw the SRAM memset is causing the
-> issue.
-> 
-> > Is there any documentation how to interpret and debug this error report?
-> >
-> The issue could be, there is memset tried on Secure portion of SRAM or
-> CPU speculatively accessed adjacent SRAM region of public SRAM which
-> is secure and hence the error.
+Encapsulate all of the RNG per-device state into a single per-device
+structure record, as opposed to a set of per-driver file variables.
 
-Thanks, that makes sense.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+---
+ drivers/char/hw_random/omap-rng.c |  115 +++++++++++++++++++++++++------------
+ 1 file changed, 77 insertions(+), 38 deletions(-)
 
-> If you just bypass the SRAM init [1], does the issue go away ?
+diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
+index 4fbdceb..e0f0b98 100644
+--- a/drivers/char/hw_random/omap-rng.c
++++ b/drivers/char/hw_random/omap-rng.c
+@@ -23,6 +23,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/hw_random.h>
+ #include <linux/delay.h>
++#include <linux/slab.h>
+ 
+ #include <asm/io.h>
+ 
+@@ -46,26 +47,38 @@
+ #define RNG_SYSSTATUS		0x44		/* System status
+ 							[0] = RESETDONE */
+ 
+-static void __iomem *rng_base;
+-static struct clk *rng_ick;
+-static struct platform_device *rng_dev;
++/**
++ * struct omap_rng_private_data - RNG IP block-specific data
++ * @base: virtual address of the beginning of the RNG IP block registers
++ * @clk: RNG clock
++ * @mem_res: struct resource * for the IP block registers physical memory
++ */
++struct omap_rng_private_data {
++	void __iomem *base;
++	struct clk *clk;
++	struct resource *mem_res;
++};
+ 
+-static inline u32 omap_rng_read_reg(int reg)
++static inline u32 omap_rng_read_reg(struct omap_rng_private_data *priv, int reg)
+ {
+-	return __raw_readl(rng_base + reg);
++	return __raw_readl(priv->base + reg);
+ }
+ 
+-static inline void omap_rng_write_reg(int reg, u32 val)
++static inline void omap_rng_write_reg(struct omap_rng_private_data *priv,
++				      int reg, u32 val)
+ {
+-	__raw_writel(val, rng_base + reg);
++	__raw_writel(val, priv->base + reg);
+ }
+ 
+ static int omap_rng_data_present(struct hwrng *rng, int wait)
+ {
++	struct omap_rng_private_data *priv;
+ 	int data, i;
+ 
++	priv = (struct omap_rng_private_data *)rng->priv;
++
+ 	for (i = 0; i < 20; i++) {
+-		data = omap_rng_read_reg(RNG_STAT_REG) ? 0 : 1;
++		data = omap_rng_read_reg(priv, RNG_STAT_REG) ? 0 : 1;
+ 		if (data || !wait)
+ 			break;
+ 		/* RNG produces data fast enough (2+ MBit/sec, even
+@@ -80,9 +93,13 @@ static int omap_rng_data_present(struct hwrng *rng, int wait)
+ 
+ static int omap_rng_data_read(struct hwrng *rng, u32 *data)
+ {
+-	*data = omap_rng_read_reg(RNG_OUT_REG);
++	struct omap_rng_private_data *priv;
++
++	priv = (struct omap_rng_private_data *)rng->priv;
++
++	*data = omap_rng_read_reg(priv, RNG_OUT_REG);
+ 
+-	return 4;
++	return sizeof(u32);
+ }
+ 
+ static struct hwrng omap_rng_ops = {
+@@ -93,69 +110,85 @@ static struct hwrng omap_rng_ops = {
+ 
+ static int __devinit omap_rng_probe(struct platform_device *pdev)
+ {
+-	struct resource *res;
++	struct omap_rng_private_data *priv;
+ 	int ret;
+ 
+-	/*
+-	 * A bit ugly, and it will never actually happen but there can
+-	 * be only one RNG and this catches any bork
+-	 */
+-	if (rng_dev)
+-		return -EBUSY;
++	priv = kzalloc(sizeof(struct omap_rng_private_data), GFP_KERNEL);
++	if (!priv) {
++		dev_err(&pdev->dev, "could not allocate memory\n");
++		return -ENOMEM;
++	};
++
++	omap_rng_ops.priv = (unsigned long)priv;
++	dev_set_drvdata(&pdev->dev, priv);
+ 
+ 	if (cpu_is_omap24xx()) {
+-		rng_ick = clk_get(&pdev->dev, "ick");
+-		if (IS_ERR(rng_ick)) {
++		priv->clk = clk_get(&pdev->dev, "ick");
++		if (IS_ERR(priv->clk)) {
+ 			dev_err(&pdev->dev, "Could not get rng_ick\n");
+-			ret = PTR_ERR(rng_ick);
++			ret = PTR_ERR(priv->clk);
+ 			return ret;
+-		} else
+-			clk_enable(rng_ick);
++		} else {
++			clk_enable(priv->clk);
++		}
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	priv->mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!priv->mem_res) {
++		ret = -ENOENT;
++		goto err_ioremap;
++	}
+ 
+-	rng_base = devm_request_and_ioremap(&pdev->dev, res);
+-	if (!rng_base) {
++	priv->base = devm_request_and_ioremap(&pdev->dev, priv->mem_res);
++	if (!priv->base) {
+ 		ret = -ENOMEM;
+ 		goto err_ioremap;
+ 	}
+-	dev_set_drvdata(&pdev->dev, res);
++	dev_set_drvdata(&pdev->dev, priv);
+ 
+ 	ret = hwrng_register(&omap_rng_ops);
+ 	if (ret)
+ 		goto err_register;
+ 
+ 	dev_info(&pdev->dev, "OMAP Random Number Generator ver. %02x\n",
+-		omap_rng_read_reg(RNG_REV_REG));
+-	omap_rng_write_reg(RNG_MASK_REG, 0x1);
++		 omap_rng_read_reg(priv, RNG_REV_REG));
++
+ 
+-	rng_dev = pdev;
++	omap_rng_write_reg(priv, RNG_MASK_REG, 0x1);
+ 
+ 	return 0;
+ 
+ err_register:
+-	rng_base = NULL;
++	priv->base = NULL;
+ err_ioremap:
+ 	if (cpu_is_omap24xx()) {
+-		clk_disable(rng_ick);
+-		clk_put(rng_ick);
++		clk_disable(priv->clk);
++		clk_put(priv->clk);
+ 	}
++
++	kfree(priv);
++
+ 	return ret;
+ }
+ 
+ static int __exit omap_rng_remove(struct platform_device *pdev)
+ {
++	struct omap_rng_private_data *priv = dev_get_drvdata(&pdev->dev);
++
+ 	hwrng_unregister(&omap_rng_ops);
+ 
+-	omap_rng_write_reg(RNG_MASK_REG, 0x0);
++	omap_rng_write_reg(priv, RNG_MASK_REG, 0x0);
++
++	iounmap(priv->base);
+ 
+ 	if (cpu_is_omap24xx()) {
+-		clk_disable(rng_ick);
+-		clk_put(rng_ick);
++		clk_disable(priv->clk);
++		clk_put(priv->clk);
+ 	}
+ 
+-	rng_base = NULL;
++	release_mem_region(priv->mem_res->start, resource_size(priv->mem_res));
++
++	kfree(priv);
+ 
+ 	return 0;
+ }
+@@ -164,13 +197,19 @@ static int __exit omap_rng_remove(struct platform_device *pdev)
+ 
+ static int omap_rng_suspend(struct device *dev)
+ {
+-	omap_rng_write_reg(RNG_MASK_REG, 0x0);
++	struct omap_rng_private_data *priv = dev_get_drvdata(dev);
++
++	omap_rng_write_reg(priv, RNG_MASK_REG, 0x0);
++
+ 	return 0;
+ }
+ 
+ static int omap_rng_resume(struct device *dev)
+ {
+-	omap_rng_write_reg(RNG_MASK_REG, 0x1);
++	struct omap_rng_private_data *priv = dev_get_drvdata(dev);
++
++	omap_rng_write_reg(priv, RNG_MASK_REG, 0x1);
++
+ 	return 0;
+ }
+ 
 
-I tried bypassing the whole SRAM init, but the device does not seem to
-boot up at all.
 
-If I comment out the memset alone, then it boots and the issue is gone:
-
-+#if 0
-	memset_io(omap_sram_base + SRAM_BOOTLOADER_SZ, 0,
-		  omap_sram_size - SRAM_BOOTLOADER_SZ);
-+#endif
-
-A.
