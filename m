@@ -1,42 +1,48 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
- calculation
-Date: Mon, 27 Aug 2012 08:34:44 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
-References: <cover.1345524670.git.afzal@ti.com>
- <bc000ac53bb1b3ae1a951bbcf372caf6336d2a19.1345524670.git.afzal@ti.com>
- <20120824194630.GU11011@atomide.com>
+From: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+Subject: [PATCH] OMAPDSS: Correct DISPC_IRQ bit definitions for LCD3
+Date: Mon, 27 Aug 2012 14:23:19 +0530
+Message-ID: <1346057599-5691-1-git-send-email-cmahapatra@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47153 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753258Ab2H0IfC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Aug 2012 04:35:02 -0400
-In-Reply-To: <20120824194630.GU11011@atomide.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:58150 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752860Ab2H0IzJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Aug 2012 04:55:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hunter, Jon" <jon-hunter@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tomi.valkeinen@ti.com
+Cc: mark.tyler@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Chandrabhanu Mahapatra <cmahapatra@ti.com>
 
-Hi Tony,
+The DISPC_IRQ bit definitions pertaining to channel LCD3 as DISPC_IRQ_VSYNC3,
+DISPC_IRQ_SYNC_LOST3, DISPC_IRQ_ACBIAS_COUNT_STAT3 AND DISPC_IRQ_FRAMEDONE3
+which were incorrectly set in previous LCD3 patches have been corrected here.
 
-On Sat, Aug 25, 2012 at 01:16:30, Tony Lindgren wrote:
+Reported-by: Mark Tyler <mark.tyler@ti.com>
+Signed-off-by: Chandrabhanu Mahapatra <cmahapatra@ti.com>
+---
+ include/video/omapdss.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> This hangs n800 during the boot.
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index b868123..9c7cca3 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -48,10 +48,10 @@
+ #define DISPC_IRQ_FRAMEDONEWB		(1 << 23)
+ #define DISPC_IRQ_FRAMEDONETV		(1 << 24)
+ #define DISPC_IRQ_WBBUFFEROVERFLOW	(1 << 25)
+-#define DISPC_IRQ_FRAMEDONE3		(1 << 26)
+-#define DISPC_IRQ_VSYNC3		(1 << 27)
+-#define DISPC_IRQ_ACBIAS_COUNT_STAT3	(1 << 28)
+-#define DISPC_IRQ_SYNC_LOST3		(1 << 29)
++#define DISPC_IRQ_SYNC_LOST3		(1 << 27)
++#define DISPC_IRQ_VSYNC3		(1 << 28)
++#define DISPC_IRQ_ACBIAS_COUNT_STAT3	(1 << 29)
++#define DISPC_IRQ_FRAMEDONE3		(1 << 30)
+ 
+ struct omap_dss_device;
+ struct omap_overlay_manager;
+-- 
+1.7.10
 
-Shall I read the above as n800 boot without patch 10/10,
-but with the other patches in this series ?
-
-As per the board file, n800 has tusb6010 as well as
-OneNAND in sync read & async write mode, was OneNAND
-working without 10/10.
-
-Do you have any idea, which timing could have gone wrong,
-can you please sent me DEBUG enabled gpmc log with and
-without 10/10.
-
-Regards
-Afzal
