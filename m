@@ -1,154 +1,185 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/2] arm/dts: AM33XX: Convert all hex numbers to lower-case
-Date: Mon, 27 Aug 2012 18:01:53 +0530
-Message-ID: <1346070714-6122-2-git-send-email-hvaibhav@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/2] arm/dts: AM33XX: Specify reg and interrupt property for
+ all nodes
+Date: Mon, 27 Aug 2012 18:01:54 +0530
+Message-ID: <1346070714-6122-3-git-send-email-hvaibhav@ti.com>
 References: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346070714-6122-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-To make it consistent, convert all hex number presentation
-to lower-case from all am33xx specific nodes.
+The device/node resources (like, IORESOURCE_MEM and IORESOURCE_IRQ)
+are overwritten by hwmod resources, due to all known reasons but
+that should not be the reason for not providing all the information
+in the DTS blob. Ideally we should use DTS resource and use HWMOD
+framework wherever required and for only specific things.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Newer platforms like, OMAP5 and AM33XX, we only support DT boot mode,
+so this patch is preparation for the future where we supposed to get
+rid of hwmod dependency anyway.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/boot/dts/am335x-bone.dts |    2 +-
- arch/arm/boot/dts/am335x-evm.dts  |    2 +-
- arch/arm/boot/dts/am33xx.dtsi     |   20 ++++++++++----------
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ arch/arm/boot/dts/am33xx.dtsi |   42 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index a7906cb..c64f7fa 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -19,7 +19,7 @@
- 	};
- 
- 	ocp {
--		uart1: serial@44E09000 {
-+		uart1: serial@44e09000 {
- 			status = "okay";
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index 5dd8a6b..8963f20 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -19,7 +19,7 @@
- 	};
- 
- 	ocp {
--		uart1: serial@44E09000 {
-+		uart1: serial@44e09000 {
- 			status = "okay";
- 		};
- 	};
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index dde76f7..be43511 100644
+index be43511..f0642e1 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -71,7 +71,7 @@
+@@ -69,6 +69,9 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
  			#interrupt-cells = <1>;
++			reg = <0x44e07000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <96>;
  		};
  
--		gpio2: gpio@4804C000 {
-+		gpio2: gpio@4804c000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio2";
- 			gpio-controller;
-@@ -80,7 +80,7 @@
+ 		gpio2: gpio@4804c000 {
+@@ -78,6 +81,9 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
  			#interrupt-cells = <1>;
++			reg = <0x4804c000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <98>;
  		};
  
--		gpio3: gpio@481AC000 {
-+		gpio3: gpio@481ac000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio3";
- 			gpio-controller;
-@@ -89,7 +89,7 @@
+ 		gpio3: gpio@481ac000 {
+@@ -87,6 +93,9 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
  			#interrupt-cells = <1>;
++			reg = <0x481ac000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <32>;
  		};
  
--		gpio4: gpio@481AE000 {
-+		gpio4: gpio@481ae000 {
- 			compatible = "ti,omap4-gpio";
- 			ti,hwmods = "gpio4";
- 			gpio-controller;
-@@ -98,7 +98,7 @@
+ 		gpio4: gpio@481ae000 {
+@@ -96,12 +105,18 @@
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
  			#interrupt-cells = <1>;
++			reg = <0x481ae000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <62>;
  		};
  
--		uart1: serial@44E09000 {
-+		uart1: serial@44e09000 {
+ 		uart1: serial@44e09000 {
  			compatible = "ti,omap3-uart";
  			ti,hwmods = "uart1";
  			clock-frequency = <48000000>;
-@@ -119,28 +119,28 @@
++			reg = <0x44e09000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <72>;
  			status = "disabled";
  		};
  
--		uart4: serial@481A6000 {
-+		uart4: serial@481a6000 {
+@@ -109,6 +124,9 @@
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart2";
+ 			clock-frequency = <48000000>;
++			reg = <0x48022000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <73>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -116,6 +134,9 @@
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
++			reg = <0x48024000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <74>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -123,6 +144,9 @@
  			compatible = "ti,omap3-uart";
  			ti,hwmods = "uart4";
  			clock-frequency = <48000000>;
++			reg = <0x481a6000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <44>;
  			status = "disabled";
  		};
  
--		uart5: serial@481A8000 {
-+		uart5: serial@481a8000 {
+@@ -130,6 +154,9 @@
  			compatible = "ti,omap3-uart";
  			ti,hwmods = "uart5";
  			clock-frequency = <48000000>;
++			reg = <0x481a8000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <45>;
  			status = "disabled";
  		};
  
--		uart6: serial@481AA000 {
-+		uart6: serial@481aa000 {
+@@ -137,6 +164,9 @@
  			compatible = "ti,omap3-uart";
  			ti,hwmods = "uart6";
  			clock-frequency = <48000000>;
++			reg = <0x481aa000 0x2000>;
++ 			interrupt-parent = <&intc>;
++ 			interrupts = <46>;
  			status = "disabled";
  		};
  
--		i2c1: i2c@44E0B000 {
-+		i2c1: i2c@44e0b000 {
- 			compatible = "ti,omap4-i2c";
+@@ -145,6 +175,9 @@
  			#address-cells = <1>;
  			#size-cells = <0>;
-@@ -148,7 +148,7 @@
+ 			ti,hwmods = "i2c1";
++			reg = <0x44e0b000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <70>;
  			status = "disabled";
  		};
  
--		i2c2: i2c@4802A000 {
-+		i2c2: i2c@4802a000 {
- 			compatible = "ti,omap4-i2c";
+@@ -153,6 +186,9 @@
  			#address-cells = <1>;
  			#size-cells = <0>;
-@@ -156,7 +156,7 @@
+ 			ti,hwmods = "i2c2";
++			reg = <0x4802a000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <71>;
  			status = "disabled";
  		};
  
--		i2c3: i2c@4819C000 {
-+		i2c3: i2c@4819c000 {
- 			compatible = "ti,omap4-i2c";
+@@ -161,12 +197,18 @@
  			#address-cells = <1>;
  			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
++			reg = <0x4819c000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <30>;
+ 			status = "disabled";
+ 		};
+ 
+ 		wdt2: wdt@44e35000 {
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
++			reg = <0x44e35000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <91>;
+ 		};
+ 	};
+ };
 -- 
 1.7.0.4
