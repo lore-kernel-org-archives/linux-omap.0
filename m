@@ -1,151 +1,212 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
-Date: Sun, 26 Aug 2012 18:29:08 -0700
-Message-ID: <CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com>
-References: <20120825214459.7333a376@notabene.brown> <CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com>
- <20120827085312.75957354@notabene.brown>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v9] can: c_can: Add runtime PM support to Bosch
+ C_CAN/D_CAN controller
+Date: Mon, 27 Aug 2012 05:06:53 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA1FF07@DBDE01.ent.ti.com>
+References: <1345461654-439-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120827085312.75957354@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Cousson@suse.de, Benoit <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1345461654-439-1-git-send-email-anilkumar@ti.com>
+Content-Language: en-US
+Sender: linux-can-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>, "wg@grandegger.com" <wg@grandegger.com>, "mkl@pengutronix.de" <mkl@pengutronix.de>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gole, Anant" <anantgole@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Aug 26, 2012 at 3:53 PM, NeilBrown <neilb@suse.de> wrote:
->
-> On Sun, 26 Aug 2012 09:47:50 +0530 "Shilimkar, Santosh"
-> <santosh.shilimkar@ti.com> wrote:
->
-> > + Jon,
-> >
-> > On Sat, Aug 25, 2012 at 5:14 PM, NeilBrown <neilb@suse.de> wrote:
-> > >
-> > >
-> > >
-> > > Current kernel will wake from suspend on an event on any active
-> > > GPIO even if enable_irq_wake() wasn't called.
-> > >
-> > > There are two reasons that the hardware wake-enable bit should be set:
-> > >
-> > > 1/ while non-suspended the CPU might go into a deep sleep (off_mode)
-> > >   in which the wake-enable bit is needed for an interrupt to be
-> > >   recognised.
-> > > 2/ while suspended the GPIO interrupt should wake from suspend if and
-> > >    only if irq_wake as been enabled.
-> > >
-> > > The code currently doesn't keep these two reasons separate so they get
-> > > confused and sometimes the wakeup flags is set incorrectly.
-> > >
-> > > This patch reverts:
-> > >  commit 9c4ed9e6c01e7a8bd9079da8267e1f03cb4761fc
-> > >     gpio/omap: remove suspend/resume callbacks
-> > > and
-> > >  commit 0aa2727399c0b78225021413022c164cb99fbc5e
-> > >     gpio/omap: remove suspend_wakeup field from struct gpio_bank
-> > >
-> > > and makes some minor changes so that we have separate flags for "GPIO
-> > > should wake from deep idle" and "GPIO should wake from suspend".
-> > >
-> > > With this patch, the GPIO from my touch screen doesn't wake my device
-> > > any more, which is what I want.
-> > >
-> > > Cc: Kevin Hilman <khilman@ti.com>
-> > > Cc: Tony Lindgren <tony@atomide.com>
-> > > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > Cc: Cousson, Benoit <b-cousson@ti.com>
-> > > Cc: Grant Likely <grant.likely@secretlab.ca>
-> > > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> > > Cc: Felipe Balbi <balbi@ti.com>
-> > > Cc: Govindraj.R <govindraj.raja@ti.com>
-> > >
-> > > Signed-off-by: NeilBrown <neilb@suse.de>
-> > >
-> > The patch doesn't seems to be correct. At least the 2/ gets
-> > fixed with a proper IRQCHIP flag. Can you try the patch at
-> > end of the email and see if it helps ? Am attaching it in case
-> > mailer damages it.
-> >
-> > Regards
-> > Santosh
-> >
-> > >From b8a38fc75e046f6462610e26c47c620cad850c24 Mon Sep 17 00:00:00 2001
-> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Date: Sun, 26 Aug 2012 09:39:51 +0530
-> > Subject: [PATCH] gpio: omap: Set IRQCHIP_MASK_ON_SUSPEND to mask all
-> >  non-wakeup gpio wakeups.
-> >
-> > Set the irq chip flag IRQCHIP_MASK_ON_SUSPEND to cause the irq pm code
-> > to mask all non-wake gpios in suspend, which will ensure the wakeup
-> > enable
-> > bit is not set on non-wake gpios.
-> >
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  drivers/gpio/gpio-omap.c |    1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> > index e6efd77..50b4c18 100644
-> > --- a/drivers/gpio/gpio-omap.c
-> > +++ b/drivers/gpio/gpio-omap.c
-> > @@ -779,6 +779,7 @@ static struct irq_chip gpio_irq_chip = {
-> >       .irq_unmask     = gpio_unmask_irq,
-> >       .irq_set_type   = gpio_irq_type,
-> >       .irq_set_wake   = gpio_wake_enable,
-> > +     .flags          = IRQCHIP_MASK_ON_SUSPEND;
-> >  };
-> >
-> >
-> > /*---------------------------------------------------------------------*/
->
->
-> No obvious damage, unless the mailer is responsible or the ';' at the end
-> of
-> the line, rather than ',' :-)
->
-:-) That was typo.
+Hi Marc,
 
-> The approach makes sense, but does actually work.  Should be fixable
-> though.
->
-> When I try this I get:
->
->
->
-> [  158.114440] Checking wakeup interrupts
-> [  158.118408] Unhandled fault: external abort on non-linefetch (0x1028)
-> at 0xfb054040
-> [  158.126403] Internal error: : 1028 [#1] PREEMPT ARM
-> [  158.131500] Modules linked in: ipv6 g_ether hso libertas_sdio libertas
-> cfg80211
-> [  158.139190] CPU: 0    Not tainted  (3.5.0-gta04-debug+ #2)
-> [  158.144927] PC is at _set_gpio_triggering+0x38/0x258
-> [  158.150115] LR is at gpio_mask_irq+0xac/0xc0
-> [  158.154602] pc : [<c01d24a0>]    lr : [<c01d2f68>]    psr: 60000193
-> [  158.154602] sp : db521e90  ip : 00000011  fp : beeecc2c
-> [  158.166595] r10: c05c8ebc  r9 : daa5a858  r8 : 00000003
-> [  158.172027] r7 : a0000193  r6 : 00000000  r5 : fb054000  r4 : ded44e18
-> [  158.178863] r3 : 00000001  r2 : 00000000  r1 : ded30340  r0 : 00000040
-> [  158.185668] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
-> Segment use
->
-> so it looks like runtime PM has turned off the iclk to the GPIO module so
-> that
-> when we try to tell it to change settings, it is no longer listening to
-> us.
->From the crash logs it appears like that.
+On Mon, Aug 20, 2012 at 16:50:54, AnilKumar, Chimata wrote:
+> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+> register of C_CAN/D_CAN IP when clock is turned off.
+> 
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+> This patch has been tested on AM335X EVM. Due to lack of hardware
+> I am not able to test c_can functionality. I appreciate if anyone
+> can test c_can functionality with this patch.
+> 
+> This patch is based on "can-next/master" 
+> 
+> Changes from v8:
+> 	- corrected the return path sequence in c_can_probe()
+> 
+> Changes from v7:
+> 	- Incorporated Marc's comments on v7
+> 	  * changed device pointer to c_can_priv pointer
+> 
+> Changes from v6:
+> 	- Incorporated Marc's comments on v6
+> 	  * changed dev pointer to priv
+> 	  * removed platform_device.h include from c_can.c
+> 
+> Changes from v5:
+> 	- Incorporated Marc's comments on v5
+> 	  * changed runtime pm calls in c_can driver to handle
+> 	    the drivers which are not using platform drivers.
+> 	  * added device pointer protection in c_can driver if
+> 	    not passed from platform/pci driver.
+> 
+> Changes from v4:
+> 	- Incorporated Vaibhav H review comments on v4.
+> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
+> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
+> 	  patch series. Rest of the patches in this series were applied
+> 	  so this v5 contains only this patch.
+> 
+>  drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-
+>  drivers/net/can/c_can/c_can.h          |    1 +
+>  drivers/net/can/c_can/c_can_platform.c |   11 +++++++++--
+>  3 files changed, 33 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+> index 4c538e3..966d318 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/if_ether.h>
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <linux/can.h>
+>  #include <linux/can/dev.h>
+> @@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
+>  	.brp_inc = 1,
+>  };
+>  
+> +static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
+> +{
+> +	if (priv->device)
+> +		pm_runtime_get_sync(priv->device);
+> +}
+> +
+> +static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
+> +{
+> +	if (priv->device)
+> +		pm_runtime_put_sync(priv->device);
+> +}
+> +
+>  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+>  {
+>  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+> @@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
+>  	unsigned int reg_err_counter;
+>  	struct c_can_priv *priv = netdev_priv(dev);
+>  
+> +	c_can_pm_runtime_get_sync(priv);
+> +
+>  	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
+>  	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
+>  				ERR_CNT_REC_SHIFT;
+>  	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
+>  
+> +	c_can_pm_runtime_put_sync(priv);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
+>  	int err;
+>  	struct c_can_priv *priv = netdev_priv(dev);
+>  
+> +	c_can_pm_runtime_get_sync(priv);
+> +
+>  	/* open the can device */
+>  	err = open_candev(dev);
+>  	if (err) {
+>  		netdev_err(dev, "failed to open can device\n");
+> -		return err;
+> +		goto exit_open_fail;
+>  	}
+>  
+>  	/* register interrupt handler */
+> @@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
+>  
+>  exit_irq_fail:
+>  	close_candev(dev);
+> +exit_open_fail:
+> +	c_can_pm_runtime_put_sync(priv);
+>  	return err;
+>  }
+>  
+> @@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
+>  	c_can_stop(dev);
+>  	free_irq(dev->irq, dev);
+>  	close_candev(dev);
+> +	c_can_pm_runtime_put_sync(priv);
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+> index 4e56baa..1437a6d 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -153,6 +153,7 @@ struct c_can_priv {
+>  	struct can_priv can;	/* must be the first member */
+>  	struct napi_struct napi;
+>  	struct net_device *dev;
+> +	struct device *device;
+>  	int tx_object;
+>  	int current_status;
+>  	int last_status;
+> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+> index d0a66cf..90801c4 100644
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <linux/can/dev.h>
+>  
+> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  		goto exit_free_device;
+>  	}
+>  
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	dev->irq = irq;
+>  	priv->base = addr;
+> +	priv->device = &pdev->dev;
+>  	priv->can.clock.freq = clk_get_rate(clk);
+>  	priv->priv = clk;
+>  
+> @@ -189,15 +193,17 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
+>  			KBUILD_MODNAME, ret);
+> -		goto exit_free_device;
+> +		goto exit_clear_drvdata;
+>  	}
+>  
+>  	dev_info(&pdev->dev, "%s device registered (regs=%p, irq=%d)\n",
+>  		 KBUILD_MODNAME, priv->base, dev->irq);
+>  	return 0;
+>  
+> -exit_free_device:
+> +exit_clear_drvdata:
+>  	platform_set_drvdata(pdev, NULL);
+> +	pm_runtime_disable(&pdev->dev);
+> +exit_free_device:
+>  	free_c_can_dev(dev);
+>  exit_iounmap:
+>  	iounmap(addr);
+> @@ -226,6 +232,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	release_mem_region(mem->start, resource_size(mem));
+>  
+> +	pm_runtime_disable(&pdev->dev);
+>  	clk_put(priv->priv);
+>  
+>  	return 0;
+> -- 
 
-> The "Checking wakeup interrupts" function happens very late in the suspend
-> cycle, after all the suspend_late and suspend_noirq functions have run.
-> Maybe it needs to be moved earlier...
->
-No it shouldn't be moved and it is that point for lot many good
-reasons. Ofcourse
-this omap gpio driver crash needs to be addressed. Need to think bit
-more on this
-issue.
+If there are no comments can you please push this patch
 
-Regards
-Santosh
+Thanks
+AnilKumar
