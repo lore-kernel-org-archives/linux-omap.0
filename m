@@ -1,67 +1,122 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
-Date: Wed, 29 Aug 2012 02:09:17 +0300
-Message-ID: <20120828230917.GD783@harshnoise.musicnaut.iki.fi>
-References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
- <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
- <20120827220254.GA783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
- <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
- <20120828122042.GC783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gwMk68_BNc4O0M52OACUVLLGzRCQe+5mGH_40DrwAQ4KA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH 0/9] ARM: OMAP: cleanup plat/board.h file
+Date: Wed, 29 Aug 2012 02:18:48 +0300
+Message-ID: <1346195937-6383-1-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:48255 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021Ab2H1XJn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 19:09:43 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gwMk68_BNc4O0M52OACUVLLGzRCQe+5mGH_40DrwAQ4KA@mail.gmail.com>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:59119 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751021Ab2H1XTQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Aug 2012 19:19:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-Hi,
+This patch series cleans up the plat/board.h and related files.
 
-On Tue, Aug 28, 2012 at 07:19:38AM -0700, Shilimkar, Santosh wrote:
-> Or the PPA has resized the secure area of 16K. As you have seen the issue
-> on one OMAP3 device, it makes sense to takeout that 16K from the public
-> SRAM map.
-> 
-> Can you send the patch with fixed base address fir PUB SRAM ?
+Remove confusingly empty struct omap_board_config_kernel structures
+and unused omap_get_nr_config() macro along with
+unused omap_get_var_config() function.
+Those apparently were never used in upstream kernels.
 
-Maybe I'm missing something, but I tried the following and now something
-else got broken:
+Move OMAP3EVM revision bits to the board file as those are not used
+(and never have been used) outside of the board file in upstream kernels.
 
-	save_secure_sram() returns 0000ff02
+Remove the tags part of the sti console workaround on OMAP2.
+Also remove the crystal type tag parsing code on OMAP1.
+Since the tags were never used upstream, the sti console workaround
+and the crystal type tag parsing code have never fired.
 
-(and it hangs there).
+OMAP custom tags code is not used - remove it.
+Finally, move all leftovers from the plat/board.h to include/linux/*
+and delete the plat/board.h file.
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 766181c..242ea5b 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -38,7 +38,7 @@
- 
- #define OMAP1_SRAM_PA		0x20000000
- #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
--#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
-+#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0xc000)
- #ifdef CONFIG_OMAP4_ERRATA_I688
- #define OMAP4_SRAM_PUB_PA	OMAP4_SRAM_PA
- #else
-@@ -112,9 +112,9 @@ static void __init omap_detect_sram(void)
- 				omap_sram_start = OMAP3_SRAM_PUB_PA;
- 				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
- 				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
--					omap_sram_size = 0x7000; /* 28K */
-+					omap_sram_size = 0x3000; /* 12K */
- 				} else {
--					omap_sram_size = 0x8000; /* 32K */
-+					omap_sram_size = SZ_16K; /* 16K */
- 				}
- 			} else if (cpu_is_omap44xx()) {
- 				omap_sram_start = OMAP4_SRAM_PUB_PA;
+The series are based on Linus' v3.6-rc3, checkpatch clean,
+and have been compile tested with omap1|2plus_defconfig(s).
+
+Igor Grinberg (9):
+  ARM: OMAP: cleanup struct omap_board_config_kernel
+  ARM: OMAP: omap3evm: cleanup revision bits
+  ARM: OMAP: remove the sti console workaround
+  ARM: OMAP1: remove the crystal type tag parsing
+  ARM: OMAP: remove the omap custom tags
+  ARM: OMAP1: move omap1_bl pdata out of arch/arm/*
+  ARM: OMAP1: move lcd pdata out of arch/arm/*
+  ARM: OMAP: move debug_card_init() function
+  ARM: OMAP: remove plat/board.h file
+
+ arch/arm/mach-omap1/board-ams-delta.c           |    1 -
+ arch/arm/mach-omap1/board-fsample.c             |    1 -
+ arch/arm/mach-omap1/board-generic.c             |    6 -
+ arch/arm/mach-omap1/board-htcherald.c           |    1 -
+ arch/arm/mach-omap1/board-nokia770.c            |    1 -
+ arch/arm/mach-omap1/board-osk.c                 |    1 +
+ arch/arm/mach-omap1/board-palmte.c              |    2 +-
+ arch/arm/mach-omap1/board-palmtt.c              |    2 +-
+ arch/arm/mach-omap1/board-palmz71.c             |    2 +-
+ arch/arm/mach-omap1/board-perseus2.c            |    1 -
+ arch/arm/mach-omap1/board-sx1.c                 |    1 -
+ arch/arm/mach-omap1/board-voiceblue.c           |    6 -
+ arch/arm/mach-omap1/clock_data.c                |    8 --
+ arch/arm/mach-omap1/devices.c                   |    1 -
+ arch/arm/mach-omap1/serial.c                    |    1 -
+ arch/arm/mach-omap2/board-2430sdp.c             |    1 -
+ arch/arm/mach-omap2/board-3430sdp.c             |    6 -
+ arch/arm/mach-omap2/board-3630sdp.c             |    6 -
+ arch/arm/mach-omap2/board-4430sdp.c             |    1 -
+ arch/arm/mach-omap2/board-am3517crane.c         |    9 --
+ arch/arm/mach-omap2/board-am3517evm.c           |    6 -
+ arch/arm/mach-omap2/board-apollon.c             |    1 -
+ arch/arm/mach-omap2/board-cm-t35.c              |    6 -
+ arch/arm/mach-omap2/board-cm-t3517.c            |    6 -
+ arch/arm/mach-omap2/board-devkit8000.c          |    1 -
+ arch/arm/mach-omap2/board-generic.c             |    1 -
+ arch/arm/mach-omap2/board-h4.c                  |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c            |    1 -
+ arch/arm/mach-omap2/board-ldp.c                 |    1 -
+ arch/arm/mach-omap2/board-n8x0.c                |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c         |    1 -
+ arch/arm/mach-omap2/board-omap3evm.c            |   19 ++-
+ arch/arm/mach-omap2/board-omap3logic.c          |    1 -
+ arch/arm/mach-omap2/board-omap3pandora.c        |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c        |    6 -
+ arch/arm/mach-omap2/board-omap3touchbook.c      |    1 -
+ arch/arm/mach-omap2/board-omap4panda.c          |    1 -
+ arch/arm/mach-omap2/board-overo.c               |    1 -
+ arch/arm/mach-omap2/board-rx51-peripherals.c    |    1 -
+ arch/arm/mach-omap2/board-rx51.c                |    1 -
+ arch/arm/mach-omap2/board-ti8168evm.c           |    6 -
+ arch/arm/mach-omap2/board-zoom.c                |    1 -
+ arch/arm/mach-omap2/common.c                    |    1 -
+ arch/arm/mach-omap2/devices.c                   |    1 -
+ arch/arm/mach-omap2/gpmc-nand.c                 |    1 -
+ arch/arm/mach-omap2/gpmc-onenand.c              |    1 -
+ arch/arm/mach-omap2/gpmc-smc91x.c               |    1 -
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |    1 -
+ arch/arm/mach-omap2/pm-debug.c                  |    1 -
+ arch/arm/mach-omap2/pm24xx.c                    |   11 --
+ arch/arm/mach-omap2/serial.c                    |    1 -
+ arch/arm/plat-omap/common.c                     |   40 -------
+ arch/arm/plat-omap/counter_32k.c                |    1 -
+ arch/arm/plat-omap/debug-devices.c              |    3 -
+ arch/arm/plat-omap/devices.c                    |    1 -
+ arch/arm/plat-omap/fb.c                         |    2 -
+ arch/arm/plat-omap/include/plat/board.h         |  138 -----------------------
+ arch/arm/plat-omap/include/plat/debug-devices.h |    9 ++
+ arch/arm/plat-omap/include/plat/mmc.h           |    1 -
+ arch/arm/plat-omap/include/plat/usb.h           |    1 -
+ arch/arm/plat-omap/sram.c                       |    1 -
+ drivers/mmc/host/omap.c                         |    1 -
+ drivers/mmc/host/omap_hsmmc.c                   |    1 -
+ drivers/mtd/onenand/omap2.c                     |    2 -
+ drivers/video/backlight/omap1_bl.c              |    2 +-
+ include/linux/omapfb.h                          |    7 +-
+ include/linux/platform_data/omap1_bl.h          |   11 ++
+ 67 files changed, 44 insertions(+), 320 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/board.h
+ create mode 100644 arch/arm/plat-omap/include/plat/debug-devices.h
+ create mode 100644 include/linux/platform_data/omap1_bl.h
+
+-- 
+1.7.8.6
+
