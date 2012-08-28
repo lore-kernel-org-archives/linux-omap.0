@@ -1,104 +1,115 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to
- am335x-bone.dts
-Date: Tue, 28 Aug 2012 05:34:02 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA20AA6@DBDE01.ent.ti.com>
-References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
- <1345547850-29761-5-git-send-email-anilkumar@ti.com>
- <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net>
- <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
- <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net>
- <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com>
- <6C2AC14D-1CAC-4B93-910C-B7E52D3355FD@dominion.thruhere.net>
- <45D5714B-BB2C-49BB-8C5D-F69749EC324A@dominion.thruhere.net>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH v3 3/4] arm/dts: AM33XX: Configure pinmuxs for D_CAN1
+ on AM335x-EVM
+Date: Tue, 28 Aug 2012 11:51:32 +0530
+Message-ID: <503C636C.6080708@ti.com>
+References: <1345119610-5247-1-git-send-email-anilkumar@ti.com> <1345119610-5247-4-git-send-email-anilkumar@ti.com> <20120824201447.GY11011@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56778 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58821 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008Ab2H1FeN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 01:34:13 -0400
-In-Reply-To: <45D5714B-BB2C-49BB-8C5D-F69749EC324A@dominion.thruhere.net>
-Content-Language: en-US
+	id S1751713Ab2H1GVy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Aug 2012 02:21:54 -0400
+In-Reply-To: <20120824201447.GY11011@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: AnilKumar Ch <anilkumar@ti.com>, devicetree-discuss@lists.ozlabs.org, mkl@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Koen,
 
-On Fri, Aug 24, 2012 at 13:32:17, Koen Kooi wrote:
-> 
-> Op 24 aug. 2012, om 09:56 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
-> 
-> > 
-> > Op 24 aug. 2012, om 09:26 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
-> > 
-> >> Hi Koen,
-> >> 
-> >> On Fri, Aug 24, 2012 at 11:58:34, Koen Kooi wrote:
-> >>> 
-> >>> Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
-> >>> 
-> >>>> Hi Koen,
-> >>>> 
-> >>>> On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
-> >>>>> 
-> >>>>> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
-> >>>>> 
-> >>>>>> Add tps65217 regulator device tree data to AM335x-Bone by adding
-> >>>>>> regulator consumers with tightened constraints and regulator-name.
-> >>>>>> TPS65217 regulator handle can be obtained by using this regulator
-> >>>>>> name.
-> >>>>>> 
-> >>>>>> This patch also add I2C node with I2C frequency and tps65217 PMIC
-> >>>>>> I2C slave address.
-> >>>>>> 
-> >>>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> >>>>> 
-> >>>>> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
-> >>>> 
-> >>>> Use this repo to test on beaglebone
-> >>>> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
-> >>>> 
-> >>>> This wiki talks about how to build and use?
-> >>>> https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
-> >>>> 
-> >>>> Note: Enable tps65217 regulator in kernel config.
-> >>> 
-> >>> I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
-> >> 
-> >> I tested on latest mainline after merging to
-> >> am335x-upstream-staging-pinctrl (voltage also changing)
-> >> 
-> >> Can you share your .config and uImage?
-> > 
-> > Config: https://github.com/beagleboard/kernel/blob/beaglebone-3.6/patches/configs/beaglebone
-> > 
-> >> My config details:- (After merge)
-> >> 1. omap2plus_defconfig
-> >> 2. Enable tps65217 MFD driver
-> >> 3. Enable tps65217 regulator driver
-> > 
-> > 
-> > I rebased onto latest mainline and refreshed the base patches from Vaibhav and I now get: 
-> > 
-> > [    0.246796] tps65217 0-0024: TPS65217 ID 0xf version 1.1
-> > 
-> > So it boots! I don't know what made it break before, but it's working now :)
-> 
-> *sigh* I'm an idiot:
-> 
-> root@beaglebone:~# uname -a
-> Linux beaglebone 3.6.0-rc3-00103-gfd02083 #86 SMP Fri Aug 24 09:45:54 CEST 2012 armv7l GNU/Linux
-> root@beaglebone:~# zcat /proc/config.gz | grep 217
-> CONFIG_MFD_TPS65217=y
-> # CONFIG_REGULATOR_TPS65217 is not set
-> 
-> Will retry with regulator driver actually turned on in a bit.
 
-Is it working after enabling the regulator?
+On 8/25/2012 1:44 AM, Tony Lindgren wrote:
+> * AnilKumar Ch <anilkumar@ti.com> [120816 05:20]:
+>> Add D_CAN1 pinctrl node to am3358_pinmux master node to export
+>> D_CAN functionality on AM335x EVM according to pinctrl-single
+>> driver.
+>>
+>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>> ---
+>> Changes from v2:
+>> 	- Incorporated Vaibhav H's comments on v2
+>> 	  * Added dcan0 instances to am33xx.dtsi file
+>>
+>> Changes from v1:
+>> 	- These two patches separated from c_can DT support
+>> 	  patch series.
+>>
+>>  arch/arm/boot/dts/am335x-evm.dts |   12 ++++++++++++
+>>  1 file changed, 12 insertions(+)
+>>
+>> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+>> index 5dd8a6b..a64c30a 100644
+>> --- a/arch/arm/boot/dts/am335x-evm.dts
+>> +++ b/arch/arm/boot/dts/am335x-evm.dts
+>> @@ -18,6 +18,18 @@
+>>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+>>  	};
+>>  
+>> +	am3358_pinmux: pinmux@44E10800 {
+> 
+> This should be just &am3358_pinmux as you already include it.
+> 
 
-Thanks
-AnilKumar
+I think it won't work this way, it will result into syntax error.
+The reason being is, unlike OMAP (and like other platforms, like, imx)
+here we are again representing device hierarchy starting from root,
+
+am335x-evm.dts:
+/ {
+
+	ocp {
+		...
+	};
+
+};
+
+Although I am not too familiar with DTS compiler, but below code results
+in syntax error:
+
+am335x-evm.dts:
+/ {
+
+	ocp {
+		...
+		&am3358_pinmux {
+			...
+		};
+	};
+
+};
+
+
+Thanks,
+Vaibhav
+
+>> +		pinctrl-names = "default";
+>> +		pinctrl-0 = <&d_can1_pins>;
+>> +
+>> +		d_can1_pins: pinmux_d_can_pins {
+>> +			pinctrl-single,pins = <
+>> +				0x168 0x2	/* uart0_ctsn.d_can1_tx, OUTPUT | MODE2 */
+>> +				0x16C 0x32	/* uart0_rtsn.d_can1_rx, INPUT_PULLUP | MODE2 */
+>> +			>;
+>> +		};
+>> +	};
+>> +
+> 
+> It would better to claim these pins in the dcan driver entry
+> rather than set them as pins enabled by the pinctrl driver.
+> The reason is that in case you want to enable runtime PM related
+> stuff, like some more advanced wake-up features, for the rx pin
+> you can do it in the driver.
+> 
+> Then one nit.. Please lowercase all hex number in this series as that's the style
+> here.
+> 
+> Regards,
+> 
+> Tony
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
