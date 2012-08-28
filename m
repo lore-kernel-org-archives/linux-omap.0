@@ -1,262 +1,87 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [RFC PATCH 3/5] watchdog: introduce retu_wdt driver
-Date: Wed, 29 Aug 2012 00:34:25 +0300
-Message-ID: <1346189667-32330-4-git-send-email-aaro.koskinen@iki.fi>
+Subject: [RFC PATCH 4/5] arm: omap: n8x0: add i2c-cbus platform data
+Date: Wed, 29 Aug 2012 00:34:26 +0300
+Message-ID: <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
 References: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:43273 "EHLO
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:43302 "EHLO
 	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab2H1Veb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 17:34:31 -0400
+	with ESMTP id S1753163Ab2H1VfF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 17:35:05 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by filtteri2.pp.htv.fi (Postfix) with ESMTP id 885B219B7DC
+	for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
+Received: from smtp6.welho.com ([213.243.153.40])
+	by localhost (filtteri2.pp.htv.fi [213.243.153.185]) (amavisd-new, port 10024)
+	with ESMTP id xUqIbrCD8zh9 for <linux-omap@vger.kernel.org>;
+	Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
+Received: from blackmetal.bb.dnainternet.fi (212-149-209-232.bb.dnainternet.fi [212.149.209.232])
+	by smtp6.welho.com (Postfix) with ESMTP id 496595BC005
+	for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
 In-Reply-To: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-watchdog@vger.kernel.org
 
-Introduce Retu watchdog driver.
+Add platform data to enable i2c-cbus on N8x0. It will be I2C bus #3.
 
 Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-watchdog@vger.kernel.org
 ---
- drivers/watchdog/Kconfig    |   12 +++
- drivers/watchdog/Makefile   |    1 +
- drivers/watchdog/retu_wdt.c |  191 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 204 insertions(+), 0 deletions(-)
- create mode 100644 drivers/watchdog/retu_wdt.c
+ arch/arm/mach-omap2/board-n8x0.c |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 53d7571..0526c7a 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -352,6 +352,18 @@ config IMX2_WDT
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called imx2_wdt.
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index 677357f..8ea0dea 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -18,6 +18,7 @@
+ #include <linux/io.h>
+ #include <linux/stddef.h>
+ #include <linux/i2c.h>
++#include <linux/i2c-cbus.h>
+ #include <linux/spi/spi.h>
+ #include <linux/usb/musb.h>
+ #include <sound/tlv320aic3x.h>
+@@ -42,6 +43,31 @@
+ #define TUSB6010_GPIO_ENABLE	0
+ #define TUSB6010_DMACHAN	0x3f
  
-+config RETU_WATCHDOG
-+	tristate "Retu watchdog"
-+	depends on MFD_RETU
-+	select WATCHDOG_CORE
-+	help
-+	  Retu watchdog driver for Nokia Internet Tablets (700, N800,
-+	  N810). At least on N800 the watchdog cannot be disabled, so
-+	  this driver is essential and you should enable it.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called retu_wdt.
-+
- # AVR32 Architecture
- 
- config AT32AP700X_WDT
-diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
-index 572b39b..d2f1c0c 100644
---- a/drivers/watchdog/Makefile
-+++ b/drivers/watchdog/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_STMP3XXX_WATCHDOG) += stmp3xxx_wdt.o
- obj-$(CONFIG_NUC900_WATCHDOG) += nuc900_wdt.o
- obj-$(CONFIG_TS72XX_WATCHDOG) += ts72xx_wdt.o
- obj-$(CONFIG_IMX2_WDT) += imx2_wdt.o
-+obj-$(CONFIG_RETU_WATCHDOG) += retu_wdt.o
- 
- # AVR32 Architecture
- obj-$(CONFIG_AT32AP700X_WDT) += at32ap700x_wdt.o
-diff --git a/drivers/watchdog/retu_wdt.c b/drivers/watchdog/retu_wdt.c
-new file mode 100644
-index 0000000..4a3ae00
---- /dev/null
-+++ b/drivers/watchdog/retu_wdt.c
-@@ -0,0 +1,191 @@
-+/*
-+ * Retu watchdog driver
-+ *
-+ * Copyright (C) 2004, 2005 Nokia Corporation
-+ *
-+ * Based on code written by Amit Kucheria and Michael Buesch. Rewritten
-+ * to use Retu MFD driver and new watchdog core by Aaro Koskinen.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General
-+ * Public License. See the file "COPYING" in the main directory of this
-+ * archive for more details.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/errno.h>
-+#include <linux/device.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mfd/retu.h>
-+#include <linux/watchdog.h>
-+#include <linux/platform_device.h>
-+
-+/* Watchdog timer values in seconds */
-+#define RETU_WDT_MAX_TIMER	63
-+
-+/* Registers */
-+#define RETU_REG_WATCHDOG	0x17
-+
-+struct retu_wdt_dev {
-+	struct retu_dev		*rdev;
-+	struct device		*dev;
-+	struct delayed_work	ping_work;
++#if defined(CONFIG_I2C_CBUS) || defined(CONFIG_I2C_CBUS_MODULE)
++static struct i2c_cbus_platform_data n8x0_cbus_data = {
++	.clk_gpio = 66,
++	.dat_gpio = 65,
++	.sel_gpio = 64,
 +};
 +
-+/*
-+ * Since Retu watchdog cannot be disabled in hardware, we must kick it
-+ * with a timer until userspace watchdog software takes over. If
-+ * CONFIG_WATCHDOG_NOWAYOUT is set, we never start the feeding.
-+ */
-+static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
-+{
-+	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
-+	schedule_delayed_work(&wdev->ping_work,
-+			round_jiffies_relative(RETU_WDT_MAX_TIMER * HZ / 2));
-+}
-+
-+static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
-+{
-+	retu_write(wdev->rdev, RETU_REG_WATCHDOG, RETU_WDT_MAX_TIMER);
-+	cancel_delayed_work_sync(&wdev->ping_work);
-+}
-+
-+static void retu_wdt_ping_work(struct work_struct *work)
-+{
-+	struct retu_wdt_dev *wdev = container_of(to_delayed_work(work),
-+						struct retu_wdt_dev, ping_work);
-+	retu_wdt_ping_enable(wdev);
-+}
-+
-+static int retu_wdt_start(struct watchdog_device *wdog)
-+{
-+	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-+
-+	retu_wdt_ping_disable(wdev);
-+
-+	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-+}
-+
-+static int retu_wdt_stop(struct watchdog_device *wdog)
-+{
-+	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-+
-+	retu_wdt_ping_enable(wdev);
-+
-+	return 0;
-+}
-+
-+static int retu_wdt_ping(struct watchdog_device *wdog)
-+{
-+	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-+
-+	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-+}
-+
-+static int retu_wdt_set_timeout(struct watchdog_device *wdog,
-+				unsigned int timeout)
-+{
-+	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-+
-+	wdog->timeout = timeout;
-+	return retu_write(wdev->rdev, RETU_REG_WATCHDOG, wdog->timeout);
-+}
-+
-+static const struct watchdog_info retu_wdt_info = {
-+	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.identity = "Retu watchdog",
-+};
-+
-+static const struct watchdog_ops retu_wdt_ops = {
-+	.owner		= THIS_MODULE,
-+	.start		= retu_wdt_start,
-+	.stop		= retu_wdt_stop,
-+	.ping		= retu_wdt_ping,
-+	.set_timeout	= retu_wdt_set_timeout,
-+};
-+
-+static int __devinit retu_wdt_probe(struct platform_device *pdev)
-+{
-+	struct retu_dev *rdev = dev_get_drvdata(pdev->dev.parent);
-+	bool nowayout = WATCHDOG_NOWAYOUT;
-+	struct watchdog_device *retu_wdt;
-+	struct retu_wdt_dev *wdev;
-+	int ret;
-+
-+	retu_wdt = kzalloc(sizeof(*retu_wdt), GFP_KERNEL);
-+	if (!retu_wdt)
-+		return -ENOMEM;
-+
-+	wdev = kzalloc(sizeof(*wdev), GFP_KERNEL);
-+	if (!wdev) {
-+		ret = -ENOMEM;
-+		goto error_mem;
-+	}
-+
-+	retu_wdt->info		= &retu_wdt_info;
-+	retu_wdt->ops		= &retu_wdt_ops;
-+	retu_wdt->timeout	= RETU_WDT_MAX_TIMER;
-+	retu_wdt->min_timeout	= 0;
-+	retu_wdt->max_timeout	= RETU_WDT_MAX_TIMER;
-+
-+	watchdog_set_drvdata(retu_wdt, wdev);
-+	watchdog_set_nowayout(retu_wdt, nowayout);
-+
-+	wdev->rdev		= rdev;
-+	wdev->dev		= &pdev->dev;
-+
-+	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
-+
-+	ret = watchdog_register_device(retu_wdt);
-+	if (ret < 0)
-+		goto error_reg;
-+
-+	if (nowayout)
-+		retu_wdt_ping(retu_wdt);
-+	else
-+		retu_wdt_ping_enable(wdev);
-+
-+	platform_set_drvdata(pdev, retu_wdt);
-+
-+	return 0;
-+
-+error_reg:
-+	kfree(wdev);
-+error_mem:
-+	kfree(retu_wdt);
-+	return ret;
-+}
-+
-+static int __devexit retu_wdt_remove(struct platform_device *pdev)
-+{
-+	struct watchdog_device *wdog = platform_get_drvdata(pdev);
-+	struct retu_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-+
-+	watchdog_unregister_device(wdog);
-+	cancel_delayed_work_sync(&wdev->ping_work);
-+	kfree(wdev);
-+	kfree(wdog);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver retu_wdt_driver = {
-+	.probe		= retu_wdt_probe,
-+	.remove		= __devexit_p(retu_wdt_remove),
-+	.driver		= {
-+		.name	= "retu-wdt",
++static struct platform_device n8x0_cbus_device = {
++	.name	= "i2c-cbus",
++	.id	= 3,
++	.dev	= {
++		.platform_data = &n8x0_cbus_data,
 +	},
 +};
-+module_platform_driver(retu_wdt_driver);
 +
-+MODULE_ALIAS("platform:retu-wdt");
-+MODULE_DESCRIPTION("Retu watchdog");
-+MODULE_AUTHOR("Amit Kucheria");
-+MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
-+MODULE_LICENSE("GPL");
++static void __init n8x0_cbus_init(void)
++{
++	platform_device_register(&n8x0_cbus_device);
++}
++#else /* CONFIG_I2C_CBUS */
++static void __init n8x0_cbus_init(void)
++{
++}
++#endif /* CONFIG_I2C_CBUS */
++
+ #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
+ /*
+  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
+@@ -681,6 +707,7 @@ static void __init n8x0_init_machine(void)
+ 	gpmc_onenand_init(board_onenand_data);
+ 	n8x0_mmc_init();
+ 	n8x0_usb_init();
++	n8x0_cbus_init();
+ }
+ 
+ MACHINE_START(NOKIA_N800, "Nokia N800")
 -- 
 1.7.2.5
 
