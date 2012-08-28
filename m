@@ -1,94 +1,196 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 2/9] ARM: OMAP: omap3evm: cleanup revision bits
-Date: Wed, 29 Aug 2012 02:18:50 +0300
-Message-ID: <1346195937-6383-3-git-send-email-grinberg@compulab.co.il>
+Subject: [PATCH 7/9] ARM: OMAP1: move lcd pdata out of arch/arm/*
+Date: Wed, 29 Aug 2012 02:18:55 +0300
+Message-ID: <1346195937-6383-8-git-send-email-grinberg@compulab.co.il>
 References: <1346195937-6383-1-git-send-email-grinberg@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from softlayer.compulab.co.il ([50.23.254.55]:39803 "EHLO
+	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752116Ab2H1XTU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Aug 2012 19:19:20 -0400
 In-Reply-To: <1346195937-6383-1-git-send-email-grinberg@compulab.co.il>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-The omap3evm has its revision information bits inside the plat/board.h
-file. Those bits are not used anywhere in the upstream tree besides the
-board-omap3evm.c file.
-Move the OMAP3EVM_BOARD_GEN_* bits to the board file and remove the
-get_omap3_evm_rev() function declaration.
+omap1 lcd platform data resides inside plat/board.h while it
+should be inside include/linux/...
+Move the omap1 lcd platform data to include/linux/omapfb.h.
 
 Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-omap3evm.c    |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/board.h |   18 ------------------
- 2 files changed, 12 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c   |    1 -
+ arch/arm/mach-omap1/board-fsample.c     |    1 -
+ arch/arm/mach-omap1/board-htcherald.c   |    1 -
+ arch/arm/mach-omap1/board-nokia770.c    |    1 -
+ arch/arm/mach-omap1/board-palmte.c      |    1 -
+ arch/arm/mach-omap1/board-palmtt.c      |    1 -
+ arch/arm/mach-omap1/board-palmz71.c     |    1 -
+ arch/arm/mach-omap1/board-perseus2.c    |    1 -
+ arch/arm/mach-omap1/board-sx1.c         |    1 -
+ arch/arm/plat-omap/fb.c                 |    2 --
+ arch/arm/plat-omap/include/plat/board.h |    7 -------
+ include/linux/omapfb.h                  |    7 ++++++-
+ 12 files changed, 6 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 5be082b..8477137 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -73,6 +73,18 @@
- #define OMAP3EVM_GEN1_ETHR_GPIO_RST	64
- #define OMAP3EVM_GEN2_ETHR_GPIO_RST	7
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index c534698..c162369 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -37,7 +37,6 @@
+ #include <plat/board-ams-delta.h>
+ #include <plat/keypad.h>
+ #include <plat/mux.h>
+-#include <plat/board.h>
  
-+/*
-+ * OMAP35x EVM revision
-+ * Run time detection of EVM revision is done by reading Ethernet
-+ * PHY ID -
-+ *	GEN_1	= 0x01150000
-+ *	GEN_2	= 0x92200000
-+ */
-+enum {
-+	OMAP3EVM_BOARD_GEN_1 = 0,	/* EVM Rev between  A - D */
-+	OMAP3EVM_BOARD_GEN_2,		/* EVM Rev >= Rev E */
-+};
-+
- static u8 omap3_evm_version;
+ #include <mach/hardware.h>
+ #include <mach/ams-delta-fiq.h>
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 6872f3f..6d98552 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -32,7 +32,6 @@
+ #include <plat/flash.h>
+ #include <plat/fpga.h>
+ #include <plat/keypad.h>
+-#include <plat/board.h>
  
- u8 get_omap3_evm_rev(void)
+ #include <mach/hardware.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+index b3f6e94..b9771b5 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -42,7 +42,6 @@
+ #include <asm/mach/arch.h>
+ 
+ #include <plat/omap7xx.h>
+-#include <plat/board.h>
+ #include <plat/keypad.h>
+ #include <plat/mmc.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 2c0ca8f..ec01f03 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -26,7 +26,6 @@
+ #include <asm/mach/map.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/board.h>
+ #include <plat/keypad.h>
+ #include <plat/lcd_mipid.h>
+ #include <plat/mmc.h>
+diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
+index 7bf00ba..49f8d74 100644
+--- a/arch/arm/mach-omap1/board-palmte.c
++++ b/arch/arm/mach-omap1/board-palmte.c
+@@ -38,7 +38,6 @@
+ #include <plat/mux.h>
+ #include <plat/tc.h>
+ #include <plat/dma.h>
+-#include <plat/board.h>
+ #include <plat/irda.h>
+ #include <plat/keypad.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
+index 2cce505..01523cd 100644
+--- a/arch/arm/mach-omap1/board-palmtt.c
++++ b/arch/arm/mach-omap1/board-palmtt.c
+@@ -38,7 +38,6 @@
+ #include <plat/mux.h>
+ #include <plat/dma.h>
+ #include <plat/tc.h>
+-#include <plat/board.h>
+ #include <plat/irda.h>
+ #include <plat/keypad.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
+index 45ab9f0..a7abce6 100644
+--- a/arch/arm/mach-omap1/board-palmz71.c
++++ b/arch/arm/mach-omap1/board-palmz71.c
+@@ -40,7 +40,6 @@
+ #include <plat/mux.h>
+ #include <plat/dma.h>
+ #include <plat/tc.h>
+-#include <plat/board.h>
+ #include <plat/irda.h>
+ #include <plat/keypad.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 703d55e..277e0bc 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -32,7 +32,6 @@
+ #include <plat/fpga.h>
+ #include <plat/flash.h>
+ #include <plat/keypad.h>
+-#include <plat/board.h>
+ 
+ #include <mach/hardware.h>
+ 
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index 8c665bd..2e1fff2 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -38,7 +38,6 @@
+ #include <plat/dma.h>
+ #include <plat/irda.h>
+ #include <plat/tc.h>
+-#include <plat/board.h>
+ #include <plat/keypad.h>
+ #include <plat/board-sx1.h>
+ 
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index dd6f92c..bcbb9d5 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -33,8 +33,6 @@
+ #include <mach/hardware.h>
+ #include <asm/mach/map.h>
+ 
+-#include <plat/board.h>
+-
+ #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
+ 
+ static bool omapfb_lcd_configured;
 diff --git a/arch/arm/plat-omap/include/plat/board.h b/arch/arm/plat-omap/include/plat/board.h
-index e6a8d79..db3bdc1 100644
+index d0bc46e..2ddc198 100644
 --- a/arch/arm/plat-omap/include/plat/board.h
 +++ b/arch/arm/plat-omap/include/plat/board.h
-@@ -14,18 +14,6 @@
+@@ -12,13 +12,6 @@
  
- #include <plat/gpio-switch.h>
+ #include <linux/types.h>
  
--/*
-- * OMAP35x EVM revision
-- * Run time detection of EVM revision is done by reading Ethernet
-- * PHY ID -
-- *	GEN_1	= 0x01150000
-- *	GEN_2	= 0x92200000
-- */
--enum {
--	OMAP3EVM_BOARD_GEN_1 = 0,	/* EVM Rev between  A - D */
--	OMAP3EVM_BOARD_GEN_2,		/* EVM Rev >= Rev E */
+-struct omap_lcd_config {
+-	char panel_name[16];
+-	char ctrl_name[16];
+-	s16  nreset_gpio;
+-	u8   data_lines;
 -};
 -
- /* Different peripheral ids */
- #define OMAP_TAG_CLOCK		0x4f01
- #define OMAP_TAG_GPIO_SWITCH	0x4f06
-@@ -125,10 +113,4 @@ extern int omap_board_config_size;
  /* for TI reference platforms sharing the same debug card */
  extern int debug_card_init(u32 addr, unsigned gpio);
  
--/* OMAP3EVM revision */
--#if defined(CONFIG_MACH_OMAP3EVM)
--u8 get_omap3_evm_rev(void);
--#else
--#define get_omap3_evm_rev() (-EINVAL)
--#endif
- #endif
+diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
+index 4ff57e8..85af818 100644
+--- a/include/linux/omapfb.h
++++ b/include/linux/omapfb.h
+@@ -220,7 +220,12 @@ struct omapfb_display_info {
+ 
+ #ifdef __KERNEL__
+ 
+-#include <plat/board.h>
++struct omap_lcd_config {
++	char panel_name[16];
++	char ctrl_name[16];
++	s16  nreset_gpio;
++	u8   data_lines;
++};
+ 
+ struct omapfb_platform_data {
+ 	struct omap_lcd_config		lcd;
 -- 
 1.7.8.6
+
