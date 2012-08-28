@@ -1,115 +1,44 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH v3 3/4] arm/dts: AM33XX: Configure pinmuxs for D_CAN1
- on AM335x-EVM
-Date: Tue, 28 Aug 2012 11:51:32 +0530
-Message-ID: <503C636C.6080708@ti.com>
-References: <1345119610-5247-1-git-send-email-anilkumar@ti.com> <1345119610-5247-4-git-send-email-anilkumar@ti.com> <20120824201447.GY11011@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/2] arm/dts: Cleanup regulator naming and remove @0,1..
+Date: Tue, 28 Aug 2012 11:51:52 +0530
+Message-ID: <503C6380.4090107@ti.com>
+References: <1343653940-16614-1-git-send-email-rnayak@ti.com> <1343653940-16614-3-git-send-email-rnayak@ti.com> <20120824202725.GA1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58821 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713Ab2H1GVy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Aug 2012 02:21:54 -0400
-In-Reply-To: <20120824201447.GY11011@atomide.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:57223 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751645Ab2H1GV6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Aug 2012 02:21:58 -0400
+Received: by obceq6 with SMTP id eq6so14310487obc.39
+        for <linux-omap@vger.kernel.org>; Mon, 27 Aug 2012 23:21:57 -0700 (PDT)
+In-Reply-To: <20120824202725.GA1303@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: AnilKumar Ch <anilkumar@ti.com>, devicetree-discuss@lists.ozlabs.org, mkl@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, b-cousson@ti.com
 
+Hi Tony,
 
+> * Rajendra Nayak<rnayak@ti.com>  [120730 06:17]:
+>> regulators do not have a 'reg' property, hence the regulator@0,
+>> regulator@1 do not make sense. get rid of it.
+>
+> Looks like this needs to be refreshed to apply. Care to
+> refresh against current devel-dt branch in case other
+> places need the same change?
 
-On 8/25/2012 1:44 AM, Tony Lindgren wrote:
-> * AnilKumar Ch <anilkumar@ti.com> [120816 05:20]:
->> Add D_CAN1 pinctrl node to am3358_pinmux master node to export
->> D_CAN functionality on AM335x EVM according to pinctrl-single
->> driver.
->>
->> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->> ---
->> Changes from v2:
->> 	- Incorporated Vaibhav H's comments on v2
->> 	  * Added dcan0 instances to am33xx.dtsi file
->>
->> Changes from v1:
->> 	- These two patches separated from c_can DT support
->> 	  patch series.
->>
->>  arch/arm/boot/dts/am335x-evm.dts |   12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
->> index 5dd8a6b..a64c30a 100644
->> --- a/arch/arm/boot/dts/am335x-evm.dts
->> +++ b/arch/arm/boot/dts/am335x-evm.dts
->> @@ -18,6 +18,18 @@
->>  		reg = <0x80000000 0x10000000>; /* 256 MB */
->>  	};
->>  
->> +	am3358_pinmux: pinmux@44E10800 {
-> 
-> This should be just &am3358_pinmux as you already include it.
-> 
+Looks like devel-dt is missing the PATCH 1/2 from this series,
+which you have already pushed in the -rc for merge.
+With that applied, this ones applies cleanly too.
 
-I think it won't work this way, it will result into syntax error.
-The reason being is, unlike OMAP (and like other platforms, like, imx)
-here we are again representing device hierarchy starting from root,
+regards,
+Rajendra
 
-am335x-evm.dts:
-/ {
-
-	ocp {
-		...
-	};
-
-};
-
-Although I am not too familiar with DTS compiler, but below code results
-in syntax error:
-
-am335x-evm.dts:
-/ {
-
-	ocp {
-		...
-		&am3358_pinmux {
-			...
-		};
-	};
-
-};
-
-
-Thanks,
-Vaibhav
-
->> +		pinctrl-names = "default";
->> +		pinctrl-0 = <&d_can1_pins>;
->> +
->> +		d_can1_pins: pinmux_d_can_pins {
->> +			pinctrl-single,pins = <
->> +				0x168 0x2	/* uart0_ctsn.d_can1_tx, OUTPUT | MODE2 */
->> +				0x16C 0x32	/* uart0_rtsn.d_can1_rx, INPUT_PULLUP | MODE2 */
->> +			>;
->> +		};
->> +	};
->> +
-> 
-> It would better to claim these pins in the dcan driver entry
-> rather than set them as pins enabled by the pinctrl driver.
-> The reason is that in case you want to enable runtime PM related
-> stuff, like some more advanced wake-up features, for the rx pin
-> you can do it in the driver.
-> 
-> Then one nit.. Please lowercase all hex number in this series as that's the style
-> here.
-> 
+>
 > Regards,
-> 
+>
 > Tony
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+
