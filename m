@@ -1,43 +1,45 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH RESEND 1/4] ARM: OMAP2+: AM33XX: Add tps65910 device tree
- data
-Date: Tue, 28 Aug 2012 10:21:33 -0700
-Message-ID: <20120828172133.GH4534@opensource.wolfsonmicro.com>
-References: <1342766789-28148-1-git-send-email-anilkumar@ti.com>
- <1342766789-28148-2-git-send-email-anilkumar@ti.com>
- <20120720095935.GQ4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9FA91E@DBDE01.ent.ti.com>
- <20120720113806.GW4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA01F1E@DBDE01.ent.ti.com>
- <20120723133400.GU4435@opensource.wolfsonmicro.com>
- <20120828112603.GC25786@gmail.com>
+Subject: Re: [PATCH] ASoC: ams-delta: fix card initalization
+ failure
+Date: Tue, 28 Aug 2012 11:13:39 -0700
+Message-ID: <20120828181338.GB8796@opensource.wolfsonmicro.com>
+References: <1346102910-8610-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <20120827213835.GE4400@opensource.wolfsonmicro.com>
+ <3048168.EXxi4fR4e7@acer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51855 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751928Ab2H1RVg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Aug 2012 13:21:36 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20120828112603.GC25786@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <3048168.EXxi4fR4e7@acer>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Aug 28, 2012 at 12:26:07PM +0100, Lee Jones wrote:
+On Tue, Aug 28, 2012 at 05:13:05PM +0200, Janusz Krzysztofik wrote:
+> On Mon, 27 Aug 2012 14:38:35 Mark Brown wrote:
+> > On Mon, Aug 27, 2012 at 11:28:30PM +0200, Janusz Krzysztofik wrote:
 
-> > > arch/arm/boot/dts/db8500.dtsi
+> > > -	platform_set_drvdata(ams_delta_audio_platform_device,
+> > > -				&ams_delta_audio_card);
 
-> > I'm not actually seeing anything terribly problematic here, though the
-> > regulator-name properties should really be removed as they're fairly
-> > useless and seem to be missing the point of having the property.
+> > The real fix here is that you should be using platform data here, not
+> > driver data.  Is there some reason not to do that?
 
-> Just looking at this now. 
+> Do you think the change you propose is suitable for the rc cycle? I'm 
+> trying to fix a regression in the first place. Converting the ams-delta 
+> asoc to a platform driver is on my todo list and I'm going to take care 
+> of this as soon as I have enough spare time.
 
-> The regulator-name property is used to populate constrains->name. Are
-> you sure you still want them all removed?
-
-Yes, of course.  There's no way that a generic .dtsi used for any
-possible board could come up with a sensible value.
+The above looks like you already have a platform driver?  All I'm
+suggesting is changing the above to use platform rather than driver
+data.
