@@ -1,87 +1,67 @@
 From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: [RFC PATCH 4/5] arm: omap: n8x0: add i2c-cbus platform data
-Date: Wed, 29 Aug 2012 00:34:26 +0300
-Message-ID: <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
-References: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
+Date: Wed, 29 Aug 2012 02:09:17 +0300
+Message-ID: <20120828230917.GD783@harshnoise.musicnaut.iki.fi>
+References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
+ <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
+ <20120827220254.GA783@harshnoise.musicnaut.iki.fi>
+ <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
+ <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
+ <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
+ <20120828122042.GC783@harshnoise.musicnaut.iki.fi>
+ <CAMQu2gwMk68_BNc4O0M52OACUVLLGzRCQe+5mGH_40DrwAQ4KA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:43302 "EHLO
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:48255 "EHLO
 	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163Ab2H1VfF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 17:35:05 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by filtteri2.pp.htv.fi (Postfix) with ESMTP id 885B219B7DC
-	for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
-Received: from smtp6.welho.com ([213.243.153.40])
-	by localhost (filtteri2.pp.htv.fi [213.243.153.185]) (amavisd-new, port 10024)
-	with ESMTP id xUqIbrCD8zh9 for <linux-omap@vger.kernel.org>;
-	Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
-Received: from blackmetal.bb.dnainternet.fi (212-149-209-232.bb.dnainternet.fi [212.149.209.232])
-	by smtp6.welho.com (Postfix) with ESMTP id 496595BC005
-	for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 00:34:28 +0300 (EEST)
-In-Reply-To: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
+	with ESMTP id S1751021Ab2H1XJn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 19:09:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gwMk68_BNc4O0M52OACUVLLGzRCQe+5mGH_40DrwAQ4KA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add platform data to enable i2c-cbus on N8x0. It will be I2C bus #3.
+Hi,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- arch/arm/mach-omap2/board-n8x0.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+On Tue, Aug 28, 2012 at 07:19:38AM -0700, Shilimkar, Santosh wrote:
+> Or the PPA has resized the secure area of 16K. As you have seen the issue
+> on one OMAP3 device, it makes sense to takeout that 16K from the public
+> SRAM map.
+> 
+> Can you send the patch with fixed base address fir PUB SRAM ?
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 677357f..8ea0dea 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -18,6 +18,7 @@
- #include <linux/io.h>
- #include <linux/stddef.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-cbus.h>
- #include <linux/spi/spi.h>
- #include <linux/usb/musb.h>
- #include <sound/tlv320aic3x.h>
-@@ -42,6 +43,31 @@
- #define TUSB6010_GPIO_ENABLE	0
- #define TUSB6010_DMACHAN	0x3f
+Maybe I'm missing something, but I tried the following and now something
+else got broken:
+
+	save_secure_sram() returns 0000ff02
+
+(and it hangs there).
+
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 766181c..242ea5b 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -38,7 +38,7 @@
  
-+#if defined(CONFIG_I2C_CBUS) || defined(CONFIG_I2C_CBUS_MODULE)
-+static struct i2c_cbus_platform_data n8x0_cbus_data = {
-+	.clk_gpio = 66,
-+	.dat_gpio = 65,
-+	.sel_gpio = 64,
-+};
-+
-+static struct platform_device n8x0_cbus_device = {
-+	.name	= "i2c-cbus",
-+	.id	= 3,
-+	.dev	= {
-+		.platform_data = &n8x0_cbus_data,
-+	},
-+};
-+
-+static void __init n8x0_cbus_init(void)
-+{
-+	platform_device_register(&n8x0_cbus_device);
-+}
-+#else /* CONFIG_I2C_CBUS */
-+static void __init n8x0_cbus_init(void)
-+{
-+}
-+#endif /* CONFIG_I2C_CBUS */
-+
- #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB6010_MODULE)
- /*
-  * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-@@ -681,6 +707,7 @@ static void __init n8x0_init_machine(void)
- 	gpmc_onenand_init(board_onenand_data);
- 	n8x0_mmc_init();
- 	n8x0_usb_init();
-+	n8x0_cbus_init();
- }
- 
- MACHINE_START(NOKIA_N800, "Nokia N800")
--- 
-1.7.2.5
-
+ #define OMAP1_SRAM_PA		0x20000000
+ #define OMAP2_SRAM_PUB_PA	(OMAP2_SRAM_PA + 0xf800)
+-#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
++#define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0xc000)
+ #ifdef CONFIG_OMAP4_ERRATA_I688
+ #define OMAP4_SRAM_PUB_PA	OMAP4_SRAM_PA
+ #else
+@@ -112,9 +112,9 @@ static void __init omap_detect_sram(void)
+ 				omap_sram_start = OMAP3_SRAM_PUB_PA;
+ 				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
+ 				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
+-					omap_sram_size = 0x7000; /* 28K */
++					omap_sram_size = 0x3000; /* 12K */
+ 				} else {
+-					omap_sram_size = 0x8000; /* 32K */
++					omap_sram_size = SZ_16K; /* 16K */
+ 				}
+ 			} else if (cpu_is_omap44xx()) {
+ 				omap_sram_start = OMAP4_SRAM_PUB_PA;
