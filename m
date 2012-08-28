@@ -1,7 +1,8 @@
 From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 3/3] arm/dts: AM33XX: Add D_CAN device tree data
-Date: Tue, 28 Aug 2012 13:40:54 +0530
-Message-ID: <1346141454-18786-4-git-send-email-anilkumar@ti.com>
+Subject: [PATCH RESEND v4 1/3] arm/dts: AM33XX: Add basic pinctrl device tree
+ data
+Date: Tue, 28 Aug 2012 13:40:52 +0530
+Message-ID: <1346141454-18786-2-git-send-email-anilkumar@ti.com>
 References: <1346141454-18786-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,42 +23,33 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add Bosch D_CAN controller device tree data to AM33XX dtsi
-file by adding d_can device nodes with all the necessary
-parameters.
+Adds basic pinctrl device tree data for AM33XX family of devices.
+This patch is based on the pinctrl-single driver.
 
 Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index dfe9c559..d965137 100644
+index dde76f7..dfe9c559 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -177,5 +177,23 @@
- 			compatible = "ti,omap3-wdt";
- 			ti,hwmods = "wd_timer2";
+@@ -40,6 +40,15 @@
  		};
-+
-+		dcan0: d_can@481CC000 {
-+			compatible = "bosch,d_can";
-+			ti,hwmods = "d_can0";
-+			reg = <0x481CC000 0x2000>;
-+			interrupts = <52>;
-+			interrupt-parent = <&intc>;
-+			status = "disabled";
-+		};
-+
-+		dcan1: d_can@481D0000 {
-+			compatible = "bosch,d_can";
-+			ti,hwmods = "d_can1";
-+			reg = <0x481D0000 0x2000>;
-+			interrupts = <55>;
-+			interrupt-parent = <&intc>;
-+			status = "disabled";
-+		};
  	};
- };
+ 
++	am3358_pinmux: pinmux@44E10800 {
++		compatible = "pinctrl-single";
++		reg = <0x44E10800 0x0238>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-single,register-width = <32>;
++		pinctrl-single,function-mask = <0x7F>;
++	};
++
+ 	/*
+ 	 * XXX: Use a flat representation of the AM33XX interconnect.
+ 	 * The real AM33XX interconnect network is quite complex.Since
 -- 
 1.7.9.5
