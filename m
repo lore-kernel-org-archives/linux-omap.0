@@ -1,45 +1,44 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: ams-delta: fix card initalization
- failure
-Date: Tue, 28 Aug 2012 11:13:39 -0700
-Message-ID: <20120828181338.GB8796@opensource.wolfsonmicro.com>
-References: <1346102910-8610-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <20120827213835.GE4400@opensource.wolfsonmicro.com>
- <3048168.EXxi4fR4e7@acer>
+From: "Allen and Violet Large" <ahernando@geo.uned.es>
+Subject: (unknown)
+Date: Tue, 28 Aug 2012 20:26:00 +0200
+Message-ID: <88c1d79dfa8f8e2a0581ea1afed9e251.squirrel__31004.5458529659$1346179004$gmane$org@correo.uned.es>
+Reply-To: allen_violetlarge202@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <3048168.EXxi4fR4e7@acer>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out-cuatro.uned.es ([62.204.192.118]:37895 "EHLO
+	smtp-out-cuatro.uned.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751167Ab2H1SgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 14:36:05 -0400
+Subject: 
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 28, 2012 at 05:13:05PM +0200, Janusz Krzysztofik wrote:
-> On Mon, 27 Aug 2012 14:38:35 Mark Brown wrote:
-> > On Mon, Aug 27, 2012 at 11:28:30PM +0200, Janusz Krzysztofik wrote:
 
-> > > -	platform_set_drvdata(ams_delta_audio_platform_device,
-> > > -				&ams_delta_audio_card);
 
-> > The real fix here is that you should be using platform data here, not
-> > driver data.  Is there some reason not to do that?
 
-> Do you think the change you propose is suitable for the rc cycle? I'm 
-> trying to fix a regression in the first place. Converting the ams-delta 
-> asoc to a platform driver is on my todo list and I'm going to take care 
-> of this as soon as I have enough spare time.
+Dear Sir/Madam,
 
-The above looks like you already have a platform driver?  All I'm
-suggesting is changing the above to use platform rather than driver
-data.
+This is my fifth times of writting you this email since last year till
+date but no response from you.Hope you get this one, as this is a personal
+email directed to you. My wife and I won a Jackpot Lotteryof $11.3 million
+in July and have voluntarily decided to donate the sum of $500,000.00 USD
+to you as part of our own charity project to improve the lot of 10 lucky
+individuals all over the world. If you have received this email then you
+are one of the lucky recipients and all you have to do is get back with us
+so that we can send your details to the payout bank.Please note that you
+have to contact my private email for more
+informations(allen_violetlarge202@yahoo.co.jp)
+
+You can verify this by visiting the web pages below.
+
+
+
+http://www.dailymail.co.uk/news/article-1326473/Canadian-couple-Allen-Violet-Large-away-entire-11-2m-lottery-win.html
+
+
+Goodluck,
+Allen and Violet Large
+allen_violetlarge202@yahoo.co.jp
+
