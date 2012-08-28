@@ -1,56 +1,54 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH RESEND 1/4] ARM: OMAP2+: AM33XX: Add tps65910 device tree
- data
-Date: Tue, 28 Aug 2012 12:26:07 +0100
-Message-ID: <20120828112603.GC25786@gmail.com>
-References: <1342766789-28148-1-git-send-email-anilkumar@ti.com>
- <1342766789-28148-2-git-send-email-anilkumar@ti.com>
- <20120720095935.GQ4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9FA91E@DBDE01.ent.ti.com>
- <20120720113806.GW4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA01F1E@DBDE01.ent.ti.com>
- <20120723133400.GU4435@opensource.wolfsonmicro.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
+Date: Tue, 28 Aug 2012 15:20:49 +0300
+Message-ID: <20120828122042.GC783@harshnoise.musicnaut.iki.fi>
+References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
+ <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
+ <20120827220254.GA783@harshnoise.musicnaut.iki.fi>
+ <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
+ <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
+ <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34160 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153Ab2H1L0L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 07:26:11 -0400
-Received: by eaac11 with SMTP id c11so1504010eaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 28 Aug 2012 04:26:10 -0700 (PDT)
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:60029 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751366Ab2H1MVN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 08:21:13 -0400
 Content-Disposition: inline
-In-Reply-To: <20120723133400.GU4435@opensource.wolfsonmicro.com>
+In-Reply-To: <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Mark,
+Hi,
 
-> > arch/arm/boot/dts/db8500.dtsi
->=20
-> I'm not actually seeing anything terribly problematic here, though th=
-e
-> regulator-name properties should really be removed as they're fairly
-> useless and seem to be missing the point of having the property.
+On Mon, Aug 27, 2012 at 05:17:30PM -0700, Shilimkar, Santosh wrote:
+> On Mon, Aug 27, 2012 at 4:26 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+> > I tried bypassing the whole SRAM init, but the device does not seem to
+> > boot up at all.
+> >
+> > If I comment out the memset alone, then it boots and the issue is gone:
+> >
+> > +#if 0
+> >         memset_io(omap_sram_base + SRAM_BOOTLOADER_SZ, 0,
+> >                   omap_sram_size - SRAM_BOOTLOADER_SZ);
+> > +#endif
+> >
+> Good. So the issue is indeed direct or indirect access to the secure SRAM.
+> As security can dynamically resize the secure RAM size it is even harder
+> to fix this issue properly. One easier way to deal with the issue is map only
+> needed SRAM and leave rest for security.
+> 
+> For now, Can you check if reducing the size of the SRAM in init is helping you
+> to get way with the issue. Sorry it might need few iterations for you to get
+> a working SRAM size.
 
-Just looking at this now.=20
+The problem is triggered by writing to the beginning of the SRAM area,
+not to the end. I need to skip the first 16k (0x4000) to get rid of
+the errors. Maybe the base address calculation is wrong? This could
+also explain why it's still possible to use the device - it seems the
+allocator starts from the end, and moves towards the base...
 
-The regulator-name property is used to populate constrains->name. Are
-you sure you still want them all removed?
-
-Kind regards,
-Lee
-
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A.
