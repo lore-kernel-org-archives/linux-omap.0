@@ -1,85 +1,104 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
-Date: Mon, 27 Aug 2012 17:17:30 -0700
-Message-ID: <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
-References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
- <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
- <20120827220254.GA783@harshnoise.musicnaut.iki.fi> <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
- <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v3 4/4] arm/dts: Add tps65217 regulator DT data to
+ am335x-bone.dts
+Date: Tue, 28 Aug 2012 05:34:02 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA20AA6@DBDE01.ent.ti.com>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
+ <1345547850-29761-5-git-send-email-anilkumar@ti.com>
+ <A823657F-0D26-429F-8E1C-DF1AE5AB78F4@dominion.thruhere.net>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1F1D7@DBDE01.ent.ti.com>
+ <583C0877-1C4C-46B6-A5D0-BDD34D6BB7C8@dominion.thruhere.net>
+ <331ABD5ECB02734CA317220B2BBEABC13EA1F3B0@DBDE01.ent.ti.com>
+ <6C2AC14D-1CAC-4B93-910C-B7E52D3355FD@dominion.thruhere.net>
+ <45D5714B-BB2C-49BB-8C5D-F69749EC324A@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:55741 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755024Ab2H1ARw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Aug 2012 20:17:52 -0400
-Received: by vcbfo14 with SMTP id fo14so5794428vcb.31
-        for <linux-omap@vger.kernel.org>; Mon, 27 Aug 2012 17:17:51 -0700 (PDT)
-In-Reply-To: <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56778 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751008Ab2H1FeN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 01:34:13 -0400
+In-Reply-To: <45D5714B-BB2C-49BB-8C5D-F69749EC324A@dominion.thruhere.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-On Mon, Aug 27, 2012 at 4:26 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> On Mon, Aug 27, 2012 at 03:12:07PM -0700, Shilimkar, Santosh wrote:
->> On Mon, Aug 27, 2012 at 3:02 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
->> > Hi,
->> >
->> > On Mon, Aug 27, 2012 at 02:35:57PM -0700, Shilimkar, Santosh wrote:
->> >> > -       pr_err("%s seen by %s %s at address %x\n",
->> >> > +       pr_err_ratelimited("%s seen by %s %s at address %x\n",
->> >> >                         omap3_l3_code_string(code),
->> >> >                         omap3_l3_initiator_string(initid),
->> >> >                         multi ? "Multiple Errors" : "", address);
->> >> > -       WARN_ON(1);
->> >> > +       WARN_ON_ONCE(1);
->> >> >
->> >> The issue needs to be fixed instead of WARN_ON_ONCE() and then
->> >> just moving ahead. Interconnect in bad states is really bad state and you
->> >> won't have reliable operations post that on SOC.
->> >
->> > How printing megabytes of identical stack traces helps anything?
->> >
->> It just says repeatedly and  loudly... Fix the issue :-)
->>
->> > This has been there always (since the L3 driver was added) on every boot
->> > with N950/N9 (which BTW are HS devices, not sure if that has anything
->> > to do with it). There is no apparent effect on device functionality,
->> > at least nothing unusual has been observed...
->> >
->> I assumed this is secure device when I saw the SRAM memset is causing the
->> issue.
->>
->> > Is there any documentation how to interpret and debug this error report?
->> >
->> The issue could be, there is memset tried on Secure portion of SRAM or
->> CPU speculatively accessed adjacent SRAM region of public SRAM which
->> is secure and hence the error.
->
-> Thanks, that makes sense.
->
->> If you just bypass the SRAM init [1], does the issue go away ?
->
-> I tried bypassing the whole SRAM init, but the device does not seem to
-> boot up at all.
->
-> If I comment out the memset alone, then it boots and the issue is gone:
->
-> +#if 0
->         memset_io(omap_sram_base + SRAM_BOOTLOADER_SZ, 0,
->                   omap_sram_size - SRAM_BOOTLOADER_SZ);
-> +#endif
->
-Good. So the issue is indeed direct or indirect access to the secure SRAM.
-As security can dynamically resize the secure RAM size it is even harder
-to fix this issue properly. One easier way to deal with the issue is map only
-needed SRAM and leave rest for security.
+Hi Koen,
 
-For now, Can you check if reducing the size of the SRAM in init is helping you
-to get way with the issue. Sorry it might need few iterations for you to get
-a working SRAM size.
+On Fri, Aug 24, 2012 at 13:32:17, Koen Kooi wrote:
+> 
+> Op 24 aug. 2012, om 09:56 heeft Koen Kooi <koen@dominion.thruhere.net> het volgende geschreven:
+> 
+> > 
+> > Op 24 aug. 2012, om 09:26 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
+> > 
+> >> Hi Koen,
+> >> 
+> >> On Fri, Aug 24, 2012 at 11:58:34, Koen Kooi wrote:
+> >>> 
+> >>> Op 24 aug. 2012, om 07:50 heeft "AnilKumar, Chimata" <anilkumar@ti.com> het volgende geschreven:
+> >>> 
+> >>>> Hi Koen,
+> >>>> 
+> >>>> On Thu, Aug 23, 2012 at 19:43:48, Koen Kooi wrote:
+> >>>>> 
+> >>>>> Op 21 aug. 2012, om 13:17 heeft AnilKumar Ch <anilkumar@ti.com> het volgende geschreven:
+> >>>>> 
+> >>>>>> Add tps65217 regulator device tree data to AM335x-Bone by adding
+> >>>>>> regulator consumers with tightened constraints and regulator-name.
+> >>>>>> TPS65217 regulator handle can be obtained by using this regulator
+> >>>>>> name.
+> >>>>>> 
+> >>>>>> This patch also add I2C node with I2C frequency and tps65217 PMIC
+> >>>>>> I2C slave address.
+> >>>>>> 
+> >>>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> >>>>> 
+> >>>>> I tried this and the kernel immediately crashes on my beaglebone. Could you upload the complete git tree and .config you used to test this to somewhere public please?
+> >>>> 
+> >>>> Use this repo to test on beaglebone
+> >>>> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging-pinctrl
+> >>>> 
+> >>>> This wiki talks about how to build and use?
+> >>>> https://github.com/hvaibhav/am335x-linux/wiki/How-To-Use-Upstream-Tree
+> >>>> 
+> >>>> Note: Enable tps65217 regulator in kernel config.
+> >>> 
+> >>> I used that repo and as a seperate test I rebased that to latest mainline, same thing: as soon as I turn on the TPS in the .config it crashes on boot. Is the pinctrl repo the *exact* repo you used to test the patches on beaglebone?
+> >> 
+> >> I tested on latest mainline after merging to
+> >> am335x-upstream-staging-pinctrl (voltage also changing)
+> >> 
+> >> Can you share your .config and uImage?
+> > 
+> > Config: https://github.com/beagleboard/kernel/blob/beaglebone-3.6/patches/configs/beaglebone
+> > 
+> >> My config details:- (After merge)
+> >> 1. omap2plus_defconfig
+> >> 2. Enable tps65217 MFD driver
+> >> 3. Enable tps65217 regulator driver
+> > 
+> > 
+> > I rebased onto latest mainline and refreshed the base patches from Vaibhav and I now get: 
+> > 
+> > [    0.246796] tps65217 0-0024: TPS65217 ID 0xf version 1.1
+> > 
+> > So it boots! I don't know what made it break before, but it's working now :)
+> 
+> *sigh* I'm an idiot:
+> 
+> root@beaglebone:~# uname -a
+> Linux beaglebone 3.6.0-rc3-00103-gfd02083 #86 SMP Fri Aug 24 09:45:54 CEST 2012 armv7l GNU/Linux
+> root@beaglebone:~# zcat /proc/config.gz | grep 217
+> CONFIG_MFD_TPS65217=y
+> # CONFIG_REGULATOR_TPS65217 is not set
+> 
+> Will retry with regulator driver actually turned on in a bit.
 
-Regards
-Santosh
+Is it working after enabling the regulator?
+
+Thanks
+AnilKumar
