@@ -1,214 +1,99 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [RFC PATCH] ARM: OMAP2+: omap-device: Do not overwrite resources
- allocated by OF layer
-Date: Wed, 29 Aug 2012 15:18:11 +0530
-Message-ID: <1346233691-10294-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/23] OMAPDSS: outputs: Create a new entity called
+ outputs
+Date: Wed, 29 Aug 2012 13:32:50 +0300
+Message-ID: <1346236370.2623.45.camel@deskari>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>
+	  <1345528711-27801-2-git-send-email-archit@ti.com>
+	 <1345812069.9287.65.camel@lappyti> <503778E8.2060909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-5U/wa9774vYRVthGkfzK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:34270 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751021Ab2H2Kc4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Aug 2012 06:32:56 -0400
+Received: by bkwj10 with SMTP id j10so179504bkw.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 03:32:53 -0700 (PDT)
+In-Reply-To: <503778E8.2060909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
 
-With the new devices (like, AM33XX and OMAP5) we now only support
-DT boot mode of operation and now it is the time to start killing
-slowly the dependency on hwmod, so with this patch, we are starting
-with device resources.
-The idea here is implemented considering to both boot modes -
-  - DT boot mode
-    OF framework will construct the resource structure (currently
-    does for MEM & IRQ resource) and we should respect/use these
-    resources, killing hwmod dependency.
-    If pdev->num_resources > 0, we assume that MEM & IRQ resources
-    have been allocated by OF layer already (through DTB).
 
-    Once DMA resource is available from OF layer, we should
-    kill filling any resources from hwmod.
+--=-5U/wa9774vYRVthGkfzK
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-  - Non-DT boot mode
-    Here, pdev->num_resources = 0, and we should get all the
-    resources from hwmod (following existing steps)
+On Fri, 2012-08-24 at 18:21 +0530, Archit Taneja wrote:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
----
-This patch is tested on BeagleBone and AM37xEVM.
+> >> +enum omap_dss_output_id {
+> >> +	OMAP_DSS_OUTPUT_DPI	=3D 1 << 0,
+> >> +	OMAP_DSS_OUTPUT_DBI	=3D 1 << 1,
+> >> +	OMAP_DSS_OUTPUT_SDI	=3D 1 << 2,
+> >> +	OMAP_DSS_OUTPUT_DSI1	=3D 1 << 3,
+> >> +	OMAP_DSS_OUTPUT_VENC	=3D 1 << 4,
+> >> +	OMAP_DSS_OUTPUT_DSI2	=3D 1 << 5,
+> >> +	OMAP_DSS_OUTPUT_HDMI	=3D 1 << 6,
+> >> +};
+> >
+> > I'm not sure about this. We already have enum omap_display_type. If you
+> > need the instance number, you could have that as a separate int field.
+> >
+> > Where do you need the output_id?
+>=20
+> output_id is used to take care of situations where there our multiple=20
+> outputs of the same type, like DSI1 and DSI2. An enum helps when we=20
+> check if an overlay manager supports that output instance or not. For=20
+> ex, on OMAP4, LCD1 connects to DSI1 and not DSI2.
+>=20
+> I add a func called dss_feat_get_supported_outputs(channel) later to=20
+> check for this. When setting a new output for a manager, we just do an=
+=20
+> '&' to see if the output in question is in the mask of the manager's set=
+=20
+> of supported outputs.
 
-Why RFC?
-Still we have function duplication omap_device_fill_resources() and
-omap_device_fill_dma_resources(), we can actually split the function
-into 3 resources and avoid duplication -
-  - omap_device_fill_dma_resources()
-  - omap_device_fill_mem_resources()
-  - omap_device_fill_irq_resources()
+After thinking about this, I think we should remove the
+omap_display_type and the supported_displays stuff. It doesn't really
+work anymore, as we have more complex connections with omap4+. With a
+quick glance to the code, I think it should be quite easy to remove it.
 
-Actually I wanted to clean it further but thought of getting
-feedback first and then proceed further.
+And we need something like your omap_dss_output_id. I'm just not sure
+about the enum. But perhaps it's the easiest option for now, as some
+kind of array of similar would be more complex to implement, and I'm not
+sure if it really gives anything. You could move the VENC away from
+between DSI1 and DSI2, though. I'm not sure why you put VENC in between
+=3D).
 
- arch/arm/mach-omap2/omap_hwmod.c             |   27 ++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- arch/arm/plat-omap/omap_device.c             |   72 +++++++++++++++++++++----
- 3 files changed, 88 insertions(+), 12 deletions(-)
+ Tomi
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 31ec283..edabfb3 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -3330,6 +3330,33 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- }
 
- /**
-+ * omap_hwmod_fill_dma_resources - fill struct resource array with dma data
-+ * @oh: struct omap_hwmod *
-+ * @res: pointer to the array of struct resource to fill
-+ *
-+ * Fill the struct resource array @res with dma resource data from the
-+ * omap_hwmod @oh.  Intended to be called by code that registers
-+ * omap_devices.  See also omap_hwmod_count_resources().  Returns the
-+ * number of array elements filled.
-+ */
-+int omap_hwmod_fill_dma_resources(struct omap_hwmod *oh, struct resource *res)
-+{
-+	int i, sdma_reqs_cnt;
-+	int r = 0;
-+
-+	sdma_reqs_cnt = _count_sdma_reqs(oh);
-+	for (i = 0; i < sdma_reqs_cnt; i++) {
-+		(res + r)->name = (oh->sdma_reqs + i)->name;
-+		(res + r)->start = (oh->sdma_reqs + i)->dma_req;
-+		(res + r)->end = (oh->sdma_reqs + i)->dma_req;
-+		(res + r)->flags = IORESOURCE_DMA;
-+		r++;
-+	}
-+
-+	return r;
-+}
-+
-+/**
-  * omap_hwmod_get_resource_byname - fetch IP block integration data by name
-  * @oh: struct omap_hwmod * to operate on
-  * @type: one of the IORESOURCE_* constants from include/linux/ioport.h
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 9b9646c..0533073 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -615,6 +615,7 @@ int omap_hwmod_softreset(struct omap_hwmod *oh);
+--=-5U/wa9774vYRVthGkfzK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
- int omap_hwmod_count_resources(struct omap_hwmod *oh);
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
-+int omap_hwmod_fill_dma_resources(struct omap_hwmod *oh, struct resource *res);
- int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned int type,
- 				   const char *name, struct resource *res);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index c490240..fd15a3a 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -486,6 +486,33 @@ static int omap_device_fill_resources(struct omap_device *od,
- }
+iQIcBAABAgAGBQJQPe/SAAoJEPo9qoy8lh71GlwP/0xBJGib8jsES15/KaSkcfOA
+CysFibLu7CXbwzUvTKC9sKHyJ4658FIc4F/fqButJZwWd9sDxfGZc63v5wMKAdwd
+qtUtkz1n8kHTlONGtOLTmakSrI07S9zUByeCqGMPDuK+J4E0hAErXWGFXE6d0h1K
+zLPYiy1E44Q+/2ABY8E716at79Y5f5YX7DU52r+2TTqCsE4ksnn9RmdHfwXvVNhB
+2VYVw9IJafqCOR047y8dAuSbIJAVzc/SV2OA6inZd9R7gwcSW1yDXAlkMBBpPKwi
+EpSdh/hQQJTCIptct123K0uJg3/QKh/p+H46NZGdECzVgghplmbYndx/2ltpE74j
+fJ1k29AFAoYfsg7HgdI2zS3O24SngBPqTCZPERkPubZFe/67ajMR3WgkyC7BLU63
+wOROO9anIc87ugUYOE5fYYMfEBjgZXcmUpWnWkiivmsynMOwSCI8eYLydSlKHqo6
+Kt+U6bXztxL8Fu8/mW/+zWzK5wGoQ5iIcI+bjBzerHVu82ycfPd0/w2CtMVMJALN
+AvE0RkhQJ/l6f/ViOxtLNe0gtYJ36GJnSmHBQGzSoNWyqNBDAaAouMq4BfUKxIsl
+fh/OAUGXblTFm4XHHuNtWAZi4A0NI2ZHnuVDV1DmOoKKzPRSFtZcpS1XbX/8INsa
+7kUNiUwyUPhjcwAZM9V1
+=3W60
+-----END PGP SIGNATURE-----
 
- /**
-+ * omap_device_fill_dma_resources - fill in array of struct resource with dma resources
-+ * @od: struct omap_device *
-+ * @res: pointer to an array of struct resource to be filled in
-+ *
-+ * Populate one or more empty struct resource pointed to by @res with
-+ * the dma resource data for this omap_device @od.  Used by
-+ * omap_device_alloc() after calling omap_device_count_resources().
-+ *
-+ * Ideally this function would not be needed at all.  If we have
-+ * mechanism to get dma resources from DT.
-+ *
-+ * Returns 0.
-+ */
-+static int omap_device_fill_dma_resources(struct omap_device *od,
-+				      struct resource *res)
-+{
-+	int i, r;
-+
-+	for (i = 0; i < od->hwmods_cnt; i++) {
-+		r = omap_hwmod_fill_dma_resources(od->hwmods[i], res);
-+		res += r;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-  * omap_device_alloc - allocate an omap_device
-  * @pdev: platform_device that will be included in this omap_device
-  * @oh: ptr to the single omap_hwmod that backs this omap_device
-@@ -524,24 +551,45 @@ struct omap_device *omap_device_alloc(struct platform_device *pdev,
- 	od->hwmods = hwmods;
- 	od->pdev = pdev;
+--=-5U/wa9774vYRVthGkfzK--
 
-+	res_count = omap_device_count_resources(od);
- 	/*
--	 * HACK: Ideally the resources from DT should match, and hwmod
--	 * should just add the missing ones. Since the name is not
--	 * properly populated by DT, stick to hwmod resources only.
-+	 * DT Boot:
-+	 *   OF framework will construct the resource structure (currently
-+	 *   does for MEM & IRQ resource) and we should respect/use these
-+	 *   resources, killing hwmod dependency.
-+	 *   If pdev->num_resources > 0, we assume that MEM & IRQ resources
-+	 *   have been allocated by OF layer already (through DTB).
-+	 *
-+	 * Non-DT Boot:
-+	 *   Here, pdev->num_resources = 0, and we should get all the
-+	 *   resources from hwmod.
-+	 *
-+	 * TODO: Once DMA resource is available from OF layer, we should
-+	 *   kill filling any resources from hwmod.
- 	 */
--	if (pdev->num_resources && pdev->resource)
--		dev_warn(&pdev->dev, "%s(): resources already allocated %d\n",
--			__func__, pdev->num_resources);
--
--	res_count = omap_device_count_resources(od);
--	if (res_count > 0) {
--		dev_dbg(&pdev->dev, "%s(): resources allocated from hwmod %d\n",
--			__func__, res_count);
-+	if (res_count > pdev->num_resources) {
-+		/* Allocate resources memory to account for new resources */
- 		res = kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
- 		if (!res)
- 			goto oda_exit3;
-
--		omap_device_fill_resources(od, res);
-+		/*
-+		 * If pdev->num_resources > 0, then assume that,
-+		 * MEM and IRQ resources will only come from DT and only
-+		 * fill DMA resource from hwmod layer.
-+		 */
-+		if (pdev->num_resources && pdev->resource) {
-+			dev_dbg(&pdev->dev, "%s(): resources already allocated %d\n",
-+					__func__, res_count);
-+			memcpy(res, pdev->resource,
-+				sizeof(struct resource) * pdev->num_resources);
-+			omap_device_fill_dma_resources(od,
-+					&res[pdev->num_resources]);
-+		} else {
-+			dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
-+					__func__, res_count);
-+			omap_device_fill_resources(od, res);
-+		}
-
- 		ret = platform_device_add_resources(pdev, res, res_count);
- 		kfree(res);
---
-1.7.0.4
