@@ -1,76 +1,49 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 5/8] ARM/dts: OMAP5: Add McBSP entries
-Date: Wed, 29 Aug 2012 16:31:04 +0300
-Message-ID: <1346247067-9632-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 7/8] ARM/dts: omap4: Add reg-names for McPDM and DMIC
+Date: Wed, 29 Aug 2012 16:31:06 +0300
+Message-ID: <1346247067-9632-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51051 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753653Ab2H2NbQ (ORCPT
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:43766 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753681Ab2H2Nbs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Aug 2012 09:31:16 -0400
-Received: by obbuo13 with SMTP id uo13so912068obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 06:31:15 -0700 (PDT)
+	Wed, 29 Aug 2012 09:31:48 -0400
+Received: by obbuo13 with SMTP id uo13so912279obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 06:31:20 -0700 (PDT)
 In-Reply-To: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Create the sections describing the McBSP ports to be able to use them via
-DT.
+In order to get the memory areas by name when booted with DT.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap5.dtsi |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 881d60c..57ca7c1 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -211,5 +211,41 @@
- 			ti,hwmods = "mmc5";
- 			ti,needs-special-reset;
- 		};
-+
-+		mcbsp1: mcbsp@40122000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40122000 0xff>, /* MPU private access */
-+			      <0x49022000 0xff>; /* L3 Interconnect */
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 258435f..115a502 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -282,6 +282,7 @@
+ 			compatible = "ti,omap4-mcpdm";
+ 			reg = <0x40132000 0x7f>, /* MPU private access */
+ 			      <0x49032000 0x7f>; /* L3 Interconnect */
 +			reg-names = "mpu", "dma";
-+			interrupts = <0 17 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp1";
-+		};
-+
-+		mcbsp2: mcbsp@40124000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40124000 0xff>, /* MPU private access */
-+			      <0x49024000 0xff>; /* L3 Interconnect */
+ 			interrupts = <0 112 0x4>;
+ 			interrupt-parent = <&gic>;
+ 			ti,hwmods = "mcpdm";
+@@ -291,6 +292,7 @@
+ 			compatible = "ti,omap4-dmic";
+ 			reg = <0x4012e000 0x7f>, /* MPU private access */
+ 			      <0x4902e000 0x7f>; /* L3 Interconnect */
 +			reg-names = "mpu", "dma";
-+			interrupts = <0 22 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp2";
-+		};
-+
-+		mcbsp3: mcbsp@40126000 {
-+			compatible = "ti,omap4-mcbsp";
-+			reg = <0x40126000 0xff>, /* MPU private access */
-+			      <0x49026000 0xff>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 23 0x4>;
-+			interrupt-names = "common";
-+			interrupt-parent = <&gic>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp3";
-+		};
- 	};
- };
+ 			interrupts = <0 114 0x4>;
+ 			interrupt-parent = <&gic>;
+ 			ti,hwmods = "dmic";
 -- 
 1.7.8.6
 
