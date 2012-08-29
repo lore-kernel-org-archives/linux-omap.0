@@ -1,62 +1,54 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] arm: omap: ratelimit omap_l3_smx error log spam
-Date: Wed, 29 Aug 2012 03:23:03 +0300
-Message-ID: <20120829002256.GE783@harshnoise.musicnaut.iki.fi>
-References: <1346101403-5882-1-git-send-email-aaro.koskinen@iki.fi>
- <CAMQu2gyEctrq_3K8W6VahMW-ODOiv7TjrBfPTkZqNGJ+0m9ozw@mail.gmail.com>
- <20120827220254.GA783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gz9HE0xEoW7gu257rpLWdCUpt7N6GQNQzWVhFb-A+69hg@mail.gmail.com>
- <20120827232613.GB783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gwHp3PgB-TqPTNWcbRuXRT0wjfvF99nYqfDyWr1GiUvCg@mail.gmail.com>
- <20120828122042.GC783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gwMk68_BNc4O0M52OACUVLLGzRCQe+5mGH_40DrwAQ4KA@mail.gmail.com>
- <20120828230917.GD783@harshnoise.musicnaut.iki.fi>
- <CAMQu2gxdXXa27yAYL4yEkBci7pAKH+FNjDWp8-Y86zxdqndO0Q@mail.gmail.com>
+From: =?iso-8859-1?Q?=9Apanielskeho_ "El_Gordo" _lot=E9rie?=
+	<josephjou@chaser.com.tw>
+Subject: Ref: ES/9420X2/68
+Date: Wed, 29 Aug 2012 10:25:57 +0800 (CST)
+Message-ID: <2576.95.120.145.23.1346207157.squirrel@webmail.chaser.com.tw>
+Reply-To: infostallon@aol.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:36838 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753515Ab2H2AXb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 20:23:31 -0400
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxdXXa27yAYL4yEkBci7pAKH+FNjDWp8-Y86zxdqndO0Q@mail.gmail.com>
+Received: from linplesk20.pumo.com.tw ([124.150.132.60]:39177 "EHLO
+	linplesk20.pumo.com.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881Ab2H2Cci (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Aug 2012 22:32:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 28, 2012 at 04:38:24PM -0700, Shilimkar, Santosh wrote:
-> On Tue, Aug 28, 2012 at 4:09 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> > On Tue, Aug 28, 2012 at 07:19:38AM -0700, Shilimkar, Santosh wrote:
-> >> Or the PPA has resized the secure area of 16K. As you have seen the issue
-> >> on one OMAP3 device, it makes sense to takeout that 16K from the public
-> >> SRAM map.
-> >>
-> >> Can you send the patch with fixed base address fir PUB SRAM ?
-> >
-> > Maybe I'm missing something, but I tried the following and now something
-> > else got broken:
-> >
-> >         save_secure_sram() returns 0000ff02
-> >
-> Damn. Looks like, you are running short of memory now for sram_push stuff.
 
-No, it's not that, because the below version works and that leaves as
-little memory for the sram_push code:
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 766181c..a91e7ad 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -47,7 +47,7 @@
- #define OMAP5_SRAM_PA		0x40300000
- 
- #if defined(CONFIG_ARCH_OMAP2PLUS)
--#define SRAM_BOOTLOADER_SZ	0x00
-+#define SRAM_BOOTLOADER_SZ	(cpu_is_omap34xx() ? SZ_16K : 0)
- #else
- #define SRAM_BOOTLOADER_SZ	0x80
- #endif
 
-A.
+Ref: ES/9420X2/68
+
+V=C1=8A EMAIL ID vyhral (=80 450,000.00 Euro) v medzin=E1rodn=FDch s=FA=
+&#357;a=9Eiach
+=9Apanielskeho "El Gordo" lot=E9rie Email cenu,
+=9A&#357;astn=E9 &#269;=EDsla a 9/11/13/24/43 Ref: ES/9420X2/68.
+
+Objasnenie a postup Kontakt:
+
+=8Erebec MEGA TVRDENIA AGENCY
+Juan Carlos
+Tel: +34-693 670 401 (Hovor=EDte anglicky a =9Apanielsky)
+
+E-mail: infostallon@aol.com
+
+Cel=E9 meno, adresu, vek, povolanie, telef=F3nne &#269;=EDsla,
+
+Gratulujeme.
+
+S pozdravom,
+
+Pani Gema Antonio (Award koordin=E1tor)
+
+
+Pozn=E1mka: Jedn=E1 sa o medzin=E1rodn=FD program lot=E9rie, bolo ozn=E1=
+menie
+prekladanie z angli&#269;tiny do Slovenska, preto=9Ee ste v=ED&#357;azo=
+m.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
