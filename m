@@ -1,65 +1,37 @@
-From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2 8/8] ARM/dts: omap5: Add McPDM and DMIC section to the dtsi
- file
-Date: Wed, 29 Aug 2012 16:31:07 +0300
-Message-ID: <1346247067-9632-9-git-send-email-peter.ujfalusi@ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
+From: Andy Doan <andy.doan@linaro.org>
+Subject: Re: DT support for Overo?
+Date: Wed, 29 Aug 2012 09:56:06 -0500
+Message-ID: <503E2D86.2060704@linaro.org>
+References: <503DE344.5090909@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346247067-9632-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:45923 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab2H2O4J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 10:56:09 -0400
+Received: by obbuo13 with SMTP id uo13so1136218obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 07:56:09 -0700 (PDT)
+In-Reply-To: <503DE344.5090909@epfl.ch>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: florian.vaussard@epfl.ch
+Cc: Steve Sakoman <steve@sakoman.com>, linux-omap@vger.kernel.org
 
-To be able to load the McPDM and DMIC driver when booted with device tree.
+On 08/29/2012 04:39 AM, Florian Vaussard wrote:
+> Hello,
+>
+> Before doing the work twice, is someone working on the arm/dts for
+> the overo board? I found a first support in the linaro tree [1], but
+> is there any active work to complete this support and push it
+> upstream? I am preparing a daughter board with some specific
+> hardware, thus I could give some help with the conversion effort.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/boot/dts/omap5.dtsi |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+I'm no longer doing any work in this area.
 
-diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
-index 57ca7c1..5ab1a36 100644
---- a/arch/arm/boot/dts/omap5.dtsi
-+++ b/arch/arm/boot/dts/omap5.dtsi
-@@ -212,6 +212,26 @@
- 			ti,needs-special-reset;
- 		};
- 
-+		mcpdm: mcpdm@40132000 {
-+			compatible = "ti,omap4-mcpdm";
-+			reg = <0x40132000 0x7f>, /* MPU private access */
-+			      <0x49032000 0x7f>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 112 0x4>;
-+			interrupt-parent = <&gic>;
-+			ti,hwmods = "mcpdm";
-+		};
-+
-+		dmic: dmic@4012e000 {
-+			compatible = "ti,omap4-dmic";
-+			reg = <0x4012e000 0x7f>, /* MPU private access */
-+			      <0x4902e000 0x7f>; /* L3 Interconnect */
-+			reg-names = "mpu", "dma";
-+			interrupts = <0 114 0x4>;
-+			interrupt-parent = <&gic>;
-+			ti,hwmods = "dmic";
-+		};
-+
- 		mcbsp1: mcbsp@40122000 {
- 			compatible = "ti,omap4-mcbsp";
- 			reg = <0x40122000 0xff>, /* MPU private access */
--- 
-1.7.8.6
+> Best regards, Florian
+>
+> [1] http://patches.linaro.org/833/
+>
+
