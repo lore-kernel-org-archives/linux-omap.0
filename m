@@ -1,64 +1,70 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH RESEND 1/4] ARM: OMAP2+: AM33XX: Add tps65910 device tree
- data
-Date: Wed, 29 Aug 2012 09:31:31 +0100
-Message-ID: <20120829083129.GB3439@gmail.com>
-References: <1342766789-28148-1-git-send-email-anilkumar@ti.com>
- <1342766789-28148-2-git-send-email-anilkumar@ti.com>
- <20120720095935.GQ4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13E9FA91E@DBDE01.ent.ti.com>
- <20120720113806.GW4495@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA01F1E@DBDE01.ent.ti.com>
- <20120723133400.GU4435@opensource.wolfsonmicro.com>
- <20120828112603.GC25786@gmail.com>
- <20120828172133.GH4534@opensource.wolfsonmicro.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v4 0/3] Prepare for OMAP2+ movement to Common Clk
+Date: Wed, 29 Aug 2012 14:26:13 +0530
+Message-ID: <1346230576-20004-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36762 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522Ab2H2Ibg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 04:31:36 -0400
-Received: by eekc1 with SMTP id c1so101854eek.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 01:31:35 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120828172133.GH4534@opensource.wolfsonmicro.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:37999 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751270Ab2H2I4k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Aug 2012 04:56:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: paul@pwsan.com, mturquette@ti.com, mturquette@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, Aug 28, 2012 at 10:21:33AM -0700, Mark Brown wrote:
-> On Tue, Aug 28, 2012 at 12:26:07PM +0100, Lee Jones wrote:
->=20
-> > > > arch/arm/boot/dts/db8500.dtsi
->=20
-> > > I'm not actually seeing anything terribly problematic here, thoug=
-h the
-> > > regulator-name properties should really be removed as they're fai=
-rly
-> > > useless and seem to be missing the point of having the property.
->=20
-> > Just looking at this now.=20
->=20
-> > The regulator-name property is used to populate constrains->name. A=
-re
-> > you sure you still want them all removed?
->=20
-> Yes, of course.  There's no way that a generic .dtsi used for any
-> possible board could come up with a sensible value.
+Changes in v4:
+* Added *hack* comments around clk_prepare usage in hwmod
+rebased on 3.6-rc
 
-So how should constrains->name be populated then? Would you prefer
-regulator-names moved to the .dts file(s), or something else?
+Changes in v3:
+* Fixed various checkpatch warning/errors as reported by Paul W.
 
---=20
-Lee Jones
-Linaro ST-Ericsson Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes in v2:
+* Dropped all driver clk_prepare/clk_unprepare changes, will be
+  sent seperately to respective lists
+
+This is a preparatory series for the OMAP Common Clk
+conversion. They mostly add clk_prepare/clk_unprepare
+in OMAP platform code. Also gets rid of omap_clk_get_by_name
+and uses clk_get, and removes all direct 'struct clk'
+dereferrencing and uses helpers similar to what is provided
+by Common Clk.
+
+Patches are boot tested on OMAP2430sdp, 3630 Beagle-Xm
+and 4430/4460 Panda and suspend tested on 3630 Beagle-Xm
+and 4430 Panda. Patches apply on 3.6-rc3.
+
+Rajendra Nayak (3):
+  ARM: omap: clk: add clk_prepare and clk_unprepare
+  ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+  ARM: OMAP2+: clock: Remove all direct dereferencing of struct clk
+
+ arch/arm/mach-omap2/board-apollon.c          |    4 +-
+ arch/arm/mach-omap2/board-h4.c               |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   10 ++-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   20 +++---
+ arch/arm/mach-omap2/clkt_clksel.c            |   91 ++++++++++++++++----------
+ arch/arm/mach-omap2/clkt_dpll.c              |   26 ++++----
+ arch/arm/mach-omap2/clock.c                  |   11 ++--
+ arch/arm/mach-omap2/clock2420_data.c         |   17 +++++
+ arch/arm/mach-omap2/clock2430_data.c         |   21 ++++++
+ arch/arm/mach-omap2/clock3xxx.c              |    8 +--
+ arch/arm/mach-omap2/clock3xxx_data.c         |   23 +++++++
+ arch/arm/mach-omap2/clock44xx_data.c         |    6 ++
+ arch/arm/mach-omap2/display.c                |    4 +-
+ arch/arm/mach-omap2/dpll3xxx.c               |   48 ++++++++------
+ arch/arm/mach-omap2/gpmc.c                   |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   45 ++++++++++---
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/plat-omap/clock.c                   |   27 --------
+ arch/arm/plat-omap/include/plat/clock.h      |    5 ++
+ arch/arm/plat-omap/omap_device.c             |    6 +-
+ 22 files changed, 251 insertions(+), 135 deletions(-)
+
+-- 
+1.7.9.5
+
