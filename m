@@ -1,49 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 7/8] ARM/dts: omap4: Add reg-names for McPDM and DMIC
-Date: Wed, 29 Aug 2012 16:31:06 +0300
-Message-ID: <1346247067-9632-8-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 8/8] ARM/dts: omap5: Add McPDM and DMIC section to the dtsi
+ file
+Date: Wed, 29 Aug 2012 16:31:07 +0300
+Message-ID: <1346247067-9632-9-git-send-email-peter.ujfalusi@ti.com>
 References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:43766 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753681Ab2H2Nbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Aug 2012 09:31:48 -0400
-Received: by obbuo13 with SMTP id uo13so912279obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 06:31:20 -0700 (PDT)
-In-Reply-To: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1346247067-9632-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-In order to get the memory areas by name when booted with DT.
+To be able to load the McPDM and DMIC driver when booted with device tree.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/omap4.dtsi |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 258435f..115a502 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -282,6 +282,7 @@
- 			compatible = "ti,omap4-mcpdm";
- 			reg = <0x40132000 0x7f>, /* MPU private access */
- 			      <0x49032000 0x7f>; /* L3 Interconnect */
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 57ca7c1..5ab1a36 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -212,6 +212,26 @@
+ 			ti,needs-special-reset;
+ 		};
+ 
++		mcpdm: mcpdm@40132000 {
++			compatible = "ti,omap4-mcpdm";
++			reg = <0x40132000 0x7f>, /* MPU private access */
++			      <0x49032000 0x7f>; /* L3 Interconnect */
 +			reg-names = "mpu", "dma";
- 			interrupts = <0 112 0x4>;
- 			interrupt-parent = <&gic>;
- 			ti,hwmods = "mcpdm";
-@@ -291,6 +292,7 @@
- 			compatible = "ti,omap4-dmic";
- 			reg = <0x4012e000 0x7f>, /* MPU private access */
- 			      <0x4902e000 0x7f>; /* L3 Interconnect */
++			interrupts = <0 112 0x4>;
++			interrupt-parent = <&gic>;
++			ti,hwmods = "mcpdm";
++		};
++
++		dmic: dmic@4012e000 {
++			compatible = "ti,omap4-dmic";
++			reg = <0x4012e000 0x7f>, /* MPU private access */
++			      <0x4902e000 0x7f>; /* L3 Interconnect */
 +			reg-names = "mpu", "dma";
- 			interrupts = <0 114 0x4>;
- 			interrupt-parent = <&gic>;
- 			ti,hwmods = "dmic";
++			interrupts = <0 114 0x4>;
++			interrupt-parent = <&gic>;
++			ti,hwmods = "dmic";
++		};
++
+ 		mcbsp1: mcbsp@40122000 {
+ 			compatible = "ti,omap4-mcbsp";
+ 			reg = <0x40122000 0xff>, /* MPU private access */
 -- 
 1.7.8.6
-
