@@ -1,34 +1,40 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: Re: DT support for Overo?
-Date: Wed, 29 Aug 2012 08:20:52 -0700
-Message-ID: <CAOSpxdZDFqhauXtUVkorm+GotP5CuPeJF-ySFmF2jFHU3+2DZg@mail.gmail.com>
-References: <503DE344.5090909@epfl.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH 1/2] arm: omap: sram: fix OMAP4 errata handling
+Date: Wed, 29 Aug 2012 18:24:30 +0300
+Message-ID: <1346253871-5761-1-git-send-email-aaro.koskinen@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:54683 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab2H2PUx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 11:20:53 -0400
-Received: by wibhq12 with SMTP id hq12so7842831wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 08:20:52 -0700 (PDT)
-In-Reply-To: <503DE344.5090909@epfl.ch>
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:49182 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644Ab2H2PYd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 11:24:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: florian.vaussard@epfl.ch
-Cc: andy.doan@linaro.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com, santosh.shilimkar@ti.com
 
-On Wed, Aug 29, 2012 at 2:39 AM, Florian Vaussard
-<florian.vaussard@epfl.ch> wrote:
+OMAP4-specific code should be executed only if we are running on
+OMAP4. Otherwise it may break multi-OMAP kernels. Found by reading
+the code.
 
-> Before doing the work twice, is someone working on the arm/dts for the overo
-> board? I found a first support in the linaro tree [1], but is there any
-> active
-> work to complete this support and push it upstream? I am preparing a
-> daughter
-> board with some specific hardware, thus I could give some help with the
-> conversion effort.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ arch/arm/plat-omap/sram.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Gumstix hasn't asked me to do any work on dts, so I'm not doing anything either.
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 766181c..85c23db 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -175,8 +175,10 @@ static void __init omap_map_sram(void)
+ 		return;
+ 
+ #ifdef CONFIG_OMAP4_ERRATA_I688
++	if (cpu_is_omap44xx()) {
+ 		omap_sram_start += PAGE_SIZE;
+ 		omap_sram_size -= SZ_16K;
++	}
+ #endif
+ 	if (cpu_is_omap34xx()) {
+ 		/*
+-- 
+1.7.2.5
 
-Steve
