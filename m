@@ -1,62 +1,76 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 6/8] ARM/dts: omap3-beagle: Enable audio support
-Date: Wed, 29 Aug 2012 16:31:05 +0300
-Message-ID: <1346247067-9632-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 5/8] ARM/dts: OMAP5: Add McBSP entries
+Date: Wed, 29 Aug 2012 16:31:04 +0300
+Message-ID: <1346247067-9632-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:50802 "EHLO
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51051 "EHLO
 	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753671Ab2H2NbT (ORCPT
+	by vger.kernel.org with ESMTP id S1753653Ab2H2NbQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Aug 2012 09:31:19 -0400
-Received: by obbuo13 with SMTP id uo13so912206obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 06:31:18 -0700 (PDT)
+	Wed, 29 Aug 2012 09:31:16 -0400
+Received: by obbuo13 with SMTP id uo13so912068obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Aug 2012 06:31:15 -0700 (PDT)
 In-Reply-To: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Add the needed sections to enable audio support on BeagleBoard when booted
-with DT blob.
+Create the sections describing the McBSP ports to be able to use them via
+DT.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/boot/dts/omap3-beagle.dts |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap5.dtsi |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index cdcb98c..28cf180 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -17,6 +17,14 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x20000000>; /* 512 MB */
- 	};
-+
-+	sound {
-+		compatible = "ti,omap-twl4030";
-+		ti,model = "omap3beagle";
-+
-+		ti,mcbsp = <&mcbsp2>;
-+		ti,codec = <&twl_audio>;
-+	};
- };
- 
- &i2c1 {
-@@ -32,6 +40,12 @@
- 			regulator-min-microvolt = <1800000>;
- 			regulator-max-microvolt = <3000000>;
+diff --git a/arch/arm/boot/dts/omap5.dtsi b/arch/arm/boot/dts/omap5.dtsi
+index 881d60c..57ca7c1 100644
+--- a/arch/arm/boot/dts/omap5.dtsi
++++ b/arch/arm/boot/dts/omap5.dtsi
+@@ -211,5 +211,41 @@
+ 			ti,hwmods = "mmc5";
+ 			ti,needs-special-reset;
  		};
 +
-+		twl_audio: audio {
-+			compatible = "ti,twl4030-audio";
-+			codec {
-+			};
++		mcbsp1: mcbsp@40122000 {
++			compatible = "ti,omap4-mcbsp";
++			reg = <0x40122000 0xff>, /* MPU private access */
++			      <0x49022000 0xff>; /* L3 Interconnect */
++			reg-names = "mpu", "dma";
++			interrupts = <0 17 0x4>;
++			interrupt-names = "common";
++			interrupt-parent = <&gic>;
++			ti,buffer-size = <128>;
++			ti,hwmods = "mcbsp1";
++		};
++
++		mcbsp2: mcbsp@40124000 {
++			compatible = "ti,omap4-mcbsp";
++			reg = <0x40124000 0xff>, /* MPU private access */
++			      <0x49024000 0xff>; /* L3 Interconnect */
++			reg-names = "mpu", "dma";
++			interrupts = <0 22 0x4>;
++			interrupt-names = "common";
++			interrupt-parent = <&gic>;
++			ti,buffer-size = <128>;
++			ti,hwmods = "mcbsp2";
++		};
++
++		mcbsp3: mcbsp@40126000 {
++			compatible = "ti,omap4-mcbsp";
++			reg = <0x40126000 0xff>, /* MPU private access */
++			      <0x49026000 0xff>; /* L3 Interconnect */
++			reg-names = "mpu", "dma";
++			interrupts = <0 23 0x4>;
++			interrupt-names = "common";
++			interrupt-parent = <&gic>;
++			ti,buffer-size = <128>;
++			ti,hwmods = "mcbsp3";
 +		};
  	};
  };
- 
 -- 
 1.7.8.6
 
