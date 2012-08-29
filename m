@@ -1,64 +1,238 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 01/23] OMAPDSS: outputs: Create a new entity called outputs
-Date: Wed, 29 Aug 2012 16:27:05 +0530
-Message-ID: <503DF581.8050809@ti.com>
-References: <1345528711-27801-1-git-send-email-archit@ti.com>   <1345528711-27801-2-git-send-email-archit@ti.com>  <1345812069.9287.65.camel@lappyti> <503778E8.2060909@ti.com> <1346236370.2623.45.camel@deskari>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v4 2/4] mfd: omap: control: core system control driver
+Date: Wed, 29 Aug 2012 12:33:26 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA21C6C@DBDE01.ent.ti.com>
+References: <500FD2EC.7060208@dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44036 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48644 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752541Ab2H2K6n (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Aug 2012 06:58:43 -0400
-In-Reply-To: <1346236370.2623.45.camel@deskari>
+	id S1751532Ab2H2Mdu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 08:33:50 -0400
+In-Reply-To: <500FD2EC.7060208@dev.rtsoft.ru>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, rob@ti.com, sumit.semwal@ti.com
+To: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>, "Cousson, Benoit" <b-cousson@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "amit.kucheria@linaro.org" <amit.kucheria@linaro.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "amit.kachhap@linaro.org" <amit.kachhap@linaro.org>, "Valentin, Eduardo" <eduardo.valentin@ti.com>
 
-On Wednesday 29 August 2012 04:02 PM, Tomi Valkeinen wrote:
-> On Fri, 2012-08-24 at 18:21 +0530, Archit Taneja wrote:
->
->>>> +enum omap_dss_output_id {
->>>> +	OMAP_DSS_OUTPUT_DPI	= 1 << 0,
->>>> +	OMAP_DSS_OUTPUT_DBI	= 1 << 1,
->>>> +	OMAP_DSS_OUTPUT_SDI	= 1 << 2,
->>>> +	OMAP_DSS_OUTPUT_DSI1	= 1 << 3,
->>>> +	OMAP_DSS_OUTPUT_VENC	= 1 << 4,
->>>> +	OMAP_DSS_OUTPUT_DSI2	= 1 << 5,
->>>> +	OMAP_DSS_OUTPUT_HDMI	= 1 << 6,
->>>> +};
->>>
->>> I'm not sure about this. We already have enum omap_display_type. If you
->>> need the instance number, you could have that as a separate int field.
->>>
->>> Where do you need the output_id?
->>
->> output_id is used to take care of situations where there our multiple
->> outputs of the same type, like DSI1 and DSI2. An enum helps when we
->> check if an overlay manager supports that output instance or not. For
->> ex, on OMAP4, LCD1 connects to DSI1 and not DSI2.
->>
->> I add a func called dss_feat_get_supported_outputs(channel) later to
->> check for this. When setting a new output for a manager, we just do an
->> '&' to see if the output in question is in the mask of the manager's set
->> of supported outputs.
->
-> After thinking about this, I think we should remove the
-> omap_display_type and the supported_displays stuff. It doesn't really
-> work anymore, as we have more complex connections with omap4+. With a
-> quick glance to the code, I think it should be quite easy to remove it.
->
-> And we need something like your omap_dss_output_id. I'm just not sure
-> about the enum. But perhaps it's the easiest option for now, as some
-> kind of array of similar would be more complex to implement, and I'm not
-> sure if it really gives anything. You could move the VENC away from
-> between DSI1 and DSI2, though. I'm not sure why you put VENC in between
-> =).
+Hi Konstantin,
 
-I put the outputs in the order in which they were introduced in OMAPs, 
-I'm not sure why I did that, maybe I copied that approach after looking 
-at some other enum. I'll change it.
+On Wed, Jul 25, 2012 at 16:35:16, Konstantin Baydarov wrote:
+> This patch introduces a MFD core device driver for
+> OMAP system control module.
+> 
+> The control module allows software control of
+> various static modes supported by the device. It is
+> composed of two control submodules: general control
+> module and device (padconfiguration) control
+> module.
+> 
+> Device driver is probed with postcore_initcall.
+> Control module register CONTROL_STATUS that is needed
+> by omap_type() is early mapped by postcore_initcall_sync.
+> 
+> Signed-off-by: J Keerthy <j-keerthy@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+> Signed-off-by: Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+> ---
+>  .../devicetree/bindings/mfd/omap_control.txt       |   32 ++++
+>  arch/arm/mach-omap2/Kconfig                        |    1 +
+>  arch/arm/plat-omap/Kconfig                         |    4 +
+>  drivers/mfd/Kconfig                                |    6 +
+>  drivers/mfd/Makefile                               |    1 +
+>  drivers/mfd/omap-control-core.c                    |  162 ++++++++++++++++++++
+>  include/linux/mfd/omap_control.h                   |   35 +++++
+>  7 files changed, 241 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/omap_control.txt
+>  create mode 100644 drivers/mfd/omap-control-core.c
+>  create mode 100644 include/linux/mfd/omap_control.h
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/omap_control.txt b/Documentation/devicetree/bindings/mfd/omap_control.txt
+> new file mode 100644
+> index 0000000..a9dca9e
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/omap_control.txt
+> @@ -0,0 +1,32 @@
+> +* Texas Instrument OMAP System Control Module (SCM) bindings
+> +
+> +The control module allows software control of various static modes supported by
+> +the device. The control module controls the settings of various device  modules
+> +through register configuration and internal signals. It also controls  the  pad
+> +configuration, pin functional multiplexing, and the routing of internal signals
+> +(such as PRCM  signals or DMA requests)  to output pins configured for hardware
+> +observability.
+> +
+> +Required properties:
+> +- compatible : Should be:
+> +  - "ti,omap3-control" for OMAP3 support
+> +  - "ti,omap4-control" for OMAP4 support
+> +  - "ti,omap5-control" for OMAP5 support
+> +
+> +OMAP specific properties:
+> +- ti,hwmods: Name of the hwmod associated to the control module:
+> +  Should be "ctrl_module_core";
+> +
+> +OMAP CONTROL_STATUS register:
+> +reg = <0x4A0022C4 0x4>; /* CONTROL_STATUS register */
+> +
+> +Examples:
+> +ctrl_module_core: ctrl_module_core@4A0022C4 {
+> +	compatible = "ti,omap4-control";
+> +	#address-cells = <1>;
+> +	#size-cells = <1>;
+> +	/* ranges; */
+> +	ti,hwmods = "ctrl_module_core";
+> +	reg = <0x4A0022C4 0x4>; /* CONTROL_STATUS register */
+> +};
+> +
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index dd0fbf7..1235576 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -59,6 +59,7 @@ config ARCH_OMAP4
+>  	select ARM_ERRATA_720789
+>  	select ARCH_HAS_OPP
+>  	select PM_RUNTIME if CPU_IDLE
+> +	select ARCH_HAS_CONTROL_MODULE
+>  	select PM_OPP if PM
+>  	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+>  	select ARM_CPU_SUSPEND if PM
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index dd36eba..2b2c9d8 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -5,6 +5,10 @@ menu "TI OMAP Common Features"
+>  config ARCH_OMAP_OTG
+>  	bool
+>  
+> +config ARCH_HAS_CONTROL_MODULE
+> +	bool
+> +	select MFD_OMAP_CONTROL
+> +
+>  choice
+>  	prompt "OMAP System Type"
+>  	default ARCH_OMAP2PLUS
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 92144ed..530ac60 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -823,6 +823,12 @@ config MFD_WL1273_CORE
+>  	  driver connects the radio-wl1273 V4L2 module and the wl1273
+>  	  audio codec.
+>  
+> +config MFD_OMAP_CONTROL
+> +	bool "Texas Instruments OMAP System control module"
+> +	depends on ARCH_HAS_CONTROL_MODULE
+> +	help
+> +	  This is the core driver for system control module.
+> +
+>  config MFD_OMAP_USB_HOST
+>  	bool "Support OMAP USBHS core driver"
+>  	depends on USB_EHCI_HCD_OMAP || USB_OHCI_HCD_OMAP3
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 75f6ed6..b037443 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -107,6 +107,7 @@ obj-$(CONFIG_MFD_TPS6586X)	+= tps6586x.o
+>  obj-$(CONFIG_MFD_VX855)		+= vx855.o
+>  obj-$(CONFIG_MFD_WL1273_CORE)	+= wl1273-core.o
+>  obj-$(CONFIG_MFD_CS5535)	+= cs5535-mfd.o
+> +obj-$(CONFIG_MFD_OMAP_CONTROL)	+= omap-control-core.o
+>  obj-$(CONFIG_MFD_OMAP_USB_HOST)	+= omap-usb-host.o
+>  obj-$(CONFIG_MFD_PM8921_CORE) 	+= pm8921-core.o
+>  obj-$(CONFIG_MFD_PM8XXX_IRQ) 	+= pm8xxx-irq.o
+> diff --git a/drivers/mfd/omap-control-core.c b/drivers/mfd/omap-control-core.c
+> new file mode 100644
+> index 0000000..cefbc5a
+> --- /dev/null
+> +++ b/drivers/mfd/omap-control-core.c
+> @@ -0,0 +1,162 @@
+> +/*
+> + * OMAP system control module driver file
+> + *
+> + * Copyright (C) 2011-2012 Texas Instruments Incorporated - http://www.ti.com/
+> + * Contacts:
+> + * Based on original code written by:
+> + *    J Keerthy <j-keerthy@ti.com>
+> + *    Moiz Sonasath <m-sonasath@ti.com>
+> + * MFD clean up and re-factoring:
+> + *    Eduardo Valentin <eduardo.valentin@ti.com>
+> + *    Konstantin Baydarov <kbaidarov@dev.rtsoft.ru>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/export.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/of_address.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/omap_control.h>
+> +
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+> +
+> +void __iomem *omap_control_base;
+> +unsigned long omap_control_phys_base;
+> +size_t omap_control_mapsize;
+> +
+> +u32 omap_control_status_read(void)
+> +{
+> +	return __raw_readl(omap_control_base);
+> +}
 
-Archit
+In AM335X, D_CAN IP uses single CONTROL module register to
+initialize D_CAN ram (D_CAN_RAMINIT). In order to enable
+D_CAN RAM we have to write to that register in sync with
+clock enable/disable.
+
+How can I use this driver to handle this usecase? Similar to
+above API?
+
+Currently this is handled using platform call back (example below)
+
+In arch/arm/mach-omap2/devices.c:
+static void d_can_hw_raminit(unsigned int instance, unsigned int enable)
+{
+        u32 val;
+
+        /* Read the value */
+        val = readl(AM33XX_CTRL_REGADDR(AM33XX_DCAN_RAMINIT_OFFSET));
+        if (enable) {
+                /* Set to "1" */
+                val &= ~AM33XX_DCAN_RAMINIT_START(instance);
+                val |= AM33XX_DCAN_RAMINIT_START(instance);
+                writel(val, AM33XX_CTRL_REGADDR(AM33XX_DCAN_RAMINIT_OFFSET));
+        } else {
+                /* Set to "0" */
+                val &= ~AM33XX_DCAN_RAMINIT_START(instance);
+                writel(val, AM33XX_CTRL_REGADDR(AM33XX_DCAN_RAMINIT_OFFSET));
+        }
+}
+
+In drivers/net/can/c_can/c_can.c:
+void d_can_reset_ram(struct d_can_priv *d_can, unsigned int instance,
+                                        unsigned int enable)
+{
+        if (d_can->ram_init)
+                d_can->ram_init(instance, enable);
+}
+
+Thanks
+AnilKumar
