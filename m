@@ -1,7 +1,7 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv3 6/9] ir-rx51: Replace module_{init,exit} macros with module_platform_driver
-Date: Thu, 30 Aug 2012 20:54:28 +0300
-Message-ID: <1346349271-28073-7-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCHv3 5/9] ir-rx51: Move platform data checking into probe function
+Date: Thu, 30 Aug 2012 20:54:27 +0300
+Message-ID: <1346349271-28073-6-git-send-email-timo.t.kokkonen@iki.fi>
 References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
@@ -9,35 +9,36 @@ Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-No reason to avoid using the existing helpers.
+This driver is useless without proper platform data. If data is not
+available, we should not register the driver at all. Once this check
+is done, the BUG_ON check during device open is no longer needed.
 
 Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/rc/ir-rx51.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/media/rc/ir-rx51.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 16b3c1f..6e1ffa6 100644
+index f22e5e4..16b3c1f 100644
 --- a/drivers/media/rc/ir-rx51.c
 +++ b/drivers/media/rc/ir-rx51.c
-@@ -495,17 +495,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	},
- };
+@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
+ static int lirc_rx51_open(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
+-	BUG_ON(!lirc_rx51);
  
--static int __init lirc_rx51_init(void)
--{
--	return platform_driver_register(&lirc_rx51_platform_driver);
--}
--module_init(lirc_rx51_init);
--
--static void __exit lirc_rx51_exit(void)
--{
--	platform_driver_unregister(&lirc_rx51_platform_driver);
--}
--module_exit(lirc_rx51_exit);
-+module_platform_driver(lirc_rx51_platform_driver);
+ 	file->private_data = lirc_rx51;
  
- MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
- MODULE_AUTHOR("Nokia Corporation");
+@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
+ 
+ static int __devinit lirc_rx51_probe(struct platform_device *dev)
+ {
++	if (!dev->dev.platform_data)
++		return -ENODEV;
++
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
+ 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
 -- 
 1.7.12
