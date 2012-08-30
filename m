@@ -1,99 +1,67 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 4/5] arm: omap: n8x0: add i2c-cbus platform data
-Date: Thu, 30 Aug 2012 18:38:32 +0300
-Message-ID: <20120830153831.GH1754@arwen.pp.htv.fi>
+Subject: Re: [RFC PATCH 5/5] arm: omap: n8x0: enable retu
+Date: Thu, 30 Aug 2012 18:39:04 +0300
+Message-ID: <20120830153903.GI1754@arwen.pp.htv.fi>
 References: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
- <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
+ <1346189667-32330-6-git-send-email-aaro.koskinen@iki.fi>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SUk9VBj82R8Xhb8H"
+	protocol="application/pgp-signature"; boundary="9s922KAXlWjPfK/Q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:53745 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751297Ab2H3Pmo (ORCPT
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:38759 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751664Ab2H3PnQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 11:42:44 -0400
-Received: by lbbgj3 with SMTP id gj3so597531lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Aug 2012 08:42:41 -0700 (PDT)
+	Thu, 30 Aug 2012 11:43:16 -0400
+Received: by lbbgj3 with SMTP id gj3so597938lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Aug 2012 08:43:13 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <1346189667-32330-6-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
 Cc: linux-omap@vger.kernel.org
 
 
---SUk9VBj82R8Xhb8H
+--9s922KAXlWjPfK/Q
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 29, 2012 at 12:34:26AM +0300, Aaro Koskinen wrote:
-> Add platform data to enable i2c-cbus on N8x0. It will be I2C bus #3.
+On Wed, Aug 29, 2012 at 12:34:27AM +0300, Aaro Koskinen wrote:
+> Add Retu configuration.
 >=20
 > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
 Acked-by: Felipe Balbi <balbi@ti.com>
 
 > ---
->  arch/arm/mach-omap2/board-n8x0.c |   27 +++++++++++++++++++++++++++
->  1 files changed, 27 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/board-n8x0.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
 >=20
 > diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board=
 -n8x0.c
-> index 677357f..8ea0dea 100644
+> index 8ea0dea..6ac8cd9 100644
 > --- a/arch/arm/mach-omap2/board-n8x0.c
 > +++ b/arch/arm/mach-omap2/board-n8x0.c
-> @@ -18,6 +18,7 @@
->  #include <linux/io.h>
->  #include <linux/stddef.h>
->  #include <linux/i2c.h>
-> +#include <linux/i2c-cbus.h>
->  #include <linux/spi/spi.h>
->  #include <linux/usb/musb.h>
->  #include <sound/tlv320aic3x.h>
-> @@ -42,6 +43,31 @@
->  #define TUSB6010_GPIO_ENABLE	0
->  #define TUSB6010_DMACHAN	0x3f
+> @@ -58,8 +58,16 @@ static struct platform_device n8x0_cbus_device =3D {
+>  	},
+>  };
 > =20
-> +#if defined(CONFIG_I2C_CBUS) || defined(CONFIG_I2C_CBUS_MODULE)
-> +static struct i2c_cbus_platform_data n8x0_cbus_data =3D {
-> +	.clk_gpio =3D 66,
-> +	.dat_gpio =3D 65,
-> +	.sel_gpio =3D 64,
-> +};
-> +
-> +static struct platform_device n8x0_cbus_device =3D {
-> +	.name	=3D "i2c-cbus",
-> +	.id	=3D 3,
-> +	.dev	=3D {
-> +		.platform_data =3D &n8x0_cbus_data,
+> +static struct i2c_board_info n8x0_i2c_board_info_3[] __initdata =3D {
+> +	{
+> +		I2C_BOARD_INFO("retu-mfd", 0x01),
 > +	},
 > +};
 > +
-> +static void __init n8x0_cbus_init(void)
-> +{
-> +	platform_device_register(&n8x0_cbus_device);
-> +}
-> +#else /* CONFIG_I2C_CBUS */
-> +static void __init n8x0_cbus_init(void)
-> +{
-> +}
-> +#endif /* CONFIG_I2C_CBUS */
-> +
->  #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB601=
-0_MODULE)
->  /*
->   * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
-> @@ -681,6 +707,7 @@ static void __init n8x0_init_machine(void)
->  	gpmc_onenand_init(board_onenand_data);
->  	n8x0_mmc_init();
->  	n8x0_usb_init();
-> +	n8x0_cbus_init();
+>  static void __init n8x0_cbus_init(void)
+>  {
+> +	i2c_register_board_info(3, n8x0_i2c_board_info_3,
+> +				ARRAY_SIZE(n8x0_i2c_board_info_3));
+>  	platform_device_register(&n8x0_cbus_device);
 >  }
-> =20
->  MACHINE_START(NOKIA_N800, "Nokia N800")
+>  #else /* CONFIG_I2C_CBUS */
 > --=20
 > 1.7.2.5
 >=20
@@ -105,26 +73,26 @@ Acked-by: Felipe Balbi <balbi@ti.com>
 --=20
 balbi
 
---SUk9VBj82R8Xhb8H
+--9s922KAXlWjPfK/Q
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQP4j2AAoJEIaOsuA1yqREHPwQAI3U58YJHJzgbadtdsZq8qIu
-UDVsJOp/HwTrM5vdH5O5rx2YB4eoDQQzAAe4oODzEBrfBlJqYyEloc2uLIg+LtSW
-hoWHWezz90hYRR0l2bZSzpaie24kBJcK3mrbno8PhpYXHt/NXmaInmxVf9JT/QUk
-g7cr63ulcBdLgB6/R3K5XbV6vOk9rytfZwYgxHZw0KbzDz2UiknGPdJHMDuZUgOX
-UBZLvheddvGLL0QuStRCCFdoM1m2rCF4gYeKjTyfVGwnTjfvFu7RlMTqU9iH5I+A
-d1LKdo2r4/HALqvLZwQ5RCbvGHfrxoildD398+0Aw30Avl7LmeyIgB2PP34knd3+
-ET2FckQdReQNRovZAIuf6ClTv6qoW2lOTkOOAjEN0t7jfrTUnEs9prryFTTV+eG0
-2UYJyW0DyW2KvVr2akPhAcbqq5Kmt4UFVBhjuTwlNm/d/FREuQzXvlPF+d1zBrQk
-b2MVHfzvEgLV0Pwx7uWg8a0OB4OFsallV/UsAS4pYkH7HvA5vRbCqvU32vtqGlO6
-yrSxWWgeFt8SrpgPL88LiFKQLO8aPMCkkvrLQul1rLcDWHbc1e61MJY92iGdyFfp
-iyH+IffPaPWZwBXlP9OpeHkDF8haXuOtrzeAsWL4J9QopjnwBwxqGQSTIWX/VJZH
-UYmSEOFFH8CbKj1aWaD/
-=gWg4
+iQIcBAEBAgAGBQJQP4kXAAoJEIaOsuA1yqREW6sQAI8BtE2K74ItfDFEXyQn/XaS
+3CTI/W+aWNk4kqH9+4lHUVo2MwnIvcrc3n/PGnqSd8AwdZiZZLWmeQFtk2QKjX1r
+jhJmb3HLkB8Dfo0285A3bwIKLF7RVl07r03kreV6o4umj1n8v4FkD9dBN+/kNmiw
++5eGOXIr1HaycXsKD1teV0Y5pv1JJDTdvcu318QDXgQqLyOAbm1X7xbdezUHbuxw
+0tb1MQcH7odib08EW6clcGTJV/Uu4kONVb+n7ilQhJsgpCQzsjypAN9yXtwKXImH
+A6W2eEC1Vz80AbJCIfKA2zMvZWopKLpuNepi3sMR1/piohbyy2tN8b6lRkpsOfF/
+KkcjkTs1jnBDWk0rnLTHdLAY84IbZYwH6UABw2r0bN62wpfpuDOWFHHn/RADCXLD
+rNC1y4w7joFFGp29xEmEVwA7v7XBcX6tJsvGqF+vk6H7kBh742aoHj+eUzn0ybdl
+1VGfBaQ6YufmST98RP5JAHNZ3kkUhvTTxDcRgRYLZ9IqCsb0l/ag2aNuXSYp2cki
+tqni4jEyCF/IJlCJVJoGr5t0dNwbAn8f6vLklZZCqztBLdnP0nVHph+6twz+1D1g
+Gck3d1zTxlUaU1Ej2IR+wliazNu98Jg7CJV7J3hvn1+wUjbPrqYxqqDN7jkK4yks
+fs8uHvzB+2GLYjc9s9DG
+=DdWW
 -----END PGP SIGNATURE-----
 
---SUk9VBj82R8Xhb8H--
+--9s922KAXlWjPfK/Q--
