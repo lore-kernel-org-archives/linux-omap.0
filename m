@@ -1,33 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/9] ARM: OMAP: cleanup plat/board.h file
-Date: Thu, 30 Aug 2012 11:55:56 -0700
-Message-ID: <20120830185556.GT1303@atomide.com>
-References: <1346195937-6383-1-git-send-email-grinberg@compulab.co.il>
+Subject: Re: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
+Date: Thu, 30 Aug 2012 12:53:49 -0700
+Message-ID: <20120830195349.GW1303@atomide.com>
+References: <cover.1344609341.git.afzal@ti.com>
+ <c5a608a70a875191e1323958c74fb2ac8dfa34b3.1344609341.git.afzal@ti.com>
+ <1345895326.1815.4.camel@kyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:11387 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750823Ab2H3S4F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 14:56:05 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1346195937-6383-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1345895326.1815.4.camel@kyv>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: artem.bityutskiy@linux.intel.com, Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Igor Grinberg <grinberg@compulab.co.il> [120828 16:19]:
-> This patch series cleans up the plat/board.h and related files.
+* Artem Bityutskiy <dedekind1@gmail.com> [120825 04:49]:
+> On Tue, 2012-08-21 at 15:14 +0530, Afzal Mohammed wrote:
+> > GPMC platform initialization provides it's clients
+> > with interrupts that can be used through struct
+> > resource. Make use of it for irq mode functionality.
+> > 
+> > Also now write protect disable is done by GPMC,
+> > hence remove it.
+> > 
+> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> 
+> Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 
-Great, thanks for doing this! Nice that we can finally remove
-all of that. I've also tested that 770 boots after this, so
-looks like we've already fixed up whatever it was depending on.
-
-I'll be applying this into the cleanup branch as soon as I'll
-have an immutable commit for Arnd's treewide changes to move
-the obvious things into include/linux/platform_data.
+Thanks I'll apply these into omap devel-gpmc branch.
 
 Regards,
 
 Tony
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
