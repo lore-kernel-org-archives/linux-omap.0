@@ -1,37 +1,184 @@
 From: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Subject: [PATCHv2 0/3] remoteproc: introduce rproc recovery
-Date: Thu, 30 Aug 2012 13:26:11 -0500
-Message-ID: <1346351174-28441-1-git-send-email-fernando.lugo@ti.com>
+Subject: [PATCHv2 3/3] remoteproc: create debugfs entry to disable/enable recovery dynamically
+Date: Thu, 30 Aug 2012 13:26:14 -0500
+Message-ID: <1346351174-28441-4-git-send-email-fernando.lugo@ti.com>
+References: <1346351174-28441-1-git-send-email-fernando.lugo@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1346351174-28441-1-git-send-email-fernando.lugo@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ohad@wizery.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-These set of patches make possible the remoteproc recover after a crash.
-This is a hard recovery, that means the remoteproc is reset and it will
-start from the beginning. When a crash happen all the virtio devices are
-destroyed. Therefore, both rpmsg drivers and devices are gracefully
-removed which also cause rproc users become 0 and the remoteproc is turned
-off. After the virtio devices are destroyed the crash handler function
-will read the virtio information from the firmware in order to recreate
-the virtio devices that will boot the remoteproc and everything will be
-functional again.
+Add a debugfs entry (named recovery) so that recovery can be disabled
+dynamically at runtime. This entry is very useful when you are trying to
+debug a rproc crash. Without this a recovery will take place making
+impossible to debug the issue.
 
--Version 2
-* Wait untill there is no more rproc users before realoding the FW again
-  in order to make sure the recovery will work fine. As suggested by
-  Sjur BRENDELAND
+Original idea from Ohad Ben-Cohen and contributions from
+Subramaniam Chanderashekarapuram
 
-Fernando Guzman Lugo (3):
-  remoteproc: add rproc_report_crash function to notify rproc crashes
-  remoteproc: recover a remoteproc when it has crashed
-  remoteproc: create debugfs entry to disable/enable recovery
-    dynamically
+Example:
+-disabling recovery:
+$ echo disabled > <debugfs>/remoteproc/remoteproc0/recovery
 
- Documentation/remoteproc.txt             |    7 ++
- drivers/remoteproc/remoteproc_core.c     |  116 ++++++++++++++++++++++++++++--
- drivers/remoteproc/remoteproc_debugfs.c  |   83 +++++++++++++++++++++
- drivers/remoteproc/remoteproc_internal.h |    1 +
- include/linux/remoteproc.h               |   22 ++++++
- 5 files changed, 222 insertions(+), 7 deletions(-)
+-enabling recovery:
+$ echo enabled > <debugfs>/remoteproc/remoteproc0/recovery
+
+-in case you have disabled recovery and you want to continue
+ debugging you can recover the remoteproc once using recover.
+ This will not change the state of the recovery entry, it will
+ only recovery the rproc if its state is RPROC_CRASHED
+$ echo recover > <debugfs>/remoteproc/remoteproc0/recovery
+
+Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+---
+ drivers/remoteproc/remoteproc_core.c    |    3 +-
+ drivers/remoteproc/remoteproc_debugfs.c |   83 +++++++++++++++++++++++++++++++
+ include/linux/remoteproc.h              |    2 +
+ 3 files changed, 87 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
+index 9fbd364..16e20f7 100644
+--- a/drivers/remoteproc/remoteproc_core.c
++++ b/drivers/remoteproc/remoteproc_core.c
+@@ -936,7 +936,8 @@ static void rproc_crash_handler_work(struct work_struct *work)
+ 		++rproc->crash_cnt, rproc->name);
+ 	mutex_unlock(&rproc->lock);
+ 
+-	rproc_trigger_recover(rproc);
++	if (!rproc->recovery_disabled)
++		rproc_trigger_recover(rproc);
+ }
+ 
+ /**
+diff --git a/drivers/remoteproc/remoteproc_debugfs.c b/drivers/remoteproc/remoteproc_debugfs.c
+index 0383385..aa95cde 100644
+--- a/drivers/remoteproc/remoteproc_debugfs.c
++++ b/drivers/remoteproc/remoteproc_debugfs.c
+@@ -28,6 +28,9 @@
+ #include <linux/debugfs.h>
+ #include <linux/remoteproc.h>
+ #include <linux/device.h>
++#include <linux/uaccess.h>
++
++#include "remoteproc_internal.h"
+ 
+ /* remoteproc debugfs parent dir */
+ static struct dentry *rproc_dbg;
+@@ -111,6 +114,84 @@ static const struct file_operations rproc_name_ops = {
+ 	.llseek	= generic_file_llseek,
+ };
+ 
++/* expose recovery flag via debugfs */
++static ssize_t rproc_recovery_read(struct file *filp, char __user *userbuf,
++		size_t count, loff_t *ppos)
++{
++	struct rproc *rproc = filp->private_data;
++	char *buf = rproc->recovery_disabled ? "disabled\n" : "enabled\n";
++
++	return simple_read_from_buffer(userbuf, count, ppos, buf, strlen(buf));
++}
++
++
++/*
++ * Writing to the recovey debugfs entry we can change the behavior of the
++ * recovery dynamically. The default value of this entry is "enabled".
++ *
++ * There are 3 possible options you can write to the recovery debug entry:
++ * "enabled", "disabled" and "recover"
++ *
++ * enabled:	In this case recovery will be enabled, every time there is a
++ *		rproc crashed the rproc will be recovered. If recovery has been
++ *		disabled and it crashed and you enable recovery it will be
++ *		recover as soon as you enable recovery.
++ * disabled:	In this case recovery will be disabled, that means if a rproc
++ *		crashes it will remain in crashed state. Therefore the rproc
++ *		won't be functional any more. But this option is used for
++ *		debugging purposes. Otherwise, debugging a crash would not be
++ *		possible.
++ * recover:	This function will trigger a recovery without taking care of
++ *		the recovery state (enabled/disabled) and without changing it.
++ *		This useful for the cases when you are debugging a crash and
++ *		after enabling recovery you get another crash immediately. As
++ *		the recovery state will be enabled it will recover the rproc
++ *		without let you debug the new crash. So, it is recommended to
++ *		disabled recovery, then starting debugging and use "recovery"
++ *		command while still debugging and when you are done then you
++ *		case use enabled command.
++ */
++static ssize_t rproc_recovery_write(struct file *filp,
++		const char __user *user_buf, size_t count, loff_t *ppos)
++{
++	struct rproc *rproc = filp->private_data;
++	char buf[10];
++	int ret;
++
++	if (count > sizeof(buf))
++		return count;
++
++	ret = copy_from_user(buf, user_buf, count);
++	if (ret)
++		return ret;
++
++	/* remove end of line */
++	if (buf[count - 1] == '\n')
++		buf[count - 1] = '\0';
++
++	if (!strncmp(buf, "enabled", count)) {
++		rproc->recovery_disabled = false;
++		/* if rproc has crashed trigger recovery */
++		if (rproc->state == RPROC_CRASHED)
++			rproc_trigger_recover(rproc);
++	} else if (!strncmp(buf, "disabled", count)) {
++		rproc->recovery_disabled = true;
++	} else if (!strncmp(buf, "recover", count)) {
++		/* if rproc has crashed trigger recovery */
++		if (rproc->state == RPROC_CRASHED)
++			rproc_trigger_recover(rproc);
++	}
++
++	return count;
++}
++
++static const struct file_operations rproc_recovery_ops = {
++	.read = rproc_recovery_read,
++	.write = rproc_recovery_write,
++	.open = simple_open,
++	.llseek = generic_file_llseek,
++};
++
+ void rproc_remove_trace_file(struct dentry *tfile)
+ {
+ 	debugfs_remove(tfile);
+@@ -154,6 +235,8 @@ void rproc_create_debug_dir(struct rproc *rproc)
+ 					rproc, &rproc_name_ops);
+ 	debugfs_create_file("state", 0400, rproc->dbg_dir,
+ 					rproc, &rproc_state_ops);
++	debugfs_create_file("recovery", 0400, rproc->dbg_dir,
++					rproc, &rproc_recovery_ops);
+ }
+ 
+ void __init rproc_init_debugfs(void)
+diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
+index 0c1a2f9..2ccc3fe 100644
+--- a/include/linux/remoteproc.h
++++ b/include/linux/remoteproc.h
+@@ -399,6 +399,7 @@ enum rproc_crash_type {
+  * @crash_handler: workqueue for handling a crash
+  * @crash_cnt: crash counter
+  * @crash_comp: completion used to sync crash handler and the rproc reload
++ * @recovery_disabled: flag that state if recovery was disabled
+  */
+ struct rproc {
+ 	struct klist_node node;
+@@ -425,6 +426,7 @@ struct rproc {
+ 	struct work_struct crash_handler;
+ 	unsigned crash_cnt;
+ 	struct completion crash_comp;
++	bool recovery_disabled;
+ };
+ 
+ /* we currently support only two vrings per rvdev */
+-- 
+1.7.1
