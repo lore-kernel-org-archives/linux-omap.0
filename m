@@ -1,281 +1,249 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 02/23] OMAPDSS: outputs: Create and register output instances
-Date: Thu, 30 Aug 2012 17:10:24 +0530
-Message-ID: <1346326845-16583-3-git-send-email-archit@ti.com>
+Subject: [PATCH v2 06/23] OMAP_VOUT: Remove manager->device references
+Date: Thu, 30 Aug 2012 17:10:28 +0530
+Message-ID: <1346326845-16583-7-git-send-email-archit@ti.com>
 References: <1345528711-27801-1-git-send-email-archit@ti.com>
  <1346326845-16583-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34246 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752780Ab2H3Lmc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 07:42:32 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57634 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754389Ab2H3Lmp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 07:42:45 -0400
 In-Reply-To: <1346326845-16583-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
-Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Add output structs to output driver's private data. Register output instances by
-having an init function in the probes of the platform device drivers for
-different outputs. The *_init_output for each output registers the output and
-fill up the output's plaform device, type and id fields.
+With the introduction of output entities, managers will now connect to outputs.
+Use the helper op for managers named get_device. This will abstract away the
+information on how to get the device from an overlay manager.
 
-In the probe of each interface driver, the output entities are initialized
-before the *_probe_pdata() functions intentionally. This is done to ensure that
-the output entity is prepared before the panels connected to the output are
-registered. We need the output entities to be ready because OMAPDSS will try
-to make connections between overlays, managers, outputs and devices during the
-panel's probe.
+Using the helper function will reduce the number of pointer dereferences a user
+of OMAPDSS needs to do and reduce risk of a NULL dereference.
 
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dpi.c  |   15 +++++++++++++++
- drivers/video/omap2/dss/dsi.c  |   18 ++++++++++++++++++
- drivers/video/omap2/dss/hdmi.c |   15 +++++++++++++++
- drivers/video/omap2/dss/rfbi.c |   17 +++++++++++++++++
- drivers/video/omap2/dss/sdi.c  |   15 +++++++++++++++
- drivers/video/omap2/dss/venc.c |   15 +++++++++++++++
- 6 files changed, 95 insertions(+)
+ drivers/media/video/omap/omap_vout.c |   81 ++++++++++++++++++++++++----------
+ 1 file changed, 57 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 25fb895..9a7aee5 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -45,6 +45,8 @@ static struct {
- 	struct omap_video_timings timings;
- 	struct dss_lcd_mgr_config mgr_config;
- 	int data_lines;
-+
-+	struct omap_dss_output output;
- } dpi;
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 88cf9d9..0ebf87e 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -454,11 +454,16 @@ static int omapvid_init(struct omap_vout_device *vout, u32 addr)
  
- static struct platform_device *dpi_get_dsidev(enum omap_dss_clk_source clk)
-@@ -410,10 +412,23 @@ static void __init dpi_probe_pdata(struct platform_device *pdev)
+ 	win = &vout->win;
+ 	for (i = 0; i < ovid->num_overlays; i++) {
++		struct omap_dss_device *dssdev;
++
+ 		ovl = ovid->overlays[i];
+-		if (!ovl->manager || !ovl->manager->device)
++		dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
++
++		if (!dssdev)
+ 			return -EINVAL;
+ 
+-		timing = &ovl->manager->device->panel.timings;
++		timing = &dssdev->panel.timings;
+ 
+ 		outw = win->w.width;
+ 		outh = win->w.height;
+@@ -515,8 +520,12 @@ static int omapvid_apply_changes(struct omap_vout_device *vout)
+ 	struct omapvideo_info *ovid = &vout->vid_info;
+ 
+ 	for (i = 0; i < ovid->num_overlays; i++) {
++		struct omap_dss_device *dssdev;
++
+ 		ovl = ovid->overlays[i];
+-		if (!ovl->manager || !ovl->manager->device)
++		dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
++		if (!dssdev)
+ 			return -EINVAL;
+ 		ovl->manager->apply(ovl->manager);
  	}
- }
+@@ -579,12 +588,15 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
  
-+static void __init dpi_init_output(struct platform_device *pdev)
-+{
-+	struct omap_dss_output *out = &dpi.output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = pdev;
-+	out->id = OMAP_DSS_OUTPUT_DPI;
-+	out->type = OMAP_DISPLAY_TYPE_DPI;
-+}
-+
- static int __init omap_dpi_probe(struct platform_device *pdev)
- {
- 	mutex_init(&dpi.lock);
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
+-	/* get the display device attached to the overlay */
+-	if (!ovl->manager || !ovl->manager->device)
+-		return;
  
-+	dpi_init_output(pdev);
+ 	mgr_id = ovl->manager->id;
+-	cur_display = ovl->manager->device;
 +
- 	dpi_probe_pdata(pdev);
- 
- 	return 0;
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 659b6cd..6a83ab7 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -337,6 +337,8 @@ struct dsi_data {
- 	enum omap_dss_dsi_pixel_format pix_fmt;
- 	enum omap_dss_dsi_mode mode;
- 	struct omap_dss_dsi_videomode_timings vm_timings;
++	/* get the display device attached to the overlay */
++	cur_display = ovl->manager ?
++		ovl->manager->get_device(ovl->manager) : NULL;
 +
-+	struct omap_dss_output output;
- };
++	if (!cur_display)
++		return;
  
- struct dsi_packet_sent_handler_data {
-@@ -4903,6 +4905,20 @@ static void __init dsi_probe_pdata(struct platform_device *dsidev)
+ 	spin_lock(&vout->vbq_lock);
+ 	do_gettimeofday(&timevalue);
+@@ -948,7 +960,10 @@ static int omap_vout_release(struct file *file)
+ 	/* Disable all the overlay managers connected with this interface */
+ 	for (i = 0; i < ovid->num_overlays; i++) {
+ 		struct omap_overlay *ovl = ovid->overlays[i];
+-		if (ovl->manager && ovl->manager->device)
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
++
++		if (dssdev)
+ 			ovl->disable(ovl);
  	}
- }
+ 	/* Turn off the pipeline */
+@@ -1081,14 +1096,17 @@ static int vidioc_try_fmt_vid_out(struct file *file, void *fh,
+ 	struct omapvideo_info *ovid;
+ 	struct omap_video_timings *timing;
+ 	struct omap_vout_device *vout = fh;
++	struct omap_dss_device *dssdev;
  
-+static void __init dsi_init_output(struct platform_device *dsidev,
-+		struct dsi_data *dsi)
-+{
-+	struct omap_dss_output *out = &dsi->output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = dsidev;
-+	out->id = dsi->module_id == 0 ?
-+			OMAP_DSS_OUTPUT_DSI1 : OMAP_DSS_OUTPUT_DSI2;
-+
-+	out->type = OMAP_DISPLAY_TYPE_DSI;
-+}
-+
- /* DSI1 HW IP initialisation */
- static int __init omap_dsihw_probe(struct platform_device *dsidev)
- {
-@@ -4997,6 +5013,8 @@ static int __init omap_dsihw_probe(struct platform_device *dsidev)
- 	else
- 		dsi->num_lanes_supported = 3;
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	/* get the display device attached to the overlay */
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
  
-+	dsi_init_output(dsidev, dsi);
+-	if (!ovl->manager || !ovl->manager->device)
++	if (!dssdev)
+ 		return -EINVAL;
+-	/* get the display device attached to the overlay */
+-	timing = &ovl->manager->device->panel.timings;
 +
- 	dsi_probe_pdata(dsidev);
++	timing = &dssdev->panel.timings;
  
- 	dsi_runtime_put(dsidev);
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 0cdf246..d93954d 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -61,6 +61,8 @@ static struct {
- 	struct hdmi_ip_data ip_data;
+ 	vout->fbuf.fmt.height = timing->y_res;
+ 	vout->fbuf.fmt.width = timing->x_res;
+@@ -1105,6 +1123,7 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
+ 	struct omapvideo_info *ovid;
+ 	struct omap_video_timings *timing;
+ 	struct omap_vout_device *vout = fh;
++	struct omap_dss_device *dssdev;
  
- 	struct clk *sys_clk;
-+
-+	struct omap_dss_output output;
- } hdmi;
+ 	if (vout->streaming)
+ 		return -EBUSY;
+@@ -1113,13 +1132,14 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
  
- /*
-@@ -890,6 +892,17 @@ static void __init hdmi_probe_pdata(struct platform_device *pdev)
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
+ 
+ 	/* get the display device attached to the overlay */
+-	if (!ovl->manager || !ovl->manager->device) {
++	if (!dssdev) {
+ 		ret = -EINVAL;
+ 		goto s_fmt_vid_out_exit;
  	}
- }
+-	timing = &ovl->manager->device->panel.timings;
++	timing = &dssdev->panel.timings;
  
-+static void __init hdmi_init_output(struct platform_device *pdev)
-+{
-+	struct omap_dss_output *out = &hdmi.output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = pdev;
-+	out->id = OMAP_DSS_OUTPUT_HDMI;
-+	out->type = OMAP_DISPLAY_TYPE_HDMI;
-+}
-+
- /* HDMI HW IP initialisation */
- static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
- {
-@@ -933,6 +946,8 @@ static int __init omapdss_hdmihw_probe(struct platform_device *pdev)
+ 	/* We dont support RGB24-packed mode if vrfb rotation
+ 	 * is enabled*/
+@@ -1298,6 +1318,7 @@ static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *crop)
+ 	struct omapvideo_info *ovid;
+ 	struct omap_overlay *ovl;
+ 	struct omap_video_timings *timing;
++	struct omap_dss_device *dssdev;
  
- 	dss_debugfs_create_file("hdmi", hdmi_dump_regs);
+ 	if (vout->streaming)
+ 		return -EBUSY;
+@@ -1305,13 +1326,15 @@ static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *crop)
+ 	mutex_lock(&vout->lock);
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
++	/* get the display device attached to the overlay */
++	dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) : NULL;
  
-+	hdmi_init_output(pdev);
-+
- 	hdmi_probe_pdata(pdev);
- 
- 	return 0;
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 5a9c0e9..3450f51 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -116,6 +116,8 @@ static struct {
- 	int pixel_size;
- 	int data_lines;
- 	struct rfbi_timings intf_timings;
-+
-+	struct omap_dss_output output;
- } rfbi;
- 
- static inline void rfbi_write_reg(const struct rfbi_reg idx, u32 val)
-@@ -967,6 +969,19 @@ static void __init rfbi_probe_pdata(struct platform_device *pdev)
+-	if (!ovl->manager || !ovl->manager->device) {
++	if (!dssdev) {
+ 		ret = -EINVAL;
+ 		goto s_crop_err;
  	}
- }
+-	/* get the display device attached to the overlay */
+-	timing = &ovl->manager->device->panel.timings;
++
++	timing = &dssdev->panel.timings;
  
-+static void __init rfbi_init_output(struct platform_device *pdev)
-+{
-+	struct omap_dss_output *out = &rfbi.output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = pdev;
-+	out->id = OMAP_DSS_OUTPUT_DBI;
-+	out->type = OMAP_DISPLAY_TYPE_DBI;
-+
-+	return 0;
-+}
-+
- /* RFBI HW IP initialisation */
- static int __init omap_rfbihw_probe(struct platform_device *pdev)
- {
-@@ -1018,6 +1033,8 @@ static int __init omap_rfbihw_probe(struct platform_device *pdev)
+ 	if (is_rotation_90_or_270(vout)) {
+ 		vout->fbuf.fmt.height = timing->x_res;
+@@ -1666,8 +1689,9 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
  
- 	dss_debugfs_create_file("rfbi", rfbi_dump_regs);
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_overlay_manager *mgr = ovl->manager;
  
-+	rfbi_init_output(pdev);
-+
- 	rfbi_probe_pdata(pdev);
+-		if (ovl->manager && ovl->manager->device) {
++		if (mgr && mgr->get_device(mgr)) {
+ 			struct omap_overlay_info info;
+ 			ovl->get_overlay_info(ovl, &info);
+ 			info.paddr = addr;
+@@ -1690,8 +1714,10 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
  
- 	return 0;
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 3bf1bfe..d8879f3 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -36,6 +36,8 @@ static struct {
- 	struct dss_lcd_mgr_config mgr_config;
- 	struct omap_video_timings timings;
- 	int datapairs;
-+
-+	struct omap_dss_output output;
- } sdi;
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
  
- static void sdi_config_lcd_manager(struct omap_dss_device *dssdev)
-@@ -216,8 +218,21 @@ static void __init sdi_probe_pdata(struct platform_device *pdev)
+-		if (ovl->manager && ovl->manager->device) {
++		if (dssdev) {
+ 			ret = ovl->enable(ovl);
+ 			if (ret)
+ 				goto streamon_err1;
+@@ -1726,8 +1752,10 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	for (j = 0; j < ovid->num_overlays; j++) {
+ 		struct omap_overlay *ovl = ovid->overlays[j];
++		struct omap_dss_device *dssdev = ovl->manager ?
++			ovl->manager->get_device(ovl->manager) : NULL;
+ 
+-		if (ovl->manager && ovl->manager->device)
++		if (dssdev)
+ 			ovl->disable(ovl);
  	}
- }
  
-+static void __init sdi_init_output(struct platform_device *pdev)
-+{
-+	struct omap_dss_output *out = &sdi.output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = pdev;
-+	out->id = OMAP_DSS_OUTPUT_SDI;
-+	out->type = OMAP_DISPLAY_TYPE_SDI;
-+}
-+
- static int __init omap_sdi_probe(struct platform_device *pdev)
- {
-+	sdi_init_output(pdev);
-+
- 	sdi_probe_pdata(pdev);
+@@ -1890,8 +1918,9 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+ 	struct video_device *vfd;
+ 	struct v4l2_pix_format *pix;
+ 	struct v4l2_control *control;
++	struct omap_overlay *ovl = vout->vid_info.overlays[0];
+ 	struct omap_dss_device *display =
+-		vout->vid_info.overlays[0]->manager->device;
++		ovl->manager->get_device(ovl->manager);
  
- 	return 0;
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 4a6caf9..942a378 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -304,6 +304,8 @@ static struct {
- 	struct omap_video_timings timings;
- 	enum omap_dss_venc_type type;
- 	bool invert_polarity;
-+
-+	struct omap_dss_output output;
- } venc;
+ 	/* set the default pix */
+ 	pix = &vout->pix;
+@@ -2205,8 +2234,10 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 	 */
+ 	for (i = 1; i < vid_dev->num_overlays; i++) {
+ 		ovl = omap_dss_get_overlay(i);
+-		if (ovl->manager && ovl->manager->device) {
+-			def_display = ovl->manager->device;
++		dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) :
++				NULL;
++		if (dssdev) {
++			def_display = dssdev;
+ 		} else {
+ 			dev_warn(&pdev->dev, "cannot find display\n");
+ 			def_display = NULL;
+@@ -2253,8 +2284,10 @@ probe_err1:
+ 	for (i = 1; i < vid_dev->num_overlays; i++) {
+ 		def_display = NULL;
+ 		ovl = omap_dss_get_overlay(i);
+-		if (ovl->manager && ovl->manager->device)
+-			def_display = ovl->manager->device;
++		dssdev = ovl->manager ? ovl->manager->get_device(ovl->manager) :
++				NULL;
++		if (dssdev)
++			def_display = dssdev;
  
- static inline void venc_write_reg(int idx, u32 val)
-@@ -773,6 +775,17 @@ static void __init venc_probe_pdata(struct platform_device *pdev)
- 	}
- }
- 
-+static void __init venc_init_output(struct platform_device *pdev)
-+{
-+	struct omap_dss_output *out = &venc.output;
-+
-+	dss_register_output(out);
-+
-+	out->pdev = pdev;
-+	out->id = OMAP_DSS_OUTPUT_VENC;
-+	out->type = OMAP_DISPLAY_TYPE_VENC;
-+}
-+
- /* VENC HW IP initialisation */
- static int __init omap_venchw_probe(struct platform_device *pdev)
- {
-@@ -820,6 +833,8 @@ static int __init omap_venchw_probe(struct platform_device *pdev)
- 
- 	dss_debugfs_create_file("venc", venc_dump_regs);
- 
-+	venc_init_output(pdev);
-+
- 	venc_probe_pdata(pdev);
- 
- 	return 0;
+ 		if (def_display && def_display->driver)
+ 			def_display->driver->disable(def_display);
 -- 
 1.7.9.5
 
