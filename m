@@ -1,47 +1,49 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v4 2/3] ARM: omap: hwmod: get rid of all omap_clk_get_by_name
- usage
-Date: Thu, 30 Aug 2012 14:09:00 +0530
-Message-ID: <503F26A4.3050902@ti.com>
-References: <1346230576-20004-1-git-send-email-rnayak@ti.com> <1346230576-20004-3-git-send-email-rnayak@ti.com> <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: DT support for Overo?
+Date: Thu, 30 Aug 2012 11:09:28 +0200
+Message-ID: <503F2DC8.5030906@epfl.ch>
+References: <503DE344.5090909@epfl.ch> <20120829232330.GE1303@atomide.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57358 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752763Ab2H3IjG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 04:39:06 -0400
-Received: by obbuo13 with SMTP id uo13so2755273obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Aug 2012 01:39:05 -0700 (PDT)
-In-Reply-To: <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com>
+Received: from smtp0.epfl.ch ([128.178.224.219]:37720 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751415Ab2H3JJc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Aug 2012 05:09:32 -0400
+In-Reply-To: <20120829232330.GE1303@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Turquette, Mike" <mturquette@ti.com>
-Cc: paul@pwsan.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Steve Sakoman <steve@sakoman.com>, andy.doan@linaro.org, linux-omap@vger.kernel.org
 
-On Thursday 30 August 2012 05:45 AM, Turquette, Mike wrote:
-> On Wed, Aug 29, 2012 at 1:56 AM, Rajendra Nayak<rnayak@ti.com>  wrote:
->> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
->> index d7f55e4..a3831a2 100644
->> --- a/arch/arm/mach-omap2/clock44xx_data.c
->> +++ b/arch/arm/mach-omap2/clock44xx_data.c
->> @@ -3156,6 +3156,7 @@ static struct omap_clk omap44xx_clks[] = {
->>          CLK(NULL,       "dss_tv_clk",&dss_tv_clk,    CK_443X),
->>          CLK(NULL,       "dss_48mhz_clk",&dss_48mhz_clk, CK_443X),
->>          CLK(NULL,       "dss_dss_clk",&dss_dss_clk,   CK_443X),
->> +       CLK(NULL,       "dss_fck",&dss_fck,       CK_443X),
->>          CLK("omapdss_dss",      "ick",&dss_fck,       CK_443X),
->
-> Is it right to re-use dss_fck for the "ick" here?  I think it is due
-> to omap4 modulemode stuff but I don't have DM in front of me and
-> wanted a double-check...
 
-yes, its because of the wierdness of DSS clocks where a so-called
-optional clock is actually a function clock.
+Le 30/08/2012 01:23, Tony Lindgren a =E9crit :
+> * Florian Vaussard <florian.vaussard@epfl.ch> [120829 02:46]:
+>> Hello,
+>>
+>> Before doing the work twice, is someone working on the arm/dts for t=
+he overo
+>> board? I found a first support in the linaro tree [1], but is there
+>> any active
+>> work to complete this support and push it upstream? I am preparing a
+>> daughter
+>> board with some specific hardware, thus I could give some help with =
+the
+>> conversion effort.
+> Great, go for it! The DMA engine binding is still missing as well as
+> bindings for some drivers. But your should be able to get basic thing=
+s
+> going quite easily.
 
->
-> Regards,
-> Mike
+Ok, I will have a look in the coming days.
 
+Regards,
+=46lorian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
