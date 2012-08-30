@@ -1,48 +1,52 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 0/5] hwrng/ARM: OMAP: convert to use runtime PM
-Date: Thu, 30 Aug 2012 13:29:25 -0700
-Message-ID: <20120830202925.GA32300@gondor.apana.org.au>
-References: <20120827232922.15045.56522.stgit@dusk.lan>
- <20120830202708.GZ1303@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH RESEND v4 1/3] arm/dts: AM33XX: Add basic pinctrl
+ device tree data
+Date: Thu, 30 Aug 2012 13:32:35 -0700
+Message-ID: <20120830203234.GA1303@atomide.com>
+References: <1346141454-18786-1-git-send-email-anilkumar@ti.com>
+ <1346141454-18786-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sting.hengli.com.au ([178.18.18.71]:37317 "EHLO
-	fornost.hengli.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751221Ab2H3U3e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:29:34 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32736 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752104Ab2H3Ucl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:32:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20120830202708.GZ1303@atomide.com>
+In-Reply-To: <1346141454-18786-2-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matt Mackall <mpm@selenic.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-On Thu, Aug 30, 2012 at 01:27:08PM -0700, Tony Lindgren wrote:
-> * Paul Walmsley <paul@pwsan.com> [120827 16:39]:
-> > This series converts the OMAP hardware random number generator driver
-> > to use runtime PM.  Hardware integration data is added for OMAP2xxx
-> > systems.  I'm pretty sure this device is available on other OMAP chips
-> > too, but may require some experimentation with the integration details.
+* AnilKumar Ch <anilkumar@ti.com> [120828 01:11]:
+> Adds basic pinctrl device tree data for AM33XX family of devices.
+> This patch is based on the pinctrl-single driver.
 > 
-> Good to hear. I believe that at some point this got moved to be
-> only accessible in the secure mode on later omaps?
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index dde76f7..dfe9c559 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -40,6 +40,15 @@
+>  		};
+>  	};
 >  
-> > There are still a few rough edges with this series.  Something is
-> > still not right with the reset behavior on OMAP2430, at least.  But it
-> > would be good to get acks from the hwrng folks for the three patches that
-> > touch files in that directory.  Will continue with the testing process
-> > here.
-> 
-> Yes Matt & Herbert, care to ack the drivers/char/hw_random related changes?
+> +	am3358_pinmux: pinmux@44E10800 {
+> +		compatible = "pinctrl-single";
+> +		reg = <0x44E10800 0x0238>;
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +		pinctrl-single,register-width = <32>;
+> +		pinctrl-single,function-mask = <0x7F>;
+> +	};
+> +
 
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Nit: Please use lower case for the hex numbers as that's the
+standard in Linux kernel.
 
-> This series will conflict with the planned ARM common zImage changes
-> that we have planned so I'd like to merge them via the ARM soc tree.
-
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Tony
