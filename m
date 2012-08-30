@@ -1,44 +1,58 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv3 5/9] ir-rx51: Move platform data checking into probe function
-Date: Thu, 30 Aug 2012 20:54:27 +0300
-Message-ID: <1346349271-28073-6-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCHv3 0/9] Fixes in response to review comments
+Date: Thu, 30 Aug 2012 20:54:22 +0300
+Message-ID: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mta-out.inet.fi ([195.156.147.13]:47169 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813Ab2H3Rye (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Aug 2012 13:54:34 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-This driver is useless without proper platform data. If data is not
-available, we should not register the driver at all. Once this check
-is done, the BUG_ON check during device open is no longer needed.
+These patches fix most of the issues pointed out in the patch review
+by Sean Young and Sakari Ailus.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
----
- drivers/media/rc/ir-rx51.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+The most noticeable change after these patch set is that the IR
+transmission no longer times out even if the timers are not waking up
+the MPU as it should be. Now that Jean Pihet kindly instructed me how
+to use the PM QoS API for setting the latency constraints, the driver
+will now work without any background load. Someone might consider such
+restriction a blocker bug, that is fixed on this patch set.
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index f22e5e4..16b3c1f 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
- static int lirc_rx51_open(struct inode *inode, struct file *file)
- {
- 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
--	BUG_ON(!lirc_rx51);
- 
- 	file->private_data = lirc_rx51;
- 
-@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
- 
- static int __devinit lirc_rx51_probe(struct platform_device *dev)
- {
-+	if (!dev->dev.platform_data)
-+		return -ENODEV;
-+
- 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
- 	lirc_rx51.pdata = dev->dev.platform_data;
- 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+Changes since v2:
+
+- The 10us PM QoS latency requrement is documented in the code
+
+- A missing quote mark is added into the Kconfig text
+
+Changes since v1:
+
+- Replace wake_up_interruptible with wake_up, as the driver is having
+  non-interruptible sleeps
+
+- Instead of just removing the set_max_mpu_wakeup_lat calls, replace
+  them with QoS API calls
+
+Timo Kokkonen (9):
+  ir-rx51: Adjust dependencies
+  ir-rx51: Handle signals properly
+  ir-rx51: Trivial fixes
+  ir-rx51: Clean up timer initialization code
+  ir-rx51: Move platform data checking into probe function
+  ir-rx51: Replace module_{init,exit} macros with
+    module_platform_driver
+  ir-rx51: Convert latency constraints to PM QoS API
+  ir-rx51: Remove useless variable from struct lirc_rx51
+  ir-rx51: Add missing quote mark in Kconfig text
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   2 -
+ drivers/media/rc/Kconfig                     |   6 +-
+ drivers/media/rc/ir-rx51.c                   | 102 ++++++++++++++-------------
+ include/media/ir-rx51.h                      |   2 -
+ 4 files changed, 57 insertions(+), 55 deletions(-)
+
 -- 
 1.7.12
+
