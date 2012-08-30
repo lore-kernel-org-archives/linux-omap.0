@@ -1,46 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V5 0/6] OMAPDSS: Cleanup cpu_is checks
-Date: Wed, 29 Aug 2012 17:20:39 -0700
-Message-ID: <20120830002039.GP1303@atomide.com>
-References: <cover.1343912532.git.cmahapatra@ti.com>
- <cover.1345468541.git.cmahapatra@ti.com>
+From: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Subject: [PATCH] rpmsg: use right device paramter when calling
+ dma_free_coherent function
+Date: Wed, 29 Aug 2012 19:24:52 -0500
+Message-ID: <1346286292-21773-1-git-send-email-fernando.lugo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:44278 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753968Ab2H3AUo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Aug 2012 20:20:44 -0400
-Content-Disposition: inline
-In-Reply-To: <cover.1345468541.git.cmahapatra@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ohad@wizery.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Chandrabhanu Mahapatra <cmahapatra@ti.com>
-Cc: tomi.valkeinen@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-* Chandrabhanu Mahapatra <cmahapatra@ti.com> [120820 06:26]:
-> Hi everyone,
-> this patch series aims at cleaning up of DSS of cpu_is checks thereby making it
-> more generic.
-> 
-> The 1st patch cleans up cpu_is checks from DISPC code.
-> The 2nd patch removes unused functions from DSS code.
-> The 3rd patch cleans up cpu_is checks from DSS code.
-> The 4th patch removes cpu_is checks from VENC code.
-> The 5th patch disables VENC support on OMAP4.
-> The 6th patch removes cpu_is checks from DPI code and replaces it with a
-> dss feature.
+dma_alloc/free_coherent APIs requires the platform specific remoteproc
+device as the device parameter. We are passing vdev->dev.parent to the
+dma_free_coherent function which is the generic rproc device and it is
+wrong, it has to be vdev->dev.parent->parent instead, same as when we
+call dma_alloc_coherent function.
 
-Good to see this, we need this badly to avoid blocking
-single zImage effort on omaps. Can you also please take
-a look at the omap dss headers and make sure that
-drivers/video/omap code does not do any #include <mach/*.h>
-or <plat/*.h>?
+Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+---
+ drivers/rpmsg/virtio_rpmsg_bus.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-The driver specific headers should be now moved to live in
-include/linux/platform_data directory instead of the current
-arch/arm/*omap*/include/*.
-
-Regards,
-
-Tony
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index 590cfaf..1859f71 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -1008,8 +1008,8 @@ static int rpmsg_probe(struct virtio_device *vdev)
+ 	return 0;
+ 
+ free_coherent:
+-	dma_free_coherent(vdev->dev.parent, RPMSG_TOTAL_BUF_SPACE, bufs_va,
+-					vrp->bufs_dma);
++	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
++					bufs_va, vrp->bufs_dma);
+ vqs_del:
+ 	vdev->config->del_vqs(vrp->vdev);
+ free_vrp:
+@@ -1043,7 +1043,7 @@ static void __devexit rpmsg_remove(struct virtio_device *vdev)
+ 
+ 	vdev->config->del_vqs(vrp->vdev);
+ 
+-	dma_free_coherent(vdev->dev.parent, RPMSG_TOTAL_BUF_SPACE,
++	dma_free_coherent(vdev->dev.parent->parent, RPMSG_TOTAL_BUF_SPACE,
+ 					vrp->rbufs, vrp->bufs_dma);
+ 
+ 	kfree(vrp);
+-- 
+1.7.1
