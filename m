@@ -1,16 +1,16 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 08/23] OMAPDRM: Remove manager->device references
-Date: Thu, 30 Aug 2012 17:10:30 +0530
-Message-ID: <1346326845-16583-9-git-send-email-archit@ti.com>
+Subject: [PATCH v2 07/23] OMAPFB: remove manager->device references
+Date: Thu, 30 Aug 2012 17:10:29 +0530
+Message-ID: <1346326845-16583-8-git-send-email-archit@ti.com>
 References: <1345528711-27801-1-git-send-email-archit@ti.com>
  <1346326845-16583-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34259 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41012 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753617Ab2H3Lmv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 07:42:51 -0400
+	id S1753018Ab2H3Lms (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Aug 2012 07:42:48 -0400
 In-Reply-To: <1346326845-16583-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,32 +26,51 @@ of OMAPDSS needs to do and reduce risk of a NULL dereference.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/staging/omapdrm/omap_drv.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |    7 +++++--
+ drivers/video/omap2/omapfb/omapfb.h      |    5 +++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/staging/omapdrm/omap_drv.c b/drivers/staging/omapdrm/omap_drv.c
-index 4beab94..64a354a 100644
---- a/drivers/staging/omapdrm/omap_drv.c
-+++ b/drivers/staging/omapdrm/omap_drv.c
-@@ -106,7 +106,8 @@ static void dump_video_chains(void)
- 	for (i = 0; i < omap_dss_get_num_overlays(); i++) {
- 		struct omap_overlay *ovl = omap_dss_get_overlay(i);
- 		struct omap_overlay_manager *mgr = ovl->manager;
--		struct omap_dss_device *dssdev = mgr ? mgr->device : NULL;
-+		struct omap_dss_device *dssdev = mgr ?
-+					mgr->get_device(mgr) : NULL;
- 		if (dssdev) {
- 			DBG("%d: %s -> %s -> %s", i, ovl->name, mgr->name,
- 						dssdev->name);
-@@ -185,7 +186,7 @@ static int create_connector(struct drm_device *dev,
- 	for (j = 0; j < priv->num_encoders; j++) {
- 		struct omap_overlay_manager *mgr =
- 			omap_encoder_get_manager(priv->encoders[j]);
--		if (mgr->device == dssdev) {
-+		if (mgr->get_device(mgr) == dssdev) {
- 			drm_mode_connector_attach_encoder(connector,
- 					priv->encoders[j]);
- 		}
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index fc671d3..c6992be 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2353,6 +2353,7 @@ static int __init omapfb_probe(struct platform_device *pdev)
+ 	struct omap_overlay *ovl;
+ 	struct omap_dss_device *def_display;
+ 	struct omap_dss_device *dssdev;
++	struct omap_dss_device *mgr_device;
+ 
+ 	DBG("omapfb_probe\n");
+ 
+@@ -2426,8 +2427,10 @@ static int __init omapfb_probe(struct platform_device *pdev)
+ 	/* gfx overlay should be the default one. find a display
+ 	 * connected to that, and use it as default display */
+ 	ovl = omap_dss_get_overlay(0);
+-	if (ovl->manager && ovl->manager->device) {
+-		def_display = ovl->manager->device;
++	mgr_device = ovl->manager ?
++		ovl->manager->get_device(ovl->manager) : NULL;
++	if (mgr_device) {
++		def_display = mgr_device;
+ 	} else {
+ 		dev_warn(&pdev->dev, "cannot find default display\n");
+ 		def_display = NULL;
+diff --git a/drivers/video/omap2/omapfb/omapfb.h b/drivers/video/omap2/omapfb/omapfb.h
+index 30361a0..2782b1f 100644
+--- a/drivers/video/omap2/omapfb/omapfb.h
++++ b/drivers/video/omap2/omapfb/omapfb.h
+@@ -148,8 +148,9 @@ static inline struct omap_dss_device *fb2display(struct fb_info *fbi)
+ 
+ 	/* XXX: returns the display connected to first attached overlay */
+ 	for (i = 0; i < ofbi->num_overlays; i++) {
+-		if (ofbi->overlays[i]->manager)
+-			return ofbi->overlays[i]->manager->device;
++		struct omap_overlay_manager *mgr = ofbi->overlays[i]->manager;
++		if (mgr)
++			return mgr->get_device(mgr);
+ 	}
+ 
+ 	return NULL;
 -- 
 1.7.9.5
 
