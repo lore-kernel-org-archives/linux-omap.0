@@ -1,310 +1,131 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 15/23] OMAPDSS: RFBI: Add dssdev pointers as arguments to all exported functions
-Date: Thu, 30 Aug 2012 17:10:37 +0530
-Message-ID: <1346326845-16583-16-git-send-email-archit@ti.com>
+Subject: [PATCH v2 14/23] OMAPDSS: RFBI: Pass omap_dss_output within the driver
+Date: Thu, 30 Aug 2012 17:10:36 +0530
+Message-ID: <1346326845-16583-15-git-send-email-archit@ti.com>
 References: <1345528711-27801-1-git-send-email-archit@ti.com>
  <1346326845-16583-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34291 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754708Ab2H3LnO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 07:43:14 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:57656 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754708Ab2H3LnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 07:43:11 -0400
 In-Reply-To: <1346326845-16583-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-All functions of an interface driver used by a panel driver should have an
-omap_dss_device pointer as an argument. This may not be needed by some of the
-interfaces now as driver data is globally visible in them. The correct way
-to retrieve driver data is to extract the platform device from the output,
-and then extract the driver data from the platform device.
+When a panel driver calls a RFBI function, it passes the omap_dss_device
+pointer, this pointer currently propagates within the RFBI driver to configure
+the interface.
 
-Add dssdev arguments from functions used by panel drivers which currently miss
-it. This will come to use when the RFBI functions retrieve the driver data
-in the correct manner.
+Extract the omap_dss_output pointer from omap_dss_device received from the panel
+driver, pass the output pointer to RFBI functions local to the driver to
+configure the interface, these functions no longer need omap_dss_device since
+the driver now maintains a copy of output parameters.
+
+Replace dssdev->manager references with out->manager references as only these
+will be valid later.
+
+With the addition of outputs. There is a possibility that an omap_dss_device
+isn't connected to an output, or a manager isn't connected to an output yet.
+Ensure that the RFBI interface functions proceed only if the output is non NULL.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-n8x0.c |   55 ++++++++++++++++-------------
- drivers/video/omap2/dss/rfbi.c            |   25 +++++++------
- include/video/omapdss.h                   |   25 +++++++------
- 3 files changed, 60 insertions(+), 45 deletions(-)
+ drivers/video/omap2/dss/rfbi.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-index 17ae85e..e3a8c44 100644
---- a/drivers/video/omap2/displays/panel-n8x0.c
-+++ b/drivers/video/omap2/displays/panel-n8x0.c
-@@ -88,27 +88,30 @@ struct panel_drv_data *get_drv_data(const struct omap_dss_device *dssdev)
- }
- 
- 
--static inline void blizzard_cmd(u8 cmd)
-+static inline void blizzard_cmd(struct omap_dss_device *dssdev, u8 cmd)
- {
--	omap_rfbi_write_command(&cmd, 1);
-+	omap_rfbi_write_command(dssdev, &cmd, 1);
- }
- 
--static inline void blizzard_write(u8 cmd, const u8 *buf, int len)
-+static inline void blizzard_write(struct omap_dss_device *dssdev, u8 cmd,
-+		const u8 *buf, int len)
- {
--	omap_rfbi_write_command(&cmd, 1);
--	omap_rfbi_write_data(buf, len);
-+	omap_rfbi_write_command(dssdev, &cmd, 1);
-+	omap_rfbi_write_data(dssdev, buf, len);
- }
- 
--static inline void blizzard_read(u8 cmd, u8 *buf, int len)
-+static inline void blizzard_read(struct omap_dss_device *dssdev, u8 cmd,
-+		u8 *buf, int len)
- {
--	omap_rfbi_write_command(&cmd, 1);
--	omap_rfbi_read_data(buf, len);
-+	omap_rfbi_write_command(dssdev, &cmd, 1);
-+	omap_rfbi_read_data(dssdev, buf, len);
- }
- 
--static u8 blizzard_read_reg(u8 cmd)
-+static u8 blizzard_read_reg(struct omap_dss_device *dssdev, u8 cmd)
- {
- 	u8 data;
--	blizzard_read(cmd, &data, 1);
-+
-+	blizzard_read(dssdev, cmd, &data, 1);
- 	return data;
- }
- 
-@@ -155,7 +158,7 @@ static void blizzard_ctrl_setup_update(struct omap_dss_device *dssdev,
- 
- 	omap_rfbi_configure(dssdev);
- 
--	blizzard_write(BLIZZARD_INPUT_WIN_X_START_0, tmp, 18);
-+	blizzard_write(dssdev, BLIZZARD_INPUT_WIN_X_START_0, tmp, 18);
- 
- 	omapdss_rfbi_set_pixel_size(dssdev, 16);
- 	omapdss_rfbi_set_data_lines(dssdev, 16);
-@@ -313,8 +316,8 @@ static int n8x0_panel_power_on(struct omap_dss_device *dssdev)
- 	if (r)
- 		goto err_rfbi_en;
- 
--	rev = blizzard_read_reg(BLIZZARD_REV_CODE);
--	conf = blizzard_read_reg(BLIZZARD_CONFIG);
-+	rev = blizzard_read_reg(dssdev, BLIZZARD_REV_CODE);
-+	conf = blizzard_read_reg(dssdev, BLIZZARD_CONFIG);
- 
- 	switch (rev & 0xfc) {
- 	case 0x9c:
-@@ -536,11 +539,11 @@ static int n8x0_panel_enable(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->lock);
- 
--	rfbi_bus_lock();
-+	rfbi_bus_lock(dssdev);
- 
- 	r = n8x0_panel_power_on(dssdev);
- 
--	rfbi_bus_unlock();
-+	rfbi_bus_unlock(dssdev);
- 
- 	if (r) {
- 		mutex_unlock(&ddata->lock);
-@@ -562,11 +565,11 @@ static void n8x0_panel_disable(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->lock);
- 
--	rfbi_bus_lock();
-+	rfbi_bus_lock(dssdev);
- 
- 	n8x0_panel_power_off(dssdev);
- 
--	rfbi_bus_unlock();
-+	rfbi_bus_unlock(dssdev);
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
- 
-@@ -581,11 +584,11 @@ static int n8x0_panel_suspend(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->lock);
- 
--	rfbi_bus_lock();
-+	rfbi_bus_lock(dssdev);
- 
- 	n8x0_panel_power_off(dssdev);
- 
--	rfbi_bus_unlock();
-+	rfbi_bus_unlock(dssdev);
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
- 
-@@ -603,11 +606,11 @@ static int n8x0_panel_resume(struct omap_dss_device *dssdev)
- 
- 	mutex_lock(&ddata->lock);
- 
--	rfbi_bus_lock();
-+	rfbi_bus_lock(dssdev);
- 
- 	r = n8x0_panel_power_on(dssdev);
- 
--	rfbi_bus_unlock();
-+	rfbi_bus_unlock(dssdev);
- 
- 	if (r) {
- 		mutex_unlock(&ddata->lock);
-@@ -630,7 +633,9 @@ static void n8x0_panel_get_resolution(struct omap_dss_device *dssdev,
- 
- static void update_done(void *data)
- {
--	rfbi_bus_unlock();
-+	struct omap_dss_device *dssdev = (struct omap_dss_device *) data;
-+
-+	rfbi_bus_unlock(dssdev);
- }
- 
- static int n8x0_panel_update(struct omap_dss_device *dssdev,
-@@ -651,7 +656,7 @@ static int n8x0_panel_update(struct omap_dss_device *dssdev,
- 	}
- 
- 	mutex_lock(&ddata->lock);
--	rfbi_bus_lock();
-+	rfbi_bus_lock(dssdev);
- 
- 	blizzard_ctrl_setup_update(dssdev, x, y, w, h);
- 
-@@ -669,8 +674,8 @@ static int n8x0_panel_sync(struct omap_dss_device *dssdev)
- 	dev_dbg(&dssdev->dev, "sync\n");
- 
- 	mutex_lock(&ddata->lock);
--	rfbi_bus_lock();
--	rfbi_bus_unlock();
-+	rfbi_bus_lock(dssdev);
-+	rfbi_bus_unlock(dssdev);
- 	mutex_unlock(&ddata->lock);
- 
- 	return 0;
 diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 545e14f..b9d5b96 100644
+index 3450f51..545e14f 100644
 --- a/drivers/video/omap2/dss/rfbi.c
 +++ b/drivers/video/omap2/dss/rfbi.c
-@@ -151,19 +151,20 @@ static void rfbi_runtime_put(void)
- 	WARN_ON(r < 0 && r != -ENOSYS);
+@@ -307,11 +307,12 @@ void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
  }
+ EXPORT_SYMBOL(omap_rfbi_write_pixels);
  
--void rfbi_bus_lock(void)
-+void rfbi_bus_lock(struct omap_dss_device *dssdev)
- {
- 	down(&rfbi.bus_lock);
- }
- EXPORT_SYMBOL(rfbi_bus_lock);
- 
--void rfbi_bus_unlock(void)
-+void rfbi_bus_unlock(struct omap_dss_device *dssdev)
- {
- 	up(&rfbi.bus_lock);
- }
- EXPORT_SYMBOL(rfbi_bus_unlock);
- 
--void omap_rfbi_write_command(const void *buf, u32 len)
-+void omap_rfbi_write_command(struct omap_dss_device *dssdev, const void *buf,
-+		u32 len)
- {
- 	switch (rfbi.parallelmode) {
- 	case OMAP_DSS_RFBI_PARALLELMODE_8:
-@@ -191,7 +192,7 @@ void omap_rfbi_write_command(const void *buf, u32 len)
- }
- EXPORT_SYMBOL(omap_rfbi_write_command);
- 
--void omap_rfbi_read_data(void *buf, u32 len)
-+void omap_rfbi_read_data(struct omap_dss_device *dssdev, void *buf, u32 len)
- {
- 	switch (rfbi.parallelmode) {
- 	case OMAP_DSS_RFBI_PARALLELMODE_8:
-@@ -223,7 +224,8 @@ void omap_rfbi_read_data(void *buf, u32 len)
- }
- EXPORT_SYMBOL(omap_rfbi_read_data);
- 
--void omap_rfbi_write_data(const void *buf, u32 len)
-+void omap_rfbi_write_data(struct omap_dss_device *dssdev, const void *buf,
-+		u32 len)
- {
- 	switch (rfbi.parallelmode) {
- 	case OMAP_DSS_RFBI_PARALLELMODE_8:
-@@ -252,7 +254,8 @@ void omap_rfbi_write_data(const void *buf, u32 len)
- }
- EXPORT_SYMBOL(omap_rfbi_write_data);
- 
--void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
-+void omap_rfbi_write_pixels(struct omap_dss_device *dssdev,
-+		const void __iomem *buf, int scr_width,
- 		u16 x, u16 y,
- 		u16 w, u16 h)
- {
-@@ -574,9 +577,10 @@ static int rfbi_convert_timings(struct rfbi_timings *t)
- }
- 
- /* xxx FIX module selection missing */
--int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
--			     unsigned hs_pulse_time, unsigned vs_pulse_time,
--			     int hs_pol_inv, int vs_pol_inv, int extif_div)
-+int omap_rfbi_setup_te(struct omap_dss_device *dssdev,
-+			enum omap_rfbi_te_mode mode, unsigned hs_pulse_time,
-+			unsigned vs_pulse_time, int hs_pol_inv, int vs_pol_inv,
-+			int extif_div)
- {
- 	int hs, vs;
- 	int min;
-@@ -616,7 +620,8 @@ int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
- EXPORT_SYMBOL(omap_rfbi_setup_te);
- 
- /* xxx FIX module selection missing */
--int omap_rfbi_enable_te(bool enable, unsigned line)
-+int omap_rfbi_enable_te(struct omap_dss_device *dssdev, bool enable,
-+		unsigned line)
+-static int rfbi_transfer_area(struct omap_dss_device *dssdev,
++static int rfbi_transfer_area(struct omap_dss_output *out,
+ 		void (*callback)(void *data), void *data)
  {
  	u32 l;
+ 	int r;
++	struct omap_overlay_manager *mgr = out->manager;
+ 	u16 width = rfbi.timings.x_res;
+ 	u16 height = rfbi.timings.y_res;
  
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 29c1440..0e73ef8 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -238,18 +238,23 @@ struct rfbi_timings {
- 	int converted;
- };
+@@ -320,9 +321,9 @@ static int rfbi_transfer_area(struct omap_dss_device *dssdev,
  
--void omap_rfbi_write_command(const void *buf, u32 len);
--void omap_rfbi_read_data(void *buf, u32 len);
--void omap_rfbi_write_data(const void *buf, u32 len);
--void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
-+void omap_rfbi_write_command(struct omap_dss_device *dssdev, const void *buf,
-+		u32 len);
-+void omap_rfbi_read_data(struct omap_dss_device *dssdev, void *buf, u32 len);
-+void omap_rfbi_write_data(struct omap_dss_device *dssdev, const void *buf,
-+		u32 len);
-+void omap_rfbi_write_pixels(struct omap_dss_device *dssdev,
-+		const void __iomem *buf, int scr_width,
- 		u16 x, u16 y,
- 		u16 w, u16 h);
--int omap_rfbi_enable_te(bool enable, unsigned line);
--int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
--			     unsigned hs_pulse_time, unsigned vs_pulse_time,
--			     int hs_pol_inv, int vs_pol_inv, int extif_div);
--void rfbi_bus_lock(void);
--void rfbi_bus_unlock(void);
-+int omap_rfbi_enable_te(struct omap_dss_device *dssdev, bool enable,
-+		unsigned line);
-+int omap_rfbi_setup_te(struct omap_dss_device *dssdev,
-+			enum omap_rfbi_te_mode mode, unsigned hs_pulse_time,
-+			unsigned vs_pulse_time, int hs_pol_inv, int vs_pol_inv,
-+			int extif_div);
-+void rfbi_bus_lock(struct omap_dss_device *dssdev);
-+void rfbi_bus_unlock(struct omap_dss_device *dssdev);
+ 	DSSDBG("rfbi_transfer_area %dx%d\n", width, height);
  
- /* DSI */
+-	dss_mgr_set_timings(dssdev->manager, &rfbi.timings);
++	dss_mgr_set_timings(mgr, &rfbi.timings);
  
+-	r = dss_mgr_enable(dssdev->manager);
++	r = dss_mgr_enable(mgr);
+ 	if (r)
+ 		return r;
+ 
+@@ -779,7 +780,9 @@ EXPORT_SYMBOL(omap_rfbi_configure);
+ int omap_rfbi_update(struct omap_dss_device *dssdev, void (*callback)(void *),
+ 		void *data)
+ {
+-	return rfbi_transfer_area(dssdev, callback, data);
++	struct omap_dss_output *out = dssdev->output;
++
++	return rfbi_transfer_area(out, callback, data);
+ }
+ EXPORT_SYMBOL(omap_rfbi_update);
+ 
+@@ -849,7 +852,7 @@ static void rfbi_dump_regs(struct seq_file *s)
+ #undef DUMPREG
+ }
+ 
+-static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
++static void rfbi_config_lcd_manager(struct omap_dss_output *out)
+ {
+ 	struct dss_lcd_mgr_config mgr_config;
+ 
+@@ -862,7 +865,7 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	mgr_config.video_port_width = rfbi.pixel_size;
+ 	mgr_config.lcden_sig_polarity = 0;
+ 
+-	dss_mgr_set_lcd_config(dssdev->manager, &mgr_config);
++	dss_mgr_set_lcd_config(out->manager, &mgr_config);
+ 
+ 	/*
+ 	 * Set rfbi.timings with default values, the x_res and y_res fields
+@@ -883,15 +886,16 @@ static void rfbi_config_lcd_manager(struct omap_dss_device *dssdev)
+ 	rfbi.timings.de_level = OMAPDSS_SIG_ACTIVE_HIGH;
+ 	rfbi.timings.sync_pclk_edge = OMAPDSS_DRIVE_SIG_OPPOSITE_EDGES;
+ 
+-	dss_mgr_set_timings(dssdev->manager, &rfbi.timings);
++	dss_mgr_set_timings(out->manager, &rfbi.timings);
+ }
+ 
+ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ {
++	struct omap_dss_output *out = dssdev->output;
+ 	int r;
+ 
+-	if (dssdev->manager == NULL) {
+-		DSSERR("failed to enable display: no manager\n");
++	if (out == NULL || out->manager == NULL) {
++		DSSERR("failed to enable display: no output/manager\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -912,7 +916,7 @@ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err1;
+ 	}
+ 
+-	rfbi_config_lcd_manager(dssdev);
++	rfbi_config_lcd_manager(out);
+ 
+ 	rfbi_configure(dssdev->phy.rfbi.channel, rfbi.pixel_size,
+ 			rfbi.data_lines);
 -- 
 1.7.9.5
 
