@@ -1,48 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
-Date: Thu, 30 Aug 2012 12:53:49 -0700
-Message-ID: <20120830195349.GW1303@atomide.com>
-References: <cover.1344609341.git.afzal@ti.com>
- <c5a608a70a875191e1323958c74fb2ac8dfa34b3.1344609341.git.afzal@ti.com>
- <1345895326.1815.4.camel@kyv>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Thu, 30 Aug 2012 13:14:16 -0700
+Message-ID: <20120830201415.GX1303@atomide.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
+ <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
+ <5000D647.4090200@gmail.com>
+ <500439A8.1050705@ti.com>
+ <500D6CAB.4030504@ti.com>
+ <502B67DD.6050904@ti.com>
+ <502D0BEE.3010609@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:19659 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121Ab2H3UOX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:14:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1345895326.1815.4.camel@kyv>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: artem.bityutskiy@linux.intel.com, Afzal Mohammed <afzal@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com
+In-Reply-To: <502D0BEE.3010609@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Artem Bityutskiy <dedekind1@gmail.com> [120825 04:49]:
-> On Tue, 2012-08-21 at 15:14 +0530, Afzal Mohammed wrote:
-> > GPMC platform initialization provides it's clients
-> > with interrupts that can be used through struct
-> > resource. Make use of it for irq mode functionality.
+* Jon Hunter <jon-hunter@ti.com> [120816 08:05]:
+> On 08/15/2012 04:11 AM, Vaibhav Hiremath wrote:
 > > 
-> > Also now write protect disable is done by GPMC,
-> > hence remove it.
-> > 
-> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
+> > Did we get conclude on this? I haven't got anything further on this
+> > thread, this may block baseport support for the new devices in omap2
+> > family, like AM33xx and OMAP5.
 > 
-> Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+> Sorry I have been out of the office. However, no update on this so far.
+> I need to check with Tony if he has any preference for handling this. I
+> will follow-up with him and keep you posted.
 
-Thanks I'll apply these into omap devel-gpmc branch.
+Jon please repost these without the RFC in the subject line
+assuming the pending comments have been addressed so people
+can ack them.
 
 Regards,
 
 Tony
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
