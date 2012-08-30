@@ -1,30 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/5] hwrng/ARM: OMAP: convert to use runtime PM
-Date: Thu, 30 Aug 2012 20:57:30 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1208302056330.29754@utopia.booyaka.com>
-References: <20120827232922.15045.56522.stgit@dusk.lan> <20120830202708.GZ1303@atomide.com> <20120830202925.GA32300@gondor.apana.org.au>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/4] Add AM33XX regulators device tree data
+Date: Thu, 30 Aug 2012 14:01:10 -0700
+Message-ID: <20120830210109.GG1303@atomide.com>
+References: <1345547850-29761-1-git-send-email-anilkumar@ti.com>
+ <20120821135738.GJ7995@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:42358 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab2H3U5b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:57:31 -0400
-In-Reply-To: <20120830202925.GA32300@gondor.apana.org.au>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:58188 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751530Ab2H3VBQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 17:01:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20120821135738.GJ7995@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matt Mackall <mpm@selenic.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: AnilKumar Ch <anilkumar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, 30 Aug 2012, Herbert Xu wrote:
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [120821 06:58]:
+> On Tue, Aug 21, 2012 at 04:47:26PM +0530, AnilKumar Ch wrote:
+> > This patch series add AM33XX regulators (tps65910/tps65217) device
+> > tree data to am335x-evm and am335x-bone dts files. These patches
+> > are based on Tony L "devel-dt" tree with these patches
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg73843.html
+> > and these patches has been tested on AM335x EVM and Bone devices.
+> 
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-> Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
+Applying these into omap devel-dt branch.
 
-Great, thanks Herbert.
-
-At some point in the next month or so, there should be similar series for 
-the OMAP crypto IP blocks too, which will need some acks - just as a 
-heads-up.
-
-
-- Paul
+Tony
