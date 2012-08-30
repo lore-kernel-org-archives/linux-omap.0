@@ -1,78 +1,105 @@
 From: Ravi Babu <ravibabu@ti.com>
-Subject: [PATCH v8 02/13] usb: musb: dsps: enable phy control for am335x
-Date: Thu, 30 Aug 2012 16:20:14 +0530
-Message-ID: <1346323825-24385-3-git-send-email-ravibabu@ti.com>
-References: <1346323825-24385-1-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v8 00/13] usb: musb: adding multi instance support
+Date: Thu, 30 Aug 2012 16:20:12 +0530
+Message-ID: <1346323825-24385-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34755 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34757 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753286Ab2H3Kus (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753292Ab2H3Kus (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 30 Aug 2012 06:50:48 -0400
-In-Reply-To: <1346323825-24385-1-git-send-email-ravibabu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, ajayguptaj@gmail.com
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+This series of patches adds,
+a) Multi instances support in musb driver
+b) DT support for musb_dsps glue layer
+c) DT support for NOP transceiver
 
-Enabled the phy control logic for am335x also based on usbss
-revision register.
+AM33xx and TI81xx has dual musb controller and has two usb PHY of same type.
+This patch series uses 'phandle' based API devm_usb_get_phy_by_phandle() to
+get the PHY of same type. This API support is being added by Kishon's patch
+discussed at [1]
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
-Signed-off-by: Ravi Babu <ravibabu@ti.com>
----
- arch/arm/plat-omap/include/plat/usb.h |    1 +
- drivers/usb/musb/musb_dsps.c          |   17 +++++++++++------
- 2 files changed, 12 insertions(+), 6 deletions(-)
+The series applies to felipe/master [1] branch
+	+ Vaibhav baseport patches on his tree at [4]
+	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
+	+ Kishon's patch on phandle at [2]
+	+ Damodar's recent patch at [3] 
+	+ Ajay's & Damodar's patches at [5] and [6] included in this series
 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index c2aa4ae..6459b10 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -121,6 +121,7 @@ extern void am35x_set_mode(u8 musb_mode);
- /* TI81XX specific definitions */
- #define MUSB_USBSS_REV_816X	0x9
- #define MUSB_USBSS_REV_814X	0xb
-+#define MUSB_USBSS_REV_33XX	0xd
- 
- /* TI816X PHY controls bits */
- #define TI816X_USBPHY0_NORMAL_MODE	(1 << 0)
-diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
-index 960258d..e62fa05 100644
---- a/drivers/usb/musb/musb_dsps.c
-+++ b/drivers/usb/musb/musb_dsps.c
-@@ -141,16 +141,21 @@ static void musb_dsps_phy_control(struct dsps_glue *glue, u8 on)
- 		if (glue->usbss_rev == MUSB_USBSS_REV_816X) {
- 			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
- 			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
--		} else if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
--			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
--				| USBPHY_DPINPUT | USBPHY_DMINPUT);
--			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
--				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-+		} else if (glue->usbss_rev == MUSB_USBSS_REV_814X ||
-+				glue->usbss_rev == MUSB_USBSS_REV_33XX) {
-+			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
-+			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
-+			if (glue->usbss_rev == MUSB_USBSS_REV_814X) {
-+				usbphycfg &= ~(USBPHY_DPINPUT | USBPHY_DMINPUT);
-+				usbphycfg |= USBPHY_DPOPBUFCTL
-+						| USBPHY_DMOPBUFCTL;
-+			}
- 		}
- 	} else {
- 		if (glue->usbss_rev == MUSB_USBSS_REV_816X)
- 			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
--		else if (glue->usbss_rev == MUSB_USBSS_REV_814X)
-+		else if (glue->usbss_rev == MUSB_USBSS_REV_814X ||
-+				glue->usbss_rev == MUSB_USBSS_REV_33XX)
- 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
- 	}
- 	__raw_writel(usbphycfg, glue->usb_ctrl);
--- 
-1.7.0.4
+1. http://git.kernel.org/?p=linux/kernel/git/balbi/usb.git;a=summary
+2. http://marc.info/?l=linux-usb&m=134070369306112&w=2
+3. http://marc.info/?l=linux-usb&m=134200284230689&w=2
+4. https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging
+5. http://marc.info/?l=linux-usb&m=134200285530701&w=2
+6. http://marc.info/?l=linux-usb&m=134208820028625&w=2
+
+Changes from v7:
+	- patches rebased on felipe/master branch & verified
+	- included additional two patches 0001 & 0002 as part of this series
+	  which are already submitted [5] & [6] 
+Changes from v6:
+	- Removed parent_pdev to get glue and used dev_get_getdrv() as per
+	  Felipe's comment
+	- use pr_debug() instead of pr_info() as per Felipe's comment
+Changes from v5:
+	- Removed musb->id as per Felipe's comment
+	- used nop_ida as per Felipe's comment
+Changes from v4:
+	- Fixed Felipe's comment for adding EXPORT_SYMBOL_GPL()
+	- Fixed Felipe's comment on using dev_set_mask()
+Changes from v3:
+	- Fixed Kishon's comment on removing "id" from phy struct and
+	  removing unneeded "#else" part.
+Changes from v2:
+	- Fixed Sergei's comment on not using address prefix in musb_dsps
+	  glue and nop transceiver dt dats.
+	- Also removed the "ti" string in compatible property for nop data.
+Changes from v1:
+	- Defined musb_ida to manage core ids based on Felipe's comment
+	  in [PATCH 01/11]
+
+Ajay Kumar Gupta (7):
+  usb: musb: dsps: enable phy control for am335x
+  usb: musb: kill global and static for multi instance
+  usb: musb: dsps: add dt support
+  arm/dts: am33xx: Add dt data for usbss
+  arm/dts: am33xx: add dt data for usb nop phy
+  usb: musb: dsps: remove explicit NOP device creation
+  arm/dts: am33xx: add phy phandle to usbss
+
+Ravi Babu (3):
+  usb: musb: add musb_ida for multi instance support
+  usb: musb: am335x: add support for dual instance
+  usb: otg: nop: add dt support
+
+Santhapuri, Damodar (3):
+  usb: musb: dsps: add phy control logic to glue
+  usb: otg: nop: add support for multiple tranceiver
+  usb: musb: dsps: get the PHY using phandle api
+
+ .../devicetree/bindings/usb/am33xx-usb.txt         |   19 ++
+ arch/arm/boot/dts/am33xx.dtsi                      |   21 ++
+ arch/arm/mach-omap2/board-ti8168evm.c              |    1 -
+ arch/arm/mach-omap2/omap_phy_internal.c            |   35 ---
+ arch/arm/plat-omap/include/plat/usb.h              |    6 +-
+ drivers/usb/musb/am35x.c                           |   44 ++-
+ drivers/usb/musb/blackfin.c                        |   28 ++-
+ drivers/usb/musb/da8xx.c                           |   36 ++-
+ drivers/usb/musb/davinci.c                         |   38 ++-
+ drivers/usb/musb/musb_core.c                       |   53 +++-
+ drivers/usb/musb/musb_core.h                       |    6 +
+ drivers/usb/musb/musb_debugfs.c                    |    8 +-
+ drivers/usb/musb/musb_dsps.c                       |  281 +++++++++++++++-----
+ drivers/usb/musb/omap2430.c                        |   26 ++-
+ drivers/usb/musb/tusb6010.c                        |   30 ++-
+ drivers/usb/musb/ux500.c                           |   33 ++-
+ drivers/usb/otg/nop-usb-xceiv.c                    |   64 ++++-
+ include/linux/usb/nop-usb-xceiv.h                  |    4 +-
+ 18 files changed, 523 insertions(+), 210 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
 
