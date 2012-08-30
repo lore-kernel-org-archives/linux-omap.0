@@ -1,150 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V5 0/6] OMAPDSS: Cleanup cpu_is checks
-Date: Thu, 30 Aug 2012 10:19:08 -0700
-Message-ID: <20120830171908.GQ1303@atomide.com>
-References: <cover.1343912532.git.cmahapatra@ti.com>
- <cover.1345468541.git.cmahapatra@ti.com>
- <20120830002039.GP1303@atomide.com>
- <1346312061.2327.27.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34513 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab2H3RTN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 13:19:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1346312061.2327.27.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: [PATCHv3 3/9] ir-rx51: Trivial fixes
+Date: Thu, 30 Aug 2012 20:54:25 +0300
+Message-ID: <1346349271-28073-4-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Chandrabhanu Mahapatra <cmahapatra@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi,
+-Fix typo
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120830 00:35]:
-> On Wed, 2012-08-29 at 17:20 -0700, Tony Lindgren wrote:
-> > 
-> > Good to see this, we need this badly to avoid blocking
-> > single zImage effort on omaps. Can you also please take
-> 
-> What is the issue with single zImage? How do cpu_is_ check affect it?
+-Change pwm_timer_num type to match type in platform data
 
-The usage for that should only be limited to arch/arm/mach-omap2
-so we can make cpu.h local as we can't include mach and plat
-header files from the drivers with single zImage.
+-Remove extra parenthesis
+
+-Replace magic constant with proper bit defintions
+
+-Remove duplicate exit pointer
+
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/Kconfig   |  2 +-
+ drivers/media/rc/ir-rx51.c | 10 ++++++----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 093982b..4a68014 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -278,7 +278,7 @@ config IR_RX51
+ 	   Say Y or M here if you want to enable support for the IR
+ 	   transmitter diode built in the Nokia N900 (RX51) device.
  
-> I had a brief look at drivers/video/omap*. Here's a brief status. I
-> don't really know much about the old fb driver (drivers/video/omap) so
-> my comments may not be totally correct. And all fixing I do there is
-> done in blind, I don't have any omap1 devices.
-> 
-> I've left out the trivial cleanups from the list (i.e. file includes a
-> header that it doesn't need), there were a bunch of those. I'll make a
-> patch for these.
-> 
-> 
-> $ git grep -E "<plat|<mach" drivers/video/omap*
-> drivers/video/omap/lcd_ams_delta.c:#include <plat/board-ams-delta.h>
-> * Needs to be moved
-
-Yes, that should be either mach/board-ams-delta.h, or separate driver
-specific headers in include/linux/platform_data. For omap1 we are not
-planning common zImage support, so let's just make sure we're not
-breaking anything there as people are still using it.
-
-> * lcd_ams_delta uses also omap_write/read
-
-Limiting omap_write/read to omap1 is OK for now, unless the fix
-is trivial to do with ioremap + readw/writew.
+-	   The driver uses omap DM timers for gereating the carrier
++	   The driver uses omap DM timers for generating the carrier
+ 	   wave and pulses.
  
-> drivers/video/omap/lcd_inn1510.c:#include <plat/fpga.h>
-> * No idea about this. Who wants to convert the fpga support? =)
-
-I'll move it to mach/fpga.h as it's omap1 specifc.
+ config RC_LOOPBACK
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index e2db94e..125d4c3 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -59,7 +59,7 @@ struct lirc_rx51 {
+ 	int		wbuf[WBUF_LEN];
+ 	int		wbuf_index;
+ 	unsigned long	device_is_open;
+-	unsigned int	pwm_timer_num;
++	int		pwm_timer_num;
+ };
  
-> drivers/video/omap/lcd_mipid.c:#include <plat/lcd_mipid.h>
-> * Needs to be moved
-> 
-> drivers/video/omap/lcd_osk.c:#include <plat/mux.h>
-> * Uses omap_cfg_reg(PWL). I don't know what this is...
-
-I'll move plat/mux.h into mach for omap1. For omap2+, we have
-a local mux.h and are moving to use device tree based pinctrl-single
-driver.
-
-> * lcd_osk.c uses omap_write/read
-> 
-> drivers/video/omap/lcdc.c:#include <mach/lcdc.h>
-> * Needs to be moved
-
-This you can move to platform_data or mach for omap1?
+ static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+@@ -138,11 +138,14 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 	if (!retval)
+ 		return IRQ_NONE;
  
-> drivers/video/omap/lcdc.c:#include <plat/dma.h>
-> * Uses arch/arm/mach-omap1/lcd_dma.c. Any idea about this? Will DMA
-> engine support OMAP1's LCD DMA?
-
-I think it should eventually as it can detect the device and could
-automatically call those functions. Not sure if all options for
-configuring it are available yet in dma engine.
+-	if ((retval & ~OMAP_TIMER_INT_MATCH))
++	if (retval & ~OMAP_TIMER_INT_MATCH)
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": Unexpected interrupt source: %x\n", retval);
  
-> drivers/video/omap/omapfb_main.c:#include <plat/dma.h>
-> * Uses DMA API to set DMA priority
-> 
-> drivers/video/omap/sossi.c:#include <plat/dma.h>
-> * Uses arch/arm/mach-omap1/lcd_dma.c
-> 
-> drivers/video/omap2/dss/dss.c:#include <plat/cpu.h>
-> * Uses cpu_is_* to find out the DSS version. dispc.c also uses cpu_is_*
-> functions, but doesn't include plat/cpu.h. I know cpu_is_* checks should
-> be removed, but is there some other file to include for the time being
-> than plat/cpu.h?
-
-We could make it mach/cpu.h for omap1, but ideally we would just
-pass DSS_VERSION_XYZ type flag in platform data on omap1.
- 
-> drivers/video/omap2/dss/dss_features.c:#include <plat/cpu.h>
-> * Uses cpu_is_* to find out the DSS version
-
-Here too.
- 
-> drivers/video/omap2/omapfb/omapfb-ioctl.c:#include <plat/vrfb.h>
-> drivers/video/omap2/omapfb/omapfb-ioctl.c:#include <plat/vram.h>
-> drivers/video/omap2/omapfb/omapfb-main.c:#include <plat/vram.h>
-> drivers/video/omap2/omapfb/omapfb-main.c:#include <plat/vrfb.h>
-> drivers/video/omap2/omapfb/omapfb-sysfs.c:#include <plat/vrfb.h>
-> drivers/video/omap2/vram.c:#include <plat/vram.h>
-> drivers/video/omap2/vram.c:#include <plat/dma.h>
-> drivers/video/omap2/vrfb.c:#include <plat/vrfb.h>
-> drivers/video/omap2/vrfb.c:#include <plat/sdrc.h>
-> 
-> Of these, I'm not sure how to handle.
-
-These should eventually be in platform_data as driver specific headers.
- 
-> Grep shows that vram.c is only used by (the newer) omapfb, so it could
-> be considered a part of that driver. It still needs to be built-in, as
-> it needs to reserve memory early in the boot process (done with a call
-> from arch/arm/plat-omap/common.c).
-
-Hmm it sounds like omap_vram_reserve_sdram_memblock() should be in
-plat-omap and just pass the pointer for later use for vram.c.
- 
-> Also board files can use a func call to define the amount of memory to
-> allocate, but only rx51 seems to do this in the mainline.
-> 
-> Anyway, I believe vram.c is going away when we start to use CMA.
-
-OK cool. 
- 
-> As for vrfb... I'm not really sure where it belongs. It is used by the
-> newer omapfb and OMAP V4L2 driver. VRFB is a part of the OMAP's memory
-> controller, so I'm not sure if it's really a normal driver.
-
-Maybe just split it to platform code for the memblock stuff and pass
-the necessary information to the driver in platform_data?
-
-Regards,
-
-Tony
-
+-	omap_dm_timer_write_status(lirc_rx51->pulse_timer, 7);
++	omap_dm_timer_write_status(lirc_rx51->pulse_timer,
++				OMAP_TIMER_INT_MATCH	|
++				OMAP_TIMER_INT_OVERFLOW	|
++				OMAP_TIMER_INT_CAPTURE);
+ 	if (lirc_rx51->wbuf_index < 0) {
+ 		dev_err_ratelimited(lirc_rx51->dev,
+ 				": BUG wbuf_index has value of %i\n",
+@@ -489,7 +492,6 @@ struct platform_driver lirc_rx51_platform_driver = {
+ 	.remove		= __exit_p(lirc_rx51_remove),
+ 	.suspend	= lirc_rx51_suspend,
+ 	.resume		= lirc_rx51_resume,
+-	.remove		= __exit_p(lirc_rx51_remove),
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.owner	= THIS_MODULE,
+-- 
+1.7.12
