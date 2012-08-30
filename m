@@ -1,236 +1,99 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH 2/5] mfd: introduce retu-mfd driver
-Date: Thu, 30 Aug 2012 18:36:54 +0300
-Message-ID: <20120830153653.GG1754@arwen.pp.htv.fi>
+Subject: Re: [RFC PATCH 4/5] arm: omap: n8x0: add i2c-cbus platform data
+Date: Thu, 30 Aug 2012 18:38:32 +0300
+Message-ID: <20120830153831.GH1754@arwen.pp.htv.fi>
 References: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
- <1346189667-32330-3-git-send-email-aaro.koskinen@iki.fi>
+ <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QWpDgw58+k1mSFBj"
+	protocol="application/pgp-signature"; boundary="SUk9VBj82R8Xhb8H"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:47501 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752501Ab2H3PlP (ORCPT
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:53745 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751297Ab2H3Pmo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Aug 2012 11:41:15 -0400
-Received: by lagy9 with SMTP id y9so1644044lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Aug 2012 08:41:05 -0700 (PDT)
+	Thu, 30 Aug 2012 11:42:44 -0400
+Received: by lbbgj3 with SMTP id gj3so597531lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Aug 2012 08:42:41 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1346189667-32330-3-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <1346189667-32330-5-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org
 
 
---QWpDgw58+k1mSFBj
-Content-Type: text/plain; charset=iso-8859-1
+--SUk9VBj82R8Xhb8H
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 29, 2012 at 12:34:24AM +0300, Aaro Koskinen wrote:
-> Retu is a multi-function device found on Nokia Internet Tablets
-> implementing at least watchdog, RTC, headset detection and power button
-> functionality.
->=20
-> This patch implements a minimum functionality providing only register
-> access functions.
+On Wed, Aug 29, 2012 at 12:34:26AM +0300, Aaro Koskinen wrote:
+> Add platform data to enable i2c-cbus on N8x0. It will be I2C bus #3.
 >=20
 > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> Cc: sameo@linux.intel.com
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
 > ---
->  drivers/mfd/Kconfig      |    8 +++
->  drivers/mfd/Makefile     |    1 +
->  drivers/mfd/retu-mfd.c   |  114 ++++++++++++++++++++++++++++++++++++++++=
-++++++
->  include/linux/mfd/retu.h |   20 ++++++++
->  4 files changed, 143 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/mfd/retu-mfd.c
->  create mode 100644 include/linux/mfd/retu.h
+>  arch/arm/mach-omap2/board-n8x0.c |   27 +++++++++++++++++++++++++++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
 >=20
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index b1a1462..8ca1270 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -1003,6 +1003,14 @@ config MFD_PALMAS
->  	  If you say yes here you get support for the Palmas
->  	  series of PMIC chips from Texas Instruments.
+> diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board=
+-n8x0.c
+> index 677357f..8ea0dea 100644
+> --- a/arch/arm/mach-omap2/board-n8x0.c
+> +++ b/arch/arm/mach-omap2/board-n8x0.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/io.h>
+>  #include <linux/stddef.h>
+>  #include <linux/i2c.h>
+> +#include <linux/i2c-cbus.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/usb/musb.h>
+>  #include <sound/tlv320aic3x.h>
+> @@ -42,6 +43,31 @@
+>  #define TUSB6010_GPIO_ENABLE	0
+>  #define TUSB6010_DMACHAN	0x3f
 > =20
-> +config MFD_RETU
-> +	tristate "Support for Retu multi-function device"
-> +	select MFD_CORE
-> +	depends on I2C
-> +	help
-> +	  Retu is a multi-function device found on Nokia Internet Tables
-								  ^^^^^^
-								  tablets
-
-
-
-> +	  (770, N800 and N810).
-> +
->  endmenu
->  endif
-> =20
-> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-> index 79dd22d..962ec9d 100644
-> --- a/drivers/mfd/Makefile
-> +++ b/drivers/mfd/Makefile
-> @@ -132,3 +132,4 @@ obj-$(CONFIG_MFD_RC5T583)	+=3D rc5t583.o rc5t583-irq.o
->  obj-$(CONFIG_MFD_SEC_CORE)	+=3D sec-core.o sec-irq.o
->  obj-$(CONFIG_MFD_ANATOP)	+=3D anatop-mfd.o
->  obj-$(CONFIG_MFD_LM3533)	+=3D lm3533-core.o lm3533-ctrlbank.o
-> +obj-$(CONFIG_MFD_RETU)		+=3D retu-mfd.o
-> diff --git a/drivers/mfd/retu-mfd.c b/drivers/mfd/retu-mfd.c
-> new file mode 100644
-> index 0000000..f0097d7
-> --- /dev/null
-> +++ b/drivers/mfd/retu-mfd.c
-> @@ -0,0 +1,114 @@
-> +/*
-> + * Retu MFD driver
-> + *
-> + * Copyright (C) 2004, 2005 Nokia Corporation
-> + *
-> + * Based on code written by Juha Yrj=F6l=E4, David Weinehall and Mikko Y=
-linen.
-> + * Rewritten to MFD/I2C driver by Aaro Koskinen.
-> + *
-> + * This file is subject to the terms and conditions of the GNU General
-> + * Public License. See the file "COPYING" in the main directory of this
-> + * archive for more details.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/err.h>
-> +#include <linux/i2c.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/mutex.h>
-> +#include <linux/module.h>
-> +#include <linux/mfd/core.h>
-> +#include <linux/mfd/retu.h>
-> +#include <linux/moduleparam.h>
-> +
-> +/* Registers */
-> +#define RETU_REG_ASICR		0x00		/* ASIC ID and revision */
-> +#define RETU_REG_ASICR_VILMA	(1 << 7)	/* Bit indicating Vilma */
-> +
-> +static struct mfd_cell retu_devs[] =3D {
-> +	{ .name =3D "retu-wdt" },
+> +#if defined(CONFIG_I2C_CBUS) || defined(CONFIG_I2C_CBUS_MODULE)
+> +static struct i2c_cbus_platform_data n8x0_cbus_data =3D {
+> +	.clk_gpio =3D 66,
+> +	.dat_gpio =3D 65,
+> +	.sel_gpio =3D 64,
 > +};
 > +
-> +int retu_read(struct retu_dev *rdev, u8 reg)
-> +{
-> +	return i2c_smbus_read_word_data(rdev->i2c, reg);
-> +}
-> +EXPORT_SYMBOL_GPL(retu_read);
-> +
-> +int retu_write(struct retu_dev *rdev, u8 reg, u16 data)
-> +{
-> +	return i2c_smbus_write_word_data(rdev->i2c, reg, data);
-> +}
-> +EXPORT_SYMBOL_GPL(retu_write);
-> +
-> +static int __devinit retu_probe(struct i2c_client *i2c,
-> +				const struct i2c_device_id *id)
-> +{
-> +	struct retu_dev *rdev;
-> +	int ret;
-> +
-> +	rdev =3D kzalloc(sizeof(*rdev), GFP_KERNEL);
-> +	if (rdev =3D=3D NULL)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(i2c, rdev);
-> +	rdev->dev =3D &i2c->dev;
-> +	rdev->i2c =3D i2c;
-> +
-> +	ret =3D retu_read(rdev, RETU_REG_ASICR);
-> +	if (ret < 0) {
-> +		dev_err(rdev->dev, "could not read Retu revision: %d\n", ret);
-> +		return -EIO;
-> +	}
-> +
-> +	dev_info(rdev->dev, "Retu%s v%d.%d found\n",
-> +		 (ret & RETU_REG_ASICR_VILMA) ? " & Vilma" : "",
-> +		 (ret >> 4) & 0x7, ret & 0xf);
-> +
-> +	ret =3D mfd_add_devices(rdev->dev, -1, retu_devs, ARRAY_SIZE(retu_devs),
-> +			      NULL, 0);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	return ret;
-> +
-> +error:
-> +	kfree(rdev);
-> +	return ret;
-> +}
-
-looks like this misses the entire irq_chip... maybe on later patches (?)
-
-> +static int __devexit retu_remove(struct i2c_client *i2c)
-> +{
-> +	struct retu_dev *rdev =3D i2c_get_clientdata(i2c);
-> +
-> +	mfd_remove_devices(rdev->dev);
-> +	kfree(rdev);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id retu_id[] =3D {
-> +	{ "retu-mfd", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, retu_id);
-> +
-> +static struct i2c_driver retu_driver =3D {
-> +	.driver		=3D {
-> +		.name =3D "retu-mfd",
-> +		.owner =3D THIS_MODULE,
+> +static struct platform_device n8x0_cbus_device =3D {
+> +	.name	=3D "i2c-cbus",
+> +	.id	=3D 3,
+> +	.dev	=3D {
+> +		.platform_data =3D &n8x0_cbus_data,
 > +	},
-> +	.probe		=3D retu_probe,
-> +	.remove		=3D retu_remove,
-> +	.id_table	=3D retu_id,
-> +};
-> +module_i2c_driver(retu_driver);
-> +
-> +MODULE_DESCRIPTION("Retu MFD driver");
-> +MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
-> +MODULE_LICENSE("GPL");
-> diff --git a/include/linux/mfd/retu.h b/include/linux/mfd/retu.h
-> new file mode 100644
-> index 0000000..e1b3600
-> --- /dev/null
-> +++ b/include/linux/mfd/retu.h
-> @@ -0,0 +1,20 @@
-> +/*
-> + * Retu MFD driver interface
-> + *
-> + * This file is subject to the terms and conditions of the GNU General
-> + * Public License. See the file "COPYING" in the main directory of this
-> + * archive for more details.
-> + */
-> +
-> +#ifndef __LINUX_MFD_RETU_H
-> +#define __LINUX_MFD_RETU_H
-> +
-> +struct retu_dev {
-> +	struct device *dev;
-> +	struct i2c_client *i2c;
 > +};
 > +
-> +int retu_read(struct retu_dev *, u8);
-> +int retu_write(struct retu_dev *, u8, u16);
+> +static void __init n8x0_cbus_init(void)
+> +{
+> +	platform_device_register(&n8x0_cbus_device);
+> +}
+> +#else /* CONFIG_I2C_CBUS */
+> +static void __init n8x0_cbus_init(void)
+> +{
+> +}
+> +#endif /* CONFIG_I2C_CBUS */
 > +
-> +#endif /* __LINUX_MFD_RETU_H */
+>  #if defined(CONFIG_USB_MUSB_TUSB6010) || defined(CONFIG_USB_MUSB_TUSB601=
+0_MODULE)
+>  /*
+>   * Enable or disable power to TUSB6010. When enabling, turn on 3.3 V and
+> @@ -681,6 +707,7 @@ static void __init n8x0_init_machine(void)
+>  	gpmc_onenand_init(board_onenand_data);
+>  	n8x0_mmc_init();
+>  	n8x0_usb_init();
+> +	n8x0_cbus_init();
+>  }
+> =20
+>  MACHINE_START(NOKIA_N800, "Nokia N800")
 > --=20
 > 1.7.2.5
 >=20
@@ -242,26 +105,26 @@ looks like this misses the entire irq_chip... maybe on later patches (?)
 --=20
 balbi
 
---QWpDgw58+k1mSFBj
+--SUk9VBj82R8Xhb8H
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQP4iVAAoJEIaOsuA1yqRECRMP/2SngpTJLgsmoIp7pMbBIIS6
-EZSh1YJq1Xr1tixRuWZJoi8dUANyr+lCjMVsrJkfBEmWYKcZgHM35bmnU+z5cINf
-Iuz6jqk92uiNHq18mjSQT4z55yxLm9Mb5UrEp4DjTX5X+gMHeyxSH3tfEbc/gxbG
-VIBFH4nnIj7E02KeiAJWwkWvw2Kh1wOOjX/UH5T73nGlw2wJdck1Jt3EiN4Rcf5E
-DIl4Yx1WGoqoYTvdI6Gxs2xk8Brj0oBh1XCHk1t83HK+DoER1399V1z9x9DvuWqb
-FITyUT7S4h58FqeAE3m0BUqyp9YrojG1AnqmNNeLzlXPQBDRyI3hEDLaNbwL/+qm
-l3csvIe7IpLLdAaEHolkMUMyytm5UZM4pi7laC6eH3FN6ESoLVn9+EMBOfjPhD1Z
-vv8vwpFdmGStHo72YShDWVNG8tEFr0AUYTFNS4GmPlkYEOpmDmTTmWR+ptpAVq9s
-TkCOTgUSIywRzzvofa5OV+xEgK2vgk459xumdbCOEthSajlnekdzdkjtFHxXrrl8
-imkFrYzR6z8TBKVXs16ixqPfGU9AhIfuXlmzvLddzuDhFy3hakp5p1TI6Ss1REcT
-4NLmxyc12+zLwf3aXEleSqj26H/TAHf5KiQOtid5W7rR3WsTgz7BDpPWjufc2B/Y
-L1bQfeauIlvzSvsdqC8t
-=VPty
+iQIcBAEBAgAGBQJQP4j2AAoJEIaOsuA1yqREHPwQAI3U58YJHJzgbadtdsZq8qIu
+UDVsJOp/HwTrM5vdH5O5rx2YB4eoDQQzAAe4oODzEBrfBlJqYyEloc2uLIg+LtSW
+hoWHWezz90hYRR0l2bZSzpaie24kBJcK3mrbno8PhpYXHt/NXmaInmxVf9JT/QUk
+g7cr63ulcBdLgB6/R3K5XbV6vOk9rytfZwYgxHZw0KbzDz2UiknGPdJHMDuZUgOX
+UBZLvheddvGLL0QuStRCCFdoM1m2rCF4gYeKjTyfVGwnTjfvFu7RlMTqU9iH5I+A
+d1LKdo2r4/HALqvLZwQ5RCbvGHfrxoildD398+0Aw30Avl7LmeyIgB2PP34knd3+
+ET2FckQdReQNRovZAIuf6ClTv6qoW2lOTkOOAjEN0t7jfrTUnEs9prryFTTV+eG0
+2UYJyW0DyW2KvVr2akPhAcbqq5Kmt4UFVBhjuTwlNm/d/FREuQzXvlPF+d1zBrQk
+b2MVHfzvEgLV0Pwx7uWg8a0OB4OFsallV/UsAS4pYkH7HvA5vRbCqvU32vtqGlO6
+yrSxWWgeFt8SrpgPL88LiFKQLO8aPMCkkvrLQul1rLcDWHbc1e61MJY92iGdyFfp
+iyH+IffPaPWZwBXlP9OpeHkDF8haXuOtrzeAsWL4J9QopjnwBwxqGQSTIWX/VJZH
+UYmSEOFFH8CbKj1aWaD/
+=gWg4
 -----END PGP SIGNATURE-----
 
---QWpDgw58+k1mSFBj--
+--SUk9VBj82R8Xhb8H--
