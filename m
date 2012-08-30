@@ -1,59 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND v4 2/3] arm/dts: AM33XX: Configure pinmuxs for
- user leds control on Bone
-Date: Thu, 30 Aug 2012 13:35:06 -0700
-Message-ID: <20120830203505.GB1303@atomide.com>
+Subject: Re: [PATCH v4 3/3] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Thu, 30 Aug 2012 13:35:59 -0700
+Message-ID: <20120830203558.GC1303@atomide.com>
 References: <1346141454-18786-1-git-send-email-anilkumar@ti.com>
- <1346141454-18786-3-git-send-email-anilkumar@ti.com>
+ <1346141454-18786-4-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:17313 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751865Ab2H3UfM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:35:12 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:35256 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab2H3UgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 16:36:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1346141454-18786-3-git-send-email-anilkumar@ti.com>
+In-Reply-To: <1346141454-18786-4-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: AnilKumar Ch <anilkumar@ti.com>
 Cc: wg@grandegger.com, mkl@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
 * AnilKumar Ch <anilkumar@ti.com> [120828 01:11]:
-> Adds GPIO pinctrl nodes to am3358_pinmux master node to control
-> user leds (USR0, USR1, USR2 and USR3) present on BeagleBone.
+> Add Bosch D_CAN controller device tree data to AM33XX dtsi
+> file by adding d_can device nodes with all the necessary
+> parameters.
 > 
 > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 > ---
->  arch/arm/boot/dts/am335x-bone.dts |   14 ++++++++++++++
->  1 file changed, 14 insertions(+)
+>  arch/arm/boot/dts/am33xx.dtsi |   18 ++++++++++++++++++
+>  1 file changed, 18 insertions(+)
 > 
-> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-> index a7906cb..58f5042 100644
-> --- a/arch/arm/boot/dts/am335x-bone.dts
-> +++ b/arch/arm/boot/dts/am335x-bone.dts
-> @@ -18,6 +18,20 @@
->  		reg = <0x80000000 0x10000000>; /* 256 MB */
->  	};
->  
-> +	am3358_pinmux: pinmux@44E10800 {
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&userled_pins>;
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index dfe9c559..d965137 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -177,5 +177,23 @@
+>  			compatible = "ti,omap3-wdt";
+>  			ti,hwmods = "wd_timer2";
+>  		};
 > +
-> +		userled_pins: pinmux_userled_pins {
-> +			pinctrl-single,pins = <
-> +				0x54 0x7	/* gpmc_a5.gpio1_21, OUTPUT | MODE7 */
-> +				0x58 0x17	/* gpmc_a6.gpio1_22, OUTPUT_PULLUP | MODE7 */
-> +				0x5C 0x7	/* gpmc_a7.gpio1_23, OUTPUT | MODE7 */
-> +				0x60 0x17	/* gpmc_a8.gpio1_24, OUTPUT_PULLUP | MODE7 */
-> +			>;
+> +		dcan0: d_can@481CC000 {
+> +			compatible = "bosch,d_can";
+> +			ti,hwmods = "d_can0";
+> +			reg = <0x481CC000 0x2000>;
+> +			interrupts = <52>;
+> +			interrupt-parent = <&intc>;
+> +			status = "disabled";
 > +		};
-> +	};
 > +
+> +		dcan1: d_can@481D0000 {
+> +			compatible = "bosch,d_can";
+> +			ti,hwmods = "d_can1";
+> +			reg = <0x481D0000 0x2000>;
+> +			interrupts = <55>;
+> +			interrupt-parent = <&intc>;
+> +			status = "disabled";
+> +		};
+>  	};
+>  };
 
-Looks like this patch should also claim these pins by the led driver.
-Then the led driver should just do pinctrl_get_select_default(&pdev->dev)
-in it's probe function to set the pins.
+Use lower case for hex numbers here too and add support to claim the pins
+in the dcan driver.
 
 Tony
-
