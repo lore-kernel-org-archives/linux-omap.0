@@ -1,7 +1,7 @@
 From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Subject: [PATCHv3 1/9] ir-rx51: Adjust dependencies
-Date: Thu, 30 Aug 2012 20:54:23 +0300
-Message-ID: <1346349271-28073-2-git-send-email-timo.t.kokkonen@iki.fi>
+Subject: [PATCHv3 2/9] ir-rx51: Handle signals properly
+Date: Thu, 30 Aug 2012 20:54:24 +0300
+Message-ID: <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi>
 References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
@@ -9,30 +9,99 @@ Sender: linux-media-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Although this kind of IR diode circuitry is known to exist only in
-N900 hardware, nothing prevents making similar circuitry on any OMAP
-based board. The MACH_NOKIA_RX51 dependency is thus not something we
-want to be there.
+The lirc-dev expects the ir-code to be transmitted when the write call
+returns back to the user space. We should not leave TX ongoing no
+matter what is the reason we return to the user space. Easiest
+solution for that is to simply remove interruptible sleeps.
 
-Also, this should depend on LIRC as it is a LIRC driver.
+The first wait_event_interruptible is thus replaced with return -EBUSY
+in case there is still ongoing transfer. This should suffice as the
+concept of sending multiple codes in parallel does not make sense.
+
+The second wait_event_interruptible call is replaced with
+wait_even_timeout with a fixed and safe timeout that should prevent
+the process from getting stuck in kernel for too long.
+
+Also, from now on we will force the TX to stop before we return from
+write call. If the TX happened to time out for some reason, we should
+not leave the HW transmitting anything.
 
 Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 ---
- drivers/media/rc/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/rc/ir-rx51.c | 39 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index ffef8b4..093982b 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -273,7 +273,7 @@ config IR_IGUANA
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 9487dd3..e2db94e 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ 			      OMAP_TIMER_TRIGGER_NONE);
+ }
  
- config IR_RX51
- 	tristate "Nokia N900 IR transmitter diode
--	depends on MACH_NOKIA_RX51 && OMAP_DM_TIMER
-+	depends on OMAP_DM_TIMER && LIRC
- 	---help---
- 	   Say Y or M here if you want to enable support for the IR
- 	   transmitter diode built in the Nokia N900 (RX51) device.
++static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
++{
++	if (lirc_rx51->wbuf_index < 0)
++		return;
++
++	lirc_rx51_off(lirc_rx51);
++	lirc_rx51->wbuf_index = -1;
++	omap_dm_timer_stop(lirc_rx51->pwm_timer);
++	omap_dm_timer_stop(lirc_rx51->pulse_timer);
++	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
++	wake_up(&lirc_rx51->wqueue);
++}
++
+ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ {
+ 	u32 load, match;
+@@ -160,13 +173,7 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 
+ 	return IRQ_HANDLED;
+ end:
+-	/* Stop TX here */
+-	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->wbuf_index = -1;
+-	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+-	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+-	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+-	wake_up_interruptible(&lirc_rx51->wqueue);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -246,8 +253,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	if ((count > WBUF_LEN) || (count % 2 == 0))
+ 		return -EINVAL;
+ 
+-	/* Wait any pending transfers to finish */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	/* We can have only one transmit at a time */
++	if (lirc_rx51->wbuf_index >= 0)
++		return -EBUSY;
+ 
+ 	if (copy_from_user(lirc_rx51->wbuf, buf, n))
+ 		return -EFAULT;
+@@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 
+ 	/*
+ 	 * Don't return back to the userspace until the transfer has
+-	 * finished
++	 * finished. However, we wish to not spend any more than 500ms
++	 * in kernel. No IR code TX should ever take that long.
++	 */
++	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
++			HZ / 2);
++
++	/*
++	 * Ensure transmitting has really stopped, even if the timers
++	 * went mad or something else happened that caused it still
++	 * sending out something.
+ 	 */
+-	wait_event_interruptible(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0);
++	lirc_rx51_stop_tx(lirc_rx51);
+ 
+ 	/* We can sleep again */
+ 	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
 -- 
 1.7.12
