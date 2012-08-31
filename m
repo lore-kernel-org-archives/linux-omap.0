@@ -1,83 +1,104 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v5 0/5] Add device tree data for AM33XX devices
-Date: Fri, 31 Aug 2012 14:59:16 +0530
-Message-ID: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
+From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 4/5] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 31 Aug 2012 14:59:20 +0530
+Message-ID: <1346405361-29711-5-git-send-email-anilkumar@ti.com>
+References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44887 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752686Ab2HaJa2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Aug 2012 05:30:28 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1346405361-29711-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: wg@grandegger.com, mkl@pengutronix.de, bryan.wu@canonical.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 
-Add pinctrl and d_can device tree data to AM33XX family of devices.
-First two patches add support for pinctrl DT data and third one
-adds dcan DT data.
+Adopt pinctrl support to leds-gpio driver, based on the device
+pointer (leds-gpio) pinctrl driver configure SoC pins to GPIO
+mode.
 
-Reason behind combining these patches is to apply cleanly on
-linux-omap tree, because these are sequential patches.
+Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+---
+ drivers/leds/leds-gpio.c |   31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-These patches were tested on AM335x-Bone, AM335x-EVM and based
-on linux-omap:master with this patch
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg74393.html
-
-d_can:
-  Changes from v4:
-	- Incorporated Tony's comments on v4
-	  * Converted all hex numbers to lower-case.
-	- Updated C_CAN bindings documentation according to recent
-	  changes.
-
-  Changes from v3:
-	- Removed d_can1 node from am335x-evm.dts file. Instance
-	  one of CAN (d_can1) is available on AM335x-EVM only under
-	  a specific CPLD mode selection. am335x-evm.dts does not
-          support this mode so remove the d_can1 node.
-	- Dropped d_can pinmux settings patch, above comment
-	  applies here as well.
-
-  Changes from v2:
-	- Incorporated Vaibhav H's comments on v2
-	  * Added dcan0 instances to am33xx.dtsi file
-
-  Changes from v1:
-	- These two patches separated from c_can DT support
-	  patch series.
-
-pinctrl:
-  Changes from v4:
-	- Incorporated Tony's comments on v4
-	  * Converted all hex numbers to lower-case.
-	- Added pinctrl api to leds-gpio driver to configure led
-	  pins to GPIO mode.
-
-  Changes from v3:
-	- Updated the reg length based on latest AM335x TRM.
-
-  Changes from v2:
-	- user led pinmux comments updated according to Tony's
-	  comment.
-
-  Changes from v1:
-	- Rebased the patches based on latest pinctrl-single driver
-
-AnilKumar Ch (5):
-  arm/dts: AM33XX: Add basic pinctrl device tree data
-  arm/dts: AM33XX: Configure pinmuxs for user leds control on Bone
-  arm/dts: AM33XX: Add D_CAN device tree data
-  leds: leds-gpio: adopt pinctrl support
-  of: Modify c_can binding documentation
-
- .../devicetree/bindings/net/can/c_can.txt          |   25 +++++++++---
- arch/arm/boot/dts/am335x-bone.dts                  |   41 ++++++++++++++++++++
- arch/arm/boot/dts/am33xx.dtsi                      |   27 +++++++++++++
- drivers/leds/leds-gpio.c                           |   31 +++++++++++----
- 4 files changed, 112 insertions(+), 12 deletions(-)
-
+diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+index c032b21..d98dfb9 100644
+--- a/drivers/leds/leds-gpio.c
++++ b/drivers/leds/leds-gpio.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ #include <linux/module.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ struct gpio_led_data {
+ 	struct led_classdev cdev;
+@@ -236,14 +237,23 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
+ {
+ 	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
+ 	struct gpio_leds_priv *priv;
+-	int i, ret = 0;
++	struct pinctrl *pinctrl;
++	int i = 0;
++	int ret = 0;
++
++	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
++	if (IS_ERR(pinctrl)) {
++		return PTR_ERR(pinctrl);
++	}
+ 
+ 	if (pdata && pdata->num_leds) {
+ 		priv = devm_kzalloc(&pdev->dev,
+ 				sizeof_gpio_leds_priv(pdata->num_leds),
+ 					GFP_KERNEL);
+-		if (!priv)
+-			return -ENOMEM;
++		if (!priv) {
++			ret = -ENOMEM;
++			goto err_pctrl_put;
++		}
+ 
+ 		priv->num_leds = pdata->num_leds;
+ 		for (i = 0; i < priv->num_leds; i++) {
+@@ -254,18 +264,25 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
+ 				/* On failure: unwind the led creations */
+ 				for (i = i - 1; i >= 0; i--)
+ 					delete_gpio_led(&priv->leds[i]);
+-				return ret;
++				goto err_pctrl_put;
+ 			}
+ 		}
+ 	} else {
+ 		priv = gpio_leds_create_of(pdev);
+-		if (!priv)
+-			return -ENODEV;
++		if (!priv) {
++			ret = -ENODEV;
++			goto err_del_gpio_led;
++		}
+ 	}
+ 
+ 	platform_set_drvdata(pdev, priv);
+ 
+-	return 0;
++err_pctrl_put:
++	pinctrl_put(pinctrl);
++err_del_gpio_led:
++	while (--i >= 0)
++		delete_gpio_led(&priv->leds[i]);
++	return ret;
+ }
+ 
+ static int __devexit gpio_led_remove(struct platform_device *pdev)
 -- 
 1.7.9.5
-
