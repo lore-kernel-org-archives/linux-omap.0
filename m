@@ -1,42 +1,67 @@
-From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] ARM: OMAP2+: Makefile.boot: Add am335x evm and bone targets
-Date: Fri, 31 Aug 2012 23:24:34 +0530
-Message-ID: <1346435674-6207-1-git-send-email-hvaibhav@ti.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: RE: Without MACH_ option Early printk (DEBUG_LL)
+Date: Fri, 31 Aug 2012 14:23:32 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1208311422450.1784@xanadu.home>
+References: <5040D03B.2050304@ti.com>
+ <20120831171336.GA6978@n2100.arm.linux.org.uk>
+ <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:14972 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754440Ab2HaSXj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 14:23:39 -0400
+Received: from xanadu.home ([24.201.196.149]) by VL-VM-MR005.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0M9M007XCTR84OA0@VL-VM-MR005.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Fri, 31 Aug 2012 14:23:32 -0400 (EDT)
+In-reply-to: <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This adds am335x-evm and am335x-bone dtb targets to
-'make dtbs', just like other platforms.
+On Fri, 31 Aug 2012, Hiremath, Vaibhav wrote:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
----
- arch/arm/mach-omap2/Makefile.boot |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> On Fri, Aug 31, 2012 at 22:43:36, Russell King - ARM Linux wrote:
+> > On Fri, Aug 31, 2012 at 08:24:51PM +0530, Vaibhav Hiremath wrote:
+> > > Hi Russell & Tony,
+> > > 
+> > > AM335X EVM (based on AM33XX device) only supports DT boot mode and
+> > > doesn't have CONFIG_MACH_AM335XEVM option defined. Some time back during
+> > > baseport submission we had aligned that, we won't create separate EVM
+> > > options, killing the board file all-together.
+> > > 
+> > > Having said that, the early printk option (DEBUG_LL) is broken, the
+> > > auto-generated file "./include/generated/mach-types.h" still refers to
+> > > CONFIG_MACH_AM335XEVM option,
+> > > 
+> > > #ifdef CONFIG_MACH_AM335XEVM
+> > > # ifdef machine_arch_type
+> > > #  undef machine_arch_type
+> > > #  define machine_arch_type     __machine_arch_type
+> > > # else
+> > > #  define machine_arch_type     MACH_TYPE_AM335XEVM
+> > > # endif
+> > > # define machine_is_am335xevm() (machine_arch_type == MACH_TYPE_AM335XEVM)
+> > > #else
+> > > # define machine_is_am335xevm() (0)
+> > > #endif
+> > 
+> > machine types are entirely meaningless for DT based systems.
+> > 
+> > > Can you comment on this? Based on that I will submit the patch.
+> > 
+> > Pointless.  You can't use machine_is_am335xevm() when you're using DT.
+> > 
+> 
+> They how do you recommend to resolve early prink issue (required during 
+> decompression)?
 
-diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
-index 6cf1c2d..1136072 100644
---- a/arch/arm/mach-omap2/Makefile.boot
-+++ b/arch/arm/mach-omap2/Makefile.boot
-@@ -7,3 +7,4 @@ dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
- dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
- dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
- dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
-+dtb-$(CONFIG_SOC_AM33XX)	+= am335x-evm.dtb am335x-bone.dtb
--- 
-1.7.0.4
+Right now the best you can do is to have empty stubs that display 
+nothing.
+
+
+Nicolas
