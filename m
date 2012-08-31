@@ -1,40 +1,81 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH v2 06/23] OMAP_VOUT: Remove manager->device references
-Date: Fri, 31 Aug 2012 18:04:51 +0530
-Message-ID: <5040AF6B.7020003@ti.com>
-References: <1345528711-27801-1-git-send-email-archit@ti.com>  <1346326845-16583-1-git-send-email-archit@ti.com>  <1346326845-16583-7-git-send-email-archit@ti.com> <1346415118.18766.15.camel@lappyti>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH] omap-i2c: fix incorrect log message when using a device
+ tree
+Date: Fri, 31 Aug 2012 14:36:28 +0200
+Message-ID: <5040AFCC.5060004@ti.com>
+References: <1346410975-29930-1-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45736 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45852 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751366Ab2HaMeh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 08:34:37 -0400
-In-Reply-To: <1346415118.18766.15.camel@lappyti>
+	with ESMTP id S1751366Ab2HaMg4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 08:36:56 -0400
+In-Reply-To: <1346410975-29930-1-git-send-email-florian.vaussard@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Florian Vaussard <florian.vaussard@epfl.ch>
+Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, Wolfram Sang <w.sang@pengutronix.de>, =?ISO-8859-1?Q?Philippe_R=E9tornaz?= <philippe.retornaz@epfl.ch>
 
-On Friday 31 August 2012 05:41 PM, Tomi Valkeinen wrote:
-> On Thu, 2012-08-30 at 17:10 +0530, Archit Taneja wrote:
->> With the introduction of output entities, managers will now connect to outputs.
->> Use the helper op for managers named get_device. This will abstract away the
->> information on how to get the device from an overlay manager.
->>
->> Using the helper function will reduce the number of pointer dereferences a user
->> of OMAPDSS needs to do and reduce risk of a NULL dereference.
->
-> Almost all the uses here seem to be getting the dssdev from an overlay.
-> Would it make sense to implement get_device for an ovl? That would
-> reduce all the ovl->manager ? ovl->manager->get_device(ovl->manager) :
-> NULL; code to ovl->get_device(ovl).
+On 08/31/2012 01:02 PM, Florian Vaussard wrote:
+> When booting using a device tree, the adapter number is dynamically
+> assigned after the log message is sent.
+> This patch modifies the log message to get a correct adapter id.
+> 
+> Applies on 3.6-rc3. Tested on OMAP3 (Gumstix Overo).
 
-That make sense.
+Thanks for the fix. Tested successfully on OMAP4 SDP DT boot as well.
 
-We would still need mgr->get_device() though, as in some places, dss and 
-drm try to get the display from the manager.
+[    0.000000] Linux version 3.6.0-rc3-00030-g491038d (bcousson@lnwes3201) (gcc version 4.5.2 (Sourcery G++ Lite 2011.03-41) ) #6 SMP Fri Aug 31 13:50:48 CEST 2012
+[    0.000000] CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI OMAP4 SDP board
+...
+[    0.667205] omap_i2c i2c.15: bus 0 rev2.4.0 at 400 kHz
+...
+[    0.768341] omap_i2c i2c.16: bus 1 rev2.4.0 at 400 kHz
+[    0.783905] omap_i2c i2c.17: bus 2 rev2.4.0 at 400 kHz
+[    0.799530] omap_i2c i2c.18: bus 3 rev2.4.0 at 400 kHz
 
-Archit
+
+> Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+
+Tested-by: Benoit Cousson <b-cousson@ti.com>
+and
+Acked-by: Benoit Cousson <b-cousson@ti.com>
+
+Regards,
+Benoit
+
+
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 5d19a49..136b4fe 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1064,9 +1064,6 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_unuse_clocks;
+>  	}
+>  
+> -	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
+> -		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+> -
+>  	adap = &dev->adapter;
+>  	i2c_set_adapdata(adap, dev);
+>  	adap->owner = THIS_MODULE;
+> @@ -1084,6 +1081,9 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_free_irq;
+>  	}
+>  
+> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
+> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+> +
+>  	of_i2c_register_devices(adap);
+>  
+>  	pm_runtime_put(dev->dev);
+> 
 
