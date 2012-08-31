@@ -1,59 +1,80 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Without MACH_ option Early printk (DEBUG_LL)
-Date: Fri, 31 Aug 2012 17:23:12 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
-References: <5040D03B.2050304@ti.com>
- <20120831171336.GA6978@n2100.arm.linux.org.uk>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 4/5] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 31 Aug 2012 17:54:18 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2329D@DBDE01.ent.ti.com>
+References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
+ <1346405361-29711-5-git-send-email-anilkumar@ti.com>
+ <20120831160402.GN1303@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41601 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754224Ab2HaRX0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 13:23:26 -0400
-In-Reply-To: <20120831171336.GA6978@n2100.arm.linux.org.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20120831160402.GN1303-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Aug 31, 2012 at 22:43:36, Russell King - ARM Linux wrote:
-> On Fri, Aug 31, 2012 at 08:24:51PM +0530, Vaibhav Hiremath wrote:
-> > Hi Russell & Tony,
+Hi Tony,
+
+Thanks for the review,
+
+On Fri, Aug 31, 2012 at 21:34:04, Tony Lindgren wrote:
+> * AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> [120831 02:30]:
+> > Adopt pinctrl support to leds-gpio driver, based on the device
+> > pointer (leds-gpio) pinctrl driver configure SoC pins to GPIO
+> > mode.
 > > 
-> > AM335X EVM (based on AM33XX device) only supports DT boot mode and
-> > doesn't have CONFIG_MACH_AM335XEVM option defined. Some time back during
-> > baseport submission we had aligned that, we won't create separate EVM
-> > options, killing the board file all-together.
+> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  drivers/leds/leds-gpio.c |   31 ++++++++++++++++++++++++-------
+> >  1 file changed, 24 insertions(+), 7 deletions(-)
 > > 
-> > Having said that, the early printk option (DEBUG_LL) is broken, the
-> > auto-generated file "./include/generated/mach-types.h" still refers to
-> > CONFIG_MACH_AM335XEVM option,
-> > 
-> > #ifdef CONFIG_MACH_AM335XEVM
-> > # ifdef machine_arch_type
-> > #  undef machine_arch_type
-> > #  define machine_arch_type     __machine_arch_type
-> > # else
-> > #  define machine_arch_type     MACH_TYPE_AM335XEVM
-> > # endif
-> > # define machine_is_am335xevm() (machine_arch_type == MACH_TYPE_AM335XEVM)
-> > #else
-> > # define machine_is_am335xevm() (0)
-> > #endif
+> > diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+> > index c032b21..d98dfb9 100644
+> > --- a/drivers/leds/leds-gpio.c
+> > +++ b/drivers/leds/leds-gpio.c
+> > @@ -20,6 +20,7 @@
+> >  #include <linux/slab.h>
+> >  #include <linux/workqueue.h>
+> >  #include <linux/module.h>
+> > +#include <linux/pinctrl/consumer.h>
+> >  
+> >  struct gpio_led_data {
+> >  	struct led_classdev cdev;
+> > @@ -236,14 +237,23 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
+> >  {
+> >  	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
+> >  	struct gpio_leds_priv *priv;
+> > -	int i, ret = 0;
+> > +	struct pinctrl *pinctrl;
+> > +	int i = 0;
+> > +	int ret = 0;
+> > +
+> > +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+> > +	if (IS_ERR(pinctrl)) {
+> > +		return PTR_ERR(pinctrl);
+> > +	}
 > 
-> machine types are entirely meaningless for DT based systems.
-> 
-> > Can you comment on this? Based on that I will submit the patch.
-> 
-> Pointless.  You can't use machine_is_am335xevm() when you're using DT.
+> I think you need to just print out a warning here as most systems don't
+> have the pinctrl implemented. And some people just do static pinmuxing
+> in the bootloader.
 > 
 
-They how do you recommend to resolve early prink issue (required during 
-decompression)?
+Yes, that is better approach I will fix this in my next version.
+I will separate out this patch from the series because these changes are
+leds-gpio driver specific which are different from DT data (pinctrl and
+d_can).
 
-Thanks,
-Vaibhav
-
+Thanks
+AnilKumar
