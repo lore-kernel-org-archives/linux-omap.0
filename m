@@ -1,7 +1,7 @@
 From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 1/5] arm/dts: AM33XX: Add basic pinctrl device tree data
-Date: Fri, 31 Aug 2012 14:59:17 +0530
-Message-ID: <1346405361-29711-2-git-send-email-anilkumar@ti.com>
+Subject: [PATCH v5 3/5] arm/dts: AM33XX: Add D_CAN device tree data
+Date: Fri, 31 Aug 2012 14:59:19 +0530
+Message-ID: <1346405361-29711-4-git-send-email-anilkumar@ti.com>
 References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,33 +22,42 @@ To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Adds basic pinctrl device tree data for AM33XX family of devices.
-This patch is based on the pinctrl-single driver.
+Add Bosch D_CAN controller device tree data to AM33XX dtsi
+file by adding d_can device nodes with all the necessary
+parameters.
 
 Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/boot/dts/am33xx.dtsi |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index be43511..bf5f713 100644
+index bf5f713..ab744d6 100644
 --- a/arch/arm/boot/dts/am33xx.dtsi
 +++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -40,6 +40,15 @@
+@@ -177,5 +177,23 @@
+ 			compatible = "ti,omap3-wdt";
+ 			ti,hwmods = "wd_timer2";
  		};
- 	};
- 
-+	am3358_pinmux: pinmux@44e10800 {
-+		compatible = "pinctrl-single";
-+		reg = <0x44e10800 0x0238>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		pinctrl-single,register-width = <32>;
-+		pinctrl-single,function-mask = <0x7f>;
-+	};
 +
- 	/*
- 	 * XXX: Use a flat representation of the AM33XX interconnect.
- 	 * The real AM33XX interconnect network is quite complex.Since
++		dcan0: d_can@481cc000 {
++			compatible = "bosch,d_can";
++			ti,hwmods = "d_can0";
++			reg = <0x481cc000 0x2000>;
++			interrupts = <52>;
++			interrupt-parent = <&intc>;
++			status = "disabled";
++		};
++
++		dcan1: d_can@481d0000 {
++			compatible = "bosch,d_can";
++			ti,hwmods = "d_can1";
++			reg = <0x481d0000 0x2000>;
++			interrupts = <55>;
++			interrupt-parent = <&intc>;
++			status = "disabled";
++		};
+ 	};
+ };
 -- 
 1.7.9.5
