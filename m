@@ -1,67 +1,44 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: RE: Without MACH_ option Early printk (DEBUG_LL)
-Date: Fri, 31 Aug 2012 14:23:32 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1208311422450.1784@xanadu.home>
-References: <5040D03B.2050304@ti.com>
- <20120831171336.GA6978@n2100.arm.linux.org.uk>
- <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ASoC: ams-delta: fix card initalization
+ failure
+Date: Fri, 31 Aug 2012 14:31:04 -0700
+Message-ID: <20120831213103.GC5495@opensource.wolfsonmicro.com>
+References: <1346102910-8610-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <3048168.EXxi4fR4e7@acer>
+ <20120828181338.GB8796@opensource.wolfsonmicro.com>
+ <1809544.cvZPIRmRr5@acer>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:14972 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754440Ab2HaSXj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 14:23:39 -0400
-Received: from xanadu.home ([24.201.196.149]) by VL-VM-MR005.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0M9M007XCTR84OA0@VL-VM-MR005.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Fri, 31 Aug 2012 14:23:32 -0400 (EDT)
-In-reply-to: <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1809544.cvZPIRmRr5@acer>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 31 Aug 2012, Hiremath, Vaibhav wrote:
+On Wed, Aug 29, 2012 at 07:04:48AM +0200, Janusz Krzysztofik wrote:
+> On Tue, 28 Aug 2012 11:13:39 Mark Brown wrote:
 
-> On Fri, Aug 31, 2012 at 22:43:36, Russell King - ARM Linux wrote:
-> > On Fri, Aug 31, 2012 at 08:24:51PM +0530, Vaibhav Hiremath wrote:
-> > > Hi Russell & Tony,
-> > > 
-> > > AM335X EVM (based on AM33XX device) only supports DT boot mode and
-> > > doesn't have CONFIG_MACH_AM335XEVM option defined. Some time back during
-> > > baseport submission we had aligned that, we won't create separate EVM
-> > > options, killing the board file all-together.
-> > > 
-> > > Having said that, the early printk option (DEBUG_LL) is broken, the
-> > > auto-generated file "./include/generated/mach-types.h" still refers to
-> > > CONFIG_MACH_AM335XEVM option,
-> > > 
-> > > #ifdef CONFIG_MACH_AM335XEVM
-> > > # ifdef machine_arch_type
-> > > #  undef machine_arch_type
-> > > #  define machine_arch_type     __machine_arch_type
-> > > # else
-> > > #  define machine_arch_type     MACH_TYPE_AM335XEVM
-> > > # endif
-> > > # define machine_is_am335xevm() (machine_arch_type == MACH_TYPE_AM335XEVM)
-> > > #else
-> > > # define machine_is_am335xevm() (0)
-> > > #endif
-> > 
-> > machine types are entirely meaningless for DT based systems.
-> > 
-> > > Can you comment on this? Based on that I will submit the patch.
-> > 
-> > Pointless.  You can't use machine_is_am335xevm() when you're using DT.
-> > 
-> 
-> They how do you recommend to resolve early prink issue (required during 
-> decompression)?
+> > The above looks like you already have a platform driver?  All I'm
+> > suggesting is changing the above to use platform rather than driver
+> > data.
 
-Right now the best you can do is to have empty stubs that display 
-nothing.
+> The ams-delta asoc driver doesn't use snd_soc_register_card() so far, 
+> but relays solely on soc_probe() doing this for it, which in turn 
+> expects to find a snc_soc_card structure in drvdata. How is it supposed 
+> to find that structure if I pass it over platform data instead? Am I 
+> missing something?
 
-
-Nicolas
+s/drvdata/platdata/ in the code.  If you can't do this then just
+referencing the data directly in the code would be better than this
+bodge, it'd be much less fragile.
