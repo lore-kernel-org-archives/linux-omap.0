@@ -1,91 +1,42 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 2/2] arm/dts: AM33XX: Add device tree OPP table
-Date: Fri, 31 Aug 2012 15:07:20 +0530
-Message-ID: <1346405840-31058-3-git-send-email-anilkumar@ti.com>
-References: <1346405840-31058-1-git-send-email-anilkumar@ti.com>
+From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/2] ARM: OMAP2: AM33XX: Add cpufreq support
+Date: Fri, 31 Aug 2012 15:07:18 +0530
+Message-ID: <1346405840-31058-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1346405840-31058-1-git-send-email-anilkumar@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: rjw-KKrjLPT3xs0@public.gmane.org
+Cc: linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, cpufreq-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add DT OPP table for AM33XX family of devices. This data is
-decoded by OF with of_init_opp_table() helper function.
+Add cpufreq support to AM33XX family of devices by adding OPP
+information, clock entry with cpu0 name and voltage supplies
+to cpu0.
 
-Also adds cpu0 supply name to the corresponding dts files.
-cpu0-supply name is used by cpufreq-cpu0 driver to get the
-regulator pointer for voltage modifications.
+These patches have been tested on AM335x-EVM, AM335x-Bone and
+these patches are based on cpufreq-cpu0 driver
+http://marc.info/?l=linux-arm-kernel&m=134457735413293&w=2
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
- arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
- arch/arm/boot/dts/am33xx.dtsi     |   15 +++++++++++++++
- 3 files changed, 27 insertions(+)
+AnilKumar Ch (2):
+  ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
+  arm/dts: AM33XX: Add device tree OPP table
 
-diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
-index ce486fc..2767b5f 100644
---- a/arch/arm/boot/dts/am335x-bone.dts
-+++ b/arch/arm/boot/dts/am335x-bone.dts
-@@ -13,6 +13,12 @@
- 	model = "TI AM335x BeagleBone";
- 	compatible = "ti,am335x-bone", "ti,am33xx";
- 
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&dcdc2_reg>;
-+		};
-+	};
-+
- 	memory {
- 		device_type = "memory";
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-index baa3276..54d972c 100644
---- a/arch/arm/boot/dts/am335x-evm.dts
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -13,6 +13,12 @@
- 	model = "TI AM335x EVM";
- 	compatible = "ti,am335x-evm", "ti,am33xx";
- 
-+	cpus {
-+		cpu@0 {
-+			cpu0-supply = <&vdd1_reg>;
-+		};
-+	};
-+
- 	memory {
- 		device_type = "memory";
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index ab744d6..2043b53 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -25,6 +25,21 @@
- 	cpus {
- 		cpu@0 {
- 			compatible = "arm,cortex-a8";
-+
-+			/*
-+			 * To consider voltage drop between PMIC and SoC,
-+			 * tolerance value is reduced to 2% from 4% and
-+			 * voltage value is increased as a precaution.
-+			 */
-+			operating-points = <
-+				/* kHz    uV */
-+				720000  1285000
-+				600000  1225000
-+				500000  1125000
-+				275000  1125000
-+			>;
-+			voltage-tolerance = <2>; /* 2 percentage */
-+			clock-latency = <300000>; /* From omap-cpufreq driver */
- 		};
- 	};
- 
+ arch/arm/boot/dts/am335x-bone.dts    |    6 ++++++
+ arch/arm/boot/dts/am335x-evm.dts     |    6 ++++++
+ arch/arm/boot/dts/am33xx.dtsi        |   15 +++++++++++++++
+ arch/arm/mach-omap2/clock33xx_data.c |    1 +
+ 4 files changed, 28 insertions(+)
+
 -- 
 1.7.9.5
-
