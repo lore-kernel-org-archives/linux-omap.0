@@ -1,44 +1,32 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ASoC: ams-delta: fix card initalization
- failure
-Date: Fri, 31 Aug 2012 14:31:04 -0700
-Message-ID: <20120831213103.GC5495@opensource.wolfsonmicro.com>
-References: <1346102910-8610-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <3048168.EXxi4fR4e7@acer>
- <20120828181338.GB8796@opensource.wolfsonmicro.com>
- <1809544.cvZPIRmRr5@acer>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 0/3] MFD/GPIO: Add twl6040 GPO driver
+Date: Sat, 1 Sep 2012 01:10:23 +0200
+Message-ID: <CACRpkdakhoM1-+muCy2F73dEy4Ta4DBsag49cNy16EDRQ5csUw@mail.gmail.com>
+References: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
+	<503F2F5B.6020304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1809544.cvZPIRmRr5@acer>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63689 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755091Ab2HaXKY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 19:10:24 -0400
+Received: by weyx8 with SMTP id x8so1921501wey.19
+        for <linux-omap@vger.kernel.org>; Fri, 31 Aug 2012 16:10:23 -0700 (PDT)
+In-Reply-To: <503F2F5B.6020304@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linus Walleij <linus.walleij@stericsson.com>
 
-On Wed, Aug 29, 2012 at 07:04:48AM +0200, Janusz Krzysztofik wrote:
-> On Tue, 28 Aug 2012 11:13:39 Mark Brown wrote:
+On Thu, Aug 30, 2012 at 11:16 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 
-> > The above looks like you already have a platform driver?  All I'm
-> > suggesting is changing the above to use platform rather than driver
-> > data.
+> Hi Samuel, Linus,
+(...)
+> Did you had time to look at this series? Do you want me to resend it?
 
-> The ams-delta asoc driver doesn't use snd_soc_register_card() so far, 
-> but relays solely on soc_probe() doing this for it, which in turn 
-> expects to find a snc_soc_card structure in drvdata. How is it supposed 
-> to find that structure if I pass it over platform data instead? Am I 
-> missing something?
+I have provided my ACK on the GPIO part assuming you're taking this
+series through the MFD tree. There is not more I can do...
 
-s/drvdata/platdata/ in the code.  If you can't do this then just
-referencing the data directly in the code would be better than this
-bodge, it'd be much less fragile.
+Yours,
+Linus Walleij
