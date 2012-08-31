@@ -1,47 +1,70 @@
-From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Subject: [PATCH] omap-i2c: fix incorrect log message when using a device tree
-Date: Fri, 31 Aug 2012 13:02:55 +0200
-Message-ID: <1346410975-29930-1-git-send-email-florian.vaussard@epfl.ch>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>, =?UTF-8?q?Philippe=20R=C3=A9tornaz?= <philippe.retornaz-p8DiymsW2f8@public.gmane.org>
+From: Ravi Babu <ravibabu@ti.com>
+Subject: [PATCH v9 11/13] usb: musb: dsps: get the PHY using phandle api
+Date: Fri, 31 Aug 2012 16:39:57 +0530
+Message-ID: <1346411399-23964-12-git-send-email-ravibabu@ti.com>
+References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49815 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751900Ab2HaLKL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Aug 2012 07:10:11 -0400
+In-Reply-To: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
 
-When booting using a device tree, the adapter number is dynamically
-assigned after the log message is sent.
-This patch modifies the log message to get a correct adapter id.
+From: Santhapuri, Damodar <damodar.santhapuri@ti.com>
 
-Applies on 3.6-rc3. Tested on OMAP3 (Gumstix Overo).
+AM33xx has two PHY of same type used by each musb controller so
+use phandle of phy nodes to get the phy pointer.
 
-Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/usb/am33xx-usb.txt         |    2 ++
+ drivers/usb/musb/musb_dsps.c                       |    5 ++++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5d19a49..136b4fe 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1064,9 +1064,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_unuse_clocks;
- 	}
+diff --git a/Documentation/devicetree/bindings/usb/am33xx-usb.txt b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+index ca8fa56..b0caac3 100644
+--- a/Documentation/devicetree/bindings/usb/am33xx-usb.txt
++++ b/Documentation/devicetree/bindings/usb/am33xx-usb.txt
+@@ -12,3 +12,5 @@ AM33XX MUSB GLUE
+    represents PERIPHERAL.
+  - power : Should be "250". This signifies the controller can supply upto
+    500mA when operating in host mode.
++ - usb0-phy : phandle for usb0 NOP PHY
++ - usb1-phy : phandle for usb1 NOP PHY
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index eb6bfec..992cd50 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -409,9 +409,11 @@ static int dsps_musb_init(struct musb *musb)
+ {
+ 	struct device *dev = musb->controller;
+ 	struct platform_device *pdev = to_platform_device(dev);
++	struct platform_device *parent_pdev = to_platform_device(dev->parent);
+ 	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	void __iomem *reg_base = musb->ctrl_base;
++	char name[10];
+ 	u32 rev, val;
+ 	int status;
  
--	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
--		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
--
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
-@@ -1084,6 +1081,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_free_irq;
- 	}
+@@ -419,7 +421,8 @@ static int dsps_musb_init(struct musb *musb)
+ 	musb->mregs += wrp->musb_core_offset;
  
-+	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
-+		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-+
- 	of_i2c_register_devices(adap);
+ 	/* Get the NOP PHY */
+-	musb->xceiv = usb_get_phy(USB_PHY_TYPE_USB2);
++	sprintf(name, "usb%d-phy", pdev->id);
++	musb->xceiv = devm_usb_get_phy_by_phandle(&parent_pdev->dev, name);
+ 	if (IS_ERR_OR_NULL(musb->xceiv))
+ 		return -ENODEV;
  
- 	pm_runtime_put(dev->dev);
 -- 
-1.7.5.4
+1.7.0.4
+
