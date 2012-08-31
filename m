@@ -1,90 +1,130 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH v4 2/3] ARM: omap: hwmod: get rid of all omap_clk_get_by_name
- usage
-Date: Fri, 31 Aug 2012 13:58:16 +0530
-Message-ID: <504075A0.7010708@ti.com>
-References: <1346230576-20004-1-git-send-email-rnayak@ti.com>   <1346230576-20004-3-git-send-email-rnayak@ti.com>   <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com>   <503F26A4.3050902@ti.com> <503F5517.4010100@ti.com>   <1346344933.2327.43.camel@deskari> <5040586D.2020406@ti.com>  <1346397309.18766.5.camel@lappyti> <504073CF.6010804@ti.com> <1346401643.32389.4.camel@deskari>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2/3: DSS HWMOD fixes
+Date: Fri, 31 Aug 2012 11:30:46 +0300
+Message-ID: <1346401846.32389.7.camel@deskari>
+References: <1336645264-909-1-git-send-email-tomi.valkeinen@ti.com>
+	 <alpine.DEB.2.00.1206271416420.27496@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1207040610310.6760@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-4GGGuF6ASeOJL6HT1HJF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42283 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168Ab2HaI37 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Aug 2012 04:29:59 -0400
-In-Reply-To: <1346401643.32389.4.camel@deskari>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48915 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751185Ab2HaIaw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Aug 2012 04:30:52 -0400
+Received: by lagy9 with SMTP id y9so2114022lag.19
+        for <linux-omap@vger.kernel.org>; Fri, 31 Aug 2012 01:30:49 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207040610310.6760@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Turquette, Mike" <mturquette@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, archit@ti.com
 
-On Friday 31 August 2012 01:57 PM, Tomi Valkeinen wrote:
-> On Fri, 2012-08-31 at 13:50 +0530, Archit Taneja wrote:
->> On Friday 31 August 2012 12:45 PM, Tomi Valkeinen wrote:
->>> On Fri, 2012-08-31 at 11:53 +0530, Archit Taneja wrote:
->>>
->>>> The only little problem was that during bootup, when hwmods are setup,
->>>> only the 'parent' hwmod was able to get reset properly, all the other
->>>> 'child' hwmods don't have modulemode bits tied to them, and hence
->>>> weren't able to reset. So we got some error prints.
->>>>
->>>> Once DSS driver kicks in, the driver ensures the parent is enabled for
->>>> any child to be enabled, so we don't face the issue again.
->>>>
->>>> So, if DSS driver is not built in, and if the bootloader left DSS in a
->>>> bad state, the DSS clocks might remain messed up all the time since
->>>> hwmod fwk wasn't able to reset them.
->>>>
->>>> I think this is why we didn't proceed with remove "dss_fck" as a slave
->>>> clock. If this issue is minor, we could go ahead and remove it.
->>>
->>> I wonder if we could handle this with a custom reset function. We
->>> already have a reset func for dss core. If I remember right, the main
->>> point for that is the fact that omap4 doesn't have a softreset for dss
->>> core, so we manually write the default values to registers.
->>>
->>> For omap2/3 this would be simple: skip the resets for all other dss
->>> submodules, and dss core's reset would enable all the clocks and set the
->>> softreset bit. This would reset all the submodules also.
->>>
->>> Omap4 is more tricky. I guess we'd need to enable all the clocks, clear
->>> manually dss core's registers, and then set softreset bits in all the
->>> submodules. So in this case dss core would need to have information
->>> about the other submodules.
->>
->> The is a good idea. I don't clearly understand your approach though. Are
->> you saying we have a custom reset function for only dss core? And reset
->> the submodules in it manually?
->
-> Yes.
->
->> An alternative approach would be to implement custom reset functions for
->> each submodule(or each hwmod), and in the beginning of every reset
->> function, add a hack to enable MODULEMODE bits(since we don't want hwmod
->> fwk to touch MODULEMODE for the DSS submodules), and then set the soft
->> reset bits.
->
-> I thought about that also. We'd need reset functions for all of them,
-> and for omap2/3 we'd just reset the submodules again as they have
-> already been reset with the dss core reset.
->
-> The dss submodule resets are a bit linked. For omap2/3 the connection is
-> obvious as dss core reset resets also the submodules, and for omap4 we
-> have this requirement for the modulemode. That's why I though it'd be
-> perhaps cleaner to handle the reset of the DSS block as a whole, in one
-> place.
->
->> Your approach would ensure that we get a clean reset of DSS, but it
->> would still give the annoying prints when each of the submodule tries to
->> reset itself.
->
-> The other submodules would not be reset by the hwmod framework at all,
-> so there wouldn't be prints. I think there's a flag for that.
 
-Oh, yeah. I didn't think of it that way, we could just 'not reset' the 
-DSS submodule hwmod using this flag.
+--=-4GGGuF6ASeOJL6HT1HJF
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-If we do that, then your approach sounds good.
+On Wed, 2012-07-04 at 06:11 -0600, Paul Walmsley wrote:
+> Hi Tomi
+>=20
+> On Wed, 27 Jun 2012, Paul Walmsley wrote:
+>=20
+> > On Thu, 10 May 2012, Tomi Valkeinen wrote:
+> >=20
+> > > These patches fix DSS hwmod data related to sysc flags. I haven't see=
+n any
+> > > problem produced by these missing bits, but by looking at the TRM it'=
+s clear
+> > > that they should be defined.
+> > >=20
+> > > However, applying these will cause additional warnings to show during=
+ boot:
+> > >=20
+> > > omap_hwmod: dss_dispc: softreset failed (waited 10000 usec)
+> > > omap_hwmod: dss_rfbi: softreset failed (waited 10000 usec)
+> > >=20
+> > > Most likely the softreset fails even now, but as there's no check to =
+verify it,
+> > > no warnings are visible.
+> > >=20
+> > > I think the reason for the failing softreset is the same problem as w=
+e have on
+> > > OMAP4: dss_core hwmod should be enabled before other dss hwmods can b=
+e enabled
+> > > (and reset).
+> >=20
+> > Thanks, queued for 3.6.
+> >=20
+> > Not sure what to do about the softreset issues at the moment, due to=
+=20
+> > competing priorities.  But for sure the data should match the hardware.
+>=20
+> I've dropped these for 3.6 since they cause a PM regression during a=20
+> system suspend test:
+>=20
+> [   39.721282] Powerdomain (dss_pwrdm) didn't enter target state 1
+>=20
+> Probably before we can pull these in, we need to figure out what's going=
+=20
+> on there.
 
-Archit
+Just tested with current mainline
+(155e36d40cf31c17f2b629fc2f2f5527e4cfc324) on omap3 overo, with DSS,
+USB, MMC disabled in the kernel config:
+
+# echo mem > /sys/power/state=20
+[   14.140472] PM: Syncing filesystems ... done.
+[   14.154205] Freezing user space processes ... (elapsed 0.02 seconds)
+done.
+[   14.184173] Freezing remaining freezable tasks ... (elapsed 0.02
+seconds) done.
+[   14.234283] PM: suspend of devices complete after 13.977 msecs
+[   14.244567] PM: late suspend of devices complete after 4.028 msecs
+[   14.257110] PM: noirq suspend of devices complete after 6.011 msecs
+[   14.263885] Disabling non-boot CPUs ...
+[   15.986541] Powerdomain (iva2_pwrdm) didn't enter target state 1
+[   15.992858] Powerdomain (dss_pwrdm) didn't enter target state 1
+[   15.999084] Powerdomain (per_pwrdm) didn't enter target state 1
+[   16.005310] Powerdomain (core_pwrdm) didn't enter target state 1
+[   16.011627] Powerdomain (usbhost_pwrdm) didn't enter target state 1
+[   16.018188] Could not enter target state in pm_suspend
+[   16.026580] PM: noirq resume of devices complete after 2.807 msecs
+[   16.037597] PM: early resume of devices complete after 2.655 msecs
+
+[   16.054870] PM: resume of devices complete after 10.620 msecs
+[   16.065643] Restarting tasks ... done.
+
+So things don't look correct even without my patches. Does the suspend
+work for you?
+
+ Tomi
+
+
+--=-4GGGuF6ASeOJL6HT1HJF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQQHY2AAoJEPo9qoy8lh71cg4P/jTzMvORCXo05Tn6JG7h9FrD
+QzrgcYyGliZLmmhTLUG4gq96/BmRuLbDgYRld/T9D0W8WzkBJ0hDqlVisXIkJ2rK
+nKlMt/u3UiLX4LUyguST7dSzU4v6rHTmQMhWFdATy8nIo0KjFUhI0KimeYfmP1KO
+eJXS7hS6XhFEikCs6CO5Zxz4LmK0YjUdqSqvayKUwzGSvDnLtDLGhNc841MCnpdl
+TdxofRM4MXCKcMOCBQxVyNDnIYof//pGmN+LwsIIar5usXf2zhmQQ8rmSw3sELBk
+b7IHpwHNk8rhSyhpFssSh1g49Jf5nRCaU/DBCrhArJepZ1rKHIH8tp1QdRUwJ1JG
+5B04vKBfmu86Jw7JfsfBU97pmlANlElfc1QCMASAovWfxmSyY5FLlk5Lo0Mpo1vQ
+aW0PPvxRkQTF/gKpeaHk6z6jMqeMNYiX5WbY6T9UWNVhMYYBPzDUiJdg6SD74whd
+LLnaCD0VDSO/XI+X1Em1O1qDXHrzeIIjc620bys8VHCHmbvPi9Ow/imGfcOm4AuD
+Vo84e9m69C8Lii4exwmtQgRn+/+xfDI6TyXvSAtMPycCZchEQvtqqBhP9H2+OaHT
+5zMq/RC2MLhv76taouGeKqwg/4oWsXo5n5w5mKHksBE3U+uNLdYEaf0He547yu/V
+A9XOFujCuPUo0PohYtf2
+=NbYj
+-----END PGP SIGNATURE-----
+
+--=-4GGGuF6ASeOJL6HT1HJF--
 
