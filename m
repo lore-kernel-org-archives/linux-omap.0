@@ -1,16 +1,11 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 4/5] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 31 Aug 2012 17:54:18 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2329D@DBDE01.ent.ti.com>
-References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
- <1346405361-29711-5-git-send-email-anilkumar@ti.com>
- <20120831160402.GN1303@atomide.com>
+From: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] ARM: OMAP2+: Makefile.boot: Add am335x evm and bone targets
+Date: Fri, 31 Aug 2012 23:24:34 +0530
+Message-ID: <1346435674-6207-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120831160402.GN1303-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -21,60 +16,27 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: "devicetree-discuss"
  <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+This adds am335x-evm and am335x-bone dtb targets to
+'make dtbs', just like other platforms.
 
-Thanks for the review,
+Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ arch/arm/mach-omap2/Makefile.boot |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-On Fri, Aug 31, 2012 at 21:34:04, Tony Lindgren wrote:
-> * AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> [120831 02:30]:
-> > Adopt pinctrl support to leds-gpio driver, based on the device
-> > pointer (leds-gpio) pinctrl driver configure SoC pins to GPIO
-> > mode.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  drivers/leds/leds-gpio.c |   31 ++++++++++++++++++++++++-------
-> >  1 file changed, 24 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-> > index c032b21..d98dfb9 100644
-> > --- a/drivers/leds/leds-gpio.c
-> > +++ b/drivers/leds/leds-gpio.c
-> > @@ -20,6 +20,7 @@
-> >  #include <linux/slab.h>
-> >  #include <linux/workqueue.h>
-> >  #include <linux/module.h>
-> > +#include <linux/pinctrl/consumer.h>
-> >  
-> >  struct gpio_led_data {
-> >  	struct led_classdev cdev;
-> > @@ -236,14 +237,23 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
-> >  {
-> >  	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
-> >  	struct gpio_leds_priv *priv;
-> > -	int i, ret = 0;
-> > +	struct pinctrl *pinctrl;
-> > +	int i = 0;
-> > +	int ret = 0;
-> > +
-> > +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-> > +	if (IS_ERR(pinctrl)) {
-> > +		return PTR_ERR(pinctrl);
-> > +	}
-> 
-> I think you need to just print out a warning here as most systems don't
-> have the pinctrl implemented. And some people just do static pinmuxing
-> in the bootloader.
-> 
-
-Yes, that is better approach I will fix this in my next version.
-I will separate out this patch from the series because these changes are
-leds-gpio driver specific which are different from DT data (pinctrl and
-d_can).
-
-Thanks
-AnilKumar
+diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+index 6cf1c2d..1136072 100644
+--- a/arch/arm/mach-omap2/Makefile.boot
++++ b/arch/arm/mach-omap2/Makefile.boot
+@@ -7,3 +7,4 @@ dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+ dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
++dtb-$(CONFIG_SOC_AM33XX)	+= am335x-evm.dtb am335x-bone.dtb
+-- 
+1.7.0.4
