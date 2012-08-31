@@ -1,93 +1,107 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v9 01/13] usb: musb: dsps: add phy control logic to glue
-Date: Fri, 31 Aug 2012 16:19:17 +0300
-Message-ID: <20120831131915.GA25341@arwen.pp.htv.fi>
-References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
- <1346411399-23964-2-git-send-email-ravibabu@ti.com>
- <20120831122342.GC24861@arwen.pp.htv.fi>
- <CAAe_U6LaCiEPB9ET26j2xjLtumKzJGu+CtW=fK_02d30Z-3BgQ@mail.gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 10/23] OMAPDSS: DPI: Pass omap_dss_output within the
+ driver
+Date: Fri, 31 Aug 2012 16:48:50 +0300
+Message-ID: <1346420930.7508.9.camel@lappyti>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>
+	 <1346326845-16583-1-git-send-email-archit@ti.com>
+	 <1346326845-16583-11-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6LaCiEPB9ET26j2xjLtumKzJGu+CtW=fK_02d30Z-3BgQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-eQrhPKOEMZzc7Uw/zUhq"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:44834 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753200Ab2HaNtA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Aug 2012 09:49:00 -0400
+Received: by lbbgj3 with SMTP id gj3so1226745lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 31 Aug 2012 06:48:57 -0700 (PDT)
+In-Reply-To: <1346326845-16583-11-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-eQrhPKOEMZzc7Uw/zUhq
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 31, 2012 at 06:51:04PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> Hi,
+On Thu, 2012-08-30 at 17:10 +0530, Archit Taneja wrote:
+> When a panel driver calls a DPI function, it passes the omap_dss_device
+> pointer, this pointer currently propagates within the DPI driver to confi=
+gure
+> the interface.
 >=20
-> On Fri, Aug 31, 2012 at 5:53 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> > Hi,
-> >
-> > On Fri, Aug 31, 2012 at 04:39:47PM +0530, Ravi Babu wrote:
-> >> From: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
-> >>
-> >> AM335x uses NOP transceiver driver and need to enable builtin PHY
-> >> by writing into usb_ctrl register available in system control
-> >> module register space. This is being added at musb glue driver
-> >> layer untill a separate system control module driver is available.
-> >>
-> >> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> >> Signed-off-by: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
-> >> Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
-> >
-> > Kishon, you were adding a real phy driver for OMAP's internal phy logic
-> > on one of your patches and I believe this will conflict with your
-> > changes, right ?
+> Extract the omap_dss_output pointer from omap_dss_device received from th=
+e panel
+> driver, pass the output pointer to DPI functions local to the driver to
+> configure the interface, these functions no longer need omap_dss_device s=
+ince
+> the driver now maintains a copy of output parameters.
 >=20
-> Indeed. My final patch of that series removes some of the functions
-> from omap_phy_internal.c (which was taken care in the phy driver).
-> >
-> > How does this look to you ? Is this at least correct ? I suppose the
-> > correct way would be to actually have the system control module driver
-> > which we have been waiting, right ?
+> Replace dssdev->manager references with out->manager references as only t=
+hese
+> will be valid later.
 >=20
-> Correct. I think once we have the system control module driver in
-> place, we'll have everything wrt control module register writes
-> implemented in correct way.
+> With the addition of outputs. There is a possibility that an omap_dss_dev=
+ice
+> isn't connected to an output, or a manager isn't connected to an output y=
+et.
+> Ensure that the DPI interface functions proceed only if the output is non=
+ NULL.
 
-So $SUBJECT will pretty much be thrown away once we have SCM driver, in
-that case it's best to wait a bit longer and apply this series once SCM
-driver is available and after your series too... you agree ?
+I agree with the direction of this and the similar patches for other
+outputs, but I think we should leave these out for now, at least most of
+the code here.
 
---=20
-balbi
+So ultimately we'll have the output drivers taking the omap_dss_output
+as an argument, and we don't need dssdev anymore. But we can't do that
+yet, and now that you mix both approaches I think the end result makes
+the code a bit more confusing, and it would be changed again later when
+dssdev can be removed.
 
---1yeeQ81UyVL57Vl7
+What I mean is that, for example, display_enable takes dssdev as an
+argument. Then you extract output from that, and pass output to some
+other functions. Then these functions again extract dssdev from the
+output.
+
+This feels like extra churn that doesn't really help anything, and will
+be changed later when the functions get output as an argument. So I
+propose to keep passing dssdev around until we've removed the
+dependencies to dssdev, and we (probably) get the output directly as an
+argument to the functions. Then we can clean them up properly at one go.
+
+The dssdev->manager parts still need to be changed to out->manager, of
+course, but I think those are minority of the changes here and the
+following patches.
+
+ Tomi
+
+
+--=-eQrhPKOEMZzc7Uw/zUhq
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQQLnTAAoJEIaOsuA1yqREaAIQAK5IhmpetLlOgoFnOWY57srv
-fjIlHc1SHt2k5oDS9CVa3AUy6SyMx8OOGwEBxkSoCU8/NFyCqwVo8opQ1yeXwI3X
-QAKI5c6Zkllnc9STp7xeUGe/dv/Bub7noNKVqjMwTFMHocAHDR10zyU2CIwJi5O7
-kcZkPqfVyMwE1PZVvd7FyIsXcoPygyv7q9oKt4qNrKw4KLLzVpi1JPVfCWRvOR9a
-dxqdHEv6sMz92syVEK8Ct4hWpruZXPHOJSNJO710munM1jdGlRrVjLJ1DLeVVYA4
-VJ/KipGomnRYcTZVpzp/RvoP4YDNvuUXkV/BAxY0OpWblIX2e1J6r6wCdGZ9EfRC
-ELGGPeyWxi94Kcfv1caiXzv1E27nFNAz6bNvuHPkHTjaqJHYEP902h4kJiQwDCCs
-AhBwfcHRIKPuGeoGc1I6O/ZPRM7pl8d6mcP26qOuqOwFMU/4F2nGuBE87m5BTRn2
-Rte8Lpha+QXurkwDx8OSM5s4UJXCmDjqK4UasRgEViMb77KEuCQ7eEuXHn9tT6so
-LSB0bf9Aslx+qV+pyvSHVuP/xmMPbg8jQVPXDZvbFDLzwfM2vlq//WNjGpObYnsr
-puZJRpDxs8aARGaqaOQmxn3IcniI4j54+Ne9bJZWRdq4jjPBRQvFr8OQuv0nCpXT
-aMHnwI7b0OlJ+4VJJk2E
-=8tfv
+iQIcBAABAgAGBQJQQMDCAAoJEPo9qoy8lh71UsUQAJy8W8jwqM3ekT/UH/fcXlmk
+6g/HAjfyqR/0/ufxlHUIJXBXHJD4//A1SBnEgwfmCiwEFsbMLpyxpsTsGnKnf7D+
+Ze7ebNwX42jlKv27YVK9IGtM1fmk3YvhrDUNIGAVPMdOJ3eU3NSMWFUeTrDOcbwb
+tuBssrbT+B/HqLw0wGCl07xLnppQtiVXaFh2fIIchrcYq/6Ab3uHU3a1Ud6o8zUW
+3kpHcz/aLA5khY5UHvyG/dq/84aNPm/OBqht5VLdzuApTjjnnA1qBJwEkEvSZLp5
+pdRiJ/p2Sm/myJE8cJpEe/4d5/Fm2sK76KowabwgMvTMIRsSpkCMlRccfIjDymkA
+3yEvM506V+Jh2YQ/1Gi5jXQ9FtaTojdYh0ur54eehskc2YzT1yNNXM709iqQeblQ
+PHGmDSxIohVcmsy3YlWtDNXot6U3ypYhXdiEBF+cLo1uDIDeug89nGnuoUb73cOl
+AIMz1G2J/EKbpWxQPR0SYII5hYkCdbFuEH9RW4vi7eRxxOqPa4PMQzJQNJA5mnr7
+pnrgfVCWRySoq9Faz7ChNDp1dwZ/t/McwPa7ALleY4OXZTv1CWXVfg3O5JJ8wWtU
+L0rHZ86TqV64+527JTpa/1BM6X8oNmN0pQ+MDY7KTYljBM0BpJ6A0AHdBinFkCRb
+RfSKxiOeeUI1Xf8xejjH
+=ju4W
 -----END PGP SIGNATURE-----
 
---1yeeQ81UyVL57Vl7--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-eQrhPKOEMZzc7Uw/zUhq--
+
