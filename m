@@ -1,108 +1,72 @@
 From: Ravi Babu <ravibabu@ti.com>
-Subject: [PATCH v9 00/13] usb: musb: adding multi instance support
-Date: Fri, 31 Aug 2012 16:39:46 +0530
-Message-ID: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v9 08/13] arm/dts: am33xx: Add dt data for usbss
+Date: Fri, 31 Aug 2012 16:39:54 +0530
+Message-ID: <1346411399-23964-9-git-send-email-ravibabu@ti.com>
+References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48267 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48263 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061Ab2HaLKL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751679Ab2HaLKL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 31 Aug 2012 07:10:11 -0400
+In-Reply-To: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
 
-This series of patches adds,
-a) Multi instances support in musb driver
-b) DT support for musb_dsps glue layer
-c) DT support for NOP transceiver
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-AM33xx and TI81xx has dual musb controller and has two usb PHY of same type.
-This patch series uses 'phandle' based API devm_usb_get_phy_by_phandle() to
-get the PHY of same type. This API support is being added by Kishon's patch
-discussed at [1]
+Added device tree data for usbss on am33xx. There are two musb controllers
+on am33xx platform so have port0_mode and port1_mode additional data.
 
-The series applies to felipe/master [1] branch
-	+ Vaibhav baseport patches on his tree at [4]
-	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
-	+ Kishon's patch on phandle at [2]
-	+ Damodar's recent patch at [3] 
-	+ Ajay's & Damodar's patches at [5] and [6] included in this series
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
+---
+ arch/arm/boot/dts/am33xx.dtsi |   11 +++++++++++
+ drivers/usb/musb/musb_dsps.c  |    6 +++---
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-1. http://git.kernel.org/?p=linux/kernel/git/balbi/usb.git;a=summary
-2. http://marc.info/?l=linux-usb&m=134070369306112&w=2
-3. http://marc.info/?l=linux-usb&m=134200284230689&w=2
-4. https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-staging
-5. http://marc.info/?l=linux-usb&m=134200285530701&w=2
-6. http://marc.info/?l=linux-usb&m=134208820028625&w=2
-
-Changes from v8:
-	- included Sergei's comment, removing underscore in device tree file
-	- removed duplicated signoff from patches
-Changes from v7:
-	- patches rebased on felipe/master branch & verified
-	- included additional two patches 0001 & 0002 as part of this series
-	  which are already submitted [5] & [6] 
-Changes from v6:
-	- Removed parent_pdev to get glue and used dev_get_getdrv() as per
-	  Felipe's comment
-	- use pr_debug() instead of pr_info() as per Felipe's comment
-Changes from v5:
-	- Removed musb->id as per Felipe's comment
-	- used nop_ida as per Felipe's comment
-Changes from v4:
-	- Fixed Felipe's comment for adding EXPORT_SYMBOL_GPL()
-	- Fixed Felipe's comment on using dev_set_mask()
-Changes from v3:
-	- Fixed Kishon's comment on removing "id" from phy struct and
-	  removing unneeded "#else" part.
-Changes from v2:
-	- Fixed Sergei's comment on not using address prefix in musb_dsps
-	  glue and nop transceiver dt dats.
-	- Also removed the "ti" string in compatible property for nop data.
-Changes from v1:
-	- Defined musb_ida to manage core ids based on Felipe's comment
-	  in [PATCH 01/11]
-
-Ajay Kumar Gupta (7):
-  usb: musb: dsps: enable phy control for am335x
-  usb: musb: kill global and static for multi instance
-  usb: musb: dsps: add dt support
-  arm/dts: am33xx: Add dt data for usbss
-  arm/dts: am33xx: add dt data for usb nop phy
-  usb: musb: dsps: remove explicit NOP device creation
-  arm/dts: am33xx: add phy phandle to usbss
-
-Ravi Babu (3):
-  usb: musb: add musb_ida for multi instance support
-  usb: musb: am335x: add support for dual instance
-  usb: otg: nop: add dt support
-
-Santhapuri, Damodar (3):
-  usb: musb: dsps: add phy control logic to glue
-  usb: otg: nop: add support for multiple tranceiver
-  usb: musb: dsps: get the PHY using phandle api
-
- .../devicetree/bindings/usb/am33xx-usb.txt         |   19 ++
- arch/arm/boot/dts/am33xx.dtsi                      |   21 ++
- arch/arm/mach-omap2/board-ti8168evm.c              |    1 -
- arch/arm/mach-omap2/omap_phy_internal.c            |   35 ---
- arch/arm/plat-omap/include/plat/usb.h              |    6 +-
- drivers/usb/musb/am35x.c                           |   44 ++-
- drivers/usb/musb/blackfin.c                        |   28 ++-
- drivers/usb/musb/da8xx.c                           |   36 ++-
- drivers/usb/musb/davinci.c                         |   38 ++-
- drivers/usb/musb/musb_core.c                       |   53 +++-
- drivers/usb/musb/musb_core.h                       |    6 +
- drivers/usb/musb/musb_debugfs.c                    |    8 +-
- drivers/usb/musb/musb_dsps.c                       |  281 +++++++++++++++-----
- drivers/usb/musb/omap2430.c                        |   26 ++-
- drivers/usb/musb/tusb6010.c                        |   30 ++-
- drivers/usb/musb/ux500.c                           |   33 ++-
- drivers/usb/otg/nop-usb-xceiv.c                    |   64 ++++-
- include/linux/usb/nop-usb-xceiv.h                  |    4 +-
- 18 files changed, 523 insertions(+), 210 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/usb/am33xx-usb.txt
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index 59509c4..bdde9c9 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -154,5 +154,16 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c3";
+ 		};
++
++		usb_otg_hs: usb_otg_hs {
++			compatible = "ti,musb-am33xx";
++			ti,hwmods = "usb_otg_hs";
++			multipoint = <1>;
++			num-eps = <16>;
++			ram-bits = <12>;
++			port0-mode = <3>;
++			port1-mode = <3>;
++			power = <250>;
++		};
+ 	};
+ };
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 2c104bf..32c8d68 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -581,9 +581,9 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 			goto err2;
+ 		}
+ 
+-		of_property_read_u32(np, "num_eps", (u32 *)&config->num_eps);
+-		of_property_read_u32(np, "ram_bits", (u32 *)&config->ram_bits);
+-		sprintf(res_name, "port%d_mode", id);
++		of_property_read_u32(np, "num-eps", (u32 *)&config->num_eps);
++		of_property_read_u32(np, "ram-bits", (u32 *)&config->ram_bits);
++		sprintf(res_name, "port%d-mode", id);
+ 		of_property_read_u32(np, res_name, (u32 *)&pdata->mode);
+ 		of_property_read_u32(np, "power", (u32 *)&pdata->power);
+ 		config->multipoint = of_property_read_bool(np, "multipoint");
+-- 
+1.7.0.4
 
