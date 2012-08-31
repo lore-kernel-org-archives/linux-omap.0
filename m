@@ -1,66 +1,67 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 1/2] i2c-omap: Fix incorrect adapter id when booting from a device tree
-Date: Fri, 31 Aug 2012 09:52:54 +0200
-Message-ID: <1346399575-7285-2-git-send-email-florian.vaussard@epfl.ch>
-References: <1346399575-7285-1-git-send-email-florian.vaussard@epfl.ch>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH v4 2/3] ARM: omap: hwmod: get rid of all omap_clk_get_by_name
+ usage
+Date: Fri, 31 Aug 2012 13:50:31 +0530
+Message-ID: <504073CF.6010804@ti.com>
+References: <1346230576-20004-1-git-send-email-rnayak@ti.com>  <1346230576-20004-3-git-send-email-rnayak@ti.com>  <CAJOA=zM2sFsrdohooKp1+zsV_AK6dKnoN37+Gs2oskBUK4J00w@mail.gmail.com>  <503F26A4.3050902@ti.com> <503F5517.4010100@ti.com>  <1346344933.2327.43.camel@deskari> <5040586D.2020406@ti.com> <1346397309.18766.5.camel@lappyti>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.218]:38390 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750892Ab2HaHx1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Aug 2012 03:53:27 -0400
-In-Reply-To: <1346399575-7285-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from devils.ext.ti.com ([198.47.26.153]:34404 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840Ab2HaIWN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Aug 2012 04:22:13 -0400
+In-Reply-To: <1346397309.18766.5.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>, Wolfram Sang <w.sang@pengutronix.de>, Benoit Cousson <b-cousson@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, =?UTF-8?q?Philippe=20R=C3=A9tornaz?= <philippe.retornaz@epfl.ch>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Turquette, Mike" <mturquette@ti.com>
 
-When booting from a device tree, the omap driver is using pdev->id,
-which is incorrect. The proposed patch uses aliases, as done in
-omap-serial.
+On Friday 31 August 2012 12:45 PM, Tomi Valkeinen wrote:
+> On Fri, 2012-08-31 at 11:53 +0530, Archit Taneja wrote:
+>
+>> The only little problem was that during bootup, when hwmods are setup,
+>> only the 'parent' hwmod was able to get reset properly, all the other
+>> 'child' hwmods don't have modulemode bits tied to them, and hence
+>> weren't able to reset. So we got some error prints.
+>>
+>> Once DSS driver kicks in, the driver ensures the parent is enabled for
+>> any child to be enabled, so we don't face the issue again.
+>>
+>> So, if DSS driver is not built in, and if the bootloader left DSS in a
+>> bad state, the DSS clocks might remain messed up all the time since
+>> hwmod fwk wasn't able to reset them.
+>>
+>> I think this is why we didn't proceed with remove "dss_fck" as a slave
+>> clock. If this issue is minor, we could go ahead and remove it.
+>
+> I wonder if we could handle this with a custom reset function. We
+> already have a reset func for dss core. If I remember right, the main
+> point for that is the fact that omap4 doesn't have a softreset for dss
+> core, so we manually write the default values to registers.
+>
+> For omap2/3 this would be simple: skip the resets for all other dss
+> submodules, and dss core's reset would enable all the clocks and set the
+> softreset bit. This would reset all the submodules also.
+>
+> Omap4 is more tricky. I guess we'd need to enable all the clocks, clear
+> manually dss core's registers, and then set softreset bits in all the
+> submodules. So in this case dss core would need to have information
+> about the other submodules.
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
----
- drivers/i2c/busses/i2c-omap.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+The is a good idea. I don't clearly understand your approach though. Are 
+you saying we have a custom reset function for only dss core? And reset 
+the submodules in it manually?
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5d19a49..9445d1f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1064,9 +1064,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_unuse_clocks;
- 	}
- 
--	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
--		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
--
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
-@@ -1076,8 +1073,22 @@ omap_i2c_probe(struct platform_device *pdev)
- 	adap->dev.parent = &pdev->dev;
- 	adap->dev.of_node = pdev->dev.of_node;
- 
-+	if (adap->dev.of_node)
-+		adap->nr = of_alias_get_id(adap->dev.of_node, "i2c");
-+	else
-+		adap->nr = pdev->id;
-+
-+	if (adap->nr < 0) {
-+		dev_err(&pdev->dev, "failed to get alias/pdev id, errno %d\n",
-+				adap->nr);
-+		r = -ENODEV;
-+		goto err_free_irq;
-+	}
-+
-+	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
-+		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-+
- 	/* i2c device drivers may be active on return from add_adapter() */
--	adap->nr = pdev->id;
- 	r = i2c_add_numbered_adapter(adap);
- 	if (r) {
- 		dev_err(dev->dev, "failure adding adapter\n");
--- 
-1.7.5.4
+An alternative approach would be to implement custom reset functions for 
+each submodule(or each hwmod), and in the beginning of every reset 
+function, add a hack to enable MODULEMODE bits(since we don't want hwmod 
+fwk to touch MODULEMODE for the DSS submodules), and then set the soft 
+reset bits.
 
+Your approach would ensure that we get a clean reset of DSS, but it 
+would still give the annoying prints when each of the submodule tries to 
+reset itself.
+
+Archit
