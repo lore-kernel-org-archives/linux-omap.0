@@ -1,56 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/9] ARM: OMAP2+: Make INTCPS_NR_IRQS local for
- mach-omap2/irq.c
-Date: Thu, 30 Aug 2012 17:52:26 -0700
-Message-ID: <20120831005226.28732.37930.stgit@muffinssi.local>
+Subject: [PATCH 4/9] ARM: OMAP2+: Remove unused nand_irq for GPMC
+Date: Thu, 30 Aug 2012 17:52:28 -0700
+Message-ID: <20120831005228.28732.90454.stgit@muffinssi.local>
 References: <20120831004828.28732.902.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17186 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058Ab2HaAw1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 20:52:27 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22346 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753058Ab2HaAwa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 20:52:30 -0400
 In-Reply-To: <20120831004828.28732.902.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Make INTCPS_NR_IRQS local for mach-omap2/irq.c
+This is no longer needed and assumes a fixed IRQ number
+that won't work with SPARSE_IRQ.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/irq.c              |    2 ++
- arch/arm/plat-omap/include/plat/irqs.h |    3 ---
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-flash.c            |    1 -
+ include/linux/platform_data/mtd-nand-omap2.h |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index bcd83db..ac59f96 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -49,6 +49,8 @@
- #define OMAP3_IRQ_BASE		OMAP2_L4_IO_ADDRESS(OMAP34XX_IC_BASE)
- #define INTCPS_SIR_IRQ_OFFSET	0x0040	/* omap2/3 active interrupt offset */
- #define ACTIVEIRQ_MASK		0x7f	/* omap2/3 active interrupt bits */
-+#define INTCPS_NR_MIR_REGS	3
-+#define INTCPS_NR_IRQS		96
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index a1ef5f0..c8d4382 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -140,7 +140,6 @@ __init board_nand_init(struct mtd_partition *nand_parts,
+ 	board_nand_data.devsize		= nand_type;
  
- /*
-  * OMAP2 has a number of different interrupt controllers, each interrupt
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 15f497c..fc3959c 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -440,9 +440,6 @@
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
--#define INTCPS_NR_MIR_REGS	3
--#define INTCPS_NR_IRQS		96
--
- #include <mach/hardware.h>
- 
- #ifdef CONFIG_FIQ
+ 	board_nand_data.ecc_opt = OMAP_ECC_HAMMING_CODE_DEFAULT;
+-	board_nand_data.gpmc_irq = OMAP_GPMC_IRQ_BASE + cs;
+ 	gpmc_nand_init(&board_nand_data);
+ }
+ #endif /* CONFIG_MTD_NAND_OMAP2 || CONFIG_MTD_NAND_OMAP2_MODULE */
+diff --git a/include/linux/platform_data/mtd-nand-omap2.h b/include/linux/platform_data/mtd-nand-omap2.h
+index 290cef5..1a68c1e 100644
+--- a/include/linux/platform_data/mtd-nand-omap2.h
++++ b/include/linux/platform_data/mtd-nand-omap2.h
+@@ -24,7 +24,6 @@ struct omap_nand_platform_data {
+ 	struct gpmc_timings	*gpmc_t;
+ 	int			nr_parts;
+ 	bool			dev_ready;
+-	int			gpmc_irq;
+ 	enum nand_io		xfer_type;
+ 	int			devsize;
+ 	enum omap_ecc           ecc_opt;
 
