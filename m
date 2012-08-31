@@ -1,412 +1,565 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/9] ARM: OMAP2+: Remove hardcoded IRQs and enable SPARSE_IRQ
-Date: Thu, 30 Aug 2012 17:52:39 -0700
-Message-ID: <20120831005239.28732.47333.stgit@muffinssi.local>
+Subject: [PATCH 6/9] ARM: OMAP: Move gpio.h to include/linux/platform_data
+Date: Thu, 30 Aug 2012 17:52:34 -0700
+Message-ID: <20120831005234.28732.10624.stgit@muffinssi.local>
 References: <20120831004828.28732.902.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22517 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22472 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753568Ab2HaAwl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 20:52:41 -0400
+	with ESMTP id S1753058Ab2HaAwi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Aug 2012 20:52:38 -0400
 In-Reply-To: <20120831004828.28732.902.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org
 
-Remove hardcoded IRQs in irqs.h and related files as these
-are no longer needed.
+This way we can remove includes of plat/gpio.h which won't work
+with the single zImage support.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Note that we also remove the cpu_class_is_omap2() check
+in gpio-omap.c as the drivers should not call it as we need to
+make it local to arch/arm/mach-omap2 for single zImage support.
+
+While at it, arrange the related includes in the standard way.
+
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-mtd@lists.infradead.org
+Cc: alsa-devel@alsa-project.org
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/include/mach/irqs.h     |    2 
- arch/arm/plat-omap/Kconfig                  |    1 
- arch/arm/plat-omap/include/plat/irqs-44xx.h |  144 ---------------------
- arch/arm/plat-omap/include/plat/irqs.h      |  183 ---------------------------
- 4 files changed, 2 insertions(+), 328 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/irqs-44xx.h
+ arch/arm/mach-omap1/board-ams-delta.c              |    3 ++-
+ arch/arm/mach-omap1/board-osk.c                    |    1 +
+ arch/arm/mach-omap1/gpio15xx.c                     |    1 +
+ arch/arm/mach-omap1/gpio16xx.c                     |    1 +
+ arch/arm/mach-omap1/gpio7xx.c                      |    1 +
+ arch/arm/mach-omap1/include/mach/gpio.h            |    2 --
+ arch/arm/mach-omap1/leds-h2p2-debug.c              |    4 +++-
+ arch/arm/mach-omap1/leds.c                         |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c              |    9 ++++++---
+ arch/arm/mach-omap2/board-cm-t35.c                 |   12 +++++++-----
+ arch/arm/mach-omap2/board-zoom-display.c           |    6 +++++-
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |    1 +
+ arch/arm/mach-omap2/gpio.c                         |    1 +
+ arch/arm/mach-omap2/hsmmc.c                        |    5 ++++-
+ arch/arm/mach-omap2/include/mach/gpio.h            |    2 --
+ arch/arm/mach-omap2/msdi.c                         |    1 +
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 -
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    6 +++---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    6 +++---
+ arch/arm/mach-omap2/pm24xx.c                       |    1 +
+ arch/arm/mach-omap2/pm34xx.c                       |    2 ++
+ drivers/gpio/gpio-omap.c                           |   15 ++++++++-------
+ drivers/mtd/nand/ams-delta.c                       |    8 ++++++--
+ include/linux/platform_data/gpio-omap.h            |   15 ++-------------
+ sound/soc/omap/sdp3430.c                           |    1 +
+ 27 files changed, 65 insertions(+), 49 deletions(-)
+ rename arch/arm/plat-omap/include/plat/gpio.h => include/linux/platform_data/gpio-omap.h (94%)
 
-diff --git a/arch/arm/mach-omap2/include/mach/irqs.h b/arch/arm/mach-omap2/include/mach/irqs.h
-index 44dab77..ba5282c 100644
---- a/arch/arm/mach-omap2/include/mach/irqs.h
-+++ b/arch/arm/mach-omap2/include/mach/irqs.h
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 147d665..4b5578b 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -26,6 +26,8 @@
+ #include <linux/export.h>
+ #include <linux/omapfb.h>
+ #include <linux/io.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/keypad-omap.h>
+ 
+ #include <media/soc_camera.h>
+ 
+@@ -35,7 +37,6 @@
+ #include <asm/mach/map.h>
+ 
+ #include <plat/board-ams-delta.h>
+-#include <linux/platform_data/keypad-omap.h>
+ #include <plat/mux.h>
+ 
+ #include <mach/hardware.h>
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 9413fd3..c780a1b 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -39,6 +39,7 @@
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/physmap.h>
+ #include <linux/i2c/tps65010.h>
++#include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/omap1_bl.h>
+ 
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index ebef15e..98e6f39 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
+ #define OMAP1510_GPIO_BASE		0xFFFCE000
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 2a48cd2..33f4192 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #define OMAP1610_GPIO1_BASE		0xfffbe400
+ #define OMAP1610_GPIO2_BASE		0xfffbec00
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+index acf12b7..958ce9a 100644
+--- a/arch/arm/mach-omap1/gpio7xx.c
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #define OMAP7XX_GPIO1_BASE		0xfffbc000
+ #define OMAP7XX_GPIO2_BASE		0xfffbc800
+diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-omap1/include/mach/gpio.h
+index e737706..ebf86c0 100644
+--- a/arch/arm/mach-omap1/include/mach/gpio.h
++++ b/arch/arm/mach-omap1/include/mach/gpio.h
 @@ -1,5 +1,3 @@
  /*
-  * arch/arm/mach-omap2/include/mach/irqs.h
+  * arch/arm/mach-omap1/include/mach/gpio.h
   */
 -
--#include <plat/irqs.h>
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index dd36eba..d15a4a6 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -25,6 +25,7 @@ config ARCH_OMAP2PLUS
- 	bool "TI OMAP2/3/4"
- 	select CLKDEV_LOOKUP
- 	select GENERIC_IRQ_CHIP
-+	select SPARSE_IRQ
- 	select OMAP_DM_TIMER
- 	select USE_OF
- 	select PROC_DEVICETREE if PROC_FS
-diff --git a/arch/arm/plat-omap/include/plat/irqs-44xx.h b/arch/arm/plat-omap/include/plat/irqs-44xx.h
-deleted file mode 100644
-index 518322c..0000000
---- a/arch/arm/plat-omap/include/plat/irqs-44xx.h
-+++ /dev/null
-@@ -1,144 +0,0 @@
+-#include <plat/gpio.h>
+diff --git a/arch/arm/mach-omap1/leds-h2p2-debug.c b/arch/arm/mach-omap1/leds-h2p2-debug.c
+index f6b14a1..3ea12c7 100644
+--- a/arch/arm/mach-omap1/leds-h2p2-debug.c
++++ b/arch/arm/mach-omap1/leds-h2p2-debug.c
+@@ -14,13 +14,15 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/sched.h>
+ #include <linux/io.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+-#include <mach/hardware.h>
+ #include <asm/leds.h>
+ #include <asm/mach-types.h>
+ 
+ #include <plat/fpga.h>
+ 
++#include <mach/hardware.h>
++
+ #include "leds.h"
+ 
+ 
+diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
+index ae6dd93..7b1a383 100644
+--- a/arch/arm/mach-omap1/leds.c
++++ b/arch/arm/mach-omap1/leds.c
+@@ -6,6 +6,7 @@
+ #include <linux/gpio.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <asm/leds.h>
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 00abda1..c6d63d7 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -25,19 +25,22 @@
+ #include <linux/can/platform/ti_hecc.h>
+ #include <linux/davinci_emac.h>
+ #include <linux/mmc/host.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+-#include <mach/hardware.h>
+-#include <mach/am35xx.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include "common.h"
+ #include <plat/usb.h>
++
++#include <mach/hardware.h>
++#include <mach/am35xx.h>
++
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+ #include <video/omap-panel-tfp410.h>
+ 
++#include "common.h"
+ #include "am35xx-emac.h"
+ #include "mux.h"
+ #include "control.h"
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index ad83654..c2b2371 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -23,6 +23,9 @@
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/mtd-nand-omap2.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <linux/i2c/at24.h>
+ #include <linux/i2c/twl.h>
+@@ -37,17 +40,16 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+-#include "common.h"
+-#include <linux/platform_data/mtd-nand-omap2.h>
+ #include <plat/gpmc.h>
+ #include <plat/usb.h>
++
++#include <mach/hardware.h>
++
+ #include <video/omapdss.h>
+ #include <video/omap-panel-generic-dpi.h>
+ #include <video/omap-panel-tfp410.h>
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+-
+-#include <mach/hardware.h>
+ 
++#include "common.h"
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
+diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
+index 660a2932..0e48a51 100644
+--- a/arch/arm/mach-omap2/board-zoom-display.c
++++ b/arch/arm/mach-omap2/board-zoom-display.c
+@@ -15,9 +15,13 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/spi/spi.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+-#include <video/omapdss.h>
++
++#include <plat/cpu.h>
++
+ #include <mach/board-zoom.h>
+ 
++#include <video/omapdss.h>
++
+ #define LCD_PANEL_RESET_GPIO_PROD	96
+ #define LCD_PANEL_RESET_GPIO_PILOT	55
+ #define LCD_PANEL_QVGA_GPIO		56
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 00f73b7..ae5d36b 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -19,6 +19,7 @@
+ #include <linux/regulator/fixed.h>
+ #include <linux/wl12xx.h>
+ #include <linux/mmc/host.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 9ad7d48..7b52bdf 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -21,6 +21,7 @@
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/of.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index a9675d8..4b0e166 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -14,12 +14,15 @@
+ #include <linux/string.h>
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+-#include <mach/hardware.h>
++#include <linux/platform_data/gpio-omap.h>
++
+ #include <plat/mmc.h>
+ #include <plat/omap-pm.h>
+ #include <plat/mux.h>
+ #include <plat/omap_device.h>
+ 
++#include <mach/hardware.h>
++
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "control.h"
+diff --git a/arch/arm/mach-omap2/include/mach/gpio.h b/arch/arm/mach-omap2/include/mach/gpio.h
+index be4d290..5621cc5 100644
+--- a/arch/arm/mach-omap2/include/mach/gpio.h
++++ b/arch/arm/mach-omap2/include/mach/gpio.h
+@@ -1,5 +1,3 @@
+ /*
+  * arch/arm/mach-omap2/include/mach/gpio.h
+  */
+-
+-#include <plat/gpio.h>
+diff --git a/arch/arm/mach-omap2/msdi.c b/arch/arm/mach-omap2/msdi.c
+index fb5bc6c..9e57b4a 100644
+--- a/arch/arm/mach-omap2/msdi.c
++++ b/arch/arm/mach-omap2/msdi.c
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/err.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 558c300..b305d7f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -18,7 +18,6 @@
+ #include <plat/dma.h>
+ #include <plat/serial.h>
+ #include <plat/i2c.h>
+-#include <plat/gpio.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <plat/dmtimer.h>
+ #include <plat/l3_2xxx.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index d662766..79ac236 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -12,15 +12,15 @@
+  * XXX handle crossbar/shared link difference for L3?
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
++#include <linux/platform_data/dsp-mcbsp.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
++
+ #include <plat/omap_hwmod.h>
+ #include <mach/irqs.h>
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
+ #include <plat/serial.h>
+ #include <plat/i2c.h>
+-#include <plat/gpio.h>
+-#include <linux/platform_data/dsp-mcbsp.h>
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <plat/dmtimer.h>
+ #include <plat/mmc.h>
+ #include <plat/l3_2xxx.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index 161ae0a..44e4764 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -10,9 +10,9 @@
+  */
+ #include <plat/omap_hwmod.h>
+ #include <plat/serial.h>
+-#include <plat/gpio.h>
+ #include <plat/dma.h>
+ #include <plat/dmtimer.h>
++#include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <mach/irqs.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 656bb7f..15f617e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -15,6 +15,9 @@
+  * XXX these should be marked initdata for multi-OMAP kernels
+  */
+ #include <linux/power/smartreflex.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/dsp-mcbsp.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <mach/irqs.h>
+@@ -24,10 +27,7 @@
+ #include <plat/l3_3xxx.h>
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
+-#include <plat/gpio.h>
+ #include <plat/mmc.h>
+-#include <linux/platform_data/dsp-mcbsp.h>
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <plat/dmtimer.h>
+ 
+ #include "omap_hwmod_common_data.h"
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 3a06e7d..c9edaf2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -19,15 +19,15 @@
+  */
+ 
+ #include <linux/io.h>
++#include <linux/platform_data/gpio-omap.h>
++#include <linux/platform_data/spi-omap2-mcspi.h>
++#include <linux/platform_data/dsp-mcbsp.h>
+ #include <linux/power/smartreflex.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/cpu.h>
+ #include <plat/i2c.h>
+-#include <plat/gpio.h>
+ #include <plat/dma.h>
+-#include <linux/platform_data/spi-omap2-mcspi.h>
+-#include <linux/platform_data/dsp-mcbsp.h>
+ #include <plat/mmc.h>
+ #include <plat/dmtimer.h>
+ #include <plat/common.h>
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index de1caf1..2708a8b 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -29,6 +29,7 @@
+ #include <linux/irq.h>
+ #include <linux/time.h>
+ #include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+ #include <asm/mach/time.h>
+ #include <asm/mach/irq.h>
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e4fc88c..2a08978 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -28,6 +28,8 @@
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
++#include <linux/platform_data/gpio-omap.h>
++
+ #include <trace/events/power.h>
+ 
+ #include <asm/suspend.h>
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index e6efd77..64fbce3 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -25,11 +25,9 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/irqdomain.h>
++#include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ 
+-#include <mach/hardware.h>
+-#include <asm/irq.h>
+-#include <mach/irqs.h>
+-#include <asm/gpio.h>
+ #include <asm/mach/irq.h>
+ 
+ #define OFF_MODE	1
+@@ -385,13 +383,16 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
+ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ {
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+-	unsigned gpio;
++	unsigned gpio = 0;
+ 	int retval;
+ 	unsigned long flags;
+ 
+-	if (!cpu_class_is_omap2() && d->irq > IH_MPUIO_BASE)
++#ifdef CONFIG_ARCH_OMAP1
++	if (d->irq > IH_MPUIO_BASE)
+ 		gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
+-	else
++#endif
++
++	if (!gpio)
+ 		gpio = irq_to_gpio(bank, d->irq);
+ 
+ 	if (type & ~IRQ_TYPE_SENSE_MASK)
+diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
+index 861ca8f..78a524b 100644
+--- a/drivers/mtd/nand/ams-delta.c
++++ b/drivers/mtd/nand/ams-delta.c
+@@ -23,12 +23,16 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
++#include <linux/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
++
+ #include <asm/io.h>
+-#include <mach/hardware.h>
+ #include <asm/sizes.h>
+-#include <linux/gpio.h>
++
+ #include <plat/board-ams-delta.h>
+ 
++#include <mach/hardware.h>
++
+ /*
+  * MTD structure for E3 (Delta)
+  */
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/include/linux/platform_data/gpio-omap.h
+similarity index 94%
+rename from arch/arm/plat-omap/include/plat/gpio.h
+rename to include/linux/platform_data/gpio-omap.h
+index 50fb7cc..e8741c2 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -1,6 +1,4 @@
+ /*
+- * arch/arm/plat-omap/include/mach/gpio.h
+- *
+  * OMAP GPIO handling defines and functions
+  *
+  * Copyright (C) 2003-2005 Nokia Corporation
+@@ -155,6 +153,8 @@
+ #define OMAP4_GPIO_CLEARDATAOUT		0x0190
+ #define OMAP4_GPIO_SETDATAOUT		0x0194
+ 
++#define OMAP_MAX_GPIO_LINES		192
++
+ #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
+ 
+@@ -213,16 +213,5 @@ extern void omap2_gpio_prepare_for_idle(int off_mode);
+ extern void omap2_gpio_resume_after_idle(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+-/*-------------------------------------------------------------------------*/
+-
 -/*
-- * OMAP4 Interrupt lines definitions
+- * Wrappers for "new style" GPIO calls, using the new infrastructure
+- * which lets us plug in FPGA, I2C, and other implementations.
 - *
-- * Copyright (C) 2009-2010 Texas Instruments, Inc.
-- *
-- * Santosh Shilimkar (santosh.shilimkar@ti.com)
-- * Benoit Cousson (b-cousson@ti.com)
-- *
-- * This file is automatically generated from the OMAP hardware databases.
-- * We respectfully ask that any modifications to this file be coordinated
-- * with the public linux-omap@vger.kernel.org mailing list and the
-- * authors above to ensure that the autogeneration scripts are kept
-- * up-to-date with the file contents.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
+- * The original OMAP-specific calls should eventually be removed.
 - */
 -
--#ifndef __ARCH_ARM_MACH_OMAP2_OMAP44XX_IRQS_H
--#define __ARCH_ARM_MACH_OMAP2_OMAP44XX_IRQS_H
--
--/* OMAP44XX IRQs numbers definitions */
--#define OMAP44XX_IRQ_LOCALTIMER			29
--#define OMAP44XX_IRQ_LOCALWDT			30
--
--#define OMAP44XX_IRQ_GIC_START			32
--
--#define OMAP44XX_IRQ_PL310			(0 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CTI0			(1 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CTI1			(2 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_ELM			(4 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SYS_1N			(7 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SECURITY_EVENTS		(8 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_L3_DBG			(9 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_L3_APP			(10 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_PRCM			(11 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SDMA_0			(12 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SDMA_1			(13 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SDMA_2			(14 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SDMA_3			(15 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCBSP4			(16 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCBSP1			(17 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SR_MCU			(18 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SR_CORE			(19 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPMC			(20 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GFX			(21 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCBSP2			(22 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCBSP3			(23 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_ISS_5			(24 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DSS_DISPC			(25 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MAIL_U0			(26 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_C2C_SSCM_0			(27 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_TESLA_MMU			(28 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO1			(29 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO2			(30 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO3			(31 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO4			(32 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO5			(33 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPIO6			(34 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_USIM			(35 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_WDT3			(36 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT1			(37 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT2			(38 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT3			(39 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT4			(40 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT5			(41 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT6			(42 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT7			(43 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT8			(44 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT9			(45 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT10			(46 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT11			(47 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SPI4			(48 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SHA1_S			(49 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_FPKA_SINTREQUEST_S		(50 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SHA1_P			(51 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_RNG			(52 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DSS_DSI1			(53 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_I2C1			(56 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_I2C2			(57 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HDQ			(58 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MMC5			(59 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_I2C3			(61 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_I2C4			(62 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_AES2_S			(63 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_AES2_P			(64 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SPI1			(65 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SPI2			(66 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HSI_P1			(67 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HSI_P2			(68 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_FDIF_3			(69 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_UART4			(70 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HSI_DMA			(71 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_UART1			(72 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_UART2			(73 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_UART3			(74 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_PBIAS			(75 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_OHCI			(76 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_EHCI			(77 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_TLL			(78 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_AES1_S			(79 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_WDT2			(80 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DES_S			(81 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DES_P			(82 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MMC1			(83 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DSS_DSI2			(84 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_AES1_P			(85 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MMC2			(86 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MPU_ICR			(87 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_C2C_SSCM_1			(88 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_FSUSB			(89 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_FSUSB_SMI			(90 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SPI3			(91 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HS_USB_MC_N		(92 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_HS_USB_DMA_N		(93 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MMC3			(94 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_GPT12			(95 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MMC4			(96 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SLIMBUS1			(97 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SLIMBUS2			(98 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_ABE			(99 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DUCATI_MMU			(100 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DSS_HDMI			(101 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SR_IVA			(102 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_IVA_HD_POSYNCITRPEND_1	(103 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_IVA_HD_POSYNCITRPEND_0	(104 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_IVA_HD_POMBINTRPEND_0	(107 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCASP1_AR			(108 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCASP1_AX			(109 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_EMIF4_1			(110 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_EMIF4_2			(111 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_MCPDM			(112 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DMM			(113 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_DMIC			(114 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CDMA_0			(115 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CDMA_1			(116 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CDMA_2			(117 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_CDMA_3			(118 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_SYS_2N			(119 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_KBD_CTL			(120 + OMAP44XX_IRQ_GIC_START)
--#define OMAP44XX_IRQ_UNIPRO1			(124 + OMAP44XX_IRQ_GIC_START)
--
--#endif
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index fc3959c..729992d 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -28,9 +28,6 @@
- #ifndef __ASM_ARCH_OMAP15XX_IRQS_H
- #define __ASM_ARCH_OMAP15XX_IRQS_H
+-#include <linux/errno.h>
+-#include <asm-generic/gpio.h>
  
--/* All OMAP4 specific defines are moved to irqs-44xx.h */
--#include "irqs-44xx.h"
--
- /*
-  * IRQ numbers for interrupt handler 1
-  *
-@@ -242,125 +239,6 @@
- #define INT_7XX_DMA_CH15	(62 + IH2_BASE)
- #define INT_7XX_NAND		(63 + IH2_BASE)
- 
--#define INT_24XX_SYS_NIRQ	7
--#define INT_24XX_SDMA_IRQ0	12
--#define INT_24XX_SDMA_IRQ1	13
--#define INT_24XX_SDMA_IRQ2	14
--#define INT_24XX_SDMA_IRQ3	15
--#define INT_24XX_CAM_IRQ	24
--#define INT_24XX_DSS_IRQ	25
--#define INT_24XX_MAIL_U0_MPU	26
--#define INT_24XX_DSP_UMA	27
--#define INT_24XX_DSP_MMU	28
--#define INT_24XX_GPIO_BANK1	29
--#define INT_24XX_GPIO_BANK2	30
--#define INT_24XX_GPIO_BANK3	31
--#define INT_24XX_GPIO_BANK4	32
--#define INT_24XX_GPIO_BANK5	33
--#define INT_24XX_MAIL_U3_MPU	34
--#define INT_24XX_GPTIMER1	37
--#define INT_24XX_GPTIMER2	38
--#define INT_24XX_GPTIMER3	39
--#define INT_24XX_GPTIMER4	40
--#define INT_24XX_GPTIMER5	41
--#define INT_24XX_GPTIMER6	42
--#define INT_24XX_GPTIMER7	43
--#define INT_24XX_GPTIMER8	44
--#define INT_24XX_GPTIMER9	45
--#define INT_24XX_GPTIMER10	46
--#define INT_24XX_GPTIMER11	47
--#define INT_24XX_GPTIMER12	48
--#define INT_24XX_SHA1MD5	51
--#define INT_24XX_MCBSP4_IRQ_TX	54
--#define INT_24XX_MCBSP4_IRQ_RX	55
--#define INT_24XX_I2C1_IRQ	56
--#define INT_24XX_I2C2_IRQ	57
--#define INT_24XX_HDQ_IRQ	58
--#define INT_24XX_MCBSP1_IRQ_TX	59
--#define INT_24XX_MCBSP1_IRQ_RX	60
--#define INT_24XX_MCBSP2_IRQ_TX	62
--#define INT_24XX_MCBSP2_IRQ_RX	63
--#define INT_24XX_SPI1_IRQ	65
--#define INT_24XX_SPI2_IRQ	66
--#define INT_24XX_UART1_IRQ	72
--#define INT_24XX_UART2_IRQ	73
--#define INT_24XX_UART3_IRQ	74
--#define INT_24XX_USB_IRQ_GEN	75
--#define INT_24XX_USB_IRQ_NISO	76
--#define INT_24XX_USB_IRQ_ISO	77
--#define INT_24XX_USB_IRQ_HGEN	78
--#define INT_24XX_USB_IRQ_HSOF	79
--#define INT_24XX_USB_IRQ_OTG	80
--#define INT_24XX_MCBSP5_IRQ_TX	81
--#define INT_24XX_MCBSP5_IRQ_RX	82
--#define INT_24XX_MMC_IRQ	83
--#define INT_24XX_MMC2_IRQ	86
--#define INT_24XX_MCBSP3_IRQ_TX	89
--#define INT_24XX_MCBSP3_IRQ_RX	90
--#define INT_24XX_SPI3_IRQ	91
--
--#define INT_243X_MCBSP2_IRQ	16
--#define INT_243X_MCBSP3_IRQ	17
--#define INT_243X_MCBSP4_IRQ	18
--#define INT_243X_MCBSP5_IRQ	19
--#define INT_243X_MCBSP1_IRQ	64
--#define INT_243X_HS_USB_MC	92
--#define INT_243X_HS_USB_DMA	93
--#define INT_243X_CARKIT_IRQ	94
--
--#define INT_34XX_BENCH_MPU_EMUL	3
--#define INT_34XX_ST_MCBSP2_IRQ	4
--#define INT_34XX_ST_MCBSP3_IRQ	5
--#define INT_34XX_SSM_ABORT_IRQ	6
--#define INT_34XX_SYS_NIRQ	7
--#define INT_34XX_D2D_FW_IRQ	8
--#define INT_34XX_L3_DBG_IRQ     9
--#define INT_34XX_L3_APP_IRQ     10
--#define INT_34XX_PRCM_MPU_IRQ	11
--#define INT_34XX_MCBSP1_IRQ	16
--#define INT_34XX_MCBSP2_IRQ	17
--#define INT_34XX_GPMC_IRQ	20
--#define INT_34XX_MCBSP3_IRQ	22
--#define INT_34XX_MCBSP4_IRQ	23
--#define INT_34XX_CAM_IRQ	24
--#define INT_34XX_MCBSP5_IRQ	27
--#define INT_34XX_GPIO_BANK1	29
--#define INT_34XX_GPIO_BANK2	30
--#define INT_34XX_GPIO_BANK3	31
--#define INT_34XX_GPIO_BANK4	32
--#define INT_34XX_GPIO_BANK5	33
--#define INT_34XX_GPIO_BANK6	34
--#define INT_34XX_USIM_IRQ	35
--#define INT_34XX_WDT3_IRQ	36
--#define INT_34XX_SPI4_IRQ	48
--#define INT_34XX_SHA1MD52_IRQ	49
--#define INT_34XX_FPKA_READY_IRQ	50
--#define INT_34XX_SHA1MD51_IRQ	51
--#define INT_34XX_RNG_IRQ	52
--#define INT_34XX_I2C3_IRQ	61
--#define INT_34XX_FPKA_ERROR_IRQ	64
--#define INT_34XX_PBIAS_IRQ	75
--#define INT_34XX_OHCI_IRQ	76
--#define INT_34XX_EHCI_IRQ	77
--#define INT_34XX_TLL_IRQ	78
--#define INT_34XX_PARTHASH_IRQ	79
--#define INT_34XX_MMC3_IRQ	94
--#define INT_34XX_GPT12_IRQ	95
--
--#define INT_36XX_UART4_IRQ	80
--
--#define INT_35XX_HECC0_IRQ		24
--#define INT_35XX_HECC1_IRQ		28
--#define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
--#define INT_35XX_EMAC_C0_RX_PULSE_IRQ	68
--#define INT_35XX_EMAC_C0_TX_PULSE_IRQ	69
--#define INT_35XX_EMAC_C0_MISC_PULSE_IRQ	70
--#define INT_35XX_USBOTG_IRQ		71
--#define INT_35XX_UART4_IRQ		84
--#define INT_35XX_CCDC_VD0_IRQ		88
--#define INT_35XX_CCDC_VD1_IRQ		92
--#define INT_35XX_CCDC_VD2_IRQ		93
--
- /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
-  * 16 MPUIO lines */
- #define OMAP_MAX_GPIO_LINES	192
-@@ -377,66 +255,7 @@
  #endif
- #define OMAP_FPGA_IRQ_END	(OMAP_FPGA_IRQ_BASE + OMAP_FPGA_NR_IRQS)
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index 33f4ac2..da45b51 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -33,6 +33,7 @@
+ #include <asm/mach-types.h>
+ #include <mach/hardware.h>
+ #include <mach/gpio.h>
++#include <linux/platform_data/gpio-omap.h>
+ #include <linux/platform_data/dsp-mcbsp.h>
  
--/* External TWL4030 can handle interrupts on 2430 and 34xx boards */
--#define	TWL4030_IRQ_BASE	(OMAP_FPGA_IRQ_END)
--#ifdef	CONFIG_TWL4030_CORE
--#define	TWL4030_BASE_NR_IRQS	8
--#define	TWL4030_PWR_NR_IRQS	8
--#else
--#define	TWL4030_BASE_NR_IRQS	0
--#define	TWL4030_PWR_NR_IRQS	0
--#endif
--#define TWL4030_IRQ_END		(TWL4030_IRQ_BASE + TWL4030_BASE_NR_IRQS)
--#define TWL4030_PWR_IRQ_BASE	TWL4030_IRQ_END
--#define	TWL4030_PWR_IRQ_END	(TWL4030_PWR_IRQ_BASE + TWL4030_PWR_NR_IRQS)
--
--/* External TWL4030 gpio interrupts are optional */
--#define TWL4030_GPIO_IRQ_BASE	TWL4030_PWR_IRQ_END
--#ifdef	CONFIG_GPIO_TWL4030
--#define TWL4030_GPIO_NR_IRQS	18
--#else
--#define	TWL4030_GPIO_NR_IRQS	0
--#endif
--#define TWL4030_GPIO_IRQ_END	(TWL4030_GPIO_IRQ_BASE + TWL4030_GPIO_NR_IRQS)
--
--#define	TWL6030_IRQ_BASE	(OMAP_FPGA_IRQ_END)
--#ifdef CONFIG_TWL4030_CORE
--#define	TWL6030_BASE_NR_IRQS	20
--#else
--#define	TWL6030_BASE_NR_IRQS	0
--#endif
--#define TWL6030_IRQ_END		(TWL6030_IRQ_BASE + TWL6030_BASE_NR_IRQS)
--
--#define TWL6040_CODEC_IRQ_BASE	TWL6030_IRQ_END
--#ifdef CONFIG_TWL6040_CODEC
--#define TWL6040_CODEC_NR_IRQS	6
--#else
--#define TWL6040_CODEC_NR_IRQS	0
--#endif
--#define TWL6040_CODEC_IRQ_END	(TWL6040_CODEC_IRQ_BASE + TWL6040_CODEC_NR_IRQS)
--
--/* Total number of interrupts depends on the enabled blocks above */
--#if (TWL4030_GPIO_IRQ_END > TWL6040_CODEC_IRQ_END)
--#define TWL_IRQ_END 		TWL4030_GPIO_IRQ_END
--#else
--#define TWL_IRQ_END		TWL6040_CODEC_IRQ_END
--#endif
--
--/* GPMC related */
--#define OMAP_GPMC_IRQ_BASE	(TWL_IRQ_END)
--#define OMAP_GPMC_NR_IRQS	8
--#define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
--
--/* PRCM IRQ handler */
--#ifdef CONFIG_ARCH_OMAP2PLUS
--#define OMAP_PRCM_IRQ_BASE	(OMAP_GPMC_IRQ_END)
--#define OMAP_PRCM_NR_IRQS	64
--#define OMAP_PRCM_IRQ_END	(OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
--#else
--#define OMAP_PRCM_IRQ_END	OMAP_GPMC_IRQ_END
--#endif
--
--#define NR_IRQS			OMAP_PRCM_IRQ_END
-+#define NR_IRQS			OMAP_FPGA_IRQ_END
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
+ /* Register descriptions for twl4030 codec part */
 
