@@ -1,104 +1,79 @@
-From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 31 Aug 2012 14:59:20 +0530
-Message-ID: <1346405361-29711-5-git-send-email-anilkumar@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH 5/5] of: Modify c_can binding documentation
+Date: Fri, 31 Aug 2012 14:59:21 +0530
+Message-ID: <1346405361-29711-6-git-send-email-anilkumar@ti.com>
 References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346405361-29711-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44905 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799Ab2HaJan (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Aug 2012 05:30:43 -0400
+In-Reply-To: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: wg@grandegger.com, mkl@pengutronix.de, bryan.wu@canonical.com, rpurdie@rpsys.net, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 
-Adopt pinctrl support to leds-gpio driver, based on the device
-pointer (leds-gpio) pinctrl driver configure SoC pins to GPIO
-mode.
+Modify c_can binding documentation according to recent review comments
+on device tree data addition patches.
 
-Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 ---
- drivers/leds/leds-gpio.c |   31 ++++++++++++++++++++++++-------
- 1 file changed, 24 insertions(+), 7 deletions(-)
+ .../devicetree/bindings/net/can/c_can.txt          |   25 ++++++++++++++++----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-index c032b21..d98dfb9 100644
---- a/drivers/leds/leds-gpio.c
-+++ b/drivers/leds/leds-gpio.c
-@@ -20,6 +20,7 @@
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- #include <linux/module.h>
-+#include <linux/pinctrl/consumer.h>
+diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
+index a43f083..90a70be 100644
+--- a/Documentation/devicetree/bindings/net/can/c_can.txt
++++ b/Documentation/devicetree/bindings/net/can/c_can.txt
+@@ -8,6 +8,8 @@ Required properties:
+ 			  registers map
+ - interrupts		: property with a value describing the interrupt
+ 			  number
++- status		: describes the node status either "disabled" or
++			  "okay"
  
- struct gpio_led_data {
- 	struct led_classdev cdev;
-@@ -236,14 +237,23 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
- {
- 	struct gpio_led_platform_data *pdata = pdev->dev.platform_data;
- 	struct gpio_leds_priv *priv;
--	int i, ret = 0;
-+	struct pinctrl *pinctrl;
-+	int i = 0;
-+	int ret = 0;
+ Optional properties:
+ - interrupt-parent	: The parent interrupt controller
+@@ -20,18 +22,31 @@ Future plan is to migrate hwmod data base contents into device tree
+ blob so that, all the required data will be used from device tree dts
+ file.
+ 
+-Examples:
++Example:
+ 
+-	d_can@481D0000 {
++Step1: SoC common .dtsi file
 +
-+	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-+	if (IS_ERR(pinctrl)) {
-+		return PTR_ERR(pinctrl);
-+	}
++	d_can1: d_can@481d0000 {
+ 		compatible = "bosch,d_can";
+-		reg = <0x481D0000 0x1000>;
+-		interrupts = <55 0x4>;
++		reg = <0x481d0000 0x2000>;
++		interrupts = <55>;
+ 		interrupt-parent = <&intc>;
++		status = "disabled";
+ 	};
  
- 	if (pdata && pdata->num_leds) {
- 		priv = devm_kzalloc(&pdev->dev,
- 				sizeof_gpio_leds_priv(pdata->num_leds),
- 					GFP_KERNEL);
--		if (!priv)
--			return -ENOMEM;
-+		if (!priv) {
-+			ret = -ENOMEM;
-+			goto err_pctrl_put;
-+		}
+ (or)
  
- 		priv->num_leds = pdata->num_leds;
- 		for (i = 0; i < priv->num_leds; i++) {
-@@ -254,18 +264,25 @@ static int __devinit gpio_led_probe(struct platform_device *pdev)
- 				/* On failure: unwind the led creations */
- 				for (i = i - 1; i >= 0; i--)
- 					delete_gpio_led(&priv->leds[i]);
--				return ret;
-+				goto err_pctrl_put;
- 			}
- 		}
- 	} else {
- 		priv = gpio_leds_create_of(pdev);
--		if (!priv)
--			return -ENODEV;
-+		if (!priv) {
-+			ret = -ENODEV;
-+			goto err_del_gpio_led;
-+		}
- 	}
- 
- 	platform_set_drvdata(pdev, priv);
- 
--	return 0;
-+err_pctrl_put:
-+	pinctrl_put(pinctrl);
-+err_del_gpio_led:
-+	while (--i >= 0)
-+		delete_gpio_led(&priv->leds[i]);
-+	return ret;
- }
- 
- static int __devexit gpio_led_remove(struct platform_device *pdev)
+-	d_can@481D0000 {
++	d_can1: d_can@481d0000 {
+ 		compatible = "bosch,d_can";
+ 		ti,hwmods = "d_can1";
++		reg = <0x481d0000 0x2000>;
++		interrupts = <55>;
++		interrupt-parent = <&intc>;
++		status = "disabled";
++	};
++
++Step 2: board specific .dts file
++
++	&dcan1 {
++		status = "okay";
+ 	};
 -- 
 1.7.9.5
+
