@@ -1,38 +1,42 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
-Date: Fri, 31 Aug 2012 15:07:19 +0530
-Message-ID: <1346405840-31058-2-git-send-email-anilkumar@ti.com>
-References: <1346405840-31058-1-git-send-email-anilkumar@ti.com>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 1/2] i2c-omap: Fix incorrect adapter id when booting from
+ a device tree
+Date: Fri, 31 Aug 2012 11:53:37 +0200
+Message-ID: <504089A1.3030000@epfl.ch>
+References: <1346399575-7285-1-git-send-email-florian.vaussard@epfl.ch> <1346399575-7285-2-git-send-email-florian.vaussard@epfl.ch> <5040806C.9080003@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1346405840-31058-1-git-send-email-anilkumar@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: rjw@sisk.pl
-Cc: cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp4.epfl.ch ([128.178.224.218]:48481 "HELO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751957Ab2HaJxl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Aug 2012 05:53:41 -0400
+In-Reply-To: <5040806C.9080003@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>, Wolfram Sang <w.sang@pengutronix.de>, =?UTF-8?B?UGhpbGlwcGUgUsOpdG9ybmF6?= <philippe.retornaz@epfl.ch>
 
-Add AM335x cpu0 clock entry to the corresponding clock data
-file. This is useful in getting the correct mpu clock pointer
-to change the cpu frequency in cpufreq driver.
+Hi Benoit,
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/mach-omap2/clock33xx_data.c |    1 +
- 1 file changed, 1 insertion(+)
+> [    0.658843] omap_i2c i2c.15: bus -1 rev2.4.0 at 400 kHz
+> [    0.760192] omap_i2c i2c.16: bus -1 rev2.4.0 at 400 kHz
+> [    0.775817] omap_i2c i2c.17: bus -1 rev2.4.0 at 400 kHz
+> [    0.791442] omap_i2c i2c.18: bus -1 rev2.4.0 at 400 kHz
+>
+> OK, it is true that the current log is not that nice with bus -1, but
+> maybe we should just remove that.
+>
+> Or we can potentially retrieve the i2c adapter number assign later, and
+> delay the log.
+>
+>>   	r = i2c_add_numbered_adapter(adap);
+>>   	if (r) {
+>>   		dev_err(dev->dev, "failure adding adapter\n");
+I agree, we should defer the log if we want a nice print. I will send a 
+new patch.
 
-diff --git a/arch/arm/mach-omap2/clock33xx_data.c b/arch/arm/mach-omap2/clock33xx_data.c
-index 23251fa..7afefe8 100644
---- a/arch/arm/mach-omap2/clock33xx_data.c
-+++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -1013,6 +1013,7 @@ static struct omap_clk am33xx_clks[] = {
- 	CLK(NULL,	"dpll_core_m5_ck",	&dpll_core_m5_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_core_m6_ck",	&dpll_core_m6_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_mpu_ck",		&dpll_mpu_ck,	CK_AM33XX),
-+	CLK("cpu0",	NULL,			&dpll_mpu_ck,		CK_AM33XX),
- 	CLK(NULL,	"dpll_mpu_m2_ck",	&dpll_mpu_m2_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_ddr_ck",		&dpll_ddr_ck,	CK_AM33XX),
- 	CLK(NULL,	"dpll_ddr_m2_ck",	&dpll_ddr_m2_ck,	CK_AM33XX),
--- 
-1.7.9.5
-
+Regards,
+Florian
