@@ -1,57 +1,30 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] ASoC: ams-delta: fix card initalization
-	failure
-Date: Sat, 01 Sep 2012 11:09:18 +0200
-Message-ID: <1939338.OUN9Uq58XY@vclass>
-References: <1346102910-8610-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <1809544.cvZPIRmRr5@acer> <20120831213103.GC5495@opensource.wolfsonmicro.com>
+From: "Mrs. Suha Tawil Arafat" <concursos@vejaconcursos.com.br>
+Subject: Investment and Management Placement
+Date: Sat, 1 Sep 2012 06:46:12 -0300
+Message-ID: <c18bd433338af30a24df386393d0950e.squirrel@webmail.concursoseapostilas.com.br>
+Reply-To: suhrafat@wss-id.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120831213103.GC5495@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from server.uninochost.com ([207.218.210.66]:39324 "EHLO
+	server.uninochost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab2IAJvn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Sep 2012 05:51:43 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-RG5pYSBwacSFdGVrLCAzMSBzaWVycG5pYSAyMDEyIDE0OjMxOjA0IE1hcmsgQnJvd24gcGlzemU6
-Cj4gT24gV2VkLCBBdWcgMjksIDIwMTIgYXQgMDc6MDQ6NDhBTSArMDIwMCwgSmFudXN6IEtyenlz
-enRvZmlrIHdyb3RlOgo+ID4gT24gVHVlLCAyOCBBdWcgMjAxMiAxMToxMzozOSBNYXJrIEJyb3du
-IHdyb3RlOgo+IAo+ID4gPiBUaGUgYWJvdmUgbG9va3MgbGlrZSB5b3UgYWxyZWFkeSBoYXZlIGEg
-cGxhdGZvcm0gZHJpdmVyPyAKCk1hcmssCkkgc2hvdWxkIGhhdmUgcmF0aGVyIGFuc3dlcmVkOiBO
-bywgYW1zLWRlbHRhLmMgaXMgbm90IGEgcGxhdGZvcm0gZHJpdmVyLCAKb25seSBhIG1vZHVsZSB3
-aGljaCByZWdpc3RlcmVzIGEgc29jLWF1ZGlvIGRldmljZSBhbmQgcHJvdmlkZXMgZGV2aWNlIApz
-cGVjaWZpYyBkYXRhIGFuZCBjYWxsYmFja3MgdG8gdGhlIHNvYy1hdWRpbyBwbGF0Zm9ybSBkcml2
-ZXIuCgo+ID4gPiBBbGwgSSdtCj4gPiA+IHN1Z2dlc3RpbmcgaXMgY2hhbmdpbmcgdGhlIGFib3Zl
-IHRvIHVzZSBwbGF0Zm9ybSByYXRoZXIgdGhhbiAKZHJpdmVyCj4gPiA+IGRhdGEuCj4gLi4uCj4g
-cy9kcnZkYXRhL3BsYXRkYXRhLyBpbiB0aGUgY29kZS4gCgpUYWtpbmcgdGhlIGFib3ZlIGludG8g
-YWNjb3VudCwgSSB3b3VsZCBoYXZlIHRvIGFwcGx5IHRoaXMgc3Vic3RpdHVlIHRvIAp0aGUgc29j
-LWNvcmUuYywgd2hpY2ggaXMgYWN0dWFsbHkgdGhlIHBsYXRmb3JtIGRyaXZlciBmb3IgdGhlIGFt
-cy1kZWx0YSAKQVNvQyBkZXZpY2UsIGFuZCB0aGlzIHdvdWxkIGJyZWFrIGEgbG90IG9mIG90aGVy
-IGNhcmRzLgoKPiBJZiB5b3UgY2FuJ3QgZG8gdGhpcyB0aGVuIGp1c3QKPiByZWZlcmVuY2luZyB0
-aGUgZGF0YSBkaXJlY3RseSBpbiB0aGUgY29kZSB3b3VsZCBiZSBiZXR0ZXIgdGhhbiB0aGlzCj4g
-Ym9kZ2UsIGl0J2QgYmUgbXVjaCBsZXNzIGZyYWdpbGUuCgpJIHNlZSB5b3VyIHBvaW50LCBob3dl
-dmVyIGZvciBub3cgSSBjYW4gc2VlIG5vIGJldHRlciB3YXkgb2YgcmVmZXJlbmNpbmcgCnRoZSBk
-YXRhIChvZiB0eXBlIHN0cnVjdCBzbmRfc29jX2NhcmQpIHRoZW4gcGFzc2luZyBpdCB0byAKc25k
-X3NvY19yZWdpc3Rlcl9jYXJkKCkuIEJ1dCBmb3IgdGhpcyB0byB3b3JrLCBJIHdvdWxkIGhhdmUg
-dG8gcmVnaXN0ZXIgCnN1Y2Nlc3NmdWxseSBhbiBhbXMtZGVsdGEgc3BlY2lmaWMgcGxhdGZvcm0g
-ZGV2aWNlIGZpcnN0LCBub3QgdGhlIHNvYy0KYXVkaW8uIFRoaXMsIGV2ZW4gaWYgc3RpbGwgZG9u
-ZSBmcm9tIHRoZSBzb3VuZC9zb2Mvb21hcC9hbXMtZGVsdGEuYywgbm90IApmcm9tIGFuIGFyY2gg
-Ym9hcmQgZmlsZSwgd291bGQgcmVxdWlyZSBub3cgbm90IGV4aXN0aW5nIGFtcy1kZWx0YSBBU29D
-IApwbGF0Zm9ybSBkcml2ZXIgcHJvYmUvcmVtb3ZlIGNhbGxiYWNrcyBhdCBsZWFzdC4gSSdtIHN0
-aWxsIG5vdCBjb252aW5jZWQgCmlmIHN1Y2ggbW9kaWZpY2F0aW9uIHdvdWxkIGJlIGFjY2VwdGFi
-bGUgaW4gdGhlIG1pZGRsZSBvZiB0aGUgcmMgY3ljbGUuCgpJZiB0aGVyZSBpcyBhIHNpbXBsZXIs
-IGxlc3MgaW50cnVzaXZlIHdheSB0byBkbyB0aGlzLCB0aGVuIHNvcnJ5LCBJIApzdGlsbCBjYW4n
-dCBzZWUgaXQuCgpUaGFua3MsCkphbnVzegpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRldmVsQGFsc2Et
-cHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2Fsc2EtZGV2ZWwK
+Dear Friend,
+
+  Are you interested in Investment and Management Placement? If interested
+please contact me. No Scam please !
+
+Regards.
+
+Mrs. Suha Tawil Arafat
+Email: suhrafat@wss-id.org
+
+
+
+
+
