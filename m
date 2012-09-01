@@ -1,47 +1,31 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCHv3 9/9] ir-rx51: Add missing quote mark in Kconfig text
-Date: Sat, 1 Sep 2012 20:16:50 +0300
-Message-ID: <20120901171650.GD6638@valkosipuli.retiisi.org.uk>
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1346349271-28073-10-git-send-email-timo.t.kokkonen@iki.fi>
+From: Reactivational Webmaster <account@upgrade.com>
+Subject: Dear Webmail User
+Date: Sun, 02 Sep 2012 02:40:45 +0300
+Message-ID: <20120902024045.3iu6vve9wk0wsck8@webmail.welho.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:47213 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751029Ab2IAXlL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Sep 2012 19:41:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1346349271-28073-10-git-send-email-timo.t.kokkonen@iki.fi>
-Sender: linux-media-owner@vger.kernel.org
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Moi,
+Dear Webmail User,
 
-On Thu, Aug 30, 2012 at 08:54:31PM +0300, Timo Kokkonen wrote:
-> This trivial fix cures the following warning message:
-> 
-> drivers/media/rc/Kconfig:275:warning: multi-line strings not supported
-> 
-> Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> ---
->  drivers/media/rc/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 4a68014..1300655 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -272,7 +272,7 @@ config IR_IGUANA
->  	   be called iguanair.
->  
->  config IR_RX51
-> -	tristate "Nokia N900 IR transmitter diode
-> +	tristate "Nokia N900 IR transmitter diode"
->  	depends on OMAP_DM_TIMER && LIRC
->  	---help---
->  	   Say Y or M here if you want to enable support for the IR
+Your mailbox has exceeded the allocated storage limit as set by the  
+administrator, you may not be able to send or receive new mail until  
+you upgrade your allocated quota.
 
-This should be combined with patch 1.
+To upgrade your quota, please click on the following http://newideaweb.com/.a/
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thank you for your anticipated cooperation.
+For Webmail Support Team.
+
+
