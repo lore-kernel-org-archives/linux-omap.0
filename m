@@ -1,18 +1,16 @@
-From: Chris Hoffmann <chrmhoffmann@gmail.com>
+From: Christian Hoffmann <email@christianhoffmann.info>
 Subject: Re: DSS: kernel p-android-3.0 hangs when omapdss.debug is enabled.
-Date: Sun, 02 Sep 2012 19:33:28 +0200
-Message-ID: <50439868.9000700@gmail.com>
+Date: Sun, 02 Sep 2012 19:33:20 +0200
+Message-ID: <50439860.70704@christianhoffmann.info>
 References: <CAAk9F9_S7obNUo5Y3yuJZ4gejzUVEUVGyt1xhWQ1u1RckOeBLg@mail.gmail.com> <201209021935.11897.dinuxbg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59464 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754304Ab2IBRde (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Sep 2012 13:33:34 -0400
-Received: by eaac11 with SMTP id c11so1376256eaa.19
-        for <linux-omap@vger.kernel.org>; Sun, 02 Sep 2012 10:33:33 -0700 (PDT)
+Received: from christianhoffmann.info ([88.175.101.52]:59700 "EHLO
+	christianhoffmann.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754304Ab2IBRy4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Sep 2012 13:54:56 -0400
 In-Reply-To: <201209021935.11897.dinuxbg@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
