@@ -1,71 +1,57 @@
-From: Christian Hoffmann <chrmhoffmann@gmail.com>
-Subject: mbox: possible deadlock
-Date: Sun, 2 Sep 2012 16:51:10 +0200
-Message-ID: <CAAk9F98P6oXSLOOPcKzHe0gX_8c4cdvCpfm+3=R5wjREsSJ8DA@mail.gmail.com>
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
+Date: Sun, 02 Sep 2012 17:54:32 +0300
+Message-ID: <50437328.9050903@iki.fi>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:46145 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753832Ab2IBOvM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Sep 2012 10:51:12 -0400
-Received: by lbbgj3 with SMTP id gj3so2064515lbb.19
-        for <linux-omap@vger.kernel.org>; Sun, 02 Sep 2012 07:51:10 -0700 (PDT)
+Received: from mta-out.inet.fi ([195.156.147.13]:41379 "EHLO jenni2.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753251Ab2IBOyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 2 Sep 2012 10:54:36 -0400
+In-Reply-To: <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-Hi,
+Terve,
 
-Trying to find a hanging reason for a custom omap4430 board (aka nook
-tablet), I stumled over a possible circular locking problem on
-startup:
-...
-<4>[   12.078216]
-<4>[   12.078247] =======================================================
-<4>[   12.087341] [ INFO: possible circular locking dependency detected ]
-<4>[   12.094329] 3.0.31+ #2
-<4>[   12.097290] -------------------------------------------------------
-<4>[   12.104278] kworker/0:1/58 is trying to acquire lock:
-<4>[   12.110168]  ((&mq->work)){+.+.+.}, at: [<c00d2fb0>]
-wait_on_work+0x0/0x1cc
-<4>[   12.118621]
-<4>[   12.118621] but task is already holding lock:
-<4>[   12.125549]  (mbox_configured_lock){+.+.+.}, at: [<c009ddd4>]
-omap_mbox_put+0x34/0x100
-<4>[   12.135009]
-<4>[   12.135040] which lock already depends on the new lock.
-...
-<4>[   12.504486] Chain exists of:
-<4>[   12.504486]   (&mq->work) --> &rproc->lock --> mbox_configured_lock
-<4>[   12.515899]
-<4>[   12.518127]  Possible unsafe locking scenario:
-<4>[   12.518127]
-<4>[   12.524963]        CPU0                    CPU1
-<4>[   12.530242]        ----                    ----
-<4>[   12.535369]   lock(mbox_configured_lock);
-<4>[   12.540344]                                lock(&rproc->lock);
-<4>[   12.547485]                                lock(mbox_configured_lock);
-<4>[   12.555389]   lock((&mq->work));
-<4>[   12.559539]
-<4>[   12.559539]  *** DEADLOCK ***
-<4>[   12.559539]
-<4>[   12.566589] 3 locks held by kworker/0:1/58:
-<4>[   12.571502]  #0:  (pm){.+.+..}, at: [<c00d34b8>]
-process_one_work+0x124/0x590
-<4>[   12.580322]  #1:  ((&dev->power.work)){+.+...}, at: [<c00d34b8>]
-process_one_work+0x124/0x590
-<4>[   12.590850]  #2:  (mbox_configured_lock){+.+.+.}, at:
-[<c009ddd4>] omap_mbox_put+0x34/0x100
-<4>[   12.601165]
+On 09/01/12 20:14, Sakari Ailus wrote:
+> Moi,
+> 
+> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
+>> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+>>  
+>>  	/*
+>>  	 * Don't return back to the userspace until the transfer has
+>> -	 * finished
+>> +	 * finished. However, we wish to not spend any more than 500ms
+>> +	 * in kernel. No IR code TX should ever take that long.
+>> +	 */
+>> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
+>> +			HZ / 2);
+> 
+> Why such an arbitrary timeout? In reality it might not bite the user space
+> in practice ever, but is it (and if so, why) really required in the first
+> place?
 
-Full dmesg can be found here:
-https://dl.dropbox.com/u/21820416/mbox-deadlock.dmesg
-For the record: Kernel source is very close to p-android-3.0. It can
-be found here:
-https://github.com/Kuzma30/kernel3NookTablet/tree/jellybean
+Well, I can think of two cases:
 
-Used config: cyanogenmod_acclaim_defconfig.
+1) Something goes wrong. Such before I converted the patch to use the up
+to date PM QoS implementation, the transmitting could take very long
+time because the interrupts were not waking up the MPU. Now that this is
+sorted out only unknown bugs can cause transmitting to hang indefinitely.
 
-Kind regards,
-Chris
+2) User is (intentionally?) doing something wrong. For example by
+feeding in an IR code that has got very long pulses, he could end up
+having the lircd process hung in kernel unkillable for long time. That
+could be avoided quite easily by counting the pulse lengths and
+rejecting any IR codes that are obviously too long. But since I'd like
+to also protect against 1) case, I think this solution works just fine.
+
+In the end, this is just safety measure that this driver behaves well.
+
+-Timo
