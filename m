@@ -1,160 +1,213 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to
- pass d_can raminit
-Date: Mon, 03 Sep 2012 22:11:14 +0200
-Message-ID: <50450EE2.3000107@pengutronix.de>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com> <1346673139-14540-4-git-send-email-anilkumar@ti.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: =?UTF-8?q?=5BPATCH=204/4=5D=20input=3A=20misc=3A=20introduce=20retu-pwrbutton?=
+Date: Mon,  3 Sep 2012 23:23:25 +0300
+Message-ID: <1346703805-31598-5-git-send-email-aaro.koskinen@iki.fi>
+References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig336B49E1C85A468B75167165"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1346673139-14540-4-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, tony@atomide.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:50551 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756624Ab2ICUXb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Sep 2012 16:23:31 -0400
+In-Reply-To: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-input@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig336B49E1C85A468B75167165
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Add Retu power button driver.
 
-On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
-> Add of_dev_auxdata to pass d_can raminit callback APIs to initialize
-> d_can RAM. D_CAN RAM initialization bits are present in CONTROL module
-> address space, which can be accessed by platform specific code. So
-> callback functions are added to serve this purpose, this can done by
-> using of_dev_auxdata.
->=20
-> Callback API is added to of_dev_auxdata with different instance numbers=
+Cc: linux-input@vger.kernel.org
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+---
+ drivers/input/misc/Kconfig          |   10 +++
+ drivers/input/misc/Makefile         |    1 +
+ drivers/input/misc/retu-pwrbutton.c |  127 +++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 138 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/misc/retu-pwrbutton.c
 
-> for two instances of D_CAN IP. These callback functions are used to
-> enable/disable D_CAN RAM from CAN driver.
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-
-This will be a more complicated. This patch will go over the arm tree,
-but needs a header going via net.
-
-Marc
-
-> ---
->  arch/arm/mach-omap2/board-generic.c |   40 +++++++++++++++++++++++++++=
-+++++++-
->  arch/arm/mach-omap2/control.h       |    4 ++++
->  2 files changed, 43 insertions(+), 1 deletion(-)
->=20
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/=
-board-generic.c
-> index 6f93a20..b68e642 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -15,6 +15,7 @@
->  #include <linux/of_irq.h>
->  #include <linux/of_platform.h>
->  #include <linux/irqdomain.h>
-> +#include <linux/can/platform/c_can.h>
-> =20
->  #include <mach/hardware.h>
->  #include <asm/hardware/gic.h>
-> @@ -22,6 +23,8 @@
-> =20
->  #include <plat/board.h>
->  #include "common.h"
-> +#include "control.h"
-> +#include "iomap.h"
->  #include "common-board-devices.h"
-> =20
->  #if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
-> @@ -37,11 +40,46 @@ static struct of_device_id omap_dt_match_table[] __=
-initdata =3D {
->  	{ }
->  };
-> =20
-> +void d_can_hw_raminit(unsigned int instance, bool enable)
-> +{
-> +	u32 val;
-> +
-> +	val =3D readl(AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	if (enable) {
-> +		val &=3D ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		val |=3D AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	} else {
-> +		val &=3D ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	}
-> +}
-> +
-> +static struct c_can_platform_data d_can0_pdata =3D {
-> +	.ram_init	=3D d_can_hw_raminit,
-> +	.instance	=3D 0,
-> +};
-> +
-> +static struct c_can_platform_data d_can1_pdata =3D {
-> +	.ram_init	=3D d_can_hw_raminit,
-> +	.instance	=3D 1,
-> +};
-> +
-> +static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst=
- =3D {
-> +	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, NULL, &d_can0_pdata),
-> +	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, NULL, &d_can1_pdata),
-> +	{ },
-> +};
-> +
->  static void __init omap_generic_init(void)
->  {
->  	omap_sdrc_init(NULL, NULL);
-> =20
-> -	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-> +	if (of_machine_is_compatible("ti,am33xx"))
-> +		of_platform_populate(NULL, omap_dt_match_table,
-> +				am33xx_auxdata_lookup, NULL);
-> +	else
-> +		of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->  }
-> =20
->  #ifdef CONFIG_SOC_OMAP2420
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/contro=
-l.h
-> index b8cdc85..afd189b 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -356,6 +356,10 @@
->  #define AM33XX_CONTROL_STATUS_SYSBOOT1_SHIFT		22
->  #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
-> =20
-> +/* AM33XX DCAN bitfields */
-> +#define AM33XX_CONTROL_DCAN_RAMINIT		0x644
-> +#define AM33XX_DCAN_RAMINIT_START_MASK(i)	(1 << (i))
-> +
->  /* CONTROL OMAP STATUS register to identify OMAP3 features */
->  #define OMAP3_CONTROL_OMAP_STATUS	0x044c
-> =20
->=20
-
-
+diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
+index 7c0f1ec..e5be189 100644
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -367,6 +367,16 @@ config INPUT_CM109
+ 	  To compile this driver as a module, choose M here: the module will =
+be
+ 	  called cm109.
+=20
++config INPUT_RETU_PWRBUTTON
++	tristate "Retu Power button Driver"
++	depends on MFD_RETU
++	help
++	  Say Y here if you want to enable power key reporting via the
++	  Retu chips found in Nokia Internet Tablets (770, N800, N810).
++
++	  To compile this driver as a module, choose M here. The module will
++	  be called retu-pwrbutton.
++
+ config INPUT_TWL4030_PWRBUTTON
+ 	tristate "TWL4030 Power button Driver"
+ 	depends on TWL4030_CORE
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 83fe6f5..4fbee0d 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -45,6 +45,7 @@ obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+=3D pmic8xxx-pwr=
+key.o
+ obj-$(CONFIG_INPUT_POWERMATE)		+=3D powermate.o
+ obj-$(CONFIG_INPUT_PWM_BEEPER)		+=3D pwm-beeper.o
+ obj-$(CONFIG_INPUT_RB532_BUTTON)	+=3D rb532_button.o
++obj-$(CONFIG_INPUT_RETU_PWRBUTTON)	+=3D retu-pwrbutton.o
+ obj-$(CONFIG_INPUT_GPIO_ROTARY_ENCODER)	+=3D rotary_encoder.o
+ obj-$(CONFIG_INPUT_SGI_BTNS)		+=3D sgi_btns.o
+ obj-$(CONFIG_INPUT_SPARCSPKR)		+=3D sparcspkr.o
+diff --git a/drivers/input/misc/retu-pwrbutton.c b/drivers/input/misc/r=
+etu-pwrbutton.c
+new file mode 100644
+index 0000000..f802d4d
+--- /dev/null
++++ b/drivers/input/misc/retu-pwrbutton.c
+@@ -0,0 +1,127 @@
++/*
++ * Retu power button driver.
++ *
++ * Copyright (C) 2004-2010 Nokia Corporation
++ *
++ * Original code written by Ari Saastamoinen, Juha Yrj=C3=B6l=C3=A4 an=
+d Felipe Balbi.
++ * Converted to use to use Retu MFD driver by Aaro Koskinen.
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of thi=
+s
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/irq.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/errno.h>
++#include <linux/input.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mfd/retu.h>
++#include <linux/interrupt.h>
++#include <linux/platform_device.h>
++
++#define RETU_STATUS_PWRONX (1 << 5)
++
++struct retu_pwrbutton {
++	struct input_dev	*idev;
++	struct retu_dev		*rdev;
++	struct device		*dev;
++	bool			pressed;
++	int			irq;
++};
++
++static irqreturn_t retu_pwrbutton_irq(int irq, void *_pwr)
++{
++	struct retu_pwrbutton *pwr =3D _pwr;
++	bool state;
++
++	state =3D !(retu_read(pwr->rdev, RETU_REG_STATUS) & RETU_STATUS_PWRON=
+X);
++
++	if (pwr->pressed !=3D state) {
++		input_report_key(pwr->idev, KEY_POWER, state);
++		input_sync(pwr->idev);
++		pwr->pressed =3D state;
++	}
++
++	return IRQ_HANDLED;
++}
++
++static int __devinit retu_pwrbutton_probe(struct platform_device *pdev=
+)
++{
++	struct retu_dev *rdev =3D dev_get_drvdata(pdev->dev.parent);
++	struct retu_pwrbutton *pwr;
++	int ret;
++
++	pwr =3D kzalloc(sizeof(*pwr), GFP_KERNEL);
++	if (!pwr)
++		return -ENOMEM;
++
++	pwr->rdev =3D rdev;
++	pwr->dev  =3D &pdev->dev;
++	pwr->irq  =3D platform_get_irq(pdev, 0);
++	platform_set_drvdata(pdev, pwr);
++
++	ret =3D request_threaded_irq(pwr->irq, NULL, retu_pwrbutton_irq, 0,
++				   "retu-pwrbutton", pwr);
++	if (ret < 0)
++		goto error_irq;
++
++	pwr->idev =3D input_allocate_device();
++	if (!pwr->idev) {
++		ret =3D -ENOMEM;
++		goto error_input;
++	}
++
++	pwr->idev->evbit[0]			=3D BIT_MASK(EV_KEY);
++	pwr->idev->keybit[BIT_WORD(KEY_POWER)]	=3D BIT_MASK(KEY_POWER);
++	pwr->idev->name				=3D "retu-pwrbutton";
++
++	ret =3D input_register_device(pwr->idev);
++	if (ret < 0)
++		goto error_reg;
++
++	return 0;
++
++error_reg:
++	input_free_device(pwr->idev);
++error_input:
++	free_irq(pwr->irq, pwr);
++error_irq:
++	kfree(pwr);
++	return ret;
++}
++
++static int __devexit retu_pwrbutton_remove(struct platform_device *pde=
+v)
++{
++	struct retu_pwrbutton *pwr =3D platform_get_drvdata(pdev);
++
++	free_irq(pwr->irq, pwr);
++	input_unregister_device(pwr->idev);
++	input_free_device(pwr->idev);
++	kfree(pwr);
++
++	return 0;
++}
++
++static struct platform_driver retu_pwrbutton_driver =3D {
++	.probe		=3D retu_pwrbutton_probe,
++	.remove		=3D __devexit_p(retu_pwrbutton_remove),
++	.driver		=3D {
++		.name	=3D "retu-pwrbutton",
++	},
++};
++module_platform_driver(retu_pwrbutton_driver);
++
++MODULE_ALIAS("platform:retu-pwrbutton");
++MODULE_DESCRIPTION("Retu Power Button");
++MODULE_AUTHOR("Ari Saastamoinen");
++MODULE_AUTHOR("Felipe Balbi");
++MODULE_AUTHOR("Aaro Koskinen <aaro.koskinen@iki.fi>");
++MODULE_LICENSE("GPL");
 --=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+1.7.2.5
 
-
---------------enig336B49E1C85A468B75167165
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iEYEARECAAYFAlBFDuYACgkQjTAFq1RaXHOU0wCfYd3NyFefOtvnuaM0l3Lyq/Zt
-sZsAn25SFCoXUldi0yacfDIipsVKxjU6
-=rAre
------END PGP SIGNATURE-----
-
---------------enig336B49E1C85A468B75167165--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
