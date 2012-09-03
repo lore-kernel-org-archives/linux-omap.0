@@ -1,255 +1,86 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v9] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN
- controller
-Date: Mon, 03 Sep 2012 10:52:22 +0200
-Message-ID: <50446FC6.2020203@pengutronix.de>
-References: <1345461654-439-1-git-send-email-anilkumar@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH v2 09/23] OMAPDSS: Create links between managers, outputs
+ and devices
+Date: Mon, 3 Sep 2012 14:56:37 +0530
+Message-ID: <504477CD.10901@ti.com>
+References: <1345528711-27801-1-git-send-email-archit@ti.com>  <1346326845-16583-1-git-send-email-archit@ti.com>  <1346326845-16583-10-git-send-email-archit@ti.com>  <1346422242.7508.18.camel@lappyti> <5040C907.5090000@ti.com>  <1346424344.16067.39.camel@deskari> <1346425698.16067.52.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigC31ED6C21B1E15AC9B7A1D8C"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1345461654-439-1-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35228 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756186Ab2ICJ0Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Sep 2012 05:26:25 -0400
+In-Reply-To: <1346425698.16067.52.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: rob@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigC31ED6C21B1E15AC9B7A1D8C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Friday 31 August 2012 08:38 PM, Tomi Valkeinen wrote:
+> On Fri, 2012-08-31 at 17:45 +0300, Tomi Valkeinen wrote:
+>
+>> So I'm not really against having the enum. It just would've been neat to
+>> have the output type and instance number encoded into this enum, so that
+>> it'd be easy to extract either one. But that kinda ruins the possibility
+>> to use it in a bit mask.
+>
+> Hmm, this is just a non-finished idea (and it's late Friday... =) that
+> came to my mind:
+>
+> I had a brief look at TRMs for different OMAPs (omap4/5/6), and it looks
+> like the maximum output options for one manager is 4 (LCD2 on omap4460).
+> Usually there are just 2 or 3.
+>
+> So, we could trust that the above holds and do this so that we use a u32
+> field to hold four 8 bit output options. In 8 bits we can combine two
+> values from 0 to 15. 15 should be more than enough for output display
+> types and output instances.
+>
+> Then with helpers like these:
+>
+> /* second DSI instance */
+> #define DSI1 ((1 << 4) | DISPLAY_TYPE_DSI)
+> /* first DPI instance */
+> #define DPI0 ((0 << 4) | DISPLAY_TYPE_DPI)
 
-On 08/20/2012 01:20 PM, AnilKumar Ch wrote:
-> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-> register of C_CAN/D_CAN IP when clock is turned off.
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
-> This patch has been tested on AM335X EVM. Due to lack of hardware
-> I am not able to test c_can functionality. I appreciate if anyone
-> can test c_can functionality with this patch.
+Okay, so DISPLAY_TYPE_DSI / DPI can't be a number left shifted any 
+more(that would limit us to have only 4 types of output display types), 
+like we have right now, they would need to be 0, 1, 2, 3 and so on. So 
+with this approach, we could extract the instance number quickly, but we 
+may not be able to check if the manager supports the output display type 
+in constant time.
 
-Looks good. I've marked the c_can_priv *priv pointer as const in
-c_can_pm_runtime_{get,put}_sync.
+>
+> an example output options for a manager that can be connected to DSI1
+> and DPI0 could be:
+>
+> (DSI1 << 8) | (DPI0)
+>
+> This could be parsed with a for loop, going though the 4 bytes of the
+> u32 value. This would allow us to avoid managing a real list, and we
+> could extract the instance and the type from the value. Of course we
+> could also extend the field to u64 to hold 8 outputs if need be.
 
-thanks, Marc
+Probably we could have a u64, and 2 bytes for each output, and a bit 
+mask for both output instance and output display type. We could have 
+display type enums as:
 
->=20
-> This patch is based on "can-next/master"=20
->=20
-> Changes from v8:
-> 	- corrected the return path sequence in c_can_probe()
->=20
-> Changes from v7:
-> 	- Incorporated Marc's comments on v7
-> 	  * changed device pointer to c_can_priv pointer
->=20
-> Changes from v6:
-> 	- Incorporated Marc's comments on v6
-> 	  * changed dev pointer to priv
-> 	  * removed platform_device.h include from c_can.c
->=20
-> Changes from v5:
-> 	- Incorporated Marc's comments on v5
-> 	  * changed runtime pm calls in c_can driver to handle
-> 	    the drivers which are not using platform drivers.
-> 	  * added device pointer protection in c_can driver if
-> 	    not passed from platform/pci driver.
->=20
-> Changes from v4:
-> 	- Incorporated Vaibhav H review comments on v4.
-> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
-> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
-> 	  patch series. Rest of the patches in this series were applied
-> 	  so this v5 contains only this patch.
->=20
->  drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-=
+DISPLAY_TYPE_DPI	1 << 5
+DISPLAY_TYPE_DSI	1 << 6
+DISPLAY_TYPE_VENC	1 << 7
+DISPLAY_TYPE_HDMI	1 << 8
+DISPLAY_TYPE_SDI	1 << 9
+DISPLAY_TYPE_RFBI	1 << 10
+...
 
->  drivers/net/can/c_can/c_can.h          |    1 +
->  drivers/net/can/c_can/c_can_platform.c |   11 +++++++++--
->  3 files changed, 33 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_ca=
-n.c
-> index 4c538e3..966d318 100644
-> --- a/drivers/net/can/c_can/c_can.c
-> +++ b/drivers/net/can/c_can/c_can.c
-> @@ -34,6 +34,7 @@
->  #include <linux/if_ether.h>
->  #include <linux/list.h>
->  #include <linux/io.h>
-> +#include <linux/pm_runtime.h>
-> =20
->  #include <linux/can.h>
->  #include <linux/can/dev.h>
-> @@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bitt=
-iming_const =3D {
->  	.brp_inc =3D 1,
->  };
-> =20
-> +static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
+>
+> Whether this would be worth it compared to simple bitmask, I'm not sure
+> =). Depends how much we need to extract the ID and type.
 
-I've marked the priv pointer as const.
+Anyway, I don't think I'll try to implement this in this series. I'll 
+stick to the output instance enums for now.
 
-> +{
-> +	if (priv->device)
-> +		pm_runtime_get_sync(priv->device);
-> +}
-> +
-> +static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
+Archit
 
-dito.
-
-> +{
-> +	if (priv->device)
-> +		pm_runtime_put_sync(priv->device);
-> +}
-> +
->  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
->  {
->  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
-> @@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct ne=
-t_device *dev,
->  	unsigned int reg_err_counter;
->  	struct c_can_priv *priv =3D netdev_priv(dev);
-> =20
-> +	c_can_pm_runtime_get_sync(priv);
-> +
->  	reg_err_counter =3D priv->read_reg(priv, C_CAN_ERR_CNT_REG);
->  	bec->rxerr =3D (reg_err_counter & ERR_CNT_REC_MASK) >>
->  				ERR_CNT_REC_SHIFT;
->  	bec->txerr =3D reg_err_counter & ERR_CNT_TEC_MASK;
-> =20
-> +	c_can_pm_runtime_put_sync(priv);
-> +
->  	return 0;
->  }
-> =20
-> @@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
->  	int err;
->  	struct c_can_priv *priv =3D netdev_priv(dev);
-> =20
-> +	c_can_pm_runtime_get_sync(priv);
-> +
->  	/* open the can device */
->  	err =3D open_candev(dev);
->  	if (err) {
->  		netdev_err(dev, "failed to open can device\n");
-> -		return err;
-> +		goto exit_open_fail;
->  	}
-> =20
->  	/* register interrupt handler */
-> @@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
-> =20
->  exit_irq_fail:
->  	close_candev(dev);
-> +exit_open_fail:
-> +	c_can_pm_runtime_put_sync(priv);
->  	return err;
->  }
-> =20
-> @@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
->  	c_can_stop(dev);
->  	free_irq(dev->irq, dev);
->  	close_candev(dev);
-> +	c_can_pm_runtime_put_sync(priv);
-> =20
->  	return 0;
->  }
-> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_ca=
-n.h
-> index 4e56baa..1437a6d 100644
-> --- a/drivers/net/can/c_can/c_can.h
-> +++ b/drivers/net/can/c_can/c_can.h
-> @@ -153,6 +153,7 @@ struct c_can_priv {
->  	struct can_priv can;	/* must be the first member */
->  	struct napi_struct napi;
->  	struct net_device *dev;
-> +	struct device *device;
->  	int tx_object;
->  	int current_status;
->  	int last_status;
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
-_can/c_can_platform.c
-> index d0a66cf..90801c4 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -32,6 +32,7 @@
->  #include <linux/clk.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/pm_runtime.h>
-> =20
->  #include <linux/can/dev.h>
-> =20
-> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platf=
-orm_device *pdev)
->  		goto exit_free_device;
->  	}
-> =20
-> +	pm_runtime_enable(&pdev->dev);
-> +
->  	dev->irq =3D irq;
->  	priv->base =3D addr;
-> +	priv->device =3D &pdev->dev;
->  	priv->can.clock.freq =3D clk_get_rate(clk);
->  	priv->priv =3D clk;
-> =20
-> @@ -189,15 +193,17 @@ static int __devinit c_can_plat_probe(struct plat=
-form_device *pdev)
->  	if (ret) {
->  		dev_err(&pdev->dev, "registering %s failed (err=3D%d)\n",
->  			KBUILD_MODNAME, ret);
-> -		goto exit_free_device;
-> +		goto exit_clear_drvdata;
->  	}
-> =20
->  	dev_info(&pdev->dev, "%s device registered (regs=3D%p, irq=3D%d)\n",
->  		 KBUILD_MODNAME, priv->base, dev->irq);
->  	return 0;
-> =20
-> -exit_free_device:
-> +exit_clear_drvdata:
->  	platform_set_drvdata(pdev, NULL);
-> +	pm_runtime_disable(&pdev->dev);
-> +exit_free_device:
->  	free_c_can_dev(dev);
->  exit_iounmap:
->  	iounmap(addr);
-> @@ -226,6 +232,7 @@ static int __devexit c_can_plat_remove(struct platf=
-orm_device *pdev)
->  	mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	release_mem_region(mem->start, resource_size(mem));
-> =20
-> +	pm_runtime_disable(&pdev->dev);
->  	clk_put(priv->priv);
-> =20
->  	return 0;
->=20
-
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enigC31ED6C21B1E15AC9B7A1D8C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iEYEARECAAYFAlBEb8kACgkQjTAFq1RaXHN6IwCgjI691MwpCksZehHFJ7TzJp3x
-h9QAmgPEtP72cFqCKWl2jHuaTXjs6c19
-=9Zbp
------END PGP SIGNATURE-----
-
---------------enigC31ED6C21B1E15AC9B7A1D8C--
