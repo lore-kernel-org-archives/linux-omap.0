@@ -1,48 +1,70 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 0/3] gpio-twl4030: add new device tree properties
-Date: Mon, 03 Sep 2012 22:45:11 +0200
-Message-ID: <504516D7.3060101@epfl.ch>
-References: <1346680491-4211-1-git-send-email-florian.vaussard@epfl.ch> <5044BE79.4040100@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [RFC 1/3] ASoC: dmaengine: Don't use
+ runtime	private data for dmaengine data
+Date: Mon, 03 Sep 2012 22:59:54 +0200
+Message-ID: <50451A4A.9000108@metafoo.de>
+References: <20120903165832.GA31511@n2100.arm.linux.org.uk>
+ <E1T8ZzV-0002vp-2j@rmk-PC.arm.linux.org.uk> <5045124D.3050604@metafoo.de>
+ <20120903204325.GA728@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.218]:52187 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753214Ab2ICUpP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 3 Sep 2012 16:45:15 -0400
-In-Reply-To: <5044BE79.4040100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20120903204325.GA728@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, Rob Herring <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi Benoit,
-
-> Nit #2: the DTS file does not belong to the gpio subsystem. So you
-> should prefix them using the *convention* for ARM DTS patches:
->
-> arm/dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
->
-> Or maybe "ARM: dts: " because it looks like most people are using that
-> nowadays.
->
-> The convention for the gpio directory is similar:
-> gpio/twl4030: get platform data from device tree
->
->>    gpio-twl4030: updates the bindings for new dt properties
+On 09/03/2012 10:43 PM, Russell King - ARM Linux wrote:
+> On Mon, Sep 03, 2012 at 10:25:49PM +0200, Lars-Peter Clausen wrote:
+>> On 09/03/2012 06:59 PM, Liam Girdwood wrote:
+>>> Use a dedicated member to store dmaengine data so that drivers can
+>>> use private data for their own purposes.
+>>>
 >>
->>   .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 ++
->>   arch/arm/boot/dts/omap3-beagle.dts                 |   20 +++++
->>   arch/arm/boot/dts/omap3-evm.dts                    |   13 +++
->>   drivers/gpio/gpio-twl4030.c                        |   86 +++++++++++++------
->>   4 files changed, 98 insertions(+), 27 deletions(-)
-> Thanks,
-> Benoit
->
-Thank you for your review, I will send a new version soon.
+>> The idea was that we'll eventually get to a point where we won't need private
+>> data for the drivers using the generic dmaengine code. But for the transitional
+>> period there is snd_dmaengine_pcm_{set,get}_data which allows to attach driver
+>> private data to the dmaengine pcm. For an example see how the other users of
+>> dmaengine pcm handle this.
+> 
+> That's fine if you are writing new drivers from scatch, or know the
+> driver you're converting inside-out.  Neither applies here (I've
+> struggled to do anything with the OMAP audio stuff for many many
+> reasons.)
+> 
+> I rather wish that people who did know the OMAP ASoC driver had stepped
+> up to this conversion, but alas they haven't.
+> 
+> In any case, if you want people to use the this soc-dmaengine helper
+> then you have to make the conversion to it simple, and requiring
+> everyone to totally restructure their drivers to use it does not make
+> that process simple.
+> 
+> What you have here is the result of several transformations to the
+> driver, which would _not_ have been possible without this first patch
+> from Liam.
 
-Regards,
-Florian
+Ok, it might have been helpful in the conversion process, but for the final
+patch it would be nice if you could replace
 
+struct snd_pcm_runtime *runtime = substream->runtime;
+struct omap_runtime_data *prtd = runtime->private_data;
+struct omap_pcm_dma_data *dma_data = prtd->dma_data;
+with
+struct omap_pcm_dma_data *dma_data = snd_dmaengine_pcm_get_data(substream);
+
+and in the hwparams callback use
+
+snd_dmaengine_pcm_set_data(substream, dma_data);
+
+and then drop patch 1 and 2 from the series.
