@@ -1,54 +1,54 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH v2] gpio/omap: fix possible memory leak in omap2_gpio_dev_init()
-Date: Mon, 3 Sep 2012 20:42:27 +0800
-Message-ID: <CAPgLHd-XS_AtLr+8R6yNkSXdNxO3i-NapK7o5zBUado-7R99=w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: [PATCH 0/3] gpio-twl4030: add new device tree properties
+Date: Mon,  3 Sep 2012 15:54:48 +0200
+Message-ID: <1346680491-4211-1-git-send-email-florian.vaussard@epfl.ch>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:61577 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656Ab2ICMm2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Sep 2012 08:42:28 -0400
-Received: by qcro28 with SMTP id o28so3318783qcr.19
-        for <linux-omap@vger.kernel.org>; Mon, 03 Sep 2012 05:42:28 -0700 (PDT)
+Received: from smtp4.epfl.ch ([128.178.224.218]:40793 "HELO smtp4.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753479Ab2ICNzN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Sep 2012 09:55:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+A number of platform data are missing when using twl4030/gpio from a
+device tree. This patchset adds the missing properties, updates
+existing device trees and updates the documentation of bindings.
+It mainly enables LEDA and LEDB outputs, as well as pullups /
+pulldowns on GPIOs.
 
-pdata and pdata->regs have been allocated in this function and 
-should be freed before leaving it, and in the other error handling
-cases too.
+The 1st patch changes the device driver.
+The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
+The 3rd patch updates the documentation of bindings.
 
-spatch with a semantic match is used to found this problem.
-(http://coccinelle.lip6.fr/)
+Tested:
+- Boot tested on Gumstix Overo for "ti,use-leds". Corresponding
+  patch is not provided, as the device tree is not yet merged.
+  The support can be found in the git tree [1], branch
+  omap3-devel-dt-overo.
+- Device trees for BeagleBoard and omap3-evm were compiled, but not
+  tested on hardware.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- arch/arm/mach-omap2/gpio.c | 2 ++
- 1 file changed, 2 insertions(+)
+Would someone be willing to test on BeagleBoard / omap3-evm?
 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 9ad7d48..fe626e90 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -60,6 +60,7 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 	pdata->regs = kzalloc(sizeof(struct omap_gpio_reg_offs), GFP_KERNEL);
- 	if (!pdata->regs) {
- 		pr_err("gpio%d: Memory allocation failed\n", id);
-+		kfree(pdata);
- 		return -ENOMEM;
- 	}
- 
-@@ -121,6 +122,7 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		break;
- 	default:
- 		WARN(1, "Invalid gpio bank_type\n");
-+		kfree(pdata->regs);
- 		kfree(pdata);
- 		return -EINVAL;
- 	}
+Regards,
+Florian
 
+[1] https://github.com/vaussard/linux.git (not safe for merge)
+
+
+Florian Vaussard (3):
+  gpio-twl4030: get platform data from device tree
+  gpio-twl4030: new dt properties for BeagleBoard and omap3-EVM
+  gpio-twl4030: updates the bindings for new dt properties
+
+ .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 ++
+ arch/arm/boot/dts/omap3-beagle.dts                 |   20 +++++
+ arch/arm/boot/dts/omap3-evm.dts                    |   13 +++
+ drivers/gpio/gpio-twl4030.c                        |   86 +++++++++++++------
+ 4 files changed, 98 insertions(+), 27 deletions(-)
+
+-- 
+1.7.5.4
 
