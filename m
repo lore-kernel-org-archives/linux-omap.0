@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Subject: [PATCH] spi: omap2-mcspi: Cleanup the omap2_mcspi_txrx_dma function
-Date: Mon, 3 Sep 2012 19:32:21 +0530
-Message-ID: <1346680941-7931-1-git-send-email-shubhrajyoti@ti.com>
+Date: Mon, 3 Sep 2012 19:35:03 +0530
+Message-ID: <1346681103-7981-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,11 +18,11 @@ To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently in omap2_mcspi_txrx_dma has the rx and the rx support
+Currently in omap2_mcspi_txrx_dma the tx and the rx support is
 interleaved. Make the rx related code in omap2_mcspi_rx_dma
-and the tx related code omap2_mcspi_tx_dma and call functions.
+and the tx related code omap2_mcspi_tx_dma and call the functions.
 
-While at it also remove the braces in the if statements which has only
+While at it remove the braces in the if statements which has only
 one line.
 Also fix ["foo * bar" to "foo *bar"] warn for the rx and tx variables.
 
