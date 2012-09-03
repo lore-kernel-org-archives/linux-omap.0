@@ -1,102 +1,54 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH 1/4] can: c_can: Adopt pinctrl support
-Date: Mon, 03 Sep 2012 22:42:04 +0200
-Message-ID: <5045161C.4000100@pengutronix.de>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com> <1346673139-14540-2-git-send-email-anilkumar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 1/3] ASoC: dmaengine: Don't use
+	runtime	private data for dmaengine data
+Date: Mon, 3 Sep 2012 21:43:25 +0100
+Message-ID: <20120903204325.GA728@n2100.arm.linux.org.uk>
+References: <20120903165832.GA31511@n2100.arm.linux.org.uk>
+ <E1T8ZzV-0002vp-2j@rmk-PC.arm.linux.org.uk> <5045124D.3050604@metafoo.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigD26EC89AE912B203349FC18E"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1346673139-14540-2-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, tony@atomide.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <5045124D.3050604@metafoo.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigD26EC89AE912B203349FC18E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Mon, Sep 03, 2012 at 10:25:49PM +0200, Lars-Peter Clausen wrote:
+> On 09/03/2012 06:59 PM, Liam Girdwood wrote:
+> > Use a dedicated member to store dmaengine data so that drivers can
+> > use private data for their own purposes.
+> > 
+> 
+> The idea was that we'll eventually get to a point where we won't need private
+> data for the drivers using the generic dmaengine code. But for the transitional
+> period there is snd_dmaengine_pcm_{set,get}_data which allows to attach driver
+> private data to the dmaengine pcm. For an example see how the other users of
+> dmaengine pcm handle this.
 
-On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
-> Adopt pinctrl support to c_can driver based on c_can device
-> pointer, pinctrl driver configure SoC pins to d_can mode
-> according to definitions provided in .dts file.
->=20
-> In device specific device tree file 'pinctrl-names =3D "default";'
-> and 'pinctrl-0 =3D <&d_can1_pins>;' needs to add to configure pins
-> from c_can driver. d_can1_pins node contains the pinmux/config
-> details of d_can L/H pins.
+That's fine if you are writing new drivers from scatch, or know the
+driver you're converting inside-out.  Neither applies here (I've
+struggled to do anything with the OMAP audio stuff for many many
+reasons.)
 
-Looks good, is the pinctrl property documented in the dt bindings already=
-?
+I rather wish that people who did know the OMAP ASoC driver had stepped
+up to this conversion, but alas they haven't.
 
-Marc
+In any case, if you want people to use the this soc-dmaengine helper
+then you have to make the conversion to it simple, and requiring
+everyone to totally restructure their drivers to use it does not make
+that process simple.
 
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  drivers/net/can/c_can/c_can_platform.c |    7 +++++++
->  1 file changed, 7 insertions(+)
->=20
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c=
-_can/c_can_platform.c
-> index 90801c4..c351975 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -33,6 +33,7 @@
->  #include <linux/of.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
-> =20
->  #include <linux/can/dev.h>
-> =20
-> @@ -98,6 +99,7 @@ static int __devinit c_can_plat_probe(struct platform=
-_device *pdev)
->  	struct c_can_priv *priv;
->  	const struct of_device_id *match;
->  	const struct platform_device_id *id;
-> +	struct pinctrl *pinctrl;
->  	struct resource *mem;
->  	int irq;
->  	struct clk *clk;
-> @@ -114,6 +116,11 @@ static int __devinit c_can_plat_probe(struct platf=
-orm_device *pdev)
->  		id =3D platform_get_device_id(pdev);
->  	}
-> =20
-> +	pinctrl =3D devm_pinctrl_get_select_default(&pdev->dev);
-> +	if (IS_ERR(pinctrl))
-> +		dev_warn(&pdev->dev,
-> +			"failed to configure pins from driver\n");
-> +
->  	/* get the appropriate clk */
->  	clk =3D clk_get(&pdev->dev, NULL);
->  	if (IS_ERR(clk)) {
->=20
-
-
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enigD26EC89AE912B203349FC18E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iEYEARECAAYFAlBFFhwACgkQjTAFq1RaXHNlSgCff/ftiJphR8hv71Udn+l7SDuG
-vV0An1p/rJaq+jE7Ksom4F7gn7hBVCbV
-=iLA6
------END PGP SIGNATURE-----
-
---------------enigD26EC89AE912B203349FC18E--
+What you have here is the result of several transformations to the
+driver, which would _not_ have been possible without this first patch
+from Liam.
