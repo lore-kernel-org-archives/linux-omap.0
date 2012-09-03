@@ -1,27 +1,62 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 4/9] ARM: OMAP2+: Remove unused nand_irq for GPMC
-Date: Mon, 3 Sep 2012 10:10:08 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9DC383@DBDE01.ent.ti.com>
-References: <20120831004828.28732.902.stgit@muffinssi.local>
- <20120831005228.28732.90454.stgit@muffinssi.local>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+Subject: [PATCH] gpio/omap: fix possible memory leak in omap2_gpio_dev_init()
+Date: Mon, 3 Sep 2012 18:13:33 +0800
+Message-ID: <CAPgLHd9A0-Esqt8D87RunMWFFG7uTCERksia26DSO1xw8OUfmg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59187 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756259Ab2ICKKY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Sep 2012 06:10:24 -0400
-In-Reply-To: <20120831005228.28732.90454.stgit@muffinssi.local>
-Content-Language: en-US
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:53398 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756236Ab2ICKNe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Sep 2012 06:13:34 -0400
+Received: by qcro28 with SMTP id o28so3263583qcr.19
+        for <linux-omap@vger.kernel.org>; Mon, 03 Sep 2012 03:13:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com, linux@arm.linux.org.uk
+Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SGkgVG9ueSwNCg0KT24gRnJpLCBBdWcgMzEsIDIwMTIgYXQgMDY6MjI6MjgsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQo+IFRoaXMgaXMgbm8gbG9uZ2VyIG5lZWRlZCBhbmQgYXNzdW1lcyBhIGZpeGVk
-IElSUSBudW1iZXINCj4gdGhhdCB3b24ndCB3b3JrIHdpdGggU1BBUlNFX0lSUS4NCg0KVGhpcyBj
-bGVhbnVwIHdhcyBvdmVybG9va2VkIGluIG10ZCBncG1jIGRyaXZlcg0KcHJlcGFyYXRpb24gc2Vy
-aWVzDQoNCkFja2VkLWJ5OiBBZnphbCBNb2hhbW1lZCA8YWZ6YWxAdGkuY29tPg0KDQpSZWdhcmRz
-DQpBZnphbA0K
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+pdata and pdata->regs have been allocated in this function and 
+should be freed before leaving it, and in the other error handling
+cases too.
+
+spatch with a semantic match is used to found this problem.
+(http://coccinelle.lip6.fr/)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ arch/arm/mach-omap2/gpio.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 9ad7d48..3bfa4bb 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -60,6 +60,7 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 	pdata->regs = kzalloc(sizeof(struct omap_gpio_reg_offs), GFP_KERNEL);
+ 	if (!pdata->regs) {
+ 		pr_err("gpio%d: Memory allocation failed\n", id);
++		kfree(pdata);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -121,6 +122,7 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid gpio bank_type\n");
++		kfree(pdata->regs);
+ 		kfree(pdata);
+ 		return -EINVAL;
+ 	}
+@@ -130,6 +132,7 @@ static int __init omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 
+ 	pdev = omap_device_build(name, id - 1, oh, pdata,
+ 				sizeof(*pdata),	NULL, 0, false);
++	kfree(pdata->regs);
+ 	kfree(pdata);
+ 
+ 	if (IS_ERR(pdev)) {
+
+
