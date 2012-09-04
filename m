@@ -1,45 +1,78 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC update 0/2] dmaengine/ASoC: omap: Enable
-	element mode in cyclic DMA
-Date: Wed, 05 Sep 2012 00:37:30 +0200
-Message-ID: <11245085.Nc6xDQ9liJ@acer>
-References: <E1T8a09-0002vz-Bl@rmk-PC.arm.linux.org.uk>
- <1346760482-12794-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1346760482-12794-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] drm/omap: hold a ref to the bo while waiting for flip
+Date: Tue,  4 Sep 2012 17:46:22 -0500
+Message-ID: <1346798782-22033-1-git-send-email-rob.clark@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50987 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757824Ab2IDWq0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Sep 2012 18:46:26 -0400
+Received: by yenl14 with SMTP id l14so1502228yen.19
+        for <linux-omap@vger.kernel.org>; Tue, 04 Sep 2012 15:46:26 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-On Tue, 4 Sep 2012 15:08:00 Peter Ujfalusi wrote:
-> Hi Russell,
-> 
-> Enable the element mode (thus allowing mono playback and probably unblocking
-> OMAP1, OMAP2420) in OMAP dmaengine and omap-pcm.
-> 
-> Janusz: would it be possible for you to test Russell's series plus this on
-> OMAP1 to make sure that we do not broke it?
+From: Rob Clark <rob@ti.com>
 
-Hi Peter, Russell,
-I'll be happy to make this test for you. This will take some time (I 
-work away from home), but I expect to have it done by Monday.
+Since the plane hasn't yet taken a reference, we need to hold a
+reference while waiting to ensure the backing GEM bo doesn't get
+freed from under us.
 
-BTW, I haven't been following OMAP development very closely last weeks, 
-and I didn't even know about the OMAP DMA engine availability. Which 
-Linux version should I base my test on? Would 3.6-rc be OK? Or l-o 
-master?
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ drivers/staging/omapdrm/omap_crtc.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-Thanks,
-Janusz
+diff --git a/drivers/staging/omapdrm/omap_crtc.c b/drivers/staging/omapdrm/omap_crtc.c
+index dade3de..732f2ad 100644
+--- a/drivers/staging/omapdrm/omap_crtc.c
++++ b/drivers/staging/omapdrm/omap_crtc.c
+@@ -155,6 +155,7 @@ static void page_flip_cb(void *arg)
+ 	struct drm_crtc *crtc = arg;
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
+ 	struct drm_framebuffer *old_fb = omap_crtc->old_fb;
++	struct drm_gem_object *bo;
+ 
+ 	omap_crtc->old_fb = NULL;
+ 
+@@ -165,6 +166,9 @@ static void page_flip_cb(void *arg)
+ 	 * cycle.. for now go for correctness and later figure out speed..
+ 	 */
+ 	omap_plane_on_endwin(omap_crtc->plane, vblank_cb, crtc);
++
++	bo = omap_framebuffer_bo(crtc->fb, 0);
++	drm_gem_object_unreference_unlocked(bo);
+ }
+ 
+ static int omap_crtc_page_flip_locked(struct drm_crtc *crtc,
+@@ -173,6 +177,7 @@ static int omap_crtc_page_flip_locked(struct drm_crtc *crtc,
+ {
+ 	struct drm_device *dev = crtc->dev;
+ 	struct omap_crtc *omap_crtc = to_omap_crtc(crtc);
++	struct drm_gem_object *bo;
+ 
+ 	DBG("%d -> %d", crtc->fb ? crtc->fb->base.id : -1, fb->base.id);
+ 
+@@ -185,8 +190,15 @@ static int omap_crtc_page_flip_locked(struct drm_crtc *crtc,
+ 	omap_crtc->event = event;
+ 	crtc->fb = fb;
+ 
+-	omap_gem_op_async(omap_framebuffer_bo(fb, 0), OMAP_GEM_READ,
+-			page_flip_cb, crtc);
++	/*
++	 * Hold a reference temporarily until the crtc is updated
++	 * and takes the reference to the bo.  This avoids it
++	 * getting freed from under us:
++	 */
++	bo = omap_framebuffer_bo(fb, 0);
++	drm_gem_object_reference(bo);
++
++	omap_gem_op_async(bo, OMAP_GEM_READ, page_flip_cb, crtc);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
