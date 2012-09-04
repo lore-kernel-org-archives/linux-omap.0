@@ -1,111 +1,72 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 0/3] gpio-twl4030: add new device tree properties
-Date: Tue, 4 Sep 2012 04:51:36 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAA073E@DBDE01.ent.ti.com>
-References: <1346680491-4211-1-git-send-email-florian.vaussard@epfl.ch>
- <5044BE79.4040100@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/5] ARM: OMAP: Few device tree patches for 3.7
+Date: Mon, 3 Sep 2012 22:24:09 -0700
+Message-ID: <CAMQu2gwa8f8PYZ7T_tYATVfh9LRaH7seD+aCZS_btn5oW9HCTg@mail.gmail.com>
+References: <1344855623-14879-1-git-send-email-santosh.shilimkar@ti.com>
+ <5035DC7C.2000105@ti.com> <5044C6E3.10304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <5044BE79.4040100-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:52202 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172Ab2IDFYb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Sep 2012 01:24:31 -0400
+Received: by obbwc20 with SMTP id wc20so29170437obb.1
+        for <linux-omap@vger.kernel.org>; Mon, 03 Sep 2012 22:24:29 -0700 (PDT)
+In-Reply-To: <5044C6E3.10304@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.or, tony@atomide.com
 
-On Mon, Sep 03, 2012 at 19:58:09, Cousson, Benoit wrote:
-> + Vaibhav for the omap3-evm
-> 
+On Mon, Sep 3, 2012 at 8:04 AM, Benoit Cousson <b-cousson@ti.com> wrote:
+>
+> Hi Santosh,
+>
+> Sorry for the delay, I missed that email :-(
+>
+> On 08/23/2012 09:32 AM, Santosh Shilimkar wrote:
+> > Benoit,
+> >
+> > On Monday 13 August 2012 04:30 PM, Santosh Shilimkar wrote:
+> >> These are the few device tree related patches which has been posted and
+> >> reviewed on the list. They are intended for 3.7 merge window but I am
+> >> posting them early enough to get into linux-next and linux-omap for
+> >> testing.
+> >>
+> >> The following changes since commit
+> >> 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
+> >>
+> >>    Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>    git://github.com/SantoshShilimkar/linux.git for_3.7/omap_dt
+> >>
+> >> for you to fetch changes up to
+> >> bedee5fcb18062dfc933e0971e67fd6889c6446d:
+> >>
+> >>    ARM: OMAP4: Add local timer support for Device Tree (2012-08-13
+> >> 11:59:26 +0530)
+> >>
+> >> ----------------------------------------------------------------
+> >> Aneesh V (3):
+> >>        dt: device tree bindings for LPDDR2 memories
+> >>        dt: emif: device tree bindings for TI's EMIF sdram controller
+> >>        ARM: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
+> >>
+> >> Santosh Shilimkar (2):
+> >>        ARM: OMAP4: Add L2 Cache Controller in Device Tree
+> >>        ARM: OMAP4: Add local timer support for Device Tree
+> >>
+> >
+> > Will you pull this series from above git url or do you want me to send
+> > a separate git pull request email ?
+>
+> I'll merge that branch on top of Sourav's and Peter's series and send
+> the pull request to Tony.
+>
+Thanks Benoit.
 
-Reviewing and testing it now...
-
-Thanks,
-Vaibhav
-
-
-> Hi Florian,
-> 
-> On 09/03/2012 03:54 PM, Florian Vaussard wrote:
-> > A number of platform data are missing when using twl4030/gpio from a
-> > device tree.
-> 
-> Yeah, I know, I was too lazy when I did the DT conversion at that time :-)
-> 
-> Many thanks for completing the work.
-> 
-> >  This patchset adds the missing properties, updates
-> > existing device trees and updates the documentation of bindings.
-> > It mainly enables LEDA and LEDB outputs, as well as pullups /
-> > pulldowns on GPIOs.
-> > 
-> > The 1st patch changes the device driver.
-> > The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
-> > The 3rd patch updates the documentation of bindings.
-> 
-> OK, that's a nit, but in general, you'd better introduce the binding
-> before using it.
-> 
-> The binding documentation could/should be updated along with the driver
-> change that does introduce the binding. You could just merged patch #1
-> and #3.
-> 
-> > Tested:
-> > - Boot tested on Gumstix Overo for "ti,use-leds". Corresponding
-> >   patch is not provided, as the device tree is not yet merged.
-> >   The support can be found in the git tree [1], branch
-> >   omap3-devel-dt-overo.
-> > - Device trees for BeagleBoard and omap3-evm were compiled, but not
-> >   tested on hardware.
-> > 
-> > Would someone be willing to test on BeagleBoard / omap3-evm?
-> 
-> I'll try to do it on Beagle. This is the least I can do since I did not
-> do the job myself :-)
-> 
-> I added vaibhav as well since I do not have any omap3-evm board.
-> 
-> > 
-> > Regards,
-> > Florian
-> > 
-> > [1] https://github.com/vaussard/linux.git (not safe for merge)
-> > 
-> > 
-> > Florian Vaussard (3):
-> >   gpio-twl4030: get platform data from device tree
-> >   gpio-twl4030: new dt properties for BeagleBoard and omap3-EVM
-> 
-> Nit #2: the DTS file does not belong to the gpio subsystem. So you
-> should prefix them using the *convention* for ARM DTS patches:
-> 
-> arm/dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
-> 
-> Or maybe "ARM: dts: " because it looks like most people are using that
-> nowadays.
-> 
-> The convention for the gpio directory is similar:
-> gpio/twl4030: get platform data from device tree
-> 
-> >   gpio-twl4030: updates the bindings for new dt properties
-> > 
-> >  .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 ++
-> >  arch/arm/boot/dts/omap3-beagle.dts                 |   20 +++++
-> >  arch/arm/boot/dts/omap3-evm.dts                    |   13 +++
-> >  drivers/gpio/gpio-twl4030.c                        |   86 +++++++++++++------
-> >  4 files changed, 98 insertions(+), 27 deletions(-)
-> 
-> Thanks,
-> Benoit
-> 
-> 
+Regards
+Santosh
