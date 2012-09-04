@@ -1,42 +1,82 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: dts: OMAP4: Cleanup and move GIC outside of the
- OCP node
-Date: Tue, 4 Sep 2012 13:30:12 +0200
-Message-ID: <5045E644.9000904@ti.com>
-References: <5044D8E5.5010705@ti.com> <CAMQu2gz7M7zWogTdCtR6K3n-9CPoLf7NO4a314WmKhN-BeXCiQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/4] i2c: introduce i2c-cbus driver
+Date: Tue, 4 Sep 2012 14:41:01 +0300
+Message-ID: <20120904114059.GC12901@arwen.pp.htv.fi>
+References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
+ <1346703805-31598-2-git-send-email-aaro.koskinen@iki.fi>
+ <20120904090506.GA12397@arwen.pp.htv.fi>
+ <20120904093142.GB855@harshnoise.musicnaut.iki.fi>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50775 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375Ab2IDLa1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Sep 2012 07:30:27 -0400
-In-Reply-To: <CAMQu2gz7M7zWogTdCtR6K3n-9CPoLf7NO4a314WmKhN-BeXCiQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120904093142.GB855@harshnoise.musicnaut.iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 09/04/2012 07:47 AM, Shilimkar, Santosh wrote:
-> On Mon, Sep 3, 2012 at 9:20 AM, Benoit Cousson <b-cousson@ti.com> wrote:
->> Remove a useless comment and move GIC controller outside
->> of the OCP node since it does use the MPU internal bus and
->> not the OCP.
->> This will not change the functionality but will reflect the
->> reality more accurately.
->>
->> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
->> ---
->>
-> Make sense.
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
 
-Thanks Santosh,
+--s9fJI615cBHmzTOP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'll update the patch with your ack are will add it after your series
-for Tony to pull.
+Hi,
 
-Thanks,
-Benoit
+On Tue, Sep 04, 2012 at 12:31:42PM +0300, Aaro Koskinen wrote:
+> On Tue, Sep 04, 2012 at 12:05:07PM +0300, Felipe Balbi wrote:
+> > > + * CBUS I2C driver for Nokia Internet Tablets.
+>=20
+> [...]
+>=20
+> > this version misses the entire IRQ handling we already had on linux-omap
+> > tree, so it's quite a regression.
+>=20
+> There's no interrupts used in plain CBUS protocol/communication I think?
+>=20
+> But Retu MFD supports the GPIO IRQ. I added the code for this set. And
+> the power button driver (patch 4/4) is using this functionality:
+>=20
+> # cat /proc/interrupts
+> [...]
+> 204:         29      GPIO  retu-mfd
+> 224:         29      RETU  retu-pwrbutton
+
+oops, indeed. My bad. I looked at the wrong patch. Nevermind, this
+series looks good to me.
+
+FWIW:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+(for entire series)
+
+--=20
+balbi
+
+--s9fJI615cBHmzTOP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQRejLAAoJEIaOsuA1yqREEDEP/i2+A73+lXSMBJ1v0+wHD4tf
+VnKNIZnyzf+a2zib0pwbX4BM0qnVggyzS7IycABWuDzychtulTvcPMqWcSxLF05U
+X6rJK3rRerkQp6XGEf8XfOGWmz3vph9wNZ2thG0rIiyPnLb33wmtFWZW/d6Zg6M0
+YpwnkxwFy1ZSP1DCEYEGAM9eoU+Tm9UHD+jm0ti5Wl0rTFKnMdMP6OHTDx3foH+7
+OutNtgHzsBUuNJ6Ew/2t5UEn+LaJjg7vWs9APCC+VY0QqGIlpeiOhh3n7MdCPs4t
+qtssIwtFqAmDeh9b4nRcXaetBTvKjN+XlfcghqypopBIFQv+ZGHNjgq3isTBFZN2
+1GiiSuFpHKbbfYJu0ZiZVRWNllMb8QUb+YPnz+lM5WqgtYgdtxExQQzm3Fj7DBwC
+mtDL0ZeD27Q9+vjPnIeiUejoLMwDb4JU72oZ5fpElZ6Qpi8jnUXaW0Tuvu6UphnZ
+coOl/Tc6tUy3B7S6b81UeKkohFVhHK9cArtwLSD095AHnwR+nCrMFLYcYFTGWO43
+O0kN4fINKx5HCElJSUlGi8Im68Zk4GL6NEXgNONItM/qHwkIbWXkp/Ytsepi7FMc
+mrkESrGKO8miVI+r1mJVB9IglHPojPKIeIywzi80e8lpetmFEPlvshGNP/ue4zd2
+KjhN9v4Yg5FW9vrR2/sJ
+=SGOg
+-----END PGP SIGNATURE-----
+
+--s9fJI615cBHmzTOP--
