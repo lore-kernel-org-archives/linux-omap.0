@@ -1,82 +1,143 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/4] i2c: introduce i2c-cbus driver
-Date: Tue, 4 Sep 2012 14:41:01 +0300
-Message-ID: <20120904114059.GC12901@arwen.pp.htv.fi>
-References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
- <1346703805-31598-2-git-send-email-aaro.koskinen@iki.fi>
- <20120904090506.GA12397@arwen.pp.htv.fi>
- <20120904093142.GB855@harshnoise.musicnaut.iki.fi>
+Subject: Re: [PATCH v3 00/23] OMAP UART patches
+Date: Tue, 4 Sep 2012 14:45:41 +0300
+Message-ID: <20120904114540.GF12901@arwen.pp.htv.fi>
+References: <1345717983-18179-1-git-send-email-balbi@ti.com>
+ <20120824104045.GC5172@arwen.pp.htv.fi>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="+jhVVhN62yS6hEJ8"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120904093142.GB855@harshnoise.musicnaut.iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
+In-Reply-To: <20120824104045.GC5172@arwen.pp.htv.fi>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Greg KH <gregkh@linuxfoundation.org>
 List-Id: linux-omap@vger.kernel.org
 
 
---s9fJI615cBHmzTOP
+--+jhVVhN62yS6hEJ8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Tue, Sep 04, 2012 at 12:31:42PM +0300, Aaro Koskinen wrote:
-> On Tue, Sep 04, 2012 at 12:05:07PM +0300, Felipe Balbi wrote:
-> > > + * CBUS I2C driver for Nokia Internet Tablets.
->=20
-> [...]
->=20
-> > this version misses the entire IRQ handling we already had on linux-omap
-> > tree, so it's quite a regression.
->=20
-> There's no interrupts used in plain CBUS protocol/communication I think?
->=20
-> But Retu MFD supports the GPIO IRQ. I added the code for this set. And
-> the power button driver (patch 4/4) is using this functionality:
->=20
-> # cat /proc/interrupts
-> [...]
-> 204:         29      GPIO  retu-mfd
-> 224:         29      RETU  retu-pwrbutton
+On Fri, Aug 24, 2012 at 01:40:47PM +0300, Felipe Balbi wrote:
+> Forgot to Cc greg initially, my bad
 
-oops, indeed. My bad. I looked at the wrong patch. Nevermind, this
-series looks good to me.
+a gentle ping on this series so we don't miss it for v3.7 merge window.
 
-FWIW:
+Greg, let me know if you need me to resend.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+cheers
 
-(for entire series)
+> On Thu, Aug 23, 2012 at 01:32:40PM +0300, Felipe Balbi wrote:
+> > Hi guys,
+> >=20
+> > here's v3 and hopefully final version of this series. A whole bunch of =
+new
+> > patches added but the good thing is that now I had another engineer's h=
+elp to
+> > test, so he's got his Tested-by in all patches.
+> >=20
+> > Changes since v2:
+> > 	. Added a bunch of new patches
+> > 	. Fixed a problem where we would always return IRQ_NONE even though we
+> > 		handled IRQ
+> >=20
+> > Changes since v1:
+> >         . improved commit log on patch 9/13 (formerly 10/13)
+> >         . removed patch 2/13
+> >         . added a new patch switching from spin_lock_irqsave() to spin_=
+lock and
+> >                 spin_unlock_irqrestore to spin_unlock
+> >=20
+> > Alan, if you prefer in pull request form, here it is:
+> >=20
+> > The following changes since commit d9875690d9b89a866022ff49e3fcea892345=
+ad92:
+> >=20
+> >   Linux 3.6-rc2 (2012-08-16 14:51:24 -0700)
+> >=20
+> > are available in the git repository at:
+> >=20
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git uart
+> >=20
+> > for you to fetch changes up to a29230f14d8466c9b8c25171715378bf52189453:
+> >=20
+> >   serial: omap: enable RX and TX FIFO usage (2012-08-23 09:25:16 +0300)
+> >=20
+> > ----------------------------------------------------------------
+> > Felipe Balbi (20):
+> >       serial: omap: define and use to_uart_omap_port()
+> >       serial: omap: define helpers for pdata function pointers
+> >       serial: omap: don't access the platform_device
+> >       serial: omap: drop DMA support
+> >       serial: add OMAP-specific defines
+> >       serial: omap: simplify IRQ handling
+> >       serial: omap: refactor receive_chars() into rdi/rlsi handlers
+> >       serial: omap: move THRE check to transmit_chars()
+> >       serial: omap: stick to put_autosuspend
+> >       serial: omap: set dev->drvdata before enabling pm_runtime
+> >       serial: omap: drop unnecessary check from remove
+> >       serial: omap: make sure to suspend device before remove
+> >       serial: omap: don't save IRQ flags on hardirq
+> >       serial: omap: optimization with section annotations
+> >       serial: omap: drop "inline" from IRQ handler prototype
+> >       serial: omap: implement set_wake
+> >       serial: omap: make sure to put() on poll_get_char
+> >       serial: omap: remove unnecessary header and add a missing one
+> >       serial: omap: move uart_omap_port definition to C file
+> >       serial: omap: enable RX and TX FIFO usage
+> >=20
+> > Ruchika Kharwar (2):
+> >       serial: omap: fix sequence of pm_runtime_* calls.
+> >       serial: omap: unlock the port lock
+> >=20
+> > Vikram Pandita (1):
+> >       serial: omap: fix software flow control
+> >=20
+> >  arch/arm/mach-omap2/serial.c                  |  15 +-
+> >  arch/arm/plat-omap/include/plat/omap-serial.h |  47 +-
+> >  drivers/tty/serial/omap-serial.c              | 808 ++++++++++--------=
+--------
+> >  include/linux/serial_reg.h                    |   4 +
+> >  4 files changed, 330 insertions(+), 544 deletions(-)
+> >=20
+> > --=20
+> > 1.7.12.rc3
+> >=20
+>=20
+> --=20
+> balbi
+
+
 
 --=20
 balbi
 
---s9fJI615cBHmzTOP
+--+jhVVhN62yS6hEJ8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQRejLAAoJEIaOsuA1yqREEDEP/i2+A73+lXSMBJ1v0+wHD4tf
-VnKNIZnyzf+a2zib0pwbX4BM0qnVggyzS7IycABWuDzychtulTvcPMqWcSxLF05U
-X6rJK3rRerkQp6XGEf8XfOGWmz3vph9wNZ2thG0rIiyPnLb33wmtFWZW/d6Zg6M0
-YpwnkxwFy1ZSP1DCEYEGAM9eoU+Tm9UHD+jm0ti5Wl0rTFKnMdMP6OHTDx3foH+7
-OutNtgHzsBUuNJ6Ew/2t5UEn+LaJjg7vWs9APCC+VY0QqGIlpeiOhh3n7MdCPs4t
-qtssIwtFqAmDeh9b4nRcXaetBTvKjN+XlfcghqypopBIFQv+ZGHNjgq3isTBFZN2
-1GiiSuFpHKbbfYJu0ZiZVRWNllMb8QUb+YPnz+lM5WqgtYgdtxExQQzm3Fj7DBwC
-mtDL0ZeD27Q9+vjPnIeiUejoLMwDb4JU72oZ5fpElZ6Qpi8jnUXaW0Tuvu6UphnZ
-coOl/Tc6tUy3B7S6b81UeKkohFVhHK9cArtwLSD095AHnwR+nCrMFLYcYFTGWO43
-O0kN4fINKx5HCElJSUlGi8Im68Zk4GL6NEXgNONItM/qHwkIbWXkp/Ytsepi7FMc
-mrkESrGKO8miVI+r1mJVB9IglHPojPKIeIywzi80e8lpetmFEPlvshGNP/ue4zd2
-KjhN9v4Yg5FW9vrR2/sJ
-=SGOg
+iQIcBAEBAgAGBQJQRenkAAoJEIaOsuA1yqREBVcP/is/q8bsHKbEbwVcFSYN1nlM
+eJe8OjNgmo+gRA5bQtLTTkXoV8SXsO2ipBDN8hjczGbTc33eErklLe0uVYD3LgQN
+Qh74/voD5n7KBHXt8PhMSLQjglMIXoWqP+qCum6ZRvNsguzkqbt3D2LCfeNwSg/d
+sELZOX+ajkDo4cUQ+SHTrmWUFSKpt/kdD3KxGZUnsChVpY/BxEsLPq9wZjIyk9BS
+CtoY8yLDhA2zxcEYv12GchoDAKEPIBKkEt42lDBXNLz6kDLRiDhYK7YYpL9x12Nw
+GJwQodRZbSJkqNlO6VgGNy+SccLa8Frz1LLYyUA/lzxXQIoEzmNBLcFKRWgWr1kv
+Tag0Qj/Nh8Ie7oe1j9UzJgEojYArRqtosKQ36jiKWxK6iP3EloRE6jBO+c3oUL8u
+OxLR/FOYGdWencWwdAkdCWCNsUgVX5LMlpyTYBfxNR3kEvANFtoUPo6koF5XRHzK
+DuzsUpd19C22jmbc7ohToZZzKIvPnsB/D0ZbfH0ZeQVwvk2iuWKcG6yhOV4oDh2G
+RXGP8rTPXj+daUTYQfL3aBwu71dOq2Uy2ymd2jvKDjDlev9JY3HP/cSC4lInw2aD
+3VW6v3T5QM9MDhVxW5QBRD+MXZ58ma42a6HD48w9ltpX8DNOxTxy/NiZzyQ0+9z3
+dP3lEps0ybJcwgTKX73J
+=zWYQ
 -----END PGP SIGNATURE-----
 
---s9fJI615cBHmzTOP--
+--+jhVVhN62yS6hEJ8--
