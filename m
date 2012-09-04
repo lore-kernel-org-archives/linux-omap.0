@@ -1,142 +1,72 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Tue, 4 Sep 2012 18:39:11 +0530
-Message-ID: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
+From: "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v9 01/13] usb: musb: dsps: add phy control logic to glue
+Date: Tue, 4 Sep 2012 14:04:15 +0000
+Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63E9F56A7@DBDE01.ent.ti.com>
+References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+ <1346411399-23964-2-git-send-email-ravibabu@ti.com>
+ <20120831122342.GC24861@arwen.pp.htv.fi>
+ <CAAe_U6LaCiEPB9ET26j2xjLtumKzJGu+CtW=fK_02d30Z-3BgQ@mail.gmail.com>
+ <20120831131915.GA25341@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, svenkatr@ti.com
-Cc: rob.herring@calxeda.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, cjb@laptop.org, nsekhar@ti.com, sudhakar.raj@ti.com, gururaja.hebbar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120831131915.GA25341-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-on the HSMMC IP timing closure done for the high speed cards.
+> On Fri, Aug 31, 2012 at 06:51:04PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> > Hi,
+> > 
+> > On Fri, Aug 31, 2012 at 5:53 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> > > Hi,
+> > >
+> > > On Fri, Aug 31, 2012 at 04:39:47PM +0530, Ravi Babu wrote:
+> > >> From: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
+> > >>
+> > >> AM335x uses NOP transceiver driver and need to enable 
+> builtin PHY 
+> > >> by writing into usb_ctrl register available in system control 
+> > >> module register space. This is being added at musb glue driver 
+> > >> layer untill a separate system control module driver is 
+> available.
+> > >>
+> > >> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> > >> Signed-off-by: Santhapuri, Damodar <damodar.santhapuri-l0cyMroinI0@public.gmane.org>
+> > >> Signed-off-by: Ravi Babu <ravibabu-l0cyMroinI0@public.gmane.org>
+> > >
+> > > Kishon, you were adding a real phy driver for OMAP's internal phy 
+> > > logic on one of your patches and I believe this will 
+> conflict with 
+> > > your changes, right ?
+> > 
+> > Indeed. My final patch of that series removes some of the functions 
+> > from omap_phy_internal.c (which was taken care in the phy driver).
+> > >
+> > > How does this look to you ? Is this at least correct ? I 
+> suppose the 
+> > > correct way would be to actually have the system control module 
+> > > driver which we have been waiting, right ?
+> > 
+> > Correct. I think once we have the system control module driver in 
+> > place, we'll have everything wrt control module register writes 
+> > implemented in correct way.
+> 
+> So $SUBJECT will pretty much be thrown away once we have SCM 
+> driver, in that case it's best to wait a bit longer and apply 
+> this series once SCM driver is available and after your 
+> series too... you agree ?
+> 
 
->From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+Felipe, I am sure there are patches in this series[0/13], which are not dependent on this patch or control module,
+Can we pull in those patches (all dual instances support patches)? So that I can re-work and submit again? 
 
-The MMC/SD/SDIO output signals can be driven on either falling edge or
-rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-to reach better timing performance, and thus to increase data transfer
-frequency.
-
-There are few pre-requisites for enabling the HSPE bit
-- Controller should support High-Speed-Enable Bit and
-- Controller should not be using DDR Mode and
-- Controller should advertise that it supports High Speed in
-  capabilities register and
-- MMC/SD clock coming out of controller > 25MHz
-
-Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
----
-:100644 100644 be76a23... ed271fc... M	Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-:100644 100644 eb3e4d5... 00c658b... M	arch/arm/plat-omap/include/plat/mmc.h
-:100644 100644 c3e96a2... 0e14834... M	drivers/mmc/host/omap_hsmmc.c
- .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |    1 +
- arch/arm/plat-omap/include/plat/mmc.h              |    1 +
- drivers/mmc/host/omap_hsmmc.c                      |   30 +++++++++++++++++++-
- 3 files changed, 31 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-index be76a23..ed271fc 100644
---- a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-+++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-@@ -19,6 +19,7 @@ ti,dual-volt: boolean, supports dual voltage cards
- "supply-name" examples are "vmmc", "vmmc_aux" etc
- ti,non-removable: non-removable slot (like eMMC)
- ti,needs-special-reset: Requires a special softreset sequence
-+ti,needs-special-hs-handling: HSMMC IP needs special setting for handling High Speed
- 
- Example:
- 	mmc1: mmc@0x4809c000 {
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index eb3e4d5..00c658b 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -127,6 +127,7 @@ struct omap_mmc_platform_data {
- 		/* we can put the features above into this variable */
- #define HSMMC_HAS_PBIAS		(1 << 0)
- #define HSMMC_HAS_UPDATED_RESET	(1 << 1)
-+#define HSMMC_HAS_HSPE_SUPPORT	(1 << 2)
- 		unsigned features;
- 
- 		int switch_pin;			/* gpio (card detect) */
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index c3e96a2..0e14834 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -63,6 +63,7 @@
- 
- #define VS18			(1 << 26)
- #define VS30			(1 << 25)
-+#define HSS			(1 << 21)
- #define SDVS18			(0x5 << 9)
- #define SDVS30			(0x6 << 9)
- #define SDVS33			(0x7 << 9)
-@@ -90,6 +91,7 @@
- #define MSBS			(1 << 5)
- #define BCE			(1 << 1)
- #define FOUR_BIT		(1 << 1)
-+#define HSPE			(1 << 2)
- #define DDR			(1 << 19)
- #define DW8			(1 << 5)
- #define CC			0x1
-@@ -490,6 +492,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 	struct mmc_ios *ios = &host->mmc->ios;
- 	unsigned long regval;
- 	unsigned long timeout;
-+	unsigned long clkdiv;
- 
- 	dev_vdbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
- 
-@@ -497,7 +500,8 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 
- 	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
- 	regval = regval & ~(CLKD_MASK | DTO_MASK);
--	regval = regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
-+	clkdiv = calc_divisor(host, ios);
-+	regval = regval | (clkdiv << 6) | (DTO << 16);
- 	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
- 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
- 		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-@@ -508,6 +512,27 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
- 		&& time_before(jiffies, timeout))
- 		cpu_relax();
- 
-+	/*
-+	 * Enable High-Speed Support
-+	 * Pre-Requisites
-+	 *	- Controller should support High-Speed-Enable Bit
-+	 *	- Controller should not be using DDR Mode
-+	 *	- Controller should advertise that it supports High Speed
-+	 *	  in capabilities register
-+	 *	- MMC/SD clock coming out of controller > 25MHz
-+	 */
-+	if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
-+	    (ios->timing != MMC_TIMING_UHS_DDR50) &&
-+	    ((OMAP_HSMMC_READ(host->base, CAPA) & HSS) == HSS)) {
-+		regval = OMAP_HSMMC_READ(host->base, HCTL);
-+		if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
-+			regval |= HSPE;
-+		else
-+			regval &= ~HSPE;
-+
-+		OMAP_HSMMC_WRITE(host->base, HCTL, regval);
-+	}
-+
- 	omap_hsmmc_start_clock(host);
- }
- 
-@@ -1701,6 +1726,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
- 	if (of_find_property(np, "ti,needs-special-reset", NULL))
- 		pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
- 
-+	if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-+		pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
-+
- 	return pdata;
- }
- #else
--- 
-1.7.1
+> --
+> balbi
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
