@@ -1,23 +1,51 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH v2] of: Modify c_can binding documentation
-Date: Tue, 04 Sep 2012 09:35:17 -0600
-Message-ID: <50461FB5.3050908@wwwdotorg.org>
-References: <1346648074-27025-1-git-send-email-anilkumar@ti.com>
+From: Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH 0/4] cbus/retu drivers to mainline
+Date: Tue, 4 Sep 2012 18:09:38 +0200
+Message-ID: <20120904160938.GB4361@Jack.Whiskey>
+References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1346648074-27025-1-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 09/02/2012 10:54 PM, AnilKumar Ch wrote:
-> Modify c_can binding documentation according to recent review comments
-> on device tree data addition patches.
+Hi Aaro,
+
+On Mon, Sep 03, 2012 at 11:23:21PM +0300, Aaro Koskinen wrote:
+> This patch set introduces drivers for CBUS access and Retu multifunction
+> chip found on Nokia Internet Tablets (770, N800, N810). It would be
+> nice get these patches applied as the functionality of these devices is
+> severely lacking without Retu. E.g. watchdog support is mandatory at
+> least on Nokia N800, you cannot currently run the mainline kernel for
+> longer than ~60 seconds (there is no way to disable the watchdog).
 > 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> Drivers originate from linux-omap cbus branch and have been cleaned
+> up/rewritten around i2c and MFD core.
+> 
+> Patches have been tested on top of 3.6-rc4 with Nokia N800 (watchdog
+> feeding works, power off shuts down the device, power button triggers
+> IRQs and input events).
+> 
+> Changes since the RFC version
+> (http://marc.info/?l=linux-omap&m=134618967116737&w=2):
+> 	- added DT support for getting i2c-cbus GPIO pins
+> 	- merged n8x0 board file changes into i2c-cbus patch
+> 	- corrected typo in Kconfig for MFD_RETU
+> 	- added power off functionality to retu-mfd
+> 	- added IRQ functionality to retu-mfd
+> 	- added power button key driver
+> 	- some cleanups
+> 
+> Aaro Koskinen (4):
+>   i2c: introduce i2c-cbus driver
+>   mfd: introduce retu-mfd driver
+>   watchdog: introduce retu_wdt driver
+>   input: misc: introduce retu-pwrbutton
 
-Reviewed-by: Stephen Warren <swarren@nvidia.com>
+I had a look to the patches 1, 2 and 4, so for them
 
+Reviewed-by: Andi Shyti <andi@etezian.org>
