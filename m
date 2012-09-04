@@ -1,95 +1,111 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Without MACH_ option Early printk (DEBUG_LL)
-Date: Tue, 4 Sep 2012 04:27:27 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAA06A9@DBDE01.ent.ti.com>
-References: <5040D03B.2050304@ti.com>
- <20120831171336.GA6978@n2100.arm.linux.org.uk>
- <79CD15C6BA57404B839C016229A409A83EA9EC8B@DBDE01.ent.ti.com>
- <alpine.LFD.2.02.1208311422450.1784@xanadu.home>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC099@DBDE01.ent.ti.com>
- <alpine.LFD.2.02.1209032201451.1784@xanadu.home>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 0/3] gpio-twl4030: add new device tree properties
+Date: Tue, 4 Sep 2012 04:51:36 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAA073E@DBDE01.ent.ti.com>
+References: <1346680491-4211-1-git-send-email-florian.vaussard@epfl.ch>
+ <5044BE79.4040100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55941 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750793Ab2IDE1p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Sep 2012 00:27:45 -0400
-In-Reply-To: <alpine.LFD.2.02.1209032201451.1784@xanadu.home>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <5044BE79.4040100-l0cyMroinI0@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>, "Mohammed, Afzal" <afzal@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Sep 04, 2012 at 07:34:21, Nicolas Pitre wrote:
-> On Mon, 3 Sep 2012, Mohammed, Afzal wrote:
-> 
-> > Hi,
-> > 
-> > On Fri, Aug 31, 2012 at 23:53:32, Nicolas Pitre wrote:
-> > > On Fri, 31 Aug 2012, Hiremath, Vaibhav wrote:
-> > > > On Fri, Aug 31, 2012 at 22:43:36, Russell King - ARM Linux wrote:
-> > > > > On Fri, Aug 31, 2012 at 08:24:51PM +0530, Vaibhav Hiremath wrote:
-> > 
-> > > > > > AM335X EVM (based on AM33XX device) only supports DT boot mode and
-> > > > > > doesn't have CONFIG_MACH_AM335XEVM option defined. Some time back during
-> > > > > > baseport submission we had aligned that, we won't create separate EVM
-> > > > > > options, killing the board file all-together.
-> > > > > > 
-> > > > > > Having said that, the early printk option (DEBUG_LL) is broken, the
-> > > > > > auto-generated file "./include/generated/mach-types.h" still refers to
-> > > > > > CONFIG_MACH_AM335XEVM option,
-> > > > > machine types are entirely meaningless for DT based systems.
-> > > > > 
-> > > > > > Can you comment on this? Based on that I will submit the patch.
-> > > > > 
-> > > > > Pointless.  You can't use machine_is_am335xevm() when you're using DT.
-> > > > > 
-> > > > 
-> > > > They how do you recommend to resolve early prink issue (required during 
-> > > > decompression)?
-> > > 
-> > > Right now the best you can do is to have empty stubs that display 
-> > > nothing.
-> > 
-> > Won't having compile time selection of debug uart over machine based
-> > runtime detection help here ?
-> 
-> It certainly would.  But then your kernel won't run on anything but the 
-> specific machine for which the compile time UART selection was made.  As 
-> soon as you have more than one possible UART config for the set of 
-> machines you want your kernel binary to run on, you'll have to give up 
-> on the early output during kernel decompression.
-> 
+On Mon, Sep 03, 2012 at 19:58:09, Cousson, Benoit wrote:
+> + Vaibhav for the omap3-evm
 > 
 
-Yes, I understand that, here at this early stage things are very tricky and 
-difficult to handle.
-
-Yeah certainly we can ignore this and give up on early output, but just 
-would like to make sure that we explore all options and drop it.
-
-Isn't defining something below should solve the purpose, without breaking 
-anything,
-
-am335xevm        SOC_AM33XX          AM335XEVM         3589
-
-It just says, AM33XX based machines (AM335XEVM, Bone and others) depends on
-CONFIG_SOC_AM33XX. Does it break anything? May be I am missing something 
-here.
-
-Also, I was looking at some other platforms and architectures, some of them 
-are trying to detect the uart port runtime, by checking for,
-
-	- Which UART is enabled/clocked (most likely by bootloader)?
-	- Does it configured or brought out of reset?
-
-This brings-in more complexity at this early stage and not sure we really 
-should go down to this patch, assuming the various flavors of devices and 
-architectures we have currently.
-
+Reviewing and testing it now...
 
 Thanks,
 Vaibhav
+
+
+> Hi Florian,
+> 
+> On 09/03/2012 03:54 PM, Florian Vaussard wrote:
+> > A number of platform data are missing when using twl4030/gpio from a
+> > device tree.
+> 
+> Yeah, I know, I was too lazy when I did the DT conversion at that time :-)
+> 
+> Many thanks for completing the work.
+> 
+> >  This patchset adds the missing properties, updates
+> > existing device trees and updates the documentation of bindings.
+> > It mainly enables LEDA and LEDB outputs, as well as pullups /
+> > pulldowns on GPIOs.
+> > 
+> > The 1st patch changes the device driver.
+> > The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
+> > The 3rd patch updates the documentation of bindings.
+> 
+> OK, that's a nit, but in general, you'd better introduce the binding
+> before using it.
+> 
+> The binding documentation could/should be updated along with the driver
+> change that does introduce the binding. You could just merged patch #1
+> and #3.
+> 
+> > Tested:
+> > - Boot tested on Gumstix Overo for "ti,use-leds". Corresponding
+> >   patch is not provided, as the device tree is not yet merged.
+> >   The support can be found in the git tree [1], branch
+> >   omap3-devel-dt-overo.
+> > - Device trees for BeagleBoard and omap3-evm were compiled, but not
+> >   tested on hardware.
+> > 
+> > Would someone be willing to test on BeagleBoard / omap3-evm?
+> 
+> I'll try to do it on Beagle. This is the least I can do since I did not
+> do the job myself :-)
+> 
+> I added vaibhav as well since I do not have any omap3-evm board.
+> 
+> > 
+> > Regards,
+> > Florian
+> > 
+> > [1] https://github.com/vaussard/linux.git (not safe for merge)
+> > 
+> > 
+> > Florian Vaussard (3):
+> >   gpio-twl4030: get platform data from device tree
+> >   gpio-twl4030: new dt properties for BeagleBoard and omap3-EVM
+> 
+> Nit #2: the DTS file does not belong to the gpio subsystem. So you
+> should prefix them using the *convention* for ARM DTS patches:
+> 
+> arm/dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
+> 
+> Or maybe "ARM: dts: " because it looks like most people are using that
+> nowadays.
+> 
+> The convention for the gpio directory is similar:
+> gpio/twl4030: get platform data from device tree
+> 
+> >   gpio-twl4030: updates the bindings for new dt properties
+> > 
+> >  .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 ++
+> >  arch/arm/boot/dts/omap3-beagle.dts                 |   20 +++++
+> >  arch/arm/boot/dts/omap3-evm.dts                    |   13 +++
+> >  drivers/gpio/gpio-twl4030.c                        |   86 +++++++++++++------
+> >  4 files changed, 98 insertions(+), 27 deletions(-)
+> 
+> Thanks,
+> Benoit
+> 
+> 
