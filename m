@@ -1,36 +1,99 @@
-From: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 1/4] i2c: introduce i2c-cbus driver
-Date: Tue, 4 Sep 2012 12:31:42 +0300
-Message-ID: <20120904093142.GB855@harshnoise.musicnaut.iki.fi>
-References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
- <1346703805-31598-2-git-send-email-aaro.koskinen@iki.fi>
- <20120904090506.GA12397@arwen.pp.htv.fi>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Tue, 4 Sep 2012 12:17:59 +0200
+Message-ID: <5045D557.30404@ti.com>
+References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120904090506.GA12397-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46322 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752810Ab2IDKSP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Sep 2012 06:18:15 -0400
+In-Reply-To: <504578B3.3090804@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Sep 04, 2012 at 12:05:07PM +0300, Felipe Balbi wrote:
-> > + * CBUS I2C driver for Nokia Internet Tablets.
+Hi Vaibhav,
 
-[...]
+On 09/04/2012 05:42 AM, Vaibhav Hiremath wrote:
+> On 9/3/2012 8:16 PM, Benoit Cousson wrote:
+>> Hi Peter,
+>>
+>> The overall series looks good to me, but I do have a couple of comments.
+>>
+>> On 08/29/2012 03:31 PM, Peter Ujfalusi wrote:
+>>> The McBSP IP within OMAP2420 and 2430 is different we need to create separate
+>>> dtsi files for them.
+>>>
+>>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>>> ---
+>>>  arch/arm/boot/dts/omap2420.dtsi |   39 ++++++++++++++++++
+>>>  arch/arm/boot/dts/omap2430.dtsi |   83 +++++++++++++++++++++++++++++++++++++++
+>>>  2 files changed, 122 insertions(+), 0 deletions(-)
+>>>  create mode 100644 arch/arm/boot/dts/omap2420.dtsi
+>>>  create mode 100644 arch/arm/boot/dts/omap2430.dtsi
+>>>
+>>> diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+>>> new file mode 100644
+>>> index 0000000..f375c68
+>>> --- /dev/null
+>>> +++ b/arch/arm/boot/dts/omap2420.dtsi
+>>> @@ -0,0 +1,39 @@
+>>> +/*
+>>> + * Device Tree Source for OMAP2420 SoC
+>>> + *
+>>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>>
+>> Nit: 2012
+>>
+>>> + *
+>>> + * This file is licensed under the terms of the GNU General Public License
+>>> + * version 2.  This program is licensed "as is" without any warranty of any
+>>> + * kind, whether express or implied.
+>>> + */
+>>> +
+>>> +/include/ "omap2.dtsi"
+>>> +
+>>> +/ {
+>>> +	compatible = "ti,omap2420", "ti,omap2";
+>>> +
+>>> +	ocp {
+>>> +		mcbsp1: mcbsp@48074000 {
+>>> +			compatible = "ti,omap2420-mcbsp";
+>>> +			reg = <0x48074000 0xff>;
+>>> +			reg-names = "mpu";
+>>> +			interrupts = <0 59 0x4>, /* TX interrupt */
+>>> +				     <0 60 0x4>; /* RX interrupt */
+>>
+>> That one is not correct because it does comply with the interrupt
+>> controller specifier that require only one cell:
+>>
+>> 		intc: interrupt-controller@48200000 {
+>> 			compatible = "ti,omap2-intc";
+>> 			interrupt-controller;
+>> 			#interrupt-cells = <1>;
+>> ...
+>>
+>> The one you are using is for GIC IRQ controller.
+>> It works probably because we are using hwmod so far :-)
+>>
+> 
+> I think now we should kill the resource overwrite path, and should
+> respect and use resources passed from DT.
+> 
+> Benoit,
+> Did you get a chance to validate patch submitted towards this??
 
-> this version misses the entire IRQ handling we already had on linux-omap
-> tree, so it's quite a regression.
+Not yet, but we discussed that with Peter and since he does have these
+patches for DT, he'll be able to test your series with the McBSP changes.
 
-There's no interrupts used in plain CBUS protocol/communication I think?
+I still want to update a couple of DTS to test that on some other IPs.
 
-But Retu MFD supports the GPIO IRQ. I added the code for this set. And
-the power button driver (patch 4/4) is using this functionality:
+Regards,
+Benoit
 
-# cat /proc/interrupts
-[...]
-204:         29      GPIO  retu-mfd
-224:         29      RETU  retu-pwrbutton
-
-A.
