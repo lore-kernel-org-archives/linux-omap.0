@@ -1,50 +1,61 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 1/4] can: c_can: Adopt pinctrl support
-Date: Tue, 4 Sep 2012 08:34:11 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA26482@DBDE01.ent.ti.com>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com>
- <1346673139-14540-2-git-send-email-anilkumar@ti.com>
- <5045161C.4000100@pengutronix.de>
- <331ABD5ECB02734CA317220B2BBEABC13EA2630A@DBDE01.ent.ti.com>
- <5045B0D9.6060003@pengutronix.de>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 7/9] ARM: OMAP2+: Prepare for irqs.h removal
+Date: Tue, 4 Sep 2012 08:46:21 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9DC9F4@DBDE01.ent.ti.com>
+References: <20120831004828.28732.902.stgit@muffinssi.local>
+ <20120831005237.28732.96766.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <5045B0D9.6060003@pengutronix.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40101 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753953Ab2IDIqb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Sep 2012 04:46:31 -0400
+In-Reply-To: <20120831005237.28732.96766.stgit@muffinssi.local>
 Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "tony@atomide.com" <tony@atomide.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Tue, Sep 04, 2012 at 13:12:17, Marc Kleine-Budde wrote:
-> On 09/04/2012 08:14 AM, AnilKumar, Chimata wrote:
-> > Hi Marc,
-> > 
-> > On Tue, Sep 04, 2012 at 02:12:04, Marc Kleine-Budde wrote:
-> >> On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
-> >>> Adopt pinctrl support to c_can driver based on c_can device
-> >>> pointer, pinctrl driver configure SoC pins to d_can mode
-> >>> according to definitions provided in .dts file.
-> >>>
-> >>> In device specific device tree file 'pinctrl-names = "default";'
-> >>> and 'pinctrl-0 = <&d_can1_pins>;' needs to add to configure pins
-> >>> from c_can driver. d_can1_pins node contains the pinmux/config
-> >>> details of d_can L/H pins.
-> >>
-> >> Looks good, is the pinctrl property documented in the dt bindings already?
-> >>
-> > 
-> > Yes, its here Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt
-> 
-> Sorry, I meant not the generic pinctrl, but the c_can/d_can bindings
-> documentation (Documentation/devicetree/bindings/net/can/).
-> 
-
-No, I have not included because those are pinctrl driver specific
-bindings. If the SoC supports pinmux/conf feature then those should
-be added according to pinctrl driver. If the SoC is not supported pinmux/config then this configuration is not required.
-
-Thanks
-AnilKumar
+SGkgVG9ueSwNCg0KT24gRnJpLCBBdWcgMzEsIDIwMTIgYXQgMDY6MjI6MzcsIFRvbnkgTGluZGdy
+ZW4gd3JvdGU6DQo+IEFzIHRoZSBpbnRlcnJ1cHRzIHNob3VsZCBvbmx5IGJlIGRlZmluZWQgaW4g
+dGhlIHBsYXRmb3JtX2RhdGEsIGFuZA0KPiBldmVudHVhbGx5IGNvbWluZyBmcm9tIGRldmljZSB0
+cmVlLCB0aGVyZSdzIG5vIG5lZWQgdG8gZGVmaW5lIHRoZW0NCj4gaW4gaGVhZGVyIGZpbGVzLg0K
+PiANCj4gTGV0J3MgcmVtb3ZlIHRoZSBoYXJkY29kZWQgcmVmZXJlbmNlcyB0byBpcnFzLmggYW5k
+IGZpeCB1cCB0aGUgaW5jbHVkZXMNCj4gc28gd2UgZG9uJ3QgcmVseSBvbiBoZWFkZXJzIGluY2x1
+ZGVkIGluIGlycXMuaC4gV2hpbGUgYXQgaXQsIHNvcnQNCj4gdGhlIGluY2x1ZGVzIHRoZSBzdGFu
+ZGFyZCB3YXkuDQoNCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jICAgICAgICAgICAgICAg
+ICAgICAgICAgIHwgICAxMSArKysrKy0tLQ0KDQo+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
+LW9tYXAyL2dwbWMuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvZ3BtYy5jDQoNCj4gIC8qIEdQTUMg
+cmVnaXN0ZXIgb2Zmc2V0cyAqLw0KPiAgI2RlZmluZSBHUE1DX1JFVklTSU9OCQkweDAwDQo+ICAj
+ZGVmaW5lIEdQTUNfU1lTQ09ORklHCQkweDEwDQo+IEBAIC04NDYsMTYgKzg0OSwxNiBAQCBzdGF0
+aWMgaW50IF9faW5pdCBncG1jX2luaXQodm9pZCkNCj4gIAkJCWwgPSBPTUFQMjQyMF9HUE1DX0JB
+U0U7DQo+ICAJCWVsc2UNCj4gIAkJCWwgPSBPTUFQMzRYWF9HUE1DX0JBU0U7DQo+IC0JCWdwbWNf
+aXJxID0gSU5UXzM0WFhfR1BNQ19JUlE7DQo+ICsJCWdwbWNfaXJxID0gMjA7DQo+ICAJfSBlbHNl
+IGlmIChjcHVfaXNfb21hcDM0eHgoKSkgew0KPiAgCQljayA9ICJncG1jX2ZjayI7DQo+ICAJCWwg
+PSBPTUFQMzRYWF9HUE1DX0JBU0U7DQo+IC0JCWdwbWNfaXJxID0gSU5UXzM0WFhfR1BNQ19JUlE7
+DQo+ICsJCWdwbWNfaXJxID0gMjA7DQo+ICAJfSBlbHNlIGlmIChjcHVfaXNfb21hcDQ0eHgoKSB8
+fCBzb2NfaXNfb21hcDU0eHgoKSkgew0KPiAgCQkvKiBCYXNlIGFkZHJlc3MgYW5kIGlycSBudW1i
+ZXIgYXJlIHNhbWUgZm9yIE9NQVA0LzUgKi8NCj4gIAkJY2sgPSAiZ3BtY19jayI7DQo+ICAJCWwg
+PSBPTUFQNDRYWF9HUE1DX0JBU0U7DQo+IC0JCWdwbWNfaXJxID0gT01BUDQ0WFhfSVJRX0dQTUM7
+DQo+ICsJCWdwbWNfaXJxID0gMjAgKyBPTUFQNDRYWF9JUlFfR0lDX1NUQVJUOw0KDQpJIGhhdmUg
+YSBzdWdnZXN0aW9uIHRvIGF2b2lkIGFib3ZlIGhhcmRjb2RlZCBwYXRjaGluZyBvbiBncG1jLmMu
+DQpXaXRoIGRyaXZlciBjb252ZXJzaW9uIHNlcmllcyBpdCBhZ2FpbiB3b3VsZCBoYXZlIHRvIGJl
+IHBhdGNoZWQuDQoNCg0KSSBoYXZlIG1hZGUgYSBiYXNpYyBncG1jIGRyaXZlciBjb252ZXJzaW9u
+LCB3aGljaCBpcyBleHBlY3RlZCB0bw0KYmUgbm9uLWNvbnRyb3ZlcnNpYWwuIFRoaXMgd2FzIGRv
+bmUgb3ZlciB5b3VyIGRldmVsLWdwbWMgYnJhbmNoLg0KSXQgaXMgd29ya2luZyBmaW5lLCBoYXMg
+b25seSAzIHBhdGNoZXMNCg0KMS4gQWRkIGh3bW9kIGVudHJ5DQoyLiBBZGFwdCB0byBod21vZA0K
+My4gQmFzaWMgZHJpdmVyIGNvbnZlcnNpb24NCg0KSGVyZSB0aGUgYmFzaWMgZHJpdmVyIGdldHMg
+cmVzb3VyY2VzIGFuZCBjbGsgaW4gZHJpdmVyIHByb2JlDQp1c2luZyBjb24taWQgImZjayIsIGl0
+IGhhcyBubyBwbGF0Zm9ybSBkYXRhIGFzIG9mIG5vdw0KDQpJdCBpcyBhdmFpbGFibGUNCkBnaXQ6
+Ly9naXRvcmlvdXMub3JnL3gwMTQ4NDA2LXB1YmxpYy9saW51eC1rZXJuZWwuZ2l0IGdwbWMtc2lt
+cGxlLWRydg0KDQoNCk9yaWdpbmFsbHkgdGhpcyB3YXMgbWFkZSBvbiB0b3Agb2YgbXkgc2VyaWVz
+LA0KIk9NQVAtR1BNQzogZ2VuZXJpYyB0aW1lIGNhbGMsIHByZXBhcmUgZm9yIGRyaXZlciINCkl0
+IHdhcyBtb2RpZmllZCBzbyB0aGF0IGl0IGNhbiBiZSBhcHBsaWVkIHRvIHlvdXIgZGV2ZWwtZ3Bt
+YyBicmFuY2guDQoNCipJIGFtIG5vdCBzZW5kaW5nIHRoZSBwYXRjaGVzIG5vdyB0byBhdm9pZCBj
+b25mdXNpb24gYnkgd2F5IG9mIGhhdmluZw0KdG9vIG1hbnkgcGF0Y2ggc2VyaWVzKg0KDQpJbiBj
+YXNlIHlvdSBsaWtlIHRoaXMsIGxldCBtZSBrbm93LCBJIHdpbGwgcG9zdC4NCg0KQXMgSSBhbSBw
+cm9jZWVkaW5nIHdpdGggUGF1bCdzIHN1Z2dlc3Rpb24gb24gaHdtb2QgcmVzZXQsDQpJIGhvcGUg
+UGF1bCBjYW4gdGFrZSB0aGUgZmlyc3Qgb25lLg0KDQpSZWdhcmRzDQpBZnphbA0KDQoNCg==
