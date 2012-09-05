@@ -1,113 +1,67 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH] Don't clobber access methods when !regmap
-Date: Wed, 5 Sep 2012 19:43:20 +0300
-Message-ID: <D96C7824-5EBC-4418-B016-DCE395A720D7@antoniou-consulting.com>
-References: <1346939132-20187-1-git-send-email-panto@antoniou-consulting.com> <50477FA9.8060905@metafoo.de>
-Mime-Version: 1.0 (Apple Message framework v1084)
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP4: Fix array size for irq_target_cpu
+Date: Wed, 5 Sep 2012 09:51:25 -0700
+Message-ID: <20120905165125.GC1303@atomide.com>
+References: <20120905000309.GW1303@atomide.com>
+ <50473A67.6000805@ti.com>
+ <CAMQu2gxGtLzOWWsBAimW=8tE5Dd9GvOs63rKvfcsNB4X1wqLxw@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50477FA9.8060905@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15422 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752016Ab2IEQv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 12:51:29 -0400
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gxGtLzOWWsBAimW=8tE5Dd9GvOs63rKvfcsNB4X1wqLxw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Lars,
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120905 06:17]:
+> On Wed, Sep 5, 2012 at 5:11 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> >
+> > Hi Tony,
+> >
+> > On 09/05/2012 02:03 AM, Tony Lindgren wrote:
+> > > If NR_IRQS is less than MAX_IRQS, we end up writing past the
+> > > irq_target_cpu array in omap_wakeupgen_init():
+> > >
+> > > /* Associate all the IRQs to boot CPU like GIC init does. */
+> > > for (i = 0; i < max_irqs; i++)
+> > >       irq_target_cpu[i] = boot_cpu;
+> > >
+> > > This can happen if SPARSE_IRQ is enabled as by default NR_IRQS is
+> > > set to 16. Without this patch we're overwriting other data during
+> > > the boot.
+> >
+> > In fact I already sent a patch to fix that when I started my SPARSE_IRQ
+> > cleanup, but it looks like it was never merged :-(
+> > I guess I forgot a little bit that series.
+> >
+> Indeed. I remember acking few patches in that series.
+> Infact this patch set was the basis on which I was talking to Arnd
+> that SPARSE_IRQ
+> should work on OMAP. Didn't think that it has not made it yet in mainline.
 
-On Sep 5, 2012, at 7:36 PM, Lars-Peter Clausen wrote:
+Bummer. That means duplicate wasted effort was done :(
 
-> On 09/06/2012 03:45 PM, Pantelis Antoniou wrote:
->> A snd-soc driver that doesn't support regmap blow up horribly
->> when you assume that regmap is available. Fix it by marking
->> the driver as not supporting regmap & not clobbering the codec
->> access methods.
->> 
->> This is immediately noticeable on the beagleboard where we crash,
->> since we might have REGMAP enabled, but it doesn't mean that the
->> omap driver uses it.
->> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> 
-> But calling snd_soc_codec_set_cache_io sort of implies that you are using
-> regmap. If you are not using regmap your codec should not call
-> snd_soc_codec_set_cache_io.
-> 
-> - Lars
-> 
+Looks like the original patch no longer applies because of commit
+247c445c0 (ARM: OMAP5: Add the WakeupGen IP updates). So I'll just
+update the comments to mention Benoit's original patch.
 
-The driver in question (twl4030.c) does not call snd_soc_codec_set_cache_io().
-However the snd-soc core does call it in sound/soc/soc-core.c in soc_probe_codec.
+I guess the lesson here is that everybody must follow up on their own
+patches to make sure they get merged. Especially on fixes.
 
-I do see that there's a commit 98d3088e534a2a61f6690b5426909b0c3b57a785 that is
-fixing it in a different manner.
+Benoit, can you please check if some parts of your earlier series are
+still needed in the testing-cleanup branch?
 
-> diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-> index f219b2f..f81c597 100644
-> --- a/sound/soc/soc-core.c
-> +++ b/sound/soc/soc-core.c
-> @@ -1096,7 +1096,7 @@ static int soc_probe_codec(struct snd_soc_card *card,
->         }
->  
->         /* If the driver didn't set I/O up try regmap */
-> -       if (!codec->control_data)
-> +       if (!codec->write && dev_get_regmap(codec->dev, NULL))
->                 snd_soc_codec_set_cache_io(codec, 0, 0, SND_SOC_REGMAP);
->  
->         if (driver->controls)
-> 
-> 
+BTW, there was also Felipe's TWL removal patch that was done in a slightly
+different way "[PATCH] arm: omap: drop unused IRQ defines:
 
-Originally it was call unconditionally, but now it should work. Let me check this
-and I'll report back.
+http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/103274.html# 
 
-Regards
+Regards,
 
--- Pantelis
-
-
->> 
->> ---
->> sound/soc/soc-io.c | 14 ++++++++++----
->> 1 file changed, 10 insertions(+), 4 deletions(-)
->> 
->> diff --git a/sound/soc/soc-io.c b/sound/soc/soc-io.c
->> index 29183ef..4e5b4ae 100644
->> --- a/sound/soc/soc-io.c
->> +++ b/sound/soc/soc-io.c
->> @@ -117,9 +117,6 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
->> 	int ret;
->> 
->> 	memset(&config, 0, sizeof(config));
->> -	codec->write = hw_write;
->> -	codec->read = hw_read;
->> -	codec->bulk_write_raw = snd_soc_hw_bulk_write_raw;
->> 
->> 	config.reg_bits = addr_bits;
->> 	config.val_bits = data_bits;
->> @@ -151,7 +148,9 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
->> 			 * multiples */
->> 			if (ret > 0)
->> 				codec->val_bytes = ret;
->> -		}
->> +		} else
->> +			codec->using_regmap = false;
->> +
->> 		break;
->> 
->> 	default:
->> @@ -161,6 +160,13 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
->> 	if (IS_ERR(codec->control_data))
->> 		return PTR_ERR(codec->control_data);
->> 
->> +	/* only when using regmap; don't modify unconditionally */
->> +	if (codec->using_regmap) {
->> +		codec->write = hw_write;
->> +		codec->read = hw_read;
->> +		codec->bulk_write_raw = snd_soc_hw_bulk_write_raw;
->> +	}
->> +
->> 	return 0;
->> }
->> EXPORT_SYMBOL_GPL(snd_soc_codec_set_cache_io);
-> 
+Tony
