@@ -1,113 +1,296 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v8 0/3] GPMC driver conversion
-Date: Wed, 5 Sep 2012 18:06:26 +0530
-Message-ID: <cover.1346846464.git.afzal@ti.com>
+Subject: [PATCH v8 1/3] ARM: OMAP2/3: hwmod data: add gpmc
+Date: Wed, 5 Sep 2012 18:07:20 +0530
+Message-ID: <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
+References: <cover.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51630 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51667 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751997Ab2IEMgh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 08:36:37 -0400
+	id S1752671Ab2IEMhZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 08:37:25 -0400
+In-Reply-To: <cover.1346846464.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Hi,
+Add gpmc hwmod and associated interconnect data
 
-Basic gpmc driver conversion series. Driver that is now created out of
-gpmc code is a simple one, it handles tasks that were earlier executed
-by gpmc_init. Now instead of relying on cpu_is_* checks, it obtains
-resources and clk handle in the standard Linux way. The existing gpmc
-interface works as was without this series.
-
-HWMOD patch also has been brought into this series back with v7 series
-
-As this creates only a basic driver, further gpmc driver work can be
-based over this, while having a driver first in place.
-
-This series is based on l-o/testing-cleanup as on 5-Sep-12,
-i.e. over commit,
-
-e3a5c14 ARM: OMAP1: Move SoC specific headers from plat to mach for omap1
-
-per Tony's suggestion.
-
-It is available
-@git://gitorious.org/x0148406-public/linux-kernel.git gpmc-drv-v8
-
-This series has been tested on omap3evm (rev G).
-
-
-GPMC (General Purpose Memory Controller) in brief:
-GPMC is an unified memory controller dedicated to interfacing external
-memory devices like
- Asynchronous SRAM like memories and application specific integrated circuit devices.
- Asynchronous, synchronous, and page mode burst NOR flash devices NAND flash
- Pseudo-SRAM devices
-
-GPMC details can be referred in AM335X Technical Reference Manual
-@ http://www.ti.com/lit/pdf/spruh73
-
-Regards
-Afzal
-
-v8:
-    Use feature flag to decide whether wr_access and wr_data_mux_bus
-    timings has to be configured (PATCH 3/3)
-
-v7:
-    Create a simple driver that gets resources & clk the standard Linux way
-    Pull in HMWOD patch back into this series
-v6: Capability flag added that stores features based on revision
-    Macros used for finding revision
-    Return value from memory setup function corrected
-    Comments added to clarify handling of device type, size
-    Bool type time setting patch removed as has been taken care in [2]
-    Handle variable number of waitpin
-    Warn if driver is unable to configure interrupt
-    Enhance some of commit messages
-    Handle shared writeprotect case
-    Fix a bug in gpmc_create_device
-    Get clk from hwmod
-    Remove unwanted code
-v5: Make this a purely driver conversion series, i.e. gpmc-mtd
-    interactions has been made as a separate series, so is adding
-    hwmod entry for OMAP2/3.
-    And modifying gpmc peripheral platform initialization has been
-    separated out of this series, so is migrating boards to use new
-    driver interface. GPMC driver conversion which was done in a few
-    patches in v4 has been tranformed to series of small patches.
-    Also care has been taken care that old interface will not break
-    with any of these patches, so both interfaces can coexist.
-    This helps in converting boards one-by-one gradually. Acquiring
-    CS has been thrown out. And conclusive comments on v4 has been
-    addressed.
-v4: Handle wait pin (except for interrupts), enhance configuration
-    & timing interface of GPMC to take care of all boards. Dynamic
-    allocation of interrupt instead of static. Convert remaining
-    peripherals to work with GPMC driver. Handle acquiring NAND CS#,
-    adapt to HWMOD, update HWMOD OMAP2/3 entries, other minor
-    commenst on v3.
-v3: Single device structure passed from platform for peripherals using
-    multiple CS instead of using multiple device structure having a few
-    redundant data, handle interrupts, GPMC NAND handling by GPMC NAND
-    driver instead of GPMC driver
-v2: Avoid code movement that kept similar code together (for easy review)
-
-
-Afzal Mohammed (3):
-  ARM: OMAP2/3: hwmod data: add gpmc
-  ARM: OMAP2+: gpmc: Adapt to HWMOD
-  ARM: OMAP2+: gpmc: minimal driver support
-
- arch/arm/mach-omap2/gpmc.c                         |  197 +++++++++++++++-----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   18 ++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   18 ++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   44 +++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 ++++++
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   18 +++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   18 +++++++
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   44 ++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 ++++++++++++++++++++
  arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
  arch/arm/mach-omap2/prcm-common.h                  |    2 +
- 7 files changed, 284 insertions(+), 50 deletions(-)
+ 6 files changed, 136 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index e7b90a0..b22c35b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -537,6 +537,15 @@ static struct omap_hwmod_addr_space omap2420_counter_32k_addrs[] = {
+ 	{ }
+ };
+ 
++static struct omap_hwmod_addr_space omap2420_gpmc_addrs[] = {
++	{
++		.pa_start	= 0x6800A000,
++		.pa_end		= 0x6800AFFF,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
+ static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_counter_32k_hwmod,
+@@ -545,6 +554,14 @@ static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_ocp_if omap2420_l3__gpmc = {
++	.master		= &omap2xxx_l3_main_hwmod,
++	.slave		= &omap2xxx_gpmc_hwmod,
++	.clk		= "core_l3_ck",
++	.addr		= omap2420_gpmc_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
+ 	&omap2xxx_l3_main__l4_core,
+ 	&omap2xxx_mpu__l3_main,
+@@ -588,6 +605,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
+ 	&omap2420_l4_core__msdi1,
+ 	&omap2420_l4_core__hdq1w,
+ 	&omap2420_l4_wkup__counter_32k,
++	&omap2420_l3__gpmc,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 5fe65ae..8340516 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -888,6 +888,15 @@ static struct omap_hwmod_addr_space omap2430_counter_32k_addrs[] = {
+ 	{ }
+ };
+ 
++static struct omap_hwmod_addr_space omap2430_gpmc_addrs[] = {
++	{
++		.pa_start	= 0x6E000000,
++		.pa_end		= 0x6E000FFF,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
+ static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
+ 	.master		= &omap2xxx_l4_wkup_hwmod,
+ 	.slave		= &omap2xxx_counter_32k_hwmod,
+@@ -896,6 +905,14 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_ocp_if omap2430_l3__gpmc = {
++	.master		= &omap2xxx_l3_main_hwmod,
++	.slave		= &omap2xxx_gpmc_hwmod,
++	.clk		= "core_l3_ck",
++	.addr		= omap2430_gpmc_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
+ 	&omap2xxx_l3_main__l4_core,
+ 	&omap2xxx_mpu__l3_main,
+@@ -946,6 +963,7 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
+ 	&omap2430_l4_core__mcbsp5,
+ 	&omap2430_l4_core__hdq1w,
+ 	&omap2430_l4_wkup__counter_32k,
++	&omap2430_l3__gpmc,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index 055f735..dcdcbcc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -173,6 +173,26 @@ struct omap_hwmod_class omap2xxx_mcspi_class = {
+ };
+ 
+ /*
++ * 'gpmc' class
++ * general purpose memory controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap2xxx_gpmc_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2xxx_gpmc_hwmod_class = {
++	.name	= "gpmc",
++	.sysc	= &omap2xxx_gpmc_sysc,
++};
++
++/*
+  * IP blocks
+  */
+ 
+@@ -724,7 +744,6 @@ struct omap_hwmod omap2xxx_mcspi2_hwmod = {
+ 	.dev_attr	= &omap_mcspi2_dev_attr,
+ };
+ 
+-
+ static struct omap_hwmod_class omap2xxx_counter_hwmod_class = {
+ 	.name	= "counter",
+ };
+@@ -743,3 +762,26 @@ struct omap_hwmod omap2xxx_counter_32k_hwmod = {
+ 	},
+ 	.class		= &omap2xxx_counter_hwmod_class,
+ };
++
++/* gpmc */
++static struct omap_hwmod_irq_info omap2xxx_gpmc_irqs[] = {
++	{ .irq = 20 },
++	{ .irq = -1 }
++};
++
++struct omap_hwmod omap2xxx_gpmc_hwmod = {
++	.name		= "gpmc",
++	.class		= &omap2xxx_gpmc_hwmod_class,
++	.mpu_irqs	= omap2xxx_gpmc_irqs,
++	.main_clk	= "gpmc_fck",
++	.flags		= HWMOD_INIT_NO_IDLE |
++				HWMOD_INIT_NO_RESET |
++				HWMOD_NO_IDLEST,
++	.prcm		= {
++		.omap2	= {
++			.prcm_reg_id = 3,
++			.module_bit = OMAP24XX_EN_GPMC_MASK,
++			.module_offs = CORE_MOD,
++		},
++	},
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 3e7d6c1..ce02b56 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2059,6 +2059,42 @@ static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
+ };
+ 
+ /*
++ * 'gpmc' class
++ * general purpose memory controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_gpmc_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_gpmc_hwmod_class = {
++	.name	= "gpmc",
++	.sysc	= &omap3xxx_gpmc_sysc,
++};
++
++static struct omap_hwmod_irq_info omap3xxx_gpmc_irqs[] = {
++	{ .irq = 20 },
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod omap3xxx_gpmc_hwmod = {
++	.name		= "gpmc",
++	.class		= &omap3xxx_gpmc_hwmod_class,
++	.clkdm_name	= "l3_init_clkdm",
++	.mpu_irqs	= omap3xxx_gpmc_irqs,
++	.main_clk	= "gpmc_fck",
++	.flags		= HWMOD_INIT_NO_IDLE |
++				HWMOD_INIT_NO_RESET |
++				HWMOD_NO_IDLEST,
++};
++
++/*
+  * interfaces
+  */
+ 
+@@ -3159,6 +3195,15 @@ static struct omap_hwmod_addr_space omap3xxx_counter_32k_addrs[] = {
+ 	{ }
+ };
+ 
++static struct omap_hwmod_addr_space omap3xxx_gpmc_addrs[] = {
++	{
++		.pa_start	= 0x6E000000,
++		.pa_end		= 0x6E000FFF,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
+ static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__counter_32k = {
+ 	.master		= &omap3xxx_l4_wkup_hwmod,
+ 	.slave		= &omap3xxx_counter_32k_hwmod,
+@@ -3268,6 +3313,14 @@ static struct omap_hwmod_ocp_if am35xx_l4_core__emac = {
+ 	.user		= OCP_USER_MPU,
+ };
+ 
++static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
++	.master		= &omap3xxx_l3_main_hwmod,
++	.slave		= &omap3xxx_gpmc_hwmod,
++	.clk		= "core_l3_ick",
++	.addr		= omap3xxx_gpmc_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap3xxx_l3_main__l4_core,
+ 	&omap3xxx_l3_main__l4_per,
+@@ -3313,6 +3366,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
+ 	&omap34xx_l4_core__mcspi3,
+ 	&omap34xx_l4_core__mcspi4,
+ 	&omap3xxx_l4_wkup__counter_32k,
++	&omap3xxx_l3_main__gpmc,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+index dddb677..6a033b8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -77,6 +77,7 @@ extern struct omap_hwmod omap2xxx_gpio4_hwmod;
+ extern struct omap_hwmod omap2xxx_mcspi1_hwmod;
+ extern struct omap_hwmod omap2xxx_mcspi2_hwmod;
+ extern struct omap_hwmod omap2xxx_counter_32k_hwmod;
++extern struct omap_hwmod omap2xxx_gpmc_hwmod;
+ 
+ /* Common interface data across OMAP2xxx */
+ extern struct omap_hwmod_ocp_if omap2xxx_l3_main__l4_core;
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index e5f0503..72df974 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -109,6 +109,8 @@
+ #define OMAP2430_EN_MDM_INTC_MASK			(1 << 11)
+ #define OMAP2430_EN_USBHS_SHIFT				6
+ #define OMAP2430_EN_USBHS_MASK				(1 << 6)
++#define OMAP24XX_EN_GPMC_SHIFT				1
++#define OMAP24XX_EN_GPMC_MASK				(1 << 1)
+ 
+ /* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
+ #define OMAP2420_ST_MMC_SHIFT				26
+-- 
+1.7.1
 
