@@ -1,51 +1,62 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Wed, 5 Sep 2012 15:31:55 +0200
-Message-ID: <5047544B.60105@ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com> <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com> <50470C1E.7090300@ti.com> <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 13/17] Revert "OMAPDSS: APPLY: add fifo-merge support"
+Date: Wed, 5 Sep 2012 19:13:41 +0530
+Message-ID: <5047570D.1030601@ti.com>
+References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com> <1346833555-31258-14-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40519 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336Ab2IENcJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 09:32:09 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55789 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751316Ab2IENn3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 09:43:29 -0400
+In-Reply-To: <1346833555-31258-14-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Vaibhav,
+On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
+> This reverts commit 1d71f42b35ed66d90a9a39bc515bb16cfe2d4a46.
+>
+> Adding fifo merge feature as an omapdss internal configuration was a
+> mistake. We cannot hide from the users of omapdss the complexities of
+> fifo merge.
+>
+> This commit removes the fifo merge support, which luckily is easily done
+> as it was handled totally inside apply.c.
+>
+> The plan is to try fifo merge again later when it is more clear how the
+> hardware acts in various situations, and how the omapdrm wants to use
+> fifo merge.
 
-On 09/05/2012 11:15 AM, Hiremath, Vaibhav wrote:
-> On Wed, Sep 05, 2012 at 13:53:58, Ujfalusi, Peter wrote:
->> Hi,
->>
->> On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
->>>> Not yet, but we discussed that with Peter and since he does have these
->>>> patches for DT, he'll be able to test your series with the McBSP changes.
->>>>
->>>
->>> Great.
->>
->> With his series and your patch for omap-hwmod audio was probing and working on
->> OMAP3/4/5 without issues.
->>
-> Peter,
-> Care to provide your Tested-By??
-> 
-> Benoit,
-> Can we merge this patch now?
+Nitpick: This isn't an exact revert right? Maybe we should mention that, 
+so that if someone tries to apply the old patch, it doesn't fail.
 
-Yes, I'll include it in the pull request along with DTS patches.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/apply.c |  154 ++-------------------------------------
+>   1 file changed, 8 insertions(+), 146 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+> index 1b49019..02943a5 100644
+> --- a/drivers/video/omap2/dss/apply.c
+> +++ b/drivers/video/omap2/dss/apply.c
+> @@ -993,11 +993,11 @@ static void dss_apply_fifo_merge(bool use_fifo_merge)
+>   	dss_data.fifo_merge_dirty = true;
+>   }
+>
+> -static void dss_ovl_setup_fifo(struct omap_overlay *ovl,
+> -		bool use_fifo_merge)
+> +static void dss_ovl_setup_fifo(struct omap_overlay *ovl)
+>   {
+>   	struct ovl_priv_data *op = get_ovl_priv(ovl);
+>   	u32 fifo_low, fifo_high;
+> +	bool use_fifo_merge = false;
 
-I've just tested it as well on OMAP4 by hacking the DTS for GPIO.
-I'll try to update at least all the OMAP4 IPs as well with the proper
-DTS resources for 3.7.
+This looks like the line which wasn't removed in the original commit.
 
-Regards,
-Benoit
+Archit
 
