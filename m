@@ -1,48 +1,247 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Wed, 5 Sep 2012 09:15:28 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
- <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com>
- <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
- <50470C1E.7090300@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC PATCH] ARM: OMAP2+: omap-device: Do not overwrite resources
+ allocated by OF layer
+Date: Wed, 05 Sep 2012 12:20:06 +0300
+Message-ID: <50471946.1020101@ti.com>
+References: <1346233691-10294-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56895 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990Ab2IEJPk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 05:15:40 -0400
-In-Reply-To: <50470C1E.7090300@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1346233691-10294-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Sep 05, 2012 at 13:53:58, Ujfalusi, Peter wrote:
-> Hi,
-> 
-> On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
-> >> Not yet, but we discussed that with Peter and since he does have these
-> >> patches for DT, he'll be able to test your series with the McBSP changes.
-> >>
-> > 
-> > Great.
-> 
-> With his series and your patch for omap-hwmod audio was probing and working on
-> OMAP3/4/5 without issues.
-> 
-Peter,
-Care to provide your Tested-By??
+On 08/29/2012 12:48 PM, Vaibhav Hiremath wrote:
+> With the new devices (like, AM33XX and OMAP5) we now only support
+> DT boot mode of operation and now it is the time to start killing
+> slowly the dependency on hwmod, so with this patch, we are starting
+> with device resources.
+> The idea here is implemented considering to both boot modes -
+>   - DT boot mode
+>     OF framework will construct the resource structure (currently
+>     does for MEM & IRQ resource) and we should respect/use these
+>     resources, killing hwmod dependency.
+>     If pdev->num_resources > 0, we assume that MEM & IRQ resources
+>     have been allocated by OF layer already (through DTB).
+>=20
+>     Once DMA resource is available from OF layer, we should
+>     kill filling any resources from hwmod.
+>=20
+>   - Non-DT boot mode
+>     Here, pdev->num_resources =3D 0, and we should get all the
+>     resources from hwmod (following existing steps)
+>=20
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
+> This patch is tested on BeagleBone and AM37xEVM.
 
-Benoit,
-Can we merge this patch now?
+I tried this on OMAP3 (with McBSP/twl4030-audio/omap-twl4030 DT boot), =
+OMAP4
+(McPDM, DMIC DT), and on OMAP5 (McPDM, DMIC DT).
+I have sent the patches needed for the dtsi files to probe the audio re=
+lated
+IPs with this patch.
+
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+>=20
+> Why RFC?
+> Still we have function duplication omap_device_fill_resources() and
+> omap_device_fill_dma_resources(), we can actually split the function
+> into 3 resources and avoid duplication -
+>   - omap_device_fill_dma_resources()
+>   - omap_device_fill_mem_resources()
+>   - omap_device_fill_irq_resources()
+>=20
+> Actually I wanted to clean it further but thought of getting
+> feedback first and then proceed further.
+>=20
+>  arch/arm/mach-omap2/omap_hwmod.c             |   27 ++++++++++
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>  arch/arm/plat-omap/omap_device.c             |   72 ++++++++++++++++=
++++++----
+>  3 files changed, 88 insertions(+), 12 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
+map_hwmod.c
+> index 31ec283..edabfb3 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -3330,6 +3330,33 @@ int omap_hwmod_fill_resources(struct omap_hwmo=
+d *oh, struct resource *res)
+>  }
+>=20
+>  /**
+> + * omap_hwmod_fill_dma_resources - fill struct resource array with d=
+ma data
+> + * @oh: struct omap_hwmod *
+> + * @res: pointer to the array of struct resource to fill
+> + *
+> + * Fill the struct resource array @res with dma resource data from t=
+he
+> + * omap_hwmod @oh.  Intended to be called by code that registers
+> + * omap_devices.  See also omap_hwmod_count_resources().  Returns th=
+e
+> + * number of array elements filled.
+> + */
+> +int omap_hwmod_fill_dma_resources(struct omap_hwmod *oh, struct reso=
+urce *res)
+> +{
+> +	int i, sdma_reqs_cnt;
+> +	int r =3D 0;
+> +
+> +	sdma_reqs_cnt =3D _count_sdma_reqs(oh);
+> +	for (i =3D 0; i < sdma_reqs_cnt; i++) {
+> +		(res + r)->name =3D (oh->sdma_reqs + i)->name;
+> +		(res + r)->start =3D (oh->sdma_reqs + i)->dma_req;
+> +		(res + r)->end =3D (oh->sdma_reqs + i)->dma_req;
+> +		(res + r)->flags =3D IORESOURCE_DMA;
+> +		r++;
+> +	}
+> +
+> +	return r;
+> +}
+> +
+> +/**
+>   * omap_hwmod_get_resource_byname - fetch IP block integration data =
+by name
+>   * @oh: struct omap_hwmod * to operate on
+>   * @type: one of the IORESOURCE_* constants from include/linux/iopor=
+t.h
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/=
+plat-omap/include/plat/omap_hwmod.h
+> index 9b9646c..0533073 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -615,6 +615,7 @@ int omap_hwmod_softreset(struct omap_hwmod *oh);
+>=20
+>  int omap_hwmod_count_resources(struct omap_hwmod *oh);
+>  int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource=
+ *res);
+> +int omap_hwmod_fill_dma_resources(struct omap_hwmod *oh, struct reso=
+urce *res);
+>  int omap_hwmod_get_resource_byname(struct omap_hwmod *oh, unsigned i=
+nt type,
+>  				   const char *name, struct resource *res);
+>=20
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/om=
+ap_device.c
+> index c490240..fd15a3a 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -486,6 +486,33 @@ static int omap_device_fill_resources(struct oma=
+p_device *od,
+>  }
+>=20
+>  /**
+> + * omap_device_fill_dma_resources - fill in array of struct resource=
+ with dma resources
+> + * @od: struct omap_device *
+> + * @res: pointer to an array of struct resource to be filled in
+> + *
+> + * Populate one or more empty struct resource pointed to by @res wit=
+h
+> + * the dma resource data for this omap_device @od.  Used by
+> + * omap_device_alloc() after calling omap_device_count_resources().
+> + *
+> + * Ideally this function would not be needed at all.  If we have
+> + * mechanism to get dma resources from DT.
+> + *
+> + * Returns 0.
+> + */
+> +static int omap_device_fill_dma_resources(struct omap_device *od,
+> +				      struct resource *res)
+> +{
+> +	int i, r;
+> +
+> +	for (i =3D 0; i < od->hwmods_cnt; i++) {
+> +		r =3D omap_hwmod_fill_dma_resources(od->hwmods[i], res);
+> +		res +=3D r;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+>   * omap_device_alloc - allocate an omap_device
+>   * @pdev: platform_device that will be included in this omap_device
+>   * @oh: ptr to the single omap_hwmod that backs this omap_device
+> @@ -524,24 +551,45 @@ struct omap_device *omap_device_alloc(struct pl=
+atform_device *pdev,
+>  	od->hwmods =3D hwmods;
+>  	od->pdev =3D pdev;
+>=20
+> +	res_count =3D omap_device_count_resources(od);
+>  	/*
+> -	 * HACK: Ideally the resources from DT should match, and hwmod
+> -	 * should just add the missing ones. Since the name is not
+> -	 * properly populated by DT, stick to hwmod resources only.
+> +	 * DT Boot:
+> +	 *   OF framework will construct the resource structure (currently
+> +	 *   does for MEM & IRQ resource) and we should respect/use these
+> +	 *   resources, killing hwmod dependency.
+> +	 *   If pdev->num_resources > 0, we assume that MEM & IRQ resources
+> +	 *   have been allocated by OF layer already (through DTB).
+> +	 *
+> +	 * Non-DT Boot:
+> +	 *   Here, pdev->num_resources =3D 0, and we should get all the
+> +	 *   resources from hwmod.
+> +	 *
+> +	 * TODO: Once DMA resource is available from OF layer, we should
+> +	 *   kill filling any resources from hwmod.
+>  	 */
+> -	if (pdev->num_resources && pdev->resource)
+> -		dev_warn(&pdev->dev, "%s(): resources already allocated %d\n",
+> -			__func__, pdev->num_resources);
+> -
+> -	res_count =3D omap_device_count_resources(od);
+> -	if (res_count > 0) {
+> -		dev_dbg(&pdev->dev, "%s(): resources allocated from hwmod %d\n",
+> -			__func__, res_count);
+> +	if (res_count > pdev->num_resources) {
+> +		/* Allocate resources memory to account for new resources */
+>  		res =3D kzalloc(sizeof(struct resource) * res_count, GFP_KERNEL);
+>  		if (!res)
+>  			goto oda_exit3;
+>=20
+> -		omap_device_fill_resources(od, res);
+> +		/*
+> +		 * If pdev->num_resources > 0, then assume that,
+> +		 * MEM and IRQ resources will only come from DT and only
+> +		 * fill DMA resource from hwmod layer.
+> +		 */
+> +		if (pdev->num_resources && pdev->resource) {
+> +			dev_dbg(&pdev->dev, "%s(): resources already allocated %d\n",
+> +					__func__, res_count);
+> +			memcpy(res, pdev->resource,
+> +				sizeof(struct resource) * pdev->num_resources);
+> +			omap_device_fill_dma_resources(od,
+> +					&res[pdev->num_resources]);
+> +		} else {
+> +			dev_dbg(&pdev->dev, "%s(): using resources from hwmod %d\n",
+> +					__func__, res_count);
+> +			omap_device_fill_resources(od, res);
+> +		}
+>=20
+>  		ret =3D platform_device_add_resources(pdev, res, res_count);
+>  		kfree(res);
+> --
+> 1.7.0.4
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
 
-Thanks,
-Vaibhav
-
+--=20
+P=E9ter
