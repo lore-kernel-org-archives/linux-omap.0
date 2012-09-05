@@ -1,16 +1,16 @@
 From: Jon Hunter <jon-hunter@ti.com>
 Subject: Re: [PATCH v8 1/3] ARM: OMAP2/3: hwmod data: add gpmc
-Date: Wed, 5 Sep 2012 14:47:16 -0500
-Message-ID: <5047AC44.2060208@ti.com>
+Date: Wed, 5 Sep 2012 14:47:29 -0500
+Message-ID: <5047AC51.9010409@ti.com>
 References: <cover.1346846464.git.afzal@ti.com> <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35376 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759201Ab2IETrU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 15:47:20 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:51077 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759143Ab2IETsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 15:48:06 -0400
 In-Reply-To: <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
