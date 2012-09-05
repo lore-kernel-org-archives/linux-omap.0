@@ -1,70 +1,87 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
-Date: Wed, 5 Sep 2012 17:18:18 +0530
-Message-ID: <50473C02.4060503@ti.com>
-References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>   <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>   <5047182F.3030507@ti.com> <1346841713.32747.6.camel@deskari>  <504738C4.7060005@ti.com> <1346845276.32747.11.camel@deskari>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl support
+Date: Wed, 05 Sep 2012 13:54:58 +0200
+Message-ID: <50473D92.9000500@pengutronix.de>
+References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49057 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758715Ab2IELsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 07:48:06 -0400
-In-Reply-To: <1346845276.32747.11.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigBF8B7ACAAC025BE2A343A9FC"
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
+Sender: linux-can-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, tony@atomide.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Wednesday 05 September 2012 05:11 PM, Tomi Valkeinen wrote:
-> On Wed, 2012-09-05 at 17:04 +0530, Archit Taneja wrote:
->> On Wednesday 05 September 2012 04:11 PM, Tomi Valkeinen wrote:
->>> On Wed, 2012-09-05 at 14:45 +0530, Archit Taneja wrote:
->>>> On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
->>>>> dss_mgr_set_timings() can only be called when the output is not active.
->>>>> This means that most of the code in the function is extra, as there's no
->>>>> need to write the values to registers, etc, because that will be handled
->>>>> when the output will be enabled.
->>>>
->>>> We need to fix dpi_set_timings() before we can make this change. DPI
->>>> still tries to change timings on the fly, i.e, with manager enabled. We
->>>> need to disable and enable the DPI output like we do for other outputs.
->>>
->>> Yep, and for HDMI also (I didn't check the others yet).
->>
->> I don't think HDMI is impacted, we do the full power off and power on
->> for HDMI, so the manager would be disabled when we set the timings.
->
-> Ah right.
->
->>> I think the simplest way to handle this is to only write the dpi.timings
->>> in omapdss_dpi_set_timings, and remove the call to dss_mgr_set_timings.
->>> This is not perfect, as a call to omapdss_dpi_set_timings when the
->>> display is enabled would result in changing the dpi.timings, but the
->>> changes wouldn't be actually in use.
->>
->> The simplest way would be to do what other outputs do, disable the
->> output and re-enable the output with the new timings value, if the panel
->> is enabled.
->
-> Not quite, as there's the mutex in dpi so we can't call enable/disable
-> from set_timings. I could create separate non-locked internal functions
-> for enable and disable, but that feels more complex than just removing
-> the enable & disable from set_timings.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigBF8B7ACAAC025BE2A343A9FC
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Okay, right.
+On 09/05/2012 01:12 PM, AnilKumar Ch wrote:
+> Adds suspend/resume functionality of d_can driver along with d_can
+> raminit support which is required to initialize RAM while data
+> transmission.
+>=20
+> This patch series also adds pinctrl support to c_can driver. These
+> patches were tested on AM335x-EVM.
+>=20
+> This patch-series is based ontop of runtimePM patch submitted
+> earlier - https://patchwork.kernel.org/patch/1348081/
 
->
-> In the end we'll anyway only allow changing timings when the output is
-> disabled.
->
-> The only change I had to do, in addition to removing code from
-> set_timings functions, was to add display disable & enable calls to the
-> "timings" sysfs write. omapfb already only calls set_timings when the
-> output is disabled, and omapdrm does the same.
+Looks good, I'll apply the series after Tony acks the patch 3
+([PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to
+pass d_can raminit).
 
-Okay, that sounds good then.
+Marc
+>=20
+> Changes from v1:
+> 	- Incorporated Marc's comments on v1
+> 	  * Changed marco name with units in it
+> 	  * Used ndev->flags for link status instead of new member
+> 	  * Added BUG_ON inside *_power_down and *_power_up APIs
+> 	  * Added new member "type" in c_can_priv struct for keeping
+> 	    dev id details/name.
+>=20
+> AnilKumar Ch (4):
+>   can: c_can: Adopt pinctrl support
+>   can: c_can: Add d_can raminit support
+>   ARM: AM33XX: board-generic: Add of_dev_auxdata to pass d_can raminit
+>   can: c_can: Add d_can suspend resume support
+>=20
+>  arch/arm/mach-omap2/board-generic.c    |   40 +++++++++++++-
+>  arch/arm/mach-omap2/control.h          |    4 ++
+>  drivers/net/can/c_can/c_can.c          |   95 ++++++++++++++++++++++++=
+++++++++
+>  drivers/net/can/c_can/c_can.h          |   10 ++++
+>  drivers/net/can/c_can/c_can_platform.c |   79 ++++++++++++++++++++++++=
+++
+>  include/linux/can/platform/c_can.h     |   36 ++++++++++++
+>  6 files changed, 263 insertions(+), 1 deletion(-)
+>  create mode 100644 include/linux/can/platform/c_can.h
+>=20
 
-Archit
 
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+
+
+--------------enigBF8B7ACAAC025BE2A343A9FC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iEYEARECAAYFAlBHPZUACgkQjTAFq1RaXHOBgwCcD1Yfjm/arRorT+doe7+MICnm
+QDoAn0VaKiQR6LF4+ket+CXbcMjLFuom
+=KoTN
+-----END PGP SIGNATURE-----
+
+--------------enigBF8B7ACAAC025BE2A343A9FC--
