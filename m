@@ -1,115 +1,149 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 06/17] OMAPDSS: VRAM: Remove clearing with sDMA
-Date: Wed,  5 Sep 2012 11:25:44 +0300
-Message-ID: <1346833555-31258-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 16/17] OMAPDSS: Improve fifo management code
+Date: Wed,  5 Sep 2012 11:25:54 +0300
+Message-ID: <1346833555-31258-17-git-send-email-tomi.valkeinen@ti.com>
 References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:55541 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756598Ab2IEI0Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:25 -0400
-Received: by lagy9 with SMTP id y9so139341lag.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:22 -0700 (PDT)
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:38255 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758190Ab2IEI0l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:41 -0400
+Received: by lbbgj3 with SMTP id gj3so189986lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:39 -0700 (PDT)
 In-Reply-To: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Currently vram.c clears the allocated memory automatically using OMAP
-system DMA. In an effort to reduce OMAP dependencies, we'll do the
-memory clear with CPU from now on.
+OMAP4+ allows assigning the overlay FIFOs freely, but that is not
+supported by omapdss yet. This patch takes a step forward by improving
+the fifo management to be more flexible.
 
-The previous patch implemented memory clear in the omapfb driver, and
-this patch removes the now obsolete clear functionality from vram.c.
+dispc.c is changed to keep track of the sizes of each fifo, and also the
+overlay using each fifo.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
 ---
- drivers/video/omap2/vram.c |   56 --------------------------------------------
- 1 file changed, 56 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   39 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 31 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-index 87e421e..f2b15c4 100644
---- a/drivers/video/omap2/vram.c
-+++ b/drivers/video/omap2/vram.c
-@@ -34,7 +34,6 @@
- #include <asm/setup.h>
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index e934abb..dc0f372 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -94,8 +94,11 @@ struct dispc_features {
+ 		u16 pos_x, unsigned long *core_clk);
+ 	unsigned long (*calc_core_clk) (enum omap_channel channel,
+ 		u16 width, u16 height, u16 out_width, u16 out_height);
++	u8 num_fifos;
+ };
  
- #include <plat/vram.h>
--#include <plat/dma.h>
++#define DISPC_MAX_NR_FIFOS 5
++
+ static struct {
+ 	struct platform_device *pdev;
+ 	void __iomem    *base;
+@@ -105,7 +108,9 @@ static struct {
+ 	int irq;
+ 	struct clk *dss_clk;
  
- #ifdef DEBUG
- #define DBG(format, ...) pr_debug("VRAM: " format, ## __VA_ARGS__)
-@@ -250,59 +249,6 @@ int omap_vram_reserve(unsigned long paddr, size_t size)
+-	u32	fifo_size[MAX_DSS_OVERLAYS];
++	u32 fifo_size[DISPC_MAX_NR_FIFOS];
++	/* maps which plane is using a fifo. fifo-id -> plane-id */
++	int fifo_assignment[DISPC_MAX_NR_FIFOS];
+ 
+ 	spinlock_t irq_lock;
+ 	u32 irq_error_mask;
+@@ -1061,10 +1066,10 @@ static void dispc_mgr_set_size(enum omap_channel channel, u16 width,
+ 	dispc_write_reg(DISPC_SIZE_MGR(channel), val);
  }
- EXPORT_SYMBOL(omap_vram_reserve);
  
--static void _omap_vram_dma_cb(int lch, u16 ch_status, void *data)
--{
--	struct completion *compl = data;
--	complete(compl);
--}
--
--static int _omap_vram_clear(u32 paddr, unsigned pages)
--{
--	struct completion compl;
--	unsigned elem_count;
--	unsigned frame_count;
--	int r;
--	int lch;
--
--	init_completion(&compl);
--
--	r = omap_request_dma(OMAP_DMA_NO_DEVICE, "VRAM DMA",
--			_omap_vram_dma_cb,
--			&compl, &lch);
--	if (r) {
--		pr_err("VRAM: request_dma failed for memory clear\n");
--		return -EBUSY;
--	}
--
--	elem_count = pages * PAGE_SIZE / 4;
--	frame_count = 1;
--
--	omap_set_dma_transfer_params(lch, OMAP_DMA_DATA_TYPE_S32,
--			elem_count, frame_count,
--			OMAP_DMA_SYNC_ELEMENT,
--			0, 0);
--
--	omap_set_dma_dest_params(lch, 0, OMAP_DMA_AMODE_POST_INC,
--			paddr, 0, 0);
--
--	omap_set_dma_color_mode(lch, OMAP_DMA_CONSTANT_FILL, 0x000000);
--
--	omap_start_dma(lch);
--
--	if (wait_for_completion_timeout(&compl, msecs_to_jiffies(1000)) == 0) {
--		omap_stop_dma(lch);
--		pr_err("VRAM: dma timeout while clearing memory\n");
--		r = -EIO;
--		goto err;
--	}
--
--	r = 0;
--err:
--	omap_free_dma(lch);
--
--	return r;
--}
--
- static int _omap_vram_alloc(unsigned pages, unsigned long *paddr)
+-static void dispc_read_plane_fifo_sizes(void)
++static void dispc_init_fifos(void)
  {
- 	struct vram_region *rm;
-@@ -337,8 +283,6 @@ found:
+ 	u32 size;
+-	int plane;
++	int fifo;
+ 	u8 start, end;
+ 	u32 unit;
  
- 		*paddr = start;
+@@ -1072,16 +1077,30 @@ static void dispc_read_plane_fifo_sizes(void)
  
--		_omap_vram_clear(start, pages);
--
- 		return 0;
+ 	dss_feat_get_reg_field(FEAT_REG_FIFOSIZE, &start, &end);
+ 
+-	for (plane = 0; plane < dss_feat_get_num_ovls(); ++plane) {
+-		size = REG_GET(DISPC_OVL_FIFO_SIZE_STATUS(plane), start, end);
++	for (fifo = 0; fifo < dispc.feat->num_fifos; ++fifo) {
++		size = REG_GET(DISPC_OVL_FIFO_SIZE_STATUS(fifo), start, end);
+ 		size *= unit;
+-		dispc.fifo_size[plane] = size;
++		dispc.fifo_size[fifo] = size;
++
++		/*
++		 * By default fifos are mapped directly to overlays, fifo 0 to
++		 * ovl 0, fifo 1 to ovl 1, etc.
++		 */
++		dispc.fifo_assignment[fifo] = fifo;
  	}
+ }
  
+ static u32 dispc_ovl_get_fifo_size(enum omap_plane plane)
+ {
+-	return dispc.fifo_size[plane];
++	int fifo;
++	u32 size = 0;
++
++	for (fifo = 0; fifo < dispc.feat->num_fifos; ++fifo) {
++		if (dispc.fifo_assignment[fifo] == plane)
++			size += dispc.fifo_size[fifo];
++	}
++
++	return size;
+ }
+ 
+ void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high)
+@@ -3708,7 +3727,7 @@ static void _omap_dispc_initial_config(void)
+ 
+ 	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
+ 
+-	dispc_read_plane_fifo_sizes();
++	dispc_init_fifos();
+ 
+ 	dispc_configure_burst_sizes();
+ 
+@@ -3724,6 +3743,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
+ 	.hp_max			=	256,
+ 	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
+ 	.calc_core_clk		=	calc_core_clk_24xx,
++	.num_fifos		=	3,
+ };
+ 
+ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
+@@ -3735,6 +3755,7 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
+ 	.hp_max			=	256,
+ 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
+ 	.calc_core_clk		=	calc_core_clk_34xx,
++	.num_fifos		=	3,
+ };
+ 
+ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
+@@ -3746,6 +3767,7 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
+ 	.hp_max			=	4096,
+ 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
+ 	.calc_core_clk		=	calc_core_clk_34xx,
++	.num_fifos		=	3,
+ };
+ 
+ static const struct dispc_features omap44xx_dispc_feats __initconst = {
+@@ -3757,6 +3779,7 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
+ 	.hp_max			=	4096,
+ 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
+ 	.calc_core_clk		=	calc_core_clk_44xx,
++	.num_fifos		=	5,
+ };
+ 
+ static int __init dispc_init_features(struct device *dev)
 -- 
 1.7.9.5
 
