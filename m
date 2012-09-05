@@ -1,17 +1,17 @@
 From: Benoit Cousson <b-cousson@ti.com>
 Subject: Re: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
  devicetree
-Date: Wed, 5 Sep 2012 16:46:26 +0200
-Message-ID: <504765C2.3010600@ti.com>
+Date: Wed, 5 Sep 2012 16:46:43 +0200
+Message-ID: <504765D3.5070103@ti.com>
 References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com> <5037A9CE.1080809@ti.com> <50476143.3010509@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46184 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46201 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758151Ab2IEOqi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 10:46:38 -0400
+	id S1751674Ab2IEOqy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 10:46:54 -0400
 In-Reply-To: <50476143.3010509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,7 +20,7 @@ Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilm
 
 Peter,
 
-I will just slighty change the subject since it is a omap_device.c patch and not an omap_hwmod.c one.
+I will just slighty change the subject since it is an omap_device.c patch and not an omap_hwmod.c one.
 
 ARM: OMAP: omap_device: Fix up resource names when booted with devicetree
 
