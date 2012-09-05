@@ -1,37 +1,32 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v3 20/23] serial: omap: fix software flow control
-Date: Wed, 5 Sep 2012 13:27:49 -0700
-Message-ID: <20120905202749.GA2451@kroah.com>
-References: <1345717983-18179-1-git-send-email-balbi@ti.com>
- <1345717983-18179-21-git-send-email-balbi@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v8 3/3] ARM: OMAP2+: gpmc: minimal driver support
+Date: Wed, 5 Sep 2012 15:41:14 -0500
+Message-ID: <5047B8EA.3090208@ti.com>
+References: <cover.1346846464.git.afzal@ti.com> <da87aaa4d52c94e755459b4aecdd2ddb62898488.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1345717983-18179-21-git-send-email-balbi@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54016 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754559Ab2IEUlT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 16:41:19 -0400
+In-Reply-To: <da87aaa4d52c94e755459b4aecdd2ddb62898488.1346846464.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Aug 23, 2012 at 01:33:00PM +0300, Felipe Balbi wrote:
-> From: Vikram Pandita <vikram.pandita@ti.com>
+Hi Afzal,
+
+On 09/05/2012 07:37 AM, Afzal Mohammed wrote:
+> Create a minimal driver out of gpmc code.
+> Responsibilities handled by earlier gpmc
+> initialization is now achieved in probe.
 > 
-> Software flow control register bits were not defined correctly.
-> 
-> Also clarify the IXON and IXOFF logic to reflect what userspace wants.
-> 
-> Cc: stable@vger.kernel.org
-> Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> ---
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-If this is a stable patch, should it be pulled out and put also in for
-3.6?
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
 
-thanks,
-
-greg k-h
+Cheers
+Jon
