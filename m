@@ -1,35 +1,73 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH 7/9] ARM: OMAP2+: Prepare for irqs.h removal
-Date: Wed, 5 Sep 2012 09:03:58 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9DE2F3@DBDE01.ent.ti.com>
-References: <20120831004828.28732.902.stgit@muffinssi.local>
- <20120831005237.28732.96766.stgit@muffinssi.local>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC9F4@DBDE01.ent.ti.com>
- <20120905010921.GY1303@atomide.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
+Date: Wed, 5 Sep 2012 14:45:27 +0530
+Message-ID: <5047182F.3030507@ti.com>
+References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com> <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35923 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765Ab2IEJFM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 05:05:12 -0400
-In-Reply-To: <20120905010921.GY1303@atomide.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:55236 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758196Ab2IEJPQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 05:15:16 -0400
+In-Reply-To: <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-SGkgVG9ueSwNCg0KT24gV2VkLCBTZXAgMDUsIDIwMTIgYXQgMDY6Mzk6MjIsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQo+ICogTW9oYW1tZWQsIEFmemFsIDxhZnphbEB0aS5jb20+IFsxMjA5MDQgMDE6
-NDddOg0KDQo+ID4gKkkgYW0gbm90IHNlbmRpbmcgdGhlIHBhdGNoZXMgbm93IHRvIGF2b2lkIGNv
-bmZ1c2lvbiBieSB3YXkgb2YgaGF2aW5nDQo+ID4gdG9vIG1hbnkgcGF0Y2ggc2VyaWVzKg0KPiA+
-IA0KPiA+IEluIGNhc2UgeW91IGxpa2UgdGhpcywgbGV0IG1lIGtub3csIEkgd2lsbCBwb3N0Lg0K
-PiANCj4gWWVzIHBsZWFzZSBwb3N0IHRoZSBwYXRjaGVzIHJlYmFzZWQgb24gdGVzdGluZy1jbGVh
-bnVwIGJyYW5jaCB0aGF0IEkNCj4ganVzdCBwdXNoZWQuIFRoYXQgYnJhbmNoIGlzIG5vdCBpbW11
-dGFibGUgeWV0IHRob3VnaCBhcyB3ZSdyZSB3YWl0aW5nDQo+IHRvIGhlYXIgZnJvbSBBcm5kIHJl
-Z3JhZGluZyB0aGUgZmlyc3QgcGF0Y2ggaW4gdGhlIGJyYW5jaC4NCg0KVGhlIHBhdGNoZXMgcmVi
-YXNlZCBvbiB0ZXN0aW5nLWNsZWFudXAgYnJhbmNoIGhhcyBiZWVuIHBvc3RlZCBbMV0uDQoNClJl
-Z2FyZHMNCkFmemFsDQoNClsxXSBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LW9tYXAmbT0xMzQ2
-ODM0OTU0MDc4NzEmdz0yDQoNCg==
+On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
+> dss_mgr_set_timings() can only be called when the output is not active.
+> This means that most of the code in the function is extra, as there's no
+> need to write the values to registers, etc, because that will be handled
+> when the output will be enabled.
+
+We need to fix dpi_set_timings() before we can make this change. DPI 
+still tries to change timings on the fly, i.e, with manager enabled. We 
+need to disable and enable the DPI output like we do for other outputs.
+
+Archit
+
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/apply.c |   18 ++++++++----------
+>   1 file changed, 8 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+> index 53629dd..1b49019 100644
+> --- a/drivers/video/omap2/dss/apply.c
+> +++ b/drivers/video/omap2/dss/apply.c
+> @@ -1314,21 +1314,19 @@ void dss_mgr_set_timings(struct omap_overlay_manager *mgr,
+>   		const struct omap_video_timings *timings)
+>   {
+>   	unsigned long flags;
+> -
+> -	mutex_lock(&apply_lock);
+> +	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+>
+>   	spin_lock_irqsave(&data_lock, flags);
+>
+> -	dss_apply_mgr_timings(mgr, timings);
+> -
+> -	dss_write_regs();
+> -	dss_set_go_bits();
+> +	if (mp->enabled) {
+> +		DSSERR("cannot set timings for %s: manager needs to be disabled\n",
+> +			mgr->name);
+> +		goto out;
+> +	}
+>
+> +	dss_apply_mgr_timings(mgr, timings);
+> +out:
+>   	spin_unlock_irqrestore(&data_lock, flags);
+> -
+> -	wait_pending_extra_info_updates();
+> -
+> -	mutex_unlock(&apply_lock);
+>   }
+>
+>   static void dss_apply_mgr_lcd_config(struct omap_overlay_manager *mgr,
+>
+
