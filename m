@@ -1,53 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND 2/4] can: c_can: Add d_can raminit support
-Date: Wed, 5 Sep 2012 16:23:53 -0700
-Message-ID: <20120905232353.GK1303@atomide.com>
+Subject: Re: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl
+ support
+Date: Wed, 5 Sep 2012 16:26:10 -0700
+Message-ID: <20120905232609.GL1303@atomide.com>
 References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
- <1346843564-25343-3-git-send-email-anilkumar@ti.com>
+ <50473D92.9000500@pengutronix.de>
+ <504759B4.6060203@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28615 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755164Ab2IEXX6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 19:23:58 -0400
+Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1346843564-25343-3-git-send-email-anilkumar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <504759B4.6060203@pengutronix.de>
+Sender: linux-can-owner@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: AnilKumar Ch <anilkumar@ti.com>, wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* AnilKumar Ch <anilkumar@ti.com> [120905 04:14]:
-> Add D_CAN raminit support to C_CAN driver to enable D_CAN RAM,
-> which holds all the message objects during transmission or
-> receiving of data. This initialization/de-initialization should
-> be done in synchronous with D_CAN clock.
+* Marc Kleine-Budde <mkl@pengutronix.de> [120905 06:55]:
+> On 09/05/2012 01:54 PM, Marc Kleine-Budde wrote:
+> > On 09/05/2012 01:12 PM, AnilKumar Ch wrote:
+> >> Adds suspend/resume functionality of d_can driver along with d_can
+> >> raminit support which is required to initialize RAM while data
+> >> transmission.
+> >>
+> >> This patch series also adds pinctrl support to c_can driver. These
+> >> patches were tested on AM335x-EVM.
+> >>
+> >> This patch-series is based ontop of runtimePM patch submitted
+> >> earlier - https://patchwork.kernel.org/patch/1348081/
+> > 
+> > Looks good, I'll apply the series after Tony acks the patch 3
+> > ([PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to
+> > pass d_can raminit).
+> 
+> I've pushed all patches to can-next/master [1]. When Tony gives his Ack,
+> I'll send David a pull request (of a tree including that Ack).
 
-Sounds like you should just implement runtime PM calls in the driver
-and let the lower level code take care of this for you along with the
-clocks etc.
+To me it looks like we can avoid the platform callbacks and the ram
+init changes to the driver by implementing right runtime PM calls
+for omap/am33xx. So NAK on few patches, and ACK on one :)
 
-> @@ -1071,6 +1077,8 @@ static int c_can_open(struct net_device *dev)
->  	struct c_can_priv *priv = netdev_priv(dev);
->  
->  	c_can_pm_runtime_get_sync(priv);
-> +	/* Initialize DCAN RAM */
-> +	c_can_reset_ram(priv, true);
->  
->  	/* open the can device */
->  	err = open_candev(dev);
-> @@ -1099,6 +1107,8 @@ static int c_can_open(struct net_device *dev)
->  exit_irq_fail:
->  	close_candev(dev);
->  exit_open_fail:
-> +	/* De-Initialize DCAN RAM */
-> +	c_can_reset_ram(priv, false);
->  	c_can_pm_runtime_put_sync(priv);
->  	return err;
->  }
-
-Oh your already have pm_runtime here, OK so yeah let's let the omap/am33xx
-hwmod code do this for you. No changes to this driver needed then?
+Regards,
 
 Tony
+
+> [1] https://gitorious.org/linux-can/linux-can-next
