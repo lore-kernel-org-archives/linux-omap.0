@@ -1,66 +1,44 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
- devicetree
-Date: Wed, 5 Sep 2012 16:46:43 +0200
-Message-ID: <504765D3.5070103@ti.com>
-References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com> <5037A9CE.1080809@ti.com> <50476143.3010509@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: OMAP baseline test results for v3.6-rc4
+Date: Wed, 5 Sep 2012 15:44:42 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46201 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674Ab2IEOqy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 10:46:54 -0400
-In-Reply-To: <50476143.3010509@ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:52044 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752128Ab2IEPon (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 11:44:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Peter,
 
-I will just slighty change the subject since it is an omap_device.c patch and not an omap_hwmod.c one.
+Here are some basic boot and power management test results for v3.6-rc4:
 
-ARM: OMAP: omap_device: Fix up resource names when booted with devicetree
+    http://www.pwsan.com/omap/testlogs/test_v3.6-rc4/20120904122415/
 
-Regards,
-Benoit
+Some observations:
 
-On 09/05/2012 04:27 PM, Benoit Cousson wrote:
-> Hi Paul,
-> 
-> On 08/24/2012 06:20 PM, Peter Ujfalusi wrote:
->> Hi Paul,
->>
->> On 08/24/2012 06:38 PM, Paul Walmsley wrote:
->>> Do we need both this one and your '[PATCH] driver core: Check if r->name 
->>> is valid in platform_get_resource_byname()' ?  Or would that second patch 
->>> be enough?  Is the crash happening in the platform_get_resource_byname() 
->>> iterator?
->>
->> The crash happens in platform_get_resource_byname(). What I see as a problem
->> that when we boot without DT the r->name is configured for the hwmods. If we
->> boot with DT we discard the resources created by the OF (which also have the
->> r->name configured). We replace the resources from hwmods but we do not fix up
->> the resource names (which is done in other cases).
->> I have sent the patch for the drivers core as well since I think it is a good
->> practice anyway to check for NULL pointer before strcmp().
->>
->> Either is good, but IMHO we should fix this in omap_hwmod (at least).
-> 
-> Yes, clearly we do have a corner case today due to the mix of hwmod /
-> DTS resource management.
-> - Legacy boot + hwmod resources is OK
-> - DTS boot with DTS resources will be OK
-> - DTS boot with hwmod resources is not OK since the resource name will
->   not be populated in the case resources are not named :-(
-> 
-> If you are OK, I'll take that patch along with Vaibhav one to handle
-> properly the resources from DTS long with the DTS patches I'm queuing
-> for 3.7.
-> 
-> Thanks,
-> Benoit
-> 
+* N800: panics during kernel init
+  - This is caused by an MMC driver bug; fixed by "[PATCH] MMC: OMAP MSDI: 
+    fix broken PIO mode", available from here:
+    http://www.spinics.net/lists/arm-kernel/msg190879.html
 
+* CM-T3517: L3 in-band error with USB OTG during boot
+  - Cause unknown; longstanding issue; does not occur on the 3517EVM
+
+* 37xx EVM: CORE not entering dynamic off-idle
+  - Cause unknown; dynamic retention-idle seems to work; system suspend to 
+    off works
+
+* 4430ES2 Panda: CORE, L4PER, L3INIT, TESLA, IVAHD not going idle
+  - Cause unknown; may be partially due to McPDM reset problem
+
+(The objective in posting these is to determine what is and isn't working 
+in the mainline releases, as well as to make it easier to determine what 
+is fixed or is broken by subsequent series that use this as a base.)
+
+
+- Paul
