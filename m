@@ -1,51 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/9] ARM: OMAP2+: Remove hardcoded twl4030 gpio_base,
- irq_base and irq_end
-Date: Wed, 5 Sep 2012 09:54:45 -0700
-Message-ID: <20120905165445.GD1303@atomide.com>
-References: <20120831004828.28732.902.stgit@muffinssi.local>
- <20120831005230.28732.1131.stgit@muffinssi.local>
- <20120831235212.GS1303@atomide.com>
- <50474FC0.6010805@ti.com>
+From: "DR.NED OKOH" <infomail@ok.net>
+Subject: REPLY NEEDED
+Date: Wed, 05 Sep 2012 10:10:31 -0700
+Message-ID: <SERVERm0fwYdka0fIQT00004992__48457.1723071442$1346865989$gmane$org@offline.co.il>
+Reply-To: mail.info187@ok.net
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:21843 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752789Ab2IEQyu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 12:54:50 -0400
-Content-Disposition: inline
-In-Reply-To: <50474FC0.6010805@ti.com>
+Received: from mxout11.netvision.net.il ([194.90.6.39]:42783 "EHLO
+	mxout11.netvision.net.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754083Ab2IER0Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 13:26:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 06:12]:
-> Hi Tony,
-> 
-> On 09/01/2012 02:52 AM, Tony Lindgren wrote:
-> > 
-> > ..but irq_base here is still in use as that's where the value from
-> > irq_alloc_descs() is being stored to. So I'll drop the changes to
-> > struct twl6040 from this patch as otherwise twl6040 code won't compile.
-> > 
-> > Turns out I did not have twl6040 selected in any of the testconfigs
-> > that I ran.
-> 
-> I store the irq_base in a private data for the MFD driver so child drivers can
-> request the correct IRQ.
-> 
-> You can safely remove the irq_base from twl6040_platform_data struct
+Good day my dear,
+I am writing to acknowledged you that this is the second time we are notifying you about your payment worth of US$16.5m USD,with foreign Remittance payment department office which is due to be released into your Account As we begin the first fiscal payment of the year 2012.Please send the information below as needed for your fund release to you OK.
 
-Can you please do a patch for that against testing-cleanup branch? That
-way we'll know that the twl changes get tested for audio ;)
+1)Your Full Name__________________________ _____________
+2)Your Address_______________________ ______________________________
+3)Your Age___________________________ _______________________
+4)Your Direct Telephone Number________________________ ________________
+5)Fax Number________________________ _________________
+6)Occupation____________________ __________________________
 
-Maybe also check if Felipe's earlier patch also has something else that
-can be removed? That's the "[PATCH] arm: omap: drop unused IRQ defines":
+We sincerely apologies for our late contact with you, We are committed to serve you better OK and you have been advice to get back to me immediately for more details OK.
 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/103274.html#
-
-Regards,
-
-Tony
+Yours in service
+Dr.Ned Okoh
