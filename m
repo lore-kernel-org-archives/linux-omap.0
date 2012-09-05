@@ -1,68 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add
- of_dev_auxdata to pass d_can raminit
-Date: Wed, 5 Sep 2012 16:18:38 -0700
-Message-ID: <20120905231837.GI1303@atomide.com>
+Subject: Re: [PATCH RESEND 1/4] can: c_can: Adopt pinctrl support
+Date: Wed, 5 Sep 2012 16:19:46 -0700
+Message-ID: <20120905231945.GJ1303@atomide.com>
 References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
- <1346843564-25343-4-git-send-email-anilkumar@ti.com>
+ <1346843564-25343-2-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-can-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1346843564-25343-4-git-send-email-anilkumar@ti.com>
+In-Reply-To: <1346843564-25343-2-git-send-email-anilkumar@ti.com>
 Sender: linux-can-owner@vger.kernel.org
 To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
 * AnilKumar Ch <anilkumar@ti.com> [120905 04:14]:
-> Add of_dev_auxdata to pass d_can raminit callback APIs to initialize
-> d_can RAM. D_CAN RAM initialization bits are present in CONTROL module
-> address space, which can be accessed by platform specific code. So
-> callback functions are added to serve this purpose, this can done by
-> using of_dev_auxdata.
+> Adopt pinctrl support to c_can driver based on c_can device
+> pointer, pinctrl driver configure SoC pins to d_can mode
+> according to definitions provided in .dts file.
 > 
-> Two callback APIs are added to of_dev_auxdata used by two instances of
-> D_CAN IP. These callback functions are used to enable/disable D_CAN RAM
-> from CAN driver.
+> In device specific device tree file 'pinctrl-names = "default";'
+> and 'pinctrl-0 = <&d_can1_pins>;' needs to add to configure pins
+> from c_can driver. d_can1_pins node contains the pinmux/config
+> details of d_can L/H pins.
+> 
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 
-I'd like to avoid the callbacks to the platform code where possible as
-that's the biggest pain we already have moving things to work with device
-tree for the existing drivers.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-And I'm pretty convinced that whatever is done with callbacks should be
-done with some Linux generic framework from the driver that has it's own
-binding, such as clock framework, regulator framework, pinctrl framework,
-runtime PM etc.
-
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -37,11 +40,46 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
->  	{ }
->  };
+> ---
+>  drivers/net/can/c_can/c_can_platform.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+> index 90801c4..c351975 100644
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
 >  
-> +void d_can_hw_raminit(unsigned int instance, bool enable)
-> +{
-> +	u32 val;
+>  #include <linux/can/dev.h>
+>  
+> @@ -98,6 +99,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  	struct c_can_priv *priv;
+>  	const struct of_device_id *match;
+>  	const struct platform_device_id *id;
+> +	struct pinctrl *pinctrl;
+>  	struct resource *mem;
+>  	int irq;
+>  	struct clk *clk;
+> @@ -114,6 +116,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  		id = platform_get_device_id(pdev);
+>  	}
+>  
+> +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+> +	if (IS_ERR(pinctrl))
+> +		dev_warn(&pdev->dev,
+> +			"failed to configure pins from driver\n");
 > +
-> +	val = readl(AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	if (enable) {
-> +		val &= ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		val |= AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	} else {
-> +		val &= ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-> +		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-> +	}
-> +}
-
-This part does not look good to me, this is tweaking the omap control
-module register bits directly. To me it seems that the above should
-be implemented in the omap/am33xx hwmod code that gets initialized when
-the dcan driver calls pm_runtime_enable()? Paul, got any other ideas?
-
-Regards,
-
-Tony
+>  	/* get the appropriate clk */
+>  	clk = clk_get(&pdev->dev, NULL);
+>  	if (IS_ERR(clk)) {
+> -- 
+> 1.7.9.5
+> 
