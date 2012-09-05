@@ -1,77 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 5/9] ARM: OMAP2+: Remove hardcoded twl4030 gpio_base,
- irq_base and irq_end
-Date: Wed, 05 Sep 2012 16:12:32 +0300
-Message-ID: <50474FC0.6010805@ti.com>
-References: <20120831004828.28732.902.stgit@muffinssi.local> <20120831005230.28732.1131.stgit@muffinssi.local> <20120831235212.GS1303@atomide.com>
+From: "Mrs. Yoshiko" <yosh@live.com>
+Subject: (unknown)
+Date: Wed, 05 Sep 2012 14:24:09 +0200
+Message-ID: <20736_1346848060_5047453C_20736_1733_1_20120905142409.80382sbne6z8cgw0@webmail.unical.it>
+Reply-To: yosh643@yahoo.com.hk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:56578 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750895Ab2IENML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 09:12:11 -0400
-Received: by obbuo13 with SMTP id uo13so93308obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 06:12:10 -0700 (PDT)
-In-Reply-To: <20120831235212.GS1303@atomide.com>
+Received: from mercurio.unical.it ([160.97.7.15]:37241 "EHLO
+	mercurio.unical.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab2IENQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 09:16:04 -0400
+Subject: 
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Tony,
 
-On 09/01/2012 02:52 AM, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [120830 17:53]:
->> We can't use hardcoded interrupts for SPARSE_IRQ, and can replace
->> the hardcoded gpio_base with twl_gpiochip.base after it's been
->> allocated.
-> ...
->=20
->> --- a/include/linux/mfd/twl6040.h
->> +++ b/include/linux/mfd/twl6040.h
->> @@ -194,7 +194,6 @@ struct twl6040_vibra_data {
->> =20
->>  struct twl6040_platform_data {
->>  	int audpwron_gpio;	/* audio power-on gpio */
->> -	unsigned int irq_base;
->> =20
->>  	struct twl6040_codec_data *codec;
->>  	struct twl6040_vibra_data *vibra;
->=20
-> The platform_data irq_base is not being used it seems..
 
-Yes, this is not in use.
+-- 
+Hello,
 
->=20
->> @@ -222,7 +221,6 @@ struct twl6040 {
->>  	unsigned int mclk;
->> =20
->>  	unsigned int irq;
->> -	unsigned int irq_base;
->>  	u8 irq_masks_cur;
->>  	u8 irq_masks_cache;
->>  };
->=20
-> ..but irq_base here is still in use as that's where the value from
-> irq_alloc_descs() is being stored to. So I'll drop the changes to
-> struct twl6040 from this patch as otherwise twl6040 code won't compil=
-e.
->=20
-> Turns out I did not have twl6040 selected in any of the testconfigs
-> that I ran.
+My Name Is Mrs. Y. Ishii Taro, I am from Japan my father was into
+real-estate lease business before he died in 2004. I am contacting
+you in a view of the fact that we will be of great assistance to
+each other like wise developing a cordial relationship. My self
+along with my sister try hiding millions of dollars worth of cash
+in our garage to evade about $27.8 million in inheritance taxes in
+Japan.I have 2,061,681,295.50 JPY Japan Yen Equivalent to
+$25,448,300.00 USD United States Dollars, which i intended to use
+for investment purpose overseas.This money i saved in a private
+erected security company safe. It is my lawyer and myself that know
+where the money is kept. Due to the current situation in my country
+concerning government attitude towards my family, it has become quite
+impossible for us to make use of this money within, thus we seek your
+assistance to transfer this money out of Japan. Bearing in mind that
+your assistance is needed to transfer this fund, we propose a
+commission of 21% Twenty One Percent of the total sum to you for the
+expected service and assistance,If you are interested please reply
+immediately with your full name and Phone  number to my
+private email: yosh643@yahoo.com.hk
 
-I store the irq_base in a private data for the MFD driver so child driv=
-ers can
-request the correct IRQ.
 
-You can safely remove the irq_base from twl6040_platform_data struct
+Regards
+Mrs. Y. Ishii Taro
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
+
+
+
+**** Riservatezza / Confidentiality ****
+In ottemperanza al D.Lgs. n. 196 del 30/6/2003 in materia di protezione dei dati personali, le informazioni contenute in questo messaggio sono strettamente riservate ed esclusivamente indirizzate al destinatario indicato (oppure alla persona responsabile di  rimetterlo al destinatario). Vogliate tener presente che qualsiasi uso, riproduzione o divulgazione di questo messaggio e' vietato. Nel caso in cui aveste ricevuto questo messaggio per errore, vogliate cortesemente avvertire il mittente e distruggere il presente  messaggio.
+
