@@ -1,47 +1,36 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl
- support
-Date: Wed, 5 Sep 2012 16:26:10 -0700
-Message-ID: <20120905232609.GL1303@atomide.com>
-References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
- <50473D92.9000500@pengutronix.de>
- <504759B4.6060203@pengutronix.de>
+Subject: Re: [PATCH v8 1/3] ARM: OMAP2/3: hwmod data: add gpmc
+Date: Wed, 5 Sep 2012 16:27:32 -0700
+Message-ID: <20120905232732.GM1303@atomide.com>
+References: <cover.1346846464.git.afzal@ti.com>
+ <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-can-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:33739 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753952Ab2IEX1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 19:27:35 -0400
 Content-Disposition: inline
-In-Reply-To: <504759B4.6060203@pengutronix.de>
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: AnilKumar Ch <anilkumar@ti.com>, wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Marc Kleine-Budde <mkl@pengutronix.de> [120905 06:55]:
-> On 09/05/2012 01:54 PM, Marc Kleine-Budde wrote:
-> > On 09/05/2012 01:12 PM, AnilKumar Ch wrote:
-> >> Adds suspend/resume functionality of d_can driver along with d_can
-> >> raminit support which is required to initialize RAM while data
-> >> transmission.
-> >>
-> >> This patch series also adds pinctrl support to c_can driver. These
-> >> patches were tested on AM335x-EVM.
-> >>
-> >> This patch-series is based ontop of runtimePM patch submitted
-> >> earlier - https://patchwork.kernel.org/patch/1348081/
-> > 
-> > Looks good, I'll apply the series after Tony acks the patch 3
-> > ([PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to
-> > pass d_can raminit).
-> 
-> I've pushed all patches to can-next/master [1]. When Tony gives his Ack,
-> I'll send David a pull request (of a tree including that Ack).
+* Afzal Mohammed <afzal@ti.com> [120905 05:38]:
+> Add gpmc hwmod and associated interconnect data
+>  
+> +static struct omap_hwmod_addr_space omap2420_gpmc_addrs[] = {
+> +	{
+> +		.pa_start	= 0x6800A000,
+> +		.pa_end		= 0x6800AFFF,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +	{ }
+> +};
 
-To me it looks like we can avoid the platform callbacks and the ram
-init changes to the driver by implementing right runtime PM calls
-for omap/am33xx. So NAK on few patches, and ACK on one :)
-
-Regards,
+Nit, please lowercase all the hex numbers, that's the standard
+in Linux.
 
 Tony
-
-> [1] https://gitorious.org/linux-can/linux-can-next
