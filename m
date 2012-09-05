@@ -1,416 +1,473 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCHv2 2/4] Input: keypad: Add smsc ece1099 keypad driver
-Date: Thu, 6 Sep 2012 00:01:51 +0530
-Message-ID: <50479A97.50606@ti.com>
-References: <1346844997-24868-1-git-send-email-sourav.poddar@ti.com>
+Subject: Re: [PATCHv2 4/4] gpio: smscece: Add support for gpio IO expander
+ feature
+Date: Thu, 6 Sep 2012 00:29:25 +0530
+Message-ID: <5047A10D.6070106@ti.com>
+References: <1346845026-24926-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346844997-24868-1-git-send-email-sourav.poddar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1346845026-24926-1-git-send-email-sourav.poddar@ti.com>
+Sender: linux-input-owner@vger.kernel.org
 To: Sourav Poddar <sourav.poddar@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, santosh.shilimkar@ti.com, b-cousson@ti.com, balbi@ti.com
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, santosh.shilimkar@ti.com, b-cousson@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
 
-On 9/5/2012 5:06 PM, Sourav Poddar wrote:
-> From: G, Manjunath Kondaiah <manjugk@ti.com>
+On 9/5/2012 5:07 PM, Sourav Poddar wrote:
+> smsc can be used as an gpio io expander device also. So adding
+> support for configuring smsc pins as a gpio.
 > 
-> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
-> supports a keypad scan matrix of 23*8.This driver uses this
-> device as a keypad driver.
-> 
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 > Cc: Benoit Cousson <b-cousson@ti.com>
 > Cc: Felipe Balbi <balbi@ti.com>
 > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
 > ---
-> Changes since v1:
->  - Prevent the use of kfree since devm_kzalloc was used.
->  - Use devexit around remove api
->  drivers/input/keyboard/Kconfig               |   11 +
->  drivers/input/keyboard/Makefile              |    1 +
->  drivers/input/keyboard/smsc-ece1099-keypad.c |  306 ++++++++++++++++++++++++++
->  3 files changed, 318 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
+> Changes since v1: 
+>  - Use edge triggering instead of level
+>  - Use devm_reuest_threaded_irq
+>  - In remove part, use "irq_free_desc" and
+>      "irq_remove_domain" api.
+>  drivers/gpio/Kconfig        |    7 +
+>  drivers/gpio/Makefile       |    1 +
+>  drivers/gpio/gpio-smscece.c |  380 +++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 388 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/gpio/gpio-smscece.c
 > 
-> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-> index c50fa75..2a2d374 100644
-> --- a/drivers/input/keyboard/Kconfig
-> +++ b/drivers/input/keyboard/Kconfig
-> @@ -593,6 +593,17 @@ config KEYBOARD_TWL4030
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called twl4030_keypad.
+> diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+> index b16c8a7..e883929 100644
+> --- a/drivers/gpio/Kconfig
+> +++ b/drivers/gpio/Kconfig
+> @@ -444,6 +444,13 @@ config GPIO_ADP5588_IRQ
+>  	  Say yes here to enable the adp5588 to be used as an interrupt
+>  	  controller. It requires the driver to be built in the kernel.
 >  
-> +config KEYBOARD_SMSC
-> +       tristate "SMSC ECE1099 keypad support"
-> +       depends on I2C=y
-
-Any specific reason behind "=y"
-
-> +       help
-> +         Say Y here if your board use the smsc keypad controller
-> +         for omap5 defconfig. It's safe to say enable this
-> +         even on boards that don't use the keypad controller.
+> +config GPIO_SMSCECE
+> +	tristate "SMSCECE 1099 I2C GPIO expander"
+> +	depends on I2C
+> +	help
+> +	  This option enables support for 18 GPIOs found
+> +	  on SMSC ECE 1099 GPIO Expanders.
 > +
-> +         To compile this driver as a module, choose M here: the
-> +         module will be called smsc-ece1099-keypad.
-> +
->  config KEYBOARD_XTKBD
->  	tristate "XT keyboard"
->  	select SERIO
-> diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
-> index 44e7600..0f2aa26 100644
-> --- a/drivers/input/keyboard/Makefile
-> +++ b/drivers/input/keyboard/Makefile
-> @@ -52,5 +52,6 @@ obj-$(CONFIG_KEYBOARD_TC3589X)		+= tc3589x-keypad.o
->  obj-$(CONFIG_KEYBOARD_TEGRA)		+= tegra-kbc.o
->  obj-$(CONFIG_KEYBOARD_TNETV107X)	+= tnetv107x-keypad.o
->  obj-$(CONFIG_KEYBOARD_TWL4030)		+= twl4030_keypad.o
-> +obj-$(CONFIG_KEYBOARD_SMSC)            += smsc-ece1099-keypad.o
->  obj-$(CONFIG_KEYBOARD_XTKBD)		+= xtkbd.o
->  obj-$(CONFIG_KEYBOARD_W90P910)		+= w90p910_keypad.o
-> diff --git a/drivers/input/keyboard/smsc-ece1099-keypad.c b/drivers/input/keyboard/smsc-ece1099-keypad.c
+>  comment "PCI GPIO expanders:"
+>  
+>  config GPIO_CS5535
+> diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
+> index 153cace..7c803c5 100644
+> --- a/drivers/gpio/Makefile
+> +++ b/drivers/gpio/Makefile
+> @@ -12,6 +12,7 @@ obj-$(CONFIG_GPIO_74X164)	+= gpio-74x164.o
+>  obj-$(CONFIG_GPIO_AB8500)	+= gpio-ab8500.o
+>  obj-$(CONFIG_GPIO_ADP5520)	+= gpio-adp5520.o
+>  obj-$(CONFIG_GPIO_ADP5588)	+= gpio-adp5588.o
+> +obj-$(CONFIG_GPIO_SMSCECE)      += gpio-smscece.o
+>  obj-$(CONFIG_GPIO_AMD8111)	+= gpio-amd8111.o
+>  obj-$(CONFIG_GPIO_ARIZONA)	+= gpio-arizona.o
+>  obj-$(CONFIG_GPIO_BT8XX)	+= gpio-bt8xx.o
+> diff --git a/drivers/gpio/gpio-smscece.c b/drivers/gpio/gpio-smscece.c
 > new file mode 100644
-> index 0000000..71cd7d6
+> index 0000000..68a17fa
 > --- /dev/null
-> +++ b/drivers/input/keyboard/smsc-ece1099-keypad.c
-> @@ -0,0 +1,306 @@
+> +++ b/drivers/gpio/gpio-smscece.c
+> @@ -0,0 +1,380 @@
 > +/*
-> + * SMSC_ECE1099 Keypad driver
+> + * GPIO Chip driver for smsc
+> + * SMSC I/O Expander and QWERTY Keypad Controller
 > + *
-> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + * Copyright 2012 Texas Instruments Inc.
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
+> + * Licensed under the GPL-2 or later.
+
+Can you put proper license here?
+
 > + */
 > +
-> +#include <linux/i2c.h>
-> +#include <linux/kernel.h>
 > +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/input.h>
-> +#include <linux/gpio.h>
+> +#include <linux/kernel.h>
 > +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/input/matrix_keypad.h>
-> +#include <linux/delay.h>
-> +#include <linux/mfd/core.h>
+> +#include <linux/init.h>
+> +#include <linux/i2c.h>
+> +#include <linux/gpio.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/irq.h>
 > +#include <linux/mfd/smsc.h>
-> +#include <linux/of_gpio.h>
-> +#include <linux/of.h>
+> +#include <linux/err.h>
 > +
-> +#define KEYPRESS_TIME          200
-> +
-> +struct smsc_keypad {
-> +	struct smsc *smsc;
-> +	struct matrix_keymap_data *keymap_data;
-> +	unsigned int last_key_state[16];
-> +	unsigned int last_col;
-> +	unsigned int last_key_ms[16];
-> +	unsigned short *keymap;
-> +	struct i2c_client *client;
-> +	struct input_dev *input;
-> +	int rows, cols;
-> +	int row_shift;
-> +	bool no_autorepeat;
-> +	unsigned        irq;
+> +struct smsc_gpio {
 > +	struct device *dev;
+> +	struct smsc *smsc;
+> +	struct gpio_chip gpio_chip;
+> +	struct mutex lock;	/* protect cached dir, dat_out */
+> +	/* protect serialized access to the interrupt controller bus */
+> +	struct mutex irq_lock;
+> +	struct irq_domain       *irq_domain;
+> +	unsigned gpio_start;
+> +	int type;
+> +	int flags;
+> +	int irq;
+> +	int irq_base;
+> +	unsigned int gpio_base;
+> +	unsigned int dat_out[5];
+> +	unsigned int dir[5];
+> +	unsigned int irq_trig_fall[5];
+> +	unsigned int irq_trig_raise[5];
+> +	unsigned int int_en[5];
+> +	unsigned int irq_mask[5];
+> +	unsigned int irq_stat[5];
 > +};
 > +
-> +static void smsc_kp_scan(struct smsc_keypad *kp)
+> +static int smsc_gpio_get_value(struct gpio_chip *chip, unsigned off)
 > +{
-> +	struct input_dev *input = kp->input;
-> +	int i, j;
-> +	int row, col;
-> +	int temp, code;
-> +	unsigned int new_state[16];
-> +	unsigned int bits_changed;
-> +	int this_ms;
-> +
-> +	smsc_write(kp->dev, SMSC_KP_INT_MASK, 0x00);
-> +	smsc_write(kp->dev, SMSC_KP_INT_STAT, 0xFF);
-> +
-> +	/* Scan for row and column */
-> +	for (i = 0; i < kp->cols; i++) {
-> +		smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_EVAL + i);
-> +		/* Read Row Status */
-> +		smsc_read(kp->dev, SMSC_KP_IN, &temp);
-> +		if (temp == 0xFF)
-> +			continue;
-> +
-> +		col = i;
-> +		for (j = 0; j < kp->rows; j++) {
-> +			if ((temp & 0x01) != 0x00) {
-> +				temp = temp >> 1;
-> +				continue;
-> +			}
-> +
-> +			row = j;
-> +			new_state[col] =  (1 << row);
-> +			bits_changed = kp->last_key_state[col] ^ new_state[col];
-> +			this_ms = jiffies_to_msecs(jiffies);
-> +			if (bits_changed != 0 || (!bits_changed &&
-> +					((this_ms - kp->last_key_ms[col]) >= KEYPRESS_TIME))) {
-> +				code = MATRIX_SCAN_CODE(row, col, kp->row_shift);
-> +				input_event(input, EV_MSC, MSC_SCAN, code);
-> +				input_report_key(input, kp->keymap[code], 1);
-> +				input_report_key(input, kp->keymap[code], 0);
-> +				kp->last_key_state[col] = new_state[col];
-> +				if (kp->last_col != col)
-> +					kp->last_key_state[kp->last_col] = 0;
-> +				kp->last_key_ms[col] = this_ms;
-> +			}
-> +			temp = temp >> 1;
-> +		}
-> +	}
-> +	input_sync(input);
-> +
-> +	smsc_write(kp->dev, SMSC_KP_INT_MASK, 0xFF);
-> +
-> +	/* Set up Low Power Mode (Wake-up) (0xFB) */
-> +	smsc_write(kp->dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
-> +
-> +	/*Enable Keypad Scan (generate interrupt on key press) (0x40)*/
-> +	smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
+> +	struct smsc_gpio *sg =
+> +		container_of(chip, struct smsc_gpio, gpio_chip);
+> +	unsigned int get;
+> +	return !!(smsc_read(sg->dev,
+> +		(SMSC_GPIO_DATA_IN_START + SMSC_BANK(off)) & SMSC_BIT(off),
+> +					&get));
 > +}
 > +
-> +static irqreturn_t do_kp_irq(int irq, void *_kp)
+> +static void smsc_gpio_set_value(struct gpio_chip *chip,
+> +			unsigned off, int val)
 > +{
-> +	struct smsc_keypad *kp = _kp;
-> +	int int_status;
+> +	unsigned bank, bit;
+> +	struct smsc_gpio *sg =
+> +		container_of(chip, struct smsc_gpio, gpio_chip);
 > +
-> +	smsc_read(kp->dev, SMSC_KP_INT_STAT, &int_status);
-> +	if (int_status)
-> +		smsc_kp_scan(kp);
+> +	bank = SMSC_BANK(off);
+> +	bit = SMSC_BIT(off);
+> +
+> +	mutex_lock(&sg->lock);
+> +	if (val)
+> +		sg->dat_out[bank] |= bit;
+> +	else
+> +		sg->dat_out[bank] &= ~bit;
+> +
+> +	smsc_write(sg->dev, SMSC_GPIO_DATA_OUT_START + bank,
+> +			   sg->dat_out[bank]);
+> +	mutex_unlock(&sg->lock);
+> +}
+> +
+> +static int smsc_gpio_direction_input(struct gpio_chip *chip, unsigned off)
+> +{
+> +	unsigned int reg;
+> +	struct smsc_gpio *sg =
+> +	    container_of(chip, struct smsc_gpio, gpio_chip);
+> +	int reg_dir;
+> +
+> +	mutex_lock(&sg->lock);
+> +	reg_dir = SMSC_CFG_START + off;
+> +	smsc_read(sg->dev, reg_dir, &reg);
+> +	reg |= SMSC_GPIO_INPUT_LOW;
+> +	mutex_unlock(&sg->lock);
+> +
+> +	return smsc_write(sg->dev, reg_dir, reg);
+> +}
+> +
+> +static int smsc_gpio_direction_output(struct gpio_chip *chip,
+> +					 unsigned off, int val)
+> +{
+> +	unsigned int reg;
+> +	struct smsc_gpio *sg =
+> +	    container_of(chip, struct smsc_gpio, gpio_chip);
+> +	int reg_dir;
+> +
+> +	mutex_lock(&sg->lock);
+> +	reg_dir = SMSC_CFG_START + off;
+> +	smsc_read(sg->dev, reg_dir, &reg);
+> +	reg |= SMSC_GPIO_OUTPUT_PP;
+> +	mutex_unlock(&sg->lock);
+> +
+> +	return smsc_write(sg->dev, reg_dir, reg);
+> +}
+> +
+> +static int smsc_gpio_to_irq(struct gpio_chip *chip, unsigned off)
+> +{
+> +	struct smsc_gpio *sg =
+> +		container_of(chip, struct smsc_gpio, gpio_chip);
+> +	return sg->irq_base + off;
+> +}
+> +
+> +static void smsc_irq_bus_lock(struct irq_data *d)
+> +{
+> +	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
+> +
+> +	mutex_lock(&sg->irq_lock);
+> +}
+> +
+> +static void smsc_irq_bus_sync_unlock(struct irq_data *d)
+> +{
+> +	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
+> +	int i;
+> +
+> +	for (i = 0; i < SMSC_BANK(SMSC_MAXGPIO); i++)
+> +		if (sg->int_en[i] ^ sg->irq_mask[i]) {
+> +			sg->int_en[i] = sg->irq_mask[i];
+> +			smsc_write(sg->dev, SMSC_GPIO_INT_MASK_START + i,
+> +					   sg->int_en[i]);
+> +		}
+> +
+> +	mutex_unlock(&sg->irq_lock);
+> +}
+> +
+> +static void smsc_irq_mask(struct irq_data *d)
+> +{
+> +	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
+> +	unsigned gpio = d->irq - sg->irq_base;
+> +
+> +	sg->irq_mask[SMSC_BANK(gpio)] &= ~SMSC_BIT(gpio);
+> +}
+> +
+> +static void smsc_irq_unmask(struct irq_data *d)
+> +{
+> +	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
+> +	unsigned gpio = d->irq - sg->irq_base;
+> +
+> +	sg->irq_mask[SMSC_BANK(gpio)] |= SMSC_BIT(gpio);
+> +}
+> +
+> +static int smsc_irq_set_type(struct irq_data *d, unsigned int type)
+> +{
+> +	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
+> +	uint16_t gpio = d->irq - sg->irq_base;
+> +	unsigned bank, bit;
+> +
+> +	if ((type & IRQ_TYPE_EDGE_BOTH)) {
+> +		dev_err(sg->dev, "irq %d: unsupported type %d\n",
+> +			d->irq, type);
+> +		return -EINVAL;
+> +	}
+> +
+> +	bank = SMSC_BANK(gpio);
+> +	bit = SMSC_BIT(gpio);
+> +
+> +	if (type & IRQ_TYPE_EDGE_FALLING)
+> +		sg->irq_trig_fall[bank] |= bit;
+> +	else
+> +		sg->irq_trig_fall[bank] &= ~bit;
+> +
+> +	if (type & IRQ_TYPE_EDGE_RISING)
+> +		sg->irq_trig_raise[bank] |= bit;
+> +	else
+> +		sg->irq_trig_raise[bank] &= ~bit;
+> +
+> +	smsc_gpio_direction_input(&sg->gpio_chip, gpio);
+> +	smsc_write(sg->dev, SMSC_CFG_START + gpio,
+> +			sg->irq_trig_fall[bank] | sg->irq_trig_raise[bank]);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct irq_chip smsc_irq_chip = {
+> +	.name			= "smsc",
+> +	.irq_mask		= smsc_irq_mask,
+> +	.irq_unmask		= smsc_irq_unmask,
+> +	.irq_bus_lock		= smsc_irq_bus_lock,
+> +	.irq_bus_sync_unlock	= smsc_irq_bus_sync_unlock,
+> +	.irq_set_type		= smsc_irq_set_type,
+> +};
+> +
+> +static int smsc_gpio_read_intstat(struct smsc_gpio *sg,
+> +				unsigned int *buf, int i)
+> +{
+> +	int ret = smsc_read(sg->dev,
+> +			SMSC_GPIO_INT_STAT_START + i, buf);
+> +
+> +	if (ret < 0)
+> +		dev_err(sg->dev, "Read INT_STAT Error\n");
+> +
+> +	return ret;
+> +}
+> +
+> +static irqreturn_t smsc_irq_handler(int irq, void *devid)
+> +{
+> +	struct smsc_gpio *sg = devid;
+> +	unsigned int status, bank, pending;
+> +	int ret;
+> +	smsc_read(sg->dev, GRP_INT_STAT, &status);
+> +
+
+Add blank line before read statement above.
+
+> +	if (!(status & SMSC_GPI_INT))
+> +		goto out;
+> +
+> +	for (bank = 0; bank <= SMSC_BANK(SMSC_MAXGPIO);
+> +		bank++) {
+> +		pending = sg->irq_stat[bank] & sg->irq_mask[bank];
+> +		ret = smsc_gpio_read_intstat(sg,
+> +				&sg->irq_stat[bank], bank);
+> +		if (ret < 0)
+> +			memset(&sg->irq_stat[bank], 0,
+> +				ARRAY_SIZE(sg->irq_stat));
+> +
+> +		while (pending) {
+> +			unsigned long   bit = __ffs(pending);
+> +			unsigned int    irq;
+> +
+> +			pending &= ~BIT(bit);
+> +			irq = bit + sg->irq_base;
+> +			handle_nested_irq(irq);
+> +		}
+> +	}
+> +
+> +out:
+> +	smsc_write(sg->dev, GRP_INT_STAT, status); /* Status is W1C */
 > +
 > +	return IRQ_HANDLED;
 > +}
 > +
-> +#ifdef CONFIG_OF
-> +static int __devinit smsc_keypad_parse_dt(struct device *dev,
-> +				struct smsc_keypad *kp)
+> +static int smsc_irq_setup(struct smsc_gpio *sg)
 > +{
-> +	struct device_node *np = dev->of_node;
+> +	unsigned gpio;
+> +	int ret;
 > +
-> +	if (!np) {
-> +		dev_err(dev, "missing DT data");
-> +		return -EINVAL;
-
-Isn't you should return -ENXIO?
-
-> +	}
+> +	mutex_init(&sg->irq_lock);
 > +
-> +	of_property_read_u32(np, "keypad,num-rows", &kp->rows);
-> +	of_property_read_u32(np, "keypad,num-columns", &kp->cols);
-> +	if (!kp->rows || !kp->cols) {
-> +		dev_err(dev, "number of keypad rows/columns not specified\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (of_get_property(np, "linux,input-no-autorepeat", NULL))
-> +		kp->no_autorepeat = true;
-> +
-
-You can use of_property_read_bool() here.
-
-> +	return 0;
-> +}
+> +	for (gpio = 0; gpio < sg->gpio_chip.ngpio; gpio++) {
+> +		int irq = gpio + sg->irq_base;
+> +		irq_set_chip_data(irq, sg);
+> +		irq_set_chip_and_handler(irq, &smsc_irq_chip,
+> +				handle_level_irq);
+> +		irq_set_nested_thread(irq, 1);
+> +#ifdef CONFIG_ARM
+> +		set_irq_flags(irq, IRQF_VALID);
 > +#else
-> +static inline int smsc_keypad_parse_dt(struct device *dev,
-> +				struct smsc_keypad *kp)
-> +{
-> +	return -ENOSYS;
-> +}
+> +		irq_set_noprobe(irq);
 > +#endif
-> +
-> +static int __devinit
-> +smsc_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
-> +	struct input_dev *input;
-> +	struct smsc_keypad *kp;
-> +	int ret = 0, error;
-> +	int col, i, max_keys, row_shift;
-> +	int irq;
-> +	int addr_start, addr;
-> +
-> +	kp = devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
-> +
-> +	input = input_allocate_device();
-> +	if (!kp || !input) {
-> +		error = -ENOMEM;
-> +		goto err1;
-
-You can directly return here.
-
 > +	}
 > +
-> +	error = smsc_keypad_parse_dt(&pdev->dev, kp);
-> +	if (error)
-> +		return error;
-> +
-> +	/* Get the debug Device */
-> +	kp->input = input;
-> +	kp->smsc = smsc;
-> +	kp->irq = platform_get_irq(pdev, 0);
-> +	kp->dev = dev;
-> +
-> +	for (col = 0; col < 16; col++) {
-
-Isn't this magic no 16 should come from DT??
-
-
-> +		kp->last_key_state[col] = 0;
-> +		kp->last_key_ms[col] = 0;
-> +	}
-> +
-> +	/* setup input device */
-> +	 __set_bit(EV_KEY, input->evbit);
-> +
-> +	/* Enable auto repeat feature of Linux input subsystem */
-> +	if (!(kp->no_autorepeat))
-> +		__set_bit(EV_REP, input->evbit);
-> +
-> +	input_set_capability(input, EV_MSC, MSC_SCAN);
-> +	input->name             = "SMSC Keypad";
-> +	input->phys             = "smsc_keypad/input0";
-> +	input->dev.parent       = &pdev->dev;
-> +	input->id.bustype       = BUS_HOST;
-> +	input->id.vendor        = 0x0001;
-> +	input->id.product       = 0x0001;
-> +	input->id.version       = 0x0003;
-> +
-> +	error = input_register_device(input);
-> +	if (error) {
-> +		dev_err(kp->dev,
-> +			"Unable to register twl4030 keypad device\n");
-> +		goto err1;
-> +	}
-> +
-> +	/* Mask all GPIO interrupts (0x37-0x3B) */
-> +	for (addr = 0x37; addr < 0x3B; addr++)
-> +		smsc_write(dev, addr, 0);
-> +
-> +	/* Set all outputs high (0x05-0x09) */
-> +	for (addr = 0x05; addr < 0x09; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	/* Clear all GPIO interrupts (0x32-0x36) */
-> +	for (addr = 0x32; addr < 0x36; addr++)
-> +		smsc_write(dev, addr, 0xff);
-> +
-> +	addr_start = 0x12;
-> +	for (i = 0; i <= kp->rows; i++) {
-> +		addr = 0x12 + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSI);
-> +	}
-> +
-> +	addr_start =  0x1A;
-> +	for (i = 0; i <= kp->cols; i++) {
-> +		addr = 0x1A + i;
-> +		smsc_write(dev, addr, SMSC_KP_KSO);
-> +	}
-> +
-
-Lots of magic numbers without proper description/comments.
-
-> +	addr = SMSC_KP_INT_STAT;
-> +	smsc_write(dev, addr, SMSC_KP_SET_HIGH);
-> +
-> +	addr = SMSC_WKUP_CTRL;
-> +	smsc_write(dev, addr, SMSC_KP_SET_LOW_PWR);
-> +
-> +	addr = SMSC_KP_OUT;
-> +	smsc_write(dev, addr, SMSC_KSO_ALL_LOW);
-> +
-
-I didn't understand why to initialize 'addr' and pass it, why can't you
-directly pass it as a argument?
-
-> +	row_shift = get_count_order(kp->cols);
-> +	max_keys = kp->rows << row_shift;
-> +
-> +	kp->row_shift = row_shift;
-> +	kp->keymap = kzalloc(max_keys * sizeof(kp->keymap[0]),
-> +					GFP_KERNEL);
-> +	if (!kp->keymap) {
-> +		dev_err(&pdev->dev, "Not enough memory for keymap\n");
-> +		error = -ENOMEM;
-> +	}
-> +
-> +	matrix_keypad_build_keymap(NULL, NULL, kp->rows,
-> +			kp->cols, kp->keymap, input);
-> +
-> +	/*
-> +	* This ISR will always execute in kernel thread context because of
-> +	* the need to access the SMSC over the I2C bus.
-> +	*/
-> +	ret = devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
-> +			IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
+> +	ret = devm_request_threaded_irq(sg->dev, sg->irq, NULL,
+> +			smsc_irq_handler, sg->flags,
+> +			"smsc_gpio", sg);
 > +	if (ret) {
-> +		dev_dbg(&pdev->dev, "request_irq failed for irq no=%d\n",
-> +			irq);
-> +		goto err2;
+> +		dev_err(sg->dev, "failed to request irq %d\n",
+> +			sg->irq);
+> +	}
+
+Isn't return err required here?
+
+> +
+> +	sg->gpio_chip.to_irq = smsc_gpio_to_irq;
+> +
+> +	return 0;
+> +}
+> +
+> +static int __devinit smsc_gpio_probe(struct platform_device *pdev)
+> +{
+> +	struct smsc_gpio *sg;
+> +	struct gpio_chip *gc;
+> +	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
+> +	int ret, i, temp;
+> +	struct device *dev = &pdev->dev;
+> +	struct device_node *np = dev->of_node;
+> +	int irq_base;
+> +
+> +	sg = devm_kzalloc(dev, sizeof(*sg), GFP_KERNEL);
+> +	if (sg == NULL) {
+> +		dev_err(&pdev->dev, "failed to alloc memory\n");
+> +		return -ENOMEM;
 > +	}
 > +
-> +	/* Enable smsc keypad interrupts */
-> +	ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
-> +	if (ret < 0)
-> +		goto err2;
+> +	sg->irq = platform_get_irq(pdev, 0);
+> +	if (np) {
+> +		of_property_read_u32(np, "gpio,base", &temp);
+> +		of_property_read_u32(np, "flags", &sg->flags);
+> +	}
+> +
+> +	gc = &sg->gpio_chip;
+> +	gc->direction_input = smsc_gpio_direction_input;
+> +	gc->direction_output = smsc_gpio_direction_output;
+> +	gc->get = smsc_gpio_get_value;
+> +	gc->set = smsc_gpio_set_value;
+> +	gc->can_sleep = 1;
+> +
+> +	gc->base = temp;
+> +	gc->ngpio = SMSC_MAXGPIO;
+> +	gc->owner = THIS_MODULE;
+> +
+> +	sg->smsc = smsc;
+> +	sg->dev = dev;
+> +	mutex_init(&sg->lock);
+> +
+> +	for (i = 0; i <= SMSC_BANK(SMSC_MAXGPIO); i++)
+> +		smsc_read(sg->dev, SMSC_GPIO_DATA_OUT_START + i,
+> +					&sg->dat_out[i]);
+> +
+> +	for (i = 0; i < SMSC_MAXGPIO; i++)
+> +		smsc_read(sg->dev, SMSC_CFG_START + i, &sg->dir[i]);
+> +
+> +	irq_base = irq_alloc_descs(-1, 0, sg->gpio_chip.ngpio, 0);
+> +	if (IS_ERR_VALUE(irq_base)) {
+> +		dev_err(sg->dev, "Fail to allocate IRQ descs\n");
+> +		return irq_base;
+> +	}
+> +	sg->irq_base = irq_base;
+> +
+> +	sg->irq_domain = irq_domain_add_legacy(pdev->dev.of_node,
+> +		sg->gpio_chip.ngpio, sg->irq_base, 0,
+> +			&irq_domain_simple_ops, NULL);
+> +
+> +	ret = smsc_irq_setup(sg);
+> +	if (ret)
+> +		goto err;
+> +
+> +	ret = gpiochip_add(&sg->gpio_chip);
+> +	if (ret)
+> +		goto err;
 > +
 > +	return 0;
 > +
-> +err2:
-> +	input_unregister_device(input);
-> +err1:
-> +	input_free_device(input);
 
-You are not freeing memory allocated for kp->keymap. Please use devm_
-variants.
+You don't need separate return statements here.
+
+On the other side, did you also submit DTS changes for GPIO?
+Without review will not be complete.
 
 Thanks,
 Vaibhav
+
+> +err:
 > +	return ret;
 > +}
 > +
-> +static int __devexit smsc_remove(struct platform_device *pdev)
+> +static int __devexit smsc_gpio_remove(struct platform_device *pdev)
 > +{
-> +	struct smsc_keypad *kp = platform_get_drvdata(pdev);
-> +	input_unregister_device(kp->input);
+> +	struct smsc_gpio *sg = dev_get_drvdata(&pdev->dev);
+> +	int ret;
+> +
+> +	ret = gpiochip_remove(&sg->gpio_chip);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "gpiochip_remove failed %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	irq_domain_remove(sg->irq_domain);
+> +	irq_free_descs(sg->irq_base, sg->gpio_chip.ngpio);
 > +
 > +	return 0;
 > +}
 > +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id smsc_keypad_dt_match[] = {
-> +	{ .compatible = "smsc,keypad" },
+> +static const struct of_device_id smsc_gpio_dt_match[] = {
+> +	{ .compatible = "smsc,gpio" },
 > +	{},
 > +};
-> +MODULE_DEVICE_TABLE(of, smsc_keypad_dt_match);
-> +#endif
+> +MODULE_DEVICE_TABLE(of, smsc_gpio_dt_match);
 > +
-> +static struct platform_driver smsc_driver = {
+> +static struct platform_driver smsc_gpio_driver = {
 > +	.driver = {
-> +		.name	= "smsc-keypad",
-> +		.of_match_table = of_match_ptr(smsc_keypad_dt_match),
-> +		.owner  = THIS_MODULE,
-> +	},
-> +	.probe		= smsc_probe,
-> +	.remove		= __devexit_p(smsc_remove),
+> +		   .name = "smsc_gpio",
+> +		   .of_match_table = of_match_ptr(smsc_gpio_dt_match),
+> +		   },
+> +	.probe = smsc_gpio_probe,
+> +	.remove = __devexit_p(smsc_gpio_remove),
 > +};
 > +
-> +module_platform_driver(smsc_driver);
+> +module_platform_driver(smsc_gpio_driver);
 > +
-> +MODULE_AUTHOR("G Kondaiah Manjunath <manjugk@ti.com>");
-> +MODULE_DESCRIPTION("SMSC ECE1099 Keypad driver");
+> +MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
+> +MODULE_DESCRIPTION("GPIO SMSC Driver");
 > +MODULE_LICENSE("GPL v2");
 > 
