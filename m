@@ -1,61 +1,66 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 0/2] gpio-twl4030: add new device tree properties
-Date: Wed, 5 Sep 2012 16:41:26 +0200
-Message-ID: <50476496.7050107@ti.com>
-References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+Subject: Re: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
+ devicetree
+Date: Wed, 5 Sep 2012 16:46:26 +0200
+Message-ID: <504765C2.3010600@ti.com>
+References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com> <5037A9CE.1080809@ti.com> <50476143.3010509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45260 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014Ab2IEOlp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 10:41:45 -0400
-In-Reply-To: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46184 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758151Ab2IEOqi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 10:46:38 -0400
+In-Reply-To: <50476143.3010509@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Vaussard <florian.vaussard@epfl.ch>, Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Florian,
+Peter,
 
-On 09/05/2012 09:46 AM, Florian Vaussard wrote:
-> Hello,
-> 
-> A number of platform data are missing when using twl4030/gpio from a
-> device tree. This patchset adds the missing properties, updates the 
-> documentation with the new bindings, and updates existing device trees.
-> It mainly enables LEDA and LEDB outputs, as well as pullups /
-> pulldowns on GPIOs.
-> 
-> The 1st patch changes the device driver and updates the documentation.
-> The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
-> 
-> Changes since v1: 
-> - Patches on driver and documentation merged into the same patch
-> - Put device trees' values in hexadecimal
-> - Handle bool property using of_property_read_bool()
-> - Prefix the patches with the correct convention
+I will just slighty change the subject since it is a omap_device.c patch and not an omap_hwmod.c one.
 
-Thanks for the update.
-
-> Tested on Gumstix Overo. V1 was tested on omap3-evm by Vaibhav Hiremath.
-
-I've just tested it on beagle xM. I can play with D12 led using:
-
-echo 255 > /sys/class/leds/beagleboard\:\:pmu_stat/brightness
-
-Tested-by: Benoit Cousson <b-cousson@ti.com>
-
-
-> BTW: who will merge this?
-
-Since Linus already acked it, Tony can merge it.
-
-
-Tony,
-
-I can add that series in my DTS series for 3.7 if you want.
+ARM: OMAP: omap_device: Fix up resource names when booted with devicetree
 
 Regards,
 Benoit
+
+On 09/05/2012 04:27 PM, Benoit Cousson wrote:
+> Hi Paul,
+> 
+> On 08/24/2012 06:20 PM, Peter Ujfalusi wrote:
+>> Hi Paul,
+>>
+>> On 08/24/2012 06:38 PM, Paul Walmsley wrote:
+>>> Do we need both this one and your '[PATCH] driver core: Check if r->name 
+>>> is valid in platform_get_resource_byname()' ?  Or would that second patch 
+>>> be enough?  Is the crash happening in the platform_get_resource_byname() 
+>>> iterator?
+>>
+>> The crash happens in platform_get_resource_byname(). What I see as a problem
+>> that when we boot without DT the r->name is configured for the hwmods. If we
+>> boot with DT we discard the resources created by the OF (which also have the
+>> r->name configured). We replace the resources from hwmods but we do not fix up
+>> the resource names (which is done in other cases).
+>> I have sent the patch for the drivers core as well since I think it is a good
+>> practice anyway to check for NULL pointer before strcmp().
+>>
+>> Either is good, but IMHO we should fix this in omap_hwmod (at least).
+> 
+> Yes, clearly we do have a corner case today due to the mix of hwmod /
+> DTS resource management.
+> - Legacy boot + hwmod resources is OK
+> - DTS boot with DTS resources will be OK
+> - DTS boot with hwmod resources is not OK since the resource name will
+>   not be populated in the case resources are not named :-(
+> 
+> If you are OK, I'll take that patch along with Vaibhav one to handle
+> properly the resources from DTS long with the DTS patches I'm queuing
+> for 3.7.
+> 
+> Thanks,
+> Benoit
+> 
+
