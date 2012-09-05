@@ -1,449 +1,107 @@
-From: Sourav Poddar <sourav.poddar@ti.com>
-Subject: [PATCHv2 4/4] gpio: smscece: Add support for gpio IO expander feature
-Date: Wed, 5 Sep 2012 17:07:06 +0530
-Message-ID: <1346845026-24926-1-git-send-email-sourav.poddar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
+Date: Wed, 05 Sep 2012 14:41:16 +0300
+Message-ID: <1346845276.32747.11.camel@deskari>
+References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
+	  <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
+	  <5047182F.3030507@ti.com> <1346841713.32747.6.camel@deskari>
+	 <504738C4.7060005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, sourav.poddar@ti.com
-Cc: b-cousson@ti.com, balbi@ti.com, santosh.shilimkar@ti.com
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-wsgbFg7+e1soYe15jiaL"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53847 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751990Ab2IELlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:41:22 -0400
+Received: by lagy9 with SMTP id y9so236921lag.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 04:41:19 -0700 (PDT)
+In-Reply-To: <504738C4.7060005@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-smsc can be used as an gpio io expander device also. So adding
-support for configuring smsc pins as a gpio.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
----
-Changes since v1: 
- - Use edge triggering instead of level
- - Use devm_reuest_threaded_irq
- - In remove part, use "irq_free_desc" and
-     "irq_remove_domain" api.
- drivers/gpio/Kconfig        |    7 +
- drivers/gpio/Makefile       |    1 +
- drivers/gpio/gpio-smscece.c |  380 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 388 insertions(+), 0 deletions(-)
- create mode 100644 drivers/gpio/gpio-smscece.c
+--=-wsgbFg7+e1soYe15jiaL
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
-index b16c8a7..e883929 100644
---- a/drivers/gpio/Kconfig
-+++ b/drivers/gpio/Kconfig
-@@ -444,6 +444,13 @@ config GPIO_ADP5588_IRQ
- 	  Say yes here to enable the adp5588 to be used as an interrupt
- 	  controller. It requires the driver to be built in the kernel.
- 
-+config GPIO_SMSCECE
-+	tristate "SMSCECE 1099 I2C GPIO expander"
-+	depends on I2C
-+	help
-+	  This option enables support for 18 GPIOs found
-+	  on SMSC ECE 1099 GPIO Expanders.
-+
- comment "PCI GPIO expanders:"
- 
- config GPIO_CS5535
-diff --git a/drivers/gpio/Makefile b/drivers/gpio/Makefile
-index 153cace..7c803c5 100644
---- a/drivers/gpio/Makefile
-+++ b/drivers/gpio/Makefile
-@@ -12,6 +12,7 @@ obj-$(CONFIG_GPIO_74X164)	+= gpio-74x164.o
- obj-$(CONFIG_GPIO_AB8500)	+= gpio-ab8500.o
- obj-$(CONFIG_GPIO_ADP5520)	+= gpio-adp5520.o
- obj-$(CONFIG_GPIO_ADP5588)	+= gpio-adp5588.o
-+obj-$(CONFIG_GPIO_SMSCECE)      += gpio-smscece.o
- obj-$(CONFIG_GPIO_AMD8111)	+= gpio-amd8111.o
- obj-$(CONFIG_GPIO_ARIZONA)	+= gpio-arizona.o
- obj-$(CONFIG_GPIO_BT8XX)	+= gpio-bt8xx.o
-diff --git a/drivers/gpio/gpio-smscece.c b/drivers/gpio/gpio-smscece.c
-new file mode 100644
-index 0000000..68a17fa
---- /dev/null
-+++ b/drivers/gpio/gpio-smscece.c
-@@ -0,0 +1,380 @@
-+/*
-+ * GPIO Chip driver for smsc
-+ * SMSC I/O Expander and QWERTY Keypad Controller
-+ *
-+ * Copyright 2012 Texas Instruments Inc.
-+ *
-+ * Licensed under the GPL-2 or later.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/gpio.h>
-+#include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/irq.h>
-+#include <linux/mfd/smsc.h>
-+#include <linux/err.h>
-+
-+struct smsc_gpio {
-+	struct device *dev;
-+	struct smsc *smsc;
-+	struct gpio_chip gpio_chip;
-+	struct mutex lock;	/* protect cached dir, dat_out */
-+	/* protect serialized access to the interrupt controller bus */
-+	struct mutex irq_lock;
-+	struct irq_domain       *irq_domain;
-+	unsigned gpio_start;
-+	int type;
-+	int flags;
-+	int irq;
-+	int irq_base;
-+	unsigned int gpio_base;
-+	unsigned int dat_out[5];
-+	unsigned int dir[5];
-+	unsigned int irq_trig_fall[5];
-+	unsigned int irq_trig_raise[5];
-+	unsigned int int_en[5];
-+	unsigned int irq_mask[5];
-+	unsigned int irq_stat[5];
-+};
-+
-+static int smsc_gpio_get_value(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	unsigned int get;
-+	return !!(smsc_read(sg->dev,
-+		(SMSC_GPIO_DATA_IN_START + SMSC_BANK(off)) & SMSC_BIT(off),
-+					&get));
-+}
-+
-+static void smsc_gpio_set_value(struct gpio_chip *chip,
-+			unsigned off, int val)
-+{
-+	unsigned bank, bit;
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+
-+	bank = SMSC_BANK(off);
-+	bit = SMSC_BIT(off);
-+
-+	mutex_lock(&sg->lock);
-+	if (val)
-+		sg->dat_out[bank] |= bit;
-+	else
-+		sg->dat_out[bank] &= ~bit;
-+
-+	smsc_write(sg->dev, SMSC_GPIO_DATA_OUT_START + bank,
-+			   sg->dat_out[bank]);
-+	mutex_unlock(&sg->lock);
-+}
-+
-+static int smsc_gpio_direction_input(struct gpio_chip *chip, unsigned off)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_INPUT_LOW;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_direction_output(struct gpio_chip *chip,
-+					 unsigned off, int val)
-+{
-+	unsigned int reg;
-+	struct smsc_gpio *sg =
-+	    container_of(chip, struct smsc_gpio, gpio_chip);
-+	int reg_dir;
-+
-+	mutex_lock(&sg->lock);
-+	reg_dir = SMSC_CFG_START + off;
-+	smsc_read(sg->dev, reg_dir, &reg);
-+	reg |= SMSC_GPIO_OUTPUT_PP;
-+	mutex_unlock(&sg->lock);
-+
-+	return smsc_write(sg->dev, reg_dir, reg);
-+}
-+
-+static int smsc_gpio_to_irq(struct gpio_chip *chip, unsigned off)
-+{
-+	struct smsc_gpio *sg =
-+		container_of(chip, struct smsc_gpio, gpio_chip);
-+	return sg->irq_base + off;
-+}
-+
-+static void smsc_irq_bus_lock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+
-+	mutex_lock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_bus_sync_unlock(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	int i;
-+
-+	for (i = 0; i < SMSC_BANK(SMSC_MAXGPIO); i++)
-+		if (sg->int_en[i] ^ sg->irq_mask[i]) {
-+			sg->int_en[i] = sg->irq_mask[i];
-+			smsc_write(sg->dev, SMSC_GPIO_INT_MASK_START + i,
-+					   sg->int_en[i]);
-+		}
-+
-+	mutex_unlock(&sg->irq_lock);
-+}
-+
-+static void smsc_irq_mask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] &= ~SMSC_BIT(gpio);
-+}
-+
-+static void smsc_irq_unmask(struct irq_data *d)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	unsigned gpio = d->irq - sg->irq_base;
-+
-+	sg->irq_mask[SMSC_BANK(gpio)] |= SMSC_BIT(gpio);
-+}
-+
-+static int smsc_irq_set_type(struct irq_data *d, unsigned int type)
-+{
-+	struct smsc_gpio *sg = irq_data_get_irq_chip_data(d);
-+	uint16_t gpio = d->irq - sg->irq_base;
-+	unsigned bank, bit;
-+
-+	if ((type & IRQ_TYPE_EDGE_BOTH)) {
-+		dev_err(sg->dev, "irq %d: unsupported type %d\n",
-+			d->irq, type);
-+		return -EINVAL;
-+	}
-+
-+	bank = SMSC_BANK(gpio);
-+	bit = SMSC_BIT(gpio);
-+
-+	if (type & IRQ_TYPE_EDGE_FALLING)
-+		sg->irq_trig_fall[bank] |= bit;
-+	else
-+		sg->irq_trig_fall[bank] &= ~bit;
-+
-+	if (type & IRQ_TYPE_EDGE_RISING)
-+		sg->irq_trig_raise[bank] |= bit;
-+	else
-+		sg->irq_trig_raise[bank] &= ~bit;
-+
-+	smsc_gpio_direction_input(&sg->gpio_chip, gpio);
-+	smsc_write(sg->dev, SMSC_CFG_START + gpio,
-+			sg->irq_trig_fall[bank] | sg->irq_trig_raise[bank]);
-+
-+	return 0;
-+}
-+
-+static struct irq_chip smsc_irq_chip = {
-+	.name			= "smsc",
-+	.irq_mask		= smsc_irq_mask,
-+	.irq_unmask		= smsc_irq_unmask,
-+	.irq_bus_lock		= smsc_irq_bus_lock,
-+	.irq_bus_sync_unlock	= smsc_irq_bus_sync_unlock,
-+	.irq_set_type		= smsc_irq_set_type,
-+};
-+
-+static int smsc_gpio_read_intstat(struct smsc_gpio *sg,
-+				unsigned int *buf, int i)
-+{
-+	int ret = smsc_read(sg->dev,
-+			SMSC_GPIO_INT_STAT_START + i, buf);
-+
-+	if (ret < 0)
-+		dev_err(sg->dev, "Read INT_STAT Error\n");
-+
-+	return ret;
-+}
-+
-+static irqreturn_t smsc_irq_handler(int irq, void *devid)
-+{
-+	struct smsc_gpio *sg = devid;
-+	unsigned int status, bank, pending;
-+	int ret;
-+	smsc_read(sg->dev, GRP_INT_STAT, &status);
-+
-+	if (!(status & SMSC_GPI_INT))
-+		goto out;
-+
-+	for (bank = 0; bank <= SMSC_BANK(SMSC_MAXGPIO);
-+		bank++) {
-+		pending = sg->irq_stat[bank] & sg->irq_mask[bank];
-+		ret = smsc_gpio_read_intstat(sg,
-+				&sg->irq_stat[bank], bank);
-+		if (ret < 0)
-+			memset(&sg->irq_stat[bank], 0,
-+				ARRAY_SIZE(sg->irq_stat));
-+
-+		while (pending) {
-+			unsigned long   bit = __ffs(pending);
-+			unsigned int    irq;
-+
-+			pending &= ~BIT(bit);
-+			irq = bit + sg->irq_base;
-+			handle_nested_irq(irq);
-+		}
-+	}
-+
-+out:
-+	smsc_write(sg->dev, GRP_INT_STAT, status); /* Status is W1C */
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int smsc_irq_setup(struct smsc_gpio *sg)
-+{
-+	unsigned gpio;
-+	int ret;
-+
-+	mutex_init(&sg->irq_lock);
-+
-+	for (gpio = 0; gpio < sg->gpio_chip.ngpio; gpio++) {
-+		int irq = gpio + sg->irq_base;
-+		irq_set_chip_data(irq, sg);
-+		irq_set_chip_and_handler(irq, &smsc_irq_chip,
-+				handle_level_irq);
-+		irq_set_nested_thread(irq, 1);
-+#ifdef CONFIG_ARM
-+		set_irq_flags(irq, IRQF_VALID);
-+#else
-+		irq_set_noprobe(irq);
-+#endif
-+	}
-+
-+	ret = devm_request_threaded_irq(sg->dev, sg->irq, NULL,
-+			smsc_irq_handler, sg->flags,
-+			"smsc_gpio", sg);
-+	if (ret) {
-+		dev_err(sg->dev, "failed to request irq %d\n",
-+			sg->irq);
-+	}
-+
-+	sg->gpio_chip.to_irq = smsc_gpio_to_irq;
-+
-+	return 0;
-+}
-+
-+static int __devinit smsc_gpio_probe(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg;
-+	struct gpio_chip *gc;
-+	struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
-+	int ret, i, temp;
-+	struct device *dev = &pdev->dev;
-+	struct device_node *np = dev->of_node;
-+	int irq_base;
-+
-+	sg = devm_kzalloc(dev, sizeof(*sg), GFP_KERNEL);
-+	if (sg == NULL) {
-+		dev_err(&pdev->dev, "failed to alloc memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	sg->irq = platform_get_irq(pdev, 0);
-+	if (np) {
-+		of_property_read_u32(np, "gpio,base", &temp);
-+		of_property_read_u32(np, "flags", &sg->flags);
-+	}
-+
-+	gc = &sg->gpio_chip;
-+	gc->direction_input = smsc_gpio_direction_input;
-+	gc->direction_output = smsc_gpio_direction_output;
-+	gc->get = smsc_gpio_get_value;
-+	gc->set = smsc_gpio_set_value;
-+	gc->can_sleep = 1;
-+
-+	gc->base = temp;
-+	gc->ngpio = SMSC_MAXGPIO;
-+	gc->owner = THIS_MODULE;
-+
-+	sg->smsc = smsc;
-+	sg->dev = dev;
-+	mutex_init(&sg->lock);
-+
-+	for (i = 0; i <= SMSC_BANK(SMSC_MAXGPIO); i++)
-+		smsc_read(sg->dev, SMSC_GPIO_DATA_OUT_START + i,
-+					&sg->dat_out[i]);
-+
-+	for (i = 0; i < SMSC_MAXGPIO; i++)
-+		smsc_read(sg->dev, SMSC_CFG_START + i, &sg->dir[i]);
-+
-+	irq_base = irq_alloc_descs(-1, 0, sg->gpio_chip.ngpio, 0);
-+	if (IS_ERR_VALUE(irq_base)) {
-+		dev_err(sg->dev, "Fail to allocate IRQ descs\n");
-+		return irq_base;
-+	}
-+	sg->irq_base = irq_base;
-+
-+	sg->irq_domain = irq_domain_add_legacy(pdev->dev.of_node,
-+		sg->gpio_chip.ngpio, sg->irq_base, 0,
-+			&irq_domain_simple_ops, NULL);
-+
-+	ret = smsc_irq_setup(sg);
-+	if (ret)
-+		goto err;
-+
-+	ret = gpiochip_add(&sg->gpio_chip);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	return ret;
-+}
-+
-+static int __devexit smsc_gpio_remove(struct platform_device *pdev)
-+{
-+	struct smsc_gpio *sg = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	ret = gpiochip_remove(&sg->gpio_chip);
-+	if (ret) {
-+		dev_err(&pdev->dev, "gpiochip_remove failed %d\n", ret);
-+		return ret;
-+	}
-+
-+	irq_domain_remove(sg->irq_domain);
-+	irq_free_descs(sg->irq_base, sg->gpio_chip.ngpio);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id smsc_gpio_dt_match[] = {
-+	{ .compatible = "smsc,gpio" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, smsc_gpio_dt_match);
-+
-+static struct platform_driver smsc_gpio_driver = {
-+	.driver = {
-+		   .name = "smsc_gpio",
-+		   .of_match_table = of_match_ptr(smsc_gpio_dt_match),
-+		   },
-+	.probe = smsc_gpio_probe,
-+	.remove = __devexit_p(smsc_gpio_remove),
-+};
-+
-+module_platform_driver(smsc_gpio_driver);
-+
-+MODULE_AUTHOR("Sourav Poddar <sourav.poddar@ti.com>");
-+MODULE_DESCRIPTION("GPIO SMSC Driver");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.1
+On Wed, 2012-09-05 at 17:04 +0530, Archit Taneja wrote:
+> On Wednesday 05 September 2012 04:11 PM, Tomi Valkeinen wrote:
+> > On Wed, 2012-09-05 at 14:45 +0530, Archit Taneja wrote:
+> >> On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
+> >>> dss_mgr_set_timings() can only be called when the output is not activ=
+e.
+> >>> This means that most of the code in the function is extra, as there's=
+ no
+> >>> need to write the values to registers, etc, because that will be hand=
+led
+> >>> when the output will be enabled.
+> >>
+> >> We need to fix dpi_set_timings() before we can make this change. DPI
+> >> still tries to change timings on the fly, i.e, with manager enabled. W=
+e
+> >> need to disable and enable the DPI output like we do for other outputs=
+.
+> >
+> > Yep, and for HDMI also (I didn't check the others yet).
+>=20
+> I don't think HDMI is impacted, we do the full power off and power on=20
+> for HDMI, so the manager would be disabled when we set the timings.
+
+Ah right.
+
+> > I think the simplest way to handle this is to only write the dpi.timing=
+s
+> > in omapdss_dpi_set_timings, and remove the call to dss_mgr_set_timings.
+> > This is not perfect, as a call to omapdss_dpi_set_timings when the
+> > display is enabled would result in changing the dpi.timings, but the
+> > changes wouldn't be actually in use.
+>=20
+> The simplest way would be to do what other outputs do, disable the=20
+> output and re-enable the output with the new timings value, if the panel=
+=20
+> is enabled.
+
+Not quite, as there's the mutex in dpi so we can't call enable/disable
+from set_timings. I could create separate non-locked internal functions
+for enable and disable, but that feels more complex than just removing
+the enable & disable from set_timings.
+
+In the end we'll anyway only allow changing timings when the output is
+disabled.
+
+The only change I had to do, in addition to removing code from
+set_timings functions, was to add display disable & enable calls to the
+"timings" sysfs write. omapfb already only calls set_timings when the
+output is disabled, and omapdrm does the same.
+
+ Tomi
+
+
+--=-wsgbFg7+e1soYe15jiaL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQRzpcAAoJEPo9qoy8lh71HvUQAK6KNQxvbYGdJhK499ZtM+Vl
+CLLgPVeLNXw2wuFFVCTuTYCJml2Ykz5yn+Ep7TJ+y0Ogga/CXUhnjBdbZg74MVPL
+fya9usj3WGcM1VOCd2/6x5HTFz2wIU2hTAIFouMV8xe574SUBqEMxWXzc45nrFFf
+2Fat3/uwuEfUNATXUa1L5rWqcu5Lt/WX0pOeqfbfMdqiQFW5XyiIflHGMMQD/5xT
+s1I5XVNMozvHwLbvstcao0GoHATpEAv8zDS8NF2YZJQdHOc1+jaSLBPv7bykgS3Y
+Xgb/60S+pPoXBwb2G66p1RF+CuSm0DjsoAAuUMvOp1m8gwRWQZBM4fyQ0xl/i61X
+0XyIMI3FlvM2PoyDqYNIZKZwckiEX6JI96+71c3yXUb2+W2z1nIYSvEquNfPsM1V
+HTrg/zJ/t7M6Fm0N7Cw+KfSiJSHco0G3qYiTm87a5gUnpBYj5OMBCPA4rE9fq88x
+aL+C7UIiwatyCZ/+mLx5rMVPRMaGiyjjOARRE5jMQeBICDf4LkMpR9opmh3u9NOo
+9p0CxcsT6OixSQr0vvaxrnf3Cxk5j6EoENMXT8WnTLEmCPXQpceoS5u6BcyRKNnR
+16Vnr+fuT2QD7LRMn0R/+2D/o8rhdkWK2OldH6O225V73NQYHRIiITudUFYcOupx
+RMIO3MK/6KOOi5bRQ9Th
+=YFds
+-----END PGP SIGNATURE-----
+
+--=-wsgbFg7+e1soYe15jiaL--
+
