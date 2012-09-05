@@ -1,56 +1,76 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Wed, 05 Sep 2012 11:23:58 +0300
-Message-ID: <50470C1E.7090300@ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com> <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/17] Misc OMAP DSS patches part 2
+Date: Wed,  5 Sep 2012 11:25:38 +0300
+Message-ID: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60086 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750929Ab2IEIXg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:23:36 -0400
-Received: by yhpp61 with SMTP id p61so34450yhp.11
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:23:34 -0700 (PDT)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:35209 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754621Ab2IEI0L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:11 -0400
+Received: by lbbgj3 with SMTP id gj3so189731lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:08 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+This series contains miscellaneous patches for omapdss. These are based on the
+previous misc patches series
+(http://www.mail-archive.com/linux-omap@vger.kernel.org/msg74279.html).
 
-On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
->> Not yet, but we discussed that with Peter and since he does have the=
-se
->> patches for DT, he'll be able to test your series with the McBSP cha=
-nges.
->>
->=20
-> Great.
+Some cleanups, but three a bit more important things:
 
-With his series and your patch for omap-hwmod audio was probing and wor=
-king on
-OMAP3/4/5 without issues.
+* vram.c no longer uses OMAP's sDMA to clear the memory
+* fifomerge has been reverted
+* Swap GFX and WB fifos to avoid underflows
 
->=20
->> I still want to update a couple of DTS to test that on some other IP=
-s.
->>
->=20
-> Ohh ok. Please let me know if I can help you here by any means.
-> I am equipped with AM37xEVM, BeagleBoard and Panda.
+ Tomi
 
-You can try this series and your patch on top of linux-next on Panda. N=
-ot all
-patches are in which needed for BeagleBoard at the moment.
+Tomi Valkeinen (17):
+  OMAPDSS: Taal: use devm_* functions
+  OMAPFB1: remove unnecessary includes
+  OMAPFB1: remove a non-used table
+  OMAPDSS: remove unnecessary includes
+  OMAPFB: clear framebuffers with CPU
+  OMAPDSS: VRAM: Remove clearing with sDMA
+  OMAPDSS: Taal: Reogranize for device tree
+  OMAPDSS: TFP410: use devm_gpio_request_one
+  OMAPDSS: split overlay sysfs code
+  OMAPDSS: split manager sysfs code
+  OMAPDSS: clean up dss_mgr_set_lcd_config
+  OMAPDSS: clean up dss_mgr_set_timings
+  Revert "OMAPDSS: APPLY: add fifo-merge support"
+  Revert "OMAPDSS: APPLY: add fifo merge support funcs"
+  OMAPDSS: remove extra_info completion code
+  OMAPDSS: Improve fifo management code
+  OMAPDSS: Use WB fifo for GFX overlay
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/video/omap/hwa742.c                 |    1 -
+ drivers/video/omap/lcd_ams_delta.c          |    1 -
+ drivers/video/omap/lcd_palmte.c             |    1 -
+ drivers/video/omap/omapfb_main.c            |    9 -
+ drivers/video/omap2/displays/panel-taal.c   |  215 ++++++------
+ drivers/video/omap2/displays/panel-tfp410.c |   14 +-
+ drivers/video/omap2/dss/Makefile            |    2 +-
+ drivers/video/omap2/dss/apply.c             |  298 +---------------
+ drivers/video/omap2/dss/dispc.c             |   68 +++-
+ drivers/video/omap2/dss/dispc.h             |    4 +
+ drivers/video/omap2/dss/dpi.c               |    1 -
+ drivers/video/omap2/dss/dsi.c               |    1 -
+ drivers/video/omap2/dss/dss.c               |    1 -
+ drivers/video/omap2/dss/dss.h               |    7 +
+ drivers/video/omap2/dss/manager-sysfs.c     |  499 +++++++++++++++++++++++++++
+ drivers/video/omap2/dss/manager.c           |  462 +------------------------
+ drivers/video/omap2/dss/overlay-sysfs.c     |  456 ++++++++++++++++++++++++
+ drivers/video/omap2/dss/overlay.c           |  421 +---------------------
+ drivers/video/omap2/dss/venc.c              |    1 -
+ drivers/video/omap2/omapfb/omapfb-main.c    |   26 ++
+ drivers/video/omap2/vram.c                  |   56 ---
+ include/video/omapdss.h                     |    1 +
+ 22 files changed, 1180 insertions(+), 1365 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/manager-sysfs.c
+ create mode 100644 drivers/video/omap2/dss/overlay-sysfs.c
+
+-- 
+1.7.9.5
+
