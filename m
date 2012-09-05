@@ -1,149 +1,130 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 16/17] OMAPDSS: Improve fifo management code
-Date: Wed,  5 Sep 2012 11:25:54 +0300
-Message-ID: <1346833555-31258-17-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 15/17] OMAPDSS: remove extra_info completion code
+Date: Wed,  5 Sep 2012 11:25:53 +0300
+Message-ID: <1346833555-31258-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:38255 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758190Ab2IEI0l (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60566 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758186Ab2IEI0l (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:41 -0400
-Received: by lbbgj3 with SMTP id gj3so189986lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:39 -0700 (PDT)
+Received: by lbbgj3 with SMTP id gj3so189972lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:37 -0700 (PDT)
 In-Reply-To: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OMAP4+ allows assigning the overlay FIFOs freely, but that is not
-supported by omapdss yet. This patch takes a step forward by improving
-the fifo management to be more flexible.
-
-dispc.c is changed to keep track of the sizes of each fifo, and also the
-overlay using each fifo.
+Now that fifo merge has been removed, nobody uses the extra_info related
+completion code, which can be removed.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   39 +++++++++++++++++++++++++++++++--------
- 1 file changed, 31 insertions(+), 8 deletions(-)
+ drivers/video/omap2/dss/apply.c |   69 ---------------------------------------
+ 1 file changed, 69 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e934abb..dc0f372 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -94,8 +94,11 @@ struct dispc_features {
- 		u16 pos_x, unsigned long *core_clk);
- 	unsigned long (*calc_core_clk) (enum omap_channel channel,
- 		u16 width, u16 height, u16 out_width, u16 out_height);
-+	u8 num_fifos;
- };
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 32b5379..2579d15 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -118,7 +118,6 @@ static struct {
+ static spinlock_t data_lock;
+ /* lock for blocking functions */
+ static DEFINE_MUTEX(apply_lock);
+-static DECLARE_COMPLETION(extra_updated_completion);
  
-+#define DISPC_MAX_NR_FIFOS 5
-+
- static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
-@@ -105,7 +108,9 @@ static struct {
- 	int irq;
- 	struct clk *dss_clk;
+ static void dss_register_vsync_isr(void);
  
--	u32	fifo_size[MAX_DSS_OVERLAYS];
-+	u32 fifo_size[DISPC_MAX_NR_FIFOS];
-+	/* maps which plane is using a fifo. fifo-id -> plane-id */
-+	int fifo_assignment[DISPC_MAX_NR_FIFOS];
- 
- 	spinlock_t irq_lock;
- 	u32 irq_error_mask;
-@@ -1061,10 +1066,10 @@ static void dispc_mgr_set_size(enum omap_channel channel, u16 width,
- 	dispc_write_reg(DISPC_SIZE_MGR(channel), val);
+@@ -355,69 +354,6 @@ static bool need_go(struct omap_overlay_manager *mgr)
+ 	return false;
  }
  
--static void dispc_read_plane_fifo_sizes(void)
-+static void dispc_init_fifos(void)
+-/* returns true if an extra_info field is currently being updated */
+-static bool extra_info_update_ongoing(void)
+-{
+-	const int num_mgrs = dss_feat_get_num_mgrs();
+-	int i;
+-
+-	for (i = 0; i < num_mgrs; ++i) {
+-		struct omap_overlay_manager *mgr;
+-		struct omap_overlay *ovl;
+-		struct mgr_priv_data *mp;
+-
+-		mgr = omap_dss_get_overlay_manager(i);
+-		mp = get_mgr_priv(mgr);
+-
+-		if (!mp->enabled)
+-			continue;
+-
+-		if (!mp->updating)
+-			continue;
+-
+-		if (mp->extra_info_dirty || mp->shadow_extra_info_dirty)
+-			return true;
+-
+-		list_for_each_entry(ovl, &mgr->overlays, list) {
+-			struct ovl_priv_data *op = get_ovl_priv(ovl);
+-
+-			if (op->extra_info_dirty || op->shadow_extra_info_dirty)
+-				return true;
+-		}
+-	}
+-
+-	return false;
+-}
+-
+-/* wait until no extra_info updates are pending */
+-static void wait_pending_extra_info_updates(void)
+-{
+-	bool updating;
+-	unsigned long flags;
+-	unsigned long t;
+-	int r;
+-
+-	spin_lock_irqsave(&data_lock, flags);
+-
+-	updating = extra_info_update_ongoing();
+-
+-	if (!updating) {
+-		spin_unlock_irqrestore(&data_lock, flags);
+-		return;
+-	}
+-
+-	init_completion(&extra_updated_completion);
+-
+-	spin_unlock_irqrestore(&data_lock, flags);
+-
+-	t = msecs_to_jiffies(500);
+-	r = wait_for_completion_timeout(&extra_updated_completion, t);
+-	if (r == 0)
+-		DSSWARN("timeout in wait_pending_extra_info_updates\n");
+-	else if (r < 0)
+-		DSSERR("wait_pending_extra_info_updates failed: %d\n", r);
+-}
+-
+ int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
  {
- 	u32 size;
--	int plane;
-+	int fifo;
- 	u8 start, end;
- 	u32 unit;
- 
-@@ -1072,16 +1077,30 @@ static void dispc_read_plane_fifo_sizes(void)
- 
- 	dss_feat_get_reg_field(FEAT_REG_FIFOSIZE, &start, &end);
- 
--	for (plane = 0; plane < dss_feat_get_num_ovls(); ++plane) {
--		size = REG_GET(DISPC_OVL_FIFO_SIZE_STATUS(plane), start, end);
-+	for (fifo = 0; fifo < dispc.feat->num_fifos; ++fifo) {
-+		size = REG_GET(DISPC_OVL_FIFO_SIZE_STATUS(fifo), start, end);
- 		size *= unit;
--		dispc.fifo_size[plane] = size;
-+		dispc.fifo_size[fifo] = size;
-+
-+		/*
-+		 * By default fifos are mapped directly to overlays, fifo 0 to
-+		 * ovl 0, fifo 1 to ovl 1, etc.
-+		 */
-+		dispc.fifo_assignment[fifo] = fifo;
- 	}
- }
- 
- static u32 dispc_ovl_get_fifo_size(enum omap_plane plane)
+ 	unsigned long timeout = msecs_to_jiffies(500);
+@@ -823,7 +759,6 @@ static void dss_apply_irq_handler(void *data, u32 mask)
  {
--	return dispc.fifo_size[plane];
-+	int fifo;
-+	u32 size = 0;
-+
-+	for (fifo = 0; fifo < dispc.feat->num_fifos; ++fifo) {
-+		if (dispc.fifo_assignment[fifo] == plane)
-+			size += dispc.fifo_size[fifo];
-+	}
-+
-+	return size;
- }
+ 	const int num_mgrs = dss_feat_get_num_mgrs();
+ 	int i;
+-	bool extra_updating;
  
- void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high)
-@@ -3708,7 +3727,7 @@ static void _omap_dispc_initial_config(void)
+ 	spin_lock(&data_lock);
  
- 	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
+@@ -854,10 +789,6 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+ 	dss_write_regs();
+ 	dss_set_go_bits();
  
--	dispc_read_plane_fifo_sizes();
-+	dispc_init_fifos();
+-	extra_updating = extra_info_update_ongoing();
+-	if (!extra_updating)
+-		complete_all(&extra_updated_completion);
+-
+ 	if (!need_isr())
+ 		dss_unregister_vsync_isr();
  
- 	dispc_configure_burst_sizes();
- 
-@@ -3724,6 +3743,7 @@ static const struct dispc_features omap24xx_dispc_feats __initconst = {
- 	.hp_max			=	256,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_24xx,
- 	.calc_core_clk		=	calc_core_clk_24xx,
-+	.num_fifos		=	3,
- };
- 
- static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
-@@ -3735,6 +3755,7 @@ static const struct dispc_features omap34xx_rev1_0_dispc_feats __initconst = {
- 	.hp_max			=	256,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
-+	.num_fifos		=	3,
- };
- 
- static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
-@@ -3746,6 +3767,7 @@ static const struct dispc_features omap34xx_rev3_0_dispc_feats __initconst = {
- 	.hp_max			=	4096,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_34xx,
- 	.calc_core_clk		=	calc_core_clk_34xx,
-+	.num_fifos		=	3,
- };
- 
- static const struct dispc_features omap44xx_dispc_feats __initconst = {
-@@ -3757,6 +3779,7 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
- 	.hp_max			=	4096,
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
-+	.num_fifos		=	5,
- };
- 
- static int __init dispc_init_features(struct device *dev)
 -- 
 1.7.9.5
 
