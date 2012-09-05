@@ -1,17 +1,17 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v8 1/3] ARM: OMAP2/3: hwmod data: add gpmc
-Date: Wed, 5 Sep 2012 14:47:29 -0500
-Message-ID: <5047AC51.9010409@ti.com>
-References: <cover.1346846464.git.afzal@ti.com> <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
+Subject: Re: [PATCH v8 2/3] ARM: OMAP2+: gpmc: Adapt to HWMOD
+Date: Wed, 5 Sep 2012 14:55:23 -0500
+Message-ID: <5047AE2B.30807@ti.com>
+References: <cover.1346846464.git.afzal@ti.com> <c14607ff57fca419dc9d7e0beaea197e001f4e25.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51077 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46282 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759143Ab2IETsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 15:48:06 -0400
-In-Reply-To: <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346846464.git.afzal@ti.com>
+	id S1754648Ab2IETz1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 15:55:27 -0400
+In-Reply-To: <c14607ff57fca419dc9d7e0beaea197e001f4e25.1346846464.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Afzal Mohammed <afzal@ti.com>
@@ -20,59 +20,74 @@ Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kern
 Hi Afzal,
 
 On 09/05/2012 07:37 AM, Afzal Mohammed wrote:
-> Add gpmc hwmod and associated interconnect data
+> Create API for platforms to adapt GPMC to HWMOD
 > 
 > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   18 +++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   18 +++++++
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   44 ++++++++++++++++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 ++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
->  arch/arm/mach-omap2/prcm-common.h                  |    2 +
->  6 files changed, 136 insertions(+), 1 deletions(-)
-
-[snip]
-
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 3e7d6c1..ce02b56 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -2059,6 +2059,42 @@ static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
->  };
+>  arch/arm/mach-omap2/gpmc.c |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+> index dbc1ebc..c45f185 100644
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -29,11 +29,14 @@
 >  
->  /*
-> + * 'gpmc' class
-> + * general purpose memory controller
-> + */
+>  #include <plat/gpmc.h>
+>  #include <plat/sdrc.h>
+> +#include <plat/omap_device.h>
+>  
+>  #include "soc.h"
+>  
+>  #include "common.h"
+>  
+> +#define	DEVICE_NAME		"omap-gpmc"
 > +
-> +static struct omap_hwmod_class_sysconfig omap3xxx_gpmc_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-> +			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type1,
-> +};
+>  /* GPMC register offsets */
+>  #define GPMC_REVISION		0x00
+>  #define GPMC_SYSCONFIG		0x10
+> @@ -897,6 +900,29 @@ static int __init gpmc_init(void)
+>  }
+>  postcore_initcall(gpmc_init);
+>  
+> +static int __init omap_gpmc_init(void)
+> +{
+> +	struct omap_hwmod *oh;
+> +	struct platform_device *pdev;
+> +	char *oh_name = "gpmc";
 > +
-> +static struct omap_hwmod_class omap3xxx_gpmc_hwmod_class = {
-> +	.name	= "gpmc",
-> +	.sysc	= &omap3xxx_gpmc_sysc,
-> +};
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		return -ENODEV;
+> +	}
 > +
-> +static struct omap_hwmod_irq_info omap3xxx_gpmc_irqs[] = {
-> +	{ .irq = 20 },
-> +	{ .irq = -1 }
-> +};
+> +	pdev = omap_device_build(DEVICE_NAME, -1, oh, NULL, 0, NULL, 0, 0);
+> +	if (IS_ERR(pdev)) {
+> +		WARN(1, "Can't build omap_device for %s:%s.\n",
+> +						DEVICE_NAME, oh->name);
+> +		return PTR_ERR(pdev);
+> +	}
 > +
-> +static struct omap_hwmod omap3xxx_gpmc_hwmod = {
-> +	.name		= "gpmc",
-> +	.class		= &omap3xxx_gpmc_hwmod_class,
-> +	.clkdm_name	= "l3_init_clkdm",
+> +	return 0;
 
-This all looks good, but I believe that the gpmc clock-domain should be
-the core_l3_clkdm.
+Nit-pick, I see some devices writing the above as ...
+
+	WARN(IS_ERR(pdev), "could not build omap_device for %s\n", oh_name);
+
+ 	return IS_ERR(pdev) ? PTR_ERR(pdev) : 0;
+
+> +}
+> +postcore_initcall(omap_gpmc_init);
+> +
+>  static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+>  {
+>  	int i;
+> 
+
+Otherwise ...
+
+Reviewed-by: Jon Hunter <jon-hunter@ti.com>
 
 Cheers
 Jon
