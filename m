@@ -1,296 +1,265 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v7 1/3] ARM: OMAP2/3: hwmod data: add gpmc
-Date: Wed, 5 Sep 2012 14:19:51 +0530
-Message-ID: <17b686d1aaf6fa6bfdbe30993804dd5a269ae6db.1346829351.git.afzal@ti.com>
+Subject: [PATCH v7 3/3] ARM: OMAP2+: gpmc: minimal driver support
+Date: Wed, 5 Sep 2012 14:20:09 +0530
+Message-ID: <dd56963ba88d021f3c176c08d58e3a00df9946aa.1346829351.git.afzal@ti.com>
 References: <cover.1346829350.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55376 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39956 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752011Ab2IEIuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 04:50:11 -0400
+	id S1752882Ab2IEIzV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 04:55:21 -0400
 In-Reply-To: <cover.1346829350.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Add gpmc hwmod and associated interconnect data
+Create a minimal driver out of gpmc code.
+Responsibilities handled by earlier gpmc
+initialization is now achieved in probe.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   18 +++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   18 +++++++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   44 ++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    1 +
- arch/arm/mach-omap2/prcm-common.h                  |    2 +
- 6 files changed, 136 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/gpmc.c |  167 +++++++++++++++++++++++++++++++------------
+ 1 files changed, 120 insertions(+), 47 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index e7b90a0..b22c35b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -537,6 +537,15 @@ static struct omap_hwmod_addr_space omap2420_counter_32k_addrs[] = {
- 	{ }
- };
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index c45f185..f633b0d 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -24,6 +24,7 @@
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
++#include <linux/platform_device.h>
  
-+static struct omap_hwmod_addr_space omap2420_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6800A000,
-+		.pa_end		= 0x6800AFFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
- static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
- 	.master		= &omap2xxx_l4_wkup_hwmod,
- 	.slave		= &omap2xxx_counter_32k_hwmod,
-@@ -545,6 +554,14 @@ static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ #include <asm/mach-types.h>
  
-+static struct omap_hwmod_ocp_if omap2420_l3__gpmc = {
-+	.master		= &omap2xxx_l3_main_hwmod,
-+	.slave		= &omap2xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ck",
-+	.addr		= omap2420_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 	&omap2xxx_l3_main__l4_core,
- 	&omap2xxx_mpu__l3_main,
-@@ -588,6 +605,7 @@ static struct omap_hwmod_ocp_if *omap2420_hwmod_ocp_ifs[] __initdata = {
- 	&omap2420_l4_core__msdi1,
- 	&omap2420_l4_core__hdq1w,
- 	&omap2420_l4_wkup__counter_32k,
-+	&omap2420_l3__gpmc,
- 	NULL,
- };
+@@ -85,6 +86,12 @@
+ #define ENABLE_PREFETCH		(0x1 << 7)
+ #define DMA_MPU_MODE		2
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 5fe65ae..8340516 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -888,6 +888,15 @@ static struct omap_hwmod_addr_space omap2430_counter_32k_addrs[] = {
- 	{ }
- };
- 
-+static struct omap_hwmod_addr_space omap2430_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6E000000,
-+		.pa_end		= 0x6E000FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
++#define	GPMC_REVISION_MAJOR(l)		((l >> 4) & 0xf)
++#define	GPMC_REVISION_MINOR(l)		(l & 0xf)
 +
- static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
- 	.master		= &omap2xxx_l4_wkup_hwmod,
- 	.slave		= &omap2xxx_counter_32k_hwmod,
-@@ -896,6 +905,14 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+static struct omap_hwmod_ocp_if omap2430_l3__gpmc = {
-+	.master		= &omap2xxx_l3_main_hwmod,
-+	.slave		= &omap2xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ck",
-+	.addr		= omap2430_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++#define	GPMC_HAS_WR_ACCESS		0x1
++#define	GPMC_HAS_WR_DATA_MUX_BUS	0x2
 +
- static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 	&omap2xxx_l3_main__l4_core,
- 	&omap2xxx_mpu__l3_main,
-@@ -946,6 +963,7 @@ static struct omap_hwmod_ocp_if *omap2430_hwmod_ocp_ifs[] __initdata = {
- 	&omap2430_l4_core__mcbsp5,
- 	&omap2430_l4_core__hdq1w,
- 	&omap2430_l4_wkup__counter_32k,
-+	&omap2430_l3__gpmc,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 055f735..dcdcbcc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -173,6 +173,26 @@ struct omap_hwmod_class omap2xxx_mcspi_class = {
- };
- 
- /*
-+ * 'gpmc' class
-+ * general purpose memory controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2xxx_gpmc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2xxx_gpmc_hwmod_class = {
-+	.name	= "gpmc",
-+	.sysc	= &omap2xxx_gpmc_sysc,
-+};
-+
-+/*
-  * IP blocks
+ /* XXX: Only NAND irq has been considered,currently these are the only ones used
   */
- 
-@@ -724,7 +744,6 @@ struct omap_hwmod omap2xxx_mcspi2_hwmod = {
- 	.dev_attr	= &omap_mcspi2_dev_attr,
- };
- 
+ #define	GPMC_NR_IRQ		2
+@@ -130,7 +137,10 @@ static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+ static DEFINE_SPINLOCK(gpmc_mem_lock);
+ static unsigned int gpmc_cs_map;	/* flag for cs which are initialized */
+ static int gpmc_ecc_used = -EINVAL;	/* cs using ecc engine */
 -
- static struct omap_hwmod_class omap2xxx_counter_hwmod_class = {
- 	.name	= "counter",
- };
-@@ -743,3 +762,26 @@ struct omap_hwmod omap2xxx_counter_32k_hwmod = {
- 	},
- 	.class		= &omap2xxx_counter_hwmod_class,
- };
++static struct device *gpmc_dev;
++static int gpmc_irq;
++static resource_size_t phys_base, mem_size;
++static unsigned gpmc_capability;
+ static void __iomem *gpmc_base;
+ 
+ static struct clk *gpmc_l3_clk;
+@@ -433,6 +443,19 @@ static int gpmc_cs_insert_mem(int cs, unsigned long base, unsigned long size)
+ 	return r;
+ }
+ 
++static int gpmc_cs_delete_mem(int cs)
++{
++	struct resource	*res = &gpmc_cs_mem[cs];
++	int r;
 +
-+/* gpmc */
-+static struct omap_hwmod_irq_info omap2xxx_gpmc_irqs[] = {
-+	{ .irq = 20 },
-+	{ .irq = -1 }
-+};
++	spin_lock(&gpmc_mem_lock);
++	r = release_resource(&gpmc_cs_mem[cs]);
++	res->start = res->end = 0;
++	spin_unlock(&gpmc_mem_lock);
 +
-+struct omap_hwmod omap2xxx_gpmc_hwmod = {
-+	.name		= "gpmc",
-+	.class		= &omap2xxx_gpmc_hwmod_class,
-+	.mpu_irqs	= omap2xxx_gpmc_irqs,
-+	.main_clk	= "gpmc_fck",
-+	.flags		= HWMOD_INIT_NO_IDLE |
-+				HWMOD_INIT_NO_RESET |
-+				HWMOD_NO_IDLEST,
-+	.prcm		= {
-+		.omap2	= {
-+			.prcm_reg_id = 3,
-+			.module_bit = OMAP24XX_EN_GPMC_MASK,
-+			.module_offs = CORE_MOD,
-+		},
++	return r;
++}
++
+ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ {
+ 	struct resource *res = &gpmc_cs_mem[cs];
+@@ -769,7 +792,7 @@ static void gpmc_irq_noop(struct irq_data *data) { }
+ 
+ static unsigned int gpmc_irq_noop_ret(struct irq_data *data) { return 0; }
+ 
+-static int gpmc_setup_irq(int gpmc_irq)
++static int gpmc_setup_irq(void)
+ {
+ 	int i;
+ 	u32 regval;
+@@ -813,7 +836,37 @@ static int gpmc_setup_irq(int gpmc_irq)
+ 	return request_irq(gpmc_irq, gpmc_handle_irq, 0, "gpmc", NULL);
+ }
+ 
+-static void __init gpmc_mem_init(void)
++static __exit int gpmc_free_irq(void)
++{
++	int i;
++
++	if (gpmc_irq)
++		free_irq(gpmc_irq, NULL);
++
++	for (i = 0; i < GPMC_NR_IRQ; i++) {
++		irq_set_handler(gpmc_client_irq[i].irq, NULL);
++		irq_set_chip(gpmc_client_irq[i].irq, &no_irq_chip);
++		irq_modify_status(gpmc_client_irq[i].irq, 0, 0);
++	}
++
++	irq_free_descs(gpmc_irq_start, GPMC_NR_IRQ);
++
++	return 0;
++}
++
++static void __devexit gpmc_mem_exit(void)
++{
++	int cs;
++
++	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
++		if (!gpmc_cs_mem_enabled(cs))
++			continue;
++		gpmc_cs_delete_mem(cs);
++	}
++
++}
++
++static void __devinit gpmc_mem_init(void)
+ {
+ 	int cs;
+ 	unsigned long boot_rom_space = 0;
+@@ -840,65 +893,85 @@ static void __init gpmc_mem_init(void)
+ 	}
+ }
+ 
+-static int __init gpmc_init(void)
++static __devinit int gpmc_probe(struct platform_device *pdev)
+ {
+ 	u32 l;
+-	int ret = -EINVAL;
+-	int gpmc_irq;
+-	char *ck = NULL;
+-
+-	if (cpu_is_omap24xx()) {
+-		ck = "core_l3_ck";
+-		if (cpu_is_omap2420())
+-			l = OMAP2420_GPMC_BASE;
+-		else
+-			l = OMAP34XX_GPMC_BASE;
+-		gpmc_irq = 20 + OMAP_INTC_START;
+-	} else if (cpu_is_omap34xx()) {
+-		ck = "gpmc_fck";
+-		l = OMAP34XX_GPMC_BASE;
+-		gpmc_irq = 20 + OMAP_INTC_START;
+-	} else if (cpu_is_omap44xx() || soc_is_omap54xx()) {
+-		/* Base address and irq number are same for OMAP4/5 */
+-		ck = "gpmc_ck";
+-		l = OMAP44XX_GPMC_BASE;
+-		gpmc_irq = 20 + OMAP44XX_IRQ_GIC_START;
+-	}
++	struct resource *res;
+ 
+-	if (WARN_ON(!ck))
+-		return ret;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res == NULL)
++		return -ENOENT;
+ 
+-	gpmc_l3_clk = clk_get(NULL, ck);
+-	if (IS_ERR(gpmc_l3_clk)) {
+-		printk(KERN_ERR "Could not get GPMC clock %s\n", ck);
+-		BUG();
+-	}
++	phys_base = res->start;
++	mem_size = resource_size(res);
+ 
+-	gpmc_base = ioremap(l, SZ_4K);
++	gpmc_base = devm_request_and_ioremap(&pdev->dev, res);
+ 	if (!gpmc_base) {
+-		clk_put(gpmc_l3_clk);
+-		printk(KERN_ERR "Could not get GPMC register memory\n");
+-		BUG();
++		dev_err(&pdev->dev, "error: request memory / ioremap\n");
++		return -EADDRNOTAVAIL;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (res == NULL)
++		dev_warn(&pdev->dev, "Failed to get resource: irq\n");
++	else
++		gpmc_irq = res->start;
++
++	gpmc_l3_clk = clk_get(&pdev->dev, "fck");
++	if (IS_ERR(gpmc_l3_clk)) {
++		dev_err(&pdev->dev, "error: clk_get\n");
++		gpmc_irq = 0;
++		return PTR_ERR(gpmc_l3_clk);
+ 	}
+ 
+ 	clk_enable(gpmc_l3_clk);
+ 
++	gpmc_dev = &pdev->dev;
++
+ 	l = gpmc_read_reg(GPMC_REVISION);
+-	printk(KERN_INFO "GPMC revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
+-	/* Set smart idle mode and automatic L3 clock gating */
+-	l = gpmc_read_reg(GPMC_SYSCONFIG);
+-	l &= 0x03 << 3;
+-	l |= (0x02 << 3) | (1 << 0);
+-	gpmc_write_reg(GPMC_SYSCONFIG, l);
++	if (GPMC_REVISION_MAJOR(l) > 0x4)
++		gpmc_capability = GPMC_HAS_WR_ACCESS | GPMC_HAS_WR_DATA_MUX_BUS;
++	dev_info(gpmc_dev, "GPMC revision %d.%d\n",
++				GPMC_REVISION_MAJOR(l), GPMC_REVISION_MINOR(l));
++
+ 	gpmc_mem_init();
+ 
+-	ret = gpmc_setup_irq(gpmc_irq);
+-	if (ret)
+-		pr_err("gpmc: irq-%d could not claim: err %d\n",
+-						gpmc_irq, ret);
+-	return ret;
++	if (IS_ERR_VALUE(gpmc_setup_irq()))
++		dev_warn(gpmc_dev, "gpmc_setup_irq failed\n");
++
++	return 0;
++}
++
++static __exit int gpmc_remove(struct platform_device *pdev)
++{
++	gpmc_free_irq();
++	gpmc_mem_exit();
++	gpmc_dev = NULL;
++	return 0;
+ }
++
++static struct platform_driver gpmc_driver = {
++	.probe		= gpmc_probe,
++	.remove		= __devexit_p(gpmc_remove),
++	.driver		= {
++		.name	= DEVICE_NAME,
++		.owner	= THIS_MODULE,
 +	},
 +};
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 3e7d6c1..ce02b56 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -2059,6 +2059,42 @@ static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
- };
- 
- /*
-+ * 'gpmc' class
-+ * general purpose memory controller
-+ */
 +
-+static struct omap_hwmod_class_sysconfig omap3xxx_gpmc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
++static __init int gpmc_init(void)
++{
++	return platform_driver_register(&gpmc_driver);
++}
 +
-+static struct omap_hwmod_class omap3xxx_gpmc_hwmod_class = {
-+	.name	= "gpmc",
-+	.sysc	= &omap3xxx_gpmc_sysc,
-+};
++static __exit void gpmc_exit(void)
++{
++	platform_driver_unregister(&gpmc_driver);
 +
-+static struct omap_hwmod_irq_info omap3xxx_gpmc_irqs[] = {
-+	{ .irq = 20 },
-+	{ .irq = -1 }
-+};
++}
 +
-+static struct omap_hwmod omap3xxx_gpmc_hwmod = {
-+	.name		= "gpmc",
-+	.class		= &omap3xxx_gpmc_hwmod_class,
-+	.clkdm_name	= "l3_init_clkdm",
-+	.mpu_irqs	= omap3xxx_gpmc_irqs,
-+	.main_clk	= "gpmc_fck",
-+	.flags		= HWMOD_INIT_NO_IDLE |
-+				HWMOD_INIT_NO_RESET |
-+				HWMOD_NO_IDLEST,
-+};
-+
-+/*
-  * interfaces
-  */
+ postcore_initcall(gpmc_init);
++module_exit(gpmc_exit);
  
-@@ -3159,6 +3195,15 @@ static struct omap_hwmod_addr_space omap3xxx_counter_32k_addrs[] = {
- 	{ }
- };
- 
-+static struct omap_hwmod_addr_space omap3xxx_gpmc_addrs[] = {
-+	{
-+		.pa_start	= 0x6E000000,
-+		.pa_end		= 0x6E000FFF,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
- static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__counter_32k = {
- 	.master		= &omap3xxx_l4_wkup_hwmod,
- 	.slave		= &omap3xxx_counter_32k_hwmod,
-@@ -3268,6 +3313,14 @@ static struct omap_hwmod_ocp_if am35xx_l4_core__emac = {
- 	.user		= OCP_USER_MPU,
- };
- 
-+static struct omap_hwmod_ocp_if omap3xxx_l3_main__gpmc = {
-+	.master		= &omap3xxx_l3_main_hwmod,
-+	.slave		= &omap3xxx_gpmc_hwmod,
-+	.clk		= "core_l3_ick",
-+	.addr		= omap3xxx_gpmc_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3xxx_l3_main__l4_core,
- 	&omap3xxx_l3_main__l4_per,
-@@ -3313,6 +3366,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap34xx_l4_core__mcspi3,
- 	&omap34xx_l4_core__mcspi4,
- 	&omap3xxx_l4_wkup__counter_32k,
-+	&omap3xxx_l3_main__gpmc,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-index dddb677..6a033b8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
-+++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
-@@ -77,6 +77,7 @@ extern struct omap_hwmod omap2xxx_gpio4_hwmod;
- extern struct omap_hwmod omap2xxx_mcspi1_hwmod;
- extern struct omap_hwmod omap2xxx_mcspi2_hwmod;
- extern struct omap_hwmod omap2xxx_counter_32k_hwmod;
-+extern struct omap_hwmod omap2xxx_gpmc_hwmod;
- 
- /* Common interface data across OMAP2xxx */
- extern struct omap_hwmod_ocp_if omap2xxx_l3_main__l4_core;
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index e5f0503..72df974 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -109,6 +109,8 @@
- #define OMAP2430_EN_MDM_INTC_MASK			(1 << 11)
- #define OMAP2430_EN_USBHS_SHIFT				6
- #define OMAP2430_EN_USBHS_MASK				(1 << 6)
-+#define OMAP24XX_EN_GPMC_SHIFT				1
-+#define OMAP24XX_EN_GPMC_MASK				(1 << 1)
- 
- /* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
- #define OMAP2420_ST_MMC_SHIFT				26
+ static int __init omap_gpmc_init(void)
+ {
 -- 
 1.7.1
 
