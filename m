@@ -1,78 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Wed, 05 Sep 2012 14:14:31 +0300
-Message-ID: <50473417.8050907@ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
+Date: Wed, 5 Sep 2012 17:04:28 +0530
+Message-ID: <504738C4.7060005@ti.com>
+References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>  <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>  <5047182F.3030507@ti.com> <1346841713.32747.6.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:51704 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753039Ab2IELOK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:14:10 -0400
-Received: by yenl14 with SMTP id l14so44696yen.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 04:14:09 -0700 (PDT)
-In-Reply-To: <5044C2DD.5000705@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33875 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900Ab2IELeQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:34:16 -0400
+In-Reply-To: <1346841713.32747.6.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi Benoit,
+On Wednesday 05 September 2012 04:11 PM, Tomi Valkeinen wrote:
+> On Wed, 2012-09-05 at 14:45 +0530, Archit Taneja wrote:
+>> On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
+>>> dss_mgr_set_timings() can only be called when the output is not active.
+>>> This means that most of the code in the function is extra, as there's no
+>>> need to write the values to registers, etc, because that will be handled
+>>> when the output will be enabled.
+>>
+>> We need to fix dpi_set_timings() before we can make this change. DPI
+>> still tries to change timings on the fly, i.e, with manager enabled. We
+>> need to disable and enable the DPI output like we do for other outputs.
+>
+> Yep, and for HDMI also (I didn't check the others yet).
 
-On 09/03/2012 05:46 PM, Benoit Cousson wrote:
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.t=
-i.com/
->=20
-> Nit: 2012
+I don't think HDMI is impacted, we do the full power off and power on 
+for HDMI, so the manager would be disabled when we set the timings.
 
-Oh, I missed that (copy-paste of the header...)
+>
+> I think the simplest way to handle this is to only write the dpi.timings
+> in omapdss_dpi_set_timings, and remove the call to dss_mgr_set_timings.
+> This is not perfect, as a call to omapdss_dpi_set_timings when the
+> display is enabled would result in changing the dpi.timings, but the
+> changes wouldn't be actually in use.
 
->> + *
->> + * This file is licensed under the terms of the GNU General Public =
-License
->> + * version 2.  This program is licensed "as is" without any warrant=
-y of any
->> + * kind, whether express or implied.
->> + */
->> +
->> +/include/ "omap2.dtsi"
->> +
->> +/ {
->> +	compatible =3D "ti,omap2420", "ti,omap2";
->> +
->> +	ocp {
->> +		mcbsp1: mcbsp@48074000 {
->> +			compatible =3D "ti,omap2420-mcbsp";
->> +			reg =3D <0x48074000 0xff>;
->> +			reg-names =3D "mpu";
->> +			interrupts =3D <0 59 0x4>, /* TX interrupt */
->> +				     <0 60 0x4>; /* RX interrupt */
->=20
-> That one is not correct because it does comply with the interrupt
-> controller specifier that require only one cell:
->=20
-> 		intc: interrupt-controller@48200000 {
-> 			compatible =3D "ti,omap2-intc";
-> 			interrupt-controller;
-> 			#interrupt-cells =3D <1>;
-> ...
->=20
-> The one you are using is for GIC IRQ controller.
-> It works probably because we are using hwmod so far :-)
->=20
-> Didn't you get some warning?
+The simplest way would be to do what other outputs do, disable the 
+output and re-enable the output with the new timings value, if the panel 
+is enabled.
 
-dtb compiles fine. I'll fix OMAP2 and OMAP3 as well.
+Archit
 
-Will send the updated series shortly.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
