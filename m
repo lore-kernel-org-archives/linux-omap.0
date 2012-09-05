@@ -1,127 +1,316 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH 02/10] ARM: OMAP: Fix timer posted mode support
-Date: Wed, 5 Sep 2012 14:04:24 -0500
-Message-ID: <1346871872-24413-3-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH 05/10] ARM: OMAP2+: Don't use __omap_dm_timer_reset()
+Date: Wed, 5 Sep 2012 14:04:27 -0500
+Message-ID: <1346871872-24413-6-git-send-email-jon-hunter@ti.com>
 References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43399 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32786 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754365Ab2IETEp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 15:04:45 -0400
+	id S1759005Ab2IETEx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Sep 2012 15:04:53 -0400
 In-Reply-To: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Currently the dmtimer posted mode is being enabled when the function
-__omap_dm_timer_reset() is called. This function is only being called for
-OMAP1 timers and OMAP2+ timers that are being used as system timers. Hence,
-for OMAP2+ timers that are NOT being used as a system timer, posted mode is
-not enabled but the "timer->posted" variable is still set (incorrectly) in
-the omap_dm_timer_prepare() function.
+Currently OMAP2+ devices are using the function __omap_dm_timer_reset() to
+configure the clock-activity, idle, wakeup-enable and auto-idle fields in the
+timer OCP_CFG register. The name of the function is mis-leading because this
+function does not actually perform a reset of the timer.
 
-This is a regression introduced by commit 3392cdd3 (ARM: OMAP: dmtimer:
-switch-over to platform device driver) which changed the code to only call
-omap_dm_timer_reset() for OMAP1 devices. Although this is a regression from
-the original code it only impacts performance and so is not needed for stable.
+For OMAP2+ devices, HWMOD is responsible for reseting and configuring the
+timer OCP_CFG register. Therefore, do not use __omap_dm_timer_reset() for
+OMAP2+ devices and rely on HWMOD. Furthermore, some timer instances do not
+have the fields clock-activity, wakeup-enable and auto-idle and so this
+function could configure the OCP_CFG register incorrectly.
+
+Currently HWMOD is not configuring the clock-activity field in the OCP_CFG
+register for timers that have this field. Commit 0f0d080 (ARM: OMAP: DMTimer:
+Use posted mode) configures the clock-activity field to keep the f-clk enabled
+so that the wake-up capability is enabled. Therefore, add the appropriate flags
+to the timer HWMOD structures to configure this field in the same way.
+
+For OMAP2/3 devices all dmtimers have the clock-activity field, where as for
+OMAP4 devices, only dmtimer 1, 2 and 10 have the clock-activity field.
+
+Verified on OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda that HWMOD is
+configuring the dmtimer OCP_CFG register as expected for clock-events timer.
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/timer.c               |    3 +--
- arch/arm/plat-omap/dmtimer.c              |   14 +++++---------
- arch/arm/plat-omap/include/plat/dmtimer.h |    9 ++++++++-
- 3 files changed, 14 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   13 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   13 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    4 ++++
+ arch/arm/mach-omap2/timer.c                        |    1 -
+ 4 files changed, 30 insertions(+), 1 deletion(-)
 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+index d094285..e64df71 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
+@@ -62,6 +62,7 @@ static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
+ 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+ 			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.clockact       = CLOCKACT_TEST_ICLK,
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+@@ -239,6 +240,7 @@ struct omap_hwmod omap2xxx_timer1_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_alwon_dev_attr,
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer2 */
+@@ -257,6 +259,7 @@ struct omap_hwmod omap2xxx_timer2_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer3 */
+@@ -275,6 +278,7 @@ struct omap_hwmod omap2xxx_timer3_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer4 */
+@@ -293,6 +297,7 @@ struct omap_hwmod omap2xxx_timer4_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer5 */
+@@ -311,6 +316,7 @@ struct omap_hwmod omap2xxx_timer5_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer6 */
+@@ -329,6 +335,7 @@ struct omap_hwmod omap2xxx_timer6_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer7 */
+@@ -347,6 +354,7 @@ struct omap_hwmod omap2xxx_timer7_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer8 */
+@@ -365,6 +373,7 @@ struct omap_hwmod omap2xxx_timer8_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer9 */
+@@ -384,6 +393,7 @@ struct omap_hwmod omap2xxx_timer9_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer10 */
+@@ -403,6 +413,7 @@ struct omap_hwmod omap2xxx_timer10_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer11 */
+@@ -422,6 +433,7 @@ struct omap_hwmod omap2xxx_timer11_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer12 */
+@@ -441,6 +453,7 @@ struct omap_hwmod omap2xxx_timer12_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap2xxx_timer_hwmod_class,
++	.flags          = HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* wd_timer2 */
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5f0b2ee..4b02440 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -124,6 +124,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
+ 			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE |
+ 			   SYSS_HAS_RESET_STATUS),
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.clockact	= CLOCKACT_TEST_ICLK,
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+@@ -163,6 +164,7 @@ static struct omap_hwmod omap3xxx_timer1_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_alwon_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer2 */
+@@ -180,6 +182,7 @@ static struct omap_hwmod omap3xxx_timer2_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer3 */
+@@ -197,6 +200,7 @@ static struct omap_hwmod omap3xxx_timer3_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer4 */
+@@ -214,6 +218,7 @@ static struct omap_hwmod omap3xxx_timer4_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer5 */
+@@ -231,6 +236,7 @@ static struct omap_hwmod omap3xxx_timer5_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer6 */
+@@ -248,6 +254,7 @@ static struct omap_hwmod omap3xxx_timer6_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer7 */
+@@ -265,6 +272,7 @@ static struct omap_hwmod omap3xxx_timer7_hwmod = {
+ 		},
+ 	},
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer8 */
+@@ -283,6 +291,7 @@ static struct omap_hwmod omap3xxx_timer8_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer9 */
+@@ -301,6 +310,7 @@ static struct omap_hwmod omap3xxx_timer9_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer10 */
+@@ -319,6 +329,7 @@ static struct omap_hwmod omap3xxx_timer10_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer11 */
+@@ -337,6 +348,7 @@ static struct omap_hwmod omap3xxx_timer11_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_pwm_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /* timer12 */
+@@ -360,6 +372,7 @@ static struct omap_hwmod omap3xxx_timer12_hwmod = {
+ 	},
+ 	.dev_attr	= &capability_secure_dev_attr,
+ 	.class		= &omap3xxx_timer_hwmod_class,
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 242aee4..e486ebd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2869,6 +2869,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
+ 			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
+ 			   SYSS_HAS_RESET_STATUS),
+ 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.clockact	= CLOCKACT_TEST_ICLK,
+ 	.sysc_fields	= &omap_hwmod_sysc_type1,
+ };
+ 
+@@ -2912,6 +2913,7 @@ static struct omap_hwmod omap44xx_timer1_hwmod = {
+ 	.name		= "timer1",
+ 	.class		= &omap44xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "l4_wkup_clkdm",
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.mpu_irqs	= omap44xx_timer1_irqs,
+ 	.main_clk	= "timer1_fck",
+ 	.prcm = {
+@@ -2934,6 +2936,7 @@ static struct omap_hwmod omap44xx_timer2_hwmod = {
+ 	.name		= "timer2",
+ 	.class		= &omap44xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "l4_per_clkdm",
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.mpu_irqs	= omap44xx_timer2_irqs,
+ 	.main_clk	= "timer2_fck",
+ 	.prcm = {
+@@ -3105,6 +3108,7 @@ static struct omap_hwmod omap44xx_timer10_hwmod = {
+ 	.name		= "timer10",
+ 	.class		= &omap44xx_timer_1ms_hwmod_class,
+ 	.clkdm_name	= "l4_per_clkdm",
++	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 	.mpu_irqs	= omap44xx_timer10_irqs,
+ 	.main_clk	= "timer10_fck",
+ 	.prcm = {
 diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 5471706..e24ee0f 100644
+index e24ee0f..1ee67a3 100644
 --- a/arch/arm/mach-omap2/timer.c
 +++ b/arch/arm/mach-omap2/timer.c
-@@ -194,10 +194,9 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 	}
- 	__omap_dm_timer_init_regs(timer);
- 	__omap_dm_timer_reset(timer, 1, 1);
--	timer->posted = 1;
-+	__omap_dm_timer_enable_posted(timer);
- 
- 	timer->rate = clk_get_rate(timer->fclk);
--
- 	timer->reserved = 1;
- 
- 	return res;
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index c34f55b..22790ea 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -122,21 +122,15 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
- 
- static void omap_dm_timer_reset(struct omap_dm_timer *timer)
- {
--	omap_dm_timer_enable(timer);
- 	if (timer->pdev->id != 1) {
- 		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
- 		omap_dm_timer_wait_for_reset(timer);
- 	}
--
- 	__omap_dm_timer_reset(timer, 0, 0);
--	omap_dm_timer_disable(timer);
--	timer->posted = 1;
- }
- 
- int omap_dm_timer_prepare(struct omap_dm_timer *timer)
- {
--	int ret;
--
- 	/*
- 	 * FIXME: OMAP1 devices do not use the clock framework for dmtimers so
- 	 * do not call clk_get() for these devices.
-@@ -150,13 +144,15 @@ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+@@ -193,7 +193,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
  		}
  	}
+ 	__omap_dm_timer_init_regs(timer);
+-	__omap_dm_timer_reset(timer, 1, 1);
+ 	__omap_dm_timer_enable_posted(timer);
  
-+	omap_dm_timer_enable(timer);
-+
- 	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
- 		omap_dm_timer_reset(timer);
- 
--	ret = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
-+	__omap_dm_timer_enable_posted(timer);
-+	omap_dm_timer_disable(timer);
- 
--	timer->posted = 1;
--	return ret;
-+	return omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
- }
- 
- static inline u32 omap_dm_timer_reserved_systimer(int id)
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 5ce2f00..fa9d04b 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -348,13 +348,20 @@ static inline void __omap_dm_timer_reset(struct omap_dm_timer *timer,
- 		l |= 1 << 2;
- 
- 	__raw_writel(l, timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
-+}
-+
-+static inline void __omap_dm_timer_enable_posted(struct omap_dm_timer *timer)
-+{
-+	if (timer->posted)
-+		return;
- 
- 	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767)
- 		return;
- 
--	/* Match hardware reset default of posted mode */
- 	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
- 					OMAP_TIMER_CTRL_POSTED, 0);
-+	timer->context.tsicr = OMAP_TIMER_CTRL_POSTED;
-+	timer->posted = 1;
- }
- 
- /**
+ 	timer->rate = clk_get_rate(timer->fclk);
 -- 
 1.7.9.5
 
