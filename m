@@ -1,69 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND 1/4] can: c_can: Adopt pinctrl support
-Date: Wed, 5 Sep 2012 16:19:46 -0700
-Message-ID: <20120905231945.GJ1303@atomide.com>
+Subject: Re: [PATCH RESEND 2/4] can: c_can: Add d_can raminit support
+Date: Wed, 5 Sep 2012 16:23:53 -0700
+Message-ID: <20120905232353.GK1303@atomide.com>
 References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
- <1346843564-25343-2-git-send-email-anilkumar@ti.com>
+ <1346843564-25343-3-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-can-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:28615 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755164Ab2IEXX6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 19:23:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1346843564-25343-2-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
+In-Reply-To: <1346843564-25343-3-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: AnilKumar Ch <anilkumar@ti.com>
 Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
 * AnilKumar Ch <anilkumar@ti.com> [120905 04:14]:
-> Adopt pinctrl support to c_can driver based on c_can device
-> pointer, pinctrl driver configure SoC pins to d_can mode
-> according to definitions provided in .dts file.
-> 
-> In device specific device tree file 'pinctrl-names = "default";'
-> and 'pinctrl-0 = <&d_can1_pins>;' needs to add to configure pins
-> from c_can driver. d_can1_pins node contains the pinmux/config
-> details of d_can L/H pins.
-> 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> Add D_CAN raminit support to C_CAN driver to enable D_CAN RAM,
+> which holds all the message objects during transmission or
+> receiving of data. This initialization/de-initialization should
+> be done in synchronous with D_CAN clock.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Sounds like you should just implement runtime PM calls in the driver
+and let the lower level code take care of this for you along with the
+clocks etc.
 
-> ---
->  drivers/net/can/c_can/c_can_platform.c |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-> index 90801c4..c351975 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -33,6 +33,7 @@
->  #include <linux/of.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
+> @@ -1071,6 +1077,8 @@ static int c_can_open(struct net_device *dev)
+>  	struct c_can_priv *priv = netdev_priv(dev);
 >  
->  #include <linux/can/dev.h>
+>  	c_can_pm_runtime_get_sync(priv);
+> +	/* Initialize DCAN RAM */
+> +	c_can_reset_ram(priv, true);
 >  
-> @@ -98,6 +99,7 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
->  	struct c_can_priv *priv;
->  	const struct of_device_id *match;
->  	const struct platform_device_id *id;
-> +	struct pinctrl *pinctrl;
->  	struct resource *mem;
->  	int irq;
->  	struct clk *clk;
-> @@ -114,6 +116,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
->  		id = platform_get_device_id(pdev);
->  	}
->  
-> +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
-> +	if (IS_ERR(pinctrl))
-> +		dev_warn(&pdev->dev,
-> +			"failed to configure pins from driver\n");
-> +
->  	/* get the appropriate clk */
->  	clk = clk_get(&pdev->dev, NULL);
->  	if (IS_ERR(clk)) {
-> -- 
-> 1.7.9.5
-> 
+>  	/* open the can device */
+>  	err = open_candev(dev);
+> @@ -1099,6 +1107,8 @@ static int c_can_open(struct net_device *dev)
+>  exit_irq_fail:
+>  	close_candev(dev);
+>  exit_open_fail:
+> +	/* De-Initialize DCAN RAM */
+> +	c_can_reset_ram(priv, false);
+>  	c_can_pm_runtime_put_sync(priv);
+>  	return err;
+>  }
+
+Oh your already have pm_runtime here, OK so yeah let's let the omap/am33xx
+hwmod code do this for you. No changes to this driver needed then?
+
+Tony
