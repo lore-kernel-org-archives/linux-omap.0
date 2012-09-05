@@ -1,130 +1,308 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 17/17] OMAPDSS: Use WB fifo for GFX overlay
-Date: Wed,  5 Sep 2012 11:25:55 +0300
-Message-ID: <1346833555-31258-18-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 13/17] Revert "OMAPDSS: APPLY: add fifo-merge support"
+Date: Wed,  5 Sep 2012 11:25:51 +0300
+Message-ID: <1346833555-31258-14-git-send-email-tomi.valkeinen@ti.com>
 References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:58817 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758190Ab2IEI0y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:54 -0400
-Received: by lagy9 with SMTP id y9so139512lag.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:41 -0700 (PDT)
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:59313 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758162Ab2IEI0h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:26:37 -0400
+Received: by lbbgj3 with SMTP id gj3so189937lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:26:34 -0700 (PDT)
 In-Reply-To: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OMAP4's GFX overlay has smaller fifo than the rest of the overlays
-(including writeback "overlay"). This seems to be the reason for
-underflows in some more demanding scenarios.
+This reverts commit 1d71f42b35ed66d90a9a39bc515bb16cfe2d4a46.
 
-We can avoid the problems by using the WB fifo for GFX overlay, and vice
-versa. WB usage is not supported yet, but when it will, it should
-perform just fine with smaller fifo as there are no hard realtime
-constraints with WB.
+Adding fifo merge feature as an omapdss internal configuration was a
+mistake. We cannot hide from the users of omapdss the complexities of
+fifo merge.
+
+This commit removes the fifo merge support, which luckily is easily done
+as it was handled totally inside apply.c.
+
+The plan is to try fifo merge again later when it is more clear how the
+hardware acts in various situations, and how the omapdrm wants to use
+fifo merge.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   27 +++++++++++++++++++++++++++
- drivers/video/omap2/dss/dispc.h |    4 ++++
- include/video/omapdss.h         |    1 +
- 3 files changed, 32 insertions(+)
+ drivers/video/omap2/dss/apply.c |  154 ++-------------------------------------
+ 1 file changed, 8 insertions(+), 146 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index dc0f372..d512c38 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -95,6 +95,9 @@ struct dispc_features {
- 	unsigned long (*calc_core_clk) (enum omap_channel channel,
- 		u16 width, u16 height, u16 out_width, u16 out_height);
- 	u8 num_fifos;
-+
-+	/* swap GFX & WB fifos */
-+	bool gfx_fifo_workaround:1;
- };
- 
- #define DISPC_MAX_NR_FIFOS 5
-@@ -1088,6 +1091,29 @@ static void dispc_init_fifos(void)
- 		 */
- 		dispc.fifo_assignment[fifo] = fifo;
- 	}
-+
-+	/*
-+	 * The GFX fifo on OMAP4 is smaller than the other fifos. The small fifo
-+	 * causes problems with certain use cases, like using the tiler in 2D
-+	 * mode. The below hack swaps the fifos of GFX and WB planes, thus
-+	 * giving GFX plane a larger fifo. WB but should work fine with a
-+	 * smaller fifo.
-+	 */
-+	if (dispc.feat->gfx_fifo_workaround) {
-+		u32 v;
-+
-+		v = dispc_read_reg(DISPC_GLOBAL_BUFFER);
-+
-+		v = FLD_MOD(v, 4, 2, 0); /* GFX BUF top to WB */
-+		v = FLD_MOD(v, 4, 5, 3); /* GFX BUF bottom to WB */
-+		v = FLD_MOD(v, 0, 26, 24); /* WB BUF top to GFX */
-+		v = FLD_MOD(v, 0, 29, 27); /* WB BUF bottom to GFX */
-+
-+		dispc_write_reg(DISPC_GLOBAL_BUFFER, v);
-+
-+		dispc.fifo_assignment[OMAP_DSS_GFX] = OMAP_DSS_WB;
-+		dispc.fifo_assignment[OMAP_DSS_WB] = OMAP_DSS_GFX;
-+	}
+diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+index 1b49019..02943a5 100644
+--- a/drivers/video/omap2/dss/apply.c
++++ b/drivers/video/omap2/dss/apply.c
+@@ -993,11 +993,11 @@ static void dss_apply_fifo_merge(bool use_fifo_merge)
+ 	dss_data.fifo_merge_dirty = true;
  }
  
- static u32 dispc_ovl_get_fifo_size(enum omap_plane plane)
-@@ -3780,6 +3806,7 @@ static const struct dispc_features omap44xx_dispc_feats __initconst = {
- 	.calc_scaling		=	dispc_ovl_calc_scaling_44xx,
- 	.calc_core_clk		=	calc_core_clk_44xx,
- 	.num_fifos		=	5,
-+	.gfx_fifo_workaround	=	true,
- };
+-static void dss_ovl_setup_fifo(struct omap_overlay *ovl,
+-		bool use_fifo_merge)
++static void dss_ovl_setup_fifo(struct omap_overlay *ovl)
+ {
+ 	struct ovl_priv_data *op = get_ovl_priv(ovl);
+ 	u32 fifo_low, fifo_high;
++	bool use_fifo_merge = false;
  
- static int __init dispc_init_features(struct device *dev)
-diff --git a/drivers/video/omap2/dss/dispc.h b/drivers/video/omap2/dss/dispc.h
-index 92d8a9b..42e56cc 100644
---- a/drivers/video/omap2/dss/dispc.h
-+++ b/drivers/video/omap2/dss/dispc.h
-@@ -36,6 +36,7 @@
- #define DISPC_CONTROL2			0x0238
- #define DISPC_CONFIG2			0x0620
- #define DISPC_DIVISOR			0x0804
-+#define DISPC_GLOBAL_BUFFER		0x0800
- #define DISPC_CONTROL3                  0x0848
- #define DISPC_CONFIG3                   0x084C
+ 	if (!op->enabled && !op->enabling)
+ 		return;
+@@ -1008,8 +1008,7 @@ static void dss_ovl_setup_fifo(struct omap_overlay *ovl,
+ 	dss_apply_ovl_fifo_thresholds(ovl, fifo_low, fifo_high);
+ }
  
-@@ -355,6 +356,8 @@ static inline u16 DISPC_OVL_BASE(enum omap_plane plane)
- 		return 0x014C;
- 	case OMAP_DSS_VIDEO3:
- 		return 0x0300;
-+	case OMAP_DSS_WB:
-+		return 0x0500;
- 	default:
- 		BUG();
- 		return 0;
-@@ -517,6 +520,7 @@ static inline u16 DISPC_FIFO_SIZE_STATUS_OFFSET(enum omap_plane plane)
- 	case OMAP_DSS_VIDEO2:
- 		return 0x0018;
- 	case OMAP_DSS_VIDEO3:
-+	case OMAP_DSS_WB:
- 		return 0x0088;
- 	default:
- 		BUG();
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 24a7fa1..ac2e4cc 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -73,6 +73,7 @@ enum omap_plane {
- 	OMAP_DSS_VIDEO1	= 1,
- 	OMAP_DSS_VIDEO2	= 2,
- 	OMAP_DSS_VIDEO3	= 3,
-+	OMAP_DSS_WB	= 4,
- };
+-static void dss_mgr_setup_fifos(struct omap_overlay_manager *mgr,
+-		bool use_fifo_merge)
++static void dss_mgr_setup_fifos(struct omap_overlay_manager *mgr)
+ {
+ 	struct omap_overlay *ovl;
+ 	struct mgr_priv_data *mp;
+@@ -1020,10 +1019,10 @@ static void dss_mgr_setup_fifos(struct omap_overlay_manager *mgr,
+ 		return;
  
- enum omap_channel {
+ 	list_for_each_entry(ovl, &mgr->overlays, list)
+-		dss_ovl_setup_fifo(ovl, use_fifo_merge);
++		dss_ovl_setup_fifo(ovl);
+ }
+ 
+-static void dss_setup_fifos(bool use_fifo_merge)
++static void dss_setup_fifos(void)
+ {
+ 	const int num_mgrs = omap_dss_get_num_overlay_managers();
+ 	struct omap_overlay_manager *mgr;
+@@ -1031,91 +1030,15 @@ static void dss_setup_fifos(bool use_fifo_merge)
+ 
+ 	for (i = 0; i < num_mgrs; ++i) {
+ 		mgr = omap_dss_get_overlay_manager(i);
+-		dss_mgr_setup_fifos(mgr, use_fifo_merge);
++		dss_mgr_setup_fifos(mgr);
+ 	}
+ }
+ 
+-static int get_num_used_managers(void)
+-{
+-	const int num_mgrs = omap_dss_get_num_overlay_managers();
+-	struct omap_overlay_manager *mgr;
+-	struct mgr_priv_data *mp;
+-	int i;
+-	int enabled_mgrs;
+-
+-	enabled_mgrs = 0;
+-
+-	for (i = 0; i < num_mgrs; ++i) {
+-		mgr = omap_dss_get_overlay_manager(i);
+-		mp = get_mgr_priv(mgr);
+-
+-		if (!mp->enabled)
+-			continue;
+-
+-		enabled_mgrs++;
+-	}
+-
+-	return enabled_mgrs;
+-}
+-
+-static int get_num_used_overlays(void)
+-{
+-	const int num_ovls = omap_dss_get_num_overlays();
+-	struct omap_overlay *ovl;
+-	struct ovl_priv_data *op;
+-	struct mgr_priv_data *mp;
+-	int i;
+-	int enabled_ovls;
+-
+-	enabled_ovls = 0;
+-
+-	for (i = 0; i < num_ovls; ++i) {
+-		ovl = omap_dss_get_overlay(i);
+-		op = get_ovl_priv(ovl);
+-
+-		if (!op->enabled && !op->enabling)
+-			continue;
+-
+-		mp = get_mgr_priv(ovl->manager);
+-
+-		if (!mp->enabled)
+-			continue;
+-
+-		enabled_ovls++;
+-	}
+-
+-	return enabled_ovls;
+-}
+-
+-static bool get_use_fifo_merge(void)
+-{
+-	int enabled_mgrs = get_num_used_managers();
+-	int enabled_ovls = get_num_used_overlays();
+-
+-	if (!dss_has_feature(FEAT_FIFO_MERGE))
+-		return false;
+-
+-	/*
+-	 * In theory the only requirement for fifomerge is enabled_ovls <= 1.
+-	 * However, if we have two managers enabled and set/unset the fifomerge,
+-	 * we need to set the GO bits in particular sequence for the managers,
+-	 * and wait in between.
+-	 *
+-	 * This is rather difficult as new apply calls can happen at any time,
+-	 * so we simplify the problem by requiring also that enabled_mgrs <= 1.
+-	 * In practice this shouldn't matter, because when only one overlay is
+-	 * enabled, most likely only one output is enabled.
+-	 */
+-
+-	return enabled_mgrs <= 1 && enabled_ovls <= 1;
+-}
+-
+ int dss_mgr_enable(struct omap_overlay_manager *mgr)
+ {
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 	unsigned long flags;
+ 	int r;
+-	bool fifo_merge;
+ 
+ 	mutex_lock(&apply_lock);
+ 
+@@ -1133,23 +1056,11 @@ int dss_mgr_enable(struct omap_overlay_manager *mgr)
+ 		goto err;
+ 	}
+ 
+-	/* step 1: setup fifos/fifomerge before enabling the manager */
+-
+-	fifo_merge = get_use_fifo_merge();
+-	dss_setup_fifos(fifo_merge);
+-	dss_apply_fifo_merge(fifo_merge);
++	dss_setup_fifos();
+ 
+ 	dss_write_regs();
+ 	dss_set_go_bits();
+ 
+-	spin_unlock_irqrestore(&data_lock, flags);
+-
+-	/* wait until fifo config is in */
+-	wait_pending_extra_info_updates();
+-
+-	/* step 2: enable the manager */
+-	spin_lock_irqsave(&data_lock, flags);
+-
+ 	if (!mgr_manual_update(mgr))
+ 		mp->updating = true;
+ 
+@@ -1174,7 +1085,6 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
+ {
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 	unsigned long flags;
+-	bool fifo_merge;
+ 
+ 	mutex_lock(&apply_lock);
+ 
+@@ -1189,16 +1099,8 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
+ 	mp->updating = false;
+ 	mp->enabled = false;
+ 
+-	fifo_merge = get_use_fifo_merge();
+-	dss_setup_fifos(fifo_merge);
+-	dss_apply_fifo_merge(fifo_merge);
+-
+-	dss_write_regs();
+-	dss_set_go_bits();
+-
+ 	spin_unlock_irqrestore(&data_lock, flags);
+ 
+-	wait_pending_extra_info_updates();
+ out:
+ 	mutex_unlock(&apply_lock);
+ }
+@@ -1505,7 +1407,6 @@ int dss_ovl_enable(struct omap_overlay *ovl)
+ {
+ 	struct ovl_priv_data *op = get_ovl_priv(ovl);
+ 	unsigned long flags;
+-	bool fifo_merge;
+ 	int r;
+ 
+ 	mutex_lock(&apply_lock);
+@@ -1531,22 +1432,7 @@ int dss_ovl_enable(struct omap_overlay *ovl)
+ 		goto err2;
+ 	}
+ 
+-	/* step 1: configure fifos/fifomerge for currently enabled ovls */
+-
+-	fifo_merge = get_use_fifo_merge();
+-	dss_setup_fifos(fifo_merge);
+-	dss_apply_fifo_merge(fifo_merge);
+-
+-	dss_write_regs();
+-	dss_set_go_bits();
+-
+-	spin_unlock_irqrestore(&data_lock, flags);
+-
+-	/* wait for fifo configs to go in */
+-	wait_pending_extra_info_updates();
+-
+-	/* step 2: enable the overlay */
+-	spin_lock_irqsave(&data_lock, flags);
++	dss_setup_fifos();
+ 
+ 	op->enabling = false;
+ 	dss_apply_ovl_enable(ovl, true);
+@@ -1556,9 +1442,6 @@ int dss_ovl_enable(struct omap_overlay *ovl)
+ 
+ 	spin_unlock_irqrestore(&data_lock, flags);
+ 
+-	/* wait for overlay to be enabled */
+-	wait_pending_extra_info_updates();
+-
+ 	mutex_unlock(&apply_lock);
+ 
+ 	return 0;
+@@ -1574,7 +1457,6 @@ int dss_ovl_disable(struct omap_overlay *ovl)
+ {
+ 	struct ovl_priv_data *op = get_ovl_priv(ovl);
+ 	unsigned long flags;
+-	bool fifo_merge;
+ 	int r;
+ 
+ 	mutex_lock(&apply_lock);
+@@ -1589,34 +1471,14 @@ int dss_ovl_disable(struct omap_overlay *ovl)
+ 		goto err;
+ 	}
+ 
+-	/* step 1: disable the overlay */
+ 	spin_lock_irqsave(&data_lock, flags);
+ 
+ 	dss_apply_ovl_enable(ovl, false);
+-
+ 	dss_write_regs();
+ 	dss_set_go_bits();
+ 
+ 	spin_unlock_irqrestore(&data_lock, flags);
+ 
+-	/* wait for the overlay to be disabled */
+-	wait_pending_extra_info_updates();
+-
+-	/* step 2: configure fifos/fifomerge */
+-	spin_lock_irqsave(&data_lock, flags);
+-
+-	fifo_merge = get_use_fifo_merge();
+-	dss_setup_fifos(fifo_merge);
+-	dss_apply_fifo_merge(fifo_merge);
+-
+-	dss_write_regs();
+-	dss_set_go_bits();
+-
+-	spin_unlock_irqrestore(&data_lock, flags);
+-
+-	/* wait for fifo config to go in */
+-	wait_pending_extra_info_updates();
+-
+ 	mutex_unlock(&apply_lock);
+ 
+ 	return 0;
 -- 
 1.7.9.5
 
