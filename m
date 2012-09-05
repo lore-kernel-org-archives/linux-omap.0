@@ -1,166 +1,62 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 1/8] ARM/dts: omap2: Add McBSP entries for OMAP2420 and OMAP2430 SoC
-Date: Wed,  5 Sep 2012 14:58:49 +0300
-Message-ID: <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com>
-References: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/8] ARM/dts: OMAP audio related updates for OMAP2/3/4/5
+Date: Wed,  5 Sep 2012 14:58:48 +0300
+Message-ID: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:56605 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752464Ab2IEL6q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:58:46 -0400
-Received: by ghrr11 with SMTP id r11so51346ghr.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 04:58:45 -0700 (PDT)
-In-Reply-To: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:53129 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752223Ab2IEL6n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:58:43 -0400
+Received: by ggdk6 with SMTP id k6so50602ggd.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 04:58:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-The McBSP IP within OMAP2420 and 2430 is different we need to create separate
-dtsi files for them.
+Hello,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Changes since v2:
+- Fixed the interrupts properties of McBSP for OMAP2/3
+- omap2420.dtsi, omap2430.dtsi header date updated to 2012
+
+Changes since v1:
+- Rebased on current l-o:devel-dt branch
+- Two new patch, one for OMAP4 to add reg-names for the mem areas, one for OMAP5
+  to add McPDM and DMIC section
+
+The series adds/fixes the audio related IPs (McBSP, McPDM, DMIC) in the dtsi
+files and enable the audio on BeagleBoard when booted with DT.
+
+I have created on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+for_3.7/dts
+
+Regards,
+Peter
 ---
- arch/arm/boot/dts/omap2420.dtsi | 39 +++++++++++++++++++
- arch/arm/boot/dts/omap2430.dtsi | 83 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 122 insertions(+)
+Peter Ujfalusi (8):
+  ARM/dts: omap2: Add McBSP entries for OMAP2420 and OMAP2430 SoC
+  ARM/dts: omap2420-h4: Include omap2420.dtsi file instead the common
+    omap2
+  ARM/dts: omap3: Add McBSP entries
+  ARM/dts: omap4: Add McBSP entries
+  ARM/dts: omap4: Add reg-names for McPDM and DMIC
+  ARM/dts: omap5: Add McBSP entries
+  ARM/dts: omap5: Add McPDM and DMIC section to the dtsi file
+  ARM/dts: omap3-beagle: Enable audio support
+
+ arch/arm/boot/dts/omap2420-h4.dts  |  2 +-
+ arch/arm/boot/dts/omap2420.dtsi    | 39 ++++++++++++++++++
+ arch/arm/boot/dts/omap2430.dtsi    | 83 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap3-beagle.dts | 14 +++++++
+ arch/arm/boot/dts/omap3.dtsi       | 69 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi       | 49 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap5.dtsi       | 56 +++++++++++++++++++++++++
+ 7 files changed, 311 insertions(+), 1 deletion(-)
  create mode 100644 arch/arm/boot/dts/omap2420.dtsi
  create mode 100644 arch/arm/boot/dts/omap2430.dtsi
 
-diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
-new file mode 100644
-index 0000000..6174d3d
---- /dev/null
-+++ b/arch/arm/boot/dts/omap2420.dtsi
-@@ -0,0 +1,39 @@
-+/*
-+ * Device Tree Source for OMAP2420 SoC
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+/include/ "omap2.dtsi"
-+
-+/ {
-+	compatible = "ti,omap2420", "ti,omap2";
-+
-+	ocp {
-+		mcbsp1: mcbsp@48074000 {
-+			compatible = "ti,omap2420-mcbsp";
-+			reg = <0x48074000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <59>, /* TX interrupt */
-+				     <60>; /* RX interrupt */
-+			interrupt-names = "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,hwmods = "mcbsp1";
-+		};
-+
-+		mcbsp2: mcbsp@48076000 {
-+			compatible = "ti,omap2420-mcbsp";
-+			reg = <0x48076000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <62>, /* TX interrupt */
-+				     <63>; /* RX interrupt */
-+			interrupt-names = "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,hwmods = "mcbsp2";
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
-new file mode 100644
-index 0000000..59a639a
---- /dev/null
-+++ b/arch/arm/boot/dts/omap2430.dtsi
-@@ -0,0 +1,83 @@
-+/*
-+ * Device Tree Source for OMAP243x SoC
-+ *
-+ * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2.  This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ */
-+
-+/include/ "omap2.dtsi"
-+
-+/ {
-+	compatible = "ti,omap2430", "ti,omap2";
-+
-+	ocp {
-+		mcbsp1: mcbsp@48074000 {
-+			compatible = "ti,omap2430-mcbsp";
-+			reg = <0x48074000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <64>, /* OCP compliant interrupt */
-+				     <59>, /* TX interrupt */
-+				     <60>, /* RX interrupt */
-+				     <61>; /* RX overflow interrupt */
-+			interrupt-names = "common", "tx", "rx", "rx_overflow";
-+			interrupt-parent = <&intc>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp1";
-+		};
-+
-+		mcbsp2: mcbsp@48076000 {
-+			compatible = "ti,omap2430-mcbsp";
-+			reg = <0x48076000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <16>, /* OCP compliant interrupt */
-+				     <62>, /* TX interrupt */
-+				     <63>; /* RX interrupt */
-+			interrupt-names = "common", "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp2";
-+		};
-+
-+		mcbsp3: mcbsp@4808c000 {
-+			compatible = "ti,omap2430-mcbsp";
-+			reg = <0x4808c000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <17>, /* OCP compliant interrupt */
-+				     <89>, /* TX interrupt */
-+				     <90>; /* RX interrupt */
-+			interrupt-names = "common", "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp3";
-+		};
-+
-+		mcbsp4: mcbsp@4808e000 {
-+			compatible = "ti,omap2430-mcbsp";
-+			reg = <0x4808e000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <18>, /* OCP compliant interrupt */
-+				     <54>, /* TX interrupt */
-+				     <55>; /* RX interrupt */
-+			interrupt-names = "common", "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp4";
-+		};
-+
-+		mcbsp5: mcbsp@48096000 {
-+			compatible = "ti,omap2430-mcbsp";
-+			reg = <0x48096000 0xff>;
-+			reg-names = "mpu";
-+			interrupts = <19>, /* OCP compliant interrupt */
-+				     <81>, /* TX interrupt */
-+				     <82>; /* RX interrupt */
-+			interrupt-names = "common", "tx", "rx";
-+			interrupt-parent = <&intc>;
-+			ti,buffer-size = <128>;
-+			ti,hwmods = "mcbsp5";
-+		};
-+	};
-+};
 -- 
 1.7.12
 
