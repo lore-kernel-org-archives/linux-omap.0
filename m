@@ -1,82 +1,48 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
-Date: Wed, 05 Sep 2012 13:41:53 +0300
-Message-ID: <1346841713.32747.6.camel@deskari>
-References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
-	 <5047182F.3030507@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl support
+Date: Wed, 5 Sep 2012 16:42:40 +0530
+Message-ID: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-CuM6RV9usGqGIT/leT9O"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:59100 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752186Ab2IEKl7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 06:41:59 -0400
-Received: by lagy9 with SMTP id y9so206080lag.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 03:41:56 -0700 (PDT)
-In-Reply-To: <5047182F.3030507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de
+Cc: tony@atomide.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, AnilKumar Ch <anilkumar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
+Adds suspend/resume functionality of d_can driver along with d_can
+raminit support which is required to initialize RAM while data
+transmission.
 
---=-CuM6RV9usGqGIT/leT9O
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This patch series also adds pinctrl support to c_can driver. These
+patches were tested on AM335x-EVM.
 
-On Wed, 2012-09-05 at 14:45 +0530, Archit Taneja wrote:
-> On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
-> > dss_mgr_set_timings() can only be called when the output is not active.
-> > This means that most of the code in the function is extra, as there's n=
-o
-> > need to write the values to registers, etc, because that will be handle=
-d
-> > when the output will be enabled.
->=20
-> We need to fix dpi_set_timings() before we can make this change. DPI=20
-> still tries to change timings on the fly, i.e, with manager enabled. We=
-=20
-> need to disable and enable the DPI output like we do for other outputs.
+This patch-series is based ontop of runtimePM patch submitted
+earlier - https://patchwork.kernel.org/patch/1348081/
 
-Yep, and for HDMI also (I didn't check the others yet).
+Changes from v1:
+	- Incorporated Marc's comments on v1
+	  * Changed marco name with units in it
+	  * Used ndev->flags for link status instead of new member
+	  * Added BUG_ON inside *_power_down and *_power_up APIs
+	  * Added new member "type" in c_can_priv struct for keeping
+	    dev id details/name.
 
-I think the simplest way to handle this is to only write the dpi.timings
-in omapdss_dpi_set_timings, and remove the call to dss_mgr_set_timings.
-This is not perfect, as a call to omapdss_dpi_set_timings when the
-display is enabled would result in changing the dpi.timings, but the
-changes wouldn't be actually in use.
+AnilKumar Ch (4):
+  can: c_can: Adopt pinctrl support
+  can: c_can: Add d_can raminit support
+  ARM: AM33XX: board-generic: Add of_dev_auxdata to pass d_can raminit
+  can: c_can: Add d_can suspend resume support
 
-However, there are only a few places where set_timings is called, and we
-can make sure in those places to first disable the output and then
-enable it again.
+ arch/arm/mach-omap2/board-generic.c    |   40 +++++++++++++-
+ arch/arm/mach-omap2/control.h          |    4 ++
+ drivers/net/can/c_can/c_can.c          |   95 ++++++++++++++++++++++++++++++++
+ drivers/net/can/c_can/c_can.h          |   10 ++++
+ drivers/net/can/c_can/c_can_platform.c |   79 ++++++++++++++++++++++++++
+ include/linux/can/platform/c_can.h     |   36 ++++++++++++
+ 6 files changed, 263 insertions(+), 1 deletion(-)
+ create mode 100644 include/linux/can/platform/c_can.h
 
- Tomi
-
-
---=-CuM6RV9usGqGIT/leT9O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQRyxxAAoJEPo9qoy8lh71Kr8QAIMlvZjYeJuAOMiE9tCl2ewi
-g6BjIKcEkrldz7QJkiO4LhNHRY5RZZ9UIJomwxYoDb3R5yAw/uokbmV+p0kmcSnw
-rck41Uk2VYb3hPlXE+jHPtqlMOsjb0WzmP8NEHJptQOLnb2Hiuaow1KZRRFw1PKa
-O3h/V4GajcdWEc/TWRojSLqXdNuVsqn1BxSNpENEyBNjzHzGl4hi4XWDkjCVqD1E
-VxrEJjEVLo41fcOB0yJ0FdfshK1rM9Tcx/7VQ7Z6Lglu4vwCs9AgcAZu72pe8Ksg
-r2yDl568PNQ4V3dTIwLx8d9xrWsHhUlrv/Ui4cH+09cfUWP5nia1o8ZKl7k3ahHP
-bR2tvwkdYjY5I2TOeIiB7XY3zyjMoFUT6mtquy6WyReZ5l1lvIQow2yIVjNWPevB
-6xcydWvLJ5bCR+qiiDcwLv4RerumCrjDMEzA+mQ+X1r454wxjyWxNBheWEJ2Qn1f
-jgdL0DitpMfrY+kFU0GS9GbDNzm5j7vxTIU/14XZ9go5bh3v9eP8zM22CYtrHpKx
-xSEk7OEZxR/6AjAsOMc9GtQ89gUaf0ibnQ8Yp2SxGAh5Ur0U/P6BIvdvRFqVcEql
-aYYFt8ZJMRl4mC/ggLFrmETh1VxNaknKU8t/MUbR2HbvEKfPCNXrc5OWlWaXrm9f
-kgiEVMHIvx5RYMTOMFof
-=U8e9
------END PGP SIGNATURE-----
-
---=-CuM6RV9usGqGIT/leT9O--
+-- 
+1.7.9.5
 
