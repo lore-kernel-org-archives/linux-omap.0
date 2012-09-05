@@ -1,95 +1,56 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: [PATCH 2/2] ARM: dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
-Date: Wed,  5 Sep 2012 09:46:26 +0200
-Message-ID: <1346831186-29947-3-git-send-email-florian.vaussard@epfl.ch>
-References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Wed, 05 Sep 2012 11:23:58 +0300
+Message-ID: <50470C1E.7090300@ti.com>
+References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com> <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.219]:58426 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751395Ab2IEHqm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Sep 2012 03:46:42 -0400
-In-Reply-To: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60086 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750929Ab2IEIXg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 04:23:36 -0400
+Received: by yhpp61 with SMTP id p61so34450yhp.11
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 01:23:34 -0700 (PDT)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org, Florian Vaussard <florian.vaussard@epfl.ch>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Add device tree properties for twl4030/gpio, according to the
-platform data of corresponding boards. This enables the led
-connected to LEDB output for both boards, as well as
-pullups/pulldowns on GPIO for the BeagleBoard.
+Hi,
 
-Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/boot/dts/omap3-beagle.dts |   20 ++++++++++++++++++++
- arch/arm/boot/dts/omap3-evm.dts    |   13 +++++++++++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
+>> Not yet, but we discussed that with Peter and since he does have the=
+se
+>> patches for DT, he'll be able to test your series with the McBSP cha=
+nges.
+>>
+>=20
+> Great.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index cdcb98c..c7256d5 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -17,6 +17,14 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x20000000>; /* 512 MB */
- 	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		pmu_stat {
-+			label = "beagleboard::pmu_stat";
-+			gpios = <&twl_gpio 19 0>; /* LEDB */
-+		};
-+	};
- };
- 
- &i2c1 {
-@@ -67,3 +75,15 @@
- &mmc3 {
- 	status = "disabled";
- };
-+
-+&twl_gpio {
-+	ti,use-leds;
-+	/* pullups: BIT(1) */
-+	ti,pullups = <0x000002>;
-+	/*
-+	 * pulldowns:
-+	 * BIT(2), BIT(6), BIT(7), BIT(8), BIT(13)
-+	 * BIT(15), BIT(16), BIT(17)
-+	 */
-+	ti,pulldowns = <0x03a1c4>;
-+};
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index f349ee9..e8ba1c2 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -17,6 +17,15 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x10000000>; /* 256 MB */
- 	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		ledb {
-+			label = "omap3evm::ledb";
-+			gpios = <&twl_gpio 19 0>; /* LEDB */
-+			linux,default-trigger = "default-on";
-+		};
-+	};
- };
- 
- &i2c1 {
-@@ -46,3 +55,7 @@
- 		reg = <0x5c>;
- 	};
- };
-+
-+&twl_gpio {
-+	ti,use-leds;
-+};
--- 
-1.7.5.4
+With his series and your patch for omap-hwmod audio was probing and wor=
+king on
+OMAP3/4/5 without issues.
 
+>=20
+>> I still want to update a couple of DTS to test that on some other IP=
+s.
+>>
+>=20
+> Ohh ok. Please let me know if I can help you here by any means.
+> I am equipped with AM37xEVM, BeagleBoard and Panda.
+
+You can try this series and your patch on top of linux-next on Panda. N=
+ot all
+patches are in which needed for BeagleBoard at the moment.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
