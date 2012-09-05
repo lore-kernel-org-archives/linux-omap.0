@@ -1,121 +1,78 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to pass d_can raminit
-Date: Wed, 5 Sep 2012 16:42:43 +0530
-Message-ID: <1346843564-25343-4-git-send-email-anilkumar@ti.com>
-References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Wed, 05 Sep 2012 14:14:31 +0300
+Message-ID: <50473417.8050907@ti.com>
+References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com> <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com> <5044C2DD.5000705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32886 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753039Ab2IELN7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:13:59 -0400
-In-Reply-To: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:51704 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753039Ab2IELOK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 07:14:10 -0400
+Received: by yenl14 with SMTP id l14so44696yen.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 04:14:09 -0700 (PDT)
+In-Reply-To: <5044C2DD.5000705@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: tony@atomide.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, AnilKumar Ch <anilkumar@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Add of_dev_auxdata to pass d_can raminit callback APIs to initialize
-d_can RAM. D_CAN RAM initialization bits are present in CONTROL module
-address space, which can be accessed by platform specific code. So
-callback functions are added to serve this purpose, this can done by
-using of_dev_auxdata.
+Hi Benoit,
 
-Two callback APIs are added to of_dev_auxdata used by two instances of
-D_CAN IP. These callback functions are used to enable/disable D_CAN RAM
-from CAN driver.
+On 09/03/2012 05:46 PM, Benoit Cousson wrote:
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.t=
+i.com/
+>=20
+> Nit: 2012
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
- arch/arm/mach-omap2/board-generic.c |   40 ++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/control.h       |    4 ++++
- 2 files changed, 43 insertions(+), 1 deletion(-)
+Oh, I missed that (copy-paste of the header...)
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 6f93a20..b68e642 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -15,6 +15,7 @@
- #include <linux/of_irq.h>
- #include <linux/of_platform.h>
- #include <linux/irqdomain.h>
-+#include <linux/can/platform/c_can.h>
- 
- #include <mach/hardware.h>
- #include <asm/hardware/gic.h>
-@@ -22,6 +23,8 @@
- 
- #include <plat/board.h>
- #include "common.h"
-+#include "control.h"
-+#include "iomap.h"
- #include "common-board-devices.h"
- 
- #if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
-@@ -37,11 +40,46 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ }
- };
- 
-+void d_can_hw_raminit(unsigned int instance, bool enable)
-+{
-+	u32 val;
-+
-+	val = readl(AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-+	if (enable) {
-+		val &= ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-+		val |= AM33XX_DCAN_RAMINIT_START_MASK(instance);
-+		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-+	} else {
-+		val &= ~AM33XX_DCAN_RAMINIT_START_MASK(instance);
-+		writel(val, AM33XX_CTRL_REGADDR(AM33XX_CONTROL_DCAN_RAMINIT));
-+	}
-+}
-+
-+static struct c_can_platform_data d_can0_pdata = {
-+	.ram_init	= d_can_hw_raminit,
-+	.instance	= 0,
-+};
-+
-+static struct c_can_platform_data d_can1_pdata = {
-+	.ram_init	= d_can_hw_raminit,
-+	.instance	= 1,
-+};
-+
-+static const struct of_dev_auxdata am33xx_auxdata_lookup[] __initconst = {
-+	OF_DEV_AUXDATA("bosch,d_can", 0x481cc000, NULL, &d_can0_pdata),
-+	OF_DEV_AUXDATA("bosch,d_can", 0x481d0000, NULL, &d_can1_pdata),
-+	{ },
-+};
-+
- static void __init omap_generic_init(void)
- {
- 	omap_sdrc_init(NULL, NULL);
- 
--	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-+	if (of_machine_is_compatible("ti,am33xx"))
-+		of_platform_populate(NULL, omap_dt_match_table,
-+				am33xx_auxdata_lookup, NULL);
-+	else
-+		of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- }
- 
- #ifdef CONFIG_SOC_OMAP2420
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index b8cdc85..afd189b 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -356,6 +356,10 @@
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_SHIFT		22
- #define AM33XX_CONTROL_STATUS_SYSBOOT1_MASK		(0x3 << 22)
- 
-+/* AM33XX DCAN bitfields */
-+#define AM33XX_CONTROL_DCAN_RAMINIT		0x644
-+#define AM33XX_DCAN_RAMINIT_START_MASK(i)	(1 << (i))
-+
- /* CONTROL OMAP STATUS register to identify OMAP3 features */
- #define OMAP3_CONTROL_OMAP_STATUS	0x044c
- 
--- 
-1.7.9.5
+>> + *
+>> + * This file is licensed under the terms of the GNU General Public =
+License
+>> + * version 2.  This program is licensed "as is" without any warrant=
+y of any
+>> + * kind, whether express or implied.
+>> + */
+>> +
+>> +/include/ "omap2.dtsi"
+>> +
+>> +/ {
+>> +	compatible =3D "ti,omap2420", "ti,omap2";
+>> +
+>> +	ocp {
+>> +		mcbsp1: mcbsp@48074000 {
+>> +			compatible =3D "ti,omap2420-mcbsp";
+>> +			reg =3D <0x48074000 0xff>;
+>> +			reg-names =3D "mpu";
+>> +			interrupts =3D <0 59 0x4>, /* TX interrupt */
+>> +				     <0 60 0x4>; /* RX interrupt */
+>=20
+> That one is not correct because it does comply with the interrupt
+> controller specifier that require only one cell:
+>=20
+> 		intc: interrupt-controller@48200000 {
+> 			compatible =3D "ti,omap2-intc";
+> 			interrupt-controller;
+> 			#interrupt-cells =3D <1>;
+> ...
+>=20
+> The one you are using is for GIC IRQ controller.
+> It works probably because we are using hwmod so far :-)
+>=20
+> Didn't you get some warning?
 
+dtb compiles fine. I'll fix OMAP2 and OMAP3 as well.
+
+Will send the updated series shortly.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
