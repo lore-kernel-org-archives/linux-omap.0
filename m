@@ -1,116 +1,79 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3] arm: omap: hwmod: add a new addr space in otg for
- writing to control module
-Date: Thu, 6 Sep 2012 20:18:05 +0300
-Message-ID: <20120906171803.GA30717@arwen.pp.htv.fi>
-References: <1346943331-18120-1-git-send-email-kishon@ti.com>
- <1346943331-18120-2-git-send-email-kishon@ti.com>
- <5048C2A2.2020104@ti.com>
- <20120906171301.GC17754@arwen.pp.htv.fi>
+Subject: Re: [PATCH v4 00/21] OMAP UART Patches
+Date: Thu, 6 Sep 2012 20:25:31 +0300
+Message-ID: <20120906172530.GC30717@arwen.pp.htv.fi>
+References: <20120906122948.GC29202@arwen.pp.htv.fi>
+ <1346935540-1792-1-git-send-email-balbi@ti.com>
+ <20120906161835.GA7923@kroah.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="+nBD6E3TurpgldQp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:37560 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932075Ab2IFR3z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 13:29:55 -0400
+Received: by lagy9 with SMTP id y9so1271282lag.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 10:29:53 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20120906171301.GC17754@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+In-Reply-To: <20120906161835.GA7923@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Felipe Balbi <balbi@ti.com>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
 
---xHFwDpU9dbj6ez1V
+--+nBD6E3TurpgldQp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, Sep 06, 2012 at 08:13:03PM +0300, Felipe Balbi wrote:
-> Hi,
+On Thu, Sep 06, 2012 at 09:18:35AM -0700, Greg KH wrote:
+> On Thu, Sep 06, 2012 at 03:45:19PM +0300, Felipe Balbi wrote:
+> > Hi guys,
+> >=20
+> > here's v4 of the omap uart patchset. No changes other than a rebase on =
+top of
+> > Greg's tty-next branch and Tony's Acked-by being added to a couple patc=
+hes
+> >=20
+> > Note: I'm resending the series with Vikram's Software Flow Control fix =
+anyway
+> > as it can just be ignored if it's decided it needs to go into this merge
+> > window.
+> >=20
+> > Changes since v3:
+> > 	. Rebased on top of Greg's tty-next branch
+> > 	. Added Tony's Acked-by
 >=20
-> On Thu, Sep 06, 2012 at 09:04:58PM +0530, Vaibhav Hiremath wrote:
-> >=20
-> >=20
-> > On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
-> > > The mailbox register for usb otg in omap is present in control module.
-> > > On detection of any events VBUS or ID, this register should be written
-> > > to send the notification to musb core.
-> > >=20
-> > > Till we have a separate control module driver to write to control mod=
-ule,
-> > > omap2430 will handle the register writes to control module by itself.=
- So
-> > > a new address space to represent this control module register is added
-> > > to usb_otg_hs.
-> > >=20
-> > > Cc: Benoit Cousson <b-cousson@ti.com>
-> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
-> > >  1 file changed, 5 insertions(+)
-> > >=20
-> > > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_44xx_data.c
-> > > index 242aee4..02341bc 100644
-> > > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > > @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44xx_u=
-sb_otg_hs_addrs[] =3D {
-> > >  		.pa_end		=3D 0x4a0ab003,
-> > >  		.flags		=3D ADDR_TYPE_RT
-> > >  	},
-> > > +	{
-> > > +		.pa_start	=3D 0x4a00233c,
-> > > +		.pa_end		=3D 0x4a00233f,
-> > > +		.flags		=3D ADDR_TYPE_RT
-> > > +	},
-> >=20
-> > I do not have any objection/comment here, but I believe this is control
-> > module address space required for USB module, right?
-> > I am not sure this is right way of accessing control module space.
-> > Actually Control Module Access required for drivers is one of the
-> > blocking issue we have currently.
-> >=20
-> > Also there was some effort put up by 'Konstantine' to convert Control
-> > module to MFD driver, I haven't seen any further update on it. But it
-> > would be good to check with him.
->=20
-> this was an agreement with Benoit since we already lost a couple merge
-> windows for this patchset. We agreed to wait until -rc4 for SCM driver
-> and if it wasn't ready, we'd go ahead with this and SCM author would fix
-> it up on a patch converting users to new SCM driver.
+> Thanks for rebasing, all now applied.
 
-Tony, can I get your Acked-by to this patch so I can take it together
-with the rest of the series ? Thanks
-
-ps: I'll apply this to my 'musb' branch which is immutable, so it's safe
-to merge it into your tree once I apply.
+thank you, actually ;-)
 
 --=20
 balbi
 
---xHFwDpU9dbj6ez1V
+--+nBD6E3TurpgldQp
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQSNrLAAoJEIaOsuA1yqREio4P/jm0JnIJsEG5DOXcLssY70fz
-AFx+JqIt73yQxGsUa/nC5YWavXGgxyfnKSA/ibPbG1LcAU39HeP5vqPG+uaVmq7D
-YEIpejFkTbHInOBTgUj+tmCkl6kPKmAo9qcC4cbN9Fo0bALJyKiKZohyhIxfe11Z
-uvNEAuy7vqyHAkT9PjcZBzrrInG2ViJoHAHrjZyylMLfmm7jZQmpLuwtNsfNBJg0
-Sr6xx1DmcxYgzEqcbYYvIAWWdXKu2Jx75zdZBq/UMBeEO3x4GvOE69lhZn9xGWT5
-LTQe9zYvZJbATITV+SPDJLs17uYJKq5aG6aUvGU1/LH8aPY6z59ReBVF9WT7L65A
-8UMoLnajsYg7/4R6D8NYMua05Ix+agwnKnKf1nymV+RGwORGr5hurWEe0WyYiuB1
-d5NwJf+31Z36aeYWODGmIdZuroMs+TibK3ITznz7Qo77e1ROKlvAwctVCbSu4Q9g
-nC9ITylYZNqtE8u1hqZKF40HkgUgsv/bOtbzplDQqTSKNKsW3aorOHxCaKK3ObVV
-z7jhDVvhJhfg+M2RLhlEQpCc0C19AU5MQVzJMMV3of2xRck2XvgIylaiCKzJ85/4
-wZ3qkK4RW4u2cR1qi3klturKmKHOZrrye+Pw0f7jPLpC3pDlhIh+mmtap/De3/jj
-OLczqZxaUkX3oYoUpXsV
-=a6Mq
+iQIcBAEBAgAGBQJQSNyKAAoJEIaOsuA1yqRESE0QAJzpv2BNoFcpzKHwJ8b9TE9W
+Pcr4KgT4f3Khw2r89rBLqQACvye8HQWtci+d2q2gppDH+4nBqT1lwfSbwUoWrloT
+yzuVMvZkoRhEuAVkm1l4meIHtyDK42kydoavqP7Drvtycx+PDKzrmZJdtYP6Ntjd
+TYfUwF/CKaWKbbRQq/sI1Cj7DUHqujgS2LxHxd+lO18F9iXOwJePuccSiO7vF2Ke
+9w/WmFnquuPfA4ttm5HpCSmlLrkk+G+yAGN5XEhaUUj7oJ0sHkg9bfKU/k4WvGio
+2kl5R58nA51+2wH6A1I7j2jw0lCDPtsviV6IG/d50/a+3mPW+CLWPUAZsjF1s9S/
+8AhPUdT0dluSvWYR9pzGvHAyCW1Gk03vHGYiNc5tZTApG5VSiBJze7alOy+jG860
+b5uV6/zkDX2mOg2Or3SRdJCFzTfOfLbUxoV72zhQ6AHj+SsCQkYrNOfD0MvvaTl+
+IlqXLQ6YVUkHdLOdZ/OoPrpoAVNUv+7CE9Ma4M+hAEIi+/JXZ3Imrk6VlIzJJB71
+Tevx3ZiRL2LZucnvjDNNR5tNxurwdBs8dKwrTiUBh5rwUW09vgV2itB4FN4D8s1e
+PVrXvX8Tv5HVtWocJgEqi11Uty+1D5QzqMIIXdtE/5tfXVWLlSausL/RVsohY+L2
+tmFS+B/TuHTzcV0ADmpo
+=ey5g
 -----END PGP SIGNATURE-----
 
---xHFwDpU9dbj6ez1V--
+--+nBD6E3TurpgldQp--
