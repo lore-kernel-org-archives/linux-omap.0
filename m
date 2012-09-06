@@ -1,53 +1,102 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v3] of: Modify c_can binding documentation
-Date: Thu, 06 Sep 2012 13:23:20 +0200
-Message-ID: <504887A8.4000508@pengutronix.de>
-References: <1346925725-19873-1-git-send-email-anilkumar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 00/14] MFD/ASoC/Input: twl4030-audio
+	submodule DT support
+Date: Thu,  6 Sep 2012 15:12:07 +0300
+Message-ID: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigBBBB55F816ED4EEFE72AF0D2"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <1346925725-19873-1-git-send-email-anilkumar@ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, swarren@wwwdotorg.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
+Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBBBB55F816ED4EEFE72AF0D2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On 09/06/2012 12:02 PM, AnilKumar Ch wrote:
-> Modify c_can binding documentation according to recent review comments
-> on device tree data addition patches.
->=20
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Generated on top of:
+git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/omap
 
-Thanks, I've updated my master branch.
+Changed since v2:
+- Added commit message to patch 2 (as Tero requested it)
+- Fixed patch 6 (dt: Add empty...) since the previous patch caused x86_64 build
+  to fail due to missing struct before device_node.
 
-Marc
+Changes since v1:
+- Get the MCLK frequencey from twl-core driver (via new API)
+- hs_extmute_disable_level parameter has been removed
+- empty of_find_node_by_name() in of.h for !CONFIG_OF builds
 
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+Mark: the extmute GPIO handling (when it is used) remained in the codec driver
+for now. I can think more on how to add support for this type of mute control.
+If you can point me to other codec needing this it would help on designing
+something which is common enough for other users.
 
+As for now I have a separate series to add GPIO controlled output amps (hp/spk).
+I will send that to review soon. Currently this piece of code does not work when
+booted with device tree since I have done it on n900 which has the GPIO numbers
+as defines. I need to revisit the aproach on how to do it in a dynamic way.
 
---------------enigBBBB55F816ED4EEFE72AF0D2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Introl mail from v1:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+The following series adds DT support for the twl4030 audio submodule which
+provides audio codec and vibra functionality.
 
-iEYEARECAAYFAlBIh6gACgkQjTAFq1RaXHNSSgCeOvu+f4RmIAaGjrETfnlKN+81
-6VEAnjgkMFg1TTGdfIC3WX6DLfgsEfOF
-=rKL5
------END PGP SIGNATURE-----
+The MFD core driver is probed via DT, it will create the needed child devices
+based on the provided information in the DT blob.
+Child drivers (vibra, ASoC codec) will parse the core's node if needed to get
+the needed parameters for their configuration.
 
---------------enigBBBB55F816ED4EEFE72AF0D2--
+In the ASoC codec driver the hs_extmute callback (which was used to toggle a
+GPIO line) has been removed. The codec driver will receive the GPIO number
+(if it is needed on the platform).
+
+If the series is OK (and no objections from the maintainers), it would be good
+if this can go via audio. Changed files are well contained within the
+twl4030-audio stack so I do not expect merge issues later.
+
+The series has been tested on BeagleBoard (with the McBSP DT series, and with
+the upcoming DT audio support for BeagleBoard).
+
+Regards,
+Peter
+---
+Peter Ujfalusi (14):
+  MFD: twl4030-audio: Clean up MODULE_* and platform_driver part
+  MFD: twl4030-audio: Convert to use devm_kzalloc
+  MFD: twl4030-audio: Rearange and clean-up the probe function
+  MFD: twl-core: Add API to query the HFCLK rate
+  MFD: twl4030-audio: Get audio MCLK via twl-core API instead of pdata
+  dt: Add empty of_find_node_by_name() function
+  MFD: twl4030-audio: Add DT support
+  Input: twl4030-vibra: Support for DT booted kernel
+  ASoC: twl4030: Move hs_extmute GPIO handling to driver
+  ARM: OMAP/ASoC: Zoom2: Let the codec to handle the hs_extmute GPIO
+  ASoC/MFD: twl4030: Remove set_hs_extmute callback from platform data
+  ASoC: twl4030: Convert to use devm_kzalloc
+  ASoC: twl4030: Add pointer to pdata within the private data
+  ASoC: twl4030: Support for DT booted kernel
+
+ .../devicetree/bindings/mfd/twl4030-audio.txt      |  46 +++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |   9 +-
+ arch/arm/mach-omap2/include/mach/board-zoom.h      |   2 -
+ drivers/input/misc/twl4030-vibra.c                 |  20 +++-
+ drivers/mfd/twl-core.c                             |  32 ++++++
+ drivers/mfd/twl4030-audio.c                        | 107 ++++++++++++++-------
+ include/linux/i2c/twl.h                            |   3 +-
+ include/linux/of.h                                 |   6 ++
+ sound/soc/codecs/twl4030.c                         | 103 ++++++++++++++++----
+ sound/soc/omap/zoom2.c                             |   4 -
+ 10 files changed, 261 insertions(+), 71 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+
+-- 
+1.7.12
