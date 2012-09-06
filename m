@@ -1,93 +1,139 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] musb: Kill __init from function that are called at other
- times as well.
-Date: Thu, 6 Sep 2012 20:41:41 +0300
-Message-ID: <20120906174139.GF30717@arwen.pp.htv.fi>
-References: <1346940106-20269-1-git-send-email-panto@antoniou-consulting.com>
- <20120906130425.GF29202@arwen.pp.htv.fi>
- <B7BE7E99-90E8-4E54-B146-C09C6643BAFE@antoniou-consulting.com>
- <20120906170740.GB17754@arwen.pp.htv.fi>
- <7CED20FA-3501-40ED-B289-28FDC04FCF20@antoniou-consulting.com>
- <20120906173724.GE30717@arwen.pp.htv.fi>
- <5607ED12-1C7D-4455-A716-F611B747BADF@antoniou-consulting.com>
-Reply-To: balbi@ti.com
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Thu, 6 Sep 2012 20:56:03 +0200
+Message-ID: <CAORVsuW+Vb6+GyTDfEmW3n=FY33rk_KDiMkFHPv29ZS=Y4yuFA@mail.gmail.com>
+References: <1344607558-15481-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QNDPHrPUIc00TOLW"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:40604 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759371Ab2IFRqF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 13:46:05 -0400
-Received: by lbbgj3 with SMTP id gj3so1317723lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 10:46:02 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5607ED12-1C7D-4455-A716-F611B747BADF@antoniou-consulting.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:36242 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933001Ab2IFS4F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 14:56:05 -0400
+Received: by lbbgj3 with SMTP id gj3so1364828lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 11:56:04 -0700 (PDT)
+In-Reply-To: <1344607558-15481-1-git-send-email-rogerq@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>
+To: Roger Quadros <rogerq@ti.com>
+Cc: tony@atomide.com, khilman@ti.com, paul@pwswan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Roger,
 
---QNDPHrPUIc00TOLW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, Aug 10, 2012 at 4:05 PM, Roger Quadros <rogerq@ti.com> wrote:
+> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+>
+> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-Hi,
+What his the status of the patch? Has it been reviewed and taken in an
+integration tree? I cannot find anything about it in l-o and
+linux-next.
 
-On Thu, Sep 06, 2012 at 08:42:56PM +0300, Pantelis Antoniou wrote:
->=20
-> On Sep 6, 2012, at 8:37 PM, Felipe Balbi wrote:
->=20
-> > Hi,
-> >=20
-> > On Thu, Sep 06, 2012 at 08:36:39PM +0300, Pantelis Antoniou wrote:
-> >> Hi Felipe
-> >>=20
-> >> I see about __devinit.
-> >> There's no crash because in those logs the __init modifiers are gone.
-> >=20
-> > it'd be cool to see the crash, though ;-)
-> >=20
-> > --=20
-> > balbi
->=20
-> Heh, OK,
->=20
-> My word is not enough? :)
->=20
-> Gimme a few minutes...
+I have some changes on-going in the OMAP PM code and I would like to
+know if $SUBJECT is applicable.
 
-Didn't say that, but I don't know what issue you're talking about since
-__devinit is supposed to keep .devinit.text intact unless !HOTPLUG.
+Regards,
+Jean
 
-This could be a bug on some linker script (though unlikely) just trying
-to get understand the issue before I apply the patch, that's all.
-
---=20
-balbi
-
---QNDPHrPUIc00TOLW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQSOBTAAoJEIaOsuA1yqREnkgP/3LVY1g2V/AMXZ3JdsqAwqJY
-lztoiyMnkz0rpddZS+rv4jAjvpjFAm0a6BShj4cSVhpNxam80KkFPUnSxQLyjODB
-SpOm/0oBqpN/XYgoSu3aNNs3RIE1OCBFT8imunjHcMpivqQ2T4CkcGyW4qDLiIov
-5DYgiSPc5Y6amoQUfVFhZBhhuMohlPD2XoO/oQPzTxhVo6fhdyOYNOMvpQeN7nw6
-f+JexzX0J3yC7tznnXLX3KHWgQfLKwl2wpo28GaNUXRvQdkhosRNZztcUsG6vy/S
-tvX5QfeO4m/76Kk0jNxw2o5i/31k/BKXAu0m7p0E2JDySVOZtFIsh7Ifpq6rDWeu
-t6LxHwSq2JHxytGGzjeUuvVlyG37/3ju05CN2AzGJNYAKy+BUP9HrpgL3g1sByXt
-PoEoTJkEsQxfraMubh0wJWKj6ePWOuAea9LKJiunOUvzdJK13q2ALiQY3W7BVMuE
-c5Jj9Nnknv8JA1LJOu4qe0z4z/2eoJRa/cPMTuI+buKqwHD2HHgchZ2L0OpC+bAC
-QeBMFqHw14k3SmTzFgcxpg5tdovlEtLKqrxfWX+MccerGxDrNZa/Y5B1mzEFMcwT
-sgOLN69Tpr3pIwdjWchO3aOC3g9bCe//j0x9CFKmV5DEuEZURINhHFxzbqP7ddqr
-cZmb+uc7sweaUQwZ11QB
-=fHHi
------END PGP SIGNATURE-----
-
---QNDPHrPUIc00TOLW--
+> ---
+>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
+>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+>  3 files changed, 18 insertions(+), 9 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index ea3f565..06747b6 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+>         pr_debug("clock: %s: disabling in hardware\n", clk->name);
+>
+>         if (clk->ops && clk->ops->disable) {
+> -               trace_clock_disable(clk->name, 0, smp_processor_id());
+> +               trace_clock_disable(clk->name, 0, get_cpu());
+> +               put_cpu();
+>                 clk->ops->disable(clk);
+>         }
+>
+> @@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+>         }
+>
+>         if (clk->ops && clk->ops->enable) {
+> -               trace_clock_enable(clk->name, 1, smp_processor_id());
+> +               trace_clock_enable(clk->name, 1, get_cpu());
+> +               put_cpu();
+>                 ret = clk->ops->enable(clk);
+>                 if (ret) {
+>                         WARN(1, "clock: %s: could not enable: %d\n",
+> @@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+>
+>         /* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+>         if (clk->set_rate) {
+> -               trace_clock_set_rate(clk->name, rate, smp_processor_id());
+> +               trace_clock_set_rate(clk->name, rate, get_cpu());
+> +               put_cpu();
+>                 ret = clk->set_rate(clk, rate);
+>         }
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index e4fc88c..81fec2e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -357,18 +357,22 @@ void omap_sram_idle(void)
+>
+>  static void omap3_pm_idle(void)
+>  {
+> +       unsigned cpu;
+> +
+>         local_fiq_disable();
+>
+>         if (omap_irq_pending())
+>                 goto out;
+>
+> -       trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+> -       trace_cpu_idle(1, smp_processor_id());
+> +       cpu = get_cpu();
+> +       trace_power_start(POWER_CSTATE, 1, cpu);
+> +       trace_cpu_idle(1, cpu);
+>
+>         omap_sram_idle();
+>
+> -       trace_power_end(smp_processor_id());
+> -       trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+> +       trace_power_end(cpu);
+> +       trace_cpu_idle(PWR_EVENT_EXIT, cpu);
+> +       put_cpu();
+>
+>  out:
+>         local_fiq_enable();
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 69b36e1..138bf86 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>                                        ((state & OMAP_POWERSTATE_MASK) << 8) |
+>                                        ((prev & OMAP_POWERSTATE_MASK) << 0));
+>                         trace_power_domain_target(pwrdm->name, trace_state,
+> -                                                 smp_processor_id());
+> +                                                 get_cpu());
+> +                       put_cpu();
+>                 }
+>                 break;
+>         default:
+> @@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>         if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>                 /* Trace the pwrdm desired target state */
+>                 trace_power_domain_target(pwrdm->name, pwrst,
+> -                                         smp_processor_id());
+> +                                         get_cpu());
+> +               put_cpu();
+>                 /* Program the pwrdm desired target state */
+>                 ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>         }
+> --
+> 1.7.4.1
+>
