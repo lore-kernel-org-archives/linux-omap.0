@@ -1,118 +1,79 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 14/14] ASoC: twl4030: Support for DT booted kernel
-Date: Thu,  6 Sep 2012 15:12:21 +0300
-Message-ID: <1346933541-21547-15-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 13/14] ASoC: twl4030: Add pointer to pdata within the private data
+Date: Thu,  6 Sep 2012 15:12:20 +0300
+Message-ID: <1346933541-21547-14-git-send-email-peter.ujfalusi@ti.com>
 References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35602 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753578Ab2IFMMv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 08:12:51 -0400
-Received: by obbuo13 with SMTP id uo13so2297494obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 05:12:50 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-When the kernel has been booted with DT blob the platform data is NULL for
-the driver.
-We need to construct the pdata based on the DT information for runtime use.
+Access the pdata via a pointer within the twl4030_priv structure.
+In preparation for DeviceTree support.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/codecs/twl4030.c | 57 +++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 49 insertions(+), 8 deletions(-)
+ sound/soc/codecs/twl4030.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index 8b13d50..f13c91a 100644
+index 413e698..8b13d50 100644
 --- a/sound/soc/codecs/twl4030.c
 +++ b/sound/soc/codecs/twl4030.c
-@@ -26,6 +26,8 @@
- #include <linux/pm.h>
- #include <linux/i2c.h>
- #include <linux/platform_device.h>
-+#include <linux/of.h>
-+#include <linux/of_gpio.h>
- #include <linux/i2c/twl.h>
- #include <linux/slab.h>
- #include <linux/gpio.h>
-@@ -295,13 +297,59 @@ static inline void twl4030_reset_registers(struct snd_soc_codec *codec)
+@@ -153,8 +153,7 @@ struct twl4030_priv {
+ 	u8 predrivel_enabled, predriver_enabled;
+ 	u8 carkitl_enabled, carkitr_enabled;
  
- }
- 
--static void twl4030_init_chip(struct snd_soc_codec *codec)
-+static void twl4030_setup_pdata_of(struct twl4030_codec_data *pdata,
-+				   struct device_node *node)
-+{
-+	int value;
-+
-+	of_property_read_u32(node, "ti,digimic_delay",
-+			     &pdata->digimic_delay);
-+	of_property_read_u32(node, "ti,ramp_delay_value",
-+			     &pdata->ramp_delay_value);
-+	of_property_read_u32(node, "ti,offset_cncl_path",
-+			     &pdata->offset_cncl_path);
-+	if (!of_property_read_u32(node, "ti,hs_extmute", &value))
-+		pdata->hs_extmute = value;
-+
-+	pdata->hs_extmute_gpio = of_get_named_gpio(node,
-+						   "ti,hs_extmute_gpio", 0);
-+	if (gpio_is_valid(pdata->hs_extmute_gpio))
-+		pdata->hs_extmute = 1;
-+}
-+
-+static struct twl4030_codec_data *twl4030_get_pdata(struct snd_soc_codec *codec)
- {
- 	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
-+	struct device_node *twl4030_codec_node = NULL;
-+
-+#ifdef CONFIG_OF
-+	twl4030_codec_node = of_find_node_by_name(codec->dev->parent->of_node,
-+						  "codec");
-+#endif
-+
-+	if (!pdata && twl4030_codec_node) {
-+		pdata = devm_kzalloc(codec->dev,
-+				     sizeof(struct twl4030_codec_data),
-+				     GFP_KERNEL);
-+		if (!pdata) {
-+			dev_err(codec->dev, "Can not allocate memory\n");
-+			return NULL;
-+		}
-+		twl4030_setup_pdata_of(pdata, twl4030_codec_node);
-+	}
-+
-+	return pdata;
-+}
-+
-+static void twl4030_init_chip(struct snd_soc_codec *codec)
-+{
+-	/* Delay needed after enabling the digimic interface */
+-	unsigned int digimic_delay;
 +	struct twl4030_codec_data *pdata;
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	u8 reg, byte;
- 	int i = 0;
+ };
  
-+	pdata = twl4030_get_pdata(codec);
-+
- 	if (pdata && pdata->hs_extmute &&
- 	    gpio_is_valid(pdata->hs_extmute_gpio)) {
- 		int ret;
-@@ -2284,13 +2332,6 @@ static struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
+ /*
+@@ -348,7 +347,7 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
+ 	if (!pdata)
+ 		return;
  
- static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+-	twl4030->digimic_delay = pdata->digimic_delay;
++	twl4030->pdata = pdata;
+ 
+ 	reg = twl4030_read_reg_cache(codec, TWL4030_REG_HS_POPN_SET);
+ 	reg &= ~TWL4030_RAMP_DELAY;
+@@ -749,9 +748,9 @@ static int aif_event(struct snd_soc_dapm_widget *w,
+ 
+ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
  {
--	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
--
--	if (!pdata) {
--		dev_err(&pdev->dev, "platform_data is missing\n");
--		return -EINVAL;
--	}
--
- 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_twl4030,
- 			twl4030_dai, ARRAY_SIZE(twl4030_dai));
+-	struct twl4030_codec_data *pdata = codec->dev->platform_data;
+ 	unsigned char hs_gain, hs_pop;
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
+ 	/* Base values for ramp delay calculation: 2^19 - 2^26 */
+ 	unsigned int ramp_base[] = {524288, 1048576, 2097152, 4194304,
+ 				    8388608, 16777216, 33554432, 67108864};
+@@ -864,9 +863,10 @@ static int digimic_event(struct snd_soc_dapm_widget *w,
+ 		struct snd_kcontrol *kcontrol, int event)
+ {
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(w->codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
+ 
+-	if (twl4030->digimic_delay)
+-		twl4030_wait_ms(twl4030->digimic_delay);
++	if (pdata && pdata->digimic_delay)
++		twl4030_wait_ms(pdata->digimic_delay);
+ 	return 0;
  }
+ 
+@@ -2248,8 +2248,8 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
+ 
+ static int twl4030_soc_remove(struct snd_soc_codec *codec)
+ {
+-	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
++	struct twl4030_codec_data *pdata = twl4030->pdata;
+ 
+ 	/* Reset registers to their chip default before leaving */
+ 	twl4030_reset_registers(codec);
 -- 
 1.7.12
-
