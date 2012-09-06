@@ -1,8 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 05/14] MFD: twl4030-audio: Get audio MCLK
-	via twl-core API instead of pdata
-Date: Thu,  6 Sep 2012 15:12:12 +0300
-Message-ID: <1346933541-21547-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 07/14] MFD: twl4030-audio: Add DT support
+Date: Thu,  6 Sep 2012 15:12:14 +0300
+Message-ID: <1346933541-21547-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,26 +21,174 @@ To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-twl-core has API to get the boot time configured HFCLK rate which has the
-same rate as the audio MCLK.
+Support for loading the twl4030 audio module via devicetree.
+Sub devices for codec and vibra will be created as mfd devices once the
+core MFD driver is loaded when the kernel is booted with a DT blob.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl4030-audio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../devicetree/bindings/mfd/twl4030-audio.txt      | 46 ++++++++++++++++++
+ drivers/mfd/twl4030-audio.c                        | 56 +++++++++++++++++++---
+ 2 files changed, 95 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl4030-audio.txt
 
+diff --git a/Documentation/devicetree/bindings/mfd/twl4030-audio.txt b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+new file mode 100644
+index 0000000..414d2ae
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/twl4030-audio.txt
+@@ -0,0 +1,46 @@
++Texas Instruments TWL family (twl4030) audio module
++
++The audio module inside the TWL family consist of an audio codec and a vibra
++driver.
++
++Required properties:
++- compatible : must be "ti,twl4030-audio"
++
++Optional properties, nodes:
++
++Audio functionality:
++- codec { }: Need to be present if the audio functionality is used. Within this
++	     section the following options can be used:
++- ti,digimic_delay: Delay need after enabling the digimic to reduce artifacts
++		    from the start of the recorded sample (in ms)
++-ti,ramp_delay_value: HS ramp delay configuration to reduce pop noise
++-ti,hs_extmute: Use external mute for HS pop reduction
++-ti,hs_extmute_gpio: Use external GPIO to control the external mute
++-ti,offset_cncl_path: Offset cancellation path selection, refer to TRM for the
++		      valid values.
++
++Vibra functionality
++- ti,enable-vibra: Need to be set to <1> if the vibra functionality is used. if
++		   missing or it is 0, the vibra functionality is disabled.
++
++Example:
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++
++		twl_audio: audio {
++			compatible = "ti,twl4030-audio";
++
++			ti,enable-vibra = <1>;
++
++			codec {
++				ti,ramp_delay_value = <3>;
++			};
++
++		};
++	};
++};
 diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index ca2d669..a48bf3a 100644
+index a48bf3a..ed9c5d9 100644
 --- a/drivers/mfd/twl4030-audio.c
 +++ b/drivers/mfd/twl4030-audio.c
-@@ -175,7 +175,7 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+@@ -28,6 +28,8 @@
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+ #include <linux/platform_device.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/twl4030-audio.h>
+@@ -156,15 +158,44 @@ unsigned int twl4030_audio_get_mclk(void)
+ }
+ EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
  
- 	mutex_init(&audio->mutex);
--	audio->audio_mclk = pdata->audio_mclk;
-+	audio->audio_mclk = twl_get_hfclk_rate();
++static bool twl4030_audio_has_codec(struct twl4030_audio_data *pdata,
++			      struct device_node *node)
++{
++	if (pdata && pdata->codec)
++		return true;
++
++#ifdef CONFIG_OF
++	if (of_find_node_by_name(node, "codec"))
++		return true;
++#endif
++
++	return false;
++}
++
++static bool twl4030_audio_has_vibra(struct twl4030_audio_data *pdata,
++			      struct device_node *node)
++{
++	int vibra;
++
++	if (pdata && pdata->vibra)
++		return true;
++
++	if (!of_property_read_u32(node, "ti,enable-vibra", &vibra) && vibra)
++		return true;
++
++	return false;
++}
++
+ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+ {
+ 	struct twl4030_audio *audio;
+ 	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
++	struct device_node *node = pdev->dev.of_node;
+ 	struct mfd_cell *cell = NULL;
+ 	int ret, childs = 0;
+ 	u8 val;
  
- 	/* Configure APLL_INFREQ and disable APLL if enabled */
- 	switch (audio->audio_mclk) {
+-	if (!pdata) {
++	if (!pdata && !node) {
+ 		dev_err(&pdev->dev, "Platform data is missing\n");
+ 		return -EINVAL;
+ 	}
+@@ -202,18 +233,22 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+ 	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
+ 	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
+ 
+-	if (pdata->codec) {
++	if (twl4030_audio_has_codec(pdata, node)) {
+ 		cell = &audio->cells[childs];
+ 		cell->name = "twl4030-codec";
+-		cell->platform_data = pdata->codec;
+-		cell->pdata_size = sizeof(*pdata->codec);
++		if (pdata) {
++			cell->platform_data = pdata->codec;
++			cell->pdata_size = sizeof(*pdata->codec);
++		}
+ 		childs++;
+ 	}
+-	if (pdata->vibra) {
++	if (twl4030_audio_has_vibra(pdata, node)) {
+ 		cell = &audio->cells[childs];
+ 		cell->name = "twl4030-vibra";
+-		cell->platform_data = pdata->vibra;
+-		cell->pdata_size = sizeof(*pdata->vibra);
++		if (pdata) {
++			cell->platform_data = pdata->vibra;
++			cell->pdata_size = sizeof(*pdata->vibra);
++		}
+ 		childs++;
+ 	}
+ 
+@@ -245,10 +280,17 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id twl4030_audio_of_match[] = {
++	{.compatible = "ti,twl4030-audio", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, twl4030_audio_of_match);
++
+ static struct platform_driver twl4030_audio_driver = {
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "twl4030-audio",
++		.of_match_table = twl4030_audio_of_match,
+ 	},
+ 	.probe		= twl4030_audio_probe,
+ 	.remove		= __devexit_p(twl4030_audio_remove),
 -- 
 1.7.12
