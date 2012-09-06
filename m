@@ -1,123 +1,261 @@
-From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/5] drivers: usb: twl4030: Add device tree support for
- twl4030 usb
-Date: Thu, 6 Sep 2012 20:27:09 +0530
-Message-ID: <1346943430-18236-5-git-send-email-kishon@ti.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH 2/5] drivers: usb: otg: make twl6030_usb as a comparator driver to omap_usb2
+Date: Thu, 6 Sep 2012 20:27:07 +0530
+Message-ID: <1346943430-18236-3-git-send-email-kishon@ti.com>
 References: <1346943430-18236-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346943430-18236-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1346943430-18236-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, kishon@ti.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add device tree support for twl4030 usb driver.
-Update the Documentation with device tree binding information.
+All the PHY configuration other than VBUS, ID GND and OTG SRP are removed
+from twl6030. The phy configurations are taken care by the dedicated
+usb2 phy driver. So twl6030 is made as comparator driver for VBUS and
+ID detection.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- .../devicetree/bindings/usb/twlxxxx-usb.txt        |   19 ++++++++++++++
- drivers/usb/otg/twl4030-usb.c                      |   26 +++++++++++++++-----
- 2 files changed, 39 insertions(+), 6 deletions(-)
+ drivers/usb/otg/Kconfig       |    2 +-
+ drivers/usb/otg/twl6030-usb.c |  118 +++++++----------------------------------
+ 2 files changed, 19 insertions(+), 101 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
-index 930f9ff..36b9aed 100644
---- a/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
-@@ -19,3 +19,22 @@ Board specific device node entry
- &twl6030-usb {
- 	usb-supply = <&vusb>;
+diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
+index 13fd1ddf..d8c8a42 100644
+--- a/drivers/usb/otg/Kconfig
++++ b/drivers/usb/otg/Kconfig
+@@ -68,7 +68,7 @@ config TWL4030_USB
+ 
+ config TWL6030_USB
+ 	tristate "TWL6030 USB Transceiver Driver"
+-	depends on TWL4030_CORE
++	depends on TWL4030_CORE && OMAP_USB2
+ 	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver on TWL6030
+diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+index 6907d8d..32525bb 100644
+--- a/drivers/usb/otg/twl6030-usb.c
++++ b/drivers/usb/otg/twl6030-usb.c
+@@ -25,8 +25,9 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+-#include <linux/usb/otg.h>
+ #include <linux/usb/musb-omap.h>
++#include <linux/usb/phy_companion.h>
++#include <linux/usb/omap_usb.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/err.h>
+@@ -87,7 +88,7 @@
+ #define	VBUS_DET			BIT(2)
+ 
+ struct twl6030_usb {
+-	struct usb_phy		phy;
++	struct phy_companion	comparator;
+ 	struct device		*dev;
+ 
+ 	/* for vbus reporting with irqs disabled */
+@@ -107,7 +108,7 @@ struct twl6030_usb {
+ 	unsigned long		features;
  };
-+
-+TWL4030 USB PHY AND COMPARATOR
-+ - compatible : Should be "ti,twl4030-usb"
-+ - interrupts : The interrupt numbers to the cpu should be specified. First
-+   interrupt number is the otg interrupt number that raises ID interrupts
-+   and VBUS interrupts. The second interrupt number is optional.
-+ - <supply-name>-supply : phandle to the regulator device tree node.
-+   <supply-name> should be vusb1v5, vusb1v8 and vusb3v1
-+ - usb_mode : The mode used by the phy to connect to the controller. "1"
-+   specifies "ULPI" mode and "2" specifies "CEA2011_3PIN" mode.
-+
-+twl4030-usb {
-+	compatible = "ti,twl4030-usb";
-+	interrupts = < 10 4 >;
-+	usb1v5-supply = <&vusb1v5>;
-+	usb1v8-supply = <&vusb1v8>;
-+	usb3v1-supply = <&vusb3v1>;
-+	usb_mode = <1>;
-+};
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index 523cad5..f0d2e75 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -585,23 +585,28 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
- 	struct twl4030_usb	*twl;
- 	int			status, err;
- 	struct usb_otg		*otg;
+ 
+-#define phy_to_twl(x)		container_of((x), struct twl6030_usb, phy)
++#define	comparator_to_twl(x) container_of((x), struct twl6030_usb, comparator)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -137,50 +138,9 @@ static inline u8 twl6030_readb(struct twl6030_usb *twl, u8 module, u8 address)
+ 	return ret;
+ }
+ 
+-static int twl6030_phy_init(struct usb_phy *x)
++static int twl6030_start_srp(struct phy_companion *comparator)
+ {
+-	struct twl6030_usb *twl;
+-	struct device *dev;
+-	struct twl4030_usb_data *pdata;
 -
--	if (!pdata) {
--		dev_dbg(&pdev->dev, "platform_data not available\n");
--		return -EINVAL;
--	}
-+	struct device_node	*np = pdev->dev.of_node;
+-	twl = phy_to_twl(x);
+-	dev  = twl->dev;
+-	pdata = dev->platform_data;
+-
+-	if (twl->linkstat == OMAP_MUSB_ID_GROUND)
+-		pdata->phy_power(twl->dev, 1, 1);
+-	else
+-		pdata->phy_power(twl->dev, 0, 1);
+-
+-	return 0;
+-}
+-
+-static void twl6030_phy_shutdown(struct usb_phy *x)
+-{
+-	struct twl6030_usb *twl;
+-	struct device *dev;
+-	struct twl4030_usb_data *pdata;
+-
+-	twl = phy_to_twl(x);
+-	dev  = twl->dev;
+-	pdata = dev->platform_data;
+-	pdata->phy_power(twl->dev, 0, 0);
+-}
+-
+-static int twl6030_phy_suspend(struct usb_phy *x, int suspend)
+-{
+-	struct twl6030_usb *twl = phy_to_twl(x);
+-	struct device *dev = twl->dev;
+-	struct twl4030_usb_data *pdata = dev->platform_data;
+-
+-	pdata->phy_suspend(dev, suspend);
+-
+-	return 0;
+-}
+-
+-static int twl6030_start_srp(struct usb_otg *otg)
+-{
+-	struct twl6030_usb *twl = phy_to_twl(otg->phy);
++	struct twl6030_usb *twl = comparator_to_twl(comparator);
  
- 	twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
- 	if (!twl)
- 		return -ENOMEM;
+ 	twl6030_writeb(twl, TWL_MODULE_USB, 0x24, USB_VBUS_CTRL_SET);
+ 	twl6030_writeb(twl, TWL_MODULE_USB, 0x84, USB_VBUS_CTRL_SET);
+@@ -313,23 +273,8 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 	return IRQ_HANDLED;
+ }
  
-+	if (np)
-+		of_property_read_u32(np, "usb_mode",
-+				(enum twl4030_usb_mode *)&twl->usb_mode);
-+	else if (pdata)
-+		twl->usb_mode = pdata->usb_mode;
-+	else {
-+		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
-+		return -EINVAL;
-+	}
-+
- 	otg = devm_kzalloc(&pdev->dev, sizeof *otg, GFP_KERNEL);
- 	if (!otg)
- 		return -ENOMEM;
+-static int twl6030_set_peripheral(struct usb_otg *otg,
+-		struct usb_gadget *gadget)
++static int twl6030_enable_irq(struct twl6030_usb *twl)
+ {
+-	if (!otg)
+-		return -ENODEV;
+-
+-	otg->gadget = gadget;
+-	if (!gadget)
+-		otg->phy->state = OTG_STATE_UNDEFINED;
+-
+-	return 0;
+-}
+-
+-static int twl6030_enable_irq(struct usb_phy *x)
+-{
+-	struct twl6030_usb *twl = phy_to_twl(x);
+-
+ 	twl6030_writeb(twl, TWL_MODULE_USB, 0x1, USB_ID_INT_EN_HI_SET);
+ 	twl6030_interrupt_unmask(0x05, REG_INT_MSK_LINE_C);
+ 	twl6030_interrupt_unmask(0x05, REG_INT_MSK_STS_C);
+@@ -362,9 +307,9 @@ static void otg_set_vbus_work(struct work_struct *data)
+ 							CHARGERUSB_CTRL1);
+ }
  
- 	twl->dev		= &pdev->dev;
- 	twl->irq		= platform_get_irq(pdev, 0);
--	twl->usb_mode		= pdata->usb_mode;
- 	twl->vbus_supplied	= false;
- 	twl->asleep		= 1;
- 	twl->linkstat		= OMAP_MUSB_UNKNOWN;
-@@ -690,12 +695,21 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+-static int twl6030_set_vbus(struct usb_otg *otg, bool enabled)
++static int twl6030_set_vbus(struct phy_companion *comparator, bool enabled)
+ {
+-	struct twl6030_usb *twl = phy_to_twl(otg->phy);
++	struct twl6030_usb *twl = comparator_to_twl(comparator);
+ 
+ 	twl->vbus_enable = enabled;
+ 	schedule_work(&twl->set_vbus_work);
+@@ -372,23 +317,12 @@ static int twl6030_set_vbus(struct usb_otg *otg, bool enabled)
  	return 0;
  }
  
-+#ifdef CONFIG_OF
-+static const struct of_device_id twl4030_usb_id_table[] = {
-+	{ .compatible = "ti,twl4030-usb" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, twl4030_usb_id_table);
-+#endif
-+
- static struct platform_driver twl4030_usb_driver = {
- 	.probe		= twl4030_usb_probe,
- 	.remove		= __exit_p(twl4030_usb_remove),
- 	.driver		= {
- 		.name	= "twl4030_usb",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(twl4030_usb_id_table),
- 	},
- };
+-static int twl6030_set_host(struct usb_otg *otg, struct usb_bus *host)
+-{
+-	if (!otg)
+-		return -ENODEV;
+-
+-	otg->host = host;
+-	if (!host)
+-		otg->phy->state = OTG_STATE_UNDEFINED;
+-	return 0;
+-}
+-
+ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+ {
++	u32 ret;
+ 	struct twl6030_usb	*twl;
+ 	int			status, err;
+ 	struct twl4030_usb_data *pdata;
+-	struct usb_otg		*otg;
+ 	struct device *dev = &pdev->dev;
+ 	pdata = dev->platform_data;
+ 
+@@ -396,28 +330,20 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+ 	if (!twl)
+ 		return -ENOMEM;
+ 
+-	otg = devm_kzalloc(dev, sizeof *otg, GFP_KERNEL);
+-	if (!otg)
+-		return -ENOMEM;
+-
+ 	twl->dev		= &pdev->dev;
+ 	twl->irq1		= platform_get_irq(pdev, 0);
+ 	twl->irq2		= platform_get_irq(pdev, 1);
+ 	twl->features		= pdata->features;
+ 	twl->linkstat		= OMAP_MUSB_UNKNOWN;
+ 
+-	twl->phy.dev		= twl->dev;
+-	twl->phy.label		= "twl6030";
+-	twl->phy.otg		= otg;
+-	twl->phy.init		= twl6030_phy_init;
+-	twl->phy.shutdown	= twl6030_phy_shutdown;
+-	twl->phy.set_suspend	= twl6030_phy_suspend;
++	twl->comparator.set_vbus	= twl6030_set_vbus;
++	twl->comparator.start_srp	= twl6030_start_srp;
+ 
+-	otg->phy		= &twl->phy;
+-	otg->set_host		= twl6030_set_host;
+-	otg->set_peripheral	= twl6030_set_peripheral;
+-	otg->set_vbus		= twl6030_set_vbus;
+-	otg->start_srp		= twl6030_start_srp;
++	ret = omap_usb2_set_comparator(&twl->comparator);
++	if (ret == -ENODEV) {
++		dev_info(&pdev->dev, "phy not ready, deferring probe");
++		return -EPROBE_DEFER;
++	}
+ 
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+@@ -427,7 +353,6 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "ldo init failed\n");
+ 		return err;
+ 	}
+-	usb_add_phy(&twl->phy, USB_PHY_TYPE_USB2);
+ 
+ 	platform_set_drvdata(pdev, twl);
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+@@ -458,9 +383,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	twl->asleep = 0;
+-	pdata->phy_init(dev);
+-	twl6030_phy_suspend(&twl->phy, 0);
+-	twl6030_enable_irq(&twl->phy);
++	twl6030_enable_irq(twl);
+ 	dev_info(&pdev->dev, "Initialized TWL6030 USB module\n");
+ 
+ 	return 0;
+@@ -470,10 +393,6 @@ static int __exit twl6030_usb_remove(struct platform_device *pdev)
+ {
+ 	struct twl6030_usb *twl = platform_get_drvdata(pdev);
+ 
+-	struct twl4030_usb_data *pdata;
+-	struct device *dev = &pdev->dev;
+-	pdata = dev->platform_data;
+-
+ 	twl6030_interrupt_mask(TWL6030_USBOTG_INT_MASK,
+ 		REG_INT_MSK_LINE_C);
+ 	twl6030_interrupt_mask(TWL6030_USBOTG_INT_MASK,
+@@ -481,7 +400,6 @@ static int __exit twl6030_usb_remove(struct platform_device *pdev)
+ 	free_irq(twl->irq1, twl);
+ 	free_irq(twl->irq2, twl);
+ 	regulator_put(twl->usb3v3);
+-	pdata->phy_exit(twl->dev);
+ 	device_remove_file(twl->dev, &dev_attr_vbus);
+ 	cancel_work_sync(&twl->set_vbus_work);
  
 -- 
 1.7.9.5
