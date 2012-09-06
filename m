@@ -1,114 +1,67 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: hwmod: make *phy_48m* as the main_clk of
- ocp2scp
-Date: Thu, 6 Sep 2012 20:28:05 +0300
-Message-ID: <20120906172802.GD30717@arwen.pp.htv.fi>
-References: <1341219337-25815-1-git-send-email-kishon@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eqp4TxRxnD4KrmFZ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1341219337-25815-1-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, balbi@ti.com
+From: Pantelis Antoniou <panto-wVdstyuyKrO8r51toPun2/C9HSW9iNxf@public.gmane.org>
+Subject: Re: [PATCH] musb: Kill __init from function that are called at other times as well.
+Date: Thu, 6 Sep 2012 20:36:39 +0300
+Message-ID: <7CED20FA-3501-40ED-B289-28FDC04FCF20@antoniou-consulting.com>
+References: <1346940106-20269-1-git-send-email-panto@antoniou-consulting.com> <20120906130425.GF29202@arwen.pp.htv.fi> <B7BE7E99-90E8-4E54-B146-C09C6643BAFE@antoniou-consulting.com> <20120906170740.GB17754@arwen.pp.htv.fi>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120906170740.GB17754-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Russ Dill <Russ.Dill-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Felipe
 
---eqp4TxRxnD4KrmFZ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I see about __devinit.
+There's no crash because in those logs the __init modifiers are gone.
 
-Hi,
+Regards
 
-On Mon, Jul 02, 2012 at 02:25:37PM +0530, Kishon Vijay Abraham I wrote:
-> Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp.
-> Since this ocp2scp module does not have any fck but does have a
-> single opt_clock, it is added as the main_clk for ocp2scp. Also
-> removed phy_48m as the optional clock since it is now made as the
-> main clock.
+-- Pantelis
 
-Just one comment here, you failed to note what good does it do from the
-driver perspective, other than that, you can add my Reviewed-by as below
 
-> Cc: Beno=EEt Cousson <b-cousson@ti.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+On Sep 6, 2012, at 8:07 PM, Felipe Balbi wrote:
 
-FWIW:
+> Hi,
+> 
+> On Thu, Sep 06, 2012 at 05:58:27PM +0300, Pantelis Antoniou wrote:
+>> Hi Felipe,
+>> 
+>> A proper answer required some instrumentation printks().
+>> 
+>> So what I did is that I peppered each function marked with a removed
+>> __init or __devinit with a 
+>> 
+>>> printk(KERN_INFO "%s:%d (%s) %s\n", __FILE__, __LINE__, KBUILD_MODNAME, __func__);
+>>> 
+>> 
+>> Both omap2430 & musb_hdrc are compiled as module, and I issued the following 
+>> commands on a beagleboard xm.
+>> 
+>> # modprobe omap2430
+>> # modprobe g_mass_storage file=backing_file
+>> # rmmod g_mass_storage
+>> # rmmod omap2430
+>> # modprobe omap2430
+>> 
+>> The problem is obvious when you see that functions marked as init or devinit are
+>> called when re-loading the omap2430 module again. Those functions if marked as
+>> much can (and will as I have witnessed) be removed from memory, leading to a 
+>> crash.
+>> 
+>> What do you think?
+> 
+> the problem would be with usage of __init. __devinit will only drop
+> .devinit.text if HOTPLUG and MODULE isn't set, AFAICT. I also can't see
+> a crash on below logs.
+> 
+> -- 
+> balbi
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-
-> ---
-> Changes from [RFC PATCH 1/5] arm: omap: hwmod: make *phy_48m* as the main=
-_clk
-> of ocp2scp:
-> * Removed *ocp2scp_usb_phy_phy_48m* as the optional functional clock
->=20
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    7 +------
->  1 files changed, 1 insertions(+), 6 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
-map2/omap_hwmod_44xx_data.c
-> index f30e861..17cf933 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -2504,14 +2504,11 @@ static struct omap_hwmod_class omap44xx_ocp2scp_h=
-wmod_class =3D {
->  };
-> =20
->  /* ocp2scp_usb_phy */
-> -static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
-> -	{ .role =3D "phy_48m", .clk =3D "ocp2scp_usb_phy_phy_48m" },
-> -};
-> -
->  static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
->  	.name		=3D "ocp2scp_usb_phy",
->  	.class		=3D &omap44xx_ocp2scp_hwmod_class,
->  	.clkdm_name	=3D "l3_init_clkdm",
-> +	.main_clk	=3D "ocp2scp_usb_phy_phy_48m",
->  	.prcm =3D {
->  		.omap4 =3D {
->  			.clkctrl_offs =3D OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET,
-> @@ -2519,8 +2516,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_h=
-wmod =3D {
->  			.modulemode   =3D MODULEMODE_HWCTRL,
->  		},
->  	},
-> -	.opt_clks	=3D ocp2scp_usb_phy_opt_clks,
-> -	.opt_clks_cnt	=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
->  };
-> =20
->  /*
-> --=20
-> 1.7.5.4
->=20
-
---=20
-balbi
-
---eqp4TxRxnD4KrmFZ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQSN0iAAoJEIaOsuA1yqREabwP/3mdw4eFr9KgcAdFYIeOSmEf
-Z7G6g4r6vIK5SOixx9BS5AWEkx9ocv95Gt+RZIMFejMUIoXi+A9qtSJlyVH6ElWm
-vx3ia8nsD7HRoe4dGerdOmrm028/Qdai60KSpmcqb0s0YHqikxmajX7z26SPQVLX
-U/FMzjaXihBXf/ntjcGtQjszQ5qS98TGzS3GhbMyuUzdSuycu9SUglfLhsz33DpA
-W5aUmGS/2B7SC1WnSHSLPj2ed3a2YVDNwWP5syrz8R4eiOdfi1gu95dPxqtKPDeY
-g3mzcTZWh/JmZuoqka9SA5whlMpHppLyHNzaLlEH9zCKagLP3d7T4Kz+U1WnX3ya
-L936gQFdmoZcPlGpomvFVtnUgg3K4cEv6aRw/Gkft2/Zf9BEVRvhuCt1UEPzzGvT
-UQIl79egLWqLqJ2sq9iko3mtURUPONcyKBnkA2eqWTMCUZtEUXKP5bQQI6XSmA3G
-wwzvjb7YIARu42AIxXMasAGQWnih3Bdh1q+ZcfzjZU2nfCx3L4Wnonnhob9aNZ/U
-sfpydfQ+YnOzsJYrGdSR3PVuS7hI2xwwUu7QoGTuUv65hJOuDJanpqfQkc9eosVc
-M0n1uLDWDNZ3jL0+AKikBjSpxzVVt3iB9wASExCRv5ibTEr4ZWj5mGWTaQkhVeA/
-Vu34kQrkQDJS6L6mI9M6
-=nvYn
------END PGP SIGNATURE-----
-
---eqp4TxRxnD4KrmFZ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
