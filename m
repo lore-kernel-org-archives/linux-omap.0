@@ -1,52 +1,68 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl
- support
-Date: Thu, 6 Sep 2012 06:09:29 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA27D69@DBDE01.ent.ti.com>
-References: <1346843564-25343-1-git-send-email-anilkumar@ti.com>
- <50473D92.9000500@pengutronix.de> <504759B4.6060203@pengutronix.de>
- <20120905232609.GL1303@atomide.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v5 1/5] arm/dts: AM33XX: Add basic pinctrl device tree data
+Date: Thu, 6 Sep 2012 06:17:29 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA27D93@DBDE01.ent.ti.com>
+References: <1346405361-29711-1-git-send-email-anilkumar@ti.com>
+ <1346405361-29711-2-git-send-email-anilkumar@ti.com>
+ <20120905233205.GO1303@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <20120905232609.GL1303@atomide.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20120905233205.GO1303-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 06, 2012 at 04:56:10, Tony Lindgren wrote:
-> * Marc Kleine-Budde <mkl@pengutronix.de> [120905 06:55]:
-> > On 09/05/2012 01:54 PM, Marc Kleine-Budde wrote:
-> > > On 09/05/2012 01:12 PM, AnilKumar Ch wrote:
-> > >> Adds suspend/resume functionality of d_can driver along with d_can
-> > >> raminit support which is required to initialize RAM while data
-> > >> transmission.
-> > >>
-> > >> This patch series also adds pinctrl support to c_can driver. These
-> > >> patches were tested on AM335x-EVM.
-> > >>
-> > >> This patch-series is based ontop of runtimePM patch submitted
-> > >> earlier - https://patchwork.kernel.org/patch/1348081/
-> > > 
-> > > Looks good, I'll apply the series after Tony acks the patch 3
-> > > ([PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata to
-> > > pass d_can raminit).
+On Thu, Sep 06, 2012 at 05:02:05, Tony Lindgren wrote:
+> * AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> [120831 02:30]:
+> > Adds basic pinctrl device tree data for AM33XX family of devices.
+> > This patch is based on the pinctrl-single driver.
 > > 
-> > I've pushed all patches to can-next/master [1]. When Tony gives his Ack,
-> > I'll send David a pull request (of a tree including that Ack).
+> > Signed-off-by: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/am33xx.dtsi |    9 +++++++++
+> >  1 file changed, 9 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index be43511..bf5f713 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -40,6 +40,15 @@
+> >  		};
+> >  	};
+> >  
+> > +	am3358_pinmux: pinmux@44e10800 {
+> > +		compatible = "pinctrl-single";
+> > +		reg = <0x44e10800 0x0238>;
+> > +		#address-cells = <1>;
+> > +		#size-cells = <0>;
+> > +		pinctrl-single,register-width = <32>;
+> > +		pinctrl-single,function-mask = <0x7f>;
+> > +	};
+> > +
 > 
-> To me it looks like we can avoid the platform callbacks and the ram
-> init changes to the driver by implementing right runtime PM calls
-> for omap/am33xx. So NAK on few patches, and ACK on one :)
+> Is this controller the same for all am33xx? If so, please use
+> am33xx_pinmux naming. Note that some padconf registers may not
+> be listed for all the variants, but the registers may still be
+> there for all the variants. So a generic entry is a better
+> choice here as otherwise you'l need to include am33xx.dtsi into
+> am3358.dtsi.
 > 
 
-Marc,
-
-Can you please queue ACK patch for 3.7, I will submit v3 for rest of
-the patches, once we found the clear way of doing RAMINIT.
+Controller is same for all am33xx devices, I will spin a patch
+by renaming to am33xx_****
 
 Thanks
 AnilKumar
