@@ -1,83 +1,101 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH v2 0/4] can: c_can: Add suspend/resume and pinctrl support
-Date: Thu, 06 Sep 2012 10:27:30 +0200
-Message-ID: <50485E72.7010900@pengutronix.de>
-References: <1346843564-25343-1-git-send-email-anilkumar@ti.com> <50473D92.9000500@pengutronix.de> <504759B4.6060203@pengutronix.de> <20120905232609.GL1303@atomide.com> <331ABD5ECB02734CA317220B2BBEABC13EA27D69@DBDE01.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] ARM: omap_hwmod: Fix up resource names when booted with
+ devicetree
+Date: Thu, 6 Sep 2012 08:28:21 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAAB2F7@DBDE01.ent.ti.com>
+References: <1345730049-12675-1-git-send-email-peter.ujfalusi@ti.com>
+ <alpine.DEB.2.00.1208241536290.25436@utopia.booyaka.com>
+ <5037A9CE.1080809@ti.com> <50476143.3010509@ti.com>
+ <5047B079.6040209@ti.com> <504852B9.5000403@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigE0EE4EBC362DA897C283FD01"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA27D69@DBDE01.ent.ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "wg@grandegger.com" <wg@grandegger.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41587 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318Ab2IFI2a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 04:28:30 -0400
+In-Reply-To: <504852B9.5000403@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE0EE4EBC362DA897C283FD01
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Thu, Sep 06, 2012 at 13:07:29, Cousson, Benoit wrote:
+> Hi Vaibhav,
+> 
+> On 09/05/2012 10:05 PM, Vaibhav Hiremath wrote:
+> > On 9/5/2012 7:57 PM, Benoit Cousson wrote:
+> >> Hi Paul,
+> >>
+> >> On 08/24/2012 06:20 PM, Peter Ujfalusi wrote:
+> >>> Hi Paul,
+> >>>
+> >>> On 08/24/2012 06:38 PM, Paul Walmsley wrote:
+> >>>> Do we need both this one and your '[PATCH] driver core: Check if r->name 
+> >>>> is valid in platform_get_resource_byname()' ?  Or would that second patch 
+> >>>> be enough?  Is the crash happening in the platform_get_resource_byname() 
+> >>>> iterator?
+> >>>
+> >>> The crash happens in platform_get_resource_byname(). What I see as a problem
+> >>> that when we boot without DT the r->name is configured for the hwmods. If we
+> >>> boot with DT we discard the resources created by the OF (which also have the
+> >>> r->name configured). We replace the resources from hwmods but we do not fix up
+> >>> the resource names (which is done in other cases).
+> >>> I have sent the patch for the drivers core as well since I think it is a good
+> >>> practice anyway to check for NULL pointer before strcmp().
+> >>>
+> >>> Either is good, but IMHO we should fix this in omap_hwmod (at least).
+> >>
+> >> Yes, clearly we do have a corner case today due to the mix of hwmod /
+> >> DTS resource management.
+> >> - Legacy boot + hwmod resources is OK
+> >> - DTS boot with DTS resources will be OK
+> >> - DTS boot with hwmod resources is not OK since the resource name will
+> >>   not be populated in the case resources are not named :-(
+> >>
+> >> If you are OK, I'll take that patch along with Vaibhav one to handle
+> >> properly the resources from DTS long with the DTS patches I'm queuing
+> >> for 3.7.
+> >>
+> > 
+> > Benoit,
+> > Note that this patch will add device name to all resources, since none
+> > of the resource will have name property and may break drivers;
+> > especially after my patch which respects DT resources.
+> 
+> So you do have to add the name in the DTS if the driver is expecting that.
+> 
+> > Also I just read the thread you started sometime back on _byname api,
+> > not sure that was the conclusion, but it seems like it is not
+> > recommended to use _byname. The driver should be fixed while converting
+> > to DT.
+> 
+> No the DT name for reg and interrupt was accepted and Peter is taking advantage on that.
+> The only missing binding is the DMA now.
+> 
+> Here is what Peter did.
+> 
+>  			compatible = "ti,omap4-mcpdm";
+>  			reg = <0x40132000 0x7f>, /* MPU private access */
+>  			      <0x49032000 0x7f>; /* L3 Interconnect */
+> +			reg-names = "mpu", "dma";
+>  			interrupts = <0 112 0x4>;
+>  			interrupt-parent = <&gic>;
+>  			ti,hwmods = "mcpdm";
+> 
 
-On 09/06/2012 08:09 AM, AnilKumar, Chimata wrote:
-> On Thu, Sep 06, 2012 at 04:56:10, Tony Lindgren wrote:
->> * Marc Kleine-Budde <mkl@pengutronix.de> [120905 06:55]:
->>> On 09/05/2012 01:54 PM, Marc Kleine-Budde wrote:
->>>> On 09/05/2012 01:12 PM, AnilKumar Ch wrote:
->>>>> Adds suspend/resume functionality of d_can driver along with d_can
->>>>> raminit support which is required to initialize RAM while data
->>>>> transmission.
->>>>>
->>>>> This patch series also adds pinctrl support to c_can driver. These
->>>>> patches were tested on AM335x-EVM.
->>>>>
->>>>> This patch-series is based ontop of runtimePM patch submitted
->>>>> earlier - https://patchwork.kernel.org/patch/1348081/
->>>>
->>>> Looks good, I'll apply the series after Tony acks the patch 3
->>>> ([PATCH RESEND 3/4] ARM: AM33XX: board-generic: Add of_dev_auxdata t=
-o
->>>> pass d_can raminit).
->>>
->>> I've pushed all patches to can-next/master [1]. When Tony gives his A=
-ck,
->>> I'll send David a pull request (of a tree including that Ack).
->>
->> To me it looks like we can avoid the platform callbacks and the ram
->> init changes to the driver by implementing right runtime PM calls
->> for omap/am33xx. So NAK on few patches, and ACK on one :)
->>
->=20
-> Marc,
->=20
-> Can you please queue ACK patch for 3.7, I will submit v3 for rest of
-> the patches, once we found the clear way of doing RAMINIT.
+Thanks for sharing this and now I found it in 
+Documentation/devicetree/bindings/resource-names.txt
 
-Done. I've updated the master branch on my repo[1]. I'll send a pull
-request to David soon.
+In that case, we do not have any issues and you can merge this patch.
 
-Marc
+Thanks,
+Vaibhav
+> 
+> Regards,
+> Benoit
+> 
+> 
 
-[1] https://gitorious.org/linux-can/linux-can-next
---=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
-
-
---------------enigE0EE4EBC362DA897C283FD01
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iEYEARECAAYFAlBIXnYACgkQjTAFq1RaXHMsKwCglo19FHu1HKmILOxFOGO5OoVl
-dNMAoJBBvPWnpVEL/dMJcIxCkwroKYX6
-=s6tw
------END PGP SIGNATURE-----
-
---------------enigE0EE4EBC362DA897C283FD01--
