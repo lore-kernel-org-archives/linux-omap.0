@@ -1,77 +1,33 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v3 08/14] Input: twl4030-vibra: Support for
- DT booted kernel
-Date: Thu, 6 Sep 2012 09:19:33 -0700
-Message-ID: <20120906161933.GA18562@core.coreip.homeip.net>
-References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
- <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v4 00/21] OMAP UART Patches
+Date: Thu, 6 Sep 2012 09:18:35 -0700
+Message-ID: <20120906161835.GA7923@kroah.com>
+References: <20120906122948.GC29202@arwen.pp.htv.fi>
+ <1346935540-1792-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+In-Reply-To: <1346935540-1792-1-git-send-email-balbi@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
-
-On Thu, Sep 06, 2012 at 03:12:15PM +0300, Peter Ujfalusi wrote:
-> Add support when the kernel has been booted with DT blob. In this case the
-> pdata is NULL, we need to reach up to the core node and check if the codec
-> part has been enabled to determine if we need to coexist with the codec or
-> not.
+On Thu, Sep 06, 2012 at 03:45:19PM +0300, Felipe Balbi wrote:
+> Hi guys,
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> ---
->  drivers/input/misc/twl4030-vibra.c | 20 ++++++++++++++++++--
->  1 file changed, 18 insertions(+), 2 deletions(-)
+> here's v4 of the omap uart patchset. No changes other than a rebase on top of
+> Greg's tty-next branch and Tony's Acked-by being added to a couple patches
 > 
-> diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-> index fc0ed9b..15620f8 100644
-> --- a/drivers/input/misc/twl4030-vibra.c
-> +++ b/drivers/input/misc/twl4030-vibra.c
-> @@ -26,6 +26,7 @@
->  #include <linux/module.h>
->  #include <linux/jiffies.h>
->  #include <linux/platform_device.h>
-> +#include <linux/of.h>
->  #include <linux/workqueue.h>
->  #include <linux/i2c/twl.h>
->  #include <linux/mfd/twl4030-audio.h>
-> @@ -194,13 +195,28 @@ static int twl4030_vibra_resume(struct device *dev)
->  static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
->  			 twl4030_vibra_suspend, twl4030_vibra_resume);
->  
-> +static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
-> +			      struct device_node *node)
-> +{
-> +	if (pdata && pdata->coexist)
-> +		return true;
-> +
-> +#ifdef CONFIG_OF
-> +	if (of_find_node_by_name(node, "codec"))
-> +		return true;
-> +#endif
+> Note: I'm resending the series with Vikram's Software Flow Control fix anyway
+> as it can just be ignored if it's decided it needs to go into this merge
+> window.
+> 
+> Changes since v3:
+> 	. Rebased on top of Greg's tty-next branch
+> 	. Added Tony's Acked-by
 
-In patch 6 you added a stub for of_find_node_by_name(), so do you really
-need this #ifdef?
+Thanks for rebasing, all now applied.
 
-Otherwise it looks good.
-
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-
-Thanks.
-
--- 
-Dmitry
+greg k-h
