@@ -1,254 +1,434 @@
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: RE: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
- error: 'struct usb_phy' has no member named 'state'
-Date: Thu, 6 Sep 2012 11:00:22 +0530
-Message-ID: <D958900912E20642BCBC71664EFECE3E6DDE775405@BGMAIL02.nvidia.com>
-References: <20120906021054.GA15892@localhost>
+From: "Poddar, Sourav" <sourav.poddar@ti.com>
+Subject: Re: [PATCHv2 2/4] Input: keypad: Add smsc ece1099 keypad driver
+Date: Thu, 6 Sep 2012 11:08:45 +0530
+Message-ID: <CAKdam569gzYRjVqK0tyC=VzFOJm8KiNtE47VNJ5NSwDGyLQbSA@mail.gmail.com>
+References: <1346844997-24868-1-git-send-email-sourav.poddar@ti.com>
+	<50479A97.50606@ti.com>
+	<CAKdam55GZBo7Gx5MRkX-Wia9nXmtFAhanhmyCky7ikPQjoSOfw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:10810 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197Ab2IFFa1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 01:30:27 -0400
-In-Reply-To: <20120906021054.GA15892@localhost>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CAKdam55GZBo7Gx5MRkX-Wia9nXmtFAhanhmyCky7ikPQjoSOfw@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, santosh.shilimkar@ti.com, b-cousson@ti.com, balbi@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
-Hi Fengguang,
++ other external mailing list (did a reply to by mistake)
 
-My apologies for the inconvenience caused.
-
-During phy interface separation from otg.h, as the enum "usb_otg_state"
-was having multiple otg states info, I felt that should remain in otg.h.
-Also as removal of member 'state' of this enum type from usb_phy struct
-did not generate any compilation issues, I removed member state from struct usb_phy.
-
-As this is causing build break in musb code, I pushed a patch to balbi's tree for fixing this.
-Also added you as a reviewer in the to list of the patch.
-Plz verify and let me know if you still see any issues.
-
-Thanks,
-Venu
-
-
-> -----Original Message-----
-> From: Fengguang Wu [mailto:fengguang.wu@intel.com]
-> Sent: Thursday, September 06, 2012 7:41 AM
-> To: Venu Byravarasu
-> Cc: kernel-janitors@vger.kernel.org; Felipe Balbi; linux-
-> omap@vger.kernel.org; linux-usb@vger.kernel.org
-> Subject: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
-> error: 'struct usb_phy' has no member named 'state'
-> 
-> Hi Venu,
-> 
-> FYI, kernel build failed on
-> 
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
-> head:   8de3474a41642da9dfb38208844007a48f87abce
-> commit: de4217d90fed1b1714a270ceb5d092f7314e8bda [18/19] usb: otg:
-> Move phy interface to separate file.
-> config: x86_64-allmodconfig (attached as .config)
-> 
-> All related error/warning messages:
-> 
-> drivers/usb/musb/musb_core.c: In function 'musb_otg_timer_func':
-> drivers/usb/musb/musb_core.c:357:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:361:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:366:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:369:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:372:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c: In function 'musb_hnp_stop':
-> drivers/usb/musb/musb_core.c:388:2: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:390:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:393:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:399:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:407:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
-> drivers/usb/musb/musb_core.c:446:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:451:23: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:474:16: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:479:16: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:484:5: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:489:23: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:492:16: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_core.c:513:5: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:530:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/musb_core.c:542:14: error: 'struct usb_phy' has no
-> member named 'state'
-> --
-> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_wakeup':
-> drivers/usb/musb/musb_gadget.c:1630:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:1670:3: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_start':
-> drivers/usb/musb/musb_gadget.c:1952:13: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_stop':
-> drivers/usb/musb/musb_gadget.c:2063:13: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_g_resume':
-> drivers/usb/musb/musb_gadget.c:2096:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2109:3: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_g_suspend':
-> drivers/usb/musb/musb_gadget.c:2122:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2125:15: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2139:3: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_g_disconnect':
-> drivers/usb/musb/musb_gadget.c:2171:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2173:3: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2175:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2179:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2186:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c: In function 'musb_g_reset':
-> drivers/usb/musb/musb_gadget.c:2242:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_gadget.c:2245:14: error: 'struct usb_phy' has no
-> member named 'state'
-> --
-> drivers/usb/musb/musb_virthub.c: In function 'musb_port_suspend':
-> drivers/usb/musb/musb_virthub.c:81:22: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:83:15: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:93:15: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:99:4: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c: In function 'musb_port_reset':
-> drivers/usb/musb/musb_virthub.c:120:17: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c: In function 'musb_root_disconnect':
-> drivers/usb/musb/musb_virthub.c:191:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:195:15: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:201:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:205:14: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c:208:3: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_virthub.c: In function 'musb_hub_control':
-> drivers/usb/musb/musb_virthub.c:345:15: error: 'struct usb_phy' has no
-> member named 'state'
-> --
-> drivers/usb/musb/musb_host.c: In function 'musb_bus_suspend':
-> drivers/usb/musb/musb_host.c:2290:21: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_host.c:2300:15: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/musb/musb_host.c:2307:3: error: 'struct usb_phy' has no
-> member named 'state'
-> --
-> drivers/usb/musb/tusb6010.c: In function 'musb_do_idle':
-> drivers/usb/musb/tusb6010.c:419:21: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:424:4: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c: In function 'tusb_musb_try_idle':
-> drivers/usb/musb/tusb6010.c:479:19: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:480:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:497:2: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c: In function 'tusb_musb_set_vbus':
-> drivers/usb/musb/tusb6010.c:529:14: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:542:23: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:545:16: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:548:16: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:551:16: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:559:15: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:573:2: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
-> drivers/usb/musb/tusb6010.c:686:20: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:688:17: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:693:4: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:699:4: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:702:23: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:748:3: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:751:22: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/musb/tusb6010.c:763:16: error: 'struct usb_phy' has no member
-> named 'state'
-> --
-> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_work':
-> drivers/usb/otg/gpio_vbus.c:119:17: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/otg/gpio_vbus.c:141:17: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_peripheral':
-> drivers/usb/otg/gpio_vbus.c:194:11: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_power':
-> drivers/usb/otg/gpio_vbus.c:216:9: error: 'struct usb_phy' has no member
-> named 'state'
-> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_probe':
-> drivers/usb/otg/gpio_vbus.c:266:16: error: 'struct usb_phy' has no member
-> named 'state'
-> --
-> drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_set_peripheral':
-> drivers/usb/otg/nop-usb-xceiv.c:78:10: error: 'struct usb_phy' has no
-> member named 'state'
-> drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_usb_xceiv_probe':
-> drivers/usb/otg/nop-usb-xceiv.c:120:10: error: 'struct usb_phy' has no
-> member named 'state'
-> 
-> ---
-> 0-DAY kernel build testing backend         Open Source Technology Centre
-> Fengguang Wu <wfg@linux.intel.com>                     Intel Corporation
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
+On Thu, Sep 6, 2012 at 11:04 AM, Poddar, Sourav <sourav.poddar@ti.com> wrote:
+> Hi Vaibhav,
+>
+> On Thu, Sep 6, 2012 at 12:01 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>>
+>>
+>> On 9/5/2012 5:06 PM, Sourav Poddar wrote:
+>>> From: G, Manjunath Kondaiah <manjugk@ti.com>
+>>>
+>>> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
+>>> supports a keypad scan matrix of 23*8.This driver uses this
+>>> device as a keypad driver.
+>>>
+>>> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>>> Cc: Benoit Cousson <b-cousson@ti.com>
+>>> Cc: Felipe Balbi <balbi@ti.com>
+>>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+>>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>> ---
+>>> Changes since v1:
+>>>  - Prevent the use of kfree since devm_kzalloc was used.
+>>>  - Use devexit around remove api
+>>>  drivers/input/keyboard/Kconfig               |   11 +
+>>>  drivers/input/keyboard/Makefile              |    1 +
+>>>  drivers/input/keyboard/smsc-ece1099-keypad.c |  306 ++++++++++++++++++++++++++
+>>>  3 files changed, 318 insertions(+), 0 deletions(-)
+>>>  create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
+>>>
+>>> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+>>> index c50fa75..2a2d374 100644
+>>> --- a/drivers/input/keyboard/Kconfig
+>>> +++ b/drivers/input/keyboard/Kconfig
+>>> @@ -593,6 +593,17 @@ config KEYBOARD_TWL4030
+>>>         To compile this driver as a module, choose M here: the
+>>>         module will be called twl4030_keypad.
+>>>
+>>> +config KEYBOARD_SMSC
+>>> +       tristate "SMSC ECE1099 keypad support"
+>>> +       depends on I2C=y
+>>
+>> Any specific reason behind "=y"
+>>
+> Nope, my bad.."=y" should be dropped.
+>>> +       help
+>>> +         Say Y here if your board use the smsc keypad controller
+>>> +         for omap5 defconfig. It's safe to say enable this
+>>> +         even on boards that don't use the keypad controller.
+>>> +
+>>> +         To compile this driver as a module, choose M here: the
+>>> +         module will be called smsc-ece1099-keypad.
+>>> +
+>>>  config KEYBOARD_XTKBD
+>>>       tristate "XT keyboard"
+>>>       select SERIO
+>>> diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
+>>> index 44e7600..0f2aa26 100644
+>>> --- a/drivers/input/keyboard/Makefile
+>>> +++ b/drivers/input/keyboard/Makefile
+>>> @@ -52,5 +52,6 @@ obj-$(CONFIG_KEYBOARD_TC3589X)              += tc3589x-keypad.o
+>>>  obj-$(CONFIG_KEYBOARD_TEGRA)         += tegra-kbc.o
+>>>  obj-$(CONFIG_KEYBOARD_TNETV107X)     += tnetv107x-keypad.o
+>>>  obj-$(CONFIG_KEYBOARD_TWL4030)               += twl4030_keypad.o
+>>> +obj-$(CONFIG_KEYBOARD_SMSC)            += smsc-ece1099-keypad.o
+>>>  obj-$(CONFIG_KEYBOARD_XTKBD)         += xtkbd.o
+>>>  obj-$(CONFIG_KEYBOARD_W90P910)               += w90p910_keypad.o
+>>> diff --git a/drivers/input/keyboard/smsc-ece1099-keypad.c b/drivers/input/keyboard/smsc-ece1099-keypad.c
+>>> new file mode 100644
+>>> index 0000000..71cd7d6
+>>> --- /dev/null
+>>> +++ b/drivers/input/keyboard/smsc-ece1099-keypad.c
+>>> @@ -0,0 +1,306 @@
+>>> +/*
+>>> + * SMSC_ECE1099 Keypad driver
+>>> + *
+>>> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <linux/i2c.h>
+>>> +#include <linux/kernel.h>
+>>> +#include <linux/module.h>
+>>> +#include <linux/init.h>
+>>> +#include <linux/interrupt.h>
+>>> +#include <linux/input.h>
+>>> +#include <linux/gpio.h>
+>>> +#include <linux/slab.h>
+>>> +#include <linux/jiffies.h>
+>>> +#include <linux/input/matrix_keypad.h>
+>>> +#include <linux/delay.h>
+>>> +#include <linux/mfd/core.h>
+>>> +#include <linux/mfd/smsc.h>
+>>> +#include <linux/of_gpio.h>
+>>> +#include <linux/of.h>
+>>> +
+>>> +#define KEYPRESS_TIME          200
+>>> +
+>>> +struct smsc_keypad {
+>>> +     struct smsc *smsc;
+>>> +     struct matrix_keymap_data *keymap_data;
+>>> +     unsigned int last_key_state[16];
+>>> +     unsigned int last_col;
+>>> +     unsigned int last_key_ms[16];
+>>> +     unsigned short *keymap;
+>>> +     struct i2c_client *client;
+>>> +     struct input_dev *input;
+>>> +     int rows, cols;
+>>> +     int row_shift;
+>>> +     bool no_autorepeat;
+>>> +     unsigned        irq;
+>>> +     struct device *dev;
+>>> +};
+>>> +
+>>> +static void smsc_kp_scan(struct smsc_keypad *kp)
+>>> +{
+>>> +     struct input_dev *input = kp->input;
+>>> +     int i, j;
+>>> +     int row, col;
+>>> +     int temp, code;
+>>> +     unsigned int new_state[16];
+>>> +     unsigned int bits_changed;
+>>> +     int this_ms;
+>>> +
+>>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0x00);
+>>> +     smsc_write(kp->dev, SMSC_KP_INT_STAT, 0xFF);
+>>> +
+>>> +     /* Scan for row and column */
+>>> +     for (i = 0; i < kp->cols; i++) {
+>>> +             smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_EVAL + i);
+>>> +             /* Read Row Status */
+>>> +             smsc_read(kp->dev, SMSC_KP_IN, &temp);
+>>> +             if (temp == 0xFF)
+>>> +                     continue;
+>>> +
+>>> +             col = i;
+>>> +             for (j = 0; j < kp->rows; j++) {
+>>> +                     if ((temp & 0x01) != 0x00) {
+>>> +                             temp = temp >> 1;
+>>> +                             continue;
+>>> +                     }
+>>> +
+>>> +                     row = j;
+>>> +                     new_state[col] =  (1 << row);
+>>> +                     bits_changed = kp->last_key_state[col] ^ new_state[col];
+>>> +                     this_ms = jiffies_to_msecs(jiffies);
+>>> +                     if (bits_changed != 0 || (!bits_changed &&
+>>> +                                     ((this_ms - kp->last_key_ms[col]) >= KEYPRESS_TIME))) {
+>>> +                             code = MATRIX_SCAN_CODE(row, col, kp->row_shift);
+>>> +                             input_event(input, EV_MSC, MSC_SCAN, code);
+>>> +                             input_report_key(input, kp->keymap[code], 1);
+>>> +                             input_report_key(input, kp->keymap[code], 0);
+>>> +                             kp->last_key_state[col] = new_state[col];
+>>> +                             if (kp->last_col != col)
+>>> +                                     kp->last_key_state[kp->last_col] = 0;
+>>> +                             kp->last_key_ms[col] = this_ms;
+>>> +                     }
+>>> +                     temp = temp >> 1;
+>>> +             }
+>>> +     }
+>>> +     input_sync(input);
+>>> +
+>>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0xFF);
+>>> +
+>>> +     /* Set up Low Power Mode (Wake-up) (0xFB) */
+>>> +     smsc_write(kp->dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
+>>> +
+>>> +     /*Enable Keypad Scan (generate interrupt on key press) (0x40)*/
+>>> +     smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
+>>> +}
+>>> +
+>>> +static irqreturn_t do_kp_irq(int irq, void *_kp)
+>>> +{
+>>> +     struct smsc_keypad *kp = _kp;
+>>> +     int int_status;
+>>> +
+>>> +     smsc_read(kp->dev, SMSC_KP_INT_STAT, &int_status);
+>>> +     if (int_status)
+>>> +             smsc_kp_scan(kp);
+>>> +
+>>> +     return IRQ_HANDLED;
+>>> +}
+>>> +
+>>> +#ifdef CONFIG_OF
+>>> +static int __devinit smsc_keypad_parse_dt(struct device *dev,
+>>> +                             struct smsc_keypad *kp)
+>>> +{
+>>> +     struct device_node *np = dev->of_node;
+>>> +
+>>> +     if (!np) {
+>>> +             dev_err(dev, "missing DT data");
+>>> +             return -EINVAL;
+>>
+>> Isn't you should return -ENXIO?
+>>
+> I think "EINVAL" is more apt as it will reflect that the user has not populated
+> the dt data and its an invalid argument.
+>>> +     }
+>>> +
+>>> +     of_property_read_u32(np, "keypad,num-rows", &kp->rows);
+>>> +     of_property_read_u32(np, "keypad,num-columns", &kp->cols);
+>>> +     if (!kp->rows || !kp->cols) {
+>>> +             dev_err(dev, "number of keypad rows/columns not specified\n");
+>>> +             return -EINVAL;
+>>> +     }
+>>> +
+>>> +     if (of_get_property(np, "linux,input-no-autorepeat", NULL))
+>>> +             kp->no_autorepeat = true;
+>>> +
+>>
+>> You can use of_property_read_bool() here.
+>>
+> Ok.Will change.
+>>> +     return 0;
+>>> +}
+>>> +#else
+>>> +static inline int smsc_keypad_parse_dt(struct device *dev,
+>>> +                             struct smsc_keypad *kp)
+>>> +{
+>>> +     return -ENOSYS;
+>>> +}
+>>> +#endif
+>>> +
+>>> +static int __devinit
+>>> +smsc_probe(struct platform_device *pdev)
+>>> +{
+>>> +     struct device *dev = &pdev->dev;
+>>> +     struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
+>>> +     struct input_dev *input;
+>>> +     struct smsc_keypad *kp;
+>>> +     int ret = 0, error;
+>>> +     int col, i, max_keys, row_shift;
+>>> +     int irq;
+>>> +     int addr_start, addr;
+>>> +
+>>> +     kp = devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
+>>> +
+>>> +     input = input_allocate_device();
+>>> +     if (!kp || !input) {
+>>> +             error = -ENOMEM;
+>>> +             goto err1;
+>>
+>> You can directly return here.
+>>
+> Ok.
+>>> +     }
+>>> +
+>>> +     error = smsc_keypad_parse_dt(&pdev->dev, kp);
+>>> +     if (error)
+>>> +             return error;
+>>> +
+>>> +     /* Get the debug Device */
+>>> +     kp->input = input;
+>>> +     kp->smsc = smsc;
+>>> +     kp->irq = platform_get_irq(pdev, 0);
+>>> +     kp->dev = dev;
+>>> +
+>>> +     for (col = 0; col < 16; col++) {
+>>
+>> Isn't this magic no 16 should come from DT??
+>>
+> Yes, actually its the number of columns which is coming from
+> dt only. I will replace it with the correct variable containg this data.
+>>
+>>> +             kp->last_key_state[col] = 0;
+>>> +             kp->last_key_ms[col] = 0;
+>>> +     }
+>>> +
+>>> +     /* setup input device */
+>>> +      __set_bit(EV_KEY, input->evbit);
+>>> +
+>>> +     /* Enable auto repeat feature of Linux input subsystem */
+>>> +     if (!(kp->no_autorepeat))
+>>> +             __set_bit(EV_REP, input->evbit);
+>>> +
+>>> +     input_set_capability(input, EV_MSC, MSC_SCAN);
+>>> +     input->name             = "SMSC Keypad";
+>>> +     input->phys             = "smsc_keypad/input0";
+>>> +     input->dev.parent       = &pdev->dev;
+>>> +     input->id.bustype       = BUS_HOST;
+>>> +     input->id.vendor        = 0x0001;
+>>> +     input->id.product       = 0x0001;
+>>> +     input->id.version       = 0x0003;
+>>> +
+>>> +     error = input_register_device(input);
+>>> +     if (error) {
+>>> +             dev_err(kp->dev,
+>>> +                     "Unable to register twl4030 keypad device\n");
+>>> +             goto err1;
+>>> +     }
+>>> +
+>>> +     /* Mask all GPIO interrupts (0x37-0x3B) */
+>>> +     for (addr = 0x37; addr < 0x3B; addr++)
+>>> +             smsc_write(dev, addr, 0);
+>>> +
+>>> +     /* Set all outputs high (0x05-0x09) */
+>>> +     for (addr = 0x05; addr < 0x09; addr++)
+>>> +             smsc_write(dev, addr, 0xff);
+>>> +
+>>> +     /* Clear all GPIO interrupts (0x32-0x36) */
+>>> +     for (addr = 0x32; addr < 0x36; addr++)
+>>> +             smsc_write(dev, addr, 0xff);
+>>> +
+>>> +     addr_start = 0x12;
+>>> +     for (i = 0; i <= kp->rows; i++) {
+>>> +             addr = 0x12 + i;
+>>> +             smsc_write(dev, addr, SMSC_KP_KSI);
+>>> +     }
+>>> +
+>>> +     addr_start =  0x1A;
+>>> +     for (i = 0; i <= kp->cols; i++) {
+>>> +             addr = 0x1A + i;
+>>> +             smsc_write(dev, addr, SMSC_KP_KSO);
+>>> +     }
+>>> +
+>>
+>> Lots of magic numbers without proper description/comments.
+>>
+> I will try to put comments or replace the magic numbers with the
+> macros declared in .h file.
+>>> +     addr = SMSC_KP_INT_STAT;
+>>> +     smsc_write(dev, addr, SMSC_KP_SET_HIGH);
+>>> +
+>>> +     addr = SMSC_WKUP_CTRL;
+>>> +     smsc_write(dev, addr, SMSC_KP_SET_LOW_PWR);
+>>> +
+>>> +     addr = SMSC_KP_OUT;
+>>> +     smsc_write(dev, addr, SMSC_KSO_ALL_LOW);
+>>> +
+>>
+>> I didn't understand why to initialize 'addr' and pass it, why can't you
+>> directly pass it as a argument?
+>>
+> Actually Yes, addr can be directly replaced with the corresponding address.
+>>> +     row_shift = get_count_order(kp->cols);
+>>> +     max_keys = kp->rows << row_shift;
+>>> +
+>>> +     kp->row_shift = row_shift;
+>>> +     kp->keymap = kzalloc(max_keys * sizeof(kp->keymap[0]),
+>>> +                                     GFP_KERNEL);
+>>> +     if (!kp->keymap) {
+>>> +             dev_err(&pdev->dev, "Not enough memory for keymap\n");
+>>> +             error = -ENOMEM;
+>>> +     }
+>>> +
+>>> +     matrix_keypad_build_keymap(NULL, NULL, kp->rows,
+>>> +                     kp->cols, kp->keymap, input);
+>>> +
+>>> +     /*
+>>> +     * This ISR will always execute in kernel thread context because of
+>>> +     * the need to access the SMSC over the I2C bus.
+>>> +     */
+>>> +     ret = devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
+>>> +                     IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
+>>> +     if (ret) {
+>>> +             dev_dbg(&pdev->dev, "request_irq failed for irq no=%d\n",
+>>> +                     irq);
+>>> +             goto err2;
+>>> +     }
+>>> +
+>>> +     /* Enable smsc keypad interrupts */
+>>> +     ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
+>>> +     if (ret < 0)
+>>> +             goto err2;
+>>> +
+>>> +     return 0;
+>>> +
+>>> +err2:
+>>> +     input_unregister_device(input);
+>>> +err1:
+>>> +     input_free_device(input);
+>>
+>> You are not freeing memory allocated for kp->keymap. Please use devm_
+>> variants.
+>>
+> True. Will do.
+>> Thanks,
+>> Vaibhav
+>>> +     return ret;
+>>> +}
+>>> +
+>>> +static int __devexit smsc_remove(struct platform_device *pdev)
+>>> +{
+>>> +     struct smsc_keypad *kp = platform_get_drvdata(pdev);
+>>> +     input_unregister_device(kp->input);
+>>> +
+>>> +     return 0;
+>>> +}
+>>> +
+>>> +#ifdef CONFIG_OF
+>>> +static const struct of_device_id smsc_keypad_dt_match[] = {
+>>> +     { .compatible = "smsc,keypad" },
+>>> +     {},
+>>> +};
+>>> +MODULE_DEVICE_TABLE(of, smsc_keypad_dt_match);
+>>> +#endif
+>>> +
+>>> +static struct platform_driver smsc_driver = {
+>>> +     .driver = {
+>>> +             .name   = "smsc-keypad",
+>>> +             .of_match_table = of_match_ptr(smsc_keypad_dt_match),
+>>> +             .owner  = THIS_MODULE,
+>>> +     },
+>>> +     .probe          = smsc_probe,
+>>> +     .remove         = __devexit_p(smsc_remove),
+>>> +};
+>>> +
+>>> +module_platform_driver(smsc_driver);
+>>> +
+>>> +MODULE_AUTHOR("G Kondaiah Manjunath <manjugk@ti.com>");
+>>> +MODULE_DESCRIPTION("SMSC ECE1099 Keypad driver");
+>>> +MODULE_LICENSE("GPL v2");
+>>>
