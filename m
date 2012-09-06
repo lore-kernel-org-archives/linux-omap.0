@@ -1,63 +1,79 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v7 1/7] drivers: usb: phy: add a new driver for omap usb2
- phy
-Date: Thu, 6 Sep 2012 13:03:02 +0000
-Message-ID: <201209061303.02454.arnd@arndb.de>
-References: <1344258480-4304-1-git-send-email-kishon@ti.com>
- <1344258480-4304-2-git-send-email-kishon@ti.com>
- <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 15/17] OMAPDSS: remove extra_info completion code
+Date: Thu, 06 Sep 2012 16:04:41 +0300
+Message-ID: <1346936681.2737.61.camel@deskari>
+References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1346833555-31258-16-git-send-email-tomi.valkeinen@ti.com>
+	 <50475444.2080509@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-eRix5lGB9BPPNb98Ex/t"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43326 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751436Ab2IFNEr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 09:04:47 -0400
+Received: by lagy9 with SMTP id y9so1073016lag.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 06:04:44 -0700 (PDT)
+In-Reply-To: <50475444.2080509@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thursday 06 September 2012, ABRAHAM, KISHON VIJAY wrote:
-> > diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> > index d2fe064..bb0c7f4 100644
-> > --- a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> > +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> > @@ -8,3 +8,6 @@ properties:
-> >
-> >  Sub-nodes:
-> >  All the devices connected to ocp2scp are described using sub-node to ocp2scp
-> > +- usb2phy :
-> > +   The binding details of usb2phy can be found in:
-> > +   Documentation/devicetree/bindings/usb/omap-usb.txt
-> 
-> The above two lines should be added in omap-ocp2scp.txt (this file was
-> added as part of omap: add ocp2scp as a bus driver and is in
-> linux-next). However this file is still not in Felipe's xceiv branch.
-> So I'm not sure how I can get this patch merged in Felipe's tree
-> without conflict.
-> 
 
-There are three possible ways to do that:
+--=-eRix5lGB9BPPNb98Ex/t
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-* Not add that text. Is is actually required? The ocp2scp bus driver 
-doesn't actually care what is connected to it, does it?
+On Wed, 2012-09-05 at 19:01 +0530, Archit Taneja wrote:
+> On Wednesday 05 September 2012 01:55 PM, Tomi Valkeinen wrote:
+> > Now that fifo merge has been removed, nobody uses the extra_info relate=
+d
+> > completion code, which can be removed.
+>=20
+> I think this might come into use when we fix the usage of channel out=20
+> field. That is, since channel out is an immediate write field, when we=
+=20
+> set a new manager for an overlay, we may need to wait till the overlay=
+=20
+> disable kicks in, only then we should change channel out.
+>=20
+> For this, we would need some wait for extra_info, right?
 
-* Ask Felipe to merge the drivers/ocp2scp branch from arm-soc into
-his branch, then apply your patch on top. The branch is scheduled
-for merging in 3.7 and is stable, so there is no harm merging it
-into his tree, as long as Olof and I are aware of this.
+Hmm, yes, I think you are right. Previously the ovl_disable waited until
+the overlay is not used anymore, but now it doesn't.
 
-* Split out this change and apply the patch to add this documentation
-change on top of the drivers/ocp2scp branch in the arm-soc tree.
-There is no strict dependency between this change and the others
-you want to merge, so it does not matter which tree it is merged through.
+So I think I need to add wait_pending_extra_info_updates() call to the
+beginning of dss_ovl_set_manager(). Or, should it be in unset_manager...
+I think unset is better, then a "free" overlay always disabled also in
+the HW level.
 
-	Arnd
+ Tomi
+
+
+--=-eRix5lGB9BPPNb98Ex/t
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQSJ9pAAoJEPo9qoy8lh71pJQP/0PrKEwtxxxDiAOLppjsu+Br
+hcl55hkAUhV7uRm1H4KI6sk9lIpHx7V08urRCd25NaXbg4lCEpKh4r4jPQhYqADg
+heYr9Xru7noPn2K4aILmUnEwrKkxaUvN8rg1rWlwT1AfM8Jhv/osm05gmz+pC+e6
+eHaBnd3MLcn4VMtX+CB0FRiaM2LhYxF9SGUt4t5s/tu9z7Bmmb6ti8rtYmZ3sK+w
+Y27T5+YAwX7FRsEzr2LlVcMzGFbDdtCUAG4RDAc/hdY/44qVLEefh8pn4S/J501b
+PqjfiXwdATp1gbYgQHOgZMNNbJWIq3bTxbs4kKkm+1E+LlVoH7LaGQ/ubQVLEg6g
+oc2jMqEp16pJ5r+dHp9v1DFbnbQ5n6kfLuSPR8AJFuGh9V2bAxOnF7ZUylQjPNr2
+09kabA9uKUclzod/Sg/sOESUOARUJvenOYYmp3ltmB3baztStSuWOKPUJHt2NOp0
+L4NYA9USRKTln/N1LzYvBfFYAWkGh+Uf4YcFbYRH2O/o5EpqSfhagUvQTMXnmIWS
+8bJcXIh605JtHl9kVEZUOVubPJgsM+2O7YwInPJL3d40j8TadpLOwOAVLoOOjBDa
+PstSHiRrwhUxvcK3+egcgqVZQxPUH6/VKASmnZr5/qluNijx93MO5mF6raJlIKwH
+f/GWpZ6rOL8qNT+2LkOg
+=XqoN
+-----END PGP SIGNATURE-----
+
+--=-eRix5lGB9BPPNb98Ex/t--
+
