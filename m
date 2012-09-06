@@ -1,61 +1,127 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v4 21/21] serial: omap: enable RX and TX FIFO usage
-Date: Thu,  6 Sep 2012 15:45:40 +0300
-Message-ID: <1346935540-1792-22-git-send-email-balbi@ti.com>
+Subject: [PATCH v4 20/21] serial: omap: move uart_omap_port definition to C file
+Date: Thu,  6 Sep 2012 15:45:39 +0300
+Message-ID: <1346935540-1792-21-git-send-email-balbi@ti.com>
 References: <20120906122948.GC29202@arwen.pp.htv.fi>
  <1346935540-1792-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50469 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755820Ab2IFMvQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 08:51:16 -0400
-Received: by lbbgj3 with SMTP id gj3so1101697lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 05:51:14 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346935540-1792-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-enable RX FIFO for 16 characters and TX FIFO
-for 16 spaces.
+nobody needs to access the uart_omap_port structure
+other than omap-serial.c file. Let's move that
+structure definition to the C source file in order
+to prevent anyone from accessing our structure.
 
 Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h | 37 --------------------------
+ drivers/tty/serial/omap-serial.c              | 38 +++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+), 37 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index a79ed8b..3c9fd3e 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -105,45 +105,8 @@ struct uart_omap_dma {
+ 	unsigned int		rx_timeout;
+ };
+ 
+-struct uart_omap_port {
+-	struct uart_port	port;
+-	struct uart_omap_dma	uart_dma;
+-	struct device		*dev;
+-
+-	unsigned char		ier;
+-	unsigned char		lcr;
+-	unsigned char		mcr;
+-	unsigned char		fcr;
+-	unsigned char		efr;
+-	unsigned char		dll;
+-	unsigned char		dlh;
+-	unsigned char		mdr1;
+-	unsigned char		scr;
+-
+-	int			use_dma;
+-	/*
+-	 * Some bits in registers are cleared on a read, so they must
+-	 * be saved whenever the register is read but the bits will not
+-	 * be immediately processed.
+-	 */
+-	unsigned int		lsr_break_flag;
+-	unsigned char		msr_saved_flags;
+-	char			name[20];
+-	unsigned long		port_activity;
+-	u32			context_loss_cnt;
+-	u32			errata;
+-	u8			wakeups_enabled;
+ 
+ 	int			DTR_gpio;
+ 	int			DTR_inverted;
+ 	int			DTR_active;
+-
+-	struct pm_qos_request	pm_qos_request;
+-	u32			latency;
+-	u32			calc_latency;
+-	struct work_struct	qos_work;
+-};
+-
+-#define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
+-
+ #endif /* __OMAP_SERIAL_H__ */
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 164c3c9..cfd2094 100644
+index 881b652..164c3c9 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -56,8 +56,8 @@
- #define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK		(1 << 7)
+@@ -70,6 +70,44 @@
+ #define OMAP_UART_MVR_MAJ_SHIFT		8
+ #define OMAP_UART_MVR_MIN_MASK		0x3f
  
- /* FCR register bitmasks */
--#define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
- #define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
-+#define OMAP_UART_FCR_TX_FIFO_TRIG_MASK			(0x3 << 4)
- 
- /* MVR register bitmasks */
- #define OMAP_UART_MVR_SCHEME_SHIFT	30
-@@ -834,9 +834,13 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 
- 	up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
- 
--	/* Set receive FIFO threshold to 1 byte */
-+	/* Set receive FIFO threshold to 16 characters and
-+	 * transmit FIFO threshold to 16 spaces
++struct uart_omap_port {
++	struct uart_port	port;
++	struct uart_omap_dma	uart_dma;
++	struct device		*dev;
++
++	unsigned char		ier;
++	unsigned char		lcr;
++	unsigned char		mcr;
++	unsigned char		fcr;
++	unsigned char		efr;
++	unsigned char		dll;
++	unsigned char		dlh;
++	unsigned char		mdr1;
++	unsigned char		scr;
++
++	int			use_dma;
++	/*
++	 * Some bits in registers are cleared on a read, so they must
++	 * be saved whenever the register is read but the bits will not
++	 * be immediately processed.
 +	 */
- 	up->fcr &= ~OMAP_UART_FCR_RX_FIFO_TRIG_MASK;
--	up->fcr |= (0x1 << OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT);
-+	up->fcr &= ~OMAP_UART_FCR_TX_FIFO_TRIG_MASK;
-+	up->fcr |= UART_FCR6_R_TRIGGER_16 | UART_FCR6_T_TRIGGER_24 |
-+		UART_FCR_ENABLE_FIFO;
++	unsigned int		lsr_break_flag;
++	unsigned char		msr_saved_flags;
++	char			name[20];
++	unsigned long		port_activity;
++	u32			context_loss_cnt;
++	u32			errata;
++	u8			wakeups_enabled;
++	unsigned int		irq_pending:1;
++
++	struct pm_qos_request	pm_qos_request;
++	u32			latency;
++	u32			calc_latency;
++	struct work_struct	qos_work;
++};
++
++#define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
++
+ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
  
- 	serial_out(up, UART_FCR, up->fcr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ /* Forward declaration of functions */
 -- 
 1.7.12.rc3
-
