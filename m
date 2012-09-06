@@ -1,96 +1,105 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] musb: Kill __init from function that are called at other
- times as well.
-Date: Thu, 6 Sep 2012 20:07:41 +0300
-Message-ID: <20120906170740.GB17754@arwen.pp.htv.fi>
-References: <1346940106-20269-1-git-send-email-panto@antoniou-consulting.com>
- <20120906130425.GF29202@arwen.pp.htv.fi>
- <B7BE7E99-90E8-4E54-B146-C09C6643BAFE@antoniou-consulting.com>
+Subject: Re: [PATCH 1/3] arm: omap: hwmod: add a new addr space in otg for
+ writing to control module
+Date: Thu, 6 Sep 2012 20:13:03 +0300
+Message-ID: <20120906171301.GC17754@arwen.pp.htv.fi>
+References: <1346943331-18120-1-git-send-email-kishon@ti.com>
+ <1346943331-18120-2-git-send-email-kishon@ti.com>
+ <5048C2A2.2020104@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:51725 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932400Ab2IFRMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 13:12:06 -0400
-Received: by lagy9 with SMTP id y9so1259149lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 10:12:03 -0700 (PDT)
+	protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <B7BE7E99-90E8-4E54-B146-C09C6643BAFE@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <5048C2A2.2020104@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, USB list <linux-usb@vger.kernel.org>, Russ Dill <Russ.Dill@ti.com>
 
 
---mojUlQ0s9EVzWg2t
+--eHhjakXzOLJAF9wJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Sep 06, 2012 at 05:58:27PM +0300, Pantelis Antoniou wrote:
-> Hi Felipe,
+On Thu, Sep 06, 2012 at 09:04:58PM +0530, Vaibhav Hiremath wrote:
 >=20
-> A proper answer required some instrumentation printks().
 >=20
-> So what I did is that I peppered each function marked with a removed
-> __init or __devinit with a=20
->=20
-> > printk(KERN_INFO "%s:%d (%s) %s\n", __FILE__, __LINE__, KBUILD_MODNAME,=
- __func__);
+> On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
+> > The mailbox register for usb otg in omap is present in control module.
+> > On detection of any events VBUS or ID, this register should be written
+> > to send the notification to musb core.
 > >=20
+> > Till we have a separate control module driver to write to control modul=
+e,
+> > omap2430 will handle the register writes to control module by itself. So
+> > a new address space to represent this control module register is added
+> > to usb_otg_hs.
+> >=20
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> >=20
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+> > index 242aee4..02341bc 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44xx_usb=
+_otg_hs_addrs[] =3D {
+> >  		.pa_end		=3D 0x4a0ab003,
+> >  		.flags		=3D ADDR_TYPE_RT
+> >  	},
+> > +	{
+> > +		.pa_start	=3D 0x4a00233c,
+> > +		.pa_end		=3D 0x4a00233f,
+> > +		.flags		=3D ADDR_TYPE_RT
+> > +	},
 >=20
-> Both omap2430 & musb_hdrc are compiled as module, and I issued the follow=
-ing=20
-> commands on a beagleboard xm.
+> I do not have any objection/comment here, but I believe this is control
+> module address space required for USB module, right?
+> I am not sure this is right way of accessing control module space.
+> Actually Control Module Access required for drivers is one of the
+> blocking issue we have currently.
 >=20
-> # modprobe omap2430
-> # modprobe g_mass_storage file=3Dbacking_file
-> # rmmod g_mass_storage
-> # rmmod omap2430
-> # modprobe omap2430
->=20
-> The problem is obvious when you see that functions marked as init or devi=
-nit are
-> called when re-loading the omap2430 module again. Those functions if mark=
-ed as
-> much can (and will as I have witnessed) be removed from memory, leading t=
-o a=20
-> crash.
->=20
-> What do you think?
+> Also there was some effort put up by 'Konstantine' to convert Control
+> module to MFD driver, I haven't seen any further update on it. But it
+> would be good to check with him.
 
-the problem would be with usage of __init. __devinit will only drop
-=2Edevinit.text if HOTPLUG and MODULE isn't set, AFAICT. I also can't see
-a crash on below logs.
+this was an agreement with Benoit since we already lost a couple merge
+windows for this patchset. We agreed to wait until -rc4 for SCM driver
+and if it wasn't ready, we'd go ahead with this and SCM author would fix
+it up on a patch converting users to new SCM driver.
 
 --=20
 balbi
 
---mojUlQ0s9EVzWg2t
+--eHhjakXzOLJAF9wJ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQSNhcAAoJEIaOsuA1yqREsFkQALK1YoKldw+1xrEQ1TyIEghH
-cxA0SFFMDHDUsvod4ObRb068x0egrBfDnKhvWq+SgDxJqPHFhuO7hv85iBjMBW1J
-MlFU2RodOodnWo1TlnVZe+dxhosQftkzNuK5GCO9yf0cB7jAu9LS34PGidmfdrEp
-0CzV+FN8onIEczEHVepuE5VqSE6t51TUjh+r50DGGSojEIW2fycMmGJtPSZEDq+Z
-oLbH5kRGOMj7SBST2kfMve12OV0QMZaxEchMexWcZSJLXheAu/YEu9TtREej2+R/
-Sad9Mf7p28/VnACNFPjThrU4UvEwgdcOkni8y38UDy6ZajJnwwj2W4MHPvidH4sS
-T/by5mA+qJXdlzPoyILJWxyEvTtOjhXxjYBDosGOBku8GL4G5xKqmWqqu+NmWNsq
-QC4Z1ipDjDtM593Ucn0jvY1qDtso+lJDmEqzjVbzmBzYXAln1TLyqS8UIoOKwDMd
-T8vEk3MlukNml4kbJo76N/TnPEkMyAGmh4vq85xRfREUZcptTCyuX3uISnOQiCPi
-cBLumQvpqzZ2hWmzMrsuo54qq9iOfKfd8KF2E5njhjMR5YR7slw3B+q30nZyMbLF
-7WcIB7gIHKwWA8Xh/bGKVFt1HbTpzAeycUG+HD/JtDWzJCFM6qF2TZ6+w11sBwZn
-8OjSLtbhLfwtOTpIbFl0
-=abED
+iQIcBAEBAgAGBQJQSNmdAAoJEIaOsuA1yqREWOIP/Ah2073wtfbxi2AJtgI6VqGC
+mjsDpMEWfoMJ4CfJGlcL8sQhGczVLY4vsgCSvvdlE5hp6s5PaX5XlzbQUuIQ2v0d
+9wTEiK4IJVmhNsICbMrn0GxUUpsuYoZNEpiN1nJ9au6Yxbygjo28Bw5CGRhqPfnl
+XulKaAzOtOqyHRvJ7v7yfplAaWhwYB4guAvxYQ3v+iTFYGv3V0KzH8LDOKPqDNbR
+DbPzgM2qI4k1iuvX/tsc1/DOvm6L8giAlf4tJt7nIXoLgzy5qlox6nv278qygiWW
+WLP9f/RSvMqNZSOhsEw6NmxfsLy3PYuULoIe4ngDOWB7UUHGhF7SWIZ7jSCtZFvJ
+Czc47ZH6UXgIKHBQ4KOBuqjG1xpGtkRWpGstbk2qZmW3O6/iP88T61s2Bqe+81R0
+lHuOmVzz64BxwSyFHRMQR6TJuFXFgsMZ9tgHISl9dznPh1vb9rXwr9kVGcWiMTpZ
+6ohKIQZIRqx3cIwkkPqvoKbt7dSGKyBkYUekyp61XV33W41ZrCmJi8odQmwM9cge
+IHWPUNgMERpJLYiMc8Cs1vpro9K6WqnT5mBHmfsuY/JtiGInTN7xIBhd5z991/vH
+cGf2w6hBgJmLeOFVTiDTPLE+tPn/NQmZpfNeUlz6sLc+/EBAbCO/x3Zu6odKILcl
+VhGyrpmqmgJHMSaug2OX
+=cQHs
 -----END PGP SIGNATURE-----
 
---mojUlQ0s9EVzWg2t--
+--eHhjakXzOLJAF9wJ--
