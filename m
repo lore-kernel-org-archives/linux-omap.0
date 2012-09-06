@@ -1,71 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] omap-serial: Request pins using pinctrl framework
-Date: Thu, 6 Sep 2012 14:17:26 -0700
-Message-ID: <20120906211725.GQ1303@atomide.com>
-References: <20120906185615.1172.23588.stgit@muffinssi.local>
- <20120906185832.1172.31013.stgit@muffinssi.local>
- <20120906195605.GA32145@arwen.pp.htv.fi>
+From: Rob Clark <robdclark@gmail.com>
+Subject: Re: Converting OMAP's custom vram allocator
+Date: Thu, 6 Sep 2012 16:35:04 -0500
+Message-ID: <CAF6AEGuaWO=8yueQQiCC=dr7pYaMRjTTdLzySfGd3PmX-R3P6Q@mail.gmail.com>
+References: <1346839733.32747.1.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:15660 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759866Ab2IFVRa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 17:17:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20120906195605.GA32145@arwen.pp.htv.fi>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:65065 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933246Ab2IFVfF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 17:35:05 -0400
+Received: by vbbff1 with SMTP id ff1so2050473vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 14:35:04 -0700 (PDT)
+In-Reply-To: <1346839733.32747.1.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>, linaro-mm-sig@lists.linaro.org
 
-* Felipe Balbi <balbi@ti.com> [120906 13:01]:
+On Wed, Sep 5, 2012 at 5:08 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 > Hi,
->=20
-> On Thu, Sep 06, 2012 at 11:58:32AM -0700, Tony Lindgren wrote:
-> > Request pins using pinctrl framework. Only show a warning
-> > on error as some boards set the pins in the bootloader
-> > even if CONFIG_PINCTRL is enabled.
-> >=20
-> > Cc: linux-serial@vger.kernel.org
-> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/plat-omap/include/plat/omap-serial.h |    1 +
-> >  drivers/tty/serial/omap-serial.c              |   10 ++++++++++
-> >  2 files changed, 11 insertions(+)
-> >=20
-> > diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/a=
-rm/plat-omap/include/plat/omap-serial.h
-> > index 1a52725..0f4de14 100644
-> > --- a/arch/arm/plat-omap/include/plat/omap-serial.h
-> > +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-> > @@ -106,6 +106,7 @@ struct uart_omap_port {
-> >  	struct uart_port	port;
-> >  	struct uart_omap_dma	uart_dma;
-> >  	struct platform_device	*pdev;
-> > +	struct pinctrl		*pins;
->=20
-> this won't apply to Greg's tty-next as I moved this structure to the =
-C
-> file :-s
+>
+> OMAP has a custom video ram allocator, which I'd like to remove and use
+> the standard dma allocation functions.
+>
+> There are two problems for which I'd like to hear suggestions or
+> comments:
+>
+> First one is that the dma_alloc_* functions map the allocated memory for
+> cpu use. In many cases with OMAP DSS (display subsystem) this is not
+> needed: the memory may be written only by the SGX or the DSP, and it's
+> only read by the DSS, so it's never touched by the CPU.
 
-Hmm the tty-next fails to build right now for omaps:
+see dma_alloc_attrs() and DMA_ATTR_NO_KERNEL_MAPPING
 
-drivers/tty/serial/omap-serial.c: In function =E2=80=98serial_omap_set_=
-mctrl=E2=80=99:
-drivers/tty/serial/omap-serial.c:514: error: =E2=80=98struct uart_omap_=
-port=E2=80=99 has no member named =E2=80=98DTR_gpio=E2=80=99
+> This is even more true when using VRFB on omap3 (and probably TILER on
+> omap4) for rotation, as VRFB hides the actual memory and offers rotated
+> views. In this case the backend memory is never accessed by anyone else
+> than VRFB.
 
-Maybe check how you want to fix that first? I can then update
-my patch for tty-next.
+just fwiw, we don't actually need contiguous memory on o4/tiler :-)
 
-Regards,
+(well, at least if you ignore things like secure playback)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Is there a way to allocate the memory without creating a mapping? While
+> it won't break anything as such, the allocated areas can be quite large
+> thus causing large areas of the kernel's memory space to be needlessly
+> reserved.
+>
+> The second case is passing a framebuffer address from the bootloader to
+> the kernel. Often with mobile devices the bootloader will initialize the
+> display hardware, showing a company logo or such. To keep the image on
+> the screen when kernel starts we need to reserve the same physical
+> memory area early at boot, and use that for the framebuffer.
+
+with a bit of handwaving, this is possible.  You can pass a base
+address to dma_declare_contiguous() when you setup your device's CMA
+pool.  Although that doesn't really guarantee you're allocation from
+that pool is at offset zero, I suppose.
+
+> I'm not sure if there's any actual problem with this one, presuming
+> there is a solution for the first case. Somehow the memory is reserved
+> at early boot time, and this is passed to the fb driver. But can the
+> memory be managed the same way as in normal case (for example freeing
+> it), or does it need to be handled as a special case?
+
+special-casing it might be better.. although possibly a dma attr could
+be added for this to tell dma_alloc_from_contiguous() that we need a
+particular address within the CMA pool.  It seems a bit like a hack,
+but OTOH I guess pretty much every consumer device would need a hack
+like this.
+
+BR,
+-R
+
+>  Tomi
+>
