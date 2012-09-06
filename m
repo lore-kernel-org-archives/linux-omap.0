@@ -1,434 +1,95 @@
-From: "Poddar, Sourav" <sourav.poddar@ti.com>
-Subject: Re: [PATCHv2 2/4] Input: keypad: Add smsc ece1099 keypad driver
-Date: Thu, 6 Sep 2012 11:08:45 +0530
-Message-ID: <CAKdam569gzYRjVqK0tyC=VzFOJm8KiNtE47VNJ5NSwDGyLQbSA@mail.gmail.com>
-References: <1346844997-24868-1-git-send-email-sourav.poddar@ti.com>
-	<50479A97.50606@ti.com>
-	<CAKdam55GZBo7Gx5MRkX-Wia9nXmtFAhanhmyCky7ikPQjoSOfw@mail.gmail.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH] drm/omap: update for interlaced
+Date: Thu, 6 Sep 2012 11:12:01 +0530
+Message-ID: <CAB2ybb-FDpFiaz6tAFajeohyUX54jOybZHFxZbMzFpFnhKMM+w@mail.gmail.com>
+References: <1346881733-31970-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <CAKdam55GZBo7Gx5MRkX-Wia9nXmtFAhanhmyCky7ikPQjoSOfw@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, santosh.shilimkar@ti.com, b-cousson@ti.com, balbi@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:45448 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751126Ab2IFFmX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 01:42:23 -0400
+Received: by pbbrr13 with SMTP id rr13so2019801pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 22:42:22 -0700 (PDT)
+In-Reply-To: <1346881733-31970-1-git-send-email-rob.clark@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-+ other external mailing list (did a reply to by mistake)
-
-On Thu, Sep 6, 2012 at 11:04 AM, Poddar, Sourav <sourav.poddar@ti.com> wrote:
-> Hi Vaibhav,
+Hi Rob,
+On Thu, Sep 6, 2012 at 3:18 AM, Rob Clark <rob.clark@linaro.org> wrote:
+> From: Rob Clark <rob@ti.com>
 >
-> On Thu, Sep 6, 2012 at 12:01 AM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->>
->>
->> On 9/5/2012 5:06 PM, Sourav Poddar wrote:
->>> From: G, Manjunath Kondaiah <manjugk@ti.com>
->>>
->>> SMSC ECE1099 is a keyboard scan or GPIO expansion device.The device
->>> supports a keypad scan matrix of 23*8.This driver uses this
->>> device as a keypad driver.
->>>
->>> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
->>> Cc: Benoit Cousson <b-cousson@ti.com>
->>> Cc: Felipe Balbi <balbi@ti.com>
->>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
->>> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->>> Acked-by: Felipe Balbi <balbi@ti.com>
->>> ---
->>> Changes since v1:
->>>  - Prevent the use of kfree since devm_kzalloc was used.
->>>  - Use devexit around remove api
->>>  drivers/input/keyboard/Kconfig               |   11 +
->>>  drivers/input/keyboard/Makefile              |    1 +
->>>  drivers/input/keyboard/smsc-ece1099-keypad.c |  306 ++++++++++++++++++++++++++
->>>  3 files changed, 318 insertions(+), 0 deletions(-)
->>>  create mode 100644 drivers/input/keyboard/smsc-ece1099-keypad.c
->>>
->>> diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
->>> index c50fa75..2a2d374 100644
->>> --- a/drivers/input/keyboard/Kconfig
->>> +++ b/drivers/input/keyboard/Kconfig
->>> @@ -593,6 +593,17 @@ config KEYBOARD_TWL4030
->>>         To compile this driver as a module, choose M here: the
->>>         module will be called twl4030_keypad.
->>>
->>> +config KEYBOARD_SMSC
->>> +       tristate "SMSC ECE1099 keypad support"
->>> +       depends on I2C=y
->>
->> Any specific reason behind "=y"
->>
-> Nope, my bad.."=y" should be dropped.
->>> +       help
->>> +         Say Y here if your board use the smsc keypad controller
->>> +         for omap5 defconfig. It's safe to say enable this
->>> +         even on boards that don't use the keypad controller.
->>> +
->>> +         To compile this driver as a module, choose M here: the
->>> +         module will be called smsc-ece1099-keypad.
->>> +
->>>  config KEYBOARD_XTKBD
->>>       tristate "XT keyboard"
->>>       select SERIO
->>> diff --git a/drivers/input/keyboard/Makefile b/drivers/input/keyboard/Makefile
->>> index 44e7600..0f2aa26 100644
->>> --- a/drivers/input/keyboard/Makefile
->>> +++ b/drivers/input/keyboard/Makefile
->>> @@ -52,5 +52,6 @@ obj-$(CONFIG_KEYBOARD_TC3589X)              += tc3589x-keypad.o
->>>  obj-$(CONFIG_KEYBOARD_TEGRA)         += tegra-kbc.o
->>>  obj-$(CONFIG_KEYBOARD_TNETV107X)     += tnetv107x-keypad.o
->>>  obj-$(CONFIG_KEYBOARD_TWL4030)               += twl4030_keypad.o
->>> +obj-$(CONFIG_KEYBOARD_SMSC)            += smsc-ece1099-keypad.o
->>>  obj-$(CONFIG_KEYBOARD_XTKBD)         += xtkbd.o
->>>  obj-$(CONFIG_KEYBOARD_W90P910)               += w90p910_keypad.o
->>> diff --git a/drivers/input/keyboard/smsc-ece1099-keypad.c b/drivers/input/keyboard/smsc-ece1099-keypad.c
->>> new file mode 100644
->>> index 0000000..71cd7d6
->>> --- /dev/null
->>> +++ b/drivers/input/keyboard/smsc-ece1099-keypad.c
->>> @@ -0,0 +1,306 @@
->>> +/*
->>> + * SMSC_ECE1099 Keypad driver
->>> + *
->>> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +#include <linux/i2c.h>
->>> +#include <linux/kernel.h>
->>> +#include <linux/module.h>
->>> +#include <linux/init.h>
->>> +#include <linux/interrupt.h>
->>> +#include <linux/input.h>
->>> +#include <linux/gpio.h>
->>> +#include <linux/slab.h>
->>> +#include <linux/jiffies.h>
->>> +#include <linux/input/matrix_keypad.h>
->>> +#include <linux/delay.h>
->>> +#include <linux/mfd/core.h>
->>> +#include <linux/mfd/smsc.h>
->>> +#include <linux/of_gpio.h>
->>> +#include <linux/of.h>
->>> +
->>> +#define KEYPRESS_TIME          200
->>> +
->>> +struct smsc_keypad {
->>> +     struct smsc *smsc;
->>> +     struct matrix_keymap_data *keymap_data;
->>> +     unsigned int last_key_state[16];
->>> +     unsigned int last_col;
->>> +     unsigned int last_key_ms[16];
->>> +     unsigned short *keymap;
->>> +     struct i2c_client *client;
->>> +     struct input_dev *input;
->>> +     int rows, cols;
->>> +     int row_shift;
->>> +     bool no_autorepeat;
->>> +     unsigned        irq;
->>> +     struct device *dev;
->>> +};
->>> +
->>> +static void smsc_kp_scan(struct smsc_keypad *kp)
->>> +{
->>> +     struct input_dev *input = kp->input;
->>> +     int i, j;
->>> +     int row, col;
->>> +     int temp, code;
->>> +     unsigned int new_state[16];
->>> +     unsigned int bits_changed;
->>> +     int this_ms;
->>> +
->>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0x00);
->>> +     smsc_write(kp->dev, SMSC_KP_INT_STAT, 0xFF);
->>> +
->>> +     /* Scan for row and column */
->>> +     for (i = 0; i < kp->cols; i++) {
->>> +             smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_EVAL + i);
->>> +             /* Read Row Status */
->>> +             smsc_read(kp->dev, SMSC_KP_IN, &temp);
->>> +             if (temp == 0xFF)
->>> +                     continue;
->>> +
->>> +             col = i;
->>> +             for (j = 0; j < kp->rows; j++) {
->>> +                     if ((temp & 0x01) != 0x00) {
->>> +                             temp = temp >> 1;
->>> +                             continue;
->>> +                     }
->>> +
->>> +                     row = j;
->>> +                     new_state[col] =  (1 << row);
->>> +                     bits_changed = kp->last_key_state[col] ^ new_state[col];
->>> +                     this_ms = jiffies_to_msecs(jiffies);
->>> +                     if (bits_changed != 0 || (!bits_changed &&
->>> +                                     ((this_ms - kp->last_key_ms[col]) >= KEYPRESS_TIME))) {
->>> +                             code = MATRIX_SCAN_CODE(row, col, kp->row_shift);
->>> +                             input_event(input, EV_MSC, MSC_SCAN, code);
->>> +                             input_report_key(input, kp->keymap[code], 1);
->>> +                             input_report_key(input, kp->keymap[code], 0);
->>> +                             kp->last_key_state[col] = new_state[col];
->>> +                             if (kp->last_col != col)
->>> +                                     kp->last_key_state[kp->last_col] = 0;
->>> +                             kp->last_key_ms[col] = this_ms;
->>> +                     }
->>> +                     temp = temp >> 1;
->>> +             }
->>> +     }
->>> +     input_sync(input);
->>> +
->>> +     smsc_write(kp->dev, SMSC_KP_INT_MASK, 0xFF);
->>> +
->>> +     /* Set up Low Power Mode (Wake-up) (0xFB) */
->>> +     smsc_write(kp->dev, SMSC_WKUP_CTRL, SMSC_KP_SET_LOW_PWR);
->>> +
->>> +     /*Enable Keypad Scan (generate interrupt on key press) (0x40)*/
->>> +     smsc_write(kp->dev, SMSC_KP_OUT, SMSC_KSO_ALL_LOW);
->>> +}
->>> +
->>> +static irqreturn_t do_kp_irq(int irq, void *_kp)
->>> +{
->>> +     struct smsc_keypad *kp = _kp;
->>> +     int int_status;
->>> +
->>> +     smsc_read(kp->dev, SMSC_KP_INT_STAT, &int_status);
->>> +     if (int_status)
->>> +             smsc_kp_scan(kp);
->>> +
->>> +     return IRQ_HANDLED;
->>> +}
->>> +
->>> +#ifdef CONFIG_OF
->>> +static int __devinit smsc_keypad_parse_dt(struct device *dev,
->>> +                             struct smsc_keypad *kp)
->>> +{
->>> +     struct device_node *np = dev->of_node;
->>> +
->>> +     if (!np) {
->>> +             dev_err(dev, "missing DT data");
->>> +             return -EINVAL;
->>
->> Isn't you should return -ENXIO?
->>
-> I think "EINVAL" is more apt as it will reflect that the user has not populated
-> the dt data and its an invalid argument.
->>> +     }
->>> +
->>> +     of_property_read_u32(np, "keypad,num-rows", &kp->rows);
->>> +     of_property_read_u32(np, "keypad,num-columns", &kp->cols);
->>> +     if (!kp->rows || !kp->cols) {
->>> +             dev_err(dev, "number of keypad rows/columns not specified\n");
->>> +             return -EINVAL;
->>> +     }
->>> +
->>> +     if (of_get_property(np, "linux,input-no-autorepeat", NULL))
->>> +             kp->no_autorepeat = true;
->>> +
->>
->> You can use of_property_read_bool() here.
->>
-> Ok.Will change.
->>> +     return 0;
->>> +}
->>> +#else
->>> +static inline int smsc_keypad_parse_dt(struct device *dev,
->>> +                             struct smsc_keypad *kp)
->>> +{
->>> +     return -ENOSYS;
->>> +}
->>> +#endif
->>> +
->>> +static int __devinit
->>> +smsc_probe(struct platform_device *pdev)
->>> +{
->>> +     struct device *dev = &pdev->dev;
->>> +     struct smsc *smsc = dev_get_drvdata(pdev->dev.parent);
->>> +     struct input_dev *input;
->>> +     struct smsc_keypad *kp;
->>> +     int ret = 0, error;
->>> +     int col, i, max_keys, row_shift;
->>> +     int irq;
->>> +     int addr_start, addr;
->>> +
->>> +     kp = devm_kzalloc(dev, sizeof(*kp), GFP_KERNEL);
->>> +
->>> +     input = input_allocate_device();
->>> +     if (!kp || !input) {
->>> +             error = -ENOMEM;
->>> +             goto err1;
->>
->> You can directly return here.
->>
-> Ok.
->>> +     }
->>> +
->>> +     error = smsc_keypad_parse_dt(&pdev->dev, kp);
->>> +     if (error)
->>> +             return error;
->>> +
->>> +     /* Get the debug Device */
->>> +     kp->input = input;
->>> +     kp->smsc = smsc;
->>> +     kp->irq = platform_get_irq(pdev, 0);
->>> +     kp->dev = dev;
->>> +
->>> +     for (col = 0; col < 16; col++) {
->>
->> Isn't this magic no 16 should come from DT??
->>
-> Yes, actually its the number of columns which is coming from
-> dt only. I will replace it with the correct variable containg this data.
->>
->>> +             kp->last_key_state[col] = 0;
->>> +             kp->last_key_ms[col] = 0;
->>> +     }
->>> +
->>> +     /* setup input device */
->>> +      __set_bit(EV_KEY, input->evbit);
->>> +
->>> +     /* Enable auto repeat feature of Linux input subsystem */
->>> +     if (!(kp->no_autorepeat))
->>> +             __set_bit(EV_REP, input->evbit);
->>> +
->>> +     input_set_capability(input, EV_MSC, MSC_SCAN);
->>> +     input->name             = "SMSC Keypad";
->>> +     input->phys             = "smsc_keypad/input0";
->>> +     input->dev.parent       = &pdev->dev;
->>> +     input->id.bustype       = BUS_HOST;
->>> +     input->id.vendor        = 0x0001;
->>> +     input->id.product       = 0x0001;
->>> +     input->id.version       = 0x0003;
->>> +
->>> +     error = input_register_device(input);
->>> +     if (error) {
->>> +             dev_err(kp->dev,
->>> +                     "Unable to register twl4030 keypad device\n");
->>> +             goto err1;
->>> +     }
->>> +
->>> +     /* Mask all GPIO interrupts (0x37-0x3B) */
->>> +     for (addr = 0x37; addr < 0x3B; addr++)
->>> +             smsc_write(dev, addr, 0);
->>> +
->>> +     /* Set all outputs high (0x05-0x09) */
->>> +     for (addr = 0x05; addr < 0x09; addr++)
->>> +             smsc_write(dev, addr, 0xff);
->>> +
->>> +     /* Clear all GPIO interrupts (0x32-0x36) */
->>> +     for (addr = 0x32; addr < 0x36; addr++)
->>> +             smsc_write(dev, addr, 0xff);
->>> +
->>> +     addr_start = 0x12;
->>> +     for (i = 0; i <= kp->rows; i++) {
->>> +             addr = 0x12 + i;
->>> +             smsc_write(dev, addr, SMSC_KP_KSI);
->>> +     }
->>> +
->>> +     addr_start =  0x1A;
->>> +     for (i = 0; i <= kp->cols; i++) {
->>> +             addr = 0x1A + i;
->>> +             smsc_write(dev, addr, SMSC_KP_KSO);
->>> +     }
->>> +
->>
->> Lots of magic numbers without proper description/comments.
->>
-> I will try to put comments or replace the magic numbers with the
-> macros declared in .h file.
->>> +     addr = SMSC_KP_INT_STAT;
->>> +     smsc_write(dev, addr, SMSC_KP_SET_HIGH);
->>> +
->>> +     addr = SMSC_WKUP_CTRL;
->>> +     smsc_write(dev, addr, SMSC_KP_SET_LOW_PWR);
->>> +
->>> +     addr = SMSC_KP_OUT;
->>> +     smsc_write(dev, addr, SMSC_KSO_ALL_LOW);
->>> +
->>
->> I didn't understand why to initialize 'addr' and pass it, why can't you
->> directly pass it as a argument?
->>
-> Actually Yes, addr can be directly replaced with the corresponding address.
->>> +     row_shift = get_count_order(kp->cols);
->>> +     max_keys = kp->rows << row_shift;
->>> +
->>> +     kp->row_shift = row_shift;
->>> +     kp->keymap = kzalloc(max_keys * sizeof(kp->keymap[0]),
->>> +                                     GFP_KERNEL);
->>> +     if (!kp->keymap) {
->>> +             dev_err(&pdev->dev, "Not enough memory for keymap\n");
->>> +             error = -ENOMEM;
->>> +     }
->>> +
->>> +     matrix_keypad_build_keymap(NULL, NULL, kp->rows,
->>> +                     kp->cols, kp->keymap, input);
->>> +
->>> +     /*
->>> +     * This ISR will always execute in kernel thread context because of
->>> +     * the need to access the SMSC over the I2C bus.
->>> +     */
->>> +     ret = devm_request_threaded_irq(dev, kp->irq, NULL, do_kp_irq,
->>> +                     IRQF_TRIGGER_FALLING | IRQF_ONESHOT, pdev->name, kp);
->>> +     if (ret) {
->>> +             dev_dbg(&pdev->dev, "request_irq failed for irq no=%d\n",
->>> +                     irq);
->>> +             goto err2;
->>> +     }
->>> +
->>> +     /* Enable smsc keypad interrupts */
->>> +     ret = smsc_write(dev, SMSC_KP_INT_MASK, 0xff);
->>> +     if (ret < 0)
->>> +             goto err2;
->>> +
->>> +     return 0;
->>> +
->>> +err2:
->>> +     input_unregister_device(input);
->>> +err1:
->>> +     input_free_device(input);
->>
->> You are not freeing memory allocated for kp->keymap. Please use devm_
->> variants.
->>
-> True. Will do.
->> Thanks,
->> Vaibhav
->>> +     return ret;
->>> +}
->>> +
->>> +static int __devexit smsc_remove(struct platform_device *pdev)
->>> +{
->>> +     struct smsc_keypad *kp = platform_get_drvdata(pdev);
->>> +     input_unregister_device(kp->input);
->>> +
->>> +     return 0;
->>> +}
->>> +
->>> +#ifdef CONFIG_OF
->>> +static const struct of_device_id smsc_keypad_dt_match[] = {
->>> +     { .compatible = "smsc,keypad" },
->>> +     {},
->>> +};
->>> +MODULE_DEVICE_TABLE(of, smsc_keypad_dt_match);
->>> +#endif
->>> +
->>> +static struct platform_driver smsc_driver = {
->>> +     .driver = {
->>> +             .name   = "smsc-keypad",
->>> +             .of_match_table = of_match_ptr(smsc_keypad_dt_match),
->>> +             .owner  = THIS_MODULE,
->>> +     },
->>> +     .probe          = smsc_probe,
->>> +     .remove         = __devexit_p(smsc_remove),
->>> +};
->>> +
->>> +module_platform_driver(smsc_driver);
->>> +
->>> +MODULE_AUTHOR("G Kondaiah Manjunath <manjugk@ti.com>");
->>> +MODULE_DESCRIPTION("SMSC ECE1099 Keypad driver");
->>> +MODULE_LICENSE("GPL v2");
->>>
+> 'struct omap_video_timings' was updated w/ a 'bool interlaced'.  Without
+> a matching update in omap_connector, this field could have undefined
+> values from the stack, which isn't quite ideal.
+>
+> Update the fxns to convert omapdss<->drm timings structs, and zero-init
+> 'struct omap_video_timings' when it is declared on stack to avoid issues
+> like this in the future.
+>
+> Signed-off-by: Rob Clark <rob@ti.com>
+Feel free to use
+Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
+> ---
+>  drivers/staging/omapdrm/omap_connector.c |   17 ++++++++---------
+>  1 file changed, 8 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/staging/omapdrm/omap_connector.c b/drivers/staging/omapdrm/omap_connector.c
+> index 5e2856c..5f4a89b 100644
+> --- a/drivers/staging/omapdrm/omap_connector.c
+> +++ b/drivers/staging/omapdrm/omap_connector.c
+> @@ -48,13 +48,10 @@ static inline void copy_timings_omap_to_drm(struct drm_display_mode *mode,
+>         mode->vsync_end = mode->vsync_start + timings->vsw;
+>         mode->vtotal = mode->vsync_end + timings->vbp;
+>
+> -       /* note: whether or not it is interlaced, +/- h/vsync, etc,
+> -        * which should be set in the mode flags, is not exposed in
+> -        * the omap_video_timings struct.. but hdmi driver tracks
+> -        * those separately so all we have to have to set the mode
+> -        * is the way to recover these timings values, and the
+> -        * omap_dss_driver would do the rest.
+> -        */
+> +       mode->flags = 0;
+> +
+> +       if (timings->interlace)
+> +               mode->flags |= DRM_MODE_FLAG_INTERLACE;
+>  }
+>
+>  static inline void copy_timings_drm_to_omap(struct omap_video_timings *timings,
+> @@ -71,6 +68,8 @@ static inline void copy_timings_drm_to_omap(struct omap_video_timings *timings,
+>         timings->vfp = mode->vsync_start - mode->vdisplay;
+>         timings->vsw = mode->vsync_end - mode->vsync_start;
+>         timings->vbp = mode->vtotal - mode->vsync_end;
+> +
+> +       timings->interlace = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
+>  }
+>
+>  static void omap_connector_dpms(struct drm_connector *connector, int mode)
+> @@ -187,7 +186,7 @@ static int omap_connector_get_modes(struct drm_connector *connector)
+>                 }
+>         } else {
+>                 struct drm_display_mode *mode = drm_mode_create(dev);
+> -               struct omap_video_timings timings;
+> +               struct omap_video_timings timings = {0};
+>
+>                 dssdrv->get_timings(dssdev, &timings);
+>
+> @@ -291,7 +290,7 @@ void omap_connector_mode_set(struct drm_connector *connector,
+>         struct omap_connector *omap_connector = to_omap_connector(connector);
+>         struct omap_dss_device *dssdev = omap_connector->dssdev;
+>         struct omap_dss_driver *dssdrv = dssdev->driver;
+> -       struct omap_video_timings timings;
+> +       struct omap_video_timings timings = {0};
+>
+>         copy_timings_drm_to_omap(&timings, mode);
+>
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
