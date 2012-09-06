@@ -1,100 +1,58 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: hwmod: revise deassert sequence
-Date: Thu, 6 Sep 2012 17:12:58 +0200
-Message-ID: <5048BD7A.7060408@ti.com>
-References: <1345614150-25723-1-git-send-email-omar.luna@linaro.org> <1345614150-25723-3-git-send-email-omar.luna@linaro.org>
+Subject: Re: [PATCH 0/2] OMAP: hwmod: fix hardreset handling
+Date: Thu, 6 Sep 2012 17:16:26 +0200
+Message-ID: <5048BE4A.1000603@ti.com>
+References: <1345614150-25723-1-git-send-email-omar.luna@linaro.org> <CALLhW=4GNagMQgn+W8muLz__sSRv6ZOt_FvzXHLcaQzw3N_3yg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1345614150-25723-3-git-send-email-omar.luna@linaro.org>
+In-Reply-To: <CALLhW=4GNagMQgn+W8muLz__sSRv6ZOt_FvzXHLcaQzw3N_3yg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 Hi Omar,
 
-On 08/22/2012 07:42 AM, Omar Ramirez Luna wrote:
-> For a reset sequence to complete cleanly, a module needs its
-> associated clocks to be enabled, otherwise the timeout check
-> in prcm code can print a false failure (failed to hardreset)
-> that occurs because the clocks aren't powered ON and the status
-> bit checked can't transition without them.
+On 09/03/2012 04:29 PM, Omar Ramirez Luna wrote:
+> On 22 August 2012 00:42, Omar Ramirez Luna <omar.luna@linaro.org> wrote:
+>> From: Omar Ramirez Luna <omar.ramirez@ti.com>
+>>
+>> The patch to expose hwmod assert/deassert functions through omap_device
+>> has been accepted and queued for 3.7[1], however these two patches are
+>> needed to make the API functional. Hence a revised version is being sent
+>> according to previous comments:
+>>
+>> - ARM: OMAP: hwmod: revise deassert sequence
+>> Now it uses enable|disable_module to handle the configuration of the
+>> modulemode inside CLKCTRL. As part of the cleanup of leaf clocks, the
+>> one associated with ipu_mmu will be removed along with the iommu hwmod
+>> migration[2].
+>>
+>> - ARM: OMAP: hwmod: partially un-reset hwmods might not be properly
+>>   enabled
+>> More infomation added in the patch description[3].
+>>
+>> [1] http://patchwork.kernel.org/patch/1266731/
+>> [2] http://patchwork.kernel.org/patch/1201791/
+>> [3] http://patchwork.kernel.org/patch/1201801/
+>>
+>> Omar Ramirez Luna (2):
+>>   ARM: OMAP: hwmod: partially un-reset hwmods might not be properly
+>>     enabled
+>>   ARM: OMAP: hwmod: revise deassert sequence
+>>
+>>  arch/arm/mach-omap2/omap_hwmod.c |   74 ++++++++++++++++++++++++++++++--------
+>>  1 file changed, 59 insertions(+), 15 deletions(-)
 > 
-> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |   37 +++++++++++++++++++++++++++++++++++++
->  1 file changed, 37 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index eaedc33..b65e021 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1509,6 +1509,7 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
->  {
->  	struct omap_hwmod_rst_info ohri;
->  	int ret = -EINVAL;
-> +	int hwsup = 0;
->  
->  	if (!oh)
->  		return -EINVAL;
-> @@ -1520,10 +1521,46 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
->  	if (IS_ERR_VALUE(ret))
->  		return ret;
->  
-> +	if (oh->clkdm) {
-> +		/*
-> +		 * A clockdomain must be in SW_SUP otherwise reset
-> +		 * might not be completed. The clockdomain can be set
-> +		 * in HW_AUTO only when the module become ready.
-> +		 */
-> +		hwsup = clkdm_in_hwsup(oh->clkdm);
-> +		ret = clkdm_hwmod_enable(oh->clkdm, oh);
-> +		if (ret) {> 
+> Ping.
 
-> +			WARN(1, "omap_hwmod: %s: could not enable clockdomain %s: %d\n",
-> +			     oh->name, oh->clkdm->name, ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	_enable_clocks(oh);
-> +	if (soc_ops.enable_module)
-> +		soc_ops.enable_module(oh);
-> +
->  	ret = soc_ops.deassert_hardreset(oh, &ohri);
-> +
-> +	if (soc_ops.disable_module)
-> +		soc_ops.disable_module(oh);
-> +	_disable_clocks(oh);
-> +
->  	if (ret == -EBUSY)
->  		pr_warning("omap_hwmod: %s: failed to hardreset\n", oh->name);
->  
-> +	if (!ret) {
-> +		/*
-> +		 * Set the clockdomain to HW_AUTO, assuming that the
-> +		 * previous state was HW_AUTO.
-> +		 */
-> +		if (oh->clkdm && hwsup)
-> +			clkdm_allow_idle(oh->clkdm);
-> +	} else {
-> +		if (oh->clkdm)
-> +			clkdm_hwmod_disable(oh->clkdm, oh);
-> +	}
-> +
->  	return ret;
->  }
->  
+Oops, sorry, I forgot your series.
 
-The sequence is good, I'm just a little bit concern about the
-duplication of code compared to _enable sequence.
+Beside the concern about the duplication of code, that looks good to me.
 
-That being said, this is the consequence of removing the hardreset
-sequence outside of the main _enable/_shutdown sequence.
-
-So I'm not sure I have any better way of doing that :-(
+I'll sync with Paul to see who will push that series.
 
 Regards,
 Benoit
