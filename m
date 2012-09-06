@@ -1,75 +1,74 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v7 1/7] drivers: usb: phy: add a new driver for omap usb2
- phy
-Date: Thu, 6 Sep 2012 17:45:33 +0530
-Message-ID: <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw@mail.gmail.com>
-References: <1344258480-4304-1-git-send-email-kishon@ti.com>
- <1344258480-4304-2-git-send-email-kishon@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 03/23] serial: omap: don't access the platform_device
+Date: Thu, 6 Sep 2012 15:29:50 +0300
+Message-ID: <20120906122948.GC29202@arwen.pp.htv.fi>
+References: <1345717983-18179-1-git-send-email-balbi@ti.com>
+ <1345717983-18179-4-git-send-email-balbi@ti.com>
+ <20120905202721.GA2430@kroah.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1344258480-4304-2-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wxDdMuZNg1r63Hyj"
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120905202721.GA2430@kroah.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Felipe Balbi <balbi@ti.com>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-On Mon, Aug 6, 2012 at 6:37 PM, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org> wrote:
-> All phy related programming like enabling/disabling the clocks, powering
-> on/off the phy is taken care of by this driver. It is also used for OTG
-> related functionality like srp.
->
-> This also includes device tree support for usb2 phy driver and
-> the documentation with device tree binding information is updated.
->
-> Currently writing to control module register is taken care in this
-> driver which will be removed once the control module driver is in place.
->
-> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> ---
->  .../devicetree/bindings/bus/omap-ocp2scp.txt       |    3 +
->  Documentation/devicetree/bindings/usb/omap-usb.txt |   17 ++
->  drivers/usb/phy/Kconfig                            |   10 +
->  drivers/usb/phy/Makefile                           |    1 +
->  drivers/usb/phy/omap-usb2.c                        |  271 ++++++++++++++++++++
->  include/linux/usb/omap_usb.h                       |   46 ++++
->  include/linux/usb/phy_companion.h                  |   34 +++
->  7 files changed, 382 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/usb/omap-usb.txt
->  create mode 100644 drivers/usb/phy/omap-usb2.c
->  create mode 100644 include/linux/usb/omap_usb.h
->  create mode 100644 include/linux/usb/phy_companion.h
->
-> diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> index d2fe064..bb0c7f4 100644
-> --- a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
-> @@ -8,3 +8,6 @@ properties:
->
->  Sub-nodes:
->  All the devices connected to ocp2scp are described using sub-node to ocp2scp
-> +- usb2phy :
-> +   The binding details of usb2phy can be found in:
-> +   Documentation/devicetree/bindings/usb/omap-usb.txt
+--wxDdMuZNg1r63Hyj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The above two lines should be added in omap-ocp2scp.txt (this file was
-added as part of omap: add ocp2scp as a bus driver and is in
-linux-next). However this file is still not in Felipe's xceiv branch.
-So I'm not sure how I can get this patch merged in Felipe's tree
-without conflict.
+On Wed, Sep 05, 2012 at 01:27:21PM -0700, Greg KH wrote:
+> On Thu, Aug 23, 2012 at 01:32:43PM +0300, Felipe Balbi wrote:
+> > The driver doesn't need to know about its platform_device.
+> >=20
+> > Everything the driver needs can be done through the
+> > struct device pointer. In case we need to use the
+> > OMAP-specific PM function pointers, those can make
+> > sure to find the device's platform_device pointer
+> > so they can find the struct omap_device through
+> > pdev->archdata field.
+> >=20
+> > Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Felipe Balbi <balbi@ti.com>
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> This series fails when applying to my tty-next branch at this patch :(
+>=20
+> Care to refresh it, and resend it, with Tony's acks added, so I can
+> apply it?  Note, I've already applied the first two.
 
-Thanks
-Kishon
+Sure, will do and reply to this mail with the new series. Thanks
+
+--=20
+balbi
+
+--wxDdMuZNg1r63Hyj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQSJc8AAoJEIaOsuA1yqRE7ZMP/0NG31jOh4NwF5d7nK2xxMWg
+fdYD4T68uGW2hLjGFqeqxTJUIo98+q45jcc0ZyC5mGRb1Tq4k5CWaB7DiL5b2UfQ
+eGfR6cb7fMzKIMhQ+I07HOQW5uBQxO5Cv3cQvDfwUqiduEpZJoU3MGlzsAQXZxev
+/AWYhXmUonhm83Bt0SoO+0oa0Yp4+BFEh4bEN5exPocwH16Zkv3A8c1UNH0qaBmE
+wbG0EzK8NORqx+v43uIfrDdQMN/ZYXXikqnjkJUnXkL/t7h+qpTPejiLYjm8EkKW
+BjsByPezjOXGrx+7dnJ83YV5gQQfLk2nNuSqP36ZyVCpzHP4/UW2pz8jEcLks/mW
+6zU02DKR7HbuYNhMgjb3mLUSg57Ry2PcY3kgFLTU/XcF0hueVD4arLq8uue1dljW
+ymHFUvV+7SBppvfRmd5WSU9/s+ipslmZqO2AQt+DuEB3HlB3QLx+l2bN3fm0tHLt
+YW6Tne4Dj6hx02d4JEaqWPYhwIoV61Un5eyRFdKB8JCWnHMJ+qKXKvmEJe1TH3JD
+KZOw/RmqcKOLhvxIRGu5HOcXp4vXD9WVzKDEETrWo5X3wB+XBQ2vm+whW6jPrgVA
+imjqJbmxjcwguGPPCslNR/WERVuczfJE+oTbQWi8iqnSm2p6g2Qss95LSBguxpoa
+ho9wCqVTW4zl9PAc2WMZ
+=s6jI
+-----END PGP SIGNATURE-----
+
+--wxDdMuZNg1r63Hyj--
