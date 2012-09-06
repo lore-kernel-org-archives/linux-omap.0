@@ -1,46 +1,41 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 0/2] arm/dts: AM33XX: Add reg and interrupt property for
- all nodes
-Date: Thu, 6 Sep 2012 15:57:51 +0200
-Message-ID: <5048ABDF.6020609@ti.com>
-References: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] Don't clobber access methods when !regmap
+Date: Thu, 06 Sep 2012 17:01:14 +0300
+Message-ID: <5048ACAA.3000505@ti.com>
+References: <1346939132-20187-1-git-send-email-panto@antoniou-consulting.com> <50477FA9.8060905@metafoo.de> <D96C7824-5EBC-4418-B016-DCE395A720D7@antoniou-consulting.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346070714-6122-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <D96C7824-5EBC-4418-B016-DCE395A720D7@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-kernel@vger.kernel.org, patches@opensource.wolfsonmicro.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Vaihbav,
+Hi,
 
-On 08/27/2012 02:31 PM, Vaibhav Hiremath wrote:
-> This series is trivial patch-series and should be considered as
-> preparation for the future where we supposed to get rid of
-> hwmod dependency.
-> 
-> 1/2: Converts all hex numbers to lowercase, fixing inconsistency
-> 2/2: Add reg and interrupt property  to all device/module nodes inside
->      DTS files. 
-> 
-> Although currently hwmod overwrites resources, I have validated this
-> patch series by changing the omap_device layer to respect DT resources
-> and boot Tested on BeagleBone platform.
-> I will be submitting the changes for omap_device layer as well, still
-> needs to fix on certain things.
-> 
-> Vaibhav Hiremath (2):
->   arm/dts: AM33XX: Convert all hex numbers to lower-case
->   arm/dts: AM33XX: Specify reg and interrupt property for all nodes
-> 
->  arch/arm/boot/dts/am335x-bone.dts |    2 +-
->  arch/arm/boot/dts/am335x-evm.dts  |    2 +-
->  arch/arm/boot/dts/am33xx.dtsi     |   62 +++++++++++++++++++++++++++++++------
->  3 files changed, 54 insertions(+), 12 deletions(-)
+On 09/05/2012 07:43 PM, Pantelis Antoniou wrote:
+> The driver in question (twl4030.c) does not call snd_soc_codec_set_ca=
+che_io().
+> However the snd-soc core does call it in sound/soc/soc-core.c in soc_=
+probe_codec.
+>=20
+> I do see that there's a commit 98d3088e534a2a61f6690b5426909b0c3b57a7=
+85 that is
+> fixing it in a different manner.
 
-I'll queue that along with the other DT stuff for 3.7.
+I also noticed this (with 3.6-rc1 I think).
+The commit you mention does fix it so we do not have issue anymore.
+I sent two patches related to this:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-August/053864=
+=2Ehtml
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-August/053876=
+=2Ehtml
 
-Thanks,
-Benoit
+Mark took a different route which gives us the commit you mentioned:
+http://mailman.alsa-project.org/pipermail/alsa-devel/2012-August/053889=
+=2Ehtml
+
+Regards,
+P=E9ter
