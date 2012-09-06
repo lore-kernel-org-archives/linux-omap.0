@@ -1,50 +1,49 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 12/14] ASoC: twl4030: Convert to use devm_kzalloc
-Date: Thu,  6 Sep 2012 15:12:19 +0300
-Message-ID: <1346933541-21547-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 01/14] MFD: twl4030-audio: Clean up MODULE_* and platform_driver part
+Date: Thu,  6 Sep 2012 15:12:08 +0300
+Message-ID: <1346933541-21547-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:46388 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754029Ab2IFMMo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 08:12:44 -0400
-Received: by obbuo13 with SMTP id uo13so2297319obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 05:12:43 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Allocate the private data with devm_kzalloc.
+Place the MODULE_* lines in the same block and add MODULE_DESCRIPTION.
+Rearange the platform_driver structure at the same time.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/codecs/twl4030.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/twl4030-audio.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index 27ccea4..413e698 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -2231,7 +2231,8 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
- {
- 	struct twl4030_priv *twl4030;
+diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
+index 838ce4e..ac04b4f 100644
+--- a/drivers/mfd/twl4030-audio.c
++++ b/drivers/mfd/twl4030-audio.c
+@@ -250,18 +250,18 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
--	twl4030 = kzalloc(sizeof(struct twl4030_priv), GFP_KERNEL);
-+	twl4030 = devm_kzalloc(codec->dev, sizeof(struct twl4030_priv),
-+			       GFP_KERNEL);
- 	if (twl4030 == NULL) {
- 		dev_err(codec->dev, "Can not allocate memory\n");
- 		return -ENOMEM;
-@@ -2253,7 +2254,6 @@ static int twl4030_soc_remove(struct snd_soc_codec *codec)
- 	/* Reset registers to their chip default before leaving */
- 	twl4030_reset_registers(codec);
- 	twl4030_set_bias_level(codec, SND_SOC_BIAS_OFF);
--	kfree(twl4030);
+-MODULE_ALIAS("platform:twl4030-audio");
+-
+ static struct platform_driver twl4030_audio_driver = {
+-	.probe		= twl4030_audio_probe,
+-	.remove		= __devexit_p(twl4030_audio_remove),
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "twl4030-audio",
+ 	},
++	.probe		= twl4030_audio_probe,
++	.remove		= __devexit_p(twl4030_audio_remove),
+ };
  
- 	if (pdata && pdata->hs_extmute && gpio_is_valid(pdata->hs_extmute_gpio))
- 		gpio_free(pdata->hs_extmute_gpio);
+ module_platform_driver(twl4030_audio_driver);
+ 
+ MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
++MODULE_DESCRIPTION("TWL4030 audio block MFD driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:twl4030-audio");
 -- 
 1.7.12
-
