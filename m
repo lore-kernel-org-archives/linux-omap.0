@@ -1,105 +1,116 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 1/3] arm: omap: hwmod: add a new addr space in otg for
  writing to control module
-Date: Thu, 6 Sep 2012 20:13:03 +0300
-Message-ID: <20120906171301.GC17754@arwen.pp.htv.fi>
+Date: Thu, 6 Sep 2012 20:18:05 +0300
+Message-ID: <20120906171803.GA30717@arwen.pp.htv.fi>
 References: <1346943331-18120-1-git-send-email-kishon@ti.com>
  <1346943331-18120-2-git-send-email-kishon@ti.com>
  <5048C2A2.2020104@ti.com>
+ <20120906171301.GC17754@arwen.pp.htv.fi>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
+	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5048C2A2.2020104@ti.com>
+In-Reply-To: <20120906171301.GC17754@arwen.pp.htv.fi>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, balbi@ti.com, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, b-cousson@ti.com, tony@atomide.com, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
---eHhjakXzOLJAF9wJ
+--xHFwDpU9dbj6ez1V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Sep 06, 2012 at 09:04:58PM +0530, Vaibhav Hiremath wrote:
+On Thu, Sep 06, 2012 at 08:13:03PM +0300, Felipe Balbi wrote:
+> Hi,
 >=20
->=20
-> On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
-> > The mailbox register for usb otg in omap is present in control module.
-> > On detection of any events VBUS or ID, this register should be written
-> > to send the notification to musb core.
+> On Thu, Sep 06, 2012 at 09:04:58PM +0530, Vaibhav Hiremath wrote:
 > >=20
-> > Till we have a separate control module driver to write to control modul=
-e,
-> > omap2430 will handle the register writes to control module by itself. So
-> > a new address space to represent this control module register is added
-> > to usb_otg_hs.
 > >=20
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
-> >  1 file changed, 5 insertions(+)
+> > On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
+> > > The mailbox register for usb otg in omap is present in control module.
+> > > On detection of any events VBUS or ID, this register should be written
+> > > to send the notification to musb core.
+> > >=20
+> > > Till we have a separate control module driver to write to control mod=
+ule,
+> > > omap2430 will handle the register writes to control module by itself.=
+ So
+> > > a new address space to represent this control module register is added
+> > > to usb_otg_hs.
+> > >=20
+> > > Cc: Benoit Cousson <b-cousson@ti.com>
+> > > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
+> > >  1 file changed, 5 insertions(+)
+> > >=20
+> > > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
+ch-omap2/omap_hwmod_44xx_data.c
+> > > index 242aee4..02341bc 100644
+> > > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > > @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44xx_u=
+sb_otg_hs_addrs[] =3D {
+> > >  		.pa_end		=3D 0x4a0ab003,
+> > >  		.flags		=3D ADDR_TYPE_RT
+> > >  	},
+> > > +	{
+> > > +		.pa_start	=3D 0x4a00233c,
+> > > +		.pa_end		=3D 0x4a00233f,
+> > > +		.flags		=3D ADDR_TYPE_RT
+> > > +	},
 > >=20
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-> > index 242aee4..02341bc 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44xx_usb=
-_otg_hs_addrs[] =3D {
-> >  		.pa_end		=3D 0x4a0ab003,
-> >  		.flags		=3D ADDR_TYPE_RT
-> >  	},
-> > +	{
-> > +		.pa_start	=3D 0x4a00233c,
-> > +		.pa_end		=3D 0x4a00233f,
-> > +		.flags		=3D ADDR_TYPE_RT
-> > +	},
+> > I do not have any objection/comment here, but I believe this is control
+> > module address space required for USB module, right?
+> > I am not sure this is right way of accessing control module space.
+> > Actually Control Module Access required for drivers is one of the
+> > blocking issue we have currently.
+> >=20
+> > Also there was some effort put up by 'Konstantine' to convert Control
+> > module to MFD driver, I haven't seen any further update on it. But it
+> > would be good to check with him.
 >=20
-> I do not have any objection/comment here, but I believe this is control
-> module address space required for USB module, right?
-> I am not sure this is right way of accessing control module space.
-> Actually Control Module Access required for drivers is one of the
-> blocking issue we have currently.
->=20
-> Also there was some effort put up by 'Konstantine' to convert Control
-> module to MFD driver, I haven't seen any further update on it. But it
-> would be good to check with him.
+> this was an agreement with Benoit since we already lost a couple merge
+> windows for this patchset. We agreed to wait until -rc4 for SCM driver
+> and if it wasn't ready, we'd go ahead with this and SCM author would fix
+> it up on a patch converting users to new SCM driver.
 
-this was an agreement with Benoit since we already lost a couple merge
-windows for this patchset. We agreed to wait until -rc4 for SCM driver
-and if it wasn't ready, we'd go ahead with this and SCM author would fix
-it up on a patch converting users to new SCM driver.
+Tony, can I get your Acked-by to this patch so I can take it together
+with the rest of the series ? Thanks
+
+ps: I'll apply this to my 'musb' branch which is immutable, so it's safe
+to merge it into your tree once I apply.
 
 --=20
 balbi
 
---eHhjakXzOLJAF9wJ
+--xHFwDpU9dbj6ez1V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQSNmdAAoJEIaOsuA1yqREWOIP/Ah2073wtfbxi2AJtgI6VqGC
-mjsDpMEWfoMJ4CfJGlcL8sQhGczVLY4vsgCSvvdlE5hp6s5PaX5XlzbQUuIQ2v0d
-9wTEiK4IJVmhNsICbMrn0GxUUpsuYoZNEpiN1nJ9au6Yxbygjo28Bw5CGRhqPfnl
-XulKaAzOtOqyHRvJ7v7yfplAaWhwYB4guAvxYQ3v+iTFYGv3V0KzH8LDOKPqDNbR
-DbPzgM2qI4k1iuvX/tsc1/DOvm6L8giAlf4tJt7nIXoLgzy5qlox6nv278qygiWW
-WLP9f/RSvMqNZSOhsEw6NmxfsLy3PYuULoIe4ngDOWB7UUHGhF7SWIZ7jSCtZFvJ
-Czc47ZH6UXgIKHBQ4KOBuqjG1xpGtkRWpGstbk2qZmW3O6/iP88T61s2Bqe+81R0
-lHuOmVzz64BxwSyFHRMQR6TJuFXFgsMZ9tgHISl9dznPh1vb9rXwr9kVGcWiMTpZ
-6ohKIQZIRqx3cIwkkPqvoKbt7dSGKyBkYUekyp61XV33W41ZrCmJi8odQmwM9cge
-IHWPUNgMERpJLYiMc8Cs1vpro9K6WqnT5mBHmfsuY/JtiGInTN7xIBhd5z991/vH
-cGf2w6hBgJmLeOFVTiDTPLE+tPn/NQmZpfNeUlz6sLc+/EBAbCO/x3Zu6odKILcl
-VhGyrpmqmgJHMSaug2OX
-=cQHs
+iQIcBAEBAgAGBQJQSNrLAAoJEIaOsuA1yqREio4P/jm0JnIJsEG5DOXcLssY70fz
+AFx+JqIt73yQxGsUa/nC5YWavXGgxyfnKSA/ibPbG1LcAU39HeP5vqPG+uaVmq7D
+YEIpejFkTbHInOBTgUj+tmCkl6kPKmAo9qcC4cbN9Fo0bALJyKiKZohyhIxfe11Z
+uvNEAuy7vqyHAkT9PjcZBzrrInG2ViJoHAHrjZyylMLfmm7jZQmpLuwtNsfNBJg0
+Sr6xx1DmcxYgzEqcbYYvIAWWdXKu2Jx75zdZBq/UMBeEO3x4GvOE69lhZn9xGWT5
+LTQe9zYvZJbATITV+SPDJLs17uYJKq5aG6aUvGU1/LH8aPY6z59ReBVF9WT7L65A
+8UMoLnajsYg7/4R6D8NYMua05Ix+agwnKnKf1nymV+RGwORGr5hurWEe0WyYiuB1
+d5NwJf+31Z36aeYWODGmIdZuroMs+TibK3ITznz7Qo77e1ROKlvAwctVCbSu4Q9g
+nC9ITylYZNqtE8u1hqZKF40HkgUgsv/bOtbzplDQqTSKNKsW3aorOHxCaKK3ObVV
+z7jhDVvhJhfg+M2RLhlEQpCc0C19AU5MQVzJMMV3of2xRck2XvgIylaiCKzJ85/4
+wZ3qkK4RW4u2cR1qi3klturKmKHOZrrye+Pw0f7jPLpC3pDlhIh+mmtap/De3/jj
+OLczqZxaUkX3oYoUpXsV
+=a6Mq
 -----END PGP SIGNATURE-----
 
---eHhjakXzOLJAF9wJ--
+--xHFwDpU9dbj6ez1V--
