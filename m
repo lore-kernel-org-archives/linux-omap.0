@@ -1,268 +1,174 @@
-From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
- error: 'struct usb_phy' has no member named 'state'
-Date: Thu, 6 Sep 2012 13:43:26 +0800
-Message-ID: <20120906054326.GA18853@localhost>
-References: <20120906021054.GA15892@localhost>
- <D958900912E20642BCBC71664EFECE3E6DDE775405@BGMAIL02.nvidia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+Date: Thu, 6 Sep 2012 11:18:09 +0530
+Message-ID: <CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com>
+References: <20120825214459.7333a376@notabene.brown> <CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com>
+ <20120827085312.75957354@notabene.brown> <CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com>
+ <CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com> <20120906130510.32b0b877@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <D958900912E20642BCBC71664EFECE3E6DDE775405-QZ+emBqkIFBDw2glCA4ptUEOCMrvLtNR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Venu Byravarasu <vbyravarasu-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120906130510.32b0b877@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Cousson@suse.de, Benoit <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Venu,
+On Thu, Sep 6, 2012 at 8:35 AM, NeilBrown <neilb@suse.de> wrote:
+> On Mon, 3 Sep 2012 22:59:06 -0700 "Shilimkar, Santosh"
+> <santosh.shilimkar@ti.com> wrote:
+>
+>> On Sun, Aug 26, 2012 at 6:29 PM, Shilimkar, Santosh
+>> <santosh.shilimkar@ti.com> wrote:
+>> > On Sun, Aug 26, 2012 at 3:53 PM, NeilBrown <neilb@suse.de> wrote:
+>> >>
+>> >> On Sun, 26 Aug 2012 09:47:50 +0530 "Shilimkar, Santosh"
+>> >> <santosh.shilimkar@ti.com> wrote:
+>> >>
+>> >> > + Jon,
+>> >> >
+>> >> > On Sat, Aug 25, 2012 at 5:14 PM, NeilBrown <neilb@suse.de> wrote:
+>> >> > >
+>> >> > >
+>> >> > >
+>> >> > > Current kernel will wake from suspend on an event on any active
+>> >> > > GPIO even if enable_irq_wake() wasn't called.
+>> >> > >
+>> >> > > There are two reasons that the hardware wake-enable bit should be set:
+>> >> > >
+>> >> > > 1/ while non-suspended the CPU might go into a deep sleep (off_mode)
+>> >> > >   in which the wake-enable bit is needed for an interrupt to be
+>> >> > >   recognised.
+>> >> > > 2/ while suspended the GPIO interrupt should wake from suspend if and
+>> >> > >    only if irq_wake as been enabled.
+>> >> > >
+>> >> > > The code currently doesn't keep these two reasons separate so they get
+>> >> > > confused and sometimes the wakeup flags is set incorrectly.
+>> >> > >
+>> >> > > This patch reverts:
+>> >> > >  commit 9c4ed9e6c01e7a8bd9079da8267e1f03cb4761fc
+>> >> > >     gpio/omap: remove suspend/resume callbacks
+>> >> > > and
+>> >> > >  commit 0aa2727399c0b78225021413022c164cb99fbc5e
+>> >> > >     gpio/omap: remove suspend_wakeup field from struct gpio_bank
+>> >> > >
+>> >> > > and makes some minor changes so that we have separate flags for "GPIO
+>> >> > > should wake from deep idle" and "GPIO should wake from suspend".
+>> >> > >
+>> >> > > With this patch, the GPIO from my touch screen doesn't wake my device
+>> >> > > any more, which is what I want.
+>> >> > >
+>> >> > > Cc: Kevin Hilman <khilman@ti.com>
+>> >> > > Cc: Tony Lindgren <tony@atomide.com>
+>> >> > > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >> > > Cc: Cousson, Benoit <b-cousson@ti.com>
+>> >> > > Cc: Grant Likely <grant.likely@secretlab.ca>
+>> >> > > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> >> > > Cc: Felipe Balbi <balbi@ti.com>
+>> >> > > Cc: Govindraj.R <govindraj.raja@ti.com>
+>> >> > >
+>> >> > > Signed-off-by: NeilBrown <neilb@suse.de>
+>> >> > >
+>> >> > The patch doesn't seems to be correct. At least the 2/ gets
+>> >> > fixed with a proper IRQCHIP flag. Can you try the patch at
+>> >> > end of the email and see if it helps ? Am attaching it in case
+>> >> > mailer damages it.
+>> >> >
+>> >> > Regards
+>> >> > Santosh
+>> >> >
+>> >> > >From b8a38fc75e046f6462610e26c47c620cad850c24 Mon Sep 17 00:00:00 2001
+>> >> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >> > Date: Sun, 26 Aug 2012 09:39:51 +0530
+>> >> > Subject: [PATCH] gpio: omap: Set IRQCHIP_MASK_ON_SUSPEND to mask all
+>> >> >  non-wakeup gpio wakeups.
+>> >> >
+>> >> > Set the irq chip flag IRQCHIP_MASK_ON_SUSPEND to cause the irq pm code
+>> >> > to mask all non-wake gpios in suspend, which will ensure the wakeup
+>> >> > enable
+>> >> > bit is not set on non-wake gpios.
+>> >> >
+>> >> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> >> > ---
+>> >> >  drivers/gpio/gpio-omap.c |    1 +
+>> >> >  1 file changed, 1 insertion(+)
+>> >> >
+>> >> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> >> > index e6efd77..50b4c18 100644
+>> >> > --- a/drivers/gpio/gpio-omap.c
+>> >> > +++ b/drivers/gpio/gpio-omap.c
+>> >> > @@ -779,6 +779,7 @@ static struct irq_chip gpio_irq_chip = {
+>> >> >       .irq_unmask     = gpio_unmask_irq,
+>> >> >       .irq_set_type   = gpio_irq_type,
+>> >> >       .irq_set_wake   = gpio_wake_enable,
+>> >> > +     .flags          = IRQCHIP_MASK_ON_SUSPEND;
+>> >> >  };
+>> >> >
+>> >> >
+>> >> > /*---------------------------------------------------------------------*/
+>> >>
+>> >>
+>> >> No obvious damage, unless the mailer is responsible or the ';' at the end
+>> >> of
+>> >> the line, rather than ',' :-)
+>> >>
+>> > :-) That was typo.
+>> >
+>> >> The approach makes sense, but does actually work.  Should be fixable
+>> >> though.
+>> >>
+>> >> When I try this I get:
+>> >>
+>> >>
+>> >>
+>> >> [  158.114440] Checking wakeup interrupts
+>> >> [  158.118408] Unhandled fault: external abort on non-linefetch (0x1028)
+>> >> at 0xfb054040
+>> >> [  158.126403] Internal error: : 1028 [#1] PREEMPT ARM
+>> >> [  158.131500] Modules linked in: ipv6 g_ether hso libertas_sdio libertas
+>> >> cfg80211
+>> >> [  158.139190] CPU: 0    Not tainted  (3.5.0-gta04-debug+ #2)
+>> >> [  158.144927] PC is at _set_gpio_triggering+0x38/0x258
+>> >> [  158.150115] LR is at gpio_mask_irq+0xac/0xc0
+>> >> [  158.154602] pc : [<c01d24a0>]    lr : [<c01d2f68>]    psr: 60000193
+>> >> [  158.154602] sp : db521e90  ip : 00000011  fp : beeecc2c
+>> >> [  158.166595] r10: c05c8ebc  r9 : daa5a858  r8 : 00000003
+>> >> [  158.172027] r7 : a0000193  r6 : 00000000  r5 : fb054000  r4 : ded44e18
+>> >> [  158.178863] r3 : 00000001  r2 : 00000000  r1 : ded30340  r0 : 00000040
+>> >> [  158.185668] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM
+>> >> Segment use
+>> >>
+>> >> so it looks like runtime PM has turned off the iclk to the GPIO module so
+>> >> that
+>> >> when we try to tell it to change settings, it is no longer listening to
+>> >> us.
+>> > From the crash logs it appears like that.
+>> >
+>> >> The "Checking wakeup interrupts" function happens very late in the suspend
+>> >> cycle, after all the suspend_late and suspend_noirq functions have run.
+>> >> Maybe it needs to be moved earlier...
+>> >>
+>> > No it shouldn't be moved and it is that point for lot many good
+>> > reasons. Ofcourse
+>> > this omap gpio driver crash needs to be addressed. Need to think bit
+>> > more on this
+>> > issue.
+>> >
+>> After thinking bit more on this, the problem seems to be coming
+>> mainly because the gpio device is runtime suspended bit early than
+>> it should be. Similar issue seen with i2c driver as well. The i2c issue
+>> was discussed with Rafael at LPC last week. The idea is to move
+>> the pm_runtime_enable/disable() calls entirely up to the
+>> _late/_early stage of device suspend/resume.
+>> Will update this thread once I have further update.
+>
+> This won't be late enough.  IRQCHIP_MASK_ON_SUSPEND takes effect after all
+> the _late callbacks have been called.
+> I, too, spoke to Rafael about this in San Diego.  He seemed to agree with me
+> that the interrupt needs to be masked in the ->suspend callback.  any later
+> is too late.
+>
+Thanks for information about your discussion. Will wait for the patch then.
 
-On Thu, Sep 06, 2012 at 11:00:22AM +0530, Venu Byravarasu wrote:
-> Hi Fengguang,
-> 
-> My apologies for the inconvenience caused.
-> 
-> During phy interface separation from otg.h, as the enum "usb_otg_state"
-> was having multiple otg states info, I felt that should remain in otg.h.
-> Also as removal of member 'state' of this enum type from usb_phy struct
-> did not generate any compilation issues, I removed member state from struct usb_phy.
-
-Thank you for the quick fix!
-
-> As this is causing build break in musb code, I pushed a patch to balbi's tree for fixing this.
-> Also added you as a reviewer in the to list of the patch.
-> Plz verify and let me know if you still see any issues.
-
-It should be fine if you already verified the patch with allmodconfig
-build test.
-
-When a commit tagged with 
-
-Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-is pushed to the git tree, the build system will auto retest it and
-send me the new success/failure results :-)
-
-Thanks,
-Fengguang
-
-> > -----Original Message-----
-> > From: Fengguang Wu [mailto:fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> > Sent: Thursday, September 06, 2012 7:41 AM
-> > To: Venu Byravarasu
-> > Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi; linux-
-> > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
-> > error: 'struct usb_phy' has no member named 'state'
-> > 
-> > Hi Venu,
-> > 
-> > FYI, kernel build failed on
-> > 
-> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
-> > head:   8de3474a41642da9dfb38208844007a48f87abce
-> > commit: de4217d90fed1b1714a270ceb5d092f7314e8bda [18/19] usb: otg:
-> > Move phy interface to separate file.
-> > config: x86_64-allmodconfig (attached as .config)
-> > 
-> > All related error/warning messages:
-> > 
-> > drivers/usb/musb/musb_core.c: In function 'musb_otg_timer_func':
-> > drivers/usb/musb/musb_core.c:357:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:361:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:366:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:369:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:372:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c: In function 'musb_hnp_stop':
-> > drivers/usb/musb/musb_core.c:388:2: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:390:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:393:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:399:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:407:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
-> > drivers/usb/musb/musb_core.c:446:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:451:23: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:474:16: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:479:16: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:484:5: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:489:23: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:492:16: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_core.c:513:5: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:530:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/musb_core.c:542:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > --
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_wakeup':
-> > drivers/usb/musb/musb_gadget.c:1630:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:1670:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_start':
-> > drivers/usb/musb/musb_gadget.c:1952:13: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_stop':
-> > drivers/usb/musb/musb_gadget.c:2063:13: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_resume':
-> > drivers/usb/musb/musb_gadget.c:2096:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2109:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_suspend':
-> > drivers/usb/musb/musb_gadget.c:2122:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2125:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2139:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_disconnect':
-> > drivers/usb/musb/musb_gadget.c:2171:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2173:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2175:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2179:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2186:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_reset':
-> > drivers/usb/musb/musb_gadget.c:2242:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_gadget.c:2245:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > --
-> > drivers/usb/musb/musb_virthub.c: In function 'musb_port_suspend':
-> > drivers/usb/musb/musb_virthub.c:81:22: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:83:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:93:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:99:4: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c: In function 'musb_port_reset':
-> > drivers/usb/musb/musb_virthub.c:120:17: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c: In function 'musb_root_disconnect':
-> > drivers/usb/musb/musb_virthub.c:191:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:195:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:201:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:205:14: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c:208:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_virthub.c: In function 'musb_hub_control':
-> > drivers/usb/musb/musb_virthub.c:345:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > --
-> > drivers/usb/musb/musb_host.c: In function 'musb_bus_suspend':
-> > drivers/usb/musb/musb_host.c:2290:21: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_host.c:2300:15: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/musb/musb_host.c:2307:3: error: 'struct usb_phy' has no
-> > member named 'state'
-> > --
-> > drivers/usb/musb/tusb6010.c: In function 'musb_do_idle':
-> > drivers/usb/musb/tusb6010.c:419:21: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:424:4: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c: In function 'tusb_musb_try_idle':
-> > drivers/usb/musb/tusb6010.c:479:19: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:480:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:497:2: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c: In function 'tusb_musb_set_vbus':
-> > drivers/usb/musb/tusb6010.c:529:14: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:542:23: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:545:16: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:548:16: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:551:16: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:559:15: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:573:2: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
-> > drivers/usb/musb/tusb6010.c:686:20: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:688:17: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:693:4: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:699:4: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:702:23: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:748:3: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:751:22: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/musb/tusb6010.c:763:16: error: 'struct usb_phy' has no member
-> > named 'state'
-> > --
-> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_work':
-> > drivers/usb/otg/gpio_vbus.c:119:17: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/otg/gpio_vbus.c:141:17: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_peripheral':
-> > drivers/usb/otg/gpio_vbus.c:194:11: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_power':
-> > drivers/usb/otg/gpio_vbus.c:216:9: error: 'struct usb_phy' has no member
-> > named 'state'
-> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_probe':
-> > drivers/usb/otg/gpio_vbus.c:266:16: error: 'struct usb_phy' has no member
-> > named 'state'
-> > --
-> > drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_set_peripheral':
-> > drivers/usb/otg/nop-usb-xceiv.c:78:10: error: 'struct usb_phy' has no
-> > member named 'state'
-> > drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_usb_xceiv_probe':
-> > drivers/usb/otg/nop-usb-xceiv.c:120:10: error: 'struct usb_phy' has no
-> > member named 'state'
-> > 
-> > ---
-> > 0-DAY kernel build testing backend         Open Source Technology Centre
-> > Fengguang Wu <wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>                     Intel Corporation
-> -----------------------------------------------------------------------------------
-> This email message is for the sole use of the intended recipient(s) and may contain
-> confidential information.  Any unauthorized review, use, disclosure or distribution
-> is prohibited.  If you are not the intended recipient, please contact the sender by
-> reply email and destroy all copies of the original message.
-> -----------------------------------------------------------------------------------
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+santosh
