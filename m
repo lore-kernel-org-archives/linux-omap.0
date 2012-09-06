@@ -1,162 +1,270 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v4 07/21] serial: omap: stick to put_autosuspend
-Date: Thu,  6 Sep 2012 15:45:26 +0300
-Message-ID: <1346935540-1792-8-git-send-email-balbi@ti.com>
+Subject: [PATCH v4 05/21] serial: omap: refactor receive_chars() into rdi/rlsi handlers
+Date: Thu,  6 Sep 2012 15:45:24 +0300
+Message-ID: <1346935540-1792-6-git-send-email-balbi@ti.com>
 References: <20120906122948.GC29202@arwen.pp.htv.fi>
  <1346935540-1792-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:40786 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754980Ab2IFMub (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 08:50:31 -0400
-Received: by lbbgj3 with SMTP id gj3so1101179lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 05:50:28 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1346935540-1792-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
 Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Everytime we're done using our TTY, we want
-the pm timer to be reinitilized. By sticking
-to pm_runtime_pm_autosuspend() we make sure
-that this will always be the case.
-
-The idea behind this patch is to make sure we
-will always reinitialize the pm timer so that
-we don't fall into a situation where pm_runtime_put()
-expires right away (if timer was already about to
-expire when we made the call to pm_runtime_put()).
-
-While suspending right away wouldn't cause any
-issues, reinitializing the pm timer can help us
-avoiding unnecessary context save & restore
-operations (which are somewhat expensive) if there's
-another read/write/set_termios request coming right
-after. IOW, we are trying to make sure UART is still
-powered up while it's still under heavy usage.
+receive_chars() was getting too big and too difficult
+to follow. By splitting it into separate RDI and RSLI
+handlers, we have smaller functions which are easy
+to understand and only touch the pieces which they need
+to touch.
 
 Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/tty/serial/omap-serial.c | 33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ drivers/tty/serial/omap-serial.c | 205 +++++++++++++++++++--------------------
+ 1 file changed, 101 insertions(+), 104 deletions(-)
 
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index d3fbb70..b2043df 100644
+index d5a08cb..9c0a4ae 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -165,7 +165,8 @@ static void serial_omap_enable_ms(struct uart_port *port)
- 	pm_runtime_get_sync(up->dev);
- 	up->ier |= UART_IER_MSI;
- 	serial_out(up, UART_IER, up->ier);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
+@@ -196,74 +196,6 @@ static void serial_omap_stop_rx(struct uart_port *port)
+ 	pm_runtime_put_autosuspend(up->dev);
  }
  
- static void serial_omap_stop_tx(struct uart_port *port)
-@@ -415,7 +416,8 @@ static unsigned int serial_omap_tx_empty(struct uart_port *port)
- 	spin_lock_irqsave(&up->port.lock, flags);
- 	ret = serial_in(up, UART_LSR) & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	return ret;
- }
- 
-@@ -427,7 +429,8 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
- 
- 	pm_runtime_get_sync(up->dev);
- 	status = check_modem_status(up);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 
- 	dev_dbg(up->port.dev, "serial_omap_get_mctrl+%d\n", up->port.line);
- 
-@@ -463,7 +466,8 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 	up->mcr = serial_in(up, UART_MCR);
- 	up->mcr |= mcr;
- 	serial_out(up, UART_MCR, up->mcr);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 
- 	if (gpio_is_valid(up->DTR_gpio) &&
- 	    !!(mctrl & TIOCM_DTR) != up->DTR_active) {
-@@ -490,7 +494,8 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
- 		up->lcr &= ~UART_LCR_SBC;
- 	serial_out(up, UART_LCR, up->lcr);
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_startup(struct uart_port *port)
-@@ -588,7 +593,8 @@ static void serial_omap_shutdown(struct uart_port *port)
- 	if (serial_in(up, UART_LSR) & UART_LSR_DR)
- 		(void) serial_in(up, UART_RX);
- 
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	free_irq(up->port.irq, up);
- }
- 
-@@ -862,7 +868,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_omap_configure_xonxoff(up, termios);
- 
- 	spin_unlock_irqrestore(&up->port.lock, flags);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	dev_dbg(up->port.dev, "serial_omap_set_termios+%d\n", up->port.line);
- }
- 
-@@ -893,7 +900,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
- 			pm_runtime_allow(up->dev);
- 	}
- 
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static void serial_omap_release_port(struct uart_port *port)
-@@ -975,7 +983,8 @@ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
- 	pm_runtime_get_sync(up->dev);
- 	wait_for_xmitr(up);
- 	serial_out(up, UART_TX, ch);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- }
- 
- static int serial_omap_poll_get_char(struct uart_port *port)
-@@ -989,7 +998,8 @@ static int serial_omap_poll_get_char(struct uart_port *port)
- 		return NO_POLL_CHAR;
- 
- 	status = serial_in(up, UART_RX);
--	pm_runtime_put(up->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
+-static inline void receive_chars(struct uart_omap_port *up,
+-		unsigned int *status)
+-{
+-	struct tty_struct *tty = up->port.state->port.tty;
+-	unsigned int flag, lsr = *status;
+-	unsigned char ch = 0;
+-	int max_count = 256;
+-
+-	do {
+-		if (likely(lsr & UART_LSR_DR))
+-			ch = serial_in(up, UART_RX);
+-		flag = TTY_NORMAL;
+-		up->port.icount.rx++;
+-
+-		if (unlikely(lsr & UART_LSR_BRK_ERROR_BITS)) {
+-			/*
+-			 * For statistics only
+-			 */
+-			if (lsr & UART_LSR_BI) {
+-				lsr &= ~(UART_LSR_FE | UART_LSR_PE);
+-				up->port.icount.brk++;
+-				/*
+-				 * We do the SysRQ and SAK checking
+-				 * here because otherwise the break
+-				 * may get masked by ignore_status_mask
+-				 * or read_status_mask.
+-				 */
+-				if (uart_handle_break(&up->port))
+-					goto ignore_char;
+-			} else if (lsr & UART_LSR_PE) {
+-				up->port.icount.parity++;
+-			} else if (lsr & UART_LSR_FE) {
+-				up->port.icount.frame++;
+-			}
+-
+-			if (lsr & UART_LSR_OE)
+-				up->port.icount.overrun++;
+-
+-			/*
+-			 * Mask off conditions which should be ignored.
+-			 */
+-			lsr &= up->port.read_status_mask;
+-
+-#ifdef CONFIG_SERIAL_OMAP_CONSOLE
+-			if (up->port.line == up->port.cons->index) {
+-				/* Recover the break flag from console xmit */
+-				lsr |= up->lsr_break_flag;
+-			}
+-#endif
+-			if (lsr & UART_LSR_BI)
+-				flag = TTY_BREAK;
+-			else if (lsr & UART_LSR_PE)
+-				flag = TTY_PARITY;
+-			else if (lsr & UART_LSR_FE)
+-				flag = TTY_FRAME;
+-		}
+-
+-		if (uart_handle_sysrq_char(&up->port, ch))
+-			goto ignore_char;
+-		uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
+-ignore_char:
+-		lsr = serial_in(up, UART_LSR);
+-	} while ((lsr & (UART_LSR_DR | UART_LSR_BI)) && (max_count-- > 0));
+-	spin_unlock(&up->port.lock);
+-	tty_flip_buffer_push(tty);
+-	spin_lock(&up->port.lock);
+-}
+-
+ static void transmit_chars(struct uart_omap_port *up)
+ {
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+@@ -342,6 +274,68 @@ static unsigned int check_modem_status(struct uart_omap_port *up)
  	return status;
  }
  
-@@ -1340,7 +1350,8 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	if (ret != 0)
- 		goto err_add_port;
++static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int lsr)
++{
++	unsigned int flag;
++
++	up->port.icount.rx++;
++	flag = TTY_NORMAL;
++
++	if (lsr & UART_LSR_BI) {
++		flag = TTY_BREAK;
++		lsr &= ~(UART_LSR_FE | UART_LSR_PE);
++		up->port.icount.brk++;
++		/*
++		 * We do the SysRQ and SAK checking
++		 * here because otherwise the break
++		 * may get masked by ignore_status_mask
++		 * or read_status_mask.
++		 */
++		if (uart_handle_break(&up->port))
++			return;
++
++	}
++
++	if (lsr & UART_LSR_PE) {
++		flag = TTY_PARITY;
++		up->port.icount.parity++;
++	}
++
++	if (lsr & UART_LSR_FE) {
++		flag = TTY_FRAME;
++		up->port.icount.frame++;
++	}
++
++	if (lsr & UART_LSR_OE)
++		up->port.icount.overrun++;
++
++#ifdef CONFIG_SERIAL_OMAP_CONSOLE
++	if (up->port.line == up->port.cons->index) {
++		/* Recover the break flag from console xmit */
++		lsr |= up->lsr_break_flag;
++	}
++#endif
++	uart_insert_char(&up->port, lsr, UART_LSR_OE, 0, flag);
++}
++
++static void serial_omap_rdi(struct uart_omap_port *up, unsigned int lsr)
++{
++	unsigned char ch = 0;
++	unsigned int flag;
++
++	if (!(lsr & UART_LSR_DR))
++		return;
++
++	ch = serial_in(up, UART_RX);
++	flag = TTY_NORMAL;
++	up->port.icount.rx++;
++
++	if (uart_handle_sysrq_char(&up->port, ch))
++		return;
++
++	uart_insert_char(&up->port, lsr, UART_LSR_OE, ch, flag);
++}
++
+ /**
+  * serial_omap_irq() - This handles the interrupt from one port
+  * @irq: uart port irq number
+@@ -350,54 +344,57 @@ static unsigned int check_modem_status(struct uart_omap_port *up)
+ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
+ {
+ 	struct uart_omap_port *up = dev_id;
++	struct tty_struct *tty = up->port.state->port.tty;
+ 	unsigned int iir, lsr;
+ 	unsigned int type;
+ 	unsigned long flags;
+ 	irqreturn_t ret = IRQ_NONE;
++	int max_count = 256;
  
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_mark_last_busy(up->dev);
-+	pm_runtime_put_autosuspend(up->dev);
- 	platform_set_drvdata(pdev, up);
- 	return 0;
+ 	spin_lock_irqsave(&up->port.lock, flags);
+ 	pm_runtime_get_sync(up->dev);
+-	iir = serial_in(up, UART_IIR);
+-again:
+-	if (iir & UART_IIR_NO_INT)
+-		goto out;
  
+-	ret = IRQ_HANDLED;
+-	lsr = serial_in(up, UART_LSR);
++	do {
++		iir = serial_in(up, UART_IIR);
++		if (iir & UART_IIR_NO_INT)
++			break;
+ 
+-	/* extract IRQ type from IIR register */
+-	type = iir & 0x3e;
++		ret = IRQ_HANDLED;
++		lsr = serial_in(up, UART_LSR);
+ 
+-	switch (type) {
+-	case UART_IIR_MSI:
+-		check_modem_status(up);
+-		break;
+-	case UART_IIR_THRI:
+-		if (lsr & UART_LSR_THRE)
+-			transmit_chars(up);
+-		break;
+-	case UART_IIR_RDI:
+-		if (lsr & UART_LSR_DR)
+-			receive_chars(up, &lsr);
+-		break;
+-	case UART_IIR_RLSI:
+-		if (lsr & UART_LSR_BRK_ERROR_BITS)
+-			receive_chars(up, &lsr);
+-		break;
+-	case UART_IIR_RX_TIMEOUT:
+-		receive_chars(up, &lsr);
+-		break;
+-	case UART_IIR_CTS_RTS_DSR:
+-		iir = serial_in(up, UART_IIR);
+-		goto again;
+-	case UART_IIR_XOFF:
+-		/* FALLTHROUGH */
+-	default:
+-		break;
+-	}
++		/* extract IRQ type from IIR register */
++		type = iir & 0x3e;
++
++		switch (type) {
++		case UART_IIR_MSI:
++			check_modem_status(up);
++			break;
++		case UART_IIR_THRI:
++			if (lsr & UART_LSR_THRE)
++				transmit_chars(up);
++			break;
++		case UART_IIR_RX_TIMEOUT:
++			/* FALLTHROUGH */
++		case UART_IIR_RDI:
++			serial_omap_rdi(up, lsr);
++			break;
++		case UART_IIR_RLSI:
++			serial_omap_rlsi(up, lsr);
++			break;
++		case UART_IIR_CTS_RTS_DSR:
++			/* simply try again */
++			break;
++		case UART_IIR_XOFF:
++			/* FALLTHROUGH */
++		default:
++			break;
++		}
++	} while (!(iir & UART_IIR_NO_INT) && max_count--);
+ 
+-out:
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
++
++	tty_flip_buffer_push(tty);
++
+ 	pm_runtime_mark_last_busy(up->dev);
+ 	pm_runtime_put_autosuspend(up->dev);
+ 	up->port_activity = jiffies;
 -- 
 1.7.12.rc3
-
