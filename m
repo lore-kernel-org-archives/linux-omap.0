@@ -1,83 +1,53 @@
-From: AnilKumar Ch <anilkumar@ti.com>
-Subject: [PATCH v3] of: Modify c_can binding documentation
-Date: Thu, 6 Sep 2012 15:32:05 +0530
-Message-ID: <1346925725-19873-1-git-send-email-anilkumar@ti.com>
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [PATCH v3] of: Modify c_can binding documentation
+Date: Thu, 06 Sep 2012 13:23:20 +0200
+Message-ID: <504887A8.4000508@pengutronix.de>
+References: <1346925725-19873-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigBBBB55F816ED4EEFE72AF0D2"
 Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <1346925725-19873-1-git-send-email-anilkumar@ti.com>
 Sender: linux-can-owner@vger.kernel.org
-To: wg@grandegger.com, mkl@pengutronix.de
-Cc: swarren@wwwdotorg.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, swarren@wwwdotorg.org, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-Modify c_can binding documentation according to recent review comments
-on device tree data addition patches.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigBBBB55F816ED4EEFE72AF0D2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
----
-Changes from v2:
-	- Incorporated Marc's comments on v2
-	  * Fixed typo mistake by renaming d_can1 to dcan1
+On 09/06/2012 12:02 PM, AnilKumar Ch wrote:
+> Modify c_can binding documentation according to recent review comments
+> on device tree data addition patches.
+>=20
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
 
-Changes from v1:
-	- Separated from "Add DT for AM33XX devices" patch series
-	- Incorporated Stephen Warren's review comments on v1
-	  * Removed status and interrupt-parent description from
-	    c_can.txt file because these are device specific
-	    parameters.
+Thanks, I've updated my master branch.
 
- .../devicetree/bindings/net/can/c_can.txt          |   24 +++++++++++++++-----
- 1 file changed, 18 insertions(+), 6 deletions(-)
+Marc
 
-diff --git a/Documentation/devicetree/bindings/net/can/c_can.txt b/Documentation/devicetree/bindings/net/can/c_can.txt
-index a43f083..8f1ae81 100644
---- a/Documentation/devicetree/bindings/net/can/c_can.txt
-+++ b/Documentation/devicetree/bindings/net/can/c_can.txt
-@@ -10,7 +10,6 @@ Required properties:
- 			  number
- 
- Optional properties:
--- interrupt-parent	: The parent interrupt controller
- - ti,hwmods		: Must be "d_can<n>" or "c_can<n>", n being the
- 			  instance number
- 
-@@ -20,18 +19,31 @@ Future plan is to migrate hwmod data base contents into device tree
- blob so that, all the required data will be used from device tree dts
- file.
- 
--Examples:
-+Example:
- 
--	d_can@481D0000 {
-+Step1: SoC common .dtsi file
-+
-+	dcan1: d_can@481d0000 {
- 		compatible = "bosch,d_can";
--		reg = <0x481D0000 0x1000>;
--		interrupts = <55 0x4>;
-+		reg = <0x481d0000 0x2000>;
-+		interrupts = <55>;
- 		interrupt-parent = <&intc>;
-+		status = "disabled";
- 	};
- 
- (or)
- 
--	d_can@481D0000 {
-+	dcan1: d_can@481d0000 {
- 		compatible = "bosch,d_can";
- 		ti,hwmods = "d_can1";
-+		reg = <0x481d0000 0x2000>;
-+		interrupts = <55>;
-+		interrupt-parent = <&intc>;
-+		status = "disabled";
-+	};
-+
-+Step 2: board specific .dts file
-+
-+	&dcan1 {
-+		status = "okay";
- 	};
--- 
-1.7.9.5
+--=20
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
+
+--------------enigBBBB55F816ED4EEFE72AF0D2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iEYEARECAAYFAlBIh6gACgkQjTAFq1RaXHNSSgCeOvu+f4RmIAaGjrETfnlKN+81
+6VEAnjgkMFg1TTGdfIC3WX6DLfgsEfOF
+=rKL5
+-----END PGP SIGNATURE-----
+
+--------------enigBBBB55F816ED4EEFE72AF0D2--
