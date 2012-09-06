@@ -1,95 +1,268 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH] drm/omap: update for interlaced
-Date: Thu, 6 Sep 2012 11:12:01 +0530
-Message-ID: <CAB2ybb-FDpFiaz6tAFajeohyUX54jOybZHFxZbMzFpFnhKMM+w@mail.gmail.com>
-References: <1346881733-31970-1-git-send-email-rob.clark@linaro.org>
+From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
+ error: 'struct usb_phy' has no member named 'state'
+Date: Thu, 6 Sep 2012 13:43:26 +0800
+Message-ID: <20120906054326.GA18853@localhost>
+References: <20120906021054.GA15892@localhost>
+ <D958900912E20642BCBC71664EFECE3E6DDE775405@BGMAIL02.nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:45448 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751126Ab2IFFmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 01:42:23 -0400
-Received: by pbbrr13 with SMTP id rr13so2019801pbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 05 Sep 2012 22:42:22 -0700 (PDT)
-In-Reply-To: <1346881733-31970-1-git-send-email-rob.clark@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <D958900912E20642BCBC71664EFECE3E6DDE775405-QZ+emBqkIFBDw2glCA4ptUEOCMrvLtNR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Venu Byravarasu <vbyravarasu-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-Hi Rob,
-On Thu, Sep 6, 2012 at 3:18 AM, Rob Clark <rob.clark@linaro.org> wrote:
-> From: Rob Clark <rob@ti.com>
->
-> 'struct omap_video_timings' was updated w/ a 'bool interlaced'.  Without
-> a matching update in omap_connector, this field could have undefined
-> values from the stack, which isn't quite ideal.
->
-> Update the fxns to convert omapdss<->drm timings structs, and zero-init
-> 'struct omap_video_timings' when it is declared on stack to avoid issues
-> like this in the future.
->
-> Signed-off-by: Rob Clark <rob@ti.com>
-Feel free to use
-Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
-> ---
->  drivers/staging/omapdrm/omap_connector.c |   17 ++++++++---------
->  1 file changed, 8 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/staging/omapdrm/omap_connector.c b/drivers/staging/omapdrm/omap_connector.c
-> index 5e2856c..5f4a89b 100644
-> --- a/drivers/staging/omapdrm/omap_connector.c
-> +++ b/drivers/staging/omapdrm/omap_connector.c
-> @@ -48,13 +48,10 @@ static inline void copy_timings_omap_to_drm(struct drm_display_mode *mode,
->         mode->vsync_end = mode->vsync_start + timings->vsw;
->         mode->vtotal = mode->vsync_end + timings->vbp;
->
-> -       /* note: whether or not it is interlaced, +/- h/vsync, etc,
-> -        * which should be set in the mode flags, is not exposed in
-> -        * the omap_video_timings struct.. but hdmi driver tracks
-> -        * those separately so all we have to have to set the mode
-> -        * is the way to recover these timings values, and the
-> -        * omap_dss_driver would do the rest.
-> -        */
-> +       mode->flags = 0;
-> +
-> +       if (timings->interlace)
-> +               mode->flags |= DRM_MODE_FLAG_INTERLACE;
->  }
->
->  static inline void copy_timings_drm_to_omap(struct omap_video_timings *timings,
-> @@ -71,6 +68,8 @@ static inline void copy_timings_drm_to_omap(struct omap_video_timings *timings,
->         timings->vfp = mode->vsync_start - mode->vdisplay;
->         timings->vsw = mode->vsync_end - mode->vsync_start;
->         timings->vbp = mode->vtotal - mode->vsync_end;
-> +
-> +       timings->interlace = !!(mode->flags & DRM_MODE_FLAG_INTERLACE);
->  }
->
->  static void omap_connector_dpms(struct drm_connector *connector, int mode)
-> @@ -187,7 +186,7 @@ static int omap_connector_get_modes(struct drm_connector *connector)
->                 }
->         } else {
->                 struct drm_display_mode *mode = drm_mode_create(dev);
-> -               struct omap_video_timings timings;
-> +               struct omap_video_timings timings = {0};
->
->                 dssdrv->get_timings(dssdev, &timings);
->
-> @@ -291,7 +290,7 @@ void omap_connector_mode_set(struct drm_connector *connector,
->         struct omap_connector *omap_connector = to_omap_connector(connector);
->         struct omap_dss_device *dssdev = omap_connector->dssdev;
->         struct omap_dss_driver *dssdrv = dssdev->driver;
-> -       struct omap_video_timings timings;
-> +       struct omap_video_timings timings = {0};
->
->         copy_timings_drm_to_omap(&timings, mode);
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Venu,
+
+On Thu, Sep 06, 2012 at 11:00:22AM +0530, Venu Byravarasu wrote:
+> Hi Fengguang,
+> 
+> My apologies for the inconvenience caused.
+> 
+> During phy interface separation from otg.h, as the enum "usb_otg_state"
+> was having multiple otg states info, I felt that should remain in otg.h.
+> Also as removal of member 'state' of this enum type from usb_phy struct
+> did not generate any compilation issues, I removed member state from struct usb_phy.
+
+Thank you for the quick fix!
+
+> As this is causing build break in musb code, I pushed a patch to balbi's tree for fixing this.
+> Also added you as a reviewer in the to list of the patch.
+> Plz verify and let me know if you still see any issues.
+
+It should be fine if you already verified the patch with allmodconfig
+build test.
+
+When a commit tagged with 
+
+Reported-by: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+is pushed to the git tree, the build system will auto retest it and
+send me the new success/failure results :-)
+
+Thanks,
+Fengguang
+
+> > -----Original Message-----
+> > From: Fengguang Wu [mailto:fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> > Sent: Thursday, September 06, 2012 7:41 AM
+> > To: Venu Byravarasu
+> > Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi; linux-
+> > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
+> > error: 'struct usb_phy' has no member named 'state'
+> > 
+> > Hi Venu,
+> > 
+> > FYI, kernel build failed on
+> > 
+> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
+> > head:   8de3474a41642da9dfb38208844007a48f87abce
+> > commit: de4217d90fed1b1714a270ceb5d092f7314e8bda [18/19] usb: otg:
+> > Move phy interface to separate file.
+> > config: x86_64-allmodconfig (attached as .config)
+> > 
+> > All related error/warning messages:
+> > 
+> > drivers/usb/musb/musb_core.c: In function 'musb_otg_timer_func':
+> > drivers/usb/musb/musb_core.c:357:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:361:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:366:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:369:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:372:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c: In function 'musb_hnp_stop':
+> > drivers/usb/musb/musb_core.c:388:2: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:390:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:393:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:399:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:407:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
+> > drivers/usb/musb/musb_core.c:446:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:451:23: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:474:16: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:479:16: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:484:5: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:489:23: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:492:16: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_core.c:513:5: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:530:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/musb_core.c:542:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > --
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_wakeup':
+> > drivers/usb/musb/musb_gadget.c:1630:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:1670:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_start':
+> > drivers/usb/musb/musb_gadget.c:1952:13: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_stop':
+> > drivers/usb/musb/musb_gadget.c:2063:13: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_resume':
+> > drivers/usb/musb/musb_gadget.c:2096:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2109:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_suspend':
+> > drivers/usb/musb/musb_gadget.c:2122:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2125:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2139:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_disconnect':
+> > drivers/usb/musb/musb_gadget.c:2171:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2173:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2175:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2179:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2186:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c: In function 'musb_g_reset':
+> > drivers/usb/musb/musb_gadget.c:2242:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_gadget.c:2245:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > --
+> > drivers/usb/musb/musb_virthub.c: In function 'musb_port_suspend':
+> > drivers/usb/musb/musb_virthub.c:81:22: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:83:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:93:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:99:4: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c: In function 'musb_port_reset':
+> > drivers/usb/musb/musb_virthub.c:120:17: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c: In function 'musb_root_disconnect':
+> > drivers/usb/musb/musb_virthub.c:191:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:195:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:201:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:205:14: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c:208:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_virthub.c: In function 'musb_hub_control':
+> > drivers/usb/musb/musb_virthub.c:345:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > --
+> > drivers/usb/musb/musb_host.c: In function 'musb_bus_suspend':
+> > drivers/usb/musb/musb_host.c:2290:21: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_host.c:2300:15: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/musb/musb_host.c:2307:3: error: 'struct usb_phy' has no
+> > member named 'state'
+> > --
+> > drivers/usb/musb/tusb6010.c: In function 'musb_do_idle':
+> > drivers/usb/musb/tusb6010.c:419:21: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:424:4: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c: In function 'tusb_musb_try_idle':
+> > drivers/usb/musb/tusb6010.c:479:19: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:480:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:497:2: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c: In function 'tusb_musb_set_vbus':
+> > drivers/usb/musb/tusb6010.c:529:14: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:542:23: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:545:16: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:548:16: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:551:16: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:559:15: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:573:2: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
+> > drivers/usb/musb/tusb6010.c:686:20: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:688:17: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:693:4: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:699:4: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:702:23: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:748:3: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:751:22: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/musb/tusb6010.c:763:16: error: 'struct usb_phy' has no member
+> > named 'state'
+> > --
+> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_work':
+> > drivers/usb/otg/gpio_vbus.c:119:17: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/otg/gpio_vbus.c:141:17: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_peripheral':
+> > drivers/usb/otg/gpio_vbus.c:194:11: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_power':
+> > drivers/usb/otg/gpio_vbus.c:216:9: error: 'struct usb_phy' has no member
+> > named 'state'
+> > drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_probe':
+> > drivers/usb/otg/gpio_vbus.c:266:16: error: 'struct usb_phy' has no member
+> > named 'state'
+> > --
+> > drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_set_peripheral':
+> > drivers/usb/otg/nop-usb-xceiv.c:78:10: error: 'struct usb_phy' has no
+> > member named 'state'
+> > drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_usb_xceiv_probe':
+> > drivers/usb/otg/nop-usb-xceiv.c:120:10: error: 'struct usb_phy' has no
+> > member named 'state'
+> > 
+> > ---
+> > 0-DAY kernel build testing backend         Open Source Technology Centre
+> > Fengguang Wu <wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>                     Intel Corporation
+> -----------------------------------------------------------------------------------
+> This email message is for the sole use of the intended recipient(s) and may contain
+> confidential information.  Any unauthorized review, use, disclosure or distribution
+> is prohibited.  If you are not the intended recipient, please contact the sender by
+> reply email and destroy all copies of the original message.
+> -----------------------------------------------------------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
