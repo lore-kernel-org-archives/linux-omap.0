@@ -1,132 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 01/10] ARM: OMAP3+: Implement timer workaround for errata
- i103 and i767
-Date: Thu, 6 Sep 2012 09:06:08 -0500
-Message-ID: <5048ADD0.4050804@ti.com>
-References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-2-git-send-email-jon-hunter@ti.com> <50482FAC.3080807@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+Date: Thu, 06 Sep 2012 19:41:43 +0530
+Message-ID: <5048AF1F.8010607@ti.com>
+References: <20120825214459.7333a376@notabene.brown> <CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com> <20120827085312.75957354@notabene.brown> <CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com> <CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com> <20120906130510.32b0b877@notabene.brown> <CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com> <20120906170245.10e97bdd@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42164 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753364Ab2IFOGN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Sep 2012 10:06:13 -0400
-In-Reply-To: <50482FAC.3080807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120906170245.10e97bdd@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-
-On 09/06/2012 12:07 AM, Vaibhav Hiremath wrote:
-> 
-> 
-> On 9/6/2012 12:34 AM, Jon Hunter wrote:
->> Errata Titles:
->> i103: Delay needed to read some GP timer, WD timer and sync timer registers
->>       after wakeup (OMAP3/4)
->> i767: Delay needed to read some GP timer registers after wakeup (OMAP5)
->>
->> Description (i103/i767):
->> If a General Purpose Timer (GPTimer) is in posted mode (TSICR [2].POSTED=1),
->> due to internal resynchronizations, values read in TCRR, TCAR1 and TCAR2
->> registers right after the timer interface clock (L4) goes from stopped to
->> active may not return the expected values. The most common event leading to
->> this situation occurs upon wake up from idle.
->>
->> GPTimer non-posted synchronization mode is not impacted by this limitation.
->>
->> Workarounds:
->> 1). Disable posted mode
->> 2). Use static dependency between timer clock domain and MPUSS clock domain
->> 3). Use no-idle mode when the timer is active
->>
->> Workarounds #2 and #3 are not pratical from a power standpoint and so
->> workaround #1 has been implemented. Disabling posted mode adds some CPU overhead
->> for configuring the timers as the CPU has to wait for the write to complete.
->> However, disabling posted mode guarantees correct operation.
->>
->> Please note that it is safe to use posted mode for timers if the counter (TCRR)
->> and capture (TCARx) registers will never be read. An example of this is the
->> clock-event system timer. This is used by the kernel to schedule events however,
->> the timers counter is never read and capture registers are not used. Given that
->> the kernel configures this timer often yet never reads the counter register it
->> is safe to enable posted mode in this case. Hence, for the timer used for kernel
->> clock-events, posted mode is enabled by overriding the errata for devices that
->> are impacted by this defect.
->>
->> Although both dmtimers and watchdogs are impacted by this defect this patch only
->> implements the workaround for the dmtimer. Currently the watchdog driver does
->> not read the counter register and so no workaround is necessary.
->>
->> Confirmed with Vaibhav Hiremath that this bug also impacts AM33xx devices.
->>
-> 
-> Thanks for pinging me on this and getting it confirmed.
-> 
->> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->> ---
->>  arch/arm/mach-omap2/timer.c               |    9 +++++++
->>  arch/arm/plat-omap/dmtimer.c              |    2 ++
->>  arch/arm/plat-omap/include/plat/dmtimer.h |   39 +++++++++++++++++++++++++++++
->>  3 files changed, 50 insertions(+)
->>
->> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->> index 2ff6d41..5471706 100644
->> --- a/arch/arm/mach-omap2/timer.c
->> +++ b/arch/arm/mach-omap2/timer.c
->> @@ -208,6 +208,13 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
->>  {
->>  	int res;
->>  
->> +	/*
->> +	 * For clock-event timers we never read the timer counter and
->> +	 * so we are not impacted by errata i103 and i767. Therefore,
->> +	 * we can safely ignore this errata for clock-event timers.
->> +	 */
->> +	__omap_dm_timer_populate_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
->> +
-> 
-> Couple of points,
-> 
-> 1. It is confusing to me, as you are passing the errata flag so i expect
-> api should set it. Why can't we do reverse way, you pass 0 here, since
-> you don't want to set and pass this flag every other places where you
-> want to enable this errata.
-
-Per the design of the __omap_dm_timer_populate_errata function, the 2nd
-argument is called override to allow us to override an errata. I am not
-a huge fan of this, but I wanted to be explicit in the code that we are
-intentionally allowing posted mode for the clock-events timer.
-
-I did not wish to pass the flags we want to set because if there more
-flags added in the future then we will have to keep changing the calls
-to the populate_errata function to add these.
-
-> 2. Why can't we enable for all timers? Even though clock-event is anyway
-> not reading it, but still is is applicable to it, right?
-
-Yes it is still applicable but we never read it so it is ok to override.
-If you see Richard W's original patch for enabling posted mode it is to
-reduce overhead of programming timers, specifically the clock-events
-timer which is program very often.
-
-For other timers, we do not know how they will be used and so by default
-we disable posted mode as this is safe.
-
-> 3. Why can't we just simply Add this flag to hwmod_data file and read it
-> back in omap_timer_init() and omap_dm_timer_init_one(). Wouldn't that be
-> a good approach to handle it?
-
-It could be done in this case, but typically I have not seen errata
-flags added to HWMOD. One limitation you would have with HWMOD is if an
-erratum is only specific to a certain revision of the device. In this
-case it is not and so it could work.
-
-In general I think that having errata described by HWMOD would be a good
-thing, but if think that should be a longer term goal with agreement
-from Benoit and add some general errata helpers to HWMOD.
-
-Cheers
-Jon
+On Thursday 06 September 2012 12:32 PM, NeilBrown wrote:
+> From: NeilBrown <neilb@suse.de>
+> Subject: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
+>
+> Current kernel will wake from suspend on an event on any active
+> GPIO even if enable_irq_wake() wasn't called.
+>
+> There are two reasons that the hardware wake-enable bit should be set:
+>
+> 1/ while non-suspended the CPU might go into a deep sleep (off_mode)
+>   in which the wake-enable bit is needed for an interrupt to be
+>   recognised.
+> 2/ while suspended the GPIO interrupt should wake from suspend if and
+>    only if irq_wake as been enabled.
+>
+> The code currently doesn't keep these two reasons separate so they get
+> confused and sometimes the wakeup flags is set incorrectly.
+>
+> This patch reverts:
+>  commit 9c4ed9e6c01e7a8bd9079da8267e1f03cb4761fc
+>     gpio/omap: remove suspend/resume callbacks
+> and
+>  commit 0aa2727399c0b78225021413022c164cb99fbc5e
+>     gpio/omap: remove suspend_wakeup field from struct gpio_bank
+>
+> and makes some minor changes so that we have separate flags for "GPIO
+> should wake from deep idle" and "GPIO should wake from suspend".
+>
+> With this patch, the GPIO from my touch screen doesn't wake my device
+> any more, which is what I want.
+Just gave it a try fixes a similar issue on my omap4 board as well.
+>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Cousson Benoit <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Govindraj.R <govindraj.raja@ti.com>
+>
+> Signed-off-by: NeilBrown <neilb@suse.de>
