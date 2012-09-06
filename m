@@ -1,206 +1,254 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 01/10] ARM: OMAP3+: Implement timer workaround for errata
- i103 and i767
-Date: Thu, 6 Sep 2012 10:37:56 +0530
-Message-ID: <50482FAC.3080807@ti.com>
-References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-2-git-send-email-jon-hunter@ti.com>
+From: Venu Byravarasu <vbyravarasu@nvidia.com>
+Subject: RE: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
+ error: 'struct usb_phy' has no member named 'state'
+Date: Thu, 6 Sep 2012 11:00:22 +0530
+Message-ID: <D958900912E20642BCBC71664EFECE3E6DDE775405@BGMAIL02.nvidia.com>
+References: <20120906021054.GA15892@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43798 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373Ab2IFFIG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Sep 2012 01:08:06 -0400
-In-Reply-To: <1346871872-24413-2-git-send-email-jon-hunter@ti.com>
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:10810 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197Ab2IFFa1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 01:30:27 -0400
+In-Reply-To: <20120906021054.GA15892@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Fengguang Wu <fengguang.wu@intel.com>
+Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
 
+Hi Fengguang,
 
+My apologies for the inconvenience caused.
 
-On 9/6/2012 12:34 AM, Jon Hunter wrote:
-> Errata Titles:
-> i103: Delay needed to read some GP timer, WD timer and sync timer registers
->       after wakeup (OMAP3/4)
-> i767: Delay needed to read some GP timer registers after wakeup (OMAP5)
-> 
-> Description (i103/i767):
-> If a General Purpose Timer (GPTimer) is in posted mode (TSICR [2].POSTED=1),
-> due to internal resynchronizations, values read in TCRR, TCAR1 and TCAR2
-> registers right after the timer interface clock (L4) goes from stopped to
-> active may not return the expected values. The most common event leading to
-> this situation occurs upon wake up from idle.
-> 
-> GPTimer non-posted synchronization mode is not impacted by this limitation.
-> 
-> Workarounds:
-> 1). Disable posted mode
-> 2). Use static dependency between timer clock domain and MPUSS clock domain
-> 3). Use no-idle mode when the timer is active
-> 
-> Workarounds #2 and #3 are not pratical from a power standpoint and so
-> workaround #1 has been implemented. Disabling posted mode adds some CPU overhead
-> for configuring the timers as the CPU has to wait for the write to complete.
-> However, disabling posted mode guarantees correct operation.
-> 
-> Please note that it is safe to use posted mode for timers if the counter (TCRR)
-> and capture (TCARx) registers will never be read. An example of this is the
-> clock-event system timer. This is used by the kernel to schedule events however,
-> the timers counter is never read and capture registers are not used. Given that
-> the kernel configures this timer often yet never reads the counter register it
-> is safe to enable posted mode in this case. Hence, for the timer used for kernel
-> clock-events, posted mode is enabled by overriding the errata for devices that
-> are impacted by this defect.
-> 
-> Although both dmtimers and watchdogs are impacted by this defect this patch only
-> implements the workaround for the dmtimer. Currently the watchdog driver does
-> not read the counter register and so no workaround is necessary.
-> 
-> Confirmed with Vaibhav Hiremath that this bug also impacts AM33xx devices.
-> 
+During phy interface separation from otg.h, as the enum "usb_otg_state"
+was having multiple otg states info, I felt that should remain in otg.h.
+Also as removal of member 'state' of this enum type from usb_phy struct
+did not generate any compilation issues, I removed member state from struct usb_phy.
 
-Thanks for pinging me on this and getting it confirmed.
-
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/mach-omap2/timer.c               |    9 +++++++
->  arch/arm/plat-omap/dmtimer.c              |    2 ++
->  arch/arm/plat-omap/include/plat/dmtimer.h |   39 +++++++++++++++++++++++++++++
->  3 files changed, 50 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-> index 2ff6d41..5471706 100644
-> --- a/arch/arm/mach-omap2/timer.c
-> +++ b/arch/arm/mach-omap2/timer.c
-> @@ -208,6 +208,13 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
->  {
->  	int res;
->  
-> +	/*
-> +	 * For clock-event timers we never read the timer counter and
-> +	 * so we are not impacted by errata i103 and i767. Therefore,
-> +	 * we can safely ignore this errata for clock-event timers.
-> +	 */
-> +	__omap_dm_timer_populate_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
-> +
-
-Couple of points,
-
-1. It is confusing to me, as you are passing the errata flag so i expect
-api should set it. Why can't we do reverse way, you pass 0 here, since
-you don't want to set and pass this flag every other places where you
-want to enable this errata.
-
-2. Why can't we enable for all timers? Even though clock-event is anyway
-not reading it, but still is is applicable to it, right?
-
-3. Why can't we just simply Add this flag to hwmod_data file and read it
-back in omap_timer_init() and omap_dm_timer_init_one(). Wouldn't that be
-a good approach to handle it?
+As this is causing build break in musb code, I pushed a patch to balbi's tree for fixing this.
+Also added you as a reviewer in the to list of the patch.
+Plz verify and let me know if you still see any issues.
 
 Thanks,
-Vaibhav
->  	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
->  	BUG_ON(res);
->  
-> @@ -305,6 +312,8 @@ static void __init omap2_gptimer_clocksource_init(int gptimer_id,
->  {
->  	int res;
->  
-> +	__omap_dm_timer_populate_errata(&clksrc, 0);
-> +
->  	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
->  	BUG_ON(res);
->  
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 938b50a..c34f55b 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -730,6 +730,8 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
->  	timer->pdev = pdev;
->  	timer->capability = pdata->timer_capability;
->  
-> +	__omap_dm_timer_populate_errata(timer, 0);
-> +
->  	/* Skip pm_runtime_enable for OMAP1 */
->  	if (!(timer->capability & OMAP_TIMER_NEEDS_RESET)) {
->  		pm_runtime_enable(dev);
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-> index 19e7fa5..5ce2f00 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -36,6 +36,7 @@
->  #include <linux/delay.h>
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
-> +#include <plat/cpu.h>
->  
->  #ifndef __ASM_ARCH_DMTIMER_H
->  #define __ASM_ARCH_DMTIMER_H
-> @@ -61,6 +62,16 @@
->  #define OMAP_TIMER_HAS_PWM				0x20000000
->  #define OMAP_TIMER_NEEDS_RESET				0x10000000
->  
-> +/*
-> + * timer errata flags
-> + *
-> + * Errata i103/i767 impacts all OMAP3/4/5 devices including AM33xx. This
-> + * errata prevents us from using posted mode on these devices, unless the
-> + * timer counter register is never read. For more details please refer to
-> + * the OMAP3/4/5 errata documents.
-> + */
-> +#define OMAP_TIMER_ERRATA_I103_I767			0x80000000
-> +
->  struct omap_timer_capability_dev_attr {
->  	u32 timer_capability;
->  };
-> @@ -265,6 +276,7 @@ struct omap_dm_timer {
->  	int ctx_loss_count;
->  	int revision;
->  	u32 capability;
-> +	u32 errata;
->  	struct platform_device *pdev;
->  	struct list_head node;
->  };
-> @@ -337,11 +349,38 @@ static inline void __omap_dm_timer_reset(struct omap_dm_timer *timer,
->  
->  	__raw_writel(l, timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
->  
-> +	if (timer->errata & OMAP_TIMER_ERRATA_I103_I767)
-> +		return;
-> +
->  	/* Match hardware reset default of posted mode */
->  	__omap_dm_timer_write(timer, OMAP_TIMER_IF_CTRL_REG,
->  					OMAP_TIMER_CTRL_POSTED, 0);
->  }
->  
-> +/**
-> + * __omap_dm_timer_populate_errata - populate errata flags for a timer
-> + * @timer:      pointer to timer handle
-> + * @override:   errata flags to be ignored
-> + *
-> + * For a given timer, populate the timer errata flags that are specific to the
-> + * OMAP device being used. An override argument is provided so that a specific
-> + * erratum could be ignored for a timer if the timer is used in such a way the
-> + * erratum has no impact.
-> + */
-> +static inline void
-> +__omap_dm_timer_populate_errata(struct omap_dm_timer *timer, u32 override)
-> +{
-> +	timer->errata = 0;
-> +
-> +	if (cpu_class_is_omap1() || cpu_is_omap24xx())
-> +		return;
-> +
-> +	if (override & OMAP_TIMER_ERRATA_I103_I767)
-> +		return;
-> +
-> +	timer->errata = OMAP_TIMER_ERRATA_I103_I767;
-> +}
-> +
->  static inline int __omap_dm_timer_set_source(struct clk *timer_fck,
->  						struct clk *parent)
->  {
+Venu
+
+
+> -----Original Message-----
+> From: Fengguang Wu [mailto:fengguang.wu@intel.com]
+> Sent: Thursday, September 06, 2012 7:41 AM
+> To: Venu Byravarasu
+> Cc: kernel-janitors@vger.kernel.org; Felipe Balbi; linux-
+> omap@vger.kernel.org; linux-usb@vger.kernel.org
+> Subject: [balbi-usb:master 18/19] drivers/usb/musb/musb_core.c:357:21:
+> error: 'struct usb_phy' has no member named 'state'
 > 
+> Hi Venu,
+> 
+> FYI, kernel build failed on
+> 
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
+> head:   8de3474a41642da9dfb38208844007a48f87abce
+> commit: de4217d90fed1b1714a270ceb5d092f7314e8bda [18/19] usb: otg:
+> Move phy interface to separate file.
+> config: x86_64-allmodconfig (attached as .config)
+> 
+> All related error/warning messages:
+> 
+> drivers/usb/musb/musb_core.c: In function 'musb_otg_timer_func':
+> drivers/usb/musb/musb_core.c:357:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:361:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:366:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:369:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:372:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c: In function 'musb_hnp_stop':
+> drivers/usb/musb/musb_core.c:388:2: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:390:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:393:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:399:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:407:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
+> drivers/usb/musb/musb_core.c:446:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:451:23: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:474:16: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:479:16: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:484:5: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:489:23: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:492:16: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_core.c:513:5: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:530:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/musb_core.c:542:14: error: 'struct usb_phy' has no
+> member named 'state'
+> --
+> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_wakeup':
+> drivers/usb/musb/musb_gadget.c:1630:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:1670:3: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_start':
+> drivers/usb/musb/musb_gadget.c:1952:13: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_gadget_stop':
+> drivers/usb/musb/musb_gadget.c:2063:13: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_g_resume':
+> drivers/usb/musb/musb_gadget.c:2096:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2109:3: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_g_suspend':
+> drivers/usb/musb/musb_gadget.c:2122:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2125:15: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2139:3: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_g_disconnect':
+> drivers/usb/musb/musb_gadget.c:2171:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2173:3: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2175:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2179:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2186:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c: In function 'musb_g_reset':
+> drivers/usb/musb/musb_gadget.c:2242:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_gadget.c:2245:14: error: 'struct usb_phy' has no
+> member named 'state'
+> --
+> drivers/usb/musb/musb_virthub.c: In function 'musb_port_suspend':
+> drivers/usb/musb/musb_virthub.c:81:22: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:83:15: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:93:15: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:99:4: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c: In function 'musb_port_reset':
+> drivers/usb/musb/musb_virthub.c:120:17: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c: In function 'musb_root_disconnect':
+> drivers/usb/musb/musb_virthub.c:191:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:195:15: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:201:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:205:14: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c:208:3: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_virthub.c: In function 'musb_hub_control':
+> drivers/usb/musb/musb_virthub.c:345:15: error: 'struct usb_phy' has no
+> member named 'state'
+> --
+> drivers/usb/musb/musb_host.c: In function 'musb_bus_suspend':
+> drivers/usb/musb/musb_host.c:2290:21: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_host.c:2300:15: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/musb/musb_host.c:2307:3: error: 'struct usb_phy' has no
+> member named 'state'
+> --
+> drivers/usb/musb/tusb6010.c: In function 'musb_do_idle':
+> drivers/usb/musb/tusb6010.c:419:21: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:424:4: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c: In function 'tusb_musb_try_idle':
+> drivers/usb/musb/tusb6010.c:479:19: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:480:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:497:2: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c: In function 'tusb_musb_set_vbus':
+> drivers/usb/musb/tusb6010.c:529:14: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:542:23: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:545:16: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:548:16: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:551:16: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:559:15: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:573:2: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c: In function 'tusb_otg_ints':
+> drivers/usb/musb/tusb6010.c:686:20: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:688:17: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:693:4: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:699:4: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:702:23: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:748:3: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:751:22: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/musb/tusb6010.c:763:16: error: 'struct usb_phy' has no member
+> named 'state'
+> --
+> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_work':
+> drivers/usb/otg/gpio_vbus.c:119:17: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/otg/gpio_vbus.c:141:17: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_peripheral':
+> drivers/usb/otg/gpio_vbus.c:194:11: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_set_power':
+> drivers/usb/otg/gpio_vbus.c:216:9: error: 'struct usb_phy' has no member
+> named 'state'
+> drivers/usb/otg/gpio_vbus.c: In function 'gpio_vbus_probe':
+> drivers/usb/otg/gpio_vbus.c:266:16: error: 'struct usb_phy' has no member
+> named 'state'
+> --
+> drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_set_peripheral':
+> drivers/usb/otg/nop-usb-xceiv.c:78:10: error: 'struct usb_phy' has no
+> member named 'state'
+> drivers/usb/otg/nop-usb-xceiv.c: In function 'nop_usb_xceiv_probe':
+> drivers/usb/otg/nop-usb-xceiv.c:120:10: error: 'struct usb_phy' has no
+> member named 'state'
+> 
+> ---
+> 0-DAY kernel build testing backend         Open Source Technology Centre
+> Fengguang Wu <wfg@linux.intel.com>                     Intel Corporation
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
