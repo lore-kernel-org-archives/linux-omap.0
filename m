@@ -1,118 +1,77 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 02/10] ARM: OMAP: Fix timer posted mode support
-Date: Thu, 6 Sep 2012 11:01:21 -0500
-Message-ID: <5048C8D1.6080806@ti.com>
-References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-3-git-send-email-jon-hunter@ti.com> <50489DBD.5030200@ti.com> <5048B117.7050601@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v3 08/14] Input: twl4030-vibra: Support for
+ DT booted kernel
+Date: Thu, 6 Sep 2012 09:19:33 -0700
+Message-ID: <20120906161933.GA18562@core.coreip.homeip.net>
+References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
+ <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39309 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758307Ab2IFQB2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 12:01:28 -0400
-In-Reply-To: <5048B117.7050601@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
+Hi Peter,
 
-On 09/06/2012 09:20 AM, Jon Hunter wrote:
+On Thu, Sep 06, 2012 at 03:12:15PM +0300, Peter Ujfalusi wrote:
+> Add support when the kernel has been booted with DT blob. In this case the
+> pdata is NULL, we need to reach up to the core node and check if the codec
+> part has been enabled to determine if we need to coexist with the codec or
+> not.
 > 
-> On 09/06/2012 07:57 AM, Vaibhav Hiremath wrote:
->>
->>
->> On 9/6/2012 12:34 AM, Jon Hunter wrote:
->>> Currently the dmtimer posted mode is being enabled when the function
->>> __omap_dm_timer_reset() is called. This function is only being called for
->>> OMAP1 timers and OMAP2+ timers that are being used as system timers. Hence,
->>> for OMAP2+ timers that are NOT being used as a system timer, posted mode is
->>> not enabled but the "timer->posted" variable is still set (incorrectly) in
->>> the omap_dm_timer_prepare() function.
->>>
->>> This is a regression introduced by commit 3392cdd3 (ARM: OMAP: dmtimer:
->>> switch-over to platform device driver) which changed the code to only call
->>> omap_dm_timer_reset() for OMAP1 devices. Although this is a regression from
->>> the original code it only impacts performance and so is not needed for stable.
->>>
->>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/timer.c               |    3 +--
->>>  arch/arm/plat-omap/dmtimer.c              |   14 +++++---------
->>>  arch/arm/plat-omap/include/plat/dmtimer.h |    9 ++++++++-
->>>  3 files changed, 14 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
->>> index 5471706..e24ee0f 100644
->>> --- a/arch/arm/mach-omap2/timer.c
->>> +++ b/arch/arm/mach-omap2/timer.c
->>> @@ -194,10 +194,9 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
->>>  	}
->>>  	__omap_dm_timer_init_regs(timer);
->>>  	__omap_dm_timer_reset(timer, 1, 1);
->>> -	timer->posted = 1;
->>> +	__omap_dm_timer_enable_posted(timer);
->>>  
->>>  	timer->rate = clk_get_rate(timer->fclk);
->>> -
->>>  	timer->reserved = 1;
->>>  
->>>  	return res;
->>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
->>> index c34f55b..22790ea 100644
->>> --- a/arch/arm/plat-omap/dmtimer.c
->>> +++ b/arch/arm/plat-omap/dmtimer.c
->>> @@ -122,21 +122,15 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
->>>  
->>>  static void omap_dm_timer_reset(struct omap_dm_timer *timer)
->>>  {
->>> -	omap_dm_timer_enable(timer);
->>>  	if (timer->pdev->id != 1) {
->>>  		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
->>>  		omap_dm_timer_wait_for_reset(timer);
->>>  	}
->>> -
->>>  	__omap_dm_timer_reset(timer, 0, 0);
->>> -	omap_dm_timer_disable(timer);
->>> -	timer->posted = 1;
->>>  }
->>>  
->>>  int omap_dm_timer_prepare(struct omap_dm_timer *timer)
->>>  {
->>> -	int ret;
->>> -
->>>  	/*
->>>  	 * FIXME: OMAP1 devices do not use the clock framework for dmtimers so
->>>  	 * do not call clk_get() for these devices.
->>> @@ -150,13 +144,15 @@ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
->>>  		}
->>>  	}
->>>  
->>> +	omap_dm_timer_enable(timer);
->>> +
->>>  	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
->>>  		omap_dm_timer_reset(timer);
->>>  
->>> -	ret = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
->>> +	__omap_dm_timer_enable_posted(timer);
->>> +	omap_dm_timer_disable(timer);
->>>  
->>> -	timer->posted = 1;
->>> -	return ret;
->>> +	return omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
->>
->> May be I am speculating here and I know this is tested and supposed to
->> work, but Isn't it safe to set parent keeping module enables.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  drivers/input/misc/twl4030-vibra.c | 20 ++++++++++++++++++--
+>  1 file changed, 18 insertions(+), 2 deletions(-)
 > 
-> So you would rather change the functional clock while the timer is
-> enabled/active? So although that we are doing this today, that does not
-> sound like a good idea to me :-)
+> diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
+> index fc0ed9b..15620f8 100644
+> --- a/drivers/input/misc/twl4030-vibra.c
+> +++ b/drivers/input/misc/twl4030-vibra.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/module.h>
+>  #include <linux/jiffies.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/of.h>
+>  #include <linux/workqueue.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/mfd/twl4030-audio.h>
+> @@ -194,13 +195,28 @@ static int twl4030_vibra_resume(struct device *dev)
+>  static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
+>  			 twl4030_vibra_suspend, twl4030_vibra_resume);
+>  
+> +static bool twl4030_vibra_check_coexist(struct twl4030_vibra_data *pdata,
+> +			      struct device_node *node)
+> +{
+> +	if (pdata && pdata->coexist)
+> +		return true;
+> +
+> +#ifdef CONFIG_OF
+> +	if (of_find_node_by_name(node, "codec"))
+> +		return true;
+> +#endif
 
-Actually, we are not doing this today. If you look at the current code
-we are only enabling the timer while doing the soft-reset for omap1
-devices. Hence, even in the current code we set the parent while the
-timer is not enabled. So there is no actual change here in the sequence.
+In patch 6 you added a stub for of_find_node_by_name(), so do you really
+need this #ifdef?
 
-Cheers
-Jon
+Otherwise it looks good.
+
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+Thanks.
+
+-- 
+Dmitry
