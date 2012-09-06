@@ -1,44 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.6-rc4
-Date: Wed, 5 Sep 2012 15:44:42 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:52044 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752128Ab2IEPon (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Sep 2012 11:44:43 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: [PATCH] Don't clobber access methods when !regmap
+Date: Thu,  6 Sep 2012 16:45:32 +0300
+Message-ID: <1346939132-20187-1-git-send-email-panto@antoniou-consulting.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: patches@opensource.wolfsonmicro.com, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Pantelis Antoniou <panto@antoniou-consulting.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
+A snd-soc driver that doesn't support regmap blow up horribly
+when you assume that regmap is available. Fix it by marking
+the driver as not supporting regmap & not clobbering the codec
+access methods.
 
-Here are some basic boot and power management test results for v3.6-rc4:
+This is immediately noticeable on the beagleboard where we crash,
+since we might have REGMAP enabled, but it doesn't mean that the
+omap driver uses it.
 
-    http://www.pwsan.com/omap/testlogs/test_v3.6-rc4/20120904122415/
+Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
 
-Some observations:
+---
+ sound/soc/soc-io.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-* N800: panics during kernel init
-  - This is caused by an MMC driver bug; fixed by "[PATCH] MMC: OMAP MSDI: 
-    fix broken PIO mode", available from here:
-    http://www.spinics.net/lists/arm-kernel/msg190879.html
-
-* CM-T3517: L3 in-band error with USB OTG during boot
-  - Cause unknown; longstanding issue; does not occur on the 3517EVM
-
-* 37xx EVM: CORE not entering dynamic off-idle
-  - Cause unknown; dynamic retention-idle seems to work; system suspend to 
-    off works
-
-* 4430ES2 Panda: CORE, L4PER, L3INIT, TESLA, IVAHD not going idle
-  - Cause unknown; may be partially due to McPDM reset problem
-
-(The objective in posting these is to determine what is and isn't working 
-in the mainline releases, as well as to make it easier to determine what 
-is fixed or is broken by subsequent series that use this as a base.)
-
-
-- Paul
+diff --git a/sound/soc/soc-io.c b/sound/soc/soc-io.c
+index 29183ef..4e5b4ae 100644
+--- a/sound/soc/soc-io.c
++++ b/sound/soc/soc-io.c
+@@ -117,9 +117,6 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
+ 	int ret;
+ 
+ 	memset(&config, 0, sizeof(config));
+-	codec->write = hw_write;
+-	codec->read = hw_read;
+-	codec->bulk_write_raw = snd_soc_hw_bulk_write_raw;
+ 
+ 	config.reg_bits = addr_bits;
+ 	config.val_bits = data_bits;
+@@ -151,7 +148,9 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
+ 			 * multiples */
+ 			if (ret > 0)
+ 				codec->val_bytes = ret;
+-		}
++		} else
++			codec->using_regmap = false;
++
+ 		break;
+ 
+ 	default:
+@@ -161,6 +160,13 @@ int snd_soc_codec_set_cache_io(struct snd_soc_codec *codec,
+ 	if (IS_ERR(codec->control_data))
+ 		return PTR_ERR(codec->control_data);
+ 
++	/* only when using regmap; don't modify unconditionally */
++	if (codec->using_regmap) {
++		codec->write = hw_write;
++		codec->read = hw_read;
++		codec->bulk_write_raw = snd_soc_hw_bulk_write_raw;
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(snd_soc_codec_set_cache_io);
+-- 
+1.7.12
