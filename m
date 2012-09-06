@@ -1,80 +1,219 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Thu, 06 Sep 2012 15:44:13 -0700
-Message-ID: <87harahiv6.fsf@deeprootsystems.com>
-References: <20120906122948.GC29202@arwen.pp.htv.fi>
-	<1346935540-1792-1-git-send-email-balbi@ti.com>
+Subject: Re: [PATCH v9] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN controller
+Date: Thu, 06 Sep 2012 16:37:56 -0700
+Message-ID: <878vcmhgdn.fsf@deeprootsystems.com>
+References: <1345461654-439-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346935540-1792-1-git-send-email-balbi@ti.com> (Felipe Balbi's
-	message of "Thu, 6 Sep 2012 15:45:19 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, alan@linux.intel.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:61890 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570Ab2IFXh6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 19:37:58 -0400
+Received: by iahk25 with SMTP id k25so2640560iah.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 16:37:57 -0700 (PDT)
+In-Reply-To: <1345461654-439-1-git-send-email-anilkumar@ti.com> (AnilKumar
+	Ch's message of "Mon, 20 Aug 2012 16:50:54 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 
-Felipe Balbi <balbi@ti.com> writes:
+AnilKumar Ch <anilkumar@ti.com> writes:
 
-> Hi guys,
+> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
+> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
+> register of C_CAN/D_CAN IP when clock is turned off.
 >
-> here's v4 of the omap uart patchset. No changes other than a rebase on top of
-> Greg's tty-next branch and Tony's Acked-by being added to a couple patches
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+
+I'm not familar with the CAN specifics here, but some comments on the
+runtime PM implementation.
+
+> ---
+> This patch has been tested on AM335X EVM. Due to lack of hardware
+> I am not able to test c_can functionality. I appreciate if anyone
+> can test c_can functionality with this patch.
 >
-> Note: I'm resending the series with Vikram's Software Flow Control fix anyway
-> as it can just be ignored if it's decided it needs to go into this merge
-> window.
+> This patch is based on "can-next/master" 
+>
+> Changes from v8:
+> 	- corrected the return path sequence in c_can_probe()
+>
+> Changes from v7:
+> 	- Incorporated Marc's comments on v7
+> 	  * changed device pointer to c_can_priv pointer
+>
+> Changes from v6:
+> 	- Incorporated Marc's comments on v6
+> 	  * changed dev pointer to priv
+> 	  * removed platform_device.h include from c_can.c
+>
+> Changes from v5:
+> 	- Incorporated Marc's comments on v5
+> 	  * changed runtime pm calls in c_can driver to handle
+> 	    the drivers which are not using platform drivers.
+> 	  * added device pointer protection in c_can driver if
+> 	    not passed from platform/pci driver.
+>
+> Changes from v4:
+> 	- Incorporated Vaibhav H review comments on v4.
+> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
+> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
+> 	  patch series. Rest of the patches in this series were applied
+> 	  so this v5 contains only this patch.
+>
+>  drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-
+>  drivers/net/can/c_can/c_can.h          |    1 +
+>  drivers/net/can/c_can/c_can_platform.c |   11 +++++++++--
+>  3 files changed, 33 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+> index 4c538e3..966d318 100644
+> --- a/drivers/net/can/c_can/c_can.c
+> +++ b/drivers/net/can/c_can/c_can.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/if_ether.h>
+>  #include <linux/list.h>
+>  #include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <linux/can.h>
+>  #include <linux/can/dev.h>
+> @@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
+>  	.brp_inc = 1,
+>  };
+>  
+> +static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
+> +{
+> +	if (priv->device)
+> +		pm_runtime_get_sync(priv->device);
+> +}
+> +
+> +static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
+> +{
+> +	if (priv->device)
+> +		pm_runtime_put_sync(priv->device);
+> +}
 
-Sorry to be late to the party... just getting back from some time off.
-
-I'm assuming that this was not tested with PM, so decided I better do it
-myself seeing that Greg is has already merge it.  To test, I merged
-Greg's tty-next branch with v3.6-rc4 and did some PM testing.
-
-The bad news is that it doesn't even compile (see reply to [PATCH v4
-20/21]).  
-
-Also, there is a big WARNING on boot[1], which seems to be triggered by
-a new check added for v3.6-rc3[2].  This appears to be introduced by
-$SUBJECT series, because I don't see it on vanilla v3.6-rc4.
-
-The good news is that after hacking to fix up the compile problems,
-basic PM testing seems to be fine: idle to retention and off as well as
-suspend to retention and off work fine on 3430/n900, 3530/Overo,
-3730/OveroSTORM, 3730/Beagle-xM.
+IMO, these extra helpers are rather unsightly, and should not be needed.
+The driver should just be directly doing get_sync/put_sync.  If
+priv->device isn't presnt, then runtime PM should just never be enabled.
 
 Kevin
 
-
-[1]
-[    8.745666] WARNING: at /work/kernel/omap/pm/drivers/tty/tty_io.c:1420 tty_init_dev+0x14c/0x17c()
-[    8.755218] tty_init_dev: ttyO driver does not set tty->port. This will crash the kernel later. Fix the driver!
-[    8.765991] Modules linked in:
-[    8.769287] [<c0013d90>] (unwind_backtrace+0x0/0xf0) from [<c0036eec>] (warn_slowpath_common+0x4c/0x64)
-[    8.779327] [<c0036eec>] (warn_slowpath_common+0x4c/0x64) from [<c0036f98>] (warn_slowpath_fmt+0x30/0x40)
-[    8.789550] [<c0036f98>] (warn_slowpath_fmt+0x30/0x40) from [<c02c626c>] (tty_init_dev+0x14c/0x17c)
-[    8.799224] [<c02c626c>] (tty_init_dev+0x14c/0x17c) from [<c02c68a4>] (tty_open+0x11c/0x52c)
-[    8.808258] [<c02c68a4>] (tty_open+0x11c/0x52c) from [<c00f86ac>] (chrdev_open+0x90/0x15c)
-[    8.817108] [<c00f86ac>] (chrdev_open+0x90/0x15c) from [<c00f2b74>] (do_dentry_open+0x1e8/0x270)
-[    8.826507] [<c00f2b74>] (do_dentry_open+0x1e8/0x270) from [<c00f2c30>] (finish_open+0x34/0x4c)
-[    8.835784] [<c00f2c30>] (finish_open+0x34/0x4c) from [<c0102028>] (do_last.isra.21+0x5b0/0xbbc)
-[    8.845184] [<c0102028>] (do_last.isra.21+0x5b0/0xbbc) from [<c01026dc>] (path_openat+0xa8/0x44c)
-[    8.854675] [<c01026dc>] (path_openat+0xa8/0x44c) from [<c0102d34>] (do_filp_open+0x2c/0x80)
-[    8.863708] [<c0102d34>] (do_filp_open+0x2c/0x80) from [<c00f3b6c>] (do_sys_open+0xe8/0x184)
-[    8.872711] [<c00f3b6c>] (do_sys_open+0xe8/0x184) from [<c000db20>] (ret_fast_syscall+0x0/0x3c)
-[    8.882019] ---[ end trace e9bf408c37051346 ]---
-
-[2]
-commit 5d4121c04b3577e37e389b3553d442f44bb346d7
-Author: Jiri Slaby <jslaby@suse.cz>
-Date:   Fri Aug 17 14:27:52 2012 +0200
-
-    TTY: check if tty->port is assigned
-    
-    And if not, complain loudly. None in-kernel module should trigger
-    that, but let us find out for sure. On the other hand, all the
-    out-of-tree modules will hit that. Give them some time (maybe one
-    release) to catch up.
-    
-    Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
+>  {
+>  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
+> @@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
+>  	unsigned int reg_err_counter;
+>  	struct c_can_priv *priv = netdev_priv(dev);
+>  
+> +	c_can_pm_runtime_get_sync(priv);
+> +
+>  	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
+>  	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
+>  				ERR_CNT_REC_SHIFT;
+>  	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
+>  
+> +	c_can_pm_runtime_put_sync(priv);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
+>  	int err;
+>  	struct c_can_priv *priv = netdev_priv(dev);
+>  
+> +	c_can_pm_runtime_get_sync(priv);
+> +
+>  	/* open the can device */
+>  	err = open_candev(dev);
+>  	if (err) {
+>  		netdev_err(dev, "failed to open can device\n");
+> -		return err;
+> +		goto exit_open_fail;
+>  	}
+>  
+>  	/* register interrupt handler */
+> @@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
+>  
+>  exit_irq_fail:
+>  	close_candev(dev);
+> +exit_open_fail:
+> +	c_can_pm_runtime_put_sync(priv);
+>  	return err;
+>  }
+>  
+> @@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
+>  	c_can_stop(dev);
+>  	free_irq(dev->irq, dev);
+>  	close_candev(dev);
+> +	c_can_pm_runtime_put_sync(priv);
+>  
+>  	return 0;
+>  }
+> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
+> index 4e56baa..1437a6d 100644
+> --- a/drivers/net/can/c_can/c_can.h
+> +++ b/drivers/net/can/c_can/c_can.h
+> @@ -153,6 +153,7 @@ struct c_can_priv {
+>  	struct can_priv can;	/* must be the first member */
+>  	struct napi_struct napi;
+>  	struct net_device *dev;
+> +	struct device *device;
+>  	int tx_object;
+>  	int current_status;
+>  	int last_status;
+> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+> index d0a66cf..90801c4 100644
+> --- a/drivers/net/can/c_can/c_can_platform.c
+> +++ b/drivers/net/can/c_can/c_can_platform.c
+> @@ -32,6 +32,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of.h>
+>  #include <linux/of_device.h>
+> +#include <linux/pm_runtime.h>
+>  
+>  #include <linux/can/dev.h>
+>  
+> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  		goto exit_free_device;
+>  	}
+>  
+> +	pm_runtime_enable(&pdev->dev);
+> +
+>  	dev->irq = irq;
+>  	priv->base = addr;
+> +	priv->device = &pdev->dev;
+>  	priv->can.clock.freq = clk_get_rate(clk);
+>  	priv->priv = clk;
+>  
+> @@ -189,15 +193,17 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
+>  			KBUILD_MODNAME, ret);
+> -		goto exit_free_device;
+> +		goto exit_clear_drvdata;
+>  	}
+>  
+>  	dev_info(&pdev->dev, "%s device registered (regs=%p, irq=%d)\n",
+>  		 KBUILD_MODNAME, priv->base, dev->irq);
+>  	return 0;
+>  
+> -exit_free_device:
+> +exit_clear_drvdata:
+>  	platform_set_drvdata(pdev, NULL);
+> +	pm_runtime_disable(&pdev->dev);
+> +exit_free_device:
+>  	free_c_can_dev(dev);
+>  exit_iounmap:
+>  	iounmap(addr);
+> @@ -226,6 +232,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
+>  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	release_mem_region(mem->start, resource_size(mem));
+>  
+> +	pm_runtime_disable(&pdev->dev);
+>  	clk_put(priv->priv);
+>  
+>  	return 0;
