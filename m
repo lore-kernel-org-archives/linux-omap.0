@@ -1,14 +1,11 @@
 From: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/3] usb: musb: omap: write directly to mailbox instead of
- using phy
-Date: Thu, 6 Sep 2012 20:25:30 +0530
-Message-ID: <1346943331-18120-3-git-send-email-kishon@ti.com>
-References: <1346943331-18120-1-git-send-email-kishon@ti.com>
+Subject: [PATCH 0/5] usb: phy/otg: add dt support
+Date: Thu, 6 Sep 2012 20:27:05 +0530
+Message-ID: <1346943430-18236-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346943331-18120-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
  <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
@@ -22,180 +19,49 @@ Sender: "devicetree-discuss"
 To: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-The glue layer should directly write to mailbox register (present in
-control module) instead of calling phy layer to write to mailbox
-register. Writing to mailbox register notifies the core of events like
-device connect/disconnect.
+This patch series adds device tree support for phy's (twl4030 and twl6030).
 
-Currently writing to control module register is taken care in this
-driver which will be removed once the control module driver is in place.
+A new omap-usb2 phy driver has been added (with only dt suppport)
+to perform phy configurations. Previously this configuration was
+performed by twl6030, using pdata function pointers.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/omap2430.c |   52 +++++++++++++++++++++++++++++++++++++------
- drivers/usb/musb/omap2430.h |    9 ++++++++
- 2 files changed, 54 insertions(+), 7 deletions(-)
+With the addition of omap-usb2 to perform phy configurations,
+twl6030 is made as a comparator driver to detect VBUS and ID events
+and notify it to the glue layer.
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 02c39a7..f4d9503 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -45,6 +45,7 @@ struct omap2430_glue {
- 	struct platform_device	*musb;
- 	enum omap_musb_vbus_id_status status;
- 	struct work_struct	omap_musb_mailbox_work;
-+	u32 __iomem		*control_otghs;
- };
- #define glue_to_musb(g)		platform_get_drvdata(g->musb)
- 
-@@ -52,6 +53,26 @@ struct omap2430_glue		*_glue;
- 
- static struct timer_list musb_idle_timer;
- 
-+/**
-+ * omap4_usb_phy_mailbox - write to usb otg mailbox
-+ * @glue: struct omap2430_glue *
-+ * @val: the value to be written to the mailbox
-+ *
-+ * On detection of a device (ID pin is grounded), this API should be called
-+ * to set AVALID, VBUSVALID and ID pin is grounded.
-+ *
-+ * When OMAP is connected to a host (OMAP in device mode), this API
-+ * is called to set AVALID, VBUSVALID and ID pin in high impedance.
-+ *
-+ * XXX: This function will be removed once we have a seperate driver for
-+ * control module
-+ */
-+static void omap4_usb_phy_mailbox(struct omap2430_glue *glue, u32 val)
-+{
-+	if (glue->control_otghs)
-+		writel(val, glue->control_otghs);
-+}
-+
- static void musb_do_idle(unsigned long _musb)
- {
- 	struct musb	*musb = (void *)_musb;
-@@ -247,6 +268,7 @@ EXPORT_SYMBOL_GPL(omap_musb_mailbox);
- 
- static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- {
-+	u32 val;
- 	struct musb *musb = glue_to_musb(glue);
- 	struct device *dev = musb->controller;
- 	struct musb_hdrc_platform_data *pdata = dev->platform_data;
-@@ -262,7 +284,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->last_event = USB_EVENT_ID;
- 		if (musb->gadget_driver) {
- 			pm_runtime_get_sync(dev);
--			usb_phy_init(musb->xceiv);
-+			val = AVALID | VBUSVALID;
-+			omap4_usb_phy_mailbox(glue, val);
- 			omap2430_musb_set_vbus(musb, 1);
- 		}
- 		break;
-@@ -275,7 +298,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 		musb->xceiv->last_event = USB_EVENT_VBUS;
- 		if (musb->gadget_driver)
- 			pm_runtime_get_sync(dev);
--		usb_phy_init(musb->xceiv);
-+		val = IDDIG | AVALID | VBUSVALID;
-+		omap4_usb_phy_mailbox(glue, val);
- 		break;
- 
- 	case OMAP_MUSB_ID_FLOAT:
-@@ -292,7 +316,8 @@ static void omap_musb_set_mailbox(struct omap2430_glue *glue)
- 			if (musb->xceiv->otg->set_vbus)
- 				otg_set_vbus(musb->xceiv->otg, 0);
- 		}
--		usb_phy_shutdown(musb->xceiv);
-+		val = SESSEND | IDDIG;
-+		omap4_usb_phy_mailbox(glue, val);
- 		break;
- 	default:
- 		dev_dbg(dev, "ID float\n");
-@@ -367,6 +392,7 @@ err1:
- static void omap2430_musb_enable(struct musb *musb)
- {
- 	u8		devctl;
-+	u32		val;
- 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
- 	struct device *dev = musb->controller;
- 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
-@@ -376,7 +402,8 @@ static void omap2430_musb_enable(struct musb *musb)
- 	switch (glue->status) {
- 
- 	case OMAP_MUSB_ID_GROUND:
--		usb_phy_init(musb->xceiv);
-+		val = AVALID | VBUSVALID;
-+		omap4_usb_phy_mailbox(glue, val);
- 		if (data->interface_type != MUSB_INTERFACE_UTMI)
- 			break;
- 		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-@@ -395,7 +422,8 @@ static void omap2430_musb_enable(struct musb *musb)
- 		break;
- 
- 	case OMAP_MUSB_VBUS_VALID:
--		usb_phy_init(musb->xceiv);
-+		val = IDDIG | AVALID | VBUSVALID;
-+		omap4_usb_phy_mailbox(glue, val);
- 		break;
- 
- 	default:
-@@ -405,11 +433,14 @@ static void omap2430_musb_enable(struct musb *musb)
- 
- static void omap2430_musb_disable(struct musb *musb)
- {
-+	u32 val;
- 	struct device *dev = musb->controller;
- 	struct omap2430_glue *glue = dev_get_drvdata(dev->parent);
- 
--	if (glue->status != OMAP_MUSB_UNKNOWN)
--		usb_phy_shutdown(musb->xceiv);
-+	if (glue->status != OMAP_MUSB_UNKNOWN) {
-+		val = SESSEND | IDDIG;
-+		omap4_usb_phy_mailbox(glue, val);
-+	}
- }
- 
- static int omap2430_musb_exit(struct musb *musb)
-@@ -441,6 +472,7 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
- 	struct musb_hdrc_platform_data	*pdata = pdev->dev.platform_data;
- 	struct platform_device		*musb;
- 	struct omap2430_glue		*glue;
-+	struct resource			*res;
- 	int				ret = -ENOMEM;
- 
- 	glue = devm_kzalloc(&pdev->dev, sizeof(*glue), GFP_KERNEL);
-@@ -463,6 +495,12 @@ static int __devinit omap2430_probe(struct platform_device *pdev)
- 	glue->musb			= musb;
- 	glue->status			= OMAP_MUSB_UNKNOWN;
- 
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+
-+	glue->control_otghs = devm_request_and_ioremap(&pdev->dev, res);
-+	if (glue->control_otghs == NULL)
-+		dev_dbg(&pdev->dev, "Failed to obtain control memory\n");
-+
- 	pdata->platform_ops		= &omap2430_ops;
- 
- 	platform_set_drvdata(pdev, glue);
-diff --git a/drivers/usb/musb/omap2430.h b/drivers/usb/musb/omap2430.h
-index 40b3c02..b85f397 100644
---- a/drivers/usb/musb/omap2430.h
-+++ b/drivers/usb/musb/omap2430.h
-@@ -49,4 +49,13 @@
- #define OTG_FORCESTDBY		0x414
- #	define	ENABLEFORCE		(1 << 0)
- 
-+/*
-+ * Control Module bit definitions
-+ * XXX: Will be removed once we have a driver for control module.
-+ */
-+#define	AVALID				BIT(0)
-+#define	BVALID				BIT(1)
-+#define	VBUSVALID			BIT(2)
-+#define	SESSEND				BIT(3)
-+#define	IDDIG				BIT(4)
- #endif	/* __MUSB_OMAP243X_H__ */
+Previously these patches were part of
+[PATCH v7 0/7] omap: musb: Add device tree support
+
+This patch series was developed on
+git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git xceiv
+
+Kishon Vijay Abraham I (5):
+  drivers: usb: phy: add a new driver for omap usb2 phy
+  drivers: usb: otg: make twl6030_usb as a comparator driver to
+    omap_usb2
+  drivers: usb: twl6030: Add dt support for twl6030 usb
+  drivers: usb: twl4030: Add device tree support for twl4030 usb
+  arm: omap: phy: remove unused functions from omap-phy-internal.c
+
+ .../devicetree/bindings/usb/twlxxxx-usb.txt        |   40 +++
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |   17 ++
+ arch/arm/mach-omap2/omap_phy_internal.c            |  138 ----------
+ arch/arm/mach-omap2/twl-common.c                   |    5 -
+ arch/arm/mach-omap2/usb-musb.c                     |    3 -
+ drivers/usb/otg/Kconfig                            |    2 +-
+ drivers/usb/otg/twl4030-usb.c                      |   26 +-
+ drivers/usb/otg/twl6030-usb.c                      |  157 ++++--------
+ drivers/usb/phy/Kconfig                            |    9 +
+ drivers/usb/phy/Makefile                           |    1 +
+ drivers/usb/phy/omap-usb2.c                        |  271 ++++++++++++++++++++
+ include/linux/usb/omap_usb.h                       |   46 ++++
+ include/linux/usb/phy_companion.h                  |   34 +++
+ 13 files changed, 483 insertions(+), 266 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/usb/twlxxxx-usb.txt
+ create mode 100644 Documentation/devicetree/bindings/usb/usb-phy.txt
+ create mode 100644 drivers/usb/phy/omap-usb2.c
+ create mode 100644 include/linux/usb/omap_usb.h
+ create mode 100644 include/linux/usb/phy_companion.h
+
 -- 
 1.7.9.5
