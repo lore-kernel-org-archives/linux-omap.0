@@ -1,35 +1,65 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP: Split plat/hardware.h, introduce local
- hardware.h and soc.h for omap2+
-Date: Thu, 6 Sep 2012 15:03:46 +0800
-Message-ID: <20120906070344.GB22330@opensource.wolfsonmicro.com>
-References: <20120901002534.23715.28654.stgit@muffinssi.local>
- <20120901002622.23715.68557.stgit@muffinssi.local>
- <20120901002753.GA21451@opensource.wolfsonmicro.com>
- <20120901020654.GT1303@atomide.com>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: [PATCH RESEND] arm/dts: AM33XX: Add SPI device tree data
+Date: Thu, 6 Sep 2012 12:30:15 +0530
+Message-ID: <1346914815-860-1-git-send-email-avinashphilip@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33736 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751223Ab2IFHDx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 03:03:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20120901020654.GT1303@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38071 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab2IFHSp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 03:18:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, linux-watchdog@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: linux@arm.linux.org.uk, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
 
-On Fri, Aug 31, 2012 at 07:06:54PM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [120831 17:28]:
+Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+as the driver) is reused from OMAP4.
 
-> > There's a topic/omap branch in ASoC which you can pull in to help reduce
-> > conflicts, or I could merge this there if that's sensible.
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+---
+Resenting patch because ARM & OMAP mailing list was not copied.
 
-> Thanks. Did not see it yet at git://opensource.wolfsonmicro.com/linux-2.6-asoc,
-> maybe it's not yet pushed out?
+:100644 100644 bb31bff... 6b469bd... M	arch/arm/boot/dts/am33xx.dtsi
+ arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-Nobody said to apply it in ASoC and it was part of a series.  If people
-want me to apply it directly to the OMAP branch please let me know (a
-resend would help...).
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index bb31bff..6b469bd 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -210,5 +210,30 @@
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <91>;
+ 		};
++
++		spi0: spi@48030000 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x4830000 0x400>;
++			interrupt-parent = <&intc>;
++			interrupt = <65>;
++			ti,spi-num-cs = <2>;
++			ti,hwmods = "spi0";
++			status = "disabled";
++
++		};
++
++		spi1: spi@481a0000 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0x481a0000 0x400>;
++			interrupt-parent = <&intc>;
++			interrupt = <125>;
++			ti,spi-num-cs = <2>;
++			ti,hwmods = "spi1";
++			status = "disabled";
++		};
+ 	};
+ };
+-- 
+1.7.1
+
