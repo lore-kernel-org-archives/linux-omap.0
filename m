@@ -1,57 +1,124 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
-Date: Thu, 06 Sep 2012 19:41:43 +0530
-Message-ID: <5048AF1F.8010607@ti.com>
-References: <20120825214459.7333a376@notabene.brown> <CAMQu2gz0-U4GxEpZFfmJec+0FRs7ugy8EYS3HyYhb1jwbMBjug@mail.gmail.com> <20120827085312.75957354@notabene.brown> <CAMQu2gwH0O+NHV7H2aF375qmv0=TKb6RweOLohTHtB4UhQ-1gQ@mail.gmail.com> <CAMQu2gw2b8HHDPuSRuHXVYn3sJ5BYi_PuOT=snpa3zD5ert=QQ@mail.gmail.com> <20120906130510.32b0b877@notabene.brown> <CAMQu2gxGNJ+NW_rcRiXNE=OMTq8Hb81_1hDZnNen6mjc2cf6BQ@mail.gmail.com> <20120906170245.10e97bdd@notabene.brown>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 02/10] ARM: OMAP: Fix timer posted mode support
+Date: Thu, 6 Sep 2012 09:20:07 -0500
+Message-ID: <5048B117.7050601@ti.com>
+References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-3-git-send-email-jon-hunter@ti.com> <50489DBD.5030200@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120906170245.10e97bdd@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Jon Hunter <jon-hunter@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59313 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754864Ab2IFOUL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 10:20:11 -0400
+In-Reply-To: <50489DBD.5030200@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 06 September 2012 12:32 PM, NeilBrown wrote:
-> From: NeilBrown <neilb@suse.de>
-> Subject: [PATCH] OMAP GPIO - don't wake from suspend unless requested.
->
-> Current kernel will wake from suspend on an event on any active
-> GPIO even if enable_irq_wake() wasn't called.
->
-> There are two reasons that the hardware wake-enable bit should be set:
->
-> 1/ while non-suspended the CPU might go into a deep sleep (off_mode)
->   in which the wake-enable bit is needed for an interrupt to be
->   recognised.
-> 2/ while suspended the GPIO interrupt should wake from suspend if and
->    only if irq_wake as been enabled.
->
-> The code currently doesn't keep these two reasons separate so they get
-> confused and sometimes the wakeup flags is set incorrectly.
->
-> This patch reverts:
->  commit 9c4ed9e6c01e7a8bd9079da8267e1f03cb4761fc
->     gpio/omap: remove suspend/resume callbacks
-> and
->  commit 0aa2727399c0b78225021413022c164cb99fbc5e
->     gpio/omap: remove suspend_wakeup field from struct gpio_bank
->
-> and makes some minor changes so that we have separate flags for "GPIO
-> should wake from deep idle" and "GPIO should wake from suspend".
->
-> With this patch, the GPIO from my touch screen doesn't wake my device
-> any more, which is what I want.
-Just gave it a try fixes a similar issue on my omap4 board as well.
->
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Cousson Benoit <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Cc: Felipe Balbi <balbi@ti.com>
-> Cc: Govindraj.R <govindraj.raja@ti.com>
->
-> Signed-off-by: NeilBrown <neilb@suse.de>
+
+On 09/06/2012 07:57 AM, Vaibhav Hiremath wrote:
+> 
+> 
+> On 9/6/2012 12:34 AM, Jon Hunter wrote:
+>> Currently the dmtimer posted mode is being enabled when the function
+>> __omap_dm_timer_reset() is called. This function is only being called for
+>> OMAP1 timers and OMAP2+ timers that are being used as system timers. Hence,
+>> for OMAP2+ timers that are NOT being used as a system timer, posted mode is
+>> not enabled but the "timer->posted" variable is still set (incorrectly) in
+>> the omap_dm_timer_prepare() function.
+>>
+>> This is a regression introduced by commit 3392cdd3 (ARM: OMAP: dmtimer:
+>> switch-over to platform device driver) which changed the code to only call
+>> omap_dm_timer_reset() for OMAP1 devices. Although this is a regression from
+>> the original code it only impacts performance and so is not needed for stable.
+>>
+>> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/timer.c               |    3 +--
+>>  arch/arm/plat-omap/dmtimer.c              |   14 +++++---------
+>>  arch/arm/plat-omap/include/plat/dmtimer.h |    9 ++++++++-
+>>  3 files changed, 14 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+>> index 5471706..e24ee0f 100644
+>> --- a/arch/arm/mach-omap2/timer.c
+>> +++ b/arch/arm/mach-omap2/timer.c
+>> @@ -194,10 +194,9 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+>>  	}
+>>  	__omap_dm_timer_init_regs(timer);
+>>  	__omap_dm_timer_reset(timer, 1, 1);
+>> -	timer->posted = 1;
+>> +	__omap_dm_timer_enable_posted(timer);
+>>  
+>>  	timer->rate = clk_get_rate(timer->fclk);
+>> -
+>>  	timer->reserved = 1;
+>>  
+>>  	return res;
+>> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+>> index c34f55b..22790ea 100644
+>> --- a/arch/arm/plat-omap/dmtimer.c
+>> +++ b/arch/arm/plat-omap/dmtimer.c
+>> @@ -122,21 +122,15 @@ static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
+>>  
+>>  static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+>>  {
+>> -	omap_dm_timer_enable(timer);
+>>  	if (timer->pdev->id != 1) {
+>>  		omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG, 0x06);
+>>  		omap_dm_timer_wait_for_reset(timer);
+>>  	}
+>> -
+>>  	__omap_dm_timer_reset(timer, 0, 0);
+>> -	omap_dm_timer_disable(timer);
+>> -	timer->posted = 1;
+>>  }
+>>  
+>>  int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>>  {
+>> -	int ret;
+>> -
+>>  	/*
+>>  	 * FIXME: OMAP1 devices do not use the clock framework for dmtimers so
+>>  	 * do not call clk_get() for these devices.
+>> @@ -150,13 +144,15 @@ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+>>  		}
+>>  	}
+>>  
+>> +	omap_dm_timer_enable(timer);
+>> +
+>>  	if (timer->capability & OMAP_TIMER_NEEDS_RESET)
+>>  		omap_dm_timer_reset(timer);
+>>  
+>> -	ret = omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+>> +	__omap_dm_timer_enable_posted(timer);
+>> +	omap_dm_timer_disable(timer);
+>>  
+>> -	timer->posted = 1;
+>> -	return ret;
+>> +	return omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+> 
+> May be I am speculating here and I know this is tested and supposed to
+> work, but Isn't it safe to set parent keeping module enables.
+
+So you would rather change the functional clock while the timer is
+enabled/active? So although that we are doing this today, that does not
+sound like a good idea to me :-)
+
+> I would still recommend you to move is before omap_dm_timer_disable().
+> There could be devices or hw bugs/issues, may be related to standby/idle
+> protocol happening underneath module enable/disable.
+
+The register for setting the timer parent clock is located in the
+Configuration Module (OMAP1) and PRCM (OMAP2+) and so there is no
+requirement to keep the timer active while doing this.
+
+Furthermore, if you look at the omap_dm_timer_set_source() function that
+can be called from any driver using the timer, we never enable the timer
+when setting the timer clock source. So this way is more consistent with
+how the set_source function is implemented.
+
+Cheers
+Jon
