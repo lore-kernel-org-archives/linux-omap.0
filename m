@@ -1,45 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] gpio-twl4030: get platform data from device tree
-Date: Thu, 6 Sep 2012 13:47:44 -0700
-Message-ID: <20120906204744.GK1303@atomide.com>
-References: <1346680491-4211-1-git-send-email-florian.vaussard@epfl.ch>
- <1346680491-4211-2-git-send-email-florian.vaussard@epfl.ch>
- <CACRpkdY7AtvGRabo6A9Go=g1=nJY08YXGm3r5oL+Q9RKjW=Ncw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/2] gpio-twl4030: add new device tree properties
+Date: Thu, 6 Sep 2012 13:51:23 -0700
+Message-ID: <20120906205123.GL1303@atomide.com>
+References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+ <50476496.7050107@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33649 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759865Ab2IFUru (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 16:47:50 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:19062 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754555Ab2IFUv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 16:51:29 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdY7AtvGRabo6A9Go=g1=nJY08YXGm3r5oL+Q9RKjW=Ncw@mail.gmail.com>
+In-Reply-To: <50476496.7050107@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org
 
-* Linus Walleij <linus.walleij@linaro.org> [120904 00:31]:
-> On Mon, Sep 3, 2012 at 3:54 PM, Florian Vaussard
-> <florian.vaussard@epfl.ch> wrote:
+* Benoit Cousson <b-cousson@ti.com> [120905 07:42]:
+> Hi Florian,
 > 
-> > Adds a number of missing properties to the device tree of
-> > twl4030/gpio:
-> > - "ti,use-leds"  -> .use_leds
-> > - "ti,debounce"  -> .debounce
-> > - "ti,mmc-cd"    -> .mmc_cd
-> > - "ti,pullups"   -> .pullups
-> > - "ti,pulldowns" -> .pulldowns
-> >
-> > Signed-off-by: Florian Vaussard <florian.vaussard@epfl.ch>
+> On 09/05/2012 09:46 AM, Florian Vaussard wrote:
+> > Hello,
+> > 
+> > A number of platform data are missing when using twl4030/gpio from a
+> > device tree. This patchset adds the missing properties, updates the 
+> > documentation with the new bindings, and updates existing device trees.
+> > It mainly enables LEDA and LEDB outputs, as well as pullups /
+> > pulldowns on GPIOs.
+> > 
+> > The 1st patch changes the device driver and updates the documentation.
+> > The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
+> > 
+> > Changes since v1: 
+> > - Patches on driver and documentation merged into the same patch
+> > - Put device trees' values in hexadecimal
+> > - Handle bool property using of_property_read_bool()
+> > - Prefix the patches with the correct convention
 > 
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> Thanks for the update.
 > 
-> Tony will you carry this in the OMAP tree?
+> > Tested on Gumstix Overo. V1 was tested on omap3-evm by Vaibhav Hiremath.
+> 
+> I've just tested it on beagle xM. I can play with D12 led using:
+> 
+> echo 255 > /sys/class/leds/beagleboard\:\:pmu_stat/brightness
+> 
+> Tested-by: Benoit Cousson <b-cousson@ti.com>
+> 
+> 
+> > BTW: who will merge this?
+> 
+> Since Linus already acked it, Tony can merge it.
+> 
+> 
+> Tony,
+> 
+> I can add that series in my DTS series for 3.7 if you want.
 
-Yes thanks I can queue this once the acks are there,
-I guess Benoit is planning to test the series first.
-
-Regards,
+Yes please do thanks.
 
 Tony
