@@ -1,84 +1,63 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 00/10] ARM: OMAP: DMTIMER fixes and clean-up
-Date: Thu, 6 Sep 2012 18:28:19 +0530
-Message-ID: <50489DEB.9010709@ti.com>
-References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v7 1/7] drivers: usb: phy: add a new driver for omap usb2
+ phy
+Date: Thu, 6 Sep 2012 13:03:02 +0000
+Message-ID: <201209061303.02454.arnd@arndb.de>
+References: <1344258480-4304-1-git-send-email-kishon@ti.com>
+ <1344258480-4304-2-git-send-email-kishon@ti.com>
+ <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37908 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753911Ab2IFM6d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Sep 2012 08:58:33 -0400
-In-Reply-To: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-
-
-On 9/6/2012 12:34 AM, Jon Hunter wrote:
-> This series includes several fixes for the OMAP DMTIMER driver and a few
-> clean-ups to simplify some of the code. This series is based upon 3.6-rc4.
+On Thursday 06 September 2012, ABRAHAM, KISHON VIJAY wrote:
+> > diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > index d2fe064..bb0c7f4 100644
+> > --- a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > @@ -8,3 +8,6 @@ properties:
+> >
+> >  Sub-nodes:
+> >  All the devices connected to ocp2scp are described using sub-node to ocp2scp
+> > +- usb2phy :
+> > +   The binding details of usb2phy can be found in:
+> > +   Documentation/devicetree/bindings/usb/omap-usb.txt
 > 
-> Tested on OMAP5912 OSK, OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda.
-> Testing includes ...
-> 1. Booting kernel on above boards
-> 2. Set date and ensuring time of day is correct after 24 hours
-> 3. Checking the timer counter is incrementing when configuring and starting
->    a timer
-> 4. Checking the timer overflow interrupt when timer expires.
-> 5. Using different clock sources to operate the timer with.
-> 6. Running a loop test overnight that continually runs test #3 and #4 for
->    each available timer
+> The above two lines should be added in omap-ocp2scp.txt (this file was
+> added as part of omap: add ocp2scp as a bus driver and is in
+> linux-next). However this file is still not in Felipe's xceiv branch.
+> So I'm not sure how I can get this patch merged in Felipe's tree
+> without conflict.
 > 
 
-On the other hand I have validated this patch-series on both AM37xEVM
-and BeagleBone platform. I used the test code which you shared with me
-to validate it.
+There are three possible ways to do that:
 
-AM33XX Clock tree needs minor change here,
+* Not add that text. Is is actually required? The ocp2scp bus driver 
+doesn't actually care what is connected to it, does it?
 
-diff --git a/arch/arm/mach-omap2/clock33xx_data.c
-b/arch/arm/mach-omap2/clock33xx_data.c
-index a4006b2..daa36a5 100644
---- a/arch/arm/mach-omap2/clock33xx_data.c
-+++ b/arch/arm/mach-omap2/clock33xx_data.c
-@@ -1070,6 +1070,8 @@ static struct omap_clk am33xx_clks[] = {
-        CLK(NULL,       "gfx_fck_div_ck",       &gfx_fck_div_ck,
-CK_AM33XX),
-        CLK(NULL,       "sysclkout_pre_ck",     &sysclkout_pre_ck,
-CK_AM33XX),
-        CLK(NULL,       "clkout2_ck",           &clkout2_ck,    CK_AM33XX),
-+       CLK(NULL,       "timer_32k_ck",         &clkdiv32k_ick, CK_AM33XX),
-+       CLK(NULL,       "timer_sys_ck",         &sys_clkin_ck,  CK_AM33XX),
- };
+* Ask Felipe to merge the drivers/ocp2scp branch from arm-soc into
+his branch, then apply your patch on top. The branch is scheduled
+for merging in 3.7 and is stable, so there is no harm merging it
+into his tree, as long as Olof and I are aware of this.
 
- int __init am33xx_clk_init(void)
+* Split out this change and apply the patch to add this documentation
+change on top of the drivers/ocp2scp branch in the arm-soc tree.
+There is no strict dependency between this change and the others
+you want to merge, so it does not matter which tree it is merged through.
 
-
-Thanks,
-Vaibhav
-
-> Jon Hunter (10):
->   ARM: OMAP3+: Implement timer workaround for errata i103 and i767
->   ARM: OMAP: Fix timer posted mode support
->   ARM: OMAP3: Correct HWMOD DMTIMER SYSC register declarations
->   ARM: OMAP2/3: Define HWMOD software reset status for DMTIMERs
->   ARM: OMAP2+: Don't use __omap_dm_timer_reset()
->   ARM: OMAP: Fix dmtimer reset for timer1
->   ARM: OMAP: Clean-up dmtimer reset code
->   ARM: OMAP: Clean-up timer posted mode support
->   ARM: OMAP: Add dmtimer interrupt disable function
->   ARM: OMAP: Remove unnecessary call to clk_get()
-> 
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   15 ++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   41 ++++----
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    4 +
->  arch/arm/mach-omap2/timer.c                        |   27 +++--
->  arch/arm/plat-omap/dmtimer.c                       |  109 +++++++++++++-------
->  arch/arm/plat-omap/include/plat/dmtimer.h          |   95 ++++++++++-------
->  6 files changed, 184 insertions(+), 107 deletions(-)
-> 
+	Arnd
