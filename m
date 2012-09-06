@@ -1,90 +1,98 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] musb: Kill __init from function that are called at other
- times as well.
-Date: Thu, 6 Sep 2012 16:04:27 +0300
-Message-ID: <20120906130425.GF29202@arwen.pp.htv.fi>
-References: <1346940106-20269-1-git-send-email-panto@antoniou-consulting.com>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v7 1/7] drivers: usb: phy: add a new driver for omap usb2
+ phy
+Date: Thu, 6 Sep 2012 16:16:24 +0300
+Message-ID: <20120906131623.GI29202@arwen.pp.htv.fi>
+References: <1344258480-4304-1-git-send-email-kishon@ti.com>
+ <1344258480-4304-2-git-send-email-kishon@ti.com>
+ <CAAe_U6KBNZpT03xATmPTNTgxm5hj+wJdsShdnm08EmF4Q=hTCw@mail.gmail.com>
+ <201209061303.02454.arnd@arndb.de>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CXFpZVxO6m2Ol4tQ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:44280 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753974Ab2IFNIv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 09:08:51 -0400
-Received: by lagy9 with SMTP id y9so1075880lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 06:08:48 -0700 (PDT)
+	protocol="application/pgp-signature"; boundary="v2/QI0iRXglpx0hK"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1346940106-20269-1-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201209061303.02454.arnd-r2nGTMty4D4@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org
 
 
---CXFpZVxO6m2Ol4tQ
+--v2/QI0iRXglpx0hK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 06, 2012 at 05:01:46PM +0300, Pantelis Antoniou wrote:
-> Marking functions as __init or __devinit and calling them at other times
-> leads to predictable crashes (if you're lucky).
+On Thu, Sep 06, 2012 at 01:03:02PM +0000, Arnd Bergmann wrote:
+> On Thursday 06 September 2012, ABRAHAM, KISHON VIJAY wrote:
+> > > diff --git a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt b=
+/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > > index d2fe064..bb0c7f4 100644
+> > > --- a/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > > +++ b/Documentation/devicetree/bindings/bus/omap-ocp2scp.txt
+> > > @@ -8,3 +8,6 @@ properties:
+> > >
+> > >  Sub-nodes:
+> > >  All the devices connected to ocp2scp are described using sub-node to=
+ ocp2scp
+> > > +- usb2phy :
+> > > +   The binding details of usb2phy can be found in:
+> > > +   Documentation/devicetree/bindings/usb/omap-usb.txt
+> >=20
+> > The above two lines should be added in omap-ocp2scp.txt (this file was
+> > added as part of omap: add ocp2scp as a bus driver and is in
+> > linux-next). However this file is still not in Felipe's xceiv branch.
+> > So I'm not sure how I can get this patch merged in Felipe's tree
+> > without conflict.
+> >=20
 >=20
-> Remove them for now.
+> There are three possible ways to do that:
 >=20
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> ---
->  drivers/usb/musb/musb_core.c    | 16 ++++++++--------
->  drivers/usb/musb/musb_debugfs.c |  2 +-
->  drivers/usb/musb/musb_dma.h     |  2 +-
->  drivers/usb/musb/musb_gadget.c  |  6 +++---
->  drivers/usb/musb/musbhsdma.c    |  2 +-
->  drivers/usb/musb/omap2430.c     |  2 +-
->  6 files changed, 15 insertions(+), 15 deletions(-)
+> * Not add that text. Is is actually required? The ocp2scp bus driver=20
+> doesn't actually care what is connected to it, does it?
 >=20
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 26f1bef..215d2d5 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1160,7 +1160,7 @@ static struct musb_fifo_cfg __devinitdata mode_5_cf=
-g[] =3D {
->   *
->   * returns negative errno or offset for next fifo.
->   */
-> -static int __devinit
-> +static int
->  fifo_setup(struct musb *musb, struct musb_hw_ep  *hw_ep,
->  		const struct musb_fifo_cfg *cfg, u16 offset)
+> * Ask Felipe to merge the drivers/ocp2scp branch from arm-soc into
+> his branch, then apply your patch on top. The branch is scheduled
+> for merging in 3.7 and is stable, so there is no harm merging it
+> into his tree, as long as Olof and I are aware of this.
+>=20
+> * Split out this change and apply the patch to add this documentation
+> change on top of the drivers/ocp2scp branch in the arm-soc tree.
+> There is no strict dependency between this change and the others
+> you want to merge, so it does not matter which tree it is merged through.
 
-Are you sure all these functions are called from outside .init.text ? At
-least fifo_setup(), ep_config_from_table() and musb_core_init() are only
-during probe(), which sits in .init.text too.
+I'd be more comfortable with option 3 or 1, whatever you guys decide is
+fine ;-)
 
 --=20
 balbi
 
---CXFpZVxO6m2Ol4tQ
+--v2/QI0iRXglpx0hK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQSJ9ZAAoJEIaOsuA1yqREmRkQAI5rvvGeo689IkhrMZsl6rr3
-98oldkP2UEKrJ6UIzZZr7kr5b3GHOPbWJnv3NQ1aDEA+5DBndaTwGGPZBwQsg8xo
-6V/1z7Qpj5nySxwpth816pd6/DPTPI/QWXrokEcWVsZS4aB6MDiNeP23EfJ+PUOo
-A3F7RnLP/8ABLRvATsRotz26meqz2k8x5ukoR1YWkfRQDOwMkA4UtSwqWJf731Pz
-+Ph+sJVk8Bc9YHsvMSzTHpzUDB2F9UHy35J/IdXyiPvpuWqeXFZzdJFkejnr7sKo
-5DesXfx3uIxlKG+M5KNUXep+t1unmUe26ICxiWLJo4mAq9wZZpWPfG3IwGo2b/eq
-hmzvdNv8otvgyfoSpaA7QLgvt4jixtKuy5RdOG1xCZsZKL/nQBhH3JfU7oUtFd+U
-NkrD9udsH/g38m2K3rIklaGic+8J+tiNuPjE+ExHeTUEhmq8g4lQBAsFl1hfrrpT
-WnHdWQpirWLuaK1+Q2jvDIixoZ77QU0rtB4KL/v8lYQjDMLAFmumjIBdsLcpKAjn
-o+YxL3yxpSo+NGXN6KpOJEwnAgLw1ZLBXZIFBpIv70gYhiUgtpasH+xJG0UczIRp
-wPs+odPipEILnM/IuGSso8dRMgSdl52ql/522BfxCYN4nF3foS0YqfNFb/lN4Cad
-sCZ/F5UA3No8mIEYXN2I
-=LBOj
+iQIcBAEBAgAGBQJQSKImAAoJEIaOsuA1yqRErvoQAIHOaI8o8Vb2SJGsU6htjYAs
+VxH/u/Vc8v0uMcmfYEm9zagUhzabUCzTbMF74/wVI1W00rBs3d152vRTHQqPaFkw
+ZS8ftJ7GYmI3xKPSOdZjzaCRIH9cvt4R6n+2GaQ/pjZZFJSoLilTgfDPO+x6a2sf
+nea8jsprmaxIfe52lV0tRXvpGLH9NBgzQLRskPKZf6YFw2ag89Bc0ajqNJY/zl5v
+f0vzNpTXPatb2/I7WcYt2YIqpWqRJLZ/+kwgR9GTUydkeyt7mWB2MrR/Ljvyqd4e
+X495xpSkG+ejdxV5YN0arSc9g0yjiIRoBbpbuzfbcSPFj1JKOBUbEWyRHztGsGQs
+4PaQ9tgLheLEDAt0ab6u1ftpdo3kF9vc8Oeq3EEr0ihvZexrR5MQLf/yH3EzJTq6
+ZU36cLXpDTF+mOKP9DXWvmFQEfN5fpFPO1MxqoCq0pCZzhKGx/6riOwxIBIRFEmV
+qmMJlMTkSDKeb366b+1GiNPy/vPU+CBO9nSOMz/LiYeLZgGiIlhnilW2gQPnbd/s
+Fd+tC2elKJ8ck5qIgm8kVtZKz4RhDjanupkN8a/cJfSdiwgf7nG/CCOER+3ydDmD
+wyVhiTj7hj5opMIuFHXoi5WJbHFhrSXvBbK+Qv9UtXHMk7wamQ1brj4ZCFypmHFf
+JUdZcjMRFkASmJPj07XC
+=H4Yx
 -----END PGP SIGNATURE-----
 
---CXFpZVxO6m2Ol4tQ--
+--v2/QI0iRXglpx0hK--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
