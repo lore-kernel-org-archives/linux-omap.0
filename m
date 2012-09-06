@@ -1,76 +1,71 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 20/23] serial: omap: fix software flow control
-Date: Thu, 6 Sep 2012 15:31:38 +0300
-Message-ID: <20120906123136.GD29202@arwen.pp.htv.fi>
-References: <1345717983-18179-1-git-send-email-balbi@ti.com>
- <1345717983-18179-21-git-send-email-balbi@ti.com>
- <20120905202749.GA2451@kroah.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q0rSlbzrZN6k9QnT"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120905202749.GA2451@kroah.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Felipe Balbi <balbi@ti.com>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, stable@vger.kernel.org
+Subject: [PATCH v4 00/21] OMAP UART Patches
+Date: Thu,  6 Sep 2012 15:45:19 +0300
+Message-ID: <1346935540-1792-1-git-send-email-balbi@ti.com>
+References: <20120906122948.GC29202@arwen.pp.htv.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120906122948.GC29202@arwen.pp.htv.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+Hi guys,
 
---Q0rSlbzrZN6k9QnT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+here's v4 of the omap uart patchset. No changes other than a rebase on top of
+Greg's tty-next branch and Tony's Acked-by being added to a couple patches
 
-On Wed, Sep 05, 2012 at 01:27:49PM -0700, Greg KH wrote:
-> On Thu, Aug 23, 2012 at 01:33:00PM +0300, Felipe Balbi wrote:
-> > From: Vikram Pandita <vikram.pandita@ti.com>
-> >=20
-> > Software flow control register bits were not defined correctly.
-> >=20
-> > Also clarify the IXON and IXOFF logic to reflect what userspace wants.
-> >=20
-> > Cc: stable@vger.kernel.org
-> > Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > ---
->=20
-> If this is a stable patch, should it be pulled out and put also in for
-> 3.6?
+Note: I'm resending the series with Vikram's Software Flow Control fix anyway
+as it can just be ignored if it's decided it needs to go into this merge
+window.
 
-I'll leave that for Vikram to answer. Vikram, do you think this is
-something so extreme that we _must_ apply it now, or can it wait for the
-next merge window ?
+Changes since v3:
+	. Rebased on top of Greg's tty-next branch
+	. Added Tony's Acked-by
 
-I mean, I think this bug has been in the driver for a long time, right ?
+Changes since v2:
+        . Added a bunch of new patches
+        . Fixed a problem where we would always return IRQ_NONE even though we
+                handled IRQ
 
---=20
-balbi
+Changes since v1:
+        . improved commit log on patch 9/13 (formerly 10/13)
+        . removed patch 2/13
+        . added a new patch switching from spin_lock_irqsave() to spin_lock and
+                spin_unlock_irqrestore to spin_unlock
 
---Q0rSlbzrZN6k9QnT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Felipe Balbi (18):
+  serial: omap: don't access the platform_device
+  serial: omap: drop DMA support
+  serial: add OMAP-specific defines
+  serial: omap: simplify IRQ handling
+  serial: omap: refactor receive_chars() into rdi/rlsi handlers
+  serial: omap: move THRE check to transmit_chars()
+  serial: omap: stick to put_autosuspend
+  serial: omap: set dev->drvdata before enabling pm_runtime
+  serial: omap: drop unnecessary check from remove
+  serial: omap: make sure to suspend device before remove
+  serial: omap: don't save IRQ flags on hardirq
+  serial: omap: optimization with section annotations
+  serial: omap: drop "inline" from IRQ handler prototype
+  serial: omap: implement set_wake
+  serial: omap: make sure to put() on poll_get_char
+  serial: omap: remove unnecessary header and add a missing one
+  serial: omap: move uart_omap_port definition to C file
+  serial: omap: enable RX and TX FIFO usage
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Ruchika Kharwar (2):
+  serial: omap: fix sequence of pm_runtime_* calls.
+  serial: omap: unlock the port lock
 
-iQIcBAEBAgAGBQJQSJeoAAoJEIaOsuA1yqREVQAP/ResJg0kjUVuMP5MVkscWsiW
-htdQ0UpvOB0HomtVI4/tSKUa24jY1oEz3oHNc48dNqymjEBaYwWBjy45m7rS00rF
-XA9zj5V2fy0egyuh3hzOd1aEWDCbiQMcN0galLcRLTOXUZerQUMe17vDCEcw43Eh
-TdLQxr+BTViWyFrNkTfUYiR/ZwBtgEJhRjhL/0ISlgv8g9Mh+waU4jfcTL5Xqebh
-1Or3pkzLDGHFNxaxFyiSBu/F7UWOJcTX8kZs51QSExO93q2GZO+Nnqwzo7hDBuJj
-jW8aJuwc7aQk4c5fiawHdMCUN47Q5bc6d94rQ5v33RWk8CQH1K2DGmmGY6RxRGii
-kprHEzrpmYmBcDLKJdYH6L8OGAYdDbwcVzv7VF66yU2bthQIpLQVwGELP2ChMrGR
-j8KGlg9PSKqC9fcNWTiBzjL9Bh221y5GjzNMGxcMWOO1wt6HP2RLAj7kccuyWNtz
-lzI7UmkN05nW+CK+WTsc+9Yx/urtSmb+BeH8uMyk0uRwl6FiWERu6oe1TF63LMOJ
-/5i1Ijh14nSFJ3F7d3JjhEwoPY4VebxzG/yOWL304DAvJCF/Fd9vUSKQiPxlbUkO
-dNuXz+Wygppty8OG4RvjJEX2Mxl7SjDv4pS0mW9paVC8RY4rU9nF5wZ/yIEOA9eI
-gd4eUSeK+0/im1L2CZc3
-=K8s7
------END PGP SIGNATURE-----
+Vikram Pandita (1):
+  serial: omap: fix software flow control
 
---Q0rSlbzrZN6k9QnT--
+ arch/arm/mach-omap2/serial.c                  |  15 +-
+ arch/arm/plat-omap/include/plat/omap-serial.h |  49 +-
+ drivers/tty/serial/omap-serial.c              | 740 +++++++++-----------------
+ include/linux/serial_reg.h                    |   4 +
+ 4 files changed, 282 insertions(+), 526 deletions(-)
+
+-- 
+1.7.12.rc3
