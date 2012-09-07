@@ -1,71 +1,64 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 0/2] gpio-twl4030: add new device tree properties
-Date: Fri, 7 Sep 2012 10:55:43 +0200
-Message-ID: <5049B68F.4040003@ti.com>
-References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch> <50476496.7050107@ti.com> <20120906205123.GL1303@atomide.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+Date: Fri, 7 Sep 2012 14:39:15 +0530
+Message-ID: <1347008955-21310-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56550 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753066Ab2IGI4B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Sep 2012 04:56:01 -0400
-In-Reply-To: <20120906205123.GL1303@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Florian Vaussard <florian.vaussard@epfl.ch>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org
 
-On 09/06/2012 10:51 PM, Tony Lindgren wrote:
-> * Benoit Cousson <b-cousson@ti.com> [120905 07:42]:
->> Hi Florian,
->>
->> On 09/05/2012 09:46 AM, Florian Vaussard wrote:
->>> Hello,
->>>
->>> A number of platform data are missing when using twl4030/gpio from a
->>> device tree. This patchset adds the missing properties, updates the 
->>> documentation with the new bindings, and updates existing device trees.
->>> It mainly enables LEDA and LEDB outputs, as well as pullups /
->>> pulldowns on GPIOs.
->>>
->>> The 1st patch changes the device driver and updates the documentation.
->>> The 2nd patch updates the device trees for BeagleBoard and omap3-evm.
->>>
->>> Changes since v1: 
->>> - Patches on driver and documentation merged into the same patch
->>> - Put device trees' values in hexadecimal
->>> - Handle bool property using of_property_read_bool()
->>> - Prefix the patches with the correct convention
->>
->> Thanks for the update.
->>
->>> Tested on Gumstix Overo. V1 was tested on omap3-evm by Vaibhav Hiremath.
->>
->> I've just tested it on beagle xM. I can play with D12 led using:
->>
->> echo 255 > /sys/class/leds/beagleboard\:\:pmu_stat/brightness
->>
->> Tested-by: Benoit Cousson <b-cousson@ti.com>
->>
->>
->>> BTW: who will merge this?
->>
->> Since Linus already acked it, Tony can merge it.
->>
->>
->> Tony,
->>
->> I can add that series in my DTS series for 3.7 if you want.
-> 
-> Yes please do thanks.
+Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp.
+Since this ocp2scp module does not have any fck but does have a
+single opt_clock, it is added as the main_clk for ocp2scp. Also
+removed phy_48m as the optional clock since it is now made as the
+main clock. By this the driver need not enable/disable phy_48m clk
+separately and runtime_get/runtime_put will take care of that.
 
-On top of that series, I realized that beagle was missing the other
-LEDs. So I've just posted the support for the two missing ones.
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Reviewed-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+Changes for v1:
+ Amend the comment section with benefit for the driver because of this =
+patch.
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-[PATCH] ARM: dts: omap3-beagle: Add heartbeat and mmc LEDs support
-
-Regards,
-Benoit
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 242aee4..e8e5405 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2503,14 +2503,11 @@ static struct omap_hwmod_class omap44xx_ocp2scp=
+_hwmod_class =3D {
+ };
+=20
+ /* ocp2scp_usb_phy */
+-static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
+-	{ .role =3D "phy_48m", .clk =3D "ocp2scp_usb_phy_phy_48m" },
+-};
+-
+ static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
+ 	.name		=3D "ocp2scp_usb_phy",
+ 	.class		=3D &omap44xx_ocp2scp_hwmod_class,
+ 	.clkdm_name	=3D "l3_init_clkdm",
++	.main_clk	=3D "ocp2scp_usb_phy_phy_48m",
+ 	.prcm =3D {
+ 		.omap4 =3D {
+ 			.clkctrl_offs =3D OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET,
+@@ -2518,8 +2515,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy=
+_hwmod =3D {
+ 			.modulemode   =3D MODULEMODE_HWCTRL,
+ 		},
+ 	},
+-	.opt_clks	=3D ocp2scp_usb_phy_opt_clks,
+-	.opt_clks_cnt	=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
+ };
+=20
+ /*
+--=20
+1.7.9.5
