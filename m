@@ -1,169 +1,80 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: RE: Converting OMAP's custom vram allocator
-Date: Fri, 07 Sep 2012 13:54:52 +0300
-Message-ID: <1347015292.2646.23.camel@deskari>
-References: <1346839733.32747.1.camel@deskari>
-	 <019b01cd8cbd$6fef8c50$4fcea4f0$%szyprowski@samsung.com>
+From: Domenico Andreoli <cavokz@gmail.com>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 13:02:51 +0200
+Message-ID: <20120907110251.GA7968@glitch>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
+ <331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-AqnKlGBSrmjedGaYNTYu"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:36882 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760269Ab2IGKy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 06:54:58 -0400
-Received: by lbbgj3 with SMTP id gj3so1782959lbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 03:54:55 -0700 (PDT)
-In-Reply-To: <019b01cd8cbd$6fef8c50$4fcea4f0$%szyprowski@samsung.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:45428 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753222Ab2IGLCw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 07:02:52 -0400
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marek Szyprowski <m.szyprowski@samsung.com>, Rob Clark <rob@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, 'linux-omap' <linux-omap@vger.kernel.org>
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Fri, Sep 07, 2012 at 09:10:50AM +0000, AnilKumar, Chimata wrote:
+> Hi Domenico,
 
---=-AqnKlGBSrmjedGaYNTYu
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Fri, 2012-09-07 at 07:55 +0200, Marek Szyprowski wrote:
-> Hello,
->=20
-> On Wednesday, September 05, 2012 12:09 PM Tomi Valkeinen wrote:
->=20
-> > OMAP has a custom video ram allocator, which I'd like to remove and use
-> > the standard dma allocation functions.
-> >=20
-> > There are two problems for which I'd like to hear suggestions or
-> > comments:
-> >=20
-> > First one is that the dma_alloc_* functions map the allocated memory fo=
-r
-> > cpu use. In many cases with OMAP DSS (display subsystem) this is not
-> > needed: the memory may be written only by the SGX or the DSP, and it's
-> > only read by the DSS, so it's never touched by the CPU.
-> >=20
-> > This is even more true when using VRFB on omap3 (and probably TILER on
-> > omap4) for rotation, as VRFB hides the actual memory and offers rotated
-> > views. In this case the backend memory is never accessed by anyone else
-> > than VRFB.
-> >=20
-> > Is there a way to allocate the memory without creating a mapping? While
-> > it won't break anything as such, the allocated areas can be quite large
-> > thus causing large areas of the kernel's memory space to be needlessly
-> > reserved.
->=20
-> Please check commits d5724f172fd1 and 955c757e090 merged to v3.6-rc1.=20
-> Support for this attribute is now only available in IOMMU-aware=20
-> dma-mapping implementation, but I plan to add it also to standard linear
-> ARM dma-mapping implementation based on alloc_pages_exact().
+> On Fri, Sep 07, 2012 at 14:18:39, Domenico Andreoli wrote:
+> > On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> > > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > > device pointer, pinctrl driver configure SoC pins to GPIO
+> > > mode according to definitions provided in .dts file.
+> > 
+> > Shouldn't be the interaction with the pinctrl layer left to gpiolib?
+> > 
+> 
+> No, these gpio's are configured specifically for user leds.
 
-Ok, good to know. Do you have any guestimate when the non-iommu version
-could end up in the mainline? Any chance for 3.7? I volunteer for
-testing if needed =3D).
+So there are some special pad configs to make the leds work which are not
+only muxing and direction setting? Because I expect these to be managed
+privately between gpiolib and pinctrl but now I'm not sure any more,
+I'll look the code.
 
-> Some not-well-documented example can be found here:=20
-> https://patchwork.kernel.org/patch/1323591/ (at the bottom).
->=20
-> You probably might need to add your own custom dma_map_ops set of functio=
-ns
-> for TILER device, but I'm not really sure if I get right what does that=
-=20
-> device do and what will be the use cases for it.
+> So, leds-gpio driver should have this call, because these gpio
+> pins are used by leds-gpio driver.
+> 
+> +       am33xx_pinmux: pinmux@44e10800 {
+> +               userled_pins: pinmux_userled_pins {
+> +                       pinctrl-single,pins = <
+> +                               0x54 0x7       
+> +                               0x58 0x17       
+> +                               0x5c 0x7        
+> +                               0x60 0x17       
+> +                       >;
+> +               };
+> +       };
+> +
+> 
+> [...]
+> 
+> +               leds {
+> +                       compatible = "gpio-leds";
+> +                       pinctrl-names = "default";
+> +                       pinctrl-0 = <&userled_pins>;
+>                                       ^^^^^^^^^^^^
 
-I think we have three different cases how we need to manage the memory
-used for video on OMAP.
+I'm surprised to not see any gpio controller (ala irq) involved.
 
-1) Conventional case, without VRFB/TILER. We need large contiguous
-areas. I think we usually want both normal kernel and userspace mapping
-in this case, although some use cases could not need those.
+> Lets take gpio-keypad driver, in that case we have to configure
+> pins as INPUT mode (generic gpio driver might not know what
+> the end usecase is) and this leds case we configure as OUTPUT
+> mode.
 
-2) VRFB (omap3). In this case we need large contigous area, which is
-given to the VRFB hardware to be used as a storage. This area is never
-mapped. VRFB offers four rotated "views" (i.e. memory areas), which give
-a 0/90/180/270 degree view of the same image, and we will create mapping
-of these views with ioremap. The actual data is stored in the memory by
-VRFB in a proprietary format.
+gpio direction is modeled by gpiolib so, if no other out-of-gpiolib
+capabilities are required for that led gpio, there is no need to directly
+use pinctrl.
 
-3) TILER (omap4). I'm not too familiar with TILER, but afaik it's kinda
-like a better version of VRFB. In this case we don't need contiguous
-memory, but like VRFB, we never create mapping for the memory. (Rob,
-correct me if I'm wrong).
+maybe I've just got it wrong. sorry.
 
-I think we can manage all of those with dma_alloc_attrs(), even though
-contiguous area is not really needed for TILER.
-
-So, if I define DMA_ATTR_NO_KERNEL_MAPPING, there's no point in defining
-DMA_ATTR_WRITE_COMBINE at the same time, right?
-
-Can I still create the kernel mapping for the allocated memory later,
-yielding the same result as if I would've omitted
-DMA_ATTR_NO_KERNEL_MAPPING?
-
-> > The second case is passing a framebuffer address from the bootloader to
-> > the kernel. Often with mobile devices the bootloader will initialize th=
-e
-> > display hardware, showing a company logo or such. To keep the image on
-> > the screen when kernel starts we need to reserve the same physical
-> > memory area early at boot, and use that for the framebuffer.
-> >=20
-> > I'm not sure if there's any actual problem with this one, presuming
-> > there is a solution for the first case. Somehow the memory is reserved
-> > at early boot time, and this is passed to the fb driver. But can the
-> > memory be managed the same way as in normal case (for example freeing
-> > it), or does it need to be handled as a special case?
->=20
-> The only solution I see here is to use custom coherent memory pool for th=
-e
-> framebuffer device and setup it starting from the physical address of the
-> framebuffer configured by bootloader. See dma_declare_coherent() function=
-.
-> Some usage example on ARM architecture can be found in=20
-> arch/arm/plat-samsung/s5p-dev-mfc.c
->=20
-> The other possibility is to enable Contiguous Memory Allocator and define
-> a custom contiguous memory area for framebuffer device at the same=20
-> physical address as configured by bootloader:
-> http://git.linaro.org/gitweb?p=3Dpeople/mszyprowski/linux-archive.git;a=
-=3Dcommitdiff;h=3Df8ff4f99cfa4f67e09a3c948e007e82a0c21434a
->=20
-> Feel free to comment both possibilities, maybe we can work out something
-> better for solving this quite common use case.
-
-I think CMA is definitely the way to go.
-
-But I'm not quite sure how it should be used in this case. I understand
-how to reserve the memory area at boot time, as the patch in your link
-shows, but how should the driver get the memory?
-
-Normally the driver would just use dma_alloc_*, and the reserved CMA
-area would be used automatically, right? But in this case we want to get
-the allocation from a particular physical address of the private area.
-
- Tomi
-
-
---=-AqnKlGBSrmjedGaYNTYu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQSdJ8AAoJEPo9qoy8lh71fx0P/3i7JCiLeTodkxnhnwZzsk2S
-+bjXV+ar2hgVEkYHBaPxUN5ebwLOZP1qr5K4p6sO9OdF0lTFEBkaeAaRdDUz86Q6
-zZwo7WzE7/Qzc56UtJupvrxlQ0eE2HDglOEvMSdLtjmAoY7ewbcC4mp+2mEX54fA
-gZdlzJ3bM3vdGoSKj/PZedZdmlxR8W1AG5CRcUygHyz+zykdjupc0fL8Y9nME5OK
-Wd9CLNEAYoTJAlp5pY8C41KqU4Jr3hATExHYMeldF0C+6r153264rXgKGs8N6Kvz
-fpkePr1Zx0x8tXv3l5/+8lGGuG9EoELI35iWBpbj7SUxoGhOSP1hsQYmzfGwFzul
-ySpoC4mebSL3hQ+qdTg9gaOSER212jIGWp6cWuu1t+GDRJjmYeVD1PuPxQN2zljI
-Jiz3QVmfmMIzYIjJcYs0QUme/dyhBD9bYhRMU8qVdymOZHNnrfRPf1TkWv6BuDHX
-UevlyFMW28JYNnhGRwSEnnBJyLFoAE2SWwesgOSAkunamWsxdB0UPALpc0M5PPUU
-zd39hc7CQsBkWnyZfpv4w3cfYKTPNWR0/Dhb7neaCeS7RtFlX/Lq9I3YKZI7WPI9
-Hxd2e9brR36FwkJRwasXJK+UYlDJEMu04u2VDuor8jQ7WAh/Rxn60FkzRk23dhJj
-inGMvOthZG9xnV1vOwRU
-=l/IQ
------END PGP SIGNATURE-----
-
---=-AqnKlGBSrmjedGaYNTYu--
-
+thanks,
+Domenico
