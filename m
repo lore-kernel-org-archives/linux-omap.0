@@ -1,63 +1,43 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH v2] serial: omap: fix compile breakage
-Date: Fri,  7 Sep 2012 08:25:31 +0300
-Message-ID: <1346995531-3197-1-git-send-email-balbi@ti.com>
-References: <1346995312-2872-1-git-send-email-balbi@ti.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1346995312-2872-1-git-send-email-balbi@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v7 0/3] arm/dts: Add device tree data for AM33XX devices
+Date: Fri, 7 Sep 2012 05:30:13 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA293E9@DBDE01.ent.ti.com>
+References: <1346924304-27425-1-git-send-email-anilkumar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1346924304-27425-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-when rebasing patches on top of Greg's tty-next,
-it looks like automerge broke a few things which
-I didn't catch (for whatever reason I didn't
-have OMAP Serial enabled on .config) so I ended
-up breaking the build on Greg's tty-next branch.
+On Thu, Sep 06, 2012 at 15:08:21, AnilKumar, Chimata wrote:
+> Add pinctrl and d_can device tree data to AM33XX family of devices.
+> First two patches add support for pinctrl DT data and third one
+> adds dcan DT data.
+> 
+> Reason behind combining these patches is to apply cleanly on
+> linux-omap tree, because these are sequential patches.
+> 
+> These patches were tested on AM335x-Bone, AM335x-EVM and based
+> on linux-omap:master with this patch
+> http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg74393.html
+> 
 
-Fix the breakage by re-adding the three missing
-members on struct uart_omap_port.
+If there are no changes in this patch series ACK from
+reviewers (esp. Tony, koen and Marc) will help.
 
-Reported-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
-
-Changes since v1:
-	. remove the fields from <plat/omap-serial.h>
-
- arch/arm/plat-omap/include/plat/omap-serial.h | 4 ----
- drivers/tty/serial/omap-serial.c              | 4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 57ff78c..74caddc 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -79,8 +79,4 @@ struct omap_uart_port_info {
- 	void (*enable_wakeup)(struct device *, bool);
- };
- 
--
--	int			DTR_gpio;
--	int			DTR_inverted;
--	int			DTR_active;
- #endif /* __OMAP_SERIAL_H__ */
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index e31d291..8e4a7aa 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -123,6 +123,10 @@ struct uart_omap_port {
- 	u8			wakeups_enabled;
- 	unsigned int		irq_pending:1;
- 
-+	int			DTR_gpio;
-+	int			DTR_inverted;
-+	int			DTR_active;
-+
- 	struct pm_qos_request	pm_qos_request;
- 	u32			latency;
- 	u32			calc_latency;
--- 
-1.7.12.rc3
-
+Thanks
+AnilKumar
