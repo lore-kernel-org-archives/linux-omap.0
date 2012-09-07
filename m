@@ -1,219 +1,67 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v9] can: c_can: Add runtime PM support to Bosch C_CAN/D_CAN controller
-Date: Thu, 06 Sep 2012 16:37:56 -0700
-Message-ID: <878vcmhgdn.fsf@deeprootsystems.com>
-References: <1345461654-439-1-git-send-email-anilkumar@ti.com>
+From: Marek Vasut <marex@denx.de>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 02:09:35 +0200
+Message-ID: <201209070209.35379.marex@denx.de>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com> <201209060405.08997.marex@denx.de> <20120906174531.GX1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61890 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570Ab2IFXh6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 19:37:58 -0400
-Received: by iahk25 with SMTP id k25so2640560iah.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 16:37:57 -0700 (PDT)
-In-Reply-To: <1345461654-439-1-git-send-email-anilkumar@ti.com> (AnilKumar
-	Ch's message of "Mon, 20 Aug 2012 16:50:54 +0530")
+Received: from mail-out.m-online.net ([212.18.0.10]:59887 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899Ab2IGAJn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Sep 2012 20:09:43 -0400
+In-Reply-To: <20120906174531.GX1303@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: wg@grandegger.com, mkl@pengutronix.de, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>, AnilKumar Ch <anilkumar@ti.com>, Shawn Guo <shawn.guo@linaro.org>, rpurdie@rpsys.net, linux-leds@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-AnilKumar Ch <anilkumar@ti.com> writes:
+Dear Tony Lindgren,
 
-> Add Runtime PM support to C_CAN/D_CAN controller. The runtime PM
-> APIs control clocks for C_CAN/D_CAN IP and prevent access to the
-> register of C_CAN/D_CAN IP when clock is turned off.
->
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> * Marek Vasut <marex@denx.de> [120905 19:05]:
+> > Hi Tony,
+> > 
+> > > * Marek Vasut <marex@denx.de> [120904 20:13]:
+> > > > Dear Bryan Wu,
+> > > > 
+> > > > > On Sat, Sep 1, 2012 at 4:16 PM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> > > > > > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > > > > > device pointer, pinctrl driver configure SoC pins to GPIO
+> > > > > > mode according to definitions provided in .dts file.
+> > > > > 
+> > > > > Thanks for this, actually Marek Vasut submitted a similar patch
+> > > > > before. I'm pretty fine with this patch.
+> > > > 
+> > > > Thanks for submitting this actually ... I didn't have time to
+> > > > properly investigate this.
+> > > > 
+> > > > > But without proper DT setting, it will also give us warning I
+> > > > > think. or we can provide some dummy functions as a temp solution
+> > > > > as Shawn pointed out before.
+> > > > 
+> > > > But this driver is also used on hardware that's not yet coverted to
+> > > > DT, so I'd say dev_warn() if CONFIG_OF is enabled and otherwise
+> > > > simply go on ? Actually, can we not skip whole this pinctrl thing if
+> > > > CONFIG_OF is disabled? Actually (2), what's the relationship between
+> > > > OF and pinctrl?
+> > > 
+> > > The warning should be pinctrl related as the pinctrl drivers may not be
+> > > device tree based drivers.
+> > 
+> > Exactly my concern. Also the warning shouldnt be present on systems where
+> > pinctrl is disabled.
+> 
+> But pinctrl_get_select() returns 0 in include/linux/pinctrl/consumer.h if
+> CONFIG_PINCTRL is not selected, so no warning is produced AFAIK ;)
 
-I'm not familar with the CAN specifics here, but some comments on the
-runtime PM implementation.
+Oh all right then.
 
-> ---
-> This patch has been tested on AM335X EVM. Due to lack of hardware
-> I am not able to test c_can functionality. I appreciate if anyone
-> can test c_can functionality with this patch.
->
-> This patch is based on "can-next/master" 
->
-> Changes from v8:
-> 	- corrected the return path sequence in c_can_probe()
->
-> Changes from v7:
-> 	- Incorporated Marc's comments on v7
-> 	  * changed device pointer to c_can_priv pointer
->
-> Changes from v6:
-> 	- Incorporated Marc's comments on v6
-> 	  * changed dev pointer to priv
-> 	  * removed platform_device.h include from c_can.c
->
-> Changes from v5:
-> 	- Incorporated Marc's comments on v5
-> 	  * changed runtime pm calls in c_can driver to handle
-> 	    the drivers which are not using platform drivers.
-> 	  * added device pointer protection in c_can driver if
-> 	    not passed from platform/pci driver.
->
-> Changes from v4:
-> 	- Incorporated Vaibhav H review comments on v4.
-> 	  * Moved pm_runtime put/get_sync calls to appropriate positions.
-> 	- This patch is from "Add DT support to C_CAN/D_CAN controller"
-> 	  patch series. Rest of the patches in this series were applied
-> 	  so this v5 contains only this patch.
->
->  drivers/net/can/c_can/c_can.c          |   24 +++++++++++++++++++++++-
->  drivers/net/can/c_can/c_can.h          |    1 +
->  drivers/net/can/c_can/c_can_platform.c |   11 +++++++++--
->  3 files changed, 33 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
-> index 4c538e3..966d318 100644
-> --- a/drivers/net/can/c_can/c_can.c
-> +++ b/drivers/net/can/c_can/c_can.c
-> @@ -34,6 +34,7 @@
->  #include <linux/if_ether.h>
->  #include <linux/list.h>
->  #include <linux/io.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <linux/can.h>
->  #include <linux/can/dev.h>
-> @@ -201,6 +202,18 @@ static const struct can_bittiming_const c_can_bittiming_const = {
->  	.brp_inc = 1,
->  };
->  
-> +static inline void c_can_pm_runtime_get_sync(struct c_can_priv *priv)
-> +{
-> +	if (priv->device)
-> +		pm_runtime_get_sync(priv->device);
-> +}
-> +
-> +static inline void c_can_pm_runtime_put_sync(struct c_can_priv *priv)
-> +{
-> +	if (priv->device)
-> +		pm_runtime_put_sync(priv->device);
-> +}
+> Or do you get some warning if CONFIG_PINCTRL is not selected for your
+> hardware?
 
-IMO, these extra helpers are rather unsightly, and should not be needed.
-The driver should just be directly doing get_sync/put_sync.  If
-priv->device isn't presnt, then runtime PM should just never be enabled.
+No, I don't have much hardware like such anymore :-(
 
-Kevin
-
->  static inline int get_tx_next_msg_obj(const struct c_can_priv *priv)
->  {
->  	return (priv->tx_next & C_CAN_NEXT_MSG_OBJ_MASK) +
-> @@ -673,11 +686,15 @@ static int c_can_get_berr_counter(const struct net_device *dev,
->  	unsigned int reg_err_counter;
->  	struct c_can_priv *priv = netdev_priv(dev);
->  
-> +	c_can_pm_runtime_get_sync(priv);
-> +
->  	reg_err_counter = priv->read_reg(priv, C_CAN_ERR_CNT_REG);
->  	bec->rxerr = (reg_err_counter & ERR_CNT_REC_MASK) >>
->  				ERR_CNT_REC_SHIFT;
->  	bec->txerr = reg_err_counter & ERR_CNT_TEC_MASK;
->  
-> +	c_can_pm_runtime_put_sync(priv);
-> +
->  	return 0;
->  }
->  
-> @@ -1053,11 +1070,13 @@ static int c_can_open(struct net_device *dev)
->  	int err;
->  	struct c_can_priv *priv = netdev_priv(dev);
->  
-> +	c_can_pm_runtime_get_sync(priv);
-> +
->  	/* open the can device */
->  	err = open_candev(dev);
->  	if (err) {
->  		netdev_err(dev, "failed to open can device\n");
-> -		return err;
-> +		goto exit_open_fail;
->  	}
->  
->  	/* register interrupt handler */
-> @@ -1079,6 +1098,8 @@ static int c_can_open(struct net_device *dev)
->  
->  exit_irq_fail:
->  	close_candev(dev);
-> +exit_open_fail:
-> +	c_can_pm_runtime_put_sync(priv);
->  	return err;
->  }
->  
-> @@ -1091,6 +1112,7 @@ static int c_can_close(struct net_device *dev)
->  	c_can_stop(dev);
->  	free_irq(dev->irq, dev);
->  	close_candev(dev);
-> +	c_can_pm_runtime_put_sync(priv);
->  
->  	return 0;
->  }
-> diff --git a/drivers/net/can/c_can/c_can.h b/drivers/net/can/c_can/c_can.h
-> index 4e56baa..1437a6d 100644
-> --- a/drivers/net/can/c_can/c_can.h
-> +++ b/drivers/net/can/c_can/c_can.h
-> @@ -153,6 +153,7 @@ struct c_can_priv {
->  	struct can_priv can;	/* must be the first member */
->  	struct napi_struct napi;
->  	struct net_device *dev;
-> +	struct device *device;
->  	int tx_object;
->  	int current_status;
->  	int last_status;
-> diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
-> index d0a66cf..90801c4 100644
-> --- a/drivers/net/can/c_can/c_can_platform.c
-> +++ b/drivers/net/can/c_can/c_can_platform.c
-> @@ -32,6 +32,7 @@
->  #include <linux/clk.h>
->  #include <linux/of.h>
->  #include <linux/of_device.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <linux/can/dev.h>
->  
-> @@ -177,8 +178,11 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
->  		goto exit_free_device;
->  	}
->  
-> +	pm_runtime_enable(&pdev->dev);
-> +
->  	dev->irq = irq;
->  	priv->base = addr;
-> +	priv->device = &pdev->dev;
->  	priv->can.clock.freq = clk_get_rate(clk);
->  	priv->priv = clk;
->  
-> @@ -189,15 +193,17 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
->  	if (ret) {
->  		dev_err(&pdev->dev, "registering %s failed (err=%d)\n",
->  			KBUILD_MODNAME, ret);
-> -		goto exit_free_device;
-> +		goto exit_clear_drvdata;
->  	}
->  
->  	dev_info(&pdev->dev, "%s device registered (regs=%p, irq=%d)\n",
->  		 KBUILD_MODNAME, priv->base, dev->irq);
->  	return 0;
->  
-> -exit_free_device:
-> +exit_clear_drvdata:
->  	platform_set_drvdata(pdev, NULL);
-> +	pm_runtime_disable(&pdev->dev);
-> +exit_free_device:
->  	free_c_can_dev(dev);
->  exit_iounmap:
->  	iounmap(addr);
-> @@ -226,6 +232,7 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	release_mem_region(mem->start, resource_size(mem));
->  
-> +	pm_runtime_disable(&pdev->dev);
->  	clk_put(priv->priv);
->  
->  	return 0;
+Best regards,
+Marek Vasut
