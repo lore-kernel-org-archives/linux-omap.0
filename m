@@ -1,38 +1,61 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for v3.6-rc4
-Date: Fri, 7 Sep 2012 15:08:52 -0700
-Message-ID: <20120907220852.GA3689@quad.lixom.net>
-References: <20120907035740.GR1303@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v8 0/3] GPMC driver conversion
+Date: Fri, 7 Sep 2012 15:10:34 -0700
+Message-ID: <20120907221034.GP1303@atomide.com>
+References: <cover.1346846464.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56536 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758531Ab2IGWIj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 18:08:39 -0400
-Received: by pbbrr13 with SMTP id rr13so229747pbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 15:08:39 -0700 (PDT)
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:32076 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751431Ab2IGWKi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 18:10:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20120907035740.GR1303@atomide.com>
+In-Reply-To: <cover.1346846464.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 06, 2012 at 08:57:40PM -0700, Tony Lindgren wrote:
-> The following changes since commit 4cbe5a555fa58a79b6ecbb6c531b8bab0650778d:
+* Afzal Mohammed <afzal@ti.com> [120905 05:37]:
+> Hi,
 > 
->   Linux 3.6-rc4 (2012-09-01 10:39:58 -0700)
+> Basic gpmc driver conversion series. Driver that is now created out of
+> gpmc code is a simple one, it handles tasks that were earlier executed
+> by gpmc_init. Now instead of relying on cpu_is_* checks, it obtains
+> resources and clk handle in the standard Linux way. The existing gpmc
+> interface works as was without this series.
 > 
-> are available in the git repository at:
+> HWMOD patch also has been brought into this series back with v7 series
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-for-v3.6-rc4
+> As this creates only a basic driver, further gpmc driver work can be
+> based over this, while having a driver first in place.
 > 
-> for you to fetch changes up to 6ab019b62e0505289b26bd00d997dc7686192fa4:
+> This series is based on l-o/testing-cleanup as on 5-Sep-12,
+> i.e. over commit,
 > 
->   Merge tag 'omap-fixes-a-for-3.6rc' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into fixes (2012-09-05 10:09:31 -0700)
+> e3a5c14 ARM: OMAP1: Move SoC specific headers from plat to mach for omap1
+> 
+> per Tony's suggestion.
+> 
+> It is available
+> @git://gitorious.org/x0148406-public/linux-kernel.git gpmc-drv-v8
 
-Pulled, thanks!
+Great, this all looks good to me. I suggest that on top of this
+we add minimal devicetree binding that does not even attempt to
+deal with the timings yet.
 
+Then once the minimal devicetree binding is in place, we can
+call the current GPMC timing functions using the compatible flags
+and auxdata in the gpmc.c driver.
 
--Olof
+That way we get all the legacy boards booting with GPMC support
+for smsc911x etc, and can even remove some less used board-*.c
+files.
+
+Then we just add the generic GPMC timings when we're happy with
+those.
+
+Regards,
+
+Tony
