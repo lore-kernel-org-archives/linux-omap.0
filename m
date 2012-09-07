@@ -1,52 +1,78 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 7 Sep 2012 14:46:33 -0700
-Message-ID: <20120907214633.GO1303@atomide.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <201209050513.08588.marex@denx.de>
- <20120905233416.GP1303@atomide.com>
- <201209060405.08997.marex@denx.de>
- <20120906174531.GX1303@atomide.com>
- <CACRpkdYgcYAFy7bBn3XNcrkSoCpeA8yNaa9LZNd4w33Zp3Jjnw@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
+Date: Fri, 07 Sep 2012 14:48:29 -0700
+Message-ID: <87y5kljyhe.fsf@deeprootsystems.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
+	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
+	<878ve5j8se.fsf@ti.com> <1343637607.9847.13.camel@sokoban>
+	<CAORVsuUDo7VB3FnbQWJo=zowrviNDNbPM4DtqQMNrYAmOOat4w@mail.gmail.com>
+	<1347010239.10702.94.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdYgcYAFy7bBn3XNcrkSoCpeA8yNaa9LZNd4w33Zp3Jjnw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bryan Wu <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:43398 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309Ab2IGVsb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:48:31 -0400
+Received: by pbbrr13 with SMTP id rr13so209902pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:48:31 -0700 (PDT)
+In-Reply-To: <1347010239.10702.94.camel@sokoban> (Tero Kristo's message of
+	"Fri, 7 Sep 2012 12:30:39 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-* Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> [120907 14:40]:
-> On Thu, Sep 6, 2012 at 7:45 PM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> 
-> >> > The warning should be pinctrl related as the pinctrl drivers may not be
-> >> > device tree based drivers.
-> >>
-> >> Exactly my concern. Also the warning shouldnt be present on systems where
-> >> pinctrl is disabled.
-> >
-> > But pinctrl_get_select() returns 0 in include/linux/pinctrl/consumer.h if
-> > CONFIG_PINCTRL is not selected, so no warning is produced AFAIK ;)
-> 
-> This is correct, nothing to worry about.
-> 
-> The one troublesome case is if a pinctrl driver is present but not
-> being used, then you might need to call pinctrl_provide_dummies().
+Tero Kristo <t-kristo@ti.com> writes:
 
-Thanks that's good to know.
+> On Mon, 2012-08-06 at 12:14 +0200, Jean Pihet wrote:
+>> Hi Tero,
+>> 
+>> On Mon, Jul 30, 2012 at 10:40 AM, Tero Kristo <t-kristo@ti.com> wrote:
+>> > On Fri, 2012-07-27 at 12:36 -0700, Kevin Hilman wrote:
+>> >> Tero Kristo <t-kristo@ti.com> writes:
+>> >>
+>> >> > mpu / core powerdomain usecounts are now statically increased
+>> >> > by 1 during MPU activity. This allows the domains to reflect
+>> >> > actual usage, and will allow the usecount to reach 0 just before
+>> >> > all CPUs are ready to idle. Proper powerdomain usecounts are
+>> >> > propageted to voltagedomain level also, and will allow vc
+>> >> > callbacks to be triggered at right point of time.
+>> >> >
+>> >> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> >> > Cc: Paul Walmsley <paul@pwsan.com>
+>> >> > Cc: Kevin Hilman <khilman@ti.com>
+>> >>
+>> >> IMO, the idea is fine, but I'm not crazy about the implementation in
+>> >> powerdomain.c, which is meant for pwrdm generic code.   In particular,
+>> >> I'm not crazy about the pwrdm lookups in powerdomain.c.
+>> >>
+>> >> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
+>> >> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
+>> >
+>> > I think this was how the patch was in some earlier rev but I thought I'd
+>> > try to be more clever with this. :) I can revert the implementation back
+>> > to this.
+>> Furthermore after the changes in pre/post transitions [1], some more
+>> checks will be needed to identify the transitions on the mpu and core
+>> power domains.
+>> 
+>> [1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=e055548953355b6e69c56f9e54388845b29b4e97
+>> 
+>> Regards,
+>> Jean
+>
+> Hi Kevin,
+>
+> What is the latest status regarding this one, seeing the patch mentioned
+> got reverted due to problems? Should I do some changes for this or not?
 
-Regards,
+No, using latest minline should be fine.
 
-Tony
+> I can look at moving the code away from the generic powerdomain.c at
+> least, but is there anything else?
+
+Nothing else I can think of (but my vacation has purged my brain of most
+of the details here, so I may be forgetting something.)
+
+Kevin
