@@ -1,33 +1,57 @@
-From: Domenico Andreoli <cavokz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 7 Sep 2012 10:48:39 +0200
-Message-ID: <CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH] ARM: dts: omap3-beagle: Add heartbeat and mmc LEDs support
+Date: Fri, 7 Sep 2012 10:55:18 +0200
+Message-ID: <5049B676.1080004@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346487390-11399-1-git-send-email-anilkumar-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46308 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760190Ab2IGIzg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Sep 2012 04:55:36 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: florian Vaussard <florian.vaussard@epfl.ch>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
-> Adopt pinctrl support to leds-gpio driver based on leds-gpio
-> device pointer, pinctrl driver configure SoC pins to GPIO
-> mode according to definitions provided in .dts file.
+Add the support for D6 and D7 LEDs on Beagle board.
+- D6 will be used for heartbeat
+- D7 will be used for mmc0
 
-Shouldn't be the interaction with the pinctrl layer left to gpiolib?
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
 
-Cheers,
-Domenico
+It is based on top of the LEDB support added by Florian.
+
+Regards,
+Benoit
+
+ arch/arm/boot/dts/omap3-beagle.dts |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 3fe35c2..ca46fb2 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -24,6 +24,18 @@
+ 			label = "beagleboard::pmu_stat";
+ 			gpios = <&twl_gpio 19 0>; /* LEDB */
+ 		};
++
++		heartbeat {
++			label = "beagleboard::usr0";
++			gpios = <&gpio5 22 0>; /* 150 -> D6 LED */
++			linux,default-trigger = "heartbeat";
++		};
++
++		mmc {
++			label = "beagleboard::usr1";
++			gpios = <&gpio5 21 0>; /* 149 -> D7 LED */
++			linux,default-trigger = "mmc0";
++		};
+ 	};
+ };
+ 
+-- 
+1.7.0.4
