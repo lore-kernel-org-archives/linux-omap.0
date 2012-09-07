@@ -1,54 +1,50 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v7 0/3] arm/dts: Add device tree data for AM33XX devices
-Date: Fri, 7 Sep 2012 10:01:36 -0700
-Message-ID: <20120907170135.GY1303@atomide.com>
-References: <1346924304-27425-1-git-send-email-anilkumar@ti.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA293E9@DBDE01.ent.ti.com>
- <5049B245.9080807@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: dts: OMAP4: Add reg and interrupts for every nodes
+Date: Fri, 7 Sep 2012 10:06:22 -0700
+Message-ID: <20120907170621.GZ1303@atomide.com>
+References: <504A11E4.6000406@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:19834 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751217Ab2IGRG1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 13:06:27 -0400
 Content-Disposition: inline
-In-Reply-To: <5049B245.9080807-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <504A11E4.6000406@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-* Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> [120907 01:38]:
-> Hi Anil,
+* Benoit Cousson <b-cousson@ti.com> [120907 08:26]:
+> Thanks to Vaibhav <hvaibhav@ti.com> omap_device fix
+> (ARM: OMAP: omap_device: Fix up resource names when booted with devicetre),
+> we can now specify reg and interrupts using standard device tree
+> attributes.
 > 
-> On 09/07/2012 07:30 AM, AnilKumar, Chimata wrote:
-> > On Thu, Sep 06, 2012 at 15:08:21, AnilKumar, Chimata wrote:
-> >> Add pinctrl and d_can device tree data to AM33XX family of devices.
-> >> First two patches add support for pinctrl DT data and third one
-> >> adds dcan DT data.
-> >>
-> >> Reason behind combining these patches is to apply cleanly on
-> >> linux-omap tree, because these are sequential patches.
-> >>Yes, 
-> >> These patches were tested on AM335x-Bone, AM335x-EVM and based
-> >> on linux-omap:master with this patch
-> >> http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg74393.html
-> >>
-> > 
-> > If there are no changes in this patch series ACK from
-> > reviewers (esp. Tony, koen and Marc) will help.
+> Update the OMAP4 dtsi file with missing reg and interrupts attributes.
 > 
-> Yes, indeed. The series looks good to me, but it will be nice to get
-> some acks from people who commented previous revision.
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> ---
+> 
+> Hi Tony,
+> 
+> This is the first step toward reduction of the hwmod data inside mach-omap2.
+> OMAP2/3/4 data still need to be there for legacy boards, but it will allow
+> OMAP5/AM33XX pure DT board to reduce the amount of data provided by hwmod.
 
-Acked two of them, but there's still some gpio-leds.c discussion
-going on that should be resolved first.
+That's good to hear, that should cut down the data by some hundreds of lines :)
+ 
+> DMA is still missing, but I hope that the discussion that happened during
+> LPC will fixed that soon.
+
+Yeah and that can be added when the binding is available. The drivers should
+work with and without DMA as the channels can run out.
+
+Regards,
 
 Tony
