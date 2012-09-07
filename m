@@ -1,67 +1,65 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 1/2] pinctrl: pinctrl-single: Make sure we do not change
- bits outside of mask
-Date: Fri, 7 Sep 2012 23:13:02 +0200
-Message-ID: <CACRpkdY8PLQxP85hBo4-s8hYGxQH_hKD_YwzBc6m4gnkGBknmQ@mail.gmail.com>
-References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
-	<1346835718-21325-2-git-send-email-peter.ujfalusi@ti.com>
-	<20120906185937.GY1303@atomide.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Fri, 7 Sep 2012 16:16:37 -0500
+Message-ID: <504A6435.7020904@ti.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com> <1342218413-30116-2-git-send-email-jon-hunter@ti.com> <5000D647.4090200@gmail.com> <500439A8.1050705@ti.com> <500D6CAB.4030504@ti.com> <502B67DD.6050904@ti.com> <502D0BEE.3010609@ti.com> <20120830201415.GX1303@atomide.com> <504A5884.1010805@ti.com> <20120907205654.GM1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:45374 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309Ab2IGVND (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:13:03 -0400
-Received: by wgbdr13 with SMTP id dr13so21489wgb.1
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:13:02 -0700 (PDT)
-In-Reply-To: <20120906185937.GY1303@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37584 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751309Ab2IGVQq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Sep 2012 17:16:46 -0400
+In-Reply-To: <20120907205654.GM1303@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Sep 6, 2012 at 8:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 02:02]:
->> Use the pcs->fmask to make sure that the value is not changing (setting)
->> bits in areas where it should not.
->> To avoid situations like this:
->>
->> pmx_dummy: pinmux@4a100040 {
->>       compatible = "pinctrl-single";
->>       reg = <0x4a100040 0x0196>;
->>       #address-cells = <1>;
->>       #size-cells = <0>;
->>       pinctrl-single,register-width = <16>;
->>       pinctrl-single,function-mask = <0x00ff>;
->> };
->>
->> &pmx_dummy {
->>       pinctrl-names = "default";
->>       pinctrl-0 = <&board_pins>;
->>
->>       board_pins: pinmux_board_pins {
->>               pinctrl-single,pins = <
->>                       0x6c 0xf0f
->>                       0x6e 0x10f
->>                       0x70 0x23f
->>                       0x72 0xa5f
->>               >;
->>       };
->> };
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->
-> Thanks this is a valid fix:
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Since nothing in v3.6 is using pinctrl-simple yet, it's not a regression
-right?
+On 09/07/2012 03:56 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120907 13:27]:
+>> Hi Tony,
+>>
+>> On 08/30/2012 03:14 PM, Tony Lindgren wrote:
+>>> * Jon Hunter <jon-hunter@ti.com> [120816 08:05]:
+>>>> On 08/15/2012 04:11 AM, Vaibhav Hiremath wrote:
+>>>>>
+>>>>> Did we get conclude on this? I haven't got anything further on this
+>>>>> thread, this may block baseport support for the new devices in omap2
+>>>>> family, like AM33xx and OMAP5.
+>>>>
+>>>> Sorry I have been out of the office. However, no update on this so far.
+>>>> I need to check with Tony if he has any preference for handling this. I
+>>>> will follow-up with him and keep you posted.
+>>>
+>>> Jon please repost these without the RFC in the subject line
+>>> assuming the pending comments have been addressed so people
+>>> can ack them.
+>>
+>> I have been working on updating this series to request timer by their
+>> capabilities and avoid using a device ID altogether. In the updated
+>> series using device IDs to request a timer will still work as it does
+>> today, but not when you boot with DT. I have something working now that
+>> is booting fine on omap4 with and without DT [1]. However, I need to do
+>> more thorough testing of the timers in general, probably next week.
+>>
+>> Once I have completed my testing I would like to post for review.
+>> However, since posting the original series I have been working on some
+>> needed timer fixes/clean-up which I posted this week [2] for review.
+>> Ideally I should rebase my DT timer work on my timer fixes series but
+>> wanted to see what you thought first.
+> 
+> Yeah those all look good to me. Want to do a git branch against
+> v3.6-rc4 for those once the comments are dealt with so I can pull
+> it in for testing to start with?
 
-So can you just group this with the other pinctrl things you are
-harvesting in the OMAP tree? I was going to push it for
-the v3.7 cycle otherwise.
+The fixes series should already be based on top of 3.6-rc4 but will
+update based upon comments. The only outstanding comment on those were
+the implementation of the __omap_dm_timer_populate_errata() function.
+Not sure if you have any comments. Vaibhav and myself are not completely
+happy with it. I proposed something else but no feedback on that yet.
 
-Yours,
-Linus Walleij
+Cheers
+Jon
