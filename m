@@ -1,41 +1,38 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 08/14] Input: twl4030-vibra: Support for
- DT booted kernel
-Date: Fri, 07 Sep 2012 16:35:21 +0300
-Message-ID: <5049F819.1080101@ti.com>
-References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
- <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
- <20120906161933.GA18562@core.coreip.homeip.net>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH] watchdog: omap_wdt: convert to new watchdog core
+Date: Fri, 7 Sep 2012 16:31:07 +0300
+Message-ID: <20120907133107.GA14585@bitmer.com>
+References: <1346769684-25543-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120906161933.GA18562@core.coreip.homeip.net>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1346769684-25543-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
+Hi
 
-On 09/06/2012 07:19 PM, Dmitry Torokhov wrote:
-> In patch 6 you added a stub for of_find_node_by_name(), so do you really
-> need this #ifdef?
+On Tue, Sep 04, 2012 at 05:41:24PM +0300, Aaro Koskinen wrote:
+> Convert omap_wdt to new watchdog core. On OMAP boards, there are usually
+> multiple watchdogs. Since the new watchdog core supports multiple
+> watchdogs, all watchdog drivers used on OMAP should be converted.
+> 
+> The legacy watchdog device node is still created, so this should not
+> break existing users.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> ---
+>  drivers/watchdog/Kconfig    |    1 +
+>  drivers/watchdog/omap_wdt.c |  268 ++++++++++++++++++-------------------------
+>  2 files changed, 115 insertions(+), 154 deletions(-)
+> 
+Am I missing some extra patch but this causes a crash on top of v3.6-rc4
+commit eeea3ac?
 
-True. I'll resend the series since I left the #ifdef also in other patch.
+Crash happens in omap_wdt.c:99 on Nokia N9.
 
-> Otherwise it looks good.
-> =
-
-> Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-
-Thank you,
-P=E9ter
+-- 
+Jarkko
