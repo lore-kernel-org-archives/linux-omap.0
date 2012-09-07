@@ -1,89 +1,109 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/3] arm: omap: hwmod: add a new addr space in otg for
- writing to control module
-Date: Fri, 7 Sep 2012 04:57:12 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAAC815@DBDE01.ent.ti.com>
-References: <1346943331-18120-1-git-send-email-kishon@ti.com>
- <1346943331-18120-2-git-send-email-kishon@ti.com> <5048C2A2.2020104@ti.com>
- <20120906171301.GC17754@arwen.pp.htv.fi>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: PRCM/hwmod: some fixes for 3.6-rc
+Date: Fri, 7 Sep 2012 10:39:04 +0530
+Message-ID: <50498170.3010600@ti.com>
+References: <alpine.DEB.2.00.1209051613580.11516@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120906171301.GC17754-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "ABRAHAM,
- KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1209051613580.11516@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 06, 2012 at 22:43:03, Balbi, Felipe wrote:
-> Hi,
+
+
+On 9/5/2012 9:45 PM, Paul Walmsley wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> On Thu, Sep 06, 2012 at 09:04:58PM +0530, Vaibhav Hiremath wrote:
-> > 
-> > 
-> > On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
-> > > The mailbox register for usb otg in omap is present in control module.
-> > > On detection of any events VBUS or ID, this register should be written
-> > > to send the notification to musb core.
-> > > 
-> > > Till we have a separate control module driver to write to control module,
-> > > omap2430 will handle the register writes to control module by itself. So
-> > > a new address space to represent this control module register is added
-> > > to usb_otg_hs.
-> > > 
-> > > Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> > > Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> > > ---
-> > >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
-> > >  1 file changed, 5 insertions(+)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > > index 242aee4..02341bc 100644
-> > > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > > @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
-> > >  		.pa_end		= 0x4a0ab003,
-> > >  		.flags		= ADDR_TYPE_RT
-> > >  	},
-> > > +	{
-> > > +		.pa_start	= 0x4a00233c,
-> > > +		.pa_end		= 0x4a00233f,
-> > > +		.flags		= ADDR_TYPE_RT
-> > > +	},
-> > 
-> > I do not have any objection/comment here, but I believe this is control
-> > module address space required for USB module, right?
-> > I am not sure this is right way of accessing control module space.
-> > Actually Control Module Access required for drivers is one of the
-> > blocking issue we have currently.
-> > 
-> > Also there was some effort put up by 'Konstantine' to convert Control
-> > module to MFD driver, I haven't seen any further update on it. But it
-> > would be good to check with him.
+> Hi Tony,
 > 
-> this was an agreement with Benoit since we already lost a couple merge
-> windows for this patchset. We agreed to wait until -rc4 for SCM driver
-> and if it wasn't ready, we'd go ahead with this and SCM author would fix
-> it up on a patch converting users to new SCM driver.
+> The following changes since commit 4cbe5a555fa58a79b6ecbb6c531b8bab0650778d:
+> 
+>   Linux 3.6-rc4 (2012-09-01 10:39:58 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-fixes-a-for-3.6rc
+> 
+> for you to fetch changes up to 8a94febc21743fe121bdaf1d1470d98b1135acc2:
+> 
+>   Merge branches 'clkdev_fixes_3.6rc', 'clkdm_fixes_3.6rc' and 'hwmod_data_fixes_a_3.6rc' into omap_fixes_a_3.6rc (2012-09-03 11:52:02 -0600)
 > 
 
-Understood and thanks for confirming.
+Paul,
+
+Isn't below patch good for -rc candidate (so as part of this 'fixes')?
+
+ARM: OMAP2+: dpll: Add missing soc_is_am33xx() check for common functions
+
+https://patchwork.kernel.org/patch/1371611/
+
 
 Thanks,
 Vaibhav
 
-> -- 
-> balbi
+> - ----------------------------------------------------------------
+> 
+> Some hwmod, clockdomain, am335x fixes against v3.6-rc4.
+> 
+> Test logs can be found here:
+> 
+>    http://www.pwsan.com/omap/testlogs/omap_fixes_a_3.6rc/20120904110254/
+> 
+> - ----------------------------------------------------------------
+> Misael Lopez Cruz (1):
+>       ARM: OMAP: hwmod code: Disable module when hwmod enable fails
+> 
+> Paul Walmsley (2):
+>       ARM: OMAP3xxx: clockdomain: fix software supervised wakeup/sleep
+>       Merge branches 'clkdev_fixes_3.6rc', 'clkdm_fixes_3.6rc' and 'hwmod_data_fixes_a_3.6rc' into omap_fixes_a_3.6rc
+> 
+> Tero Kristo (2):
+>       ARM: OMAP3: hwmod data: fix iva2 reset info
+>       ARM: OMAP4: hwmod data: temporarily comment out data for the sl2if IP block
+> 
+> Vaibhav Hiremath (1):
+>       ARM: OMAP2+: am33xx: Fix the timer fck clock naming convention
+> 
+>  arch/arm/mach-omap2/clock33xx_data.c       |   14 ++++----
+>  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |   50 ++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/cm-regbits-34xx.h      |    1 +
+>  arch/arm/mach-omap2/omap_hwmod.c           |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   15 +++++++--
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   12 +++----
+>  6 files changed, 75 insertions(+), 18 deletions(-)
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.12 (GNU/Linux)
+> 
+> iQIcBAEBAgAGBQJQR3ooAAoJEMePsQ0LvSpLQ94P/1DzifcEU/R0YFLZF+20XPd5
+> hOrUk2EWn7SlPAxZJMG1K+In7EZ3K4r7IYaROIbwUWJTO/hQdx6zwyAOec/qnutV
+> WYRnQ+KN+x7gd8EYZPnS1voiqeH0SnP/wI2ri9UcMTV+tpAtO6ibD10iAUmBxSfX
+> x9HaYb65cYA+ulMsQXX2g1oejV2+4eR+fWWI0+bGfOxIHPGQcEhSGSvNkDs9W/bE
+> QfBKmTWeizx2jlRlXBG8pxV8MtEIDtwRZitcgTnyStw8LMqR/YnCOLIRoU2OHVcP
+> UtQwIxtNqGaoqm3i6IXGM1BLI4ZT/EN0kr+1LZVl1WoFqL1tDrn39dSvSVfxfGje
+> CjhkTk9XVzbV4GV+1yTt6JlfD3AimLwYqihKDs21a2OleAsQAu8a+gftsJtSp8Xu
+> fscJcjr1c5JKyjE5CzbH7mbDgX+LTveZV3b6pT1m599UidP/NZ4yzUYrmkTmoSkk
+> JdqQlTgahLxjBoBBDfNhavuCzA4cYNh6q0Pt6GhmWc1ZC7aR3+7xU4wUNXAvbKoe
+> mUksJmjROwk4MlswLqpIkgt8iiEGa2LzHcyL7eVD2+oCun0FFlolqa1R3gTF9x8y
+> Hr8iNv4b0OeX55oSZ53ijIDY4WwgmBVvnVjiWEiAkBuwqsghRLii5eemX572szGU
+> lTSzo95e8x7kAaO6moNI
+> =wc/t
+> -----END PGP SIGNATURE-----
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
