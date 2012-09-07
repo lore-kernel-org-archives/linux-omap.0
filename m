@@ -1,48 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 1/2] mmc: omap_hsmmc: convert from IP timer to hrtimer
-Date: Fri, 07 Sep 2012 14:59:03 -0700
-Message-ID: <877gs5jxzs.fsf@deeprootsystems.com>
-References: <1346159947-3194-1-git-send-email-svenkatr@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 23:59:23 +0200
+Message-ID: <CACRpkdZbyUFvYuou015ge+k8zroNtL9s9HFKsVC5OJV8NHEorg@mail.gmail.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+	<CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
+	<20120907110251.GA7968@glitch>
+	<331ABD5ECB02734CA317220B2BBEABC13EA29BF3@DBDE01.ent.ti.com>
+	<20120907160025.GB14330@glitch>
+	<20120907163542.GU1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1346159947-3194-1-git-send-email-svenkatr@ti.com> (Venkatraman
-	S.'s message of "Tue, 28 Aug 2012 18:49:06 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balbi@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:55419 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab2IGV7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:59:24 -0400
+Received: by wibhi8 with SMTP id hi8so247545wib.1
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:59:23 -0700 (PDT)
+In-Reply-To: <20120907163542.GU1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Venkatraman S <svenkatr@ti.com> writes:
+On Fri, Sep 7, 2012 at 6:35 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-> omap hsmmc controller IP has a built in timer that can be programmed to
-> guard against unresponsive operations. But its range is very narrow,
-> and the maximum countable time is a few seconds.
->
-> Card maintenance operations like BKOPS and MMC_ERASE and long
-> stream writes like packed command require timers of order of
-> several minutes, much beyond the capability of the IP timer.
-> So get rid of using the IP timer entirely and use kernel's hrtimer
-> functionality for guarding the device operations.
-> As part of this change, a workaround that disabled timeouts for
-> MMC_ERASE command is removed, and the arbitary timing of 100ms
-> is used only when the timeout is not explicitly specified by core.
->
-> A trivial change to get rid of unnecessary dealiasing of host->data
-> in omap_hsmmc_do_irq is also included.
->
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> In the pure GPIO pins only case it could be all done in the GPIO controller,
+> but it's probably best to have the pins muxed by the drivers using them.
 
-Dumb question: if the timers needed are on the order of minutes, why do
-you need to use high-resolution timers?  I'm guessing the normal
-kernel-internal timers should suffice here (see <linux/timer.h,
-init_timer().)
+Yes, that's an easier way to say the long unreadable thing I just
+posted ...
 
-Also, if they're on the order of minutes, I assume the actual firing
-doesn't have to be precise, so deferrable timers can probably be used
-(and thus help PM by coalescing wakeup events.) 
+> Some drivers doing runtime PM may need to dynamically toggle the pins
+> for idle mode to stop leakage, enable wakeup events for rx pins etc.
+> Probably no need for that in the gpio leds case, but it would be confusing
+> to have some pins claimed by the GPIO driver and some by the drivers
+> using the pins.
 
-If my assumptions are true, it might be worth considering using the
-normal timers, and use init_timer_deferrable().
+True. drivers/tty/serial/amba-pl011.c provides a simple example.
 
-Kevin
+Yours,
+Linus Walleij
