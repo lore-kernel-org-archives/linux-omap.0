@@ -1,85 +1,144 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Fri, 7 Sep 2012 05:45:17 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA29468@DBDE01.ent.ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
- <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com>
- <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
- <50470C1E.7090300@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
- <5047544B.60105@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA8779@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4 00/21] OMAP UART Patches
+Date: Fri, 7 Sep 2012 08:49:34 +0300
+Message-ID: <20120907054932.GB3136@arwen.pp.htv.fi>
+References: <20120906122948.GC29202@arwen.pp.htv.fi>
+ <1346935540-1792-1-git-send-email-balbi@ti.com>
+ <87harahiv6.fsf@deeprootsystems.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAA8779-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DKU6Jbt7q3WqK7+M"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:54990 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755622Ab2IGFx7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 01:53:59 -0400
+Received: by lbbgj3 with SMTP id gj3so1646436lbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 22:53:56 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <87harahiv6.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, alan@linux.intel.com
 
-On Wed, Sep 05, 2012 at 20:11:11, Hiremath, Vaibhav wrote:
-> On Wed, Sep 05, 2012 at 19:01:55, Cousson, Benoit wrote:
-> > Hi Vaibhav,
-> > 
-> > On 09/05/2012 11:15 AM, Hiremath, Vaibhav wrote:
-> > > On Wed, Sep 05, 2012 at 13:53:58, Ujfalusi, Peter wrote:
-> > >> Hi,
-> > >>
-> > >> On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
-> > >>>> Not yet, but we discussed that with Peter and since he does have these
-> > >>>> patches for DT, he'll be able to test your series with the McBSP changes.
-> > >>>>
-> > >>>
-> > >>> Great.
-> > >>
-> > >> With his series and your patch for omap-hwmod audio was probing and working on
-> > >> OMAP3/4/5 without issues.
-> > >>
-> > > Peter,
-> > > Care to provide your Tested-By??
-> > > 
-> > > Benoit,
-> > > Can we merge this patch now?
-> > 
-> > Yes, I'll include it in the pull request along with DTS patches.
-> > 
-> > I've just tested it as well on OMAP4 by hacking the DTS for GPIO.
-> > I'll try to update at least all the OMAP4 IPs as well with the proper
-> > DTS resources for 3.7.
-> > 
-> 
-> Thanks Benoit,
-> 
-> There are other patches which are pending,
-> 
-> arm/dts: AM33XX: Convert all hex numbers to lower-case
-> https://patchwork.kernel.org/patch/1377351/
-> arm/dts: AM33XX: Specify reg and interrupt property for all nodes
-> https://patchwork.kernel.org/patch/1377361/
->
 
-Few more DT patches which are pending
+--DKU6Jbt7q3WqK7+M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-arm/dts: AM33XX: Add basic pinctrl device tree data
-http://www.spinics.net/lists/linux-omap/msg76684.html
-arm/dts: AM33XX: Configure pinmuxs for user leds control on Bone
-http://www.spinics.net/lists/linux-omap/msg76682.html
-arm/dts: AM33XX: Add D_CAN device tree data
-http://www.spinics.net/lists/linux-omap/msg76683.html
+Hi,
 
-Thanks
-AnilKumar
+On Thu, Sep 06, 2012 at 03:44:13PM -0700, Kevin Hilman wrote:
+> Felipe Balbi <balbi@ti.com> writes:
+>=20
+> > Hi guys,
+> >
+> > here's v4 of the omap uart patchset. No changes other than a rebase on =
+top of
+> > Greg's tty-next branch and Tony's Acked-by being added to a couple patc=
+hes
+> >
+> > Note: I'm resending the series with Vikram's Software Flow Control fix =
+anyway
+> > as it can just be ignored if it's decided it needs to go into this merge
+> > window.
+>=20
+> Sorry to be late to the party... just getting back from some time off.
+>=20
+> I'm assuming that this was not tested with PM, so decided I better do it
+
+you assumed wrong. See the previous versions of the series and you'll
+see I mention all the basic pm testing I did.
+
+> myself seeing that Greg is has already merge it.  To test, I merged
+> Greg's tty-next branch with v3.6-rc4 and did some PM testing.
+>=20
+> The bad news is that it doesn't even compile (see reply to [PATCH v4
+> 20/21]). =20
+
+yeah, that was an automerge issue when rebasing on greg's tty-next
+branch, plus me assuming omap serial was already enabled on my .config
+and not checking the compile output. Sent a patch now.
+
+> Also, there is a big WARNING on boot[1], which seems to be triggered by
+> a new check added for v3.6-rc3[2].  This appears to be introduced by
+> $SUBJECT series, because I don't see it on vanilla v3.6-rc4.
+>=20
+> The good news is that after hacking to fix up the compile problems,
+> basic PM testing seems to be fine: idle to retention and off as well as
+> suspend to retention and off work fine on 3430/n900, 3530/Overo,
+> 3730/OveroSTORM, 3730/Beagle-xM.
+>=20
+> Kevin
+>=20
+>=20
+> [1]
+> [    8.745666] WARNING: at /work/kernel/omap/pm/drivers/tty/tty_io.c:1420=
+ tty_init_dev+0x14c/0x17c()
+> [    8.755218] tty_init_dev: ttyO driver does not set tty->port. This wil=
+l crash the kernel later. Fix the driver!
+> [    8.765991] Modules linked in:
+> [    8.769287] [<c0013d90>] (unwind_backtrace+0x0/0xf0) from [<c0036eec>]=
+ (warn_slowpath_common+0x4c/0x64)
+> [    8.779327] [<c0036eec>] (warn_slowpath_common+0x4c/0x64) from [<c0036=
+f98>] (warn_slowpath_fmt+0x30/0x40)
+> [    8.789550] [<c0036f98>] (warn_slowpath_fmt+0x30/0x40) from [<c02c626c=
+>] (tty_init_dev+0x14c/0x17c)
+> [    8.799224] [<c02c626c>] (tty_init_dev+0x14c/0x17c) from [<c02c68a4>] =
+(tty_open+0x11c/0x52c)
+> [    8.808258] [<c02c68a4>] (tty_open+0x11c/0x52c) from [<c00f86ac>] (chr=
+dev_open+0x90/0x15c)
+> [    8.817108] [<c00f86ac>] (chrdev_open+0x90/0x15c) from [<c00f2b74>] (d=
+o_dentry_open+0x1e8/0x270)
+> [    8.826507] [<c00f2b74>] (do_dentry_open+0x1e8/0x270) from [<c00f2c30>=
+] (finish_open+0x34/0x4c)
+> [    8.835784] [<c00f2c30>] (finish_open+0x34/0x4c) from [<c0102028>] (do=
+_last.isra.21+0x5b0/0xbbc)
+> [    8.845184] [<c0102028>] (do_last.isra.21+0x5b0/0xbbc) from [<c01026dc=
+>] (path_openat+0xa8/0x44c)
+> [    8.854675] [<c01026dc>] (path_openat+0xa8/0x44c) from [<c0102d34>] (d=
+o_filp_open+0x2c/0x80)
+> [    8.863708] [<c0102d34>] (do_filp_open+0x2c/0x80) from [<c00f3b6c>] (d=
+o_sys_open+0xe8/0x184)
+> [    8.872711] [<c00f3b6c>] (do_sys_open+0xe8/0x184) from [<c000db20>] (r=
+et_fast_syscall+0x0/0x3c)
+> [    8.882019] ---[ end trace e9bf408c37051346 ]---
+
+This doesn't seem to be caused by $SUBJECT at all. See that we are
+calling uart_add_one_port() which will call tty_port_register_device()
+which, in turn, will call tty_port_link_device() and that will set
+driver->ports[index] correctly.
+
+Have you checked if this doesn't happen without my series before waving
+your blame hammer ? FWIW, that part of the code wasn't change by
+$SUBJECT at all.
+
+--=20
+balbi
+
+--DKU6Jbt7q3WqK7+M
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQSYrsAAoJEIaOsuA1yqREavoP/R0QnNP2EK2/otekNmK8UlRv
+Bp3veviNWtMya53uaXINu9J1udhsGBHU69cYGh7PVB4PGo/glqAhlgFQs15CV11R
+WtJyzPVPuVCi8PeGcnptiEYzmFOpgAicBoRR/vXX/Rh5eh5+Ht8ZID4YyfsEqRwI
+KQ4j/g4aplI2k1qke5FAzuKSgB2SHkKGmJA/KEbRAPh3+vuWDtnqTBMMCg8oXT17
+9dFbe6CSUPOefR2oRQXjzhcoysJ3ro+ysVuBbi5cmAMvKjDgLNJS2F//7YW85srI
+xmE8AOmmmz19uyIU+SFQwouinKEDmm6Ma0OAbozfimjfSMzIuq7CSTbUlcvFprOm
+5yTIQQh27pw4LhLh+ECQo//yais4gzII7npnQGcUxA3iZ966/z46QBJhfW2E/pSa
+aHoWlm+COeq2NCoJu1WXoR/eoXbnwPC6x/XcsyCAssl30TAr7XWsIYQc+GSf1o6B
+yOj6tv0NHMrnzcgJ+iYF3PThj+FqqRyY7QmzmMT3l5rbYpqSli9Hcj0qe09qlTG2
+feBYg8iF/vDpAaWXWQTjCM6YQJVuzfGYecdieXfsqkURG+SAtX9HxZuHQQiZ+yuH
+fyls3OrvrH8i+YoH/f4ysrSyxO/Tmh1mA8MZgnPOqMSWu4firES60bx0dvt+pRYa
+3zJ+YFZ1PyYH3c9WxOMP
+=zxNy
+-----END PGP SIGNATURE-----
+
+--DKU6Jbt7q3WqK7+M--
