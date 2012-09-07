@@ -1,64 +1,68 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
-Date: Fri, 7 Sep 2012 14:39:15 +0530
-Message-ID: <1347008955-21310-1-git-send-email-kishon@ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 09:10:50 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com, paul@pwsan.com, tony@atomide.com, linux@arm.linux.org.uk, b-cousson@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57309 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755536Ab2IGJLL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 05:11:11 -0400
+In-Reply-To: <CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Domenico Andreoli <cavokz@gmail.com>
+Cc: "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp.
-Since this ocp2scp module does not have any fck but does have a
-single opt_clock, it is added as the main_clk for ocp2scp. Also
-removed phy_48m as the optional clock since it is now made as the
-main clock. By this the driver need not enable/disable phy_48m clk
-separately and runtime_get/runtime_put will take care of that.
+Hi Domenico,
 
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
-Changes for v1:
- Amend the comment section with benefit for the driver because of this =
-patch.
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+On Fri, Sep 07, 2012 at 14:18:39, Domenico Andreoli wrote:
+> On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > device pointer, pinctrl driver configure SoC pins to GPIO
+> > mode according to definitions provided in .dts file.
+> 
+> Shouldn't be the interaction with the pinctrl layer left to gpiolib?
+> 
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index 242aee4..e8e5405 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2503,14 +2503,11 @@ static struct omap_hwmod_class omap44xx_ocp2scp=
-_hwmod_class =3D {
- };
-=20
- /* ocp2scp_usb_phy */
--static struct omap_hwmod_opt_clk ocp2scp_usb_phy_opt_clks[] =3D {
--	{ .role =3D "phy_48m", .clk =3D "ocp2scp_usb_phy_phy_48m" },
--};
--
- static struct omap_hwmod omap44xx_ocp2scp_usb_phy_hwmod =3D {
- 	.name		=3D "ocp2scp_usb_phy",
- 	.class		=3D &omap44xx_ocp2scp_hwmod_class,
- 	.clkdm_name	=3D "l3_init_clkdm",
-+	.main_clk	=3D "ocp2scp_usb_phy_phy_48m",
- 	.prcm =3D {
- 		.omap4 =3D {
- 			.clkctrl_offs =3D OMAP4_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL_OFFSET,
-@@ -2518,8 +2515,6 @@ static struct omap_hwmod omap44xx_ocp2scp_usb_phy=
-_hwmod =3D {
- 			.modulemode   =3D MODULEMODE_HWCTRL,
- 		},
- 	},
--	.opt_clks	=3D ocp2scp_usb_phy_opt_clks,
--	.opt_clks_cnt	=3D ARRAY_SIZE(ocp2scp_usb_phy_opt_clks),
- };
-=20
- /*
---=20
-1.7.9.5
+No, these gpio's are configured specifically for user leds.
+
+So, leds-gpio driver should have this call, because these gpio
+pins are used by leds-gpio driver.
+
++       am33xx_pinmux: pinmux@44e10800 {
++               userled_pins: pinmux_userled_pins {
++                       pinctrl-single,pins = <
++                               0x54 0x7       
++                               0x58 0x17       
++                               0x5c 0x7        
++                               0x60 0x17       
++                       >;
++               };
++       };
++
+
+[...]
+
++               leds {
++                       compatible = "gpio-leds";
++                       pinctrl-names = "default";
++                       pinctrl-0 = <&userled_pins>;
+                                      ^^^^^^^^^^^^
+
+This devm_pinctrl_get_select_default() call in leds-gpio driver
+will internally take userled_pins node and configure those pins
+according to the above definitions.
+
+Lets take gpio-keypad driver, in that case we have to configure
+pins as INPUT mode (generic gpio driver might not know what
+the end usecase is) and this leds case we configure as OUTPUT
+mode.
+
+Thanks
+AnilKumar
