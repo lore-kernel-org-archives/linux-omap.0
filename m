@@ -1,85 +1,48 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 12/17] OMAPDSS: clean up dss_mgr_set_timings
-Date: Fri, 07 Sep 2012 13:11:13 +0300
-Message-ID: <1347012673.2646.3.camel@deskari>
-References: <1346833555-31258-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/8] OMAPDSS: Misc improvements
+Date: Fri, 07 Sep 2012 13:16:00 +0300
+Message-ID: <1347012960.2646.5.camel@deskari>
+References: <1345729514-2441-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1346743368.2586.1.camel@deskari> <20120906201330.GF1303@atomide.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-O/JyR9SOGwz+s/Rkhb2a"
+	boundary="=-w1y7zCO9Ei6OvXlIA7/V"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:37680 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760336Ab2IGKLW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 06:11:22 -0400
-Received: by lbbgj3 with SMTP id gj3so1762614lbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 03:11:20 -0700 (PDT)
-In-Reply-To: <1346833555-31258-13-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:52176 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932204Ab2IGKQH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 06:16:07 -0400
+Received: by lagy9 with SMTP id y9so1732783lag.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 03:16:03 -0700 (PDT)
+In-Reply-To: <20120906201330.GF1303@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: archit@ti.com
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
 
---=-O/JyR9SOGwz+s/Rkhb2a
+--=-w1y7zCO9Ei6OvXlIA7/V
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-09-05 at 11:25 +0300, Tomi Valkeinen wrote:
-> dss_mgr_set_timings() can only be called when the output is not active.
-> This means that most of the code in the function is extra, as there's no
-> need to write the values to registers, etc, because that will be handled
-> when the output will be enabled.
+On Thu, 2012-09-06 at 13:13 -0700, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120904 00:23]:
+> > Hi Tony,
+> >=20
+> > Can you check the arch/arm patches below, and suggest how you'd like to
+> > go forward with them?
 >=20
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/omap2/dss/apply.c |   18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/ap=
-ply.c
-> index 53629dd..1b49019 100644
-> --- a/drivers/video/omap2/dss/apply.c
-> +++ b/drivers/video/omap2/dss/apply.c
-> @@ -1314,21 +1314,19 @@ void dss_mgr_set_timings(struct omap_overlay_mana=
-ger *mgr,
->  		const struct omap_video_timings *timings)
->  {
->  	unsigned long flags;
-> -
-> -	mutex_lock(&apply_lock);
-> +	struct mgr_priv_data *mp =3D get_mgr_priv(mgr);
-> =20
->  	spin_lock_irqsave(&data_lock, flags);
-> =20
-> -	dss_apply_mgr_timings(mgr, timings);
-> -
-> -	dss_write_regs();
-> -	dss_set_go_bits();
-> +	if (mp->enabled) {
-> +		DSSERR("cannot set timings for %s: manager needs to be disabled\n",
-> +			mgr->name);
-> +		goto out;
-> +	}
+> Acked them, then as soon as we have the initial immutable header
+> move branch available, you should merge with that to avoid
+> merge conflicts in upstream.
 
-There was a problem with this one. When using manual update display, we
-call set_timings before each update, and the mgr is enabled at that
-time.
-
-I'll fix this by changing the check from mp->enabled to mp->updating.
-That flag tells if the DISPC channel is actually enabled or not. Enabled
-flag just tells that the channel is being reserved, although for auto
-update displays that also implies "updating".
-
-But do you see any reason to call set_timings before each update? It was
-required when we have partial update support, but now we support only
-full screen updates, so isn't it enough to set the timings just once
-when configuring?
+Thanks, but you missed the first patch "[PATCH 1/8] OMAPDSS: HDMI: Move
+GPIO handling to HDMI driver".
 
  Tomi
 
 
---=-O/JyR9SOGwz+s/Rkhb2a
+--=-w1y7zCO9Ei6OvXlIA7/V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -87,20 +50,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQSchBAAoJEPo9qoy8lh71lOAP/iNAycI1mPgK99Gcm5ToG0JA
-DNyxEYI3gJLX2tpfWaMPgffL6eDtcDkhan+AUg8pUjjwCrbTaJioZ0qF99eH0E5J
-2VO5dDL+jtcikMoy/v2SgB2zl1KXpd5PTXH25jPSlryUUKDgNEQIcSAKinPxaMdb
-ESnmeq6v1XPjGntERmZ7CY/iiRVfpjdpsHcd7QxbUNzJwJP3CAWNOfODRi0mnunl
-Zr6r7roCafC7RrPGJ4NVYs1jeJWaRGWyKbrVSZ2t9tXF5OyN9FQ0aSyAbj6g4QMx
-xgxonBGKKA6iTjWBH/rFIWhkfdDY5UA65jb7nw2r+DfPbGuiH6k6Q6sK9hW6bd78
-E4/edeTgECnj9Fxa8hDvhxq8F6pJnqsLzTYkqzZc8xxgk7rL0yn5/w2ipX0iBVxS
-p6ic1pSg/K0YPSmFLHJY2CcbLYmnDlj1k40mgzBRrnejlvzs6pAO+8E01uu+rTuz
-9OIoEB8rVa17V1FelPfeOUR/gQ16IcyF7BcepfQO9nPvB9pFm0n8J9d4Jv5G7VMH
-AgC1b1BLd4C5JeA6H9gz2gZ4u60jTU2ns20/3nuPlT0ueeRi5AYepM3Yzqn5s8Lz
-8dee69zh5RI8Z4B78jn1i95lk6h3Ng4lKcemKxFq9KI8SkLfsPSqHiU2XHazURFU
-n3Lky2vYA/T/5GQJTVNB
-=Yyud
+iQIcBAABAgAGBQJQSclgAAoJEPo9qoy8lh71FcMP/243hfRPH0e6dOxMYOJOjMIn
+XlZIXglZRP/rJpvC37JZI9mwOc+gPH0nPCfSeCT5JhcYefFemq6VGgjlkrY3pO4s
+yppq/T6ehzHZilRsdKLnHCcQU1gIlxnFqC6wKrkz1iZo95Me7UXIi2pToGXnHdNA
+rgjNAwS4/bi9T0AgrXg5Bcwqsb3x+l02Fxlg0UCgTWIrhJFUFv6fNli0ybAp6cp0
+s1CzXCFYxEyfgR2gB+vVy9amghydl/KY2GuBN5B1+aWBt8KpuaJd0689zP3Y0CAi
+HLn9DNJM8JKGBzaIqKt1V+5O2gG1HX/QihIODgU+5NQ2UUuOCcnPtcPu5sYqoKuD
+C7jcEYIbLEyxNBY6mE6BhM33TZdxagDVbe09u9oHdtPaePczbbhgFLl1QRkTnKzV
+jKT+48s4e0i2o9nEluKYZqD7mVqfqgRHJkqZwsjJRZcLNoTluHSHXnd2WM4WTsJk
+zDOi/4x1qNg04T7qhUVH3vh04efQdtH1eH8WaiSgjdn6aNRecd93IvTnm7HpC8qP
+srV0/GY/EI9Hb96F9aOx4U1rBSmvjx24wnP6538IJp8/GJ91fuRASdb5Ayj6IyaQ
+vEAy9xdnk9UOYAYHapEM168DuW1w4AA4O9LvXeQ8TfoSWekn2LK3lNa23axIIxvo
+DNiA9hEaj5hY5ct9JeY3
+=07kd
 -----END PGP SIGNATURE-----
 
---=-O/JyR9SOGwz+s/Rkhb2a--
+--=-w1y7zCO9Ei6OvXlIA7/V--
 
