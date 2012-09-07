@@ -1,151 +1,70 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
-Date: Fri, 7 Sep 2012 09:55:24 +0300
-Message-ID: <50499A5C.60006@ti.com>
-References: <1344607558-15481-1-git-send-email-rogerq@ti.com> <CAORVsuW+Vb6+GyTDfEmW3n=FY33rk_KDiMkFHPv29ZS=Y4yuFA@mail.gmail.com> <CAORVsuVCNy3L9af9iC9ZSeRbRvz-n=jN0P9ixMJday90NmVGfg@mail.gmail.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 07:59:55 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2964C@DBDE01.ent.ti.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+ <201209060405.08997.marex@denx.de> <20120906174531.GX1303@atomide.com>
+ <201209070209.35379.marex@denx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40196 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53677 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757402Ab2IGGzd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Sep 2012 02:55:33 -0400
-In-Reply-To: <CAORVsuVCNy3L9af9iC9ZSeRbRvz-n=jN0P9ixMJday90NmVGfg@mail.gmail.com>
+	id S1757674Ab2IGIAZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 04:00:25 -0400
+In-Reply-To: <201209070209.35379.marex@denx.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Marek Vasut <marex@denx.de>, Tony Lindgren <tony@atomide.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>, Shawn Guo <shawn.guo@linaro.org>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-Hi Jean,
-
-My bad, I didn't follow up with this. My guess is that it has not been
-picked up. Tony, Kevin?
-
-regards,
--roger
-
-On 09/06/2012 09:59 PM, Jean Pihet wrote:
-> Fixed Paul's email address
+On Fri, Sep 07, 2012 at 05:39:35, Marek Vasut wrote:
+> Dear Tony Lindgren,
 > 
-> On Thu, Sep 6, 2012 at 8:56 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
->> Hi Roger,
->>
->> On Fri, Aug 10, 2012 at 4:05 PM, Roger Quadros <rogerq@ti.com> wrote:
->>> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
->>>
->>> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
->>> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
->>> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
->>>
->>> Signed-off-by: Roger Quadros <rogerq@ti.com>
->>
->> What his the status of the patch? Has it been reviewed and taken in an
->> integration tree? I cannot find anything about it in l-o and
->> linux-next.
->>
->> I have some changes on-going in the OMAP PM code and I would like to
->> know if $SUBJECT is applicable.
->>
->> Regards,
->> Jean
->>
->>> ---
->>>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
->>>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
->>>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
->>>  3 files changed, 18 insertions(+), 9 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->>> index ea3f565..06747b6 100644
->>> --- a/arch/arm/mach-omap2/clock.c
->>> +++ b/arch/arm/mach-omap2/clock.c
->>> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
->>>         pr_debug("clock: %s: disabling in hardware\n", clk->name);
->>>
->>>         if (clk->ops && clk->ops->disable) {
->>> -               trace_clock_disable(clk->name, 0, smp_processor_id());
->>> +               trace_clock_disable(clk->name, 0, get_cpu());
->>> +               put_cpu();
->>>                 clk->ops->disable(clk);
->>>         }
->>>
->>> @@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
->>>         }
->>>
->>>         if (clk->ops && clk->ops->enable) {
->>> -               trace_clock_enable(clk->name, 1, smp_processor_id());
->>> +               trace_clock_enable(clk->name, 1, get_cpu());
->>> +               put_cpu();
->>>                 ret = clk->ops->enable(clk);
->>>                 if (ret) {
->>>                         WARN(1, "clock: %s: could not enable: %d\n",
->>> @@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
->>>
->>>         /* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
->>>         if (clk->set_rate) {
->>> -               trace_clock_set_rate(clk->name, rate, smp_processor_id());
->>> +               trace_clock_set_rate(clk->name, rate, get_cpu());
->>> +               put_cpu();
->>>                 ret = clk->set_rate(clk, rate);
->>>         }
->>>
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->>> index e4fc88c..81fec2e 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -357,18 +357,22 @@ void omap_sram_idle(void)
->>>
->>>  static void omap3_pm_idle(void)
->>>  {
->>> +       unsigned cpu;
->>> +
->>>         local_fiq_disable();
->>>
->>>         if (omap_irq_pending())
->>>                 goto out;
->>>
->>> -       trace_power_start(POWER_CSTATE, 1, smp_processor_id());
->>> -       trace_cpu_idle(1, smp_processor_id());
->>> +       cpu = get_cpu();
->>> +       trace_power_start(POWER_CSTATE, 1, cpu);
->>> +       trace_cpu_idle(1, cpu);
->>>
->>>         omap_sram_idle();
->>>
->>> -       trace_power_end(smp_processor_id());
->>> -       trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
->>> +       trace_power_end(cpu);
->>> +       trace_cpu_idle(PWR_EVENT_EXIT, cpu);
->>> +       put_cpu();
->>>
->>>  out:
->>>         local_fiq_enable();
->>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
->>> index 69b36e1..138bf86 100644
->>> --- a/arch/arm/mach-omap2/powerdomain.c
->>> +++ b/arch/arm/mach-omap2/powerdomain.c
->>> @@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->>>                                        ((state & OMAP_POWERSTATE_MASK) << 8) |
->>>                                        ((prev & OMAP_POWERSTATE_MASK) << 0));
->>>                         trace_power_domain_target(pwrdm->name, trace_state,
->>> -                                                 smp_processor_id());
->>> +                                                 get_cpu());
->>> +                       put_cpu();
->>>                 }
->>>                 break;
->>>         default:
->>> @@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->>>         if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
->>>                 /* Trace the pwrdm desired target state */
->>>                 trace_power_domain_target(pwrdm->name, pwrst,
->>> -                                         smp_processor_id());
->>> +                                         get_cpu());
->>> +               put_cpu();
->>>                 /* Program the pwrdm desired target state */
->>>                 ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
->>>         }
->>> --
->>> 1.7.4.1
->>>
+> > * Marek Vasut <marex@denx.de> [120905 19:05]:
+> > > Hi Tony,
+> > > 
+> > > > * Marek Vasut <marex@denx.de> [120904 20:13]:
+> > > > > Dear Bryan Wu,
+> > > > > 
+> > > > > > On Sat, Sep 1, 2012 at 4:16 PM, AnilKumar Ch <anilkumar@ti.com> wrote:
+> > > > > > > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > > > > > > device pointer, pinctrl driver configure SoC pins to GPIO
+> > > > > > > mode according to definitions provided in .dts file.
+> > > > > > 
+> > > > > > Thanks for this, actually Marek Vasut submitted a similar patch
+> > > > > > before. I'm pretty fine with this patch.
+> > > > > 
+> > > > > Thanks for submitting this actually ... I didn't have time to
+> > > > > properly investigate this.
+> > > > > 
+> > > > > > But without proper DT setting, it will also give us warning I
+> > > > > > think. or we can provide some dummy functions as a temp solution
+> > > > > > as Shawn pointed out before.
+> > > > > 
+> > > > > But this driver is also used on hardware that's not yet coverted to
+> > > > > DT, so I'd say dev_warn() if CONFIG_OF is enabled and otherwise
+> > > > > simply go on ? Actually, can we not skip whole this pinctrl thing if
+> > > > > CONFIG_OF is disabled? Actually (2), what's the relationship between
+> > > > > OF and pinctrl?
+> > > > 
+> > > > The warning should be pinctrl related as the pinctrl drivers may not be
+> > > > device tree based drivers.
+> > > 
+> > > Exactly my concern. Also the warning shouldnt be present on systems where
+> > > pinctrl is disabled.
+> > 
+> > But pinctrl_get_select() returns 0 in include/linux/pinctrl/consumer.h if
+> > CONFIG_PINCTRL is not selected, so no warning is produced AFAIK ;)
+> 
+> Oh all right then.
+> 
 
+Bryan,
+
+If this patch looks fine, can you queue this for 3.7?
+
+Thanks
+AnilKumar
