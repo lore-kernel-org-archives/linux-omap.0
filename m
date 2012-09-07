@@ -1,78 +1,169 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv4 4/8] ARM: OMAP3: add manual control for mpu / core pwrdm usecounting
-Date: Fri, 07 Sep 2012 14:48:29 -0700
-Message-ID: <87y5kljyhe.fsf@deeprootsystems.com>
-References: <1342189185-5306-1-git-send-email-t-kristo@ti.com>
-	<1342189185-5306-5-git-send-email-t-kristo@ti.com>
-	<878ve5j8se.fsf@ti.com> <1343637607.9847.13.camel@sokoban>
-	<CAORVsuUDo7VB3FnbQWJo=zowrviNDNbPM4DtqQMNrYAmOOat4w@mail.gmail.com>
-	<1347010239.10702.94.camel@sokoban>
+Subject: Re: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Fri, 07 Sep 2012 14:50:32 -0700
+Message-ID: <87k3w5jydz.fsf@deeprootsystems.com>
+References: <1344607558-15481-1-git-send-email-rogerq@ti.com>
+	<CAORVsuW+Vb6+GyTDfEmW3n=FY33rk_KDiMkFHPv29ZS=Y4yuFA@mail.gmail.com>
+	<CAORVsuVCNy3L9af9iC9ZSeRbRvz-n=jN0P9ixMJday90NmVGfg@mail.gmail.com>
+	<50499A5C.60006@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:43398 "EHLO
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:40474 "EHLO
 	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309Ab2IGVsb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:48:31 -0400
-Received: by pbbrr13 with SMTP id rr13so209902pbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:48:31 -0700 (PDT)
-In-Reply-To: <1347010239.10702.94.camel@sokoban> (Tero Kristo's message of
-	"Fri, 7 Sep 2012 12:30:39 +0300")
+	with ESMTP id S1751101Ab2IGVue (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:50:34 -0400
+Received: by pbbrr13 with SMTP id rr13so212177pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:50:34 -0700 (PDT)
+In-Reply-To: <50499A5C.60006@ti.com> (Roger Quadros's message of "Fri, 7 Sep
+	2012 09:55:24 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+Roger Quadros <rogerq@ti.com> writes:
 
-> On Mon, 2012-08-06 at 12:14 +0200, Jean Pihet wrote:
->> Hi Tero,
->> 
->> On Mon, Jul 30, 2012 at 10:40 AM, Tero Kristo <t-kristo@ti.com> wrote:
->> > On Fri, 2012-07-27 at 12:36 -0700, Kevin Hilman wrote:
->> >> Tero Kristo <t-kristo@ti.com> writes:
->> >>
->> >> > mpu / core powerdomain usecounts are now statically increased
->> >> > by 1 during MPU activity. This allows the domains to reflect
->> >> > actual usage, and will allow the usecount to reach 0 just before
->> >> > all CPUs are ready to idle. Proper powerdomain usecounts are
->> >> > propageted to voltagedomain level also, and will allow vc
->> >> > callbacks to be triggered at right point of time.
->> >> >
->> >> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> >> > Cc: Paul Walmsley <paul@pwsan.com>
->> >> > Cc: Kevin Hilman <khilman@ti.com>
->> >>
->> >> IMO, the idea is fine, but I'm not crazy about the implementation in
->> >> powerdomain.c, which is meant for pwrdm generic code.   In particular,
->> >> I'm not crazy about the pwrdm lookups in powerdomain.c.
->> >>
->> >> Since pm<soc>.c already has references to mpu_pwrdm and core_pwrdm, why
->> >> not just add the pwrdm_clkdm_enable/disable calls directly in pm<soc>.c
->> >
->> > I think this was how the patch was in some earlier rev but I thought I'd
->> > try to be more clever with this. :) I can revert the implementation back
->> > to this.
->> Furthermore after the changes in pre/post transitions [1], some more
->> checks will be needed to identify the transitions on the mpu and core
->> power domains.
->> 
->> [1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=e055548953355b6e69c56f9e54388845b29b4e97
->> 
->> Regards,
->> Jean
+> Hi Jean,
 >
-> Hi Kevin,
+> My bad, I didn't follow up with this. My guess is that it has not been
+> picked up. Tony, Kevin?
 >
-> What is the latest status regarding this one, seeing the patch mentioned
-> got reverted due to problems? Should I do some changes for this or not?
 
-No, using latest minline should be fine.
+Wasn't picked up by me (but should've been, sorry.)  Care to refresh
+against v3.6-rc4 and resend?
 
-> I can look at moving the code away from the generic powerdomain.c at
-> least, but is there anything else?
-
-Nothing else I can think of (but my vacation has purged my brain of most
-of the details here, so I may be forgetting something.)
+Thanks,
 
 Kevin
+
+
+>
+> On 09/06/2012 09:59 PM, Jean Pihet wrote:
+>> Fixed Paul's email address
+>> 
+>> On Thu, Sep 6, 2012 at 8:56 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+>>> Hi Roger,
+>>>
+>>> On Fri, Aug 10, 2012 at 4:05 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>>> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+>>>>
+>>>> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+>>>> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+>>>> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+>>>>
+>>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>>
+>>> What his the status of the patch? Has it been reviewed and taken in an
+>>> integration tree? I cannot find anything about it in l-o and
+>>> linux-next.
+>>>
+>>> I have some changes on-going in the OMAP PM code and I would like to
+>>> know if $SUBJECT is applicable.
+>>>
+>>> Regards,
+>>> Jean
+>>>
+>>>> ---
+>>>>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
+>>>>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+>>>>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+>>>>  3 files changed, 18 insertions(+), 9 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>>>> index ea3f565..06747b6 100644
+>>>> --- a/arch/arm/mach-omap2/clock.c
+>>>> +++ b/arch/arm/mach-omap2/clock.c
+>>>> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+>>>>         pr_debug("clock: %s: disabling in hardware\n", clk->name);
+>>>>
+>>>>         if (clk->ops && clk->ops->disable) {
+>>>> -               trace_clock_disable(clk->name, 0, smp_processor_id());
+>>>> +               trace_clock_disable(clk->name, 0, get_cpu());
+>>>> +               put_cpu();
+>>>>                 clk->ops->disable(clk);
+>>>>         }
+>>>>
+>>>> @@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+>>>>         }
+>>>>
+>>>>         if (clk->ops && clk->ops->enable) {
+>>>> -               trace_clock_enable(clk->name, 1, smp_processor_id());
+>>>> +               trace_clock_enable(clk->name, 1, get_cpu());
+>>>> +               put_cpu();
+>>>>                 ret = clk->ops->enable(clk);
+>>>>                 if (ret) {
+>>>>                         WARN(1, "clock: %s: could not enable: %d\n",
+>>>> @@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+>>>>
+>>>>         /* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+>>>>         if (clk->set_rate) {
+>>>> -               trace_clock_set_rate(clk->name, rate, smp_processor_id());
+>>>> +               trace_clock_set_rate(clk->name, rate, get_cpu());
+>>>> +               put_cpu();
+>>>>                 ret = clk->set_rate(clk, rate);
+>>>>         }
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>>>> index e4fc88c..81fec2e 100644
+>>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>>> @@ -357,18 +357,22 @@ void omap_sram_idle(void)
+>>>>
+>>>>  static void omap3_pm_idle(void)
+>>>>  {
+>>>> +       unsigned cpu;
+>>>> +
+>>>>         local_fiq_disable();
+>>>>
+>>>>         if (omap_irq_pending())
+>>>>                 goto out;
+>>>>
+>>>> -       trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+>>>> -       trace_cpu_idle(1, smp_processor_id());
+>>>> +       cpu = get_cpu();
+>>>> +       trace_power_start(POWER_CSTATE, 1, cpu);
+>>>> +       trace_cpu_idle(1, cpu);
+>>>>
+>>>>         omap_sram_idle();
+>>>>
+>>>> -       trace_power_end(smp_processor_id());
+>>>> -       trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+>>>> +       trace_power_end(cpu);
+>>>> +       trace_cpu_idle(PWR_EVENT_EXIT, cpu);
+>>>> +       put_cpu();
+>>>>
+>>>>  out:
+>>>>         local_fiq_enable();
+>>>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+>>>> index 69b36e1..138bf86 100644
+>>>> --- a/arch/arm/mach-omap2/powerdomain.c
+>>>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>>>> @@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>>>>                                        ((state & OMAP_POWERSTATE_MASK) << 8) |
+>>>>                                        ((prev & OMAP_POWERSTATE_MASK) << 0));
+>>>>                         trace_power_domain_target(pwrdm->name, trace_state,
+>>>> -                                                 smp_processor_id());
+>>>> +                                                 get_cpu());
+>>>> +                       put_cpu();
+>>>>                 }
+>>>>                 break;
+>>>>         default:
+>>>> @@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>>>>         if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>>>>                 /* Trace the pwrdm desired target state */
+>>>>                 trace_power_domain_target(pwrdm->name, pwrst,
+>>>> -                                         smp_processor_id());
+>>>> +                                         get_cpu());
+>>>> +               put_cpu();
+>>>>                 /* Program the pwrdm desired target state */
+>>>>                 ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>>>>         }
+>>>> --
+>>>> 1.7.4.1
+>>>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
