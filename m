@@ -1,44 +1,41 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 7 Sep 2012 23:59:23 +0200
-Message-ID: <CACRpkdZbyUFvYuou015ge+k8zroNtL9s9HFKsVC5OJV8NHEorg@mail.gmail.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
-	<CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
-	<331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
-	<20120907110251.GA7968@glitch>
-	<331ABD5ECB02734CA317220B2BBEABC13EA29BF3@DBDE01.ent.ti.com>
-	<20120907160025.GB14330@glitch>
-	<20120907163542.GU1303@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] gpio/omap: fix possible memory leak in omap2_gpio_dev_init()
+Date: Fri, 07 Sep 2012 15:06:52 -0700
+Message-ID: <871uidjxmr.fsf@deeprootsystems.com>
+References: <CAPgLHd-XS_AtLr+8R6yNkSXdNxO3i-NapK7o5zBUado-7R99=w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:55419 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab2IGV7Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:59:24 -0400
-Received: by wibhi8 with SMTP id hi8so247545wib.1
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:59:23 -0700 (PDT)
-In-Reply-To: <20120907163542.GU1303@atomide.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35295 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101Ab2IGWGy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 18:06:54 -0400
+Received: by pbbrr13 with SMTP id rr13so228010pbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 15:06:54 -0700 (PDT)
+In-Reply-To: <CAPgLHd-XS_AtLr+8R6yNkSXdNxO3i-NapK7o5zBUado-7R99=w@mail.gmail.com>
+	(Wei Yongjun's message of "Mon, 3 Sep 2012 20:42:27 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: tony@atomide.com, linux@arm.linux.org.uk, paul@pwsan.com, yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Sep 7, 2012 at 6:35 PM, Tony Lindgren <tony@atomide.com> wrote:
+Wei Yongjun <weiyj.lk@gmail.com> writes:
 
-> In the pure GPIO pins only case it could be all done in the GPIO controller,
-> but it's probably best to have the pins muxed by the drivers using them.
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> pdata and pdata->regs have been allocated in this function and 
+> should be freed before leaving it, and in the other error handling
+> cases too.
+>
+> spatch with a semantic match is used to found this problem.
+> (http://coccinelle.lip6.fr/)
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Yes, that's an easier way to say the long unreadable thing I just
-posted ...
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-> Some drivers doing runtime PM may need to dynamically toggle the pins
-> for idle mode to stop leakage, enable wakeup events for rx pins etc.
-> Probably no need for that in the gpio leds case, but it would be confusing
-> to have some pins claimed by the GPIO driver and some by the drivers
-> using the pins.
+Tony, can you pick this one up for fixes?
 
-True. drivers/tty/serial/amba-pl011.c provides a simple example.
+Thanks,
 
-Yours,
-Linus Walleij
+Kevin
