@@ -1,52 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/8] ARM/dts: omap2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Fri, 7 Sep 2012 15:29:54 -0700
-Message-ID: <20120907222953.GS1303@atomide.com>
-References: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com>
- <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/5] arm: omap: debug-leds: few changes
+Date: Fri, 7 Sep 2012 15:32:59 -0700
+Message-ID: <20120907223259.GT1303@atomide.com>
+References: <1343120042-16695-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:25171 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26276 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755916Ab2IGW34 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 18:29:56 -0400
+	with ESMTP id S1758331Ab2IGWdB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 18:33:01 -0400
 Content-Disposition: inline
-In-Reply-To: <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1343120042-16695-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 04:59]:
-> +
-> +	ocp {
-> +		mcbsp1: mcbsp@48074000 {
-> +			compatible = "ti,omap2420-mcbsp";
-> +			reg = <0x48074000 0xff>;
-> +			reg-names = "mpu";
-> +			interrupts = <59>, /* TX interrupt */
-> +				     <60>; /* RX interrupt */
-> +			interrupt-names = "tx", "rx";
-> +			interrupt-parent = <&intc>;
-> +			ti,hwmods = "mcbsp1";
-> +		};
-> +
-> +		mcbsp2: mcbsp@48076000 {
-> +			compatible = "ti,omap2420-mcbsp";
-> +			reg = <0x48076000 0xff>;
-> +			reg-names = "mpu";
-> +			interrupts = <62>, /* TX interrupt */
-> +				     <63>; /* RX interrupt */
-> +			interrupt-names = "tx", "rx";
-> +			interrupt-parent = <&intc>;
-> +			ti,hwmods = "mcbsp2";
-> +		};
-> +	};
+* Felipe Balbi <balbi@ti.com> [120724 02:02]:
+> Hi Tony,
+> 
+> here are a few changes for the debug-leds driver. This series tries to get the
+> driver closer to be moved away from arch/arm/plat-omap/ and under drivers/leds.
+> There's only the dependency with <plat/fpga.h> now.
+> 
+> I tried moving the needed definitions into the C file, but there's another file
+> which uses the same structure (arch/arm/mach-omap1/leds-h2p2-debug.c) so I left
+> it for another series. Ideally, omap1 would be using the same debug-leds driver
+> for that purpose and we could drop the dependency on <plat/fpga.h>.
+> 
+> BTW, patches were compile tested only due to the lack of an H4 board.
+> 
+> Felipe Balbi (5):
+>   arm: omap: debug-leds: drop machine_is_* checks
+>   arm: omap: debug-leds: move initialization to debug-leds
+>   arm: omap: debug-leds: add section annotation to probe
+>   arm: omap: debug-leds: add a remove method
+>   arm: omap: debug-leds: switch to resource_size()
+> 
+>  arch/arm/plat-omap/debug-leds.c | 37 +++++++++++++++++++++++--------------
+>  1 file changed, 23 insertions(+), 14 deletions(-)
 
-Hmm don't you need to specify the interrupt chip and offset for
-the interrupts here?
+Sorry for forgetting this series.. Found it after shrinking my inbox
+to a more readable size :)
+
+There are some good changes in linux-next that remove most of the
+debug-leds code. Maybe take a quick look what can be rebased on
+those to make it into a reald driver?
 
 Regards,
 
