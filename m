@@ -1,40 +1,75 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/5] arm/dts: Add pinctrl driver entries for omap2/3/4
-Date: Fri, 7 Sep 2012 10:10:47 +0200
-Message-ID: <CACRpkdZOJURpX=NqAOemKiOXvKQp5brUqpkB7YOdZvAosHD2eg@mail.gmail.com>
-References: <20120906185615.1172.23588.stgit@muffinssi.local>
-	<20120906185824.1172.95748.stgit@muffinssi.local>
+From: Marek Vasut <marex@denx.de>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 10:22:39 +0200
+Message-ID: <201209071022.39537.marex@denx.de>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com> <201209070209.35379.marex@denx.de> <331ABD5ECB02734CA317220B2BBEABC13EA2964C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64262 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756055Ab2IGIKs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 04:10:48 -0400
-Received: by wibhi8 with SMTP id hi8so1411456wib.1
-        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 01:10:47 -0700 (PDT)
-In-Reply-To: <20120906185824.1172.95748.stgit@muffinssi.local>
+Received: from mail-out.m-online.net ([212.18.0.10]:46885 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757263Ab2IGIWp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 04:22:45 -0400
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA2964C@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, Shawn Guo <shawn.guo@linaro.org>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-On Thu, Sep 6, 2012 at 8:58 PM, Tony Lindgren <tony@atomide.com> wrote:
+Dear AnilKumar, Chimata,
 
-> Add pinctrl driver entries for omap2+. These all use
-> the generic pinctrl-single driver for the padconf
-> registers.
->
-> Note that as 2420 and 2430 have different padmux
-> registers, we now need to include omap2420.dtsi from
-> omap2420-h4.dts.
->
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> On Fri, Sep 07, 2012 at 05:39:35, Marek Vasut wrote:
+> > Dear Tony Lindgren,
+> > 
+> > > * Marek Vasut <marex@denx.de> [120905 19:05]:
+> > > > Hi Tony,
+> > > > 
+> > > > > * Marek Vasut <marex@denx.de> [120904 20:13]:
+> > > > > > Dear Bryan Wu,
+> > > > > > 
+> > > > > > > On Sat, Sep 1, 2012 at 4:16 PM, AnilKumar Ch <anilkumar@ti.com> 
+wrote:
+> > > > > > > > Adopt pinctrl support to leds-gpio driver based on leds-gpio
+> > > > > > > > device pointer, pinctrl driver configure SoC pins to GPIO
+> > > > > > > > mode according to definitions provided in .dts file.
+> > > > > > > 
+> > > > > > > Thanks for this, actually Marek Vasut submitted a similar patch
+> > > > > > > before. I'm pretty fine with this patch.
+> > > > > > 
+> > > > > > Thanks for submitting this actually ... I didn't have time to
+> > > > > > properly investigate this.
+> > > > > > 
+> > > > > > > But without proper DT setting, it will also give us warning I
+> > > > > > > think. or we can provide some dummy functions as a temp
+> > > > > > > solution as Shawn pointed out before.
+> > > > > > 
+> > > > > > But this driver is also used on hardware that's not yet coverted
+> > > > > > to DT, so I'd say dev_warn() if CONFIG_OF is enabled and
+> > > > > > otherwise simply go on ? Actually, can we not skip whole this
+> > > > > > pinctrl thing if CONFIG_OF is disabled? Actually (2), what's the
+> > > > > > relationship between OF and pinctrl?
+> > > > > 
+> > > > > The warning should be pinctrl related as the pinctrl drivers may
+> > > > > not be device tree based drivers.
+> > > > 
+> > > > Exactly my concern. Also the warning shouldnt be present on systems
+> > > > where pinctrl is disabled.
+> > > 
+> > > But pinctrl_get_select() returns 0 in include/linux/pinctrl/consumer.h
+> > > if CONFIG_PINCTRL is not selected, so no warning is produced AFAIK ;)
+> > 
+> > Oh all right then.
+> 
+> Bryan,
+> 
+> If this patch looks fine, can you queue this for 3.7?
 
-FWIW:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Looks good to me.
 
-Yours,
-Linus Walleij
+> Thanks
+> AnilKumar
+
+Best regards,
+Marek Vasut
