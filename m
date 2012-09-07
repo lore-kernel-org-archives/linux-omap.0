@@ -1,92 +1,151 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: OMAP baseline test results for v3.6-rc4
-Date: Fri, 07 Sep 2012 09:52:27 +0300
-Message-ID: <504999AB.6020703@compulab.co.il>
-References: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: Re: [PATCH] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Fri, 7 Sep 2012 09:55:24 +0300
+Message-ID: <50499A5C.60006@ti.com>
+References: <1344607558-15481-1-git-send-email-rogerq@ti.com> <CAORVsuW+Vb6+GyTDfEmW3n=FY33rk_KDiMkFHPv29ZS=Y4yuFA@mail.gmail.com> <CAORVsuVCNy3L9af9iC9ZSeRbRvz-n=jN0P9ixMJday90NmVGfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:48418 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751136Ab2IGGwg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Sep 2012 02:52:36 -0400
-In-Reply-To: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40196 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757402Ab2IGGzd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Sep 2012 02:55:33 -0400
+In-Reply-To: <CAORVsuVCNy3L9af9iC9ZSeRbRvz-n=jN0P9ixMJday90NmVGfg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dmitry Lifshitz <lifshitz@compulab.co.il>, "Balbi, Felipe" <balbi@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/05/12 18:44, Paul Walmsley wrote:
+Hi Jean,
+
+My bad, I didn't follow up with this. My guess is that it has not been
+picked up. Tony, Kevin?
+
+regards,
+-roger
+
+On 09/06/2012 09:59 PM, Jean Pihet wrote:
+> Fixed Paul's email address
 > 
-> Here are some basic boot and power management test results for v3.6-rc4:
-> 
->     http://www.pwsan.com/omap/testlogs/test_v3.6-rc4/20120904122415/
-> 
-> Some observations:
-> 
+> On Thu, Sep 6, 2012 at 8:56 PM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+>> Hi Roger,
+>>
+>> On Fri, Aug 10, 2012 at 4:05 PM, Roger Quadros <rogerq@ti.com> wrote:
+>>> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+>>>
+>>> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+>>> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+>>> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+>>>
+>>> Signed-off-by: Roger Quadros <rogerq@ti.com>
+>>
+>> What his the status of the patch? Has it been reviewed and taken in an
+>> integration tree? I cannot find anything about it in l-o and
+>> linux-next.
+>>
+>> I have some changes on-going in the OMAP PM code and I would like to
+>> know if $SUBJECT is applicable.
+>>
+>> Regards,
+>> Jean
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
+>>>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+>>>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+>>>  3 files changed, 18 insertions(+), 9 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>>> index ea3f565..06747b6 100644
+>>> --- a/arch/arm/mach-omap2/clock.c
+>>> +++ b/arch/arm/mach-omap2/clock.c
+>>> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+>>>         pr_debug("clock: %s: disabling in hardware\n", clk->name);
+>>>
+>>>         if (clk->ops && clk->ops->disable) {
+>>> -               trace_clock_disable(clk->name, 0, smp_processor_id());
+>>> +               trace_clock_disable(clk->name, 0, get_cpu());
+>>> +               put_cpu();
+>>>                 clk->ops->disable(clk);
+>>>         }
+>>>
+>>> @@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+>>>         }
+>>>
+>>>         if (clk->ops && clk->ops->enable) {
+>>> -               trace_clock_enable(clk->name, 1, smp_processor_id());
+>>> +               trace_clock_enable(clk->name, 1, get_cpu());
+>>> +               put_cpu();
+>>>                 ret = clk->ops->enable(clk);
+>>>                 if (ret) {
+>>>                         WARN(1, "clock: %s: could not enable: %d\n",
+>>> @@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+>>>
+>>>         /* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+>>>         if (clk->set_rate) {
+>>> -               trace_clock_set_rate(clk->name, rate, smp_processor_id());
+>>> +               trace_clock_set_rate(clk->name, rate, get_cpu());
+>>> +               put_cpu();
+>>>                 ret = clk->set_rate(clk, rate);
+>>>         }
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>>> index e4fc88c..81fec2e 100644
+>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>> @@ -357,18 +357,22 @@ void omap_sram_idle(void)
+>>>
+>>>  static void omap3_pm_idle(void)
+>>>  {
+>>> +       unsigned cpu;
+>>> +
+>>>         local_fiq_disable();
+>>>
+>>>         if (omap_irq_pending())
+>>>                 goto out;
+>>>
+>>> -       trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+>>> -       trace_cpu_idle(1, smp_processor_id());
+>>> +       cpu = get_cpu();
+>>> +       trace_power_start(POWER_CSTATE, 1, cpu);
+>>> +       trace_cpu_idle(1, cpu);
+>>>
+>>>         omap_sram_idle();
+>>>
+>>> -       trace_power_end(smp_processor_id());
+>>> -       trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+>>> +       trace_power_end(cpu);
+>>> +       trace_cpu_idle(PWR_EVENT_EXIT, cpu);
+>>> +       put_cpu();
+>>>
+>>>  out:
+>>>         local_fiq_enable();
+>>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+>>> index 69b36e1..138bf86 100644
+>>> --- a/arch/arm/mach-omap2/powerdomain.c
+>>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>>> @@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>>>                                        ((state & OMAP_POWERSTATE_MASK) << 8) |
+>>>                                        ((prev & OMAP_POWERSTATE_MASK) << 0));
+>>>                         trace_power_domain_target(pwrdm->name, trace_state,
+>>> -                                                 smp_processor_id());
+>>> +                                                 get_cpu());
+>>> +                       put_cpu();
+>>>                 }
+>>>                 break;
+>>>         default:
+>>> @@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>>>         if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>>>                 /* Trace the pwrdm desired target state */
+>>>                 trace_power_domain_target(pwrdm->name, pwrst,
+>>> -                                         smp_processor_id());
+>>> +                                         get_cpu());
+>>> +               put_cpu();
+>>>                 /* Program the pwrdm desired target state */
+>>>                 ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>>>         }
+>>> --
+>>> 1.7.4.1
+>>>
 
-[...]
-
-> * CM-T3517: L3 in-band error with USB OTG during boot
->   - Cause unknown; longstanding issue; does not occur on the 3517EVM
-
-We see this problem on several cm-t3517, but not all of them.
-It looks something like:
---------------------cut----------------------------
-NET: Registered protocol family 16
-GPMC revision 5.0
-gpmc: irq-20 could not claim: err -22
-OMAP GPIO hardware version 2.5
-In-band Error seen by USB_OTG  at address 0
-------------[ cut here ]------------
-WARNING: at /home/lifshitz/workroot/git-repo/linux-cm-t3x/arch/arm/mach-omap2/omap_l3_smx.c:162 omap3_l3_app_irq+0xdc/0x120()
-Modules linked in:
-[<c001ad08>] (unwind_backtrace+0x0/0xf4) from [<c003f670>] (warn_slowpath_common+0x4c/0x64)
-[<c003f670>] (warn_slowpath_common+0x4c/0x64) from [<c003f6a4>] (warn_slowpath_null+0x1c/0x24)
-[<c003f6a4>] (warn_slowpath_null+0x1c/0x24) from [<c0033af0>] (omap3_l3_app_irq+0xdc/0x120)
-[<c0033af0>] (omap3_l3_app_irq+0xdc/0x120) from [<c008b8bc>] (handle_irq_event_percpu+0xac/0x298)
-[<c008b8bc>] (handle_irq_event_percpu+0xac/0x298) from [<c008bafc>] (handle_irq_event+0x54/0x74)
-[<c008bafc>] (handle_irq_event+0x54/0x74) from [<c008e290>] (handle_level_irq+0xc4/0x118)
-[<c008e290>] (handle_level_irq+0xc4/0x118) from [<c008b3ac>] (generic_handle_irq+0x2c/0x44)
-[<c008b3ac>] (generic_handle_irq+0x2c/0x44) from [<c001500c>] (handle_IRQ+0x60/0x80)
-[<c001500c>] (handle_IRQ+0x60/0x80) from [<c00085ec>] (omap3_intc_handle_irq+0x60/0x74)
-[<c00085ec>] (omap3_intc_handle_irq+0x60/0x74) from [<c04e3100>] (__irq_svc+0x40/0x74)
-Exception stack(0xcf02de00 to 0xcf02de48)
-de00: 00000000 0000000a 00000000 00000021 c074bcac cf046280 0000000a 60000013
-de20: c074bcdc c070020c 00010000 00000000 00000000 cf02de48 00000000 c008c988
-de40: 40000013 ffffffff
-[<c04e3100>] (__irq_svc+0x40/0x74) from [<c008c988>] (__setup_irq+0x2a8/0x404)
-[<c008c988>] (__setup_irq+0x2a8/0x404) from [<c008cd18>] (request_threaded_irq+0xe8/0x13c)
-[<c008cd18>] (request_threaded_irq+0xe8/0x13c) from [<c06c3d24>] (omap3_l3_probe+0x10c/0x16c)
-[<c06c3d24>] (omap3_l3_probe+0x10c/0x16c) from [<c033586c>] (platform_drv_probe+0x18/0x1c)
-[<c033586c>] (platform_drv_probe+0x18/0x1c) from [<c0334414>] (really_probe+0xac/0x1c8)
-[<c0334414>] (really_probe+0xac/0x1c8) from [<c0334578>] (driver_probe_device+0x48/0x60)
-[<c0334578>] (driver_probe_device+0x48/0x60) from [<c03345f0>] (__driver_attach+0x60/0x84)
-[<c03345f0>] (__driver_attach+0x60/0x84) from [<c0332ce0>] (bus_for_each_dev+0x4c/0x80)
-[<c0332ce0>] (bus_for_each_dev+0x4c/0x80) from [<c0333414>] (bus_add_driver+0xa4/0x294)
-[<c0333414>] (bus_add_driver+0xa4/0x294) from [<c0334bdc>] (driver_register+0xa4/0x188)
-[<c0334bdc>] (driver_register+0xa4/0x188) from [<c0335c5c>] (platform_driver_probe+0x18/0x98)
-[<c0335c5c>] (platform_driver_probe+0x18/0x98) from [<c0008798>] (do_one_initcall+0xac/0x16c)
-[<c0008798>] (do_one_initcall+0xac/0x16c) from [<c06b52ac>] (do_basic_setup+0x88/0xc0)
-[<c06b52ac>] (do_basic_setup+0x88/0xc0) from [<c06b53c4>] (kernel_init+0x60/0xfc)
-[<c06b53c4>] (kernel_init+0x60/0xfc) from [<c00150a4>] (kernel_thread_exit+0x0/0x8)
----[ end trace 1b75b31a2719ed1c ]---
------------------------------cut-------------------------------
-
-After that, the board continues to function properly.
-Any hints how to debug this?
-
-[...]
-
-> 
-> (The objective in posting these is to determine what is and isn't working 
-> in the mainline releases, as well as to make it easier to determine what 
-> is fixed or is broken by subsequent series that use this as a base.)
-
-Thanks for doing this.
-
-
--- 
-Regards,
-Igor.
