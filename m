@@ -1,133 +1,72 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Fri, 07 Sep 2012 13:53:11 -0700
-Message-ID: <87oblhmu6g.fsf@deeprootsystems.com>
-References: <20120906122948.GC29202@arwen.pp.htv.fi>
-	<1346935540-1792-1-git-send-email-balbi@ti.com>
-	<87harahiv6.fsf@deeprootsystems.com>
-	<20120907054932.GB3136@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC RESEND 1/4] arm/dts: OMAP: Add timer nodes
+Date: Fri, 7 Sep 2012 13:56:54 -0700
+Message-ID: <20120907205654.GM1303@atomide.com>
+References: <1342218413-30116-1-git-send-email-jon-hunter@ti.com>
+ <1342218413-30116-2-git-send-email-jon-hunter@ti.com>
+ <5000D647.4090200@gmail.com>
+ <500439A8.1050705@ti.com>
+ <500D6CAB.4030504@ti.com>
+ <502B67DD.6050904@ti.com>
+ <502D0BEE.3010609@ti.com>
+ <20120830201415.GX1303@atomide.com>
+ <504A5884.1010805@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120907054932.GB3136@arwen.pp.htv.fi> (Felipe Balbi's message
-	of "Fri, 7 Sep 2012 08:49:34 +0300")
-Sender: linux-serial-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, alan@linux.intel.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10075 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753476Ab2IGU5A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 16:57:00 -0400
+Content-Disposition: inline
+In-Reply-To: <504A5884.1010805@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <robherring2@gmail.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Felipe Balbi <balbi@ti.com> writes:
+* Jon Hunter <jon-hunter@ti.com> [120907 13:27]:
+> Hi Tony,
+> 
+> On 08/30/2012 03:14 PM, Tony Lindgren wrote:
+> > * Jon Hunter <jon-hunter@ti.com> [120816 08:05]:
+> >> On 08/15/2012 04:11 AM, Vaibhav Hiremath wrote:
+> >>>
+> >>> Did we get conclude on this? I haven't got anything further on this
+> >>> thread, this may block baseport support for the new devices in omap2
+> >>> family, like AM33xx and OMAP5.
+> >>
+> >> Sorry I have been out of the office. However, no update on this so far.
+> >> I need to check with Tony if he has any preference for handling this. I
+> >> will follow-up with him and keep you posted.
+> > 
+> > Jon please repost these without the RFC in the subject line
+> > assuming the pending comments have been addressed so people
+> > can ack them.
+> 
+> I have been working on updating this series to request timer by their
+> capabilities and avoid using a device ID altogether. In the updated
+> series using device IDs to request a timer will still work as it does
+> today, but not when you boot with DT. I have something working now that
+> is booting fine on omap4 with and without DT [1]. However, I need to do
+> more thorough testing of the timers in general, probably next week.
+> 
+> Once I have completed my testing I would like to post for review.
+> However, since posting the original series I have been working on some
+> needed timer fixes/clean-up which I posted this week [2] for review.
+> Ideally I should rebase my DT timer work on my timer fixes series but
+> wanted to see what you thought first.
 
-> Hi,
->
-> On Thu, Sep 06, 2012 at 03:44:13PM -0700, Kevin Hilman wrote:
->> Felipe Balbi <balbi@ti.com> writes:
->> 
->> > Hi guys,
->> >
->> > here's v4 of the omap uart patchset. No changes other than a rebase on top of
->> > Greg's tty-next branch and Tony's Acked-by being added to a couple patches
->> >
->> > Note: I'm resending the series with Vikram's Software Flow Control fix anyway
->> > as it can just be ignored if it's decided it needs to go into this merge
->> > window.
->> 
->> Sorry to be late to the party... just getting back from some time off.
->> 
->> I'm assuming that this was not tested with PM, so decided I better do it
->
-> you assumed wrong. See the previous versions of the series and you'll
-> see I mention all the basic pm testing I did.
+Yeah those all look good to me. Want to do a git branch against
+v3.6-rc4 for those once the comments are dealt with so I can pull
+it in for testing to start with?
 
-My apologies for not reading the previous versions.  I don't think it's
-unusual that a reviewer should expect everything he to know about a
-series (including how it was tested) is in the cover letter or in the
-changelogs of the latest series.  I don't expect to have to look through
-all the previous versions for this kind of info.  Since I wasn't around
-to review/test the earlier versions, I just looked at the latest (v4)
-and didn't see any mention of testing of any sort in the cover letter.
+Regards,
 
-Looking back at the previous cover letters, I don't see any description
-of the PM testing either.  I only see it was tested on pandaboard.
-Since mainline doesn't have full PM support for OMAP4, testing on panda
-doesn't really test UART PM at all.
-
-Could you please point me to the descriptions in earlier mails of how
-you did PM testing, and on what platforms?
-
-In addition, IMO, if this was only tested on Panda (as suggested by
-earlier cover letters), it really should not have been merged until it
-got some broader testing.
-
->> myself seeing that Greg is has already merge it.  To test, I merged
->> Greg's tty-next branch with v3.6-rc4 and did some PM testing.
->> 
->> The bad news is that it doesn't even compile (see reply to [PATCH v4
->> 20/21]).  
->
-> yeah, that was an automerge issue when rebasing on greg's tty-next
-> branch, plus me assuming omap serial was already enabled on my .config
-> and not checking the compile output. Sent a patch now.
-
-As I reported in my reply to [PATCH v4 20/21], that patch also had
-another problem where it introduced a new (but unused) field.  Maybe
-another rebase problem?  I see the same problem in v3 and v4.
-
->> Also, there is a big WARNING on boot[1], which seems to be triggered by
->> a new check added for v3.6-rc3[2].  This appears to be introduced by
->> $SUBJECT series, because I don't see it on vanilla v3.6-rc4.
-
-[...]
-
-> This doesn't seem to be caused by $SUBJECT at all. See that we are
-> calling uart_add_one_port() which will call tty_port_register_device()
-> which, in turn, will call tty_port_link_device() and that will set
-> driver->ports[index] correctly.
->
-> Have you checked if this doesn't happen without my series before waving
-> your blame hammer ? FWIW, that part of the code wasn't change by
-> $SUBJECT at all.
-
-Whoa.  This was only test report.  No need to get personal.  All I said
-is that it "seemed" to introduced by $SUBJECT series.  Hardly waiving
-"blame hammer."
-
-And yes, I did check without your series.  As I reported above, the
-warning didn't exist with v3.6-rc4, and it did with yesterday's tty-next
-branch.  The WARNING pointed a finger at ttyO (omap-serial) so I assumed
-it was in $SUBJECT series.
-
-Testing with todays tty-next, the problem is gone.  The patch
-'tty_register_device_attr updated for tty-next'[1] seems to have made
-the problem go away.  So it's now clear that it wasn't introduced by
-$SUBJECT series.   My bad.
-
-Yesterday, it wasn't that obvious, so I made an assumption in order to
-report a problem uncovered in my testing in the hopes that it would be
-helpful to you in fixing a potential problem. My assumption was wrong, I
-was wrong.  I'm wrong a lot, and I'm OK with that. The bug was
-elsewhere, and is already fixed.
-
-My apologies if it seemed like I was blaming you.
-
-Kevin
-
-[1] 
-Author: Tomas Hlavacek <tmshlvck@gmail.com>  2012-09-06 14:17:47
-Committer: Greg Kroah-Hartman <gregkh@linuxfoundation.org>  2012-09-06 14:40:18
-Parent: 6915c0e487c822e2436683e14302c0b8a6155cc7 (tty: uartclk value from serial_core exposed to sysfs)
-Child:  e36851d0fa94b0f7802b3cc80406dbd3ef4f2f16 (serial: omap: fix compile breakage)
-Branch: tmp/uart-test-2
-Follows: v3.6-rc3
-Precedes: 
-
-    tty_register_device_attr updated for tty-next
-    
-    Added tty_device_create_release() and bound to dev->release in
-    tty_register_device_attr().
-    Added tty_port_register_device_attr() and used in uart_add_one_port()
-    instead of tty_register_device_attr().
-    
-    Signed-off-by: Tomas Hlavacek <tmshlvck@gmail.com>
-    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
+Tony
+ 
+> Cheers
+> Jon
+> 
+> [1] https://github.com/jonhunter/linux/tree/dev-dt-timer
+> [2] http://marc.info/?l=linux-omap&m=134687188921835&w=2
