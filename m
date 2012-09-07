@@ -1,53 +1,41 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH RESEND] arm/dts: AM33XX: Add SPI device tree data
-Date: Fri, 7 Sep 2012 08:59:36 -0400
-Message-ID: <20120907125936.GH27758@beef>
-References: <1346914815-860-1-git-send-email-avinashphilip@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 08/14] Input: twl4030-vibra: Support for
+ DT booted kernel
+Date: Fri, 07 Sep 2012 16:35:21 +0300
+Message-ID: <5049F819.1080101@ti.com>
+References: <1346933541-21547-1-git-send-email-peter.ujfalusi@ti.com>
+ <1346933541-21547-9-git-send-email-peter.ujfalusi@ti.com>
+ <20120906161933.GA18562@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:35831 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716Ab2IGM6k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 08:58:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1346914815-860-1-git-send-email-avinashphilip@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20120906161933.GA18562@core.coreip.homeip.net>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Philip, Avinash" <avinashphilip@ti.com>
-Cc: linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com
 
-On Thu, Sep 06, 2012 at 12:30:15PM +0530, Philip, Avinash wrote:
-> Add McSPI data node to AM33XX device tree file. The McSPI module (and so
-> as the driver) is reused from OMAP4.
-> 
-> Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-> ---
-> Resenting patch because ARM & OMAP mailing list was not copied.
-> 
-> :100644 100644 bb31bff... 6b469bd... M	arch/arm/boot/dts/am33xx.dtsi
->  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> index bb31bff..6b469bd 100644
-> --- a/arch/arm/boot/dts/am33xx.dtsi
-> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> @@ -210,5 +210,30 @@
->  			interrupt-parent = <&intc>;
->  			interrupts = <91>;
->  		};
-> +
-> +		spi0: spi@48030000 {
-> +			compatible = "ti,omap4-mcspi";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <0x4830000 0x400>;
+Hi Dmitry,
 
-Please fix this typo, should be 0x48030000.
+On 09/06/2012 07:19 PM, Dmitry Torokhov wrote:
+> In patch 6 you added a stub for of_find_node_by_name(), so do you really
+> need this #ifdef?
 
-With the typo fixed, it's working on bone for me:
+True. I'll resend the series since I left the #ifdef also in other patch.
 
-Tested-by: Matt Porter <mporter@ti.com>
+> Otherwise it looks good.
+> =
 
--Matt
+> Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+
+Thank you,
+P=E9ter
