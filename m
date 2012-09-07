@@ -1,71 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] pinctrl: pinctrl-single: Make sure we do not
- change bits outside of mask
-Date: Fri, 7 Sep 2012 14:39:22 -0700
-Message-ID: <20120907213922.GN1303@atomide.com>
-References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
- <1346835718-21325-2-git-send-email-peter.ujfalusi@ti.com>
- <20120906185937.GY1303@atomide.com>
- <CACRpkdY8PLQxP85hBo4-s8hYGxQH_hKD_YwzBc6m4gnkGBknmQ@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Fri, 7 Sep 2012 23:39:48 +0200
+Message-ID: <CACRpkdYgcYAFy7bBn3XNcrkSoCpeA8yNaa9LZNd4w33Zp3Jjnw@mail.gmail.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+	<201209050513.08588.marex@denx.de>
+	<20120905233416.GP1303@atomide.com>
+	<201209060405.08997.marex@denx.de>
+	<20120906174531.GX1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdY8PLQxP85hBo4-s8hYGxQH_hKD_YwzBc6m4gnkGBknmQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:42443 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756864Ab2IGVjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 17:39:49 -0400
+Received: by wibhi8 with SMTP id hi8so234855wib.1
+        for <linux-omap@vger.kernel.org>; Fri, 07 Sep 2012 14:39:48 -0700 (PDT)
+In-Reply-To: <20120906174531.GX1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Marek Vasut <marex@denx.de>, devicetree-discuss@lists.ozlabs.org, rpurdie@rpsys.net, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, linux-omap@vger.kernel.org, linux-leds@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [120907 14:13]:
-> On Thu, Sep 6, 2012 at 8:59 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 02:02]:
-> >> Use the pcs->fmask to make sure that the value is not changing (setting)
-> >> bits in areas where it should not.
-> >> To avoid situations like this:
-> >>
-> >> pmx_dummy: pinmux@4a100040 {
-> >>       compatible = "pinctrl-single";
-> >>       reg = <0x4a100040 0x0196>;
-> >>       #address-cells = <1>;
-> >>       #size-cells = <0>;
-> >>       pinctrl-single,register-width = <16>;
-> >>       pinctrl-single,function-mask = <0x00ff>;
-> >> };
-> >>
-> >> &pmx_dummy {
-> >>       pinctrl-names = "default";
-> >>       pinctrl-0 = <&board_pins>;
-> >>
-> >>       board_pins: pinmux_board_pins {
-> >>               pinctrl-single,pins = <
-> >>                       0x6c 0xf0f
-> >>                       0x6e 0x10f
-> >>                       0x70 0x23f
-> >>                       0x72 0xa5f
-> >>               >;
-> >>       };
-> >> };
-> >>
-> >> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> >
-> > Thanks this is a valid fix:
-> >
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Since nothing in v3.6 is using pinctrl-simple yet, it's not a regression
-> right?
+On Thu, Sep 6, 2012 at 7:45 PM, Tony Lindgren <tony@atomide.com> wrote:
 
-Right.
- 
-> So can you just group this with the other pinctrl things you are
-> harvesting in the OMAP tree? I was going to push it for
-> the v3.7 cycle otherwise.
+>> > The warning should be pinctrl related as the pinctrl drivers may not be
+>> > device tree based drivers.
+>>
+>> Exactly my concern. Also the warning shouldnt be present on systems where
+>> pinctrl is disabled.
+>
+> But pinctrl_get_select() returns 0 in include/linux/pinctrl/consumer.h if
+> CONFIG_PINCTRL is not selected, so no warning is produced AFAIK ;)
 
-You can take this for v3.7, the changes I have are just adding .dts
-entries to use the driver. The driver related changes are being
-merged by the related driver lists.
+This is correct, nothing to worry about.
 
-Regards,
+The one troublesome case is if a pinctrl driver is present but not
+being used, then you might need to call pinctrl_provide_dummies().
 
-Tony
+Yours,
+Linus Walleij
