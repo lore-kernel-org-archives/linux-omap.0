@@ -1,100 +1,100 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2] leds: leds-gpio: adopt pinctrl support
-Date: Fri, 7 Sep 2012 14:30:59 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA29BF3@DBDE01.ent.ti.com>
-References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
- <CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
- <331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
- <20120907110251.GA7968@glitch>
+From: Dimitar Dimitrov <dinuxbg@gmail.com>
+Subject: Re: [RFC PATCH] OMAPDSS: DISPC: Fix IRQ unregister race
+Date: Fri, 7 Sep 2012 17:42:11 +0300
+Message-ID: <201209071742.11735.dinuxbg@gmail.com>
+References: <1346613123-24053-1-git-send-email-dinuxbg@gmail.com> <1346938614.2737.68.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="windows-1251"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120907110251.GA7968@glitch>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Domenico Andreoli <cavokz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org" <rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <bryan.wu-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-leds-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:43424 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753461Ab2IGOnQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 10:43:16 -0400
+In-Reply-To: <1346938614.2737.68.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Fri, Sep 07, 2012 at 16:32:51, Domenico Andreoli wrote:
-> On Fri, Sep 07, 2012 at 09:10:50AM +0000, AnilKumar, Chimata wrote:
-> > Hi Domenico,
-> 
+Hi,
+
+On Thursday 06 September 2012 16:36:54 Tomi Valkeinen wrote:
 > Hi,
 > 
-> > On Fri, Sep 07, 2012 at 14:18:39, Domenico Andreoli wrote:
-> > > On Sat, Sep 1, 2012 at 10:16 AM, AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org> wrote:
-> > > > Adopt pinctrl support to leds-gpio driver based on leds-gpio
-> > > > device pointer, pinctrl driver configure SoC pins to GPIO
-> > > > mode according to definitions provided in .dts file.
-> > > 
-> > > Shouldn't be the interaction with the pinctrl layer left to gpiolib?
-> > > 
+> On Sun, 2012-09-02 at 22:12 +0300, Dimitar Dimitrov wrote:
+> > Very rare kernel crashes are reported on a custom OMAP4 board. Kernel
+> > panics due to corrupted completion structure while executing
 > > 
-> > No, these gpio's are configured specifically for user leds.
-> 
-> So there are some special pad configs to make the leds work which are not
-> only muxing and direction setting? Because I expect these to be managed
-> privately between gpiolib and pinctrl but now I'm not sure any more,
-> I'll look the code.
-
-How can gpio driver knows that leds-gpio driver require
-these 4 pins?
-
-> 
-> > So, leds-gpio driver should have this call, because these gpio
-> > pins are used by leds-gpio driver.
+> > dispc_irq_wait_handler(). Excerpt from kernel log:
+> >   Internal error: Oops - undefined instruction: 0 [#1] PREEMPT SMP
+> >   Unable to handle kernel paging request at virtual address 00400130
+> >   ...
+> >   PC is at 0xebf205bc
+> >   LR is at __wake_up_common+0x54/0x94
+> >   ...
+> >   (__wake_up_common+0x0/0x94)
+> >   (complete+0x0/0x60)
+> >   (dispc_irq_wait_handler.36902+0x0/0x14)
+> >   (omap_dispc_irq_handler+0x0/0x354)
+> >   (handle_irq_event_percpu+0x0/0x188)
+> >   (handle_irq_event+0x0/0x64)
+> >   (handle_fasteoi_irq+0x0/0x10c)
+> >   (generic_handle_irq+0x0/0x48)
+> >   (asm_do_IRQ+0x0/0xc0)
 > > 
-> > +       am33xx_pinmux: pinmux@44e10800 {
-> > +               userled_pins: pinmux_userled_pins {
-> > +                       pinctrl-single,pins = <
-> > +                               0x54 0x7       
-> > +                               0x58 0x17       
-> > +                               0x5c 0x7        
-> > +                               0x60 0x17       
-> > +                       >;
-> > +               };
-> > +       };
-> > +
+> > DISPC IRQ executes callbacks with dispc.irq_lock released. Hence
+> > unregister_isr() and DISPC IRQ might be running in parallel on different
+> > CPUs. So there is a chance that a callback is executed even though it
+> > has been unregistered. As omap_dispc_wait_for_irq_timeout() declares a
+> > completion on stack, the dispc_irq_wait_handler() callback might try to
+> > access a completion structure that is invalid. This leads to crashes and
+> > hangs.
 > > 
-> > [...]
+> > Solution is to divide unregister calls into two sets:
+> >   1. Non-strict unregistering of callbacks. Callbacks could safely be
+> >   
+> >      executed after unregistering them. This is the case with unregister
+> >      calls from the IRQ handler itself.
+> >   
+> >   2. Strict (synchronized) unregistering. Callbacks are not allowed
+> >   
+> >      after unregistering. This is the case with completion waiting.
 > > 
-> > +               leds {
-> > +                       compatible = "gpio-leds";
-> > +                       pinctrl-names = "default";
-> > +                       pinctrl-0 = <&userled_pins>;
-> >                                       ^^^^^^^^^^^^
+> > The above solution should satisfy one of the original intentions of the
+> > driver: callbacks should be able to unregister themselves.
 > 
-> I'm surprised to not see any gpio controller (ala irq) involved.
-
-GPIO controller data will be in GPIO node, should not be here.
+> I think it'd be better to create a new function for the nosync version,
+> and keep the old name for the sync version. The reason for this is to
+> minimize the amount of changes, as I think this one needs to be applied
+> to stable kernel trees also.
+My intention was to force all callers to pick sides. In case of rebase issues 
+we get link errors instead of rare and subtle run-time races. Still, if you 
+think we should leave the old name untouched then I'll change my 
+patch.
 
 > 
-> > Lets take gpio-keypad driver, in that case we have to configure
-> > pins as INPUT mode (generic gpio driver might not know what
-> > the end usecase is) and this leds case we configure as OUTPUT
-> > mode.
+> Also, I think we need similar one for dsi.c, as it has the same kind of
+> irq handling. But with a quick glance only sync version is needed there.
+Thanks, I missed that. I'll try to fix and send again.
+
 > 
-> gpio direction is modeled by gpiolib so, if no other out-of-gpiolib
-> capabilities are required for that led gpio, there is no need to directly
-> use pinctrl.
+> However, I'm not quite sure about this approach. The fix makes sense,
+> but it makes me think if the irq handling is designed the wrong way.
 > 
+> While debugging and fixing this, did you think some other irq handling
+> approach would be saner?
+I tried but could not come up with better approach. The main difficulty is 
+that there are two contradicting requirements:
+ 1. Some callbacks unregister other callbacks, including themselves, from 
+DISPC IRQ context.
+ 2. Some functions expect that once a callback is unregistered it is never 
+executed.
 
-Here leds-gpio driver requirement is to set mux configuration of
-those 4 pins to GPIO mode (mode 7) as well direction OUTPUT/INPUT.
+Hence it is natural to split callers into two sets. I'm open for suggestions.
+> 
+>  Tomi
 
-Set mux mode to 7 (GPIO usage) should be from led driver, because
-this driver have the requirement.
-
-Thanks
-AnilKumar
+Thanks,
+Dimitar
