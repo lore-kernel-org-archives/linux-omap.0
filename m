@@ -1,103 +1,85 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 5/5] omap-serial: Request pins using pinctrl framework
-Date: Fri, 7 Sep 2012 08:26:14 +0300
-Message-ID: <20120907052613.GA3136@arwen.pp.htv.fi>
-References: <20120906185615.1172.23588.stgit@muffinssi.local>
- <20120906185832.1172.31013.stgit@muffinssi.local>
- <20120906195605.GA32145@arwen.pp.htv.fi>
- <20120906211725.GQ1303@atomide.com>
-Reply-To: balbi@ti.com
+From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Fri, 7 Sep 2012 05:45:17 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA29468@DBDE01.ent.ti.com>
+References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
+ <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com>
+ <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
+ <50470C1E.7090300@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
+ <5047544B.60105@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EAA8779@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58603 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530Ab2IGFaj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 01:30:39 -0400
-Received: by lagy9 with SMTP id y9so1605159lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 06 Sep 2012 22:30:36 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20120906211725.GQ1303@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAA8779-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "Ujfalusi, Peter" <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 
+On Wed, Sep 05, 2012 at 20:11:11, Hiremath, Vaibhav wrote:
+> On Wed, Sep 05, 2012 at 19:01:55, Cousson, Benoit wrote:
+> > Hi Vaibhav,
+> > 
+> > On 09/05/2012 11:15 AM, Hiremath, Vaibhav wrote:
+> > > On Wed, Sep 05, 2012 at 13:53:58, Ujfalusi, Peter wrote:
+> > >> Hi,
+> > >>
+> > >> On 09/05/2012 09:11 AM, Hiremath, Vaibhav wrote:
+> > >>>> Not yet, but we discussed that with Peter and since he does have these
+> > >>>> patches for DT, he'll be able to test your series with the McBSP changes.
+> > >>>>
+> > >>>
+> > >>> Great.
+> > >>
+> > >> With his series and your patch for omap-hwmod audio was probing and working on
+> > >> OMAP3/4/5 without issues.
+> > >>
+> > > Peter,
+> > > Care to provide your Tested-By??
+> > > 
+> > > Benoit,
+> > > Can we merge this patch now?
+> > 
+> > Yes, I'll include it in the pull request along with DTS patches.
+> > 
+> > I've just tested it as well on OMAP4 by hacking the DTS for GPIO.
+> > I'll try to update at least all the OMAP4 IPs as well with the proper
+> > DTS resources for 3.7.
+> > 
+> 
+> Thanks Benoit,
+> 
+> There are other patches which are pending,
+> 
+> arm/dts: AM33XX: Convert all hex numbers to lower-case
+> https://patchwork.kernel.org/patch/1377351/
+> arm/dts: AM33XX: Specify reg and interrupt property for all nodes
+> https://patchwork.kernel.org/patch/1377361/
+>
 
---Nq2Wo0NMKNjxTN9z
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Few more DT patches which are pending
 
-Hi,
+arm/dts: AM33XX: Add basic pinctrl device tree data
+http://www.spinics.net/lists/linux-omap/msg76684.html
+arm/dts: AM33XX: Configure pinmuxs for user leds control on Bone
+http://www.spinics.net/lists/linux-omap/msg76682.html
+arm/dts: AM33XX: Add D_CAN device tree data
+http://www.spinics.net/lists/linux-omap/msg76683.html
 
-On Thu, Sep 06, 2012 at 02:17:26PM -0700, Tony Lindgren wrote:
-> * Felipe Balbi <balbi@ti.com> [120906 13:01]:
-> > Hi,
-> >=20
-> > On Thu, Sep 06, 2012 at 11:58:32AM -0700, Tony Lindgren wrote:
-> > > Request pins using pinctrl framework. Only show a warning
-> > > on error as some boards set the pins in the bootloader
-> > > even if CONFIG_PINCTRL is enabled.
-> > >=20
-> > > Cc: linux-serial@vger.kernel.org
-> > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  arch/arm/plat-omap/include/plat/omap-serial.h |    1 +
-> > >  drivers/tty/serial/omap-serial.c              |   10 ++++++++++
-> > >  2 files changed, 11 insertions(+)
-> > >=20
-> > > diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm=
-/plat-omap/include/plat/omap-serial.h
-> > > index 1a52725..0f4de14 100644
-> > > --- a/arch/arm/plat-omap/include/plat/omap-serial.h
-> > > +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-> > > @@ -106,6 +106,7 @@ struct uart_omap_port {
-> > >  	struct uart_port	port;
-> > >  	struct uart_omap_dma	uart_dma;
-> > >  	struct platform_device	*pdev;
-> > > +	struct pinctrl		*pins;
-> >=20
-> > this won't apply to Greg's tty-next as I moved this structure to the C
-> > file :-s
->=20
-> Hmm the tty-next fails to build right now for omaps:
->=20
-> drivers/tty/serial/omap-serial.c: In function =E2=80=98serial_omap_set_mc=
-trl=E2=80=99:
-> drivers/tty/serial/omap-serial.c:514: error: =E2=80=98struct uart_omap_po=
-rt=E2=80=99 has no member named =E2=80=98DTR_gpio=E2=80=99
->=20
-> Maybe check how you want to fix that first? I can then update
-> my patch for tty-next.
-
-oops, my bad. Patch sent.
-
---=20
-balbi
-
---Nq2Wo0NMKNjxTN9z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQSYV1AAoJEIaOsuA1yqREyDwP/Ai/XqwS1t6N0dE6KDb8nGlv
-DSqoR2Jui2EZ1craBl6J1+Af/cZCFGmKOvJmrI3I0n3utnYu3hPfwFzX2qkQoo4M
-KAgMdzWQMZguCjcMqgsg/Ms20LB4U5yWXwur/Nd4NEIlcYo8RfqV3AIKMxKpFJBZ
-Z1KPW+6eDCfgk2Hm3yfdlaFJf+ZuRUeVamTz9vThj8q1DtYlQCwoazVODgcGEkmW
-1rfiD6Snlny6T5fokfncJltm+M6eWXq2iqVt/fdvivU657MsApUHoKwwwzLZB9Yv
-WC9KHXhh3v0c28FgLic6zH+HhaHkAkBtyyl6jHokic1i2BM/Mk4mxrXar2r+3uH4
-/fDbt9tcj1V8d/M6dX58o4WjolvKdH6dEzgMg4FZaAASDXeEtSV6P/uudjJ3F7wq
-LChC/Yf+xjc5bTZyFHrg7EhB9IR8avEBJmE8nGTvz7UR+hahF6BwnC0ce9y/4WMh
-TFESPu4dZLyeNqu6O7D4wQPoJC5gZnEfvzPKG9cBAQCWEJxaNz0GG1S/RPEDlfqf
-Ab7W4JaPydXwy+l1lKP2tjdQCQDLNZKRvZN3k5cF4pqbI9i8Co6ZFyssqVh36Hio
-sxiCdaBfrO7JlAZZGKOc0q7lIRzc9w2YUKRHTLTzHd1olbraWyDhUWugrRjlbEkb
-Mr2eCopgYBPKEfVOzy4+
-=huV/
------END PGP SIGNATURE-----
-
---Nq2Wo0NMKNjxTN9z--
+Thanks
+AnilKumar
