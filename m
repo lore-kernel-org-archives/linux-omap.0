@@ -1,70 +1,54 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT*
- read/write
-Date: Sat, 8 Sep 2012 13:48:58 +0530
-Message-ID: <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com>
-References: <alpine.DEB.2.00.1209052333410.11516@utopia.booyaka.com>
- <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: New build warnings
+Date: Sat, 8 Sep 2012 09:38:49 +0100
+Message-ID: <20120908083849.GA1603@n2100.arm.linux.org.uk>
+References: <20120730164444.GO6802@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56358 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917Ab2IHIiy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Sep 2012 04:38:54 -0400
+Content-Disposition: inline
+In-Reply-To: <20120730164444.GO6802@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
 
-Tony,
+On Mon, Jul 30, 2012 at 05:44:44PM +0100, Russell King - ARM Linux wrot=
+e:
+> Okay, so last night's build run shows some new warnings...
+>=20
+> drivers/regulator/twl-regulator.c: In function 'twlreg_probe':
+> drivers/regulator/twl-regulator.c:1151: warning: assignment discards =
+qualifiers from pointer target type
+> drivers/regulator/twl-regulator.c:1160: warning: assignment discards =
+qualifiers from pointer target type
+>=20
+> These two look like missing const - looks like they were introduced b=
+y:
+>=20
+> commit 98d7bbb9929bcc14e11ac8a55245a4f2dc174e17
+> Author: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> Date:   Thu Jun 7 12:20:14 2012 +0200
+>=20
+>     of: add const to struct *of_device_id.data
+>=20
+>     Drivers should never need to modify the data of a device id. So i=
+t can
+>     be const which in turn allows more consts in the driver.
+>=20
+>     Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>     Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de=
+>
 
-On Thu, Sep 6, 2012 at 12:05 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
->
-> On Thu, Sep 6, 2012 at 5:04 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > The wakeupgen context-save code reads and stores the AUXCOREBOOT0 and
-> > AUXCOREBOOT1 register contents twice.  This seems like a waste of
-> > time, so, remove the duplicates.
-> >
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> Looks fine to me. Thanks Paul.
-> Reviewed-by: Santosh Shilimkar ,santosh.shilimkar@ti.com>
->
-> While reviewing your patch, i noticed a typo in the code.
-> Since the patch fixes nearby code as the subject patch, I generated
-> that patch on top of yours. Same is end of the email as well as
-> attachment. The patch applies on top of your patch.
->
-> Regards
-> Santosh
->
-> From 5fcd24e5782e502aa607b73de78be68b394f9639 Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Thu, 6 Sep 2012 11:51:34 +0530
-> Subject: [PATCH] ARM: OMAP4: wakeupgen: Fix the typo in AUXCOREBOOT
-> register
->  save
->
-> The wakeupgen context-save code reads AUXCOREBOOT0 register
-> instead of AUXCOREBOOT1 register contents while saving AUXCOREBOOT1.
->
-> Fix the same.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-
-Will you able to pick up these couple of wakeupgen fixes from  here or
-do you want me to send you a pull request for 3.6-rc5/6
-
-Regards
-Santosh
+I notice this one is still present in the kernel.  Uwe, what's happenin=
+g
+with it?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
