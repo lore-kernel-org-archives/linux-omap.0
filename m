@@ -1,54 +1,46 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: New build warnings
-Date: Sat, 8 Sep 2012 09:38:49 +0100
-Message-ID: <20120908083849.GA1603@n2100.arm.linux.org.uk>
-References: <20120730164444.GO6802@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH v4 1/2] ARM: new cache maintenance api for iommu
+Date: Sat, 8 Sep 2012 11:14:20 +0100
+Message-ID: <20120908101420.GA28448@n2100.arm.linux.org.uk>
+References: <CADysL2bGP_FKW4dnxM4zbziOPfrbAemRazZYd_mS9i++bZGcqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56358 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56383 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917Ab2IHIiy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Sep 2012 04:38:54 -0400
+	with ESMTP id S1753254Ab2IHKOf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Sep 2012 06:14:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20120730164444.GO6802@n2100.arm.linux.org.uk>
+In-Reply-To: <CADysL2bGP_FKW4dnxM4zbziOPfrbAemRazZYd_mS9i++bZGcqQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+To: "Gupta, Ramesh" <grgupta@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 
-On Mon, Jul 30, 2012 at 05:44:44PM +0100, Russell King - ARM Linux wrot=
-e:
-> Okay, so last night's build run shows some new warnings...
->=20
-> drivers/regulator/twl-regulator.c: In function 'twlreg_probe':
-> drivers/regulator/twl-regulator.c:1151: warning: assignment discards =
-qualifiers from pointer target type
-> drivers/regulator/twl-regulator.c:1160: warning: assignment discards =
-qualifiers from pointer target type
->=20
-> These two look like missing const - looks like they were introduced b=
-y:
->=20
-> commit 98d7bbb9929bcc14e11ac8a55245a4f2dc174e17
-> Author: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> Date:   Thu Jun 7 12:20:14 2012 +0200
->=20
->     of: add const to struct *of_device_id.data
->=20
->     Drivers should never need to modify the data of a device id. So i=
-t can
->     be const which in turn allows more consts in the driver.
->=20
->     Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->     Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de=
->
+On Thu, Jul 05, 2012 at 10:50:17AM +0530, Gupta, Ramesh wrote:
+> + *	flush_iommu_mem(start, end)
+> + *
+> + *		Clean and invalidate the specified virtual address range.
+> + *		This is	to support the non coherent iommu drivers.
+> + *		The iommu driver need to call this api with the page
+> + *		table memory address range to ensure the data held in
+> + *		the cache is visible to the slave processor MMU.
+> + *		- start  - virtual start address
+> + *		- end    - virtual end address
 
-I notice this one is still present in the kernel.  Uwe, what's happenin=
-g
-with it?
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think:
+	iommu_flush_range(start, end)
+or
+	iommu_flush_area(start, size)
+		Perform CPU specific cache operations are required to
+		ensure that the IOMMU page table mappings covering the
+		specified block of memory are visiable to the IOMMU.
+
+Notice that it's defined by purpose, not by implementation.  Also notice
+the distinction between _range taking two addresses, and _area taking
+a start plus size.
+
+Also notice that it is defined just for IOMMU page tables, not for general
+data for other processors.
+
+Note that iommu_flush_area is safer if your virt_to_phys() are non-linear.
