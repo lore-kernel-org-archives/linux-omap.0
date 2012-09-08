@@ -1,79 +1,62 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP baseline test results for v3.6-rc4
-Date: Fri, 7 Sep 2012 23:52:49 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209072350570.11516@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com> <CALbNGRTB_etDtD-NTKgNu51tyg=F4YpYMzEkdfhFiGFgyX-uXw@mail.gmail.com>
+Subject: [PATCH 0/6] ARM: OMAP2+: clean up the Makefile
+Date: Fri, 07 Sep 2012 18:39:36 -0600
+Message-ID: <20120908002614.4648.31150.stgit@dusk.lan>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-947841507-1347061969=:11516"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:59080 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:59123 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab2IGXwu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 19:52:50 -0400
-In-Reply-To: <CALbNGRTB_etDtD-NTKgNu51tyg=F4YpYMzEkdfhFiGFgyX-uXw@mail.gmail.com>
+	with ESMTP id S1751953Ab2IHAlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Sep 2012 20:41:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Andreas_M=FCller?= <schnitzeltony@googlemail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This series, intended for 3.7 cleanup, cleans up the Makefile in
+arch/arm/mach-omap2.  It places PRCM-related lines in the PRCM
+sections, clock lines in the clock sections, etc.; and fixes some
+formatting and whitespace.  This is meant to serve as a base for
+future cleanups to avoid conflicts as lines get removed.
 
---843723315-947841507-1347061969=:11516
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Boot and build test logs can be found at:
 
-Hi,
-
-On Sat, 8 Sep 2012, Andreas M=FCller wrote:
-
-> On Wed, Sep 5, 2012 at 5:44 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > Here are some basic boot and power management test results for v3.6-rc4=
-:
-> >
-> >     http://www.pwsan.com/omap/testlogs/test_v3.6-rc4/20120904122415/
-> >
-> > Some observations:
-> >
-> > * N800: panics during kernel init
-> >   - This is caused by an MMC driver bug; fixed by "[PATCH] MMC: OMAP MS=
-DI:
-> >     fix broken PIO mode", available from here:
-> >     http://www.spinics.net/lists/arm-kernel/msg190879.html
-> >
-> > * CM-T3517: L3 in-band error with USB OTG during boot
-> >   - Cause unknown; longstanding issue; does not occur on the 3517EVM
-> >
-> > * 37xx EVM: CORE not entering dynamic off-idle
-> >   - Cause unknown; dynamic retention-idle seems to work; system suspend=
- to
-> >     off works
-> >
-> > * 4430ES2 Panda: CORE, L4PER, L3INIT, TESLA, IVAHD not going idle
-> >   - Cause unknown; may be partially due to McPDM reset problem
-> >
-> > (The objective in posting these is to determine what is and isn't worki=
-ng
-> > in the mainline releases, as well as to make it easier to determine wha=
-t
-> > is fixed or is broken by subsequent series that use this as a base.)
-> >
-> I did not find that - maybe I missed something: Could you also store
-> the resulting configs of theses tests?
-
-Which one didn't you find? :-)
-
-The configs I use are available at
-
-   git://git.pwsan.com/omap_kconfigs
-
-Before the builds, 'make oldnoconfig' is run.
-
-Please note that the format of this repo is experimental, subject to=20
-change, etc. etc.  Probably I should include the configs in the build=20
-result trees...
+    http://www.pwsan.com/omap/testlogs/makefile_cleanup_3.7/20120905143119/
 
 
 - Paul
---843723315-947841507-1347061969=:11516--
+
+---
+
+object size (delta in bytes from test_v3.6-rc4 (4cbe5a555fa58a79b6ecbb6c531b8bab0650778d)):
+  text    data     bss   total  kernel
+     0       0       0       0  2430_testconfig
+     0       0       0       0  5912osk_testconfig
+     0       0       0       0  am33xx_testconfig
+    +8       0       0      +8  n800_b_testconfig
+    +8       0       0      +8  n800_multi_omap2xxx
+    +8       0       0      +8  n800_testconfig
+     0       0       0       0  omap1510_defconfig
+     0       0       0       0  omap1_defconfig
+   +32       0       0     +32  omap2_4_testconfig
+    +8       0       0      +8  omap2plus_defconfig
+   +16       0       0     +16  omap2plus_no_pm
+    -8       0       0      -8  omap3_4_testconfig
+   -56       0       0     -56  omap3_testconfig
+     0       0       0       0  omap4_testconfig
+     0       0       0       0  rmk_omap3430_ldp_oldconfig
+     0       0       0       0  rmk_omap4430_sdp_oldconfig
+
+Paul Walmsley (6):
+      ARM: OMAP2+: clean up whitespace in Makefile
+      ARM: OMAP2+: clean up omap_hwmod.o build directives in Makefile
+      ARM: OMAP2+: move MPU INTCPS, secure monitor, SDRC build directives in Makefile
+      ARM: OMAP2+: clean up OMAP4 PRM & sleep build directives in Makefile
+      ARM: OMAP2+: clean up OMAP clock Makefile sections
+      ARM: OMAP2+: clean up PRCM sections of the Makefile
+
+
+ arch/arm/mach-omap2/Makefile |  108 +++++++++++++++++-------------------------
+ 1 file changed, 44 insertions(+), 64 deletions(-)
+
