@@ -1,75 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: pinctrl-single: Add pinctrl-single,bits
- type of mux
-Date: Mon, 10 Sep 2012 10:10:03 -0700
-Message-ID: <20120910171002.GY1303@atomide.com>
-References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
- <1346835718-21325-3-git-send-email-peter.ujfalusi@ti.com>
- <20120906191019.GZ1303@atomide.com>
- <504A0F21.8080305@ti.com>
- <20120907165553.GV1303@atomide.com>
- <504DD532.4040400@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH 2/2] ARM: OMAP: hwmod: revise deassert sequence
+Date: Mon, 10 Sep 2012 12:14:11 -0500
+Message-ID: <CALLhW=4SnyXRwHWToAy6Lxyxr5P7GAMUZ5e=zGhr30cE_sEU6Q@mail.gmail.com>
+References: <1345614150-25723-1-git-send-email-omar.luna@linaro.org>
+	<1345614150-25723-3-git-send-email-omar.luna@linaro.org>
+	<5048BD7A.7060408@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <504DD532.4040400@ti.com>
+In-Reply-To: <5048BD7A.7060408@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [120910 04:55]:
-> On 09/07/2012 07:55 PM, Tony Lindgren wrote:
-> > 
-> > I'd like to have something that specifies the controller type so
-> > we don't need to mix two types of controllers and test for
-> > non-existing properties when parsing the pins.
-> > 
-> > How about we require something specified for the pinctrl driver
-> > in the "one-bit-per-mux" case like pinctrl-single,bit-per-mux?
-> > 
-> > And then in the pinctrl-single probe we set params = 3 if
-> > pinctrl-single,bit-per-mux is specified. And if no
-> > pinctrl-single,bit-per-mux is specified then set params = 2.
-> > 
-> > That way pcs_parse_one_pinctrl_entry() can just test for params.
-> > 
-> > Sorry I don't have a better name in mind than bit-per-mux..
-> 
-> I'm not sure if this would make things more prone to error or make the DTS or
-> the code more clean in any ways.
-> 
-> Both pinctrl-single,pins and pinctrl-single,bits works on top of the same
-> pinctrl-single area.
-> In most cases we are going to use pinctrl-single,pins for the mux
-> configuration and only in few places we need to fall back to pinctrl-single,bits.
+Hi Benoit,
 
-What about hardware that has tons of one-bit-per-mux type of registers?
-Then we end up trying to find the non-existing property potentially
-hundreds of times as the pinctrl-single,pins is never specified.
- 
-> With this patch we will have maximum of two query to find out which type is
-> used, while if we add the 'bit-per-mux' property we will always have need to
-> have two of_get_property() call to figure out what is used.
-> IMHO in this way we could also have copy-paste errors coming at us when adding
-> the mux configurations for the pins and at the end we also need to do same
-> safety/sanity checks if the user really provided the correct type with
-> correlation to the 'bit-per-mux'.
+On 6 September 2012 10:12, Benoit Cousson <b-cousson@ti.com> wrote:
+> The sequence is good, I'm just a little bit concern about the
+> duplication of code compared to _enable sequence.
+>
+> That being said, this is the consequence of removing the hardreset
+> sequence outside of the main _enable/_shutdown sequence.
+>
+> So I'm not sure I have any better way of doing that :-(
 
-Well I think we should specify the binding for the type of the controller,
-not mix different types of bindings for the same controller. So we should
-probably have something just like address-cells, gpio-cells and
-interrupt-cells, although in this case it would be specific to pinctrl-single
-only and not be called cells.
+Indeed, it should be exactly the same as putting back the reset
+sequence into _enable/_shutdown, so with these patches I was expecting
+we could gather the hard reset users and see if they needed anything
+else beyond these functions, if not, perhaps just put back the reset
+code into _enable/_shutdown paths.
 
-> This would just complicate the code.
-> The existence of pinctrl-single,pins or pinctrl-single,bits property alone
-> gives enough information for the number of parameters.
+Thanks,
 
-Yes but we don't want to allow mixing different kind of registers within
-the same controller, they should be specified as separate controllers.
-
-Regards,
-
-Tony
+Omar
