@@ -1,142 +1,123 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 8/8] ARM: OMAP2+: PMU: Add QoS constraint
-Date: Mon, 10 Sep 2012 10:23:46 -0500
-Message-ID: <1347290626-21164-9-git-send-email-jon-hunter@ti.com>
-References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [GIT PULL] OMAP devicetree for 3.7
+Date: Mon, 10 Sep 2012 17:48:30 +0200
+Message-ID: <504E0BCE.3030301@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48974 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50722 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757561Ab2IJPYK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:24:10 -0400
-In-Reply-To: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
+	id S1753219Ab2IJPsk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 11:48:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+To: "tony@atomide.com" <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-When CPU-idle is enabled, the MPU sub-system will transition to low power
-states during idle periods. If the PMU is active and the MPU sub-system
-transitions to a low power state, such as retention, then the PMU context
-will be lost and PMU events will stop. To prevent this from happening add a
-QoS constraint whenever PMU is active to prevent the MPU sub-system from
-transitioning to a low power state.
+Hi Tony,
 
-By default the PMU QoS constraint is set to -1 so it will not prevent any low
-power states and when the PMU is enabled, it is set to 0, so that only C-state
-C0 is allowed. I plan to re-visit this and relax the constraint to allow some
-low power states, but for now I just wish to ensure PMU is working.
+Please pull the following branch. It contains a bunch of devicetree related series.
 
-Cc: Ming Lei <ming.lei@canonical.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
+It contains as well a gpio-twl4030 patch acked by Linus W.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+It is tested on omap4-panda, omap3-beagle, omap3-overo-tobi, am335x-bone, am335x-evm.
+
+It is based on your current devel-dt branch (a06ceff6f29e34edff5d6b082885c1c4139a0362).
+
+Thanks,
+Benoit
+
 ---
- arch/arm/mach-omap2/pmu.c |   49 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 47 insertions(+), 2 deletions(-)
+The following changes since commit a06ceff6f29e34edff5d6b082885c1c4139a0362:
+  AnilKumar Ch (1):
+        arm/dts: Add tps65217 regulator DT data to am335x-bone.dts
 
-diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-index 7fbaa3f..ca158f0 100644
---- a/arch/arm/mach-omap2/pmu.c
-+++ b/arch/arm/mach-omap2/pmu.c
-@@ -13,6 +13,7 @@
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
-+#include <linux/pm_qos.h>
- #include <linux/pm_runtime.h>
- 
- #include <asm/pmu.h>
-@@ -24,11 +25,41 @@
- static char *omap2_pmu_oh_names[] = {"mpu"};
- static char *omap3_pmu_oh_names[] = {"mpu", "debugss"};
- static char *omap4430_pmu_oh_names[] = {"l3_main_3", "l3_instr", "debugss"};
-+static struct pm_qos_request pmu_pm_qos_request;
- static struct platform_device *omap_pmu_dev;
--static struct arm_pmu_platdata omap_pmu_data;
- static struct cti omap4_cti[2];
- 
- /**
-+ * omap_pmu_runtime_resume - PMU runtime resume callback
-+ * @dev		OMAP PMU device
-+ *
-+ * Platform specific PMU runtime resume callback for OMAP devices to
-+ * configure the cross trigger interface for routing PMU interrupts.
-+ * This is called by the PM runtime framework.
-+ */
-+static int omap_pmu_runtime_resume(struct device *dev)
-+{
-+	pm_qos_update_request(&pmu_pm_qos_request, 0);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_pmu_runtime_suspend - PMU runtime suspend callback
-+ * @dev		OMAP PMU device
-+ *
-+ * Platform specific PMU runtime suspend callback for OMAP devices to
-+ * disable the cross trigger interface interrupts. This is called by
-+ * the PM runtime framework.
-+ */
-+static int omap_pmu_runtime_suspend(struct device *dev)
-+{
-+	pm_qos_update_request(&pmu_pm_qos_request, PM_QOS_DEFAULT_VALUE);
-+
-+	return 0;
-+}
-+
-+/**
-  * omap4_pmu_runtime_resume - PMU runtime resume callback
-  * @dev		OMAP PMU device
-  *
-@@ -38,6 +69,8 @@ static struct cti omap4_cti[2];
-  */
- static int omap4_pmu_runtime_resume(struct device *dev)
- {
-+	pm_qos_update_request(&pmu_pm_qos_request, 0);
-+
- 	/* configure CTI0 for PMU IRQ routing */
- 	cti_unlock(&omap4_cti[0]);
- 	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-@@ -64,6 +97,8 @@ static int omap4_pmu_runtime_suspend(struct device *dev)
- 	cti_disable(&omap4_cti[0]);
- 	cti_disable(&omap4_cti[1]);
- 
-+	pm_qos_update_request(&pmu_pm_qos_request, PM_QOS_DEFAULT_VALUE);
-+
- 	return 0;
- }
- 
-@@ -111,6 +146,11 @@ static int __init omap4_init_cti(void)
- 	return 0;
- }
- 
-+static struct arm_pmu_platdata omap_pmu_data = {
-+	.runtime_resume = omap_pmu_runtime_resume,
-+	.runtime_suspend = omap_pmu_runtime_suspend,
-+};
-+
- /**
-  * omap2_init_pmu - creates and registers PMU platform device
-  * @oh_num:	Number of OMAP HWMODs required to create PMU device
-@@ -183,6 +223,11 @@ static int __init omap_init_pmu(void)
- 		oh_names = omap2_pmu_oh_names;
- 	}
- 
--	return omap2_init_pmu(oh_num, oh_names);
-+	r = omap2_init_pmu(oh_num, oh_names);
-+	if (!r)
-+		pm_qos_add_request(&pmu_pm_qos_request, PM_QOS_CPU_DMA_LATENCY,
-+				PM_QOS_DEFAULT_VALUE);
-+
-+	return r;
- }
- subsys_initcall(omap_init_pmu);
--- 
-1.7.9.5
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.7/dts
+
+Aneesh V (3):
+      Documentation: dt: device tree bindings for LPDDR2 memories
+      Documentation: dt: emif: device tree bindings for TI's EMIF sdram controller
+      ARM: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
+
+Benoit Cousson (3):
+      ARM: dts: OMAP4: Cleanup and move GIC outside of the OCP
+      ARM: dts: omap3-beagle: Add heartbeat and mmc LEDs support
+      ARM: dts: OMAP4: Add reg and interrupts for every nodes
+
+Florian Vaussard (5):
+      gpio/twl4030: get platform data from device tree
+      ARM: dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
+      ARM: dts: OMAP3: Add support for Gumstix Overo with Tobi expansion board
+      Documentation: dt: Update the OMAP documentation with Overo/Toby
+      ARM: dts: omap3-overo: Add support for the blue LED
+
+Peter Ujfalusi (9):
+      ARM: OMAP: omap_device: Fix up resource names when booted with devicetree
+      ARM: dts: omap2: Add McBSP entries for OMAP2420 and OMAP2430 SoC
+      ARM: dts: omap2420-h4: Include omap2420.dtsi file instead the common omap2
+      ARM: dts: omap3: Add McBSP entries
+      ARM: dts: omap4: Add McBSP entries
+      ARM: dts: omap4: Add reg-names for McPDM and DMIC
+      ARM: dts: omap5: Add McBSP entries
+      ARM: dts: omap5: Add McPDM and DMIC section to the dtsi file
+      ARM: dts: omap3-beagle: Enable audio support
+
+Santosh Shilimkar (2):
+      ARM: OMAP4: Add L2 Cache Controller in Device Tree
+      ARM: OMAP4: Add local timer support for Device Tree
+
+Sourav Poddar (6):
+      ARM: dts: omap5-evm: Add I2C support
+      ARM: dts: omap5-evm: Add tmp102 sensor support
+      ARM: dts: omap5-evm: Add keypad data
+      ARM: dts: omap5-evm: Add bmp085 sensor support
+      ARM: dts: omap4-sdp: Add keypad data
+      Documentation: dt: i2c: trivial-devices: Update for tmp102
+
+Vaibhav Hiremath (3):
+      ARM: OMAP: omap_device: Do not overwrite resources allocated by OF layer
+      ARM: dts: AM33XX: Convert all hex numbers to lower-case
+      ARM: dts: AM33XX: Specify reg and interrupt property for all nodes
+
+ .../devicetree/bindings/arm/omap/omap.txt          |    3 +
+ .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 +
+ .../devicetree/bindings/i2c/trivial-devices.txt    |    1 +
+ .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   52 ++++++
+ .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 +++++++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   55 ++++++
+ arch/arm/boot/dts/am335x-bone.dts                  |    4 +-
+ arch/arm/boot/dts/am335x-evm.dts                   |    8 +-
+ arch/arm/boot/dts/am33xx.dtsi                      |   62 ++++++-
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi          |   67 +++++++
+ arch/arm/boot/dts/omap2420-h4.dts                  |    2 +-
+ arch/arm/boot/dts/omap2420.dtsi                    |   39 ++++
+ arch/arm/boot/dts/omap2430.dtsi                    |   83 +++++++++
+ arch/arm/boot/dts/omap3-beagle.dts                 |   46 +++++
+ arch/arm/boot/dts/omap3-evm.dts                    |   13 ++
+ arch/arm/boot/dts/omap3-overo.dtsi                 |   57 ++++++
+ arch/arm/boot/dts/omap3-tobi.dts                   |   35 ++++
+ arch/arm/boot/dts/omap3.dtsi                       |   69 ++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   11 ++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   81 +++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |  182 ++++++++++++++++----
+ arch/arm/boot/dts/omap5-evm.dts                    |   33 ++++
+ arch/arm/boot/dts/omap5.dtsi                       |   96 ++++++++++
+ arch/arm/mach-omap2/Makefile.boot                  |    2 +-
+ arch/arm/mach-omap2/omap4-common.c                 |    6 +-
+ arch/arm/mach-omap2/omap_hwmod.c                   |   27 +++
+ arch/arm/mach-omap2/timer.c                        |    6 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h       |    1 +
+ arch/arm/plat-omap/omap_device.c                   |   79 +++++++--
+ drivers/gpio/gpio-twl4030.c                        |   82 ++++++---
+ 30 files changed, 1220 insertions(+), 90 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+ create mode 100644 arch/arm/boot/dts/omap2420.dtsi
+ create mode 100644 arch/arm/boot/dts/omap2430.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-overo.dtsi
+ create mode 100644 arch/arm/boot/dts/omap3-tobi.dts
