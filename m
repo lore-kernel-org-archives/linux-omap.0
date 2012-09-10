@@ -1,123 +1,303 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [GIT PULL] OMAP devicetree for 3.7
-Date: Mon, 10 Sep 2012 17:48:30 +0200
-Message-ID: <504E0BCE.3030301@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jarkko.nikula@jollamobile.com>
+Subject: [PATCH] watchdog: Convert twl4030_wdt to watchdog core
+Date: Mon, 10 Sep 2012 18:44:46 +0300
+Message-ID: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50722 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753219Ab2IJPsk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:48:40 -0400
+Received: from smtp170.iad.emailsrvr.com ([207.97.245.170]:39989 "EHLO
+	smtp170.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757539Ab2IJP4i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 11:56:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Florian Vaussard <florian.vaussard@epfl.ch>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, Sourav Poddar <sourav.poddar@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+To: linux-watchdog@vger.kernel.org
+Cc: Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@jollamobile.com>
 
-Hi Tony,
+Convert the twl4030_wdt watchdog driver to watchdog core.
 
-Please pull the following branch. It contains a bunch of devicetree related series.
+While at there use devm_kzalloc and set the default timeout in order to be
+able test this driver with a simple shell script.
 
-It contains as well a gpio-twl4030 patch acked by Linus W.
-
-It is tested on omap4-panda, omap3-beagle, omap3-overo-tobi, am335x-bone, am335x-evm.
-
-It is based on your current devel-dt branch (a06ceff6f29e34edff5d6b082885c1c4139a0362).
-
-Thanks,
-Benoit
-
+Signed-off-by: Jarkko Nikula <jarkko.nikula@jollamobile.com>
 ---
-The following changes since commit a06ceff6f29e34edff5d6b082885c1c4139a0362:
-  AnilKumar Ch (1):
-        arm/dts: Add tps65217 regulator DT data to am335x-bone.dts
+ drivers/watchdog/Kconfig       |    1 +
+ drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
+ 2 files changed, 35 insertions(+), 149 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index 53d7571..21f6205 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
+ config OMAP_WATCHDOG
+ 	tristate "OMAP Watchdog"
+ 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
++	select WATCHDOG_CORE
+ 	help
+ 	  Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog.  Say 'Y'
+ 	  here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog timer.
+diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl4030_wdt.c
+index 249f113..71c283a 100644
+--- a/drivers/watchdog/twl4030_wdt.c
++++ b/drivers/watchdog/twl4030_wdt.c
+@@ -22,26 +22,12 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+-#include <linux/fs.h>
+ #include <linux/watchdog.h>
+ #include <linux/platform_device.h>
+-#include <linux/miscdevice.h>
+-#include <linux/uaccess.h>
+ #include <linux/i2c/twl.h>
+ 
+ #define TWL4030_WATCHDOG_CFG_REG_OFFS	0x3
+ 
+-#define TWL4030_WDT_STATE_OPEN		0x1
+-#define TWL4030_WDT_STATE_ACTIVE	0x8
+-
+-static struct platform_device *twl4030_wdt_dev;
+-
+-struct twl4030_wdt {
+-	struct miscdevice	miscdev;
+-	int			timer_margin;
+-	unsigned long		state;
+-};
+-
+ static bool nowayout = WATCHDOG_NOWAYOUT;
+ module_param(nowayout, bool, 0);
+ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
+@@ -53,171 +39,71 @@ static int twl4030_wdt_write(unsigned char val)
+ 					TWL4030_WATCHDOG_CFG_REG_OFFS);
+ }
+ 
+-static int twl4030_wdt_enable(struct twl4030_wdt *wdt)
++static int twl4030_wdt_start(struct watchdog_device *wdt)
+ {
+-	return twl4030_wdt_write(wdt->timer_margin + 1);
++	return twl4030_wdt_write(wdt->timeout + 1);
+ }
+ 
+-static int twl4030_wdt_disable(struct twl4030_wdt *wdt)
++static int twl4030_wdt_stop(struct watchdog_device *wdt)
+ {
+ 	return twl4030_wdt_write(0);
+ }
+ 
+-static int twl4030_wdt_set_timeout(struct twl4030_wdt *wdt, int timeout)
+-{
+-	if (timeout < 0 || timeout > 30) {
+-		dev_warn(wdt->miscdev.parent,
+-			"Timeout can only be in the range [0-30] seconds");
+-		return -EINVAL;
+-	}
+-	wdt->timer_margin = timeout;
+-	return twl4030_wdt_enable(wdt);
+-}
+-
+-static ssize_t twl4030_wdt_write_fop(struct file *file,
+-		const char __user *data, size_t len, loff_t *ppos)
++static int twl4030_wdt_set_timeout(struct watchdog_device *wdt,
++				   unsigned int timeout)
+ {
+-	struct twl4030_wdt *wdt = file->private_data;
+-
+-	if (len)
+-		twl4030_wdt_enable(wdt);
+-
+-	return len;
+-}
+-
+-static long twl4030_wdt_ioctl(struct file *file,
+-		unsigned int cmd, unsigned long arg)
+-{
+-	void __user *argp = (void __user *)arg;
+-	int __user *p = argp;
+-	int new_margin;
+-	struct twl4030_wdt *wdt = file->private_data;
+-
+-	static const struct watchdog_info twl4030_wd_ident = {
+-		.identity = "TWL4030 Watchdog",
+-		.options = WDIOF_SETTIMEOUT,
+-		.firmware_version = 0,
+-	};
+-
+-	switch (cmd) {
+-	case WDIOC_GETSUPPORT:
+-		return copy_to_user(argp, &twl4030_wd_ident,
+-				sizeof(twl4030_wd_ident)) ? -EFAULT : 0;
+-
+-	case WDIOC_GETSTATUS:
+-	case WDIOC_GETBOOTSTATUS:
+-		return put_user(0, p);
+-
+-	case WDIOC_KEEPALIVE:
+-		twl4030_wdt_enable(wdt);
+-		break;
+-
+-	case WDIOC_SETTIMEOUT:
+-		if (get_user(new_margin, p))
+-			return -EFAULT;
+-		if (twl4030_wdt_set_timeout(wdt, new_margin))
+-			return -EINVAL;
+-		return put_user(wdt->timer_margin, p);
+-
+-	case WDIOC_GETTIMEOUT:
+-		return put_user(wdt->timer_margin, p);
+-
+-	default:
+-		return -ENOTTY;
+-	}
+-
++	wdt->timeout = timeout;
+ 	return 0;
+ }
+ 
+-static int twl4030_wdt_open(struct inode *inode, struct file *file)
+-{
+-	struct twl4030_wdt *wdt = platform_get_drvdata(twl4030_wdt_dev);
+-
+-	/* /dev/watchdog can only be opened once */
+-	if (test_and_set_bit(0, &wdt->state))
+-		return -EBUSY;
+-
+-	wdt->state |= TWL4030_WDT_STATE_ACTIVE;
+-	file->private_data = (void *) wdt;
+-
+-	twl4030_wdt_enable(wdt);
+-	return nonseekable_open(inode, file);
+-}
+-
+-static int twl4030_wdt_release(struct inode *inode, struct file *file)
+-{
+-	struct twl4030_wdt *wdt = file->private_data;
+-	if (nowayout) {
+-		dev_alert(wdt->miscdev.parent,
+-		       "Unexpected close, watchdog still running!\n");
+-		twl4030_wdt_enable(wdt);
+-	} else {
+-		if (twl4030_wdt_disable(wdt))
+-			return -EFAULT;
+-		wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
+-	}
+-
+-	clear_bit(0, &wdt->state);
+-	return 0;
+-}
++static const struct watchdog_info twl4030_wdt_info = {
++	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
++	.identity = "TWL4030 Watchdog",
++};
+ 
+-static const struct file_operations twl4030_wdt_fops = {
++static const struct watchdog_ops twl4030_wdt_ops = {
+ 	.owner		= THIS_MODULE,
+-	.llseek		= no_llseek,
+-	.open		= twl4030_wdt_open,
+-	.release	= twl4030_wdt_release,
+-	.unlocked_ioctl	= twl4030_wdt_ioctl,
+-	.write		= twl4030_wdt_write_fop,
++	.start		= twl4030_wdt_start,
++	.stop		= twl4030_wdt_stop,
++	.set_timeout	= twl4030_wdt_set_timeout,
+ };
+ 
+ static int __devinit twl4030_wdt_probe(struct platform_device *pdev)
+ {
+ 	int ret = 0;
+-	struct twl4030_wdt *wdt;
++	struct watchdog_device *wdt;
+ 
+-	wdt = kzalloc(sizeof(struct twl4030_wdt), GFP_KERNEL);
++	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
+ 	if (!wdt)
+ 		return -ENOMEM;
+ 
+-	wdt->state		= 0;
+-	wdt->timer_margin	= 30;
+-	wdt->miscdev.parent	= &pdev->dev;
+-	wdt->miscdev.fops	= &twl4030_wdt_fops;
+-	wdt->miscdev.minor	= WATCHDOG_MINOR;
+-	wdt->miscdev.name	= "watchdog";
++	wdt->info		= &twl4030_wdt_info;
++	wdt->ops		= &twl4030_wdt_ops;
++	wdt->status		= 0;
++	wdt->timeout		= 30;
++	wdt->min_timeout	= 1;
++	wdt->max_timeout	= 30;
+ 
++	watchdog_set_nowayout(wdt, nowayout);
+ 	platform_set_drvdata(pdev, wdt);
+ 
+-	twl4030_wdt_dev = pdev;
++	twl4030_wdt_stop(wdt);
+ 
+-	twl4030_wdt_disable(wdt);
+-
+-	ret = misc_register(&wdt->miscdev);
++	ret = watchdog_register_device(wdt);
+ 	if (ret) {
+-		dev_err(wdt->miscdev.parent,
+-			"Failed to register misc device\n");
+ 		platform_set_drvdata(pdev, NULL);
+-		kfree(wdt);
+-		twl4030_wdt_dev = NULL;
+ 		return ret;
+ 	}
++
+ 	return 0;
+ }
+ 
+ static int __devexit twl4030_wdt_remove(struct platform_device *pdev)
+ {
+-	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
+-
+-	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
+-		if (twl4030_wdt_disable(wdt))
+-			return -EFAULT;
+-
+-	wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
+-	misc_deregister(&wdt->miscdev);
++	struct watchdog_device *wdt = platform_get_drvdata(pdev);
+ 
++	watchdog_unregister_device(wdt);
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(wdt);
+-	twl4030_wdt_dev = NULL;
+ 
+ 	return 0;
+ }
+@@ -225,18 +111,18 @@ static int __devexit twl4030_wdt_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int twl4030_wdt_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
+-	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
+-		return twl4030_wdt_disable(wdt);
++	struct watchdog_device *wdt = platform_get_drvdata(pdev);
++	if (watchdog_active(wdt))
++		return twl4030_wdt_stop(wdt);
+ 
+ 	return 0;
+ }
+ 
+ static int twl4030_wdt_resume(struct platform_device *pdev)
+ {
+-	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
+-	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
+-		return twl4030_wdt_enable(wdt);
++	struct watchdog_device *wdt = platform_get_drvdata(pdev);
++	if (watchdog_active(wdt))
++		return twl4030_wdt_start(wdt);
+ 
+ 	return 0;
+ }
+@@ -260,6 +146,5 @@ module_platform_driver(twl4030_wdt_driver);
+ 
+ MODULE_AUTHOR("Nokia Corporation");
+ MODULE_LICENSE("GPL");
+-MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
+ MODULE_ALIAS("platform:twl4030_wdt");
+ 
+-- 
+1.7.10.4
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.7/dts
-
-Aneesh V (3):
-      Documentation: dt: device tree bindings for LPDDR2 memories
-      Documentation: dt: emif: device tree bindings for TI's EMIF sdram controller
-      ARM: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
-
-Benoit Cousson (3):
-      ARM: dts: OMAP4: Cleanup and move GIC outside of the OCP
-      ARM: dts: omap3-beagle: Add heartbeat and mmc LEDs support
-      ARM: dts: OMAP4: Add reg and interrupts for every nodes
-
-Florian Vaussard (5):
-      gpio/twl4030: get platform data from device tree
-      ARM: dts: omap3: Add gpio-twl4030 properties for BeagleBoard and omap3-EVM
-      ARM: dts: OMAP3: Add support for Gumstix Overo with Tobi expansion board
-      Documentation: dt: Update the OMAP documentation with Overo/Toby
-      ARM: dts: omap3-overo: Add support for the blue LED
-
-Peter Ujfalusi (9):
-      ARM: OMAP: omap_device: Fix up resource names when booted with devicetree
-      ARM: dts: omap2: Add McBSP entries for OMAP2420 and OMAP2430 SoC
-      ARM: dts: omap2420-h4: Include omap2420.dtsi file instead the common omap2
-      ARM: dts: omap3: Add McBSP entries
-      ARM: dts: omap4: Add McBSP entries
-      ARM: dts: omap4: Add reg-names for McPDM and DMIC
-      ARM: dts: omap5: Add McBSP entries
-      ARM: dts: omap5: Add McPDM and DMIC section to the dtsi file
-      ARM: dts: omap3-beagle: Enable audio support
-
-Santosh Shilimkar (2):
-      ARM: OMAP4: Add L2 Cache Controller in Device Tree
-      ARM: OMAP4: Add local timer support for Device Tree
-
-Sourav Poddar (6):
-      ARM: dts: omap5-evm: Add I2C support
-      ARM: dts: omap5-evm: Add tmp102 sensor support
-      ARM: dts: omap5-evm: Add keypad data
-      ARM: dts: omap5-evm: Add bmp085 sensor support
-      ARM: dts: omap4-sdp: Add keypad data
-      Documentation: dt: i2c: trivial-devices: Update for tmp102
-
-Vaibhav Hiremath (3):
-      ARM: OMAP: omap_device: Do not overwrite resources allocated by OF layer
-      ARM: dts: AM33XX: Convert all hex numbers to lower-case
-      ARM: dts: AM33XX: Specify reg and interrupt property for all nodes
-
- .../devicetree/bindings/arm/omap/omap.txt          |    3 +
- .../devicetree/bindings/gpio/gpio-twl4030.txt      |    6 +
- .../devicetree/bindings/i2c/trivial-devices.txt    |    1 +
- .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   52 ++++++
- .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 +++++++++++
- .../bindings/memory-controllers/ti/emif.txt        |   55 ++++++
- arch/arm/boot/dts/am335x-bone.dts                  |    4 +-
- arch/arm/boot/dts/am335x-evm.dts                   |    8 +-
- arch/arm/boot/dts/am33xx.dtsi                      |   62 ++++++-
- arch/arm/boot/dts/elpida_ecb240abacn.dtsi          |   67 +++++++
- arch/arm/boot/dts/omap2420-h4.dts                  |    2 +-
- arch/arm/boot/dts/omap2420.dtsi                    |   39 ++++
- arch/arm/boot/dts/omap2430.dtsi                    |   83 +++++++++
- arch/arm/boot/dts/omap3-beagle.dts                 |   46 +++++
- arch/arm/boot/dts/omap3-evm.dts                    |   13 ++
- arch/arm/boot/dts/omap3-overo.dtsi                 |   57 ++++++
- arch/arm/boot/dts/omap3-tobi.dts                   |   35 ++++
- arch/arm/boot/dts/omap3.dtsi                       |   69 ++++++++
- arch/arm/boot/dts/omap4-panda.dts                  |   11 ++
- arch/arm/boot/dts/omap4-sdp.dts                    |   81 +++++++++
- arch/arm/boot/dts/omap4.dtsi                       |  182 ++++++++++++++++----
- arch/arm/boot/dts/omap5-evm.dts                    |   33 ++++
- arch/arm/boot/dts/omap5.dtsi                       |   96 ++++++++++
- arch/arm/mach-omap2/Makefile.boot                  |    2 +-
- arch/arm/mach-omap2/omap4-common.c                 |    6 +-
- arch/arm/mach-omap2/omap_hwmod.c                   |   27 +++
- arch/arm/mach-omap2/timer.c                        |    6 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |    1 +
- arch/arm/plat-omap/omap_device.c                   |   79 +++++++--
- drivers/gpio/gpio-twl4030.c                        |   82 ++++++---
- 30 files changed, 1220 insertions(+), 90 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
- create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
- create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
- create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
- create mode 100644 arch/arm/boot/dts/omap2420.dtsi
- create mode 100644 arch/arm/boot/dts/omap2430.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-overo.dtsi
- create mode 100644 arch/arm/boot/dts/omap3-tobi.dts
