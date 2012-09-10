@@ -1,48 +1,68 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: New build warnings
-Date: Mon, 10 Sep 2012 15:43:34 +0800
-Message-ID: <20120910074331.GA6749@opensource.wolfsonmicro.com>
-References: <20120730164444.GO6802@n2100.arm.linux.org.uk>
- <20120908083849.GA1603@n2100.arm.linux.org.uk>
- <20120909191240.GV28643@pengutronix.de>
- <20120909233333.GA15911@opensource.wolfsonmicro.com>
- <20120910064002.GW28643@pengutronix.de>
- <20120910064236.GB8482@opensource.wolfsonmicro.com>
- <20120910070547.GX28643@pengutronix.de>
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: RE: [PATCH RESEND] arm/dts: AM33XX: Add SPI device tree data
+Date: Mon, 10 Sep 2012 07:45:48 +0000
+Message-ID: <518397C60809E147AF5323E0420B992E3E99E663@DBDE01.ent.ti.com>
+References: <1346914815-860-1-git-send-email-avinashphilip@ti.com>
+ <20120907125936.GH27758@beef>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43789 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750900Ab2IJHno (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 03:43:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20120910070547.GX28643@pengutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:50555 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750957Ab2IJHrE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 03:47:04 -0400
+In-Reply-To: <20120907125936.GH27758@beef>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Arnd Bergmann <arnd@arndb.de>
+To: "Porter, Matt" <mporter@ti.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
 
-On Mon, Sep 10, 2012 at 09:05:47AM +0200, Uwe Kleine-K=F6nig wrote:
+On Fri, Sep 07, 2012 at 18:29:36, Porter, Matt wrote:
+> On Thu, Sep 06, 2012 at 12:30:15PM +0530, Philip, Avinash wrote:
+> > Add McSPI data node to AM33XX device tree file. The McSPI module (and so
+> > as the driver) is reused from OMAP4.
+> > 
+> > Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+> > ---
+> > Resenting patch because ARM & OMAP mailing list was not copied.
+> > 
+> > :100644 100644 bb31bff... 6b469bd... M	arch/arm/boot/dts/am33xx.dtsi
+> >  arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
+> >  1 files changed, 25 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index bb31bff..6b469bd 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -210,5 +210,30 @@
+> >  			interrupt-parent = <&intc>;
+> >  			interrupts = <91>;
+> >  		};
+> > +
+> > +		spi0: spi@48030000 {
+> > +			compatible = "ti,omap4-mcspi";
+> > +			#address-cells = <1>;
+> > +			#size-cells = <0>;
+> > +			reg = <0x4830000 0x400>;
+> 
+> Please fix this typo, should be 0x48030000.
+> 
+> With the typo fixed, it's working on bone for me:
 
-> Subject: [PATCH] regulator: twl: make twl_info tables const
+Thanks for review and testing.
+I didn't notice the issue as currently hwmod fills up reg 
+resource data & hence I missed it.
 
-This is in my drivers branch and in -next, according to git it was
-applied on Tuesday, so I'm not sure what you're querying here?
+I will correct & re-send.
 
-> It used to be possible to get a posting by message id via:
-> Other than that in Mutt you can search using
-> as search string, for notmuch it's
+Thanks
+Avinash
 
-All of which rely on some combination of live internet access or a copy
-of the message and don't work terribly well if those are missing due to
-using a mailing list archive or whatever (and even when they do work
-they require people to go away and fire up something to do a search).
-Making things directly readable by humans really is much better.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Tested-by: Matt Porter <mporter@ti.com>
+> 
+> -Matt
+> 
+
