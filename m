@@ -1,203 +1,91 @@
-From: Dimitar Dimitrov <dinuxbg@gmail.com>
-Subject: [PATCH v3] OMAPDSS: Fix IRQ unregister race
-Date: Mon, 10 Sep 2012 22:34:45 +0300
-Message-ID: <1347305685-18182-1-git-send-email-dinuxbg@gmail.com>
-References: <201209102219.29105.dinuxbg@gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2] leds: leds-gpio: adopt pinctrl support
+Date: Mon, 10 Sep 2012 21:34:19 +0200
+Message-ID: <CACRpkdb5Gnt0ZOzsSdp28KKKbcC2tCkt+6jN3R+w0X5cs1H9cg@mail.gmail.com>
+References: <1346487390-11399-1-git-send-email-anilkumar@ti.com>
+	<CADjby3UyhW=Ok8Zy57MVUz65gd-=4z2PhE6uqd7F8xtaDXcWfQ@mail.gmail.com>
+	<331ABD5ECB02734CA317220B2BBEABC13EA29819@DBDE01.ent.ti.com>
+	<20120907110251.GA7968@glitch>
+	<331ABD5ECB02734CA317220B2BBEABC13EA29BF3@DBDE01.ent.ti.com>
+	<20120907160025.GB14330@glitch>
+	<CACRpkdbz7CQtaj9e-1kcRVszpCSoqKz=19YT68sTMF9SOyWa8w@mail.gmail.com>
+	<20120908234435.GA13519@glitch>
+	<CACRpkdZySZqf-gPoQLGgMZ_B9m+8+Jbr4b6aA+j_OFDCHc2cGg@mail.gmail.com>
+	<504E2663.6000006@wwwdotorg.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:44105 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758393Ab2IJTdj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 15:33:39 -0400
-In-Reply-To: <201209102219.29105.dinuxbg@gmail.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:46471 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758355Ab2IJTeV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 15:34:21 -0400
+Received: by wibhr14 with SMTP id hr14so2675930wib.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 12:34:20 -0700 (PDT)
+In-Reply-To: <504E2663.6000006@wwwdotorg.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Dimitar Dimitrov <dinuxbg@gmail.com>, stable <stable@vger.kernel.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Very rare kernel crashes are reported on a custom OMAP4 board. Kernel
-panics due to corrupted completion structure while executing
-dispc_irq_wait_handler(). Excerpt from kernel log:
+On Mon, Sep 10, 2012 at 7:41 PM, Stephen Warren <swarren@wwwdotorg.org> wrote:
+> On 09/10/2012 09:23 AM, Linus Walleij wrote:
 
-  Internal error: Oops - undefined instruction: 0 [#1] PREEMPT SMP
-  Unable to handle kernel paging request at virtual address 00400130
-  ...
-  PC is at 0xebf205bc
-  LR is at __wake_up_common+0x54/0x94
-  ...
-  (__wake_up_common+0x0/0x94)
-  (complete+0x0/0x60)
-  (dispc_irq_wait_handler.36902+0x0/0x14)
-  (omap_dispc_irq_handler+0x0/0x354)
-  (handle_irq_event_percpu+0x0/0x188)
-  (handle_irq_event+0x0/0x64)
-  (handle_fasteoi_irq+0x0/0x10c)
-  (generic_handle_irq+0x0/0x48)
-  (asm_do_IRQ+0x0/0xc0)
+> That seems like exactly what we were trying to avoid when we added the
+> possibility for GPIO to call into pinctrl.
+>
+> Documentation/gpio.txt already contains:
+>
+>> For GPIOs that use pins known to the pinctrl subsystem, that subsystem should
+>> be informed of their use; a gpiolib driver's .request() operation may call
+>> pinctrl_request_gpio(), and a gpiolib driver's .free() operation may call
+>> pinctrl_free_gpio(). The pinctrl subsystem allows a pinctrl_request_gpio()
+>> to succeed concurrently with a pin or pingroup being "owned" by a device for
+>> pin multiplexing.
+>
+> In order to resolve this, shouldn't we simply change the "should" at the
+> end of the first line I quoted to "must"? That way, there'd never be any
+> need to use pinctrl if you're only relying on gpiolib APIs.
+>
+> (and I'd argue that the text was already meant to say "must", so this
+> isn't actually a change to the intent, just a clarification).
 
-DISPC IRQ executes callbacks with dispc.irq_lock released. Hence
-unregister_isr() and DISPC IRQ might be running in parallel on different
-CPUs. So there is a chance that a callback is executed even though it
-has been unregistered. As omap_dispc_wait_for_irq_timeout() declares a
-completion on stack, the dispc_irq_wait_handler() callback might try to
-access a completion structure that is invalid. This leads to crashes and
-hangs.
+It should deal with all the simple muxing use cases yes. And
+I am uncertain about the scope for this patch, if it only pertains
+to muxing, and in that case it would be solved by adding
+a proper GPIO backend to pinctrl-single.c.
 
-Solution is to divide unregister calls into two sets:
-  1. Non-strict unregistering of callbacks. Callbacks could safely be
-     executed after unregistering them. This is the case with unregister
-     calls from the IRQ handler itself.
-  2. Strict (synchronized) unregistering. Callbacks are not allowed
-     after unregistering. This is the case with completion waiting.
+But it doesn't help with some real-world usecases if I'm
+not mistaken.
 
-The above solution should satisfy one of the original intentions of the
-driver: callbacks should be able to unregister themselves.
+If you want to set up a certain GPIO pin as pull-down (I guess
+this could be the case for a LED array), this cannot be done
+through any of these functions:
 
-Also fix DSI IRQ unregister which has similar logic to DISPC IRQ handling.
+extern int pinctrl_request_gpio(unsigned gpio);
+extern void pinctrl_free_gpio(unsigned gpio);
+extern int pinctrl_gpio_direction_input(unsigned gpio);
+extern int pinctrl_gpio_direction_output(unsigned gpio);
 
-Cc: stable <stable@vger.kernel.org>
-Signed-off-by: Dimitar Dimitrov <dinuxbg@gmail.com>
----
-Changes since v2:
-  - Fix formatting per Tomi Valkeinen's comments.
-  - Restored accidental removal of EXPORT_SYMBOL for omap_dispc_register_isr.
+So either we have to use a pin config hog to do this, or we have
+to use devm_pinctrl_get_select_default(&pdev->dev); from the
+driver (as this patch does). Either way it is using the pinctrl
+system orthogonally to the GPIO system, it doesn't happen
+from pinctrl_request_gpio() or so.
 
- drivers/staging/omapdrm/omap_plane.c |    2 +-
- drivers/video/omap2/dss/apply.c      |    2 +-
- drivers/video/omap2/dss/dispc.c      |   34 +++++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dsi.c        |   15 +++++++++++++++
- include/video/omapdss.h              |    1 +
- 5 files changed, 51 insertions(+), 3 deletions(-)
+An alternative solution would be to add functions for
+controlling pinconfig and whatnot to the GPIO glue, which
+in turn would require adding frontends all over <linux/gpio.h>
+which in turn was the thing that Grant nixed to I got
+started with pinctrl instead...
 
-diff --git a/drivers/staging/omapdrm/omap_plane.c b/drivers/staging/omapdrm/omap_plane.c
-index 7997be7..8d8aa5b 100644
---- a/drivers/staging/omapdrm/omap_plane.c
-+++ b/drivers/staging/omapdrm/omap_plane.c
-@@ -82,7 +82,7 @@ static void dispc_isr(void *arg, uint32_t mask)
- 	struct omap_plane *omap_plane = to_omap_plane(plane);
- 	struct omap_drm_private *priv = plane->dev->dev_private;
- 
--	omap_dispc_unregister_isr(dispc_isr, plane,
-+	omap_dispc_unregister_isr_nosync(dispc_isr, plane,
- 			id2irq[omap_plane->ovl->id]);
- 
- 	queue_work(priv->wq, &omap_plane->work);
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 0fefc68..9386834 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -847,7 +847,7 @@ static void dss_unregister_vsync_isr(void)
- 	for (i = 0; i < num_mgrs; ++i)
- 		mask |= dispc_mgr_get_framedone_irq(i);
- 
--	r = omap_dispc_unregister_isr(dss_apply_irq_handler, NULL, mask);
-+	r = omap_dispc_unregister_isr_nosync(dss_apply_irq_handler, NULL, mask);
- 	WARN_ON(r);
- 
- 	dss_data.irq_enabled = false;
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index ee9e296..6032252 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3320,7 +3320,8 @@ err:
- }
- EXPORT_SYMBOL(omap_dispc_register_isr);
- 
--int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
-+/* WARNING: callback might be executed even after this function returns! */
-+int omap_dispc_unregister_isr_nosync(omap_dispc_isr_t isr, void *arg, u32 mask)
- {
- 	int i;
- 	unsigned long flags;
-@@ -3352,6 +3353,37 @@ int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL(omap_dispc_unregister_isr_nosync);
-+
-+/*
-+ * Ensure that callback <isr> will NOT be executed after this function
-+ * returns. Must be called from sleepable context, though!
-+ */
-+int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask)
-+{
-+	int ret;
-+
-+	ret = omap_dispc_unregister_isr_nosync(isr, arg, mask);
-+
-+	/*
-+	 * Task context is not really needed. But if we're called from atomic
-+	 * context, it is probably from DISPC IRQ, where we will deadlock.
-+	 * So use might_sleep() to catch potential deadlocks.
-+	 */
-+	might_sleep();
-+
-+	/*
-+	 * DISPC IRQ executes callbacks with dispc.irq_lock released. Hence
-+	 * unregister_isr() and DISPC IRQ might be running in parallel on
-+	 * different CPUs. So there is a chance that a callback is executed
-+	 * even though it has been unregistered. Add a barrier, in order to
-+	 * ensure that after returning from this function, the new DISPC IRQ
-+	 * will use an updated callback array, and NOT its cached copy.
-+	 */
-+	synchronize_irq(dispc.irq);
-+
-+	return ret;
-+}
- EXPORT_SYMBOL(omap_dispc_unregister_isr);
- 
- #ifdef DEBUG
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index b07e886..c0fcb68 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -960,6 +960,11 @@ static int dsi_unregister_isr(struct platform_device *dsidev,
- 
- 	spin_unlock_irqrestore(&dsi->irq_lock, flags);
- 
-+	might_sleep();
-+
-+	/* See notes for dispc.c:omap_dispc_unregister_isr() . */
-+	synchronize_irq(dsi->irq);
-+
- 	return r;
- }
- 
-@@ -1002,6 +1007,11 @@ static int dsi_unregister_isr_vc(struct platform_device *dsidev, int channel,
- 
- 	spin_unlock_irqrestore(&dsi->irq_lock, flags);
- 
-+	might_sleep();
-+
-+	/* See notes for dispc.c:omap_dispc_unregister_isr() . */
-+	synchronize_irq(dsi->irq);
-+
- 	return r;
- }
- 
-@@ -1042,6 +1052,11 @@ static int dsi_unregister_isr_cio(struct platform_device *dsidev,
- 
- 	spin_unlock_irqrestore(&dsi->irq_lock, flags);
- 
-+	might_sleep();
-+
-+	/* See notes for dispc.c:omap_dispc_unregister_isr() . */
-+	synchronize_irq(dsi->irq);
-+
- 	return r;
- }
- 
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index a6267a2..769f981 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -708,6 +708,7 @@ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
- typedef void (*omap_dispc_isr_t) (void *arg, u32 mask);
- int omap_dispc_register_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
- int omap_dispc_unregister_isr(omap_dispc_isr_t isr, void *arg, u32 mask);
-+int omap_dispc_unregister_isr_nosync(omap_dispc_isr_t isr, void *arg, u32 mask);
- 
- int omap_dispc_wait_for_irq_timeout(u32 irqmask, unsigned long timeout);
- int omap_dispc_wait_for_irq_interruptible_timeout(u32 irqmask,
--- 
-1.7.10.4
+But I'm open to any other suggestions. Would it be possible
+for pinctrl_request_gpio() to activate a pin config in the
+map for example? Currently it can only do muxing.
 
+It's also possible to have the driver do something custom
+behind the back of pinctrl altogether as a response to
+pinctrl_request_gpio() but it wouldn't be
+any elegant...
+
+Yours,
+Linus Walleij
