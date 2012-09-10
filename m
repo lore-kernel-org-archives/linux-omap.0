@@ -1,39 +1,48 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 2/2] pinctrl: pinctrl-single: Add pinctrl-single,bits type
- of mux
-Date: Mon, 10 Sep 2012 09:10:39 +0200
-Message-ID: <CACRpkdbiCV4sKy2JAb6Yu5EuOVbfhq46yu5FRy7MXNT3QR6gaw@mail.gmail.com>
-References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
-	<1346835718-21325-3-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: New build warnings
+Date: Mon, 10 Sep 2012 15:43:34 +0800
+Message-ID: <20120910074331.GA6749@opensource.wolfsonmicro.com>
+References: <20120730164444.GO6802@n2100.arm.linux.org.uk>
+ <20120908083849.GA1603@n2100.arm.linux.org.uk>
+ <20120909191240.GV28643@pengutronix.de>
+ <20120909233333.GA15911@opensource.wolfsonmicro.com>
+ <20120910064002.GW28643@pengutronix.de>
+ <20120910064236.GB8482@opensource.wolfsonmicro.com>
+ <20120910070547.GX28643@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:56104 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886Ab2IJHKl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 03:10:41 -0400
-Received: by wgbdr13 with SMTP id dr13so1679573wgb.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 00:10:39 -0700 (PDT)
-In-Reply-To: <1346835718-21325-3-git-send-email-peter.ujfalusi@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43789 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750900Ab2IJHno (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 03:43:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20120910070547.GX28643@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Wed, Sep 5, 2012 at 11:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+On Mon, Sep 10, 2012 at 09:05:47AM +0200, Uwe Kleine-K=F6nig wrote:
 
-> With pinctrl-single,bits it is possible to update just part of the register
-> within the pinctrl-single,function-mask area.
-> This is useful when one register configures mmore than one pin's mux.
->
-> pinctrl-single,bits takes three parameters:
-> <reg offset, value, sub-mask>
->
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Subject: [PATCH] regulator: twl: make twl_info tables const
 
-Do we have a conclusion on this patch 2/2?
+This is in my drivers branch and in -next, according to git it was
+applied on Tuesday, so I'm not sure what you're querying here?
 
-I'm holding it back until Tony explicitly ACKs it for now.
+> It used to be possible to get a posting by message id via:
+> Other than that in Mutt you can search using
+> as search string, for notmuch it's
 
-Yours,
-Linus Walleij
+All of which rely on some combination of live internet access or a copy
+of the message and don't work terribly well if those are missing due to
+using a mailing list archive or whatever (and even when they do work
+they require people to go away and fire up something to do a search).
+Making things directly readable by humans really is much better.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
