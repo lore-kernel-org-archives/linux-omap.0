@@ -1,125 +1,64 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH v2] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
-Date: Mon, 10 Sep 2012 14:30:14 +0300
-Message-ID: <1347276614-4334-1-git-send-email-rogerq@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 0/2] ARM: omap/dts: Add support for Gumstix Overo with
+ Tobi expansion
+Date: Mon, 10 Sep 2012 13:38:16 +0200
+Message-ID: <504DD128.1000803@ti.com>
+References: <1346429172-5902-1-git-send-email-florian.vaussard@epfl.ch> <20120906205227.GM1303@atomide.com> <504DB202.5050500@epfl.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57714 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752480Ab2IJLa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 07:30:26 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:46084 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688Ab2IJLij (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 07:38:39 -0400
+In-Reply-To: <504DB202.5050500@epfl.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: florian.vaussard@epfl.ch
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Steve Sakoman <steve@sakoman.com>, Philippe Retornaz <philippe.retornaz@epfl.ch>, linux-arm-kernel@lists.infradead.org
 
-gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+On 09/10/2012 11:25 AM, Florian Vaussard wrote:
+> Le 06/09/2012 22:52, Tony Lindgren a =E9crit :
+>> * Florian Vaussard <florian.vaussard@epfl.ch> [120831 09:07]:
+>>> The Gumstix Overo is a computer on module using an OMAP3 processor.
+>>> This module must be plugged into an expansion board.
+>>>
+>>> This patchset adds a first device tree support for the Overo, using=
+ the
+>>> Tobi expansion board. The current support is able to boot and mount
+>>> the rootfs from MMC, with a few extra features.
+>>>
+>>> The first patch creates the device tree for both the Overo and the
+>>> Tobi expansion board, and updates the dtb build target.
+>>>
+>>> The second patch updates the omap/dts documentation.
+>>>
+>>> This patchset applies on tony's tree [1], devel-dt branch.
+>> Great, I'm assuming Benoit will pick this up as well.
+>=20
+> What is the status Benoit?
 
-[   28.832916] debug_smp_processor_id: 18 callbacks suppressed
-[   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
-[   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+Patches looks good to me. I just adding them right now in my for_3.7/dt=
+s tree.
 
-changes in v2:
-- rebased on 3.6-rc5
-- use put_cpu() immediately after get_cpu() in omap3_pm_idle()
+I've just slightly changed the subjects:
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/clock.c       |    9 ++++++---
- arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
- arch/arm/mach-omap2/powerdomain.c |    6 ++++--
- 3 files changed, 18 insertions(+), 9 deletions(-)
+Documentation: dt: Update the OMAP documentation with Overo/Toby
+ARM: dts: OMAP3: Add support for Gumstix Overo with Tobi expansion boar=
+d
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index ea3f565..06747b6 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
- 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
- 
- 	if (clk->ops && clk->ops->disable) {
--		trace_clock_disable(clk->name, 0, smp_processor_id());
-+		trace_clock_disable(clk->name, 0, get_cpu());
-+		put_cpu();
- 		clk->ops->disable(clk);
- 	}
- 
-@@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
- 	}
- 
- 	if (clk->ops && clk->ops->enable) {
--		trace_clock_enable(clk->name, 1, smp_processor_id());
-+		trace_clock_enable(clk->name, 1, get_cpu());
-+		put_cpu();
- 		ret = clk->ops->enable(clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable: %d\n",
-@@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
- 	if (clk->set_rate) {
--		trace_clock_set_rate(clk->name, rate, smp_processor_id());
-+		trace_clock_set_rate(clk->name, rate, get_cpu());
-+		put_cpu();
- 		ret = clk->set_rate(clk, rate);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 05bd8f0..5aa0a11 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -346,18 +346,22 @@ void omap_sram_idle(void)
- 
- static void omap3_pm_idle(void)
- {
-+	unsigned cpu;
-+
- 	local_fiq_disable();
- 
- 	if (omap_irq_pending())
- 		goto out;
- 
--	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
--	trace_cpu_idle(1, smp_processor_id());
-+	cpu = get_cpu();
-+	put_cpu();
-+	trace_power_start(POWER_CSTATE, 1, cpu);
-+	trace_cpu_idle(1, cpu);
- 
- 	omap_sram_idle();
- 
--	trace_power_end(smp_processor_id());
--	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-+	trace_power_end(cpu);
-+	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
- 
- out:
- 	local_fiq_enable();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 69b36e1..138bf86 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 				       ((state & OMAP_POWERSTATE_MASK) << 8) |
- 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
- 			trace_power_domain_target(pwrdm->name, trace_state,
--						  smp_processor_id());
-+						  get_cpu());
-+			put_cpu();
- 		}
- 		break;
- 	default:
-@@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
- 		/* Trace the pwrdm desired target state */
- 		trace_power_domain_target(pwrdm->name, pwrst,
--					  smp_processor_id());
-+					  get_cpu());
-+		put_cpu();
- 		/* Program the pwrdm desired target state */
- 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	}
--- 
-1.7.4.1
+If you want to give it a try, here is the branch that contains all the =
+DTS series I
+already pulled. It includes your gpio-twl4030 patches as well.
 
+git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.gi=
+t for_3.7/dts
+
+Regards,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
