@@ -1,88 +1,52 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH 1/2] gpio/twl4030: get platform data from device tree
-Date: Mon, 10 Sep 2012 10:17:17 +0200
-Message-ID: <504DA20D.7020903@epfl.ch>
-References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch> <1346831186-29947-2-git-send-email-florian.vaussard@epfl.ch> <504A2FF2.7070607@ti.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC update 0/2] dmaengine/ASoC: omap: Enable
+ element mode in cyclic DMA
+Date: Mon, 10 Sep 2012 11:21:34 +0300
+Message-ID: <504DA30E.9030304@ti.com>
+References: <E1T8a09-0002vz-Bl@rmk-PC.arm.linux.org.uk>
+ <1346760482-12794-1-git-send-email-peter.ujfalusi@ti.com>
+ <1402174.PkzhGH5Vno@acer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.219]:48908 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751040Ab2IJIRW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:17:22 -0400
-In-Reply-To: <504A2FF2.7070607@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1402174.PkzhGH5Vno@acer>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, Grant Likely <grant.likely@secretlab.ca>, Vaibhav Hiremath <hvaibhav@ti.com>, Rob Herring <rob.herring@calxeda.com>, linux-arm-kernel@lists.infradead.org
 
-Hello Benoit,
-
-Le 07/09/2012 19:33, Benoit Cousson a =E9crit :
-> Hi Florian,
->
-> I've just noticed that this patch is reporting some CHECK issues.
->
-> d1f5052 - gpio/twl4030: get platform data from device tree
-> CHECK: Alignment should match open parenthesis
-> #66: FILE: drivers/gpio/gpio-twl4030.c:412:
-> +	of_property_read_u32(dev->of_node, "ti,debounce",
-> +				&omap_twl_info->debounce);
->
-> CHECK: Alignment should match open parenthesis
-> #68: FILE: drivers/gpio/gpio-twl4030.c:414:
-> +	of_property_read_u32(dev->of_node, "ti,mmc-cd",
-> +				(u32 *)&omap_twl_info->mmc_cd);
->
-> CHECK: Alignment should match open parenthesis
-> #70: FILE: drivers/gpio/gpio-twl4030.c:416:
-> +	of_property_read_u32(dev->of_node, "ti,pullups",
-> +				&omap_twl_info->pullups);
->
-> CHECK: Alignment should match open parenthesis
-> #72: FILE: drivers/gpio/gpio-twl4030.c:418:
-> +	of_property_read_u32(dev->of_node, "ti,pulldowns",
-> +				&omap_twl_info->pulldowns);
->
-> CHECK: Alignment should match open parenthesis
-> +				pdata->pullups, pdata->pulldowns,
->
-> CHECK: Alignment should match open parenthesis
-> #139: FILE: drivers/gpio/gpio-twl4030.c:479:
-> +		dev_dbg(&pdev->dev, "debounce %.03x %.01x --> %d\n",
-> +				pdata->debounce, pdata->mmc_cd,
->
-> total: 0 errors, 0 warnings, 6 checks, 118 lines checked
->
->
-> I fixed them since it was trivial, but next time you should ensure th=
-at the patch pass checkpatch before posting.
-
-Sorry for these errors. I however checked my patches before submitting,=
-=20
-and had no such warnings. I redone, and remarked that these warnings=20
-appear only with the "--strict" option, which is not enabled by default=
-=2E=20
-Is this the recommended  guideline? Thus why not enabling it by default=
-?
-
->
-> Just let me know if you have any issue with the following update.
-
-I will test, but should not have any issue with your fix.
-
-Thank you very much for fixing my patch, I send you a virtual chocolate=
-=20
-from Switzerland!
-
-Regards,
-=46lorian
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgSmFudXN6LAoKT24gMDkvMDkvMjAxMiAxMDo1NyBQTSwgSmFudXN6IEtyenlzenRvZmlrIHdy
+b3RlOgo+IE9uIFR1ZSwgNCBTZXAgMjAxMiAxNTowODowMCBQZXRlciBVamZhbHVzaSB3cm90ZToK
+Pj4KPj4gRW5hYmxlIHRoZSBlbGVtZW50IG1vZGUgKHRodXMgYWxsb3dpbmcgbW9ubyBwbGF5YmFj
+ayBhbmQgcHJvYmFibHkgCj4gdW5ibG9ja2luZwo+PiBPTUFQMSwgT01BUDI0MjApIGluIE9NQVAg
+ZG1hZW5naW5lIGFuZCBvbWFwLXBjbS4KPj4KPj4gSmFudXN6OiB3b3VsZCBpdCBiZSBwb3NzaWJs
+ZSBmb3IgeW91IHRvIHRlc3QgUnVzc2VsbCdzIHNlcmllcyBwbHVzIAo+IHRoaXMgb24KPj4gT01B
+UDEgdG8gbWFrZSBzdXJlIHRoYXQgd2UgZG8gbm90IGJyb2tlIGl0Pwo+IAo+IEhpLAo+IEkgY2Fu
+IGNvbmZpcm0gdGhhdCBzb3VuZCB3b3JrcyBmb3IgbWUgYXMgYmVmb3JlLCBib3RoIGNhcHR1cmUg
+YW5kIAo+IHBsYXliYWNrLCBvbiBteSBPTUFQMSBBbXN0cmFkIERlbHRhIHdpdGggUnVzc2VsbCdz
+IGFuZCBQZXRlcidzIHBhdGNoZXMgCj4gYXBwbGllZCBvbiB0b3Agb2YgbGludXgtMy42LXJjMywg
+d2l0aCB0aGUgT01BUCBETUEgZW5naW5lIGRyaXZlciBidWlsdCAKPiBpbi4gSSB3YXMgbm90IGFi
+bGUgbWFrZSBhdWRpYmxlIHRlc3RzIHdpdGggYXBwbGljYXRpb25zIG90aGVyIHRoYW4gYSAKPiBz
+b2Z0IHBob25lIGFzIEkgZGlkbid0IGdldCBiYWNrIGhvbWUgZm9yIHRoaXMgd2Vla2VuZCwgYnV0
+IEkgdGhpbmsgdGhhdCAKPiB0aGUgYXN0ZXJpc2sgc29mdCBwaG9uZSBpcyBxdWl0ZSBhIGRlbWFu
+ZGluZyB1c2UgY2FzZS4KClRoYW5rIHlvdSB2ZXJ5IG11Y2ggZm9yIHRha2luZyB0aW1lIHRvIHRl
+c3QgdGhpcyEgVGhpcyBpcyBpbmRlZWQgYSBnb29kIG5ld3MuCgo+IFRoZSBvbmx5IHRoaW5nIEkn
+bSBub3Qgc3VyZSBhYm91dCBpcyB3aHkgdGhlIHN5c2ZzIHByb3ZpZGVkIAo+IGJ5dGVzX3RyYW5z
+ZmVycmVkIHZhbHVlcyBuZXZlciBjaGFuZ2UgZnJvbSB0aGVpciBpbml0aWFsIHplcm9zLgoKSSBo
+YXZlIG5vdCBsb29rZWQgYXQgdGhvc2UgZmlsZXMgaW4gc3lzZnMsIGJ1dCBpZiB0aGUgc2FtZSBh
+cHBsaWVzIGZvcgpPTUFQMy80LzUgSSBjYW4gbG9vayBhdCBpdCBhbmQgZml4IGl0IHdoaWNoIHNo
+b3VsZCBjb3JyZWN0IE9NQVAxIGF0IHRoZSBzYW1lIHRpbWUuCgo+IAo+IEZvciBPTUFQMToKPiBU
+ZXN0ZWQtYnk6IEphbnVzeiBLcnp5c3p0b2ZpayA8amtyenlzenRAdGlzLmljbmV0LnBsPgoKQWdh
+aW4sIHRoYW5rcyBmb3IgdGhlIHRlc3RpbmcsClDDqXRlcgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNhLWRl
+dmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
