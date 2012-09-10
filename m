@@ -1,62 +1,71 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCHv2 1/2] mmc: omap_hsmmc: convert from IP timer to hrtimer
-Date: Mon, 10 Sep 2012 10:03:01 +0530
-Message-ID: <CANfBPZ_dg4BBN4-kP1_JGPBb=U16h1mj=PFgP36o=J75BXhk-Q@mail.gmail.com>
-References: <1346159947-3194-1-git-send-email-svenkatr@ti.com> <877gs5jxzs.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] drm/omap: add more new timings fields
+Date: Mon, 10 Sep 2012 08:50:38 +0300
+Message-ID: <1347256238.8127.4.camel@deskari>
+References: <1347040786-29156-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <877gs5jxzs.fsf@deeprootsystems.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, balbi@ti.com
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-etSsunpeGzSxLFt5uieW"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:55211 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751864Ab2IJFur (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 01:50:47 -0400
+Received: by lbbgj3 with SMTP id gj3so940998lbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 09 Sep 2012 22:50:44 -0700 (PDT)
+In-Reply-To: <1347040786-29156-1-git-send-email-rob.clark@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Sat, Sep 8, 2012 at 3:29 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Venkatraman S <svenkatr@ti.com> writes:
->
->> omap hsmmc controller IP has a built in timer that can be programmed to
->> guard against unresponsive operations. But its range is very narrow,
->> and the maximum countable time is a few seconds.
->>
->> Card maintenance operations like BKOPS and MMC_ERASE and long
->> stream writes like packed command require timers of order of
->> several minutes, much beyond the capability of the IP timer.
->> So get rid of using the IP timer entirely and use kernel's hrtimer
->> functionality for guarding the device operations.
->> As part of this change, a workaround that disabled timeouts for
->> MMC_ERASE command is removed, and the arbitary timing of 100ms
->> is used only when the timeout is not explicitly specified by core.
->>
->> A trivial change to get rid of unnecessary dealiasing of host->data
->> in omap_hsmmc_do_irq is also included.
->>
->> Signed-off-by: Venkatraman S <svenkatr@ti.com>
->
-> Dumb question: if the timers needed are on the order of minutes, why do
-> you need to use high-resolution timers?  I'm guessing the normal
-> kernel-internal timers should suffice here (see <linux/timer.h,
-> init_timer().)
->
-Both sub ms and long duration timers are needed, based on the type of operation.
-The eMMC standard has evolved to define new commands which require
-such long duration
-operations. The short ("control") commands do need high precision.
-
-> Also, if they're on the order of minutes, I assume the actual firing
-> doesn't have to be precise, so deferrable timers can probably be used
-> (and thus help PM by coalescing wakeup events.)
->
-> If my assumptions are true, it might be worth considering using the
-> normal timers, and use init_timer_deferrable().
->
-I'll certainly look into this. One way is to use the IP timer for
-short commands and
-deferrable timers for long ones - but I reckon it would be messy.
-
-I've actually put this patch on hold - as someone pointed out to me that
-this violates some sections of eMMC spec.
+To: Rob Clark <rob.clark@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
 
-> Kevin
+--=-etSsunpeGzSxLFt5uieW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 2012-09-07 at 12:59 -0500, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
+>=20
+> Without these, DVI is broken.
+>=20
+> Signed-off-by: Rob Clark <rob@ti.com>
+> ---
+> Greg, it looks like the omapdss changes which added these fields, as
+> well as the interlaced field, where merged in Linux 3.5-rc5.  So I
+> think both this and the 'update for interlaced' patch are needed for
+> both 3.6 and 3.5.
+
+The omapdss timing and interlace changes were merged in 3.6 merge
+window, they were not merged in 3.5 merge window (and even less in
+3.5-rc5)...
+
+ Tomi
+
+
+--=-etSsunpeGzSxLFt5uieW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQTX+uAAoJEPo9qoy8lh71fZAP/0HvNX/MPw5xivegHdR/sTkU
+MxdtamhqmzMxUlk+cdEm4JMCoLDDYDUuXcD/8DH7Xa3eXFqp0h7J7UlbRA7nUiia
++2ma6c986FMko1RPh36JXfOQVNI64CC2Q02PhqeiLtA5y+SLDFAnx19L5o3lFh7w
+XGbpGvZVbnBVhQHbWzlylwUl7qplSjznOgimPUgP4O/aqyFIDrHt6lFeyU7BidQN
+Zt2GFqpzVia/o2QUgYhEG20W/3ReR4fZg8iBMyhrnJzj/9y+jSU0U6QCd6xphCAt
+04TcGYxsusSq0qZSIF3JvJeAjHoeOMPsXqrF3OQrWyHyTaFshiX9lQ8+5Xqsbr+R
+BZPpfl2seWuCe8g8jKrNM3jK/57o9Ms2bE7cau6ReuX47laiWM50v3HlR5cJF8db
+zDm2b0+vkFmVvhFrD/RuTnSLEX5F+T/UlvucQvVmeV2pf+MNoq77vVeX3EIwasod
+9ft8ECUPj1g5hIMgJo6BKyGbI40kTI8F8VEhUFUBGlc/Ym6isNdt7c5j6r34jY4T
+NEhgl9h4bQ4CAjT5bjHSyAttEdByDdnFx2n5TD6X1QBH7arwAwI4EUYdKb1Fs6uM
+//J3sEjx2u1S2QtA5OV7GgMRpEF9rvheHRYwf2BwlCc9QZkR6tdLS5a8wH2cLWdx
+fB9L6jyR2oshzyXo23kl
+=TBq2
+-----END PGP SIGNATURE-----
+
+--=-etSsunpeGzSxLFt5uieW--
+
