@@ -1,303 +1,120 @@
-From: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Subject: [PATCH] watchdog: Convert twl4030_wdt to watchdog core
-Date: Mon, 10 Sep 2012 18:44:46 +0300
-Message-ID: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 1/8] ARM/dts: omap2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Mon, 10 Sep 2012 09:01:05 -0700
+Message-ID: <20120910160105.GV1303@atomide.com>
+References: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com>
+ <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com>
+ <20120907222953.GS1303@atomide.com>
+ <504D9FBC.9030609@ti.com>
+ <504DC975.5070609@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp170.iad.emailsrvr.com ([207.97.245.170]:39989 "EHLO
-	smtp170.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757539Ab2IJP4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 11:56:38 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:32665 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757539Ab2IJQBJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 12:01:09 -0400
+Content-Disposition: inline
+In-Reply-To: <504DC975.5070609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-watchdog@vger.kernel.org
-Cc: Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@jollamobile.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Convert the twl4030_wdt watchdog driver to watchdog core.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [120910 04:05]:
+> Hi Benoit,
+>=20
+> On 09/10/2012 11:07 AM, Benoit Cousson wrote:
+> > Hi Tony,
+> >=20
+> > On 09/08/2012 12:29 AM, Tony Lindgren wrote:
+> >> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 04:59]:
+> >>> +
+> >>> +	ocp {
+> >>> +		mcbsp1: mcbsp@48074000 {
+> >>> +			compatible =3D "ti,omap2420-mcbsp";
+> >>> +			reg =3D <0x48074000 0xff>;
+> >>> +			reg-names =3D "mpu";
+> >>> +			interrupts =3D <59>, /* TX interrupt */
+> >>> +				     <60>; /* RX interrupt */
+> >>> +			interrupt-names =3D "tx", "rx";
+> >>> +			interrupt-parent =3D <&intc>;
+> >>> +			ti,hwmods =3D "mcbsp1";
+> >>> +		};
+> >>> +
+> >>> +		mcbsp2: mcbsp@48076000 {
+> >>> +			compatible =3D "ti,omap2420-mcbsp";
+> >>> +			reg =3D <0x48076000 0xff>;
+> >>> +			reg-names =3D "mpu";
+> >>> +			interrupts =3D <62>, /* TX interrupt */
+> >>> +				     <63>; /* RX interrupt */
+> >>> +			interrupt-names =3D "tx", "rx";
+> >>> +			interrupt-parent =3D <&intc>;
+> >>> +			ti,hwmods =3D "mcbsp2";
+> >>> +		};
+> >>> +	};
+> >>
+> >> Hmm don't you need to specify the interrupt chip and offset for
+> >> the interrupts here?
+> >=20
+> > Mmm, I'm not sure to get your question, there is the link to the
+> > interrupt-parent.
+> >=20
+> > The interrupt number is relative to the parent interrupt domain. So=
+ even
+> > if the INTC IRQ offset start at 32 instead of 0, DT IRQ mechanism w=
+ill
+> > convert that to the proper hwirq thanks to irqdomain.
+> > In that case we should always provide interrupt number relative to =
+the
+> > interrupt controller HW number and not assuming any Linux IRQ numbe=
+r
+> > offset like before.
 
-While at there use devm_kzalloc and set the default timeout in order to be
-able test this driver with a simple shell script.
+Yes never mind, I was confused. We have #interrupt-cells =3D <1> and th=
+e
+interrupt specifier is just the interrupt offset..
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@jollamobile.com>
----
- drivers/watchdog/Kconfig       |    1 +
- drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
- 2 files changed, 35 insertions(+), 149 deletions(-)
+Regards,
 
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 53d7571..21f6205 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
- config OMAP_WATCHDOG
- 	tristate "OMAP Watchdog"
- 	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-+	select WATCHDOG_CORE
- 	help
- 	  Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog.  Say 'Y'
- 	  here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog timer.
-diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl4030_wdt.c
-index 249f113..71c283a 100644
---- a/drivers/watchdog/twl4030_wdt.c
-+++ b/drivers/watchdog/twl4030_wdt.c
-@@ -22,26 +22,12 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/kernel.h>
--#include <linux/fs.h>
- #include <linux/watchdog.h>
- #include <linux/platform_device.h>
--#include <linux/miscdevice.h>
--#include <linux/uaccess.h>
- #include <linux/i2c/twl.h>
- 
- #define TWL4030_WATCHDOG_CFG_REG_OFFS	0x3
- 
--#define TWL4030_WDT_STATE_OPEN		0x1
--#define TWL4030_WDT_STATE_ACTIVE	0x8
--
--static struct platform_device *twl4030_wdt_dev;
--
--struct twl4030_wdt {
--	struct miscdevice	miscdev;
--	int			timer_margin;
--	unsigned long		state;
--};
--
- static bool nowayout = WATCHDOG_NOWAYOUT;
- module_param(nowayout, bool, 0);
- MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
-@@ -53,171 +39,71 @@ static int twl4030_wdt_write(unsigned char val)
- 					TWL4030_WATCHDOG_CFG_REG_OFFS);
- }
- 
--static int twl4030_wdt_enable(struct twl4030_wdt *wdt)
-+static int twl4030_wdt_start(struct watchdog_device *wdt)
- {
--	return twl4030_wdt_write(wdt->timer_margin + 1);
-+	return twl4030_wdt_write(wdt->timeout + 1);
- }
- 
--static int twl4030_wdt_disable(struct twl4030_wdt *wdt)
-+static int twl4030_wdt_stop(struct watchdog_device *wdt)
- {
- 	return twl4030_wdt_write(0);
- }
- 
--static int twl4030_wdt_set_timeout(struct twl4030_wdt *wdt, int timeout)
--{
--	if (timeout < 0 || timeout > 30) {
--		dev_warn(wdt->miscdev.parent,
--			"Timeout can only be in the range [0-30] seconds");
--		return -EINVAL;
--	}
--	wdt->timer_margin = timeout;
--	return twl4030_wdt_enable(wdt);
--}
--
--static ssize_t twl4030_wdt_write_fop(struct file *file,
--		const char __user *data, size_t len, loff_t *ppos)
-+static int twl4030_wdt_set_timeout(struct watchdog_device *wdt,
-+				   unsigned int timeout)
- {
--	struct twl4030_wdt *wdt = file->private_data;
--
--	if (len)
--		twl4030_wdt_enable(wdt);
--
--	return len;
--}
--
--static long twl4030_wdt_ioctl(struct file *file,
--		unsigned int cmd, unsigned long arg)
--{
--	void __user *argp = (void __user *)arg;
--	int __user *p = argp;
--	int new_margin;
--	struct twl4030_wdt *wdt = file->private_data;
--
--	static const struct watchdog_info twl4030_wd_ident = {
--		.identity = "TWL4030 Watchdog",
--		.options = WDIOF_SETTIMEOUT,
--		.firmware_version = 0,
--	};
--
--	switch (cmd) {
--	case WDIOC_GETSUPPORT:
--		return copy_to_user(argp, &twl4030_wd_ident,
--				sizeof(twl4030_wd_ident)) ? -EFAULT : 0;
--
--	case WDIOC_GETSTATUS:
--	case WDIOC_GETBOOTSTATUS:
--		return put_user(0, p);
--
--	case WDIOC_KEEPALIVE:
--		twl4030_wdt_enable(wdt);
--		break;
--
--	case WDIOC_SETTIMEOUT:
--		if (get_user(new_margin, p))
--			return -EFAULT;
--		if (twl4030_wdt_set_timeout(wdt, new_margin))
--			return -EINVAL;
--		return put_user(wdt->timer_margin, p);
--
--	case WDIOC_GETTIMEOUT:
--		return put_user(wdt->timer_margin, p);
--
--	default:
--		return -ENOTTY;
--	}
--
-+	wdt->timeout = timeout;
- 	return 0;
- }
- 
--static int twl4030_wdt_open(struct inode *inode, struct file *file)
--{
--	struct twl4030_wdt *wdt = platform_get_drvdata(twl4030_wdt_dev);
--
--	/* /dev/watchdog can only be opened once */
--	if (test_and_set_bit(0, &wdt->state))
--		return -EBUSY;
--
--	wdt->state |= TWL4030_WDT_STATE_ACTIVE;
--	file->private_data = (void *) wdt;
--
--	twl4030_wdt_enable(wdt);
--	return nonseekable_open(inode, file);
--}
--
--static int twl4030_wdt_release(struct inode *inode, struct file *file)
--{
--	struct twl4030_wdt *wdt = file->private_data;
--	if (nowayout) {
--		dev_alert(wdt->miscdev.parent,
--		       "Unexpected close, watchdog still running!\n");
--		twl4030_wdt_enable(wdt);
--	} else {
--		if (twl4030_wdt_disable(wdt))
--			return -EFAULT;
--		wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
--	}
--
--	clear_bit(0, &wdt->state);
--	return 0;
--}
-+static const struct watchdog_info twl4030_wdt_info = {
-+	.options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-+	.identity = "TWL4030 Watchdog",
-+};
- 
--static const struct file_operations twl4030_wdt_fops = {
-+static const struct watchdog_ops twl4030_wdt_ops = {
- 	.owner		= THIS_MODULE,
--	.llseek		= no_llseek,
--	.open		= twl4030_wdt_open,
--	.release	= twl4030_wdt_release,
--	.unlocked_ioctl	= twl4030_wdt_ioctl,
--	.write		= twl4030_wdt_write_fop,
-+	.start		= twl4030_wdt_start,
-+	.stop		= twl4030_wdt_stop,
-+	.set_timeout	= twl4030_wdt_set_timeout,
- };
- 
- static int __devinit twl4030_wdt_probe(struct platform_device *pdev)
- {
- 	int ret = 0;
--	struct twl4030_wdt *wdt;
-+	struct watchdog_device *wdt;
- 
--	wdt = kzalloc(sizeof(struct twl4030_wdt), GFP_KERNEL);
-+	wdt = devm_kzalloc(&pdev->dev, sizeof(*wdt), GFP_KERNEL);
- 	if (!wdt)
- 		return -ENOMEM;
- 
--	wdt->state		= 0;
--	wdt->timer_margin	= 30;
--	wdt->miscdev.parent	= &pdev->dev;
--	wdt->miscdev.fops	= &twl4030_wdt_fops;
--	wdt->miscdev.minor	= WATCHDOG_MINOR;
--	wdt->miscdev.name	= "watchdog";
-+	wdt->info		= &twl4030_wdt_info;
-+	wdt->ops		= &twl4030_wdt_ops;
-+	wdt->status		= 0;
-+	wdt->timeout		= 30;
-+	wdt->min_timeout	= 1;
-+	wdt->max_timeout	= 30;
- 
-+	watchdog_set_nowayout(wdt, nowayout);
- 	platform_set_drvdata(pdev, wdt);
- 
--	twl4030_wdt_dev = pdev;
-+	twl4030_wdt_stop(wdt);
- 
--	twl4030_wdt_disable(wdt);
--
--	ret = misc_register(&wdt->miscdev);
-+	ret = watchdog_register_device(wdt);
- 	if (ret) {
--		dev_err(wdt->miscdev.parent,
--			"Failed to register misc device\n");
- 		platform_set_drvdata(pdev, NULL);
--		kfree(wdt);
--		twl4030_wdt_dev = NULL;
- 		return ret;
- 	}
-+
- 	return 0;
- }
- 
- static int __devexit twl4030_wdt_remove(struct platform_device *pdev)
- {
--	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
--
--	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
--		if (twl4030_wdt_disable(wdt))
--			return -EFAULT;
--
--	wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
--	misc_deregister(&wdt->miscdev);
-+	struct watchdog_device *wdt = platform_get_drvdata(pdev);
- 
-+	watchdog_unregister_device(wdt);
- 	platform_set_drvdata(pdev, NULL);
--	kfree(wdt);
--	twl4030_wdt_dev = NULL;
- 
- 	return 0;
- }
-@@ -225,18 +111,18 @@ static int __devexit twl4030_wdt_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM
- static int twl4030_wdt_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
--	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
--		return twl4030_wdt_disable(wdt);
-+	struct watchdog_device *wdt = platform_get_drvdata(pdev);
-+	if (watchdog_active(wdt))
-+		return twl4030_wdt_stop(wdt);
- 
- 	return 0;
- }
- 
- static int twl4030_wdt_resume(struct platform_device *pdev)
- {
--	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
--	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
--		return twl4030_wdt_enable(wdt);
-+	struct watchdog_device *wdt = platform_get_drvdata(pdev);
-+	if (watchdog_active(wdt))
-+		return twl4030_wdt_start(wdt);
- 
- 	return 0;
- }
-@@ -260,6 +146,5 @@ module_platform_driver(twl4030_wdt_driver);
- 
- MODULE_AUTHOR("Nokia Corporation");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
- MODULE_ALIAS("platform:twl4030_wdt");
- 
--- 
-1.7.10.4
+Tony=20
 
+> > And in fact the interrupt-parent is not even needed, by default if =
+will
+> > look to the parent to get the interrupt-controller.
+>=20
+> This is true, but it makes the 'code' a bit more readable if I (we) s=
+pecify
+> the interrupt-parent.
+>=20
+> >=20
+> > Extract from [1]
+> >=20
+> > interrupt-parent:
+> > "Because the hierarchy of the nodes in the interrupt tree might not
+> > match the device tree, the interrupt-parent property is available t=
+o
+> > make the definition of an interrupt parent explicit.
+> > The value is the phandle to the interrupt parent. If this property =
+is
+> > missing from a device, its interrupt parent is assumed to be its de=
+vice
+> > tree parent."
+> >=20
+> > [1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v=
+1.0.pdf
+> >=20
+> > Regards,
+> > Benoit
+> >=20
+>=20
+>=20
+> --=20
+> P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
