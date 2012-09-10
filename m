@@ -1,47 +1,42 @@
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [balbi-usb:gadget 58/62] drivers/usb/gadget/ether.c:113:1: error:
- expected ')' before '.' token
-Date: Mon, 10 Sep 2012 16:06:48 +0200
-Message-ID: <504DF3F8.6080208@linutronix.de>
-References: <20120910135441.GA12990@localhost>
+From: Florian Vaussard <florian.vaussard@epfl.ch>
+Subject: Re: [PATCH 1/1] ARM: dts: OMAP3: Add gpio-twl4030 properties for
+ Overo
+Date: Mon, 10 Sep 2012 16:07:39 +0200
+Message-ID: <504DF42B.1060307@epfl.ch>
+References: <1347282996-31190-1-git-send-email-florian.vaussard@epfl.ch> <1347282996-31190-2-git-send-email-florian.vaussard@epfl.ch> <504DEA4E.7080109@ti.com> <504DEC36.4020704@epfl.ch> <504DEDB4.1070804@ti.com>
+Reply-To: florian.vaussard@epfl.ch
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:50194 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757174Ab2IJOGv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 10:06:51 -0400
-In-Reply-To: <20120910135441.GA12990@localhost>
+Received: from smtp0.epfl.ch ([128.178.224.219]:48341 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752862Ab2IJOHn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 10:07:43 -0400
+In-Reply-To: <504DEDB4.1070804@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Fengguang Wu <fengguang.wu@intel.com>
-Cc: kernel-janitors@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Steve Sakoman <steve@sakoman.com>, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 09/10/2012 03:54 PM, Fengguang Wu wrote:
-> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git g=
-adget
-> head:   7a7322b0a5d984025dd4faea9098b8fef07f8d8f
-> commit: 721e2e91945bc2520d57d795dfe1b502ecec567c [58/62] usb: gadget:=
- libcomposite: move composite.c into libcomposite
-> config: x86_64-randconfig-s284 (attached as .config)
+>>>
+>>> BTW, I'm just wondering. Cannot we use overo without tobi?
+>>>
+>>> In that case, the model and compatible should probably be used as well:
+>>>
+>>>      model = "TI OMAP3 Gumstix Overo";
+>>>      compatible = "ti,omap3-overo", "ti,omap3";
+>>
+>> No, it cannot. The Overo needs to be plugged into an expansion board, at
+>> least to get the power. Hence the absence of model and compatible in
+>> omap3-overo.dtsi.
 >
-> All related error/warning messages:
->
-> In file included from drivers/usb/gadget/ether.c:110:0:
-> drivers/usb/gadget/u_ether.c:87:21: error: expected ')' before 'uint'
+> OK, cool. I was wondering because we already have a board-overo.c in the
+> kernel, and there is no mention of tobi.
 
-That is the problem. u_ether.c lacks a "#include <linux/module.h>". It
-built here because I had rndis & EEM which included that file=85
+In board-overo.c, the various features of each expansion board are
+configured using CONFIG_* options, which is not possible when booting
+with a device tree.
 
-Thanks for finding this so quickly.
-
-=46elipe, patch on top or do fix up this commit?
-
-Sebastian
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Florian
