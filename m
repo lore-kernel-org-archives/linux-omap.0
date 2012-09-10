@@ -1,52 +1,144 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] watchdog: Convert twl4030_wdt to watchdog core
-Date: Tue, 11 Sep 2012 00:59:46 +0300
-Message-ID: <20120910215946.GB26184@blackmetal.musicnaut.iki.fi>
-References: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] arm/dts: Add omap3-beagle.dts
+Date: Mon, 10 Sep 2012 17:57:50 -0500
+Message-ID: <1347317870-13419-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:40822 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886Ab2IJV7u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 17:59:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43119 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753766Ab2IJW6B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 18:58:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-On Mon, Sep 10, 2012 at 06:44:46PM +0300, Jarkko Nikula wrote:
-> Convert the twl4030_wdt watchdog driver to watchdog core.
-> 
-> While at there use devm_kzalloc and set the default timeout in order to be
-> able test this driver with a simple shell script.
-> 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-> ---
->  drivers/watchdog/Kconfig       |    1 +
->  drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
->  2 files changed, 35 insertions(+), 149 deletions(-)
-> 
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 53d7571..21f6205 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
->  config OMAP_WATCHDOG
->  	tristate "OMAP Watchdog"
->  	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-> +	select WATCHDOG_CORE
+Add a minimal dts for original OMAP3430/3530 version of the Beagle board. This
+version of the Beagle board has 256MB of DDR and features the same TWL4030
+power management IC (PMIC) as the Beagle board XM.
 
-This should be under TWL4030_WATCHDOG.
+Given that the Beagle and Beagle-XM boards use the same PMIC, move the
+definition of the VSIM regulator into the TWL4030.dtsi file so that we do not
+need to duplicate in the Beagle board dts file.
 
-Otherwise the patch looks good. I briefly tested this with the converted
-OMAP watchdog driver, and now both drivers can register and co-exist
-happily on Nokia N9. Great!
+This has been boot tested on an OMAP3530 Beagle board and verifing that the
+SD/MMC interface is working with a SD card.
 
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+This patch is generated on top of Tony's patch for adding the Beagle board XM
+dts file [1].
 
-Thanks,
+[1] http://marc.info/?l=linux-omap&m=134695790516943&w=2
 
-A.
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/boot/dts/omap3-beagle-xm.dts |    6 -----
+ arch/arm/boot/dts/omap3-beagle.dts    |   46 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi        |    6 +++++
+ arch/arm/mach-omap2/Makefile.boot     |    3 ++-
+ 4 files changed, 54 insertions(+), 7 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-beagle.dts
+
+diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
+index df6d485..ef2c711 100644
+--- a/arch/arm/boot/dts/omap3-beagle-xm.dts
++++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
+@@ -26,12 +26,6 @@
+ 		reg = <0x48>;
+ 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+ 		interrupt-parent = <&intc>;
+-
+-		vsim: regulator-vsim {
+-			compatible = "ti,twl4030-vsim";
+-			regulator-min-microvolt = <1800000>;
+-			regulator-max-microvolt = <3000000>;
+-		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+new file mode 100644
+index 0000000..90790d9
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++
++/ {
++	model = "TI OMAP3 BeagleBoard";
++	compatible = "ti,omap3-beagle", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++};
++
++&i2c1 {
++	clock-frequency = <2600000>;
++
++	twl: twl@48 {
++		reg = <0x48>;
++		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
++		interrupt-parent = <&intc>;
++	};
++};
++
++/include/ "twl4030.dtsi"
++
++&mmc1 {
++	vmmc-supply = <&vmmc1>;
++	vmmc_aux-supply = <&vsim>;
++	bus-width = <8>;
++};
++
++&mmc2 {
++	status = "disabled";
++};
++
++&mmc3 {
++	status = "disabled";
++};
+diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
+index ff00017..c5337d4 100644
+--- a/arch/arm/boot/dts/twl4030.dtsi
++++ b/arch/arm/boot/dts/twl4030.dtsi
+@@ -37,6 +37,12 @@
+ 		regulator-max-microvolt = <3150000>;
+ 	};
+ 
++	vsim: regulator-vsim {
++		compatible = "ti,twl4030-vsim";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <3000000>;
++	};
++
+ 	twl_gpio: gpio {
+ 		compatible = "ti,twl4030-gpio";
+ 		gpio-controller;
+diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+index 0e602b7..a469a55 100644
+--- a/arch/arm/mach-omap2/Makefile.boot
++++ b/arch/arm/mach-omap2/Makefile.boot
+@@ -3,7 +3,8 @@ params_phys-y		:= 0x80000100
+ initrd_phys-y		:= 0x80800000
+ 
+ dtb-$(CONFIG_SOC_OMAP2420)	+= omap2420-h4.dtb
+-dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle-xm.dtb omap3-evm.dtb
++dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-beagle-xm.dtb \
++				   omap3-evm.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+ dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+ dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
+-- 
+1.7.9.5
+
