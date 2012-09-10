@@ -1,37 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: mux: add support for PAD wakeup event
- handler
-Date: Mon, 10 Sep 2012 11:39:44 -0700
-Message-ID: <20120910183943.GA1303@atomide.com>
-References: <1347273528-2056-1-git-send-email-ruslan.bilovol@ti.com>
+Subject: Re: [PATCH 2/2] pinctrl: pinctrl-single: Add pinctrl-single,bits
+ type of mux
+Date: Mon, 10 Sep 2012 11:49:55 -0700
+Message-ID: <20120910184955.GB1303@atomide.com>
+References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
+ <1346835718-21325-3-git-send-email-peter.ujfalusi@ti.com>
+ <CACRpkdbiCV4sKy2JAb6Yu5EuOVbfhq46yu5FRy7MXNT3QR6gaw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41161 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932142Ab2IJSju (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 14:39:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1347273528-2056-1-git-send-email-ruslan.bilovol@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CACRpkdbiCV4sKy2JAb6Yu5EuOVbfhq46yu5FRy7MXNT3QR6gaw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ruslan Bilovol <ruslan.bilovol@ti.com>
-Cc: linux@arm.linux.org.uk, b-cousson@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, keshava_mgowda@ti.com
 
-* Ruslan Bilovol <ruslan.bilovol@ti.com> [120910 03:39]:
-> OMAP mux now parses active wakeup events from pad registers and calls
-> corresponding handler, if handler is not registered - corresponding
-> hwmod ISRs once a wakeup is detected.
-> This is useful for cases when routing wakeups to corresponding hwmod
-> ISRs complicates those ISRs handlers (for example, ISR handler may
-> not know who the interrupt source is)
+* Linus Walleij <linus.walleij@linaro.org> [120910 00:11]:
+> On Wed, Sep 5, 2012 at 11:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> 
+> > With pinctrl-single,bits it is possible to update just part of the register
+> > within the pinctrl-single,function-mask area.
+> > This is useful when one register configures mmore than one pin's mux.
+> >
+> > pinctrl-single,bits takes three parameters:
+> > <reg offset, value, sub-mask>
+> >
+> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> 
+> Do we have a conclusion on this patch 2/2?
+> 
+> I'm holding it back until Tony explicitly ACKs it for now.
 
-The mux code in arch/arm/mach-omap2 will be going away and replaced
-by device tree based pinctrl-single. It's not a good idea to add more
-dependencies to custom frameworks as that just makes the transition
-harder on us.
-
-Regards,
+I don't like the idea of mixing different types of controllers
+here, so let's wait a little bit on 2/2.
 
 Tony
-
