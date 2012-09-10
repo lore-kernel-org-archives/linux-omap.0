@@ -1,38 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: pinctrl-single: Add pinctrl-single,bits
- type of mux
-Date: Mon, 10 Sep 2012 11:49:55 -0700
-Message-ID: <20120910184955.GB1303@atomide.com>
-References: <1346835718-21325-1-git-send-email-peter.ujfalusi@ti.com>
- <1346835718-21325-3-git-send-email-peter.ujfalusi@ti.com>
- <CACRpkdbiCV4sKy2JAb6Yu5EuOVbfhq46yu5FRy7MXNT3QR6gaw@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT*
+ read/write
+Date: Mon, 10 Sep 2012 11:55:35 -0700
+Message-ID: <20120910185535.GC1303@atomide.com>
+References: <alpine.DEB.2.00.1209052333410.11516@utopia.booyaka.com>
+ <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com>
+ <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60802 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757867Ab2IJSzk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 14:55:40 -0400
 Content-Disposition: inline
-In-Reply-To: <CACRpkdbiCV4sKy2JAb6Yu5EuOVbfhq46yu5FRy7MXNT3QR6gaw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-* Linus Walleij <linus.walleij@linaro.org> [120910 00:11]:
-> On Wed, Sep 5, 2012 at 11:01 AM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120908 01:20]:
 > 
-> > With pinctrl-single,bits it is possible to update just part of the register
-> > within the pinctrl-single,function-mask area.
-> > This is useful when one register configures mmore than one pin's mux.
-> >
-> > pinctrl-single,bits takes three parameters:
-> > <reg offset, value, sub-mask>
-> >
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> 
-> Do we have a conclusion on this patch 2/2?
-> 
-> I'm holding it back until Tony explicitly ACKs it for now.
+> Will you able to pick up these couple of wakeupgen fixes from  here or
+> do you want me to send you a pull request for 3.6-rc5/6
 
-I don't like the idea of mixing different types of controllers
-here, so let's wait a little bit on 2/2.
+I can pick them into fixes-noncritical. But if the second one is
+a major bug for the -rc series, the patch should be describe what
+breaks (regression? oops?).
+
+Regards,
 
 Tony
