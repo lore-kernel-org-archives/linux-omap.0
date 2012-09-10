@@ -1,144 +1,131 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] arm/dts: Add omap3-beagle.dts
-Date: Mon, 10 Sep 2012 17:57:50 -0500
-Message-ID: <1347317870-13419-1-git-send-email-jon-hunter@ti.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: Seeking clarity on IRQCHIP_MASK_ON_SUSPEND
+Date: Tue, 11 Sep 2012 09:42:52 +1000
+Message-ID: <20120911094252.0e78a8f9@notabene.brown>
+References: <20120910165127.37dd07f3@notabene.brown>
+	<alpine.LFD.2.02.1209101215300.2724@ionos>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43119 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753766Ab2IJW6B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 18:58:01 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/lyusIv1AeH1QaHHCEhUcZsx"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.02.1209101215300.2724@ionos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Add a minimal dts for original OMAP3430/3530 version of the Beagle board. This
-version of the Beagle board has 256MB of DDR and features the same TWL4030
-power management IC (PMIC) as the Beagle board XM.
+--Sig_/lyusIv1AeH1QaHHCEhUcZsx
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Given that the Beagle and Beagle-XM boards use the same PMIC, move the
-definition of the VSIM regulator into the TWL4030.dtsi file so that we do not
-need to duplicate in the Beagle board dts file.
+On Mon, 10 Sep 2012 12:28:35 +0200 (CEST) Thomas Gleixner
+<tglx@linutronix.de> wrote:
 
-This has been boot tested on an OMAP3530 Beagle board and verifing that the
-SD/MMC interface is working with a SD card.
+> On Mon, 10 Sep 2012, NeilBrown wrote:
+> >=20
+> > The IRQCHIP_MASK_ON_SUSPEND flag seems to be hard to use correctly, so =
+either
+> > I'm understanding it wrongly, or it could be made easier to use.
+> > If the first case, I'm hoping that some improvement to documentation mi=
+ght
+> > result.  If the second, then maybe we can fix the code.
+> ...=20
+> > Is anyone able to give a definitive answer on this?  Should
+> > IRQCHIP_MASK_ON_SUSPEND be removed?
+>=20
+> The whole point of IRQCHIP_MASK_ON_SUSPEND is to deal with hardware
+> designed by geniuses.
+>=20
+> Most SoCs have a way to mark the interrupts which serve as a wake up
+> source as such. All other interrupts are magically "masked" on entry
+> to suspend.
+>=20
+> Now there is hardware which is missing such a control, so we need to
+> mask the non wakeup interrupts right before going into suspend.
 
-This patch is generated on top of Tony's patch for adding the Beagle board XM
-dts file [1].
+Even allowing for the obvious sarcasm, I'm having a lot of trouble
+understanding the nature of this 'bad' hardware.
 
-[1] http://marc.info/?l=linux-omap&m=134695790516943&w=2
+My understand of the SoC world is that the goal is for 'suspend' to be no
+different from deep runtime PM (from a hardware perspective).  So where the=
+re
+is a way to mark an interrupt as a wakeup source, this is used both to supp=
+ort
+wakeup from suspend, and to support wakeup from deep runtime-PM
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/boot/dts/omap3-beagle-xm.dts |    6 -----
- arch/arm/boot/dts/omap3-beagle.dts    |   46 +++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/twl4030.dtsi        |    6 +++++
- arch/arm/mach-omap2/Makefile.boot     |    3 ++-
- 4 files changed, 54 insertions(+), 7 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-beagle.dts
+When it is used to wake-from-runtime-PM, the lazy interrupt masking is
+sufficient to mask it when needed - the extra wakeup isn't a big cost.
+When it is used to wake-from-suspend - lazy interrupt masking can cause an
+unwanted wake from suspend which is much more expensive.
 
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index df6d485..ef2c711 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -26,12 +26,6 @@
- 		reg = <0x48>;
- 		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
- 		interrupt-parent = <&intc>;
--
--		vsim: regulator-vsim {
--			compatible = "ti,twl4030-vsim";
--			regulator-min-microvolt = <1800000>;
--			regulator-max-microvolt = <3000000>;
--		};
- 	};
- };
- 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-new file mode 100644
-index 0000000..90790d9
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -0,0 +1,46 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI OMAP3 BeagleBoard";
-+	compatible = "ti,omap3-beagle", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-parent = <&intc>;
-+	};
-+};
-+
-+/include/ "twl4030.dtsi"
-+
-+&mmc1 {
-+	vmmc-supply = <&vmmc1>;
-+	vmmc_aux-supply = <&vsim>;
-+	bus-width = <8>;
-+};
-+
-+&mmc2 {
-+	status = "disabled";
-+};
-+
-+&mmc3 {
-+	status = "disabled";
-+};
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index ff00017..c5337d4 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -37,6 +37,12 @@
- 		regulator-max-microvolt = <3150000>;
- 	};
- 
-+	vsim: regulator-vsim {
-+		compatible = "ti,twl4030-vsim";
-+		regulator-min-microvolt = <1800000>;
-+		regulator-max-microvolt = <3000000>;
-+	};
-+
- 	twl_gpio: gpio {
- 		compatible = "ti,twl4030-gpio";
- 		gpio-controller;
-diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
-index 0e602b7..a469a55 100644
---- a/arch/arm/mach-omap2/Makefile.boot
-+++ b/arch/arm/mach-omap2/Makefile.boot
-@@ -3,7 +3,8 @@ params_phys-y		:= 0x80000100
- initrd_phys-y		:= 0x80800000
- 
- dtb-$(CONFIG_SOC_OMAP2420)	+= omap2420-h4.dtb
--dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle-xm.dtb omap3-evm.dtb
-+dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-beagle-xm.dtb \
-+				   omap3-evm.dtb
- dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
- dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
- dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
--- 
-1.7.9.5
+So even with sane hardware that supports marking interrupts as wakeup
+sources, we still need do extra explicit masking for the suspend case, and
+IRQCHIP_MASK_ON_SUSPEND looks like the tool to use ... except that as
+described previously it doesn't work.
 
+>=20
+> That's what IRQCHIP_MASK_ON_SUSPEND does. Not more, not less. See
+> commit d209a699a0b for more ugly details.
+
+One detail that I get from that commit is that it was 'Reviewed-by' someone
+from 'codeaurora', and that name appears in the pm8xxx-irq.c driver which is
+one of the two users.  However that driver can only be used if
+CONFIG_MSM_SSBI, and nothing ever devices that so it all seems completely
+theoretical.
+
+>=20
+> You might be looking for a different functionality. Can you explain
+> what you need?
+
+I want as particular GPIO interrupt to be masked before entering suspend.
+I produced code to get the ->suspend() callback to perform this masking.
+Another developer (Santosh) felt that IRQCHIP_MASK_ON_SUSPEND was the
+preferred way to do this and on the surface this looks like it should be
+correct.  However it doesn't work as explained previously.
+I want a resolution to this difference of opinion that doesn't just sweep t=
+he
+issue under that carpet but provides a clear answer to this sort of issue.
+
+My current opinion is that IRQCHIP_MASK_ON_SUSPEND should be discarded.  The
+patch which introduced it says:
+
+    Rather than working around this in the affected interrupt chip
+    implementations we can solve this elegant in the core code itself.
+   =20
+It appears that the solution in core code, while elegant, is wrong.  It
+happens too late to be generally usable.  It is easy enough to handle this
+issue in the interrupt chip drivers so maybe that is the best place to hand=
+le
+it.
+
+The the very least I think we need a big comment saying the
+IRQCHIP_MASK_ON_SUSPEND can only be used for irqchips which can always be
+programmed, even when they are suspended from an runtime-PM perspective,
+and that those chips must handle masking in their 'suspend' callback.
+
+Thank,
+NeilBrown
+
+--Sig_/lyusIv1AeH1QaHHCEhUcZsx
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBUE56/Dnsnt1WYoG5AQLD0BAAiGhsER6uFgcff7IZH5y3hUitqpI4vnTG
+5WJ8Lw2Ta3DGDwy9WGbB1zy28FiBOph7XrgqZDDKPgJlJYmq6nWA5DGrIWdFTj1i
+fCl33BbdR3Fdms4QSkmXLnJBlA60mUblboXZvUY9sp4AJLvMLitwJg6lFRrnahsG
+tA67OFBQt4C7OMrwcrE1or706mNG2vBCyF/Zq4eyCtPyogypP6lIIszHBvyIDEiL
+SGHqGsi/TBO3SMapnqttpXQ+QCgrAa3r8AsHspvO97nNakGUaSjh1rLyRrRWCAml
+f+/1FN5wJbAALHZIHR9P72rVtEtZK76bh0Gt8P7bJ3v+oV8NPmY+/lS/Lifc9Xiy
+x8iKPsZnCCeHYT2u4IGT9/ZLJHiqt3vWWHEPtJvC+msT5A70aGb+UVZg7Qu8MSEK
+T3EUDefva7uvSv0z/F2so2JQoMmHO5VSKOsZvqI03l+daV6YKXoahNTZ5jEEsYZx
+RsAPyKiY5ANXmlBFQHP8WYxbwn3W0JrZGcFTwzuM988j6QD5b551z3gcdIq4a5HI
+FSzuPonMPC0SXj59hMQ1mK0WC/eSkF8Ql9LVWkFeic+lrWoesZjxLBTJN484/E5G
+7O62TF1WgGutHm1m1fmCTv3qtUl0/7DJwNEuCKEvIsiqsD8Q0SQxjyYv5Bbf9LgB
+9+TZ2aBtIYg=
+=YwLf
+-----END PGP SIGNATURE-----
+
+--Sig_/lyusIv1AeH1QaHHCEhUcZsx--
