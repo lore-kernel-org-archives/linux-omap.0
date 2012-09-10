@@ -1,520 +1,67 @@
-From: "Vutla, Lokesh" <lokeshvutla@ti.com>
-Subject: Re: [PATCH v2] watchdog: omap_wdt: convert to new watchdog core
-Date: Mon, 10 Sep 2012 15:02:47 +0530
-Message-ID: <CAJ1gdcZMoBWpq1ODk68iZoF1ueHyJv-NCp+P4ipy7uSa8tE7pw@mail.gmail.com>
-References: <1347127441-23125-1-git-send-email-aaro.koskinen@iki.fi>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: Re: [PATCH v4 1/2] ARM: new cache maintenance api for iommu
+Date: Mon, 10 Sep 2012 15:51:35 +0530
+Message-ID: <CADysL2Y7RP1OUthWri2v6cSqk-CRTh2R7urec7P2NdhaZ09KmA@mail.gmail.com>
+References: <CADysL2bGP_FKW4dnxM4zbziOPfrbAemRazZYd_mS9i++bZGcqQ@mail.gmail.com>
+	<20120908101420.GA28448@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347127441-23125-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.nikula@bitmer.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:43975 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751533Ab2IJKVh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 06:21:37 -0400
+Received: by iebc10 with SMTP id c10so5524489ieb.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 03:21:36 -0700 (PDT)
+In-Reply-To: <20120908101420.GA28448@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 
-On Sat, Sep 8, 2012 at 11:34 PM, Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
-> Convert omap_wdt to new watchdog core. On OMAP boards, there are usually
-> multiple watchdogs. Since the new watchdog core supports multiple
-> watchdogs, all watchdog drivers used on OMAP should be converted.
->
-> The legacy watchdog device node is still created, so this should not
-> break existing users.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->
-> v2: Fix a bug in the first version of the patch: __omap_wdt_disable()
-> in probe was mistakenly moved outside PM runtime calls. This caused a
-> crash as device was probably accessed with some clocks off. Thanks to
-> Jarkko Nikula <jarkko.nikula@bitmer.com> for reporting this.
+Hi Russell,
 
-Tested with various watchdog testcases. Seems to work fine.
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+
+On Sat, Sep 8, 2012 at 3:44 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Thu, Jul 05, 2012 at 10:50:17AM +0530, Gupta, Ramesh wrote:
+>> + *   flush_iommu_mem(start, end)
+>> + *
+>> + *           Clean and invalidate the specified virtual address range.
+>> + *           This is to support the non coherent iommu drivers.
+>> + *           The iommu driver need to call this api with the page
+>> + *           table memory address range to ensure the data held in
+>> + *           the cache is visible to the slave processor MMU.
+>> + *           - start  - virtual start address
+>> + *           - end    - virtual end address
+>
+> I think:
+>         iommu_flush_range(start, end)
+> or
+>         iommu_flush_area(start, size)
+>                 Perform CPU specific cache operations are required to
+>                 ensure that the IOMMU page table mappings covering the
+>                 specified block of memory are visiable to the IOMMU.
+
+I prefer iommu_flush_area(start, size).
 
 >
->  drivers/watchdog/Kconfig    |    1 +
->  drivers/watchdog/omap_wdt.c |  266 ++++++++++++++++++-------------------------
->  2 files changed, 114 insertions(+), 153 deletions(-)
->
-> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-> index 0526c7a..212b566 100644
-> --- a/drivers/watchdog/Kconfig
-> +++ b/drivers/watchdog/Kconfig
-> @@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
->  config OMAP_WATCHDOG
->         tristate "OMAP Watchdog"
->         depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
-> +       select WATCHDOG_CORE
->         help
->           Support for TI OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog.  Say 'Y'
->           here to enable the OMAP1610/OMAP1710/OMAP2420/OMAP3430/OMAP4430 watchdog timer.
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index fceec4f..1636f2c 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -31,18 +31,14 @@
->  #include <linux/module.h>
->  #include <linux/types.h>
->  #include <linux/kernel.h>
-> -#include <linux/fs.h>
->  #include <linux/mm.h>
-> -#include <linux/miscdevice.h>
->  #include <linux/watchdog.h>
->  #include <linux/reboot.h>
->  #include <linux/init.h>
->  #include <linux/err.h>
->  #include <linux/platform_device.h>
->  #include <linux/moduleparam.h>
-> -#include <linux/bitops.h>
->  #include <linux/io.h>
-> -#include <linux/uaccess.h>
->  #include <linux/slab.h>
->  #include <linux/pm_runtime.h>
->  #include <mach/hardware.h>
-> @@ -50,24 +46,20 @@
->
->  #include "omap_wdt.h"
->
-> -static struct platform_device *omap_wdt_dev;
-> -
->  static unsigned timer_margin;
->  module_param(timer_margin, uint, 0);
->  MODULE_PARM_DESC(timer_margin, "initial watchdog timeout (in seconds)");
->
-> -static unsigned int wdt_trgr_pattern = 0x1234;
-> -static DEFINE_SPINLOCK(wdt_lock);
-> -
->  struct omap_wdt_dev {
->         void __iomem    *base;          /* physical */
->         struct device   *dev;
-> -       int             omap_wdt_users;
-> +       bool            omap_wdt_users;
->         struct resource *mem;
-> -       struct miscdevice omap_wdt_miscdev;
-> +       int             wdt_trgr_pattern;
-> +       struct mutex    lock;           /* to avoid races with PM */
->  };
->
-> -static void omap_wdt_ping(struct omap_wdt_dev *wdev)
-> +static void __omap_wdt_ping(struct omap_wdt_dev *wdev)
->  {
->         void __iomem    *base = wdev->base;
->
-> @@ -75,8 +67,8 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
->         while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
->                 cpu_relax();
->
-> -       wdt_trgr_pattern = ~wdt_trgr_pattern;
-> -       __raw_writel(wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
-> +       wdev->wdt_trgr_pattern = ~wdev->wdt_trgr_pattern;
-> +       __raw_writel(wdev->wdt_trgr_pattern, (base + OMAP_WATCHDOG_TGR));
->
->         /* wait for posted write to complete */
->         while ((__raw_readl(base + OMAP_WATCHDOG_WPS)) & 0x08)
-> @@ -84,7 +76,7 @@ static void omap_wdt_ping(struct omap_wdt_dev *wdev)
->         /* reloaded WCRR from WLDR */
->  }
->
-> -static void omap_wdt_enable(struct omap_wdt_dev *wdev)
-> +static void __omap_wdt_enable(struct omap_wdt_dev *wdev)
->  {
->         void __iomem *base = wdev->base;
->
-> @@ -98,7 +90,7 @@ static void omap_wdt_enable(struct omap_wdt_dev *wdev)
->                 cpu_relax();
->  }
->
-> -static void omap_wdt_disable(struct omap_wdt_dev *wdev)
-> +static void __omap_wdt_disable(struct omap_wdt_dev *wdev)
->  {
->         void __iomem *base = wdev->base;
->
-> @@ -112,18 +104,10 @@ static void omap_wdt_disable(struct omap_wdt_dev *wdev)
->                 cpu_relax();
->  }
->
-> -static void omap_wdt_adjust_timeout(unsigned new_timeout)
-> -{
-> -       if (new_timeout < TIMER_MARGIN_MIN)
-> -               new_timeout = TIMER_MARGIN_DEFAULT;
-> -       if (new_timeout > TIMER_MARGIN_MAX)
-> -               new_timeout = TIMER_MARGIN_MAX;
-> -       timer_margin = new_timeout;
-> -}
-> -
-> -static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
-> +static void __omap_wdt_set_timeout(struct omap_wdt_dev *wdev,
-> +                                  unsigned int timeout)
->  {
-> -       u32 pre_margin = GET_WLDR_VAL(timer_margin);
-> +       u32 pre_margin = GET_WLDR_VAL(timeout);
->         void __iomem *base = wdev->base;
->
->         /* just count up at 32 KHz */
-> @@ -135,16 +119,14 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
->                 cpu_relax();
->  }
->
-> -/*
-> - *     Allow only one task to hold it open
-> - */
-> -static int omap_wdt_open(struct inode *inode, struct file *file)
-> +static int omap_wdt_start(struct watchdog_device *wdog)
->  {
-> -       struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->         void __iomem *base = wdev->base;
->
-> -       if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
-> -               return -EBUSY;
-> +       mutex_lock(&wdev->lock);
-> +
-> +       wdev->omap_wdt_users = true;
->
->         pm_runtime_get_sync(wdev->dev);
->
-> @@ -156,115 +138,79 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
->         while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
->                 cpu_relax();
->
-> -       file->private_data = (void *) wdev;
-> +       __omap_wdt_set_timeout(wdev, wdog->timeout);
-> +       __omap_wdt_ping(wdev); /* trigger loading of new timeout value */
-> +       __omap_wdt_enable(wdev);
->
-> -       omap_wdt_set_timeout(wdev);
-> -       omap_wdt_ping(wdev); /* trigger loading of new timeout value */
-> -       omap_wdt_enable(wdev);
-> +       mutex_unlock(&wdev->lock);
->
-> -       return nonseekable_open(inode, file);
-> +       return 0;
->  }
->
-> -static int omap_wdt_release(struct inode *inode, struct file *file)
-> +static int omap_wdt_stop(struct watchdog_device *wdog)
->  {
-> -       struct omap_wdt_dev *wdev = file->private_data;
-> -
-> -       /*
-> -        *      Shut off the timer unless NOWAYOUT is defined.
-> -        */
-> -#ifndef CONFIG_WATCHDOG_NOWAYOUT
-> -       omap_wdt_disable(wdev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->
-> +       mutex_lock(&wdev->lock);
-> +       __omap_wdt_disable(wdev);
->         pm_runtime_put_sync(wdev->dev);
-> -#else
-> -       pr_crit("Unexpected close, not stopping!\n");
-> -#endif
-> -       wdev->omap_wdt_users = 0;
-> -
-> +       wdev->omap_wdt_users = false;
-> +       mutex_unlock(&wdev->lock);
->         return 0;
->  }
->
-> -static ssize_t omap_wdt_write(struct file *file, const char __user *data,
-> -               size_t len, loff_t *ppos)
-> +static int omap_wdt_ping(struct watchdog_device *wdog)
->  {
-> -       struct omap_wdt_dev *wdev = file->private_data;
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->
-> -       /* Refresh LOAD_TIME. */
-> -       if (len) {
-> -               spin_lock(&wdt_lock);
-> -               omap_wdt_ping(wdev);
-> -               spin_unlock(&wdt_lock);
-> -       }
-> -       return len;
-> +       mutex_lock(&wdev->lock);
-> +       __omap_wdt_ping(wdev);
-> +       mutex_unlock(&wdev->lock);
-> +
-> +       return 0;
->  }
->
-> -static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
-> -                                               unsigned long arg)
-> +static int omap_wdt_set_timeout(struct watchdog_device *wdog,
-> +                               unsigned int timeout)
->  {
-> -       struct omap_wdt_dev *wdev;
-> -       int new_margin;
-> -       static const struct watchdog_info ident = {
-> -               .identity = "OMAP Watchdog",
-> -               .options = WDIOF_SETTIMEOUT,
-> -               .firmware_version = 0,
-> -       };
-> -
-> -       wdev = file->private_data;
-> -
-> -       switch (cmd) {
-> -       case WDIOC_GETSUPPORT:
-> -               return copy_to_user((struct watchdog_info __user *)arg, &ident,
-> -                               sizeof(ident));
-> -       case WDIOC_GETSTATUS:
-> -               return put_user(0, (int __user *)arg);
-> -       case WDIOC_GETBOOTSTATUS:
-> -               if (cpu_is_omap16xx())
-> -                       return put_user(__raw_readw(ARM_SYSST),
-> -                                       (int __user *)arg);
-> -               if (cpu_is_omap24xx())
-> -                       return put_user(omap_prcm_get_reset_sources(),
-> -                                       (int __user *)arg);
-> -               return put_user(0, (int __user *)arg);
-> -       case WDIOC_KEEPALIVE:
-> -               spin_lock(&wdt_lock);
-> -               omap_wdt_ping(wdev);
-> -               spin_unlock(&wdt_lock);
-> -               return 0;
-> -       case WDIOC_SETTIMEOUT:
-> -               if (get_user(new_margin, (int __user *)arg))
-> -                       return -EFAULT;
-> -               omap_wdt_adjust_timeout(new_margin);
-> -
-> -               spin_lock(&wdt_lock);
-> -               omap_wdt_disable(wdev);
-> -               omap_wdt_set_timeout(wdev);
-> -               omap_wdt_enable(wdev);
-> -
-> -               omap_wdt_ping(wdev);
-> -               spin_unlock(&wdt_lock);
-> -               /* Fall */
-> -       case WDIOC_GETTIMEOUT:
-> -               return put_user(timer_margin, (int __user *)arg);
-> -       default:
-> -               return -ENOTTY;
-> -       }
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
-> +
-> +       mutex_lock(&wdev->lock);
-> +       __omap_wdt_disable(wdev);
-> +       __omap_wdt_set_timeout(wdev, timeout);
-> +       __omap_wdt_enable(wdev);
-> +       __omap_wdt_ping(wdev);
-> +       wdog->timeout = timeout;
-> +       mutex_unlock(&wdev->lock);
-> +
-> +       return 0;
->  }
->
-> -static const struct file_operations omap_wdt_fops = {
-> -       .owner = THIS_MODULE,
-> -       .write = omap_wdt_write,
-> -       .unlocked_ioctl = omap_wdt_ioctl,
-> -       .open = omap_wdt_open,
-> -       .release = omap_wdt_release,
-> -       .llseek = no_llseek,
-> +static const struct watchdog_info omap_wdt_info = {
-> +       .options = WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
-> +       .identity = "OMAP Watchdog",
-> +};
-> +
-> +static const struct watchdog_ops omap_wdt_ops = {
-> +       .owner          = THIS_MODULE,
-> +       .start          = omap_wdt_start,
-> +       .stop           = omap_wdt_stop,
-> +       .ping           = omap_wdt_ping,
-> +       .set_timeout    = omap_wdt_set_timeout,
->  };
->
->  static int __devinit omap_wdt_probe(struct platform_device *pdev)
->  {
-> +       bool nowayout = WATCHDOG_NOWAYOUT;
-> +       struct watchdog_device *omap_wdt;
->         struct resource *res, *mem;
->         struct omap_wdt_dev *wdev;
->         int ret;
->
-> +       omap_wdt = kzalloc(sizeof(*omap_wdt), GFP_KERNEL);
-> +       if (!omap_wdt)
-> +               return -ENOMEM;
-> +
->         /* reserve static register mappings */
->         res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->         if (!res) {
-> @@ -272,11 +218,6 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->                 goto err_get_resource;
->         }
->
-> -       if (omap_wdt_dev) {
-> -               ret = -EBUSY;
-> -               goto err_busy;
-> -       }
-> -
->         mem = request_mem_region(res->start, resource_size(res), pdev->name);
->         if (!mem) {
->                 ret = -EBUSY;
-> @@ -289,9 +230,30 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->                 goto err_kzalloc;
->         }
->
-> -       wdev->omap_wdt_users = 0;
-> -       wdev->mem = mem;
-> -       wdev->dev = &pdev->dev;
-> +       omap_wdt->info        = &omap_wdt_info;
-> +       omap_wdt->ops         = &omap_wdt_ops;
-> +       omap_wdt->min_timeout = TIMER_MARGIN_MIN;
-> +       omap_wdt->max_timeout = TIMER_MARGIN_MAX;
-> +
-> +       if (timer_margin >= TIMER_MARGIN_MIN &&
-> +           timer_margin <= TIMER_MARGIN_MAX)
-> +               omap_wdt->timeout = timer_margin;
-> +       else
-> +               omap_wdt->timeout = TIMER_MARGIN_DEFAULT;
-> +
-> +       if (cpu_is_omap16xx())
-> +               omap_wdt->bootstatus = __raw_readw(ARM_SYSST);
-> +       else if (cpu_is_omap24xx())
-> +               omap_wdt->bootstatus = omap_prcm_get_reset_sources();
-> +
-> +       watchdog_set_drvdata(omap_wdt, wdev);
-> +       watchdog_set_nowayout(omap_wdt, nowayout);
-> +
-> +       wdev->omap_wdt_users    = false;
-> +       wdev->mem               = mem;
-> +       wdev->dev               = &pdev->dev;
-> +       wdev->wdt_trgr_pattern  = 0x1234;
-> +       mutex_init(&wdev->lock);
->
->         wdev->base = ioremap(res->start, resource_size(res));
->         if (!wdev->base) {
-> @@ -299,31 +261,23 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->                 goto err_ioremap;
->         }
->
-> -       platform_set_drvdata(pdev, wdev);
-> +       platform_set_drvdata(pdev, omap_wdt);
->
->         pm_runtime_enable(wdev->dev);
->         pm_runtime_get_sync(wdev->dev);
->
-> -       omap_wdt_disable(wdev);
-> -       omap_wdt_adjust_timeout(timer_margin);
-> +       __omap_wdt_disable(wdev);
->
-> -       wdev->omap_wdt_miscdev.parent = &pdev->dev;
-> -       wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
-> -       wdev->omap_wdt_miscdev.name = "watchdog";
-> -       wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
-> -
-> -       ret = misc_register(&(wdev->omap_wdt_miscdev));
-> +       ret = watchdog_register_device(omap_wdt);
->         if (ret)
->                 goto err_misc;
->
->         pr_info("OMAP Watchdog Timer Rev 0x%02x: initial timeout %d sec\n",
->                 __raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
-> -               timer_margin);
-> +               omap_wdt->timeout);
->
->         pm_runtime_put_sync(wdev->dev);
->
-> -       omap_wdt_dev = pdev;
-> -
->         return 0;
->
->  err_misc:
-> @@ -340,37 +294,38 @@ err_kzalloc:
->
->  err_busy:
->  err_get_resource:
-> -
-> +       kfree(omap_wdt);
->         return ret;
->  }
->
->  static void omap_wdt_shutdown(struct platform_device *pdev)
->  {
-> -       struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-> +       struct watchdog_device *wdog = platform_get_drvdata(pdev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->
-> +       mutex_lock(&wdev->lock);
->         if (wdev->omap_wdt_users) {
-> -               omap_wdt_disable(wdev);
-> +               __omap_wdt_disable(wdev);
->                 pm_runtime_put_sync(wdev->dev);
->         }
-> +       mutex_unlock(&wdev->lock);
->  }
->
->  static int __devexit omap_wdt_remove(struct platform_device *pdev)
->  {
-> -       struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-> +       struct watchdog_device *wdog = platform_get_drvdata(pdev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->         struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->
->         pm_runtime_disable(wdev->dev);
-> -       if (!res)
-> -               return -ENOENT;
-> -
-> -       misc_deregister(&(wdev->omap_wdt_miscdev));
-> +       watchdog_unregister_device(wdog);
->         release_mem_region(res->start, resource_size(res));
->         platform_set_drvdata(pdev, NULL);
->
->         iounmap(wdev->base);
->
->         kfree(wdev);
-> -       omap_wdt_dev = NULL;
-> +       kfree(wdog);
->
->         return 0;
->  }
-> @@ -385,25 +340,31 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
->
->  static int omap_wdt_suspend(struct platform_device *pdev, pm_message_t state)
->  {
-> -       struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-> +       struct watchdog_device *wdog = platform_get_drvdata(pdev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->
-> +       mutex_lock(&wdev->lock);
->         if (wdev->omap_wdt_users) {
-> -               omap_wdt_disable(wdev);
-> +               __omap_wdt_disable(wdev);
->                 pm_runtime_put_sync(wdev->dev);
->         }
-> +       mutex_unlock(&wdev->lock);
->
->         return 0;
->  }
->
->  static int omap_wdt_resume(struct platform_device *pdev)
->  {
-> -       struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
-> +       struct watchdog_device *wdog = platform_get_drvdata(pdev);
-> +       struct omap_wdt_dev *wdev = watchdog_get_drvdata(wdog);
->
-> +       mutex_lock(&wdev->lock);
->         if (wdev->omap_wdt_users) {
->                 pm_runtime_get_sync(wdev->dev);
-> -               omap_wdt_enable(wdev);
-> -               omap_wdt_ping(wdev);
-> +               __omap_wdt_enable(wdev);
-> +               __omap_wdt_ping(wdev);
->         }
-> +       mutex_unlock(&wdev->lock);
->
->         return 0;
->  }
-> @@ -436,5 +397,4 @@ module_platform_driver(omap_wdt_driver);
->
->  MODULE_AUTHOR("George G. Davis");
->  MODULE_LICENSE("GPL");
-> -MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
->  MODULE_ALIAS("platform:omap_wdt");
-> --
-> 1.7.2.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> Notice that it's defined by purpose, not by implementation.  Also notice
+> the distinction between _range taking two addresses, and _area taking
+> a start plus size.
+> Also notice that it is defined just for IOMMU page tables, not for general
+> data for other processors.
+
+Agree with your comments, may be I can add an explicit comment for not
+using these apis other than IOMMU page tables.
+
+
+> Note that iommu_flush_area is safer if your virt_to_phys() are non-linear.
+
+Agree, I will send an updated patch series with iommu_flush_area.
+
+thank you for the review comments.
+
+Best regards
+Ramesh Gupta G
