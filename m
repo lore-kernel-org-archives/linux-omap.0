@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 01/14] MFD: twl4030-audio: Clean up MODULE_*
-	and platform_driver part
-Date: Mon, 10 Sep 2012 13:46:19 +0300
-Message-ID: <1347273992-9107-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 02/14] MFD: twl4030-audio: Convert to use
+	devm_kzalloc
+Date: Mon, 10 Sep 2012 13:46:20 +0300
+Message-ID: <1347273992-9107-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1347273992-9107-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,40 +22,53 @@ To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 Cc: alsa-devel@alsa-project.org, Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Place the MODULE_* lines in the same block and add MODULE_DESCRIPTION.
-Rearange the platform_driver structure at the same time.
+To clean up the module probe and remove functions.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- drivers/mfd/twl4030-audio.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mfd/twl4030-audio.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index 838ce4e..ac04b4f 100644
+index ac04b4f..efa2d42 100644
 --- a/drivers/mfd/twl4030-audio.c
 +++ b/drivers/mfd/twl4030-audio.c
-@@ -250,18 +250,18 @@ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
- 	return 0;
+@@ -188,7 +188,8 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+ 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
+ 					val, TWL4030_REG_APLL_CTL);
+ 
+-	audio = kzalloc(sizeof(struct twl4030_audio), GFP_KERNEL);
++	audio = devm_kzalloc(&pdev->dev, sizeof(struct twl4030_audio),
++			     GFP_KERNEL);
+ 	if (!audio)
+ 		return -ENOMEM;
+ 
+@@ -229,22 +230,18 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+ 		ret = -ENODEV;
+ 	}
+ 
+-	if (!ret)
+-		return 0;
++	if (ret) {
++		platform_set_drvdata(pdev, NULL);
++		twl4030_audio_dev = NULL;
++	}
+ 
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(audio);
+-	twl4030_audio_dev = NULL;
+ 	return ret;
  }
  
--MODULE_ALIAS("platform:twl4030-audio");
+ static int __devexit twl4030_audio_remove(struct platform_device *pdev)
+ {
+-	struct twl4030_audio *audio = platform_get_drvdata(pdev);
 -
- static struct platform_driver twl4030_audio_driver = {
--	.probe		= twl4030_audio_probe,
--	.remove		= __devexit_p(twl4030_audio_remove),
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "twl4030-audio",
- 	},
-+	.probe		= twl4030_audio_probe,
-+	.remove		= __devexit_p(twl4030_audio_remove),
- };
+ 	mfd_remove_devices(&pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(audio);
+ 	twl4030_audio_dev = NULL;
  
- module_platform_driver(twl4030_audio_driver);
- 
- MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
-+MODULE_DESCRIPTION("TWL4030 audio block MFD driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:twl4030-audio");
+ 	return 0;
 -- 
 1.7.12
