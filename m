@@ -1,105 +1,139 @@
-From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: dts: AM33XX: fix gpio node numbering to match
- hardware
-Date: Mon, 10 Sep 2012 12:52:10 -0400
-Message-ID: <20120910165210.GJ27758@beef>
-References: <1347294020-22661-1-git-send-email-mporter@ti.com>
- <504E168C.6060603@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Mon, 10 Sep 2012 09:54:28 -0700
+Message-ID: <871ui9ddiz.fsf@deeprootsystems.com>
+References: <1347276614-4334-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <504E168C.6060603-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:37546 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935Ab2IJQyc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 12:54:32 -0400
+Received: by ieje11 with SMTP id e11so3581547iej.19
+        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 09:54:32 -0700 (PDT)
+In-Reply-To: <1347276614-4334-1-git-send-email-rogerq@ti.com> (Roger Quadros's
+	message of "Mon, 10 Sep 2012 14:30:14 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <rogerq@ti.com>
+Cc: jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 10, 2012 at 06:34:20PM +0200, Benoit Cousson wrote:
-> + Tony
-> 
-> Hi Matt,
-> 
-> 30 minutes too late for my pull request :-(
-> 
-> There are a couple of am33xx patches under discussion, so I'll take them
-> and send a for_3.7/dts-part2 pull request if this is not too late for Tony.
+Roger Quadros <rogerq@ti.com> writes:
 
-Yeah, believe me, I did a faceplant when I saw your pull request come by
-at the same time I discovered this issue. ;) In particular, AnilKumar's
-user leds patch would need to be adjusted for this change. I can
-resubmit with the user leds dts changes adjusted as well if that
-discussion comes to a conclusion and his patches accepted.
- 
-> On 09/10/2012 06:20 PM, Matt Porter wrote:
-> > On AM33xx, the datasheet and TRM refer to four GPIO instances that
-> > are 0-based, GPIO0-3.
-> 
-> Or maybe you should just update the spec to use a 1-based GPIO number
-> like OMAP :-)
+> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
+>
+> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+>
+> changes in v2:
+> - rebased on 3.6-rc5
+> - use put_cpu() immediately after get_cpu() in omap3_pm_idle()
+>
+> Signed-off-by: Roger Quadros <rogerq@ti.com>
 
-I am powerless here. :)
+Can you also add what platforms this was tested on?
 
--Matt
+Otherwise, this looks good, and I'll queue up for v3.7 (since it's not a
+regression.)
 
-> > Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> > index bb31bff..1369bfc 100644
-> > --- a/arch/arm/boot/dts/am33xx.dtsi
-> > +++ b/arch/arm/boot/dts/am33xx.dtsi
-> > @@ -62,7 +62,7 @@
-> >  			reg = <0x48200000 0x1000>;
-> >  		};
-> >  
-> > -		gpio1: gpio@44e07000 {
-> > +		gpio0: gpio@44e07000 {
-> >  			compatible = "ti,omap4-gpio";
-> >  			ti,hwmods = "gpio1";
-> >  			gpio-controller;
-> > @@ -74,7 +74,7 @@
-> >  			interrupts = <96>;
-> >  		};
-> >  
-> > -		gpio2: gpio@4804c000 {
-> > +		gpio1: gpio@4804c000 {
-> >  			compatible = "ti,omap4-gpio";
-> >  			ti,hwmods = "gpio2";
-> >  			gpio-controller;
-> > @@ -86,7 +86,7 @@
-> >  			interrupts = <98>;
-> >  		};
-> >  
-> > -		gpio3: gpio@481ac000 {
-> > +		gpio2: gpio@481ac000 {
-> >  			compatible = "ti,omap4-gpio";
-> >  			ti,hwmods = "gpio3";
-> >  			gpio-controller;
-> > @@ -98,7 +98,7 @@
-> >  			interrupts = <32>;
-> >  		};
-> >  
-> > -		gpio4: gpio@481ae000 {
-> > +		gpio3: gpio@481ae000 {
-> >  			compatible = "ti,omap4-gpio";
-> >  			ti,hwmods = "gpio4";
-> >  			gpio-controller;
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
+>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+>  3 files changed, 18 insertions(+), 9 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index ea3f565..06747b6 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+>  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+>  
+>  	if (clk->ops && clk->ops->disable) {
+> -		trace_clock_disable(clk->name, 0, smp_processor_id());
+> +		trace_clock_disable(clk->name, 0, get_cpu());
+> +		put_cpu();
+>  		clk->ops->disable(clk);
+>  	}
+>  
+> @@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+>  	}
+>  
+>  	if (clk->ops && clk->ops->enable) {
+> -		trace_clock_enable(clk->name, 1, smp_processor_id());
+> +		trace_clock_enable(clk->name, 1, get_cpu());
+> +		put_cpu();
+>  		ret = clk->ops->enable(clk);
+>  		if (ret) {
+>  			WARN(1, "clock: %s: could not enable: %d\n",
+> @@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+>  
+>  	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+>  	if (clk->set_rate) {
+> -		trace_clock_set_rate(clk->name, rate, smp_processor_id());
+> +		trace_clock_set_rate(clk->name, rate, get_cpu());
+> +		put_cpu();
+>  		ret = clk->set_rate(clk, rate);
+>  	}
+>  
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 05bd8f0..5aa0a11 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -346,18 +346,22 @@ void omap_sram_idle(void)
+>  
+>  static void omap3_pm_idle(void)
+>  {
+> +	unsigned cpu;
+> +
+>  	local_fiq_disable();
+>  
+>  	if (omap_irq_pending())
+>  		goto out;
+>  
+> -	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+> -	trace_cpu_idle(1, smp_processor_id());
+> +	cpu = get_cpu();
+> +	put_cpu();
+> +	trace_power_start(POWER_CSTATE, 1, cpu);
+> +	trace_cpu_idle(1, cpu);
+>  
+>  	omap_sram_idle();
+>  
+> -	trace_power_end(smp_processor_id());
+> -	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+> +	trace_power_end(cpu);
+> +	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
+>  
+>  out:
+>  	local_fiq_enable();
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 69b36e1..138bf86 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>  				       ((state & OMAP_POWERSTATE_MASK) << 8) |
+>  				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+>  			trace_power_domain_target(pwrdm->name, trace_state,
+> -						  smp_processor_id());
+> +						  get_cpu());
+> +			put_cpu();
+>  		}
+>  		break;
+>  	default:
+> @@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>  		/* Trace the pwrdm desired target state */
+>  		trace_power_domain_target(pwrdm->name, pwrst,
+> -					  smp_processor_id());
+> +					  get_cpu());
+> +		put_cpu();
+>  		/* Program the pwrdm desired target state */
+>  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>  	}
