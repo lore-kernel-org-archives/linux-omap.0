@@ -1,152 +1,105 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3] arm: omap: hwmod: add a new addr space in otg for
- writing to control module
-Date: Mon, 10 Sep 2012 19:43:28 +0300
-Message-ID: <20120910164323.GK7464@arwen.pp.htv.fi>
-References: <1346943331-18120-1-git-send-email-kishon@ti.com>
- <1346943331-18120-2-git-send-email-kishon@ti.com>
- <5048C2A2.2020104@ti.com>
- <20120906171301.GC17754@arwen.pp.htv.fi>
- <20120906171803.GA30717@arwen.pp.htv.fi>
- <20120906195607.GB1303@atomide.com>
- <20120910155855.GE7464@arwen.pp.htv.fi>
- <504E127F.6020406@ti.com>
-Reply-To: balbi@ti.com
+From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] ARM: dts: AM33XX: fix gpio node numbering to match
+ hardware
+Date: Mon, 10 Sep 2012 12:52:10 -0400
+Message-ID: <20120910165210.GJ27758@beef>
+References: <1347294020-22661-1-git-send-email-mporter@ti.com>
+ <504E168C.6060603@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="d6d1KVhp94hk3Jrm"
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <504E127F.6020406@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: balbi@ti.com, Tony Lindgren <tony@atomide.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+In-Reply-To: <504E168C.6060603-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Sep 10, 2012 at 06:34:20PM +0200, Benoit Cousson wrote:
+> + Tony
+> 
+> Hi Matt,
+> 
+> 30 minutes too late for my pull request :-(
+> 
+> There are a couple of am33xx patches under discussion, so I'll take them
+> and send a for_3.7/dts-part2 pull request if this is not too late for Tony.
 
---d6d1KVhp94hk3Jrm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yeah, believe me, I did a faceplant when I saw your pull request come by
+at the same time I discovered this issue. ;) In particular, AnilKumar's
+user leds patch would need to be adjusted for this change. I can
+resubmit with the user leds dts changes adjusted as well if that
+discussion comes to a conclusion and his patches accepted.
+ 
+> On 09/10/2012 06:20 PM, Matt Porter wrote:
+> > On AM33xx, the datasheet and TRM refer to four GPIO instances that
+> > are 0-based, GPIO0-3.
+> 
+> Or maybe you should just update the spec to use a 1-based GPIO number
+> like OMAP :-)
 
-Hi,
+I am powerless here. :)
 
-On Mon, Sep 10, 2012 at 06:17:03PM +0200, Benoit Cousson wrote:
-> >>>>> On 9/6/2012 8:25 PM, Kishon Vijay Abraham I wrote:
-> >>>>>> The mailbox register for usb otg in omap is present in control mod=
-ule.
-> >>>>>> On detection of any events VBUS or ID, this register should be wri=
-tten
-> >>>>>> to send the notification to musb core.
-> >>>>>>
-> >>>>>> Till we have a separate control module driver to write to control =
-module,
-> >>>>>> omap2430 will handle the register writes to control module by itse=
-lf. So
-> >>>>>> a new address space to represent this control module register is a=
-dded
-> >>>>>> to usb_otg_hs.
-> >>>>>>
-> >>>>>> Cc: Benoit Cousson <b-cousson@ti.com>
-> >>>>>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> >>>>>> ---
-> >>>>>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    5 +++++
-> >>>>>>  1 file changed, 5 insertions(+)
-> >>>>>>
-> >>>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm=
-/mach-omap2/omap_hwmod_44xx_data.c
-> >>>>>> index 242aee4..02341bc 100644
-> >>>>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> >>>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> >>>>>> @@ -5890,6 +5890,11 @@ static struct omap_hwmod_addr_space omap44x=
-x_usb_otg_hs_addrs[] =3D {
-> >>>>>>  		.pa_end		=3D 0x4a0ab003,
-> >>>>>>  		.flags		=3D ADDR_TYPE_RT
-> >>>>>>  	},
-> >>>>>> +	{
-> >>>>>> +		.pa_start	=3D 0x4a00233c,
-> >>>>>> +		.pa_end		=3D 0x4a00233f,
-> >>>>>> +		.flags		=3D ADDR_TYPE_RT
-> >>>>>> +	},
-> >>>>>
-> >>>>> I do not have any objection/comment here, but I believe this is con=
-trol
-> >>>>> module address space required for USB module, right?
-> >>>>> I am not sure this is right way of accessing control module space.
-> >>>>> Actually Control Module Access required for drivers is one of the
-> >>>>> blocking issue we have currently.
-> >>>>>
-> >>>>> Also there was some effort put up by 'Konstantine' to convert Contr=
-ol
-> >>>>> module to MFD driver, I haven't seen any further update on it. But =
-it
-> >>>>> would be good to check with him.
-> >>>>
-> >>>> this was an agreement with Benoit since we already lost a couple mer=
-ge
-> >>>> windows for this patchset. We agreed to wait until -rc4 for SCM driv=
-er
-> >>>> and if it wasn't ready, we'd go ahead with this and SCM author would=
- fix
-> >>>> it up on a patch converting users to new SCM driver.
-> >>>
-> >>> Tony, can I get your Acked-by to this patch so I can take it together
-> >>> with the rest of the series ? Thanks
-> >>>
-> >>> ps: I'll apply this to my 'musb' branch which is immutable, so it's s=
-afe
-> >>> to merge it into your tree once I apply.
-> >>
-> >> It would be best if this got acked by Benoit and Paul as they may
-> >> have some other patches queued up. I'll ack if they ack ;)
-> >=20
-> > Benoit, care to ack this patch ???
->=20
-> Gosh, that's hard to ack something like that :-)
+-Matt
 
-btw, that's not different than what's already in tree, the only
-difference is that now hwmod knows about it...
-
-> But considering that the control module driver is not there yet, I have
-> no choice but accepting that one if we want to have the functionality
-> we've been waiting for years.
->=20
-> Could you just update the patch with a big disclaimer on top of the
-> address range to explain that this should not belong here and will be
-> removed ASAP, when the proper driver will be done.
-
-sure, that's doable... Kishon, can you do this ASAP ? I want to send my
-pull requests tomorrow at the latest.
-
-> Then you sign the patch with your blood and that should be fine for me
-> :-).
-
-I'm running out of blood already, but maybe there's enough for this last
-one... 8-#
-
---=20
-balbi
-
---d6d1KVhp94hk3Jrm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQThirAAoJEIaOsuA1yqRE8LAQAICQmQJ4muJwGBSpReg61SsB
-fkpHE5+uHNIOculaxJzPu3X2XRJ0i+m/uhhhZYvlf7lz5EPAmtAug0/2odKcw+ru
-FuLBIKS4aklpq08QS4PEA3NbQxTcvDoZdvEqfc0po9Jb8Dx29L+Y3JX8qe6hwSPL
-RDzhtIQFUHuQ1g9vsYHm9EIYJ2XoTD4Za+VgsFj7jwDBx1veALJqgzpWi/U6YU0T
-+Q8KHtAX75NHyG+6e+fkSioC/rT3O4+6Q9ivW/da9vc3dsMWOGbaiVtnKx2EUEwa
-XNpysmWA958roEZu+uXLvWr0LrVVbQ+/I9m5CEG8Ucxc9uQe0oAt1Wh+DxQb2VZd
-M9RSrCp2jOtMlEZJZJtvr2lxgj/Q/6rRIyI1ifYOlec5PvwMDEQbHv/z0f+0gGjw
-Mj8rhanwtkiO+chfYL2+smZfPcO0x/+7YFSt7K5LFybkSORwaF7SSEr4KcnZKSnA
-wFS2dEhx/zzYLaPH9GFNdr3z3AcDW9z3ivGTadgYVyeISWKM/Wd66/LXj6N8cVrz
-Z42/ZpeSKCcLDzw1TJnwo7X9J7t/pQbh1bXqyfOHuK6DXyWzu3SLH1356nxZNbUA
-cnISQYfDcXHth9ChAVLJEaWFlWNOHD1M4qfeINEIRarlzf4EeF0+PGk5SWCWfcRA
-IJZS1SxyLvvD1jemAkc+
-=cwFg
------END PGP SIGNATURE-----
-
---d6d1KVhp94hk3Jrm--
+> > Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> > index bb31bff..1369bfc 100644
+> > --- a/arch/arm/boot/dts/am33xx.dtsi
+> > +++ b/arch/arm/boot/dts/am33xx.dtsi
+> > @@ -62,7 +62,7 @@
+> >  			reg = <0x48200000 0x1000>;
+> >  		};
+> >  
+> > -		gpio1: gpio@44e07000 {
+> > +		gpio0: gpio@44e07000 {
+> >  			compatible = "ti,omap4-gpio";
+> >  			ti,hwmods = "gpio1";
+> >  			gpio-controller;
+> > @@ -74,7 +74,7 @@
+> >  			interrupts = <96>;
+> >  		};
+> >  
+> > -		gpio2: gpio@4804c000 {
+> > +		gpio1: gpio@4804c000 {
+> >  			compatible = "ti,omap4-gpio";
+> >  			ti,hwmods = "gpio2";
+> >  			gpio-controller;
+> > @@ -86,7 +86,7 @@
+> >  			interrupts = <98>;
+> >  		};
+> >  
+> > -		gpio3: gpio@481ac000 {
+> > +		gpio2: gpio@481ac000 {
+> >  			compatible = "ti,omap4-gpio";
+> >  			ti,hwmods = "gpio3";
+> >  			gpio-controller;
+> > @@ -98,7 +98,7 @@
+> >  			interrupts = <32>;
+> >  		};
+> >  
+> > -		gpio4: gpio@481ae000 {
+> > +		gpio3: gpio@481ae000 {
+> >  			compatible = "ti,omap4-gpio";
+> >  			ti,hwmods = "gpio4";
+> >  			gpio-controller;
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
