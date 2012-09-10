@@ -1,69 +1,107 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Seeking clarity on IRQCHIP_MASK_ON_SUSPEND
-Date: Mon, 10 Sep 2012 16:26:45 +0530
-Message-ID: <CAMQu2gzp1mieitAtDWB8Uud97gFQjH7eZ-bDZ2kMBLejAx4qMQ@mail.gmail.com>
-References: <20120910165127.37dd07f3@notabene.brown> <alpine.LFD.2.02.1209101215300.2724@ionos>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 1/8] ARM/dts: omap2: Add McBSP entries for OMAP2420
+ and OMAP2430 SoC
+Date: Mon, 10 Sep 2012 14:05:25 +0300
+Message-ID: <504DC975.5070609@ti.com>
+References: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com> <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com> <20120907222953.GS1303@atomide.com> <504D9FBC.9030609@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:34406 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757208Ab2IJK5H (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:53737 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752480Ab2IJLEy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 06:57:07 -0400
-Received: by qcse13 with SMTP id e13so2861536qcs.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 03:57:06 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.02.1209101215300.2724@ionos>
+	Mon, 10 Sep 2012 07:04:54 -0400
+Received: by oago6 with SMTP id o6so449514oag.19
+        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 04:04:52 -0700 (PDT)
+In-Reply-To: <504D9FBC.9030609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: NeilBrown <neilb@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-Thomas,
+Hi Benoit,
 
-On Mon, Sep 10, 2012 at 3:58 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> On Mon, 10 Sep 2012, NeilBrown wrote:
+On 09/10/2012 11:07 AM, Benoit Cousson wrote:
+> Hi Tony,
+>=20
+> On 09/08/2012 12:29 AM, Tony Lindgren wrote:
+>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 04:59]:
+>>> +
+>>> +	ocp {
+>>> +		mcbsp1: mcbsp@48074000 {
+>>> +			compatible =3D "ti,omap2420-mcbsp";
+>>> +			reg =3D <0x48074000 0xff>;
+>>> +			reg-names =3D "mpu";
+>>> +			interrupts =3D <59>, /* TX interrupt */
+>>> +				     <60>; /* RX interrupt */
+>>> +			interrupt-names =3D "tx", "rx";
+>>> +			interrupt-parent =3D <&intc>;
+>>> +			ti,hwmods =3D "mcbsp1";
+>>> +		};
+>>> +
+>>> +		mcbsp2: mcbsp@48076000 {
+>>> +			compatible =3D "ti,omap2420-mcbsp";
+>>> +			reg =3D <0x48076000 0xff>;
+>>> +			reg-names =3D "mpu";
+>>> +			interrupts =3D <62>, /* TX interrupt */
+>>> +				     <63>; /* RX interrupt */
+>>> +			interrupt-names =3D "tx", "rx";
+>>> +			interrupt-parent =3D <&intc>;
+>>> +			ti,hwmods =3D "mcbsp2";
+>>> +		};
+>>> +	};
 >>
->> The IRQCHIP_MASK_ON_SUSPEND flag seems to be hard to use correctly, so either
->> I'm understanding it wrongly, or it could be made easier to use.
->> If the first case, I'm hoping that some improvement to documentation might
->> result.  If the second, then maybe we can fix the code.
-> ...
->> Is anyone able to give a definitive answer on this?  Should
->> IRQCHIP_MASK_ON_SUSPEND be removed?
->
-> The whole point of IRQCHIP_MASK_ON_SUSPEND is to deal with hardware
-> designed by geniuses.
->
-> Most SoCs have a way to mark the interrupts which serve as a wake up
-> source as such. All other interrupts are magically "masked" on entry
-> to suspend.
->
-Just to support this, IRQCHIP_MASK_ON_SUSPEND does work with quite
-a few ARM platforms too. OMAP already uses it in mainline and I have
-seen patches for U500 and Tegra SOCs. Most of these usages are with
-IRQ chips who doesn't have any driver run time PM supported and
-the IRQ CHIP itself is shutdown when the CPU/CPU cluster gets
-power down. So as far as functionality concerned with the flag,
-it does what it suppose to do.
+>> Hmm don't you need to specify the interrupt chip and offset for
+>> the interrupts here?
+>=20
+> Mmm, I'm not sure to get your question, there is the link to the
+> interrupt-parent.
+>=20
+> The interrupt number is relative to the parent interrupt domain. So e=
+ven
+> if the INTC IRQ offset start at 32 instead of 0, DT IRQ mechanism wil=
+l
+> convert that to the proper hwirq thanks to irqdomain.
+> In that case we should always provide interrupt number relative to th=
+e
+> interrupt controller HW number and not assuming any Linux IRQ number
+> offset like before.
+>=20
+>=20
+> And in fact the interrupt-parent is not even needed, by default if wi=
+ll
+> look to the parent to get the interrupt-controller.
 
-> Now there is hardware which is missing such a control, so we need to
-> mask the non wakeup interrupts right before going into suspend.
->
-> That's what IRQCHIP_MASK_ON_SUSPEND does. Not more, not less. See
-> commit d209a699a0b for more ugly details.
->
-> You might be looking for a different functionality. Can you explain
-> what you need?
->
-Neil's email came from a discussion on the usage of this flag for
-OMAP GPIO irqchip which I proposed. With the flag, when the
-lazy check_irq routine is called, the GPIO driver is runtime suspended
-and hence the late mask/unmask calls take abort(clocks are already gated).
-GPIO IRQCHIP is secondary IRQCHIP connected to 1 interrupt line
-per bank(32 GPIOs) to the primary interrupt controller IRQCHIP.
+This is true, but it makes the 'code' a bit more readable if I (we) spe=
+cify
+the interrupt-parent.
 
-Hope this gives bit more clarity to the discussed problem.
+>=20
+> Extract from [1]
+>=20
+> interrupt-parent:
+> "Because the hierarchy of the nodes in the interrupt tree might not
+> match the device tree, the interrupt-parent property is available to
+> make the definition of an interrupt parent explicit.
+> The value is the phandle to the interrupt parent. If this property is
+> missing from a device, its interrupt parent is assumed to be its devi=
+ce
+> tree parent."
+>=20
+> [1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.=
+0.pdf
+>=20
+> Regards,
+> Benoit
+>=20
 
-Regards
-Santosh
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
