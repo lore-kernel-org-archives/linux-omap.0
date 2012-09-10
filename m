@@ -1,60 +1,79 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: Seeking clarity on IRQCHIP_MASK_ON_SUSPEND
-Date: Mon, 10 Sep 2012 15:25:10 +0200 (CEST)
-Message-ID: <alpine.LFD.2.02.1209101524040.2724@ionos>
-References: <20120910165127.37dd07f3@notabene.brown> <alpine.LFD.2.02.1209101215300.2724@ionos> <CAMQu2gzp1mieitAtDWB8Uud97gFQjH7eZ-bDZ2kMBLejAx4qMQ@mail.gmail.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/1] ARM: dts: OMAP3: Add gpio-twl4030 properties for Overo
+Date: Mon, 10 Sep 2012 15:25:34 +0200
+Message-ID: <504DEA4E.7080109@ti.com>
+References: <1347282996-31190-1-git-send-email-florian.vaussard@epfl.ch>
+ <1347282996-31190-2-git-send-email-florian.vaussard@epfl.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMQu2gzp1mieitAtDWB8Uud97gFQjH7eZ-bDZ2kMBLejAx4qMQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: NeilBrown <neilb@suse.de>, "Rafael J. Wysocki" <rjw@sisk.pl>, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1347282996-31190-2-git-send-email-florian.vaussard-p8DiymsW2f8@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Steve Sakoman <steve-4Uf0gMDude1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 10 Sep 2012, Shilimkar, Santosh wrote:
-> Thomas,
+On 09/10/2012 03:16 PM, Florian Vaussard wrote:
+> Support the blue LED connected to the LEDB pin of the TWL4030
+> on the Gumstix Overo.
 > 
-> On Mon, Sep 10, 2012 at 3:58 PM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> > On Mon, 10 Sep 2012, NeilBrown wrote:
-> >>
-> >> The IRQCHIP_MASK_ON_SUSPEND flag seems to be hard to use correctly, so either
-> >> I'm understanding it wrongly, or it could be made easier to use.
-> >> If the first case, I'm hoping that some improvement to documentation might
-> >> result.  If the second, then maybe we can fix the code.
-> > ...
-> >> Is anyone able to give a definitive answer on this?  Should
-> >> IRQCHIP_MASK_ON_SUSPEND be removed?
-> >
-> > The whole point of IRQCHIP_MASK_ON_SUSPEND is to deal with hardware
-> > designed by geniuses.
-> >
-> > Most SoCs have a way to mark the interrupts which serve as a wake up
-> > source as such. All other interrupts are magically "masked" on entry
-> > to suspend.
-> >
-> Just to support this, IRQCHIP_MASK_ON_SUSPEND does work with quite
-> a few ARM platforms too. OMAP already uses it in mainline and I have
-> seen patches for U500 and Tegra SOCs. Most of these usages are with
-> IRQ chips who doesn't have any driver run time PM supported and
-> the IRQ CHIP itself is shutdown when the CPU/CPU cluster gets
-> power down. So as far as functionality concerned with the flag,
-> it does what it suppose to do.
+> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/omap3-overo.dtsi |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
 > 
-> > Now there is hardware which is missing such a control, so we need to
-> > mask the non wakeup interrupts right before going into suspend.
-> >
-> > That's what IRQCHIP_MASK_ON_SUSPEND does. Not more, not less. See
-> > commit d209a699a0b for more ugly details.
-> >
-> > You might be looking for a different functionality. Can you explain
-> > what you need?
-> >
-> Neil's email came from a discussion on the usage of this flag for
-> OMAP GPIO irqchip which I proposed. With the flag, when the
-> lazy check_irq routine is called, the GPIO driver is runtime suspended
-> and hence the late mask/unmask calls take abort(clocks are already gated).
-> GPIO IRQCHIP is secondary IRQCHIP connected to 1 interrupt line
-> per bank(32 GPIOs) to the primary interrupt controller IRQCHIP.
+> diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
+> index d6cc5e2..89808ce 100644
+> --- a/arch/arm/boot/dts/omap3-overo.dtsi
+> +++ b/arch/arm/boot/dts/omap3-overo.dtsi
+> @@ -13,6 +13,17 @@
+>  
+>  /include/ "omap3.dtsi"
+>  
+> +/ {
 
-So for this thing you need a IRQCHIP_MASK_BEFORE_SUSPEND variant? 
+BTW, I'm just wondering. Cannot we use overo without tobi?
+
+In that case, the model and compatible should probably be used as well:
+
+	model = "TI OMAP3 Gumstix Overo";
+	compatible = "ti,omap3-overo", "ti,omap3";
+
+
+> +	leds {
+> +		compatible = "gpio-leds";
+> +		overo {
+> +			label = "overo:blue:COM";
+> +			gpios = <&twl_gpio 19 0>;
+> +			linux,default-trigger = "mmc0";
+> +		};
+> +	};
+> +};
+> +
+>  &i2c1 {
+>  	clock-frequency = <2600000>;
+>  
+> @@ -40,3 +51,7 @@
+>  &mmc2 {
+>  	bus-width = <4>;
+>  };
+> +
+> +&twl_gpio {
+> +	ti,use-leds;
+> +};
+> 
+
+Otherwise, it is fine.
+
+Thanks,
+Benoit
