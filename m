@@ -1,73 +1,73 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP baseline test results for v3.6-rc5
-Date: Mon, 10 Sep 2012 08:51:20 +0300
-Message-ID: <20120910055118.GA19264@arwen.pp.htv.fi>
-References: <alpine.DEB.2.00.1209091743430.28047@utopia.booyaka.com>
- <alpine.DEB.2.00.1209091814380.28047@utopia.booyaka.com>
-Reply-To: balbi@ti.com
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: New build warnings
+Date: Mon, 10 Sep 2012 08:40:02 +0200
+Message-ID: <20120910064002.GW28643@pengutronix.de>
+References: <20120730164444.GO6802@n2100.arm.linux.org.uk>
+ <20120908083849.GA1603@n2100.arm.linux.org.uk>
+ <20120909191240.GV28643@pengutronix.de>
+ <20120909233333.GA15911@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:59649 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810Ab2IJFzu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 01:55:50 -0400
-Received: by lbbgj3 with SMTP id gj3so942570lbb.19
-        for <linux-omap@vger.kernel.org>; Sun, 09 Sep 2012 22:55:48 -0700 (PDT)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49605 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815Ab2IJGkF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 02:40:05 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209091814380.28047@utopia.booyaka.com>
+In-Reply-To: <20120909233333.GA15911@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andreas =?iso-8859-1?Q?M=FCller?= <schnitzeltony@googlemail.com>, grinberg@compulab.co.il, Sourav Poddar <sourav.poddar@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Arnd Bergmann <arnd@arndb.de>
 
+Hi Mark,
 
---sdtB3X0nJg68CQEu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Sep 10, 2012 at 07:33:34AM +0800, Mark Brown wrote:
+> On Sun, Sep 09, 2012 at 09:12:40PM +0200, Uwe Kleine-K=F6nig wrote:
+> > On Sat, Sep 08, 2012 at 09:38:49AM +0100, Russell King - ARM Linux =
+wrote:
+>=20
+> > > >     of: add const to struct *of_device_id.data
+> > > >=20
+> > > >     Drivers should never need to modify the data of a device id=
+=2E So it can
+> > > >     be const which in turn allows more consts in the driver.
+>=20
+> > > I notice this one is still present in the kernel.  Uwe, what's ha=
+ppening
+> > > with it?
+>=20
+> > Yeah, the warning was introduced by my patch. It's not trivial to f=
+ix
+> > because the twl-regulator driver modifies the data used to probe de=
+vices
+> > during probe. That is the result of two probes might depend on thei=
+r
+> > order. I mentioned that problem in the cover letter of my series bu=
+t got
+> > no feedback from someone feeling responsible for this driver.
+> > Arnd sent a patch for that problem, don't know its state though.
+>=20
+> I don't recall such a patch being sent to me.  The twl-regulator driv=
+er
+> is unmaintained so it's unlikely anyone is going to actively work on =
+it.
+Message-id: 201208141241.51379.arnd@arndb.de
 
-Hi,
+Mark, you even replied that you applied it!? It wasn't sent to a mailin=
+g
+list though.
 
-On Sun, Sep 09, 2012 at 06:15:04PM +0000, Paul Walmsley wrote:
-> > * 4430ES2 Panda: UART corruption during long transmit buffers
-> >   - Presumably due to either a missing hardware workaround or a bug in
-> >     the OMAP serial driver
-> >=20
-> * 3730 Beagle XM: does not serial wake from off-idle suspend when console
->   UART doesn't clock gate ("debug ignore_loglevel")
->   - Not shown in the current test logs; cause unknown
-
-How do you trigger these two ? Can you share whatever script you wrote
-for this to fail ? I'm assuming the bugs are only triggered on those two
-particular platforms, so it could just be missing workaround on both
-cases (?)
-
+Uwe
 --=20
-balbi
-
---sdtB3X0nJg68CQEu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQTX/WAAoJEIaOsuA1yqREILkP+wSDPP8KHwyS3uoCZvoKCsUl
-Vr2FiAxj3noUrx6o4U21ASSxKAD6c96gJsbq1saGWOBsWO3BgypuMB1Jb4E3UQsm
-p/sHdmgles/Q3jGiqMpGWC/9lQzaPehnd+/AZwdB6Akt4mNPJoiBMqDtAfd5Bf9R
-C42oTasvvV8F2FLSIx42beLEg+3uCq1ASiXjcpkb0/ZbyYw7yXr77cjhF9ok0gSk
-IzMBoO8Fe/CjaGGxlzRIkOYBjzNelAH10fGTNcy7LmA+OobL7gUGu3a0ge4CB5Ts
-9D9OhL1gOcu2L2HU+G2cbGluviDUmj18V0O5rCM8SrYD4YgXIEvVhH14dK57Hwu3
-VrOrUMaIwlzDreB5KsS+XStfA6W4s6EQoMM20TMfFqwimYbFfoLl9qX7lt1X6ZKt
-VbpYWs9pDg1lUP3QuaDeV62b2cTZF80XT7FoF+stqimLvgK5rSgvxwYKE842XJ3N
-5yqVFWHquVpzKbz7PZ7kReDzX/83fFZmQQzeFpkuef/Rb9d5i7PlG2b6hlfh0IbA
-GeNTI4bBhgw7wDG8ek1tF9CkBw5Gh2k60S4L7vwIztl3zUlnspf8qc1hPoqd83mE
-CG6egsm5n+rmO2RzTOQ5gZWB3RFffqUZ8hVI/1uVmGm5u5UTw5CNNQEHpY0XtxtB
-xs/ZSnheuNqIiPq2mp5t
-=yGKw
------END PGP SIGNATURE-----
-
---sdtB3X0nJg68CQEu--
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
