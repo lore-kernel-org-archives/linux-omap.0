@@ -1,107 +1,125 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 1/8] ARM/dts: omap2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Mon, 10 Sep 2012 14:05:25 +0300
-Message-ID: <504DC975.5070609@ti.com>
-References: <1346846336-27321-1-git-send-email-peter.ujfalusi@ti.com> <1346846336-27321-2-git-send-email-peter.ujfalusi@ti.com> <20120907222953.GS1303@atomide.com> <504D9FBC.9030609@ti.com>
+From: Roger Quadros <rogerq@ti.com>
+Subject: [PATCH v2] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
+Date: Mon, 10 Sep 2012 14:30:14 +0300
+Message-ID: <1347276614-4334-1-git-send-email-rogerq@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:53737 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752480Ab2IJLEy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 07:04:54 -0400
-Received: by oago6 with SMTP id o6so449514oag.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 04:04:52 -0700 (PDT)
-In-Reply-To: <504D9FBC.9030609@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57714 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752480Ab2IJLa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 07:30:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: khilman@deeprootsystems.com
+Cc: jean.pihet@newoldbits.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
 
-Hi Benoit,
+gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
 
-On 09/10/2012 11:07 AM, Benoit Cousson wrote:
-> Hi Tony,
->=20
-> On 09/08/2012 12:29 AM, Tony Lindgren wrote:
->> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120905 04:59]:
->>> +
->>> +	ocp {
->>> +		mcbsp1: mcbsp@48074000 {
->>> +			compatible =3D "ti,omap2420-mcbsp";
->>> +			reg =3D <0x48074000 0xff>;
->>> +			reg-names =3D "mpu";
->>> +			interrupts =3D <59>, /* TX interrupt */
->>> +				     <60>; /* RX interrupt */
->>> +			interrupt-names =3D "tx", "rx";
->>> +			interrupt-parent =3D <&intc>;
->>> +			ti,hwmods =3D "mcbsp1";
->>> +		};
->>> +
->>> +		mcbsp2: mcbsp@48076000 {
->>> +			compatible =3D "ti,omap2420-mcbsp";
->>> +			reg =3D <0x48076000 0xff>;
->>> +			reg-names =3D "mpu";
->>> +			interrupts =3D <62>, /* TX interrupt */
->>> +				     <63>; /* RX interrupt */
->>> +			interrupt-names =3D "tx", "rx";
->>> +			interrupt-parent =3D <&intc>;
->>> +			ti,hwmods =3D "mcbsp2";
->>> +		};
->>> +	};
->>
->> Hmm don't you need to specify the interrupt chip and offset for
->> the interrupts here?
->=20
-> Mmm, I'm not sure to get your question, there is the link to the
-> interrupt-parent.
->=20
-> The interrupt number is relative to the parent interrupt domain. So e=
-ven
-> if the INTC IRQ offset start at 32 instead of 0, DT IRQ mechanism wil=
-l
-> convert that to the proper hwirq thanks to irqdomain.
-> In that case we should always provide interrupt number relative to th=
-e
-> interrupt controller HW number and not assuming any Linux IRQ number
-> offset like before.
->=20
->=20
-> And in fact the interrupt-parent is not even needed, by default if wi=
-ll
-> look to the parent to get the interrupt-controller.
+[   28.832916] debug_smp_processor_id: 18 callbacks suppressed
+[   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
+[   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
 
-This is true, but it makes the 'code' a bit more readable if I (we) spe=
-cify
-the interrupt-parent.
+changes in v2:
+- rebased on 3.6-rc5
+- use put_cpu() immediately after get_cpu() in omap3_pm_idle()
 
->=20
-> Extract from [1]
->=20
-> interrupt-parent:
-> "Because the hierarchy of the nodes in the interrupt tree might not
-> match the device tree, the interrupt-parent property is available to
-> make the definition of an interrupt parent explicit.
-> The value is the phandle to the interrupt parent. If this property is
-> missing from a device, its interrupt parent is assumed to be its devi=
-ce
-> tree parent."
->=20
-> [1] http://www.power.org/resources/downloads/Power_ePAPR_APPROVED_v1.=
-0.pdf
->=20
-> Regards,
-> Benoit
->=20
+Signed-off-by: Roger Quadros <rogerq@ti.com>
+---
+ arch/arm/mach-omap2/clock.c       |    9 ++++++---
+ arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
+ arch/arm/mach-omap2/powerdomain.c |    6 ++++--
+ 3 files changed, 18 insertions(+), 9 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index ea3f565..06747b6 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
+ 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
+ 
+ 	if (clk->ops && clk->ops->disable) {
+-		trace_clock_disable(clk->name, 0, smp_processor_id());
++		trace_clock_disable(clk->name, 0, get_cpu());
++		put_cpu();
+ 		clk->ops->disable(clk);
+ 	}
+ 
+@@ -339,7 +340,8 @@ int omap2_clk_enable(struct clk *clk)
+ 	}
+ 
+ 	if (clk->ops && clk->ops->enable) {
+-		trace_clock_enable(clk->name, 1, smp_processor_id());
++		trace_clock_enable(clk->name, 1, get_cpu());
++		put_cpu();
+ 		ret = clk->ops->enable(clk);
+ 		if (ret) {
+ 			WARN(1, "clock: %s: could not enable: %d\n",
+@@ -380,7 +382,8 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+ 	if (clk->set_rate) {
+-		trace_clock_set_rate(clk->name, rate, smp_processor_id());
++		trace_clock_set_rate(clk->name, rate, get_cpu());
++		put_cpu();
+ 		ret = clk->set_rate(clk, rate);
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 05bd8f0..5aa0a11 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -346,18 +346,22 @@ void omap_sram_idle(void)
+ 
+ static void omap3_pm_idle(void)
+ {
++	unsigned cpu;
++
+ 	local_fiq_disable();
+ 
+ 	if (omap_irq_pending())
+ 		goto out;
+ 
+-	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+-	trace_cpu_idle(1, smp_processor_id());
++	cpu = get_cpu();
++	put_cpu();
++	trace_power_start(POWER_CSTATE, 1, cpu);
++	trace_cpu_idle(1, cpu);
+ 
+ 	omap_sram_idle();
+ 
+-	trace_power_end(smp_processor_id());
+-	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
++	trace_power_end(cpu);
++	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
+ 
+ out:
+ 	local_fiq_enable();
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 69b36e1..138bf86 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -169,7 +169,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ 				       ((state & OMAP_POWERSTATE_MASK) << 8) |
+ 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+ 			trace_power_domain_target(pwrdm->name, trace_state,
+-						  smp_processor_id());
++						  get_cpu());
++			put_cpu();
+ 		}
+ 		break;
+ 	default:
+@@ -491,7 +492,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+ 		/* Trace the pwrdm desired target state */
+ 		trace_power_domain_target(pwrdm->name, pwrst,
+-					  smp_processor_id());
++					  get_cpu());
++		put_cpu();
+ 		/* Program the pwrdm desired target state */
+ 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+ 	}
+-- 
+1.7.4.1
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
