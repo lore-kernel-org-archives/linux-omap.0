@@ -1,76 +1,53 @@
-From: Florian Vaussard <florian.vaussard@epfl.ch>
-Subject: Re: [PATCH v8 0/3] GPMC driver conversion
-Date: Mon, 10 Sep 2012 10:30:14 +0200
-Message-ID: <504DA516.1020405@epfl.ch>
-References: <cover.1346846464.git.afzal@ti.com> <20120907221034.GP1303@atomide.com>
-Reply-To: florian.vaussard@epfl.ch
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Subject: Re: [PATCH 1/2] gpio/twl4030: get platform data from device tree
+Date: Mon, 10 Sep 2012 10:40:06 +0200
+Message-ID: <504DA766.1080304@epfl.ch>
+References: <1346831186-29947-1-git-send-email-florian.vaussard@epfl.ch>
+ <1346831186-29947-2-git-send-email-florian.vaussard@epfl.ch>
+ <504A2FF2.7070607@ti.com> <504DA20D.7020903@epfl.ch>
+ <504DA503.5050901@ti.com>
+Reply-To: florian.vaussard-p8DiymsW2f8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.epfl.ch ([128.178.224.218]:33478 "HELO smtp4.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751594Ab2IJIaS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 04:30:18 -0400
-In-Reply-To: <20120907221034.GP1303@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <504DA503.5050901-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Afzal Mohammed <afzal@ti.com>, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+Hello Benoit,
 
-Le 08/09/2012 00:10, Tony Lindgren a =E9crit :
-> * Afzal Mohammed <afzal@ti.com> [120905 05:37]:
->> Hi,
 >>
->> Basic gpmc driver conversion series. Driver that is now created out =
-of
->> gpmc code is a simple one, it handles tasks that were earlier execut=
-ed
->> by gpmc_init. Now instead of relying on cpu_is_* checks, it obtains
->> resources and clk handle in the standard Linux way. The existing gpm=
-c
->> interface works as was without this series.
->>
->> HWMOD patch also has been brought into this series back with v7 seri=
-es
->>
->> As this creates only a basic driver, further gpmc driver work can be
->> based over this, while having a driver first in place.
->>
->> This series is based on l-o/testing-cleanup as on 5-Sep-12,
->> i.e. over commit,
->>
->> e3a5c14 ARM: OMAP1: Move SoC specific headers from plat to mach for =
-omap1
->>
->> per Tony's suggestion.
->>
->> It is available
->> @git://gitorious.org/x0148406-public/linux-kernel.git gpmc-drv-v8
-> Great, this all looks good to me. I suggest that on top of this
-> we add minimal devicetree binding that does not even attempt to
-> deal with the timings yet.
+>> I fixed them since it was trivial, but next time you should ensure
+>> that the patch pass checkpatch before posting.
+>> Sorry for these errors. I however checked my patches before submitting,
+>> and had no such warnings. I redone, and remarked that these warnings
+>> appear only with the "--strict" option, which is not enabled by default.
+>> Is this the recommended  guideline? Thus why not enabling it by default?
+> That's a pretty good question :-)
 >
-> Then once the minimal devicetree binding is in place, we can
-> call the current GPMC timing functions using the compatible flags
-> and auxdata in the gpmc.c driver.
->
-> That way we get all the legacy boards booting with GPMC support
-> for smsc911x etc, and can even remove some less used board-*.c
-> files.
+> Maybe the --strict is more a nice to have than a strong requirement?
+> Anyway, we'd better run checkpatch with --strict and thus fix any
+> cosmetic details that might be in the patch.
 
-This would be great. If you happen to have DT bindings for GPMC,
-I would be happy to test them with my Overo board, as well as
-with my CAN chips on a custom board.
+Good to know, I will use --strict for the next submissions.
+
+> Cool, I love chocolate. That being said, I'm not sure how tasteful 
+> will be the *virtual* chocolate. Regards, Benoit 
+
+Even *virtual*, Swiss chocolate will be the most tasteful (hope no Belgium
+friends will see this thread) :-)
 
 Regards,
-=46lorian
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Florian
