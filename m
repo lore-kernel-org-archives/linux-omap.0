@@ -1,123 +1,77 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] ARM: dts: AM33XX: fix gpio node numbering to match
- hardware
-Date: Mon, 10 Sep 2012 15:51:57 -0400
-Message-ID: <20120910195156.GK27758@beef>
-References: <1347294020-22661-1-git-send-email-mporter@ti.com>
- <504E168C.6060603@ti.com>
- <20120910165210.GJ27758@beef>
- <504E1C69.30602@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP: Clean-up timer posted mode support
+Date: Mon, 10 Sep 2012 16:59:36 -0500
+Message-ID: <504E62C8.8030100@ti.com>
+References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-9-git-send-email-jon-hunter@ti.com> <20120907222223.GQ1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <504E1C69.30602@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:43799 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750886Ab2IJV7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 17:59:44 -0400
+In-Reply-To: <20120907222223.GQ1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Sep 10, 2012 at 06:59:21PM +0200, Benoit Cousson wrote:
-> On 09/10/2012 06:52 PM, Matt Porter wrote:
-> > On Mon, Sep 10, 2012 at 06:34:20PM +0200, Benoit Cousson wrote:
-> >> + Tony
-> >>
-> >> Hi Matt,
-> >>
-> >> 30 minutes too late for my pull request :-(
-> >>
-> >> There are a couple of am33xx patches under discussion, so I'll take them
-> >> and send a for_3.7/dts-part2 pull request if this is not too late for Tony.
-> > 
-> > Yeah, believe me, I did a faceplant when I saw your pull request come by
-> > at the same time I discovered this issue. ;) In particular, AnilKumar's
-> > user leds patch would need to be adjusted for this change. I can
-> > resubmit with the user leds dts changes adjusted as well if that
-> > discussion comes to a conclusion and his patches accepted.
-> 
-> Yeah, I was wondering if the gpios label were already used somewhere.
-> I've just added this patch on top of my current series.
-> So you or Anil should just post the missing patches whenever they'll be
-> available and accepted.
 
-Ok, I went ahead and posted a series that applies to your for_3.7/dts
-branch and Anil's series. That's assuming his v7 series is taken "as
-is" after the leds-gpio/pinctrl discussion comes to conclusion. I see
-Tony acked it aside from that discussion.
+On 09/07/2012 05:22 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120905 12:05]:
+>> The dmtimer functions to read and write the dmtimer registers are currently
+>> defined as follows ...
+>>
+>> static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
+>> 						int posted);
+>> static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
+>> 						u32 reg, u32 val, int posted);
+>>
+>> The posted variable indicates if the timer is configured to use the posted mode
+>> when performing register accesses. The posted mode configuration of the dmtimer
+>> is stored in the omap_dm_timer structure that is also being passed to the above
+>> functions and therefore we do not need to pass the posted variable separately.
+>> Therefore, simplify the above functions by removing the posted variable as an
+>> argument as this is not necessary.
+> 
+> I believe the reason for passing the posted flag was to optimize out some
+> functions from the timer code as that's being run all the time.
+> 
+> Care to check the assembly before and after this patch for the timer
+> functions with objdump -d to make sure it does not add tons of bloat
+> there?
 
-Thanks,
-Matt
+Hi Tony,
 
-> 
-> >> On 09/10/2012 06:20 PM, Matt Porter wrote:
-> >>> On AM33xx, the datasheet and TRM refer to four GPIO instances that
-> >>> are 0-based, GPIO0-3.
-> >>
-> >> Or maybe you should just update the spec to use a 1-based GPIO number
-> >> like OMAP :-)
-> > 
-> > I am powerless here. :)
-> 
-> That's too bad :-(
-> 
-> Benoit
-> 
-> > 
-> > -Matt
-> > 
-> >>> Signed-off-by: Matt Porter <mporter@ti.com>
-> >>> ---
-> >>>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
-> >>>  1 file changed, 4 insertions(+), 4 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-> >>> index bb31bff..1369bfc 100644
-> >>> --- a/arch/arm/boot/dts/am33xx.dtsi
-> >>> +++ b/arch/arm/boot/dts/am33xx.dtsi
-> >>> @@ -62,7 +62,7 @@
-> >>>  			reg = <0x48200000 0x1000>;
-> >>>  		};
-> >>>  
-> >>> -		gpio1: gpio@44e07000 {
-> >>> +		gpio0: gpio@44e07000 {
-> >>>  			compatible = "ti,omap4-gpio";
-> >>>  			ti,hwmods = "gpio1";
-> >>>  			gpio-controller;
-> >>> @@ -74,7 +74,7 @@
-> >>>  			interrupts = <96>;
-> >>>  		};
-> >>>  
-> >>> -		gpio2: gpio@4804c000 {
-> >>> +		gpio1: gpio@4804c000 {
-> >>>  			compatible = "ti,omap4-gpio";
-> >>>  			ti,hwmods = "gpio2";
-> >>>  			gpio-controller;
-> >>> @@ -86,7 +86,7 @@
-> >>>  			interrupts = <98>;
-> >>>  		};
-> >>>  
-> >>> -		gpio3: gpio@481ac000 {
-> >>> +		gpio2: gpio@481ac000 {
-> >>>  			compatible = "ti,omap4-gpio";
-> >>>  			ti,hwmods = "gpio3";
-> >>>  			gpio-controller;
-> >>> @@ -98,7 +98,7 @@
-> >>>  			interrupts = <32>;
-> >>>  		};
-> >>>  
-> >>> -		gpio4: gpio@481ae000 {
-> >>> +		gpio3: gpio@481ae000 {
-> >>>  			compatible = "ti,omap4-gpio";
-> >>>  			ti,hwmods = "gpio4";
-> >>>  			gpio-controller;
-> >>>
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the details here. I see that makes sense and that the
+compiler could take advantage of this as the functions are inlined.
+
+I have taken a look at the disassembled output using objdump as you
+mentioned. What I see is ...
+
+1. For dmtimer.c the impact appears negligible, the total number of
+   lines outputted by objdump only changed by 8 with (1215 lines) and
+   without (1207 lines) the patch applied.
+
+2. For timer.c the impact is greater. I see that
+   omap2_gp_timer_set_next_event() increased by 6 instructions from 29
+   to 35. clocksource_read_cycles() increased by 2 instructions 15 to
+   17 instructions. dmtimer_read_sched_clock() increased by 2
+   instructions from 17 to 19. omap2_gp_timer_set_mode() increased by
+   21 instructions from 102 to 123.
+
+I imagine that we are mainly concerned about
+omap2_gp_timer_set_next_event(), clocksource_read_cycles() and
+dmtimer_read_sched_clock() as these will be called often. Therefore, I
+am not sure if you wish to drop this patch.
+
+By the way, if we do drop this patch, I would then need to fix the
+setting of the posted variable in mach-omap2/timer.c for clock-source in
+the case where a dmtimer is used. Today the code assumes that for
+clock-source and clock-events posted mode is always used. However, with
+the errata i103/i767 we will disable posted mode for clock-source on
+omap2/3/4/5/am33xx devices.
+
+Cheers
+Jon
