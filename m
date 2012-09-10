@@ -1,251 +1,214 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V3 2/8] ARM: OMAP2+: PMU: Convert OMAP2/3 devices to use HWMOD
-Date: Mon, 10 Sep 2012 10:23:40 -0500
-Message-ID: <1347290626-21164-3-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V3 6/8] ARM: OMAP4: Route PMU IRQs to CTI IRQs
+Date: Mon, 10 Sep 2012 10:23:44 -0500
+Message-ID: <1347290626-21164-7-git-send-email-jon-hunter@ti.com>
 References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48972 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48987 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757559Ab2IJPYK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:24:10 -0400
+	id S1754044Ab2IJPYL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Sep 2012 11:24:11 -0400
 In-Reply-To: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Woodruff Richard <r-woodruff2@ti.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-Convert OMAP2/3 devices to use HWMOD for creating a PMU device. To support PMU
-on OMAP2 devices we only need to use MPU sub-system and so we can simply use
-the MPU HWMOD to create the PMU device. To support PMU on OMAP3 devices, we need
-to use the MPU and DEBUG sub-systems and so use these HWMODs to create the PMU
-device for OMAP3.
+From: Ming Lei <ming.lei@canonical.com>
 
-The MPU HWMOD for OMAP2/3 devices is currently missing the PMU interrupt and so
-add the PMU interrupt to the MPU HWMOD for these devices.
+For OMAP4430 there are no dedicate PMU interrupts, however, PMU events can be
+routed to via the CTI IRQs. This allows tools such as PERF and OPROFILE to work
+on OMAP4430.
 
-This change also moves the PMU code out of the mach-omap2/devices.c files into
-its own pmu.c file as suggested by Kevin Hilman to de-clutter devices.c.
+The idea is from Woodruff Richard in the disscussion about "Oprofile on
+Pandaboard / Omap4" on pandaboard@googlegroups.com.
 
+Ming's original patch was called "arm: omap4: support pmu" [1] and has been
+renamed and modified by Jon Hunter. There main differences from the original
+patch are ...
+
+1. Instead of only configuring the CTI interrupt once during boot, the
+   interrupts are configured everytime the the PMU is used. The reason for this
+   is because during power transitions the CTI logic state will be lost and so
+   we will need to configure the interrupts everytime they are used. This is
+   accomplished by using the PM runtime callbacks which will be called whenever
+   the PMU is used.
+2. Assign the PMU events to different cross triggering channels. This prevents
+   a single PMU event generating interrupts to both CPUs and hence can cause
+   spurious interrupts to occur. Reported by Ming [2].
+
+[1] http://marc.info/?l=linux-arm-kernel&m=132227620816504&w=2
+[2] http://permalink.gmane.org/gmane.linux.linaro.devel/10532
+
+Acked-by: Jean Pihet <j-pihet@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Woodruff Richard <r-woodruff2@ti.com>
 Cc: Ming Lei <ming.lei@canonical.com>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
-
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/devices.c                      |   32 --------
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    6 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    6 ++
- arch/arm/mach-omap2/pmu.c                          |   83 ++++++++++++++++++++
- arch/arm/plat-omap/include/plat/irqs.h             |    1 +
- 6 files changed, 97 insertions(+), 32 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pmu.c
+ arch/arm/mach-omap2/pmu.c                  |   98 +++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap44xx.h |    3 +
+ 2 files changed, 99 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f6a24b3..9d533b7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -198,6 +198,7 @@ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- 
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
-+obj-$(CONFIG_HW_PERF_EVENTS)		+= pmu.o
- 
- # L3 interconnect
- obj-$(CONFIG_ARCH_OMAP3)		+= omap_l3_smx.o
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 02b9478..2659c7b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -433,37 +433,6 @@ static void omap_init_mcspi(void)
- static inline void omap_init_mcspi(void) {}
- #endif
- 
--static struct resource omap2_pmu_resource = {
--	.start	= 3,
--	.end	= 3,
--	.flags	= IORESOURCE_IRQ,
--};
--
--static struct resource omap3_pmu_resource = {
--	.start	= INT_34XX_BENCH_MPU_EMUL,
--	.end	= INT_34XX_BENCH_MPU_EMUL,
--	.flags	= IORESOURCE_IRQ,
--};
--
--static struct platform_device omap_pmu_device = {
--	.name		= "arm-pmu",
--	.id		= -1,
--	.num_resources	= 1,
--};
--
--static void omap_init_pmu(void)
--{
--	if (cpu_is_omap24xx())
--		omap_pmu_device.resource = &omap2_pmu_resource;
--	else if (cpu_is_omap34xx())
--		omap_pmu_device.resource = &omap3_pmu_resource;
--	else
--		return;
--
--	platform_device_register(&omap_pmu_device);
--}
--
--
- #if defined(CONFIG_CRYPTO_DEV_OMAP_SHAM) || defined(CONFIG_CRYPTO_DEV_OMAP_SHAM_MODULE)
- 
- #ifdef CONFIG_ARCH_OMAP2
-@@ -644,7 +613,6 @@ static int __init omap2_init_devices(void)
- 		omap_init_mcpdm();
- 		omap_init_mcspi();
- 	}
--	omap_init_pmu();
- 	omap_init_sti();
- 	omap_init_sham();
- 	omap_init_aes();
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index afad69c..411e2df 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -200,8 +200,14 @@ struct omap_hwmod omap2xxx_l4_wkup_hwmod = {
- };
- 
- /* MPU */
-+static struct omap_hwmod_irq_info omap2xxx_mpu_irqs[] = {
-+	{ .name = "pmu", .irq = INT_24XX_BENCH_MPU_EMUL },
-+	{ .irq = -1 }
-+};
-+
- struct omap_hwmod omap2xxx_mpu_hwmod = {
- 	.name		= "mpu",
-+	.mpu_irqs	= omap2xxx_mpu_irqs,
- 	.class		= &mpu_hwmod_class,
- 	.main_clk	= "mpu_ck",
- };
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 78a0c2d..4a5b8ab 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -92,8 +92,14 @@ static struct omap_hwmod omap3xxx_l4_sec_hwmod = {
- };
- 
- /* MPU */
-+static struct omap_hwmod_irq_info omap3xxx_mpu_irqs[] = {
-+	{ .name = "pmu", .irq = INT_34XX_BENCH_MPU_EMUL },
-+	{ .irq = -1 }
-+};
-+
- static struct omap_hwmod omap3xxx_mpu_hwmod = {
- 	.name		= "mpu",
-+	.mpu_irqs	= omap3xxx_mpu_irqs,
- 	.class		= &mpu_hwmod_class,
- 	.main_clk	= "arm_fck",
- };
 diff --git a/arch/arm/mach-omap2/pmu.c b/arch/arm/mach-omap2/pmu.c
-new file mode 100644
-index 0000000..1de52ed
---- /dev/null
+index 03007b6..5918098 100644
+--- a/arch/arm/mach-omap2/pmu.c
 +++ b/arch/arm/mach-omap2/pmu.c
-@@ -0,0 +1,83 @@
-+/*
-+ * linux/arch/arm/mach-omap2/pmu.c
-+ *
-+ * OMAP2 ARM Performance Monitoring Unit (PMU) Support
-+ *
-+ * Copyright (C) 2012 Texas Instruments, Inc.
-+ *
-+ * Contacts:
-+ * Jon Hunter <jon-hunter@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <asm/pmu.h>
-+
-+#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
-+
-+static char *omap2_pmu_oh_names[] = {"mpu"};
-+static char *omap3_pmu_oh_names[] = {"mpu", "debugss"};
-+static struct platform_device *omap_pmu_dev;
+@@ -16,6 +16,7 @@
+ #include <linux/pm_runtime.h>
+ 
+ #include <asm/pmu.h>
++#include <asm/cti.h>
+ 
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+@@ -24,6 +25,91 @@ static char *omap2_pmu_oh_names[] = {"mpu"};
+ static char *omap3_pmu_oh_names[] = {"mpu", "debugss"};
+ static char *omap4430_pmu_oh_names[] = {"l3_main_3", "l3_instr", "debugss"};
+ static struct platform_device *omap_pmu_dev;
++static struct arm_pmu_platdata omap_pmu_data;
++static struct cti omap4_cti[2];
 +
 +/**
-+ * omap2_init_pmu - creates and registers PMU platform device
-+ * @oh_num:	Number of OMAP HWMODs required to create PMU device
-+ * @oh_names:	Array of OMAP HWMODS names required to create PMU device
++ * omap4_pmu_runtime_resume - PMU runtime resume callback
++ * @dev		OMAP PMU device
 + *
-+ * Uses OMAP HWMOD framework to create and register an ARM PMU device
-+ * from a list of HWMOD names passed. Currently supports OMAP2 and
-+ * OMAP3 devices.
++ * Platform specific PMU runtime resume callback for OMAP4430 devices to
++ * configure the cross trigger interface for routing PMU interrupts. This
++ * is called by the PM runtime framework.
 + */
-+static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
++static int omap4_pmu_runtime_resume(struct device *dev)
 +{
-+	int i;
-+	struct omap_hwmod *oh[2];
-+	char *dev_name = "arm-pmu";
++	/* configure CTI0 for PMU IRQ routing */
++	cti_unlock(&omap4_cti[0]);
++	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
++	cti_enable(&omap4_cti[0]);
 +
-+	if ((!oh_num) || (oh_num > 2))
-+		return -EINVAL;
++	/* configure CTI1 for PMU IRQ routing */
++	cti_unlock(&omap4_cti[1]);
++	cti_map_trigger(&omap4_cti[1], 1, 6, 3);
++	cti_enable(&omap4_cti[1]);
 +
-+	for (i = 0; i < oh_num; i++) {
-+		oh[i] = omap_hwmod_lookup(oh_names[i]);
-+		if (!oh[i]) {
-+			pr_err("Could not look up %s hwmod\n", oh_names[i]);
-+			return -ENODEV;
-+		}
-+	}
-+
-+	omap_pmu_dev = omap_device_build_ss(dev_name, -1, oh, oh_num, NULL, 0,
-+				NULL, 0, 0);
-+	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
-+				dev_name);
-+
-+	return IS_ERR(omap_pmu_dev) ? PTR_ERR(omap_pmu_dev) : 0;
++	return 0;
 +}
 +
-+static int __init omap_init_pmu(void)
++/**
++ * omap4_pmu_runtime_suspend - PMU runtime suspend callback
++ * @dev		OMAP PMU device
++ *
++ * Platform specific PMU runtime suspend callback for OMAP4430 devices to
++ * disable the cross trigger interface interrupts. This is called by the
++ * PM runtime framework.
++ */
++static int omap4_pmu_runtime_suspend(struct device *dev)
 +{
-+	unsigned oh_num;
-+	char **oh_names;
++	cti_disable(&omap4_cti[0]);
++	cti_disable(&omap4_cti[1]);
 +
-+	/*
-+	 * To create an ARM-PMU device the following HWMODs
-+	 * are required for the various OMAP2+ devices.
-+	 *
-+	 * OMAP24xx:	mpu
-+	 * OMAP3xxx:	mpu, debugss
-+	 */
-+	if (cpu_is_omap24xx()) {
-+		oh_num = ARRAY_SIZE(omap2_pmu_oh_names);
-+		oh_names = omap2_pmu_oh_names;
-+	} else if (cpu_is_omap34xx()) {
-+		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
-+		oh_names = omap3_pmu_oh_names;
-+	} else {
-+		return 0;
++	return 0;
++}
++
++/**
++ * omap4_pmu_handle_irq - PMU IRQ Handler
++ * @irq		OMAP CTI IRQ number
++ * @dev		OMAP PMU device
++ * @handler	ARM PMU interrupt handler
++ *
++ * Platform specific PMU IRQ handler for OMAP4430 devices that route PMU
++ * interrupts via cross trigger interface. This is called by the PMU driver.
++ */
++static irqreturn_t
++omap4_pmu_handle_irq(int irq, void *dev, irq_handler_t handler)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_irq_ack(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_irq_ack(&omap4_cti[1]);
++
++	return handler(irq, dev);
++}
++
++/**
++ * omap4_init_cti - initialise cross trigger interface instances
++ *
++ * Initialises two cross trigger interface (CTI) instances in preparation
++ * for routing PMU interrupts to the OMAP interrupt controller. Note that
++ * this does not configure the actual CTI hardware but just the CTI
++ * software structures to be used.
++ */
++static int __init omap4_init_cti(void)
++{
++	omap4_cti[0].base = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
++	omap4_cti[1].base = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
++
++	if (!omap4_cti[0].base || !omap4_cti[1].base) {
++		pr_err("ioremap for OMAP4 CTI failed\n");
++		return -ENOMEM;
 +	}
 +
-+	return omap2_init_pmu(oh_num, oh_names);
++	cti_init(&omap4_cti[0], omap4_cti[0].base, OMAP44XX_IRQ_CTI0, 6);
++	cti_init(&omap4_cti[1], omap4_cti[1].base, OMAP44XX_IRQ_CTI1, 6);
++
++	return 0;
 +}
-+subsys_initcall(omap_init_pmu);
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 37bbbbb..18883eb 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -243,6 +243,7 @@
- #define INT_7XX_DMA_CH15	(62 + IH2_BASE)
- #define INT_7XX_NAND		(63 + IH2_BASE)
  
-+#define INT_24XX_BENCH_MPU_EMUL	3
- #define INT_24XX_SYS_NIRQ	7
- #define INT_24XX_SDMA_IRQ0	12
- #define INT_24XX_SDMA_IRQ1	13
+ /**
+  * omap2_init_pmu - creates and registers PMU platform device
+@@ -51,8 +137,8 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
+ 		}
+ 	}
+ 
+-	omap_pmu_dev = omap_device_build_ss(dev_name, -1, oh, oh_num, NULL, 0,
+-				NULL, 0, 0);
++	omap_pmu_dev = omap_device_build_ss(dev_name, -1, oh, oh_num,
++			&omap_pmu_data, sizeof(omap_pmu_data), NULL, 0, 0);
+ 	WARN(IS_ERR(omap_pmu_dev), "Can't build omap_device for %s.\n",
+ 				dev_name);
+ 
+@@ -66,6 +152,7 @@ static int __init omap2_init_pmu(unsigned oh_num, char *oh_names[])
+ 
+ static int __init omap_init_pmu(void)
+ {
++	int r;
+ 	unsigned oh_num;
+ 	char **oh_names;
+ 
+@@ -84,6 +171,13 @@ static int __init omap_init_pmu(void)
+ 		oh_num = ARRAY_SIZE(omap3_pmu_oh_names);
+ 		oh_names = omap3_pmu_oh_names;
+ 	} else if (cpu_is_omap443x()) {
++		r = omap4_init_cti();
++		if (r)
++			return r;
++
++		omap_pmu_data.handle_irq = omap4_pmu_handle_irq;
++		omap_pmu_data.runtime_resume = omap4_pmu_runtime_resume;
++		omap_pmu_data.runtime_suspend = omap4_pmu_runtime_suspend;
+ 		oh_num = ARRAY_SIZE(omap4430_pmu_oh_names);
+ 		oh_names = omap4430_pmu_oh_names;
+ 	} else {
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index c0d478e..1800a9b 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -58,5 +58,8 @@
+ #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
+ #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
+ 
++#define OMAP44XX_CTI0_BASE		(L4_EMU_44XX_BASE + 0x148000)
++#define OMAP44XX_CTI1_BASE		(L4_EMU_44XX_BASE + 0x149000)
++
+ #endif /* __ASM_ARCH_OMAP44XX_H */
+ 
 -- 
 1.7.9.5
 
