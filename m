@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 11/14] ASoC/MFD: twl4030: Remove set_hs_extmute callback from platform data
-Date: Mon, 10 Sep 2012 13:46:29 +0300
-Message-ID: <1347273992-9107-12-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 14/14] ASoC: twl4030: Support for DT booted kernel
+Date: Mon, 10 Sep 2012 13:46:32 +0300
+Message-ID: <1347273992-9107-15-git-send-email-peter.ujfalusi@ti.com>
 References: <1347273992-9107-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1347273992-9107-1-git-send-email-peter.ujfalusi@ti.com>
@@ -10,52 +10,100 @@ To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-We no longer have users for the set_hs_extmute callback which has been
-replaced by hs_extmute_gpio so the codec driver can handle the external
-mute if it is needed by the board.
+When the kernel has been booted with DT blob the platform data is NULL for
+the driver.
+We need to construct the pdata based on the DT information for runtime use.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- include/linux/i2c/twl.h    | 2 --
- sound/soc/codecs/twl4030.c | 6 ------
- 2 files changed, 8 deletions(-)
+ sound/soc/codecs/twl4030.c | 55 +++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 47 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 2040309..a4885a6 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -667,8 +667,6 @@ struct twl4030_codec_data {
- 	unsigned int check_defaults:1;
- 	unsigned int reset_registers:1;
- 	unsigned int hs_extmute:1;
--	void (*set_hs_extmute)(int mute); /* Deprecated, use hs_extmute_gpio and
--					     hs_extmute_disable_level */
- 	int hs_extmute_gpio;
- };
- 
 diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index 5fc271a..27ccea4 100644
+index 8b13d50..8405ab9 100644
 --- a/sound/soc/codecs/twl4030.c
 +++ b/sound/soc/codecs/twl4030.c
-@@ -767,9 +767,6 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
- 	if (pdata && pdata->hs_extmute) {
- 		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
- 			gpio_set_value(pdata->hs_extmute_gpio, 1);
--		} else if (pdata->set_hs_extmute) {
--			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
--			pdata->set_hs_extmute(1);
- 		} else {
- 			hs_pop |= TWL4030_EXTMUTE;
- 			twl4030_write(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
-@@ -808,9 +805,6 @@ static void headset_ramp(struct snd_soc_codec *codec, int ramp)
- 	if (pdata && pdata->hs_extmute) {
- 		if (gpio_is_valid(pdata->hs_extmute_gpio)) {
- 			gpio_set_value(pdata->hs_extmute_gpio, 0);
--		} else if (pdata->set_hs_extmute) {
--			dev_warn(codec->dev, "set_hs_extmute is deprecated\n");
--			pdata->set_hs_extmute(0);
- 		} else {
- 			hs_pop &= ~TWL4030_EXTMUTE;
- 			twl4030_write(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
+@@ -26,6 +26,8 @@
+ #include <linux/pm.h>
+ #include <linux/i2c.h>
+ #include <linux/platform_device.h>
++#include <linux/of.h>
++#include <linux/of_gpio.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/slab.h>
+ #include <linux/gpio.h>
+@@ -295,13 +297,57 @@ static inline void twl4030_reset_registers(struct snd_soc_codec *codec)
+ 
+ }
+ 
+-static void twl4030_init_chip(struct snd_soc_codec *codec)
++static void twl4030_setup_pdata_of(struct twl4030_codec_data *pdata,
++				   struct device_node *node)
++{
++	int value;
++
++	of_property_read_u32(node, "ti,digimic_delay",
++			     &pdata->digimic_delay);
++	of_property_read_u32(node, "ti,ramp_delay_value",
++			     &pdata->ramp_delay_value);
++	of_property_read_u32(node, "ti,offset_cncl_path",
++			     &pdata->offset_cncl_path);
++	if (!of_property_read_u32(node, "ti,hs_extmute", &value))
++		pdata->hs_extmute = value;
++
++	pdata->hs_extmute_gpio = of_get_named_gpio(node,
++						   "ti,hs_extmute_gpio", 0);
++	if (gpio_is_valid(pdata->hs_extmute_gpio))
++		pdata->hs_extmute = 1;
++}
++
++static struct twl4030_codec_data *twl4030_get_pdata(struct snd_soc_codec *codec)
+ {
+ 	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
++	struct device_node *twl4030_codec_node = NULL;
++
++	twl4030_codec_node = of_find_node_by_name(codec->dev->parent->of_node,
++						  "codec");
++
++	if (!pdata && twl4030_codec_node) {
++		pdata = devm_kzalloc(codec->dev,
++				     sizeof(struct twl4030_codec_data),
++				     GFP_KERNEL);
++		if (!pdata) {
++			dev_err(codec->dev, "Can not allocate memory\n");
++			return NULL;
++		}
++		twl4030_setup_pdata_of(pdata, twl4030_codec_node);
++	}
++
++	return pdata;
++}
++
++static void twl4030_init_chip(struct snd_soc_codec *codec)
++{
++	struct twl4030_codec_data *pdata;
+ 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
+ 	u8 reg, byte;
+ 	int i = 0;
+ 
++	pdata = twl4030_get_pdata(codec);
++
+ 	if (pdata && pdata->hs_extmute &&
+ 	    gpio_is_valid(pdata->hs_extmute_gpio)) {
+ 		int ret;
+@@ -2284,13 +2330,6 @@ static struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
+ 
+ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ {
+-	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
+-
+-	if (!pdata) {
+-		dev_err(&pdev->dev, "platform_data is missing\n");
+-		return -EINVAL;
+-	}
+-
+ 	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_twl4030,
+ 			twl4030_dai, ARRAY_SIZE(twl4030_dai));
+ }
 -- 
 1.7.12
