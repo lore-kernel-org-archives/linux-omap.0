@@ -1,33 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: dts: AM33XX: fix gpio node numbering to match
- hardware
-Date: Mon, 10 Sep 2012 10:03:32 -0700
-Message-ID: <20120910170332.GX1303@atomide.com>
-References: <1347294020-22661-1-git-send-email-mporter@ti.com>
- <504E168C.6060603@ti.com>
+From: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Subject: Re: [balbi-usb:master 33/36] drivers/usb/gadget/serial.c:89:22: sparse:
+ cast truncates bits from constant value (24000000 becomes 0)
+Date: Mon, 10 Sep 2012 19:05:15 +0200
+Message-ID: <504E1DCB.3000003@linutronix.de>
+References: <20120910164015.GA16252@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <504E168C.6060603@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120910164015.GA16252@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-* Benoit Cousson <b-cousson@ti.com> [120910 09:35]:
-> + Tony
-> 
-> Hi Matt,
-> 
-> 30 minutes too late for my pull request :-(
-> 
-> There are a couple of am33xx patches under discussion, so I'll take them
-> and send a for_3.7/dts-part2 pull request if this is not too late for Tony.
+On 09/10/2012 06:40 PM, Fengguang Wu wrote:
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
+> head:   d9c88901337158c9f253a7de58a10b5125d61d26
+> commit: 7a7322b0a5d984025dd4faea9098b8fef07f8d8f [33/36] usb: gadget: remove usb_gadget_controller_number()
+>
+> All sparse warnings:
 
-Yes please do, it' hard to say when exactly we need to stop merging,
-but probably we still have a bit more time.
+Once again, thank you.
 
-Regards,
+>    drivers/usb/gadget/f_acm.c:287:9: sparse: advancing past deep designator
+>    drivers/usb/gadget/f_obex.c:60:9: sparse: advancing past deep designator
+>    drivers/usb/gadget/f_serial.c:134:9: sparse: advancing past deep designator
+>    drivers/usb/gadget/serial.c:66:9: sparse: advancing past deep designator
 
-Tony
+I don't get these. The purpose is an all NULL terminating entry. Could
+this be a sparse bug or is the [] / {} switch not really good C code?
+
+> + drivers/usb/gadget/serial.c:89:22: sparse: cast truncates bits from constant value (24000000 becomes 0)
+
+I've sent a patch for this.
+
+Sebastian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
