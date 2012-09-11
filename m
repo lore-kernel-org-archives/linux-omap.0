@@ -1,252 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
-Date: Tue, 11 Sep 2012 16:52:39 +0300
-Message-ID: <504F4227.4080206@ti.com>
-References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <1347368390-31252-1-git-send-email-arnd@arndb.de> <1347368390-31252-13-git-send-email-arnd@arndb.de>
+Date: Tue, 11 Sep 2012 19:36:30 +0530
+Message-ID: <CAMQu2gwLoccyjGwjjgndiW2aR--_S=UhCCTdcav6LicvYWe5SQ@mail.gmail.com>
+References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <1347368559-31329-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347368390-31252-13-git-send-email-arnd@arndb.de>
+In-Reply-To: <1347368559-31329-1-git-send-email-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@t>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+Arnd,
 
-On 09/11/2012 03:59 PM, Arnd Bergmann wrote:
+On Tue, Sep 11, 2012 at 6:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
 > Platform data for device drivers should be defined in
 > include/linux/platform_data/*.h, not in the architecture
 > and platform specific directories.
->=20
-> This moves such data out of the omap include directories
->=20
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: "Beno=C3=AEt Cousson" <b-cousson@ti.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: David Woodhouse <dwmw2@infradead.org>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-> Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>
-> Cc: Liam Girdwood <lrg@ti.com>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-> Cc: Jean Pihet <j-pihet@ti.com>
-> Cc: J Keerthy <j-keerthy@ti.com>
-> Cc: linux-omap@vger.kernel.org
-> ---
->  arch/arm/mach-omap1/board-ams-delta.c                              |=
-    2 +-
->  arch/arm/mach-omap1/board-fsample.c                                |=
-    2 +-
->  arch/arm/mach-omap1/board-h2.c                                     |=
-    2 +-
->  arch/arm/mach-omap1/board-h3.c                                     |=
-    2 +-
->  arch/arm/mach-omap1/board-htcherald.c                              |=
-    2 +-
->  arch/arm/mach-omap1/board-innovator.c                              |=
-    2 +-
->  arch/arm/mach-omap1/board-nokia770.c                               |=
-    4 ++--
->  arch/arm/mach-omap1/board-osk.c                                    |=
-    2 +-
->  arch/arm/mach-omap1/board-palmte.c                                 |=
-    2 +-
->  arch/arm/mach-omap1/board-palmtt.c                                 |=
-    2 +-
->  arch/arm/mach-omap1/board-palmz71.c                                |=
-    2 +-
->  arch/arm/mach-omap1/board-perseus2.c                               |=
-    2 +-
->  arch/arm/mach-omap1/board-sx1.c                                    |=
-    2 +-
->  arch/arm/mach-omap1/mcbsp.c                                        |=
-    2 +-
->  arch/arm/mach-omap2/board-3430sdp.c                                |=
-    2 +-
->  arch/arm/mach-omap2/board-cm-t35.c                                 |=
-    4 ++--
->  arch/arm/mach-omap2/board-cm-t3517.c                               |=
-    2 +-
->  arch/arm/mach-omap2/board-devkit8000.c                             |=
-    4 ++--
->  arch/arm/mach-omap2/board-flash.c                                  |=
-    4 ++--
->  arch/arm/mach-omap2/board-igep0020.c                               |=
-    2 +-
->  arch/arm/mach-omap2/board-ldp.c                                    |=
-    2 +-
->  arch/arm/mach-omap2/board-n8x0.c                                   |=
-    4 ++--
->  arch/arm/mach-omap2/board-omap3beagle.c                            |=
-    2 +-
->  arch/arm/mach-omap2/board-omap3evm.c                               |=
-    4 ++--
->  arch/arm/mach-omap2/board-omap3pandora.c                           |=
-    4 ++--
->  arch/arm/mach-omap2/board-omap3stalker.c                           |=
-    4 ++--
->  arch/arm/mach-omap2/board-omap3touchbook.c                         |=
-    4 ++--
->  arch/arm/mach-omap2/board-overo.c                                  |=
-    4 ++--
->  arch/arm/mach-omap2/board-rm680.c                                  |=
-    2 +-
->  arch/arm/mach-omap2/board-rx51-peripherals.c                       |=
-    4 ++--
->  arch/arm/mach-omap2/board-rx51-video.c                             |=
-    2 +-
->  arch/arm/mach-omap2/board-rx51.c                                   |=
-    2 +-
->  arch/arm/mach-omap2/board-zoom-display.c                           |=
-    2 +-
->  arch/arm/mach-omap2/common-board-devices.c                         |=
-    4 ++--
->  arch/arm/mach-omap2/devices.c                                      |=
-    2 +-
->  arch/arm/mach-omap2/dsp.c                                          |=
-    2 +-
->  arch/arm/mach-omap2/gpmc-nand.c                                    |=
-    2 +-
->  arch/arm/mach-omap2/gpmc-onenand.c                                 |=
-    2 +-
->  arch/arm/mach-omap2/mcbsp.c                                        |=
-    2 +-
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c                         |=
-    2 +-
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c                         |=
-    4 ++--
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c                 |=
-    2 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c                         |=
-    4 ++--
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c                         |=
-    4 ++--
->  arch/arm/mach-omap2/voltage.h                                      |=
-    2 +-
->  arch/arm/plat-omap/common.c                                        |=
-    2 +-
->  drivers/input/keyboard/omap-keypad.c                               |=
-    2 +-
->  drivers/mtd/nand/omap2.c                                           |=
-    2 +-
->  drivers/mtd/onenand/omap2.c                                        |=
-    2 +-
->  drivers/remoteproc/omap_remoteproc.c                               |=
-    2 +-
->  drivers/spi/spi-omap2-mcspi.c                                      |=
-    2 +-
->  drivers/staging/tidspbridge/core/dsp-clock.c                       |=
-    2 +-
->  drivers/staging/tidspbridge/core/tiomap3430.c                      |=
-    2 +-
->  drivers/staging/tidspbridge/core/tiomap3430_pwr.c                  |=
-    2 +-
->  drivers/staging/tidspbridge/core/tiomap_io.c                       |=
-    2 +-
->  drivers/staging/tidspbridge/rmgr/drv_interface.c                   |=
-    2 +-
->  drivers/video/omap/lcd_mipid.c                                     |=
-    2 +-
->  .../plat/mcbsp.h =3D> include/linux/platform_data/dsp-mcbsp.h       =
- |    0
-
-OMAP McBSP has nothing to do with a dsp.
-A better name would be: ti-mcbsp.h (or leave it as mcbsp.h)
-McBSP stands for: Multichannel Buffered Serial Port and it is used for =
-audio
-connection (I2S, TDM, etc).
-
->  .../include/plat/dsp.h =3D> include/linux/platform_data/dsp-omap.h  =
- |    0
->  .../plat/keypad.h =3D> include/linux/platform_data/keypad-omap.h    =
- |    0
->  .../plat/lcd_mipid.h =3D> include/linux/platform_data/lcd-mipid.h   =
- |    0
->  .../plat/nand.h =3D> include/linux/platform_data/mtd-nand-omap2.h   =
- |    0
->  .../onenand.h =3D> include/linux/platform_data/mtd-onenand-omap2.h  =
- |    0
->  .../remoteproc.h =3D> include/linux/platform_data/remoteproc-omap.h =
- |    0
->  .../voltage.h =3D> include/linux/platform_data/smartreflex-omap.h   =
- |    0
->  .../plat/mcspi.h =3D> include/linux/platform_data/spi-omap2-mcspi.h =
- |    0
->  include/linux/power/smartreflex.h                                  |=
-    2 +-
-
-Let me see these:
-
-This four drivers are going to be removed via sound tree.
->  sound/soc/omap/igep0020.c                                          |=
-    2 +-
->  sound/soc/omap/omap3beagle.c                                       |=
-    2 +-
->  sound/soc/omap/omap3evm.c                                          |=
-    2 +-
->  sound/soc/omap/overo.c                                             |=
-    2 +-
-
-The new driver which replaces these (omap-twl4030.c) does not include
-plat/mcbsp.h
-
-=46rom these ASoC machine drivers you can just remove the <plat/mcbsp.h=
 >
-include since they should not include them (I have pending patch for th=
-is to
-be sent):
->  sound/soc/omap/am3517evm.c                                         |=
-    2 +-
->  sound/soc/omap/ams-delta.c                                         |=
-    2 +-
->  sound/soc/omap/n810.c                                              |=
-    2 +-
->  sound/soc/omap/omap3pandora.c                                      |=
-    2 +-
->  sound/soc/omap/osk5912.c                                           |=
-    2 +-
->  sound/soc/omap/rx51.c                                              |=
-    2 +-
->  sound/soc/omap/sdp3430.c                                           |=
-    2 +-
->  sound/soc/omap/zoom2.c                                             |=
-    2 +-
+> This moves such data out of the omap include directories
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
->  sound/soc/omap/omap-mcbsp.c                                        |=
-    2 +-
->  sound/soc/omap/mcbsp.c                                             |=
-    2 +-
+[...]
 
 >  81 files changed, 87 insertions(+), 87 deletions(-)
->  rename arch/arm/plat-omap/include/plat/mcbsp.h =3D> include/linux/pl=
-atform_data/dsp-mcbsp.h (100%)
->  rename arch/arm/plat-omap/include/plat/dsp.h =3D> include/linux/plat=
-form_data/dsp-omap.h (100%)
->  rename arch/arm/plat-omap/include/plat/keypad.h =3D> include/linux/p=
-latform_data/keypad-omap.h (100%)
->  rename arch/arm/plat-omap/include/plat/lcd_mipid.h =3D> include/linu=
-x/platform_data/lcd-mipid.h (100%)
->  rename arch/arm/plat-omap/include/plat/nand.h =3D> include/linux/pla=
-tform_data/mtd-nand-omap2.h (100%)
->  rename arch/arm/plat-omap/include/plat/onenand.h =3D> include/linux/=
-platform_data/mtd-onenand-omap2.h (100%)
->  rename arch/arm/plat-omap/include/plat/remoteproc.h =3D> include/lin=
-ux/platform_data/remoteproc-omap.h (100%)
->  rename arch/arm/plat-omap/include/plat/voltage.h =3D> include/linux/=
-platform_data/smartreflex-omap.h (100%)
->  rename arch/arm/plat-omap/include/plat/mcspi.h =3D> include/linux/pl=
-atform_data/spi-omap2-mcspi.h (100%)
+>  rename arch/arm/plat-omap/include/plat/mcbsp.h => include/linux/platform_data/dsp-mcbsp.h (100%)
+>  rename arch/arm/plat-omap/include/plat/dsp.h => include/linux/platform_data/dsp-omap.h (100%)
+>  rename arch/arm/plat-omap/include/plat/keypad.h => include/linux/platform_data/keypad-omap.h (100%)
+>  rename arch/arm/plat-omap/include/plat/lcd_mipid.h => include/linux/platform_data/lcd-mipid.h (100%)
+>  rename arch/arm/plat-omap/include/plat/nand.h => include/linux/platform_data/mtd-nand-omap2.h (100%)
+>  rename arch/arm/plat-omap/include/plat/onenand.h => include/linux/platform_data/mtd-onenand-omap2.h (100%)
+>  rename arch/arm/plat-omap/include/plat/remoteproc.h => include/linux/platform_data/remoteproc-omap.h (100%)
+>  rename arch/arm/plat-omap/include/plat/voltage.h => include/linux/platform_data/smartreflex-omap.h (100%)
+>  rename arch/arm/plat-omap/include/plat/mcspi.h => include/linux/platform_data/spi-omap2-mcspi.h (100%)
+>
+Just curious to know how you came with some of the above header names ?
 
---=20
-P=C3=A9ter
+plat/mcbsp ---> dsp-mcbsp.h
+There is no connection of DSP with McBSP. "omap-mcbsp.h" would been a
+better name.
+
+plat/nand.h --> /mtd-nand-omap2.h
+plat/onenand.h --> /mtd-onenand-omap2.h
+May be "omap-nand.h" and "omap-onenand.h"
+
+plat/mcspi.h-->spi-omap2-mcspi.h
+May be "omap-spi.h"
+
+Regards,
+Santosh
