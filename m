@@ -1,15 +1,15 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 01/23] i2c: omap: switch to devm_* API
-Date: Tue, 11 Sep 2012 15:11:56 +0530
-Message-ID: <1347356538-23835-2-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv7 10/23] i2c: omap: ack IRQ in parts
+Date: Tue, 11 Sep 2012 15:12:05 +0530
+Message-ID: <1347356538-23835-11-git-send-email-shubhrajyoti@ti.com>
 References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50906 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50896 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758618Ab2IKJnc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 05:43:32 -0400
+	id S1758364Ab2IKJnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 05:43:23 -0400
 In-Reply-To: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,128 +18,70 @@ Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@f
 
 From: Felipe Balbi <balbi@ti.com>
 
-that helps deleting some boiler plate code
-and lets driver-core manage our resources
-for us.
+According to flow diagrams on OMAP TRMs,
+we should ACK the IRQ as they happen.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
+[Ack the stat OMAP_I2C_STAT_AL in case of arbitration lost]
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   41 ++++++++++++-----------------------------
- 1 files changed, 12 insertions(+), 29 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   28 ++++++++++++++++------------
+ 1 files changed, 16 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5d19a49..2d9b03c 100644
+index 4045134..bac1f11 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -943,7 +943,7 @@ omap_i2c_probe(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
--	struct resource		*mem, *irq, *ioarea;
-+	struct resource		*mem, *irq;
- 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	struct device_node	*node = pdev->dev.of_node;
- 	const struct of_device_id *match;
-@@ -962,17 +962,16 @@ omap_i2c_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
+@@ -850,21 +850,19 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 		}
  
--	ioarea = request_mem_region(mem->start, resource_size(mem),
--			pdev->name);
--	if (!ioarea) {
--		dev_err(&pdev->dev, "I2C region already claimed\n");
--		return -EBUSY;
-+	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
-+	if (!dev) {
-+		dev_err(&pdev->dev, "Menory allocation failed\n");
-+		return -ENOMEM;
- 	}
+ complete:
+-		/*
+-		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
+-		 * acked after the data operation is complete.
+-		 * Ref: TRM SWPU114Q Figure 18-31
+-		 */
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat &
+-				~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+-				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+-
+-		if (stat & OMAP_I2C_STAT_NACK)
++		if (stat & OMAP_I2C_STAT_NACK) {
+ 			err |= OMAP_I2C_STAT_NACK;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
++		}
  
--	dev = kzalloc(sizeof(struct omap_i2c_dev), GFP_KERNEL);
--	if (!dev) {
--		r = -ENOMEM;
--		goto err_release_region;
-+	dev->base = devm_request_and_ioremap(&pdev->dev, mem);
-+	if (!dev->base) {
-+		dev_err(&pdev->dev, "I2C region already claimed\n");
-+		return -ENOMEM;
- 	}
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
+ 		}
  
- 	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
-@@ -995,11 +994,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		/*
+@@ -941,12 +939,18 @@ complete:
  
- 	dev->dev = &pdev->dev;
- 	dev->irq = irq->start;
--	dev->base = ioremap(mem->start, resource_size(mem));
--	if (!dev->base) {
--		r = -ENOMEM;
--		goto err_free_mem;
--	}
+ 		if (stat & OMAP_I2C_STAT_ROVR) {
+ 			dev_err(dev->dev, "Receive overrun\n");
+-			dev->cmd_err |= OMAP_I2C_STAT_ROVR;
++			err |= OMAP_I2C_STAT_ROVR;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
+ 		}
  
- 	platform_set_drvdata(pdev, dev);
- 	init_completion(&dev->cmd_complete);
-@@ -1057,7 +1051,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	isr = (dev->rev < OMAP_I2C_OMAP1_REV_2) ? omap_i2c_omap1_isr :
- 								   omap_i2c_isr;
--	r = request_irq(dev->irq, isr, IRQF_NO_SUSPEND, pdev->name, dev);
-+	r = devm_request_irq(&pdev->dev, dev->irq, isr, IRQF_NO_SUSPEND,
-+			     pdev->name, dev);
- 
- 	if (r) {
- 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
-@@ -1081,7 +1076,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	r = i2c_add_numbered_adapter(adap);
- 	if (r) {
- 		dev_err(dev->dev, "failure adding adapter\n");
--		goto err_free_irq;
-+		goto err_unuse_clocks;
- 	}
- 
- 	of_i2c_register_devices(adap);
-@@ -1090,18 +1085,12 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	return 0;
- 
--err_free_irq:
--	free_irq(dev->irq, dev);
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(dev->dev);
--	iounmap(dev->base);
- 	pm_runtime_disable(&pdev->dev);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
--	kfree(dev);
--err_release_region:
--	release_mem_region(mem->start, resource_size(mem));
- 
- 	return r;
- }
-@@ -1109,12 +1098,10 @@ err_release_region:
- static int __devexit omap_i2c_remove(struct platform_device *pdev)
- {
- 	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
--	struct resource		*mem;
- 	int ret;
- 
- 	platform_set_drvdata(pdev, NULL);
- 
--	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	ret = pm_runtime_get_sync(&pdev->dev);
- 	if (IS_ERR_VALUE(ret))
-@@ -1123,10 +1110,6 @@ static int __devexit omap_i2c_remove(struct platform_device *pdev)
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	pm_runtime_put(&pdev->dev);
- 	pm_runtime_disable(&pdev->dev);
--	iounmap(dev->base);
--	kfree(dev);
--	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(mem->start, resource_size(mem));
- 	return 0;
- }
+ 		if (stat & OMAP_I2C_STAT_XUDF) {
+ 			dev_err(dev->dev, "Transmit underflow\n");
+-			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
++			err |= OMAP_I2C_STAT_XUDF;
++			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
++			omap_i2c_complete_cmd(dev, err);
++			return IRQ_HANDLED;
+ 		}
+ 	} while (stat);
  
 -- 
 1.7.5.4
