@@ -1,61 +1,151 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv7 02/23] i2c: omap: simplify num_bytes handling
-Date: Tue, 11 Sep 2012 15:11:57 +0530
-Message-ID: <1347356538-23835-3-git-send-email-shubhrajyoti@ti.com>
-References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
+Date: Tue, 11 Sep 2012 15:16:31 +0530
+Message-ID: <504F0877.4030907@ti.com>
+References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46668 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46929 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758083Ab2IKJnQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 05:43:16 -0400
-In-Reply-To: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
+	id S1756668Ab2IKJqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 05:46:48 -0400
+In-Reply-To: <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de, Felipe Balbi <balbi@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@ti.com
 
-From: Felipe Balbi <balbi@ti.com>
 
-trivial patch, no functional changes
 
-If the fifo is disabled or fifo_size is 0 the num_bytes
-is set to 1. Else it is set to fifo_size or in case of a
-draining interrupt the remaining bytes in the buff stat.
-So the zero check is redundant and can be safely optimised.
+On 9/11/2012 12:05 PM, Paul Walmsley wrote:
+> 
+> Hi Rajendra,
+> 
+> A CCF testing branch has been built here.  The base is v3.6-rc5, plus the 
+> most recent version of the Common Clock Framework preparation patches that 
+> you posted to the list, "[PATCH v4 0/3] Prepare for OMAP2+ movement to 
+> Common Clk", but updated to take RMK's feedback into account.  Then the 
+> 'clk-next-omap-3.6-rc3' branch from your repo at 
+> 'git://github.com/rrnayak/linux.git' was added.  Then some patches to drop 
+> the old arch/arm/mach-omap2/clock*_data.c files were added.
+> 
+> This branch was then run through checkpatch.pl, and all of the parenthesis
+> alignment warnings have been fixed.  I don't know what to do about these 
+> crazy DECLARE_CLK_* macros; they have so many arguments that they are 
+> basically impossible to read.  Mike and I discussed converting them 
+> into C99 structure initializers with named fields, but am not sure if it's 
+> a readability advantage; it's probably going to be "write-only data" 
+> either way.  I've reflowed many of them to save diffstat but there are 
+> quite a few more to go.
+> 
+> The branch was then built with a set of testing Kconfigs.  Here's what was 
+> found: (these are still being investigated)
+> 
+> - The OMAP4-only testconfig and rmk's OMAP4430-SDP Kconfigs failed:
+>   "undefined reference to `omap2_clkt_iclk_allow_idle'":
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/build/omap4_testconfig/
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/build/rmk_omap4430_sdp_oldconfig/
+> 
+> - RMK's OMAP3430-LDP Kconfig failed with a whole set of warnings:
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/build/rmk_omap3430_ldp_oldconfig/
+> 
+> 
+> The kernel built with omap2plus_defconfig was then booted on several 
+> OMAP2+ boards.  Here's what was found:
+> 
+> - The kernel wouldn't boot on either the 3517EVM nor CM-T3517 boards.
+>   This turned out to be due to some missing AM35XX clkdev aliases, the 
+>   lack of which cause the CCF code to panic.  The patch that adds the 
+>   OMAP3 data has been updated to fix that bug and an HSOTGUSB clkdev
+>   alias bug that was found by visual inspection.
+> 
+> - The 3730 Beagle XM issued a warning and stack trace upon boot.  
+>   Debugging with Mike, this turned out to be due to a bug in the
+>   modified omap2_init_clksel_parent() function: it returned a register
+>   bitfield rather than an array index.  The patch that modifies this
+>   function was then updated to fix the bug.
+> 
+> - The 2420 N800 seems to have some kind of MMC-related problem
+>   that prevents it from booting.  Still looking into this:
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/2420n800/2420n800_log.txt
+> 
+> 
+> Then the branch was PM-tested to determine whether it can suspend and 
+> serial-resume properly, and whether dynamic idle works.  These tests 
+> didn't go so well:
+> 
+> - 3530ES3 Beagleboard here was able to enter retention-idle
+>   suspend, and leave it with serial wakeup, but the CORE powerdomain never 
+>   entered a low-power state.  Dynamic retention-idle with serial wakeup
+>   never resumed, and the test stopped there:
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3530es3beagle/3530es3beagle_log.txt
+> 
+> - 37xx EVM and 3730 Beagle XM fared better; they made it through the whole 
+>   test program, but the CORE powerdomain also never entered a low-power
+>   state:
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/37xxevm/37xxevm_log.txt
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3730beaglexm/3730beaglexm_log.txt
+> 
+> - 4430ES2 Panda never made past the first retention-idle suspend:
+> 
+>   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/4430es2panda/4430es2panda_log.txt
+> 
+> 
+> Could you please take a look and see if you can identify why the patches 
+> aren't passing the tests?  I can't send these upstream until they pass the 
+> PM tests.
+> 
+> This testing branch can be found at the branch named 
+> "common_clk_testing_devel_3.7" of git://git.pwsan.com/linux-2.6
+> 
+> The testbed reports from this branch can be found here:
+>   
+>    http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/
+> 
+> And the baseline test reports from v3.6-rc5 can be found here:
+> 
+>    http://www.pwsan.com/omap/testlogs/test_v3.6-rc5/20120908202511/
+> 
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+I tried this branch on BeagleBone platform and needs one small typo
+correction in hwmod data patch (submitted earlier, which you are going
+to queue it)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2d9b03c..236cb38 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -812,8 +812,7 @@ complete:
- 							OMAP_I2C_BUFSTAT_REG)
- 							>> 8) & 0x3F;
- 			}
--			while (num_bytes) {
--				num_bytes--;
-+			while (num_bytes--) {
- 				w = omap_i2c_read_reg(dev, OMAP_I2C_DATA_REG);
- 				if (dev->buf_len) {
- 					*dev->buf++ = w;
-@@ -855,8 +854,7 @@ complete:
- 							OMAP_I2C_BUFSTAT_REG)
- 							& 0x3F;
- 			}
--			while (num_bytes) {
--				num_bytes--;
-+			while (num_bytes--) {
- 				w = 0;
- 				if (dev->buf_len) {
- 					w = *dev->buf++;
--- 
-1.7.5.4
 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+index de7a3ab..767a77d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+@@ -1441,7 +1441,7 @@ static struct omap_hwmod am33xx_mmc2_hwmod = {
+        .clkdm_name     = "l3s_clkdm",
+        .mpu_irqs       = am33xx_mmc2_irqs,
+        .sdma_reqs      = am33xx_mmc2_edma_reqs,
+-       .main_clk       = "mmc2_fck",
++       .main_clk       = "mmc_clk",
+        .prcm           = {
+                .omap4  = {
+                      .clkctrl_offs = AM33XX_CM_PER_MMC2_CLKCTRL_OFFSET,
+
+
+With above change I boot tested it on BeagleBone platform and also
+verified the clock rates getting printed in debugfs.
+
+Thanks,
+Vaibhav
+> 
+> 
+> - Paul
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
