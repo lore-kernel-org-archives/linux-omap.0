@@ -1,63 +1,102 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH 09/17] serial/8250: Limit the omap workarounds to omap1
-Date: Tue, 11 Sep 2012 17:42:34 +0100
-Message-ID: <20120911174234.45919fd3@bob.linux.org.uk>
-References: <20120911052934.29637.9190.stgit@muffinssi.local>
-	<20120911053104.29637.95283.stgit@muffinssi.local>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP: Clean-up timer posted mode support
+Date: Tue, 11 Sep 2012 11:26:07 -0500
+Message-ID: <504F661F.1020209@ti.com>
+References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-9-git-send-email-jon-hunter@ti.com> <20120907222223.GQ1303@atomide.com> <504E62C8.8030100@ti.com> <20120911005802.GE1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120911053104.29637.95283.stgit@muffinssi.local>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47826 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756109Ab2IKQ0L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 12:26:11 -0400
+In-Reply-To: <20120911005802.GE1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Mon, 10 Sep 2012 22:31:04 -0700
-Tony Lindgren <tony@atomide.com> wrote:
 
-> These workarounds do not apply for CONFIG_ARCH_OMAP2PLUS at all,
-> so let's make it just CONFIG_ARCH_OMAP1.
+On 09/10/2012 07:58 PM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120910 15:00]:
+>>
+>> On 09/07/2012 05:22 PM, Tony Lindgren wrote:
+>>> * Jon Hunter <jon-hunter@ti.com> [120905 12:05]:
+>>>> The dmtimer functions to read and write the dmtimer registers are currently
+>>>> defined as follows ...
+>>>>
+>>>> static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
+>>>> 						int posted);
+>>>> static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
+>>>> 						u32 reg, u32 val, int posted);
+>>>>
+>>>> The posted variable indicates if the timer is configured to use the posted mode
+>>>> when performing register accesses. The posted mode configuration of the dmtimer
+>>>> is stored in the omap_dm_timer structure that is also being passed to the above
+>>>> functions and therefore we do not need to pass the posted variable separately.
+>>>> Therefore, simplify the above functions by removing the posted variable as an
+>>>> argument as this is not necessary.
+>>>
+>>> I believe the reason for passing the posted flag was to optimize out some
+>>> functions from the timer code as that's being run all the time.
+>>>
+>>> Care to check the assembly before and after this patch for the timer
+>>> functions with objdump -d to make sure it does not add tons of bloat
+>>> there?
+>>
+>> Hi Tony,
+>>
+>> Thanks for the details here. I see that makes sense and that the
+>> compiler could take advantage of this as the functions are inlined.
+>>
+>> I have taken a look at the disassembled output using objdump as you
+>> mentioned. What I see is ...
+>>
+>> 1. For dmtimer.c the impact appears negligible, the total number of
+>>    lines outputted by objdump only changed by 8 with (1215 lines) and
+>>    without (1207 lines) the patch applied.
+>>
+>> 2. For timer.c the impact is greater. I see that
+>>    omap2_gp_timer_set_next_event() increased by 6 instructions from 29
+>>    to 35. clocksource_read_cycles() increased by 2 instructions 15 to
+>>    17 instructions. dmtimer_read_sched_clock() increased by 2
+>>    instructions from 17 to 19. omap2_gp_timer_set_mode() increased by
+>>    21 instructions from 102 to 123.
+>>
+>> I imagine that we are mainly concerned about
+>> omap2_gp_timer_set_next_event(), clocksource_read_cycles() and
+>> dmtimer_read_sched_clock() as these will be called often. Therefore, I
+>> am not sure if you wish to drop this patch.
 > 
-> This is needed to for ARM common zImage changes for
-> omap2+ to avoid including plat and mach headers.
+> Well does it at lots of new ldr to the critical code?
+
+For the omap2_gp_timer_set_next_event() function it adds 3 load
+instructions, increasing the number of possible loads from 11 to 14.
+
+For the clocksource_read_cycles() function it adds 1 load instruction,
+increasing the number of possible loads from 7 to 8.
+
+For the dmtimer_read_sched_clock() function, I don't see any additional
+loads, but instructions added are a tst and beq instruction.
+
+>> By the way, if we do drop this patch, I would then need to fix the
+>> setting of the posted variable in mach-omap2/timer.c for clock-source in
+>> the case where a dmtimer is used. Today the code assumes that for
+>> clock-source and clock-events posted mode is always used. However, with
+>> the errata i103/i767 we will disable posted mode for clock-source on
+>> omap2/3/4/5/am33xx devices.
 > 
-> Cc: Alan Cox <alan@linux.intel.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-serial@vger.kernel.org
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  drivers/tty/serial/8250/8250.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/tty/serial/8250/8250.c
-> b/drivers/tty/serial/8250/8250.c index 8123f78..5b3f2fe 100644
-> --- a/drivers/tty/serial/8250/8250.c
-> +++ b/drivers/tty/serial/8250/8250.c
-> @@ -2336,7 +2336,7 @@ serial8250_do_set_termios(struct uart_port
-> *port, struct ktermios *termios, serial_port_out(port, UART_EFR, efr);
->  	}
->  
-> -#ifdef CONFIG_ARCH_OMAP
-> +#ifdef CONFIG_ARCH_OMAP1
->  	/* Workaround to enable 115200 baud on OMAP1510 internal
-> ports */ if (cpu_is_omap1510() && is_omap_port(up)) {
->  		if (baud == 115200) {
-> @@ -2426,7 +2426,7 @@ static unsigned int serial8250_port_size(struct
-> uart_8250_port *pt) {
->  	if (pt->port.iotype == UPIO_AU)
->  		return 0x1000;
-> -#ifdef CONFIG_ARCH_OMAP
-> +#ifdef CONFIG_ARCH_OMAP1
->  	if (is_omap_port(pt))
->  		return 0x16 << pt->port.regshift;
->  #endif
-> 
+> Yes I see, I guess that means just adding a new systimer entry?
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+Actually, I think we can avoid that by not using posted mode for
+clock-source timers at all. Posted mode only benefits the clock-events
+timers that are configured often.
 
-Even better would be if for other cases is_omap_port and friends
-returned 0...
+The benefit of not using posted mode for clock-source timers and setting
+the "posted" parameter to 0, will really allow the compiler to optimise
+the clocksource_read_cycles() and dmtimer_read_sched_clock() quite a
+bit. So this could be a nice optimisation.
 
-
+Cheers
+Jon
