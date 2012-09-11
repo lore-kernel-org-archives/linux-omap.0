@@ -1,163 +1,275 @@
 From: Ravi Babu <ravibabu@ti.com>
-Subject: [PATCH v10 2/5] usb: musb: kill global and static for multi instance
-Date: Tue, 11 Sep 2012 21:43:16 +0530
-Message-ID: <1347379999-26061-3-git-send-email-ravibabu@ti.com>
+Subject: [PATCH v10 3/5] usb: musb: am335x: add support for dual instance
+Date: Tue, 11 Sep 2012 21:43:17 +0530
+Message-ID: <1347379999-26061-4-git-send-email-ravibabu@ti.com>
 References: <1347379999-26061-1-git-send-email-ravibabu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56336 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab2IKQNb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 12:13:31 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:47033 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757612Ab2IKQNb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 12:13:31 -0400
 In-Reply-To: <1347379999-26061-1-git-send-email-ravibabu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, balbi@ti.com, grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, tony@atomide.com
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: B, Ravi <ravibabu@ti.com>
 
-Moved global variable "musb_debugfs_root" and static variable
-"old_state" to 'struct musb' to help support multi instance of
-musb controller as present on AM335x platform.
+AM335x and TI81xx platform has dual musb controller so updating the
+musb_dspc.c to support the same.
 
-Also removed the global variable "orig_dma_mask" and filled the
-dev->dma_mask with parent device's dma_mask.
+Changes:
+        - Moved otg_workaround timer to glue structure
+        - Moved static local variable last_timer to glue structure
+        - PHY on/off related cleanups
 
+Signed-off-by: Ravi Babu <ravibabu@ti.com>
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 Signed-off-by: Santhapuri, Damodar <damodar.santhapuri@ti.com>
-Signed-off-by: Ravi Babu <ravibabu@ti.com>
+[afzal@ti.com: remove control module related modifications]
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/musb/musb_core.c    |   22 +++++++---------------
- drivers/usb/musb/musb_core.h    |    4 ++++
- drivers/usb/musb/musb_debugfs.c |    8 +++-----
- 3 files changed, 14 insertions(+), 20 deletions(-)
+ drivers/usb/musb/musb_dsps.c |   81 +++++++++++++++++++++++++----------------
+ 1 files changed, 49 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 61b64fc..bb56a0e 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -100,6 +100,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/idr.h>
-+#include <linux/dma-mapping.h>
+diff --git a/drivers/usb/musb/musb_dsps.c b/drivers/usb/musb/musb_dsps.c
+index 5351e96..796fc60 100644
+--- a/drivers/usb/musb/musb_dsps.c
++++ b/drivers/usb/musb/musb_dsps.c
+@@ -105,6 +105,8 @@ struct dsps_musb_wrapper {
+ 	/* miscellaneous stuff */
+ 	u32		musb_core_offset;
+ 	u8		poll_seconds;
++	/* number of musb instances */
++	u8		instances;
+ };
  
- #include "musb_core.h"
- 
-@@ -1797,10 +1798,9 @@ static const struct attribute_group musb_attr_group = {
- static void musb_irq_work(struct work_struct *data)
- {
- 	struct musb *musb = container_of(data, struct musb, irq_work);
--	static int old_state;
- 
--	if (musb->xceiv->state != old_state) {
--		old_state = musb->xceiv->state;
-+	if (musb->xceiv->state != musb->xceiv_old_state) {
-+		musb->xceiv_old_state = musb->xceiv->state;
- 		sysfs_notify(&musb->controller->kobj, NULL, "mode");
- 	}
- }
-@@ -2060,11 +2060,6 @@ fail0:
- /* all implementations (PCI bridge to FPGA, VLYNQ, etc) should just
-  * bridge to a platform device; this driver then suffices.
+ /**
+@@ -112,9 +114,10 @@ struct dsps_musb_wrapper {
   */
--
--#ifndef CONFIG_MUSB_PIO_ONLY
--static u64	*orig_dma_mask;
--#endif
--
- static int __devinit musb_probe(struct platform_device *pdev)
+ struct dsps_glue {
+ 	struct device *dev;
+-	struct platform_device *musb;	/* child musb pdev */
++	struct platform_device *musb[2];	/* child musb pdev */
+ 	const struct dsps_musb_wrapper *wrp; /* wrapper register offsets */
+-	struct timer_list timer;	/* otg_workaround timer */
++	struct timer_list timer[2];	/* otg_workaround timer */
++	unsigned long last_timer[2];    /* last timer data for each instance */
+ };
+ 
+ /**
+@@ -164,8 +167,8 @@ static void otg_timer(unsigned long _musb)
+ 	struct musb *musb = (void *)_musb;
+ 	void __iomem *mregs = musb->mregs;
+ 	struct device *dev = musb->controller;
+-	struct platform_device *pdev = to_platform_device(dev->parent);
+-	struct dsps_glue *glue = platform_get_drvdata(pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	u8 devctl;
+ 	unsigned long flags;
+@@ -201,7 +204,7 @@ static void otg_timer(unsigned long _musb)
+ 	case OTG_STATE_B_IDLE:
+ 		devctl = dsps_readb(mregs, MUSB_DEVCTL);
+ 		if (devctl & MUSB_DEVCTL_BDEVICE)
+-			mod_timer(&glue->timer,
++			mod_timer(&glue->timer[pdev->id],
+ 					jiffies + wrp->poll_seconds * HZ);
+ 		else
+ 			musb->xceiv->state = OTG_STATE_A_IDLE;
+@@ -215,9 +218,8 @@ static void otg_timer(unsigned long _musb)
+ static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
  {
- 	struct device	*dev = &pdev->dev;
-@@ -2083,10 +2078,6 @@ static int __devinit musb_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+ 	struct device *dev = musb->controller;
+-	struct platform_device *pdev = to_platform_device(dev->parent);
+-	struct dsps_glue *glue = platform_get_drvdata(pdev);
+-	static unsigned long last_timer;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 
+ 	if (timeout == 0)
+ 		timeout = jiffies + msecs_to_jiffies(3);
+@@ -227,22 +229,23 @@ static void dsps_musb_try_idle(struct musb *musb, unsigned long timeout)
+ 				musb->xceiv->state == OTG_STATE_A_WAIT_BCON)) {
+ 		dev_dbg(musb->controller, "%s active, deleting timer\n",
+ 				otg_state_string(musb->xceiv->state));
+-		del_timer(&glue->timer);
+-		last_timer = jiffies;
++		del_timer(&glue->timer[pdev->id]);
++		glue->last_timer[pdev->id] = jiffies;
+ 		return;
  	}
  
--#ifndef CONFIG_MUSB_PIO_ONLY
--	/* clobbered by use_dma=n */
--	orig_dma_mask = dev->dma_mask;
--#endif
- 	status = musb_init_controller(dev, irq, base);
- 	if (status < 0)
- 		iounmap(base);
-@@ -2096,7 +2087,8 @@ static int __devinit musb_probe(struct platform_device *pdev)
+-	if (time_after(last_timer, timeout) && timer_pending(&glue->timer)) {
++	if (time_after(glue->last_timer[pdev->id], timeout) &&
++				timer_pending(&glue->timer[pdev->id])) {
+ 		dev_dbg(musb->controller,
+ 			"Longer idle timer already pending, ignoring...\n");
+ 		return;
+ 	}
+-	last_timer = timeout;
++	glue->last_timer[pdev->id] = timeout;
  
- static int __devexit musb_remove(struct platform_device *pdev)
- {
--	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct device	*dev = &pdev->dev;
-+	struct musb	*musb = dev_to_musb(dev);
- 	void __iomem	*ctrl_base = musb->ctrl_base;
- 
- 	/* this gets called on rmmod.
-@@ -2109,9 +2101,9 @@ static int __devexit musb_remove(struct platform_device *pdev)
- 
- 	musb_free(musb);
- 	iounmap(ctrl_base);
--	device_init_wakeup(&pdev->dev, 0);
-+	device_init_wakeup(dev, 0);
- #ifndef CONFIG_MUSB_PIO_ONLY
--	pdev->dev.dma_mask = orig_dma_mask;
-+	dma_set_mask(dev, *dev->parent->dma_mask);
- #endif
- 	return 0;
+ 	dev_dbg(musb->controller, "%s inactive, starting idle timer for %u ms\n",
+ 		otg_state_string(musb->xceiv->state),
+ 			jiffies_to_msecs(timeout - jiffies));
+-	mod_timer(&glue->timer, timeout);
++	mod_timer(&glue->timer[pdev->id], timeout);
  }
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index a69ffd6..c158aac 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -437,6 +437,10 @@ struct musb {
- #ifdef MUSB_CONFIG_PROC_FS
- 	struct proc_dir_entry *proc_entry;
- #endif
-+	int			xceiv_old_state;
-+#ifdef CONFIG_DEBUG_FS
-+	struct dentry		*debugfs_root;
-+#endif
- };
  
- static inline struct musb *gadget_to_musb(struct usb_gadget *g)
-diff --git a/drivers/usb/musb/musb_debugfs.c b/drivers/usb/musb/musb_debugfs.c
-index 40a37c9..1d6e8af 100644
---- a/drivers/usb/musb/musb_debugfs.c
-+++ b/drivers/usb/musb/musb_debugfs.c
-@@ -103,8 +103,6 @@ static const struct musb_register_map musb_regmap[] = {
- 	{  }	/* Terminating Entry */
- };
+ static irqreturn_t dsps_interrupt(int irq, void *hci)
+@@ -250,8 +253,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 	struct musb  *musb = hci;
+ 	void __iomem *reg_base = musb->ctrl_base;
+ 	struct device *dev = musb->controller;
+-	struct platform_device *pdev = to_platform_device(dev->parent);
+-	struct dsps_glue *glue = platform_get_drvdata(pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	unsigned long flags;
+ 	irqreturn_t ret = IRQ_NONE;
+@@ -310,7 +313,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 			 */
+ 			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
+ 			musb->xceiv->state = OTG_STATE_A_WAIT_VFALL;
+-			mod_timer(&glue->timer,
++			mod_timer(&glue->timer[pdev->id],
+ 					jiffies + wrp->poll_seconds * HZ);
+ 			WARNING("VBUS error workaround (delay coming)\n");
+ 		} else if (drvvbus) {
+@@ -318,7 +321,7 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
+ 			MUSB_HST_MODE(musb);
+ 			musb->xceiv->otg->default_a = 1;
+ 			musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
+-			del_timer(&glue->timer);
++			del_timer(&glue->timer[pdev->id]);
+ 		} else {
+ 			musb->is_active = 0;
+ 			MUSB_DEV_MODE(musb);
+@@ -345,7 +348,8 @@ static irqreturn_t dsps_interrupt(int irq, void *hci)
  
--static struct dentry *musb_debugfs_root;
--
- static int musb_regdump_show(struct seq_file *s, void *unused)
+ 	/* Poll for ID change */
+ 	if (musb->xceiv->state == OTG_STATE_B_IDLE)
+-		mod_timer(&glue->timer, jiffies + wrp->poll_seconds * HZ);
++		mod_timer(&glue->timer[pdev->id],
++			 jiffies + wrp->poll_seconds * HZ);
+ 
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 
+@@ -356,8 +360,8 @@ static int dsps_musb_init(struct musb *musb)
  {
- 	struct musb		*musb = s->private;
-@@ -241,7 +239,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 	struct dentry		*file;
- 	int			ret;
- 
--	root = debugfs_create_dir("musb", NULL);
-+	root = debugfs_create_dir(dev_name(musb->controller), NULL);
- 	if (!root) {
- 		ret = -ENOMEM;
+ 	struct device *dev = musb->controller;
+ 	struct musb_hdrc_platform_data *plat = dev->platform_data;
+-	struct platform_device *pdev = to_platform_device(dev->parent);
+-	struct dsps_glue *glue = platform_get_drvdata(pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 	const struct dsps_musb_wrapper *wrp = glue->wrp;
+ 	struct omap_musb_board_data *data = plat->board_data;
+ 	void __iomem *reg_base = musb->ctrl_base;
+@@ -380,7 +384,7 @@ static int dsps_musb_init(struct musb *musb)
  		goto err0;
-@@ -261,7 +259,7 @@ int __devinit musb_init_debugfs(struct musb *musb)
- 		goto err1;
  	}
  
--	musb_debugfs_root = root;
-+	musb->debugfs_root = root;
+-	setup_timer(&glue->timer, otg_timer, (unsigned long) musb);
++	setup_timer(&glue->timer[pdev->id], otg_timer, (unsigned long) musb);
+ 
+ 	/* Reset the musb */
+ 	dsps_writel(reg_base, wrp->control, (1 << wrp->reset));
+@@ -411,10 +415,10 @@ static int dsps_musb_exit(struct musb *musb)
+ 	struct device *dev = musb->controller;
+ 	struct musb_hdrc_platform_data *plat = dev->platform_data;
+ 	struct omap_musb_board_data *data = plat->board_data;
+-	struct platform_device *pdev = to_platform_device(dev->parent);
+-	struct dsps_glue *glue = platform_get_drvdata(pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct dsps_glue *glue = dev_get_drvdata(dev->parent);
+ 
+-	del_timer_sync(&glue->timer);
++	del_timer_sync(&glue->timer[pdev->id]);
+ 
+ 	/* Shutdown the on-chip PHY and its PLL. */
+ 	if (data->set_phy_power)
+@@ -493,7 +497,7 @@ static int __devinit dsps_create_musb_pdev(struct dsps_glue *glue, u8 id)
+ 	musb->dev.dma_mask		= &musb_dmamask;
+ 	musb->dev.coherent_dma_mask	= musb_dmamask;
+ 
+-	glue->musb			= musb;
++	glue->musb[id]			= musb;
+ 
+ 	pdata->platform_ops		= &dsps_ops;
+ 
+@@ -525,11 +529,11 @@ err0:
+ 	return ret;
+ }
+ 
+-static void __devexit dsps_delete_musb_pdev(struct dsps_glue *glue)
++static void dsps_delete_musb_pdev(struct dsps_glue *glue, u8 id)
+ {
+-	musb_put_id(glue->dev, glue->musb->id);
+-	platform_device_del(glue->musb);
+-	platform_device_put(glue->musb);
++	musb_put_id(glue->dev, glue->musb[id]->id);
++	platform_device_del(glue->musb[id]);
++	platform_device_put(glue->musb[id]);
+ }
+ 
+ static int __devinit dsps_probe(struct platform_device *pdev)
+@@ -539,7 +543,7 @@ static int __devinit dsps_probe(struct platform_device *pdev)
+ 				(struct dsps_musb_wrapper *)id->driver_data;
+ 	struct dsps_glue *glue;
+ 	struct resource *iomem;
+-	int ret;
++	int ret, i;
+ 
+ 	/* allocate glue */
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+@@ -580,7 +584,16 @@ static int __devinit dsps_probe(struct platform_device *pdev)
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "pm_runtime_get_sync FAILED");
+-		goto err3;
++	/* create the child platform device for all instances of musb */
++	for (i = 0; i < wrp->instances ; i++) {
++		ret = dsps_create_musb_pdev(glue, i);
++		if (ret != 0) {
++			dev_err(&pdev->dev, "failed to create child pdev\n");
++			/* release resources of previously created instances */
++			for (i--; i >= 0 ; i--)
++				dsps_delete_musb_pdev(glue, i);
++			goto err3;
++		}
+ 	}
  
  	return 0;
- 
-@@ -274,5 +272,5 @@ err0:
- 
- void /* __init_or_exit */ musb_exit_debugfs(struct musb *musb)
+@@ -597,9 +610,12 @@ err0:
+ static int __devexit dsps_remove(struct platform_device *pdev)
  {
--	debugfs_remove_recursive(musb_debugfs_root);
-+	debugfs_remove_recursive(musb->debugfs_root);
- }
+ 	struct dsps_glue *glue = platform_get_drvdata(pdev);
++	const struct dsps_musb_wrapper *wrp = glue->wrp;
++	int i;
+ 
+ 	/* delete the child platform device */
+-	dsps_delete_musb_pdev(glue);
++	for (i = 0; i < wrp->instances ; i++)
++		dsps_delete_musb_pdev(glue, i);
+ 
+ 	/* disable usbss clocks */
+ 	pm_runtime_put(&pdev->dev);
+@@ -665,6 +681,7 @@ static const struct dsps_musb_wrapper ti81xx_driver_data __devinitconst = {
+ 	.rxep_bitmap		= (0xfffe << 16),
+ 	.musb_core_offset	= 0x400,
+ 	.poll_seconds		= 2,
++	.instances		= 2,
+ };
+ 
+ static const struct platform_device_id musb_dsps_id_table[] __devinitconst = {
 -- 
 1.7.0.4
 
