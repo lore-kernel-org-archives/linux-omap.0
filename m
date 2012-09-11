@@ -1,86 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/10] ARM: OMAP: Clean-up timer posted mode support
-Date: Mon, 10 Sep 2012 17:58:02 -0700
-Message-ID: <20120911005802.GE1303@atomide.com>
-References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
- <1346871872-24413-9-git-send-email-jon-hunter@ti.com>
- <20120907222223.GQ1303@atomide.com>
- <504E62C8.8030100@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] ARM: dts: AM33XX: fix gpio node numbering to match
+ hardware
+Date: Tue, 11 Sep 2012 04:57:08 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAB03D3@DBDE01.ent.ti.com>
+References: <1347294020-22661-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:53974 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750886Ab2IKA6G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 20:58:06 -0400
-Content-Disposition: inline
-In-Reply-To: <504E62C8.8030100@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1347294020-22661-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Jon Hunter <jon-hunter@ti.com> [120910 15:00]:
+On Mon, Sep 10, 2012 at 21:50:20, Porter, Matt wrote:
+> On AM33xx, the datasheet and TRM refer to four GPIO instances that
+> are 0-based, GPIO0-3.
 > 
-> On 09/07/2012 05:22 PM, Tony Lindgren wrote:
-> > * Jon Hunter <jon-hunter@ti.com> [120905 12:05]:
-> >> The dmtimer functions to read and write the dmtimer registers are currently
-> >> defined as follows ...
-> >>
-> >> static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
-> >> 						int posted);
-> >> static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
-> >> 						u32 reg, u32 val, int posted);
-> >>
-> >> The posted variable indicates if the timer is configured to use the posted mode
-> >> when performing register accesses. The posted mode configuration of the dmtimer
-> >> is stored in the omap_dm_timer structure that is also being passed to the above
-> >> functions and therefore we do not need to pass the posted variable separately.
-> >> Therefore, simplify the above functions by removing the posted variable as an
-> >> argument as this is not necessary.
-> > 
-> > I believe the reason for passing the posted flag was to optimize out some
-> > functions from the timer code as that's being run all the time.
-> > 
-> > Care to check the assembly before and after this patch for the timer
-> > functions with objdump -d to make sure it does not add tons of bloat
-> > there?
-> 
-> Hi Tony,
-> 
-> Thanks for the details here. I see that makes sense and that the
-> compiler could take advantage of this as the functions are inlined.
-> 
-> I have taken a look at the disassembled output using objdump as you
-> mentioned. What I see is ...
-> 
-> 1. For dmtimer.c the impact appears negligible, the total number of
->    lines outputted by objdump only changed by 8 with (1215 lines) and
->    without (1207 lines) the patch applied.
-> 
-> 2. For timer.c the impact is greater. I see that
->    omap2_gp_timer_set_next_event() increased by 6 instructions from 29
->    to 35. clocksource_read_cycles() increased by 2 instructions 15 to
->    17 instructions. dmtimer_read_sched_clock() increased by 2
->    instructions from 17 to 19. omap2_gp_timer_set_mode() increased by
->    21 instructions from 102 to 123.
-> 
-> I imagine that we are mainly concerned about
-> omap2_gp_timer_set_next_event(), clocksource_read_cycles() and
-> dmtimer_read_sched_clock() as these will be called often. Therefore, I
-> am not sure if you wish to drop this patch.
 
-Well does it at lots of new ldr to the critical code?
- 
-> By the way, if we do drop this patch, I would then need to fix the
-> setting of the posted variable in mach-omap2/timer.c for clock-source in
-> the case where a dmtimer is used. Today the code assumes that for
-> clock-source and clock-events posted mode is always used. However, with
-> the errata i103/i767 we will disable posted mode for clock-source on
-> omap2/3/4/5/am33xx devices.
+Thanks Matt,
+I think Anil labeled it as gpio1-4 due to hwmod naming convention, as you 
+can not have gpioo id = 0 (refer to arch/arm/mach-omap2/gpio.c).
 
-Yes I see, I guess that means just adding a new systimer entry?
+But in case of DT we should simply follow TRM/Spec, as naming convention is 
+based on base-addr and not id, so your patch looks good me.
 
-Regards,
+Thanks,
+Vaibhav
 
-Tony
+> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/boot/dts/am33xx.dtsi |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index bb31bff..1369bfc 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -62,7 +62,7 @@
+>  			reg = <0x48200000 0x1000>;
+>  		};
+>  
+> -		gpio1: gpio@44e07000 {
+> +		gpio0: gpio@44e07000 {
+>  			compatible = "ti,omap4-gpio";
+>  			ti,hwmods = "gpio1";
+>  			gpio-controller;
+> @@ -74,7 +74,7 @@
+>  			interrupts = <96>;
+>  		};
+>  
+> -		gpio2: gpio@4804c000 {
+> +		gpio1: gpio@4804c000 {
+>  			compatible = "ti,omap4-gpio";
+>  			ti,hwmods = "gpio2";
+>  			gpio-controller;
+> @@ -86,7 +86,7 @@
+>  			interrupts = <98>;
+>  		};
+>  
+> -		gpio3: gpio@481ac000 {
+> +		gpio2: gpio@481ac000 {
+>  			compatible = "ti,omap4-gpio";
+>  			ti,hwmods = "gpio3";
+>  			gpio-controller;
+> @@ -98,7 +98,7 @@
+>  			interrupts = <32>;
+>  		};
+>  
+> -		gpio4: gpio@481ae000 {
+> +		gpio3: gpio@481ae000 {
+>  			compatible = "ti,omap4-gpio";
+>  			ti,hwmods = "gpio4";
+>  			gpio-controller;
+> -- 
+> 1.7.9.5
+> 
+> 
