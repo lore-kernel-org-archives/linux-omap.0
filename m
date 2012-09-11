@@ -1,48 +1,51 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Pass on the suspend failure to the PM core
-Date: Tue, 11 Sep 2012 11:13:26 +0530
-Message-ID: <CANfBPZ93ONzeYj=kD_7pbq=VBQLd98YM9BE9S+sPb3rrrXNFzQ@mail.gmail.com>
-References: <1346764109-21174-1-git-send-email-gururaja.hebbar@ti.com>
+From: Jarkko Nikula <jarkko.nikula@jollamobile.com>
+Subject: Re: [PATCH] watchdog: Convert twl4030_wdt to watchdog core
+Date: Tue, 11 Sep 2012 08:50:07 +0300
+Message-ID: <504ED10F.7090008@jollamobile.com>
+References: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com> <20120910215946.GB26184@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:46032 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616Ab2IKFns (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 01:43:48 -0400
-Received: by pbbrr13 with SMTP id rr13so286168pbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 22:43:46 -0700 (PDT)
-In-Reply-To: <1346764109-21174-1-git-send-email-gururaja.hebbar@ti.com>
+Received: from smtp170.iad.emailsrvr.com ([207.97.245.170]:50891 "EHLO
+	smtp170.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251Ab2IKFuW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:50:22 -0400
+In-Reply-To: <20120910215946.GB26184@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, cjb@laptop.org, nsekhar@ti.com, sudhakar.raj@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org
 
-On Tue, Sep 4, 2012 at 6:38 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
-> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->
-> In some cases mmc_suspend_host() is not able to claim the
-> host and proceed with the suspend process. The core returns
-> -EBUSY to the host controller driver. Unfortunately, the
-> host controller driver does not pass on this information
-> to the PM core and hence the system suspend process continues.
->
-> In these cases the MMC core gets to an unexpected state
-> during resume and multiple issues related to MMC crop up.
-> 1. Host controller driver starts accessing the device registers
-> before the clocks are enabled which leads to a prefetch abort.
-> 2. A file copy thread which was launched before suspend gets
-> stuck due to the host not being reclaimed during resume.
->
-> To avoid such problems pass on the -EBUSY status to the PM core
-> from the host controller driver. With this change, MMC core
-> suspend might still fail but it does not end up making the
-> system unusable. Suspend gets aborted and the user can try
-> suspending the system again.
->
+Thanks Aaro!
 
-The last time we discussed this, didn't we plan to fix this differently ?
-Holding the return code of mmc_suspend_host in a separate variable and
-passing it to the caller
-of omap_hsmmc_suspend looks more sane to me.
+On 09/11/2012 12:59 AM, Aaro Koskinen wrote:
+> On Mon, Sep 10, 2012 at 06:44:46PM +0300, Jarkko Nikula wrote:
+>> Convert the twl4030_wdt watchdog driver to watchdog core.
+>>
+>> While at there use devm_kzalloc and set the default timeout in order to be
+>> able test this driver with a simple shell script.
+>>
+>> Signed-off-by: Jarkko Nikula<jarkko.nikula@jollamobile.com>
+>> ---
+>>   drivers/watchdog/Kconfig       |    1 +
+>>   drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
+>>   2 files changed, 35 insertions(+), 149 deletions(-)
+>>
+>> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+>> index 53d7571..21f6205 100644
+>> --- a/drivers/watchdog/Kconfig
+>> +++ b/drivers/watchdog/Kconfig
+>> @@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
+>>   config OMAP_WATCHDOG
+>>   	tristate "OMAP Watchdog"
+>>   	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
+>> +	select WATCHDOG_CORE
+> This should be under TWL4030_WATCHDOG.
+Grr.. leftover from testing your patch and accidentally dropping my 
+change :-)
+
+I'll fix this, add your Tested-by and repost.
+
+-- 
+Jarkko
