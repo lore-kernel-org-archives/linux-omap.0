@@ -1,68 +1,144 @@
 From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: [PATCH 1/4] staging: omap-thermal: Correct checkpatch.pl warnings
-Date: Tue, 11 Sep 2012 19:06:52 +0300
-Message-ID: <1347379615-6881-2-git-send-email-eduardo.valentin@ti.com>
+Subject: [PATCH 4/4] staging: omap-thermal: improve conf data handling and initialization
+Date: Tue, 11 Sep 2012 19:06:55 +0300
+Message-ID: <1347379615-6881-5-git-send-email-eduardo.valentin@ti.com>
 References: <1347379615-6881-1-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41171 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755189Ab2IKQLo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 12:11:44 -0400
 In-Reply-To: <1347379615-6881-1-git-send-email-eduardo.valentin@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: gregkh@linuxfoundation.org
 Cc: j-keerthy@ti.com, b-cousson@ti.com, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-From: J Keerthy <j-keerthy@ti.com>
+While registering the thermal zone, it is required to have the cooling
+devices already setup, so that the .bind callback can succeed.
 
-Removes checkpatch warnings on omap-bandgap.c.
+Due to that, the driver code needs to be reorganized so that we first
+setup the cooling devices then the zones. This way we cope with the
+right thermal framework initialization sequence.
 
-Signed-off-by: J Keerthy <j-keerthy@ti.com>
+This patch changes the order of the thermal zone initialization,
+so that we create it only when the cooling devices are available.
+It also adds some defensive checks for the config data, so that
+the callbacks are ready for calls when the data is still not
+initialized.
+
 Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 ---
- drivers/staging/omap-thermal/omap-bandgap.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/staging/omap-thermal/omap-bandgap.c        |    6 ++--
+ drivers/staging/omap-thermal/omap-thermal-common.c |   38 +++++++++++++++++---
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/staging/omap-thermal/omap-bandgap.c b/drivers/staging/omap-thermal/omap-bandgap.c
-index c556abb..9ef44ea 100644
+index 9ef44ea..ff93c15 100644
 --- a/drivers/staging/omap-thermal/omap-bandgap.c
 +++ b/drivers/staging/omap-thermal/omap-bandgap.c
-@@ -1037,20 +1037,20 @@ static int omap_bandgap_save_ctxt(struct omap_bandgap *bg_ptr)
+@@ -953,12 +953,12 @@ int __devinit omap_bandgap_probe(struct platform_device *pdev)
+ 	for (i = 0; i < bg_ptr->conf->sensor_count; i++) {
+ 		char *domain;
  
- 		if (OMAP_BANDGAP_HAS(bg_ptr, MODE_CONFIG))
- 			rval->bg_mode_ctrl = omap_bandgap_readl(bg_ptr,
--								tsr->bgap_mode_ctrl);
-+							tsr->bgap_mode_ctrl);
- 		if (OMAP_BANDGAP_HAS(bg_ptr, COUNTER))
- 			rval->bg_counter = omap_bandgap_readl(bg_ptr,
--							      tsr->bgap_counter);
-+							tsr->bgap_counter);
- 		if (OMAP_BANDGAP_HAS(bg_ptr, TALERT)) {
- 			rval->bg_threshold = omap_bandgap_readl(bg_ptr,
--								tsr->bgap_threshold);
-+							tsr->bgap_threshold);
- 			rval->bg_ctrl = omap_bandgap_readl(bg_ptr,
--							   tsr->bgap_mask_ctrl);
-+						   tsr->bgap_mask_ctrl);
- 		}
- 
- 		if (OMAP_BANDGAP_HAS(bg_ptr, TSHUT_CONFIG))
- 			rval->tshut_threshold = omap_bandgap_readl(bg_ptr,
--								   tsr->tshut_threshold);
-+						   tsr->tshut_threshold);
++		if (bg_ptr->conf->sensors[i].register_cooling)
++			bg_ptr->conf->sensors[i].register_cooling(bg_ptr, i);
++
+ 		domain = bg_ptr->conf->sensors[i].domain;
+ 		if (bg_ptr->conf->expose_sensor)
+ 			bg_ptr->conf->expose_sensor(bg_ptr, i, domain);
+-
+-		if (bg_ptr->conf->sensors[i].register_cooling)
+-			bg_ptr->conf->sensors[i].register_cooling(bg_ptr, i);
  	}
  
- 	return 0;
-@@ -1074,8 +1074,9 @@ static int omap_bandgap_restore_ctxt(struct omap_bandgap *bg_ptr)
+ 	/*
+diff --git a/drivers/staging/omap-thermal/omap-thermal-common.c b/drivers/staging/omap-thermal/omap-thermal-common.c
+index d156424..46ee0a9 100644
+--- a/drivers/staging/omap-thermal/omap-thermal-common.c
++++ b/drivers/staging/omap-thermal/omap-thermal-common.c
+@@ -77,10 +77,16 @@ static inline int omap_thermal_get_temp(struct thermal_zone_device *thermal,
+ 					 unsigned long *temp)
+ {
+ 	struct omap_thermal_data *data = thermal->devdata;
+-	struct omap_bandgap *bg_ptr = data->bg_ptr;
+-	struct omap_temp_sensor *s = &bg_ptr->conf->sensors[data->sensor_id];
++	struct omap_bandgap *bg_ptr;
++	struct omap_temp_sensor *s;
+ 	int ret, tmp, pcb_temp, slope, constant;
  
- 		if (val == 0) {
- 			if (OMAP_BANDGAP_HAS(bg_ptr, TSHUT_CONFIG))
--				omap_bandgap_writel(bg_ptr, rval->tshut_threshold,
--							   tsr->tshut_threshold);
-+				omap_bandgap_writel(bg_ptr,
-+					rval->tshut_threshold,
-+						   tsr->tshut_threshold);
- 			/* Force immediate temperature measurement and update
- 			 * of the DTEMP field
- 			 */
++	if (!data)
++		return 0;
++
++	bg_ptr = data->bg_ptr;
++	s = &bg_ptr->conf->sensors[data->sensor_id];
++
+ 	ret = omap_bandgap_read_temperature(bg_ptr, data->sensor_id, &tmp);
+ 	if (ret)
+ 		return ret;
+@@ -227,21 +233,37 @@ static struct thermal_zone_device_ops omap_thermal_ops = {
+ 	.get_crit_temp = omap_thermal_get_crit_temp,
+ };
+ 
+-int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
+-			       char *domain)
++static struct omap_thermal_data
++*omap_thermal_build_data(struct omap_bandgap *bg_ptr, int id)
+ {
+ 	struct omap_thermal_data *data;
+ 
+ 	data = devm_kzalloc(bg_ptr->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data) {
+ 		dev_err(bg_ptr->dev, "kzalloc fail\n");
+-		return -ENOMEM;
++		return NULL;
+ 	}
+ 	data->sensor_id = id;
+ 	data->bg_ptr = bg_ptr;
+ 	data->mode = THERMAL_DEVICE_ENABLED;
+ 	INIT_WORK(&data->thermal_wq, omap_thermal_work);
+ 
++	return data;
++}
++
++int omap_thermal_expose_sensor(struct omap_bandgap *bg_ptr, int id,
++			       char *domain)
++{
++	struct omap_thermal_pdata pdata;
++
++	data = omap_bandgap_get_sensor_data(bg_ptr, id);
++
++	if (!data)
++		data = omap_thermal_build_pdata(bg_ptr, id);
++
++	if (!data)
++		return -EINVAL;
++
+ 	/* TODO: remove TC1 TC2 */
+ 	/* Create thermal zone */
+ 	data->omap_thermal = thermal_zone_device_register(domain,
+@@ -335,6 +357,11 @@ int omap_thermal_register_cpu_cooling(struct omap_bandgap *bg_ptr, int id)
+ 	int tab_size, ret;
+ 
+ 	data = omap_bandgap_get_sensor_data(bg_ptr, id);
++	if (!data)
++		data = omap_thermal_build_pdata(bg_ptr, id);
++
++	if (!data)
++		return -EINVAL;
+ 
+ 	ret = omap_thermal_build_cpufreq_clip(bg_ptr, &tab_ptr, &tab_size);
+ 	if (ret < 0) {
+@@ -351,6 +378,7 @@ int omap_thermal_register_cpu_cooling(struct omap_bandgap *bg_ptr, int id)
+ 		return PTR_ERR(data->cool_dev);
+ 	}
+ 	bg_ptr->conf->sensors[id].cooling_data.freq_clip_count = tab_size;
++	omap_bandgap_set_sensor_data(bg_ptr, id, data);
+ 
+ 	return 0;
+ }
 -- 
 1.7.7.1.488.ge8e1c
+
