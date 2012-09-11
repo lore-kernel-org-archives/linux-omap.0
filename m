@@ -1,39 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT*
- read/write
-Date: Tue, 11 Sep 2012 06:37:01 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209110636310.23042@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209052333410.11516@utopia.booyaka.com> <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com> <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com> <20120910185535.GC1303@atomide.com>
- <CAMQu2gxUES=s8fMpwJ77tnY1wz4b_T=yustj+C+WNkEMmEOx4w@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v2 0/2] ARM: dts: AM33xx: Correct gpio labels to match docs
+Date: Tue, 11 Sep 2012 06:38:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAB06D5@DBDE01.ent.ti.com>
+References: <1347306312-31533-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36328 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757720Ab2IKGhB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 02:37:01 -0400
-In-Reply-To: <CAMQu2gxUES=s8fMpwJ77tnY1wz4b_T=yustj+C+WNkEMmEOx4w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1347306312-31533-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Porter, Matt" <mporter-l0cyMroinI0@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 11 Sep 2012, Shilimkar, Santosh wrote:
+On Tue, Sep 11, 2012 at 01:15:10, Porter, Matt wrote:
+> Changes since v1:
+> 	- Series now applies on top of Anil's AM33XX DTS series
+>  
+> This series applies on top of the for_3.7/dts/ branch and Anil's
+> "[v7,2/3] arm/dts: AM33XX: Configure pinmuxs for user leds control on Bone"
+> patch that is part of the overall series adding led and pinctrl DTS data
+> for AM33xx.
+> 
+> It is intended to correct the current labeling of gpios in the DTS before
+> too many more drivers are submitted for AM33xx that have gpios not matching
+> the docs.
+> 
+> Matt Porter (2):
+>   ARM: dts: AM33XX: fix gpio node numbering to match hardware
+>   ARM: dts: AM33XX: adjust leds to use the corrected gpio label
+> 
 
-> On Tue, Sep 11, 2012 at 12:25 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120908 01:20]:
-> >>
-> >> Will you able to pick up these couple of wakeupgen fixes from  here or
-> >> do you want me to send you a pull request for 3.6-rc5/6
-> >
-> > I can pick them into fixes-noncritical. But if the second one is
-> > a major bug for the -rc series, the patch should be describe what
-> > breaks (regression? oops?).
-> >
-> Fixes non critical is fine. No major issue without these patches.
+I have tested this series on BeagleBone, also validated LED functionality.
 
-There's an ordering constraint though: Santosh's patch needs to go in 
-first, then mine.
+Tested-Acked-By: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
 
+Thanks,
+Vaibhav
 
-- Paul
+>  arch/arm/boot/dts/am335x-bone.dts |    8 ++++----
+>  arch/arm/boot/dts/am33xx.dtsi     |    8 ++++----
+>  2 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> -- 
+> 1.7.9.5
+> 
+> 
