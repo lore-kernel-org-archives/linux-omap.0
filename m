@@ -1,73 +1,43 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: Re: [PATCH v2] perf: Use pre-empt safe cpu_get/put insted of smp_processor_id
-Date: Tue, 11 Sep 2012 11:29:06 +0300
-Message-ID: <504EF652.2020302@ti.com>
-References: <1347276614-4334-1-git-send-email-rogerq@ti.com> <504E2921.50408@codeaurora.org>
+From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] arm/dts: omap: Add omap-usb2 dt data
+Date: Tue, 11 Sep 2012 14:20:11 +0530
+Message-ID: <CAAe_U6+8MAUAZgLZq8+Yc6SxOCJ0xQ4NFO-R4p2kgiSOXHZL2w@mail.gmail.com>
+References: <1347343932-3656-1-git-send-email-kishon@ti.com>
+	<504EF4FD.2080001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42551 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab2IKI31 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 04:29:27 -0400
-In-Reply-To: <504E2921.50408@codeaurora.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <504EF4FD.2080001-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: balbi-l0cyMroinI0@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rnayak-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, myungjoo.ham-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org, swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: khilman@deeprootsystems.com, tony@atomide.com, linux-omap@vger.kernel.org, jean.pihet@newoldbits.com, linux-arm-kernel@lists.infradead.org
 
-On 09/10/2012 08:53 PM, Stephen Boyd wrote:
-> On 09/10/12 04:30, Roger Quadros wrote:
->> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
->>
->> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
->> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
->> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
->>
->> changes in v2:
->> - rebased on 3.6-rc5
->> - use put_cpu() immediately after get_cpu() in omap3_pm_idle()
->>
->> Signed-off-by: Roger Quadros <rogerq@ti.com>
->> ---
->>  arch/arm/mach-omap2/clock.c       |    9 ++++++---
->>  arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++----
->>  arch/arm/mach-omap2/powerdomain.c |    6 ++++--
->>  3 files changed, 18 insertions(+), 9 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
->> index ea3f565..06747b6 100644
->> --- a/arch/arm/mach-omap2/clock.c
->> +++ b/arch/arm/mach-omap2/clock.c
->> @@ -285,7 +285,8 @@ void omap2_clk_disable(struct clk *clk)
->>  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
->>  
->>  	if (clk->ops && clk->ops->disable) {
->> -		trace_clock_disable(clk->name, 0, smp_processor_id());
->> +		trace_clock_disable(clk->name, 0, get_cpu());
->> +		put_cpu();
-> 
-> Why are you doing this? Why not just use raw_smp_processor_id()? Do you
-> really care about the CPU number? get_cpu() and put_cpu() are about
-> non-preemptible sections where you want to ensure the CPU the code is
-> operating on is actually on that CPU.
+Hi,
 
-You are right. raw_smp_processor_id() makes perfect sense here.
+On Tue, Sep 11, 2012 at 1:53 PM, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org> wrote:
+> Hi Kishon,
+>
+> On 09/11/2012 08:12 AM, Kishon Vijay Abraham I wrote:
+>> Add omap-usb2 data node in omap4 device tree file. Since omap-usb2 is
+>> connected to ocp2scp, omap-usb2 dt data is added as a child node
+>> of ocp2scp.
+>
+> Could you add more details about the omap-usb2?
+I think information about omap-usb2 driver is added in
+ *usb: phy: add a new driver for omap usb2 phy.*.
+Do you want the same thing to be added here?
+>
+> You must update the Documentation binding with that compatible name.
+Yes. It's part of *usb: phy: add a new driver for omap usb2 phy.*
+> Is it already part of the driver serie? The MUSB driver is referring to
+> "ti,musb-omap2430" only.
 
-> 
-> How about just put 0 all the time because the CPU number is already part
-> of the trace event?
-> 
+Will correct the Documentation for MUSB.
 
-I'm not sure about this. I can see that removing the cpu_id field from
-trace_cpu_idle() was discussed here [1] and it was decided to keep it.
-There was no conclusion about removing it from
-trace_clock_enable/disable though.
-
-For now, I will resend the patch with raw_smp_processor_id().
-
-regards,
--roger
-
-[1] https://lkml.org/lkml/2011/8/19/316
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
