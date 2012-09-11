@@ -1,59 +1,50 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of
- ocp2scp
-Date: Tue, 11 Sep 2012 22:28:22 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
-References: <1347008955-21310-1-git-send-email-kishon@ti.com>
+Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
+Date: Tue, 11 Sep 2012 23:10:51 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209112307170.9444@utopia.booyaka.com>
+References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com> <504F0877.4030907@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1248234203-1347402309=:9444"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347008955-21310-1-git-send-email-kishon@ti.com>
-Content-ID: <alpine.DEB.2.00.1209112225130.9444@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, b-cousson@ti.com
-Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:38453 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756135Ab2IKXKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 19:10:52 -0400
+In-Reply-To: <504F0877.4030907@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@ti.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, 11 Sep 2012, Vaibhav Hiremath wrote:
 
---843723315-1248234203-1347402309=:9444
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1209112225131.9444@utopia.booyaka.com>
+> I tried this branch on BeagleBone platform and needs one small typo
+> correction in hwmod data patch (submitted earlier, which you are going
+> to queue it)
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> index de7a3ab..767a77d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+> @@ -1441,7 +1441,7 @@ static struct omap_hwmod am33xx_mmc2_hwmod = {
+>         .clkdm_name     = "l3s_clkdm",
+>         .mpu_irqs       = am33xx_mmc2_irqs,
+>         .sdma_reqs      = am33xx_mmc2_edma_reqs,
+> -       .main_clk       = "mmc2_fck",
+> +       .main_clk       = "mmc_clk",
+>         .prcm           = {
+>                 .omap4  = {
+>                       .clkctrl_offs = AM33XX_CM_PER_MMC2_CLKCTRL_OFFSET,
+> 
+> 
+> With above change I boot tested it on BeagleBone platform and also
+> verified the clock rates getting printed in debugfs.
 
-Hi Kishon, Beno=EEt,
-
-On Fri, 7 Sep 2012, Kishon Vijay Abraham I wrote:
-
-> Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp. Since this=20
-> ocp2scp module does not have any fck but does have a single opt_clock,=20
-> it is added as the main_clk for ocp2scp. Also removed phy_48m as the=20
-> optional clock since it is now made as the main clock. By this the=20
-> driver need not enable/disable phy_48m clk separately and=20
-> runtime_get/runtime_put will take care of that.
-
-Looking at this patch, it doesn't seem to make sense from a hardware point=
-=20
-of view.  If you look at the OMAP4430 TRM Rev. AE, Table 23-1166 "Clocks=20
-and Resets", the 48MHz clock input is listed as an "Optional functional=20
-clock".  The main functional clock is listed as "INIT_960M_FCLK", which=20
-according to the same TRM, Section 3.6.3.9.1 "Overview", is an alias for=20
-the clock we call "dpll_usb_clkdcoldo_ck".
-
-So if any clock should be the main functional clock in the hwmod data,=20
-shouldn't it be dpll_usb_clkdcoldo_ck?  The goal with the hwmod data=20
-is/was to have it match the hardware.
-
-=2E..
-
-More to the point, I guess I don't see what the problem is with=20
-adding a few lines to the ocp2scp driver to control the "phy_48m" optional=
-=20
-clock via the clock framework.  Is there some reason why you=20
-couldn't prepare & enable it after the pm_runtime_get_*(),=20
-and disable and unprepare it before the pm_runtime_put_*() ?
+So does this mean we need to put together a patch to remove the existing 
+mmc2_fck first from the OMAP clock data file?  Looks like that would be 
+the right thing to do, based on the AM33x PRCM data.
 
 
 - Paul
---843723315-1248234203-1347402309=:9444--
