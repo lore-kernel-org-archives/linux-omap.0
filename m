@@ -1,73 +1,110 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v2 1/8] ARM/dts: OMAP2: Add McBSP entries for OMAP2420
- and OMAP2430 SoC
-Date: Tue, 11 Sep 2012 11:42:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAB0E4D@DBDE01.ent.ti.com>
-References: <1346247067-9632-1-git-send-email-peter.ujfalusi@ti.com>
- <1346247067-9632-2-git-send-email-peter.ujfalusi@ti.com>
- <5044C2DD.5000705@ti.com> <504578B3.3090804@ti.com> <5045D557.30404@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA7C99@DBDE01.ent.ti.com>
- <50470C1E.7090300@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA8014@DBDE01.ent.ti.com>
- <5047544B.60105@ti.com>
- <79CD15C6BA57404B839C016229A409A83EAA8779@DBDE01.ent.ti.com>
- <5048B63F.5030309@ti.com>
+From: "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v9 00/13] usb: musb: adding multi instance support
+Date: Tue, 11 Sep 2012 11:46:28 +0000
+Message-ID: <6C6B28D4DC342643927BEAFCE8707BF63E9FCC9C@DBDE01.ent.ti.com>
+References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+ <20120911091731.GA18907@arwen.pp.htv.fi>
+ <6C6B28D4DC342643927BEAFCE8707BF63E9FCB6C@DBDE01.ent.ti.com>
+ <20120911113544.GE18907@arwen.pp.htv.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53818 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586Ab2IKLnI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 07:43:08 -0400
-In-Reply-To: <5048B63F.5030309@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120911113544.GE18907-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org" <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-+ Andrew,
-
-On Thu, Sep 06, 2012 at 20:12:07, Cousson, Benoit wrote:
-> 
-> On 09/05/2012 04:41 PM, Hiremath, Vaibhav wrote:
-> ...
-> > There are other patches which are pending,
+> > > 
+> > > On Fri, Aug 31, 2012 at 04:39:46PM +0530, Ravi Babu wrote:
+> > > > This series of patches adds,
+> > > > a) Multi instances support in musb driver
+> > > > b) DT support for musb_dsps glue layer
+> > > > c) DT support for NOP transceiver
+> > > > 
+> > > > AM33xx and TI81xx has dual musb controller and has two usb
+> > > PHY of same type.
+> > > > This patch series uses 'phandle' based API
+> > > > devm_usb_get_phy_by_phandle() to get the PHY of same type. This 
+> > > > API support is being added by Kishon's patch discussed at [1]
+> > > > 
+> > > > The series applies to felipe/master [1] branch
+> > > > 	+ Vaibhav baseport patches on his tree at [4]
+> > > > 	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
+> > > > 	+ Kishon's patch on phandle at [2]
+> > > > 	+ Damodar's recent patch at [3] 
+> > > > 	+ Ajay's & Damodar's patches at [5] and [6] included in
+> > > this series
+> > > > 
+> > > > 1. 
+> > > > 
+> http://git.kernel.org/?p=linux/kernel/git/balbi/usb.git;a=summary
+> > > > 2. http://marc.info/?l=linux-usb&m=134070369306112&w=2
+> > > > 3. http://marc.info/?l=linux-usb&m=134200284230689&w=2
+> > > > 4. 
+> > > > 
+> > > 
+> https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-sta
+> > > gi
+> > > > ng 5. http://marc.info/?l=linux-usb&m=134200285530701&w=2
+> > > > 6. http://marc.info/?l=linux-usb&m=134208820028625&w=2
+> > > > 
+> > > > Changes from v8:
+> > > > 	- included Sergei's comment, removing underscore in
+> > > device tree file
+> > > > 	- removed duplicated signoff from patches 
+> Changes from v7:
+> > > > 	- patches rebased on felipe/master branch & verified
+> > > > 	- included additional two patches 0001 & 0002 as part
+> > > of this series
+> > > > 	  which are already submitted [5] & [6] Changes from v6:
+> > > > 	- Removed parent_pdev to get glue and used
+> > > dev_get_getdrv() as per
+> > > > 	  Felipe's comment
+> > > > 	- use pr_debug() instead of pr_info() as per Felipe's
+> > > comment Changes
+> > > > from v5:
+> > > > 	- Removed musb->id as per Felipe's comment
+> > > > 	- used nop_ida as per Felipe's comment Changes from v4:
+> > > > 	- Fixed Felipe's comment for adding EXPORT_SYMBOL_GPL()
+> > > > 	- Fixed Felipe's comment on using dev_set_mask()
+> > > Changes from v3:
+> > > > 	- Fixed Kishon's comment on removing "id" from 
+> phy struct and
+> > > > 	  removing unneeded "#else" part.
+> > > > Changes from v2:
+> > > > 	- Fixed Sergei's comment on not using address prefix in
+> > > musb_dsps
+> > > > 	  glue and nop transceiver dt dats.
+> > > > 	- Also removed the "ti" string in compatible property
+> > > for nop data.
+> > > > Changes from v1:
+> > > > 	- Defined musb_ida to manage core ids based on 
+> Felipe's comment
+> > > > 	  in [PATCH 01/11]
+> > > 
+> > > I tried appliying this, but this doesn't apply. Please 
+> rebase on my 
+> > > musb branch. Unfortunately there's no time anymore to 
+> wait otherwise 
+> > > the entire musb branch will miss this merge window.
+> > > 
+> > > I'm sorry
 > > 
-> > arm/dts: AM33XX: Convert all hex numbers to lower-case
-> > https://patchwork.kernel.org/patch/1377351/
-> > arm/dts: AM33XX: Specify reg and interrupt property for all nodes
-> > https://patchwork.kernel.org/patch/1377361/
+> > Felipe, patch set is ready, I will re-send the patches 
+> shortly by today.
 > 
-> OK, so these ones are fine, you should just rebase them because theyu
-> are conflicting with patches already inside lo/devel-dt
-> 
-> > Probably your Ack is required for,
-> > 
-> > ARM: AM33XX: clock: Add dcan clock aliases for device-tree
-> > https://patchwork.kernel.org/patch/1377061/
-> 
-> Paul already queued this one so it is fine.
-> 
-> > RTC:
-> > I am not sure how to deal with RTC DT support, as I understand the list is very unresponsive there.
-> 
-> OK, so I did have the same issue for TWL RTC since the maintainer is no
-> longer very active. In that case you should go through Andrew Morton.
+> Thanks a lot. So I'll wait for a few more hours before 
+> sending out my musb pull request ;-)
 > 
 
-Andrew,
-Can you please merge these omap-rtc patches, there are no review comments so 
-far and I believe it should be safe now to merge.
+Thanks Felipe, these v9 patches are created on felipe/master branch. Now working on, to rebase on felipe/musb branch, will try to provide by end of today. 
 
-Thanks,
-Vaiibhav
-
-> Regards,
-> Benoit
-> 
-> > http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg23253.html
-> 
-> 
-
+> --
+> balbi
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
