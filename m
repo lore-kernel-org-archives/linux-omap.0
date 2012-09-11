@@ -1,69 +1,127 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Tue, 11 Sep 2012 14:54:50 +0300
-Message-ID: <20120911115449.GH18907@arwen.pp.htv.fi>
-References: <20120906122948.GC29202@arwen.pp.htv.fi>
- <1346935540-1792-1-git-send-email-balbi@ti.com>
- <87harahiv6.fsf@deeprootsystems.com>
- <20120907054932.GB3136@arwen.pp.htv.fi>
- <87oblhmu6g.fsf@deeprootsystems.com>
- <20120908190423.GA14771@arwen.pp.htv.fi>
- <504F20FA.7020003@ti.com>
+Subject: Re: [PATCHv7 00/23]I2C big cleanup
+Date: Tue, 11 Sep 2012 15:05:54 +0300
+Message-ID: <20120911120552.GJ18907@arwen.pp.htv.fi>
+References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
+ <504F0FFA.2010200@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MGu/vTNewDGZ7tmp"
-Return-path: <linux-serial-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="RUqJLqMNe5u4kDWT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:41562 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172Ab2IKMK1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 08:10:27 -0400
+Received: by lahm13 with SMTP id m13so271431lah.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Sep 2012 05:10:24 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <504F20FA.7020003@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: balbi@ti.com, Kevin Hilman <khilman@deeprootsystems.com>, Greg KH <gregkh@linuxfoundation.org>, Tony Lindgren <tony@atomide.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, alan@linux.intel.com
+In-Reply-To: <504F0FFA.2010200@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, w.sang@pengutronix.de
 
 
---MGu/vTNewDGZ7tmp
+--RUqJLqMNe5u4kDWT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 11, 2012 at 05:01:06PM +0530, Shubhrajyoti wrote:
-> On Sunday 09 September 2012 12:34 AM, Felipe Balbi wrote:
-> >> In addition, IMO, if this was only tested on Panda (as suggested by
-> >> > earlier cover letters), it really should not have been merged until =
-it
-> >> > got some broader testing.
-> > Shubhro's got his Tested-by tag. I believe he tested on beagleboard and
-> > omap4sdp. Shubhro, can you confirm which platforms you tested the UART
-> > patches ? cheers
-> Felipe I had boot tested on omap3sdp and onap4 sdp and did pm testing
-> on both with omap3 hitting off.
+Hi,
 
-Thanks ;-)
+On Tue, Sep 11, 2012 at 03:48:34PM +0530, Shubhrajyoti wrote:
+> On Tuesday 11 September 2012 03:11 PM, Shubhrajyoti D wrote:
+> > Changes since v1:
+> >        - removed tabification on patch 6/17
+> >        - removed dev_err() which was introduced on patch 09/17
+> > Changes since v2:
+> >         - do not set full fifo depth in the RDR interrupt.
+> >         - some changelog updates.
+> >         - rebase to the Wolfram's tree.
+> > Changes since v3:
+> >         - Remove a redundant read of status register
+> >         - Read the dev->buf_len variable instead of the register
+> >         as the information of the remaining bytes is there.
+> > Changes since v4:
+> >         - Ack the arbitration lost.
+> >         - Rebase to the i2c-embedded/for-next branch.
+> > Changes since v5:
+> >         - Rebase to latest mainline
+> >         - Added some more cleanup patches so as have a consolidated ser=
+ies.
+> > Changes since v6:
+> >         - Fix comments on setting the pdev to NULL.
+> >         - Trivial changelog update
+> >
+> > Previous discussions can be found here=20
+> > http://www.spinics.net/lists/linux-i2c/msg09482.html
+> Also this gives better performance
+> With the patches:
+>=20
+>  Performance counter stats for '/build/i2c/bin/i2cdump -y -f 1 0x48
+> b':       =20
+>                                                                          =
+     =20
+>=20
+>          78.796376 task-clock                #    0.453 CPUs
+> utilized         =20
+>                516 context-switches          #    0.007
+> M/sec                 =20
+>                  0 CPU-migrations            #    0.000
+> K/sec                 =20
+>                114 page-faults               #    0.001 M/sec =20
+>=20
+>       0.174011183 seconds time elapsed =20
+>=20
+> Without the patches
+>  Performance counter stats for '/build/i2c/bin/i2cdump -y -f 1 0x48
+> b':       =20
+>                                                                          =
+     =20
+>=20
+>         123.504640 task-clock                #    0.049 CPUs
+> utilized         =20
+>                337 context-switches          #    0.003
+> M/sec                 =20
+>                  0 CPU-migrations            #    0.000
+> K/sec                 =20
+>                144 page-faults               #    0.001
+> M/sec                 =20
+>                              =20
+>                                                                          =
+     =20
+>=20
+>        2.534424040 seconds time elapsed=20
+>=20
+> The auto suspend is probably the one  :-)
+
+Awesome, I didn't go as far as checking performance counters :-)
 
 --=20
 balbi
 
---MGu/vTNewDGZ7tmp
+--RUqJLqMNe5u4kDWT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQTyaIAAoJEIaOsuA1yqRES4AP/161NxY2gSXOJW6E7HcGKu5f
-rqRyuL6LEEjYhIxuSyAUn8bvTPfCmWGiswWFoOVbV4xWb1JfZCo1pKUzrqcU6jMs
-EFFMPZDvmS99Eyu5V3WhMZCVvmEl+3pawTf2AmLhxqNKWKTcoHUEEY3SkuVlVWbt
-ZTp/Vj54v+eDkvRu5PwmUQ22radyUK7L9wDSd3INAu6GYgWjijX/2xQRtM7tvmf5
-Zc1LbxH6LW9eWy1jeOVaneNTlLXOXKCo5W0hG7FNoC+2QW4EQsOWMJ6G0Wi9RdPM
-iQQUsrhMe187Ux/76wCuNK0Riv3U0ip5lrhX0H7l6vrFK7JE0srMc1oDxUPuAdhe
-AtQ1j8WNvpfEJCymSmyp53Zuw90d4ZAxstOyho8X4vtpmIeEF6mHmhGf7uuT+xO+
-F4uhev0qZ+GFGQ7L8ZeizFTluxSHwfPKHW+YcRDNf2aKrieXMplDnCd1am5E2tDY
-M+oaE7CeCWSEjZi75tM1xN/a0lDAKIfeSgQkdXCrJa8sdCIqJZe46/LG0zBn5wwi
-OV1HWrZS2zDumQdN1P0nMlIqeljnLNd21u8uYYyLrpNuGJEErLk1T2EQpU2Dpell
-PC0N7oVnPKkiqxrA+CqM5GKt6EOGOu5jwdha4k3tLxv+Ev4JFw2dI/buFq8G4J/z
-diHTtDQCE2GYb55xOWuJ
-=joTh
+iQIcBAEBAgAGBQJQTykgAAoJEIaOsuA1yqRE23oQAIWQCrqXQ2uCuQQkc87EW2X6
+0G2au8XuHDcznLb3srED1mLAgAvsj32TXv+iHitWztQkaIWYc702ZdduJlOAIaMJ
+3Mga97wDLHwaf7IC5WUzRloe45C6KWN9+BE/SQD6TA1Byu3JnYGaoHPU+jRlq7PZ
+HtiZhQKhh17RyakE93siex7i1A9YAjSxNtWNtryUZRqkUoBnALggUuVXQ1UGUuBq
+bg2Wp8fHX/49WIf4s5GRaO99MvHOHMa1N3iGyEkkLd0pEwEeT/9wTNWBb3SdmZHQ
+4/4WOnR45IWjlkZefC27CuQoO3SrVMvUzxX4RrwrM8ukQT9jcB8USwU7BXA+yVPQ
+XwtBn0vpAWCgiHce64vTxmPcw7VWSFopBOR5vL4rQ5EJvK+Mh0QGiU4nuqF3vBwz
+mDdKKMcTwstY6qoNLSHzQ0kVHYz5cYKT2R//58pWcYAomRdBFY8Il17bBDFh39FU
+K7ckvtihh0fW7sPaq7s5ZZQ9F+UgfvPgOWW6ajXAGvoNx1A8rkqSPZXisGgNvZsR
+TKMuhC5kYLcTtb79x1+Ty30H7lYTzsMVT5a8h6Gpy/FHWsx6G9moLK7xQCBzzMh0
+RWI20VKl5dEoLhc1wyzpEzeopChR89qRso5UPg2aTRHzlvvr+EJuyKRVO1j+5V8Z
+pXJRr+ILgCZbtmHJU/Dn
+=dbwF
 -----END PGP SIGNATURE-----
 
---MGu/vTNewDGZ7tmp--
+--RUqJLqMNe5u4kDWT--
