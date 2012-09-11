@@ -1,52 +1,76 @@
-From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [balbi-usb:master 33/36] drivers/usb/gadget/serial.c:89:22:
- sparse: cast truncates bits from constant value (24000000 becomes 0)
-Date: Tue, 11 Sep 2012 18:55:00 +0800
-Message-ID: <20120911105500.GA1244@localhost>
-References: <20120910164015.GA16252@localhost>
- <504E1DCB.3000003@linutronix.de>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2 3/3] usb: musb: omap: Add device tree support for omap
+ musb glue
+Date: Tue, 11 Sep 2012 16:54:37 +0530
+Message-ID: <CAAe_U6LwGn+qbSox7BofTg7sJUxqytew3s_73MOYZytHs2qEWw@mail.gmail.com>
+References: <1347354580-5895-1-git-send-email-kishon@ti.com>
+	<1347354580-5895-4-git-send-email-kishon@ti.com>
+	<504F0A33.9060606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <504E1DCB.3000003-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
-Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <504F0A33.9060606@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: balbi@ti.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, gregkh@linuxfoundation.org, b-cousson@ti.com, rnayak@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 10, 2012 at 07:05:15PM +0200, Sebastian Andrzej Siewior wrote:
-> On 09/10/2012 06:40 PM, Fengguang Wu wrote:
-> >tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
-> >head:   d9c88901337158c9f253a7de58a10b5125d61d26
-> >commit: 7a7322b0a5d984025dd4faea9098b8fef07f8d8f [33/36] usb: gadget: remove usb_gadget_controller_number()
-> >
-> >All sparse warnings:
-> 
-> Once again, thank you.
+Hi,
 
-You are welcome!
+On Tue, Sep 11, 2012 at 3:23 PM, Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>
+>
+> On 9/11/2012 2:39 PM, Kishon Vijay Abraham I wrote:
+>> Added device tree support for omap musb driver and updated the
+>> Documentation with device tree binding information.
+>>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>>  Documentation/devicetree/bindings/usb/omap-usb.txt |   33 ++++++++++++
+>>  drivers/usb/musb/omap2430.c                        |   54 ++++++++++++++++++++
+>>  2 files changed, 87 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/usb/omap-usb.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> new file mode 100644
+>> index 0000000..29a043e
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
+>> @@ -0,0 +1,33 @@
+>> +OMAP GLUE
+>> +
+>> +OMAP MUSB GLUE
+>> + - compatible : Should be "ti,omap4-musb" or "ti,omap3-musb"
+>> + - ti,hwmods : must be "usb_otg_hs"
+>> + - multipoint : Should be "1" indicating the musb controller supports
+>> +   multipoint. This is a MUSB configuration-specific setting.
+>> + - num_eps : Specifies the number of endpoints. This is also a
+>> +   MUSB configuration-specific setting. Should be set to "16"
+>> + - ram_bits : Specifies the ram address size. Should be set to "12"
+>> + - interface_type : This is a board specific setting to describe the type of
+>> +   interface between the controller and the phy. It should be "0" or "1"
+>> +   specifying ULPI and UTMI respectively.
+>> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
+>> +   represents PERIPHERAL.
+>> + - power : Should be "50". This signifies the controller can supply upto
+>> +   100mA when operating in host mode.
+>> +
+>> +SOC specific device node entry
+>> +usb_otg_hs: usb_otg_hs@4a0ab000 {
+>> +     compatible = "ti,omap4-musb";
+>> +     ti,hwmods = "usb_otg_hs";
+>> +     multipoint = <1>;
+>> +     num_eps = <16>;
+>> +     ram_bits = <12>;
+>> +};
+>
+>
+> reg and interrupt properties are missing here.
+>
+> I would encourage to specify "reg" and "interrupt" properties in every
+> node getting newly added to the OMAP DTS files.
 
-> >   drivers/usb/gadget/f_acm.c:287:9: sparse: advancing past deep designator
-> >   drivers/usb/gadget/f_obex.c:60:9: sparse: advancing past deep designator
-> >   drivers/usb/gadget/f_serial.c:134:9: sparse: advancing past deep designator
-> >   drivers/usb/gadget/serial.c:66:9: sparse: advancing past deep designator
-> 
-> I don't get these. The purpose is an all NULL terminating entry. Could
-> this be a sparse bug or is the [] / {} switch not really good C code?
+Sure. will add that in my next version.
 
-http://marc.info/?l=linux-sparse&m=130673652023059&w=4
-
-According to Dan's explanations, I'll filter out these warnings in future.
-
-> >+ drivers/usb/gadget/serial.c:89:22: sparse: cast truncates bits from constant value (24000000 becomes 0)
-> 
-> I've sent a patch for this.
-
-Thank you!
-
-Fengguang
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Kishon
