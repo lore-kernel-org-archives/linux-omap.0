@@ -1,485 +1,148 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/17] ARM: OMAP: Move gpio.h to
-	include/linux/platform_data
-Date: Mon, 10 Sep 2012 22:30:56 -0700
-Message-ID: <20120911053056.29637.57554.stgit@muffinssi.local>
+Subject: [PATCH 07/17] Input: omap-keypad: Remove dependencies to mach
+ includes
+Date: Mon, 10 Sep 2012 22:30:59 -0700
+Message-ID: <20120911053059.29637.22108.stgit@muffinssi.local>
 References: <20120911052934.29637.9190.stgit@muffinssi.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <20120911052934.29637.9190.stgit@muffinssi.local>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Sender: linux-input-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Grant Likely <grant.likely@secretlab.ca>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-omap@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This way we can remove includes of plat/gpio.h which won't work
-with the single zImage support.
+We can't build CONFIG_ARCH_OMAP1 set with ARCH_OMAP2PLUS because
+of different compiler flags needed, so we can define omap_kp_24xx()
+instead of using cpu_is_omap24xx(). This way we can remove
+depency to plat and mach headers which is needed for ARM common
+zImage support.
 
-Note that we also remove the cpu_class_is_omap2() check
-in gpio-omap.c as the drivers should not call it as we need to
-make it local to arch/arm/mach-omap2 for single zImage support.
+Also remove INT_KEYBOARD by using omap_kp->irq.
 
-While at it, arrange the related includes in the standard way.
+Note that this patch depends on an earlier patch
+"ARM: OMAP: Move gpio.h to include/linux/platform_data".
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-mtd@lists.infradead.org
-Cc: alsa-devel@alsa-project.org
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c              |    1 +
- arch/arm/mach-omap1/board-osk.c                    |    1 +
- arch/arm/mach-omap1/gpio15xx.c                     |    1 +
- arch/arm/mach-omap1/gpio16xx.c                     |    1 +
- arch/arm/mach-omap1/gpio7xx.c                      |    1 +
- arch/arm/mach-omap1/include/mach/gpio.h            |    2 --
- arch/arm/mach-omap1/leds-h2p2-debug.c              |    1 +
- arch/arm/mach-omap1/leds.c                         |    1 +
- arch/arm/mach-omap2/board-am3517evm.c              |    1 +
- arch/arm/mach-omap2/board-cm-t35.c                 |    1 +
- arch/arm/mach-omap2/board-zoom-display.c           |    2 ++
- arch/arm/mach-omap2/board-zoom-peripherals.c       |    1 +
- arch/arm/mach-omap2/gpio.c                         |    1 +
- arch/arm/mach-omap2/hsmmc.c                        |    2 ++
- arch/arm/mach-omap2/include/mach/gpio.h            |    2 --
- arch/arm/mach-omap2/msdi.c                         |    1 +
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    1 -
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    1 -
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 +-
- arch/arm/mach-omap2/pm24xx.c                       |    1 +
- arch/arm/mach-omap2/pm34xx.c                       |    2 ++
- arch/arm/plat-omap/debug-leds.c                    |    1 +
- drivers/gpio/gpio-omap.c                           |   15 ++++++++-------
- drivers/mtd/nand/ams-delta.c                       |    8 ++++++--
- include/linux/platform_data/gpio-omap.h            |   15 ++-------------
- sound/soc/omap/sdp3430.c                           |    1 +
- 28 files changed, 40 insertions(+), 31 deletions(-)
- rename arch/arm/plat-omap/include/plat/gpio.h => include/linux/platform_data/gpio-omap.h (94%)
+ drivers/input/keyboard/omap-keypad.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index c162369..6f192c4 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -26,6 +26,7 @@
- #include <linux/export.h>
- #include <linux/omapfb.h>
- #include <linux/io.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <media/soc_camera.h>
- 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 569b687..3b2d907 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -39,6 +39,7 @@
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/physmap.h>
- #include <linux/i2c/tps65010.h>
-+#include <linux/platform_data/gpio-omap.h>
- #include <linux/platform_data/omap1_bl.h>
- 
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-index ebef15e..98e6f39 100644
---- a/arch/arm/mach-omap1/gpio15xx.c
-+++ b/arch/arm/mach-omap1/gpio15xx.c
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
- #define OMAP1510_GPIO_BASE		0xFFFCE000
-diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-index 2a48cd2..33f4192 100644
---- a/arch/arm/mach-omap1/gpio16xx.c
-+++ b/arch/arm/mach-omap1/gpio16xx.c
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #define OMAP1610_GPIO1_BASE		0xfffbe400
- #define OMAP1610_GPIO2_BASE		0xfffbec00
-diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
-index acf12b7..958ce9a 100644
---- a/arch/arm/mach-omap1/gpio7xx.c
-+++ b/arch/arm/mach-omap1/gpio7xx.c
-@@ -17,6 +17,7 @@
-  */
- 
- #include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #define OMAP7XX_GPIO1_BASE		0xfffbc000
- #define OMAP7XX_GPIO2_BASE		0xfffbc800
-diff --git a/arch/arm/mach-omap1/include/mach/gpio.h b/arch/arm/mach-omap1/include/mach/gpio.h
-index e737706..ebf86c0 100644
---- a/arch/arm/mach-omap1/include/mach/gpio.h
-+++ b/arch/arm/mach-omap1/include/mach/gpio.h
-@@ -1,5 +1,3 @@
- /*
-  * arch/arm/mach-omap1/include/mach/gpio.h
-  */
--
--#include <plat/gpio.h>
-diff --git a/arch/arm/mach-omap1/leds-h2p2-debug.c b/arch/arm/mach-omap1/leds-h2p2-debug.c
-index f6b14a1..7f4bba9 100644
---- a/arch/arm/mach-omap1/leds-h2p2-debug.c
-+++ b/arch/arm/mach-omap1/leds-h2p2-debug.c
-@@ -14,6 +14,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/sched.h>
- #include <linux/io.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <mach/hardware.h>
- #include <asm/leds.h>
-diff --git a/arch/arm/mach-omap1/leds.c b/arch/arm/mach-omap1/leds.c
-index ae6dd93..7b1a383 100644
---- a/arch/arm/mach-omap1/leds.c
-+++ b/arch/arm/mach-omap1/leds.c
-@@ -6,6 +6,7 @@
- #include <linux/gpio.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/leds.h>
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 00abda1..029ebdf 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -25,6 +25,7 @@
- #include <linux/can/platform/ti_hecc.h>
- #include <linux/davinci_emac.h>
- #include <linux/mmc/host.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <mach/hardware.h>
- #include <mach/am35xx.h>
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index ea34109..34cb904 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -23,6 +23,7 @@
- #include <linux/input/matrix_keypad.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <linux/i2c/at24.h>
- #include <linux/i2c/twl.h>
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index 28187f1..d64f35f 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -18,6 +18,8 @@
- #include <video/omapdss.h>
- #include <mach/board-zoom.h>
- 
-+#include <plat/cpu.h>
-+
- #define LCD_PANEL_RESET_GPIO_PROD	96
- #define LCD_PANEL_RESET_GPIO_PILOT	55
- #define LCD_PANEL_QVGA_GPIO		56
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 00f73b7..ae5d36b 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -19,6 +19,7 @@
- #include <linux/regulator/fixed.h>
- #include <linux/wl12xx.h>
- #include <linux/mmc/host.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 9ad7d48..7b52bdf 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -21,6 +21,7 @@
+diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
+index a0222db..171d739 100644
+--- a/drivers/input/keyboard/omap-keypad.c
++++ b/drivers/input/keyboard/omap-keypad.c
+@@ -35,16 +35,19 @@
+ #include <linux/mutex.h>
+ #include <linux/errno.h>
  #include <linux/slab.h>
- #include <linux/interrupt.h>
- #include <linux/of.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index a9675d8..80399d7 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -15,6 +15,8 @@
- #include <linux/delay.h>
- #include <linux/gpio.h>
- #include <mach/hardware.h>
-+#include <linux/platform_data/gpio-omap.h>
-+
- #include <plat/mmc.h>
- #include <plat/omap-pm.h>
- #include <plat/mux.h>
-diff --git a/arch/arm/mach-omap2/include/mach/gpio.h b/arch/arm/mach-omap2/include/mach/gpio.h
-index be4d290..5621cc5 100644
---- a/arch/arm/mach-omap2/include/mach/gpio.h
-+++ b/arch/arm/mach-omap2/include/mach/gpio.h
-@@ -1,5 +1,3 @@
- /*
-  * arch/arm/mach-omap2/include/mach/gpio.h
-  */
--
--#include <plat/gpio.h>
-diff --git a/arch/arm/mach-omap2/msdi.c b/arch/arm/mach-omap2/msdi.c
-index fb5bc6c..9e57b4a 100644
---- a/arch/arm/mach-omap2/msdi.c
-+++ b/arch/arm/mach-omap2/msdi.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/err.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 50cfab6..5b49ebf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -18,7 +18,6 @@
- #include <plat/dma.h>
- #include <plat/serial.h>
- #include <plat/i2c.h>
--#include <plat/gpio.h>
- #include <plat/mcspi.h>
- #include <plat/dmtimer.h>
- #include <plat/l3_2xxx.h>
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 58b5bc1..1fd66f0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -18,7 +18,6 @@
- #include <plat/dma.h>
- #include <plat/serial.h>
- #include <plat/i2c.h>
--#include <plat/gpio.h>
- #include <plat/mcbsp.h>
- #include <plat/mcspi.h>
- #include <plat/dmtimer.h>
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index afad69c..c6416c9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -10,7 +10,7 @@
-  */
- #include <plat/omap_hwmod.h>
- #include <plat/serial.h>
--#include <plat/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- #include <plat/dma.h>
- #include <plat/dmtimer.h>
- #include <plat/mcspi.h>
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index c9e3820..5820c73 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -15,6 +15,7 @@
-  * XXX these should be marked initdata for multi-OMAP kernels
-  */
- #include <linux/power/smartreflex.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <plat/omap_hwmod.h>
- #include <mach/irqs.h>
-@@ -24,7 +25,6 @@
- #include <plat/l3_3xxx.h>
- #include <plat/l4_3xxx.h>
- #include <plat/i2c.h>
--#include <plat/gpio.h>
- #include <plat/mmc.h>
- #include <plat/mcbsp.h>
- #include <plat/mcspi.h>
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 242aee4..fe987f8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -19,12 +19,12 @@
-  */
- 
- #include <linux/io.h>
-+#include <linux/platform_data/gpio-omap.h>
- #include <linux/power/smartreflex.h>
- 
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
- #include <plat/i2c.h>
--#include <plat/gpio.h>
- #include <plat/dma.h>
- #include <plat/mcspi.h>
- #include <plat/mcbsp.h>
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index de1caf1..2708a8b 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -29,6 +29,7 @@
- #include <linux/irq.h>
- #include <linux/time.h>
- #include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <asm/mach/time.h>
- #include <asm/mach/irq.h>
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 05bd8f0..90480f7 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -28,6 +28,8 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/slab.h>
-+#include <linux/platform_data/gpio-omap.h>
-+
- #include <trace/events/power.h>
- 
- #include <asm/suspend.h>
-diff --git a/arch/arm/plat-omap/debug-leds.c b/arch/arm/plat-omap/debug-leds.c
-index 39407cb..195aaae 100644
---- a/arch/arm/plat-omap/debug-leds.c
-+++ b/arch/arm/plat-omap/debug-leds.c
-@@ -12,6 +12,7 @@
- #include <linux/platform_device.h>
- #include <linux/leds.h>
- #include <linux/io.h>
-+#include <linux/platform_data/gpio-omap.h>
- 
- #include <mach/hardware.h>
- #include <asm/leds.h>
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index e6efd77..64fbce3 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -25,11 +25,9 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/irqdomain.h>
+-#include <asm/gpio.h>
 +#include <linux/gpio.h>
 +#include <linux/platform_data/gpio-omap.h>
- 
--#include <mach/hardware.h>
+ #include <plat/keypad.h>
+-#include <plat/menelaus.h>
 -#include <asm/irq.h>
--#include <mach/irqs.h>
--#include <asm/gpio.h>
- #include <asm/mach/irq.h>
+-#include <mach/hardware.h>
+-#include <asm/io.h>
+-#include <plat/mux.h>
  
- #define OFF_MODE	1
-@@ -385,13 +383,16 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
- static int gpio_irq_type(struct irq_data *d, unsigned type)
- {
- 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
--	unsigned gpio;
-+	unsigned gpio = 0;
- 	int retval;
- 	unsigned long flags;
+ #undef NEW_BOARD_LEARNING_MODE
  
--	if (!cpu_class_is_omap2() && d->irq > IH_MPUIO_BASE)
 +#ifdef CONFIG_ARCH_OMAP1
-+	if (d->irq > IH_MPUIO_BASE)
- 		gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
--	else
++#define omap_kp_24xx()		0
++#else
++#define omap_kp_24xx()		1
 +#endif
 +
-+	if (!gpio)
- 		gpio = irq_to_gpio(bank, d->irq);
++static struct omap_kp *omap_kp;
+ static void omap_kp_tasklet(unsigned long);
+ static void omap_kp_timer(unsigned long);
  
- 	if (type & ~IRQ_TYPE_SENSE_MASK)
-diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
-index 861ca8f..78a524b 100644
---- a/drivers/mtd/nand/ams-delta.c
-+++ b/drivers/mtd/nand/ams-delta.c
-@@ -23,12 +23,16 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
- #include <linux/mtd/partitions.h>
-+#include <linux/gpio.h>
-+#include <linux/platform_data/gpio-omap.h>
-+
- #include <asm/io.h>
--#include <mach/hardware.h>
- #include <asm/sizes.h>
--#include <linux/gpio.h>
-+
- #include <plat/board-ams-delta.h>
+@@ -99,7 +102,7 @@ static irqreturn_t omap_kp_interrupt(int irq, void *dev_id)
+ 	struct omap_kp *omap_kp = dev_id;
  
-+#include <mach/hardware.h>
-+
- /*
-  * MTD structure for E3 (Delta)
-  */
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/include/linux/platform_data/gpio-omap.h
-similarity index 94%
-rename from arch/arm/plat-omap/include/plat/gpio.h
-rename to include/linux/platform_data/gpio-omap.h
-index 50fb7cc..e8741c2 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/include/linux/platform_data/gpio-omap.h
-@@ -1,6 +1,4 @@
- /*
-- * arch/arm/plat-omap/include/mach/gpio.h
-- *
-  * OMAP GPIO handling defines and functions
-  *
-  * Copyright (C) 2003-2005 Nokia Corporation
-@@ -155,6 +153,8 @@
- #define OMAP4_GPIO_CLEARDATAOUT		0x0190
- #define OMAP4_GPIO_SETDATAOUT		0x0194
+ 	/* disable keyboard interrupt and schedule for handling */
+-	if (cpu_is_omap24xx()) {
++	if (omap_kp_24xx()) {
+ 		int i;
  
-+#define OMAP_MAX_GPIO_LINES		192
-+
- #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
- #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
+ 		for (i = 0; i < omap_kp->rows; i++) {
+@@ -134,7 +137,7 @@ static void omap_kp_scan_keypad(struct omap_kp *omap_kp, unsigned char *state)
+ 	int col = 0;
  
-@@ -213,16 +213,5 @@ extern void omap2_gpio_prepare_for_idle(int off_mode);
- extern void omap2_gpio_resume_after_idle(void);
- extern void omap_set_gpio_debounce(int gpio, int enable);
- extern void omap_set_gpio_debounce_time(int gpio, int enable);
--/*-------------------------------------------------------------------------*/
--
--/*
-- * Wrappers for "new style" GPIO calls, using the new infrastructure
-- * which lets us plug in FPGA, I2C, and other implementations.
-- *
-- * The original OMAP-specific calls should eventually be removed.
-- */
--
--#include <linux/errno.h>
--#include <asm-generic/gpio.h>
+ 	/* read the keypad status */
+-	if (cpu_is_omap24xx()) {
++	if (omap_kp_24xx()) {
+ 		/* read the keypad status */
+ 		for (col = 0; col < omap_kp->cols; col++) {
+ 			set_col_gpio_val(omap_kp, ~(1 << col));
+@@ -222,7 +225,7 @@ static void omap_kp_tasklet(unsigned long data)
+ 		mod_timer(&omap_kp_data->timer, jiffies + delay);
+ 	} else {
+ 		/* enable interrupts */
+-		if (cpu_is_omap24xx()) {
++		if (omap_kp_24xx()) {
+ 			int i;
+ 			for (i = 0; i < omap_kp_data->rows; i++)
+ 				enable_irq(gpio_to_irq(row_gpios[i]));
+@@ -253,9 +256,9 @@ static ssize_t omap_kp_enable_store(struct device *dev, struct device_attribute
+ 	mutex_lock(&kp_enable_mutex);
+ 	if (state != kp_enable) {
+ 		if (state)
+-			enable_irq(INT_KEYBOARD);
++			enable_irq(omap_kp->irq);
+ 		else
+-			disable_irq(INT_KEYBOARD);
++			disable_irq(omap_kp->irq);
+ 		kp_enable = state;
+ 	}
+ 	mutex_unlock(&kp_enable_mutex);
+@@ -286,7 +289,6 @@ static int omap_kp_resume(struct platform_device *dev)
  
- #endif
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index 0e28322..78e1419 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -34,6 +34,7 @@
- #include <mach/hardware.h>
- #include <mach/gpio.h>
- #include <plat/mcbsp.h>
-+#include <linux/platform_data/gpio-omap.h>
+ static int __devinit omap_kp_probe(struct platform_device *pdev)
+ {
+-	struct omap_kp *omap_kp;
+ 	struct input_dev *input_dev;
+ 	struct omap_kp_platform_data *pdata =  pdev->dev.platform_data;
+ 	int i, col_idx, row_idx, irq_idx, ret;
+@@ -314,7 +316,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
+ 	omap_kp->input = input_dev;
  
- /* Register descriptions for twl4030 codec part */
- #include <linux/mfd/twl4030-audio.h>
+ 	/* Disable the interrupt for the MPUIO keyboard */
+-	if (!cpu_is_omap24xx())
++	if (!omap_kp_24xx())
+ 		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+ 
+ 	if (pdata->delay)
+@@ -328,7 +330,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
+ 	omap_kp->rows = pdata->rows;
+ 	omap_kp->cols = pdata->cols;
+ 
+-	if (cpu_is_omap24xx()) {
++	if (omap_kp_24xx()) {
+ 		/* Cols: outputs */
+ 		for (col_idx = 0; col_idx < omap_kp->cols; col_idx++) {
+ 			if (gpio_request(col_gpios[col_idx], "omap_kp_col") < 0) {
+@@ -394,7 +396,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
+ 
+ 	/* scan current status and enable interrupt */
+ 	omap_kp_scan_keypad(omap_kp, keypad_state);
+-	if (!cpu_is_omap24xx()) {
++	if (!omap_kp_24xx()) {
+ 		omap_kp->irq = platform_get_irq(pdev, 0);
+ 		if (omap_kp->irq >= 0) {
+ 			if (request_irq(omap_kp->irq, omap_kp_interrupt, 0,
+@@ -439,7 +441,7 @@ static int __devexit omap_kp_remove(struct platform_device *pdev)
+ 
+ 	/* disable keypad interrupt handling */
+ 	tasklet_disable(&kp_tasklet);
+-	if (cpu_is_omap24xx()) {
++	if (omap_kp_24xx()) {
+ 		int i;
+ 		for (i = 0; i < omap_kp->cols; i++)
+ 			gpio_free(col_gpios[i]);
+
