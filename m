@@ -1,83 +1,57 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH V3 0/8] ARM: OMAP4: Add PMU Support
-Date: Tue, 11 Sep 2012 12:18:58 +0530
-Message-ID: <CAMQu2gzP-QjT+opTzk_nZKedqdBuQw=0sam+Uc9sJSYNBRMngg@mail.gmail.com>
-References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] ARM: OMAP2+: Makefile.boot: Add am335x evm and bone
+ targets
+Date: Tue, 11 Sep 2012 06:55:57 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAB0764@DBDE01.ent.ti.com>
+References: <1346435674-6207-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:42503 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388Ab2IKGtU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 02:49:20 -0400
-Received: by vcdd16 with SMTP id d16so217775vcd.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 23:49:19 -0700 (PDT)
-In-Reply-To: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1346435674-6207-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>
 
-Jon,
+On Fri, Aug 31, 2012 at 23:24:34, Hiremath, Vaibhav wrote:
+> This adds am335x-evm and am335x-bone dtb targets to
+> 'make dtbs', just like other platforms.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/Makefile.boot |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+> index 6cf1c2d..1136072 100644
+> --- a/arch/arm/mach-omap2/Makefile.boot
+> +++ b/arch/arm/mach-omap2/Makefile.boot
+> @@ -7,3 +7,4 @@ dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
+>  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+>  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+>  dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
+> +dtb-$(CONFIG_SOC_AM33XX)	+= am335x-evm.dtb am335x-bone.dtb
 
-On Mon, Sep 10, 2012 at 8:53 PM, Jon Hunter <jon-hunter@ti.com> wrote:
-> This series adds PMU support for OMAP4 devices. This is based upon Will Deacons
-> series [1] and re-based upon the latest arm-soc next/cleanup branch (3.6-rc3)
-> that includes Will's series. It has been re-based upon this series because
-> of the dependency on Sudeep KarkadaNagesha's change (ARM: pmu: remove
-> arm_pmu_type enumeration) [2] that modifies the OMAP PMU code.
->
-> This series is also dependent upon some clock fixes for OMAP3 [3] and OMAP4 [4]
-> for PMU to operate correctly on OMAP3 and OMAP4.
->
-> This series also converts OMAP2/3 devices to use HWMOD to create the PMU device
-> and add a new file to mach-omap2 directory called pmu.c where the PMU devices
-> are created.
->
-> Testing:
-> - Verified that PMU is working on OMAP2420 H4, OMAP3430 Beagle Board, OMAP4430
->   Panda and OMAP4460 Panda.
-> - Tested on the above boards with CPU-idle enabled to ensure that PMU is working
->   with power management. For OMAP3430 verified that CORE retention state is
->   entered again after stopping PMU events.
->
-> V3 changes:
-> - Will Deacon has taken the PMU runtime PM adaption patch in his series and so
->   not included here [1].
-> - Dropped my fix for managing the EMU power domain on OMAP4 in favour of Paul's
->   implementation [4]. Paul is planning to submit for v3.7.
-> - Added HWMOD data for OMAP3 DEBUG sub-system. The DEBUG sub-system was always
->   being enabled on OMAP3 devices when using PMU and hence, hinding the fact
->   that PMU is dependent upon the DEBUG sub-system on OMAP3 for it to work.
->
-> [1] git://git.kernel.org/pub/sicm/linux/kernel/git/will/linux.git perf/updates
-> [2] http://www.spinics.net/lists/arm-kernel/msg188726.html
-> [3] http://marc.info/?l=linux-omap&m=134333691309305&w=2
-> [4] http://marc.info/?l=linux-arm-kernel&m=134383567112518&w=2
->
-> Cc: Ming Lei <ming.lei@canonical.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
->
-> Jon Hunter (6):
->   ARM: OMAP3: Add debugss HWMOD data
->   ARM: OMAP2+: PMU: Convert OMAP2/3 devices to use HWMOD
->   ARM: OMAP4: Re-map the CTIs IRQs from MPU to DEBUGSS
->   ARM: OMAP2+: PMU: Add runtime PM support
->   ARM: OMAP4: Enable PMU for OMAP4460/70
->   ARM: OMAP2+: PMU: Add QoS constraint
->
-> Ming Lei (2):
->   ARM: OMAP4430: Create PMU device via HWMOD
->   ARM: OMAP4: Route PMU IRQs to CTI IRQs
->
-Thanks for persisting with the PMU series and great work to get it working
-across almost all OMAPs supporting PMU. I have acked few patches
-already from the series. Just quickly rescanned full series and also tried it
-on OMAP4 SDP. PMU counters seems to work fine with it.
+Tony,
 
-Feel free to add my ack for the entire series.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Gentle reminder on this patch !!!
+
+Thanks,
+Vaibhav
+
+> -- 
+> 1.7.0.4
+> 
+> 
