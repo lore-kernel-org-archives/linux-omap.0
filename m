@@ -1,78 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/17] staging: tidspbridge: Prepare for irqs.h removal
-Date: Mon, 10 Sep 2012 22:31:06 -0700
-Message-ID: <20120911053106.29637.33453.stgit@muffinssi.local>
-References: <20120911052934.29637.9190.stgit@muffinssi.local>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
+Date: Tue, 11 Sep 2012 05:36:00 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E1905@DBDE01.ent.ti.com>
+References: <cover.1344609341.git.afzal@ti.com>
+ <c5a608a70a875191e1323958c74fb2ac8dfa34b3.1344609341.git.afzal@ti.com>
+ <1345895326.1815.4.camel@kyv> <20120830195349.GW1303@atomide.com>
+ <20120911001710.GD1303@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:13927 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754131Ab2IKFbI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:31:08 -0400
-In-Reply-To: <20120911052934.29637.9190.stgit@muffinssi.local>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32854 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750927Ab2IKFgN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 01:36:13 -0400
+In-Reply-To: <20120911001710.GD1303@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
+Cc: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-Let's define some things locally to avoid breaking build
-when irqs.h is removed.
-
-This is needed for the ARM common zImage support.
-
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/staging/tidspbridge/core/dsp-clock.c  |    2 ++
- drivers/staging/tidspbridge/core/tiomap3430.c |    4 ++--
- drivers/staging/tidspbridge/core/wdt.c        |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/core/dsp-clock.c b/drivers/staging/tidspbridge/core/dsp-clock.c
-index c7df34e..7eac01e 100644
---- a/drivers/staging/tidspbridge/core/dsp-clock.c
-+++ b/drivers/staging/tidspbridge/core/dsp-clock.c
-@@ -16,6 +16,8 @@
-  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-  */
- 
-+#define L4_34XX_BASE		0x48000000
-+
- #include <linux/types.h>
- 
- /*  ----------------------------------- Host OS */
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index f9609ce..40dc73e 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -415,10 +415,10 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 		/* Assert RST1 i.e only the RST only for DSP megacell */
- 		if (!status) {
- 			/*
--			 * XXX: ioremapping  MUST be removed once ctrl
-+			 * XXX: OMAP343X_CTRL_BASE ioremapping  MUST be removed once ctrl
- 			 * function is made available.
- 			 */
--			void __iomem *ctrl = ioremap(OMAP343X_CTRL_BASE, SZ_4K);
-+			void __iomem *ctrl = ioremap(0x48002000, SZ_4K);
- 			if (!ctrl)
- 				return -ENOMEM;
- 
-diff --git a/drivers/staging/tidspbridge/core/wdt.c b/drivers/staging/tidspbridge/core/wdt.c
-index 870f934..1ed1474 100644
---- a/drivers/staging/tidspbridge/core/wdt.c
-+++ b/drivers/staging/tidspbridge/core/wdt.c
-@@ -25,7 +25,8 @@
- #include <dspbridge/host_os.h>
- 
- 
--#define OMAP34XX_WDT3_BASE 		(L4_PER_34XX_BASE + 0x30000)
-+#define OMAP34XX_WDT3_BASE 		(0x49000000 + 0x30000)
-+#define INT_34XX_WDT3_IRQ 		36
- 
- static struct dsp_wdt_setting dsp_wdt;
- 
-
+SGkgVG9ueSwNCg0KT24gVHVlLCBTZXAgMTEsIDIwMTIgYXQgMDU6NDc6MTAsIFRvbnkgTGluZGdy
+ZW4gd3JvdGU6DQoNCj4gRllJLCBsb29rcyBsaWtlIGEgbmV3IHdhcm5pbmcgZ290IGludHJvZHVj
+ZWQsIHNvIEkndmUNCj4gY29tbWl0dGVkIHRoZSBmb2xsb3dpbmcgdHJpdmlhbCBwYXRjaCBvbiB0
+b3Agb2YgdGhpcyBzZXJpZXMuDQoNCkkgd2FzIG5vdCBjYXJlZnVsIGVub3VnaCwgc29ycnkuIFRo
+YW5rcyBmb3IgZml4aW5nIGl0Lg0KDQpBbm90aGVyIGh1bmsgYXMgZm9sbG93cyB3b3VsZCBhbHNv
+IGJlIHJlcXVpcmVkIGZvciBlcnJvcg0KcGF0aCBldmVuIHRob3VnaCBjb21waWxlciBkaWRuJ3Qg
+Y29tcGxhaW4uDQoNCk5vdCBzdXJlIHdoZXRoZXIgeW91IGNhbiBmaXh1cCBvciBJIHNob3VsZCBw
+b3N0IGFzIGENCnNlcGFyYXRlIHBhdGNoLg0KDQpBcyBhbiBhc2lkZSwgdGhlcmUgd2FzIGNvbXBp
+bGVyIHdhcm5pbmcgYmVmb3JlIHRoaXMNCnNlcmllcywgYnV0IEkgZGlkbid0IGRhcmUgdG8gdG91
+Y2ggaXQsIHNvIGEgd2FybmluZw0Kd2FzIHNlZW4gYnV0IHRob3VnaHQgaXQgd2FzIGR1ZSB0byB0
+aGUgZWFybGllciBvbmUuDQpBbmQgbm93IEFybmQgaGFzIGZpeGVkIHRoZSBvcmlnaW5hbCB3YXJu
+aW5nLg0KDQpSZWdhcmRzDQpBZnphbA0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tdGQvbmFuZC9v
+bWFwMi5jIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jDQppbmRleCAzMzdjZjBhLi4yNzI5M2Uz
+IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jDQorKysgYi9kcml2ZXJzL210
+ZC9uYW5kL29tYXAyLmMNCkBAIC0xNDA0LDYgKzE0MDQsNyBAQCBzdGF0aWMgaW50IF9fZGV2aW5p
+dCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCiAgICAgICAg
+ICAgICAgICBpbmZvLT5ncG1jX2lycV9jb3VudCA9IHBsYXRmb3JtX2dldF9pcnEocGRldiwgMSk7
+DQogICAgICAgICAgICAgICAgaWYgKGluZm8tPmdwbWNfaXJxX2NvdW50IDw9IDApIHsNCiAgICAg
+ICAgICAgICAgICAgICAgICAgIGRldl9lcnIoJnBkZXYtPmRldiwgImVycm9yIGdldHRpbmcgY291
+bnQgaXJxXG4iKTsNCisgICAgICAgICAgICAgICAgICAgICAgIGVyciA9IC1FTk9ERVY7DQogICAg
+ICAgICAgICAgICAgICAgICAgICBnb3RvIG91dF9yZWxlYXNlX21lbV9yZWdpb247DQogICAgICAg
+ICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGVyciA9IHJlcXVlc3RfaXJxKGluZm8tPmdwbWNf
+aXJxX2NvdW50LCBvbWFwX25hbmRfaXJxLCANCg0KDQo+IEZyb206IFRvbnkgTGluZGdyZW4gPHRv
+bnlAYXRvbWlkZS5jb20+DQo+IERhdGU6IE1vbiwgMTAgU2VwIDIwMTIgMTc6MTQ6MTMgLTA3MDAN
+Cj4gU3ViamVjdDogW1BBVENIXSBtdGQ6IG5hbmQgb21hcDI6IEZpeCB1bmluaXRpYWxpemVkIGVy
+ciB3YXJuaW5nDQo+IA0KPiBDb21taXQgYmQ0MTU2ZmQgKG10ZDogbmFuZDogb21hcDI6IHVzZSBn
+cG1jIHByb3ZpZGVkIGlycXMpDQo+IGludHJvZHVjZWQgYSBuZXcgd2FybmluZzoNCj4gDQo+IGRy
+aXZlcnMvbXRkL25hbmQvb21hcDIuYzogSW4gZnVuY3Rpb24g4oCYb21hcF9uYW5kX3Byb2Jl4oCZ
+Og0KPiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6MTI2Nzogd2FybmluZzog4oCYZXJy4oCZIG1h
+eSBiZSB1c2VkIHVuaW5pdGlhbGl6ZWQgaW4gdGhpcyBmdW5jdGlvbg0KPiANCj4gU2lnbmVkLW9m
+Zi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCj4gDQo+IC0tLSBhL2RyaXZl
+cnMvbXRkL25hbmQvb21hcDIuYw0KPiArKysgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMNCj4g
+QEAgLTEzODksNiArMTM4OSw3IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IG9tYXBfbmFuZF9wcm9i
+ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KPiAgCQlpbmZvLT5ncG1jX2lycV9maWZv
+ID0gcGxhdGZvcm1fZ2V0X2lycShwZGV2LCAwKTsNCj4gIAkJaWYgKGluZm8tPmdwbWNfaXJxX2Zp
+Zm8gPD0gMCkgew0KPiAgCQkJZGV2X2VycigmcGRldi0+ZGV2LCAiZXJyb3IgZ2V0dGluZyBmaWZv
+IGlycVxuIik7DQo+ICsJCQllcnIgPSAtRU5PREVWOw0KPiAgCQkJZ290byBvdXRfcmVsZWFzZV9t
+ZW1fcmVnaW9uOw0KPiAgCQl9DQo+ICAJCWVyciA9IHJlcXVlc3RfaXJxKGluZm8tPmdwbWNfaXJx
+X2ZpZm8sCW9tYXBfbmFuZF9pcnEsDQo+IA0KDQo=
