@@ -1,37 +1,54 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write
-Date: Tue, 11 Sep 2012 11:49:44 +0530
-Message-ID: <CAMQu2gxUES=s8fMpwJ77tnY1wz4b_T=yustj+C+WNkEMmEOx4w@mail.gmail.com>
-References: <alpine.DEB.2.00.1209052333410.11516@utopia.booyaka.com>
- <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com>
- <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com> <20120910185535.GC1303@atomide.com>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH] mtd: nand: omap2: fix error path
+Date: Tue, 11 Sep 2012 11:58:54 +0530
+Message-ID: <1347344934-28103-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58903 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755355Ab2IKGUG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 02:20:06 -0400
-Received: by ghbg21 with SMTP id g21so204978ghb.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 23:20:04 -0700 (PDT)
-In-Reply-To: <20120910185535.GC1303@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39363 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753977Ab2IKG3F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 02:29:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: dedekind1@gmail.com, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+Cc: Afzal Mohammed <afzal@ti.com>
 
-On Tue, Sep 11, 2012 at 12:25 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120908 01:20]:
->>
->> Will you able to pick up these couple of wakeupgen fixes from  here or
->> do you want me to send you a pull request for 3.6-rc5/6
->
-> I can pick them into fixes-noncritical. But if the second one is
-> a major bug for the -rc series, the patch should be describe what
-> breaks (regression? oops?).
->
-Fixes non critical is fine. No major issue without these patches.
+Let probe return error value if gpmc terminal
+count interrupt could not be obtained
+
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
+---
+Hi,
+
+My commit (now in l-o/devel-gpmc),
+
+"bd4156f  mtd: nand: omap2: use gpmc provided irqs"
+
+did not propogate error code properly due to
+which this fix was required.
+
+But this has not been mentioned in commit message
+as it is not yet in mainline.
 
 Regards
-Santosh
+Afzal
+
+ drivers/mtd/nand/omap2.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 337cf0a..27293e3 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1404,6 +1404,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		info->gpmc_irq_count = platform_get_irq(pdev, 1);
+ 		if (info->gpmc_irq_count <= 0) {
+ 			dev_err(&pdev->dev, "error getting count irq\n");
++			err = -ENODEV;
+ 			goto out_release_mem_region;
+ 		}
+ 		err = request_irq(info->gpmc_irq_count,	omap_nand_irq,
+-- 
+1.7.0.4
+
