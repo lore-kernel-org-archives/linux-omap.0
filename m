@@ -1,131 +1,76 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Seeking clarity on IRQCHIP_MASK_ON_SUSPEND
-Date: Tue, 11 Sep 2012 09:42:52 +1000
-Message-ID: <20120911094252.0e78a8f9@notabene.brown>
-References: <20120910165127.37dd07f3@notabene.brown>
-	<alpine.LFD.2.02.1209101215300.2724@ionos>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
+Date: Mon, 10 Sep 2012 17:17:10 -0700
+Message-ID: <20120911001710.GD1303@atomide.com>
+References: <cover.1344609341.git.afzal@ti.com>
+ <c5a608a70a875191e1323958c74fb2ac8dfa34b3.1344609341.git.afzal@ti.com>
+ <1345895326.1815.4.camel@kyv>
+ <20120830195349.GW1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/lyusIv1AeH1QaHHCEhUcZsx"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.02.1209101215300.2724@ionos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:49766 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750886Ab2IKARQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Sep 2012 20:17:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20120830195349.GW1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Afzal Mohammed <afzal@ti.com>, artem.bityutskiy@linux.intel.com, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, ivan.djelic@parrot.com
 
---Sig_/lyusIv1AeH1QaHHCEhUcZsx
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 10 Sep 2012 12:28:35 +0200 (CEST) Thomas Gleixner
-<tglx@linutronix.de> wrote:
-
-> On Mon, 10 Sep 2012, NeilBrown wrote:
+* Tony Lindgren <tony@atomide.com> [120830 12:54]:
+> * Artem Bityutskiy <dedekind1@gmail.com> [120825 04:49]:
+> > On Tue, 2012-08-21 at 15:14 +0530, Afzal Mohammed wrote:
+> > > GPMC platform initialization provides it's clients
+> > > with interrupts that can be used through struct
+> > > resource. Make use of it for irq mode functionality.
+> > >=20
+> > > Also now write protect disable is done by GPMC,
+> > > hence remove it.
+> > >=20
+> > > Signed-off-by: Afzal Mohammed <afzal@ti.com>
 > >=20
-> > The IRQCHIP_MASK_ON_SUSPEND flag seems to be hard to use correctly, so =
-either
-> > I'm understanding it wrongly, or it could be made easier to use.
-> > If the first case, I'm hoping that some improvement to documentation mi=
-ght
-> > result.  If the second, then maybe we can fix the code.
-> ...=20
-> > Is anyone able to give a definitive answer on this?  Should
-> > IRQCHIP_MASK_ON_SUSPEND be removed?
+> > Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 >=20
-> The whole point of IRQCHIP_MASK_ON_SUSPEND is to deal with hardware
-> designed by geniuses.
->=20
-> Most SoCs have a way to mark the interrupts which serve as a wake up
-> source as such. All other interrupts are magically "masked" on entry
-> to suspend.
->=20
-> Now there is hardware which is missing such a control, so we need to
-> mask the non wakeup interrupts right before going into suspend.
+> Thanks I'll apply these into omap devel-gpmc branch.
 
-Even allowing for the obvious sarcasm, I'm having a lot of trouble
-understanding the nature of this 'bad' hardware.
+=46YI, looks like a new warning got introduced, so I've
+committed the following trivial patch on top of this series.
 
-My understand of the SoC world is that the goal is for 'suspend' to be no
-different from deep runtime PM (from a hardware perspective).  So where the=
-re
-is a way to mark an interrupt as a wakeup source, this is used both to supp=
-ort
-wakeup from suspend, and to support wakeup from deep runtime-PM
+Regards,
 
-When it is used to wake-from-runtime-PM, the lazy interrupt masking is
-sufficient to mask it when needed - the extra wakeup isn't a big cost.
-When it is used to wake-from-suspend - lazy interrupt masking can cause an
-unwanted wake from suspend which is much more expensive.
+Tony
 
-So even with sane hardware that supports marking interrupts as wakeup
-sources, we still need do extra explicit masking for the suspend case, and
-IRQCHIP_MASK_ON_SUSPEND looks like the tool to use ... except that as
-described previously it doesn't work.
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Mon, 10 Sep 2012 17:14:13 -0700
+Subject: [PATCH] mtd: nand omap2: Fix uninitialized err warning
 
->=20
-> That's what IRQCHIP_MASK_ON_SUSPEND does. Not more, not less. See
-> commit d209a699a0b for more ugly details.
+Commit bd4156fd (mtd: nand: omap2: use gpmc provided irqs)
+introduced a new warning:
 
-One detail that I get from that commit is that it was 'Reviewed-by' someone
-from 'codeaurora', and that name appears in the pm8xxx-irq.c driver which is
-one of the two users.  However that driver can only be used if
-CONFIG_MSM_SSBI, and nothing ever devices that so it all seems completely
-theoretical.
+drivers/mtd/nand/omap2.c: In function =E2=80=98omap_nand_probe=E2=80=99=
+:
+drivers/mtd/nand/omap2.c:1267: warning: =E2=80=98err=E2=80=99 may be us=
+ed uninitialized in this function
 
->=20
-> You might be looking for a different functionality. Can you explain
-> what you need?
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-I want as particular GPIO interrupt to be masked before entering suspend.
-I produced code to get the ->suspend() callback to perform this masking.
-Another developer (Santosh) felt that IRQCHIP_MASK_ON_SUSPEND was the
-preferred way to do this and on the surface this looks like it should be
-correct.  However it doesn't work as explained previously.
-I want a resolution to this difference of opinion that doesn't just sweep t=
-he
-issue under that carpet but provides a clear answer to this sort of issue.
-
-My current opinion is that IRQCHIP_MASK_ON_SUSPEND should be discarded.  The
-patch which introduced it says:
-
-    Rather than working around this in the affected interrupt chip
-    implementations we can solve this elegant in the core code itself.
-   =20
-It appears that the solution in core code, while elegant, is wrong.  It
-happens too late to be generally usable.  It is easy enough to handle this
-issue in the interrupt chip drivers so maybe that is the best place to hand=
-le
-it.
-
-The the very least I think we need a big comment saying the
-IRQCHIP_MASK_ON_SUSPEND can only be used for irqchips which can always be
-programmed, even when they are suspended from an runtime-PM perspective,
-and that those chips must handle masking in their 'suspend' callback.
-
-Thank,
-NeilBrown
-
---Sig_/lyusIv1AeH1QaHHCEhUcZsx
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBUE56/Dnsnt1WYoG5AQLD0BAAiGhsER6uFgcff7IZH5y3hUitqpI4vnTG
-5WJ8Lw2Ta3DGDwy9WGbB1zy28FiBOph7XrgqZDDKPgJlJYmq6nWA5DGrIWdFTj1i
-fCl33BbdR3Fdms4QSkmXLnJBlA60mUblboXZvUY9sp4AJLvMLitwJg6lFRrnahsG
-tA67OFBQt4C7OMrwcrE1or706mNG2vBCyF/Zq4eyCtPyogypP6lIIszHBvyIDEiL
-SGHqGsi/TBO3SMapnqttpXQ+QCgrAa3r8AsHspvO97nNakGUaSjh1rLyRrRWCAml
-f+/1FN5wJbAALHZIHR9P72rVtEtZK76bh0Gt8P7bJ3v+oV8NPmY+/lS/Lifc9Xiy
-x8iKPsZnCCeHYT2u4IGT9/ZLJHiqt3vWWHEPtJvC+msT5A70aGb+UVZg7Qu8MSEK
-T3EUDefva7uvSv0z/F2so2JQoMmHO5VSKOsZvqI03l+daV6YKXoahNTZ5jEEsYZx
-RsAPyKiY5ANXmlBFQHP8WYxbwn3W0JrZGcFTwzuM988j6QD5b551z3gcdIq4a5HI
-FSzuPonMPC0SXj59hMQ1mK0WC/eSkF8Ql9LVWkFeic+lrWoesZjxLBTJN484/E5G
-7O62TF1WgGutHm1m1fmCTv3qtUl0/7DJwNEuCKEvIsiqsD8Q0SQxjyYv5Bbf9LgB
-9+TZ2aBtIYg=
-=YwLf
------END PGP SIGNATURE-----
-
---Sig_/lyusIv1AeH1QaHHCEhUcZsx--
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1389,6 +1389,7 @@ static int __devinit omap_nand_probe(struct platf=
+orm_device *pdev)
+ 		info->gpmc_irq_fifo =3D platform_get_irq(pdev, 0);
+ 		if (info->gpmc_irq_fifo <=3D 0) {
+ 			dev_err(&pdev->dev, "error getting fifo irq\n");
++			err =3D -ENODEV;
+ 			goto out_release_mem_region;
+ 		}
+ 		err =3D request_irq(info->gpmc_irq_fifo,	omap_nand_irq,
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
