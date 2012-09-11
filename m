@@ -1,62 +1,53 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
-Date: Tue, 11 Sep 2012 05:36:00 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E1905@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 10/10] mtd: nand: omap2: use gpmc provided irqs
+Date: Mon, 10 Sep 2012 22:42:27 -0700
+Message-ID: <20120911054227.GF1303@atomide.com>
 References: <cover.1344609341.git.afzal@ti.com>
  <c5a608a70a875191e1323958c74fb2ac8dfa34b3.1344609341.git.afzal@ti.com>
- <1345895326.1815.4.camel@kyv> <20120830195349.GW1303@atomide.com>
+ <1345895326.1815.4.camel@kyv>
+ <20120830195349.GW1303@atomide.com>
  <20120911001710.GD1303@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9E1905@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32854 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927Ab2IKFgN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 01:36:13 -0400
-In-Reply-To: <20120911001710.GD1303@atomide.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26632 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752882Ab2IKFmd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:42:33 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9E1905@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <dedekind1@gmail.com>
-Cc: "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "artem.bityutskiy@linux.intel.com" <artem.bityutskiy@linux.intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "ivan.djelic@parrot.com" <ivan.djelic@parrot.com>
 
-SGkgVG9ueSwNCg0KT24gVHVlLCBTZXAgMTEsIDIwMTIgYXQgMDU6NDc6MTAsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQoNCj4gRllJLCBsb29rcyBsaWtlIGEgbmV3IHdhcm5pbmcgZ290IGludHJvZHVj
-ZWQsIHNvIEkndmUNCj4gY29tbWl0dGVkIHRoZSBmb2xsb3dpbmcgdHJpdmlhbCBwYXRjaCBvbiB0
-b3Agb2YgdGhpcyBzZXJpZXMuDQoNCkkgd2FzIG5vdCBjYXJlZnVsIGVub3VnaCwgc29ycnkuIFRo
-YW5rcyBmb3IgZml4aW5nIGl0Lg0KDQpBbm90aGVyIGh1bmsgYXMgZm9sbG93cyB3b3VsZCBhbHNv
-IGJlIHJlcXVpcmVkIGZvciBlcnJvcg0KcGF0aCBldmVuIHRob3VnaCBjb21waWxlciBkaWRuJ3Qg
-Y29tcGxhaW4uDQoNCk5vdCBzdXJlIHdoZXRoZXIgeW91IGNhbiBmaXh1cCBvciBJIHNob3VsZCBw
-b3N0IGFzIGENCnNlcGFyYXRlIHBhdGNoLg0KDQpBcyBhbiBhc2lkZSwgdGhlcmUgd2FzIGNvbXBp
-bGVyIHdhcm5pbmcgYmVmb3JlIHRoaXMNCnNlcmllcywgYnV0IEkgZGlkbid0IGRhcmUgdG8gdG91
-Y2ggaXQsIHNvIGEgd2FybmluZw0Kd2FzIHNlZW4gYnV0IHRob3VnaHQgaXQgd2FzIGR1ZSB0byB0
-aGUgZWFybGllciBvbmUuDQpBbmQgbm93IEFybmQgaGFzIGZpeGVkIHRoZSBvcmlnaW5hbCB3YXJu
-aW5nLg0KDQpSZWdhcmRzDQpBZnphbA0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tdGQvbmFuZC9v
-bWFwMi5jIGIvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jDQppbmRleCAzMzdjZjBhLi4yNzI5M2Uz
-IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9tdGQvbmFuZC9vbWFwMi5jDQorKysgYi9kcml2ZXJzL210
-ZC9uYW5kL29tYXAyLmMNCkBAIC0xNDA0LDYgKzE0MDQsNyBAQCBzdGF0aWMgaW50IF9fZGV2aW5p
-dCBvbWFwX25hbmRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCiAgICAgICAg
-ICAgICAgICBpbmZvLT5ncG1jX2lycV9jb3VudCA9IHBsYXRmb3JtX2dldF9pcnEocGRldiwgMSk7
-DQogICAgICAgICAgICAgICAgaWYgKGluZm8tPmdwbWNfaXJxX2NvdW50IDw9IDApIHsNCiAgICAg
-ICAgICAgICAgICAgICAgICAgIGRldl9lcnIoJnBkZXYtPmRldiwgImVycm9yIGdldHRpbmcgY291
-bnQgaXJxXG4iKTsNCisgICAgICAgICAgICAgICAgICAgICAgIGVyciA9IC1FTk9ERVY7DQogICAg
-ICAgICAgICAgICAgICAgICAgICBnb3RvIG91dF9yZWxlYXNlX21lbV9yZWdpb247DQogICAgICAg
-ICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIGVyciA9IHJlcXVlc3RfaXJxKGluZm8tPmdwbWNf
-aXJxX2NvdW50LCBvbWFwX25hbmRfaXJxLCANCg0KDQo+IEZyb206IFRvbnkgTGluZGdyZW4gPHRv
-bnlAYXRvbWlkZS5jb20+DQo+IERhdGU6IE1vbiwgMTAgU2VwIDIwMTIgMTc6MTQ6MTMgLTA3MDAN
-Cj4gU3ViamVjdDogW1BBVENIXSBtdGQ6IG5hbmQgb21hcDI6IEZpeCB1bmluaXRpYWxpemVkIGVy
-ciB3YXJuaW5nDQo+IA0KPiBDb21taXQgYmQ0MTU2ZmQgKG10ZDogbmFuZDogb21hcDI6IHVzZSBn
-cG1jIHByb3ZpZGVkIGlycXMpDQo+IGludHJvZHVjZWQgYSBuZXcgd2FybmluZzoNCj4gDQo+IGRy
-aXZlcnMvbXRkL25hbmQvb21hcDIuYzogSW4gZnVuY3Rpb24g4oCYb21hcF9uYW5kX3Byb2Jl4oCZ
-Og0KPiBkcml2ZXJzL210ZC9uYW5kL29tYXAyLmM6MTI2Nzogd2FybmluZzog4oCYZXJy4oCZIG1h
-eSBiZSB1c2VkIHVuaW5pdGlhbGl6ZWQgaW4gdGhpcyBmdW5jdGlvbg0KPiANCj4gU2lnbmVkLW9m
-Zi1ieTogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4NCj4gDQo+IC0tLSBhL2RyaXZl
-cnMvbXRkL25hbmQvb21hcDIuYw0KPiArKysgYi9kcml2ZXJzL210ZC9uYW5kL29tYXAyLmMNCj4g
-QEAgLTEzODksNiArMTM4OSw3IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IG9tYXBfbmFuZF9wcm9i
-ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQ0KPiAgCQlpbmZvLT5ncG1jX2lycV9maWZv
-ID0gcGxhdGZvcm1fZ2V0X2lycShwZGV2LCAwKTsNCj4gIAkJaWYgKGluZm8tPmdwbWNfaXJxX2Zp
-Zm8gPD0gMCkgew0KPiAgCQkJZGV2X2VycigmcGRldi0+ZGV2LCAiZXJyb3IgZ2V0dGluZyBmaWZv
-IGlycVxuIik7DQo+ICsJCQllcnIgPSAtRU5PREVWOw0KPiAgCQkJZ290byBvdXRfcmVsZWFzZV9t
-ZW1fcmVnaW9uOw0KPiAgCQl9DQo+ICAJCWVyciA9IHJlcXVlc3RfaXJxKGluZm8tPmdwbWNfaXJx
-X2ZpZm8sCW9tYXBfbmFuZF9pcnEsDQo+IA0KDQo=
+* Mohammed, Afzal <afzal@ti.com> [120910 22:36]:
+> Hi Tony,
+> 
+> On Tue, Sep 11, 2012 at 05:47:10, Tony Lindgren wrote:
+> 
+> > FYI, looks like a new warning got introduced, so I've
+> > committed the following trivial patch on top of this series.
+> 
+> I was not careful enough, sorry. Thanks for fixing it.
+> 
+> Another hunk as follows would also be required for error
+> path even though compiler didn't complain.
+> 
+> Not sure whether you can fixup or I should post as a
+> separate patch.
+
+Oh OK, please just post a separate patch as I've
+already pushed it out.
+
+> As an aside, there was compiler warning before this
+> series, but I didn't dare to touch it, so a warning
+> was seen but thought it was due to the earlier one.
+> And now Arnd has fixed the original warning.
+
+OK
+
+Regards,
+
+Tony
