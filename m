@@ -1,48 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Tue, 11 Sep 2012 22:02:48 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209112141220.9444@utopia.booyaka.com>
-References: <20120906122948.GC29202@arwen.pp.htv.fi> <1346935540-1792-1-git-send-email-balbi@ti.com> <alpine.DEB.2.00.1209062137000.11516@utopia.booyaka.com>
+Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of
+ ocp2scp
+Date: Tue, 11 Sep 2012 22:28:22 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
+References: <1347008955-21310-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:38307 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758108Ab2IKWCt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 18:02:49 -0400
-In-Reply-To: <alpine.DEB.2.00.1209062137000.11516@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1248234203-1347402309=:9444"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1347008955-21310-1-git-send-email-kishon@ti.com>
+Content-ID: <alpine.DEB.2.00.1209112225130.9444@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>, b-cousson@ti.com
+Cc: balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi Felipe
+--843723315-1248234203-1347402309=:9444
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1209112225131.9444@utopia.booyaka.com>
 
-Just tested these OMAP serial changes at commit 
-e36851d0fa94b0f7802b3cc80406dbd3ef4f2f16 ("serial: omap: fix compile 
-breakage").  There's good news and bad news...
+Hi Kishon, Beno=EEt,
 
-The good news is that after applying this series, the 'OMAP4 UART garbage 
-on long transmit buffers when PM is enabled' bug:
+On Fri, 7 Sep 2012, Kishon Vijay Abraham I wrote:
 
-http://www.pwsan.com/omap/testlogs/test_v3.6-rc5/20120908202511/pm/4430es2panda/4430es2panda_log.txt
+> Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp. Since this=20
+> ocp2scp module does not have any fck but does have a single opt_clock,=20
+> it is added as the main_clk for ocp2scp. Also removed phy_48m as the=20
+> optional clock since it is now made as the main clock. By this the=20
+> driver need not enable/disable phy_48m clk separately and=20
+> runtime_get/runtime_put will take care of that.
 
-... goes away.  (Unclear if it's because the underlying bug was fixed, or 
-if unrelated changes are masking it.)  Not sure what caused the problem to 
-go away exactly, but it's one of the changes between d37c6ceb and bf63a08.  
-So that's good!
+Looking at this patch, it doesn't seem to make sense from a hardware point=
+=20
+of view.  If you look at the OMAP4430 TRM Rev. AE, Table 23-1166 "Clocks=20
+and Resets", the 48MHz clock input is listed as an "Optional functional=20
+clock".  The main functional clock is listed as "INIT_960M_FCLK", which=20
+according to the same TRM, Section 3.6.3.9.1 "Overview", is an alias for=20
+the clock we call "dpll_usb_clkdcoldo_ck".
 
-The bad news is that N800 no longer boots -- or the UART dies during 
-serial init:
+So if any clock should be the main functional clock in the hwmod data,=20
+shouldn't it be dpll_usb_clkdcoldo_ck?  The goal with the hwmod data=20
+is/was to have it match the hardware.
 
-http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/boot/2420n800/2420n800_log.txt
+=2E..
 
-The problem doesn't seem to affect the 2430SDP.
+More to the point, I guess I don't see what the problem is with=20
+adding a few lines to the ocp2scp driver to control the "phy_48m" optional=
+=20
+clock via the clock framework.  Is there some reason why you=20
+couldn't prepare & enable it after the pm_runtime_get_*(),=20
+and disable and unprepare it before the pm_runtime_put_*() ?
 
-Could you put together a patch to fix N800?
-
-
-regards
 
 - Paul
+--843723315-1248234203-1347402309=:9444--
