@@ -1,254 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
- calculation
-Date: Tue, 11 Sep 2012 11:46:06 -0700
-Message-ID: <20120911184606.GN23092@atomide.com>
-References: <cover.1345524670.git.afzal@ti.com>
- <bc000ac53bb1b3ae1a951bbcf372caf6336d2a19.1345524670.git.afzal@ti.com>
- <20120824194630.GU11011@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC11D@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DEC85@DBDE01.ent.ti.com>
- <20120906204354.GJ1303@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT*
+ read/write
+Date: Tue, 11 Sep 2012 11:49:45 -0700
+Message-ID: <20120911184945.GO23092@atomide.com>
+References: <alpine.DEB.2.00.1209052333410.11516@utopia.booyaka.com>
+ <CAMQu2gzCz+bS7U1ypFWzcp3zTpkfHdPzZfFtJ8Cd4ap8FSzJQg@mail.gmail.com>
+ <CAMQu2gw-KPQzYKtjJUxZjEX+_HKLL9WTxXXA35_ki8KbN+WDYg@mail.gmail.com>
+ <20120910185535.GC1303@atomide.com>
+ <CAMQu2gxUES=s8fMpwJ77tnY1wz4b_T=yustj+C+WNkEMmEOx4w@mail.gmail.com>
+ <alpine.DEB.2.00.1209110636310.23042@utopia.booyaka.com>
+ <CAMQu2gyXOEs3Zbo=JrPwN2LmUNyYVc35iPWwGZqXCE3BCsn7xg@mail.gmail.com>
+ <alpine.DEB.2.00.1209110643010.23042@utopia.booyaka.com>
+ <CAMQu2gxkQ1JAjbuhFZqUxgrgzrFLhMZk_Q8TzXW5q9Lr3JOmqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34642 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37973 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759119Ab2IKSqK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 14:46:10 -0400
+	with ESMTP id S1758404Ab2IKSts (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 14:49:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20120906204354.GJ1303@atomide.com>
+In-Reply-To: <CAMQu2gxkQ1JAjbuhFZqUxgrgzrFLhMZk_Q8TzXW5q9Lr3JOmqQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [120906 13:45]:
-> * Mohammed, Afzal <afzal@ti.com> [120906 00:40]:
-> > Hi Tony,
-> > 
-> > On Mon, Sep 03, 2012 at 11:04:10, Mohammed, Afzal wrote:
-> > > On Mon, Aug 27, 2012 at 14:04:44, Mohammed, Afzal wrote:
-> > > > On Sat, Aug 25, 2012 at 01:16:30, Tony Lindgren wrote:
-> > 
-> > > > > This hangs n800 during the boot.
-> > 
-> > Paul reported that n800 stopped booting on OMAP baseline [1]
-> > due to an mmc issue and has posted a solution [2].
-> > 
-> > Are you facing the same issue ?, if so, then it is not
-> > due to this series.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120911 00:20]:
+> On Tue, Sep 11, 2012 at 12:13 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Tue, 11 Sep 2012, Shilimkar, Santosh wrote:
+> >
+> >> On Tue, Sep 11, 2012 at 12:07 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >> > On Tue, 11 Sep 2012, Shilimkar, Santosh wrote:
+> >> >
+> >> >> On Tue, Sep 11, 2012 at 12:25 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >> >> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120908 01:20]:
+> >> >> >>
+> >> >> >> Will you able to pick up these couple of wakeupgen fixes from  here or
+> >> >> >> do you want me to send you a pull request for 3.6-rc5/6
+> >> >> >
+> >> >> > I can pick them into fixes-noncritical. But if the second one is
+> >> >> > a major bug for the -rc series, the patch should be describe what
+> >> >> > breaks (regression? oops?).
+> >> >> >
+> >> >> Fixes non critical is fine. No major issue without these patches.
+> >> >
+> >> > There's an ordering constraint though: Santosh's patch needs to go in
+> >> > first, then mine.
+> >> >
+> >> Its other way round ;-)
+> >> Mine I created after applying your change.
+> >
+> > The problem is that if my patch is applied first, then there will be a
+> > point after my patch where the AUXCOREBOOT1 register won't be saved, which
+> > might break PM.  So the patches may need to be updated.
+> >
+> Good point. It's trivial to re-order them.
 > 
-> No that's a separate issue. Your series works except for
-> this patch makes thing hang.
+> Tony,
+> Updated patches in the end of the email. Also attached.
 
-Here are the timing changes with and without this patch from
-my n800. You can just diff the two files to see some differences.
+Thanks applying into fixes-non-critical.
 
 Regards,
 
 Tony
-
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="n800-fails.txt"
-
-GPMC CS1: cs_on     :   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS1: cs_rd_off :   8 ticks,  72 ns (was   5 ticks)  72 ns
-GPMC CS1: cs_wr_off :   8 ticks,  72 ns (was   5 ticks)  72 ns
-GPMC CS1: adv_on    :   6 ticks,  54 ns (was   0 ticks)  54 ns
-GPMC CS1: adv_rd_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
-GPMC CS1: adv_wr_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
-GPMC CS1: oe_on     :   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS1: oe_off    :   8 ticks,  72 ns (was   5 ticks)  72 ns
-GPMC CS1: we_on     :   8 ticks,  72 ns (was   4 ticks)  72 ns
-GPMC CS1: we_off    :   8 ticks,  72 ns (was   5 ticks)  72 ns
-GPMC CS1: rd_cycle  :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: wr_cycle  :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: access    :   7 ticks,  63 ns (was   5 ticks)  63 ns
-GPMC CS1: page_burst_access:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: cs_on     :   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS4: cs_rd_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
-GPMC CS4: cs_wr_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
-GPMC CS4: adv_on    :   6 ticks,  54 ns (was   2 ticks)  54 ns
-GPMC CS4: adv_rd_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS4: adv_wr_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS4: oe_on     :  10 ticks,  91 ns (was   5 ticks)  91 ns
-GPMC CS4: oe_off    :  16 ticks, 145 ns (was   7 ticks) 145 ns
-GPMC CS4: we_on     :  10 ticks,  91 ns (was   5 ticks)  91 ns
-GPMC CS4: we_off    :  16 ticks, 145 ns (was   6 ticks) 145 ns
-GPMC CS4: rd_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
-GPMC CS4: wr_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
-GPMC CS4: access    :  15 ticks, 136 ns (was   6 ticks) 136 ns
-GPMC CS4: page_burst_access:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS4: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS4 CLK period is 18 ns (div 2)
-TUSB 6010
-...
-OneNAND driver initializing
-GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_rd_off :  10 ticks,  91 ns (was  12 ticks)  91 ns
-GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was   9 ticks) 109 ns
-GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: oe_on     :   3 ticks,  27 ns (was   2 ticks)  27 ns
-GPMC CS0: oe_off    :  10 ticks,  91 ns (was  12 ticks)  91 ns
-GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
-GPMC CS0: rd_cycle  :  13 ticks, 118 ns (was  13 ticks) 118 ns
-GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  10 ticks) 136 ns
-GPMC CS0: access    :   9 ticks,  82 ns (was  11 ticks)  82 ns
-GPMC CS0: page_burst_access:   0 ticks,   0 ns (was   2 ticks)   0 ns
-GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_rd_off :  14 ticks, 127 ns (was  10 ticks) 127 ns
-GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was  12 ticks) 109 ns
-GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: oe_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: oe_off    :  14 ticks, 127 ns (was  10 ticks) 127 ns
-GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
-GPMC CS0: rd_cycle  :  16 ticks, 145 ns (was  13 ticks) 145 ns
-GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  15 ticks) 136 ns
-GPMC CS0: access    :  13 ticks, 118 ns (was   9 ticks) 118 ns
-GPMC CS0: page_burst_access:   3 ticks,  27 ns (was   0 ticks)  27 ns
-GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS0 CLK period is 27 ns (div 3)
-omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base c88c0000, freq 54 MHz
-OneNAND Manufacturer: Samsung (0xec)
-Muxed OneNAND(DDP) 256MB 1.8V 16-bit (0x48)
-OneNAND version = 0x0011
-Chip support all block unlock
-onenand_wait: controller error! state 15 ctrl 0x0400 intr 0x8000
-Scanning device for bad blocks
-Creating 5 MTD partitions on "omap2-onenand":
-0x000000000000-0x000000020000 : "bootloader"
-0x000000020000-0x000000080000 : "config"
-0x000000080000-0x000000280000 : "kernel"
-0x000000280000-0x000000680000 : "initfs"
-0x000000680000-0x000010000000 : "rootfs"
-omap-dma-engine omap-dma-engine: allocating channel for 44
-omap-dma-engine omap-dma-engine: allocating channel for 43
-
-
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="n800-works.txt"
-
-GPMC CS1: cs_on     :   1 ticks,   9 ns (was   0 ticks)   8 ns
-GPMC CS1: cs_rd_off :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: cs_wr_off :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: adv_on    :   6 ticks,  54 ns (was   0 ticks)  48 ns
-GPMC CS1: adv_rd_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
-GPMC CS1: adv_wr_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
-GPMC CS1: oe_on     :   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS1: oe_off    :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: we_on     :   8 ticks,  72 ns (was   4 ticks)  72 ns
-GPMC CS1: we_off    :   9 ticks,  82 ns (was   5 ticks)  82 ns
-GPMC CS1: rd_cycle  :  10 ticks,  91 ns (was   5 ticks)  91 ns
-GPMC CS1: wr_cycle  :  10 ticks,  91 ns (was   5 ticks)  91 ns
-GPMC CS1: access    :   8 ticks,  72 ns (was   5 ticks)  72 ns
-GPMC CS1: page_burst_access:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS1: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: cs_on     :   1 ticks,   9 ns (was   0 ticks)   8 ns
-GPMC CS4: cs_rd_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
-GPMC CS4: cs_wr_off :  16 ticks, 145 ns (was   7 ticks) 144 ns
-GPMC CS4: adv_on    :   6 ticks,  54 ns (was   2 ticks)  48 ns
-GPMC CS4: adv_rd_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS4: adv_wr_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
-GPMC CS4: oe_on     :  10 ticks,  91 ns (was   5 ticks)  90 ns
-GPMC CS4: oe_off    :  16 ticks, 145 ns (was   7 ticks) 145 ns
-GPMC CS4: we_on     :  10 ticks,  91 ns (was   5 ticks)  90 ns
-GPMC CS4: we_off    :  16 ticks, 145 ns (was   6 ticks) 144 ns
-GPMC CS4: rd_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
-GPMC CS4: wr_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
-GPMC CS4: access    :  15 ticks, 136 ns (was   6 ticks) 135 ns
-GPMC CS4: page_burst_access:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS4: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS4: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS4 CLK period is 18 ns (div 2)
-TUSB 6010
-...
-
-OneNAND driver initializing
-GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_rd_off :  10 ticks,  91 ns (was  12 ticks)  91 ns
-GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was   9 ticks) 108 ns
-GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: oe_on     :   3 ticks,  27 ns (was   2 ticks)  27 ns
-GPMC CS0: oe_off    :  10 ticks,  91 ns (was  12 ticks)  91 ns
-GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
-GPMC CS0: rd_cycle  :  13 ticks, 118 ns (was  13 ticks) 118 ns
-GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  10 ticks) 135 ns
-GPMC CS0: access    :   9 ticks,  82 ns (was  11 ticks)  82 ns
-GPMC CS0: page_burst_access:   0 ticks,   0 ns (was   2 ticks)   0 ns
-GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cs_rd_off :  14 ticks, 127 ns (was  10 ticks) 127 ns
-GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was  12 ticks) 108 ns
-GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
-GPMC CS0: oe_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: oe_off    :  14 ticks, 127 ns (was  10 ticks) 127 ns
-GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
-GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
-GPMC CS0: rd_cycle  :  16 ticks, 145 ns (was  13 ticks) 145 ns
-GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  15 ticks) 135 ns
-GPMC CS0: access    :  13 ticks, 118 ns (was   9 ticks) 118 ns
-GPMC CS0: page_burst_access:   3 ticks,  27 ns (was   0 ticks)  27 ns
-GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
-GPMC CS0: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
-GPMC CS0 CLK period is 27 ns (div 3)
-omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base c88c0000, freq 54 MHz
-OneNAND Manufacturer: Samsung (0xec)
-Muxed OneNAND(DDP) 256MB 1.8V 16-bit (0x48)
-OneNAND version = 0x0011
-Chip support all block unlock
-onenand_wait: controller error! state 15 ctrl 0x0400 intr 0x8000
-Scanning device for bad blocks
-Creating 5 MTD partitions on "omap2-onenand":
-0x000000000000-0x000000020000 : "bootloader"
-0x000000020000-0x000000080000 : "config"
-0x000000080000-0x000000280000 : "kernel"
-0x000000280000-0x000000680000 : "initfs"
-0x000000680000-0x000010000000 : "rootfs"
-omap-dma-engine omap-dma-engine: allocating channel for 44
-omap-dma-engine omap-dma-engine: allocating channel for 43
-
---WIyZ46R2i8wDzkSu--
