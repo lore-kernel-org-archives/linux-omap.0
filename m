@@ -1,118 +1,254 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP2+: Enable pinctrl dummy states
-Date: Tue, 11 Sep 2012 11:35:22 -0700
-Message-ID: <20120911183522.GL23092@atomide.com>
-References: <1347385599-27558-1-git-send-email-mporter@ti.com>
- <1347385599-27558-3-git-send-email-mporter@ti.com>
- <20120911180306.GI23092@atomide.com>
- <20120911181540.GO27758@beef>
+Subject: Re: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
+ calculation
+Date: Tue, 11 Sep 2012 11:46:06 -0700
+Message-ID: <20120911184606.GN23092@atomide.com>
+References: <cover.1345524670.git.afzal@ti.com>
+ <bc000ac53bb1b3ae1a951bbcf372caf6336d2a19.1345524670.git.afzal@ti.com>
+ <20120824194630.GU11011@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9DC11D@DBDE01.ent.ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9DEC85@DBDE01.ent.ti.com>
+ <20120906204354.GJ1303@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="WIyZ46R2i8wDzkSu"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34642 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759119Ab2IKSqK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 14:46:10 -0400
 Content-Disposition: inline
-In-Reply-To: <20120911181540.GO27758@beef>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, AnilKumar <anilkumar@ti.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20120906204354.GJ1303@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Added Linus Walleij to Cc as well.
 
-* Matt Porter <mporter@ti.com> [120911 11:24]:
-> On Tue, Sep 11, 2012 at 11:03:06AM -0700, Tony Lindgren wrote:
-> > * Matt Porter <mporter@ti.com> [120911 10:46]:
-> > > Enable pinctrl dummy states for all OMAP platforms. This allows
-> > > drivers to be converted to pinctrl while still running on
-> > > platforms that do not provide pinctrl data.
-> > > 
-> > > Signed-off-by: Matt Porter <mporter@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/devices.c |    4 ++++
-> > >  1 file changed, 4 insertions(+)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > > index c00c689..577cd04 100644
-> > > --- a/arch/arm/mach-omap2/devices.c
-> > > +++ b/arch/arm/mach-omap2/devices.c
-> > > @@ -17,6 +17,7 @@
-> > >  #include <linux/err.h>
-> > >  #include <linux/slab.h>
-> > >  #include <linux/of.h>
-> > > +#include <linux/pinctrl/machine.h>
-> > >  #include <linux/platform_data/omap4-keypad.h>
-> > >  
-> > >  #include <mach/hardware.h>
-> > > @@ -631,6 +632,9 @@ static inline void omap_init_vout(void) {}
-> > >  
-> > >  static int __init omap2_init_devices(void)
-> > >  {
-> > > +	/* Enable dummy states for those platforms without pinctrl support */
-> > > +	pinctrl_provide_dummies();
-> > > +
-> > >  	/*
-> > >  	 * please keep these calls, and their implementations above,
-> > >  	 * in alphabetical order so they're easier to sort through.
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Tony Lindgren <tony@atomide.com> [120906 13:45]:
+> * Mohammed, Afzal <afzal@ti.com> [120906 00:40]:
+> > Hi Tony,
 > > 
-> > Hmm I think this may need to be board specific. And may need to
-> > be board specific and depend on unpopulated device tree?
+> > On Mon, Sep 03, 2012 at 11:04:10, Mohammed, Afzal wrote:
+> > > On Mon, Aug 27, 2012 at 14:04:44, Mohammed, Afzal wrote:
+> > > > On Sat, Aug 25, 2012 at 01:16:30, Tony Lindgren wrote:
+> > 
+> > > > > This hangs n800 during the boot.
+> > 
+> > Paul reported that n800 stopped booting on OMAP baseline [1]
+> > due to an mmc issue and has posted a solution [2].
+> > 
+> > Are you facing the same issue ?, if so, then it is not
+> > due to this series.
 > 
-> If I run this on AM33xx with dummy states enabled, I'm able to override
-> that dummy state just fine with an appropriate pinctl/pinmux entry in my
-> DT data for spi.
+> No that's a separate issue. Your series works except for
+> this patch makes thing hang.
 
-But do you get an error then if the desired pins are not found?
-If you do get an error, then sounds like it's OK to do.
- 
-> Meanwhile on xM booting from board-omap3evm.c/!DT and debug enabled I
-> get the following:
-> 
-> [    1.837829] omap2_mcspi omap2_mcspi.1: no of_node; not parsing
-> pinctrl DT
-> [    1.845214] omap2_mcspi omap2_mcspi.1: using pinctrl dummy state
-> (default)
-> [    1.854278] omap2_mcspi omap2_mcspi.2: no of_node; not parsing
-> pinctrl DT
-> [    1.861572] omap2_mcspi omap2_mcspi.2: using pinctrl dummy state
-> (default)
-> [    1.870025] omap2_mcspi omap2_mcspi.3: no of_node; not parsing
-> pinctrl DT
-> [    1.877288] omap2_mcspi omap2_mcspi.3: using pinctrl dummy state
-> (default)
-> [    1.885681] omap2_mcspi omap2_mcspi.4: no of_node; not parsing
-> pinctrl DT
-> [    1.892913] omap2_mcspi omap2_mcspi.4: using pinctrl dummy state
-> (default)
-> 
-> which seems to cover things being informative enough about what is
-> going on. Are you wanting to see an explicit warning that the pinctrl
-> dummy state is in use when pinctrl data is not available?
-
-Well I think we should consider at least the following:
-
-1. Always see warnings when device tree is populated with board-generic.
-   If somebody wants to use bootloader only muxing with DT, they can patch
-   in pinctrl_provide_dummies() somewhere. But let's assume we always
-   want to see the warnings with board-generic.c and DT.
-
-2. For legacy booting without DT, we should not see any warnings
-   from pinctrl-single.c as it's DT based.
-
-3. There may be other non-pinctrl drivers too that are not DT
-   based, and in those cases we should see the warnings as well
-   for in the non-DT case.
- 
-> > For board-generic.c we always want to see the warnings. And some boards
-> > insist on doing all the muxing only in the bootloader.
-> 
-> Which warnings are you saying we should see in the board-generic.c
-> case?  Sure, there's plenty of cases where this will be unused due to
-> somebody setting all the muxes in the bootloader and then not using
-> pinctrl data. I'll have to doublecheck but I believe that case is also
-> fine as the -single driver can't override the dummy state if the DT has
-> no pinctrl data for the spi driver.
-
-Yeah I guess it's the case #1 above for board-generic.c.
+Here are the timing changes with and without this patch from
+my n800. You can just diff the two files to see some differences.
 
 Regards,
 
 Tony
+
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="n800-fails.txt"
+
+GPMC CS1: cs_on     :   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS1: cs_rd_off :   8 ticks,  72 ns (was   5 ticks)  72 ns
+GPMC CS1: cs_wr_off :   8 ticks,  72 ns (was   5 ticks)  72 ns
+GPMC CS1: adv_on    :   6 ticks,  54 ns (was   0 ticks)  54 ns
+GPMC CS1: adv_rd_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
+GPMC CS1: adv_wr_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
+GPMC CS1: oe_on     :   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS1: oe_off    :   8 ticks,  72 ns (was   5 ticks)  72 ns
+GPMC CS1: we_on     :   8 ticks,  72 ns (was   4 ticks)  72 ns
+GPMC CS1: we_off    :   8 ticks,  72 ns (was   5 ticks)  72 ns
+GPMC CS1: rd_cycle  :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: wr_cycle  :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: access    :   7 ticks,  63 ns (was   5 ticks)  63 ns
+GPMC CS1: page_burst_access:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: cs_on     :   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS4: cs_rd_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
+GPMC CS4: cs_wr_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
+GPMC CS4: adv_on    :   6 ticks,  54 ns (was   2 ticks)  54 ns
+GPMC CS4: adv_rd_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS4: adv_wr_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS4: oe_on     :  10 ticks,  91 ns (was   5 ticks)  91 ns
+GPMC CS4: oe_off    :  16 ticks, 145 ns (was   7 ticks) 145 ns
+GPMC CS4: we_on     :  10 ticks,  91 ns (was   5 ticks)  91 ns
+GPMC CS4: we_off    :  16 ticks, 145 ns (was   6 ticks) 145 ns
+GPMC CS4: rd_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
+GPMC CS4: wr_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
+GPMC CS4: access    :  15 ticks, 136 ns (was   6 ticks) 136 ns
+GPMC CS4: page_burst_access:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS4: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS4 CLK period is 18 ns (div 2)
+TUSB 6010
+...
+OneNAND driver initializing
+GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_rd_off :  10 ticks,  91 ns (was  12 ticks)  91 ns
+GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was   9 ticks) 109 ns
+GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: oe_on     :   3 ticks,  27 ns (was   2 ticks)  27 ns
+GPMC CS0: oe_off    :  10 ticks,  91 ns (was  12 ticks)  91 ns
+GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
+GPMC CS0: rd_cycle  :  13 ticks, 118 ns (was  13 ticks) 118 ns
+GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  10 ticks) 136 ns
+GPMC CS0: access    :   9 ticks,  82 ns (was  11 ticks)  82 ns
+GPMC CS0: page_burst_access:   0 ticks,   0 ns (was   2 ticks)   0 ns
+GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_rd_off :  14 ticks, 127 ns (was  10 ticks) 127 ns
+GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was  12 ticks) 109 ns
+GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: oe_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: oe_off    :  14 ticks, 127 ns (was  10 ticks) 127 ns
+GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
+GPMC CS0: rd_cycle  :  16 ticks, 145 ns (was  13 ticks) 145 ns
+GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  15 ticks) 136 ns
+GPMC CS0: access    :  13 ticks, 118 ns (was   9 ticks) 118 ns
+GPMC CS0: page_burst_access:   3 ticks,  27 ns (was   0 ticks)  27 ns
+GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS0 CLK period is 27 ns (div 3)
+omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base c88c0000, freq 54 MHz
+OneNAND Manufacturer: Samsung (0xec)
+Muxed OneNAND(DDP) 256MB 1.8V 16-bit (0x48)
+OneNAND version = 0x0011
+Chip support all block unlock
+onenand_wait: controller error! state 15 ctrl 0x0400 intr 0x8000
+Scanning device for bad blocks
+Creating 5 MTD partitions on "omap2-onenand":
+0x000000000000-0x000000020000 : "bootloader"
+0x000000020000-0x000000080000 : "config"
+0x000000080000-0x000000280000 : "kernel"
+0x000000280000-0x000000680000 : "initfs"
+0x000000680000-0x000010000000 : "rootfs"
+omap-dma-engine omap-dma-engine: allocating channel for 44
+omap-dma-engine omap-dma-engine: allocating channel for 43
+
+
+--WIyZ46R2i8wDzkSu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="n800-works.txt"
+
+GPMC CS1: cs_on     :   1 ticks,   9 ns (was   0 ticks)   8 ns
+GPMC CS1: cs_rd_off :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: cs_wr_off :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: adv_on    :   6 ticks,  54 ns (was   0 ticks)  48 ns
+GPMC CS1: adv_rd_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
+GPMC CS1: adv_wr_off:   7 ticks,  63 ns (was   3 ticks)  63 ns
+GPMC CS1: oe_on     :   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS1: oe_off    :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: we_on     :   8 ticks,  72 ns (was   4 ticks)  72 ns
+GPMC CS1: we_off    :   9 ticks,  82 ns (was   5 ticks)  82 ns
+GPMC CS1: rd_cycle  :  10 ticks,  91 ns (was   5 ticks)  91 ns
+GPMC CS1: wr_cycle  :  10 ticks,  91 ns (was   5 ticks)  91 ns
+GPMC CS1: access    :   8 ticks,  72 ns (was   5 ticks)  72 ns
+GPMC CS1: page_burst_access:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS1: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: cs_on     :   1 ticks,   9 ns (was   0 ticks)   8 ns
+GPMC CS4: cs_rd_off :  16 ticks, 145 ns (was   7 ticks) 145 ns
+GPMC CS4: cs_wr_off :  16 ticks, 145 ns (was   7 ticks) 144 ns
+GPMC CS4: adv_on    :   6 ticks,  54 ns (was   2 ticks)  48 ns
+GPMC CS4: adv_rd_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS4: adv_wr_off:   7 ticks,  63 ns (was   4 ticks)  63 ns
+GPMC CS4: oe_on     :  10 ticks,  91 ns (was   5 ticks)  90 ns
+GPMC CS4: oe_off    :  16 ticks, 145 ns (was   7 ticks) 145 ns
+GPMC CS4: we_on     :  10 ticks,  91 ns (was   5 ticks)  90 ns
+GPMC CS4: we_off    :  16 ticks, 145 ns (was   6 ticks) 144 ns
+GPMC CS4: rd_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
+GPMC CS4: wr_cycle  :  17 ticks, 154 ns (was   8 ticks) 154 ns
+GPMC CS4: access    :  15 ticks, 136 ns (was   6 ticks) 135 ns
+GPMC CS4: page_burst_access:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS4: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS4: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS4 CLK period is 18 ns (div 2)
+TUSB 6010
+...
+
+OneNAND driver initializing
+GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_rd_off :  10 ticks,  91 ns (was  12 ticks)  91 ns
+GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was   9 ticks) 108 ns
+GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: oe_on     :   3 ticks,  27 ns (was   2 ticks)  27 ns
+GPMC CS0: oe_off    :  10 ticks,  91 ns (was  12 ticks)  91 ns
+GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
+GPMC CS0: rd_cycle  :  13 ticks, 118 ns (was  13 ticks) 118 ns
+GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  10 ticks) 135 ns
+GPMC CS0: access    :   9 ticks,  82 ns (was  11 ticks)  82 ns
+GPMC CS0: page_burst_access:   0 ticks,   0 ns (was   2 ticks)   0 ns
+GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: clk_activation:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_on     :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cs_rd_off :  14 ticks, 127 ns (was  10 ticks) 127 ns
+GPMC CS0: cs_wr_off :  12 ticks, 109 ns (was  12 ticks) 108 ns
+GPMC CS0: adv_on    :   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: adv_rd_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: adv_wr_off:   2 ticks,  18 ns (was   2 ticks)  18 ns
+GPMC CS0: oe_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: oe_off    :  14 ticks, 127 ns (was  10 ticks) 127 ns
+GPMC CS0: we_on     :   3 ticks,  27 ns (was   3 ticks)  27 ns
+GPMC CS0: we_off    :   8 ticks,  72 ns (was   8 ticks)  72 ns
+GPMC CS0: rd_cycle  :  16 ticks, 145 ns (was  13 ticks) 145 ns
+GPMC CS0: wr_cycle  :  15 ticks, 136 ns (was  15 ticks) 135 ns
+GPMC CS0: access    :  13 ticks, 118 ns (was   9 ticks) 118 ns
+GPMC CS0: page_burst_access:   3 ticks,  27 ns (was   0 ticks)  27 ns
+GPMC CS0: bus_turnaround:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: cycle2cycle_delay:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: wait_monitoring:   0 ticks,   0 ns (was   0 ticks)   0 ns
+GPMC CS0: clk_activation:   1 ticks,   9 ns (was   0 ticks)   9 ns
+GPMC CS0 CLK period is 27 ns (div 3)
+omap2-onenand omap2-onenand: initializing on CS0, phys base 0x04000000, virtual base c88c0000, freq 54 MHz
+OneNAND Manufacturer: Samsung (0xec)
+Muxed OneNAND(DDP) 256MB 1.8V 16-bit (0x48)
+OneNAND version = 0x0011
+Chip support all block unlock
+onenand_wait: controller error! state 15 ctrl 0x0400 intr 0x8000
+Scanning device for bad blocks
+Creating 5 MTD partitions on "omap2-onenand":
+0x000000000000-0x000000020000 : "bootloader"
+0x000000020000-0x000000080000 : "config"
+0x000000080000-0x000000280000 : "kernel"
+0x000000280000-0x000000680000 : "initfs"
+0x000000680000-0x000010000000 : "rootfs"
+omap-dma-engine omap-dma-engine: allocating channel for 44
+omap-dma-engine omap-dma-engine: allocating channel for 43
+
+--WIyZ46R2i8wDzkSu--
