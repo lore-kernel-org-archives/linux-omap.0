@@ -1,51 +1,69 @@
-From: Jarkko Nikula <jarkko.nikula@jollamobile.com>
-Subject: Re: [PATCH] watchdog: Convert twl4030_wdt to watchdog core
-Date: Tue, 11 Sep 2012 08:50:07 +0300
-Message-ID: <504ED10F.7090008@jollamobile.com>
-References: <1347291886-15218-1-git-send-email-jarkko.nikula@jollamobile.com> <20120910215946.GB26184@blackmetal.musicnaut.iki.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 05/17] ARM: OMAP2+: Remove hardcoded twl4030 gpio_base,
+ irq_base and irq_end
+Date: Tue, 11 Sep 2012 08:51:08 +0300
+Message-ID: <20120911055106.GA17865@arwen.pp.htv.fi>
+References: <20120911052934.29637.9190.stgit@muffinssi.local>
+ <20120911053052.29637.74323.stgit@muffinssi.local>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp170.iad.emailsrvr.com ([207.97.245.170]:50891 "EHLO
-	smtp170.iad.emailsrvr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751251Ab2IKFuW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:50:22 -0400
-In-Reply-To: <20120910215946.GB26184@blackmetal.musicnaut.iki.fi>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:40716 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753877Ab2IKFzj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 01:55:39 -0400
+Received: by eekc1 with SMTP id c1so75518eek.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Sep 2012 22:55:37 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120911053052.29637.74323.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Thanks Aaro!
 
-On 09/11/2012 12:59 AM, Aaro Koskinen wrote:
-> On Mon, Sep 10, 2012 at 06:44:46PM +0300, Jarkko Nikula wrote:
->> Convert the twl4030_wdt watchdog driver to watchdog core.
->>
->> While at there use devm_kzalloc and set the default timeout in order to be
->> able test this driver with a simple shell script.
->>
->> Signed-off-by: Jarkko Nikula<jarkko.nikula@jollamobile.com>
->> ---
->>   drivers/watchdog/Kconfig       |    1 +
->>   drivers/watchdog/twl4030_wdt.c |  183 ++++++++--------------------------------
->>   2 files changed, 35 insertions(+), 149 deletions(-)
->>
->> diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
->> index 53d7571..21f6205 100644
->> --- a/drivers/watchdog/Kconfig
->> +++ b/drivers/watchdog/Kconfig
->> @@ -232,6 +232,7 @@ config EP93XX_WATCHDOG
->>   config OMAP_WATCHDOG
->>   	tristate "OMAP Watchdog"
->>   	depends on ARCH_OMAP16XX || ARCH_OMAP2PLUS
->> +	select WATCHDOG_CORE
-> This should be under TWL4030_WATCHDOG.
-Grr.. leftover from testing your patch and accidentally dropping my 
-change :-)
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'll fix this, add your Tested-by and repost.
+Hi,
 
--- 
-Jarkko
+On Mon, Sep 10, 2012 at 10:30:53PM -0700, Tony Lindgren wrote:
+> We can't use hardcoded interrupts for SPARSE_IRQ, and can replace
+> the hardcoded gpio_base with twl_gpiochip.base after it's been
+> allocated.
+
+not related to $SUBJECT, but ideally we would also have SPARSE_GPIO
+kinda thing to avoid this sort of issues. I have tried starting that
+work, but ran out of steam/time...
+
+--=20
+balbi
+
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQTtFKAAoJEIaOsuA1yqREVHoQAJyK8RyUTKXsrbYQD0wuYwZ2
+t2COFWSa1AuBrI5zsKafHi+bFhxlWGEua1F2Gk3cCbCfm6h9AD4alP/eSaY2KaKE
+mYLFxragIwvhAqaO4qNDa08JYgUHMVe3QurIbcWnAEft55VtDIjCKpE4LksWqpAe
+cBkQuOa/jQ2Fftwes4kFj5u85S1UdyTqHS83yIEdtzJe3jJYoEwE4JTTAmhwBxwQ
+pqPmumaRQJ88SucML2XCRA6MnIcOX432/+I2eg1Tt/QV1BQSbCzp4HoaZ5Pkk1SG
+YWQqPBGjwXVcN684V/YjlOqPXEFhU0C3XkvzogxWhzQoxHB8tMTXSqqSsxDf2r6r
+kZYVqcq/nROd64HX3pckfAnWMFgedt817A+HyOsoCXbaQnHGFuoLMbraFxKMzkWE
+Fvl9PkueY8imNGYZGbXJBgm+a0m7T9lz4iZq1gWjgTnJBGn9c/lbLrYhzO6wwr7f
+AHHoAkCRDydZ5YfQhtrAquGVCNjdx/dpnthJGluQhx+Dy4G0asFQQz3tfApup9Mq
+6Gu5+0Ap7DxDW38cxRJGfgCtdcKAQnyT3dqMZ7M2PVO5fAY1419Phskq9IgIZCPh
+AJONubuZOThal5MORGac/xCPEcdM8CMMaPQIeDIkJGQbaHMfFo4Utlk60+P4LhAo
+imUh6qPlEDqUCxPA9JfY
+=J8OA
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
