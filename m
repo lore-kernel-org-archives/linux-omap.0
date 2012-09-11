@@ -1,48 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/17] ARM: OMAP1: Define OMAP1_INT_I2C locally
-Date: Mon, 10 Sep 2012 22:30:45 -0700
-Message-ID: <20120911053045.29637.19441.stgit@muffinssi.local>
+Subject: [PATCH 03/17] ARM: OMAP2+: Make INTCPS_NR_IRQS local for
+ mach-omap2/irq.c
+Date: Mon, 10 Sep 2012 22:30:47 -0700
+Message-ID: <20120911053047.29637.77771.stgit@muffinssi.local>
 References: <20120911052934.29637.9190.stgit@muffinssi.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47915 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47933 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751636Ab2IKFaq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:30:46 -0400
+	with ESMTP id S1751636Ab2IKFas (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 01:30:48 -0400
 In-Reply-To: <20120911052934.29637.9190.stgit@muffinssi.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-This is needed to start removing hardcoded IRQs for omap2+.
+Make INTCPS_NR_IRQS local for mach-omap2/irq.c
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/i2c.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/irq.c              |    2 ++
+ arch/arm/plat-omap/include/plat/irqs.h |    3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index db071bc..40bc06a 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -39,6 +39,7 @@
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index bcd83db..ac59f96 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -49,6 +49,8 @@
+ #define OMAP3_IRQ_BASE		OMAP2_L4_IO_ADDRESS(OMAP34XX_IC_BASE)
+ #define INTCPS_SIR_IRQ_OFFSET	0x0040	/* omap2/3 active interrupt offset */
+ #define ACTIVEIRQ_MASK		0x7f	/* omap2/3 active interrupt bits */
++#define INTCPS_NR_MIR_REGS	3
++#define INTCPS_NR_IRQS		96
  
- #define OMAP_I2C_SIZE		0x3f
- #define OMAP1_I2C_BASE		0xfffb3800
-+#define OMAP1_INT_I2C		(32 + 4)
+ /*
+  * OMAP2 has a number of different interrupt controllers, each interrupt
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index 15f497c..fc3959c 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -440,9 +440,6 @@
  
- static const char name[] = "omap_i2c";
+ #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
  
-@@ -105,7 +106,7 @@ static inline int omap1_i2c_add_bus(int bus_id)
- 	res = pdev->resource;
- 	res[0].start = OMAP1_I2C_BASE;
- 	res[0].end = res[0].start + OMAP_I2C_SIZE;
--	res[1].start = INT_I2C;
-+	res[1].start = OMAP1_INT_I2C;
- 	pdata = &i2c_pdata[bus_id - 1];
+-#define INTCPS_NR_MIR_REGS	3
+-#define INTCPS_NR_IRQS		96
+-
+ #include <mach/hardware.h>
  
- 	/* all OMAP1 have IP version 1 register set */
+ #ifdef CONFIG_FIQ
 
