@@ -1,40 +1,52 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v8 0/3] GPMC driver conversion
-Date: Tue, 11 Sep 2012 10:53:12 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E1D9B@DBDE01.ent.ti.com>
-References: <cover.1346846464.git.afzal@ti.com>
- <20120907221034.GP1303@atomide.com>
+From: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [balbi-usb:master 33/36] drivers/usb/gadget/serial.c:89:22:
+ sparse: cast truncates bits from constant value (24000000 becomes 0)
+Date: Tue, 11 Sep 2012 18:55:00 +0800
+Message-ID: <20120911105500.GA1244@localhost>
+References: <20120910164015.GA16252@localhost>
+ <504E1DCB.3000003@linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54879 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757317Ab2IKKxU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Sep 2012 06:53:20 -0400
-In-Reply-To: <20120907221034.GP1303@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <504E1DCB.3000003-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgVG9ueSwNCg0KT24gU2F0LCBTZXAgMDgsIDIwMTIgYXQgMDM6NDA6MzQsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQoNCj4gR3JlYXQsIHRoaXMgYWxsIGxvb2tzIGdvb2QgdG8gbWUuIEkgc3VnZ2Vz
-dCB0aGF0IG9uIHRvcCBvZiB0aGlzDQo+IHdlIGFkZCBtaW5pbWFsIGRldmljZXRyZWUgYmluZGlu
-ZyB0aGF0IGRvZXMgbm90IGV2ZW4gYXR0ZW1wdCB0bw0KPiBkZWFsIHdpdGggdGhlIHRpbWluZ3Mg
-eWV0Lg0KPiANCj4gVGhlbiBvbmNlIHRoZSBtaW5pbWFsIGRldmljZXRyZWUgYmluZGluZyBpcyBp
-biBwbGFjZSwgd2UgY2FuDQo+IGNhbGwgdGhlIGN1cnJlbnQgR1BNQyB0aW1pbmcgZnVuY3Rpb25z
-IHVzaW5nIHRoZSBjb21wYXRpYmxlIGZsYWdzDQo+IGFuZCBhdXhkYXRhIGluIHRoZSBncG1jLmMg
-ZHJpdmVyLg0KPiANCj4gVGhhdCB3YXkgd2UgZ2V0IGFsbCB0aGUgbGVnYWN5IGJvYXJkcyBib290
-aW5nIHdpdGggR1BNQyBzdXBwb3J0DQo+IGZvciBzbXNjOTExeCBldGMsIGFuZCBjYW4gZXZlbiBy
-ZW1vdmUgc29tZSBsZXNzIHVzZWQgYm9hcmQtKi5jDQo+IGZpbGVzLg0KDQpUaGFua3MuIEkgYWdy
-ZWUgd2l0aCB5b3VyIHN1Z2dlc3Rpb24gYW5kIHdvdWxkIGJlIHByb2NlZWRpbmcgc28NCmFzIHRv
-IGFjaGlldmUgbWluaW1hbCBkZXZpY2V0cmVlIHN1cHBvcnQuDQoNCkFuZCBhIG5ld2VyIHZlcnNp
-b24gb2YgdGhpcyBzZXJpZXMgaGFzIGJlZW4gcG9zdGVkLg0KDQo+IFRoZW4gd2UganVzdCBhZGQg
-dGhlIGdlbmVyaWMgR1BNQyB0aW1pbmdzIHdoZW4gd2UncmUgaGFwcHkgd2l0aA0KPiB0aG9zZS4N
-Cg0KTWVhbndoaWxlIGNhbiB5b3Ugc2VuZCBtZSB0aGUgZ3BtYyBkZWJ1ZyBsb2dzIGZvciBuODAw
-IHdoZXJlIHR1c2INCnBhdGNoIG9uIGdlbmVyaWMgdGltaW5nIHdhcyBjYXVzaW5nIHRoZSBoYW5n
-IGFsb25nIHdpdGggbG9ncw0Kd2l0aG91dCB0aGUgY3VscHJpdCB0dXNiIHBhdGNoIHNvIHRoYXQg
-d2UgY291bGQgYXJyaXZlIGF0IGdlbmVyaWMNCmdwbWMgdGltaW5ncy4NCg0KUmVnYXJkcw0KQWZ6
-YWwNCg==
+On Mon, Sep 10, 2012 at 07:05:15PM +0200, Sebastian Andrzej Siewior wrote:
+> On 09/10/2012 06:40 PM, Fengguang Wu wrote:
+> >tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git master
+> >head:   d9c88901337158c9f253a7de58a10b5125d61d26
+> >commit: 7a7322b0a5d984025dd4faea9098b8fef07f8d8f [33/36] usb: gadget: remove usb_gadget_controller_number()
+> >
+> >All sparse warnings:
+> 
+> Once again, thank you.
+
+You are welcome!
+
+> >   drivers/usb/gadget/f_acm.c:287:9: sparse: advancing past deep designator
+> >   drivers/usb/gadget/f_obex.c:60:9: sparse: advancing past deep designator
+> >   drivers/usb/gadget/f_serial.c:134:9: sparse: advancing past deep designator
+> >   drivers/usb/gadget/serial.c:66:9: sparse: advancing past deep designator
+> 
+> I don't get these. The purpose is an all NULL terminating entry. Could
+> this be a sparse bug or is the [] / {} switch not really good C code?
+
+http://marc.info/?l=linux-sparse&m=130673652023059&w=4
+
+According to Dan's explanations, I'll filter out these warnings in future.
+
+> >+ drivers/usb/gadget/serial.c:89:22: sparse: cast truncates bits from constant value (24000000 becomes 0)
+> 
+> I've sent a patch for this.
+
+Thank you!
+
+Fengguang
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
