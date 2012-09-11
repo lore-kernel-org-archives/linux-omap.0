@@ -1,43 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
-Date: Tue, 11 Sep 2012 10:36:26 -0700
-Message-ID: <20120911173626.GF23092@atomide.com>
-References: <1347368350-31212-1-git-send-email-arnd@arndb.de>
- <CAMQu2gz8F2FcgRuok3x1uJ4pP8=0E2-9jhYGchzU9AUtUHjYhg@mail.gmail.com>
- <504F6249.2090501@ti.com>
- <201209111704.16708.arnd@arndb.de>
+From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/2] Add pinctrl support to omap2-mcspi
+Date: Tue, 11 Sep 2012 13:46:37 -0400
+Message-ID: <1347385599-27558-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201209111704.16708.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kevin Hilman <khilman@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean Pihet <j-pihet@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, J Keerthy <j-keerthy@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: AnilKumar <anilkumar-l0cyMroinI0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [120911 10:05]:
-> On Tuesday 11 September 2012, Vaibhav Hiremath wrote:
-> > On 9/11/2012 7:54 PM, Shilimkar, Santosh wrote:
-> > > On Tue, Sep 11, 2012 at 7:47 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > >> On Tuesday 11 September 2012, Shilimkar, Santosh wrote:
-> > >>> Just curious to know how you came with some of the above header names ?
-> > >>>
-> > >>> plat/mcbsp ---> dsp-mcbsp.h
-> > >>> There is no connection of DSP with McBSP. "omap-mcbsp.h" would been a
-> > >>> better name.
-> > >>
-> > >> This one was a mistake on my side, as Tony and  Peter already pointed out.
-> > >> How about asoc-mcbsp.h or asoc-omap-mcbsp.h?
-> > >>
-> > > After re-reading the cover-letter and your below response,
-> > > 'asoc-omap-mcbsp.h' seems to be fine.
-> > > 
-> > 
-> > Note that mcbsp is also applicable to Davinci family of devices.
-> 
-> asoc-ti-mcbsp.h then?
+This series enables pinctrl support for McSPI. Platforms that boot only
+from DT and rely on pinctrl to set pinmuxes appropriately require this
+for omap2-mcspi operation.
 
-Sounds good to me. Whatever the name ends up being:
+It has been tested on AM335x BeagleBone with an Adafruit SPI LCD attached
+and regression tested on Beagleboard xM booting in the !DT case, using
+board-omap3evm.c. There is a dependency on the patch to enable PINCTRL
+support (https://patchwork.kernel.org/patch/1376331/) for
+ARCH_OMAP2PLUS_TYPICAL.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Matt Porter (2):
+  spi: omap2-mcspi: add pinctrl support
+  ARM: OMAP2+: Enable pinctrl dummy states
+
+ arch/arm/mach-omap2/devices.c |    4 ++++
+ drivers/spi/spi-omap2-mcspi.c |    9 +++++++++
+ 2 files changed, 13 insertions(+)
+
+-- 
+1.7.9.5
+
+
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
