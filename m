@@ -1,100 +1,135 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 3/3] usb: musb: omap: Add device tree support for
- omap musb glue
-Date: Tue, 11 Sep 2012 11:34:56 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAB0E00@DBDE01.ent.ti.com>
-References: <1347354580-5895-1-git-send-email-kishon@ti.com>
- <1347354580-5895-4-git-send-email-kishon@ti.com>	<504F0A33.9060606@ti.com>
- <CAAe_U6LwGn+qbSox7BofTg7sJUxqytew3s_73MOYZytHs2qEWw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v9 00/13] usb: musb: adding multi instance support
+Date: Tue, 11 Sep 2012 14:35:45 +0300
+Message-ID: <20120911113544.GE18907@arwen.pp.htv.fi>
+References: <1346411399-23964-1-git-send-email-ravibabu@ti.com>
+ <20120911091731.GA18907@arwen.pp.htv.fi>
+ <6C6B28D4DC342643927BEAFCE8707BF63E9FCB6C@DBDE01.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CAAe_U6LwGn+qbSox7BofTg7sJUxqytew3s_73MOYZytHs2qEWw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org" <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "Balbi,
- Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HnQK338I3UIa/qiP"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43811 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932224Ab2IKLkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Sep 2012 07:40:18 -0400
+Received: by weyx10 with SMTP id x10so254860wey.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Sep 2012 04:40:15 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <6C6B28D4DC342643927BEAFCE8707BF63E9FCB6C@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Tue, Sep 11, 2012 at 16:54:37, ABRAHAM, KISHON VIJAY wrote:
-> Hi,
-> 
-> On Tue, Sep 11, 2012 at 3:23 PM, Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org> wrote:
-> >
-> >
-> > On 9/11/2012 2:39 PM, Kishon Vijay Abraham I wrote:
-> >> Added device tree support for omap musb driver and updated the
-> >> Documentation with device tree binding information.
-> >>
-> >> Signed-off-by: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-> >> ---
-> >>  Documentation/devicetree/bindings/usb/omap-usb.txt |   33 ++++++++++++
-> >>  drivers/usb/musb/omap2430.c                        |   54 ++++++++++++++++++++
-> >>  2 files changed, 87 insertions(+)
-> >>  create mode 100644 Documentation/devicetree/bindings/usb/omap-usb.txt
-> >>
-> >> diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> >> new file mode 100644
-> >> index 0000000..29a043e
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-> >> @@ -0,0 +1,33 @@
-> >> +OMAP GLUE
-> >> +
-> >> +OMAP MUSB GLUE
-> >> + - compatible : Should be "ti,omap4-musb" or "ti,omap3-musb"
-> >> + - ti,hwmods : must be "usb_otg_hs"
-> >> + - multipoint : Should be "1" indicating the musb controller supports
-> >> +   multipoint. This is a MUSB configuration-specific setting.
-> >> + - num_eps : Specifies the number of endpoints. This is also a
-> >> +   MUSB configuration-specific setting. Should be set to "16"
-> >> + - ram_bits : Specifies the ram address size. Should be set to "12"
-> >> + - interface_type : This is a board specific setting to describe the type of
-> >> +   interface between the controller and the phy. It should be "0" or "1"
-> >> +   specifying ULPI and UTMI respectively.
-> >> + - mode : Should be "3" to represent OTG. "1" signifies HOST and "2"
-> >> +   represents PERIPHERAL.
-> >> + - power : Should be "50". This signifies the controller can supply upto
-> >> +   100mA when operating in host mode.
-> >> +
-> >> +SOC specific device node entry
-> >> +usb_otg_hs: usb_otg_hs@4a0ab000 {
-> >> +     compatible = "ti,omap4-musb";
-> >> +     ti,hwmods = "usb_otg_hs";
-> >> +     multipoint = <1>;
-> >> +     num_eps = <16>;
-> >> +     ram_bits = <12>;
-> >> +};
-> >
-> >
-> > reg and interrupt properties are missing here.
-> >
-> > I would encourage to specify "reg" and "interrupt" properties in every
-> > node getting newly added to the OMAP DTS files.
-> 
-> Sure. will add that in my next version.
-> 
-
-I saw there is some discussion going-on for which baseline to use, so make 
-sure that you test the patches on top of below patch (already available in 
-linux-omap/devel-dt)
-
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=b82b04e8eb27abe0cfe9cd7bf4fee8bb1bb9b013
+To: "B, Ravi" <ravibabu@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "tony@atomide.com" <tony@atomide.com>
 
 
-Thanks,
-Vaibhav
-> Thanks
-> Kishon
-> 
+--HnQK338I3UIa/qiP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Sep 11, 2012 at 10:45:44AM +0000, B, Ravi wrote:
+> >=20
+> > Hi,
+> >=20
+> > On Fri, Aug 31, 2012 at 04:39:46PM +0530, Ravi Babu wrote:
+> > > This series of patches adds,
+> > > a) Multi instances support in musb driver
+> > > b) DT support for musb_dsps glue layer
+> > > c) DT support for NOP transceiver
+> > >=20
+> > > AM33xx and TI81xx has dual musb controller and has two usb=20
+> > PHY of same type.
+> > > This patch series uses 'phandle' based API=20
+> > > devm_usb_get_phy_by_phandle() to get the PHY of same type. This API=
+=20
+> > > support is being added by Kishon's patch discussed at [1]
+> > >=20
+> > > The series applies to felipe/master [1] branch
+> > > 	+ Vaibhav baseport patches on his tree at [4]
+> > > 	+ Kishon's multi phy patches on Felipe's branch 'xceiv'
+> > > 	+ Kishon's patch on phandle at [2]
+> > > 	+ Damodar's recent patch at [3]=20
+> > > 	+ Ajay's & Damodar's patches at [5] and [6] included in=20
+> > this series
+> > >=20
+> > > 1. http://git.kernel.org/?p=3Dlinux/kernel/git/balbi/usb.git;a=3Dsumm=
+ary
+> > > 2. http://marc.info/?l=3Dlinux-usb&m=3D134070369306112&w=3D2
+> > > 3. http://marc.info/?l=3Dlinux-usb&m=3D134200284230689&w=3D2
+> > > 4.=20
+> > >=20
+> > https://github.com/hvaibhav/am335x-linux/commits/am335x-upstream-stagi
+> > > ng 5. http://marc.info/?l=3Dlinux-usb&m=3D134200285530701&w=3D2
+> > > 6. http://marc.info/?l=3Dlinux-usb&m=3D134208820028625&w=3D2
+> > >=20
+> > > Changes from v8:
+> > > 	- included Sergei's comment, removing underscore in=20
+> > device tree file
+> > > 	- removed duplicated signoff from patches Changes from v7:
+> > > 	- patches rebased on felipe/master branch & verified
+> > > 	- included additional two patches 0001 & 0002 as part=20
+> > of this series
+> > > 	  which are already submitted [5] & [6] Changes from v6:
+> > > 	- Removed parent_pdev to get glue and used=20
+> > dev_get_getdrv() as per
+> > > 	  Felipe's comment
+> > > 	- use pr_debug() instead of pr_info() as per Felipe's=20
+> > comment Changes=20
+> > > from v5:
+> > > 	- Removed musb->id as per Felipe's comment
+> > > 	- used nop_ida as per Felipe's comment Changes from v4:
+> > > 	- Fixed Felipe's comment for adding EXPORT_SYMBOL_GPL()
+> > > 	- Fixed Felipe's comment on using dev_set_mask()=20
+> > Changes from v3:
+> > > 	- Fixed Kishon's comment on removing "id" from phy struct and
+> > > 	  removing unneeded "#else" part.
+> > > Changes from v2:
+> > > 	- Fixed Sergei's comment on not using address prefix in=20
+> > musb_dsps
+> > > 	  glue and nop transceiver dt dats.
+> > > 	- Also removed the "ti" string in compatible property=20
+> > for nop data.
+> > > Changes from v1:
+> > > 	- Defined musb_ida to manage core ids based on Felipe's comment
+> > > 	  in [PATCH 01/11]
+> >=20
+> > I tried appliying this, but this doesn't apply. Please rebase=20
+> > on my musb branch. Unfortunately there's no time anymore to=20
+> > wait otherwise the entire musb branch will miss this merge window.
+> >=20
+> > I'm sorry
+>=20
+> Felipe, patch set is ready, I will re-send the patches shortly by today.
+
+Thanks a lot. So I'll wait for a few more hours before sending out my
+musb pull request ;-)
+
+--=20
+balbi
+
+--HnQK338I3UIa/qiP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQTyIQAAoJEIaOsuA1yqREor4QALN5KE7ogkc4RXqr31aGMwW4
+8W+9mx7wz/ogM5v9TcaCQqCZaCq8QGLR2tsThJTFY6R3eCq6zabBx2uTAsZQsZma
+uBZiYlFtyHLNlZd94veS/S64Wqc/FyGzsyyYOINCbx057b2mCD9G3cvWPtxLONVv
+u072hlK/wjT0AtypRSZgIJJvJLuvQHXRF5MRX+tA/JvBRUE5r/fzgm+AC2ZuqBE8
+c1gWae2PrJwEVBHpFPoQ2is5po1wo4kce3KAlI591YSjAIF+W1TPod2ZY3MpiSwZ
+aFa5DL18mM9UCg9DBrESHI+VoRFKa6usTR23EOt7tyzP0z0z48TKKMjPL+NjHS29
+ktBpAx6VZ5ITcWUQPfIrjqXwP6CF2Scz4L4pErOWp+eUVMvgfH2GNvVLjQUD0vT/
+3Npb6pXsgYg1d+o9hb65GrraOGx7VzVUj8Q497sHcI2V0+49Pw3bEJkFDtbwMeeI
+6iTY01EfYJcV1cVuUEXxqRK4QJcwlhrz+CwvLtzl/2WXdHAkI4/pdFTMQhQ09j3C
+OuwUnmRzS20gO7Qde3CT8QjsFe2Q+q3MAQNH5T4otacpfRPQz3xqEsbMM398lsC3
+09xqpFMaTjipaghXLePt4EU4nA3iZ7IAVZCusnhUHgUcRoo7LSLi8IhPDzDB4uxL
+eotdt70faABpTk2HDYif
+=2U0t
+-----END PGP SIGNATURE-----
+
+--HnQK338I3UIa/qiP--
