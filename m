@@ -1,57 +1,55 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] ARM: OMAP2+: Makefile.boot: Add am335x evm and bone
- targets
-Date: Tue, 11 Sep 2012 06:55:57 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EAB0764@DBDE01.ent.ti.com>
-References: <1346435674-6207-1-git-send-email-hvaibhav@ti.com>
+From: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+Subject: Re: [PATCH] omap-i2c: fix incorrect log message when using a device
+ tree
+Date: Tue, 11 Sep 2012 09:01:55 +0200
+Message-ID: <504EE1E3.7040304@epfl.ch>
+References: <1346410975-29930-1-git-send-email-florian.vaussard@epfl.ch> <5040AFCC.5060004@ti.com>
+Reply-To: florian.vaussard-p8DiymsW2f8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1346435674-6207-1-git-send-email-hvaibhav-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5040AFCC.5060004-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, =?ISO-8859-1?Q?Philippe_R=E9tornaz?= <philippe.retornaz-p8DiymsW2f8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 31, 2012 at 23:24:34, Hiremath, Vaibhav wrote:
-> This adds am335x-evm and am335x-bone dtb targets to
-> 'make dtbs', just like other platforms.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> ---
->  arch/arm/mach-omap2/Makefile.boot |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
-> index 6cf1c2d..1136072 100644
-> --- a/arch/arm/mach-omap2/Makefile.boot
-> +++ b/arch/arm/mach-omap2/Makefile.boot
-> @@ -7,3 +7,4 @@ dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
->  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
->  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
->  dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
-> +dtb-$(CONFIG_SOC_AM33XX)	+= am335x-evm.dtb am335x-bone.dtb
+Hello Wolfram,
 
-Tony,
+>> When booting using a device tree, the adapter number is dynamically
+>> assigned after the log message is sent.
+>> This patch modifies the log message to get a correct adapter id.
+>>
+>> Applies on 3.6-rc3. Tested on OMAP3 (Gumstix Overo).
+>
+> Thanks for the fix. Tested successfully on OMAP4 SDP DT boot as well.
+>
+> [    0.000000] Linux version 3.6.0-rc3-00030-g491038d (bcousson@lnwes3201) (gcc version 4.5.2 (Sourcery G++ Lite 2011.03-41) ) #6 SMP Fri Aug 31 13:50:48 CEST 2012
+> [    0.000000] CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7d
+> [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+> [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI OMAP4 SDP board
+> ...
+> [    0.667205] omap_i2c i2c.15: bus 0 rev2.4.0 at 400 kHz
+> ...
+> [    0.768341] omap_i2c i2c.16: bus 1 rev2.4.0 at 400 kHz
+> [    0.783905] omap_i2c i2c.17: bus 2 rev2.4.0 at 400 kHz
+> [    0.799530] omap_i2c i2c.18: bus 3 rev2.4.0 at 400 kHz
+>
+>
+>> Signed-off-by: Florian Vaussard <florian.vaussard-p8DiymsW2f8@public.gmane.org>
+>
+> Tested-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> and
+> Acked-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+>
+> Regards,
+> Benoit
+>
 
-Gentle reminder on this patch !!!
+Was this patch picked-up by the i2c-embedded subsystem?
 
-Thanks,
-Vaibhav
+Thank you.
 
-> -- 
-> 1.7.0.4
-> 
-> 
+Regards,
+Florian
