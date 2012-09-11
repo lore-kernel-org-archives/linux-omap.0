@@ -1,77 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 09/17] serial/8250: Limit the omap workarounds to omap1
-Date: Tue, 11 Sep 2012 09:40:23 -0700
-Message-ID: <20120911164023.GE23092@atomide.com>
-References: <20120911052934.29637.9190.stgit@muffinssi.local>
- <20120911053104.29637.95283.stgit@muffinssi.local>
- <20120911174234.45919fd3@bob.linux.org.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
+Date: Tue, 11 Sep 2012 17:04:16 +0000
+Message-ID: <201209111704.16708.arnd@arndb.de>
+References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <CAMQu2gz8F2FcgRuok3x1uJ4pP8=0E2-9jhYGchzU9AUtUHjYhg@mail.gmail.com> <504F6249.2090501@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:24109 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751706Ab2IKQka (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Sep 2012 12:40:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20120911174234.45919fd3@bob.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <504F6249.2090501@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Kevin Hilman <khilman@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jean Pihet <j-pihet@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, J Keerthy <j-keerthy@t>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 
-* Alan Cox <alan@linux.intel.com> [120911 09:25]:
-> On Mon, 10 Sep 2012 22:31:04 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > These workarounds do not apply for CONFIG_ARCH_OMAP2PLUS at all,
-> > so let's make it just CONFIG_ARCH_OMAP1.
-> > 
-> > This is needed to for ARM common zImage changes for
-> > omap2+ to avoid including plat and mach headers.
-> > 
-> > Cc: Alan Cox <alan@linux.intel.com>
-> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Cc: linux-serial@vger.kernel.org
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  drivers/tty/serial/8250/8250.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/tty/serial/8250/8250.c
-> > b/drivers/tty/serial/8250/8250.c index 8123f78..5b3f2fe 100644
-> > --- a/drivers/tty/serial/8250/8250.c
-> > +++ b/drivers/tty/serial/8250/8250.c
-> > @@ -2336,7 +2336,7 @@ serial8250_do_set_termios(struct uart_port
-> > *port, struct ktermios *termios, serial_port_out(port, UART_EFR, efr);
-> >  	}
-> >  
-> > -#ifdef CONFIG_ARCH_OMAP
-> > +#ifdef CONFIG_ARCH_OMAP1
-> >  	/* Workaround to enable 115200 baud on OMAP1510 internal
-> > ports */ if (cpu_is_omap1510() && is_omap_port(up)) {
-> >  		if (baud == 115200) {
-> > @@ -2426,7 +2426,7 @@ static unsigned int serial8250_port_size(struct
-> > uart_8250_port *pt) {
-> >  	if (pt->port.iotype == UPIO_AU)
-> >  		return 0x1000;
-> > -#ifdef CONFIG_ARCH_OMAP
-> > +#ifdef CONFIG_ARCH_OMAP1
-> >  	if (is_omap_port(pt))
-> >  		return 0x16 << pt->port.regshift;
-> >  #endif
+On Tuesday 11 September 2012, Vaibhav Hiremath wrote:
+> On 9/11/2012 7:54 PM, Shilimkar, Santosh wrote:
+> > On Tue, Sep 11, 2012 at 7:47 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> On Tuesday 11 September 2012, Shilimkar, Santosh wrote:
+> >>> Just curious to know how you came with some of the above header names ?
+> >>>
+> >>> plat/mcbsp ---> dsp-mcbsp.h
+> >>> There is no connection of DSP with McBSP. "omap-mcbsp.h" would been a
+> >>> better name.
+> >>
+> >> This one was a mistake on my side, as Tony and  Peter already pointed out.
+> >> How about asoc-mcbsp.h or asoc-omap-mcbsp.h?
+> >>
+> > After re-reading the cover-letter and your below response,
+> > 'asoc-omap-mcbsp.h' seems to be fine.
 > > 
 > 
-> Acked-by: Alan Cox <alan@linux.intel.com>
+> Note that mcbsp is also applicable to Davinci family of devices.
 
-Thanks.
- 
-> Even better would be if for other cases is_omap_port and friends
-> returned 0...
+asoc-ti-mcbsp.h then?
 
-Yes it seems that those macros could be moved from plat-omap/serial.h
-to live in drivers/tty/serial/8250/8250.h? Or do you have some better
-place in mind?
-
-Regards,
-
-Tony
+	Arnd
