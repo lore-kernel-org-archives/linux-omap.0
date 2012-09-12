@@ -1,113 +1,83 @@
-From: Marc Kleine-Budde <mkl@pengutronix.de>
-Subject: Re: [PATCH 4/4] can: c_can: Add d_can suspend resume support
-Date: Wed, 12 Sep 2012 15:02:53 +0200
-Message-ID: <505087FD.7000907@pengutronix.de>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com> <1346673139-14540-5-git-send-email-anilkumar@ti.com> <50450C9F.6010203@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC13EA26300@DBDE01.ent.ti.com> <5045AD56.2050400@pengutronix.de> <331ABD5ECB02734CA317220B2BBEABC13EA2D7FA@DBDE01.ent.ti.com>
+From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCHv8 00/23]I2C big cleanup
+Date: Wed, 12 Sep 2012 15:16:15 +0200
+Message-ID: <20120912131615.GB16547@pengutronix.de>
+References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig264984274B6FED41BCD40990"
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA2D7FA@DBDE01.ent.ti.com>
-Sender: linux-can-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "tony@atomide.com" <tony@atomide.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+	protocol="application/pgp-signature"; boundary="eAbsdosE1cNLO4uF"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1347447496-16793-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig264984274B6FED41BCD40990
-Content-Type: text/plain; charset=ISO-8859-1
+
+--eAbsdosE1cNLO4uF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 09/12/2012 02:48 PM, AnilKumar, Chimata wrote:
-> Hi Marc,
+On Wed, Sep 12, 2012 at 04:27:54PM +0530, Shubhrajyoti D wrote:
+> Changes since v1:
+>        - removed tabification on patch 6/17
+>        - removed dev_err() which was introduced on patch 09/17
+> Changes since v2:
+>         - do not set full fifo depth in the RDR interrupt.
+>         - some changelog updates.
+>         - rebase to the Wolfram's tree.
+> Changes since v3:
+>         - Remove a redundant read of status register
+>         - Read the dev->buf_len variable instead of the register
+>         as the information of the remaining bytes is there.
+> Changes since v4:
+>         - Ack the arbitration lost.
+>         - Rebase to the i2c-embedded/for-next branch.
+> Changes since v5:
+>         - Rebase to latest mainline
+>         - Added some more cleanup patches so as have a consolidated serie=
+s.
+> Changes since v6:
+>         - Fix comments on setting the pdev to NULL.
+>         - Trivial changelog update
+> Changes since v7:
+> 	- Remove a patch as the code is getting changed anyways
+> 	- Changelogs update.
 >=20
-> On Tue, Sep 04, 2012 at 12:57:18, Marc Kleine-Budde wrote:
->> On 09/04/2012 08:14 AM, AnilKumar, Chimata wrote:
->>> Marc,
->>>
->>> Thanks for the comments,
->>>
->>> On Tue, Sep 04, 2012 at 01:31:35, Marc Kleine-Budde wrote:
->>>> On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
->>>>> Adds suspend resume support to DCAN driver which enables
->>>>> DCAN power down mode bit (PDR). Then DCAN will ack the local
->>>>> power-down mode by setting PDA bit in STATUS register.
->>>>>
->>>>> Also adds a status flag to know the status of DCAN module,
->>>>> whether it is opened or not.
->>>>
->>>> Use "ndev->flags & IFF_UP" for that. Have a look at the at91_can dri=
-ver
->>>> [1]. I'm not sure if you need locking here.
->>>>
->>>
->>> Then I can use this to check the status, lock is not
->>> required.
->>>
->>>> [1] http://lxr.free-electrons.com/source/drivers/net/can/at91_can.c#=
-L1198
->>>>
->>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->>>>> ---
->>>>>  drivers/net/can/c_can/c_can.c          |   78 ++++++++++++++++++++=
-++++++++++++
->>>>>  drivers/net/can/c_can/c_can.h          |    5 ++
->>>>>  drivers/net/can/c_can/c_can_platform.c |   70 ++++++++++++++++++++=
-++++++--
->>>>>  3 files changed, 150 insertions(+), 3 deletions(-)
+> Previous discussions can be found here=20
+> http://www.spinics.net/lists/linux-i2c/msg09764.html
 >=20
-> [snip]
+> This is the cleanup only series.
+>  =20
+> Tested on omap4sdp and 3430sdp.
 >=20
->>>>> +#ifdef CONFIG_PM
->>>>> +int c_can_power_down(struct net_device *dev)
->>>>> +{
->>>>> +	unsigned long time_out;
->>>>> +	struct c_can_priv *priv =3D netdev_priv(dev);
->>>>> +
->>>>> +	if (!priv->is_opened)
->>>>> +		return 0;
->>>>
->>>> Should we add a BUG_ON(id->driver_data !=3D BOSCH_D_CAN)?
->>>
->>> These APIs are called from platform driver where device type
->>> device type is verified. I think we have to add BUG_ON() in
->>> platform driver.
->>
->> The platform driver returns if not on D_CAN and will not call this
->> function. But this functions are exported, so can be called by someone=
+> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd082=
+17:
+>=20
+>   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+>=20
+> are available in the git repository at:
+>   git://gitorious.org/linus-tree/linus-tree.git for_3.7/i2c/big_cleanups
 
->> else. So if the caller is not D_CAN, it's a bug.
->>
->=20
-> I agree with you, but I have some concern here.
-> I think we should do "return 0;" instead of BUG_ON(). With
-> BUG_ON() system will hang and ultimately user lost his/her
-> contents.
+Pushed to -next. Thanks to all involved!
 
-Good point, better safe then sorry.
-But this should not happen. What about WARN_ON()?
-
-Marc
 --=20
-Pengutronix e.K.                  | Marc Kleine-Budde           |
-Industrial Linux Solutions        | Phone: +49-231-2826-924     |
-Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
-Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-
---------------enig264984274B6FED41BCD40990
+--eAbsdosE1cNLO4uF
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iEYEARECAAYFAlBQiAAACgkQjTAFq1RaXHPyIACgmjG1L1zAMVAaldg2thEoK6aY
-qKQAmwbNcUXcgDgu77VGMWHzQpRuH0z3
-=lYvF
+iEYEARECAAYFAlBQix8ACgkQD27XaX1/VRugFACghynJfjUG3ERq7t0HUyUjZEOz
+QSMAmgPJ2TC2IhdTvWjZVdr0TTemTW0J
+=OEKu
 -----END PGP SIGNATURE-----
 
---------------enig264984274B6FED41BCD40990--
+--eAbsdosE1cNLO4uF--
