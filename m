@@ -1,52 +1,93 @@
-From: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Subject: Re: [PATCHv7 00/23]I2C big cleanup
-Date: Wed, 12 Sep 2012 12:18:50 +0200
-Message-ID: <20120912101850.GB2624@pengutronix.de>
-References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
- <20120911220048.GD27031@pengutronix.de>
- <50505FDC.4090500@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCHv8 15/22] i2c: omap: simplify IRQ exit path
+Date: Wed, 12 Sep 2012 16:28:09 +0530
+Message-ID: <1347447496-16793-16-git-send-email-shubhrajyoti@ti.com>
+References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z6Eq5LdranGa6ru8"
+Content-Type: text/plain
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <50505FDC.4090500-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1347447496-16793-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
---z6Eq5LdranGa6ru8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+instead of having multiple return points, use
+a goto statement to make that clearer.
 
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |   20 ++++++++------------
+ 1 files changed, 8 insertions(+), 12 deletions(-)
 
-> I donot see the warning. Am I missing something?
-
-I deleted my logfiles already. Ignore it for now, if it comes up again
-with your new series, I will give a more detailed pointer.
-
-Thanks,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---z6Eq5LdranGa6ru8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAlBQYYoACgkQD27XaX1/VRtJAgCfYCs9PHBsqEqw4s3ctutq89s+
-b2wAn29n1t8iV44c8liU9hTF4vm4W5ZQ
-=ZHhr
------END PGP SIGNATURE-----
-
---z6Eq5LdranGa6ru8--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 96fd528..4af123f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -853,24 +853,21 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
+ 		if (count++ == 100) {
+ 			dev_warn(dev->dev, "Too much work in one IRQ\n");
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ complete:
+ 		if (stat & OMAP_I2C_STAT_NACK) {
+ 			err |= OMAP_I2C_STAT_NACK;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		/*
+@@ -883,8 +880,7 @@ complete:
+ 						OMAP_I2C_STAT_XRDY |
+ 						OMAP_I2C_STAT_XDR |
+ 						OMAP_I2C_STAT_ARDY));
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_RDR) {
+@@ -949,19 +945,19 @@ complete:
+ 			dev_err(dev->dev, "Receive overrun\n");
+ 			err |= OMAP_I2C_STAT_ROVR;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 
+ 		if (stat & OMAP_I2C_STAT_XUDF) {
+ 			dev_err(dev->dev, "Transmit underflow\n");
+ 			err |= OMAP_I2C_STAT_XUDF;
+ 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
+-			omap_i2c_complete_cmd(dev, err);
+-			return IRQ_HANDLED;
++			goto out;
+ 		}
+ 	} while (stat);
+ 
++out:
++	omap_i2c_complete_cmd(dev, err);
+ 	return IRQ_HANDLED;
+ }
+ 
+-- 
+1.7.5.4
