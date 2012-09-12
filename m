@@ -1,42 +1,45 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Wed, 12 Sep 2012 14:19:51 +0530
-Message-ID: <CANfBPZ-Wb7HE45DTmwsMt-hpJRUevjbjm9-aCR61B4JFULb8Mw@mail.gmail.com>
-References: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [balbi-usb:merge-result-for-greg 66/99]
+ drivers/usb/core/hub.c:2654 usb_get_hub_port_power_state() error: doing dma
+ on the stack ((null))
+Date: Wed, 12 Sep 2012 11:50:57 +0300
+Message-ID: <20120912085057.GC19396@mwanda>
+References: <20120912082622.GB27847@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, cjb@laptop.org, nsekhar@ti.com, sudhakar.raj@ti.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120912082622.GB27847@localhost>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 4, 2012 at 6:39 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
-> HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> on the HSMMC IP timing closure done for the high speed cards.
->
-> From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
->
-> The MMC/SD/SDIO output signals can be driven on either falling edge or
-> rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> to reach better timing performance, and thus to increase data transfer
-> frequency.
->
-> There are few pre-requisites for enabling the HSPE bit
-> - Controller should support High-Speed-Enable Bit and
-> - Controller should not be using DDR Mode and
-> - Controller should advertise that it supports High Speed in
->   capabilities register and
-> - MMC/SD clock coming out of controller > 25MHz
->
+On Wed, Sep 12, 2012 at 04:26:22PM +0800, Fengguang Wu wrote:
+> Hi Felipe,
+> 
+> FYI, there are new smatch warnings show up in
+> 
+> tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git merge-result-for-greg
+> head:   23953bde3e4d6aa8780dc054f6ad9882ac63f4f4
+> commit: e918fa161f510136fce45a524e934fe20e62c8b1 [66/99] Merge tag 'gadget-for-v3.7' into merge-result-for-greg
+> 
+> drivers/usb/core/hub.c:2654 usb_get_hub_port_power_state() error: doing dma on the stack ((null))
 
-The patch is well written. But then, I don't see a need for a DT
-binding for this feature.
-By definition, HS implies 25MHz or above, so that check seems to be
-redundant as well.
-Meanwhile, I'll check with HSPE enabled on OMAP.
+Smatch prints out a lot of these warnings.  I haven't looked at the
+rules in a while, so maybe there is a bounce buffer somewhere where
+it detects stack memory and allocates a DMA'able buffer?
 
-Regards,
-Venkat.
+It would be better if the function documentation for
+usb_control_msg() said that the *data pointer had to be kmalloc()ed.
+
+Also I wonder if Documentation/DMA-API-HOWTO.txt is out of data.
+Are we allowed to DMA to vmalloc()ed memory yet?
+
+regards,
+dan carpenter
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
