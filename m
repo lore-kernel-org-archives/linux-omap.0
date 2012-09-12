@@ -1,475 +1,71 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 6/7] ARM: OMAP2+: powerdomain: add error logs
-Date: Wed, 12 Sep 2012 11:55:31 +0200
-Message-ID: <1347443732-7411-7-git-send-email-j-pihet@ti.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCHv7 00/23]I2C big cleanup
+Date: Wed, 12 Sep 2012 15:41:40 +0530
+Message-ID: <50505FDC.4090500@ti.com>
+References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com> <20120911220048.GD27031@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:39093 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755549Ab2ILJz4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 05:55:56 -0400
-Received: by wibhq12 with SMTP id hq12so3957300wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 02:55:55 -0700 (PDT)
-In-Reply-To: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:39370 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756534Ab2ILKLs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 06:11:48 -0400
+Received: by obbuo13 with SMTP id uo13so2336669obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 03:11:46 -0700 (PDT)
+In-Reply-To: <20120911220048.GD27031@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
 
-From: Nishanth Menon <nm@ti.com>
+On Wednesday 12 September 2012 03:30 AM, Wolfram Sang wrote:
+>> Changes since v6:
+>> >         - Fix comments on setting the pdev to NULL.
+>> >         - Trivial changelog update
+> Looks mostly good, thanks. Only a few comments. Oh, and I still get
+> reports about a section mismatch ;)
+I am using omap2plus_defconfig
+ $ make --ver
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
 
-Silent failure makes debug hard. So, provide rate limited error
-messages in functional and oft-used code to prevent spam
-when something goes wrong.
+$ make CONFIG_DEBUG_SECTION_MISMATCH=y uImage
+....
+  LD      vmlinux.o
+  MODPOST vmlinux.o
+  GEN     .version
+  CHK     include/generated/compile.h
+  UPD     include/generated/compile.h
+  CC      init/version.o
+  LD      init/built-in.o
+  KSYM    .tmp_kallsyms1.o
+  KSYM    .tmp_kallsyms2.o
+  LD      vmlinux
+  SYSMAP  System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  GZIP    arch/arm/boot/compressed/piggy.gzip
+  CC      arch/arm/boot/compressed/misc.o
+  CC      arch/arm/boot/compressed/decompress.o
+  CC      arch/arm/boot/compressed/string.o
+  AS      arch/arm/boot/compressed/piggy.gzip.o
+  LD      arch/arm/boot/compressed/vmlinux
+  OBJCOPY arch/arm/boot/zImage
+  Kernel: arch/arm/boot/zImage is ready
+  UIMAGE  arch/arm/boot/uImage
+Image Name:   Linux-3.6.0-rc5-00022-g49fb6db
+Created:      Wed Sep 12 15:24:21 2012
+Image Type:   ARM Linux Kernel Image (uncompressed)
+Data Size:    4074688 Bytes = 3979.19 kB = 3.89 MB
+Load Address: 80008000
+Entry Point:  80008000
+  Image arch/arm/boot/uImage is ready
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c |  177 +++++++++++++++++++++++++++----------
- 1 files changed, 130 insertions(+), 47 deletions(-)
+I donot see the warning. Am I missing something?
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 2277ad3..37dfabf 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -19,6 +19,7 @@
- #include <linux/list.h>
- #include <linux/errno.h>
- #include <linux/string.h>
-+#include <linux/ratelimit.h>
- #include <trace/events/power.h>
- 
- #include "cm2xxx_3xxx.h"
-@@ -146,8 +147,10 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 
- 	int prev, next, state, trace_state;
- 
--	if (pwrdm == NULL)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	state = pwrdm_read_fpwrst(pwrdm);
- 
-@@ -174,6 +177,8 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 		}
- 		break;
- 	default:
-+		pr_err_ratelimited("%s: powerdomain %s: bad flag %0x\n",
-+				   __func__, pwrdm->name, flag);
- 		return -EINVAL;
- 	}
- 
-@@ -385,6 +390,8 @@ static int _pwrdm_pwrst_to_fpwrst(struct powerdomain *pwrdm, u8 pwrst, u8 logic)
- 		ret = PWRDM_FUNC_PWRST_OFF;
- 		break;
- 	default:
-+		pr_err_ratelimited("%s: powerdomain %s: bad pwrst %0x\n",
-+				   __func__, pwrdm->name, pwrst);
- 		ret = -EINVAL;
- 	}
- 
-@@ -697,8 +704,8 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 	unsigned long flags;
- 
- 	if (!pwrdm || IS_ERR(pwrdm) || (pwrst < 0) || (logic < 0)) {
--		pr_debug("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
--			 __func__, pwrdm, fpwrst);
-+		pr_err_ratelimited("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
-+				   __func__, pwrdm, fpwrst);
- 		return -EINVAL;
- 	}
- 
-@@ -727,13 +734,17 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
- 	trace_power_domain_target(pwrdm->name, next_fpwrst,
- 				  smp_processor_id());
- 
--	if (logic != pwrdm_read_logic_retst(pwrdm))
--		pwrdm_set_logic_retst(pwrdm, logic);
-+	if (logic != pwrdm_read_logic_retst(pwrdm)) {
-+		ret = pwrdm_set_logic_retst(pwrdm, logic);
-+		if (ret)
-+			pr_err_ratelimited("%s: unable to set logic state %0x of powerdomain %s, ret=%d\n",
-+					   __func__, logic, pwrdm->name, ret);
-+	}
- 
- 	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	if (ret)
--		pr_err("%s: unable to set power state of powerdomain: %s\n",
--		       __func__, pwrdm->name);
-+		pr_err_ratelimited("%s: unable to set power state %0x of powerdomain %s, ret=%d\n",
-+				   __func__, pwrst, pwrdm->name, ret);
- 
- 	switch (sleep_switch) {
- 	case FORCEWAKEUP_SWITCH:
-@@ -770,8 +781,8 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm,
- 	unsigned long flags;
- 
- 	if (!pwrdm || IS_ERR(pwrdm) || (pwrst < 0) || (logic < 0)) {
--		pr_debug("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
--			 __func__, pwrdm, fpwrst);
-+		pr_err_ratelimited("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
-+				   __func__, pwrdm, fpwrst);
- 		return -EINVAL;
- 	}
- 
-@@ -786,13 +797,13 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm,
- 
- 	ret = pwrdm_set_logic_retst(pwrdm, logic);
- 	if (ret)
--		pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
--		       __func__, logic, pwrdm->name);
-+		pr_err_ratelimited("%s: unable to set logic state %0x of powerdomain %s, ret=%d\n",
-+				   __func__, logic, pwrdm->name, ret);
- 
- 	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	if (ret)
--		pr_err("%s: unable to set power state %0x of powerdomain: %s\n",
--		       __func__, pwrst, pwrdm->name);
-+		pr_err_ratelimited("%s: unable to set power state %0x of powerdomain %s, ret=%d\n",
-+				   __func__, pwrst, pwrdm->name, ret);
- 
- 	spin_unlock_irqrestore(&pwrdm->lock, flags);
- 	return ret;
-@@ -813,8 +824,10 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	/*
- 	 * Do nothing in case the power domain does not have any
-@@ -823,8 +836,11 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	if (!pwrdm->pwrsts)
- 		return 0;
- 
--	if (!(pwrdm->pwrsts & (1 << pwrst)))
-+	if (!(pwrdm->pwrsts & (1 << pwrst))) {
-+		pr_err_ratelimited("%s: powerdomain %s: unsupported pwrst %0x\n",
-+				   __func__, pwrdm->name, pwrst);
- 		return -EINVAL;
-+	}
- 
- 	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
- 		 pwrdm->name, pwrst);
-@@ -847,8 +863,10 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_next_pwrst)
- 		ret = arch_pwrdm->pwrdm_read_next_pwrst(pwrdm);
-@@ -889,8 +907,10 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (pwrdm->pwrsts == PWRSTS_ON)
- 		return PWRDM_POWER_ON;
-@@ -929,8 +949,10 @@ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_pwrst)
- 		ret = arch_pwrdm->pwrdm_read_prev_pwrst(pwrdm);
-@@ -969,8 +991,10 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	/*
- 	 * Do nothing in case the power domain does not have any
-@@ -979,8 +1003,11 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- 	if (!pwrdm->pwrsts_logic_ret)
- 		return 0;
- 
--	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
-+	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst))) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad pwrst %0x\n",
-+				   __func__, pwrdm->name, pwrst);
- 		return -EINVAL;
-+	}
- 
- 	pr_debug("powerdomain: setting next logic powerstate for %s to %0x\n",
- 		 pwrdm->name, pwrst);
-@@ -1010,14 +1037,22 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
--	if (pwrdm->banks < (bank + 1))
-+	if (pwrdm->banks < (bank + 1)) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad bank %d\n",
-+				   __func__, pwrdm->name, bank);
- 		return -EEXIST;
-+	}
- 
--	if (!(pwrdm->pwrsts_mem_on[bank] & (1 << pwrst)))
-+	if (!(pwrdm->pwrsts_mem_on[bank] & (1 << pwrst))) {
-+		pr_err_ratelimited("%s: powerdomain %s: bank %d bad pwrst %0x\n",
-+				   __func__, pwrdm->name, bank, pwrst);
- 		return -EINVAL;
-+	}
- 
- 	pr_debug("powerdomain: setting next memory powerstate for domain %s "
- 		 "bank %0x while pwrdm-ON to %0x\n", pwrdm->name, bank, pwrst);
-@@ -1048,14 +1083,22 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
--	if (pwrdm->banks < (bank + 1))
-+	if (pwrdm->banks < (bank + 1)) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad bank %d\n",
-+				   __func__, pwrdm->name, bank);
- 		return -EEXIST;
-+	}
- 
--	if (!(pwrdm->pwrsts_mem_ret[bank] & (1 << pwrst)))
-+	if (!(pwrdm->pwrsts_mem_ret[bank] & (1 << pwrst))) {
-+		pr_err_ratelimited("%s: powerdomain %s: bank %d bad pwrst %0x\n",
-+				   __func__, pwrdm->name, bank, pwrst);
- 		return -EINVAL;
-+	}
- 
- 	pr_debug("powerdomain: setting next memory powerstate for domain %s "
- 		 "bank %0x while pwrdm-RET to %0x\n", pwrdm->name, bank, pwrst);
-@@ -1079,8 +1122,10 @@ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_pwrst)
- 		ret = arch_pwrdm->pwrdm_read_logic_pwrst(pwrdm);
-@@ -1100,8 +1145,10 @@ int pwrdm_read_prev_logic_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_prev_logic_pwrst)
- 		ret = arch_pwrdm->pwrdm_read_prev_logic_pwrst(pwrdm);
-@@ -1121,8 +1168,10 @@ int pwrdm_read_logic_retst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_logic_retst)
- 		ret = arch_pwrdm->pwrdm_read_logic_retst(pwrdm);
-@@ -1144,11 +1193,16 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
--	if (pwrdm->banks < (bank + 1))
-+	if (pwrdm->banks < (bank + 1)) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad bank %d\n",
-+				   __func__, pwrdm->name, bank);
- 		return ret;
-+	}
- 
- 	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
- 		bank = 1;
-@@ -1174,11 +1228,16 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
--	if (pwrdm->banks < (bank + 1))
-+	if (pwrdm->banks < (bank + 1)) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad bank %d\n",
-+				   __func__, pwrdm->name, bank);
- 		return ret;
-+	}
- 
- 	if (pwrdm->flags & PWRDM_HAS_MPU_QUIRK)
- 		bank = 1;
-@@ -1203,11 +1262,16 @@ int pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
--	if (pwrdm->banks < (bank + 1))
-+	if (pwrdm->banks < (bank + 1)) {
-+		pr_err_ratelimited("%s: powerdomain %s: bad bank %d\n",
-+				   __func__, pwrdm->name, bank);
- 		return ret;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_read_mem_retst)
- 		ret = arch_pwrdm->pwrdm_read_mem_retst(pwrdm, bank);
-@@ -1228,8 +1292,10 @@ int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
- 	/*
- 	 * XXX should get the powerdomain's current state here;
-@@ -1260,11 +1326,16 @@ int pwrdm_enable_hdwr_sar(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
--	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR))
-+	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR)) {
-+		pr_err_ratelimited("%s: powerdomain %s: no HDSAR in flag %0x\n",
-+				   __func__, pwrdm->name, pwrdm->flags);
- 		return ret;
-+	}
- 
- 	pr_debug("powerdomain: %s: setting SAVEANDRESTORE bit\n",
- 		 pwrdm->name);
-@@ -1290,11 +1361,16 @@ int pwrdm_disable_hdwr_sar(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return ret;
-+	}
- 
--	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR))
-+	if (!(pwrdm->flags & PWRDM_HAS_HDWR_SAR)) {
-+		pr_err_ratelimited("%s: powerdomain %s: no HDSAR in flag %0x\n",
-+				   __func__, pwrdm->name, pwrdm->flags);
- 		return ret;
-+	}
- 
- 	pr_debug("powerdomain: %s: clearing SAVEANDRESTORE bit\n",
- 		 pwrdm->name);
-@@ -1331,11 +1407,16 @@ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
--	if (!(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE))
-+	if (!(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
-+		pr_err_ratelimited("%s: powerdomain %s:no lowpwrch in flag %0x\n",
-+				   __func__, pwrdm->name, pwrdm->flags);
- 		return -EINVAL;
-+	}
- 
- 	pr_debug("powerdomain: %s: setting LOWPOWERSTATECHANGE bit\n",
- 		 pwrdm->name);
-@@ -1360,8 +1441,10 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- {
- 	int ret = -EINVAL;
- 
--	if (!pwrdm)
-+	if (!pwrdm) {
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -EINVAL;
-+	}
- 
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_wait_transition)
- 		ret = arch_pwrdm->pwrdm_wait_transition(pwrdm);
-@@ -1406,14 +1489,14 @@ int pwrdm_post_transition(struct powerdomain *pwrdm)
-  *
-  * Context loss count is the sum of powerdomain off-mode counter, the
-  * logic off counter and the per-bank memory off counter.  Returns negative
-- * (and WARNs) upon error, otherwise, returns the context loss count.
-+ * and report upon error, otherwise, returns the context loss count.
-  */
- int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- {
- 	int i, count;
- 
- 	if (!pwrdm) {
--		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
-+		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
- 		return -ENODEV;
- 	}
- 
-@@ -1452,8 +1535,8 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
- 	int i;
- 
- 	if (IS_ERR_OR_NULL(pwrdm)) {
--		pr_debug("powerdomain: %s: invalid powerdomain pointer\n",
--			 __func__);
-+		pr_err_ratelimited("powerdomain: %s: invalid pwrdm=%p\nr",
-+				   __func__, pwrdm);
- 		return 1;
- 	}
- 
--- 
-1.7.7.6
 
