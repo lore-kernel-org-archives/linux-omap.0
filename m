@@ -1,51 +1,49 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH] ARM: mm: ADD descriptor string to
-	CONFIG_DMA_ADDR_64BIT_T
-Date: Wed, 12 Sep 2012 15:55:47 +0100
-Message-ID: <20120912145547.GE28448@n2100.arm.linux.org.uk>
-References: <1347429006-10879-1-git-send-email-r.sricharan@ti.com> <5050841A.7030203@ti.com> <CAMQu2gzpiZ8Qa8eGprCscmhFa1zW4Bb4ZEVR=e56tXBSE1pGWQ@mail.gmail.com> <CAJ7qFSeYu3OncDwSRcvYmjha7xUzoj3JSBy49OjELkPOSeZcdA@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] CPUFreq: OMAP: remove unnecessary plat/ includes
+Date: Wed, 12 Sep 2012 20:34:46 +0530
+Message-ID: <CAMQu2gwpD6qOEV7sPg9zfMf1Zedq29OJeZ4MwEqUduZh8fJzhQ@mail.gmail.com>
+References: <alpine.DEB.2.00.1209120030420.9444@utopia.booyaka.com>
+ <CAMQu2gz4mcxqq=EFJzseXcgS_XxzDWGTP1sC5-FbkbxszUiwcw@mail.gmail.com> <87bohbxs16.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59554 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273Ab2ILO4C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 10:56:02 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJ7qFSeYu3OncDwSRcvYmjha7xUzoj3JSBy49OjELkPOSeZcdA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <87bohbxs16.fsf@deeprootsystems.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: rjw@sisk.pl, linux-pm@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "R, Sricharan" <r.sricharan@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Cyril Chemparathy <cyril@ti.com>
 
-On Wed, Sep 12, 2012 at 06:50:00PM +0530, R, Sricharan wrote:
-> Hi,
-> On Wed, Sep 12, 2012 at 6:27 PM, Shilimkar, Santosh
-> <santosh.shilimkar@ti.com> wrote:
-> > On Wed, Sep 12, 2012 at 6:16 PM, Cyril Chemparathy <cyril@ti.com> wrote:
-> >>
-> >> On 9/12/2012 1:50 AM, R Sricharan wrote:
-> >>>
-> >>> Even if CONFIG_DMA_ADDR_64BIT_T is enabled by the defconfig,
-> >>> the feature is not getting selected.
-> >>> Adding a string description in the Kconfig resolves this.
-> >>>
-> >>> But not sure if this is the right way to fix this.
-> >>>
-> >>
-> >> Shouldn't you be selecting this in your 64-bit dma address capable arch
-> >> instead?
-> >>
-> > Yes. The selection to enable  CONFIG_DMA_ADDR_64BIT_T happens
-> > in the arch which needs it. Since this option was made as simple bool,
-> > looks like because of some KCONFIG magic, it was not getting selected.
-> > Adding some help text does fix the issue and thats is the patch all about.
-> >
->   Correct. So even if you select this in the arch/defconfig,
+On Wed, Sep 12, 2012 at 7:27 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+>
+>> On Wed, Sep 12, 2012 at 6:02 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>>>
+>>> Remove some unnecessary plat/ includes that are interfering with multi-subarch
+>>> ARM kernels.
+>>>
+>>> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>>> Cc: Kevin Hilman <khilman@ti.com>
+>>> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+>>> Acked-by: Kevin Hilman <khilman@ti.com>
+>>> ---
+>>>
+>>> Still awaiting some final testing here.  Rafael, was wondering if you
+>>> would be willing to ack this so we can merge it via the OMAP tree?
+>>> Otherwise the patch can be split into an OMAP part and a CPUFreq part that
+>>> can go in across two merge windows.
+>>>
+>> Hmm.
+>> I did similar change[1] a while back. Kevin didn't like idea though
+>> that point of time.
+>
+> I was wrong.
+>
+> At the time, we were thinking about how to get rid of clkdev nodes
+> instead of add more.  Now, we need to clean up these drivers and this is
+> the only way to do it, so I retract my objection.
+>
+Thanks for clarifying.
 
-That is correct behaviour.
-
-You need an explicit "select DMA_ADDR_64BIT_T" somewhere in a Kconfig file
-to make it happen.
-
-Editing defconfigs is not how we enable these options.
+For patch itself,
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
