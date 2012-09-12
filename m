@@ -1,54 +1,37 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH] mmc: omap_hsmmc: Pass on the suspend failure to the PM
- core
-Date: Wed, 12 Sep 2012 07:48:29 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA7F8B7@DBDE01.ent.ti.com>
-References: <1346764109-21174-1-git-send-email-gururaja.hebbar@ti.com>
- <CANfBPZ93ONzeYj=kD_7pbq=VBQLd98YM9BE9S+sPb3rrrXNFzQ@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 1/4] staging: omap-thermal: Correct checkpatch.pl warnings
+Date: Wed, 12 Sep 2012 11:11:27 +0300
+Message-ID: <20120912081127.GB19396@mwanda>
+References: <1347379615-6881-1-git-send-email-eduardo.valentin@ti.com>
+ <1347379615-6881-2-git-send-email-eduardo.valentin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANfBPZ93ONzeYj=kD_7pbq=VBQLd98YM9BE9S+sPb3rrrXNFzQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "cjb@laptop.org" <cjb@laptop.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1347379615-6881-2-git-send-email-eduardo.valentin@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: gregkh@linuxfoundation.org, devel@driverdev.osuosl.org, b-cousson@ti.com, j-keerthy@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 11, 2012 at 11:13:26, S, Venkatraman wrote:
-> On Tue, Sep 4, 2012 at 6:38 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
-> > From: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> >
-> > In some cases mmc_suspend_host() is not able to claim the
-> > host and proceed with the suspend process. The core returns
-> > -EBUSY to the host controller driver. Unfortunately, the
-> > host controller driver does not pass on this information
-> > to the PM core and hence the system suspend process continues.
-> >
-> > In these cases the MMC core gets to an unexpected state
-> > during resume and multiple issues related to MMC crop up.
-> > 1. Host controller driver starts accessing the device registers
-> > before the clocks are enabled which leads to a prefetch abort.
-> > 2. A file copy thread which was launched before suspend gets
-> > stuck due to the host not being reclaimed during resume.
-> >
-> > To avoid such problems pass on the -EBUSY status to the PM core
-> > from the host controller driver. With this change, MMC core
-> > suspend might still fail but it does not end up making the
-> > system unusable. Suspend gets aborted and the user can try
-> > suspending the system again.
-> >
+On Tue, Sep 11, 2012 at 07:06:52PM +0300, Eduardo Valentin wrote:
+> From: J Keerthy <j-keerthy@ti.com>
 > 
-> The last time we discussed this, didn't we plan to fix this differently ?
-> Holding the return code of mmc_suspend_host in a separate variable and
-> passing it to the caller
-> of omap_hsmmc_suspend looks more sane to me.
-
-Correct. I missed it. I will reformat the patch and resend it.
-
+> Removes checkpatch warnings on omap-bandgap.c.
 > 
 
+Which checkpatch.pl warnings?
 
-Regards, 
-Gururaja
+> +				omap_bandgap_writel(bg_ptr,
+> +					rval->tshut_threshold,
+> +						   tsr->tshut_threshold);
+
+That's just whacky.
+
+Personally, I've never cared much about long lines, so I'd prefer
+to leave these as is until someone can break the functions up and
+remove them in a proper way instead of just shifting everything
+randomly to the left.
+
+regards,
+dan carpenter
