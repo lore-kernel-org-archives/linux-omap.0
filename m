@@ -1,72 +1,109 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
-Date: Wed, 12 Sep 2012 17:20:33 +0000
-Message-ID: <201209121720.33822.arnd@arndb.de>
-References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <1347368390-31252-13-git-send-email-arnd@arndb.de> <504F4227.4080206@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 2/2] arm/dts: AM33XX: Add device tree OPP table
+Date: Wed, 12 Sep 2012 19:21:55 +0200
+Message-ID: <5050C4B3.9040107@ti.com>
+References: <1346405840-31058-1-git-send-email-anilkumar@ti.com> <1346405840-31058-3-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <504F4227.4080206@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1346405840-31058-3-git-send-email-anilkumar@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>, paul Walmsley <paul@pwsan.com>
+Cc: rjw@sisk.pl, linux-pm@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 11 September 2012, Peter Ujfalusi wrote:
-> OMAP McBSP has nothing to do with a dsp.
-> A better name would be: ti-mcbsp.h (or leave it as mcbsp.h)
-> McBSP stands for: Multichannel Buffered Serial Port and it is used for audio
-> connection (I2S, TDM, etc).
++ Paul
 
-changed to asoc-ti-mcbsp.h to, as discussed.
+Hi Anil,
 
-> >  .../include/plat/dsp.h => include/linux/platform_data/dsp-omap.h   |    0
-> >  .../plat/keypad.h => include/linux/platform_data/keypad-omap.h     |    0
-> >  .../plat/lcd_mipid.h => include/linux/platform_data/lcd-mipid.h    |    0
-> >  .../plat/nand.h => include/linux/platform_data/mtd-nand-omap2.h    |    0
-> >  .../onenand.h => include/linux/platform_data/mtd-onenand-omap2.h   |    0
-> >  .../remoteproc.h => include/linux/platform_data/remoteproc-omap.h  |    0
-> >  .../voltage.h => include/linux/platform_data/smartreflex-omap.h    |    0
-> >  .../plat/mcspi.h => include/linux/platform_data/spi-omap2-mcspi.h  |    0
-> >  include/linux/power/smartreflex.h                                  |    2 +-
+On 08/31/2012 11:37 AM, AnilKumar Ch wrote:
+> Add DT OPP table for AM33XX family of devices. This data is
+> decoded by OF with of_init_opp_table() helper function.
 > 
-> Let me see these:
+> Also adds cpu0 supply name to the corresponding dts files.
+> cpu0-supply name is used by cpufreq-cpu0 driver to get the
+> regulator pointer for voltage modifications.
 > 
-> This four drivers are going to be removed via sound tree.
-> >  sound/soc/omap/igep0020.c                                          |    2 +-
-> >  sound/soc/omap/omap3beagle.c                                       |    2 +-
-> >  sound/soc/omap/omap3evm.c                                          |    2 +-
-> >  sound/soc/omap/overo.c                                             |    2 +-
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+
+I've just applied your patch in my for_3.7/dts_part2 branch.
+
+I changed the subject to use "ARM: dts: " prefix seems it seems to be
+the convention nowadays.
+
+I can apply as the well the clock patch if Paul acks it, but it can go
+through Paul as well since there is no strong dependency between them AFAIK.
+
+Thanks,
+Benoit
+
+
+> ---
+>  arch/arm/boot/dts/am335x-bone.dts |    6 ++++++
+>  arch/arm/boot/dts/am335x-evm.dts  |    6 ++++++
+>  arch/arm/boot/dts/am33xx.dtsi     |   15 +++++++++++++++
+>  3 files changed, 27 insertions(+)
 > 
-> The new driver which replaces these (omap-twl4030.c) does not include
-> plat/mcbsp.h
-
-For the sake of bisection, I think we should leave the patch as is.
-When merging the two branches, we will get a small conflict that
-is trivial to resolve.
-
-> From these ASoC machine drivers you can just remove the <plat/mcbsp.h>
-> include since they should not include them (I have pending patch for this to
-> be sent):
-> >  sound/soc/omap/am3517evm.c                                         |    2 +-
-> >  sound/soc/omap/ams-delta.c                                         |    2 +-
-> >  sound/soc/omap/n810.c                                              |    2 +-
-> >  sound/soc/omap/omap3pandora.c                                      |    2 +-
-> >  sound/soc/omap/osk5912.c                                           |    2 +-
-> >  sound/soc/omap/rx51.c                                              |    2 +-
-> >  sound/soc/omap/sdp3430.c                                           |    2 +-
-> >  sound/soc/omap/zoom2.c                                             |    2 +-
+> diff --git a/arch/arm/boot/dts/am335x-bone.dts b/arch/arm/boot/dts/am335x-bone.dts
+> index ce486fc..2767b5f 100644
+> --- a/arch/arm/boot/dts/am335x-bone.dts
+> +++ b/arch/arm/boot/dts/am335x-bone.dts
+> @@ -13,6 +13,12 @@
+>  	model = "TI AM335x BeagleBone";
+>  	compatible = "ti,am335x-bone", "ti,am33xx";
+>  
+> +	cpus {
+> +		cpu@0 {
+> +			cpu0-supply = <&dcdc2_reg>;
+> +		};
+> +	};
+> +
+>  	memory {
+>  		device_type = "memory";
+>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index baa3276..54d972c 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -13,6 +13,12 @@
+>  	model = "TI AM335x EVM";
+>  	compatible = "ti,am335x-evm", "ti,am33xx";
+>  
+> +	cpus {
+> +		cpu@0 {
+> +			cpu0-supply = <&vdd1_reg>;
+> +		};
+> +	};
+> +
+>  	memory {
+>  		device_type = "memory";
+>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+> diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+> index ab744d6..2043b53 100644
+> --- a/arch/arm/boot/dts/am33xx.dtsi
+> +++ b/arch/arm/boot/dts/am33xx.dtsi
+> @@ -25,6 +25,21 @@
+>  	cpus {
+>  		cpu@0 {
+>  			compatible = "arm,cortex-a8";
+> +
+> +			/*
+> +			 * To consider voltage drop between PMIC and SoC,
+> +			 * tolerance value is reduced to 2% from 4% and
+> +			 * voltage value is increased as a precaution.
+> +			 */
+> +			operating-points = <
+> +				/* kHz    uV */
+> +				720000  1285000
+> +				600000  1225000
+> +				500000  1125000
+> +				275000  1125000
+> +			>;
+> +			voltage-tolerance = <2>; /* 2 percentage */
+> +			clock-latency = <300000>; /* From omap-cpufreq driver */
+>  		};
+>  	};
+>  
 > 
-> >  sound/soc/omap/omap-mcbsp.c                                        |    2 +-
-> >  sound/soc/omap/mcbsp.c                                             |    2 +-
 
-Can you do that change on top of mine? I would prefer to leave it as is
-because I could create this version with a script.
-
-The alternative is that I leave the mcbsp.h file alone entirely and you
-submit a patch to fix all instances where it's used, either rename or
-remove them.
-
-	Arnd
