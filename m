@@ -1,43 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [GIT PULL] ARM: OMAP2+: PRCM/hwmod: some fixes for 3.6-rc
-Date: Wed, 12 Sep 2012 20:14:33 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209122011590.17903@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209051613580.11516@utopia.booyaka.com> <50498170.3010600@ti.com> <alpine.DEB.2.00.1209121539360.17903@utopia.booyaka.com> <79CD15C6BA57404B839C016229A409A83EAB25C9@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] ARM: OMAP: omap_device updates for v3.7
+Date: Wed, 12 Sep 2012 13:21:26 -0700
+Message-ID: <87oblbvvp4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41265 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681Ab2ILUOd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 16:14:33 -0400
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAB25C9@DBDE01.ent.ti.com>
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:45021 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752680Ab2ILUV2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 16:21:28 -0400
+Received: by obbuo13 with SMTP id uo13so3302210obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 13:21:27 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 12 Sep 2012, Hiremath, Vaibhav wrote:
+Tony,
 
-> On Wed, Sep 12, 2012 at 21:35:04, Paul Walmsley wrote:
->  
-> > http://marc.info/?l=linux-omap&m=134746561028888&w=2
-> 
-> Just for my understanding, is this pull request you created based on 
-> l-o/master? Or other baseline?
+Please pull the following omap_device changes for v3.7.  This was a
+collaboration between myself and Paul.
 
-That information is in the pull request message:
+Thanks,
 
---------------
+Kevin
 
-The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
 
-  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+  Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
 
---------------
+are available in the git repository at:
 
-You can also look at the log or shortlog on the kernel.org gitweb:
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.7-omap_device
 
-http://git.kernel.org/?p=linux/kernel/git/pjw/omap-pending.git;a=shortlog;h=refs/tags/omap-devel-a-for-3.7
+for you to fetch changes up to 9634c8dd6a729406e89aed4e29470e3ffb3cd060:
 
+  ARM: OMAP: omap_device: idle devices with no driver bound (2012-09-12 10:52:03 -0700)
 
-- Paul
+----------------------------------------------------------------
+Updates for omap_device layer for v3.7.
+
+Allows omap_device layer to keep track of driver bound status in order
+to make more intelligent decisions about idling unused devices.
+
+----------------------------------------------------------------
+Kevin Hilman (3):
+      ARM: OMAP: omap_device: keep track of driver bound status
+      ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
+      ARM: OMAP: omap_device: idle devices with no driver bound
+
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/omap_device.c              |   56 ++++++++++++++++++++++---
+ 2 files changed, 53 insertions(+), 5 deletions(-)
