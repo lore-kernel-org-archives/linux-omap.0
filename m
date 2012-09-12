@@ -1,98 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Wed, 12 Sep 2012 09:23:01 +0300
-Message-ID: <20120912062259.GC18563@arwen.pp.htv.fi>
-References: <20120906122948.GC29202@arwen.pp.htv.fi>
- <1346935540-1792-1-git-send-email-balbi@ti.com>
- <alpine.DEB.2.00.1209062137000.11516@utopia.booyaka.com>
- <alpine.DEB.2.00.1209112141220.9444@utopia.booyaka.com>
-Reply-To: balbi@ti.com
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of ocp2scp
+Date: Wed, 12 Sep 2012 12:06:16 +0530
+Message-ID: <CAAe_U6+JpyLrK9v3uae+yN1zCigMQc=JaEMAOZgupurCzuWDcA@mail.gmail.com>
+References: <1347008955-21310-1-git-send-email-kishon@ti.com>
+	<alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i7F3eY7HS/tUJxUd"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209112141220.9444@utopia.booyaka.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:41256 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751400Ab2ILGgS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 02:36:18 -0400
+Received: by vbzb23 with SMTP id b23so1772586vbz.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Sep 2012 23:36:16 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-
---i7F3eY7HS/tUJxUd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: Paul Walmsley <paul@pwsan.com>
+Cc: b-cousson@ti.com, balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
 Hi,
 
-On Tue, Sep 11, 2012 at 10:02:48PM +0000, Paul Walmsley wrote:
->=20
-> Hi Felipe
->=20
-> Just tested these OMAP serial changes at commit=20
-> e36851d0fa94b0f7802b3cc80406dbd3ef4f2f16 ("serial: omap: fix compile=20
-> breakage").  There's good news and bad news...
->=20
-> The good news is that after applying this series, the 'OMAP4 UART garbage=
-=20
-> on long transmit buffers when PM is enabled' bug:
->=20
-> http://www.pwsan.com/omap/testlogs/test_v3.6-rc5/20120908202511/pm/4430es=
-2panda/4430es2panda_log.txt
->=20
-> ... goes away.  (Unclear if it's because the underlying bug was fixed, or=
-=20
-> if unrelated changes are masking it.)  Not sure what caused the problem t=
-o=20
-> go away exactly, but it's one of the changes between d37c6ceb and bf63a08=
-=2E =20
-> So that's good!
+On Wed, Sep 12, 2012 at 3:58 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hi Kishon, Beno=EEt,
+>
+> On Fri, 7 Sep 2012, Kishon Vijay Abraham I wrote:
+>
+>> Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp. Since th=
+is
+>> ocp2scp module does not have any fck but does have a single opt_cloc=
+k,
+>> it is added as the main_clk for ocp2scp. Also removed phy_48m as the
+>> optional clock since it is now made as the main clock. By this the
+>> driver need not enable/disable phy_48m clk separately and
+>> runtime_get/runtime_put will take care of that.
+>
+> Looking at this patch, it doesn't seem to make sense from a hardware =
+point
+> of view.  If you look at the OMAP4430 TRM Rev. AE, Table 23-1166 "Clo=
+cks
+> and Resets", the 48MHz clock input is listed as an "Optional function=
+al
+> clock".  The main functional clock is listed as "INIT_960M_FCLK", whi=
+ch
+> according to the same TRM, Section 3.6.3.9.1 "Overview", is an alias =
+for
+> the clock we call "dpll_usb_clkdcoldo_ck".
+>
+> So if any clock should be the main functional clock in the hwmod data=
+,
+> shouldn't it be dpll_usb_clkdcoldo_ck?  The goal with the hwmod data
+> is/was to have it match the hardware.
+>
+> ...
+>
+> More to the point, I guess I don't see what the problem is with
+> adding a few lines to the ocp2scp driver to control the "phy_48m" opt=
+ional
 
-I'd point the finger at sticking to put_autosuspend() as that would give
-HW enough time to actually unload all bytes from its FIFO through the
-UART lines. can you check if forcing the autosuspend_delay to -1
-triggers the issue again ? If it does, it's some help from autosuspend,
-which would mean we still have the problem and needs to be properly
-fixed.
+It should be added in omap-usb2 driver rather.
+> clock via the clock framework.  Is there some reason why you
+> couldn't prepare & enable it after the pm_runtime_get_*(),
+> and disable and unprepare it before the pm_runtime_put_*() ?
 
-> The bad news is that N800 no longer boots -- or the UART dies during=20
-> serial init:
->=20
-> http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/=
-boot/2420n800/2420n800_log.txt
->=20
-> The problem doesn't seem to affect the 2430SDP.
->=20
-> Could you put together a patch to fix N800?
+We have omap-usb2 driver that is used for both omap4 and omap5. But
+this 48m clock is used only in omap4. And we dint have any *main_clk*
+in the ocp2scp_usb_phy_hwmod. So in order avoid some checks in the
+omap-usb2 driver, we added 48m clk as the main clock of
+ocp2scp_usb_phy_hwmod.
 
-I'll see what I can do. BTW, is that log with DEBUG_LL enabled ?
-
-cheers
-
---=20
-balbi
-
---i7F3eY7HS/tUJxUd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQUCpCAAoJEIaOsuA1yqREnhEQAI9asEuO04CahEB8Dh5jCm5A
-VNJ8hg/zvaL4eEtZ4yB2P+inDPogqFCpfdMXnwQJpHNg5jR+TASmsxITOO16q4/R
-B2Cv+ayZijXAHm3X2e8GO11X777Usv3bCm8BznNZFBjggDqJfeaIzZVcp+1RkaAQ
-VOOKDpvTmj2m/vM4kCWOMynFB9B8i0aIncxXcx/WWguzczvTRq4Q8AfHnJb7HEGH
-AWyVHbVJKUbLZvWUujoLgKRjqf6cH6/SHvLHhNUYOuaC4JsPtEVI8G2ptvvVD1tB
-ho2OQboA3sQBpzbNGgyAf3qWxl9cO7e2cpGKlaZY39MLYM4TRG3kHtqrDEamnAMU
-5nZTvLJaJR1VAeUQ6DHMk2Cx65wd7UP0tAtQFoEc7wTMnVSfp5d1fIVJlBGzPpYW
-DvQM8LTYMC3C3n15vt6vksHy3kROXoKoNYy4xvIL7YkAvJIkLbkfwBkLcRpt+WTs
-rZdHKPJ/3q5KRr4y3gYEO0+1sn50XBffsfLLfr1D8q0SZ+9n4UHtb/iDAVz/xjrc
-GSV3/0ZtZ6i52DnIkwbiYH2CK3kfOqI3V2+cn30KsFxXnLz1QasHMSVoYqW632+m
-cein7FgWlgiYtLfNpmLRpSnAjwEFhcjOQAtZuWnOH/X6F9Sr1e+Fgdjyd1Obq1IG
-WTD4ChIk3JVFq+RJx0M/
-=Twiu
------END PGP SIGNATURE-----
-
---i7F3eY7HS/tUJxUd--
+Thanks
+Kishon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
