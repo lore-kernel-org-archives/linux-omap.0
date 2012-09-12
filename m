@@ -1,56 +1,42 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 1/4] staging: omap-thermal: Correct checkpatch.pl warnings
-Date: Wed, 12 Sep 2012 11:26:39 +0300
-Message-ID: <20120912082639.GI19410@mwanda>
-References: <1347379615-6881-1-git-send-email-eduardo.valentin@ti.com>
- <1347379615-6881-2-git-send-email-eduardo.valentin@ti.com>
- <20120912081127.GB19396@mwanda>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: TEMP: Round of the carve out memory
+ requested to section_size
+Date: Wed, 12 Sep 2012 14:12:32 +0530
+Message-ID: <c524b899151fbbf9dedebe7f796bd59a@mail.gmail.com>
+References: <1347429117-10919-1-git-send-email-r.sricharan@ti.com> <CAMQu2gxaamzm8i=ZcCU+99NnA6dDgi6H0GJwVtSmYWjPcyk5WQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20120912081127.GB19396@mwanda>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel/>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
- <mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: devel-bounces@linuxdriverproject.org
-Sender: "devel" <devel-bounces@linuxdriverproject.org>
-To: Eduardo Valentin <eduardo.valentin@ti.com>
-Cc: devel@driverdev.osuosl.org, b-cousson@ti.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, j-keerthy@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:53890 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751034Ab2ILImf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 04:42:35 -0400
+Received: by vbbff1 with SMTP id ff1so1739901vbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 01:42:33 -0700 (PDT)
+In-Reply-To: <CAMQu2gxaamzm8i=ZcCU+99NnA6dDgi6H0GJwVtSmYWjPcyk5WQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Sep 12, 2012 at 11:11:27AM +0300, Dan Carpenter wrote:
-> On Tue, Sep 11, 2012 at 07:06:52PM +0300, Eduardo Valentin wrote:
-> > From: J Keerthy <j-keerthy@ti.com>
-> > 
-> > Removes checkpatch warnings on omap-bandgap.c.
-> > 
-> 
-> Which checkpatch.pl warnings?
-> 
-> > +				omap_bandgap_writel(bg_ptr,
-> > +					rval->tshut_threshold,
-> > +						   tsr->tshut_threshold);
-> 
-> That's just whacky.
-> 
-> Personally, I've never cared much about long lines, so I'd prefer
-> to leave these as is until someone can break the functions up and
-> remove them in a proper way instead of just shifting everything
-> randomly to the left.
-> 
+[..]
+> > memblock_steal tries to reserve physical memory during boot.
+> > When the requested size is not aligned on the section size
+> > then, the remaining memory available for lowmem becomes
+> > unaligned on the section boundary. There is a issue with this,
+> > which is discussed in the thread below.
+> >
+> > https://lkml.org/lkml/2012/6/28/112
+> >
+> > The final conclusion from the thread seems to
+> > be align the memblock_steal calls on the SECTION boundary.
+> >
+> > Signed-off-by: R Sricharan <r.sricharan@ti.com>
+> Why is the TEMP in the subject line. From patch it doesn't be
+> temporary version. Can you please clarify that ?
+>
+ Oops, that was a mistake. Reposted by correcting it.
 
-Sorry, that was my default response without looking at the code.
-
-This is already broken up into small functions pretty nicely.  You
-might want to consider using shorter names.  For example
-omap_bandgap_writel() could be changed to "obg_writel()" and "bg_ptr"
-could be changed to just "bg" because it's obviously a pointer.
-
-regards,
-dan carpenter
+Thanks,
+ Sricharan
