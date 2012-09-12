@@ -1,734 +1,585 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 3/7] ARM: OMAP2+: PM: use the functional power states API
-Date: Wed, 12 Sep 2012 11:55:28 +0200
-Message-ID: <1347443732-7411-4-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/7] ARM: OMAP2+: PM: introduce power domains functional states
+Date: Wed, 12 Sep 2012 11:55:26 +0200
+Message-ID: <1347443732-7411-2-git-send-email-j-pihet@ti.com>
 References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:33587 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262Ab2ILJzw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 05:55:52 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hi8so5017290wib.1
-        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 02:55:51 -0700 (PDT)
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:60432 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752316Ab2ILJzu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 05:55:50 -0400
+Received: by wgbdr13 with SMTP id dr13so1350045wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 02:55:49 -0700 (PDT)
 In-Reply-To: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+Cc: Jean Pihet <j-pihet@ti.com>, Tero Kristo <t-kristo@ti.com>
 
-Use the functional power states as the API to control power
-domains:
-- use the PWRDM_FUNC_PWRST_* and PWRDM_LOGIC_MEM_PWRST_*
-  macros for the power states and logic settings,
-- the function pwrdm_set_next_fpwrst, which controls
-  the power domains next power and logic settings, shall
-  be used instead of pwrdm_set_next_pwrst to program the
-  power domains next states,
-- the function pwrdm_set_fpwrst, which programs the power
-  domains power and logic settings, shall be used instead
-  of omap_set_pwrdm_state.
+Introduce the functional states for power domains, which include
+the power states and the logic states.
+This patch provides the API functions to set and read the power
+domains functional state and internal functions to convert between
+the functional (i.e. logical) and the internal (or registers) values.
+
+In the new API only the functions pwrdm_set_next_fpwrst and
+pwrdm_set_next_fpwrst shall be used to change a power domain
+target state, along with the associated PWRDM_FUNC_* and
+PWRDM_LOGIC_* macros as the state parameters.
+
+Note about the power domains allowed states:
+Power domains have varied capabilities, as defined by the value of
+the pwrsts and pwrsts_logic_ret fields of the powerdomain struct.
+When reading or setting a low power state such as OFF/RET, a specific
+requested state may not be supported on the given power domain.
+In the states conversion functions a power or logic state is first
+looked for in the lower power states in order to maximize the power
+savings, then if not found in the higher power states. An iteration
+function is used, as suggested by Rajendra Nayak <rnayak@ti.com>
+
+This functionality brings consistency in the functional power states
+core code and acts as a guard against hardware implementations
+discrepancies, e.g. some power domains only support the RET logic
+state although reading the logic state registers (previous, current
+and next) always returns OFF. The DSS power domain on OMAP3 is an
+example.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c         |   58 +++++++++++-----------
- arch/arm/mach-omap2/cpuidle44xx.c         |   24 ++++------
- arch/arm/mach-omap2/omap-hotplug.c        |    2 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |   39 ++++++++-------
- arch/arm/mach-omap2/pm24xx.c              |   14 ++---
- arch/arm/mach-omap2/pm34xx.c              |   75 +++++++++++++++--------------
- arch/arm/mach-omap2/pm44xx.c              |   24 ++++------
- arch/arm/mach-omap2/powerdomain.c         |    2 +-
- 8 files changed, 114 insertions(+), 124 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |  374 ++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/powerdomain.h |   32 +++-
+ 2 files changed, 396 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f2a49a4..4ca37d2 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -44,32 +44,32 @@ struct omap3_idle_statedata {
- 
- static struct omap3_idle_statedata omap3_idle_data[] = {
- 	{
--		.mpu_state = PWRDM_POWER_ON,
--		.core_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_FUNC_PWRST_ON,
-+		.core_state = PWRDM_FUNC_PWRST_ON,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_ON,
--		.core_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_FUNC_PWRST_ON,
-+		.core_state = PWRDM_FUNC_PWRST_ON,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_RET,
--		.core_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_FUNC_PWRST_CSWR,
-+		.core_state = PWRDM_FUNC_PWRST_ON,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_OFF,
--		.core_state = PWRDM_POWER_ON,
-+		.mpu_state = PWRDM_FUNC_PWRST_OFF,
-+		.core_state = PWRDM_FUNC_PWRST_ON,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_RET,
--		.core_state = PWRDM_POWER_RET,
-+		.mpu_state = PWRDM_FUNC_PWRST_CSWR,
-+		.core_state = PWRDM_FUNC_PWRST_CSWR,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_OFF,
--		.core_state = PWRDM_POWER_RET,
-+		.mpu_state = PWRDM_FUNC_PWRST_OFF,
-+		.core_state = PWRDM_FUNC_PWRST_CSWR,
- 	},
- 	{
--		.mpu_state = PWRDM_POWER_OFF,
--		.core_state = PWRDM_POWER_OFF,
-+		.mpu_state = PWRDM_FUNC_PWRST_OFF,
-+		.core_state = PWRDM_FUNC_PWRST_OFF,
- 	},
- };
- 
-@@ -84,8 +84,8 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 
- 	local_fiq_disable();
- 
--	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
--	pwrdm_set_next_pwrst(core_pd, core_state);
-+	pwrdm_set_next_fpwrst(mpu_pd, mpu_state);
-+	pwrdm_set_next_fpwrst(core_pd, core_state);
- 
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
-@@ -100,7 +100,7 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 	 * Call idle CPU PM enter notifier chain so that
- 	 * VFP context is saved.
- 	 */
--	if (mpu_state == PWRDM_POWER_OFF)
-+	if (mpu_state == PWRDM_FUNC_PWRST_OFF)
- 		cpu_pm_enter();
- 
- 	/* Execute ARM wfi */
-@@ -110,7 +110,7 @@ static int __omap3_enter_idle(struct cpuidle_device *dev,
- 	 * Call idle CPU PM enter notifier chain to restore
- 	 * VFP context.
- 	 */
--	if (pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
-+	if (pwrdm_read_prev_fpwrst(mpu_pd) == PWRDM_FUNC_PWRST_OFF)
- 		cpu_pm_exit();
- 
- 	/* Re-allow idle for C1 */
-@@ -159,20 +159,20 @@ static int next_valid_state(struct cpuidle_device *dev,
- 			    struct cpuidle_driver *drv, int index)
- {
- 	struct omap3_idle_statedata *cx = &omap3_idle_data[index];
--	u32 mpu_deepest_state = PWRDM_POWER_RET;
--	u32 core_deepest_state = PWRDM_POWER_RET;
-+	u32 mpu_deepest_state = PWRDM_FUNC_PWRST_CSWR;
-+	u32 core_deepest_state = PWRDM_FUNC_PWRST_CSWR;
- 	int idx;
- 	int next_index = 0; /* C1 is the default value */
- 
- 	if (enable_off_mode) {
--		mpu_deepest_state = PWRDM_POWER_OFF;
-+		mpu_deepest_state = PWRDM_FUNC_PWRST_OFF;
- 		/*
- 		 * Erratum i583: valable for ES rev < Es1.2 on 3630.
- 		 * CORE OFF mode is not supported in a stable form, restrict
- 		 * instead the CORE state to RET.
- 		 */
- 		if (!IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583))
--			core_deepest_state = PWRDM_POWER_OFF;
-+			core_deepest_state = PWRDM_FUNC_PWRST_OFF;
- 	}
- 
- 	/* Check if current state is valid */
-@@ -218,7 +218,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	 * Use only C1 if CAM is active.
- 	 * CAM does not have wakeup capability in OMAP3.
- 	 */
--	if (pwrdm_read_pwrst(cam_pd) == PWRDM_POWER_ON)
-+	if (pwrdm_read_fpwrst(cam_pd) == PWRDM_FUNC_PWRST_ON)
- 		new_state_idx = drv->safe_state_index;
- 	else
- 		new_state_idx = next_valid_state(dev, drv, index);
-@@ -234,7 +234,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	/* Program PER state */
- 	cx = &omap3_idle_data[new_state_idx];
- 	core_next_state = cx->core_state;
--	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
-+	per_next_state = per_saved_state = pwrdm_read_next_fpwrst(per_pd);
- 	if (new_state_idx == 0) {
- 		/* In C1 do not allow PER state lower than CORE state */
- 		if (per_next_state < core_next_state)
-@@ -244,20 +244,20 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 		 * Prevent PER OFF if CORE is not in RETention or OFF as this
- 		 * would disable PER wakeups completely.
- 		 */
--		if ((per_next_state == PWRDM_POWER_OFF) &&
--		    (core_next_state > PWRDM_POWER_RET))
--			per_next_state = PWRDM_POWER_RET;
-+		if ((per_next_state == PWRDM_FUNC_PWRST_OFF) &&
-+		    (core_next_state > PWRDM_FUNC_PWRST_CSWR))
-+			per_next_state = PWRDM_FUNC_PWRST_CSWR;
- 	}
- 
- 	/* Are we changing PER target state? */
- 	if (per_next_state != per_saved_state)
--		pwrdm_set_next_pwrst(per_pd, per_next_state);
-+		pwrdm_set_next_fpwrst(per_pd, per_next_state);
- 
- 	ret = omap3_enter_idle(dev, drv, new_state_idx);
- 
- 	/* Restore original PER state if it was modified */
- 	if (per_next_state != per_saved_state)
--		pwrdm_set_next_pwrst(per_pd, per_saved_state);
-+		pwrdm_set_next_fpwrst(per_pd, per_saved_state);
- 
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 288bee6..617ff43 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -26,25 +26,21 @@
- /* Machine specific information */
- struct omap4_idle_statedata {
- 	u32 cpu_state;
--	u32 mpu_logic_state;
- 	u32 mpu_state;
- };
- 
- static struct omap4_idle_statedata omap4_idle_data[] = {
- 	{
--		.cpu_state = PWRDM_POWER_ON,
--		.mpu_state = PWRDM_POWER_ON,
--		.mpu_logic_state = PWRDM_POWER_RET,
-+		.cpu_state = PWRDM_FUNC_PWRST_ON,
-+		.mpu_state = PWRDM_FUNC_PWRST_ON,
- 	},
- 	{
--		.cpu_state = PWRDM_POWER_OFF,
--		.mpu_state = PWRDM_POWER_RET,
--		.mpu_logic_state = PWRDM_POWER_RET,
-+		.cpu_state = PWRDM_FUNC_PWRST_OFF,
-+		.mpu_state = PWRDM_FUNC_PWRST_CSWR,
- 	},
- 	{
--		.cpu_state = PWRDM_POWER_OFF,
--		.mpu_state = PWRDM_POWER_RET,
--		.mpu_logic_state = PWRDM_POWER_OFF,
-+		.cpu_state = PWRDM_FUNC_PWRST_OFF,
-+		.mpu_state = PWRDM_FUNC_PWRST_OSWR,
- 	},
- };
- 
-@@ -91,7 +87,7 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
- 	 * out of coherency and in OFF mode.
- 	 */
- 	if (dev->cpu == 0 && cpumask_test_cpu(1, cpu_online_mask)) {
--		while (pwrdm_read_pwrst(cpu_pd[1]) != PWRDM_POWER_OFF) {
-+		while (pwrdm_read_fpwrst(cpu_pd[1]) != PWRDM_FUNC_PWRST_OFF) {
- 			cpu_relax();
- 
- 			/*
-@@ -116,15 +112,13 @@ static int omap4_enter_idle_coupled(struct cpuidle_device *dev,
- 	cpu_pm_enter();
- 
- 	if (dev->cpu == 0) {
--		pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
--		omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
-+		pwrdm_set_fpwrst(mpu_pd, cx->mpu_state);
- 
- 		/*
- 		 * Call idle CPU cluster PM enter notifier chain
- 		 * to save GIC and wakeupgen context.
- 		 */
--		if ((cx->mpu_state == PWRDM_POWER_RET) &&
--			(cx->mpu_logic_state == PWRDM_POWER_OFF))
-+		if (cx->mpu_state == PWRDM_FUNC_PWRST_OSWR)
- 				cpu_cluster_pm_enter();
- 	}
- 
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 414083b..be53726 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -58,7 +58,7 @@ void __ref platform_cpu_die(unsigned int cpu)
- 		/*
- 		 * Enter into low power state
- 		 */
--		omap4_hotplug_cpu(cpu, PWRDM_POWER_OFF);
-+		omap4_hotplug_cpu(cpu, PWRDM_FUNC_PWRST_OFF);
- 
- 		if (omap_secure_apis_support())
- 			boot_cpu = omap_read_auxcoreboot0();
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index 637a1bd..f73c0c8 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -86,14 +86,14 @@ static inline void set_cpu_wakeup_addr(unsigned int cpu_id, u32 addr)
- }
- 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 69b36e1..18c21fa 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1,7 +1,7 @@
  /*
-- * Set the CPUx powerdomain's previous power state
-+ * Set the CPUx powerdomain's next functional power state
-  */
- static inline void set_cpu_next_pwrst(unsigned int cpu_id,
- 				unsigned int power_state)
- {
- 	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
+  * OMAP powerdomain control
+  *
+- * Copyright (C) 2007-2008, 2011 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008, 2011-2012 Texas Instruments, Inc.
+  * Copyright (C) 2007-2011 Nokia Corporation
+  *
+  * Written by Paul Walmsley
+@@ -128,14 +128,14 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
  
--	pwrdm_set_next_pwrst(pm_info->pwrdm, power_state);
-+	pwrdm_set_next_fpwrst(pm_info->pwrdm, power_state);
+ 	prev_logic_pwrst = pwrdm_read_prev_logic_pwrst(pwrdm);
+ 	if ((pwrdm->pwrsts_logic_ret == PWRSTS_OFF_RET) &&
+-	    (prev_logic_pwrst == PWRDM_POWER_OFF))
++	    (prev_logic_pwrst == PWRDM_LOGIC_MEM_PWRST_OFF))
+ 		pwrdm->ret_logic_off_counter++;
+ 
+ 	for (i = 0; i < pwrdm->banks; i++) {
+ 		prev_mem_pwrst = pwrdm_read_prev_mem_pwrst(pwrdm, i);
+ 
+ 		if ((pwrdm->pwrsts_mem_ret[i] == PWRSTS_OFF_RET) &&
+-		    (prev_mem_pwrst == PWRDM_POWER_OFF))
++		    (prev_mem_pwrst == PWRDM_LOGIC_MEM_PWRST_OFF))
+ 			pwrdm->ret_mem_off_counter[i]++;
+ 	}
  }
- 
- /*
-@@ -103,7 +103,7 @@ static inline unsigned int read_cpu_prev_pwrst(unsigned int cpu_id)
- {
- 	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu_id);
- 
--	return pwrdm_read_prev_pwrst(pm_info->pwrdm);
-+	return pwrdm_read_prev_fpwrst(pm_info->pwrdm);
- }
- 
- /*
-@@ -125,14 +125,15 @@ static void scu_pwrst_prepare(unsigned int cpu_id, unsigned int cpu_state)
- 	u32 scu_pwr_st;
- 
- 	switch (cpu_state) {
--	case PWRDM_POWER_RET:
-+	case PWRDM_FUNC_PWRST_OSWR:
-+	case PWRDM_FUNC_PWRST_CSWR:
- 		scu_pwr_st = SCU_PM_DORMANT;
- 		break;
--	case PWRDM_POWER_OFF:
-+	case PWRDM_FUNC_PWRST_OFF:
- 		scu_pwr_st = SCU_PM_POWEROFF;
- 		break;
--	case PWRDM_POWER_ON:
--	case PWRDM_POWER_INACTIVE:
-+	case PWRDM_FUNC_PWRST_ON:
-+	case PWRDM_FUNC_PWRST_INACTIVE:
- 	default:
- 		scu_pwr_st = SCU_PM_NORMAL;
- 		break;
-@@ -236,14 +237,15 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 		return -ENXIO;
- 
- 	switch (power_state) {
--	case PWRDM_POWER_ON:
--	case PWRDM_POWER_INACTIVE:
-+	case PWRDM_FUNC_PWRST_ON:
-+	case PWRDM_FUNC_PWRST_INACTIVE:
- 		save_state = 0;
- 		break;
--	case PWRDM_POWER_OFF:
-+	case PWRDM_FUNC_PWRST_OFF:
- 		save_state = 1;
- 		break;
--	case PWRDM_POWER_RET:
-+	case PWRDM_FUNC_PWRST_OSWR:
-+	case PWRDM_FUNC_PWRST_CSWR:
- 	default:
- 		/*
- 		 * CPUx CSWR is invalid hardware state. Also CPUx OSWR
-@@ -259,11 +261,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 
- 	/*
- 	 * Check MPUSS next state and save interrupt controller if needed.
--	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
-+	 * In MPUSS OSWR or device OFF, interrupt controller context is lost.
- 	 */
- 	mpuss_clear_prev_logic_pwrst();
--	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
--		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
-+	if (pwrdm_read_next_fpwrst(mpuss_pd) == PWRDM_FUNC_PWRST_OSWR)
- 		save_state = 2;
- 
- 	cpu_clear_prev_logic_pwrst(cpu);
-@@ -285,7 +286,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	 * domain transition
- 	 */
- 	wakeup_cpu = smp_processor_id();
--	set_cpu_next_pwrst(wakeup_cpu, PWRDM_POWER_ON);
-+	set_cpu_next_pwrst(wakeup_cpu, PWRDM_FUNC_PWRST_ON);
- 
- 	pwrdm_post_transition(NULL);
- 
-@@ -304,7 +305,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		return -ENXIO;
- 
--	if (power_state == PWRDM_POWER_OFF)
-+	if (power_state == PWRDM_FUNC_PWRST_OFF)
- 		cpu_state = 1;
- 
- 	clear_cpu_prev_pwrst(cpu);
-@@ -319,7 +320,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- 	 */
- 	omap4_finish_suspend(cpu_state);
- 
--	set_cpu_next_pwrst(cpu, PWRDM_POWER_ON);
-+	set_cpu_next_pwrst(cpu, PWRDM_FUNC_PWRST_ON);
+@@ -199,6 +199,201 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
  	return 0;
  }
  
-@@ -354,7 +355,7 @@ int __init omap4_mpuss_init(void)
- 	cpu_clear_prev_logic_pwrst(0);
- 
- 	/* Initialise CPU0 power domain state to ON */
--	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-+	pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON);
- 
- 	pm_info = &per_cpu(omap4_pm_info, 0x1);
- 	pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
-@@ -371,7 +372,7 @@ int __init omap4_mpuss_init(void)
- 	cpu_clear_prev_logic_pwrst(1);
- 
- 	/* Initialise CPU1 power domain state to ON */
--	pwrdm_set_next_pwrst(pm_info->pwrdm, PWRDM_POWER_ON);
-+	pwrdm_set_next_fpwrst(pm_info->pwrdm, PWRDM_FUNC_PWRST_ON);
- 
- 	mpuss_pd = pwrdm_lookup("mpu_pwrdm");
- 	if (!mpuss_pd) {
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 2edeffc..f012bb4 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -93,8 +93,7 @@ static int omap2_enter_full_retention(void)
- 	 * Set MPU powerdomain's next power state to RETENTION;
- 	 * preserve logic state during retention
- 	 */
--	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
--	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-+	pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_CSWR);
- 
- 	/* Workaround to kill USB */
- 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
-@@ -248,26 +247,25 @@ static void __init prcm_setup_regs(void)
- 	 */
- 	num_mem_banks = pwrdm_get_mem_bank_count(core_pwrdm);
- 	for (i = 0; i < num_mem_banks; i++)
--		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_POWER_RET);
-+		pwrdm_set_mem_retst(core_pwrdm, i, PWRDM_LOGIC_MEM_PWRST_RET);
- 
- 	/* Set CORE powerdomain's next power state to RETENTION */
--	pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
-+	pwrdm_set_next_fpwrst(core_pwrdm, PWRDM_FUNC_PWRST_CSWR);
- 
- 	/*
- 	 * Set MPU powerdomain's next power state to RETENTION;
- 	 * preserve logic state during retention
- 	 */
--	pwrdm_set_logic_retst(mpu_pwrdm, PWRDM_POWER_RET);
--	pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_RET);
-+	pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_CSWR);
- 
- 	/* Force-power down DSP, GFX powerdomains */
- 
- 	pwrdm = clkdm_get_pwrdm(dsp_clkdm);
--	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
-+	pwrdm_set_next_fpwrst(pwrdm, PWRDM_FUNC_PWRST_OFF);
- 	clkdm_sleep(dsp_clkdm);
- 
- 	pwrdm = clkdm_get_pwrdm(gfx_clkdm);
--	pwrdm_set_next_pwrst(pwrdm, PWRDM_POWER_OFF);
-+	pwrdm_set_next_fpwrst(pwrdm, PWRDM_FUNC_PWRST_OFF);
- 	clkdm_sleep(gfx_clkdm);
- 
- 	/* Enable hardware-supervised idle for all clkdms */
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 05bd8f0..5b6505f 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -111,7 +111,7 @@ static void omap3_core_restore_context(void)
- static void omap3_save_secure_ram_context(void)
- {
- 	u32 ret;
--	int mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
-+	int mpu_next_state = pwrdm_read_next_fpwrst(mpu_pwrdm);
- 
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		/*
-@@ -119,10 +119,10 @@ static void omap3_save_secure_ram_context(void)
- 		 * otherwise the WFI executed inside the ROM code
- 		 * will hang the system.
- 		 */
--		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
-+		pwrdm_set_next_fpwrst(mpu_pwrdm, PWRDM_FUNC_PWRST_ON);
- 		ret = _omap_save_secure_sram((u32 *)
- 				__pa(omap3_secure_ram_storage));
--		pwrdm_set_next_pwrst(mpu_pwrdm, mpu_next_state);
-+		pwrdm_set_next_fpwrst(mpu_pwrdm, mpu_next_state);
- 		/* Following is for error tracking, it should not happen */
- 		if (ret) {
- 			pr_err("save_secure_sram() returns %08x\n", ret);
-@@ -241,21 +241,23 @@ void omap_sram_idle(void)
- 	/* save_state = 2 => Only L2 lost */
- 	/* save_state = 3 => L1, L2 and logic lost */
- 	int save_state = 0;
--	int mpu_next_state = PWRDM_POWER_ON;
--	int per_next_state = PWRDM_POWER_ON;
--	int core_next_state = PWRDM_POWER_ON;
-+	int mpu_next_state = PWRDM_FUNC_PWRST_ON;
-+	int per_next_state = PWRDM_FUNC_PWRST_ON;
-+	int core_next_state = PWRDM_FUNC_PWRST_ON;
- 	int per_going_off;
- 	int core_prev_state;
- 	u32 sdrc_pwr = 0;
- 
--	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
-+	mpu_next_state = pwrdm_read_next_fpwrst(mpu_pwrdm);
- 	switch (mpu_next_state) {
--	case PWRDM_POWER_ON:
--	case PWRDM_POWER_RET:
++/**
++ * Search down then up for a valid state from a list of allowed states.
++ * Used by states conversion functions (_pwrdm_fpwrst_to_*) to look for
++ * allowed power and logic states for a powerdomain.
++ *
++ * @pwrsts: list of allowed states, defined as a bitmask
++ * @pwrst: initial state to be used as a starting point
++ * @min: minimum (i.e. lowest consumption) allowed state
++ * @max: maximum (i.e. highest consumption) allowed state
++ *
++ * Returns the matching allowed state.
++ */
++static inline int _match_pwrst(u32 pwrsts, int pwrst, int min, int max)
++{
++	int found = 1, new_pwrst = pwrst;
++
++	/*
++	 * If the power domain does not allow any state programmation
++	 * return the max state which is always allowed
++	 */
++	if (!pwrsts)
++		return max;
++
++	/*
++	 * Search lower: if the requested state is not supported
++	 * try the lower states, stopping at the minimum allowed
++	 * state
++	 */
++	while (!(pwrsts & (1 << new_pwrst))) {
++		if (new_pwrst <= min) {
++			found = 0;
++			break;
++		}
++		new_pwrst--;
++	}
++
++	/*
++	 * Search higher: if no lower state found fallback to the higher
++	 * states, stopping at the maximum allowed state
++	 */
++	if (!found) {
++		new_pwrst = pwrst;
++		while (!(pwrsts & (1 << new_pwrst))) {
++			if (new_pwrst >= max) {
++				new_pwrst = max;
++				break;
++			}
++			new_pwrst++;
++		}
++	}
++
++	return new_pwrst;
++}
++
++/**
++ * _pwrdm_fpwrst_to_pwrst - Convert functional (i.e. logical) to
++ * internal (i.e. registers) values for the power domains states.
++ * @struct powerdomain * to convert the values for
++ * @fpwrst: functional power state
++ *
++ * Returns the internal power state value for the power domain, or
++ * -EINVAL in case of invalid parameters passed in.
++ */
++static int _pwrdm_fpwrst_to_pwrst(struct powerdomain *pwrdm, u8 fpwrst)
++{
++	int ret;
++
++	if (!pwrdm) {
++		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
++		return -EINVAL;
++	}
++
++	switch (fpwrst) {
++	case PWRDM_FUNC_PWRST_ON:
++		ret = PWRDM_POWER_ON;
++		break;
++	case PWRDM_FUNC_PWRST_INACTIVE:
++		ret = PWRDM_POWER_INACTIVE;
++		break;
++	case PWRDM_FUNC_PWRST_CSWR:
++	case PWRDM_FUNC_PWRST_OSWR:
++		ret = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_OFF:
++		ret = PWRDM_POWER_OFF;
++		break;
++	default:
++		pr_err_ratelimited("%s: powerdomain %s: bad fpwrst %0x\n",
++				   __func__, pwrdm->name, fpwrst);
++		return -EINVAL;
++	}
++
++	ret = _match_pwrst(pwrdm->pwrsts, ret,
++			   PWRDM_POWER_OFF,
++			   PWRDM_POWER_ON);
++
++	pr_debug("powerdomain %s: convert fpwrst %0x to pwrst %0x\n",
++		 pwrdm->name, fpwrst, ret);
++
++	return ret;
++}
++
++/**
++ * _pwrdm_fpwrst_to_logic_pwrst - Convert functional (i.e. logical) to
++ * internal (i.e. registers) values for the power domains logic states.
++ * @struct powerdomain * to convert the values for
++ * @pwrst: functional power state
++ *
++ * Returns the internal logic state value for the power domain, or
++ * -EINVAL in case of invalid parameters passed in.
++ */
++static int _pwrdm_fpwrst_to_logic_pwrst(struct powerdomain *pwrdm, u8 fpwrst)
++{
++	int ret;
++
++	if (!pwrdm) {
++		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
++		return -EINVAL;
++	}
++
++	switch (fpwrst) {
 +	case PWRDM_FUNC_PWRST_ON:
 +	case PWRDM_FUNC_PWRST_INACTIVE:
 +	case PWRDM_FUNC_PWRST_CSWR:
- 		/* No need to save context */
- 		save_state = 0;
- 		break;
--	case PWRDM_POWER_OFF:
++		ret = PWRDM_LOGIC_MEM_PWRST_RET;
++		break;
 +	case PWRDM_FUNC_PWRST_OSWR:
 +	case PWRDM_FUNC_PWRST_OFF:
- 		save_state = 3;
- 		break;
- 	default:
-@@ -265,24 +267,25 @@ void omap_sram_idle(void)
- 	}
++		ret = PWRDM_LOGIC_MEM_PWRST_OFF;
++		break;
++	default:
++		pr_err_ratelimited("%s: powerdomain %s: bad fpwrst %0x\n",
++				   __func__, pwrdm->name, fpwrst);
++		return -EINVAL;
++	}
++
++	ret = _match_pwrst(pwrdm->pwrsts_logic_ret, ret,
++			   PWRDM_LOGIC_MEM_PWRST_OFF,
++			   PWRDM_LOGIC_MEM_PWRST_RET);
++
++	pr_debug("powerdomain %s: convert fpwrst %0x to logic %0x pwrst\n",
++		 pwrdm->name, fpwrst, ret);
++
++	return ret;
++}
++
++/**
++ * _pwrdm_pwrst_to_fpwrst - Convert internal (i.e. registers) to
++ * functional (i.e. logical) values for the power domains states.
++ * @struct powerdomain * to convert the values for
++ * @pwrst: internal power state
++ *
++ * Returns the functional power state value for the power domain, or
++ * -EINVAL in case of invalid parameters passed in.
++ */
++static int _pwrdm_pwrst_to_fpwrst(struct powerdomain *pwrdm, u8 pwrst, u8 logic)
++{
++	int ret;
++
++	if (!pwrdm) {
++		pr_err_ratelimited("%s: NULL pwrdm\n", __func__);
++		return -EINVAL;
++	}
++
++	switch (pwrst) {
++	case PWRDM_POWER_ON:
++		ret = PWRDM_FUNC_PWRST_ON;
++		break;
++	case PWRDM_POWER_INACTIVE:
++		ret = PWRDM_FUNC_PWRST_INACTIVE;
++		break;
++	case PWRDM_POWER_RET:
++		logic = _match_pwrst(pwrdm->pwrsts_logic_ret, logic,
++				     PWRDM_LOGIC_MEM_PWRST_OFF,
++				     PWRDM_LOGIC_MEM_PWRST_RET);
++
++		if (logic == PWRDM_LOGIC_MEM_PWRST_OFF)
++			ret = PWRDM_FUNC_PWRST_OSWR;
++		else
++			ret = PWRDM_FUNC_PWRST_CSWR;
++		break;
++	case PWRDM_POWER_OFF:
++		ret = PWRDM_FUNC_PWRST_OFF;
++		break;
++	default:
++		ret = -EINVAL;
++	}
++
++	pr_debug("powerdomain: convert pwrst (%0x,%0x) to fpwrst %0x\n",
++		 pwrst, logic, ret);
++
++	return ret;
++}
++
++
+ /* Public functions */
  
- 	/* NEON control */
--	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
--		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
-+	if (pwrdm_read_fpwrst(neon_pwrdm) == PWRDM_FUNC_PWRST_ON)
-+		pwrdm_set_next_fpwrst(neon_pwrdm, mpu_next_state);
- 
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
--	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
--	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-+	per_next_state = pwrdm_read_next_fpwrst(per_pwrdm);
-+	core_next_state = pwrdm_read_next_fpwrst(core_pwrdm);
- 
- 	pwrdm_pre_transition(NULL);
- 
- 	/* PER */
--	if (per_next_state < PWRDM_POWER_ON) {
--		per_going_off = (per_next_state == PWRDM_POWER_OFF) ? 1 : 0;
-+	if (per_next_state < PWRDM_FUNC_PWRST_ON) {
-+		per_going_off = (per_next_state == PWRDM_FUNC_PWRST_OFF) ?
-+				1 : 0;
- 		omap2_gpio_prepare_for_idle(per_going_off);
- 	}
- 
- 	/* CORE */
--	if (core_next_state < PWRDM_POWER_ON) {
--		if (core_next_state == PWRDM_POWER_OFF) {
-+	if (core_next_state < PWRDM_FUNC_PWRST_ON) {
-+		if (core_next_state == PWRDM_FUNC_PWRST_OFF) {
- 			omap3_core_save_context();
- 			omap3_cm_save_context();
- 		}
-@@ -299,7 +302,7 @@ void omap_sram_idle(void)
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
- 	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
--	    core_next_state == PWRDM_POWER_OFF)
-+	    core_next_state == PWRDM_FUNC_PWRST_OFF)
- 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
- 
- 	/*
-@@ -318,19 +321,19 @@ void omap_sram_idle(void)
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
- 	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
--	    core_next_state == PWRDM_POWER_OFF)
-+	    core_next_state == PWRDM_FUNC_PWRST_OFF)
- 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
- 
- 	/* CORE */
--	if (core_next_state < PWRDM_POWER_ON) {
--		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
--		if (core_prev_state == PWRDM_POWER_OFF) {
-+	if (core_next_state < PWRDM_FUNC_PWRST_ON) {
-+		core_prev_state = pwrdm_read_prev_fpwrst(core_pwrdm);
-+		if (core_prev_state == PWRDM_FUNC_PWRST_OFF) {
- 			omap3_core_restore_context();
- 			omap3_cm_restore_context();
- 			omap3_sram_restore_context();
- 			omap2_sms_restore_context();
- 		}
--		if (core_next_state == PWRDM_POWER_OFF)
-+		if (core_next_state == PWRDM_FUNC_PWRST_OFF)
- 			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
- 					       OMAP3430_GR_MOD,
- 					       OMAP3_PRM_VOLTCTRL_OFFSET);
-@@ -340,7 +343,7 @@ void omap_sram_idle(void)
- 	pwrdm_post_transition(NULL);
- 
- 	/* PER */
--	if (per_next_state < PWRDM_POWER_ON)
-+	if (per_next_state < PWRDM_FUNC_PWRST_ON)
- 		omap2_gpio_resume_after_idle();
+ /**
+@@ -464,6 +659,111 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm)
+ 	return pwrdm->banks;
  }
  
-@@ -371,10 +374,10 @@ static int omap3_pm_suspend(void)
++/* Types of sleep_switch used in pwrdm_set_fpwrst */
++#define FORCEWAKEUP_SWITCH	0
++#define LOWPOWERSTATE_SWITCH	1
++
++/**
++ * pwrdm_set_fpwrst - program next powerdomain functional power state
++ * @pwrdm: struct powerdomain * to set
++ * @fpwrst: power domain functional state, one of the PWRDM_FUNC_* macros
++ *
++ * This programs the pwrdm next functional state, sets the dependencies
++ * and waits for the state to be applied.
++ */
++int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
++{
++	u8 curr_pwrst, next_fpwrst;
++	int pwrst = _pwrdm_fpwrst_to_pwrst(pwrdm, fpwrst);
++	int logic = _pwrdm_fpwrst_to_logic_pwrst(pwrdm, fpwrst);
++	int sleep_switch = -1, ret = 0, hwsup = 0;
++
++	if (!pwrdm || IS_ERR(pwrdm) || (pwrst < 0) || (logic < 0)) {
++		pr_debug("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
++			 __func__, pwrdm, fpwrst);
++		return -EINVAL;
++	}
++
++	pr_debug("%s: set fpwrst %0x to pwrdm %s\n",
++		 __func__, fpwrst, pwrdm->name);
++
++	next_fpwrst = pwrdm_read_next_fpwrst(pwrdm);
++	if (next_fpwrst == fpwrst)
++		return ret;
++
++	curr_pwrst = pwrdm_read_pwrst(pwrdm);
++	if (curr_pwrst < PWRDM_POWER_ON) {
++		if ((curr_pwrst > pwrst) &&
++			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
++			sleep_switch = LOWPOWERSTATE_SWITCH;
++		} else {
++			hwsup = clkdm_in_hwsup(pwrdm->pwrdm_clkdms[0]);
++			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++			sleep_switch = FORCEWAKEUP_SWITCH;
++		}
++	}
++
++	if (logic != pwrdm_read_logic_retst(pwrdm))
++		pwrdm_set_logic_retst(pwrdm, logic);
++
++	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
++	if (ret)
++		pr_err("%s: unable to set power state of powerdomain: %s\n",
++		       __func__, pwrdm->name);
++
++	switch (sleep_switch) {
++	case FORCEWAKEUP_SWITCH:
++		if (hwsup)
++			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		else
++			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
++		break;
++	case LOWPOWERSTATE_SWITCH:
++		pwrdm_set_lowpwrstchange(pwrdm);
++		pwrdm_wait_transition(pwrdm);
++		pwrdm_state_switch(pwrdm);
++		break;
++	}
++
++	return ret;
++}
++
++/**
++ * pwrdm_set_next_fpwrst - set next powerdomain functional power state
++ * @pwrdm: struct powerdomain * to set
++ * @fpwrst: power domain functional state, one of the PWRDM_FUNC_* macros
++ *
++ * This programs the pwrdm next functional state
++ */
++int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm,
++			  enum pwrdm_func_state fpwrst)
++{
++	int pwrst = _pwrdm_fpwrst_to_pwrst(pwrdm, fpwrst);
++	int logic = _pwrdm_fpwrst_to_logic_pwrst(pwrdm, fpwrst);
++	int ret = 0;
++
++	if (!pwrdm || IS_ERR(pwrdm) || (pwrst < 0) || (logic < 0)) {
++		pr_debug("%s: invalid params: pwrdm=%p, fpwrst=%0x\n",
++			 __func__, pwrdm, fpwrst);
++		return -EINVAL;
++	}
++
++	pr_debug("%s: set fpwrst %0x to pwrdm %s\n",
++		 __func__, fpwrst, pwrdm->name);
++
++	ret = pwrdm_set_logic_retst(pwrdm, logic);
++	if (ret)
++		pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
++		       __func__, logic, pwrdm->name);
++
++	ret = pwrdm_set_next_pwrst(pwrdm, pwrst);
++	if (ret)
++		pr_err("%s: unable to set power state %0x of powerdomain: %s\n",
++		       __func__, pwrst, pwrdm->name);
++
++	return ret;
++};
++
+ /**
+  * pwrdm_set_next_pwrst - set next powerdomain power state
+  * @pwrdm: struct powerdomain * to set
+@@ -482,6 +782,13 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+ 	if (!pwrdm)
+ 		return -EINVAL;
  
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
--		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-+		pwrst->saved_state = pwrdm_read_next_fpwrst(pwrst->pwrdm);
- 	/* Set ones wanted by suspend */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		if (omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
-+		if (pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state))
- 			goto restore;
- 		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
- 			goto restore;
-@@ -387,14 +390,14 @@ static int omap3_pm_suspend(void)
- restore:
- 	/* Restore next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
-+		state = pwrdm_read_prev_fpwrst(pwrst->pwrdm);
- 		if (state > pwrst->next_state) {
- 			pr_info("Powerdomain (%s) didn't enter "
- 				"target state %d\n",
- 			       pwrst->pwrdm->name, pwrst->next_state);
- 			ret = -1;
- 		}
--		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
-+		pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->saved_state);
- 	}
- 	if (ret)
- 		pr_err("Could not enter target state in pm_suspend\n");
-@@ -566,21 +569,21 @@ void omap3_pm_off_mode_enable(int enable)
- 	u32 state;
++	/*
++	 * Do nothing in case the power domain does not have any
++	 * valid state, e.g. DPLL domains.
++	 */
++	if (!pwrdm->pwrsts)
++		return 0;
++
+ 	if (!(pwrdm->pwrsts & (1 << pwrst)))
+ 		return -EINVAL;
  
- 	if (enable)
--		state = PWRDM_POWER_OFF;
-+		state = PWRDM_FUNC_PWRST_OFF;
- 	else
--		state = PWRDM_POWER_RET;
-+		state = PWRDM_FUNC_PWRST_CSWR;
- 
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583) &&
- 				pwrst->pwrdm == core_pwrdm &&
--				state == PWRDM_POWER_OFF) {
--			pwrst->next_state = PWRDM_POWER_RET;
-+				state == PWRDM_FUNC_PWRST_OFF) {
-+			pwrst->next_state = PWRDM_FUNC_PWRST_CSWR;
- 			pr_warn("%s: Core OFF disabled due to errata i583\n",
- 				__func__);
- 		} else {
- 			pwrst->next_state = state;
- 		}
--		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+		pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state);
- 	}
- }
- 
-@@ -619,13 +622,13 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!pwrst)
- 		return -ENOMEM;
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
-+	pwrst->next_state = PWRDM_FUNC_PWRST_CSWR;
- 	list_add(&pwrst->node, &pwrst_list);
- 
- 	if (pwrdm_has_hdwr_sar(pwrdm))
- 		pwrdm_enable_hdwr_sar(pwrdm);
- 
--	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+	return pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state);
- }
- 
- /*
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index ea24174..6a38ef5 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -28,7 +28,6 @@ struct power_state {
- 	u32 next_state;
- #ifdef CONFIG_SUSPEND
- 	u32 saved_state;
--	u32 saved_logic_state;
- #endif
- 	struct list_head node;
- };
-@@ -43,16 +42,12 @@ static int omap4_pm_suspend(void)
- 	u32 cpu_id = smp_processor_id();
- 
- 	/* Save current powerdomain state */
--	list_for_each_entry(pwrst, &pwrst_list, node) {
--		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
--		pwrst->saved_logic_state = pwrdm_read_logic_retst(pwrst->pwrdm);
--	}
-+	list_for_each_entry(pwrst, &pwrst_list, node)
-+		pwrst->saved_state = pwrdm_read_next_fpwrst(pwrst->pwrdm);
- 
- 	/* Set targeted power domain states by suspend */
--	list_for_each_entry(pwrst, &pwrst_list, node) {
--		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
--		pwrdm_set_logic_retst(pwrst->pwrdm, PWRDM_POWER_OFF);
--	}
-+	list_for_each_entry(pwrst, &pwrst_list, node)
-+		pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state);
- 
- 	/*
- 	 * For MPUSS to hit power domain retention(CSWR or OSWR),
-@@ -63,19 +58,18 @@ static int omap4_pm_suspend(void)
- 	 * domain CSWR is not supported by hardware.
- 	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
- 	 */
--	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
-+	omap4_enter_lowpower(cpu_id, PWRDM_FUNC_PWRST_OFF);
- 
- 	/* Restore next powerdomain state */
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
--		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
-+		state = pwrdm_read_prev_fpwrst(pwrst->pwrdm);
- 		if (state > pwrst->next_state) {
- 			pr_info("Powerdomain (%s) didn't enter "
- 			       "target state %d\n",
- 			       pwrst->pwrdm->name, pwrst->next_state);
- 			ret = -1;
- 		}
--		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
--		pwrdm_set_logic_retst(pwrst->pwrdm, pwrst->saved_logic_state);
-+		pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->saved_state);
- 	}
- 	if (ret)
- 		pr_crit("Could not enter target state in pm_suspend\n");
-@@ -113,10 +107,10 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 		return -ENOMEM;
- 
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
-+	pwrst->next_state = PWRDM_FUNC_PWRST_CSWR;
- 	list_add(&pwrst->node, &pwrst_list);
- 
--	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-+	return pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state);
+@@ -521,6 +828,22 @@ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
  }
  
  /**
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index f4b219f..82ae9e9 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -481,7 +481,7 @@ int pwrdm_complete_init(void)
- 		return -EACCES;
- 
- 	list_for_each_entry(temp_p, &pwrdm_list, node)
--		pwrdm_set_next_pwrst(temp_p, PWRDM_POWER_ON);
-+		pwrdm_set_next_fpwrst(temp_p, PWRDM_FUNC_PWRST_ON);
- 
- 	return 0;
++ * pwrdm_read_next_fpwrst - get next powerdomain functional power state
++ * @pwrdm: struct powerdomain * to get power state
++ *
++ * Return the powerdomain @pwrdm's next functional power state.
++ * Returns -EINVAL if the powerdomain pointer is null or returns
++ * the next power state upon success.
++ */
++int pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
++{
++	int next_pwrst = pwrdm_read_next_pwrst(pwrdm);
++	int next_logic = pwrdm_read_logic_retst(pwrdm);
++
++	return _pwrdm_pwrst_to_fpwrst(pwrdm, next_pwrst, next_logic);
++}
++
++/**
+  * pwrdm_read_pwrst - get current powerdomain power state
+  * @pwrdm: struct powerdomain * to get power state
+  *
+@@ -546,6 +869,22 @@ int pwrdm_read_pwrst(struct powerdomain *pwrdm)
  }
+ 
+ /**
++ * pwrdm_read_fpwrst - get current powerdomain functional power state
++ * @pwrdm: struct powerdomain * to get power state
++ *
++ * Return the powerdomain @pwrdm's current functional power state.
++ * Returns -EINVAL if the powerdomain pointer is null or returns
++ * the current power state upon success.
++ */
++int pwrdm_read_fpwrst(struct powerdomain *pwrdm)
++{
++	int pwrst = pwrdm_read_pwrst(pwrdm);
++	int logic = pwrdm_read_logic_pwrst(pwrdm);
++
++	return _pwrdm_pwrst_to_fpwrst(pwrdm, pwrst, logic);
++}
++
++/**
+  * pwrdm_read_prev_pwrst - get previous powerdomain power state
+  * @pwrdm: struct powerdomain * to get previous power state
+  *
+@@ -567,9 +906,25 @@ int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
+ }
+ 
+ /**
++ * pwrdm_read_prev_fpwrst - get previous powerdomain functional power state
++ * @pwrdm: struct powerdomain * to get previous power state
++ *
++ * Return the powerdomain @pwrdm's previous functional power state.
++ * Returns -EINVAL if the powerdomain pointer is null or returns the
++ * previous power state upon success.
++ */
++int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm)
++{
++	int prev_pwrst = pwrdm_read_prev_pwrst(pwrdm);
++	int prev_logic = pwrdm_read_prev_logic_pwrst(pwrdm);
++
++	return _pwrdm_pwrst_to_fpwrst(pwrdm, prev_pwrst, prev_logic);
++}
++
++/**
+  * pwrdm_set_logic_retst - set powerdomain logic power state upon retention
+  * @pwrdm: struct powerdomain * to set
+- * @pwrst: one of the PWRDM_POWER_* macros
++ * @pwrst: one of the PWRDM_LOGIC_MEM_PWRST_* macros
+  *
+  * Set the next power state @pwrst that the logic portion of the
+  * powerdomain @pwrdm will enter when the powerdomain enters retention.
+@@ -584,6 +939,13 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+ 	if (!pwrdm)
+ 		return -EINVAL;
+ 
++	/*
++	 * Do nothing in case the power domain does not have any
++	 * valid state, e.g. DPLL domains.
++	 */
++	if (!pwrdm->pwrsts_logic_ret)
++		return 0;
++
+ 	if (!(pwrdm->pwrsts_logic_ret & (1 << pwrst)))
+ 		return -EINVAL;
+ 
+@@ -600,7 +962,7 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
+  * pwrdm_set_mem_onst - set memory power state while powerdomain ON
+  * @pwrdm: struct powerdomain * to set
+  * @bank: memory bank number to set (0-3)
+- * @pwrst: one of the PWRDM_POWER_* macros
++ * @pwrst: one of the PWRDM_LOGIC_MEM_PWRST_* macros
+  *
+  * Set the next power state @pwrst that memory bank @bank of the
+  * powerdomain @pwrdm will enter when the powerdomain enters the ON
+@@ -637,7 +999,7 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
+  * pwrdm_set_mem_retst - set memory power state while powerdomain in RET
+  * @pwrdm: struct powerdomain * to set
+  * @bank: memory bank number to set (0-3)
+- * @pwrst: one of the PWRDM_POWER_* macros
++ * @pwrst: one of the PWRDM_LOGIC_MEM_PWRST_* macros
+  *
+  * Set the next power state @pwrst that memory bank @bank of the
+  * powerdomain @pwrdm will enter when the powerdomain enters the
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index baee906..aa5de4f 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -1,7 +1,7 @@
+ /*
+  * OMAP2/3/4 powerdomain control
+  *
+- * Copyright (C) 2007-2008, 2010 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008, 2010, 2012 Texas Instruments, Inc.
+  * Copyright (C) 2007-2011 Nokia Corporation
+  *
+  * Paul Walmsley
+@@ -9,9 +9,6 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+- *
+- * XXX This should be moved to the mach-omap2/ directory at the earliest
+- * opportunity.
+  */
+ 
+ #ifndef __ARCH_ARM_MACH_OMAP2_POWERDOMAIN_H
+@@ -26,6 +23,26 @@
+ 
+ #include "voltage.h"
+ 
++/* Powerdomain functional power states, used by the external API functions */
++enum pwrdm_func_state {
++	PWRDM_FUNC_PWRST_OFF		= 0x0,
++	PWRDM_FUNC_PWRST_OSWR,
++	PWRDM_FUNC_PWRST_CSWR,
++	PWRDM_FUNC_PWRST_INACTIVE,
++	PWRDM_FUNC_PWRST_ON,
++	PWRDM_MAX_FUNC_PWRSTS		/* Last value, used as the max value */
++};
++
++/*
++ * Powerdomains logic and memory functional power states,
++ * used by the external API functions
++ */
++enum pwrdm_logic_mem_state {
++	PWRDM_LOGIC_MEM_PWRST_OFF	= 0x0,
++	PWRDM_LOGIC_MEM_PWRST_RET,
++	PWRDM_MAX_LOGIC_MEM_PWRST	/* Last value, used as the max value */
++};
++
+ /* Powerdomain basic power states */
+ #define PWRDM_POWER_OFF		0x0
+ #define PWRDM_POWER_RET		0x1
+@@ -206,6 +223,13 @@ struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+ 
+ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+ 
++int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst);
++int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm,
++			  enum pwrdm_func_state fpwrst);
++int pwrdm_read_prev_fpwrst(struct powerdomain *pwrdm);
++int pwrdm_read_fpwrst(struct powerdomain *pwrdm);
++int pwrdm_read_next_fpwrst(struct powerdomain *pwrdm);
++
+ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
+ int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
+ int pwrdm_read_pwrst(struct powerdomain *pwrdm);
 -- 
 1.7.7.6
 
