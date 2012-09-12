@@ -1,71 +1,40 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: [PATCH] ARM: OMAP: counter: add locking to read_persistent_clock
-Date: Wed, 12 Sep 2012 11:23:02 +0530
-Message-ID: <1347429182-10956-1-git-send-email-r.sricharan@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: TEMP: Round of the carve out memory
+ requested to section_size
+Date: Wed, 12 Sep 2012 11:28:22 +0530
+Message-ID: <CAMQu2gxaamzm8i=ZcCU+99NnA6dDgi6H0GJwVtSmYWjPcyk5WQ@mail.gmail.com>
+References: <1347429117-10919-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41139 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab2ILFxR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 01:53:17 -0400
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:48941 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751115Ab2ILF6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 01:58:48 -0400
+Received: by weyx10 with SMTP id x10so698537wey.1
+        for <linux-omap@vger.kernel.org>; Tue, 11 Sep 2012 22:58:46 -0700 (PDT)
+In-Reply-To: <1347429117-10919-1-git-send-email-r.sricharan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com, Colin Cross <ccross@android.com>
+To: R Sricharan <r.sricharan@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Colin Cross <ccross@android.com>
+On Wed, Sep 12, 2012 at 11:21 AM, R Sricharan <r.sricharan@ti.com> wrote:
+> memblock_steal tries to reserve physical memory during boot.
+> When the requested size is not aligned on the section size
+> then, the remaining memory available for lowmem becomes
+> unaligned on the section boundary. There is a issue with this,
+> which is discussed in the thread below.
+>
+> https://lkml.org/lkml/2012/6/28/112
+>
+> The final conclusion from the thread seems to
+> be align the memblock_steal calls on the SECTION boundary.
+>
+> Signed-off-by: R Sricharan <r.sricharan@ti.com>
+Why is the TEMP in the subject line. From patch it doesn't be
+temporary version. Can you please clarify that ?
 
-read_persistent_clock uses a global variable, use a spinlock to
-ensure non-atomic updates to the variable don't overlap and cause
-time to move backwards.
-
-Signed-off-by: Colin Cross <ccross@android.com>
----
- arch/arm/plat-omap/counter_32k.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index dbf1e03..2bc51fb 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -55,22 +55,29 @@ static u32 notrace omap_32k_read_sched_clock(void)
-  * nsecs and adds to a monotonically increasing timespec.
-  */
- static struct timespec persistent_ts;
--static cycles_t cycles, last_cycles;
-+static cycles_t cycles;
- static unsigned int persistent_mult, persistent_shift;
-+static DEFINE_SPINLOCK(read_persistent_clock_lock);
-+
- static void omap_read_persistent_clock(struct timespec *ts)
- {
- 	unsigned long long nsecs;
--	cycles_t delta;
--	struct timespec *tsp = &persistent_ts;
-+	cycles_t last_cycles;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&read_persistent_clock_lock, flags);
- 
- 	last_cycles = cycles;
- 	cycles = sync32k_cnt_reg ? __raw_readl(sync32k_cnt_reg) : 0;
--	delta = cycles - last_cycles;
- 
--	nsecs = clocksource_cyc2ns(delta, persistent_mult, persistent_shift);
-+	nsecs = clocksource_cyc2ns(cycles - last_cycles,
-+					persistent_mult, persistent_shift);
-+
-+	timespec_add_ns(&persistent_ts, nsecs);
-+
-+	*ts = persistent_ts;
- 
--	timespec_add_ns(tsp, nsecs);
--	*ts = *tsp;
-+	spin_unlock_irqrestore(&read_persistent_clock_lock, flags);
- }
- 
- /**
--- 
-1.7.9.5
-
+Regards
+Santosh
