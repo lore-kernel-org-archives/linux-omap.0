@@ -1,117 +1,67 @@
-From: Roger Quadros <rogerq@ti.com>
-Subject: [PATCH] perf: Use raw_smp_processor_id insted of smp_processor_id
-Date: Wed, 12 Sep 2012 14:50:10 +0300
-Message-ID: <1347450610-4342-1-git-send-email-rogerq@ti.com>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCHv7 20/23] i2c: omap: switch to threaded IRQ support
+Date: Wed, 12 Sep 2012 13:51:43 +0200
+Message-ID: <20120912115143.GE2624@pengutronix.de>
+References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
+ <1347356538-23835-21-git-send-email-shubhrajyoti@ti.com>
+ <20120911215112.GA27031@pengutronix.de>
+ <50502AE3.7040300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52067 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737Ab2ILLuv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Sep 2012 07:50:51 -0400
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39389 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab2ILLvr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 07:51:47 -0400
+Content-Disposition: inline
+In-Reply-To: <50502AE3.7040300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: jean.pihet@newoldbits.com, sboyd@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Roger Quadros <rogerq@ti.com>
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
 
-gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
 
-[   28.832916] debug_smp_processor_id: 18 callbacks suppressed
-[   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
-[   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
+--ZInfyf7laFu/Kiw7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tested with perf on OMAP4 Panda.
+On Wed, Sep 12, 2012 at 11:55:39AM +0530, Shubhrajyoti wrote:
+> On Wednesday 12 September 2012 03:21 AM, Wolfram Sang wrote:
+> >> -omap_i2c_isr(int this_irq, void *dev_id)
+> >> > +omap_i2c_isr(int irq, void *dev_id)
+> >> >  {
+> >> >  	struct omap_i2c_dev *dev =3D dev_id;
+> >> > +	irqreturn_t ret =3D IRQ_HANDLED;
+> > Shouldn't that be IRQ_NONE?
+> Actually we are processing it so I thought it to be ok.
 
-Signed-off-by: Roger Quadros <rogerq@ti.com>
----
- arch/arm/mach-omap2/clock.c       |    6 +++---
- arch/arm/mach-omap2/pm34xx.c      |   11 +++++++----
- arch/arm/mach-omap2/powerdomain.c |    4 ++--
- 3 files changed, 12 insertions(+), 9 deletions(-)
+Are we processing it? There is nothing acknowledged AFAICS. Anyway, we
+can fix that with a later patch.
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index ea3f565..2765acd 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -285,7 +285,7 @@ void omap2_clk_disable(struct clk *clk)
- 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
- 
- 	if (clk->ops && clk->ops->disable) {
--		trace_clock_disable(clk->name, 0, smp_processor_id());
-+		trace_clock_disable(clk->name, 0, raw_smp_processor_id());
- 		clk->ops->disable(clk);
- 	}
- 
-@@ -339,7 +339,7 @@ int omap2_clk_enable(struct clk *clk)
- 	}
- 
- 	if (clk->ops && clk->ops->enable) {
--		trace_clock_enable(clk->name, 1, smp_processor_id());
-+		trace_clock_enable(clk->name, 1, raw_smp_processor_id());
- 		ret = clk->ops->enable(clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable: %d\n",
-@@ -380,7 +380,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
- 	if (clk->set_rate) {
--		trace_clock_set_rate(clk->name, rate, smp_processor_id());
-+		trace_clock_set_rate(clk->name, rate, raw_smp_processor_id());
- 		ret = clk->set_rate(clk, rate);
- 	}
- 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 05bd8f0..d384068 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -346,18 +346,21 @@ void omap_sram_idle(void)
- 
- static void omap3_pm_idle(void)
- {
-+	int cpu;
-+
- 	local_fiq_disable();
- 
- 	if (omap_irq_pending())
- 		goto out;
- 
--	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
--	trace_cpu_idle(1, smp_processor_id());
-+	cpu = raw_smp_processor_id();
-+	trace_power_start(POWER_CSTATE, 1, cpu);
-+	trace_cpu_idle(1, cpu);
- 
- 	omap_sram_idle();
- 
--	trace_power_end(smp_processor_id());
--	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-+	trace_power_end(cpu);
-+	trace_cpu_idle(PWR_EVENT_EXIT, cpu);
- 
- out:
- 	local_fiq_enable();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 69b36e1..f1d0d69 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -169,7 +169,7 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 				       ((state & OMAP_POWERSTATE_MASK) << 8) |
- 				       ((prev & OMAP_POWERSTATE_MASK) << 0));
- 			trace_power_domain_target(pwrdm->name, trace_state,
--						  smp_processor_id());
-+						  raw_smp_processor_id());
- 		}
- 		break;
- 	default:
-@@ -491,7 +491,7 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
- 		/* Trace the pwrdm desired target state */
- 		trace_power_domain_target(pwrdm->name, pwrst,
--					  smp_processor_id());
-+					  raw_smp_processor_id());
- 		/* Program the pwrdm desired target state */
- 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
- 	}
--- 
-1.7.4.1
+> Also a similar discussion.
+> =20
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/104422.ht=
+ml
 
+I totally agree to the things said there.
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--ZInfyf7laFu/Kiw7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAlBQd08ACgkQD27XaX1/VRsWQgCgxO98etvzzFtFQetYwTMH8OMM
+5HUAoMRAVircBmhF35JsTKZuHh/9jaR9
+=Rl0M
+-----END PGP SIGNATURE-----
+
+--ZInfyf7laFu/Kiw7--
