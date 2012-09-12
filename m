@@ -1,92 +1,51 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 08/11] ASoC: OMAP: mcbsp, mcpdm, dmic: Let omap-pcm to pick the dma_type
-Date: Wed, 12 Sep 2012 14:47:04 +0300
-Message-ID: <1347450427-27627-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 01/11] dmaengine: omap: Support for element
+	mode in cyclic DMA
+Date: Wed, 12 Sep 2012 14:46:57 +0300
+Message-ID: <1347450427-27627-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1347450427-27627-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1347450427-27627-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
+Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-omap-pcm can figure out the correct dma_type based on the stream's format.
-In this way we can get rid of the plat/dma.h include from these drivers.
+When src_maxburst/dst_maxburst is set to 0 by the users of cyclic DMA
+(mostly audio) indicates that we should configure the omap DMA to element
+sync mode instead of packet mode.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/omap-dmic.c  | 2 --
- sound/soc/omap/omap-mcbsp.c | 3 ---
- sound/soc/omap/omap-mcpdm.c | 3 ---
- 3 files changed, 8 deletions(-)
+ drivers/dma/omap-dma.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 60b7b8c..df0ff24 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -33,7 +33,6 @@
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- #include <linux/of_device.h>
--#include <plat/dma.h>
- 
- #include <sound/core.h>
- #include <sound/pcm.h>
-@@ -63,7 +62,6 @@ struct omap_dmic {
-  */
- static struct omap_pcm_dma_data omap_dmic_dai_dma_params = {
- 	.name		= "DMIC capture",
--	.data_type	= OMAP_DMA_DATA_TYPE_S32,
- };
- 
- static inline void omap_dmic_write(struct omap_dmic *dmic, u16 reg, u32 val)
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 5b3bacc..a230646 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -34,7 +34,6 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- 
--#include <plat/dma.h>
- #include <plat/mcbsp.h>
- #include "mcbsp.h"
- #include "omap-mcbsp.h"
-@@ -234,11 +233,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 
- 	switch (params_format(params)) {
- 	case SNDRV_PCM_FORMAT_S16_LE:
--		dma_data->data_type = OMAP_DMA_DATA_TYPE_S16;
- 		wlen = 16;
- 		break;
- 	case SNDRV_PCM_FORMAT_S32_LE:
--		dma_data->data_type = OMAP_DMA_DATA_TYPE_S32;
- 		wlen = 32;
- 		break;
- 	default:
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index 36648e0..c1b4935 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -40,7 +40,6 @@
- #include <sound/pcm_params.h>
- #include <sound/soc.h>
- 
--#include <plat/dma.h>
- #include "omap-mcpdm.h"
- #include "omap-pcm.h"
- 
-@@ -70,11 +69,9 @@ struct omap_mcpdm {
- static struct omap_pcm_dma_data omap_mcpdm_dai_dma_params[] = {
- 	{
- 		.name = "Audio playback",
--		.data_type = OMAP_DMA_DATA_TYPE_S32,
- 	},
- 	{
- 		.name = "Audio capture",
--		.data_type = OMAP_DMA_DATA_TYPE_S32,
- 	},
- };
- 
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index ae05618..b77a40d 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -413,7 +413,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 	d->dev_addr = dev_addr;
+ 	d->fi = burst;
+ 	d->es = es;
+-	d->sync_mode = OMAP_DMA_SYNC_PACKET;
++	if (burst)
++		d->sync_mode = OMAP_DMA_SYNC_PACKET;
++	else
++		d->sync_mode = OMAP_DMA_SYNC_ELEMENT;
+ 	d->sync_type = sync_type;
+ 	d->periph_port = OMAP_DMA_PORT_MPUI;
+ 	d->sg[0].addr = buf_addr;
 -- 
 1.7.12
