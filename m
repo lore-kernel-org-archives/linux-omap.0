@@ -1,74 +1,122 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 09/22] i2c: omap: switch over to do {} while loop
-Date: Wed, 12 Sep 2012 16:28:03 +0530
-Message-ID: <1347447496-16793-10-git-send-email-shubhrajyoti@ti.com>
-References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
+Date: Wed, 12 Sep 2012 11:41:33 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA80426@DBDE01.ent.ti.com>
+References: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
+ <CANrkHUYtxKEfL8QUA2e5vGJ-LSJLCNX+hmBm1hqFJ439asUefw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1347447496-16793-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42526 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752157Ab2ILLlq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 07:41:46 -0400
+In-Reply-To: <CANrkHUYtxKEfL8QUA2e5vGJ-LSJLCNX+hmBm1hqFJ439asUefw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "cjb@laptop.org" <cjb@laptop.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+On Wed, Sep 12, 2012 at 14:51:34, Krishnamoorthy, Balaji T wrote:
+> On Tue, Sep 4, 2012 at 6:39 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
+> > HSMMC IP on AM33xx need a special setting to handle High-speed cards.
+> > Other platforms like TI81xx, OMAP4 may need this as-well. This depends
+> > on the HSMMC IP timing closure done for the high speed cards.
+> >
+> > From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
+> >
+> > The MMC/SD/SDIO output signals can be driven on either falling edge or
+> > rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
+> > to reach better timing performance, and thus to increase data transfer
+> > frequency.
+> 
+> Is this specific to some boards or all board with TI81xx ?
+> What is the side-effect if not done ?
 
-this will make sure that we execute at least once.
-No functional changes otherwise.
+Platforms like (AM335x) needed this bit to be set in order to sustain high
+speed transfers. This was concluded after HSMMC IP timing closure was 
+completed for High speed Cards. 
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+This was confirmed on high speed cards with very low setup/hold delay (in the 
+order of nsec) was tested. For AM335x, this bit was to be set to meet setup 
+requirement and hold requirement for MMC/SD HS cards.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2c7d7cc..4045134 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -827,20 +827,28 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	struct omap_i2c_dev *dev = dev_id;
- 	u16 bits;
- 	u16 stat;
--	int err, count = 0;
-+	int err = 0, count = 0;
- 
- 	if (pm_runtime_suspended(dev->dev))
- 		return IRQ_NONE;
- 
--	bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
-+	do {
-+		bits = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+		stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+		stat &= bits;
-+
-+		if (!stat) {
-+			/* my work here is done */
-+			return IRQ_HANDLED;
-+		}
-+
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			break;
-+			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
- 		}
- 
--		err = 0;
- complete:
- 		/*
- 		 * Ack the stat in one go, but [R/X]DR and [R/X]RDY should be
-@@ -940,7 +948,7 @@ complete:
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
- 		}
--	}
-+	} while (stat);
- 
- 	return count ? IRQ_HANDLED : IRQ_NONE;
- }
--- 
-1.7.5.4
+> 
+> >
+> > There are few pre-requisites for enabling the HSPE bit
+> > - Controller should support High-Speed-Enable Bit and
+> > - Controller should not be using DDR Mode and
+> > - Controller should advertise that it supports High Speed in
+> >   capabilities register and
+> > - MMC/SD clock coming out of controller > 25MHz
+> >
+> > Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
+> > ---
+> > :100644 100644 be76a23... ed271fc... M  Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> > :100644 100644 eb3e4d5... 00c658b... M  arch/arm/plat-omap/include/plat/mmc.h
+> > :100644 100644 c3e96a2... 0e14834... M  drivers/mmc/host/omap_hsmmc.c
+
+..snip..
+..snip..
+..snip..
+
+> >
+> > +       /*
+> > +        * Enable High-Speed Support
+> > +        * Pre-Requisites
+> > +        *      - Controller should support High-Speed-Enable Bit
+> > +        *      - Controller should not be using DDR Mode
+> > +        *      - Controller should advertise that it supports High Speed
+> > +        *        in capabilities register
+> > +        *      - MMC/SD clock coming out of controller > 25MHz
+> > +        */
+> > +       if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
+> > +           (ios->timing != MMC_TIMING_UHS_DDR50) &&
+> > +           ((OMAP_HSMMC_READ(host->base, CAPA) & HSS) == HSS)) {
+> > +               regval = OMAP_HSMMC_READ(host->base, HCTL);
+> > +               if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
+> 
+> I think clkdiv is not needed
+> clk_get_rate(host->fclk)/clkdiv is same as ios->clock
+
+There are chances that the platform is not supporting Clock output from HSMMC
+IP greater than 25 MHz even if the card is High Speed. So it would be better 
+to check host->fclk than ios->clock. 
+
+Kindly correct me if I am wrong.
+
+> 
+> > +                       regval |= HSPE;
+> > +               else
+> > +                       regval &= ~HSPE;
+> > +
+> > +               OMAP_HSMMC_WRITE(host->base, HCTL, regval);
+> > +       }
+> > +
+> >         omap_hsmmc_start_clock(host);
+> >  }
+> >
+> > @@ -1701,6 +1726,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
+> >         if (of_find_property(np, "ti,needs-special-reset", NULL))
+> >                 pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
+> >
+> > +       if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
+> > +               pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
+> > +
+> >         return pdata;
+> >  }
+> >  #else
+> > --
+> > 1.7.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+Regards, 
+Gururaja
