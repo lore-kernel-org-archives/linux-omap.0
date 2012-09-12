@@ -1,52 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] perf: Use raw_smp_processor_id insted of
-	smp_processor_id
-Date: Wed, 12 Sep 2012 13:05:11 +0100
-Message-ID: <20120912120511.GD28448@n2100.arm.linux.org.uk>
-References: <1347450610-4342-1-git-send-email-rogerq@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [balbi-usb:merge-result-for-greg 66/99]
+ drivers/usb/core/hub.c:2654 usb_get_hub_port_power_state() error: doing dma
+ on the stack ((null))
+Date: Wed, 12 Sep 2012 15:02:13 +0300
+Message-ID: <20120912120211.GC5732@arwen.pp.htv.fi>
+References: <20120912082622.GB27847@localhost>
+ <20120912085057.GC19396@mwanda>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59364 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757637Ab2ILMG0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 08:06:26 -0400
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2/5bycvrmDh4d1IB"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1347450610-4342-1-git-send-email-rogerq@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20120912085057.GC19396@mwanda>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <rogerq@ti.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, sboyd@codeaurora.org, jean.pihet@newoldbits.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 12, 2012 at 02:50:10PM +0300, Roger Quadros wrote:
-> gets rid of below messages with CONFIG_DEBUG_PREEMPT enabled
-> 
-> [   28.832916] debug_smp_processor_id: 18 callbacks suppressed
-> [   28.832946] BUG: using smp_processor_id() in preemptible [00000000] code: modprobe/1763
-> [   28.841491] caller is pwrdm_set_next_pwrst+0x54/0x120
-> 
-> Tested with perf on OMAP4 Panda.
 
-NAK.  Using a different function which doesn't have the warning isn't a
-subsitute for fixing the problem properly.  What you're doing is papering
-over the bug, making the warning go away without properly understanding
-the problem.
+--2/5bycvrmDh4d1IB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The warning is there because something is being done wrong.  What that is
-is exactly what is being said in the warning message.  You're getting a
-CPU number in a context where preemptions can occur - and therefore the
-CPU that you're running on can change.
+Hi,
 
-Think about this sequence:
+On Wed, Sep 12, 2012 at 11:50:57AM +0300, Dan Carpenter wrote:
+> On Wed, Sep 12, 2012 at 04:26:22PM +0800, Fengguang Wu wrote:
+> > Hi Felipe,
+> >=20
+> > FYI, there are new smatch warnings show up in
+> >=20
+> > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/balbi/usb.git mer=
+ge-result-for-greg
+> > head:   23953bde3e4d6aa8780dc054f6ad9882ac63f4f4
+> > commit: e918fa161f510136fce45a524e934fe20e62c8b1 [66/99] Merge tag 'gad=
+get-for-v3.7' into merge-result-for-greg
+> >=20
+> > drivers/usb/core/hub.c:2654 usb_get_hub_port_power_state() error: doing=
+ dma on the stack ((null))
 
-	- cpu = smp_processor_id(); /* returns 0 */
-	- you are preempted
-	- you resume on CPU 1
-	- trace_clock_disable(clk->name, 0, 0);
+that's not part of what I handle :-(
 
-If trace_clock_disable() uses the CPU number to access per-CPU data
-without locking, that's going to cause corruption.
+And merge-result-for-greg was really a temporary branch, btw :-)
 
-Please, if you're going to fix a warning, analyse it properly first and
-don't just search for a function which appears to give you the same
-functionality but without the warning message.
+--=20
+balbi
+
+--2/5bycvrmDh4d1IB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQUHnDAAoJEIaOsuA1yqREruAP/AsJlTd7qHyhoNPhOJCUDgLv
+8K6rAjorAyFXw+Nmlw2aoN+XAAfXRyOAeb5j0e1DIAbA2V2xiRqitsbLhsDuHqgo
+fms2BKfGtaSUZ41l+qnxuBxv/pA2reoYbhYJZW1XzDNZa9xdMnCt4OTi8ZMNVzj4
+kQ7XnkWmvVPfC4yrwlBtVX5px5VDUMTqojAsnfqs5ZyjE1upC0Tcf0T6apjs1iGJ
+1wbXw4j8m/kaTW5dojOWZ7sGTqkzfzuCouWrplozWV1INbXXqq4ZXn6BV2Uf+TKm
+Ianai7Erz3fFMh9y/gmsNrzqQwRVobBMeyNzy/4Qn/6ImWgBY8VVUZgOV4x1KU/O
+pUni2zVqMP/H6azsCB4vYo6ZTzPju/TrGNBR5TtaGKolfENvTYC/xAC8oQF6SPQ7
+I6lTsaStU6MLtTanRqnHVMNVgoHCNUBtR6/llPSj/QWRLJUGFL2uauapD8Tu7F2L
+7BBifUsOxLO5O5BkanCdyHPaA3o4MKY8KmIeecOmn9AvqCGv8QJY/DlIumlcQsZg
+0f64kJGUnDfLwkuG3vIUa7E6kzaBwKDJ2AO9foWuyJIZePgtdG8vUgU7deSeJPZb
+NZXRFSNtYvSs0bNcnhuBX8sXeK0BW2LX/z6rrqKsH5i20ReY9x8Xb28+GdttKSA6
+iAeSU4uf4Kg5gDkOiRMx
+=3+Dw
+-----END PGP SIGNATURE-----
+
+--2/5bycvrmDh4d1IB--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
