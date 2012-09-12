@@ -1,60 +1,63 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCHv8 21/22] i2c: omap: switch over to autosuspend API
-Date: Wed, 12 Sep 2012 16:03:35 -0700
-Message-ID: <87627iu9mg.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv8 00/23]I2C big cleanup
+Date: Wed, 12 Sep 2012 16:08:20 -0700
+Message-ID: <87wqzysuu3.fsf@deeprootsystems.com>
 References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
-	<1347447496-16793-22-git-send-email-shubhrajyoti@ti.com>
+	<20120912131615.GB16547@pengutronix.de>
+	<87pq5quaqr.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1347447496-16793-22-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Wed, 12 Sep 2012 16:28:15 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:46613 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab2ILXIV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 19:08:21 -0400
+Received: by pbbrr13 with SMTP id rr13so3029956pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 16:08:21 -0700 (PDT)
+In-Reply-To: <87pq5quaqr.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Wed, 12 Sep 2012 15:39:24 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Wolfram Sang <w.sang@pengutronix.de> writes:
 >
-> this helps us reduce unnecessary pm transitions
-> in case we have another i2c message starting soon.
+>> On Wed, Sep 12, 2012 at 04:27:54PM +0530, Shubhrajyoti D wrote:
 >
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-
-I tracked the PM regression down to this patch.
-
-> ---
->  drivers/i2c/busses/i2c-omap.c |   12 ++++++++++--
->  1 files changed, 10 insertions(+), 2 deletions(-)
+> [...]
 >
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 6d38a57..122f517 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -55,6 +55,9 @@
->  /* timeout waiting for the controller to respond */
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
->  
-> +/* timeout for pm runtime autosuspend */
-> +#define OMAP_I2C_PM_TIMEOUT		1000	/* ms */
-> +
->  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
->  enum {
->  	OMAP_I2C_REV_REG = 0,
-> @@ -645,7 +648,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->  
->  	omap_i2c_wait_for_bb(dev);
->  out:
-> -	pm_runtime_put(dev->dev);
-> +	pm_runtime_mark_last_busy(dev->dev);
-> +	pm_runtime_put_autosuspend(dev->dev);
+>>> This is the cleanup only series.
+>>>   
+>>> Tested on omap4sdp and 3430sdp.
+>>> 
+>>> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+>>> 
+>>>   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+>>> 
+>>> are available in the git repository at:
+>>>   git://gitorious.org/linus-tree/linus-tree.git for_3.7/i2c/big_cleanups
+>>
+>> Pushed to -next. Thanks to all involved!
+>
+> Sorry to be late to the party (again), but still catching up after some
+> time off.
+>
+> Unfortunately, this series causes PM regressions on several OMAP
+> platforms.  I hope we can hold off on this until those issues are
+> addressed.
 
-Reverting this change allows CORE to hit retention again.
+I tracked the regression down to [PATCHv8 21/22] (see reply there.)
 
-I didn't debug this any further, so I'm not sure exactly why the async
-suspend works but not the autosuspend.
+Since this series is already merged, I suggest that the problem patch be
+reverted, at least for v3.7 and until the problem is better understood
+and tested.
+
+With that patch reverted, all my PM tests are passing.  Feel free to
+add:
+
+Tested-by: Kevin Hilman <khilman@ti.com>
 
 Kevin
