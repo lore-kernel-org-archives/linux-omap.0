@@ -1,55 +1,37 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] ARM: OMAP: omap_device updates for v3.7
-Date: Wed, 12 Sep 2012 13:21:26 -0700
-Message-ID: <87oblbvvp4.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v4 00/21] OMAP UART Patches
+Date: Wed, 12 Sep 2012 20:25:30 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209122025020.17903@utopia.booyaka.com>
+References: <20120906122948.GC29202@arwen.pp.htv.fi> <1346935540-1792-1-git-send-email-balbi@ti.com> <alpine.DEB.2.00.1209062137000.11516@utopia.booyaka.com> <alpine.DEB.2.00.1209112141220.9444@utopia.booyaka.com> <20120912062259.GC18563@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:45021 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752680Ab2ILUV2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 12 Sep 2012 16:21:28 -0400
-Received: by obbuo13 with SMTP id uo13so3302210obb.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 13:21:27 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120912062259.GC18563@arwen.pp.htv.fi>
+Sender: linux-serial-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Hi
 
-Please pull the following omap_device changes for v3.7.  This was a
-collaboration between myself and Paul.
+On Wed, 12 Sep 2012, Felipe Balbi wrote:
 
-Thanks,
+> On Tue, Sep 11, 2012 at 10:02:48PM +0000, Paul Walmsley wrote:
+> 
+> > The bad news is that N800 no longer boots -- or the UART dies during 
+> > serial init:
+> > 
+> > http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/boot/2420n800/2420n800_log.txt
+> > 
+> > The problem doesn't seem to affect the 2430SDP.
+> > 
+> > Could you put together a patch to fix N800?
+> 
+> I'll see what I can do. BTW, is that log with DEBUG_LL enabled ?
 
-Kevin
+Yes.  Here's the .config that was used on N800:
 
-The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
+http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020323/build/n800_b_testconfig/Kconfig
 
-  Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.7-omap_device
-
-for you to fetch changes up to 9634c8dd6a729406e89aed4e29470e3ffb3cd060:
-
-  ARM: OMAP: omap_device: idle devices with no driver bound (2012-09-12 10:52:03 -0700)
-
-----------------------------------------------------------------
-Updates for omap_device layer for v3.7.
-
-Allows omap_device layer to keep track of driver bound status in order
-to make more intelligent decisions about idling unused devices.
-
-----------------------------------------------------------------
-Kevin Hilman (3):
-      ARM: OMAP: omap_device: keep track of driver bound status
-      ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
-      ARM: OMAP: omap_device: idle devices with no driver bound
-
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/omap_device.c              |   56 ++++++++++++++++++++++---
- 2 files changed, 53 insertions(+), 5 deletions(-)
+- Paul
