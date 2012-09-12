@@ -1,54 +1,54 @@
-From: Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
-Date: Wed, 12 Sep 2012 23:25:45 +0530
-Message-ID: <5050CCA1.8090601@ti.com>
-References: <1347368350-31212-1-git-send-email-arnd@arndb.de>
- <CAMQu2gz8F2FcgRuok3x1uJ4pP8=0E2-9jhYGchzU9AUtUHjYhg@mail.gmail.com>
- <504F6249.2090501@ti.com> <201209111704.16708.arnd@arndb.de>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH] perf: Use raw_smp_processor_id insted of smp_processor_id
+Date: Wed, 12 Sep 2012 11:44:29 -0700
+Message-ID: <5050D80D.90002@codeaurora.org>
+References: <1347450610-4342-1-git-send-email-rogerq@ti.com> <20120912120511.GD28448@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201209111704.16708.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Vaibhav Hiremath <hvaibhav@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Liam Girdwood <lrg@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.co>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:60710 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753343Ab2ILSoa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 14:44:30 -0400
+In-Reply-To: <20120912120511.GD28448@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Roger Quadros <rogerq@ti.com>, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, jean.pihet@newoldbits.com, linux-arm-kernel@lists.infradead.org
 
-On 9/11/2012 10:34 PM, Arnd Bergmann wrote:
-> On Tuesday 11 September 2012, Vaibhav Hiremath wrote:
->> On 9/11/2012 7:54 PM, Shilimkar, Santosh wrote:
->>> On Tue, Sep 11, 2012 at 7:47 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->>>> On Tuesday 11 September 2012, Shilimkar, Santosh wrote:
->>>>> Just curious to know how you came with some of the above header names ?
->>>>>
->>>>> plat/mcbsp ---> dsp-mcbsp.h
->>>>> There is no connection of DSP with McBSP. "omap-mcbsp.h" would been a
->>>>> better name.
->>>>
->>>> This one was a mistake on my side, as Tony and  Peter already pointed out.
->>>> How about asoc-mcbsp.h or asoc-omap-mcbsp.h?
->>>>
->>> After re-reading the cover-letter and your below response,
->>> 'asoc-omap-mcbsp.h' seems to be fine.
->>>
->>
->> Note that mcbsp is also applicable to Davinci family of devices.
-> 
-> asoc-ti-mcbsp.h then?
+On 09/12/12 05:05, Russell King - ARM Linux wrote:
+> NAK.  Using a different function which doesn't have the warning isn't a
+> subsitute for fixing the problem properly.  What you're doing is papering
+> over the bug, making the warning go away without properly understanding
+> the problem.
+>
+> The warning is there because something is being done wrong.  What that is
+> is exactly what is being said in the warning message.  You're getting a
+> CPU number in a context where preemptions can occur - and therefore the
+> CPU that you're running on can change.
+>
+> Think about this sequence:
+>
+> 	- cpu = smp_processor_id(); /* returns 0 */
+> 	- you are preempted
+> 	- you resume on CPU 1
+> 	- trace_clock_disable(clk->name, 0, 0);
+>
+> If trace_clock_disable() uses the CPU number to access per-CPU data
+> without locking, that's going to cause corruption.
+>
+> Please, if you're going to fix a warning, analyse it properly first and
+> don't just search for a function which appears to give you the same
+> functionality but without the warning message.
 
-DaVinci has a McBSP, but it is not the same as OMAP McBSP. The driver is
-different (sound/soc/davinci/davinci-i2s.c vs sound/soc/omap/mcbsp.c)
-and there as IP differences as well. It is better to keep the name as
-asoc-omap-mcbsp.h for clarity.
+Is anyone actually using the CPU field in this tracepoint? I don't see
+any usecase for it except for the case where you have a percpu clock,
+but even then I imagine the name of the clock would be different
+depending on which CPU it corresponds to. So why can't we just remove
+the CPU field from the tracepoint?
 
-Thanks,
-Sekhar
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+hosted by The Linux Foundation
+
