@@ -1,54 +1,70 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH] perf: Use raw_smp_processor_id insted of smp_processor_id
-Date: Wed, 12 Sep 2012 11:44:29 -0700
-Message-ID: <5050D80D.90002@codeaurora.org>
-References: <1347450610-4342-1-git-send-email-rogerq@ti.com> <20120912120511.GD28448@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:60710 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343Ab2ILSoa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 14:44:30 -0400
-In-Reply-To: <20120912120511.GD28448@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: [PATCH v2 0/9] OMAP: iommu: hwmod, reset handling and runtime PM
+Date: Wed, 12 Sep 2012 14:45:43 -0500
+Message-ID: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.luna@linaro.org>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Roger Quadros <rogerq@ti.com>, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, jean.pihet@newoldbits.com, linux-arm-kernel@lists.infradead.org
 
-On 09/12/12 05:05, Russell King - ARM Linux wrote:
-> NAK.  Using a different function which doesn't have the warning isn't a
-> subsitute for fixing the problem properly.  What you're doing is papering
-> over the bug, making the warning go away without properly understanding
-> the problem.
->
-> The warning is there because something is being done wrong.  What that is
-> is exactly what is being said in the warning message.  You're getting a
-> CPU number in a context where preemptions can occur - and therefore the
-> CPU that you're running on can change.
->
-> Think about this sequence:
->
-> 	- cpu = smp_processor_id(); /* returns 0 */
-> 	- you are preempted
-> 	- you resume on CPU 1
-> 	- trace_clock_disable(clk->name, 0, 0);
->
-> If trace_clock_disable() uses the CPU number to access per-CPU data
-> without locking, that's going to cause corruption.
->
-> Please, if you're going to fix a warning, analyse it properly first and
-> don't just search for a function which appears to give you the same
-> functionality but without the warning message.
+These patches are needed for remoteproc to work on OMAP4.
 
-Is anyone actually using the CPU field in this tracepoint? I don't see
-any usecase for it except for the case where you have a percpu clock,
-but even then I imagine the name of the clock would be different
-depending on which CPU it corresponds to. So why can't we just remove
-the CPU field from the tracepoint?
+Introduced iommu hwmod support for OMAP3 (iva, isp) and
+OMAP4 (ipu, dsp), along with the corresponding runtime PM
+and routines to deassert reset lines, enable/disable clocks
+and configure sysc registers.
+
+Due to compatibility an ifdef needs to be propagated (previously
+on iommu resource info) to hwmod data in OMAP3, so users of iommu
+and tidspbridge can avoid issues of two modules managing mmu
+data/irqs/resets; this until tidspbridge can be safely migrated
+to iommu framework.
+
+Although IOMMU hwmod patches were already submitted in the past,
+this series adds few more changes, like:
+- New reset handling, based on a series that was accepted
+  but *NOT YET* in mainline.
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg73111.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg75105.html
+
+- Fix for compile break if IOMMU_API is not selected.
+- Save and restore context code rework.
+- Device tree bindings for OMAP3 and OMAP4.
+
+Previous work can be found at:
+[v1]
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg70447.html
+
+[old iteration without reset, save/restore and device tree]
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60133.html
+
+Omar Ramirez Luna (9):
+  ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
+  ARM: OMAP3: hwmod data: add mmu data for iva and isp
+  ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+  ARM: OMAP3/4: iommu: migrate to hwmod framework
+  ARM: OMAP3/4: iommu: adapt to runtime pm
+  ARM: OMAP: iommu: pm runtime save and restore context
+  ARM: OMAP: iommu: optimize save and restore routines
+  ARM: OMAP: iommu: add device tree support
+  arm/dts: OMAP3/4: Add iommu nodes
+
+ .../devicetree/bindings/arm/omap/iommu.txt         |   10 ++
+ arch/arm/boot/dts/omap3.dtsi                       |   12 +-
+ arch/arm/boot/dts/omap4.dtsi                       |   17 +-
+ arch/arm/mach-omap2/devices.c                      |    2 +-
+ arch/arm/mach-omap2/iommu2.c                       |   74 +++------
+ arch/arm/mach-omap2/omap-iommu.c                   |  168 +++++---------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  121 ++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  136 +++++++++++++++-
+ arch/arm/plat-omap/include/plat/iommu.h            |   35 +++-
+ arch/arm/plat-omap/include/plat/iommu2.h           |    4 -
+ drivers/iommu/omap-iommu.c                         |  163 +++++++++++++++----
+ 11 files changed, 511 insertions(+), 231 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/iommu.txt
 
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-hosted by The Linux Foundation
+1.7.9.5
 
