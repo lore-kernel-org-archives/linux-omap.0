@@ -1,50 +1,56 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv7 18/23] i2c: omap: remove redundant status read
-Date: Wed, 12 Sep 2012 12:21:49 +0530
-Message-ID: <50503105.8050100@ti.com>
-References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com> <1347356538-23835-19-git-send-email-shubhrajyoti@ti.com> <20120911215441.GC27031@pengutronix.de>
+From: R Sricharan <r.sricharan@ti.com>
+Subject: [PATCH V2] ARM: OMAP2+: Round of the carve out memory requested to section_size
+Date: Wed, 12 Sep 2012 12:44:13 +0530
+Message-ID: <1347434053-11431-1-git-send-email-r.sricharan@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120911215441.GC27031-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36464 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751883Ab2ILHOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 03:14:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: r.sricharan@ti.com, santosh.shilimkar@ti.com
 
-On Wednesday 12 September 2012 03:24 AM, Wolfram Sang wrote:
-> On Tue, Sep 11, 2012 at 03:12:13PM +0530, Shubhrajyoti D wrote:
->> Remove the redundant read of the status register.
-> Commit message is just repeating the subject.
-> Why was the read there and why can it be removed now?
->
-It is read and it is not read anywhere below.
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->> ---
->>  drivers/i2c/busses/i2c-omap.c |    2 --
->>  1 files changed, 0 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index 5d4bad4..498a462 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -946,7 +946,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
->>  				num_bytes = dev->buf_len;
->>  
->>  			ret = omap_i2c_transmit_data(dev, num_bytes, true);
->> -			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
->>  			if (ret < 0)
->>  				goto out;
->>  
->> @@ -962,7 +961,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
->>  				num_bytes = dev->threshold;
->>  
->>  			ret = omap_i2c_transmit_data(dev, num_bytes, false);
->> -			stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
->>  			if (ret < 0)
->>  				goto out;
->>  
->> -- 
->> 1.7.5.4
->>
+memblock_steal tries to reserve physical memory during boot.
+When the requested size is not aligned on the section size
+then, the remaining memory available for lowmem becomes
+unaligned on the section boundary. There is a issue with this,
+which is discussed in the thread below.
+
+https://lkml.org/lkml/2012/6/28/112
+
+The final conclusion from the thread seems to
+be align the memblock_steal calls on the SECTION boundary.
+The issue comes out when LPAE is enabled, where the
+section size is 2MB.
+
+Boot tested this on OMAP5 evm with and without LPAE.
+
+Signed-off-by: R Sricharan <r.sricharan@ti.com>
+---
+ [V2] Corrected the subject and added one more description line.
+
+ arch/arm/mach-omap2/omap-secure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap-secure.c b/arch/arm/mach-omap2/omap-secure.c
+index d9ae4a5..26edfec 100644
+--- a/arch/arm/mach-omap2/omap-secure.c
++++ b/arch/arm/mach-omap2/omap-secure.c
+@@ -61,8 +61,8 @@ int __init omap_secure_ram_reserve_memblock(void)
+ {
+ 	u32 size = OMAP_SECURE_RAM_STORAGE;
+ 
+-	size = ALIGN(size, SZ_1M);
+-	omap_secure_memblock_base = arm_memblock_steal(size, SZ_1M);
++	size = ALIGN(size, SECTION_SIZE);
++	omap_secure_memblock_base = arm_memblock_steal(size, SECTION_SIZE);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
