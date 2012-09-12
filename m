@@ -1,122 +1,70 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH] mmc: omap_hsmmc: Enable HSPE bit for high speed cards
-Date: Wed, 12 Sep 2012 11:41:33 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C33EA80426@DBDE01.ent.ti.com>
-References: <1346764151-21323-1-git-send-email-gururaja.hebbar@ti.com>
- <CANrkHUYtxKEfL8QUA2e5vGJ-LSJLCNX+hmBm1hqFJ439asUefw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42526 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157Ab2ILLlq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 07:41:46 -0400
-In-Reply-To: <CANrkHUYtxKEfL8QUA2e5vGJ-LSJLCNX+hmBm1hqFJ439asUefw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 00/11] ASoC: OMAP: Convert to use dmaengine
+Date: Wed, 12 Sep 2012 14:46:56 +0300
+Message-ID: <1347450427-27627-1-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "cjb@laptop.org" <cjb@laptop.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
 
-On Wed, Sep 12, 2012 at 14:51:34, Krishnamoorthy, Balaji T wrote:
-> On Tue, Sep 4, 2012 at 6:39 PM, Hebbar, Gururaja <gururaja.hebbar@ti.com> wrote:
-> > HSMMC IP on AM33xx need a special setting to handle High-speed cards.
-> > Other platforms like TI81xx, OMAP4 may need this as-well. This depends
-> > on the HSMMC IP timing closure done for the high speed cards.
-> >
-> > From AM335x TRM (SPRUH73F - 18.3.12 Output Signals Generation)
-> >
-> > The MMC/SD/SDIO output signals can be driven on either falling edge or
-> > rising edge depending on the SD_HCTL[2] HSPE bit. This feature allows
-> > to reach better timing performance, and thus to increase data transfer
-> > frequency.
-> 
-> Is this specific to some boards or all board with TI81xx ?
-> What is the side-effect if not done ?
+Hello,
 
-Platforms like (AM335x) needed this bit to be set in order to sustain high
-speed transfers. This was concluded after HSMMC IP timing closure was 
-completed for High speed Cards. 
+This series will switch the OMAP audio to use dmaengine.
+The final patch which does the switch was based on Russell King's earlier patch.
 
-This was confirmed on high speed cards with very low setup/hold delay (in the 
-order of nsec) was tested. For AM335x, this bit was to be set to meet setup 
-requirement and hold requirement for MMC/SD HS cards.
+The first 10 patch is to prepare the OMAP audio drivers for a smooth change to
+dmaengine:
+- sDMA FRAME sync mode is removed and replaced with PACKET mode
+- dai drivers no longer need to configure sDMA sync mode
+- dai drivers does not need to specify the DMA word length - with the exception
+  of the omap-hdmi driver which requires 32bit word length regardless of the
+  audio format in use
+- the McPDM driver used (to my surprise) hackish way of getting the DMA channel
+  and address - via defines from some header files
 
-> 
-> >
-> > There are few pre-requisites for enabling the HSPE bit
-> > - Controller should support High-Speed-Enable Bit and
-> > - Controller should not be using DDR Mode and
-> > - Controller should advertise that it supports High Speed in
-> >   capabilities register and
-> > - MMC/SD clock coming out of controller > 25MHz
-> >
-> > Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
-> > ---
-> > :100644 100644 be76a23... ed271fc... M  Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> > :100644 100644 eb3e4d5... 00c658b... M  arch/arm/plat-omap/include/plat/mmc.h
-> > :100644 100644 c3e96a2... 0e14834... M  drivers/mmc/host/omap_hsmmc.c
+I have tested the series on:
+- BeagleBoard (audio via McBSP) with aplay/arecord. In element mode and in
+  threshold mode with different period sizes
+- OMAP4 Blaze (audio via McPDM and DMIC)
 
-..snip..
-..snip..
-..snip..
+With this conversion the NO_PERIOD_WAKEUP is not supported at the moment. I'll
+be looking at the dmaengine core and omap parts to add this feature back.
 
-> >
-> > +       /*
-> > +        * Enable High-Speed Support
-> > +        * Pre-Requisites
-> > +        *      - Controller should support High-Speed-Enable Bit
-> > +        *      - Controller should not be using DDR Mode
-> > +        *      - Controller should advertise that it supports High Speed
-> > +        *        in capabilities register
-> > +        *      - MMC/SD clock coming out of controller > 25MHz
-> > +        */
-> > +       if ((mmc_slot(host).features & HSMMC_HAS_HSPE_SUPPORT) &&
-> > +           (ios->timing != MMC_TIMING_UHS_DDR50) &&
-> > +           ((OMAP_HSMMC_READ(host->base, CAPA) & HSS) == HSS)) {
-> > +               regval = OMAP_HSMMC_READ(host->base, HCTL);
-> > +               if (clkdiv && (clk_get_rate(host->fclk)/clkdiv) > 25000000)
-> 
-> I think clkdiv is not needed
-> clk_get_rate(host->fclk)/clkdiv is same as ios->clock
+The patches has been generated against:
+git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-3.7
 
-There are chances that the platform is not supporting Clock output from HSMMC
-IP greater than 25 MHz even if the card is High Speed. So it would be better 
-to check host->fclk than ios->clock. 
+Janusz: Can you retest this series on OMAP1 to be sure I have not broken it?
+Ricardo: Can you test the omap-hmdi if it is still working?
 
-Kindly correct me if I am wrong.
+Regards,
+Peter
+---
+Peter Ujfalusi (11):
+  dmaengine: omap: Support for element mode in cyclic DMA
+  ASoC: omap-mcbsp: Use sDMA packet mode instead of frame mode
+  ASoC: omap-pcm: Select sDMA synchronization based on packet_size
+  ASoC: OMAP: Remove sync_mode from omap_pcm_dma_data struct
+  ASoC: omap-pcm: Prepare to configure the DMA data_type based on
+    stream properties
+  ARM: OMAP4: hwmod_data: Add resource names to McPDM memory ranges
+  ASoC: omap-mcpdm: Use platform_get_resource_* to get resources
+  ASoC: OMAP: mcbsp, mcpdm, dmic: Let omap-pcm to pick the dma_type
+  ASoC: omap-pcm, omap-hdmi: Change the use of
+    omap_pcm_dma_data->data_type
+  ASoC: OMAP: mcbsp, mcpdm, dmic, hdmi: Set dma_data at startup time
+  ASoC: omap-pcm: Convert to use dmaengine
 
-> 
-> > +                       regval |= HSPE;
-> > +               else
-> > +                       regval &= ~HSPE;
-> > +
-> > +               OMAP_HSMMC_WRITE(host->base, HCTL, regval);
-> > +       }
-> > +
-> >         omap_hsmmc_start_clock(host);
-> >  }
-> >
-> > @@ -1701,6 +1726,9 @@ static struct omap_mmc_platform_data *of_get_hsmmc_pdata(struct device *dev)
-> >         if (of_find_property(np, "ti,needs-special-reset", NULL))
-> >                 pdata->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
-> >
-> > +       if (of_find_property(np, "ti,needs-special-hs-handling", NULL))
-> > +               pdata->slots[0].features |= HSMMC_HAS_HSPE_SUPPORT;
-> > +
-> >         return pdata;
-> >  }
-> >  #else
-> > --
-> > 1.7.1
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   2 +
+ drivers/dma/omap-dma.c                     |   5 +-
+ sound/soc/omap/Kconfig                     |   3 +-
+ sound/soc/omap/omap-dmic.c                 |   9 +-
+ sound/soc/omap/omap-hdmi.c                 |  17 +-
+ sound/soc/omap/omap-mcbsp.c                |  60 +++----
+ sound/soc/omap/omap-mcpdm.c                |  41 +++--
+ sound/soc/omap/omap-pcm.c                  | 246 ++++++++---------------------
+ sound/soc/omap/omap-pcm.h                  |   4 +-
+ 9 files changed, 136 insertions(+), 251 deletions(-)
 
-
-Regards, 
-Gururaja
+-- 
+1.7.12
