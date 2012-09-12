@@ -1,63 +1,47 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv8 00/23]I2C big cleanup
-Date: Wed, 12 Sep 2012 16:08:20 -0700
-Message-ID: <87wqzysuu3.fsf@deeprootsystems.com>
-References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
-	<20120912131615.GB16547@pengutronix.de>
-	<87pq5quaqr.fsf@deeprootsystems.com>
+Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during suspend
+Date: Wed, 12 Sep 2012 16:11:37 -0700
+Message-ID: <87sjamsuom.fsf@deeprootsystems.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
+	<1342704392-23657-8-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
+	<1342711907.4672.153.camel@sokoban>
+	<alpine.DEB.2.00.1207191726090.14390@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46613 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193Ab2ILXIV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 19:08:21 -0400
-Received: by pbbrr13 with SMTP id rr13so3029956pbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 16:08:21 -0700 (PDT)
-In-Reply-To: <87pq5quaqr.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Wed, 12 Sep 2012 15:39:24 -0700")
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:55829 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2ILXLi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 19:11:38 -0400
+Received: by obbuo13 with SMTP id uo13so3531226obb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 16:11:38 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1207191726090.14390@utopia.booyaka.com> (Paul
+	Walmsley's message of "Thu, 19 Jul 2012 17:30:12 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, nm@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> Wolfram Sang <w.sang@pengutronix.de> writes:
+[...]
+
 >
->> On Wed, Sep 12, 2012 at 04:27:54PM +0530, Shubhrajyoti D wrote:
+> It kind of looks to me like there are two or three separate sets within 
+> the series.  My feeling is that Kevin should take the first two, then I 
+> should take the rest other than 6 and 7.  Then once those are queued, 
+> we can pull in 6 and 7.  Does that make sense to you?
 >
-> [...]
->
->>> This is the cleanup only series.
->>>   
->>> Tested on omap4sdp and 3430sdp.
->>> 
->>> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
->>> 
->>>   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
->>> 
->>> are available in the git repository at:
->>>   git://gitorious.org/linus-tree/linus-tree.git for_3.7/i2c/big_cleanups
->>
->> Pushed to -next. Thanks to all involved!
->
-> Sorry to be late to the party (again), but still catching up after some
-> time off.
->
-> Unfortunately, this series causes PM regressions on several OMAP
-> platforms.  I hope we can hold off on this until those issues are
-> addressed.
 
-I tracked the regression down to [PATCHv8 21/22] (see reply there.)
+Looks like 1, 2 & 7 are needed for OSWR, and the rest can go now via
+Paul.
 
-Since this series is already merged, I suggest that the problem patch be
-reverted, at least for v3.7 and until the problem is better understood
-and tested.
+Tero, can create a new OSWR series including 1, 2 & 7?  Can you also
+refresh it against Jean's latest functional power state series (v6)?
 
-With that patch reverted, all my PM tests are passing.  Feel free to
-add:
-
-Tested-by: Kevin Hilman <khilman@ti.com>
+Thanks,
 
 Kevin
+
+
