@@ -1,48 +1,30 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v5 2/2] OMAP:IOMMU:flush L1 and L2 caches
-Date: Wed, 12 Sep 2012 17:41:21 +0100
-Message-ID: <20120912164121.GF28448@n2100.arm.linux.org.uk>
-References: <CADysL2bb+LC1ySgkp8Hd_VL8GaFJ_gsuMF=WkmWp+YTdJqKJ4A@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
+Date: Wed, 12 Sep 2012 17:15:57 +0000
+Message-ID: <201209121715.58621.arnd@arndb.de>
+References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <1347368390-31252-13-git-send-email-arnd@arndb.de> <CAN5iSWqnyA0VNDkaCb7bcZOhQxOxJ8xUy4RXWgt+xukSUmHnAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CADysL2bb+LC1ySgkp8Hd_VL8GaFJ_gsuMF=WkmWp+YTdJqKJ4A@mail.gmail.com>
+In-Reply-To: <CAN5iSWqnyA0VNDkaCb7bcZOhQxOxJ8xUy4RXWgt+xukSUmHnAA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+To: "Pihet-XID, Jean" <j-pihet@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?iso-8859-1?q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, J Keerthy <j-keerthy@ti.com>, linux-omap@vger.k
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 12, 2012 at 08:49:16PM +0530, Gupta, Ramesh wrote:
-> Thanks to the RMK's suggestions.
+On Wednesday 12 September 2012, Pihet-XID, Jean wrote:
+> > diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/include/linux/platform_data/smartreflex-omap.h
+> > similarity index 100%
+> > rename from arch/arm/plat-omap/include/plat/voltage.h
+> > rename to include/linux/platform_data/smartreflex-omap.h
+> The filename should be voltage-omap.h. The header file is for a
+> voltage layer which is used by other layers, one of them is the
+> smartreflex driver code (in drivers/power/avs).
+> The header file for the smartreflex driver is in
+> include/linux/power/smartreflex.h.
 
-I should've made clear the distinction between _range and _area.
-A _range function takes start and end.  An _area function takes a start
-and size.  So...
+Ok, makes sense. Changed now.
 
-> -static void flush_iopgd_range(u32 *first, u32 *last)
-> +static void flush_iopgd_range(u32 *first, size_t size)
-
-This should change to flush_iopgd_area().
-
->  {
-> -	/* FIXME: L2 cache should be taken care of if it exists */
-> -	do {
-> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
-> -		    : : "r" (first));
-> -		first += L1_CACHE_BYTES / sizeof(*first);
-> -	} while (first <= last);
-> +	phys_addr_t phys = virt_to_phys(first);
-> +
-> +	iommu_flush_area(first, size);
-> +	outer_flush_range(phys, phys + size);
->  }
-> 
-> -static void flush_iopte_range(u32 *first, u32 *last)
-> +static void flush_iopte_range(u32 *first, size_t size)
-> +
-
-flush_iopte_area().  (And there shouldn't be a blank line between this
-and the open curley.)
-
-Otherwise, looks fine.
+	Arnd
