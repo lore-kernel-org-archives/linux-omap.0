@@ -1,67 +1,42 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCHv7 20/23] i2c: omap: switch to threaded IRQ support
-Date: Wed, 12 Sep 2012 13:51:43 +0200
-Message-ID: <20120912115143.GE2624@pengutronix.de>
-References: <1347356538-23835-1-git-send-email-shubhrajyoti@ti.com>
- <1347356538-23835-21-git-send-email-shubhrajyoti@ti.com>
- <20120911215112.GA27031@pengutronix.de>
- <50502AE3.7040300@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 11/11] ASoC: omap-pcm: Convert to use dmaengine
+Date: Wed, 12 Sep 2012 13:00:28 +0100
+Message-ID: <20120912120028.GC28448@n2100.arm.linux.org.uk>
+References: <1347450427-27627-1-git-send-email-peter.ujfalusi@ti.com> <1347450427-27627-12-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39389 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220Ab2ILLvr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 07:51:47 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59352 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755024Ab2ILMBD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 08:01:03 -0400
 Content-Disposition: inline
-In-Reply-To: <50502AE3.7040300@ti.com>
+In-Reply-To: <1347450427-27627-12-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
 
+On Wed, Sep 12, 2012 at 02:47:07PM +0300, Peter Ujfalusi wrote:
+> 2. Pause/Resume
+>    OMAP DMA engine backend does not support pausing and resuming
+>    an in-progress transfer.  It is unclear from the specs what
+>    effect clearing the enable bit has on the DMA position of a
+>    destination synchronized transfer, and whether the transfer
+>    can be restarted from the exact point that it was paused (or
+>    whether the data in the FIFO read from memory is simply
+>    discarded.)
 
---ZInfyf7laFu/Kiw7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It's worth noting that this comment (which was in my original patch)
+is there to spark _comment_ and _discussion_ and should not make its
+way into the final version of these patches.
 
-On Wed, Sep 12, 2012 at 11:55:39AM +0530, Shubhrajyoti wrote:
-> On Wednesday 12 September 2012 03:21 AM, Wolfram Sang wrote:
-> >> -omap_i2c_isr(int this_irq, void *dev_id)
-> >> > +omap_i2c_isr(int irq, void *dev_id)
-> >> >  {
-> >> >  	struct omap_i2c_dev *dev =3D dev_id;
-> >> > +	irqreturn_t ret =3D IRQ_HANDLED;
-> > Shouldn't that be IRQ_NONE?
-> Actually we are processing it so I thought it to be ok.
+Given that suspend/resume is important on OMAP platforms, it's something
+that needs to be resolved - in a way that complies with what ALSA expects.
+I do not believe that the way the existing drivers do this is compliant
+as the manuals imply that stopping memory->peripheral transfers results
+in data being discarded from the DMA's FIFOs.  As I understand it, ALSA
+requires no data to be discarded.
 
-Are we processing it? There is nothing acknowledged AFAICS. Anyway, we
-can fix that with a later patch.
-
-> Also a similar discussion.
-> =20
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-June/104422.ht=
-ml
-
-I totally agree to the things said there.
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---ZInfyf7laFu/Kiw7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAlBQd08ACgkQD27XaX1/VRsWQgCgxO98etvzzFtFQetYwTMH8OMM
-5HUAoMRAVircBmhF35JsTKZuHh/9jaR9
-=Rl0M
------END PGP SIGNATURE-----
-
---ZInfyf7laFu/Kiw7--
+As we have no way to know how much data may be discarded from the DMA
+FIFO...
