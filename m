@@ -1,156 +1,103 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: [PATCH v5 2/2] OMAP:IOMMU:flush L1 and L2 caches
-Date: Wed, 12 Sep 2012 20:49:16 +0530
-Message-ID: <CADysL2bb+LC1ySgkp8Hd_VL8GaFJ_gsuMF=WkmWp+YTdJqKJ4A@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: AM33xx: hwmod/clock: add hwmod data and some
+ clock/hwmod fixes for 3.7
+Date: Wed, 12 Sep 2012 16:00:07 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209121558540.17903@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:40486 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755257Ab2ILQAH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 12:00:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->From d78ddb5b0dffed3fd77e6e010735e869ea41b02f Mon Sep 17 00:00:00 2001
-From: Ramesh Gupta G <grgupta@ti.com>
-Date: Wed, 12 Sep 2012 19:05:29 +0530
-Subject: [PATCH v5 2/2] OMAP:IOMMU:flush L1 and L2 caches
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-OMAP IOMMU need to make sure that data in the L1 and L2 caches
-is visible to the MMU hardware whenever the pagetables are
-updated. The current code only takes care of L1 cache using
-assembly. Added code to handle this using a new L1 cache
-maintenance function and the outer cache function.
-Thanks to the RMK's suggestions.
+Hi Tony,
 
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
----
- drivers/iommu/omap-iommu.c |   41 +++++++++++++++++++----------------------
- 1 files changed, 19 insertions(+), 22 deletions(-)
+The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index d0b1234..8f61ef9 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -469,24 +469,21 @@ EXPORT_SYMBOL_GPL(omap_foreach_iommu_device);
- /*
-  *	H/W pagetable operations
-  */
--static void flush_iopgd_range(u32 *first, u32 *last)
-+static void flush_iopgd_range(u32 *first, size_t size)
- {
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
-+	phys_addr_t phys = virt_to_phys(first);
-+
-+	iommu_flush_area(first, size);
-+	outer_flush_range(phys, phys + size);
- }
+  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
 
--static void flush_iopte_range(u32 *first, u32 *last)
-+static void flush_iopte_range(u32 *first, size_t size)
-+
- {
--	/* FIXME: L2 cache should be taken care of if it exists */
--	do {
--		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
--		    : : "r" (first));
--		first += L1_CACHE_BYTES / sizeof(*first);
--	} while (first <= last);
-+	phys_addr_t phys = virt_to_phys(first);
-+
-+	iommu_flush_area(first, size);
-+	outer_flush_range(phys, phys + size);
- }
+are available in the git repository at:
 
- static void iopte_free(u32 *iopte)
-@@ -515,7 +512,7 @@ static u32 *iopte_alloc(struct omap_iommu *obj,
-u32 *iopgd, u32 da)
- 			return ERR_PTR(-ENOMEM);
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a-for-3.7
 
- 		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
--		flush_iopgd_range(iopgd, iopgd);
-+		flush_iopgd_range(iopgd, sizeof(*iopgd));
+for you to fetch changes up to e76f55a1e301c230f4a7bbef5db60ad7d90d6e94:
 
- 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
- 	} else {
-@@ -544,7 +541,7 @@ static int iopgd_alloc_section(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
- 	}
+  ARM: AM33XX: clock: Add dcan clock aliases for device-tree (2012-09-12 09:19:54 -0600)
 
- 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
--	flush_iopgd_range(iopgd, iopgd);
-+	flush_iopgd_range(iopgd, sizeof(*iopgd));
- 	return 0;
- }
+- ----------------------------------------------------------------
+AM33xx hwmod data and miscellaneous clock and hwmod fixes.
+AM33xx should now boot on mainline after this is applied, according to
+Vaibhav.
 
-@@ -561,7 +558,7 @@ static int iopgd_alloc_super(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
+Basic build, boot, and PM test transcripts are here:
 
- 	for (i = 0; i < 16; i++)
- 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
--	flush_iopgd_range(iopgd, iopgd + 15);
-+	flush_iopgd_range(iopgd, sizeof(*iopgd) * 16);
- 	return 0;
- }
+http://www.pwsan.com/omap/testlogs/am33xx_hwmod_clock_devel_3.7/20120912092510/
 
-@@ -574,7 +571,7 @@ static int iopte_alloc_page(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
- 		return PTR_ERR(iopte);
+- ----------------------------------------------------------------
 
- 	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
--	flush_iopte_range(iopte, iopte);
-+	flush_iopte_range(iopte, sizeof(*iopte));
+object size (delta in bytes from test_v3.6-rc5 (55d512e245bc7699a8800e23df1a24195dd08217)):
+  text 	  data 	   bss 	 total 	kernel
+ +8972 	+16432 	   +64 	+25468 	2430_testconfig
+     0 	     0 	     0 	     0 	5912osk_testconfig
+ +8784 	+16440 	     0 	+25224 	am33xx_testconfig
+ +8960 	+16464 	     0 	+25424 	n800_b_testconfig
+ +8980 	+16408 	     0 	+25388 	n800_multi_omap2xxx
+ +8960 	+16488 	     0 	+25448 	n800_testconfig
+     0 	     0 	     0 	     0 	omap1510_defconfig
+     0 	     0 	     0 	     0 	omap1_defconfig
+ +8832 	+16488 	     0 	+25320 	omap2_4_testconfig
+ +8864 	+16472 	     0 	+25336 	omap2plus_defconfig
+ +8800 	+16440 	     0 	+25240 	omap2plus_defconfig_cpupm
+ +8860 	+16488 	     0 	+25348 	omap2plus_no_pm
+ +4712 	+16488 	   +64 	+21264 	omap3_4_testconfig
+ +8956 	+16408 	     0 	+25364 	omap3_testconfig
+ +8872 	+16472 	     0 	+25344 	omap4_testconfig
+ +9040 	+16464 	     0 	+25504 	rmk_omap3430_ldp_oldconfig
+ +4820 	+14632 	     0 	+19452 	rmk_omap4430_sdp_oldconfig
 
- 	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
- 		 __func__, da, pa, iopte, *iopte);
-@@ -599,7 +596,7 @@ static int iopte_alloc_large(struct omap_iommu
-*obj, u32 da, u32 pa, u32 prot)
+Note that the object sizes for many .configs are larger than they
+should be, since CONFIG_SOC_AM33XX is selected by default during 'make
+oldnoconfig'.  The next time these configs are updated, it will be
+deselected - probably during the next baseline test.
 
- 	for (i = 0; i < 16; i++)
- 		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
--	flush_iopte_range(iopte, iopte + 15);
-+	flush_iopte_range(iopte, sizeof(*iopte) * 16);
- 	return 0;
- }
+Vaibhav Hiremath (4):
+      ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod framework
+      ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
+      ARM: OMAP2+: dpll: Add missing soc_is_am33xx() check for common functions
+      ARM: AM33XX: clock: Add dcan clock aliases for device-tree
 
-@@ -702,7 +699,7 @@ static size_t iopgtable_clear_entry_core(struct
-omap_iommu *obj, u32 da)
- 		}
- 		bytes *= nent;
- 		memset(iopte, 0, nent * sizeof(*iopte));
--		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
-+		flush_iopte_range(iopte, iopte + (nent) * sizeof(*iopte));
+ arch/arm/mach-omap2/Makefile                 |    1 +
+ arch/arm/mach-omap2/clkt_dpll.c              |    4 +-
+ arch/arm/mach-omap2/clock33xx_data.c         |    2 +
+ arch/arm/mach-omap2/dpll3xxx.c               |    4 +-
+ arch/arm/mach-omap2/io.c                     |    2 +
+ arch/arm/mach-omap2/omap_hwmod.c             |  178 ++
+ arch/arm/mach-omap2/omap_hwmod_33xx_data.c   | 3381 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 8 files changed, 3569 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
- 		/*
- 		 * do table walk to check if this table is necessary or not
-@@ -724,7 +721,7 @@ static size_t iopgtable_clear_entry_core(struct
-omap_iommu *obj, u32 da)
- 		bytes *= nent;
- 	}
- 	memset(iopgd, 0, nent * sizeof(*iopgd));
--	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
-+	flush_iopgd_range(iopgd, iopgd + (nent) * sizeof(*iopgd));
- out:
- 	return bytes;
- }
-@@ -768,7 +765,7 @@ static void iopgtable_clear_entry_all(struct
-omap_iommu *obj)
- 			iopte_free(iopte_offset(iopgd, 0));
-
- 		*iopgd = 0;
--		flush_iopgd_range(iopgd, iopgd);
-+		flush_iopgd_range(iopgd, sizeof(*iopgd));
- 	}
-
- 	flush_iotlb_all(obj);
--- 
-1.7.0.4
-
-
--- 
-regards
-Ramesh Gupta G
+iQIcBAEBAgAGBQJQULEwAAoJEMePsQ0LvSpL5tkP/AvKupNQDh4kOUko8p4ljgTB
+HxndMBqUMUFvF+M5oyhzdS8+dETLUbMZqHMFtrVA81YwC1nfQy3jbfi+PRch54k1
+OhK8phTowsD2og8COkdZQ2sa4DJEnE2cSZtFvkswmuPw3AHjoD4zVXhQslXUJx12
+ntzha96bNJbEvzzLUgREo4zCYkTGuLkIQVFJ7XdvySsKyma3ZnKep3VuZH2ymQUP
+DCKQxuPjAzic6JGGclf2hOQri0Q6bEx+LfFM3YEpdZ7eiZWVakT5XZS7tEv+gWxr
+HEuX8oeUGijTCNNEqCnGKQaRgkhrm6l/HKDyyXplFI8KZT4zr442IxVbgIK8vvRg
+1Yvv1qos83Mm4KV/KDaTFftnd58ca/2bUxL37+1Sf8cGAL0R5TSyinCzMBJ9qYEo
+xkVoGdfs6Qeea5VY+ImnYC+pEMow9w0pykgUT5grsN/J8HjjFk7oWoSLOEbmzWf+
+A+AWZwbLAcC56XkF7nKzBFZ8PeTDZu6y2maNqB5uJXV/QTe6MQ4VCAs0a6MogYVs
+DKBVnsT5LgCQBXUQPchXfNY61h2erXbTq33cmPLdXzQypbmFmmkbeO6NFvEO60O/
+egHgeen+wckLJblPEJ4pq+hLY23Q04Ml8btFuiMz//2fBaPOGy62nyWoc6wxlaKm
+31DSw8rqS9Z4uUsdgjiI
+=2rIh
+-----END PGP SIGNATURE-----
