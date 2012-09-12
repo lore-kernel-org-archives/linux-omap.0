@@ -1,86 +1,59 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 4/4] can: c_can: Add d_can suspend resume support
-Date: Wed, 12 Sep 2012 12:48:39 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2D7FA@DBDE01.ent.ti.com>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com>
- <1346673139-14540-5-git-send-email-anilkumar@ti.com>
- <50450C9F.6010203@pengutronix.de>
- <331ABD5ECB02734CA317220B2BBEABC13EA26300@DBDE01.ent.ti.com>
- <5045AD56.2050400@pengutronix.de>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 11/11] ASoC: omap-pcm: Convert to use dmaengine
+Date: Wed, 12 Sep 2012 15:53:47 +0300
+Message-ID: <505085DB.5000407@ti.com>
+References: <1347450427-27627-1-git-send-email-peter.ujfalusi@ti.com> <1347450427-27627-12-git-send-email-peter.ujfalusi@ti.com> <20120912120028.GC28448@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34385 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863Ab2ILMsx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 08:48:53 -0400
-In-Reply-To: <5045AD56.2050400@pengutronix.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120912120028.GC28448@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "tony@atomide.com" <tony@atomide.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Marc,
+On 09/12/2012 03:00 PM, Russell King - ARM Linux wrote:
+> On Wed, Sep 12, 2012 at 02:47:07PM +0300, Peter Ujfalusi wrote:
+>> 2. Pause/Resume
+>>    OMAP DMA engine backend does not support pausing and resuming
+>>    an in-progress transfer.  It is unclear from the specs what
+>>    effect clearing the enable bit has on the DMA position of a
+>>    destination synchronized transfer, and whether the transfer
+>>    can be restarted from the exact point that it was paused (or
+>>    whether the data in the FIFO read from memory is simply
+>>    discarded.)
+>=20
+> It's worth noting that this comment (which was in my original patch)
+> is there to spark _comment_ and _discussion_ and should not make its
+> way into the final version of these patches.
+>=20
+> Given that suspend/resume is important on OMAP platforms, it's someth=
+ing
+> that needs to be resolved - in a way that complies with what ALSA exp=
+ects.
+> I do not believe that the way the existing drivers do this is complia=
+nt
+> as the manuals imply that stopping memory->peripheral transfers resul=
+ts
+> in data being discarded from the DMA's FIFOs.  As I understand it, AL=
+SA
+> requires no data to be discarded.
+>=20
+> As we have no way to know how much data may be discarded from the DMA
+> FIFO...
 
-On Tue, Sep 04, 2012 at 12:57:18, Marc Kleine-Budde wrote:
-> On 09/04/2012 08:14 AM, AnilKumar, Chimata wrote:
-> > Marc,
-> > 
-> > Thanks for the comments,
-> > 
-> > On Tue, Sep 04, 2012 at 01:31:35, Marc Kleine-Budde wrote:
-> >> On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
-> >>> Adds suspend resume support to DCAN driver which enables
-> >>> DCAN power down mode bit (PDR). Then DCAN will ack the local
-> >>> power-down mode by setting PDA bit in STATUS register.
-> >>>
-> >>> Also adds a status flag to know the status of DCAN module,
-> >>> whether it is opened or not.
-> >>
-> >> Use "ndev->flags & IFF_UP" for that. Have a look at the at91_can driver
-> >> [1]. I'm not sure if you need locking here.
-> >>
-> > 
-> > Then I can use this to check the status, lock is not
-> > required.
-> > 
-> >> [1] http://lxr.free-electrons.com/source/drivers/net/can/at91_can.c#L1198
-> >>
-> >>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> >>> ---
-> >>>  drivers/net/can/c_can/c_can.c          |   78 ++++++++++++++++++++++++++++++++
-> >>>  drivers/net/can/c_can/c_can.h          |    5 ++
-> >>>  drivers/net/can/c_can/c_can_platform.c |   70 ++++++++++++++++++++++++++--
-> >>>  3 files changed, 150 insertions(+), 3 deletions(-)
+I need to look at this, but at first look we do wait for the drain in
+omap_stop_dma(). We used to use omap_stop_dma/omap_start_dma for pause/=
+resume
+operations.
+But sDMA also have a bit: CDPi: PAUSE_LINK_LIST which should do what we=
+ are
+looking for.
+Need to read the relevant parts of the TRM, but AFAIK we are using norm=
+al mode
+with linked list (self linking).
+I already have the patch for this, I just need to test it on HW.
 
-[snip]
-
-> >>> +#ifdef CONFIG_PM
-> >>> +int c_can_power_down(struct net_device *dev)
-> >>> +{
-> >>> +	unsigned long time_out;
-> >>> +	struct c_can_priv *priv = netdev_priv(dev);
-> >>> +
-> >>> +	if (!priv->is_opened)
-> >>> +		return 0;
-> >>
-> >> Should we add a BUG_ON(id->driver_data != BOSCH_D_CAN)?
-> > 
-> > These APIs are called from platform driver where device type
-> > device type is verified. I think we have to add BUG_ON() in
-> > platform driver.
-> 
-> The platform driver returns if not on D_CAN and will not call this
-> function. But this functions are exported, so can be called by someone
-> else. So if the caller is not D_CAN, it's a bug.
->
-
-I agree with you, but I have some concern here.
-I think we should do "return 0;" instead of BUG_ON(). With
-BUG_ON() system will hang and ultimately user lost his/her
-contents.
-
-Thanks
-AnilKumar
+--=20
+P=E9ter
