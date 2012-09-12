@@ -1,7 +1,7 @@
 From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 15/22] i2c: omap: simplify IRQ exit path
-Date: Wed, 12 Sep 2012 16:28:09 +0530
-Message-ID: <1347447496-16793-16-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCHv8 11/22] i2c: omap: switch to platform_get_irq()
+Date: Wed, 12 Sep 2012 16:28:05 +0530
+Message-ID: <1347447496-16793-12-git-send-email-shubhrajyoti@ti.com>
 References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,80 +14,57 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-instead of having multiple return points, use
-a goto statement to make that clearer.
+that's a nice helper from drivers core which
+will give us the exact IRQ number, instead
+of a pointer to an IRQ resource.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |   20 ++++++++------------
- 1 files changed, 8 insertions(+), 12 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 96fd528..4af123f 100644
+index bac1f11..0da8169 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -853,24 +853,21 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
- 			dev_warn(dev->dev, "Too much work in one IRQ\n");
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+@@ -993,11 +993,12 @@ omap_i2c_probe(struct platform_device *pdev)
+ {
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+-	struct resource		*mem, *irq;
++	struct resource		*mem;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+ 	const struct of_device_id *match;
+ 	irq_handler_t isr;
++	int irq;
+ 	int r;
  
- complete:
- 		if (stat & OMAP_I2C_STAT_NACK) {
- 			err |= OMAP_I2C_STAT_NACK;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_NACK);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+ 	/* NOTE: driver uses the static register mapping */
+@@ -1006,10 +1007,11 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "no mem resource?\n");
+ 		return -ENODEV;
+ 	}
+-	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+-	if (!irq) {
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
+ 		dev_err(&pdev->dev, "no irq resource?\n");
+-		return -ENODEV;
++		return irq;
+ 	}
  
- 		if (stat & OMAP_I2C_STAT_AL) {
- 			dev_err(dev->dev, "Arbitration lost\n");
- 			err |= OMAP_I2C_STAT_AL;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_AL);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(struct omap_i2c_dev), GFP_KERNEL);
+@@ -1043,7 +1045,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	}
  
- 		/*
-@@ -883,8 +880,7 @@ complete:
- 						OMAP_I2C_STAT_XRDY |
- 						OMAP_I2C_STAT_XDR |
- 						OMAP_I2C_STAT_ARDY));
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
+ 	dev->dev = &pdev->dev;
+-	dev->irq = irq->start;
++	dev->irq = irq;
  
- 		if (stat & OMAP_I2C_STAT_RDR) {
-@@ -949,19 +945,19 @@ complete:
- 			dev_err(dev->dev, "Receive overrun\n");
- 			err |= OMAP_I2C_STAT_ROVR;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_ROVR);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 
- 		if (stat & OMAP_I2C_STAT_XUDF) {
- 			dev_err(dev->dev, "Transmit underflow\n");
- 			err |= OMAP_I2C_STAT_XUDF;
- 			omap_i2c_ack_stat(dev, OMAP_I2C_STAT_XUDF);
--			omap_i2c_complete_cmd(dev, err);
--			return IRQ_HANDLED;
-+			goto out;
- 		}
- 	} while (stat);
- 
-+out:
-+	omap_i2c_complete_cmd(dev, err);
- 	return IRQ_HANDLED;
- }
- 
+ 	platform_set_drvdata(pdev, dev);
+ 	init_completion(&dev->cmd_complete);
 -- 
 1.7.5.4
