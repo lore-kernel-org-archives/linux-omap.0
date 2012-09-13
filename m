@@ -1,79 +1,43 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of
- ocp2scp
-Date: Thu, 13 Sep 2012 18:16:35 +0200
-Message-ID: <505206E3.7050307@ti.com>
-References: <1347008955-21310-1-git-send-email-kishon@ti.com> <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv8 4/5] ARM: OMAP4: PM: put all domains to OSWR during suspend
+Date: Thu, 13 Sep 2012 19:36:48 +0300
+Message-ID: <1347554209-23378-5-git-send-email-t-kristo@ti.com>
+References: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44059 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932130Ab2IMQhH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 12:37:07 -0400
+In-Reply-To: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+Currently OMAP4 suspend puts all power domains to CSWR. OSWR is a deeper
+state that saves more power, but has higher latencies also. As suspend
+is considered a high-latency operation, OSWR is appropriate here.
 
-On 09/12/2012 12:28 AM, Paul Walmsley wrote:
-> Hi Kishon, Beno=EEt,
->=20
-> On Fri, 7 Sep 2012, Kishon Vijay Abraham I wrote:
->=20
->> Made *ocp2scp_usb_phy_phy_48m* as the main_clk for ocp2scp. Since th=
-is=20
->> ocp2scp module does not have any fck but does have a single opt_cloc=
-k,=20
->> it is added as the main_clk for ocp2scp. Also removed phy_48m as the=
-=20
->> optional clock since it is now made as the main clock. By this the=20
->> driver need not enable/disable phy_48m clk separately and=20
->> runtime_get/runtime_put will take care of that.
->=20
-> Looking at this patch, it doesn't seem to make sense from a hardware =
-point=20
-> of view.  If you look at the OMAP4430 TRM Rev. AE, Table 23-1166 "Clo=
-cks=20
-> and Resets", the 48MHz clock input is listed as an "Optional function=
-al=20
-> clock".  The main functional clock is listed as "INIT_960M_FCLK", whi=
-ch=20
-> according to the same TRM, Section 3.6.3.9.1 "Overview", is an alias =
-for=20
-> the clock we call "dpll_usb_clkdcoldo_ck".
->=20
-> So if any clock should be the main functional clock in the hwmod data=
-,=20
-> shouldn't it be dpll_usb_clkdcoldo_ck?  The goal with the hwmod data=20
-> is/was to have it match the hardware.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/pm44xx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In this case, the ocp2scp IP is just the *bus controller* to access the
-real USB_UTMI_PHY IP.
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index c8965a2..2bd557f 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -101,7 +101,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 		return -ENOMEM;
+ 
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_FUNC_PWRST_CSWR;
++	pwrst->next_state = PWRDM_FUNC_PWRST_OSWR;
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+ 	return pwrdm_set_fpwrst(pwrst->pwrdm, pwrst->next_state);
+-- 
+1.7.4.1
 
-The TRM diagram does not show that level of detail unfortunately. You
-can check the PRCM spec (Figure 78 : CD_L3_INIT_USB clock scheme) to se=
-e
-the two modules.
-
-So considering phy_48m as the main clock is still correct for the
-ocp2scp IP.
-
-The INIT_960M_FCLK will be a fck associated with the child of the
-ocp2scp nodes which is the usb_phy.
-
-Upgrading the opt_clk to fck does make sense as soon as we don't have
-any other functional clock and as soon as this clock is *mandatory*. Th=
-e
-optional aspect in that case is just a wrong PRCM naming for a clock
-that is mandatory. It is similar to the DSS case that does have only
-optional clocks that are mandatory.
-
-I do agree that we must stick to the HW definition as far as we can. Bu=
-t
-the optional attribute is something that is wrong/inaccurate for a
-couple of IPs. HW folks agreed on that point and will fix that in the
-future.
-
-Regards,
-Benoit
