@@ -1,66 +1,53 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCHv8 00/23]I2C big cleanup
-Date: Thu, 13 Sep 2012 14:28:02 -0700
-Message-ID: <87txv1bokd.fsf@deeprootsystems.com>
-References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
-	<20120912131615.GB16547@pengutronix.de>
-	<87pq5quaqr.fsf@deeprootsystems.com>
-	<87wqzysuu3.fsf@deeprootsystems.com>
-	<87sjaldcjp.fsf@deeprootsystems.com>
-	<20120913183705.GA17430@arwen.pp.htv.fi>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] can: c_can: Move pm_runtime_enable/disable calls to common code
+Date: Thu, 13 Sep 2012 14:35:00 -0700
+Message-ID: <87ehm5bo8r.fsf@deeprootsystems.com>
+References: <1347521292-28751-1-git-send-email-anilkumar@ti.com>
+	<87bohaf1sd.fsf@deeprootsystems.com> <5051EB5C.7000907@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120913183705.GA17430-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org> (Felipe Balbi's message
-	of "Thu, 13 Sep 2012 21:37:07 +0300")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56533 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab2IMVfC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 17:35:02 -0400
+Received: by pbbrr13 with SMTP id rr13so4609665pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 14:35:02 -0700 (PDT)
+In-Reply-To: <5051EB5C.7000907@pengutronix.de> (Marc Kleine-Budde's message of
+	"Thu, 13 Sep 2012 16:19:08 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: AnilKumar Ch <anilkumar@ti.com>, wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
 
-Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+Marc Kleine-Budde <mkl@pengutronix.de> writes:
 
-> Hi,
+> On 09/13/2012 04:14 PM, Kevin Hilman wrote:
+>> AnilKumar Ch <anilkumar@ti.com> writes:
+>> 
+>>> Move pm_runtime_enable/disable calls to c_can.c driver. Current
+>>> implementation is such that platform driver is doing pm_runtime
+>>> enable/disable and core driver is doing put_sync/get_sync.
+>>>
+>>> PM runtime calls should be invoked if there is a valid device
+>>> pointer from platform driver so moving enable/disable calls
+>>> to core driver.
+>>>
+>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+>>> ---
+>>> Incorporated Kevin's comments on "can: c_can: Add runtime PM
+>>> support to Bosch C_CAN/D_CAN controller" patch.
+>> 
+>> This looks better, but in addition, you can get rid of the
+>> runtime PM helper functions you added (the ones that check for
+>> priv->device) and call the pm_runtime_get/put APIs directly.
 >
-> On Thu, Sep 13, 2012 at 11:04:42AM -0700, Kevin Hilman wrote:
->> Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
->> 
->> > Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
->> >
->> [...]
->> 
->> >> Sorry to be late to the party (again), but still catching up after some
->> >> time off.
->> >>
->> >> Unfortunately, this series causes PM regressions on several OMAP
->> >> platforms.  I hope we can hold off on this until those issues are
->> >> addressed.
->> >
->> > I tracked the regression down to [PATCHv8 21/22] (see reply there.)
->> >
->> > Since this series is already merged, I suggest that the problem patch be
->> > reverted, at least for v3.7 and until the problem is better understood
->> > and tested.
->> >
->> > With that patch reverted, all my PM tests are passing.  Feel free to
->> > add:
->> 
->> OK, the i2c series is off the hook.
->> 
->> Felipe and I spent a little time tracking this down.  Felipe suggested
->> that there might be a driver with periodic i2c activity keeping I2C
->> awake, and thus preventing CORE retention.  He was right.
->
-> FYI, the original idea came from Shubhro. We agreed that would be the
-> only way i2c would be prevented from idling.
+> But priv->device might be NULL. AFAICS pm_runtime_get() is not safe to
+> be called with a NULL pointer.
 
-Great, thanks Shubhro!
+Yes, you're right.  Guess there's not a clean way to get rid of those
+helpers.
 
-Also, FYI, I just submitted a patch to the TWL RTC driver which was the
-source of all the I2C activity since it's on the I2C-connected PMIC.
-
-Thanks for the help and suggestions,
+Sorry for the noise,
 
 Kevin
-
-[1] https://groups.google.com/forum/#!topic/rtc-linux/sFbYmAzCRLQ
