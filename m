@@ -1,86 +1,35 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH 1/6] ARM: mm: define LoUIS API for cache
-	maintenance ops
-Date: Thu, 13 Sep 2012 14:03:34 +0100
-Message-ID: <20120913130334.GI28448@n2100.arm.linux.org.uk>
-References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com> <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com> <20120913113949.GC2470@linaro.org>
+Subject: Re: [RFC PATCH 4/6] ARM: kernel: update cpu_suspend code to use
+	cache LoUIS operations
+Date: Thu, 13 Sep 2012 14:08:11 +0100
+Message-ID: <20120913130811.GJ28448@n2100.arm.linux.org.uk>
+References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com> <1347531651-28218-5-git-send-email-lorenzo.pieralisi@arm.com> <20120913125347.GD2470@linaro.org> <CAMQu2gw0650GoDrsnrNvjYWxpUeo-ywuFBw36m=7tp+mpNUG5w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60306 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60317 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932130Ab2IMNEC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 09:04:02 -0400
+	with ESMTP id S1753321Ab2IMNIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 09:08:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20120913113949.GC2470@linaro.org>
+In-Reply-To: <CAMQu2gw0650GoDrsnrNvjYWxpUeo-ywuFBw36m=7tp+mpNUG5w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Dave Martin <dave.martin@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
+On Thu, Sep 13, 2012 at 06:31:35PM +0530, Shilimkar, Santosh wrote:
+> In the series, there is patch "[PATCH 3/6]" which adds an
+> API which let you operate on a specific level.
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Which is introduced but as far as I can see, is never used in the patch
+set.  Therefore, it shouldn't be introduced.
 
-On Thu, Sep 13, 2012 at 12:39:49PM +0100, Dave Martin wrote:
-> We could introduce something like CONFIG_ARM_HAVE_CACHEFLUSH_LOUIS, and
-> do:
-> 
-> <asm/glue-cache.h>
-> #ifndef MULTI_CACHE
-> #ifdef CONFIG_HAVE_ARM_CACHEFLUSH_LOUIS
-> #define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_cache_louis)
-> #else
-> #define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_all)
-> #endif
-> #endif
-> 
-> <asm/cacheflush.h>
-> #ifdef MULTI_CACHE
-> #define flush_cache_louis()   cpu_cache.flush_kern_cache_louis()
-> #else
-> #define flush_cache_louis()   __cpuc_flush_kern_cache_louis()
-> #endif
+We've been here before many many many times, where people introduce stuff
+into the kernel, and then they never get around to using the damned stuff.
+It's happened far too many times to permit on a "but I will use it in the
+future" kind of arguments.
 
-No, this is stupidly complicated and is fragile.  Just alias the
-functions, like we do in cache-v4wt.S:
-
-	.globl	v4wt_dma_flush_range
-	.equ	v4wt_dma_flush_range, v4wt_dma_inv_range
-
-except, you'll need:
-
-	.globl	v4wt_flush_kern_cache_louis
-	.equ	v4wt_flush_kern_cache_louis, v4wt_flush_kern_cache_all
-
-You can do it automatically, using the attached sedscript and this bit
-of shell:
-
-$ for f in $(grep -l define_cache_functions arch/arm/mm/*.S ); do
-    sed -if sedscript $f
-    git add $f
-done
-$ git commit -s
-
-Do that first, and then go over those which you need to add a real
-flush_kern_cache_louis function to.
-
-
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=sedscript
-
-1,/__INITDATA\|define struct cpu_cache_fns/ {
-	/ENTRY.*flush_kern_cache_all/ {
-        	h
-	        s/.*(\([^_]*\)_.*/\t.globl\t\1_flush_kern_cache_louis\n\t.equ\t\1_flush_kern_cache_louis, \1_flush_kern_cache_all\n/
-        	x
-	}
-	/__INITDATA\|define struct cpu_cache_fns/ {
-        	H
-	        g
-	}
-}
-
---W/nzBZO5zC0uMSeA--
+If you're going to introduce something new, include the users in the patch
+set, or don't bother submitting the new function in the vague hope that
+some day it will get used.
