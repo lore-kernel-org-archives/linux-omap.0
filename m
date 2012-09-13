@@ -1,94 +1,131 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 4/4] can: c_can: Add d_can suspend resume support
-Date: Thu, 13 Sep 2012 07:24:16 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2E0AA@DBDE01.ent.ti.com>
-References: <1346673139-14540-1-git-send-email-anilkumar@ti.com>
- <1346673139-14540-5-git-send-email-anilkumar@ti.com>
- <50450C9F.6010203@pengutronix.de>
- <331ABD5ECB02734CA317220B2BBEABC13EA26300@DBDE01.ent.ti.com>
- <5045AD56.2050400@pengutronix.de>
- <331ABD5ECB02734CA317220B2BBEABC13EA2D7FA@DBDE01.ent.ti.com>
- <505087FD.7000907@pengutronix.de>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 5/7] ARM: OMAP2+: PM debug: trace the functional power
+ domains states
+Date: Thu, 13 Sep 2012 09:26:52 +0200
+Message-ID: <CAORVsuXTwGcVfda6sSHqHh3hc7E8DPussxAo1J_vEd2p6LHkQQ@mail.gmail.com>
+References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+	<1347443732-7411-6-git-send-email-j-pihet@ti.com>
+	<874nn2st0m.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-can-owner@vger.kernel.org>
-In-Reply-To: <505087FD.7000907@pengutronix.de>
-Content-Language: en-US
-Sender: linux-can-owner@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: "wg@grandegger.com" <wg@grandegger.com>, "tony@atomide.com" <tony@atomide.com>, "linux-can@vger.kernel.org" <linux-can@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:59878 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751558Ab2IMH0y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 03:26:54 -0400
+Received: by lagy9 with SMTP id y9so1710039lag.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 00:26:52 -0700 (PDT)
+In-Reply-To: <874nn2st0m.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Marc,
+HI Kevin,
 
-On Wed, Sep 12, 2012 at 18:32:53, Marc Kleine-Budde wrote:
-> On 09/12/2012 02:48 PM, AnilKumar, Chimata wrote:
-> > Hi Marc,
-> > 
-> > On Tue, Sep 04, 2012 at 12:57:18, Marc Kleine-Budde wrote:
-> >> On 09/04/2012 08:14 AM, AnilKumar, Chimata wrote:
-> >>> Marc,
-> >>>
-> >>> Thanks for the comments,
-> >>>
-> >>> On Tue, Sep 04, 2012 at 01:31:35, Marc Kleine-Budde wrote:
-> >>>> On 09/03/2012 01:52 PM, AnilKumar Ch wrote:
-> >>>>> Adds suspend resume support to DCAN driver which enables
-> >>>>> DCAN power down mode bit (PDR). Then DCAN will ack the local
-> >>>>> power-down mode by setting PDA bit in STATUS register.
-> >>>>>
-> >>>>> Also adds a status flag to know the status of DCAN module,
-> >>>>> whether it is opened or not.
-> >>>>
-> >>>> Use "ndev->flags & IFF_UP" for that. Have a look at the at91_can driver
-> >>>> [1]. I'm not sure if you need locking here.
-> >>>>
-> >>>
-> >>> Then I can use this to check the status, lock is not
-> >>> required.
-> >>>
-> >>>> [1] http://lxr.free-electrons.com/source/drivers/net/can/at91_can.c#L1198
-> >>>>
-> >>>>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> >>>>> ---
-> >>>>>  drivers/net/can/c_can/c_can.c          |   78 ++++++++++++++++++++++++++++++++
-> >>>>>  drivers/net/can/c_can/c_can.h          |    5 ++
-> >>>>>  drivers/net/can/c_can/c_can_platform.c |   70 ++++++++++++++++++++++++++--
-> >>>>>  3 files changed, 150 insertions(+), 3 deletions(-)
-> > 
-> > [snip]
-> > 
-> >>>>> +#ifdef CONFIG_PM
-> >>>>> +int c_can_power_down(struct net_device *dev)
-> >>>>> +{
-> >>>>> +	unsigned long time_out;
-> >>>>> +	struct c_can_priv *priv = netdev_priv(dev);
-> >>>>> +
-> >>>>> +	if (!priv->is_opened)
-> >>>>> +		return 0;
-> >>>>
-> >>>> Should we add a BUG_ON(id->driver_data != BOSCH_D_CAN)?
-> >>>
-> >>> These APIs are called from platform driver where device type
-> >>> device type is verified. I think we have to add BUG_ON() in
-> >>> platform driver.
-> >>
-> >> The platform driver returns if not on D_CAN and will not call this
-> >> function. But this functions are exported, so can be called by someone
-> >> else. So if the caller is not D_CAN, it's a bug.
-> >>
-> > 
-> > I agree with you, but I have some concern here.
-> > I think we should do "return 0;" instead of BUG_ON(). With
-> > BUG_ON() system will hang and ultimately user lost his/her
-> > contents.
-> 
-> Good point, better safe then sorry.
-> But this should not happen. What about WARN_ON()?
-> 
+On Thu, Sep 13, 2012 at 1:47 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> Trace the power domain transitions using the functional power states,
+>> which include the power and logic states.
+>
+> Just to be clear, this means that a trace will only contain functional
+> power state changes, not logical ones, correct?
+Correct! The trace reports functional states, while pr_err and
+pr_debug statements (added by patch 6/7) are present for hardcore
+debugging on the functional and internal states.
 
-Either would be fine printing a warning message or WARN_ON()
+>
+>> While at it, fix the trace in the case a power domain did not hit
+>> the desired state, as reported by Paul Walmsley.
+>
+> What was broken here?  needs a bit more description.
+Ok will do
 
-Thanks
-AnilKumar
+> To me it sounds
+> like a fix that should be a separate patch.
+I kept the fix in this patch since it matches $SUBJECT. Can be split
+if needed though.
+
+Thanks for reviewing!
+Jean
+
+>
+>> Reported-by: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/powerdomain.c |   23 +++++++++++++----------
+>>  1 files changed, 13 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+>> index 267241f..2277ad3 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.c
+>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> @@ -144,7 +144,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+>>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>>  {
+>>
+>> -     int prev, state, trace_state = 0;
+>> +     int prev, next, state, trace_state;
+>>
+>>       if (pwrdm == NULL)
+>>               return -EINVAL;
+>> @@ -165,10 +165,10 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>>                * If the power domain did not hit the desired state,
+>>                * generate a trace event with both the desired and hit states
+>>                */
+>> -             if (state != prev) {
+>> +             next = pwrdm_read_next_fpwrst(pwrdm);
+>> +             if (next != prev) {
+>>                       trace_state = (PWRDM_TRACE_STATES_FLAG |
+>> -                                    ((state & OMAP_POWERSTATE_MASK) << 8) |
+>> -                                    ((prev & OMAP_POWERSTATE_MASK) << 0));
+>> +                                    (next << 8) | (prev << 0));
+>>                       trace_power_domain_target(pwrdm->name, trace_state,
+>>                                                 smp_processor_id());
+>>               }
+>> @@ -723,6 +723,10 @@ int pwrdm_set_fpwrst(struct powerdomain *pwrdm, enum pwrdm_func_state fpwrst)
+>>               }
+>>       }
+>>
+>> +     /* Trace the pwrdm desired target state */
+>> +     trace_power_domain_target(pwrdm->name, next_fpwrst,
+>> +                               smp_processor_id());
+>
+> Use of smp_processor_id() here will require the same care as pointed out
+> by Roger Quadros in [PATCH] perf: Use raw_smp_processor_id insted of
+> smp_processor_id.
+>
+> Kevin
+>
+>>       if (logic != pwrdm_read_logic_retst(pwrdm))
+>>               pwrdm_set_logic_retst(pwrdm, logic);
+>>
+>> @@ -776,6 +780,10 @@ int pwrdm_set_next_fpwrst(struct powerdomain *pwrdm,
+>>
+>>       spin_lock_irqsave(&pwrdm->lock, flags);
+>>
+>> +     /* Trace the pwrdm desired target state */
+>> +     trace_power_domain_target(pwrdm->name, fpwrst,
+>> +                               smp_processor_id());
+>> +
+>>       ret = pwrdm_set_logic_retst(pwrdm, logic);
+>>       if (ret)
+>>               pr_err("%s: unable to set logic state %0x of powerdomain: %s\n",
+>> @@ -821,13 +829,8 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>>       pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+>>                pwrdm->name, pwrst);
+>>
+>> -     if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>> -             /* Trace the pwrdm desired target state */
+>> -             trace_power_domain_target(pwrdm->name, pwrst,
+>> -                                       smp_processor_id());
+>> -             /* Program the pwrdm desired target state */
+>> +     if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
+>>               ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+>> -     }
+>>
+>>       return ret;
+>>  }
