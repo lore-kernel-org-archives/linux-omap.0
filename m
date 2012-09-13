@@ -1,65 +1,111 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 7/7] ARM: OMAP2+: PM: reorganize the powerdomain API in
- public and private parts
-Date: Thu, 13 Sep 2012 09:29:25 +0200
-Message-ID: <CAORVsuUi+8LjRRrDcuKZCL2nxPab1murkSc4eBrxhg1TY4=sTw@mail.gmail.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
-	<1347443732-7411-8-git-send-email-j-pihet@ti.com>
-	<87r4q6rdcu.fsf@deeprootsystems.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH] can: c_can: Move pm_runtime_enable/disable calls to common code
+Date: Thu, 13 Sep 2012 12:58:12 +0530
+Message-ID: <1347521292-28751-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:36495 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756400Ab2IMH31 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 03:29:27 -0400
-Received: by lagy9 with SMTP id y9so1711293lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 00:29:26 -0700 (PDT)
-In-Reply-To: <87r4q6rdcu.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-can-owner@vger.kernel.org>
+Sender: linux-can-owner@vger.kernel.org
+To: wg@grandegger.com, mkl@pengutronix.de, khilman@deeprootsystems.com
+Cc: linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Thu, Sep 13, 2012 at 2:11 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> The newly added code for functional power states re-defines the
->> API to query and control the power domains settings.
->>
->> The API is now split in the following parts in powerdomain.h:
->> - the public or external API, to be used by external PM components:
->>   cpuidle, suspend, pmxxxx, clock* etc.
->> - the private or internal API, to be used by the low level PM code
->>   only: powerdomain*, pm-debug, hwmod, voltage, clockdomainxxxx.
->>
->> The function omap_set_pwrdm_state is not used anymore and so is
->> removed.
->>
->> No functional change is introduced by this patch.
->>
->> Note: the API reorganization in a public and private header files
->> is not part of this patch, this comes as a subsequent clean-up
->> patch series.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->
-> In addition to reorganizing the API, I suspect there are a handful of
-> out-of-tree hacks, er, users, that will are using the internal state
-> names, as well as the functions that should now only be internal.
-The API clean-up series (planned after this one is in the queue) will
-sort out the public vs private APIs using different header files and
-static functions.
+Move pm_runtime_enable/disable calls to c_can.c driver. Current
+implementation is such that platform driver is doing pm_runtime
+enable/disable and core driver is doing put_sync/get_sync.
 
-> As part of the subsequent cleanup series, it would it make sense to add
-> a '_' prefix to the internal names as well to catch unintentional use of
-> internal APIs?
-Sure.
+PM runtime calls should be invoked if there is a valid device
+pointer from platform driver so moving enable/disable calls
+to core driver.
 
->
-> Kevin
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+Incorporated Kevin's comments on "can: c_can: Add runtime PM
+support to Bosch C_CAN/D_CAN controller" patch.
 
-Thanks,
-Jean
+This patch is tested on AM335x-EVM and cleanly applies on
+linux-can master
+
+ drivers/net/can/c_can/c_can.c          |   18 +++++++++++++++++-
+ drivers/net/can/c_can/c_can_platform.c |    5 -----
+ 2 files changed, 17 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/can/c_can/c_can.c b/drivers/net/can/c_can/c_can.c
+index aa6c5eb..e472975 100644
+--- a/drivers/net/can/c_can/c_can.c
++++ b/drivers/net/can/c_can/c_can.c
+@@ -1155,10 +1155,23 @@ static const struct net_device_ops c_can_netdev_ops = {
+ 
+ int register_c_can_dev(struct net_device *dev)
+ {
++	int ret;
++	struct c_can_priv *priv = netdev_priv(dev);
++
++	if (priv->device)
++		pm_runtime_enable(priv->device);
++
+ 	dev->flags |= IFF_ECHO;	/* we support local echo */
+ 	dev->netdev_ops = &c_can_netdev_ops;
+ 
+-	return register_candev(dev);
++	ret = register_candev(dev);
++	if (ret) {
++		if (priv->device)
++			pm_runtime_disable(priv->device);
++		return ret;
++	}
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(register_c_can_dev);
+ 
+@@ -1170,6 +1183,9 @@ void unregister_c_can_dev(struct net_device *dev)
+ 	c_can_enable_all_interrupts(priv, DISABLE_ALL_INTERRUPTS);
+ 
+ 	unregister_candev(dev);
++
++	if (priv->device)
++		pm_runtime_disable(priv->device);
+ }
+ EXPORT_SYMBOL_GPL(unregister_c_can_dev);
+ 
+diff --git a/drivers/net/can/c_can/c_can_platform.c b/drivers/net/can/c_can/c_can_platform.c
+index c351975..491101a 100644
+--- a/drivers/net/can/c_can/c_can_platform.c
++++ b/drivers/net/can/c_can/c_can_platform.c
+@@ -32,7 +32,6 @@
+ #include <linux/clk.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/pm_runtime.h>
+ #include <linux/pinctrl/consumer.h>
+ 
+ #include <linux/can/dev.h>
+@@ -185,8 +184,6 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 		goto exit_free_device;
+ 	}
+ 
+-	pm_runtime_enable(&pdev->dev);
+-
+ 	dev->irq = irq;
+ 	priv->base = addr;
+ 	priv->device = &pdev->dev;
+@@ -209,7 +206,6 @@ static int __devinit c_can_plat_probe(struct platform_device *pdev)
+ 
+ exit_clear_drvdata:
+ 	platform_set_drvdata(pdev, NULL);
+-	pm_runtime_disable(&pdev->dev);
+ exit_free_device:
+ 	free_c_can_dev(dev);
+ exit_iounmap:
+@@ -239,7 +235,6 @@ static int __devexit c_can_plat_remove(struct platform_device *pdev)
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(mem->start, resource_size(mem));
+ 
+-	pm_runtime_disable(&pdev->dev);
+ 	clk_put(priv->priv);
+ 
+ 	return 0;
+-- 
+1.7.0.4
+
