@@ -1,47 +1,68 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of
- ocp2scp
-Date: Thu, 13 Sep 2012 17:10:51 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209131710190.23318@utopia.booyaka.com>
-References: <1347008955-21310-1-git-send-email-kishon@ti.com> <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com> <505206E3.7050307@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv8 00/23]I2C big cleanup
+Date: Thu, 13 Sep 2012 11:04:42 -0700
+Message-ID: <87sjaldcjp.fsf@deeprootsystems.com>
+References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
+	<20120912131615.GB16547@pengutronix.de>
+	<87pq5quaqr.fsf@deeprootsystems.com>
+	<87wqzysuu3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <505206E3.7050307@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:40902 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758671Ab2IMSE4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 14:04:56 -0400
+Received: by obbuo13 with SMTP id uo13so4969093obb.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 11:04:56 -0700 (PDT)
+In-Reply-To: <87wqzysuu3.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Wed, 12 Sep 2012 16:08:20 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, tony@atomide.com
 
-On Thu, 13 Sep 2012, Benoit Cousson wrote:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> In this case, the ocp2scp IP is just the *bus controller* to access the
-> real USB_UTMI_PHY IP.
-> 
-> The TRM diagram does not show that level of detail unfortunately. You
-> can check the PRCM spec (Figure 78 : CD_L3_INIT_USB clock scheme) to see
-> the two modules.
-> 
-> So considering phy_48m as the main clock is still correct for the
-> ocp2scp IP.
-> 
-> The INIT_960M_FCLK will be a fck associated with the child of the
-> ocp2scp nodes which is the usb_phy.
-> 
-> Upgrading the opt_clk to fck does make sense as soon as we don't have
-> any other functional clock and as soon as this clock is *mandatory*. The
-> optional aspect in that case is just a wrong PRCM naming for a clock
-> that is mandatory. It is similar to the DSS case that does have only
-> optional clocks that are mandatory.
-> 
-> I do agree that we must stick to the HW definition as far as we can. But
-> the optional attribute is something that is wrong/inaccurate for a
-> couple of IPs. HW folks agreed on that point and will fix that in the
-> future.
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>
+[...]
 
-Okay so is this an Acked-by for this patch? :-)
+>> Sorry to be late to the party (again), but still catching up after some
+>> time off.
+>>
+>> Unfortunately, this series causes PM regressions on several OMAP
+>> platforms.  I hope we can hold off on this until those issues are
+>> addressed.
+>
+> I tracked the regression down to [PATCHv8 21/22] (see reply there.)
+>
+> Since this series is already merged, I suggest that the problem patch be
+> reverted, at least for v3.7 and until the problem is better understood
+> and tested.
+>
+> With that patch reverted, all my PM tests are passing.  Feel free to
+> add:
 
-If so I'll take it.
+OK, the i2c series is off the hook.
+
+Felipe and I spent a little time tracking this down.  Felipe suggested
+that there might be a driver with periodic i2c activity keeping I2C
+awake, and thus preventing CORE retention.  He was right.
+
+On the boards where I'm seeing the failure, the RTC is firing every
+second, and since the RTC is on the I2C connected PMIC, the PMIC IRQ
+reads and the RTC reads are causing lots of I2C activity every second.  
+
+With the new autosuspend feature, that is enough to keep the I2C active
+continually and prevent CORE retention.
+
+So, all that to say, from my PoV, this series can go in as is.  The PM
+problem is caused by the RTC driver someplace.
+
+Thanks Felipe,
+
+Kevin
 
 
-- Paul
+
