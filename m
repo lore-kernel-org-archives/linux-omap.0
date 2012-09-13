@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 10/15] ARM: OMAP4: hwmod_data: Add resource names to McPDM memory ranges
-Date: Thu, 13 Sep 2012 16:38:00 +0300
-Message-ID: <1347543485-339-11-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 09/15] ASoC: omap-pcm: Prepare to configure the DMA data_type based on stream properties
+Date: Thu, 13 Sep 2012 16:37:59 +0300
+Message-ID: <1347543485-339-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
@@ -10,33 +10,78 @@ To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>
 List-Id: linux-omap@vger.kernel.org
 
-To help the driver to get the correct memory range to access McPDM
-registers.
+Based on the format of the stream the omap-pcm can decide alone what data
+type should be used with by the sDMA.
+Keep the possibility for OMAP dai drivers to tell omap-pcm if they want to
+use different data type. This is needed for the omap-hdmi for example which
+needs 32bit data type even if the stream format is S16_LE.
+
+The check if (dma_data->data_type) is safe at the moment since omap-pcm
+does not support 8bit samples (OMAP_DMA_DATA_TYPE_S8 == 0x00).
+
+The next step is to redefine the meaning of dma_data->data_type to unblock
+this limitation.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c | 2 ++
- 1 file changed, 2 insertions(+)
+ sound/soc/omap/omap-pcm.c | 31 +++++++++++++++++++++++++++++--
+ 1 file changed, 29 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 242aee4..f65251e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -5059,6 +5059,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_per__mcbsp4 = {
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index 02eeb2e..4c13a5f 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -149,6 +149,24 @@ static int omap_pcm_hw_free(struct snd_pcm_substream *substream)
+ 	return 0;
+ }
  
- static struct omap_hwmod_addr_space omap44xx_mcpdm_addrs[] = {
- 	{
-+		.name		= "mpu",
- 		.pa_start	= 0x40132000,
- 		.pa_end		= 0x4013207f,
- 		.flags		= ADDR_TYPE_RT
-@@ -5077,6 +5078,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcpdm = {
++static int omap_pcm_get_dma_type(int num_bits)
++{
++	int data_type;
++
++	switch (num_bits) {
++	case 16:
++		data_type = OMAP_DMA_DATA_TYPE_S16;
++		break;
++	case 32:
++		data_type = OMAP_DMA_DATA_TYPE_S32;
++		break;
++	default:
++		data_type = -EINVAL;
++		break;
++	}
++	return data_type;
++}
++
+ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ {
+ 	struct snd_pcm_runtime *runtime = substream->runtime;
+@@ -163,7 +181,16 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ 		return 0;
  
- static struct omap_hwmod_addr_space omap44xx_mcpdm_dma_addrs[] = {
- 	{
-+		.name		= "dma",
- 		.pa_start	= 0x49032000,
- 		.pa_end		= 0x4903207f,
- 		.flags		= ADDR_TYPE_RT
+ 	memset(&dma_params, 0, sizeof(dma_params));
+-	dma_params.data_type			= dma_data->data_type;
++
++	if (dma_data->data_type)
++		dma_params.data_type = dma_data->data_type;
++	else
++		dma_params.data_type = omap_pcm_get_dma_type(
++				snd_pcm_format_physical_width(runtime->format));
++
++	if (dma_params.data_type < 0)
++		return dma_params.data_type;
++
+ 	dma_params.trigger			= dma_data->dma_req;
+ 
+ 	if (dma_data->packet_size)
+@@ -195,7 +222,7 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ 	 * still can get an interrupt at each period bounary
+ 	 */
+ 	bytes = snd_pcm_lib_period_bytes(substream);
+-	dma_params.elem_count	= bytes >> dma_data->data_type;
++	dma_params.elem_count	= bytes >> dma_params.data_type;
+ 	dma_params.frame_count	= runtime->periods;
+ 	omap_set_dma_params(prtd->dma_ch, &dma_params);
+ 
 -- 
 1.7.12
