@@ -1,66 +1,67 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v6 0/7] ARM: OMAP2+: PM: introduce the power domains
- functional states
-Date: Thu, 13 Sep 2012 09:04:59 +0200
-Message-ID: <CAORVsuVZ5AnsN9HYoXntMcF2Yc4VM3Mwk2bQBiGnV0=kdpMYfA@mail.gmail.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
-	<87har2rc9q.fsf@deeprootsystems.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH v6 0/2] ARM: New cache API for iommu
+Date: Thu, 13 Sep 2012 12:39:29 +0530
+Message-ID: <CADysL2Y=aLJ8Eq5aJhB28VhwBvVY+4DyMFpu=MyOg6Sj+D+rYg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:34814 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438Ab2IMHFB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 03:05:01 -0400
-Received: by lbbgj3 with SMTP id gj3so1732881lbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 00:05:00 -0700 (PDT)
-In-Reply-To: <87har2rc9q.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Thu, Sep 13, 2012 at 2:34 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> Here is a re-spin after some comments and suggestions after review
->> and discussions.
->>
->> Implement the functional states for the power domains:
->> - unify the API to use the functional states. The new API
->>   consists of the pwrdm_set*_fpwrst and pwrdm_read*_fpwrst
->>   functions and is the API to use to control the power domains
->>   power and logic states,
->> - reorganize the powerdomain API in internal and external parts,
->>   in powerdomain.h [1]
->> - protect the power domain state change by a lock in the
->>   functions that read and set the powerdomains next functional state,
->> - introduce the functional states for power domains power states and
->>   logic power states [2], and the conversion functions between the
->>   functional and internal states. The conversion functions are
->>   lightweight and generic. The power domains allowed states [3] are
->>   defined in the pwrsts and pwrsts_logic_ret fields of the struct
->>   powerdomain,
->> - program the logic power state of power domains from the functional
->>   states, in pwrdm_set*_fpwrst
->> - convert the OMAP2/3/4 PM code to use the updated API,
->> - provide the power domains statistics by functional states,
->> - provide ftrace tracepoints with the functional state,
->> - provide error logs in critical code, which makes the development
->>   easier.
->
-> I just gave this series a round of PM testing.  I tested retention
-> and off in idle & suspend, with and without CPUidle on 3430/n900,
-> 3530/Overo, 3730/OveroSTORM, 3730/Beagle-xM and 4430/Panda (though only
-> MPU/CPU ret/off is supported for OMAP4 in mainline.)
->
-> All PM tests passed with flying colors.  Nice!
-Great!
+>From a00cbfadc0053a3c21812593997a1b7338234a9f Mon Sep 17 00:00:00 2001
+From: Ramesh Gupta G <grgupta@ti.com>
+Date: Thu, 13 Sep 2012 11:43:20 +0530
+Subject: [PATCH v6  0/2] ARM: New cache API for iommu
 
-Thanks a lot Kevin for testing
+This patch series is the next version to
+- add a new cache maintenance api to support non-coherent iommu drivers.
+- flush both L1 and L2 caches from OMAP iommu whenever the page table
+  memory is updated.
 
-Jean
+Changes since the previous patch set (v5)
+- Fixed the RMK's comments on the flush function names in omap-iommu
+to reflect the
+  purpose.
 
->
-> Kevin
+The implementation of the new api is based on
+the approach[1] discussed.
+
+[1]http://marc.info/?l=linux-kernel&m=131316512713815&w=2
+
+Ramesh Gupta G (2):
+  ARM: new cache maintenance api for iommu
+  OMAP:IOMMU:flush L1 and L2 caches
+
+ arch/arm/include/asm/cacheflush.h |   21 +++++++++++++++++++
+ arch/arm/include/asm/glue-cache.h |    1 +
+ arch/arm/mm/cache-fa.S            |   16 ++++++++++++++
+ arch/arm/mm/cache-v3.S            |   14 ++++++++++++-
+ arch/arm/mm/cache-v4.S            |   15 +++++++++++++
+ arch/arm/mm/cache-v4wb.S          |   22 ++++++++++++++++++++
+ arch/arm/mm/cache-v4wt.S          |   18 ++++++++++++++++
+ arch/arm/mm/cache-v6.S            |   21 +++++++++++++++++++
+ arch/arm/mm/cache-v7.S            |   22 ++++++++++++++++++++
+ arch/arm/mm/proc-arm1020.S        |   23 +++++++++++++++++++++
+ arch/arm/mm/proc-arm1020e.S       |   21 +++++++++++++++++++
+ arch/arm/mm/proc-arm1022.S        |   21 +++++++++++++++++++
+ arch/arm/mm/proc-arm1026.S        |   20 ++++++++++++++++++
+ arch/arm/mm/proc-arm920.S         |   18 ++++++++++++++++
+ arch/arm/mm/proc-arm922.S         |   18 ++++++++++++++++
+ arch/arm/mm/proc-arm925.S         |   23 +++++++++++++++++++++
+ arch/arm/mm/proc-arm926.S         |   23 +++++++++++++++++++++
+ arch/arm/mm/proc-arm940.S         |   26 ++++++++++++++++++++++++
+ arch/arm/mm/proc-arm946.S         |   25 +++++++++++++++++++++++
+ arch/arm/mm/proc-feroceon.S       |   32 +++++++++++++++++++++++++++++
+ arch/arm/mm/proc-macros.S         |    1 +
+ arch/arm/mm/proc-mohawk.S         |   19 +++++++++++++++++
+ arch/arm/mm/proc-xsc3.S           |   18 ++++++++++++++++
+ arch/arm/mm/proc-xscale.S         |   20 ++++++++++++++++++
+ drivers/iommu/omap-iommu.c        |   40 ++++++++++++++++--------------------
+ 25 files changed, 475 insertions(+), 23 deletions(-)
+
+
+-- 
+regards
+Ramesh Gupta G
