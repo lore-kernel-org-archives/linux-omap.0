@@ -1,64 +1,48 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: Re: [PATCH v5 2/2] OMAP:IOMMU:flush L1 and L2 caches
-Date: Thu, 13 Sep 2012 10:04:09 +0530
-Message-ID: <CADysL2YgZ4E8ZLDnA4zn-bvXiaF--TrgQvPsTgBpKm7VQnSwuw@mail.gmail.com>
-References: <CADysL2bb+LC1ySgkp8Hd_VL8GaFJ_gsuMF=WkmWp+YTdJqKJ4A@mail.gmail.com>
-	<20120912164121.GF28448@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP2+: some Makefile cleanup for 3.7
+Date: Wed, 12 Sep 2012 22:04:04 -0700
+Message-ID: <20120913050403.GA4521@atomide.com>
+References: <alpine.DEB.2.00.1209120911110.17903@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120912164121.GF28448@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11260 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752745Ab2IMFEI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 01:04:08 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1209120911110.17903@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Russell,
+* Paul Walmsley <paul@pwsan.com> [120912 02:13]:
+> Hi Tony,
+> 
+> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+> 
+>   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-cleanup-a-for-3.7
+> 
+> for you to fetch changes up to df47adb825c221ff45126fd54e531f01ea490334:
+> 
+>   ARM: OMAP2+: clean up PRCM sections of the Makefile (2012-09-11 19:09:15 -0600)
+> 
+> - Paul
+> 
+> ----------------------------------------------------------------
+> Clean up and standardize several parts of
+> arch/arm/mach-omap2/Makefile.  Beyond readability and diffstat
+> improvements, the series should reduce the risk of conflicts during
+> future cleanups by ensuring related lines are in the same section of the
+> Makefile.
 
+Thanks pulling into cleanup-makefile-sparse.
 
-On Wed, Sep 12, 2012 at 10:11 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Sep 12, 2012 at 08:49:16PM +0530, Gupta, Ramesh wrote:
->> Thanks to the RMK's suggestions.
->
-> I should've made clear the distinction between _range and _area.
-> A _range function takes start and end.  An _area function takes a start
-> and size.  So...
->
->> -static void flush_iopgd_range(u32 *first, u32 *last)
->> +static void flush_iopgd_range(u32 *first, size_t size)
->
-> This should change to flush_iopgd_area().
+Regards,
 
-Looks like I missed this, I will fix and send the updated patch.
-
->
->>  {
->> -     /* FIXME: L2 cache should be taken care of if it exists */
->> -     do {
->> -             asm("mcr        p15, 0, %0, c7, c10, 1 @ flush_pgd"
->> -                 : : "r" (first));
->> -             first += L1_CACHE_BYTES / sizeof(*first);
->> -     } while (first <= last);
->> +     phys_addr_t phys = virt_to_phys(first);
->> +
->> +     iommu_flush_area(first, size);
->> +     outer_flush_range(phys, phys + size);
->>  }
->>
->> -static void flush_iopte_range(u32 *first, u32 *last)
->> +static void flush_iopte_range(u32 *first, size_t size)
->> +
->
-> flush_iopte_area().  (And there shouldn't be a blank line between this
-> and the open curley.)
-
-I will fix it.
-
-> Otherwise, looks fine.
-
-thank you.
-
-
-Best regards
-Ramesh Gupta G
+Tony
