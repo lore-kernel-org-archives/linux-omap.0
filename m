@@ -1,400 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 2/5] ARM: OMAP4460: Workaround for ROM bug because of CA9 r2pX GIC control register change.
-Date: Thu, 13 Sep 2012 19:36:46 +0300
-Message-ID: <1347554209-23378-3-git-send-email-t-kristo@ti.com>
-References: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] arm: omap: hwmod: make *phy_48m* as the main_clk of
+ ocp2scp
+Date: Thu, 13 Sep 2012 17:10:51 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209131710190.23318@utopia.booyaka.com>
+References: <1347008955-21310-1-git-send-email-kishon@ti.com> <alpine.DEB.2.00.1209112218440.9444@utopia.booyaka.com> <505206E3.7050307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35822 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932130Ab2IMQhM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 12:37:12 -0400
-In-Reply-To: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <505206E3.7050307@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, balbi@ti.com, tony@atomide.com, linux@arm.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+On Thu, 13 Sep 2012, Benoit Cousson wrote:
 
-On OMAP4+ devices, GIC register context is lost when MPUSS hits
-the OSWR(Open Switch Retention). On the CPU wakeup path, ROM code
-gets executed and one of the steps in it is to restore the
-saved context of the GIC. The ROM Code GIC distributor restoration
-is split in two parts: CPU specific register done by each CPU and
-common register done by only one CPU.
+> In this case, the ocp2scp IP is just the *bus controller* to access the
+> real USB_UTMI_PHY IP.
+> 
+> The TRM diagram does not show that level of detail unfortunately. You
+> can check the PRCM spec (Figure 78 : CD_L3_INIT_USB clock scheme) to see
+> the two modules.
+> 
+> So considering phy_48m as the main clock is still correct for the
+> ocp2scp IP.
+> 
+> The INIT_960M_FCLK will be a fck associated with the child of the
+> ocp2scp nodes which is the usb_phy.
+> 
+> Upgrading the opt_clk to fck does make sense as soon as we don't have
+> any other functional clock and as soon as this clock is *mandatory*. The
+> optional aspect in that case is just a wrong PRCM naming for a clock
+> that is mandatory. It is similar to the DSS case that does have only
+> optional clocks that are mandatory.
+> 
+> I do agree that we must stick to the HW definition as far as we can. But
+> the optional attribute is something that is wrong/inaccurate for a
+> couple of IPs. HW folks agreed on that point and will fix that in the
+> future.
 
-Below is the abstract flow.
+Okay so is this an Acked-by for this patch? :-)
 
-...............................................................
-- MPUSS in OSWR state.
-- CPU0 wakes up on the event(interrupt) and start executing ROM code.
+If so I'll take it.
 
-[..]
 
-- CPU0 executes "GIC Restoration:"
-
-[...]
-
-- CPU0 swicthes to non-secure mode and jumps to OS resume code.
-
-[...]
-
-- CPU0 is online in OS
-- CPU0 enables the GIC distributor. GICD.Enable Non-secure = 1
-- CPU0 wakes up CPU1 with clock-domain force wakeup method.
-- CPU0 continues it's execution.
-[..]
-
-- CPU1 wakes up and start executing ROM code.
-
-[..]
-
-- CPU1 executes "GIC Restoration:"
-
-[..]
-
-- CPU1 swicthes to non-secure mode and jumps to OS resume code.
-
-[...]
-
-- CPU1 is online in OS and start executing.
-[...]   -
-
-GIC Restoration: /* Common routine for HS and GP devices */
-{
-       if (GICD != 1)  { /* This will be true in OSWR state */
-               if (GIC_SAR_BACKUP_STATE == SAVED)
-                       - CPU restores GIC distributor
-               else
-                       - reconfigure GIC distributor to boot values.
-
-               GICD.Enable secure = 1
-       }
-
-       if (GIC_SAR_BACKUP_STATE == SAVED)
-               - CPU restore its GIC CPU interface registers if saved.
-       else
-               - reconfigure its GIC CPU interface registers to boot
-                       values.
-}
-...............................................................
-
-So as mentioned in the flow, GICD != 1 condition decides how
-the GIC registers are handled in ROM code wakeup path from
-OSWR. As evident from the flow, ROM code relies on the entire
-GICD register value and not specific register bits.
-
-The assumption was valid till CortexA9 r1pX version since there
-was only one banked bit to control secure and non-secure GICD.
-Secure view which ROM code sees:
-       bit 0 == Enable Non-secure
-Non-secure view which HLOS sees:
-       bit 0 == Enable secure
-
-But GICD register has changed between CortexA9 r1pX and r2pX.
-On r2pX GICD register is composed of 2 bits.
-Secure view which ROM code sees:
-       bit 1 == Enable Non-secure
-       bit 0 == Enable secure
-Non-secure view which HLOS sees:
-       bit 0 == Enable Non-secure
-
-Hence on OMAP4460(r2pX) devices, if you go through the
-above flow again during CPU1 wakeup, GICD == 3 and hence
-ROM code fails to understand the real wakeup power state
-and reconfigures GIC distributor to boot values. This is
-nasty since you loose the entire interrupt controller
-context in a live system.
-
-The ROM code fix done on next OMAP4 device (OMAP4470 - r2px) is to
-check "GICD.Enable secure != 1" for GIC restoration in OSWR wakeup path.
-
-Since ROM code can't be fixed on OMAP4460 devices, a work around
-needs to be implemented. As evident from the flow, as long as
-CPU1 sees GICD == 1 in it's wakeup path from OSWR, the issue
-won't happen. Below is the flow with the work-around.
-
-...............................................................
-- MPUSS in OSWR state.
-- CPU0 wakes up on the event(interrupt) and start executing ROM code.
-
-[..]
-
-- CPU0 executes "GIC Restoration:"
-
-[..]
-
-- CPU0 swicthes to non-secure mode and jumps to OS resume code.
-
-[..]
-
-- CPU0 is online in OS.
-- CPU0 does GICD.Enable Non-secure = 0
-- CPU0 wakes up CPU1 with clock domain force wakeup method.
-- CPU0 waits for GICD.Enable Non-secure = 1
-- CPU0 coninues it's execution.
-[..]
-
-- CPU1 wakes up and start executing ROM code.
-
-[..]
-
-- CPU1 executes "GIC Restoration:"
-
-[..]
-
-- CPU1 swicthes to non-secure mode and jumps to OS resume code.
-
-[..]
-
-- CPU1 is online in OS
-- CPU1 does GICD.Enable Non-secure = 1
-- CPU1 start executing
-[...]
-...............................................................
-
-With this procedure, the GIC configuration done between the
-CPU0 wakeup and CPU1 wakeup will not be lost but during this
-short windows, the CPU0 will not receive interrupts.
-
-The BUG is applicable to only OMAP4460(r2pX) devices.
-OMAP4470 (also r2pX) is not affected by this bug because
-ROM code has been fixed.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/common.h              |    2 +
- arch/arm/mach-omap2/omap-headsmp.S        |   38 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    9 ++++++-
- arch/arm/mach-omap2/omap-smp.c            |   28 ++++++++++++++++++++-
- arch/arm/mach-omap2/omap4-common.c        |    8 +++++-
- arch/arm/mach-omap2/pm.h                  |    2 +
- 6 files changed, 84 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index 1f65b18..edbf27d 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -268,6 +268,7 @@ static inline void __iomem *omap4_get_scu_base(void)
- #endif
- 
- extern void __init gic_init_irq(void);
-+extern void gic_dist_disable(void);
- extern void omap_smc1(u32 fn, u32 arg);
- extern void __iomem *omap4_get_sar_ram_base(void);
- extern void omap_do_wfi(void);
-@@ -275,6 +276,7 @@ extern void omap_do_wfi(void);
- #ifdef CONFIG_SMP
- /* Needed for secondary core boot */
- extern void omap_secondary_startup(void);
-+extern void omap_secondary_startup_4460(void);
- extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
- extern void omap_auxcoreboot_addr(u32 cpu_addr);
- extern u32 omap_read_auxcoreboot0(void);
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 502e313..de80963 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -18,6 +18,8 @@
- #include <linux/linkage.h>
- #include <linux/init.h>
- 
-+#include <plat/omap44xx.h>
-+
- 	__CPUINIT
- 
- /* Physical address needed since MMU not enabled yet on secondary core */
-@@ -64,3 +66,39 @@ hold:	ldr	r12,=0x103
- 	b	secondary_startup
- ENDPROC(omap_secondary_startup)
- 
-+ENTRY(omap_secondary_startup_4460)
-+hold_2:	ldr	r12,=0x103
-+	dsb
-+	smc	#0			@ read from AuxCoreBoot0
-+	mov	r0, r0, lsr #9
-+	mrc	p15, 0, r4, c0, c0, 5
-+	and	r4, r4, #0x0f
-+	cmp	r0, r4
-+	bne	hold_2
-+
-+	/*
-+	 * GIC distributor control register has changed between
-+	 * CortexA9 r1pX and r2pX. The Control Register secure
-+	 * banked version is now composed of 2 bits:
-+	 * bit 0 == Secure Enable
-+	 * bit 1 == Non-Secure Enable
-+	 * The Non-Secure banked register has not changed
-+	 * Because the ROM Code is based on the r1pX GIC, the CPU1
-+	 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
-+	 * The workaround must be:
-+	 * 1) Before doing the CPU1 wakeup, CPU0 must disable
-+	 * the GIC distributor
-+	 * 2) CPU1 must re-enable the GIC distributor on
-+	 * it's wakeup path.
-+	 */
-+	ldr	r1, =OMAP44XX_GIC_DIST_BASE
-+	ldr	r0, [r1]
-+	orr	r0, #1
-+	str	r0, [r1]
-+
-+	/*
-+	 * we've been released from the wait loop,secondary_stack
-+	 * should now contain the SVC stack for this core
-+	 */
-+	b	secondary_startup
-+ENDPROC(omap_secondary_startup_4460)
-diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-index f73c0c8..230bdcd 100644
---- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
-@@ -68,6 +68,7 @@ struct omap4_cpu_pm_info {
- 	void __iomem *scu_sar_addr;
- 	void __iomem *wkup_sar_addr;
- 	void __iomem *l2x0_sar_addr;
-+	void (*secondary_startup)(void);
- };
- 
- static DEFINE_PER_CPU(struct omap4_cpu_pm_info, omap4_pm_info);
-@@ -301,6 +302,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- {
- 	unsigned int cpu_state = 0;
-+	struct omap4_cpu_pm_info *pm_info = &per_cpu(omap4_pm_info, cpu);
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		return -ENXIO;
-@@ -310,7 +312,7 @@ int __cpuinit omap4_hotplug_cpu(unsigned int cpu, unsigned int power_state)
- 
- 	clear_cpu_prev_pwrst(cpu);
- 	set_cpu_next_pwrst(cpu, power_state);
--	set_cpu_wakeup_addr(cpu, virt_to_phys(omap_secondary_startup));
-+	set_cpu_wakeup_addr(cpu, virt_to_phys(pm_info->secondary_startup));
- 	scu_pwrst_prepare(cpu, power_state);
- 
- 	/*
-@@ -361,6 +363,11 @@ int __init omap4_mpuss_init(void)
- 	pm_info->scu_sar_addr = sar_base + SCU_OFFSET1;
- 	pm_info->wkup_sar_addr = sar_base + CPU1_WAKEUP_NS_PA_ADDR_OFFSET;
- 	pm_info->l2x0_sar_addr = sar_base + L2X0_SAVE_OFFSET1;
-+	if (cpu_is_omap446x())
-+		pm_info->secondary_startup = omap_secondary_startup_4460;
-+	else
-+		pm_info->secondary_startup = omap_secondary_startup;
-+
- 	pm_info->pwrdm = pwrdm_lookup("cpu1_pwrdm");
- 	if (!pm_info->pwrdm) {
- 		pr_err("Lookup failed for CPU1 pwrdm\n");
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 9a35adf..28d6201 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -32,6 +32,7 @@
- #include "iomap.h"
- #include "common.h"
- #include "clockdomain.h"
-+#include "pm.h"
- 
- #define CPU_MASK		0xff0ffff0
- #define CPU_CORTEX_A9		0x410FC090
-@@ -118,6 +119,24 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 *	4.3.4.2 Power States of CPU0 and CPU1
- 	 */
- 	if (booted) {
-+		/*
-+		 * GIC distributor control register has changed between
-+		 * CortexA9 r1pX and r2pX. The Control Register secure
-+		 * banked version is now composed of 2 bits:
-+		 * bit 0 == Secure Enable
-+		 * bit 1 == Non-Secure Enable
-+		 * The Non-Secure banked register has not changed
-+		 * Because the ROM Code is based on the r1pX GIC, the CPU1
-+		 * GIC restoration will cause a problem to CPU0 Non-Secure SW.
-+		 * The workaround must be:
-+		 * 1) Before doing the CPU1 wakeup, CPU0 must disable
-+		 * the GIC distributor
-+		 * 2) CPU1 must re-enable the GIC distributor on
-+		 * it's wakeup path.
-+		 */
-+		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD))
-+			gic_dist_disable();
-+
- 		clkdm_wakeup(cpu1_clkdm);
- 		clkdm_allow_idle(cpu1_clkdm);
- 	} else {
-@@ -138,7 +157,14 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 
- static void __init wakeup_secondary(void)
- {
-+	void *startup_addr = omap_secondary_startup;
- 	void __iomem *base = omap_get_wakeupgen_base();
-+
-+	if (cpu_is_omap446x()) {
-+		startup_addr = omap_secondary_startup_4460;
-+		pm44xx_errata |= PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD;
-+	}
-+
- 	/*
- 	 * Write the address of secondary startup routine into the
- 	 * AuxCoreBoot1 where ROM code will jump and start executing
-@@ -146,7 +172,7 @@ static void __init wakeup_secondary(void)
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
- 	if (omap_secure_apis_support())
--		omap_auxcoreboot_addr(virt_to_phys(omap_secondary_startup));
-+		omap_auxcoreboot_addr(virt_to_phys(startup_addr));
- 	else
- 		__raw_writel(virt_to_phys(omap5_secondary_startup),
- 						base + OMAP_AUX_CORE_BOOT_1);
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index c29dee9..91d42bb 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -42,6 +42,7 @@ static void __iomem *l2cache_base;
- #endif
- 
- static void __iomem *sar_ram_base;
-+static void __iomem *gic_dist_base_addr;
- 
- #ifdef CONFIG_OMAP4_ERRATA_I688
- /* Used to implement memory barrier on DRAM path */
-@@ -96,7 +97,6 @@ void __init omap_barriers_init(void)
- void __init gic_init_irq(void)
- {
- 	void __iomem *omap_irq_base;
--	void __iomem *gic_dist_base_addr;
- 
- 	/* Static mapping, never released */
- 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
-@@ -111,6 +111,12 @@ void __init gic_init_irq(void)
- 	gic_init(0, 29, gic_dist_base_addr, omap_irq_base);
- }
- 
-+void gic_dist_disable(void)
-+{
-+	if (gic_dist_base_addr)
-+		__raw_writel(0x0, gic_dist_base_addr + GIC_DIST_CTRL);
-+}
-+
- #ifdef CONFIG_CACHE_L2X0
- 
- void __iomem *omap4_get_l2cache_base(void)
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index f26f2d7..bee3911 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -100,6 +100,8 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
- static inline void enable_omap3630_toggle_l2_on_restore(void) { }
- #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
- 
-+#define PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD	(1 << 0)
-+
- #if defined(CONFIG_ARCH_OMAP4)
- extern u16 pm44xx_errata;
- #define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
--- 
-1.7.4.1
-
+- Paul
