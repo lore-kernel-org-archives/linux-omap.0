@@ -1,33 +1,43 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 5/7] ARM: OMAP2+: PM debug: trace the functional power
- domains states
-Date: Thu, 13 Sep 2012 09:31:39 +0200
-Message-ID: <CAORVsuXMw7dMVZOSk-XSE8_D+qDfuYO3LyXStwC4hARTgb7j4Q@mail.gmail.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
-	<1347443732-7411-6-git-send-email-j-pihet@ti.com>
-	<874nn2st0m.fsf@deeprootsystems.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Add pinctrl-single,bits type
+ of mux
+Date: Thu, 13 Sep 2012 10:36:24 +0300
+Message-ID: <50518CF8.2050106@ti.com>
+References: <1347353664-15906-1-git-send-email-peter.ujfalusi@ti.com> <20120912202700.GD5997@atomide.com> <CACRpkdZjd5FANymXQOuz0nH+d_r6O6GdXrcnZObhq6mZ9cmH7A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:51358 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756667Ab2IMHbl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 03:31:41 -0400
-Received: by lagy9 with SMTP id y9so1712395lag.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 00:31:39 -0700 (PDT)
-In-Reply-To: <874nn2st0m.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdZjd5FANymXQOuz0nH+d_r6O6GdXrcnZObhq6mZ9cmH7A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Thu, Sep 13, 2012 at 1:47 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Use of smp_processor_id() here will require the same care as pointed out
-> by Roger Quadros in [PATCH] perf: Use raw_smp_processor_id insted of
-> smp_processor_id.
-BTW it looks like get_cpu and put_cpu is the way to go, as pointed out
-by Russell.
+On 09/13/2012 09:52 AM, Linus Walleij wrote:
+> On Wed, Sep 12, 2012 at 10:27 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120911 01:54]:
+>>> With pinctrl-single,bits it is possible to update just part of the =
+register
+>>> within the pinctrl-single,function-mask area.
+>>> This is useful when one register configures mmore than one pin's mu=
+x.
+>>
+>>>       size /=3D sizeof(*mux);   /* Number of elements in array */
+>>> -     rows =3D size / 2;        /* Each row is a key value pair */
+>>> +     rows =3D size / params;   /* Each row is a key value pair */
+>>
+>> Maybe just remove the comment:  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>
+>> I don't think it's needed any longer. Other than that,
+>> thanks for updating the patch:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>=20
+> Applied minus the comment, plus Tony's ACK, thanks!
 
-Jean
+Thank you Linus, I was about to send the v3 with the removed comment.
+
+--=20
+P=E9ter
