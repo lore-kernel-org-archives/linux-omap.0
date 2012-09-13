@@ -1,66 +1,105 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: OMAP4: crypto acceleration (AES, SHA, ...)
-Date: Thu, 13 Sep 2012 23:57:08 +0200
-Message-ID: <20120913215707.GA22825@earth.universe>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V4 2/2] dmaengine: add helper function to request a slave DMA channel
+Date: Thu, 13 Sep 2012 17:00:29 -0500
+Message-ID: <1347573629-21299-3-git-send-email-jon-hunter@ti.com>
+References: <1347573629-21299-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ring0.de ([91.143.88.219]:52533 "EHLO ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753882Ab2IMV5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 17:57:15 -0400
-Received: from comu.ring0.de (unknown [127.0.0.1])
-	by ring0.de (Postfix) with ESMTP id C04422C58E64
-	for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 23:57:11 +0200 (CEST)
-Received: (from spamd@localhost)
-	by comu.ring0.de (8.13.8/8.13.8/Submit) id q8DLvBe8020511
-	for linux-omap@vger.kernel.org; Thu, 13 Sep 2012 23:57:11 +0200
-Received: from sre.ring0.de (unknown [46.22.209.71])
-	by ring0.de (Postfix) with ESMTP id 963382C58E5B
-	for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 23:57:10 +0200 (CEST)
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:42868 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755498Ab2IMWA7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 18:00:59 -0400
+In-Reply-To: <1347573629-21299-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Jon Hunter <jon-hunter@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
 
+Currently slave DMA channels are requested by calling dma_request_channel()
+and requires DMA clients to pass various filter parameters to obtain the
+appropriate channel.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+With device-tree being used by architectures such as arm and the addition of
+device-tree helper functions to extract the relevant DMA client information
+from device-tree, add a new function to request a slave DMA channel using
+device-tree. This function is currently a simple wrapper that calls the
+device-tree of_dma_request_slave_channel() function.
 
-Hi,
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <djbw@fb.com>
 
-Are there plans to add crypto acceleration support to OMAP4? Has
-this hardware component been removed from OMAP4? I tried to load the
-code written for OMAP3 on my Pandaboard, but it just outputs
-"platform not supported":
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ drivers/dma/dmaengine.c   |   16 ++++++++++++++++
+ include/linux/dmaengine.h |    6 ++++++
+ 2 files changed, 22 insertions(+)
 
-[    0.370513] omap_init_sham: platform not supported
-[    0.375488] omap_init_aes: platform not supported
+diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+index 3491654..9b466da 100644
+--- a/drivers/dma/dmaengine.c
++++ b/drivers/dma/dmaengine.c
+@@ -62,6 +62,7 @@
+ #include <linux/rculist.h>
+ #include <linux/idr.h>
+ #include <linux/slab.h>
++#include <linux/of_dma.h>
+ 
+ static DEFINE_MUTEX(dma_list_mutex);
+ static DEFINE_IDR(dma_idr);
+@@ -546,6 +547,21 @@ struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask, dma_filter_fn fn, v
+ }
+ EXPORT_SYMBOL_GPL(__dma_request_channel);
+ 
++/**
++ * dma_request_slave_channel - try to allocate an exclusive slave channel
++ * @dev:	pointer to client device structure
++ * @name:	slave channel name
++ */
++struct dma_chan *dma_request_slave_channel(struct device *dev, char *name)
++{
++	/* If device-tree is present get slave info from here */
++	if (dev->of_node)
++		return of_dma_request_slave_channel(dev->of_node, name);
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(dma_request_slave_channel);
++
+ void dma_release_channel(struct dma_chan *chan)
+ {
+ 	mutex_lock(&dma_list_mutex);
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 9c02a45..9500aa5 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -973,6 +973,7 @@ enum dma_status dma_sync_wait(struct dma_chan *chan, dma_cookie_t cookie);
+ enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx);
+ void dma_issue_pending_all(void);
+ struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask, dma_filter_fn fn, void *fn_param);
++struct dma_chan *dma_request_slave_channel(struct device *dev, char *name);
+ void dma_release_channel(struct dma_chan *chan);
+ #else
+ static inline enum dma_status dma_wait_for_async_tx(struct dma_async_tx_descriptor *tx)
+@@ -987,6 +988,11 @@ static inline struct dma_chan *__dma_request_channel(dma_cap_mask_t *mask,
+ {
+ 	return NULL;
+ }
++static inline struct dma_chan *dma_request_slave_channel(struct device *dev,
++							 char *name)
++{
++	return NULL
++}
+ static inline void dma_release_channel(struct dma_chan *chan)
+ {
+ }
+-- 
+1.7.9.5
 
--- Sebastian
-
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCAAGBQJQUlazAAoJENju1/PIO/qas8cQAKELXOGgyg4NEagB9GxJWxc3
-teKoVc74UxdCZgkS14p9zS0Vx1XJUm2lGWeyIu0JC1ymB6FwpTj2gqFDobrMeZJH
-wW0kr6CBH5jSeR1I4n46eyHNmfVXBt5t2LF6+4//FeT7C795Z/HuCF4a5pkZbW+/
-OLZFKwTA5wigWCGNbCK3ClilwXSZzhjSH3/VPPOIOZBzvBnDRo+Sk6wMlEOI8Za5
-Cf12qamVW/iodqzZKtKRqAVDz5oLepEa1KCT8o8XDQd9T//qiYxUT8c/uvOQGgVV
-CQTNYsxzoYUh7CgyM6Ld6Zq2l3wuaOo/8PGVXSprbLQcIWrRn+BlssJjxAzT2Jtw
-7leRtSNsB4iO6Lirw2G5MlEQoTuPlt9KAdu51r3s1mXvLPhJ+MedrQKIrHvII2vS
-KegbuI1F3VaPiLVO62R9Pz9x80KfjI3ixMU4oxsK9sjMKwbWbpYdZyAtcDTi0o9+
-pKFqYxGOQ41MgsHbTeK9xqjMRtZRHcK4dLkMe/j536MVjwm6RHDAJNkAQ5jDvYn9
-tTS+9peAflvAlM+K5mJq2wweLTtpRNuQvXV6NcgJuD/2TIojOishiJzCTrHCCdGQ
-UqihXBsixV5LyWiTcssYk6JaIg+B+FommIZAEgV6q19SSflgdIgAEL9u9UbJVl2t
-8RZiDQp3eWa0ntoCg48J
-=s0VG
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
