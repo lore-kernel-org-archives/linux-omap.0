@@ -1,233 +1,90 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Subject: Re: [PATCH 2/2] ARM: OMAP5: Enable arch timer support
-Date: Thu, 13 Sep 2012 15:30:48 +0530
-Message-ID: <CAMQu2gwry9oANzu+N==mPrBQFejJL=0f2nDnxRo+n989YFjQ7A@mail.gmail.com>
+Date: Thu, 13 Sep 2012 15:35:07 +0530
+Message-ID: <CAMQu2gwcDS+ieSwSTZrTPJuCaHmNJxo+s4KfEevSPdYH9495Qg@mail.gmail.com>
 References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
  <1344856045-15134-3-git-send-email-santosh.shilimkar@ti.com>
  <504DE165.4000208@ti.com> <CAMQu2gxE8e9RBykLDyukZwV7dPKv3nG1vCynO1pijUBXBnyq8Q@mail.gmail.com>
  <504DE79B.3090302@ti.com> <CAMQu2gwT=XHcZtdKfYacGyt21Mo0of8MmSMNE+0PP9wemKSyxw@mail.gmail.com>
  <CAMQu2gzKDLBJmVdm0SUr0ec=LueT0mqBUYmHyGMsav5k=ggKQg@mail.gmail.com>
  <50519FB9.9060208@ti.com> <CAMQu2gzA6ZAh+u-TDSESNmmfzT1t4e1PnqjNT=cMm16uNfehqQ@mail.gmail.com>
- <5051A6F7.7020001@ti.com>
+ <5051A6F7.7020001@ti.com> <CAMQu2gwry9oANzu+N==mPrBQFejJL=0f2nDnxRo+n989YFjQ7A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=f46d043c7fd8087c3604c9926331
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38748 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752088Ab2IMKBM (ORCPT
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:33762 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751889Ab2IMKF3 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:01:12 -0400
-Received: by vcbfo13 with SMTP id fo13so2243627vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 03:01:10 -0700 (PDT)
-In-Reply-To: <5051A6F7.7020001@ti.com>
+	Thu, 13 Sep 2012 06:05:29 -0400
+Received: by vbbff1 with SMTP id ff1so3187774vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 03:05:27 -0700 (PDT)
+In-Reply-To: <CAMQu2gwry9oANzu+N==mPrBQFejJL=0f2nDnxRo+n989YFjQ7A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, tony@atomide.com, linux-arm-kernel@lists.infradead.orig
 
---f46d043c7fd8087c3604c9926331
-Content-Type: text/plain; charset=ISO-8859-1
-
-On Thu, Sep 13, 2012 at 2:57 PM, Benoit Cousson <b-cousson@ti.com> wrote:
-> On 09/13/2012 11:00 AM, Shilimkar, Santosh wrote:
->> On Thu, Sep 13, 2012 at 2:26 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->>> Hi Santosh,
->>>
->>> On 09/11/2012 11:29 AM, Shilimkar, Santosh wrote:
->>>> Benoit,
+On Thu, Sep 13, 2012 at 3:30 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> On Thu, Sep 13, 2012 at 2:57 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+>> On 09/13/2012 11:00 AM, Shilimkar, Santosh wrote:
+>>> On Thu, Sep 13, 2012 at 2:26 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+>>>> Hi Santosh,
 >>>>
->>>> On Mon, Sep 10, 2012 at 7:09 PM, Shilimkar, Santosh
->>>> <santosh.shilimkar@ti.com> wrote:
->>>>> On Mon, Sep 10, 2012 at 6:44 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->>>>>>
->>>>
->>>> [...]
->>>>
->>>>>>>> Silly question: Don't we have one arch-timer per CPU?
->>>>>>>>
->>>>>>> It is per CPU just like A9 TWD
->>>>>>
->>>>>> Shouldn't we have two nodes then?
->>>>>>
->>>>> I need to check this but arch timer DT node should be same
->>>>> as the twd DT node. May be one node with reference to
->>>>> each CPU node should do but am not too sure about the DT
->>>>> nodes and how all that work.
+>>>> On 09/11/2012 11:29 AM, Shilimkar, Santosh wrote:
+>>>>> Benoit,
 >>>>>
->>>> Here is an updated patch based on our discussion. Thanks for comments.
->>>> Let me know if you are ok with this version.
->>>
->>> Cool, thanks for the update.
->>>
->>>> From 98f6a3b4b52ef7c76ed8b19bf9257c51ee5d7323 Mon Sep 17 00:00:00 2001
->>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>> Date: Mon, 13 Aug 2012 14:39:03 +0530
->>>> Subject: [PATCH] ARM: OMAP5: Enable arch timer support
+>>>>> On Mon, Sep 10, 2012 at 7:09 PM, Shilimkar, Santosh
+>>>>> <santosh.shilimkar@ti.com> wrote:
+>>>>>> On Mon, Sep 10, 2012 at 6:44 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+>>>>>>>
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>>>>> Silly question: Don't we have one arch-timer per CPU?
+>>>>>>>>>
+>>>>>>>> It is per CPU just like A9 TWD
+>>>>>>>
+>>>>>>> Shouldn't we have two nodes then?
+>>>>>>>
+>>>>>> I need to check this but arch timer DT node should be same
+>>>>>> as the twd DT node. May be one node with reference to
+>>>>>> each CPU node should do but am not too sure about the DT
+>>>>>> nodes and how all that work.
+>>>>>>
+>>>>> Here is an updated patch based on our discussion. Thanks for comments.
+>>>>> Let me know if you are ok with this version.
 >>>>
->>>> Enable Cortex A15 generic timer support for OMAP5 based SOCs.
->>>> The CPU local timers run on the free running real time counter clock.
+>>>> Cool, thanks for the update.
 >>>>
->>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>> From 98f6a3b4b52ef7c76ed8b19bf9257c51ee5d7323 Mon Sep 17 00:00:00 2001
+>>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>> Date: Mon, 13 Aug 2012 14:39:03 +0530
+>>>>> Subject: [PATCH] ARM: OMAP5: Enable arch timer support
+>>>>>
+>>>>> Enable Cortex A15 generic timer support for OMAP5 based SOCs.
+>>>>> The CPU local timers run on the free running real time counter clock.
+>>>>>
+>>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>
+>>>> Acked-by: Benoit Cousson <b-cousson@ti.com>
+>>>>
+>>> Thanks Benoit.
 >>>
->>> Acked-by: Benoit Cousson <b-cousson@ti.com>
->>>
->> Thanks Benoit.
+>>>> Tony,
+>>>>
+>>>> I can potentially add it along with the timer changes in the dts part2
+>>>> series if you ack the timer patch. We don't have tons of OMAP5 content
+>>>> in the dts branch so it should not conflict.
+>>>>
+>>> Yep. let me know what works. if needed I can put these two patches
+>>> on a branch and send a pull request.
 >>
->>> Tony,
->>>
->>> I can potentially add it along with the timer changes in the dts part2
->>> series if you ack the timer patch. We don't have tons of OMAP5 content
->>> in the dts branch so it should not conflict.
->>>
->> Yep. let me know what works. if needed I can put these two patches
->> on a branch and send a pull request.
->
-> It does not apply to the current devel-dt, what base did you used?
->
-Mainline 3.6-rc3. Just refreshed the patches against devel-dt.
-The Kconfig file had a minor conflict.  Updated patches
-are updated.
-
+>> It does not apply to the current devel-dt, what base did you used?
+>>
+> Mainline 3.6-rc3. Just refreshed the patches against devel-dt.
+> The Kconfig file had a minor conflict.  Updated patches.
+Let me know if they apply ok for you ?
 Regards
 Santosh
-
---f46d043c7fd8087c3604c9926331
-Content-Type: application/octet-stream;
-	name="0001-ARM-OMAP-Add-initialisation-for-the-real-time-counte.patch"
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP-Add-initialisation-for-the-real-time-counte.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h71ospyy0
-
-RnJvbSA3YjcyODU2YjcwYWIyYmJjMDI0YWIyMWE4ZDU0MmRkY2E5MjgzMjNkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBNb24sIDEzIEF1ZyAyMDEyIDE0OjI0OjI0ICswNTMwClN1YmplY3Q6IFtQ
-QVRDSCAxLzJdIEFSTTogT01BUDogQWRkIGluaXRpYWxpc2F0aW9uIGZvciB0aGUgcmVhbC10aW1l
-IGNvdW50ZXIuCgpUaGUgcmVhbCB0aW1lIGNvdW50ZXIgYWxzbyBjYWxsZWQgbWFzdGVyIGNvdW50
-ZXIsIGlzIGEgZnJlZS1ydW5uaW5nCmNvdW50ZXIuIEl0IHByb2R1Y2VzIHRoZSBjb3VudCB1c2Vk
-IGJ5IHRoZSBDUFUgbG9jYWwgdGltZXIgcGVyaXBoZXJhbHMKaW4gdGhlIE1QVSBjbHVzdGVyLiBU
-aGUgdGltZXIgY291bnRzIGF0IGEgcmF0ZSBvZiA2LjE0NCBNSHouCgpUaGUgcmF0aW8gcmVnaXN0
-ZXJzIG5lZWRzIHRvIGJlIGNvbmZpZ3VyZWQgYmFzZWQgb24gc3lzdGVtIGNsb2NrCm9ubHkgb25l
-dGltZS4gQWZ0ZXIgaW5pdGlhbGlzYXRpb24sIGhhcmR3YXJlIHRha2VzIGNhcmUgb2YgYWRqdXN0
-aW5nCnRoZSBjbG9jayBpbiBkaWZmZXJlbnQgbG93IHBvd2VyIG1vZGVzIHRvIGtlZXAgY291bnRl
-ciByYXRlIGNvbnN0YW50LgoKU2lnbmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRv
-c2guc2hpbGlta2FyQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcgfCAg
-ICA0ICsrCiBhcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgfCAgIDkwICsrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKy0KIDIgZmlsZXMgY2hhbmdlZCwgOTMgaW5zZXJ0
-aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIv
-S2NvbmZpZyBiL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZwppbmRleCBlNDViYmZmLi4xZWYx
-MmIyIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcKKysrIGIvYXJjaC9h
-cm0vbWFjaC1vbWFwMi9LY29uZmlnCkBAIC0yNSw2ICsyNSw5IEBAIGNvbmZpZyBBUkNIX09NQVAy
-UExVU19UWVBJQ0FMCiBjb25maWcgU09DX0hBU19PTUFQMl9TRFJDCiAJYm9vbCAiT01BUDIgU0RS
-QU0gQ29udHJvbGxlciBzdXBwb3J0IgogCitjb25maWcgU09DX0hBU19SRUFMVElNRV9DT1VOVEVS
-CisJYm9vbCAiUmVhbCB0aW1lIGZyZWUgcnVubmluZyBjb3VudGVyIgorCiBjb25maWcgQVJDSF9P
-TUFQMgogCWJvb2wgIlRJIE9NQVAyIgogCWRlcGVuZHMgb24gQVJDSF9PTUFQMlBMVVMKQEAgLTcx
-LDYgKzc0LDcgQEAgY29uZmlnIFNPQ19PTUFQNQogCXNlbGVjdCBBUk1fR0lDCiAJc2VsZWN0IEhB
-VkVfU01QCiAJc2VsZWN0IEFSTV9DUFVfU1VTUEVORCBpZiBQTQorCXNlbGVjdCBTT0NfSEFTX1JF
-QUxUSU1FX0NPVU5URVIKIAogY29tbWVudCAiT01BUCBDb3JlIFR5cGUiCiAJZGVwZW5kcyBvbiBB
-UkNIX09NQVAyCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3RpbWVyLmMgYi9hcmNo
-L2FybS9tYWNoLW9tYXAyL3RpbWVyLmMKaW5kZXggMzFmOWM5My4uODViODViYiAxMDA2NDQKLS0t
-IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIv
-dGltZXIuYwpAQCAtNzAsNiArNzAsMTEgQEAKICNkZWZpbmUgT01BUDNfU0VDVVJFX1RJTUVSCTEK
-ICNlbmRpZgogCisjZGVmaW5lIFJFQUxUSU1FX0NPVU5URVJfQkFTRQkJCQkweDQ4MjQzMjAwCisj
-ZGVmaW5lIElOQ1JFTUVOVEVSX05VTUVSQVRPUl9PRkZTRVQJCQkweDEwCisjZGVmaW5lIElOQ1JF
-TUVOVEVSX0RFTlVNRVJBVE9SX1JFTE9BRF9PRkZTRVQJCTB4MTQKKyNkZWZpbmUgTlVNRVJBVE9S
-X0RFTlVNRVJBVE9SX01BU0sJCQkweGZmZmZmMDAwCisKIC8qIENsb2NrZXZlbnQgY29kZSAqLwog
-CiBzdGF0aWMgc3RydWN0IG9tYXBfZG1fdGltZXIgY2xrZXY7CkBAIC0zNDAsNiArMzQ1LDg0IEBA
-IHN0YXRpYyB2b2lkIF9faW5pdCBvbWFwMl9jbG9ja3NvdXJjZV9pbml0KGludCBncHRpbWVyX2lk
-LAogCQlvbWFwMl9ncHRpbWVyX2Nsb2Nrc291cmNlX2luaXQoZ3B0aW1lcl9pZCwgZmNrX3NvdXJj
-ZSk7CiB9CiAKKyNpZmRlZiBDT05GSUdfU09DX0hBU19SRUFMVElNRV9DT1VOVEVSCisvKgorICog
-VGhlIHJlYWx0aW1lIGNvdW50ZXIgYWxzbyBjYWxsZWQgbWFzdGVyIGNvdW50ZXIsIGlzIGEgZnJl
-ZS1ydW5uaW5nCisgKiBjb3VudGVyLCB3aGljaCBpcyByZWxhdGVkIHRvIHJlYWwgdGltZS4gSXQg
-cHJvZHVjZXMgdGhlIGNvdW50IHVzZWQKKyAqIGJ5IHRoZSBDUFUgbG9jYWwgdGltZXIgcGVyaXBo
-ZXJhbHMgaW4gdGhlIE1QVSBjbHVzdGVyLiBUaGUgdGltZXIgY291bnRzCisgKiBhdCBhIHJhdGUg
-b2YgNi4xNDQgTUh6LiBCZWNhdXNlIHRoZSBkZXZpY2Ugb3BlcmF0ZXMgb24gZGlmZmVyZW50IGNs
-b2NrcworICogaW4gZGlmZmVyZW50IHBvd2VyIG1vZGVzLCB0aGUgbWFzdGVyIGNvdW50ZXIgc2hp
-ZnRzIG9wZXJhdGlvbiBiZXR3ZWVuCisgKiBjbG9ja3MsIGFkanVzdGluZyB0aGUgaW5jcmVtZW50
-IHBlciBjbG9jayBpbiBoYXJkd2FyZSBhY2NvcmRpbmdseSB0bworICogbWFpbnRhaW4gYSBjb25z
-dGFudCBjb3VudCByYXRlLgorICovCitzdGF0aWMgdm9pZCBfX2luaXQgcmVhbHRpbWVfY291bnRl
-cl9pbml0KHZvaWQpCit7CisJdm9pZCBfX2lvbWVtICpiYXNlOworCXN0YXRpYyBzdHJ1Y3QgY2xr
-ICpzeXNfY2xrOworCXVuc2lnbmVkIGxvbmcgcmF0ZTsKKwl1bnNpZ25lZCBpbnQgcmVnLCBudW0s
-IGRlbjsKKworCWJhc2UgPSBpb3JlbWFwKFJFQUxUSU1FX0NPVU5URVJfQkFTRSwgU1pfMzIpOwor
-CWlmICghYmFzZSkgeworCQlwcl9lcnIoIiVzOiBpb3JlbWFwIGZhaWxlZFxuIiwgX19mdW5jX18p
-OworCQlyZXR1cm47CisJfQorCXN5c19jbGsgPSBjbGtfZ2V0KE5VTEwsICJzeXNfY2xraW5fY2si
-KTsKKwlpZiAoIXN5c19jbGspIHsKKwkJcHJfZXJyKCIlczogZmFpbGVkIHRvIGdldCBzeXN0ZW0g
-Y2xvY2sgaGFuZGxlXG4iLCBfX2Z1bmNfXyk7CisJCWlvdW5tYXAoYmFzZSk7CisJCXJldHVybjsK
-Kwl9CisKKwlyYXRlID0gY2xrX2dldF9yYXRlKHN5c19jbGspOworCS8qIE51bWVyYXRvci9kZW51
-bWVyYXRvciB2YWx1ZXMgcmVmZXIgVFJNIFJlYWx0aW1lIENvdW50ZXIgc2VjdGlvbiAqLworCXN3
-aXRjaCAocmF0ZSkgeworCWNhc2UgMTIwMDAwMDoKKwkJbnVtID0gNjQ7CisJCWRlbiA9IDEyNTsK
-KwkJYnJlYWs7CisJY2FzZSAxMzAwMDAwOgorCQludW0gPSA3Njg7CisJCWRlbiA9IDE2MjU7CisJ
-CWJyZWFrOworCWNhc2UgMTkyMDAwMDA6CisJCW51bSA9IDg7CisJCWRlbiA9IDI1OworCQlicmVh
-azsKKwljYXNlIDI2MDAwMDA6CisJCW51bSA9IDM4NDsKKwkJZGVuID0gMTYyNTsKKwkJYnJlYWs7
-CisJY2FzZSAyNzAwMDAwOgorCQludW0gPSAyNTY7CisJCWRlbiA9IDExMjU7CisJCWJyZWFrOwor
-CWNhc2UgMzg0MDAwMDA6CisJZGVmYXVsdDoKKwkJLyogUHJvZ3JhbSBpdCBmb3IgMzguNCBNSHog
-Ki8KKwkJbnVtID0gNDsKKwkJZGVuID0gMjU7CisJCWJyZWFrOworCX0KKworCS8qIFByb2dyYW0g
-bnVtZXJhdG9yIGFuZCBkZW51bWVyYXRvciByZWdpc3RlcnMgKi8KKwlyZWcgPSBfX3Jhd19yZWFk
-bChiYXNlICsgSU5DUkVNRU5URVJfTlVNRVJBVE9SX09GRlNFVCkgJgorCQkJTlVNRVJBVE9SX0RF
-TlVNRVJBVE9SX01BU0s7CisJcmVnIHw9IG51bTsKKwlfX3Jhd193cml0ZWwocmVnLCBiYXNlICsg
-SU5DUkVNRU5URVJfTlVNRVJBVE9SX09GRlNFVCk7CisKKwlyZWcgPSBfX3Jhd19yZWFkbChiYXNl
-ICsgSU5DUkVNRU5URVJfTlVNRVJBVE9SX09GRlNFVCkgJgorCQkJTlVNRVJBVE9SX0RFTlVNRVJB
-VE9SX01BU0s7CisJcmVnIHw9IGRlbjsKKwlfX3Jhd193cml0ZWwocmVnLCBiYXNlICsgSU5DUkVN
-RU5URVJfREVOVU1FUkFUT1JfUkVMT0FEX09GRlNFVCk7CisKKwlpb3VubWFwKGJhc2UpOworfQor
-I2Vsc2UKK3N0YXRpYyBpbmxpbmUgdm9pZCBfX2luaXQgcmVhbHRpbWVfY291bnRlcl9pbml0KHZv
-aWQpCit7fQorI2VuZGlmCisKICNkZWZpbmUgT01BUF9TWVNfVElNRVJfSU5JVChuYW1lLCBjbGtl
-dl9uciwgY2xrZXZfc3JjLAkJCVwKIAkJCQljbGtzcmNfbnIsIGNsa3NyY19zcmMpCQkJXAogc3Rh
-dGljIHZvaWQgX19pbml0IG9tYXAjI25hbWUjI190aW1lcl9pbml0KHZvaWQpCQkJXApAQCAtNDAy
-LDcgKzQ4NSwxMiBAQCBPTUFQX1NZU19USU1FUig0KQogI2VuZGlmCiAKICNpZmRlZiBDT05GSUdf
-U09DX09NQVA1Ci1PTUFQX1NZU19USU1FUl9JTklUKDUsIDEsIE9NQVA0X0NMS0VWX1NPVVJDRSwg
-MiwgT01BUDRfTVBVX1NPVVJDRSkKK3N0YXRpYyB2b2lkIF9faW5pdCBvbWFwNV90aW1lcl9pbml0
-KHZvaWQpCit7CisJb21hcDJfZ3BfY2xvY2tldmVudF9pbml0KDEsIE9NQVA0X0NMS0VWX1NPVVJD
-RSk7CisJb21hcDJfY2xvY2tzb3VyY2VfaW5pdCgyLCBPTUFQNF9NUFVfU09VUkNFKTsKKwlyZWFs
-dGltZV9jb3VudGVyX2luaXQoKTsKK30KIE9NQVBfU1lTX1RJTUVSKDUpCiAjZW5kaWYKIAotLSAK
-MS43LjkuNQoK
---f46d043c7fd8087c3604c9926331
-Content-Type: application/octet-stream;
-	name="0002-ARM-OMAP5-Enable-arch-timer-support.patch"
-Content-Disposition: attachment;
-	filename="0002-ARM-OMAP5-Enable-arch-timer-support.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h71ospz01
-
-RnJvbSA3MDViZWI5ZWQ4MDBjN2E5OThlNGVjYjcxN2FkMGU2YTZhZDVlMDFlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBNb24sIDEzIEF1ZyAyMDEyIDE0OjM5OjAzICswNTMwClN1YmplY3Q6IFtQ
-QVRDSCAyLzJdIEFSTTogT01BUDU6IEVuYWJsZSBhcmNoIHRpbWVyIHN1cHBvcnQKCkVuYWJsZSBD
-b3J0ZXggQTE1IGdlbmVyaWMgdGltZXIgc3VwcG9ydCBmb3IgT01BUDUgYmFzZWQgU09Dcy4KVGhl
-IENQVSBsb2NhbCB0aW1lcnMgcnVuIG9uIHRoZSBmcmVlIHJ1bm5pbmcgcmVhbCB0aW1lIGNvdW50
-ZXIgY2xvY2suCgpTaWduZWQtb2ZmLWJ5OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGls
-aW1rYXJAdGkuY29tPgotLS0KIGFyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kgfCAgIDEyICsr
-KysrKysrKysrKwogYXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnICB8ICAgIDEgKwogYXJjaC9h
-cm0vbWFjaC1vbWFwMi90aW1lci5jICB8ICAgIDcgKysrKysrKwogMyBmaWxlcyBjaGFuZ2VkLCAy
-MCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRz
-aSBiL2FyY2gvYXJtL2Jvb3QvZHRzL29tYXA1LmR0c2kKaW5kZXggOWFjNzViMy4uNWRiMzNmNCAx
-MDA2NDQKLS0tIGEvYXJjaC9hcm0vYm9vdC9kdHMvb21hcDUuZHRzaQorKysgYi9hcmNoL2FybS9i
-b290L2R0cy9vbWFwNS5kdHNpCkBAIC0zMyw5ICszMywyMSBAQAogCWNwdXMgewogCQljcHVAMCB7
-CiAJCQljb21wYXRpYmxlID0gImFybSxjb3J0ZXgtYTE1IjsKKwkJCXRpbWVyIHsKKwkJCQljb21w
-YXRpYmxlID0gImFybSxhcm12Ny10aW1lciI7CisJCQkJLyogMTR0aCBQUEkgSVJRLCBhY3RpdmUg
-bG93IGxldmVsLXNlbnNpdGl2ZSAqLworCQkJCWludGVycnVwdHMgPSA8MSAxNCAweDMwOD47CisJ
-CQkJY2xvY2stZnJlcXVlbmN5ID0gPDYxNDQwMDA+OworCQkJfTsKIAkJfTsKIAkJY3B1QDEgewog
-CQkJY29tcGF0aWJsZSA9ICJhcm0sY29ydGV4LWExNSI7CisJCQl0aW1lciB7CisJCQkJY29tcGF0
-aWJsZSA9ICJhcm0sYXJtdjctdGltZXIiOworCQkJCS8qIDE0dGggUFBJIElSUSwgYWN0aXZlIGxv
-dyBsZXZlbC1zZW5zaXRpdmUgKi8KKwkJCQlpbnRlcnJ1cHRzID0gPDEgMTQgMHgzMDg+OworCQkJ
-CWNsb2NrLWZyZXF1ZW5jeSA9IDw2MTQ0MDAwPjsKKwkJCX07CiAJCX07CiAJfTsKIApkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9L
-Y29uZmlnCmluZGV4IDFlZjEyYjIuLjkxNGU5ZDUgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gt
-b21hcDIvS2NvbmZpZworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcKQEAgLTc1LDYg
-Kzc1LDcgQEAgY29uZmlnIFNPQ19PTUFQNQogCXNlbGVjdCBIQVZFX1NNUAogCXNlbGVjdCBBUk1f
-Q1BVX1NVU1BFTkQgaWYgUE0KIAlzZWxlY3QgU09DX0hBU19SRUFMVElNRV9DT1VOVEVSCisJc2Vs
-ZWN0IEFSTV9BUkNIX1RJTUVSCiAKIGNvbW1lbnQgIk9NQVAgQ29yZSBUeXBlIgogCWRlcGVuZHMg
-b24gQVJDSF9PTUFQMgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5jIGIv
-YXJjaC9hcm0vbWFjaC1vbWFwMi90aW1lci5jCmluZGV4IDg1Yjg1YmIuLjk2YTc3Y2MgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXIuYworKysgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL3RpbWVyLmMKQEAgLTQyLDYgKzQyLDcgQEAKICNpbmNsdWRlIDxwbGF0L2RtdGltZXIuaD4K
-ICNpbmNsdWRlIDxhc20vc21wX3R3ZC5oPgogI2luY2x1ZGUgPGFzbS9zY2hlZF9jbG9jay5oPgor
-I2luY2x1ZGUgPGFzbS9hcmNoX3RpbWVyLmg+CiAjaW5jbHVkZSAiY29tbW9uLmgiCiAjaW5jbHVk
-ZSA8cGxhdC9vbWFwX2h3bW9kLmg+CiAjaW5jbHVkZSA8cGxhdC9vbWFwX2RldmljZS5oPgpAQCAt
-NDg3LDkgKzQ4OCwxNSBAQCBPTUFQX1NZU19USU1FUig0KQogI2lmZGVmIENPTkZJR19TT0NfT01B
-UDUKIHN0YXRpYyB2b2lkIF9faW5pdCBvbWFwNV90aW1lcl9pbml0KHZvaWQpCiB7CisJaW50IGVy
-cjsKKwogCW9tYXAyX2dwX2Nsb2NrZXZlbnRfaW5pdCgxLCBPTUFQNF9DTEtFVl9TT1VSQ0UpOwog
-CW9tYXAyX2Nsb2Nrc291cmNlX2luaXQoMiwgT01BUDRfTVBVX1NPVVJDRSk7CiAJcmVhbHRpbWVf
-Y291bnRlcl9pbml0KCk7CisKKwllcnIgPSBhcmNoX3RpbWVyX29mX3JlZ2lzdGVyKCk7CisJaWYg
-KGVycikKKwkJcHJfZXJyKCIlczogYXJjaF90aW1lcl9yZWdpc3RlciBmYWlsZWQgJWRcbiIsIF9f
-ZnVuY19fLCBlcnIpOwogfQogT01BUF9TWVNfVElNRVIoNSkKICNlbmRpZgotLSAKMS43LjkuNQoK
---f46d043c7fd8087c3604c9926331--
