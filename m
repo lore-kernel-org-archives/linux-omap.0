@@ -1,14 +1,14 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 3/7] ARM: OMAP4: Add timer clock aliases for device-tree
-Date: Thu, 13 Sep 2012 18:31:27 -0500
-Message-ID: <1347579091-3794-4-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 1/7] ARM: dts: OMAP: Add timer nodes
+Date: Thu, 13 Sep 2012 18:31:25 -0500
+Message-ID: <1347579091-3794-2-git-send-email-jon-hunter@ti.com>
 References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50045 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50047 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758999Ab2IMXbz (ORCPT
+	with ESMTP id S1759002Ab2IMXbz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 19:31:55 -0400
 In-Reply-To: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,59 +16,489 @@ List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-For OMAP4, the dmtimers are located in the Wake-up, ABE and Peripheral (PER)
-power domains. Hence, when the dmtimer is configured to use the "timer_sys_ck"
-as its functional clock the actual clock used is different depending on whether
-the clock is in the Wake-up, ABE or PER domain. So when we look-up the dmtimer's
-"timer_sys_ck" we need to specify the timer device name as well as clock alias
-to find the right clock.
+Add the 12 GP timers nodes present in OMAP2.
+Add the 12 GP timers nodes present in OMAP3.
+Add the 11 GP timers nodes present in OMAP4.
+Add the 7 GP timers nodes present in AM33xx.
 
-Currently, the device names for the timers have the format "omap_timer.X" where
-X is the timer instance number. When using to device tree, the format of the
-device name created by device-tree is different and has the format
-"<reg-address>.<device-name>" (this is assuming that the device-tree "reg"
-property is specified). This causes the look-up for the OMAP4 "timer_sys_ck" to
-fail. To fix this add new timer clock alias for using device-tree.
+Add documentation for timer properties specific to OMAP.
 
-Please note that adding a 2nd set of clock aliases for the same clocks to only
-temporary until device-tree migration is complete. Then we can remove the legacy
-aliases. Hence, I have marked the legacy aliases with a "TODO" to remove them.
+Please note that for OMAP2/3 devices, there is only one interrupt controller
+for the ARM CPU (which has the label "intc") and so globally define this as the
+interrupt parent to save duplicating the interrupt parent for all device nodes.
 
+Thanks to Vaibhav Hiremath for creating the AM33xx timer nodes. I have modified
+Vaibhav's original nodes adding information on which timers support a PWM
+output.
+
+Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ .../devicetree/bindings/arm/omap/timer.txt         |   30 ++++++
+ arch/arm/boot/dts/am33xx.dtsi                      |   61 +++++++++++++
+ arch/arm/boot/dts/omap2.dtsi                       |   86 ++++++++++++++++++
+ arch/arm/boot/dts/omap2420.dtsi                    |    8 ++
+ arch/arm/boot/dts/omap2430.dtsi                    |    8 ++
+ arch/arm/boot/dts/omap3.dtsi                       |   96 ++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   86 ++++++++++++++++++
+ 7 files changed, 375 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index d7f55e4..7dfeaf0 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3314,6 +3314,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("usbhs_omap",	"usbtll_fck",		&dummy_ck,	CK_443X),
- 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
- 	CLK(NULL,	"timer_32k_ck",	&sys_32k_ck,	CK_443X),
-+	/* TODO: Remove "omap_timer.X" aliases once DT migration is complete */
- 	CLK("omap_timer.1",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
- 	CLK("omap_timer.2",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
- 	CLK("omap_timer.3",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-@@ -3325,6 +3326,17 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("omap_timer.6",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK("omap_timer.7",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK("omap_timer.8",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4a318000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("48032000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("48034000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("48036000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("4803e000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("48086000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("48088000.timer",	"timer_sys_ck",	&sys_clkin_ck,	CK_443X),
-+	CLK("49038000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4903a000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4903c000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK("4903e000.timer",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+diff --git a/Documentation/devicetree/bindings/arm/omap/timer.txt b/Documentation/devicetree/bindings/arm/omap/timer.txt
+new file mode 100644
+index 0000000..30b83deff
+--- /dev/null
++++ b/Documentation/devicetree/bindings/arm/omap/timer.txt
+@@ -0,0 +1,30 @@
++OMAP Timer controller bindings
++
++Required properties:
++- compatible:	Must be "ti,omap2-timer" for OMAP2+ controllers
++- reg:		Contains timer register address range (base address and length)
++- interrupts: 	Contains the interrupt information for the timer. The format is
++		being dependent on which interrupt controller the OMAP device
++		uses.
++
++OMAP specific properties:
++- ti,hwmods:		Name of the hwmod associated to the timer, "timer<X>",
++			where <X> is the instance number of the timer from the
++			HW spec.
++- ti,timer-alwon:	Indicates the timer is in an alway-on power domain.
++- ti,timer-dsp:		Indicates the timer can interrupt the on-chip DSP in
++			addition to the ARM CPU.
++- ti,timer-pwm: 	Indicates the timer can generate a PWM output.
++- ti,timer-secure: 	Indicates the timer is reserved on a secure OMAP device
++			and therefore cannot be used by the kernel.
++
++Example:
++
++timer12: timer@48304000 {
++	compatible = "ti,omap2-timer";
++	reg = <0x48304000 0xfff>;
++	interrupts = <95>;
++	ti,hwmods = "timer12"
++	ti,timer-alwon;
++	ti,timer-secure;
++};
+diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
+index bb31bff..fd5074c 100644
+--- a/arch/arm/boot/dts/am33xx.dtsi
++++ b/arch/arm/boot/dts/am33xx.dtsi
+@@ -210,5 +210,66 @@
+ 			interrupt-parent = <&intc>;
+ 			interrupts = <91>;
+ 		};
++
++		timer1: timer@44e31000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x44e31000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <67>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
++
++		timer2: timer@48040000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48040000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <68>;
++			ti,hwmods = "timer2";
++		};
++
++		timer3: timer@48042000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48042000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <69>;
++			ti,hwmods = "timer3";
++		};
++
++		timer4: timer@48044000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48044000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <92>;
++			ti,hwmods = "timer4";
++			ti,timer-pwm;
++		};
++
++		timer5: timer@48046000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48046000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <93>;
++			ti,hwmods = "timer5";
++			ti,timer-pwm;
++		};
++
++		timer6: timer@48048000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48048000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <94>;
++			ti,hwmods = "timer6";
++			ti,timer-pwm;
++		};
++
++		timer7: timer@4804a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4804a000 0x1000>;
++			interrupt-parent = <&intc>;
++			interrupts = <95>;
++			ti,hwmods = "timer7";
++			ti,timer-pwm;
++		};
+ 	};
  };
+diff --git a/arch/arm/boot/dts/omap2.dtsi b/arch/arm/boot/dts/omap2.dtsi
+index 581cb08..731de55 100644
+--- a/arch/arm/boot/dts/omap2.dtsi
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -12,6 +12,7 @@
  
- int __init omap4xxx_clk_init(void)
+ / {
+ 	compatible = "ti,omap2430", "ti,omap2420", "ti,omap2";
++	interrupt-parent = <&intc>;
+ 
+ 	aliases {
+ 		serial0 = &uart1;
+@@ -65,5 +66,90 @@
+ 			ti,hwmods = "uart3";
+ 			clock-frequency = <48000000>;
+ 		};
++
++		timer2: timer@4802a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4802a000 0xfff>;
++			interrupts = <38>;
++			ti,hwmods = "timer2";
++		};
++
++		timer3: timer@48078000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48078000 0xfff>;
++			interrupts = <39>;
++			ti,hwmods = "timer3";
++		};
++
++		timer4: timer@4807a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4807a000 0xfff>;
++			interrupts = <40>;
++			ti,hwmods = "timer4";
++		};
++
++		timer5: timer@4807c000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4807c000 0xfff>;
++			interrupts = <41>;
++			ti,hwmods = "timer5";
++			ti,timer-dsp;
++		};
++
++		timer6: timer@4807e000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4807e000 0xfff>;
++			interrupts = <42>;
++			ti,hwmods = "timer6";
++			ti,timer-dsp;
++		};
++
++		timer7: timer@48080000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48080000 0xfff>;
++			interrupts = <43>;
++			ti,hwmods = "timer7";
++			ti,timer-dsp;
++		};
++
++		timer8: timer@48082000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48082000 0xfff>;
++			interrupts = <44>;
++			ti,hwmods = "timer8";
++			ti,timer-dsp;
++		};
++
++		timer9: timer@48084000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48084000 0xfff>;
++			interrupts = <45>;
++			ti,hwmods = "timer9";
++			ti,timer-pwm;
++		};
++
++		timer10: timer@48086000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48086000 0xfff>;
++			interrupts = <46>;
++			ti,hwmods = "timer10";
++			ti,timer-pwm;
++		};
++
++		timer11: timer@48088000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48088000 0xfff>;
++			interrupts = <47>;
++			ti,hwmods = "timer11";
++			ti,timer-pwm;
++		};
++
++		timer12: timer@4808a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4808a000 0xfff>;
++			interrupts = <48>;
++			ti,hwmods = "timer12";
++			ti,timer-pwm;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap2420.dtsi b/arch/arm/boot/dts/omap2420.dtsi
+index bfd76b4..5f68a70 100644
+--- a/arch/arm/boot/dts/omap2420.dtsi
++++ b/arch/arm/boot/dts/omap2420.dtsi
+@@ -44,5 +44,13 @@
+ 			interrupt-parent = <&intc>;
+ 			ti,hwmods = "mcbsp2";
+ 		};
++
++		timer1: timer@48028000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48028000 0xfff>;
++			interrupts = <37>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap2430.dtsi b/arch/arm/boot/dts/omap2430.dtsi
+index 4565d97..7439987 100644
+--- a/arch/arm/boot/dts/omap2430.dtsi
++++ b/arch/arm/boot/dts/omap2430.dtsi
+@@ -88,5 +88,13 @@
+ 			ti,buffer-size = <128>;
+ 			ti,hwmods = "mcbsp5";
+ 		};
++
++		timer1: timer@49018000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49018000 0xfff>;
++			interrupts = <37>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index f38ea87..3fb910f 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -12,6 +12,7 @@
+ 
+ / {
+ 	compatible = "ti,omap3430", "ti,omap3";
++	interrupt-parent = <&intc>;
+ 
+ 	aliases {
+ 		serial0 = &uart1;
+@@ -300,5 +301,100 @@
+ 			ti,buffer-size = <128>;
+ 			ti,hwmods = "mcbsp5";
+ 		};
++
++		timer1: timer@48318000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48318000 0xfff>;
++			interrupts = <37>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
++
++		timer2: timer@49032000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49032000 0xfff>;
++			interrupts = <38>;
++			ti,hwmods = "timer2";
++		};
++
++		timer3: timer@49034000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49034000 0xfff>;
++			interrupts = <39>;
++			ti,hwmods = "timer3";
++		};
++
++		timer4: timer@49036000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49036000 0xfff>;
++			interrupts = <40>;
++			ti,hwmods = "timer4";
++		};
++
++		timer5: timer@49038000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49038000 0xfff>;
++			interrupts = <41>;
++			ti,hwmods = "timer5";
++			ti,timer-dsp;
++		};
++
++		timer6: timer@4903a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903a000 0xfff>;
++			interrupts = <42>;
++			ti,hwmods = "timer6";
++			ti,timer-dsp;
++		};
++
++		timer7: timer@4903c000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903c000 0xfff>;
++			interrupts = <43>;
++			ti,hwmods = "timer7";
++			ti,timer-dsp;
++		};
++
++		timer8: timer@4903e000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903e000 0xfff>;
++			interrupts = <44>;
++			ti,hwmods = "timer8";
++			ti,timer-pwm;
++			ti,timer-dsp;
++		};
++
++		timer9: timer@49040000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49040000 0xfff>;
++			interrupts = <45>;
++			ti,hwmods = "timer9";
++			ti,timer-pwm;
++		};
++
++		timer10: timer@48086000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48086000 0xfff>;
++			interrupts = <46>;
++			ti,hwmods = "timer10";
++			ti,timer-pwm;
++		};
++
++		timer11: timer@48088000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48088000 0xfff>;
++			interrupts = <47>;
++			ti,hwmods = "timer11";
++			ti,timer-pwm;
++		};
++
++		timer12: timer@48304000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48304000 0xfff>;
++			interrupts = <95>;
++			ti,hwmods = "timer12";
++			ti,timer-alwon;
++			ti,timer-secure;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 5d1c484..8436c39 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -430,5 +430,91 @@
+ 			hw-caps-ll-interface;
+ 			hw-caps-temp-alert;
+ 		};
++
++		timer1: timer@4a318000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4a318000 0x7f>;
++			interrupts = <0 37 0x4>;
++			ti,hwmods = "timer1";
++			ti,timer-alwon;
++		};
++
++		timer2: timer@48032000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48032000 0x7f>;
++			interrupts = <0 38 0x4>;
++			ti,hwmods = "timer2";
++		};
++
++		timer3: timer@48034000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48034000 0x7f>;
++			interrupts = <0 39 0x4>;
++			ti,hwmods = "timer3";
++		};
++
++		timer4: timer@48036000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48036000 0x7f>;
++			interrupts = <0 40 0x4>;
++			ti,hwmods = "timer4";
++		};
++
++		timer5: timer@49038000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x49038000 0x7f>;
++			interrupts = <0 41 0x4>;
++			ti,hwmods = "timer5";
++			ti,timer-dsp;
++		};
++
++		timer6: timer@4903a000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903a000 0x7f>;
++			interrupts = <0 42 0x4>;
++			ti,hwmods = "timer6";
++			ti,timer-dsp;
++		};
++
++		timer7: timer@4903c000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903c000 0x7f>;
++			interrupts = <0 43 0x4>;
++			ti,hwmods = "timer7";
++			ti,timer-dsp;
++		};
++
++		timer8: timer@4903e000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4903e000 0x7f>;
++			interrupts = <0 44 0x4>;
++			ti,hwmods = "timer8";
++			ti,timer-pwm;
++			ti,timer-dsp;
++		};
++
++		timer9: timer@4803e000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x4803e000 0x7f>;
++			interrupts = <0 45 0x4>;
++			ti,hwmods = "timer9";
++			ti,timer-pwm;
++		};
++
++		timer10: timer@48086000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48086000 0x7f>;
++			interrupts = <0 46 0x4>;
++			ti,hwmods = "timer10";
++			ti,timer-pwm;
++		};
++
++		timer11: timer@48088000 {
++			compatible = "ti,omap2-timer";
++			reg = <0x48088000 0x7f>;
++			interrupts = <0 47 0x4>;
++			ti,hwmods = "timer11";
++			ti,timer-pwm;
++		};
+ 	};
+ };
 -- 
 1.7.9.5
 
