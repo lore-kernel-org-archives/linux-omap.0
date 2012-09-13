@@ -1,49 +1,61 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 0/5] ARM: OMAP4: core retention support
-Date: Thu, 13 Sep 2012 19:36:44 +0300
-Message-ID: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 1/5] ARM: OMAP4: PM: add errata support
+Date: Thu, 13 Sep 2012 19:36:45 +0300
+Message-ID: <1347554209-23378-2-git-send-email-t-kristo@ti.com>
+References: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33068 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44061 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932124Ab2IMQhA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 12:37:00 -0400
+	id S932133Ab2IMQhH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 12:37:07 -0400
+In-Reply-To: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Hi,
+Added similar PM errata flag support as omap3 has. This should be used
+in similar manner, set the flags during init time, and check the flag
+values during runtime.
 
-Changes compared to previous version:
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/pm.h     |    7 +++++++
+ arch/arm/mach-omap2/pm44xx.c |    1 +
+ 2 files changed, 8 insertions(+), 0 deletions(-)
 
-- Dropped following patches from the set as these were queued by Paul:
-0003-ARM-OMAP4-hwmod-flag-hwmods-modules-not-supporting-m.patch
-0004-ARM-OMAP-hwmod-Add-support-for-per-hwmod-module-cont.patch
-0005-ARM-OMAP4-pwrdm-add-support-for-reading-prev-logic-a.patch
-0009-ARM-OMAP4-hwmod-data-temporarily-comment-out-data-fo.patch
-0010-ARM-OMAP4-HWMOD-add-support-for-lostcontext_mask.patch
-
-- Dropped following patches for now as their need is not that clear at
-  the moment:
-0011-ARM-OMAP4-hwmod_data-add-context-lose-information-fo.patch
-0012-ARM-OMAP4-hwmod-update-context-lost-counter-logic-fo.patch
-
-- Rebased on top of func-pwrst-v6 from Jean and 3.6-rc5.
-
-- Added patch #5 for yet another bug fix: the fix for the omap4460
-  (patch #2) is incomplete, and can cause rare TWD timer bugs. This
-  patch fixes those.
-
-- Tested with omap4460 GP panda + omap4430 EMU blaze, with suspend +
-  cpuidle.
-
-Branch also available here (it also has the func pwrst code + the queued
-hwmod patches as the code doesn't apply cleanly / work without these.)
-
-Tree: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
-Branch: mainline-3.6-rc5-omap4-ret-v8
-
--Tero
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 707e9cb..f26f2d7 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -100,6 +100,13 @@ extern void enable_omap3630_toggle_l2_on_restore(void);
+ static inline void enable_omap3630_toggle_l2_on_restore(void) { }
+ #endif		/* defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3) */
+ 
++#if defined(CONFIG_ARCH_OMAP4)
++extern u16 pm44xx_errata;
++#define IS_PM44XX_ERRATUM(id)		(pm44xx_errata & (id))
++#else
++#define IS_PM44XX_ERRATUM(id)		0
++#endif
++
+ #ifdef CONFIG_POWER_AVS_OMAP
+ extern int omap_devinit_smartreflex(void);
+ extern void omap_enable_smartreflex_on_init(void);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 6a38ef5..e03a3cc 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -33,6 +33,7 @@ struct power_state {
+ };
+ 
+ static LIST_HEAD(pwrst_list);
++u16 pm44xx_errata;
+ 
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+-- 
+1.7.4.1
 
