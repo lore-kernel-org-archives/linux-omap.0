@@ -1,51 +1,159 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 3/5] ARM: OMAP4: suspend: Program all domains to retention
-Date: Thu, 13 Sep 2012 19:36:47 +0300
-Message-ID: <1347554209-23378-4-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv8 5/5] ARM: OMAP4: retrigger localtimers after re-enabling gic
+Date: Thu, 13 Sep 2012 19:36:49 +0300
+Message-ID: <1347554209-23378-6-git-send-email-t-kristo@ti.com>
 References: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60711 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44066 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932127Ab2IMQhF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 12:37:05 -0400
+	id S932124Ab2IMQhJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 12:37:09 -0400
 In-Reply-To: <1347554209-23378-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@android.com>, Sebastien Jan <s-jan@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Colin Cross <ccross@android.com>
 
-Remove the FIXME's in the suspend sequence since
-we now intend to support system level RET support.
+'Workaround for ROM bug because of CA9 r2pX gic control'
+register change disables the gic distributor while the secondary
+cpu is being booted.  If a localtimer interrupt on the primary cpu
+occurs when the distributor is turned off, the interrupt is lost,
+and the localtimer never fires again.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Make the primary cpu wait for the secondary cpu to reenable the
+gic distributor (with interrupts off for safety), and then
+check if the pending bit is set in the localtimer but not the
+gic.  If so, ack it in the localtimer, and reset the timer with
+the minimum timeout to trigger a new timer interrupt.
+
+Signed-off-by: Colin Cross <ccross@android.com>
+[s-jan@ti.com: adapted to k3.4 + validated functionality]
+Signed-off-by: Sebastien Jan <s-jan@ti.com>
+[t-kristo@ti.com: dropped generic ARM kernel exports from the code, rebased
+ to mainline]
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/common.h       |    2 ++
+ arch/arm/mach-omap2/omap-smp.c     |   13 ++++++++++++-
+ arch/arm/mach-omap2/omap4-common.c |   32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 46 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index e03a3cc..c8965a2 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -96,13 +96,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!strncmp(pwrdm->name, "cpu", 3))
- 		return 0;
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index edbf27d..6ea837a 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -269,6 +269,8 @@ static inline void __iomem *omap4_get_scu_base(void)
  
--	/*
--	 * FIXME: Remove this check when core retention is supported
--	 * Only MPUSS power domain is added in the list.
--	 */
--	if (strcmp(pwrdm->name, "mpu_pwrdm"))
--		return 0;
--
- 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
- 	if (!pwrst)
- 		return -ENOMEM;
+ extern void __init gic_init_irq(void);
+ extern void gic_dist_disable(void);
++extern bool gic_dist_disabled(void);
++extern void gic_timer_retrigger(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ extern void __iomem *omap4_get_sar_ram_base(void);
+ extern void omap_do_wfi(void);
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 28d6201..b9738e2 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -134,11 +134,22 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 		 * 2) CPU1 must re-enable the GIC distributor on
+ 		 * it's wakeup path.
+ 		 */
+-		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD))
++		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
++			local_irq_disable();
+ 			gic_dist_disable();
++		}
+ 
+ 		clkdm_wakeup(cpu1_clkdm);
+ 		clkdm_allow_idle(cpu1_clkdm);
++
++		if (IS_PM44XX_ERRATUM(PM_OMAP4_ROM_SMP_BOOT_ERRATUM_GICD)) {
++			while (gic_dist_disabled()) {
++				udelay(1);
++				cpu_relax();
++			}
++			gic_timer_retrigger();
++			local_irq_enable();
++		}
+ 	} else {
+ 		dsb_sev();
+ 		booted = true;
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 91d42bb..852c010 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -14,6 +14,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/irq.h>
+ #include <linux/platform_device.h>
+ #include <linux/memblock.h>
+ 
+@@ -21,6 +22,7 @@
+ #include <asm/hardware/cache-l2x0.h>
+ #include <asm/mach/map.h>
+ #include <asm/memblock.h>
++#include <asm/smp_twd.h>
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ 
+@@ -43,6 +45,7 @@ static void __iomem *l2cache_base;
+ 
+ static void __iomem *sar_ram_base;
+ static void __iomem *gic_dist_base_addr;
++static void __iomem *twd_base;
+ 
+ #ifdef CONFIG_OMAP4_ERRATA_I688
+ /* Used to implement memory barrier on DRAM path */
+@@ -102,6 +105,9 @@ void __init gic_init_irq(void)
+ 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
+ 	BUG_ON(!gic_dist_base_addr);
+ 
++	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_4K);
++	BUG_ON(!twd_base);
++
+ 	/* Static mapping, never released */
+ 	omap_irq_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+ 	BUG_ON(!omap_irq_base);
+@@ -117,6 +123,32 @@ void gic_dist_disable(void)
+ 		__raw_writel(0x0, gic_dist_base_addr + GIC_DIST_CTRL);
+ }
+ 
++bool gic_dist_disabled(void)
++{
++	return !(__raw_readl(gic_dist_base_addr + GIC_DIST_CTRL) & 0x1);
++}
++
++void gic_timer_retrigger(void)
++{
++	u32 twd_int = __raw_readl(twd_base + TWD_TIMER_INTSTAT);
++	u32 gic_int = __raw_readl(gic_dist_base_addr + GIC_DIST_PENDING_SET);
++	u32 twd_ctrl = __raw_readl(twd_base + TWD_TIMER_CONTROL);
++
++	if (twd_int && !(gic_int & BIT(OMAP44XX_IRQ_LOCALTIMER))) {
++		/*
++		 * The local timer interrupt got lost while the distributor was
++		 * disabled.  Ack the pending interrupt, and retrigger it.
++		 */
++		pr_warn("%s: lost localtimer interrupt\n", __func__);
++		__raw_writel(1, twd_base + TWD_TIMER_INTSTAT);
++		if (!(twd_ctrl & TWD_TIMER_CONTROL_PERIODIC)) {
++			__raw_writel(1, twd_base + TWD_TIMER_COUNTER);
++			twd_ctrl |= TWD_TIMER_CONTROL_ENABLE;
++			__raw_writel(twd_ctrl, twd_base + TWD_TIMER_CONTROL);
++		}
++	}
++}
++
+ #ifdef CONFIG_CACHE_L2X0
+ 
+ void __iomem *omap4_get_l2cache_base(void)
 -- 
 1.7.4.1
 
