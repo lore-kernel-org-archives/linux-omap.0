@@ -1,43 +1,49 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2] pinctrl: pinctrl-single: Add pinctrl-single,bits type
- of mux
-Date: Thu, 13 Sep 2012 10:36:24 +0300
-Message-ID: <50518CF8.2050106@ti.com>
-References: <1347353664-15906-1-git-send-email-peter.ujfalusi@ti.com> <20120912202700.GD5997@atomide.com> <CACRpkdZjd5FANymXQOuz0nH+d_r6O6GdXrcnZObhq6mZ9cmH7A@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 07/12] ARM: OMAP4: PM: put all domains to OSWR during
+ suspend
+Date: Thu, 13 Sep 2012 10:40:58 +0300
+Message-ID: <1347522058.10702.143.camel@sokoban>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com>
+	 <1342704392-23657-8-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1207190842310.432@utopia.booyaka.com>
+	 <1342711907.4672.153.camel@sokoban>
+	 <alpine.DEB.2.00.1207191726090.14390@utopia.booyaka.com>
+	 <87sjamsuom.fsf@deeprootsystems.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZjd5FANymXQOuz0nH+d_r6O6GdXrcnZObhq6mZ9cmH7A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51800 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751306Ab2IMHlG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 03:41:06 -0400
+In-Reply-To: <87sjamsuom.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, nm@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 09/13/2012 09:52 AM, Linus Walleij wrote:
-> On Wed, Sep 12, 2012 at 10:27 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
->> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120911 01:54]:
->>> With pinctrl-single,bits it is possible to update just part of the =
-register
->>> within the pinctrl-single,function-mask area.
->>> This is useful when one register configures mmore than one pin's mu=
-x.
->>
->>>       size /=3D sizeof(*mux);   /* Number of elements in array */
->>> -     rows =3D size / 2;        /* Each row is a key value pair */
->>> +     rows =3D size / params;   /* Each row is a key value pair */
->>
->> Maybe just remove the comment:  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>
->> I don't think it's needed any longer. Other than that,
->> thanks for updating the patch:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->=20
-> Applied minus the comment, plus Tony's ACK, thanks!
+On Wed, 2012-09-12 at 16:11 -0700, Kevin Hilman wrote:
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+> [...]
+> 
+> >
+> > It kind of looks to me like there are two or three separate sets within 
+> > the series.  My feeling is that Kevin should take the first two, then I 
+> > should take the rest other than 6 and 7.  Then once those are queued, 
+> > we can pull in 6 and 7.  Does that make sense to you?
+> >
+> 
+> Looks like 1, 2 & 7 are needed for OSWR, and the rest can go now via
+> Paul.
+> 
+> Tero, can create a new OSWR series including 1, 2 & 7?  Can you also
+> refresh it against Jean's latest functional power state series (v6)?
 
-Thank you Linus, I was about to send the v3 with the removed comment.
+Yes, I already have these patches locally available. I'll just refresh
+them against Paul's minor tweaks on rest of the patches and re-post.
 
---=20
-P=E9ter
+-Tero
+
