@@ -1,90 +1,60 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP5: Enable arch timer support
-Date: Thu, 13 Sep 2012 15:35:07 +0530
-Message-ID: <CAMQu2gwcDS+ieSwSTZrTPJuCaHmNJxo+s4KfEevSPdYH9495Qg@mail.gmail.com>
-References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
- <1344856045-15134-3-git-send-email-santosh.shilimkar@ti.com>
- <504DE165.4000208@ti.com> <CAMQu2gxE8e9RBykLDyukZwV7dPKv3nG1vCynO1pijUBXBnyq8Q@mail.gmail.com>
- <504DE79B.3090302@ti.com> <CAMQu2gwT=XHcZtdKfYacGyt21Mo0of8MmSMNE+0PP9wemKSyxw@mail.gmail.com>
- <CAMQu2gzKDLBJmVdm0SUr0ec=LueT0mqBUYmHyGMsav5k=ggKQg@mail.gmail.com>
- <50519FB9.9060208@ti.com> <CAMQu2gzA6ZAh+u-TDSESNmmfzT1t4e1PnqjNT=cMm16uNfehqQ@mail.gmail.com>
- <5051A6F7.7020001@ti.com> <CAMQu2gwry9oANzu+N==mPrBQFejJL=0f2nDnxRo+n989YFjQ7A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [RFC PATCH 6/6] ARM: mm: update __v7_setup() to the new LoUIS cache maintenance API
+Date: Thu, 13 Sep 2012 11:20:51 +0100
+Message-ID: <1347531651-28218-7-git-send-email-lorenzo.pieralisi@arm.com>
+References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:33762 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889Ab2IMKF3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:05:29 -0400
-Received: by vbbff1 with SMTP id ff1so3187774vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 03:05:27 -0700 (PDT)
-In-Reply-To: <CAMQu2gwry9oANzu+N==mPrBQFejJL=0f2nDnxRo+n989YFjQ7A@mail.gmail.com>
+Received: from service87.mimecast.com ([91.220.42.44]:48008 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757156Ab2IMKVM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:12 -0400
+In-Reply-To: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, tony@atomide.com, linux-arm-kernel@lists.infradead.orig
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-On Thu, Sep 13, 2012 at 3:30 PM, Shilimkar, Santosh
-<santosh.shilimkar@ti.com> wrote:
-> On Thu, Sep 13, 2012 at 2:57 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->> On 09/13/2012 11:00 AM, Shilimkar, Santosh wrote:
->>> On Thu, Sep 13, 2012 at 2:26 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->>>> Hi Santosh,
->>>>
->>>> On 09/11/2012 11:29 AM, Shilimkar, Santosh wrote:
->>>>> Benoit,
->>>>>
->>>>> On Mon, Sep 10, 2012 at 7:09 PM, Shilimkar, Santosh
->>>>> <santosh.shilimkar@ti.com> wrote:
->>>>>> On Mon, Sep 10, 2012 at 6:44 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->>>>>>>
->>>>>
->>>>> [...]
->>>>>
->>>>>>>>> Silly question: Don't we have one arch-timer per CPU?
->>>>>>>>>
->>>>>>>> It is per CPU just like A9 TWD
->>>>>>>
->>>>>>> Shouldn't we have two nodes then?
->>>>>>>
->>>>>> I need to check this but arch timer DT node should be same
->>>>>> as the twd DT node. May be one node with reference to
->>>>>> each CPU node should do but am not too sure about the DT
->>>>>> nodes and how all that work.
->>>>>>
->>>>> Here is an updated patch based on our discussion. Thanks for comments.
->>>>> Let me know if you are ok with this version.
->>>>
->>>> Cool, thanks for the update.
->>>>
->>>>> From 98f6a3b4b52ef7c76ed8b19bf9257c51ee5d7323 Mon Sep 17 00:00:00 2001
->>>>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>> Date: Mon, 13 Aug 2012 14:39:03 +0530
->>>>> Subject: [PATCH] ARM: OMAP5: Enable arch timer support
->>>>>
->>>>> Enable Cortex A15 generic timer support for OMAP5 based SOCs.
->>>>> The CPU local timers run on the free running real time counter clock.
->>>>>
->>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>>>
->>>> Acked-by: Benoit Cousson <b-cousson@ti.com>
->>>>
->>> Thanks Benoit.
->>>
->>>> Tony,
->>>>
->>>> I can potentially add it along with the timer changes in the dts part2
->>>> series if you ack the timer patch. We don't have tons of OMAP5 content
->>>> in the dts branch so it should not conflict.
->>>>
->>> Yep. let me know what works. if needed I can put these two patches
->>> on a branch and send a pull request.
->>
->> It does not apply to the current devel-dt, what base did you used?
->>
-> Mainline 3.6-rc3. Just refreshed the patches against devel-dt.
-> The Kconfig file had a minor conflict.  Updated patches.
-Let me know if they apply ok for you ?
-Regards
-Santosh
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+The ARMv7 processor setup function __v7_setup() cleans and invalidates the
+CPU cache before enabling MMU to start the CPU with a clean CPU local cache=
+.
+
+But on ARMv7 architectures like Cortex-[A15/A8], this code will end
+up flushing the L2 caches(up to level of Coherency) which is undesirable
+and expensive. The setup functions are used in the CPU hotplug scenario too
+and hence flushing all cache levels should be avoided.
+
+This patch replaces the cache flushing call with the newly introduced
+v7 dcache LoUIS API where only cache levels up to LoUIS are cleaned and
+invalidated when a processors executes __v7_setup which is the expected
+behavior.
+
+For processors like A9 and A5 where the L2 cache is an outer one the
+behavior should be unchanged.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+---
+ arch/arm/mm/proc-v7.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index c2e2b66..846d279 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -172,7 +172,7 @@ __v7_ca15mp_setup:
+ __v7_setup:
+ =09adr=09r12, __v7_setup_stack=09=09@ the local stack
+ =09stmia=09r12, {r0-r5, r7, r9, r11, lr}
+-=09bl=09v7_flush_dcache_all
++=09bl      v7_flush_dcache_louis
+ =09ldmia=09r12, {r0-r5, r7, r9, r11, lr}
+=20
+ =09mrc=09p15, 0, r0, c0, c0, 0=09=09@ read main ID register
+--=20
+1.7.12
+
+
