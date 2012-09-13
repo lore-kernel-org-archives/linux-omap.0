@@ -1,170 +1,87 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 14/15] ASoC: OMAP: mcbsp, mcpdm, dmic, hdmi: Set dma_data at startup time
-Date: Thu, 13 Sep 2012 16:38:04 +0300
-Message-ID: <1347543485-339-15-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 11/15] ASoC: omap-mcpdm: Use
+	platform_get_resource_* to get resources
+Date: Thu, 13 Sep 2012 16:38:01 +0300
+Message-ID: <1347543485-339-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Set the dma_data for the stream (snd_soc_dai_set_dma_data) at dai_startup
-time so omap-pcm will have access to the needed information regarding to
-the DMA channel earlier.
-This is needed for the clean dmaengine support.
+Get the needed resources in a correct way and avoid using defines for them.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/omap/omap-dmic.c  |  6 ++++--
- sound/soc/omap/omap-hdmi.c  | 15 +++++++++------
- sound/soc/omap/omap-mcbsp.c |  7 ++++---
- sound/soc/omap/omap-mcpdm.c |  8 ++++----
- 4 files changed, 21 insertions(+), 15 deletions(-)
+ sound/soc/omap/omap-mcpdm.c | 27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index df0ff24..68f2cd1 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -118,6 +118,7 @@ static int omap_dmic_dai_startup(struct snd_pcm_substream *substream,
- 
- 	mutex_unlock(&dmic->mutex);
- 
-+	snd_soc_dai_set_dma_data(dai, substream, &omap_dmic_dai_dma_params);
- 	return ret;
- }
- 
-@@ -202,6 +203,7 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 				    struct snd_soc_dai *dai)
- {
- 	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
-+	struct omap_pcm_dma_data *dma_data;
- 	int channels;
- 
- 	dmic->clk_div = omap_dmic_select_divider(dmic, params_rate(params));
-@@ -227,8 +229,8 @@ static int omap_dmic_dai_hw_params(struct snd_pcm_substream *substream,
- 	}
- 
- 	/* packet size is threshold * channels */
--	omap_dmic_dai_dma_params.packet_size = dmic->threshold * channels;
--	snd_soc_dai_set_dma_data(dai, substream, &omap_dmic_dai_dma_params);
-+	dma_data = snd_soc_dai_get_dma_data(dai, substream);
-+	dma_data->packet_size = dmic->threshold * channels;
- 
- 	return 0;
- }
-diff --git a/sound/soc/omap/omap-hdmi.c b/sound/soc/omap/omap-hdmi.c
-index 0951767..f59c69f 100644
---- a/sound/soc/omap/omap-hdmi.c
-+++ b/sound/soc/omap/omap-hdmi.c
-@@ -67,6 +67,9 @@ static int omap_hdmi_dai_startup(struct snd_pcm_substream *substream,
- 		dev_err(dai->dev, "audio not supported\n");
- 		return -ENODEV;
- 	}
-+
-+	snd_soc_dai_set_dma_data(dai, substream, &priv->dma_params);
-+
- 	return 0;
- }
- 
-@@ -85,24 +88,24 @@ static int omap_hdmi_dai_hw_params(struct snd_pcm_substream *substream,
- 	struct hdmi_priv *priv = snd_soc_dai_get_drvdata(dai);
- 	struct snd_aes_iec958 *iec = &priv->iec;
- 	struct snd_cea_861_aud_if *cea = &priv->cea;
-+	struct omap_pcm_dma_data *dma_data;
- 	int err = 0;
- 
-+	dma_data = snd_soc_dai_get_dma_data(dai, substream);
-+
- 	switch (params_format(params)) {
- 	case SNDRV_PCM_FORMAT_S16_LE:
--		priv->dma_params.packet_size = 16;
-+		dma_data->packet_size = 16;
- 		break;
- 	case SNDRV_PCM_FORMAT_S24_LE:
--		priv->dma_params.packet_size = 32;
-+		dma_data->packet_size = 32;
- 		break;
- 	default:
- 		dev_err(dai->dev, "format not supported!\n");
- 		return -EINVAL;
- 	}
- 
--	priv->dma_params.data_type = 32;
--
--	snd_soc_dai_set_dma_data(dai, substream,
--				 &priv->dma_params);
-+	dma_data->data_type = 32;
- 
- 	/*
- 	 * fill the IEC-60958 channel status word
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index a230646..fef2f59 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -151,6 +151,9 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
- 					   SNDRV_PCM_HW_PARAM_PERIOD_SIZE, 2);
- 	}
- 
-+	snd_soc_dai_set_dma_data(cpu_dai, substream,
-+				 &mcbsp->dma_data[substream->stream]);
-+
- 	return err;
- }
- 
-@@ -228,7 +231,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	int pkt_size = 0;
- 	unsigned int format, div, framesize, master;
- 
--	dma_data = &mcbsp->dma_data[substream->stream];
-+	dma_data = snd_soc_dai_get_dma_data(cpu_dai, substream);
- 	channels = params_channels(params);
- 
- 	switch (params_format(params)) {
-@@ -277,8 +280,6 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 
- 	dma_data->packet_size = pkt_size;
- 
--	snd_soc_dai_set_dma_data(cpu_dai, substream, dma_data);
--
- 	if (mcbsp->configured) {
- 		/* McBSP already configured by another stream */
- 		return 0;
 diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index 84743d4..7755650 100644
+index baf92da..f90d5de 100644
 --- a/sound/soc/omap/omap-mcpdm.c
 +++ b/sound/soc/omap/omap-mcpdm.c
-@@ -267,9 +267,11 @@ static int omap_mcpdm_dai_startup(struct snd_pcm_substream *substream,
- 		}
- 		omap_mcpdm_open_streams(mcpdm);
- 	}
--
- 	mutex_unlock(&mcpdm->mutex);
+@@ -71,15 +71,11 @@ struct omap_mcpdm {
+ static struct omap_pcm_dma_data omap_mcpdm_dai_dma_params[] = {
+ 	{
+ 		.name = "Audio playback",
+-		.dma_req = OMAP44XX_DMA_MCPDM_DL,
+ 		.data_type = OMAP_DMA_DATA_TYPE_S32,
+-		.port_addr = OMAP44XX_MCPDM_L3_BASE + MCPDM_REG_DN_DATA,
+ 	},
+ 	{
+ 		.name = "Audio capture",
+-		.dma_req = OMAP44XX_DMA_MCPDM_UP,
+ 		.data_type = OMAP_DMA_DATA_TYPE_S32,
+-		.port_addr = OMAP44XX_MCPDM_L3_BASE + MCPDM_REG_UP_DATA,
+ 	},
+ };
  
-+	snd_soc_dai_set_dma_data(dai, substream,
-+				 &omap_mcpdm_dai_dma_params[substream->stream]);
+@@ -452,10 +448,33 @@ static __devinit int asoc_mcpdm_probe(struct platform_device *pdev)
+ 
+ 	mutex_init(&mcpdm->mutex);
+ 
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "dma");
++	if (res == NULL)
++		return -ENOMEM;
 +
- 	return 0;
- }
++	omap_mcpdm_dai_dma_params[0].port_addr = res->start + MCPDM_REG_DN_DATA;
++	omap_mcpdm_dai_dma_params[1].port_addr = res->start + MCPDM_REG_UP_DATA;
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL)
+ 		return -ENOMEM;
  
-@@ -324,7 +326,7 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
- 		return -EINVAL;
- 	}
- 
--	dma_data = &omap_mcpdm_dai_dma_params[stream];
-+	dma_data = snd_soc_dai_get_dma_data(dai, substream);
- 
- 	/* Configure McPDM channels, and DMA packet size */
- 	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
-@@ -336,8 +338,6 @@ static int omap_mcpdm_dai_hw_params(struct snd_pcm_substream *substream,
- 		dma_data->packet_size = mcpdm->up_threshold * channels;
- 	}
- 
--	snd_soc_dai_set_dma_data(dai, substream, dma_data);
--
- 	return 0;
- }
- 
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "dn_link");
++	if (!res)
++		return -ENODEV;
++
++	omap_mcpdm_dai_dma_params[0].dma_req = res->start;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "up_link");
++	if (!res)
++		return -ENODEV;
++
++	omap_mcpdm_dai_dma_params[1].dma_req = res->start;
++
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mpu");
++	if (res == NULL)
++		return -ENOMEM;
++
+ 	if (!devm_request_mem_region(&pdev->dev, res->start,
+ 				     resource_size(res), "McPDM"))
+ 		return -EBUSY;
 -- 
 1.7.12
