@@ -1,85 +1,64 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V3 1/8] ARM: OMAP3: Add debugss HWMOD data
-Date: Wed, 12 Sep 2012 22:32:24 -0500
-Message-ID: <505153C8.4060603@ti.com>
-References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com> <1347290626-21164-2-git-send-email-jon-hunter@ti.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: Re: [PATCH v5 2/2] OMAP:IOMMU:flush L1 and L2 caches
+Date: Thu, 13 Sep 2012 10:04:09 +0530
+Message-ID: <CADysL2YgZ4E8ZLDnA4zn-bvXiaF--TrgQvPsTgBpKm7VQnSwuw@mail.gmail.com>
+References: <CADysL2bb+LC1ySgkp8Hd_VL8GaFJ_gsuMF=WkmWp+YTdJqKJ4A@mail.gmail.com>
+	<20120912164121.GF28448@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42616 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237Ab2IMDca (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 23:32:30 -0400
-In-Reply-To: <1347290626-21164-2-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120912164121.GF28448@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Oops meant to have Paul on the TO! Jon
+Hi Russell,
 
-On 09/10/2012 10:23 AM, Jon Hunter wrote:
-> To enable PMU with runtime PM support on OMAP3 devices we need to be able to
-> dynamically enable and disable the debug sub-system at runtime. By adding HWMOD
-> data for the debug sub-system for OMAP3, we can build the PMU device using the
-> debug sub-system HWMOD and control this power domain using runtime PM.
-> 
-> Reviewed-by: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   26 ++++++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index c9e3820..78a0c2d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -114,6 +114,24 @@ static struct omap_hwmod omap3xxx_iva_hwmod = {
->  	.main_clk	= "iva2_ck",
->  };
->  
-> +/*
-> + * 'debugss' class
-> + * debug and emulation sub system
-> + */
-> +
-> +static struct omap_hwmod_class omap3xxx_debugss_hwmod_class = {
-> +	.name	= "debugss",
-> +};
-> +
-> +/* debugss */
-> +static struct omap_hwmod omap3xxx_debugss_hwmod = {
-> +	.name		= "debugss",
-> +	.class		= &omap3xxx_debugss_hwmod_class,
-> +	.clkdm_name	= "emu_clkdm",
-> +	.main_clk	= "emu_src_ck",
-> +	.flags		= HWMOD_NO_IDLEST,
-> +};
-> +
->  /* timer class */
->  static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
->  	.rev_offs	= 0x0000,
-> @@ -2093,6 +2111,13 @@ static struct omap_hwmod_ocp_if omap3xxx_mpu__l3_main = {
->  	.user	= OCP_USER_MPU,
->  };
->  
-> +/* l3 -> debugss */
-> +static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_debugss = {
-> +	.master		= &omap3xxx_l3_main_hwmod,
-> +	.slave		= &omap3xxx_debugss_hwmod,
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
->  /* DSS -> l3 */
->  static struct omap_hwmod_ocp_if omap3430es1_dss__l3 = {
->  	.master		= &omap3430es1_dss_core_hwmod,
-> @@ -3272,6 +3297,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
->  	&omap3xxx_l3_main__l4_core,
->  	&omap3xxx_l3_main__l4_per,
->  	&omap3xxx_mpu__l3_main,
-> +	&omap3xxx_l3_main__l4_debugss,
->  	&omap3xxx_l4_core__l4_wkup,
->  	&omap3xxx_l4_core__mmc3,
->  	&omap3_l4_core__uart1,
-> 
+
+On Wed, Sep 12, 2012 at 10:11 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Sep 12, 2012 at 08:49:16PM +0530, Gupta, Ramesh wrote:
+>> Thanks to the RMK's suggestions.
+>
+> I should've made clear the distinction between _range and _area.
+> A _range function takes start and end.  An _area function takes a start
+> and size.  So...
+>
+>> -static void flush_iopgd_range(u32 *first, u32 *last)
+>> +static void flush_iopgd_range(u32 *first, size_t size)
+>
+> This should change to flush_iopgd_area().
+
+Looks like I missed this, I will fix and send the updated patch.
+
+>
+>>  {
+>> -     /* FIXME: L2 cache should be taken care of if it exists */
+>> -     do {
+>> -             asm("mcr        p15, 0, %0, c7, c10, 1 @ flush_pgd"
+>> -                 : : "r" (first));
+>> -             first += L1_CACHE_BYTES / sizeof(*first);
+>> -     } while (first <= last);
+>> +     phys_addr_t phys = virt_to_phys(first);
+>> +
+>> +     iommu_flush_area(first, size);
+>> +     outer_flush_range(phys, phys + size);
+>>  }
+>>
+>> -static void flush_iopte_range(u32 *first, u32 *last)
+>> +static void flush_iopte_range(u32 *first, size_t size)
+>> +
+>
+> flush_iopte_area().  (And there shouldn't be a blank line between this
+> and the open curley.)
+
+I will fix it.
+
+> Otherwise, looks fine.
+
+thank you.
+
+
+Best regards
+Ramesh Gupta G
