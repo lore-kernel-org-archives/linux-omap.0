@@ -1,53 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] can: c_can: Move pm_runtime_enable/disable calls to common code
-Date: Thu, 13 Sep 2012 14:35:00 -0700
-Message-ID: <87ehm5bo8r.fsf@deeprootsystems.com>
-References: <1347521292-28751-1-git-send-email-anilkumar@ti.com>
-	<87bohaf1sd.fsf@deeprootsystems.com> <5051EB5C.7000907@pengutronix.de>
+From: Sebastian Reichel <sre@debian.org>
+Subject: OMAP4: crypto acceleration (AES, SHA, ...)
+Date: Thu, 13 Sep 2012 23:57:08 +0200
+Message-ID: <20120913215707.GA22825@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56533 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab2IMVfC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 17:35:02 -0400
-Received: by pbbrr13 with SMTP id rr13so4609665pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 14:35:02 -0700 (PDT)
-In-Reply-To: <5051EB5C.7000907@pengutronix.de> (Marc Kleine-Budde's message of
-	"Thu, 13 Sep 2012 16:19:08 +0200")
+Received: from ring0.de ([91.143.88.219]:52533 "EHLO ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753882Ab2IMV5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 17:57:15 -0400
+Received: from comu.ring0.de (unknown [127.0.0.1])
+	by ring0.de (Postfix) with ESMTP id C04422C58E64
+	for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 23:57:11 +0200 (CEST)
+Received: (from spamd@localhost)
+	by comu.ring0.de (8.13.8/8.13.8/Submit) id q8DLvBe8020511
+	for linux-omap@vger.kernel.org; Thu, 13 Sep 2012 23:57:11 +0200
+Received: from sre.ring0.de (unknown [46.22.209.71])
+	by ring0.de (Postfix) with ESMTP id 963382C58E5B
+	for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 23:57:10 +0200 (CEST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: AnilKumar Ch <anilkumar@ti.com>, wg@grandegger.com, linux-can@vger.kernel.org, linux-omap@vger.kernel.org, anantgole@ti.com, nsekhar@ti.com
+To: linux-omap@vger.kernel.org
 
-Marc Kleine-Budde <mkl@pengutronix.de> writes:
 
-> On 09/13/2012 04:14 PM, Kevin Hilman wrote:
->> AnilKumar Ch <anilkumar@ti.com> writes:
->> 
->>> Move pm_runtime_enable/disable calls to c_can.c driver. Current
->>> implementation is such that platform driver is doing pm_runtime
->>> enable/disable and core driver is doing put_sync/get_sync.
->>>
->>> PM runtime calls should be invoked if there is a valid device
->>> pointer from platform driver so moving enable/disable calls
->>> to core driver.
->>>
->>> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
->>> ---
->>> Incorporated Kevin's comments on "can: c_can: Add runtime PM
->>> support to Bosch C_CAN/D_CAN controller" patch.
->> 
->> This looks better, but in addition, you can get rid of the
->> runtime PM helper functions you added (the ones that check for
->> priv->device) and call the pm_runtime_get/put APIs directly.
->
-> But priv->device might be NULL. AFAICS pm_runtime_get() is not safe to
-> be called with a NULL pointer.
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Yes, you're right.  Guess there's not a clean way to get rid of those
-helpers.
+Hi,
 
-Sorry for the noise,
+Are there plans to add crypto acceleration support to OMAP4? Has
+this hardware component been removed from OMAP4? I tried to load the
+code written for OMAP3 on my Pandaboard, but it just outputs
+"platform not supported":
 
-Kevin
+[    0.370513] omap_init_sham: platform not supported
+[    0.375488] omap_init_aes: platform not supported
+
+-- Sebastian
+
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCAAGBQJQUlazAAoJENju1/PIO/qas8cQAKELXOGgyg4NEagB9GxJWxc3
+teKoVc74UxdCZgkS14p9zS0Vx1XJUm2lGWeyIu0JC1ymB6FwpTj2gqFDobrMeZJH
+wW0kr6CBH5jSeR1I4n46eyHNmfVXBt5t2LF6+4//FeT7C795Z/HuCF4a5pkZbW+/
+OLZFKwTA5wigWCGNbCK3ClilwXSZzhjSH3/VPPOIOZBzvBnDRo+Sk6wMlEOI8Za5
+Cf12qamVW/iodqzZKtKRqAVDz5oLepEa1KCT8o8XDQd9T//qiYxUT8c/uvOQGgVV
+CQTNYsxzoYUh7CgyM6Ld6Zq2l3wuaOo/8PGVXSprbLQcIWrRn+BlssJjxAzT2Jtw
+7leRtSNsB4iO6Lirw2G5MlEQoTuPlt9KAdu51r3s1mXvLPhJ+MedrQKIrHvII2vS
+KegbuI1F3VaPiLVO62R9Pz9x80KfjI3ixMU4oxsK9sjMKwbWbpYdZyAtcDTi0o9+
+pKFqYxGOQ41MgsHbTeK9xqjMRtZRHcK4dLkMe/j536MVjwm6RHDAJNkAQ5jDvYn9
+tTS+9peAflvAlM+K5mJq2wweLTtpRNuQvXV6NcgJuD/2TIojOishiJzCTrHCCdGQ
+UqihXBsixV5LyWiTcssYk6JaIg+B+FommIZAEgV6q19SSflgdIgAEL9u9UbJVl2t
+8RZiDQp3eWa0ntoCg48J
+=s0VG
+-----END PGP SIGNATURE-----
+
+--a8Wt8u1KmwUX3Y2C--
