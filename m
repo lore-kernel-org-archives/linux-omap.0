@@ -1,83 +1,69 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 21/21] OMAPDSS: DISPC: Configure color conversion coefficients for writeback
-Date: Thu, 13 Sep 2012 17:45:05 +0530
-Message-ID: <1347538505-25359-22-git-send-email-archit@ti.com>
-References: <1347538505-25359-1-git-send-email-archit@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH 1/6] ARM: mm: define LoUIS API for cache
+	maintenance ops
+Date: Thu, 13 Sep 2012 13:36:04 +0100
+Message-ID: <20120913123604.GH28448@n2100.arm.linux.org.uk>
+References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com> <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39538 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757983Ab2IMMQG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 08:16:06 -0400
-In-Reply-To: <1347538505-25359-1-git-send-email-archit@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60279 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757851Ab2IMMgY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 08:36:24 -0400
+Content-Disposition: inline
+In-Reply-To: <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-Writeback pipeline receives RGB data from one of the overlays or one of the
-overlay managers. If the target color mode is YUV422 or NV12, we need to convert
-the RGB pixels to YUV. The scalar in WB then converts it to the target color
-mode.
+On Thu, Sep 13, 2012 at 11:20:46AM +0100, Lorenzo Pieralisi wrote:
+> +/*
+> + * Flush caches up to Level of Unification Inner Shareable
+> + */
+> +#ifdef MULTI_CACHE
+> +#define flush_cache_louis()   cpu_cache.flush_kern_cache_louis()
+> +#else
+> +#define flush_cache_louis()   __cpuc_flush_kern_all()
+> +#endif
 
-Hence, the color conversion coefficients that need to be programmed are the ones
-which convert a RGB24 pixel to YUV444. Program these coefficients for writeback
-pipeline.
+NAK.  This is broken as you don't seem to understand what MULTI_CACHE
+actually means.  MULTI_CACHE means that we _may_ support more than one
+type of cache, so it not being selected means nothing as far as whether
+to use flush_kern_all() or not.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+Follow the pattern in the rest of the file - that's the _only_ way to do
+this.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 1623c9b..5811a18 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -681,20 +681,30 @@ static void dispc_plane_set_scale_coef(enum omap_plane plane, int fir_hinc,
- static void _dispc_setup_color_conv_coef(void)
- {
- 	int i;
-+	int num_ovl = dss_feat_get_num_ovls();
-+	int num_wb = dss_feat_get_num_wbs();
-+
- 	const struct color_conv_coef {
- 		int  ry,  rcr,  rcb,   gy,  gcr,  gcb,   by,  bcr,  bcb;
- 		int  full_range;
--	}  ctbl_bt601_5 = {
--		298,  409,    0,  298, -208, -100,  298,    0,  517, 0,
-+	}  ctbl_bt601_5[2] = {
-+		{ 298,  409, 0, 298, -208, -100, 298, 0, 517, 0, },
-+		{ 66, 112, -38, 129, -94, -74, 25, -18, 112, 0, },
- 	};
- 
- 	const struct color_conv_coef *ct;
- 
- #define CVAL(x, y) (FLD_VAL(x, 26, 16) | FLD_VAL(y, 10, 0))
-+#define YUVTORGB 0
-+#define RGBTOYUV 1
- 
--	ct = &ctbl_bt601_5;
-+	ct = &ctbl_bt601_5[YUVTORGB];
-+
-+	for (i = 1; i < num_ovl + num_wb; i++) {
-+
-+		if (i >= num_ovl)
-+			ct = &ctbl_bt601_5[RGBTOYUV];
- 
--	for (i = 1; i < dss_feat_get_num_ovls(); i++) {
- 		dispc_write_reg(DISPC_OVL_CONV_COEF(i, 0),
- 			CVAL(ct->rcr, ct->ry));
- 		dispc_write_reg(DISPC_OVL_CONV_COEF(i, 1),
-@@ -710,6 +720,8 @@ static void _dispc_setup_color_conv_coef(void)
- 			11, 11);
- 	}
- 
-+#undef RGBTOYUV
-+#undef YUVTORGB
- #undef CVAL
- }
- 
--- 
-1.7.9.5
+Note that ARMv6 only and ARMv7 only kernels will not have MULTI_CACHE
+defined (I mentioned this on Monday in our call, though not explicitly
+by that name.)
 
+> diff --git a/arch/arm/mm/proc-macros.S b/arch/arm/mm/proc-macros.S
+> index 2d8ff3a..28e91f8 100644
+> --- a/arch/arm/mm/proc-macros.S
+> +++ b/arch/arm/mm/proc-macros.S
+> @@ -293,12 +293,17 @@ ENTRY(\name\()_processor_functions)
+>  	.size	\name\()_processor_functions, . - \name\()_processor_functions
+>  .endm
+>  
+> -.macro define_cache_functions name:req
+> +.macro define_cache_functions name:req, cachelouis=0
+>  	.align 2
+>  	.type	\name\()_cache_fns, #object
+>  ENTRY(\name\()_cache_fns)
+>  	.long	\name\()_flush_icache_all
+>  	.long	\name\()_flush_kern_cache_all
+> +	.if \cachelouis
+> +	.long   \name\()_flush_kern_cache_louis
+> +	.else
+> +	.long   \name\()_flush_kern_cache_all
+> +	.endif
+>  	.long	\name\()_flush_user_cache_all
+>  	.long	\name\()_flush_user_cache_range
+>  	.long	\name\()_coherent_kern_range
+
+And what the above means is that _every_ cache support file must supply a
+XXX_flush_kern_cache_louis function name.  If there is no separate
+implementation, then name it an alias for the XXX_flush_cache_all function.
