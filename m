@@ -1,227 +1,126 @@
 From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH V2 4/7] ARM: OMAP: Add a timer attribute for timers that can interrupt the DSP
-Date: Thu, 13 Sep 2012 18:31:28 -0500
-Message-ID: <1347579091-3794-5-git-send-email-jon-hunter@ti.com>
+Subject: [PATCH V2 2/7] ARM: OMAP3: Dynamically disable secure timer nodes for secure devices
+Date: Thu, 13 Sep 2012 18:31:26 -0500
+Message-ID: <1347579091-3794-3-git-send-email-jon-hunter@ti.com>
 References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59068 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48378 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759018Ab2IMXb6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 19:31:58 -0400
+	id S1759002Ab2IMXb7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 19:31:59 -0400
 In-Reply-To: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
 
-Some instances of the DMTIMER peripheral on OMAP devices have the ability
-to interrupt the on-chip DSP in addition to the ARM CPU. Add a DMTIMER
-attribute to indicate which timers can interrupt the DSP. By using the
-omap_dm_timer_request_by_cap() API, driver will now be able to allocate
-a DMTIMER that can interrupt the DSP based upon this attribute and not require
-the driver to know which instance has this capability.
+OMAP3 devices may or may not have security features enabled. Security enabled
+devices are known as high-secure (HS) and devices without security are known as
+general purpose (GP).
 
-DMTIMERs that have the ability to interrupt the DSP on OMAP devices are as
-follows ...
+For OMAP3 devices there are 12 general purpose timers available. On secure
+devices the 12th timer is reserved for secure usage and so cannot be used by
+the kernel, where as for a GP device it is available. We can detect the OMAP
+device type, secure or GP, at runtime via an on-chip register. Today, when not
+using DT, we do not register the 12th timer as a linux device if the device is
+secure.
 
-- OMAP1 (OMAP5912/16xx/17xx) devices	- All 8 DMTIMERs
-- OMAP2/3/4 devices			- DMTIMERs 5-8
+When using device tree, device tree is going to register all the timer devices
+it finds in the device tree blob. To prevent device tree from registering 12th
+timer on a secure OMAP3 device we can add a status property to the timer
+binding with the value "disabled" at boot time. Note that timer 12 on a OMAP3
+device has a property "ti,timer-secure" to indicate that it will not be
+available on a secure device and so for secure OMAP3 devices, we search for
+timers with this property and then disable them. Using the prom_add_property()
+function to dynamically add a property was a recommended approach suggested by
+Rob Herring [1].
 
-Please note that for OMAP3+, timer8 has the ability to interrupt the DSP and
-generate a PWM output.
+I have tested this on an OMAP3 GP device and faking it to pretend to be a
+secure device to ensure that any timers marked with "ti,timer-secure" are not
+registered on boot. I have also made sure that all timers are registered as
+expected on a GP device by default.
+
+[1] http://comments.gmane.org/gmane.linux.ports.arm.omap/79203
 
 Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap1/timer.c                        |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    9 +++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   15 ++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   15 ++++++++++++++-
- arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
- 5 files changed, 39 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/board-generic.c |    1 +
+ arch/arm/mach-omap2/common.h        |    1 +
+ arch/arm/mach-omap2/timer.c         |   35 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+)
 
-diff --git a/arch/arm/mach-omap1/timer.c b/arch/arm/mach-omap1/timer.c
-index aa81593..cdeb9d3 100644
---- a/arch/arm/mach-omap1/timer.c
-+++ b/arch/arm/mach-omap1/timer.c
-@@ -141,7 +141,7 @@ static int __init omap1_dm_timer_init(void)
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 6f93a20..20124d7 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -40,6 +40,7 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
+ static void __init omap_generic_init(void)
+ {
+ 	omap_sdrc_init(NULL, NULL);
++	omap_dmtimer_init();
  
- 		pdata->set_timer_src = omap1_dm_timer_set_src;
- 		pdata->timer_capability = OMAP_TIMER_ALWON |
--				OMAP_TIMER_NEEDS_RESET;
-+				OMAP_TIMER_NEEDS_RESET | OMAP_TIMER_HAS_DSP_IRQ;
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 1f65b18..d6a4875 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -326,6 +326,7 @@ extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1);
+ struct omap2_hsmmc_info;
+ extern int omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers);
++extern void omap_dmtimer_init(void);
  
- 		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
- 		if (ret) {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index afad69c..efd0004 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -222,6 +222,11 @@ static struct omap_timer_capability_dev_attr capability_pwm_dev_attr = {
- 	.timer_capability       = OMAP_TIMER_HAS_PWM,
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index 31f9c93..60d43c8 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -136,6 +136,41 @@ static struct clock_event_device clockevent_gpt = {
+ 	.set_mode	= omap2_gp_timer_set_mode,
  };
  
-+/* timers with DSP interrupt dev attribute */
-+static struct omap_timer_capability_dev_attr capability_dsp_dev_attr = {
-+	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ,
++static struct property timer_disabled = {
++	.name = "status",
++	.length = sizeof("disabled"),
++	.value = "disabled",
 +};
 +
- /* timer1 */
- 
- struct omap_hwmod omap2xxx_timer1_hwmod = {
-@@ -310,6 +315,7 @@ struct omap_hwmod omap2xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT5_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -328,6 +334,7 @@ struct omap_hwmod omap2xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT6_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -346,6 +353,7 @@ struct omap_hwmod omap2xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT7_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-@@ -364,6 +372,7 @@ struct omap_hwmod omap2xxx_timer8_hwmod = {
- 			.idlest_idle_bit = OMAP24XX_ST_GPT8_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap2xxx_timer_hwmod_class,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index c9e3820..88a4cea 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -161,6 +161,16 @@ static struct omap_timer_capability_dev_attr capability_pwm_dev_attr = {
- 	.timer_capability	= OMAP_TIMER_HAS_PWM,
- };
- 
-+/* timers with DSP interrupt dev attribute */
-+static struct omap_timer_capability_dev_attr capability_dsp_dev_attr = {
-+	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ,
++static struct of_device_id omap_timer_match[] __initdata = {
++	{ .compatible = "ti,omap2-timer", },
++	{ }
 +};
 +
-+/* pwm timers with DSP interrupt dev attribute */
-+static struct omap_timer_capability_dev_attr capability_dsp_pwm_dev_attr = {
-+	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ | OMAP_TIMER_HAS_PWM,
-+};
++/**
++ * omap_dmtimer_init - initialisation function when device tree is used
++ *
++ * For secure OMAP3 devices, timers with device type "timer-secure" cannot
++ * be used by the kernel as they are reserved. Therefore, to prevent the
++ * kernel registering these devices remove them dynamically from the device
++ * tree on boot.
++ */
++void __init omap_dmtimer_init(void)
++{
++	struct device_node *np;
 +
- /* timer1 */
- static struct omap_hwmod omap3xxx_timer1_hwmod = {
- 	.name		= "timer1",
-@@ -244,6 +254,7 @@ static struct omap_hwmod omap3xxx_timer5_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT5_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -261,6 +272,7 @@ static struct omap_hwmod omap3xxx_timer6_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT6_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -278,6 +290,7 @@ static struct omap_hwmod omap3xxx_timer7_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT7_SHIFT,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-@@ -295,7 +308,7 @@ static struct omap_hwmod omap3xxx_timer8_hwmod = {
- 			.idlest_idle_bit = OMAP3430_ST_GPT8_SHIFT,
- 		},
- 	},
--	.dev_attr	= &capability_pwm_dev_attr,
-+	.dev_attr	= &capability_dsp_pwm_dev_attr,
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 242aee4..09683bb 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2902,6 +2902,16 @@ static struct omap_timer_capability_dev_attr capability_pwm_dev_attr = {
- 	.timer_capability	= OMAP_TIMER_HAS_PWM,
- };
- 
-+/* timers with DSP interrupt dev attribute */
-+static struct omap_timer_capability_dev_attr capability_dsp_dev_attr = {
-+	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ,
-+};
++	if (!cpu_is_omap34xx())
++		return;
 +
-+/* pwm timers with DSP interrupt dev attribute */
-+static struct omap_timer_capability_dev_attr capability_dsp_pwm_dev_attr = {
-+	.timer_capability       = OMAP_TIMER_HAS_DSP_IRQ | OMAP_TIMER_HAS_PWM,
-+};
++	/* If we are a secure device, remove any secure timer nodes */
++	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)) {
++		for_each_matching_node(np, omap_timer_match) {
++			if (of_get_property(np, "ti,timer-secure", NULL))
++				prom_add_property(np, &timer_disabled);
++		}
++	}
++}
 +
- /* timer1 */
- static struct omap_hwmod_irq_info omap44xx_timer1_irqs[] = {
- 	{ .irq = 37 + OMAP44XX_IRQ_GIC_START },
-@@ -3006,6 +3016,7 @@ static struct omap_hwmod omap44xx_timer5_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- };
- 
- /* timer6 */
-@@ -3028,6 +3039,7 @@ static struct omap_hwmod omap44xx_timer6_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- };
- 
- /* timer7 */
-@@ -3049,6 +3061,7 @@ static struct omap_hwmod omap44xx_timer7_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
-+	.dev_attr	= &capability_dsp_dev_attr,
- };
- 
- /* timer8 */
-@@ -3070,7 +3083,7 @@ static struct omap_hwmod omap44xx_timer8_hwmod = {
- 			.modulemode   = MODULEMODE_SWCTRL,
- 		},
- 	},
--	.dev_attr	= &capability_pwm_dev_attr,
-+	.dev_attr	= &capability_dsp_pwm_dev_attr,
- };
- 
- /* timer9 */
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 19e7fa5..85868e9 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -60,6 +60,7 @@
- #define OMAP_TIMER_ALWON				0x40000000
- #define OMAP_TIMER_HAS_PWM				0x20000000
- #define OMAP_TIMER_NEEDS_RESET				0x10000000
-+#define OMAP_TIMER_HAS_DSP_IRQ				0x08000000
- 
- struct omap_timer_capability_dev_attr {
- 	u32 timer_capability;
+ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 						int gptimer_id,
+ 						const char *fck_source)
 -- 
 1.7.9.5
 
