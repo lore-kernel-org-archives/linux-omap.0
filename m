@@ -1,134 +1,156 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [RFC PATCH 1/6] ARM: mm: define LoUIS API for cache maintenance
- ops
-Date: Thu, 13 Sep 2012 12:39:49 +0100
-Message-ID: <20120913113949.GC2470@linaro.org>
-References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Thu, 13 Sep 2012 17:14:39 +0530
+Message-ID: <CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
+	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+	<20120723140830.GA8155@arwen.pp.htv.fi>
+	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
+	<CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
+	<CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
+	<20120813140928.GH14781@arwen.pp.htv.fi>
+	<CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:56806 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755941Ab2IMLjz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 07:39:55 -0400
-Received: by eekc1 with SMTP id c1so1878934eek.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 04:39:53 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:34196 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755032Ab2IMLol (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 07:44:41 -0400
+Received: by vbbff1 with SMTP id ff1so3269032vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 04:44:39 -0700 (PDT)
+In-Reply-To: <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+To: linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+Cc: Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com
 
-On Thu, Sep 13, 2012 at 11:20:46AM +0100, Lorenzo Pieralisi wrote:
-> ARM v7 architecture introduced the concept of cache levels and related
-> coherency requirements. New processors like A7 and A15 embed an
-> L2 unified cache controller that becomes part of the cache level
-> hierarchy. Some operations in the kernel like cpu_suspend and __cpu_disable
-> does not require a flush of the entire cache hierarchy to DRAM but just the
-> cache levels belonging to the Level of Unification Inner Shareable (LoUIS),
-> which in most of ARM v7 systems correspond to L1.
-> 
-> The current cache flushing API used in cpu_suspend and __cpu_disable,
-> flush_cache_all(), ends up flushing the whole cache hierarchy since for
-> v7 it cleans and invalidates all cache levels up to Level of Coherency
-> (LoC) which cripples system performance when used in hot paths like hotplug
-> and cpuidle.
-> 
-> Therefore a new kernel cache maintenance API must be added to the
-> cpu_cache_fns structure of pointers to cope with latest ARM system requirements.
-> This patch adds flush_cache_louis() to the ARM kernel cache maintenance API.
-> 
-> This function cleans and invalidates all data cache levels up to the
-> level of unification inner shareable (LoUIS) and invalidates the instruction
-> cache.
-> 
-> The cpu_cache_fns struct reflects this change by adding a new function pointer
-> that is initialized by arch specific assembly files.
-> 
-> By default, all existing ARM archs do not instantiate any cache LoUIS function
-> pointer, and flush_dcache_louis just falls back to flush_kern_all.
-> 
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> ---
->  arch/arm/include/asm/cacheflush.h | 17 +++++++++++++++++
->  arch/arm/mm/proc-macros.S         |  7 ++++++-
->  2 files changed, 23 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm/include/asm/cacheflush.h b/arch/arm/include/asm/cacheflush.h
-> index c6e2ed9..7683316 100644
-> --- a/arch/arm/include/asm/cacheflush.h
-> +++ b/arch/arm/include/asm/cacheflush.h
-> @@ -50,6 +50,13 @@
->   *
->   *		Unconditionally clean and invalidate the entire cache.
->   *
-> + *     flush_kern_cache_louis()
-> + *
-> + *             Flush data cache levels up to the level of unification
-> + *             inner shareable and invalidate the I-cache.
-> + *             Only needed from v7 onwards, falls back to flush_cache_all()
-> + *             for all other processor versions.
-> + *
->   *	flush_user_all()
->   *
->   *		Clean and invalidate all user space cache entries
-> @@ -98,6 +105,7 @@
->  struct cpu_cache_fns {
->  	void (*flush_icache_all)(void);
->  	void (*flush_kern_all)(void);
-> +	void (*flush_kern_cache_louis)(void);
->  	void (*flush_user_all)(void);
->  	void (*flush_user_range)(unsigned long, unsigned long, unsigned int);
->  
-> @@ -200,6 +208,15 @@ extern void copy_to_user_page(struct vm_area_struct *, struct page *,
->  #define __flush_icache_preferred	__flush_icache_all_generic
->  #endif
->  
-> +/*
-> + * Flush caches up to Level of Unification Inner Shareable
-> + */
-> +#ifdef MULTI_CACHE
-> +#define flush_cache_louis()   cpu_cache.flush_kern_cache_louis()
-> +#else
-> +#define flush_cache_louis()   __cpuc_flush_kern_all()
-> +#endif
+On Mon, Aug 13, 2012 at 8:23 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Mon, Aug 13, 2012 at 7:39 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> On Mon, Aug 13, 2012 at 06:52:13PM +0530, Munegowda, Keshava wrote:
+>>> On Fri, Jul 27, 2012 at 5:44 PM, Munegowda, Keshava
+>>> <keshava_mgowda@ti.com> wrote:
+>>> > On Mon, Jul 23, 2012 at 8:04 PM, Munegowda, Keshava
+>>> > <keshava_mgowda@ti.com> wrote:
+>>> >> On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>> >>> Hi,
+>>> >>>
+>>> >>> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
+>>> >>>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
+>>> >>>> <keshava_mgowda@ti.com> wrote:
+>>> >>>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
+>>> >>>> > <keshava_mgowda@ti.com> wrote:
+>>> >>>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
+>>> >>>> >> the host controller. Basically this TLL operates like USB PHY which allows
+>>> >>>> >> the user to connect two USB transceiver interfaces together directly
+>>> >>>> >> without the use of differential transceivers in omap3 and later chips.
+>>> >>>> >> The TLL configuration is removed from the UHH driver and implemented as
+>>> >>>> >> a seperate platform driver. Now, the UHH driver configures the TLL
+>>> >>>> >> through API's exported by the TLL platform driver.
+>>> >>>> >>
+>>> >>>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>> >>>> >>
+>>> >>>> >> In v4:
+>>> >>>> >>     - rebased on top of linux kernel version 3.5.rc7
+>>> >>>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
+>>> >>>> >>
+>>> >>>> >> In v3:
+>>> >>>> >>   - rebased on top V3 of Russ dill's patch
+>>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>> >>>> >>        while initializing the EHCI controller
+>>> >>>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
+>>> >>>> >>
+>>> >>>> >>   - rebased on top of patch
+>>> >>>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>>> >>>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
+>>> >>>> >>
+>>> >>>> >> In V2:
+>>> >>>> >>     - covered review comments from linux omap and usb community
+>>> >>>> >>     - rebased on top Russ dill's patch
+>>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>> >>>> >>        while initializing the EHCI controller
+>>> >>>> >>
+>>> >>>> >> Keshava Munegowda (5):
+>>> >>>> >>   ARM: OMAP: Add the USB TLL clocks device name
+>>> >>>> >>   ARM: OMAP: USB: HOST TLL platform driver
+>>> >>>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>>> >>>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>>> >>>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
+>>> >>>> >>
+>>> >>>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+>>> >>>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+>>> >>>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
+>>> >>>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
+>>> >>>> >>  drivers/mfd/Kconfig                   |    2 +-
+>>> >>>> >>  drivers/mfd/Makefile                  |    2 +-
+>>> >>>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
+>>> >>>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+>>> >>>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
+>>> >>>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
+>>> >>>> >>
+>>> >>>> >> --
+>>> >>>> >> 1.7.9.5
+>>> >>>> >
+>>> >>>> >
+>>> >>>> > Felipe/ Paul
+>>> >>>> >       please let me know if you have any review comments on this v4 series.
+>>> >>>> >
+>>> >>>> > regards
+>>> >>>> > keshava
+>>> >>>>
+>>> >>>> Hi Felipe
+>>> >>>>           please let me know if you have any review comments on this series now.
+>>> >>>
+>>> >>> looks ok... pretty much just moving code around.
+>>> >>>
+>>> >>> --
+>>> >>> balbi
+>>> >>
+>>> >>
+>>> >> Thanks Felipe
+>>> >>
+>>> >> then I request please give your Ack by for this series.
+>>> >>
+>>> >> regards
+>>> >> keshava
+>>> >
+>>> > Hi Paul
+>>> >     do you have any review comments on this series?
+>>> > Felipe is OK with this series.  if there are no review comments on this series
+>>> > I request your ack by for the same.
+>>> > Once this series gets in to mainline. i will start the Device tree
+>>> > conversion for usb2 host.
+>>> >
+>>> > regards
+>>> > keshava
+>>>
+>>> Hi Felipe
+>>>        please give you ack by this series , so that I request
+>>> samuel to merge to mainline.
+>>
+>> sure, here you go
+>>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>
+>> --
+>> balbi
+>
+>
+> Thanks Felipe
+>
+> Samuel
+>       I request please queue this series for the next merge window.
+>
+> regards
+> keshava
 
-So, without MULTI_CACHE, we always fall back to flush_kern_all.
 
-I'm guessing this is done because CPUs can't be relied on to provide
-flush_kern_cache_louis.  Shouldn't this be handled directly? 
+samuel : ping
 
-We could introduce something like CONFIG_ARM_HAVE_CACHEFLUSH_LOUIS, and
-do:
-
-<asm/glue-cache.h>
-#ifndef MULTI_CACHE
-#ifdef CONFIG_HAVE_ARM_CACHEFLUSH_LOUIS
-#define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_cache_louis)
-#else
-#define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_all)
-#endif
-#endif
-
-<asm/cacheflush.h>
-#ifdef MULTI_CACHE
-#define flush_cache_louis()   cpu_cache.flush_kern_cache_louis()
-#else
-#define flush_cache_louis()   __cpuc_flush_kern_cache_louis()
-#endif
-
-
-Any good?
-
-Then the only question is whether this is worth the complexity.
-
-This only works if the __cpuc_ aliases are not used from assembler.
-That seems wrong anyway, since on a MULTI_CACHE kernel those would turn
-into C struct member references which wouldn't be valid in assembler
-anyway.
-
-Cheers
----Dave
+regards
+keshava
