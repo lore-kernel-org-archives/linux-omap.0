@@ -1,108 +1,72 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH 0/6] ARM: augment cache flushing API
-Date: Thu, 13 Sep 2012 11:20:45 +0100
-Message-ID: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [RFC PATCH 3/6] ARM: mm: add v7 dcache level API
+Date: Thu, 13 Sep 2012 11:20:48 +0100
+Message-ID: <1347531651-28218-4-git-send-email-lorenzo.pieralisi@arm.com>
+References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:47679 "EHLO
+Received: from service87.mimecast.com ([91.220.42.44]:47771 "EHLO
 	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755670Ab2IMKVI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:08 -0400
+	with ESMTP id S1755809Ab2IMKVJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:09 -0400
+In-Reply-To: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-This patch series provides an update of a previous posting:
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-http://www.spinics.net/lists/arm-kernel/msg169075.html
+On ARMv7 based SOC with an integrated L2 cache, there is a need
+to have a flush API to operate on each cache level. In few low
+power modes, L2 cache is retained whereas L1 is lost. The current
+v7_flush_dcache_all(), flushes all the levels and it would be quite
+expensive in cases where only one of the level needs to be flushed.
 
-Main changes:
- - Changed the new API to Level of Unification Inner Shareable (LoUIS)
- - Fixed a pointer bug in __cpu_suspend_save code update
- - Added patches to update __cpu_disable and __v7_setup to LoUIS API
- - Changed the v7 dcache level function to make it clean/invalidate a speci=
-fic
-   level instead of up to a certain level
+So this patch introduces v7_flush_dcache_level() API which takes a
+parameter (cache level), and flush only that level.
+This API is useful for the power management code where depending on CPU
+and CPU cluster low power state, a specific cache level can be cleaned
+instead of cleaning all the cache levels with existing flush_dcache_all().
 
-v7 ARM architecture introduced the concept of cache levels and relative
-control registers to manage them. Cache operations that operate on set/way
-require to define the cache level at which maintenance operations are carri=
-ed
-out by using coprocessor registers.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+---
+ arch/arm/mm/cache-v7.S | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Processors like A7/A15 integrates a unified L2 that is part of the cache
-level hierarchy; this implies that cache operations operating on all levels
-also end up cleaning the L2 unified cache which is a very time consuming
-operation and it is not needed for some power-down operations like single C=
-PU
-shutdown.
-
-For v7, flush_kern_all() cleans all the cache levels up to the Level of
-Coherency which includes L2 in it. This is suboptimal for code paths that e=
-nd
-up shutting-down a single processor like CPU hotplug and CPU idle, where on=
-ly
-per-CPU cache state (ie L1 integrated cache) has to be cleaned and invalida=
-ted.
-
-To fix this performance issue this patchset introduces cache LoUIS (Level o=
-f
-Unification Inner Shareable) maintenance operations in the kernel.
-
-A new cache operations pointer is added to cpu_cache_fns
-
-void (*flush_kern_cache_louis)(void);
-
-that allows to clean and invalidate all data cache levels up to the LoUIS a=
-nd
-invalidate the instruction cache. This new API should provide a sufficientl=
-y
-optimized API to be used in generic C code in the kernel for power manageme=
-nt
-operations on most v7 systems.
-
-For architecture versions previous to v7, flush_kern_cache_louis() falls ba=
-ck
-to flush_kern_all() leaving the current behaviour unchanged.
-
-In order to allow finer grain operations on cache levels, this series also
-defines an assembly stub for v7 that allows to clean and invalidate a speci=
-fic
-data cache level and it is provided for completeness.
-
-For A9/A5 processors Level of Unification Inner Shareable and Level of
-Coherency are equivalent hence this patch should not affect current kernel
-behaviour in any way when run on A9/A5 based systems, but should nonetheles=
-s
-be thoroughly tested on them.
-
-Tested on:
-  - OMAP4 (S2R, cpuidle and hotplug)
-  - OMAP5 (out of tree code) (S2R, cpuidle and hotplug)
-  - TC2 big.LITTLE testchip (out of tree code) (cpuidle, on both A7 and A15
-    clusters)
-
-Lorenzo Pieralisi (4):
-  ARM: mm: define LoUIS API for cache maintenance ops
-  ARM: mm: add v7 cache LoUIS API implementation
-  ARM: kernel: update cpu_suspend code to use cache LoUIS operations
-  ARM: kernel: update __cpu_disable to use cache LoUIS maintenance API
-
-Santosh Shilimkar (2):
-  ARM: mm: add v7 dcache level API
-  ARM: mm: update __v7_setup() to the new LoUIS cache maintenance API
-
- arch/arm/include/asm/cacheflush.h | 17 +++++++++++
- arch/arm/kernel/smp.c             |  5 +++-
- arch/arm/kernel/suspend.c         | 17 ++++++++++-
- arch/arm/mm/cache-v7.S            | 62 +++++++++++++++++++++++++++++++++++=
-++--
- arch/arm/mm/proc-macros.S         |  7 ++++-
- arch/arm/mm/proc-v7.S             |  2 +-
- 6 files changed, 103 insertions(+), 7 deletions(-)
-
+diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+index 74aec79..d0fbe5c 100644
+--- a/arch/arm/mm/cache-v7.S
++++ b/arch/arm/mm/cache-v7.S
+@@ -51,6 +51,26 @@ ENTRY(v7_flush_dcache_louis)
+ =09b=09__flush_level
+ ENDPROC(v7_flush_dcache_louis)
+=20
++ /*
++ *     v7_flush_dcache_level(level)
++ *
++ *     Flush the D-cache the specified level passed as input parameter.
++ *
++ *     r0 - cache level
++ *
++ *     Corrupted registers: r0-r7, r9-r11 (r6 only in Thumb mode)
++ */
++
++ENTRY(v7_flush_dcache_level)
++=09dmb=09=09=09=09=09@ ensure ordering with previous memory accesses
++=09sub=09r10, r0, #1
++=09mov=09r10, r10, lsl #1
++=09movs=09r3, r0, lsl #1=09=09=09@ level * 2
++=09mrc=09p15, 1, r0, c0, c0, 1=09=09@ read clidr
++=09moveq=09pc, lr=09=09=09=09@ return if level =3D=3D 0
++=09b=09__flush_level
++ENDPROC(v7_flush_dcache_level)
++
+ /*
+  *=09v7_flush_dcache_all()
+  *
 --=20
 1.7.12
 
