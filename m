@@ -1,69 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] RTC: TWL: ensure all interrupts are disabled during probe
-Date: Thu, 13 Sep 2012 13:45:57 -0700
-Message-ID: <1347569157-19262-1-git-send-email-khilman@deeprootsystems.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCHv8 00/23]I2C big cleanup
+Date: Thu, 13 Sep 2012 14:28:02 -0700
+Message-ID: <87txv1bokd.fsf@deeprootsystems.com>
+References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
+	<20120912131615.GB16547@pengutronix.de>
+	<87pq5quaqr.fsf@deeprootsystems.com>
+	<87wqzysuu3.fsf@deeprootsystems.com>
+	<87sjaldcjp.fsf@deeprootsystems.com>
+	<20120913183705.GA17430@arwen.pp.htv.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20120913183705.GA17430-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org> (Felipe Balbi's message
+	of "Thu, 13 Sep 2012 21:37:07 +0300")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@ti.com>
+Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
 
-On some platforms, bootloaders are known to do some interesting RTC
-programming.  Without going into the obscurities as to why this may be
-the case, suffice it to say the the driver should not make any
-assumptions about the state of the RTC when the driver loads.  In
-particular, the driver probe should be sure that all interrupts are
-disabled until otherwise programmed.
+> Hi,
+>
+> On Thu, Sep 13, 2012 at 11:04:42AM -0700, Kevin Hilman wrote:
+>> Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
+>> 
+>> > Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
+>> >
+>> [...]
+>> 
+>> >> Sorry to be late to the party (again), but still catching up after some
+>> >> time off.
+>> >>
+>> >> Unfortunately, this series causes PM regressions on several OMAP
+>> >> platforms.  I hope we can hold off on this until those issues are
+>> >> addressed.
+>> >
+>> > I tracked the regression down to [PATCHv8 21/22] (see reply there.)
+>> >
+>> > Since this series is already merged, I suggest that the problem patch be
+>> > reverted, at least for v3.7 and until the problem is better understood
+>> > and tested.
+>> >
+>> > With that patch reverted, all my PM tests are passing.  Feel free to
+>> > add:
+>> 
+>> OK, the i2c series is off the hook.
+>> 
+>> Felipe and I spent a little time tracking this down.  Felipe suggested
+>> that there might be a driver with periodic i2c activity keeping I2C
+>> awake, and thus preventing CORE retention.  He was right.
+>
+> FYI, the original idea came from Shubhro. We agreed that would be the
+> only way i2c would be prevented from idling.
 
-This was discovered when finding bursty I2C traffic every second on
-Overo platforms.  This I2C overhead was keeping the SoC from hitting
-deep power states.  The cause was found to be the RTC firing every
-second on the I2C-connected TWL PMIC.
+Great, thanks Shubhro!
 
-Special thanks to Felipe Balbi for suggesting to look for a rogue
-driver as the source of the I2C traffic rather than the I2C driver
-itself.
+Also, FYI, I just submitted a patch to the TWL RTC driver which was the
+source of all the I2C activity since it's on the I2C-connected PMIC.
 
-Special thanks to Steve Sakoman for helping track down the source of
-the continuous RTC interrups on the Overo boards.
+Thanks for the help and suggestions,
 
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Steve Sakoman <steve@sakoman.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Patch applies to v3.6-rc5
+Kevin
 
- drivers/rtc/rtc-twl.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index c5d06fe..9277d94 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -495,6 +495,11 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto out1;
- 
-+	/* ensure interrupts are disabled, bootloaders can be strange */
-+	ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
-+	if (ret < 0)
-+		dev_warn(&pdev->dev, "unable to disable interrupt\n");
-+
- 	/* init cached IRQ enable bits */
- 	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
- 	if (ret < 0)
--- 
-1.7.9.2
+[1] https://groups.google.com/forum/#!topic/rtc-linux/sFbYmAzCRLQ
