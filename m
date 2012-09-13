@@ -1,94 +1,110 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Wed, 12 Sep 2012 18:12:08 -0700
-Message-ID: <20120913011208.GT4257@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH 08/10] ARM: OMAP: Clean-up timer posted mode support
+Date: Wed, 12 Sep 2012 22:26:47 -0500
+Message-ID: <50515277.9050500@ti.com>
+References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com> <1346871872-24413-9-git-send-email-jon-hunter@ti.com> <20120907222223.GQ1303@atomide.com> <504E62C8.8030100@ti.com> <20120911005802.GE1303@atomide.com> <504F661F.1020209@ti.com> <20120911163400.GD23092@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Paul E. McKenney" <paul.mckenney@linaro.org>, linux-kernel@vger.kernel.org, bbruce@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, jon-hunter@ti.com, snijsure@grid-net.com
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50842 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753925Ab2IMD0x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Sep 2012 23:26:53 -0400
+In-Reply-To: <20120911163400.GD23092@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Sep 12, 2012 at 10:51:30PM +0000, Paul Walmsley wrote:
-> 
-> Hi Paul
-> 
-> Recently several of us have been seeing "INFO: rcu_sched self-detected
-> stall on CPU { 0} (t=20611 jiffies)" stack tracebacks on various OMAP3
-> and 4 board.
-> 
-> I only noticed it during v3.6-rc3, but I suspect it's been happening 
-> for users at least since May:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68942.html
-> 
-> 
-> The only quasi-reproducible test case that I've found so far 
-> is to boot the board with serial console enabled to a login prompt, then 
-> wait for a few minutes, then send a keypress to the board via serial.
-> The tracebacks I get look like this:
 
-Interesting.  I am assuming that the interrupt in the stack below came
-from idle, if not, please let me know what.
+On 09/11/2012 11:34 AM, Tony Lindgren wrote:
+> * Jon Hunter <jon-hunter@ti.com> [120911 09:26]:
+>>
+>> On 09/10/2012 07:58 PM, Tony Lindgren wrote:
+>>> * Jon Hunter <jon-hunter@ti.com> [120910 15:00]:
+>>>>
+>>>> On 09/07/2012 05:22 PM, Tony Lindgren wrote:
+>>>>> * Jon Hunter <jon-hunter@ti.com> [120905 12:05]:
+>>>>>> The dmtimer functions to read and write the dmtimer registers are currently
+>>>>>> defined as follows ...
+>>>>>>
+>>>>>> static inline u32 __omap_dm_timer_read(struct omap_dm_timer *timer, u32 reg,
+>>>>>> 						int posted);
+>>>>>> static inline void __omap_dm_timer_write(struct omap_dm_timer *timer,
+>>>>>> 						u32 reg, u32 val, int posted);
+>>>>>>
+>>>>>> The posted variable indicates if the timer is configured to use the posted mode
+>>>>>> when performing register accesses. The posted mode configuration of the dmtimer
+>>>>>> is stored in the omap_dm_timer structure that is also being passed to the above
+>>>>>> functions and therefore we do not need to pass the posted variable separately.
+>>>>>> Therefore, simplify the above functions by removing the posted variable as an
+>>>>>> argument as this is not necessary.
+>>>>>
+>>>>> I believe the reason for passing the posted flag was to optimize out some
+>>>>> functions from the timer code as that's being run all the time.
+>>>>>
+>>>>> Care to check the assembly before and after this patch for the timer
+>>>>> functions with objdump -d to make sure it does not add tons of bloat
+>>>>> there?
+>>>>
+>>>> Hi Tony,
+>>>>
+>>>> Thanks for the details here. I see that makes sense and that the
+>>>> compiler could take advantage of this as the functions are inlined.
+>>>>
+>>>> I have taken a look at the disassembled output using objdump as you
+>>>> mentioned. What I see is ...
+>>>>
+>>>> 1. For dmtimer.c the impact appears negligible, the total number of
+>>>>    lines outputted by objdump only changed by 8 with (1215 lines) and
+>>>>    without (1207 lines) the patch applied.
+>>>>
+>>>> 2. For timer.c the impact is greater. I see that
+>>>>    omap2_gp_timer_set_next_event() increased by 6 instructions from 29
+>>>>    to 35. clocksource_read_cycles() increased by 2 instructions 15 to
+>>>>    17 instructions. dmtimer_read_sched_clock() increased by 2
+>>>>    instructions from 17 to 19. omap2_gp_timer_set_mode() increased by
+>>>>    21 instructions from 102 to 123.
+>>>>
+>>>> I imagine that we are mainly concerned about
+>>>> omap2_gp_timer_set_next_event(), clocksource_read_cycles() and
+>>>> dmtimer_read_sched_clock() as these will be called often. Therefore, I
+>>>> am not sure if you wish to drop this patch.
+>>>
+>>> Well does it at lots of new ldr to the critical code?
+>>
+>> For the omap2_gp_timer_set_next_event() function it adds 3 load
+>> instructions, increasing the number of possible loads from 11 to 14.
+>>
+>> For the clocksource_read_cycles() function it adds 1 load instruction,
+>> increasing the number of possible loads from 7 to 8.
+>>
+>> For the dmtimer_read_sched_clock() function, I don't see any additional
+>> loads, but instructions added are a tst and beq instruction.
+>>
+>>>> By the way, if we do drop this patch, I would then need to fix the
+>>>> setting of the posted variable in mach-omap2/timer.c for clock-source in
+>>>> the case where a dmtimer is used. Today the code assumes that for
+>>>> clock-source and clock-events posted mode is always used. However, with
+>>>> the errata i103/i767 we will disable posted mode for clock-source on
+>>>> omap2/3/4/5/am33xx devices.
+>>>
+>>> Yes I see, I guess that means just adding a new systimer entry?
+>>
+>> Actually, I think we can avoid that by not using posted mode for
+>> clock-source timers at all. Posted mode only benefits the clock-events
+>> timers that are configured often.
+>>
+>> The benefit of not using posted mode for clock-source timers and setting
+>> the "posted" parameter to 0, will really allow the compiler to optimise
+>> the clocksource_read_cycles() and dmtimer_read_sched_clock() quite a
+>> bit. So this could be a nice optimisation.
+> 
+> OK up to you, but maybe run some benchmarks first to figure out what
+> makes most sense? Updating the timer used to be a bottleneck earlier.
 
-Could you please reproduce with CONFIG_RCU_CPU_STALL_INFO=y?  That would
-give me a bit more information about why RCU thought that there was
-a stall.  (CCing Becky Bruce, who saw something similar recently.)
+Ok, let me re-work this. Thanks for the inputs.
 
-Subodh Nijsure (also CCed) reported something that might be similar on
-ARM, and also reported that setting the following got rid of the stalls:
-
-	CONFIG_CPU_IDLE=y
-	CONFIG_CPU_IDLE_GOV_LADDER=y
-	CONFIG_CPU_IDLE_GOV_MENU=y
-
-At which point he was happy, which was good, but which also left the
-underlying problem unsolved.  Do these affect your system?  If so,
-do they cause a different ARM idle loop to be executed?
-
-							Thanx, Paul
-
-> [  467.480712] INFO: rcu_sched self-detected stall on CPU { 0}  (t=20611 jiffies)
-> [  467.484741] [<c001b7cc>] (unwind_backtrace+0x0/0xf0) from [<c00acc94>] (rcu_check_callbacks+0x180/0x630)
-> [  467.489929] [<c00acc94>] (rcu_check_callbacks+0x180/0x630) from [<c0052b18>] (update_process_times+0x38/0x68)
-> [  467.495361] [<c0052b18>] (update_process_times+0x38/0x68) from [<c008c04c>] (tick_sched_timer+0x80/0xec)
-> [  467.500518] [<c008c04c>] (tick_sched_timer+0x80/0xec) from [<c0068544>] (__run_hrtimer+0x7c/0x1e0)
-> [  467.505401] [<c0068544>] (__run_hrtimer+0x7c/0x1e0) from [<c0069328>] (hrtimer_interrupt+0x11c/0x2d0)
-> [  467.510437] [<c0069328>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a04c>] (twd_handler+0x30/0x44)
-> [  467.515350] [<c001a04c>] (twd_handler+0x30/0x44) from [<c00a71a0>] (handle_percpu_devid_irq+0x90/0x13c)
-> [  467.520477] [<c00a71a0>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a3914>] (generic_handle_irq+0x30/0x48)
-> [  467.525939] [<c00a3914>] (generic_handle_irq+0x30/0x48) from [<c0014c58>] (handle_IRQ+0x4c/0xac)
-> [  467.530731] [<c0014c58>] (handle_IRQ+0x4c/0xac) from [<c0008478>] (gic_handle_irq+0x28/0x5c)
-> [  467.535339] [<c0008478>] (gic_handle_irq+0x28/0x5c) from [<c04f8ce4>] (__irq_svc+0x44/0x5c)
-> [  467.539886] Exception stack(0xc0729f58 to 0xc0729fa0)
-> [  467.542663] 9f40:                                                       00047f2a 00000001
-> [  467.547119] 9f60: 00000000 c074a940 c0728000 c07c4b08 c05045a0 c074be20 00000000 411fc092
-> [  467.551574] 9f80: c074c040 00000000 00000001 c0729fa0 00047f2b c0014f50 20000113 ffffffff
-> [  467.556030] [<c04f8ce4>] (__irq_svc+0x44/0x5c) from [<c0014f50>] (default_idle+0x20/0x44)
-> [  467.560485] [<c0014f50>] (default_idle+0x20/0x44) from [<c001517c>] (cpu_idle+0x9c/0x114)
-> [  467.564971] [<c001517c>] (cpu_idle+0x9c/0x114) from [<c06d77b0>] (start_kernel+0x2b4/0x304)
-> 
-> Looks like this message was added as of commit
-> a858af2875fb291d0f4b0a4419fefbf03c2379c0 ("rcu: Print scheduling-clock
-> information on RCU CPU stall-warning messages").
-> 
-> Do you have any suggestions for how we can determine what is causing
-> this?
-> 
-> Here's an example of a kernel config that we use:
-> 
-> http://www.pwsan.com/omap/testlogs/am33xx_hwmod_clock_devel_3.7/20120912092510/build/omap2plus_defconfig/Kconfig
-> 
-> A few observations that may or may not be relevant: we use NO_HZ, and 
-> we also have a clockevents timer that is relatively slow to program.
-> 
-> 
-> regards,
-> 
-> - Paul
-> 
+Cheers
+Jon
