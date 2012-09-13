@@ -1,95 +1,69 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 06/15] ASoC: omap-mcbsp: Use sDMA packet mode instead of frame mode
-Date: Thu, 13 Sep 2012 16:37:56 +0300
-Message-ID: <1347543485-339-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 03/15] dmaengine: Add no_wakeup parameter to
+	dmaengine_prep_dma_cyclic()
+Date: Thu, 13 Sep 2012 16:37:53 +0300
+Message-ID: <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com>
 References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When McBSP is configured in threshold mode we can use sDMA packet mode in
-all cases.
+The dmaengine_prep_dma_cyclic() function primarily used by audio for cyclic
+transfer required by ALSA.
+With this new parameter it is going to be possible to enable the
+SNDRV_PCM_INFO_NO_PERIOD_WAKEUP mode on platforms where it is possible.
+This patch only changes the public API first. Followup patch will change
+the device_prep_dma_cyclic() callback parameters to pass this information
+towards the dma drivers.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Lars-Peter Clausen <lars@metafoo.de>
 ---
- sound/soc/omap/omap-mcbsp.c | 47 ++++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 30 deletions(-)
+ include/linux/dmaengine.h     | 3 ++-
+ sound/soc/soc-dmaengine-pcm.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 2e91a86..fe3debc 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -81,9 +81,6 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 	 */
- 	if (dma_data->packet_size)
- 		words = dma_data->packet_size;
--	else if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
--		words = snd_pcm_lib_period_bytes(substream) /
--						(mcbsp->wlen / 8);
- 	else
- 		words = 1;
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 9c02a45..990444b 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -653,7 +653,8 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_rio_sg(
  
-@@ -251,6 +248,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 		dma_data->set_threshold = omap_mcbsp_set_threshold;
- 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
- 			int period_words, max_thrsh;
-+			int divider = 0;
+ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cyclic(
+ 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+-		size_t period_len, enum dma_transfer_direction dir)
++		size_t period_len, enum dma_transfer_direction dir,
++		bool no_wakeup)
+ {
+ 	return chan->device->device_prep_dma_cyclic(chan, buf_addr, buf_len,
+ 						period_len, dir, NULL);
+diff --git a/sound/soc/soc-dmaengine-pcm.c b/sound/soc/soc-dmaengine-pcm.c
+index 5df529e..6b70adb 100644
+--- a/sound/soc/soc-dmaengine-pcm.c
++++ b/sound/soc/soc-dmaengine-pcm.c
+@@ -147,7 +147,8 @@ static int dmaengine_pcm_prepare_and_submit(struct snd_pcm_substream *substream)
+ 	desc = dmaengine_prep_dma_cyclic(chan,
+ 		substream->runtime->dma_addr,
+ 		snd_pcm_lib_buffer_bytes(substream),
+-		snd_pcm_lib_period_bytes(substream), direction);
++		snd_pcm_lib_period_bytes(substream), direction,
++		substream->runtime->no_period_wakeup);
  
- 			period_words = params_period_bytes(params) / (wlen / 8);
- 			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-@@ -258,34 +256,23 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 			else
- 				max_thrsh = mcbsp->max_rx_thres;
- 			/*
--			 * If the period contains less or equal number of words,
--			 * we are using the original threshold mode setup:
--			 * McBSP threshold = sDMA frame size = period_size
--			 * Otherwise we switch to sDMA packet mode:
--			 * McBSP threshold = sDMA packet size
--			 * sDMA frame size = period size
-+			 * Use sDMA packet mode if McBSP is in threshold mode:
-+			 * If period words less than the FIFO size the packet
-+			 * size is set to the number of period words, otherwise
-+			 * Look for the biggest threshold value which divides
-+			 * the period size evenly.
- 			 */
--			if (period_words > max_thrsh) {
--				int divider = 0;
--
--				/*
--				 * Look for the biggest threshold value, which
--				 * divides the period size evenly.
--				 */
--				divider = period_words / max_thrsh;
--				if (period_words % max_thrsh)
--					divider++;
--				while (period_words % divider &&
--					divider < period_words)
--					divider++;
--				if (divider == period_words)
--					return -EINVAL;
--
--				pkt_size = period_words / divider;
--				sync_mode = OMAP_DMA_SYNC_PACKET;
--			} else {
--				sync_mode = OMAP_DMA_SYNC_FRAME;
--			}
-+			divider = period_words / max_thrsh;
-+			if (period_words % max_thrsh)
-+				divider++;
-+			while (period_words % divider &&
-+				divider < period_words)
-+				divider++;
-+			if (divider == period_words)
-+				return -EINVAL;
-+
-+			pkt_size = period_words / divider;
-+			sync_mode = OMAP_DMA_SYNC_PACKET;
- 		} else if (channels > 1) {
- 			/* Use packet mode for non mono streams */
- 			pkt_size = channels;
+ 	if (!desc)
+ 		return -ENOMEM;
 -- 
 1.7.12
