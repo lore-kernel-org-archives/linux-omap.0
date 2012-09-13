@@ -1,70 +1,42 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 05/15] dmaengine: omap-dma: Add support for
-	no_wakeup in cyclic mode
-Date: Thu, 13 Sep 2012 16:37:55 +0300
-Message-ID: <1347543485-339-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 07/15] ASoC: omap-pcm: Select sDMA synchronization based on packet_size
+Date: Thu, 13 Sep 2012 16:37:57 +0300
+Message-ID: <1347543485-339-8-git-send-email-peter.ujfalusi@ti.com>
 References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>
 List-Id: linux-omap@vger.kernel.org
 
-When requested disable all DMA interrupts for the channel. In this mode
-user space does not expect periodic reports from kernel about the progress
-of the audio stream - PulseAudio for example support this type of mode.
+Since we only have element or packet synchronization we can use the
+dma_data->packet_size to select the desired mode:
+if packet_size is 0 we use ELEMENT mode
+if packet_size is not 0 we use PACKET mode for sDMA synchronization.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/dma/omap-dma.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ sound/soc/omap/omap-pcm.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-index c6a711d..cbe087e 100644
---- a/drivers/dma/omap-dma.c
-+++ b/drivers/dma/omap-dma.c
-@@ -374,6 +374,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 	struct omap_desc *d;
- 	dma_addr_t dev_addr;
- 	unsigned es, sync_type;
-+	unsigned long tx_flags = 0;
- 	u32 burst;
- 
- 	if (dir == DMA_DEV_TO_MEM) {
-@@ -429,7 +430,11 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 	if (!c->cyclic) {
- 		c->cyclic = true;
- 		omap_dma_link_lch(c->dma_ch, c->dma_ch);
--		omap_enable_dma_irq(c->dma_ch, OMAP_DMA_FRAME_IRQ);
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index f0feb06..02eeb2e 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -165,7 +165,12 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ 	memset(&dma_params, 0, sizeof(dma_params));
+ 	dma_params.data_type			= dma_data->data_type;
+ 	dma_params.trigger			= dma_data->dma_req;
+-	dma_params.sync_mode			= dma_data->sync_mode;
 +
-+		if (!no_wakeup) {
-+			omap_enable_dma_irq(c->dma_ch, OMAP_DMA_FRAME_IRQ);
-+			tx_flags = DMA_CTRL_ACK | DMA_PREP_INTERRUPT;
-+		}
- 		omap_disable_dma_irq(c->dma_ch, OMAP_DMA_BLOCK_IRQ);
- 	}
- 
-@@ -438,7 +443,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
- 		omap_set_dma_dest_burst_mode(c->dma_ch, OMAP_DMA_DATA_BURST_16);
- 	}
- 
--	return vchan_tx_prep(&c->vc, &d->vd, DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
-+	return vchan_tx_prep(&c->vc, &d->vd, tx_flags);
- }
- 
- static int omap_dma_slave_config(struct omap_chan *c, struct dma_slave_config *cfg)
++	if (dma_data->packet_size)
++		dma_params.sync_mode = OMAP_DMA_SYNC_PACKET;
++	else
++		dma_params.sync_mode = OMAP_DMA_SYNC_ELEMENT;
++
+ 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		dma_params.src_amode		= OMAP_DMA_AMODE_POST_INC;
+ 		dma_params.dst_amode		= OMAP_DMA_AMODE_CONSTANT;
 -- 
 1.7.12
