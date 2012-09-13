@@ -1,87 +1,99 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv8 00/23]I2C big cleanup
-Date: Thu, 13 Sep 2012 21:37:07 +0300
-Message-ID: <20120913183705.GA17430@arwen.pp.htv.fi>
-References: <1347447496-16793-1-git-send-email-shubhrajyoti@ti.com>
- <20120912131615.GB16547@pengutronix.de>
- <87pq5quaqr.fsf@deeprootsystems.com>
- <87wqzysuu3.fsf@deeprootsystems.com>
- <87sjaldcjp.fsf@deeprootsystems.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Thu, 13 Sep 2012 18:52:10 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87sjaldcjp.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120913011208.GT4257@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paul.mckenney@linaro.org>, linux-kernel@vger.kernel.org, bbruce@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, santosh.shilimkar@ti.com, jon-hunter@ti.com, snijsure@grid-net.com
 List-Id: linux-omap@vger.kernel.org
 
+Hi Paul,
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+thanks for the reply,
 
-Hi,
+On Wed, 12 Sep 2012, Paul E. McKenney wrote:
 
-On Thu, Sep 13, 2012 at 11:04:42AM -0700, Kevin Hilman wrote:
-> Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
->=20
-> > Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> writes:
-> >
-> [...]
->=20
-> >> Sorry to be late to the party (again), but still catching up after some
-> >> time off.
-> >>
-> >> Unfortunately, this series causes PM regressions on several OMAP
-> >> platforms.  I hope we can hold off on this until those issues are
-> >> addressed.
-> >
-> > I tracked the regression down to [PATCHv8 21/22] (see reply there.)
-> >
-> > Since this series is already merged, I suggest that the problem patch be
-> > reverted, at least for v3.7 and until the problem is better understood
-> > and tested.
-> >
-> > With that patch reverted, all my PM tests are passing.  Feel free to
-> > add:
->=20
-> OK, the i2c series is off the hook.
->=20
-> Felipe and I spent a little time tracking this down.  Felipe suggested
-> that there might be a driver with periodic i2c activity keeping I2C
-> awake, and thus preventing CORE retention.  He was right.
+> Interesting.  I am assuming that the interrupt in the stack below came
+> from idle, if not, please let me know what.
 
-FYI, the original idea came from Shubhro. We agreed that would be the
-only way i2c would be prevented from idling.
+According to the exception stack section in the original traceback, it
+appears that the serial interrupt took the SoC out of idle.
 
---=20
-balbi
+> Could you please reproduce with CONFIG_RCU_CPU_STALL_INFO=y?  That would
+> give me a bit more information about why RCU thought that there was
+> a stall.  (CCing Becky Bruce, who saw something similar recently.)
 
---2oS5YaxWCcQjTEyO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+At the bottom of this mail is a series of tracebacks with
+CONFIG_RCU_CPU_STALL_INFO=y.  Unlike the traceback that was sent in
+the last message, these were not triggered by serial activity.  These
+appeared every 300 seconds.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> Subodh Nijsure (also CCed) reported something that might be similar on
+> ARM, and also reported that setting the following got rid of the stalls:
+> 
+> 	CONFIG_CPU_IDLE=y
+> 	CONFIG_CPU_IDLE_GOV_LADDER=y
+> 	CONFIG_CPU_IDLE_GOV_MENU=y
+> 
+> At which point he was happy, which was good, but which also left the
+> underlying problem unsolved.  Do these affect your system?  If so,
+> do they cause a different ARM idle loop to be executed?
 
-iQIcBAEBAgAGBQJQUifRAAoJEIaOsuA1yqREe9MQAITjfmsOfW/L/hKi/6NCLu+G
-9pGVG8d8wDe7A+jQzCOuNyhXcetDhfbPxpksRdIGcTiBOCQ5iBTLuUKKTFM9Mhkr
-xAtSIfmGt9G1uNKlK78Ak/C92sCZEfbn0eTVBj/NLlXTDUbz1PKuJA17hpLvkM1S
-6qmNERXcMuAK6pia+Ti7GcbE7bMi0+H2M391NcwaVbfVXARkedMYiwm5yH7g0Xz6
-SEp7sss7g9Hd7mMDtQte47a0OIaP5Atg0Y1mNgirHRZYQi6V5rCCRNuBR26j04yO
-YmHauSpVU1LuVicQBfH29bjLkETidycAD+ETdKlnXUS4opGJk9WGGVeuJFp08p6C
-pQFR1UJRb7BuWfd0rsgHSAzkh/CPKFTlhUm8wmC6FWk8gLnKx0WfCk6/briJvLb4
-Zv/UkBOfMJXdsm+e8bWRUmoh1//80eP4PTYulnAfHVZ66bASSl/hqBiaf/mxzXT2
-wNIJRAX6YyTuPolrQA+Kk4v/RPem0EU96c7OJgbNfqdYAXYFG9XX4UN68oTJ98sL
-hhdIEig5l9Q5NZ6rTryvH9lFrmvjqLyA8+roDEjZYgOiVHSafu+4wvKsueDYg9S8
-N3HVLDMf0K9GTWlwgLmREOfOaJwsF6dsdx5ATE5D85S63TH20zSSzSZdUqFhLyf8
-HvniNlNxt3ctbzAkyx5Z
-=oXwI
------END PGP SIGNATURE-----
+Will give this a try.  What board was Subodh using?
 
---2oS5YaxWCcQjTEyO--
+
+- Paul
+
+
+Debian GNU/Linux wheezy/sid armel ttyO2
+
+armel login: [  305.942108] INFO: rcu_sched self-detected stall on CPU
+[  305.944946]  1: (7 GPs behind) idle=57b/1/0 
+[  305.947265]   (t=22811 jiffies)
+[  305.949066] [<c001b7cc>] (unwind_backtrace+0x0/0xf0) from [<c00acc28>] (rcu_check_callbacks+0x1b0/0x678)
+[  305.954223] [<c00acc28>] (rcu_check_callbacks+0x1b0/0x678) from [<c00529e0>] (update_process_times+0x38/0x68)
+[  305.959625] [<c00529e0>] (update_process_times+0x38/0x68) from [<c008bf14>] (tick_sched_timer+0x80/0xec)
+[  305.964813] [<c008bf14>] (tick_sched_timer+0x80/0xec) from [<c006840c>] (__run_hrtimer+0x7c/0x1e0)
+[  305.969696] [<c006840c>] (__run_hrtimer+0x7c/0x1e0) from [<c00691f0>] (hrtimer_interrupt+0x11c/0x2d0)
+[  305.974731] [<c00691f0>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a04c>] (twd_handler+0x30/0x44)
+[  305.979644] [<c001a04c>] (twd_handler+0x30/0x44) from [<c00a7068>] (handle_percpu_devid_irq+0x90/0x13c)
+[  305.984741] [<c00a7068>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a37dc>] (generic_handle_irq+0x30/0x48)
+[  305.990234] [<c00a37dc>] (generic_handle_irq+0x30/0x48) from [<c0014c58>] (handle_IRQ+0x4c/0xac)
+[  305.995025] [<c0014c58>] (handle_IRQ+0x4c/0xac) from [<c0008478>] (gic_handle_irq+0x28/0x5c)
+[  305.999633] [<c0008478>] (gic_handle_irq+0x28/0x5c) from [<c04f8ca4>] (__irq_svc+0x44/0x5c)
+[  306.004180] Exception stack(0xde86ff88 to 0xde86ffd0)
+[  306.006927] ff80:                   0003c6d0 00000001 00000000 de8660c0 de86e000 c07c23c8
+[  306.011383] ffa0: c0504590 c0749e20 00000000 411fc092 c074a040 00000000 00000001 de86ffd0
+[  306.015838] ffc0: 0003c6d1 c0014f50 20000113 ffffffff
+[  306.018585] [<c04f8ca4>] (__irq_svc+0x44/0x5c) from [<c0014f50>] (default_idle+0x20/0x44)
+[  306.023040] [<c0014f50>] (default_idle+0x20/0x44) from [<c001517c>] (cpu_idle+0x9c/0x114)
+[  306.027526] [<c001517c>] (cpu_idle+0x9c/0x114) from [<804f1af4>] (0x804f1af4)
+[  602.004486] INFO: rcu_sched detected stalls on CPUs/tasks:
+[  602.007476]  (detected by 0, t=60707 jiffies)
+[  602.009857] INFO: Stall ended before state dump start
+[  906.027893] INFO: rcu_sched self-detected stall on CPU
+[  906.030700]  1: (6 GPs behind) idle=647/1/0 
+[  906.033020]   (t=38379 jiffies)
+[  906.034790] [<c001b7cc>] (unwind_backtrace+0x0/0xf0) from [<c00acc28>] (rcu_check_callbacks+0x1b0/0x678)
+[  906.039947] [<c00acc28>] (rcu_check_callbacks+0x1b0/0x678) from [<c00529e0>] (update_process_times+0x38/0x68)
+[  906.045349] [<c00529e0>] (update_process_times+0x38/0x68) from [<c008bf14>] (tick_sched_timer+0x80/0xec)
+[  906.050537] [<c008bf14>] (tick_sched_timer+0x80/0xec) from [<c006840c>] (__run_hrtimer+0x7c/0x1e0)
+[  906.055419] [<c006840c>] (__run_hrtimer+0x7c/0x1e0) from [<c00691f0>] (hrtimer_interrupt+0x11c/0x2d0)
+[  906.060424] [<c00691f0>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a04c>] (twd_handler+0x30/0x44)
+[  906.065307] [<c001a04c>] (twd_handler+0x30/0x44) from [<c00a7068>] (handle_percpu_devid_irq+0x90/0x13c)
+[  906.070434] [<c00a7068>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a37dc>] (generic_handle_irq+0x30/0x48)
+[  906.075897] [<c00a37dc>] (generic_handle_irq+0x30/0x48) from [<c0014c58>] (handle_IRQ+0x4c/0xac)
+[  906.080688] [<c0014c58>] (handle_IRQ+0x4c/0xac) from [<c0008478>] (gic_handle_irq+0x28/0x5c)
+[  906.085296] [<c0008478>] (gic_handle_irq+0x28/0x5c) from [<c04f8ca4>] (__irq_svc+0x44/0x5c)
+[  906.089843] Exception stack(0xde86ff88 to 0xde86ffd0)
+[  906.092590] ff80:                   0003cb06 00000001 00000000 de8660c0 de86e000 c07c23c8
+[  906.097045] ffa0: c0504590 c0749e20 00000000 411fc092 c074a040 00000000 00000001 de86ffd0
+[  906.101501] ffc0: 0003cb07 c0014f50 20000113 ffffffff
+[  906.104278] [<c04f8ca4>] (__irq_svc+0x44/0x5c) from [<c0014f50>] (default_idle+0x20/0x44)
+[  906.108734] [<c0014f50>] (default_idle+0x20/0x44) from [<c001517c>] (cpu_idle+0x9c/0x114)
+[  906.113189] [<c001517c>] (cpu_idle+0x9c/0x114) from [<804f1af4>] (0x804f1af4)
