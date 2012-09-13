@@ -1,59 +1,81 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH 6/6] ARM: mm: update __v7_setup() to the new LoUIS cache maintenance API
-Date: Thu, 13 Sep 2012 11:20:51 +0100
-Message-ID: <1347531651-28218-7-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [RFC PATCH 4/6] ARM: kernel: update cpu_suspend code to use cache LoUIS operations
+Date: Thu, 13 Sep 2012 11:20:49 +0100
+Message-ID: <1347531651-28218-5-git-send-email-lorenzo.pieralisi@arm.com>
 References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:48008 "EHLO
+Received: from service87.mimecast.com ([91.220.42.44]:47873 "EHLO
 	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757156Ab2IMKVM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:12 -0400
+	with ESMTP id S1756611Ab2IMKVK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:10 -0400
 In-Reply-To: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+In processors like A15/A7 L2 cache is unified and integrated within the
+processor cache hierarchy, so that it is not considered an outer cache
+anymore. For processors like A15/A7 flush_cache_all() ends up cleaning
+all cache levels up to Level of Coherency (LoC) that includes
+the L2 unified cache.
 
-The ARMv7 processor setup function __v7_setup() cleans and invalidates the
-CPU cache before enabling MMU to start the CPU with a clean CPU local cache=
-.
+When a single CPU is suspended (CPU idle) a complete L2 clean is not
+required, so generic cpu_suspend code must clean the data cache using the
+newly introduced cache LoUIS function.
 
-But on ARMv7 architectures like Cortex-[A15/A8], this code will end
-up flushing the L2 caches(up to level of Coherency) which is undesirable
-and expensive. The setup functions are used in the CPU hotplug scenario too
-and hence flushing all cache levels should be avoided.
+The context and stack pointer (context pointer) are cleaned to main memory
+using cache area functions that operate on MVA and guarantee that the data
+is written back to main memory (perform cache cleaning up to the Point of
+Coherency - PoC) so that the processor can fetch the context when the MMU
+is off in the cpu_resume code path.
 
-This patch replaces the cache flushing call with the newly introduced
-v7 dcache LoUIS API where only cache levels up to LoUIS are cleaned and
-invalidated when a processors executes __v7_setup which is the expected
-behavior.
+outer_cache management remains unchanged.
 
-For processors like A9 and A5 where the L2 cache is an outer one the
-behavior should be unchanged.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- arch/arm/mm/proc-v7.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/kernel/suspend.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-index c2e2b66..846d279 100644
---- a/arch/arm/mm/proc-v7.S
-+++ b/arch/arm/mm/proc-v7.S
-@@ -172,7 +172,7 @@ __v7_ca15mp_setup:
- __v7_setup:
- =09adr=09r12, __v7_setup_stack=09=09@ the local stack
- =09stmia=09r12, {r0-r5, r7, r9, r11, lr}
--=09bl=09v7_flush_dcache_all
-+=09bl      v7_flush_dcache_louis
- =09ldmia=09r12, {r0-r5, r7, r9, r11, lr}
+diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
+index 1794cc3..358bca3 100644
+--- a/arch/arm/kernel/suspend.c
++++ b/arch/arm/kernel/suspend.c
+@@ -17,6 +17,8 @@ extern void cpu_resume_mmu(void);
+  */
+ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
+ {
++=09u32 *ctx =3D ptr;
++
+ =09*save_ptr =3D virt_to_phys(ptr);
 =20
- =09mrc=09p15, 0, r0, c0, c0, 0=09=09@ read main ID register
+ =09/* This must correspond to the LDM in cpu_resume() assembly */
+@@ -26,7 +28,20 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32=
+ *save_ptr)
+=20
+ =09cpu_do_suspend(ptr);
+=20
+-=09flush_cache_all();
++=09flush_cache_louis();
++
++=09/*
++=09 * flush_cache_louis does not guarantee that
++=09 * save_ptr and ptr are cleaned to main memory,
++=09 * just up to the Level of Unification Inner Shareable.
++=09 * Since the context pointer and context itself
++=09 * are to be retrieved with the MMU off that
++=09 * data must be cleaned from all cache levels
++=09 * to main memory using "area" cache primitives.
++=09*/
++=09__cpuc_flush_dcache_area(ctx, ptrsz);
++=09__cpuc_flush_dcache_area(save_ptr, sizeof(*save_ptr));
++
+ =09outer_clean_range(*save_ptr, *save_ptr + ptrsz);
+ =09outer_clean_range(virt_to_phys(save_ptr),
+ =09=09=09  virt_to_phys(save_ptr) + sizeof(*save_ptr));
 --=20
 1.7.12
 
