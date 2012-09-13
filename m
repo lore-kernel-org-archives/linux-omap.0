@@ -1,60 +1,83 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 15/21] OMAPDSS: DISPC: Don't set chroma resampling bit for writeback
-Date: Thu, 13 Sep 2012 17:44:59 +0530
-Message-ID: <1347538505-25359-16-git-send-email-archit@ti.com>
+Subject: [PATCH 16/21] OMAPDSS: DISPC: Add function to set channel in for writeback
+Date: Thu, 13 Sep 2012 17:45:00 +0530
+Message-ID: <1347538505-25359-17-git-send-email-archit@ti.com>
 References: <1347538505-25359-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39513 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40432 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757956Ab2IMMPs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 08:15:48 -0400
+	id S1757923Ab2IMMPv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Sep 2012 08:15:51 -0400
 In-Reply-To: <1347538505-25359-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The bit YUVCHROMARESAMPLING isn't there for writeback in DISPC_WB_ATTRIBUTES2.
-It isn't there because we don't upsample chroma like for video pipelines, we
-downsample chroma in writeback to get YUV422 or NV12 formats from the YUV444
-input.
+Writeback can take input from either one of the overlays, or one of the overlay
+managers. Add an enum which represents the channel_in for writeback, and maps
+to the register field programming.
 
-Ignore this bit in dispc_ovl_set_scaling_uv() if the plane is OMAP_DSS_WB.
+Add a function to configure channel in for writeback. This will be used later in
+APPLY.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    7 +++++++
+ drivers/video/omap2/dss/dss.h   |   13 +++++++++++++
+ 2 files changed, 20 insertions(+)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index f3bf93d..b0f14c0 100644
+index b0f14c0..a33ed8e 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -1473,7 +1473,8 @@ static void dispc_plane_set_scaling_uv(enum omap_plane plane,
- 			color_mode != OMAP_DSS_COLOR_UYVY &&
- 			color_mode != OMAP_DSS_COLOR_NV12)) {
- 		/* reset chroma resampling for RGB formats  */
--		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES2(plane), 0, 8, 8);
-+		if (plane != OMAP_DSS_WB)
-+			REG_FLD_MOD(DISPC_OVL_ATTRIBUTES2(plane), 0, 8, 8);
- 		return;
- 	}
+@@ -987,6 +987,13 @@ static enum omap_channel dispc_ovl_get_channel_out(enum omap_plane plane)
+ 	return channel;
+ }
  
-@@ -1525,8 +1526,10 @@ static void dispc_plane_set_scaling_uv(enum omap_plane plane,
- 			out_width, out_height, five_taps,
- 				rotation, DISPC_COLOR_COMPONENT_UV);
- 
--	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES2(plane),
--		(scale_x || scale_y) ? 1 : 0, 8, 8);
-+	if (plane != OMAP_DSS_WB)
-+		REG_FLD_MOD(DISPC_OVL_ATTRIBUTES2(plane),
-+			(scale_x || scale_y) ? 1 : 0, 8, 8);
++void dispc_wb_set_channel_in(enum dss_writeback_channel channel)
++{
++	enum omap_plane plane = OMAP_DSS_WB;
 +
- 	/* set H scaling */
- 	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), scale_x ? 1 : 0, 5, 5);
- 	/* set V scaling */
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), channel, 18, 16);
++}
++
+ static void dispc_plane_set_burst_size(enum omap_plane plane,
+ 		enum omap_burst_size burst_size)
+ {
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 4b1ca03..ea17d68 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -113,6 +113,17 @@ enum dss_dsi_content_type {
+ 	DSS_DSI_CONTENT_GENERIC,
+ };
+ 
++enum dss_writeback_channel {
++	DSS_WB_LCD1_MGR =	0,
++	DSS_WB_LCD2_MGR =	1,
++	DSS_WB_TV_MGR =		2,
++	DSS_WB_OVL0 =		3,
++	DSS_WB_OVL1 =		4,
++	DSS_WB_OVL2 =		5,
++	DSS_WB_OVL3 =		6,
++	DSS_WB_LCD3_MGR =	7,
++};
++
+ struct dss_clock_info {
+ 	/* rates that we get with dividers below */
+ 	unsigned long fck;
+@@ -470,6 +481,8 @@ int dispc_mgr_get_clock_div(enum omap_channel channel,
+ void dispc_mgr_setup(enum omap_channel channel,
+ 		struct omap_overlay_manager_info *info);
+ 
++void dispc_wb_set_channel_in(enum dss_writeback_channel channel);
++
+ /* VENC */
+ #ifdef CONFIG_OMAP2_DSS_VENC
+ int venc_init_platform_driver(void) __init;
 -- 
 1.7.9.5
 
