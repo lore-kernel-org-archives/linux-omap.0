@@ -1,117 +1,60 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 17/21] OMAPDSS: DISPC: Configure overlay-like parameters in dispc_wb_setup
-Date: Thu, 13 Sep 2012 17:45:01 +0530
-Message-ID: <1347538505-25359-18-git-send-email-archit@ti.com>
+Subject: [PATCH 19/21] OMAPDSS: DISPC: Configure writeback FIFOs
+Date: Thu, 13 Sep 2012 17:45:03 +0530
+Message-ID: <1347538505-25359-20-git-send-email-archit@ti.com>
 References: <1347538505-25359-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52155 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757720Ab2IMMPy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 08:15:54 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:43624 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757976Ab2IMMQA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 08:16:00 -0400
 In-Reply-To: <1347538505-25359-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Create struct omap_dss_writeback_info, this is similar to omap_overlay_info,
-the major difference is that there is no parameter which describes the input
-size to writeback, this is because this is always fixed, and decided by the
-connected overlay or overlay manager. One more difference is that screen_width
-is renamed to buf_width, to give the value of stride the writeback buffer has.
+Extend the DISPC fifo functions to also configure the writeback FIFO thresholds.
 
-Call dispc_plane_setup() through dispc_wb_setup() to configure overlay-like
-parameters. The parameters in dispc_plane_setup() which do not hold for
-writeback are filled passed as zeroes or false, dispc_plane_setup() takes
-care of not configuring them as they won't possess the needed overlay caps.
+The most optimal configuration for writeback is to push out data to the
+interconnect the moment writeback pushes enough pixels in the FIFO to form a
+burst. This reduces the chance of writeback overflowing it's FIFO.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   30 ++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dss.h   |    2 ++
- include/video/omapdss.h         |   13 +++++++++++++
- 3 files changed, 45 insertions(+)
+ drivers/video/omap2/dss/dispc.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index a33ed8e..f575875 100644
+index a44cbac..6068271 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -2464,6 +2464,36 @@ int dispc_ovl_setup(enum omap_plane plane, const struct omap_overlay_info *oi,
- 	return r;
- }
- 
-+int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
-+		const struct omap_video_timings *mgr_timings)
-+{
-+	int r;
-+	enum omap_plane plane = OMAP_DSS_WB;
-+	const int pos_x = 0, pos_y = 0;
-+	const u8 zorder = 0, global_alpha = 0;
-+	const bool replication = false;
-+	int in_width = mgr_timings->x_res;
-+	int in_height = mgr_timings->y_res;
-+	unsigned long out_rate;
-+	enum omap_overlay_caps caps =
-+		OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA;
-+
-+	DSSDBG("dispc_wb_setup, pa %x, pa_uv %x, %d,%d -> %dx%d, cmode %x, "
-+		"rot %d, mir %d\n", wi->paddr, wi->p_uv_addr, in_width,
-+		in_height, wi->width, wi->height, wi->color_mode, wi->rotation,
-+		wi->mirror);
-+
-+	out_rate = dispc_plane_output_rate(plane);
-+
-+	r = dispc_plane_setup(plane, caps, out_rate, wi->paddr, wi->p_uv_addr,
-+		wi->buf_width, pos_x, pos_y, in_width, in_height,
-+		wi->width, wi->height, wi->color_mode, wi->rotation,
-+		wi->mirror, zorder, wi->pre_mult_alpha, global_alpha,
-+		wi->rotation_type, replication, mgr_timings);
-+
-+	return r;
-+}
-+
- int dispc_ovl_enable(enum omap_plane plane, bool enable)
+@@ -997,7 +997,7 @@ void dispc_wb_set_channel_in(enum dss_writeback_channel channel)
+ static void dispc_plane_set_burst_size(enum omap_plane plane,
+ 		enum omap_burst_size burst_size)
  {
- 	DSSDBG("dispc_enable_plane %d, %d\n", plane, enable);
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index ea17d68..bd7c5cf 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -482,6 +482,8 @@ void dispc_mgr_setup(enum omap_channel channel,
- 		struct omap_overlay_manager_info *info);
+-	static const unsigned shifts[] = { 6, 14, 14, 14, };
++	static const unsigned shifts[] = { 6, 14, 14, 14, 14, };
+ 	int shift;
  
- void dispc_wb_set_channel_in(enum dss_writeback_channel channel);
-+int dispc_wb_setup(const struct omap_dss_writeback_info *wi,
-+		const struct omap_video_timings *timings);
- 
- /* VENC */
- #ifdef CONFIG_OMAP2_DSS_VENC
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 46097bd..3729173 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -510,6 +510,19 @@ struct omap_dsi_pin_config {
- 	int pins[OMAP_DSS_MAX_DSI_PINS];
- };
- 
-+struct omap_dss_writeback_info {
-+	u32 paddr;
-+	u32 p_uv_addr;
-+	u16 buf_width;
-+	u16 width;
-+	u16 height;
-+	enum omap_color_mode color_mode;
-+	u8 rotation;
-+	enum omap_dss_rotation_type rotation_type;
-+	bool mirror;
-+	u8 pre_mult_alpha;
-+};
-+
- struct omap_dss_output {
- 	struct list_head list;
- 
+ 	shift = shifts[plane];
+@@ -1229,6 +1229,14 @@ void dispc_plane_compute_fifo_thresholds(enum omap_plane plane,
+ 	if (manual_update && dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
+ 		*fifo_low = plane_fifo_size - burst_size * 2;
+ 		*fifo_high = total_fifo_size - burst_size;
++	} else if (plane == OMAP_DSS_WB) {
++		/*
++		 * Most optimal configuration for writeback is to push out data
++		 * to the interconnect the moment writeback pushes enough pixels
++		 * in the FIFO to form a burst
++		 */
++		*fifo_low = 0;
++		*fifo_high = burst_size;
+ 	} else {
+ 		*fifo_low = plane_fifo_size - burst_size;
+ 		*fifo_high = total_fifo_size - buf_unit;
 -- 
 1.7.9.5
 
