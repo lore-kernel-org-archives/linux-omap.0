@@ -1,49 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL v2] ARM: AM33xx: hwmod/clock: add hwmod data and
- some clock/hwmod fixes for 3.7
-Date: Wed, 12 Sep 2012 22:05:11 -0700
-Message-ID: <20120913050510.GC4521@atomide.com>
-References: <alpine.DEB.2.00.1209121558540.17903@utopia.booyaka.com>
- <alpine.DEB.2.00.1209122344250.7275@utopia.booyaka.com>
+Subject: Re: [GIT PULL] ARM: OMAP: omap_device updates for v3.7
+Date: Wed, 12 Sep 2012 22:05:49 -0700
+Message-ID: <20120913050548.GD4521@atomide.com>
+References: <87oblbvvp4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11707 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11905 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753744Ab2IMFFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 01:05:13 -0400
+	with ESMTP id S1751992Ab2IMFFv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 01:05:51 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209122344250.7275@utopia.booyaka.com>
+In-Reply-To: <87oblbvvp4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Paul Walmsley <paul@pwsan.com> [120912 16:46]:
-> Hi Tony
+* Kevin Hilman <khilman@ti.com> [120912 13:22]:
+> Tony,
 > 
-> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+> Please pull the following omap_device changes for v3.7.  This was a
+> collaboration between myself and Paul.
 > 
->   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+> Thanks,
+> 
+> Kevin
+> 
+> The following changes since commit 0d7614f09c1ebdbaa1599a5aba7593f147bf96ee:
+> 
+>   Linux 3.6-rc1 (2012-08-02 16:38:10 -0700)
 > 
 > are available in the git repository at:
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-a2-for-3.7
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git tags/for_3.7-omap_device
 > 
-> for you to fetch changes up to 83c115426818378370b8cf2be16ca19bdcdc2ac4:
+> for you to fetch changes up to 9634c8dd6a729406e89aed4e29470e3ffb3cd060:
 > 
->   ARM: AM33XX: clock: Add dcan clock aliases for device-tree (2012-09-12 16:28:35 -0600)
+>   ARM: OMAP: omap_device: idle devices with no driver bound (2012-09-12 10:52:03 -0700)
 > 
 > ----------------------------------------------------------------
-> AM33xx hwmod data and miscellaneous clock and hwmod fixes.  AM33xx
-> should now boot on mainline after this is applied, according to
-> Vaibhav.
+> Updates for omap_device layer for v3.7.
 > 
-> This second version includes trailing commas at the end of structure
-> records at Tony's request.  It also adds a OMAP_INTC_START macro
-> expansion to each IRQ number to make the sparseirq conversion easier.
+> Allows omap_device layer to keep track of driver bound status in order
+> to make more intelligent decisions about idling unused devices.
 
-Thanks for updating it, pulling into devel-am33xx branch.
+Thanks pulling into devel-omap-device.
 
 Regards,
 
