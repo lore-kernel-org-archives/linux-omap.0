@@ -1,119 +1,155 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH 2/6] ARM: mm: add v7 cache LoUIS API implementation
-Date: Thu, 13 Sep 2012 11:20:47 +0100
-Message-ID: <1347531651-28218-3-git-send-email-lorenzo.pieralisi@arm.com>
-References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 01/10] ARM: OMAP3+: Implement timer workaround for
+ errata i103 and i767
+Date: Thu, 13 Sep 2012 10:24:53 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EAB7BCE@DBDE01.ent.ti.com>
+References: <1346871872-24413-1-git-send-email-jon-hunter@ti.com>
+ <1346871872-24413-2-git-send-email-jon-hunter@ti.com>
+ <50482FAC.3080807@ti.com> <5048ADD0.4050804@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:47783 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205Ab2IMKVJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:21:09 -0400
-In-Reply-To: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33401 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752627Ab2IMKZF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 06:25:05 -0400
+In-Reply-To: <5048ADD0.4050804@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-ARM v7 architecture introduces the concept of cache levels and registers to
-probe and manage cache levels accordingly.
+On Thu, Sep 06, 2012 at 19:36:08, Hunter, Jon wrote:
+> 
+> On 09/06/2012 12:07 AM, Vaibhav Hiremath wrote:
+> > 
+> > 
+> > On 9/6/2012 12:34 AM, Jon Hunter wrote:
+> >> Errata Titles:
+> >> i103: Delay needed to read some GP timer, WD timer and sync timer registers
+> >>       after wakeup (OMAP3/4)
+> >> i767: Delay needed to read some GP timer registers after wakeup (OMAP5)
+> >>
+> >> Description (i103/i767):
+> >> If a General Purpose Timer (GPTimer) is in posted mode (TSICR [2].POSTED=1),
+> >> due to internal resynchronizations, values read in TCRR, TCAR1 and TCAR2
+> >> registers right after the timer interface clock (L4) goes from stopped to
+> >> active may not return the expected values. The most common event leading to
+> >> this situation occurs upon wake up from idle.
+> >>
+> >> GPTimer non-posted synchronization mode is not impacted by this limitation.
+> >>
+> >> Workarounds:
+> >> 1). Disable posted mode
+> >> 2). Use static dependency between timer clock domain and MPUSS clock domain
+> >> 3). Use no-idle mode when the timer is active
+> >>
+> >> Workarounds #2 and #3 are not pratical from a power standpoint and so
+> >> workaround #1 has been implemented. Disabling posted mode adds some CPU overhead
+> >> for configuring the timers as the CPU has to wait for the write to complete.
+> >> However, disabling posted mode guarantees correct operation.
+> >>
+> >> Please note that it is safe to use posted mode for timers if the counter (TCRR)
+> >> and capture (TCARx) registers will never be read. An example of this is the
+> >> clock-event system timer. This is used by the kernel to schedule events however,
+> >> the timers counter is never read and capture registers are not used. Given that
+> >> the kernel configures this timer often yet never reads the counter register it
+> >> is safe to enable posted mode in this case. Hence, for the timer used for kernel
+> >> clock-events, posted mode is enabled by overriding the errata for devices that
+> >> are impacted by this defect.
+> >>
+> >> Although both dmtimers and watchdogs are impacted by this defect this patch only
+> >> implements the workaround for the dmtimer. Currently the watchdog driver does
+> >> not read the counter register and so no workaround is necessary.
+> >>
+> >> Confirmed with Vaibhav Hiremath that this bug also impacts AM33xx devices.
+> >>
+> > 
+> > Thanks for pinging me on this and getting it confirmed.
+> > 
+> >> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+> >> ---
+> >>  arch/arm/mach-omap2/timer.c               |    9 +++++++
+> >>  arch/arm/plat-omap/dmtimer.c              |    2 ++
+> >>  arch/arm/plat-omap/include/plat/dmtimer.h |   39 +++++++++++++++++++++++++++++
+> >>  3 files changed, 50 insertions(+)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+> >> index 2ff6d41..5471706 100644
+> >> --- a/arch/arm/mach-omap2/timer.c
+> >> +++ b/arch/arm/mach-omap2/timer.c
+> >> @@ -208,6 +208,13 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+> >>  {
+> >>  	int res;
+> >>  
+> >> +	/*
+> >> +	 * For clock-event timers we never read the timer counter and
+> >> +	 * so we are not impacted by errata i103 and i767. Therefore,
+> >> +	 * we can safely ignore this errata for clock-event timers.
+> >> +	 */
+> >> +	__omap_dm_timer_populate_errata(&clkev, OMAP_TIMER_ERRATA_I103_I767);
+> >> +
+> > 
+> > Couple of points,
+> > 
+> > 1. It is confusing to me, as you are passing the errata flag so i expect
+> > api should set it. Why can't we do reverse way, you pass 0 here, since
+> > you don't want to set and pass this flag every other places where you
+> > want to enable this errata.
+> 
+> Per the design of the __omap_dm_timer_populate_errata function, the 2nd
+> argument is called override to allow us to override an errata. I am not
+> a huge fan of this, but I wanted to be explicit in the code that we are
+> intentionally allowing posted mode for the clock-events timer.
+> 
+> I did not wish to pass the flags we want to set because if there more
+> flags added in the future then we will have to keep changing the calls
+> to the populate_errata function to add these.
+> 
 
-This patch adds v7 support for cache LoUIS (Level of Unification Inner
-Shareable) operations and defines a function that allows to clean and
-invalidate data caches up to LoUIS.
+Isn't that would self-explain himself which flag is going to set without 
+looking at the implementation?
+I do not have any reservations here, it just doesn't seem easily readable to 
+me.
+You can make a call here.
 
-Power-down operations like hotplug and CPU idle require to clean/invalidate
-only cache levels that are within the CPU power domain, and LoUIS reflects
-this requirement properly in most of the systems.
 
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
----
- arch/arm/mm/cache-v7.S | 42 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 39 insertions(+), 3 deletions(-)
+> > 2. Why can't we enable for all timers? Even though clock-event is anyway
+> > not reading it, but still is is applicable to it, right?
+> 
+> Yes it is still applicable but we never read it so it is ok to override.
+> If you see Richard W's original patch for enabling posted mode it is to
+> reduce overhead of programming timers, specifically the clock-events
+> timer which is program very often.
+> 
+> For other timers, we do not know how they will be used and so by default
+> we disable posted mode as this is safe.
+> 
+> > 3. Why can't we just simply Add this flag to hwmod_data file and read it
+> > back in omap_timer_init() and omap_dm_timer_init_one(). Wouldn't that be
+> > a good approach to handle it?
+> 
+> It could be done in this case, but typically I have not seen errata
+> flags added to HWMOD. 
 
-diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-index 39e3fb3..74aec79 100644
---- a/arch/arm/mm/cache-v7.S
-+++ b/arch/arm/mm/cache-v7.S
-@@ -33,6 +33,24 @@ ENTRY(v7_flush_icache_all)
- =09mov=09pc, lr
- ENDPROC(v7_flush_icache_all)
-=20
-+ /*
-+ *     v7_flush_dcache_louis()
-+ *
-+ *     Flush the D-cache up to the Level of Unification Inner Shareable
-+ *
-+ *     Corrupted registers: r0-r7, r9-r11 (r6 only in Thumb mode)
-+ */
-+
-+ENTRY(v7_flush_dcache_louis)
-+=09dmb=09=09=09=09=09@ ensure ordering with previous memory accesses
-+=09mrc=09p15, 1, r0, c0, c0, 1=09=09@ read clidr
-+=09ands=09r3, r0, #0xe00000=09=09@ extract louis from clidr
-+=09mov=09r3, r3, lsr #20=09=09=09@ left align louis bit field
-+=09moveq=09pc, lr=09=09=09=09@ return if level =3D=3D 0
-+=09mov=09r10, #0=09=09=09=09@ starting level =3D=3D 0
-+=09b=09__flush_level
-+ENDPROC(v7_flush_dcache_louis)
-+
- /*
-  *=09v7_flush_dcache_all()
-  *
-@@ -49,7 +67,7 @@ ENTRY(v7_flush_dcache_all)
- =09mov=09r3, r3, lsr #23=09=09=09@ left align loc bit field
- =09beq=09finished=09=09=09@ if loc is 0, then no need to clean
- =09mov=09r10, #0=09=09=09=09@ start clean at cache level 0
--loop1:
-+__flush_level:
- =09add=09r2, r10, r10, lsr #1=09=09@ work out 3x current cache level
- =09mov=09r1, r0, lsr r2=09=09=09@ extract cache type bits from clidr
- =09and=09r1, r1, #7=09=09=09@ mask of the bits for current cache only
-@@ -88,7 +106,7 @@ loop3:
- skip:
- =09add=09r10, r10, #2=09=09=09@ increment cache number
- =09cmp=09r3, r10
--=09bgt=09loop1
-+=09bgt=09__flush_level
- finished:
- =09mov=09r10, #0=09=09=09=09@ swith back to cache level 0
- =09mcr=09p15, 2, r10, c0, c0, 0=09=09@ select current cache level in cssr
-@@ -120,6 +138,24 @@ ENTRY(v7_flush_kern_cache_all)
- =09mov=09pc, lr
- ENDPROC(v7_flush_kern_cache_all)
-=20
-+ /*
-+ *     v7_flush_kern_cache_louis(void)
-+ *
-+ *     Flush the data cache up to Level of Unification Inner Shareable.
-+ *     Invalidate the I-cache to the point of unification.
-+ */
-+ENTRY(v7_flush_kern_cache_louis)
-+ ARM(=09stmfd=09sp!, {r4-r5, r7, r9-r11, lr}=09)
-+ THUMB(=09stmfd=09sp!, {r4-r7, r9-r11, lr}=09)
-+=09bl=09v7_flush_dcache_louis
-+=09mov=09r0, #0
-+=09ALT_SMP(mcr=09p15, 0, r0, c7, c1, 0)=09@ invalidate I-cache inner share=
-able
-+=09ALT_UP(mcr=09p15, 0, r0, c7, c5, 0)=09@ I+BTB cache invalidate
-+ ARM(=09ldmfd=09sp!, {r4-r5, r7, r9-r11, lr}=09)
-+ THUMB(=09ldmfd=09sp!, {r4-r7, r9-r11, lr}=09)
-+=09mov=09pc, lr
-+ENDPROC(v7_flush_kern_cache_louis)
-+
- /*
-  *=09v7_flush_cache_all()
-  *
-@@ -350,4 +386,4 @@ ENDPROC(v7_dma_unmap_area)
- =09__INITDATA
-=20
- =09@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S=
-)
--=09define_cache_functions v7
-+       define_cache_functions v7, cachelouis=3D1
---=20
-1.7.12
+We are already using it, look at I2C, MMC. And in some cases, we have done 
+indirect implementation of errata. So I still feel, we should leverage hwmod 
+info for this, and anyway going forward DT will replace it.
 
+Thanks,
+Vaibhav
+
+> One limitation you would have with HWMOD is if an
+> erratum is only specific to a certain revision of the device. In this
+> case it is not and so it could work.
+> 
+> In general I think that having errata described by HWMOD would be a good
+> thing, but if think that should be a longer term goal with agreement
+> from Benoit and add some general errata helpers to HWMOD.
+> 
+> Cheers
+> Jon
+> 
 
