@@ -1,57 +1,94 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 0/7] ARM: OMAP2+: PM: introduce the power domains functional states
-Date: Wed, 12 Sep 2012 17:34:41 -0700
-Message-ID: <87har2rc9q.fsf@deeprootsystems.com>
-References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Wed, 12 Sep 2012 18:12:08 -0700
+Message-ID: <20120913011208.GT4257@linux.vnet.ibm.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:42337 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223Ab2IMAen (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Sep 2012 20:34:43 -0400
-Received: by oago6 with SMTP id o6so1457416oag.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Sep 2012 17:34:42 -0700 (PDT)
-In-Reply-To: <1347443732-7411-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Wed, 12 Sep 2012 11:55:25 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Paul E. McKenney" <paul.mckenney@linaro.org>, linux-kernel@vger.kernel.org, bbruce@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, jon-hunter@ti.com, snijsure@grid-net.com
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+On Wed, Sep 12, 2012 at 10:51:30PM +0000, Paul Walmsley wrote:
+> 
+> Hi Paul
+> 
+> Recently several of us have been seeing "INFO: rcu_sched self-detected
+> stall on CPU { 0} (t=20611 jiffies)" stack tracebacks on various OMAP3
+> and 4 board.
+> 
+> I only noticed it during v3.6-rc3, but I suspect it's been happening 
+> for users at least since May:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg68942.html
+> 
+> 
+> The only quasi-reproducible test case that I've found so far 
+> is to boot the board with serial console enabled to a login prompt, then 
+> wait for a few minutes, then send a keypress to the board via serial.
+> The tracebacks I get look like this:
 
-> Here is a re-spin after some comments and suggestions after review
-> and discussions.
->
-> Implement the functional states for the power domains:
-> - unify the API to use the functional states. The new API
->   consists of the pwrdm_set*_fpwrst and pwrdm_read*_fpwrst
->   functions and is the API to use to control the power domains
->   power and logic states,
-> - reorganize the powerdomain API in internal and external parts,
->   in powerdomain.h [1]
-> - protect the power domain state change by a lock in the
->   functions that read and set the powerdomains next functional state,
-> - introduce the functional states for power domains power states and
->   logic power states [2], and the conversion functions between the
->   functional and internal states. The conversion functions are
->   lightweight and generic. The power domains allowed states [3] are
->   defined in the pwrsts and pwrsts_logic_ret fields of the struct
->   powerdomain,
-> - program the logic power state of power domains from the functional
->   states, in pwrdm_set*_fpwrst
-> - convert the OMAP2/3/4 PM code to use the updated API,
-> - provide the power domains statistics by functional states,
-> - provide ftrace tracepoints with the functional state,
-> - provide error logs in critical code, which makes the development
->   easier.
+Interesting.  I am assuming that the interrupt in the stack below came
+from idle, if not, please let me know what.
 
-I just gave this series a round of PM testing.  I tested retention
-and off in idle & suspend, with and without CPUidle on 3430/n900,
-3530/Overo, 3730/OveroSTORM, 3730/Beagle-xM and 4430/Panda (though only
-MPU/CPU ret/off is supported for OMAP4 in mainline.)
+Could you please reproduce with CONFIG_RCU_CPU_STALL_INFO=y?  That would
+give me a bit more information about why RCU thought that there was
+a stall.  (CCing Becky Bruce, who saw something similar recently.)
 
-All PM tests passed with flying colors.  Nice!
+Subodh Nijsure (also CCed) reported something that might be similar on
+ARM, and also reported that setting the following got rid of the stalls:
 
-Kevin
+	CONFIG_CPU_IDLE=y
+	CONFIG_CPU_IDLE_GOV_LADDER=y
+	CONFIG_CPU_IDLE_GOV_MENU=y
+
+At which point he was happy, which was good, but which also left the
+underlying problem unsolved.  Do these affect your system?  If so,
+do they cause a different ARM idle loop to be executed?
+
+							Thanx, Paul
+
+> [  467.480712] INFO: rcu_sched self-detected stall on CPU { 0}  (t=20611 jiffies)
+> [  467.484741] [<c001b7cc>] (unwind_backtrace+0x0/0xf0) from [<c00acc94>] (rcu_check_callbacks+0x180/0x630)
+> [  467.489929] [<c00acc94>] (rcu_check_callbacks+0x180/0x630) from [<c0052b18>] (update_process_times+0x38/0x68)
+> [  467.495361] [<c0052b18>] (update_process_times+0x38/0x68) from [<c008c04c>] (tick_sched_timer+0x80/0xec)
+> [  467.500518] [<c008c04c>] (tick_sched_timer+0x80/0xec) from [<c0068544>] (__run_hrtimer+0x7c/0x1e0)
+> [  467.505401] [<c0068544>] (__run_hrtimer+0x7c/0x1e0) from [<c0069328>] (hrtimer_interrupt+0x11c/0x2d0)
+> [  467.510437] [<c0069328>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a04c>] (twd_handler+0x30/0x44)
+> [  467.515350] [<c001a04c>] (twd_handler+0x30/0x44) from [<c00a71a0>] (handle_percpu_devid_irq+0x90/0x13c)
+> [  467.520477] [<c00a71a0>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a3914>] (generic_handle_irq+0x30/0x48)
+> [  467.525939] [<c00a3914>] (generic_handle_irq+0x30/0x48) from [<c0014c58>] (handle_IRQ+0x4c/0xac)
+> [  467.530731] [<c0014c58>] (handle_IRQ+0x4c/0xac) from [<c0008478>] (gic_handle_irq+0x28/0x5c)
+> [  467.535339] [<c0008478>] (gic_handle_irq+0x28/0x5c) from [<c04f8ce4>] (__irq_svc+0x44/0x5c)
+> [  467.539886] Exception stack(0xc0729f58 to 0xc0729fa0)
+> [  467.542663] 9f40:                                                       00047f2a 00000001
+> [  467.547119] 9f60: 00000000 c074a940 c0728000 c07c4b08 c05045a0 c074be20 00000000 411fc092
+> [  467.551574] 9f80: c074c040 00000000 00000001 c0729fa0 00047f2b c0014f50 20000113 ffffffff
+> [  467.556030] [<c04f8ce4>] (__irq_svc+0x44/0x5c) from [<c0014f50>] (default_idle+0x20/0x44)
+> [  467.560485] [<c0014f50>] (default_idle+0x20/0x44) from [<c001517c>] (cpu_idle+0x9c/0x114)
+> [  467.564971] [<c001517c>] (cpu_idle+0x9c/0x114) from [<c06d77b0>] (start_kernel+0x2b4/0x304)
+> 
+> Looks like this message was added as of commit
+> a858af2875fb291d0f4b0a4419fefbf03c2379c0 ("rcu: Print scheduling-clock
+> information on RCU CPU stall-warning messages").
+> 
+> Do you have any suggestions for how we can determine what is causing
+> this?
+> 
+> Here's an example of a kernel config that we use:
+> 
+> http://www.pwsan.com/omap/testlogs/am33xx_hwmod_clock_devel_3.7/20120912092510/build/omap2plus_defconfig/Kconfig
+> 
+> A few observations that may or may not be relevant: we use NO_HZ, and 
+> we also have a clockevents timer that is relatively slow to program.
+> 
+> 
+> regards,
+> 
+> - Paul
+> 
