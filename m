@@ -1,39 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup parameter to
-	dmaengine_prep_dma_cyclic()
-Date: Thu, 13 Sep 2012 16:38:24 +0100
-Message-ID: <20120913153824.GK28448@n2100.arm.linux.org.uk>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com> <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com> <5051FB4D.3000009@metafoo.de>
+From: AnilKumar Ch <anilkumar-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/2] lis3: lis3lv02d_i2c: Add device tree support
+Date: Thu, 13 Sep 2012 21:24:43 +0530
+Message-ID: <1347551685-19781-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60440 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752598Ab2IMPjc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 11:39:32 -0400
-Content-Disposition: inline
-In-Reply-To: <5051FB4D.3000009@metafoo.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: arnd-r2nGTMty4D4@public.gmane.org
+Cc: dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
 
-On Thu, Sep 13, 2012 at 05:27:09PM +0200, Lars-Peter Clausen wrote:
-> Hm... Do you think it would work as well if we implement this by setting the
-> callback for the descriptor to NULL? If the callback is NULL there is
-> nothing to at the end of a transfer/period and the dma engine driver may
-> choose to disable interrupts. This would also benefit non cyclic transfers
-> where the callback is NULL and we do not need add the new parameter to
-> dmaengine_prep_dma_cyclic.
+First patch adds device tree support to lis3lv02d_i2c driver and
+second patch adds platform data for lis331dlh driver to am335x
+EVM. These patches were tested on AM335x-EVM.
 
-Actually, there's a way to do that already.  DMA_PREP_INTERRUPT.
-Unfortunately, most DMA engine slave API users don't set it when they
-setup their transfer:
+AnilKumar Ch (2):
+  lis3: lis3lv02d_i2c: Add device tree support
+  ARM: dts: AM33XX: Add lis331dlh device tree data to am335x-evm
 
- * @DMA_PREP_INTERRUPT - trigger an interrupt (callback) upon completion of
- *  this transaction
+ arch/arm/boot/dts/am335x-evm.dts       |   42 ++++++++++++++++++++++++++++++++
+ drivers/misc/lis3lv02d/lis3lv02d_i2c.c |   13 ++++++++++
+ 2 files changed, 55 insertions(+)
 
-if we fixed that, then we could use the lack of it to avoid the interrupt.
-
-However, cyclic transfers don't have the flags parameter used to pass this
-bit.  Yet another bit of yucky inconsistent design in DMA engine land...
+-- 
+1.7.9.5
