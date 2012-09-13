@@ -1,100 +1,90 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 12/15] ASoC: OMAP: mcbsp, mcpdm, dmic: Let omap-pcm to pick the dma_type
-Date: Thu, 13 Sep 2012 16:38:02 +0300
-Message-ID: <1347543485-339-13-git-send-email-peter.ujfalusi@ti.com>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [RFC PATCH 1/6] ARM: mm: define LoUIS API for cache maintenance
+ ops
+Date: Thu, 13 Sep 2012 15:02:20 +0100
+Message-ID: <20120913140220.GF2470@linaro.org>
+References: <1347531651-28218-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347531651-28218-2-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120913113949.GC2470@linaro.org>
+ <20120913130334.GI28448@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:37272 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755529Ab2IMNiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 09:38:21 -0400
-Received: by obbuo13 with SMTP id uo13so4469627obb.19
-        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 06:38:19 -0700 (PDT)
-In-Reply-To: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57231 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755313Ab2IMOCZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 10:02:25 -0400
+Received: by eekc1 with SMTP id c1so1962082eek.19
+        for <linux-omap@vger.kernel.org>; Thu, 13 Sep 2012 07:02:24 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120913130334.GI28448@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-omap-pcm can figure out the correct dma_type based on the stream's format.
-In this way we can get rid of the plat/dma.h include from these drivers.
+On Thu, Sep 13, 2012 at 02:03:34PM +0100, Russell King - ARM Linux wrote:
+> On Thu, Sep 13, 2012 at 12:39:49PM +0100, Dave Martin wrote:
+> > We could introduce something like CONFIG_ARM_HAVE_CACHEFLUSH_LOUIS, and
+> > do:
+> > 
+> > <asm/glue-cache.h>
+> > #ifndef MULTI_CACHE
+> > #ifdef CONFIG_HAVE_ARM_CACHEFLUSH_LOUIS
+> > #define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_cache_louis)
+> > #else
+> > #define __cpuc_flush_kern_cache_louis __glue(_CACHE,_flush_kern_all)
+> > #endif
+> > #endif
+> > 
+> > <asm/cacheflush.h>
+> > #ifdef MULTI_CACHE
+> > #define flush_cache_louis()   cpu_cache.flush_kern_cache_louis()
+> > #else
+> > #define flush_cache_louis()   __cpuc_flush_kern_cache_louis()
+> > #endif
+> 
+> No, this is stupidly complicated and is fragile.  Just alias the
+> functions, like we do in cache-v4wt.S:
+> 
+> 	.globl	v4wt_dma_flush_range
+> 	.equ	v4wt_dma_flush_range, v4wt_dma_inv_range
+> 
+> except, you'll need:
+> 
+> 	.globl	v4wt_flush_kern_cache_louis
+> 	.equ	v4wt_flush_kern_cache_louis, v4wt_flush_kern_cache_all
+> 
+> You can do it automatically, using the attached sedscript and this bit
+> of shell:
+> 
+> $ for f in $(grep -l define_cache_functions arch/arm/mm/*.S ); do
+>     sed -if sedscript $f
+>     git add $f
+> done
+> $ git commit -s
+> 
+> Do that first, and then go over those which you need to add a real
+> flush_kern_cache_louis function to.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-dmic.c  | 2 --
- sound/soc/omap/omap-mcbsp.c | 3 ---
- sound/soc/omap/omap-mcpdm.c | 3 ---
- 3 files changed, 8 deletions(-)
+Sure, that works better.
 
-diff --git a/sound/soc/omap/omap-dmic.c b/sound/soc/omap/omap-dmic.c
-index 60b7b8c..df0ff24 100644
---- a/sound/soc/omap/omap-dmic.c
-+++ b/sound/soc/omap/omap-dmic.c
-@@ -33,7 +33,6 @@
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- #include <linux/of_device.h>
--#include <plat/dma.h>
- 
- #include <sound/core.h>
- #include <sound/pcm.h>
-@@ -63,7 +62,6 @@ struct omap_dmic {
-  */
- static struct omap_pcm_dma_data omap_dmic_dai_dma_params = {
- 	.name		= "DMIC capture",
--	.data_type	= OMAP_DMA_DATA_TYPE_S32,
- };
- 
- static inline void omap_dmic_write(struct omap_dmic *dmic, u16 reg, u32 val)
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 5b3bacc..a230646 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -34,7 +34,6 @@
- #include <sound/initval.h>
- #include <sound/soc.h>
- 
--#include <plat/dma.h>
- #include <plat/mcbsp.h>
- #include "mcbsp.h"
- #include "omap-mcbsp.h"
-@@ -234,11 +233,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 
- 	switch (params_format(params)) {
- 	case SNDRV_PCM_FORMAT_S16_LE:
--		dma_data->data_type = OMAP_DMA_DATA_TYPE_S16;
- 		wlen = 16;
- 		break;
- 	case SNDRV_PCM_FORMAT_S32_LE:
--		dma_data->data_type = OMAP_DMA_DATA_TYPE_S32;
- 		wlen = 32;
- 		break;
- 	default:
-diff --git a/sound/soc/omap/omap-mcpdm.c b/sound/soc/omap/omap-mcpdm.c
-index f90d5de..84743d4 100644
---- a/sound/soc/omap/omap-mcpdm.c
-+++ b/sound/soc/omap/omap-mcpdm.c
-@@ -40,7 +40,6 @@
- #include <sound/pcm_params.h>
- #include <sound/soc.h>
- 
--#include <plat/dma.h>
- #include <plat/omap_hwmod.h>
- #include "omap-mcpdm.h"
- #include "omap-pcm.h"
-@@ -71,11 +70,9 @@ struct omap_mcpdm {
- static struct omap_pcm_dma_data omap_mcpdm_dai_dma_params[] = {
- 	{
- 		.name = "Audio playback",
--		.data_type = OMAP_DMA_DATA_TYPE_S32,
- 	},
- 	{
- 		.name = "Audio capture",
--		.data_type = OMAP_DMA_DATA_TYPE_S32,
- 	},
- };
- 
--- 
-1.7.12
+I was trying to think of a more localised way to do it, but the result
+was admittedly rather ugly (and not that localised once we select
+HAVE_ARM_CACHEFLUSH_LOUIS all over the place).
+
+Cheers
+---Dave
+
+> 1,/__INITDATA\|define struct cpu_cache_fns/ {
+> 	/ENTRY.*flush_kern_cache_all/ {
+>         	h
+> 	        s/.*(\([^_]*\)_.*/\t.globl\t\1_flush_kern_cache_louis\n\t.equ\t\1_flush_kern_cache_louis, \1_flush_kern_cache_all\n/
+>         	x
+> 	}
+> 	/__INITDATA\|define struct cpu_cache_fns/ {
+>         	H
+> 	        g
+> 	}
+> }
 
