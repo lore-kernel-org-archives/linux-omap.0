@@ -1,115 +1,136 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>
-Subject: AW: USB problem on beagleboard clone
-Date: Fri, 14 Sep 2012 15:38:56 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E2CD@dolphin.TIGRIS.local>
-References: <20120914131911.GD21130@arwen.pp.htv.fi>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V4 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 14 Sep 2012 09:03:18 -0500
+Message-ID: <50533926.1070201@ti.com>
+References: <1347573629-21299-1-git-send-email-jon-hunter@ti.com> <201209140943.49904.arnd@arndb.de> <505330B4.4070605@ti.com> <201209141332.42420.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-iEoYgnAqlIPCTRNcjt0U"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120914131911.GD21130-S8G//mZuvNWo5Im9Ml3/Zg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50527 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756160Ab2INODo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 10:03:44 -0400
+In-Reply-To: <201209141332.42420.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
 
---=-iEoYgnAqlIPCTRNcjt0U
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 
-> -----Urspr=FCngliche Nachricht-----
-> Von: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]=20
-> Gesendet: Freitag, 14. September 2012 15:19
-> An: Maximilian Schwerin
-> Cc: balbi-l0cyMroinI0@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;=20
-> linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Betreff: Re: USB problem on beagleboard clone (PGP: Plain,=20
-> Unable to verify signature)
->=20
-> On Fri, Sep 14, 2012 at 03:21:47PM +0200, Maximilian Schwerin wrote:
-> > Hi,
-> >=20
-> > > -----Urspr=FCngliche Nachricht-----
-> > > Von: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]=20
-> > > Gesendet: Freitag, 14. September 2012 15:08
-> > > An: Maximilian Schwerin
-> > > Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > Betreff: Re: USB problem on beagleboard clone (PGP: Plain,=20
-> > > Unable to verify signature)
-> > >=20
-> > > Hi,
-> > >=20
-> > > On Fri, Sep 14, 2012 at 02:57:49PM +0200, Maximilian=20
-> Schwerin wrote:
-> > > > Sorry :-( With log now.
-> > > >=20
-> > > > > -----Urspr=FCngliche Nachricht-----
-> > > > > Von: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
-> > > > > [mailto:linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] Im Auftrag von=20
-> > > > > Maximilian Schwerin
-> > > > > Gesendet: Freitag, 14. September 2012 14:26
-> > > > > An: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > > Betreff: USB problem on beagleboard clone (PGP: Plain, Signed)
-> > > > >=20
-> > > > > Hi all,
-> > > > >=20
-> > > > > we've designed two beagle board clones (two different=20
-> > > > > layouts) for a customer. After quite some time without any=20
-> > > > > problems they are now seeing USB problems on some of the=20
-> > > > > boards. I have so far not been able to reproduce the=20
-> problem...
-> > > > >=20
-> > > > > The USB port of the OMAP the problems appear on is connected=20
-> > > > > through a TPS65950 to a LAN9514 USB Hub + Ethernet Chip.=20
-> > > > > Attached is the kernel output. I'm not even sure if this is=20
-> > > > > related to our board, or if this might be a=20
-> misbehaving device?!
-> > > > >=20
-> > > > > If someone has an idea what this could be and what I could do=20
-> > > > > to fix or at least further debug the problem please speak up.
-> > >=20
-> > > I have never seen that error before on any of the boards=20
-> I have. One
-> > > question though, if the port is always Host, why are you=20
-> using the OTG
-> > > subsystem instead of the actual Host Subsystem which has an EHCI
-> > > controller ?
-> > >=20
-> > > --=20
-> > > balbi
-> > >=20
-> >=20
-> > I'm still on 3.3 but am planing to go to a newer version.=20
-> We used the
-> > OTG port so we would not need another chip on a rather small board.
->=20
-> And which chip are you talking about ? You already have=20
-> LAN9514 on your
-> board anyway...
->=20
-> --=20
-> balbi
->=20
+On 09/14/2012 08:32 AM, Arnd Bergmann wrote:
+> On Friday 14 September 2012, Jon Hunter wrote:
+>> On 09/14/2012 04:43 AM, Arnd Bergmann wrote:
+>>>> +
+>>>> +Client drivers should specify the DMA property using a phandle to the controller
+>>>> +followed by DMA controller specific data.
+>>>> +
+>>>> +Required property:
+>>>> +- dmas:			List of one or more DMA specifiers, each consisting of
+>>>> +			- A phandle pointing to DMA controller node
+>>>> +			- A single integer cell containing DMA controller
+>>>> +			  specific information. This typically contains a dma
+>>>> +			  request line number or a channel number, but can
+>>>> +			  contain any data that is used required for configuring
+>>>> +			  a channel.
+>>>> +- dma-names: 		Contains one identifier string for each dma specifier in
+>>>> +			the dmas property. The specific strings that can be used
+>>>> +			are defined in the binding of the DMA client device.
+>>>
+>>> I think here we need to clarify that listing the same name multiple times implies
+>>> having multiple alternatives for the same channel.
+>>
+>> Ok, however, the way it works right now is that we will use the first
+>> specifier that matches the name. So if there are multiple with the same
+>> name that would imply that someone will need call the
+>> xxx_request_slave_channel() multiple times to extract these. Is that ok?
+> 
+> I would expect a driver to only call the function once, and get something
+> back from the dmaengine layer that works. If there are two controllers
+> to choose from and one is busy, then it should definitely give a channel
+> from the non-busy one.
+> 
+> It's not much of an issue if the code doesn't handle all corner cases at
+> first, but I would expect that the binding correctly describes how to write
+> a device tree that will work once the code implements it correctly.
 
-How would I connect the OMAP to the LAN9514 without a PHY?
+Gotcha, may be something like the following should work then ...
 
-m.
-
---=-iEoYgnAqlIPCTRNcjt0U
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAlBTM5IACgkQ6nqkzTWctv5mgwCcDQ+kYUFXx7Yh9/YaeegHZWJk
-CTkAoKzq3KZ05Kfbb5zv+wTE3+wufoUx
-=CHac
------END PGP SIGNATURE-----
-
---=-iEoYgnAqlIPCTRNcjt0U--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/of/dma.c b/drivers/of/dma.c
+index 4025f2f..de59611 100644
+--- a/drivers/of/dma.c
++++ b/drivers/of/dma.c
+@@ -127,13 +127,15 @@ static int of_dma_find_channel(struct device_node *np, char *name,
+ 		return count;
+ 
+ 	for (i = 0; i < count; i++) {
+-		of_property_read_string_index(np, "dma-names", i, &s);
++		if (of_property_read_string_index(np, "dma-names", i, &s))
++			continue;
+ 
+ 		if (strcmp(name, s))
+ 			continue;
+ 
+-		return of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+-							i, dma_spec);
++		if (!of_parse_phandle_with_args(np, "dmas", "#dma-cells", i,
++						dma_spec))
++			return 0;
+ 	}
+ 
+ 	return -ENODEV;
+@@ -159,33 +161,34 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+ 		return NULL;
+ 	}
+ 
+-	r = of_dma_find_channel(np, name, &dma_spec);
+-
+-	if (r) {
+-		pr_err("%s: can't find DMA channel\n", np->full_name);
+-		return NULL;
+-	}
++	do {
++		r = of_dma_find_channel(np, name, &dma_spec);
++		if (r) {
++			pr_err("%s: can't find DMA channel\n", np->full_name);
++			return NULL;
++		}
++
++		ofdma = of_dma_find_controller(dma_spec.np);
++		if (!ofdma) {
++			pr_debug("%s: can't find DMA controller %s\n",
++			       np->full_name, dma_spec.np->full_name);
++			continue;
++		}
+ 
+-	ofdma = of_dma_find_controller(dma_spec.np);
+-	if (!ofdma) {
+-		pr_err("%s: can't find DMA controller %s\n", np->full_name,
+-		       dma_spec.np->full_name);
+-		return NULL;
+-	}
++		if (dma_spec.args_count != ofdma->of_dma_nbcells) {
++			pr_debug("%s: wrong #dma-cells for %s\n", np->full_name,
++			       dma_spec.np->full_name);
++			continue;
++		}
+ 
+-	if (dma_spec.args_count != ofdma->of_dma_nbcells) {
+-		pr_err("%s: wrong #dma-cells for %s\n", np->full_name,
+-		       dma_spec.np->full_name);
+-		return NULL;
+-	}
++		chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
+ 
+-	chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
++		of_node_put(dma_spec.np);
+ 
+-	of_node_put(dma_spec.np);
++	} while (!chan);
+ 
+ 	return chan;
+ }
+-EXPORT_SYMBOL_GPL(of_dma_request_slave_channel);
+ 
+Cheers
+Jon
