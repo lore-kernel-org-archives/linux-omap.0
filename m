@@ -1,100 +1,115 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] ARM: dts: AM33XX: Add lis331dlh device tree data to am335x-evm
-Date: Fri, 14 Sep 2012 08:26:06 +0000
-Message-ID: <201209140826.07069.arnd@arndb.de>
-References: <1347551685-19781-1-git-send-email-anilkumar@ti.com> <1347551685-19781-3-git-send-email-anilkumar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/21] OMAPDSS: DISPC changes for writeback pipeline
+Date: Fri, 14 Sep 2012 11:27:43 +0300
+Message-ID: <1347611263.2559.44.camel@deskari>
+References: <1347538505-25359-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-GXE1kr1MhAey7Y/cKhBo"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62451 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759190Ab2INI0R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 04:26:17 -0400
-In-Reply-To: <1347551685-19781-3-git-send-email-anilkumar@ti.com>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:51832 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758200Ab2INI1s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 04:27:48 -0400
+Received: by lbbgj3 with SMTP id gj3so2576836lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 01:27:46 -0700 (PDT)
+In-Reply-To: <1347538505-25359-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: gregkh@linuxfoundation.org, eric.piel@tremplin-utc.net, jic23@cam.ac.uk, greg@kroah.com, akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Thursday 13 September 2012, AnilKumar Ch wrote:
-> Add lis331dlh device tree data to am335x-evm.dts. In AM335x EVM
-> lis331dlh accelerometer is connected to I2C2 bus. So this patch
-> change the status to "okay" to use I2C2 bus. Also added all the
-> required platform data to am335x-evm.
-> 
-> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> ---
->  arch/arm/boot/dts/am335x-evm.dts |   42 ++++++++++++++++++++++++++++++++++++++
->  1 file changed, 42 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> index 9fb59c5..9e5a878 100644
-> --- a/arch/arm/boot/dts/am335x-evm.dts
-> +++ b/arch/arm/boot/dts/am335x-evm.dts
-> @@ -47,6 +47,15 @@
->  			};
->  		};
->  
-> +		i2c2: i2c@4802a000 {
-> +			status = "okay";
-> +			clock-frequency = <400000>;
-> +
-> +			lis331dlh: lis331dlh@18 {
-> +				reg = <0x18>;
-> +			};
-> +		};
 
-Why do you put the "reg" property here
+--=-GXE1kr1MhAey7Y/cKhBo
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
->  		dcan1: d_can@481d0000 {
->  			status = "okay";
->  			pinctrl-names = "default";
-> @@ -61,6 +70,39 @@
->  		regulator-max-microvolt = <5000000>;
->  		regulator-boot-on;
->  	};
-> +
-> +	lis3_reg: fixedregulator@1 {
-> +		compatible = "regulator-fixed";
-> +		regulator-name = "lis3_reg";
-> +		regulator-boot-on;
-> +	};
-> +};
-> +&lis331dlh {
-> +	compatible = "st,lis3lv02d-i2c";
+On Thu, 2012-09-13 at 17:44 +0530, Archit Taneja wrote:
+> DSS HW on OMAP4 onwards supports a new pipeline called writeback. Unlike =
+other
+> pipelines(called overlays in OMAPDSS), writeback takes pixel data from an
+> overlay output or a overlay manager output and writes it back into a spec=
+ified
+> address in memory.
+>=20
+> writeback pipeline allows us to take benefit of the hardware processing
+> available inside the DISPC like color space conversion, rescaling, compos=
+iting
+> etc and do either a) perform memory-to-memory transfer with data processi=
+ng,
+> b) capture a displayed frame. The former is known as memory to memory mod=
+e of
+> the writeback pipeline, and the latter is known as capture mode. More det=
+ails
+> about writeback can be found in the Display Subsystem section of the OMAP=
+4/5 TRMs.
+>=20
+> witeback has properties of both overlays and overlay managers. It is like=
+ an
+> overlay as it has programmable base addresses and contains blocks like sc=
+alar,
 
-and all the rest here? At least I would expect the "compatible" property
-to be in the same place above.
+You consistently use the term "scalar" in the patches, but I believe the
+correct term is "scaler".
 
-Also, I think you should remove the "-i2c" postfix from the name, that
-is already implied by the parent bus.
+> color conversion unit, truncation unit, DISPC DMA FIFO. It is like a mana=
+ger as
+> enabling it immediately starts transfer to the memory, and it has a GO bi=
+t to use
+> a new writeback configuration.
+>=20
+> This series prepares the low level DISPC driver(dispc.c) to configure wri=
+teback
+> registers. The aim is to reuse most of the code as most of its registers =
+are
+> like overlay or manager registers, and are configured in the same way in =
+most
+> cases. The first few patches rename dispc_ovl_* functions to dispc_plane_=
+*
 
-> +	Vdd-supply = <&lis3_reg>;
-> +	Vdd_IO-supply = <&lis3_reg>;
-> +
-> +	st,click-single-x;
-> +	st,click-single-y;
-> +	st,click-single-z;
-> +	st,click-thresh-x = <10>;
-> +	st,click-thresh-y = <10>;
-> +	st,click-thresh-z = <10>;
-> +	st,irq1-click;
-> +	st,irq2-click;
-> +	st,wakeup-x-lo;
-> +	st,wakeup-x-hi;
-> +	st,wakeup-y-lo;
-> +	st,wakeup-y-hi;
-> +	st,wakeup-z-lo;
-> +	st,wakeup-z-hi;
-> +	st,min-limit-x = <120>;
-> +	st,min-limit-y = <120>;
-> +	st,min-limit-z = <140>;
-> +	st,max-limit-x = <550>;
-> +	st,max-limit-y = <550>;
-> +	st,max-limit-z = <750>;
+I'm not sure if the renaming causes more confusion than clarity... It
+kinda creates a mishmash of ovl/plane names, and the term "plane"
+doesn't really sound like it's a base for both overlays and wb. Could we
+consider the wb as a special case, and keep the ovl name for most of the
+things and have "wb" used for wb specific things?
 
-Is there a binding document that describes all these?
+> functions. The next few patches change how overlay caps are used within t=
+he
+> dispc functions, this helps reusing more functions between overlays and
 
-	Arnd
+I dislike this a bit, I think dispc driver should know what HW it has,
+you shouldn't need to pass caps to it. So I'd prefer the dispc driver to
+to have this information in dispc_features. I believe all OVL_CAPS
+should be there, and then exported to other drivers via some means. I
+guess this means could for now be just initializing ovl->caps with data
+from dispc.c.
+
+ Tomi
+
+
+--=-GXE1kr1MhAey7Y/cKhBo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQUup/AAoJEPo9qoy8lh71Pi8P/39FOBwXSRyPEgaOujbcZ1nl
+ZRf2eqe2VvmDCR+iAe5WVS1AEb8fzK1Y5ej4MHiYKQb7bnD6y3KhFBOIHueqet1n
+X01V1rMIa1UFN1SKS+BzCUzOtYw1yemOhh65/0ueZsjizeLKDdgkYrWkc4eiSG/Y
+MuiJjRy9qKW9HBQUH8oTfh2EznSOX9rGwMiXHKI4wUNuof580EvsxVgWukbZgat8
+Q3gRnD2Xd78GRTny/o5UdyrNjHfOvptMhDyuqNRaIFLaz0Gvs6mGVYLyMkQLzP/L
+HJ7OE14t1HCDsMSFwUa8PBuRY1SOTp012P9jwchxBA9WI0KMcVehS4w60oSK2U8c
+k3HSs4IMHt7GG7f2+gi1WAkdJ5wsdnKJrLkdGH8MZQzZtDedBk5+kPNZvv3QRBGU
+uhDNqfNn/cr/T+n479obCjMi2HyKRpW37sITAmzaK2YLwXdpXTdWJvPR6kmA92h8
+/zkrEy+pUmdKJL06If25HAG+Y/36YZROp0zSRjW6Xhhc7R6c/HZxldh5om6SWQY5
+NjERMIDVCMorKHpF2baCkrUcS5q9tYw/zNzHyWgCt757ZQH3jDf9OpJs81MTKDMm
+LgG8vV/HxbLwqkYKdGQ/S/5DaWczj/+bRctHug04SG0T23xgEpp+p70SgGMp31Ua
+H9xKgC/+g3QzbXe+qN/o
+=akSR
+-----END PGP SIGNATURE-----
+
+--=-GXE1kr1MhAey7Y/cKhBo--
+
