@@ -1,112 +1,150 @@
-From: "Gutierrez, Juan" <jgutierrez@ti.com>
-Subject: Re: [PATCH] omap: remoteproc: set bootaddr support
-Date: Tue, 11 Sep 2012 09:47:40 -0500
-Message-ID: <CADVn9RHC7ikoxWkuTxEc56nP5CPvSp5KZtY_24NjwqtibCVDiw@mail.gmail.com>
-References: <1345044348-19898-1-git-send-email-jgutierrez@ti.com>
- <CAK=Wgbb6EKS1YqR89y08stkwz3zFw786J3an2iDT+rKFWyo+5A@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] CPUFreq: OMAP: remove unnecessary plat/ includes
+Date: Fri, 14 Sep 2012 21:03:49 +0200
+Message-ID: <201209142103.49421.rjw@sisk.pl>
+References: <alpine.DEB.2.00.1209120030420.9444@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0337123309216033626=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAK=Wgbb6EKS1YqR89y08stkwz3zFw786J3an2iDT+rKFWyo+5A@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Suman Anna <s-anna@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
-
---===============0337123309216033626==
-Content-Type: multipart/alternative; boundary=047d7b343f061f186704c96e296d
-
---047d7b343f061f186704c96e296d
-Content-Type: text/plain; charset=UTF-8
-
-Cool. Thanks Ohad
-
-On Tue, Sep 11, 2012 at 7:30 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-
-> Hi Juan,
->
-> On Wed, Aug 15, 2012 at 6:25 PM, Juan Gutierrez <jgutierrez@ti.com> wrote:
-> > Some remote processors (like Omap4's DSP) need to explicitly
-> > set a boot address from which they start executing code when
-> > taken out of reset.
-> >
-> > Support for this has been added to remoteproc code through
-> > a set_bootaddr function in the platform data which, if needed,
-> > must be set according to the backend rproc.
-> >
-> > For omap4's dsp we can use the next control funtion:
-> >
-> >   .set_bootaddr  = omap_ctrl_write_dsp_boot_addr
-> >
-> > Signed-off-by: Juan Gutierrez <jgutierrez@ti.com>
->
-> Applied with slight changes to the commit log. Thanks!
->
-> Ohad.
->
-
-
-
--- 
-Thanks
-
-juan gutierrez
-
---047d7b343f061f186704c96e296d
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Cool. Thanks Ohad<br><br><div class=3D"gmail_quote">On Tue, Sep 11, 2012 at=
- 7:30 AM, Ohad Ben-Cohen <span dir=3D"ltr">&lt;<a href=3D"mailto:ohad@wizer=
-y.com" target=3D"_blank">ohad@wizery.com</a>&gt;</span> wrote:<br><blockquo=
-te class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc so=
-lid;padding-left:1ex">
-
-Hi Juan,<br>
-<div class=3D"im"><br>
-On Wed, Aug 15, 2012 at 6:25 PM, Juan Gutierrez &lt;<a href=3D"mailto:jguti=
-errez@ti.com">jgutierrez@ti.com</a>&gt; wrote:<br>
-&gt; Some remote processors (like Omap4&#39;s DSP) need to explicitly<br>
-&gt; set a boot address from which they start executing code when<br>
-&gt; taken out of reset.<br>
-&gt;<br>
-&gt; Support for this has been added to remoteproc code through<br>
-&gt; a set_bootaddr function in the platform data which, if needed,<br>
-&gt; must be set according to the backend rproc.<br>
-&gt;<br>
-&gt; For omap4&#39;s dsp we can use the next control funtion:<br>
-&gt;<br>
-&gt; =C2=A0 .set_bootaddr =C2=A0=3D omap_ctrl_write_dsp_boot_addr<br>
-&gt;<br>
-&gt; Signed-off-by: Juan Gutierrez &lt;<a href=3D"mailto:jgutierrez@ti.com"=
->jgutierrez@ti.com</a>&gt;<br>
-<br>
-</div>Applied with slight changes to the commit log. Thanks!<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
-Ohad.<br>
-</font></span></blockquote></div><br><br clear=3D"all"><div><br></div>-- <b=
-r>Thanks<div><br></div><div>juan gutierrez</div><br>
-
---047d7b343f061f186704c96e296d--
-
-
---===============0337123309216033626==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([193.178.161.156]:54908 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932265Ab2INS5Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 14:57:24 -0400
+In-Reply-To: <alpine.DEB.2.00.1209120030420.9444@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-pm@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On Wednesday, September 12, 2012, Paul Walmsley wrote:
+> 
+> Remove some unnecessary plat/ includes that are interfering with multi-subarch
+> ARM kernels.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Acked-by: Kevin Hilman <khilman@ti.com>
 
---===============0337123309216033626==--
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+
+> ---
+> 
+> Still awaiting some final testing here.  Rafael, was wondering if you 
+> would be willing to ack this so we can merge it via the OMAP tree?   
+> Otherwise the patch can be split into an OMAP part and a CPUFreq part that 
+> can go in across two merge windows.
+> 
+>  arch/arm/mach-omap2/clock2420_data.c |    1 +
+>  arch/arm/mach-omap2/clock2430_data.c |    1 +
+>  arch/arm/mach-omap2/clock3xxx_data.c |    1 +
+>  arch/arm/mach-omap2/clock44xx_data.c |    1 +
+>  drivers/cpufreq/omap-cpufreq.c       |   19 +------------------
+>  5 files changed, 5 insertions(+), 18 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+> index ea8e883..de1b9a4 100644
+> --- a/arch/arm/mach-omap2/clock2420_data.c
+> +++ b/arch/arm/mach-omap2/clock2420_data.c
+> @@ -1897,6 +1897,7 @@ static struct omap_clk omap2420_clks[] = {
+>  	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
+>  	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
+>  	CLK("musb-hdrc",	"fck",	&osc_ck,	CK_242X),
+> +	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_242X),
+>  };
+>  
+>  /*
+> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+> index cacabb0..d3ecdf7 100644
+> --- a/arch/arm/mach-omap2/clock2430_data.c
+> +++ b/arch/arm/mach-omap2/clock2430_data.c
+> @@ -1993,6 +1993,7 @@ static struct omap_clk omap2430_clks[] = {
+>  	CLK(NULL,	"timer_32k_ck",  &func_32k_ck,   CK_243X),
+>  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_243X),
+>  	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_243X),
+> +	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_243X),
+>  };
+>  
+>  /*
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index 83bed9a..ea4690c 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3466,6 +3466,7 @@ static struct omap_clk omap3xxx_clks[] = {
+>  	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
+>  	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
+>  	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
+> +	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
+>  };
+>  
+>  
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index d7f55e4..9b31767 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -3325,6 +3325,7 @@ static struct omap_clk omap44xx_clks[] = {
+>  	CLK("omap_timer.6",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+>  	CLK("omap_timer.7",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+>  	CLK("omap_timer.8",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
+> +	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
+>  };
+>  
+>  int __init omap4xxx_clk_init(void)
+> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+> index b47034e..2737d08 100644
+> --- a/drivers/cpufreq/omap-cpufreq.c
+> +++ b/drivers/cpufreq/omap-cpufreq.c
+> @@ -30,13 +30,9 @@
+>  #include <asm/smp_plat.h>
+>  #include <asm/cpu.h>
+>  
+> -#include <plat/clock.h>
+> -#include <plat/omap-pm.h>
+>  #include <plat/common.h>
+>  #include <plat/omap_device.h>
+>  
+> -#include <mach/hardware.h>
+> -
+>  /* OPP tolerance in percentage */
+>  #define	OPP_TOLERANCE	4
+>  
+> @@ -53,7 +49,6 @@ static struct lpj_info global_lpj_ref;
+>  static struct cpufreq_frequency_table *freq_table;
+>  static atomic_t freq_table_users = ATOMIC_INIT(0);
+>  static struct clk *mpu_clk;
+> -static char *mpu_clk_name;
+>  static struct device *mpu_dev;
+>  static struct regulator *mpu_reg;
+>  
+> @@ -207,7 +202,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  {
+>  	int result = 0;
+>  
+> -	mpu_clk = clk_get(NULL, mpu_clk_name);
+> +	mpu_clk = clk_get(NULL, "cpufreq_ck");
+>  	if (IS_ERR(mpu_clk))
+>  		return PTR_ERR(mpu_clk);
+>  
+> @@ -288,18 +283,6 @@ static struct cpufreq_driver omap_driver = {
+>  
+>  static int __init omap_cpufreq_init(void)
+>  {
+> -	if (cpu_is_omap24xx())
+> -		mpu_clk_name = "virt_prcm_set";
+> -	else if (cpu_is_omap34xx())
+> -		mpu_clk_name = "dpll1_ck";
+> -	else if (cpu_is_omap44xx())
+> -		mpu_clk_name = "dpll_mpu_ck";
+> -
+> -	if (!mpu_clk_name) {
+> -		pr_err("%s: unsupported Silicon?\n", __func__);
+> -		return -EINVAL;
+> -	}
+> -
+>  	mpu_dev = omap_device_get_by_hwmod_name("mpu");
+>  	if (!mpu_dev) {
+>  		pr_warning("%s: unable to get the mpu device\n", __func__);
+> 
+
