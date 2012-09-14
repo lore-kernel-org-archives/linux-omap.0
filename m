@@ -1,453 +1,414 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-Subject: AW: USB problem on beagleboard clone
-Date: Fri, 14 Sep 2012 14:57:49 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E2CA@dolphin.TIGRIS.local>
-References: <5448984682E7954C9BFF27F747A9C6CA56E2C8@dolphin.TIGRIS.local>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
+Date: Fri, 14 Sep 2012 18:36:30 +0530
+Message-ID: <CAAe_U6JVE40aOfP+8y51J=LazQf5pbdvO8GxQBc-78Pv2hCBbA@mail.gmail.com>
+References: <1347623899-14485-1-git-send-email-kishon@ti.com>
+	<505322E3.4090806@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-Qx9FbGDZ63LRjPuIMvUI"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www45.your-server.de ([213.133.104.45]:41312 "EHLO
-	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2INM6P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 08:58:15 -0400
-Received: from [77.186.80.161] (helo=IT-AstaroSecurityGateway)
-	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.74)
-	(envelope-from <prvs=06043967c3=maximilian.schwerin@tigris.de>)
-	id 1TCVTK-0002Ao-8E
-	for linux-omap@vger.kernel.org; Fri, 14 Sep 2012 14:58:14 +0200
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E2C8@dolphin.TIGRIS.local>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:52088 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751735Ab2INNGd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 09:06:33 -0400
+Received: by vbbff1 with SMTP id ff1so426468vbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 06:06:31 -0700 (PDT)
+In-Reply-To: <505322E3.4090806@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Marc Kleine-Budde <mkl@pengutronix.de>
+Cc: balbi@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, richard.zhao@freescale.com, B29397@freescale.com, alexander.shishkin@linux.intel.com, marex@denx.de
 
---=-Qx9FbGDZ63LRjPuIMvUI
-Received: from [192.168.0.10] (port=1200 helo=dolphin.TIGRIS.local)
-	by IT-AstaroSecurityGateway with esmtp (Exim 4.76)
-	(envelope-from <Maximilian.Schwerin@tigris.de>)
-	id 1TCVTA-0003qK-2F; Fri, 14 Sep 2012 14:58:04 +0200
-X-CTCH-RefID: str=0001.0A0B0204.505329DC.01AC,ss=1,re=0.000,fgs=0
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01CD9278.87ACB280"
-Subject: AW: USB problem on beagleboard clone
-X-MimeOLE: Produced By Microsoft Exchange V6.5
-Date: Fri, 14 Sep 2012 14:57:49 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E2CA@dolphin.TIGRIS.local>
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E2C8@dolphin.TIGRIS.local>
-X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator: 
-Thread-Topic: USB problem on beagleboard clone
-thread-index: Ac2SdCgc+PG9cbExTDWAHMJqA/VYXAABDsdA
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-To: <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>
+Hi,
 
-This is a multi-part message in MIME format.
+On Fri, Sep 14, 2012 at 5:58 PM, Marc Kleine-Budde <mkl@pengutronix.de> wrote:
+> On 09/14/2012 01:58 PM, Kishon Vijay Abraham I wrote:
+>> The PHY framework provides a set of API's for the PHY drivers to
+>> create/remove a PHY and the PHY users to obtain a reference to the PHY
+>> using or without using phandle. If the PHY users has to obtain a reference to
+>> the PHY without using phandle, the platform specfic intialization code (say
+>> from board file) should have already called phy_bind with the binding
+>> information. The binding information consists of phy's device name, phy
+>> user device name and an index. The index is used when the same phy user
+>> binds to mulitple phys.
+>>
+>> PHY drivers should create the PHY by passing phy_descriptor that has
+>> information about the PHY and ops like init, exit, suspend, resume,
+>> poweron, shutdown.
+>
+> Some comments inside.
+>
+> While looking over the code, I was thinking why not abstract the phy
+> with a "bus" in the linux kernel. The ethernet phys are on the mdio_bus,
+> see /sys/bus/mdio_bus. This saves you hand crafting devices, drivers and
+> bindings,
 
-------_=_NextPart_001_01CD9278.87ACB280
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+well... have to think about it.
+>
+> Marc
+>
+>>
+>> Nyet-signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> ---
+>> This framework is actually intended to be used by all the PHY drivers in the
+>> kernel. Though it's going to take a while for that, I intend to migrate
+>> existing USB/OTG phy drivers to use this framework as we align on the design
+>> of this framework. Once I migrate these phy drivers, I'll be able to test this
+>> framework (I haven't tested this framework so far). I sent this patch early
+>> so as to get review comments and align on the design. Thanks :-)
+>>
+>>  drivers/Kconfig         |    2 +
+>>  drivers/Makefile        |    2 +
+>>  drivers/phy/Kconfig     |   13 ++
+>>  drivers/phy/Makefile    |    5 +
+>>  drivers/phy/phy-core.c  |  437 +++++++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/phy/phy.h |  181 ++++++++++++++++++++
+>>  6 files changed, 640 insertions(+)
+>>  create mode 100644 drivers/phy/Kconfig
+>>  create mode 100644 drivers/phy/Makefile
+>>  create mode 100644 drivers/phy/phy-core.c
+>>  create mode 100644 include/linux/phy/phy.h
+>>
+>> diff --git a/drivers/Kconfig b/drivers/Kconfig
+>> index ece958d..8488818 100644
+>> --- a/drivers/Kconfig
+>> +++ b/drivers/Kconfig
+>> @@ -152,4 +152,6 @@ source "drivers/vme/Kconfig"
+>>
+>>  source "drivers/pwm/Kconfig"
+>>
+>> +source "drivers/phy/Kconfig"
+>> +
+>>  endmenu
+>> diff --git a/drivers/Makefile b/drivers/Makefile
+>> index 5b42184..63d6bbe 100644
+>> --- a/drivers/Makefile
+>> +++ b/drivers/Makefile
+>> @@ -38,6 +38,8 @@ obj-y                               += char/
+>>  # gpu/ comes after char for AGP vs DRM startup
+>>  obj-y                                += gpu/
+>>
+>> +obj-y                                += phy/
+>> +
+>>  obj-$(CONFIG_CONNECTOR)              += connector/
+>>
+>>  # i810fb and intelfb depend on char/agp/
+>> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+>> new file mode 100644
+>> index 0000000..34f7077
+>> --- /dev/null
+>> +++ b/drivers/phy/Kconfig
+>> @@ -0,0 +1,13 @@
+>> +#
+>> +# PHY
+>> +#
+>> +
+>> +menuconfig GENERIC_PHY
+>> +     tristate "Generic PHY Support"
+>> +     help
+>> +       Generic PHY support.
+>> +
+>> +       This framework is designed to provide a generic interface for PHY
+>> +       devices present in the kernel. This layer will have the generic
+>> +       API by which phy drivers can create PHY using the phy framework and
+>> +       phy users can obtain reference to the PHY.
+>> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+>> new file mode 100644
+>> index 0000000..9e9560f
+>> --- /dev/null
+>> +++ b/drivers/phy/Makefile
+>> @@ -0,0 +1,5 @@
+>> +#
+>> +# Makefile for the phy drivers.
+>> +#
+>> +
+>> +obj-$(CONFIG_GENERIC_PHY)    += phy-core.o
+>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+>> new file mode 100644
+>> index 0000000..c55446a
+>> --- /dev/null
+>> +++ b/drivers/phy/phy-core.c
+>> @@ -0,0 +1,437 @@
+>> +/*
+>> + * phy-core.c  --  Generic Phy framework.
+>> + *
+>> + * Copyright (C) 2012 Texas Instruments
+>> + *
+>> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
+>> + *
+>> + * This program is free software; you can redistribute  it and/or modify it
+>> + * under  the terms of  the GNU General  Public License as published by the
+>> + * Free Software Foundation;  either version 2 of the  License, or (at your
+>> + * option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/export.h>
+>> +#include <linux/module.h>
+>> +#include <linux/err.h>
+>> +#include <linux/device.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/of.h>
+>> +#include <linux/phy/phy.h>
+>> +
+>> +static struct class *phy_class;
+>> +static LIST_HEAD(phy_list);
+>> +static DEFINE_MUTEX(phy_list_mutex);
+>> +static LIST_HEAD(phy_bind_list);
+>> +
+>> +static void devm_phy_release(struct device *dev, void *res)
+>> +{
+>> +     struct phy *phy = *(struct phy **)res;
+>
+> What about adding a struct phy_res, doing so,m you don't need these
+> casts, and it's easier to add more pointers if needed.
 
-Sorry :-( With log now.
+Wont we still need to do the cast since you get only a void pointer.
+Maybe I'm not getting you.
+>
+>> +
+>> +     phy_put(phy);
+>> +}
+>> +
+>> +static int devm_phy_match(struct device *dev, void *res, void *match_data)
+>> +{
+>> +     return res == match_data;
+>> +}
+>> +
+>> +static struct phy *phy_lookup(struct device *dev, u8 index)
+>> +{
+>> +     struct phy_bind *phy_bind = NULL;
+>> +
+>> +     list_for_each_entry(phy_bind, &phy_bind_list, list) {
+>> +             if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
+>> +                             phy_bind->index == index)
+>> +                     return phy_bind->phy;
+>> +     }
+>> +
+>> +     return ERR_PTR(-ENODEV);
+>> +}
+>> +
+>> +static struct phy *of_phy_lookup(struct device *dev, struct device_node *node)
+>> +{
+>> +     int index = 0;
+>> +     struct phy  *phy;
+>                   ^^
+>
+> Please remove that stray space.
 
-> -----Urspr=FCngliche Nachricht-----
-> Von: linux-usb-owner@vger.kernel.org=20
-> [mailto:linux-usb-owner@vger.kernel.org] Im Auftrag von=20
-> Maximilian Schwerin
-> Gesendet: Freitag, 14. September 2012 14:26
-> An: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org
-> Betreff: USB problem on beagleboard clone (PGP: Plain, Signed)
->=20
-> Hi all,
->=20
-> we've designed two beagle board clones (two different=20
-> layouts) for a customer. After quite some time without any=20
-> problems they are now seeing USB problems on some of the=20
-> boards. I have so far not been able to reproduce the problem...
->=20
-> The USB port of the OMAP the problems appear on is connected=20
-> through a TPS65950 to a LAN9514 USB Hub + Ethernet Chip.=20
-> Attached is the kernel output. I'm not even sure if this is=20
-> related to our board, or if this might be a misbehaving device?!
->=20
-> If someone has an idea what this could be and what I could do=20
-> to fix or at least further debug the problem please speak up.
->=20
-> Cheers and thanks,
->=20
-> Maximilian Schwerin.
+Sure.
+>
+>> +     struct phy_bind *phy_map = NULL;
+>> +
+>> +     list_for_each_entry(phy_map, &phy_bind_list, list)
+>> +             if (!(strcmp(phy_map->dev_name, dev_name(dev))))
+>> +                     index++;
+>> +
+>> +     list_for_each_entry(phy, &phy_list, head) {
+>> +             if (node != phy->desc->of_node)
+>> +                     continue;
+>> +
+>> +             phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
+>> +             if (!IS_ERR(phy_map)) {
+>> +                     phy_map->phy = phy;
+>> +                     phy_map->auto_bind = true;
+>> +             }
+>> +
+>> +             return phy;
+>> +     }
+>> +
+>> +     return ERR_PTR(-ENODEV);
+>> +}
+>> +
+>> +/**
+>> + * devm_phy_get - lookup and obtain a reference to a phy.
+>> + * @dev: device that requests this phy
+>> + * @index: the index of the phy
+>> + *
+>> + * Gets the phy using phy_get(), and associates a device with it using
+>> + * devres. On driver detach, release function is invoked on the devres data,
+>> + * then, devres data is freed.
+>> + */
+>> +struct phy *devm_phy_get(struct device *dev, u8 index)
+>> +{
+>> +     struct phy **ptr, *phy;
+>> +
+>> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+>> +     if (!ptr)
+>> +             return NULL;
+>> +
+>> +     phy = phy_get(dev, index);
+>> +     if (!IS_ERR(phy)) {
+>> +             *ptr = phy;
+>> +             devres_add(dev, ptr);
+>> +     } else
+>> +             devres_free(ptr);
+>
+> nitpick: when when if has { }, else should have, too.
 
-------_=_NextPart_001_01CD9278.87ACB280
-Content-Type: application/octet-stream;
-	name="USB_failures.log"
-Content-Transfer-Encoding: base64
-Content-Description: USB_failures.log
-Content-Disposition: attachment;
-	filename="USB_failures.log"
+Sure.
+>
+>> +
+>> +     return phy;
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_phy_get);
+>> +
+>> +/**
+>> + * devm_phy_put - release the PHY
+>> + * @dev: device that wants to release this phy
+>> + * @phy: the phy returned by devm_phy_get()
+>> + *
+>> + * destroys the devres associated with this phy and invokes phy_put
+>> + * to release the phy.
+>> + */
+>> +void devm_phy_put(struct device *dev, struct phy *phy)
+>> +{
+>> +     int r;
+>> +
+>> +     r = devres_destroy(dev, devm_phy_release, devm_phy_match, phy);
+>> +     dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_phy_put);
+>> +
+>> +/**
+>> + * devm_of_phy_get - lookup and obtain a reference to a phy by phandle
+>> + * @dev: device that requests this phy
+>> + * @phandle: name of the property holding the phy phandle value
+>> + *
+>> + * Returns the phy driver associated with the given phandle value,
+>> + * after getting a refcount to it or -ENODEV if there is no such phy.
+>> + * While at that, it also associates the device with the phy using devres.
+>> + * On driver detach, release function is invoked on the devres data,
+>> + * then, devres data is freed.
+>> + */
+>> +struct phy *devm_of_phy_get(struct device *dev, const char *phandle)
+>
+> We should discuss first how the DT binding for a phy should look like. I
+> don't like that you hardcode the index (in of_parse_phandle()) to "0".
+> Then we have the problem with USB2 and USB3 phys for the same usb device.
 
-WzEwNDM4LjE1MzEzN10gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tClsxMDQz
-OC4xNTc5ODldIFdBUk5JTkc6IGF0IGRyaXZlcnMvdXNiL211c2IvbXVzYl9ob3N0LmM6MTI1IG11
-c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCgpClsxMDQzOC4xNjY1MzRdIENvdWxkIG5vdCBm
-bHVzaCBob3N0IFRYMiBmaWZvOiBjc3I6IDIxMDMKWzEwNDM4LjE3MTY5MV0gTW9kdWxlcyBsaW5r
-ZWQgaW46IHdpZWdhbmRfZ3BpbyBsZWRzX2dwaW8KWzEwNDM4LjE3NzAzMl0gWzxjMDAxMWM4OD5d
-ICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGUwKSBmcm9tIFs8YzAwMmQ4MTQ+XSAod2Fybl9zbG93
-cGF0aF9jb21tb24rMHg0Yy8weDY0KQpbMTA0MzguMTg2ODI4XSBbPGMwMDJkODE0Pl0gKHdhcm5f
-c2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkgZnJvbSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3Bh
-dGhfZm10KzB4MmMvMHgzYykKWzEwNDM4LjE5NjgzOF0gWzxjMDAyZDhhYz5dICh3YXJuX3Nsb3dw
-YXRoX2ZtdCsweDJjLzB4M2MpIGZyb20gWzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hfZmlm
-bysweDQ0LzB4NjgpClsxMDQzOC4yMDY4NDhdIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4X2ZsdXNo
-X2ZpZm8rMHg0NC8weDY4KSBmcm9tIFs8YzAyMmJjZjg+XSAobXVzYl9jbGVhbnVwX3VyYisweDRj
-LzB4ODgpClsxMDQzOC4yMTY3MzVdIFs8YzAyMmJjZjg+XSAobXVzYl9jbGVhbnVwX3VyYisweDRj
-LzB4ODgpIGZyb20gWzxjMDIyYmUyND5dIChtdXNiX3VyYl9kZXF1ZXVlKzB4ZjAvMHgxMTApClsx
-MDQzOC4yMjYzNzldIFs8YzAyMmJlMjQ+XSAobXVzYl91cmJfZGVxdWV1ZSsweGYwLzB4MTEwKSBm
-cm9tIFs8YzAyMGQ3M2M+XSAodW5saW5rMSsweGNjLzB4ZGMpClsxMDQzOC4yMzUxOThdIFs8YzAy
-MGQ3M2M+XSAodW5saW5rMSsweGNjLzB4ZGMpIGZyb20gWzxjMDIwZWJiYz5dICh1c2JfaGNkX3Vu
-bGlua191cmIrMHg1Yy8weGIwKQpbMTA0MzguMjQ0MTEwXSBbPGMwMjBlYmJjPl0gKHVzYl9oY2Rf
-dW5saW5rX3VyYisweDVjLzB4YjApIGZyb20gWzxjMDIwZmQzOD5dICh1c2Jfa2lsbF91cmIrMHg0
-OC8weGU0KQpbMTA0MzguMjUzNDc5XSBbPGMwMjBmZDM4Pl0gKHVzYl9raWxsX3VyYisweDQ4LzB4
-ZTQpIGZyb20gWzxjMDIxN2VhOD5dICh1c2JkZXZfaW9jdGwrMHgxNWIwLzB4MWJjMCkKWzEwNDM4
-LjI2MjY2NF0gWzxjMDIxN2VhOD5dICh1c2JkZXZfaW9jdGwrMHgxNWIwLzB4MWJjMCkgZnJvbSBb
-PGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8weDUwNCkKWzEwNDM4LjI3MjAzM10gWzxj
-MDBkYWY3ND5dIChkb192ZnNfaW9jdGwrMHg0OTQvMHg1MDQpIGZyb20gWzxjMDBkYjAzMD5dIChz
-eXNfaW9jdGwrMHg0Yy8weDZjKQpbMTA0MzguMjgwNzYxXSBbPGMwMGRiMDMwPl0gKHN5c19pb2N0
-bCsweDRjLzB4NmMpIGZyb20gWzxjMDAwZDBhMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNj
-KQpbMTA0MzguMjg5NTUwXSAtLS1bIGVuZCB0cmFjZSBiZWQ2MDljYmIwNzU3NzNkIF0tLS0KWzEw
-NDQwLjk4MDM0Nl0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tClsxMDQ0MC45
-ODUxOThdIFdBUk5JTkc6IGF0IGRyaXZlcnMvdXNiL211c2IvbXVzYl9ob3N0LmM6MTI1IG11c2Jf
-aF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCgpClsxMDQ0MC45OTM3NDNdIENvdWxkIG5vdCBmbHVz
-aCBob3N0IFRYMiBmaWZvOiBjc3I6IDIxMDMKWzEwNDQwLjk5ODkwMV0gTW9kdWxlcyBsaW5rZWQg
-aW46IHdpZWdhbmRfZ3BpbyBsZWRzX2dwaW8KWzEwNDQxLjAwNDI0MV0gWzxjMDAxMWM4OD5dICh1
-bndpbmRfYmFja3RyYWNlKzB4MC8weGUwKSBmcm9tIFs8YzAwMmQ4MTQ+XSAod2Fybl9zbG93cGF0
-aF9jb21tb24rMHg0Yy8weDY0KQpbMTA0NDEuMDE0MDM4XSBbPGMwMDJkODE0Pl0gKHdhcm5fc2xv
-d3BhdGhfY29tbW9uKzB4NGMvMHg2NCkgZnJvbSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3BhdGhf
-Zm10KzB4MmMvMHgzYykKWzEwNDQxLjAyNDA0N10gWzxjMDAyZDhhYz5dICh3YXJuX3Nsb3dwYXRo
-X2ZtdCsweDJjLzB4M2MpIGZyb20gWzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hfZmlmbysw
-eDQ0LzB4NjgpClsxMDQ0MS4wMzQwNTddIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4X2ZsdXNoX2Zp
-Zm8rMHg0NC8weDY4KSBmcm9tIFs8YzAyMmIyMzA+XSAobXVzYl9zdGFydF91cmIrMHgxNjgvMHg1
-NDQpClsxMDQ0MS4wNDM5NDVdIFs8YzAyMmIyMzA+XSAobXVzYl9zdGFydF91cmIrMHgxNjgvMHg1
-NDQpIGZyb20gWzxjMDIyYmE4MD5dIChtdXNiX3VyYl9lbnF1ZXVlKzB4NDc0LzB4NGRjKQpbMTA0
-NDEuMDUzNjgwXSBbPGMwMjJiYTgwPl0gKG11c2JfdXJiX2VucXVldWUrMHg0NzQvMHg0ZGMpIGZy
-b20gWzxjMDIwZWE3Yz5dICh1c2JfaGNkX3N1Ym1pdF91cmIrMHg1YjgvMHg2OWMpClsxMDQ0MS4w
-NjM3ODFdIFs8YzAyMGVhN2M+XSAodXNiX2hjZF9zdWJtaXRfdXJiKzB4NWI4LzB4NjljKSBmcm9t
-IFs8YzAyMDYzYTQ+XSAodXNibmV0X3N0YXJ0X3htaXQrMHgxZDgvMHgzMjgpClsxMDQ0MS4wNzM5
-NzRdIFs8YzAyMDYzYTQ+XSAodXNibmV0X3N0YXJ0X3htaXQrMHgxZDgvMHgzMjgpIGZyb20gWzxj
-MDJhZTY5MD5dIChkZXZfaGFyZF9zdGFydF94bWl0KzB4NGFjLzB4NmM4KQpbMTA0NDEuMDg0MjU5
-XSBbPGMwMmFlNjkwPl0gKGRldl9oYXJkX3N0YXJ0X3htaXQrMHg0YWMvMHg2YzgpIGZyb20gWzxj
-MDJjMDg0MD5dIChzY2hfZGlyZWN0X3htaXQrMHg2Yy8weDIzNCkKWzEwNDQxLjA5NDIzOF0gWzxj
-MDJjMDg0MD5dIChzY2hfZGlyZWN0X3htaXQrMHg2Yy8weDIzNCkgZnJvbSBbPGMwMmFlYmQ0Pl0g
-KGRldl9xdWV1ZV94bWl0KzB4MzI4LzB4NjE4KQpbMTA0NDEuMTAzNzkwXSBbPGMwMmFlYmQ0Pl0g
-KGRldl9xdWV1ZV94bWl0KzB4MzI4LzB4NjE4KSBmcm9tIFs8YzAyZDBhNjQ+XSAoaXBfZmluaXNo
-X291dHB1dCsweDNhOC8weDQ4NCkKWzEwNDQxLjExMzUyNV0gWzxjMDJkMGE2ND5dIChpcF9maW5p
-c2hfb3V0cHV0KzB4M2E4LzB4NDg0KSBmcm9tIFs8YzAyZDBlYjQ+XSAoaXBfbG9jYWxfb3V0KzB4
-NWMvMHg3OCkKWzEwNDQxLjEyMjg2M10gWzxjMDJkMGViND5dIChpcF9sb2NhbF9vdXQrMHg1Yy8w
-eDc4KSBmcm9tIFs8YzAyZTc2ZTg+XSAodGNwX3Y0X3NlbmRfc3luYWNrKzB4NzgvMHg5OCkKWzEw
-NDQxLjEzMjIzMl0gWzxjMDJlNzZlOD5dICh0Y3BfdjRfc2VuZF9zeW5hY2srMHg3OC8weDk4KSBm
-cm9tIFs8YzAyZTk0ZTA+XSAodGNwX3Y0X2Nvbm5fcmVxdWVzdCsweDVhOC8weDY1MCkKWzEwNDQx
-LjE0MjQyNV0gWzxjMDJlOTRlMD5dICh0Y3BfdjRfY29ubl9yZXF1ZXN0KzB4NWE4LzB4NjUwKSBm
-cm9tIFs8YzAyZTE5YWM+XSAodGNwX3Jjdl9zdGF0ZV9wcm9jZXNzKzB4ODQvMHhhOGMpClsxMDQ0
-MS4xNTI5NTRdIFs8YzAyZTE5YWM+XSAodGNwX3Jjdl9zdGF0ZV9wcm9jZXNzKzB4ODQvMHhhOGMp
-IGZyb20gWzxjMDJlODRjOD5dICh0Y3BfdjRfZG9fcmN2KzB4MTkwLzB4MjA0KQpbMTA0NDEuMTYy
-OTYzXSBbPGMwMmU4NGM4Pl0gKHRjcF92NF9kb19yY3YrMHgxOTAvMHgyMDQpIGZyb20gWzxjMDJl
-YTIwYz5dICh0Y3BfdjRfcmN2KzB4NGYwLzB4OWI0KQpbMTA0NDEuMTcyMDU4XSBbPGMwMmVhMjBj
-Pl0gKHRjcF92NF9yY3YrMHg0ZjAvMHg5YjQpIGZyb20gWzxjMDJjYzI5OD5dIChpcF9sb2NhbF9k
-ZWxpdmVyX2ZpbmlzaCsweDEyYy8weDI5NCkKWzEwNDQxLjE4MjAzN10gWzxjMDJjYzI5OD5dIChp
-cF9sb2NhbF9kZWxpdmVyX2ZpbmlzaCsweDEyYy8weDI5NCkgZnJvbSBbPGMwMmNjMTE4Pl0gKGlw
-X3Jjdl9maW5pc2grMHgzNjAvMHgzYjQpClsxMDQ0MS4xOTIzMjFdIFs8YzAyY2MxMTg+XSAoaXBf
-cmN2X2ZpbmlzaCsweDM2MC8weDNiNCkgZnJvbSBbPGMwMmFhOWFjPl0gKF9fbmV0aWZfcmVjZWl2
-ZV9za2IrMHgzNjAvMHgzZDgpClsxMDQ0MS4yMDIyMDldIFs8YzAyYWE5YWM+XSAoX19uZXRpZl9y
-ZWNlaXZlX3NrYisweDM2MC8weDNkOCkgZnJvbSBbPGMwMmFhYWE4Pl0gKHByb2Nlc3NfYmFja2xv
-ZysweDg0LzB4MTMwKQpbMTA0NDEuMjEyMjE5XSBbPGMwMmFhYWE4Pl0gKHByb2Nlc3NfYmFja2xv
-ZysweDg0LzB4MTMwKSBmcm9tIFs8YzAyYWFkYTQ+XSAobmV0X3J4X2FjdGlvbisweDY0LzB4MjI0
-KQpbMTA0NDEuMjIxNTg4XSBbPGMwMmFhZGE0Pl0gKG5ldF9yeF9hY3Rpb24rMHg2NC8weDIyNCkg
-ZnJvbSBbPGMwMDMzNTdjPl0gKF9fZG9fc29mdGlycSsweGY0LzB4MjFjKQpbMTA0NDEuMjMwNjgy
-XSBbPGMwMDMzNTdjPl0gKF9fZG9fc29mdGlycSsweGY0LzB4MjFjKSBmcm9tIFs8YzAwMzNhOGM+
-XSAoaXJxX2V4aXQrMHg1MC8weDljKQpbMTA0NDEuMjM5MjI3XSBbPGMwMDMzYThjPl0gKGlycV9l
-eGl0KzB4NTAvMHg5YykgZnJvbSBbPGMwMDBkOTU4Pl0gKGhhbmRsZV9JUlErMHg2NC8weDg0KQpb
-MTA0NDEuMjQ3NDk3XSBbPGMwMDBkOTU4Pl0gKGhhbmRsZV9JUlErMHg2NC8weDg0KSBmcm9tIFs8
-YzAwMDg0YzA+XSAob21hcDNfaW50Y19oYW5kbGVfaXJxKzB4NDQvMHg0YykKWzEwNDQxLjI1Njk1
-OF0gWzxjMDAwODRjMD5dIChvbWFwM19pbnRjX2hhbmRsZV9pcnErMHg0NC8weDRjKSBmcm9tIFs8
-YzAzMzJlMDQ+XSAoX19pcnFfc3ZjKzB4NDQvMHg2MCkKWzEwNDQxLjI2NjI5Nl0gRXhjZXB0aW9u
-IHN0YWNrKDB4YzA0Y2ZmNjggdG8gMHhjMDRjZmZiMCkKWzEwNDQxLjI3MTU3NV0gZmY2MDogICAg
-ICAgICAgICAgICAgICAgMDAwMDAwMDEgYzA0ZDMxMzAgMDAwMDAwMDAgYzA0ZDMxMzAgYzA0Y2Uw
-MDAgYzA0ZDRjZTgKWzEwNDQxLjI4MDEyMF0gZmY4MDogYzA1MjRkNDggYzA0ZDQ4ZjAgODAwMDQw
-NTkgNDEzZmMwODIgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwYTAgYzA0Y2ZmYjAKWzEwNDQxLjI4
-ODY2NV0gZmZhMDogYzAwNjkxMTggYzAwMWMxOWMgMjAwMDAwMTMgZmZmZmZmZmYKWzEwNDQxLjI5
-Mzk0NV0gWzxjMDMzMmUwND5dIChfX2lycV9zdmMrMHg0NC8weDYwKSBmcm9tIFs8YzAwMWMxOWM+
-XSAob21hcDNfcG1faWRsZSsweDE4NC8weDE5NCkKWzEwNDQxLjMwMjc2NF0gWzxjMDAxYzE5Yz5d
-IChvbWFwM19wbV9pZGxlKzB4MTg0LzB4MTk0KSBmcm9tIFs8YzAwMGRiZjg+XSAoY3B1X2lkbGUr
-MHg2MC8weGI4KQpbMTA0NDEuMzExNDkyXSBbPGMwMDBkYmY4Pl0gKGNwdV9pZGxlKzB4NjAvMHhi
-OCkgZnJvbSBbPGMwNGExNmM0Pl0gKHN0YXJ0X2tlcm5lbCsweDI1NC8weDI5NCkKWzEwNDQxLjMy
-MDEyOV0gLS0tWyBlbmQgdHJhY2UgYmVkNjA5Y2JiMDc1NzczZSBdLS0tClsxMDQ0Ny41MDc1Njhd
-IC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQpbMTA0NDcuNTEyNDIwXSBXQVJO
-SU5HOiBhdCBkcml2ZXJzL3VzYi9tdXNiL211c2JfaG9zdC5jOjEyNSBtdXNiX2hfdHhfZmx1c2hf
-ZmlmbysweDQ0LzB4NjgoKQpbMTA0NDcuNTIwOTY1XSBDb3VsZCBub3QgZmx1c2ggaG9zdCBUWDMg
-ZmlmbzogY3NyOiAyMDAzClsxMDQ0Ny41MjYxNTNdIE1vZHVsZXMgbGlua2VkIGluOiB3aWVnYW5k
-X2dwaW8gbGVkc19ncGlvClsxMDQ0Ny41MzE0NjNdIFs8YzAwMTFjODg+XSAodW53aW5kX2JhY2t0
-cmFjZSsweDAvMHhlMCkgZnJvbSBbPGMwMDJkODE0Pl0gKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4
-NGMvMHg2NCkKWzEwNDQ3LjU0MTI5MF0gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dwYXRoX2NvbW1v
-bisweDRjLzB4NjQpIGZyb20gWzxjMDAyZDhhYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDJjLzB4
-M2MpClsxMDQ0Ny41NTEyNjldIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0aF9mbXQrMHgyYy8w
-eDNjKSBmcm9tIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KQpb
-MTA0NDcuNTYxMjc5XSBbPGMwMjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2
-OCkgZnJvbSBbPGMwMjJiY2Y4Pl0gKG11c2JfY2xlYW51cF91cmIrMHg0Yy8weDg4KQpbMTA0NDcu
-NTcxMTk3XSBbPGMwMjJiY2Y4Pl0gKG11c2JfY2xlYW51cF91cmIrMHg0Yy8weDg4KSBmcm9tIFs8
-YzAyMmJlMjQ+XSAobXVzYl91cmJfZGVxdWV1ZSsweGYwLzB4MTEwKQpbMTA0NDcuNTgwODEwXSBb
-PGMwMjJiZTI0Pl0gKG11c2JfdXJiX2RlcXVldWUrMHhmMC8weDExMCkgZnJvbSBbPGMwMjBkNzNj
-Pl0gKHVubGluazErMHhjYy8weGRjKQpbMTA0NDcuNTg5NjMwXSBbPGMwMjBkNzNjPl0gKHVubGlu
-azErMHhjYy8weGRjKSBmcm9tIFs8YzAyMGViYmM+XSAodXNiX2hjZF91bmxpbmtfdXJiKzB4NWMv
-MHhiMCkKWzEwNDQ3LjU5ODU0MV0gWzxjMDIwZWJiYz5dICh1c2JfaGNkX3VubGlua191cmIrMHg1
-Yy8weGIwKSBmcm9tIFs8YzAyMGZkMzg+XSAodXNiX2tpbGxfdXJiKzB4NDgvMHhlNCkKWzEwNDQ3
-LjYwNzkxMF0gWzxjMDIwZmQzOD5dICh1c2Jfa2lsbF91cmIrMHg0OC8weGU0KSBmcm9tIFs8YzAy
-MTdlYTg+XSAodXNiZGV2X2lvY3RsKzB4MTViMC8weDFiYzApClsxMDQ0Ny42MTcwOTVdIFs8YzAy
-MTdlYTg+XSAodXNiZGV2X2lvY3RsKzB4MTViMC8weDFiYzApIGZyb20gWzxjMDBkYWY3ND5dIChk
-b192ZnNfaW9jdGwrMHg0OTQvMHg1MDQpClsxMDQ0Ny42MjY0NjRdIFs8YzAwZGFmNzQ+XSAoZG9f
-dmZzX2lvY3RsKzB4NDk0LzB4NTA0KSBmcm9tIFs8YzAwZGIwMzA+XSAoc3lzX2lvY3RsKzB4NGMv
-MHg2YykKWzEwNDQ3LjYzNTE5Ml0gWzxjMDBkYjAzMD5dIChzeXNfaW9jdGwrMHg0Yy8weDZjKSBm
-cm9tIFs8YzAwMGQwYTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgzYykKWzEwNDQ3LjY0NDAx
-Ml0gLS0tWyBlbmQgdHJhY2UgYmVkNjA5Y2JiMDc1NzczZiBdLS0tClsxMDQ1MC42NTQyMzVdIC0t
-LS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQpbMTA0NTAuNjU5MTE4XSBXQVJOSU5H
-OiBhdCBkcml2ZXJzL3VzYi9tdXNiL211c2JfaG9zdC5jOjEyNSBtdXNiX2hfdHhfZmx1c2hfZmlm
-bysweDQ0LzB4NjgoKQpbMTA0NTAuNjY3NjYzXSBDb3VsZCBub3QgZmx1c2ggaG9zdCBUWDMgZmlm
-bzogY3NyOiAyMDAzClsxMDQ1MC42NzI4MjFdIE1vZHVsZXMgbGlua2VkIGluOiB3aWVnYW5kX2dw
-aW8gbGVkc19ncGlvClsxMDQ1MC42NzgxNjFdIFs8YzAwMTFjODg+XSAodW53aW5kX2JhY2t0cmFj
-ZSsweDAvMHhlMCkgZnJvbSBbPGMwMDJkODE0Pl0gKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4NGMv
-MHg2NCkKWzEwNDUwLjY4Nzk1N10gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisw
-eDRjLzB4NjQpIGZyb20gWzxjMDAyZDhhYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDJjLzB4M2Mp
-ClsxMDQ1MC42OTc5NjddIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0aF9mbXQrMHgyYy8weDNj
-KSBmcm9tIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KQpbMTA0
-NTAuNzA3OTc3XSBbPGMwMjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCkg
-ZnJvbSBbPGMwMjJiMjMwPl0gKG11c2Jfc3RhcnRfdXJiKzB4MTY4LzB4NTQ0KQpbMTA0NTAuNzE3
-ODY0XSBbPGMwMjJiMjMwPl0gKG11c2Jfc3RhcnRfdXJiKzB4MTY4LzB4NTQ0KSBmcm9tIFs8YzAy
-MmJhODA+XSAobXVzYl91cmJfZW5xdWV1ZSsweDQ3NC8weDRkYykKWzEwNDUwLjcyNzYwMF0gWzxj
-MDIyYmE4MD5dIChtdXNiX3VyYl9lbnF1ZXVlKzB4NDc0LzB4NGRjKSBmcm9tIFs8YzAyMGVhN2M+
-XSAodXNiX2hjZF9zdWJtaXRfdXJiKzB4NWI4LzB4NjljKQpbMTA0NTAuNzM3NzAxXSBbPGMwMjBl
-YTdjPl0gKHVzYl9oY2Rfc3VibWl0X3VyYisweDViOC8weDY5YykgZnJvbSBbPGMwMjE3Y2YwPl0g
-KHVzYmRldl9pb2N0bCsweDEzZjgvMHgxYmMwKQpbMTA0NTAuNzQ3NjE5XSBbPGMwMjE3Y2YwPl0g
-KHVzYmRldl9pb2N0bCsweDEzZjgvMHgxYmMwKSBmcm9tIFs8YzAwZGFmNzQ+XSAoZG9fdmZzX2lv
-Y3RsKzB4NDk0LzB4NTA0KQpbMTA0NTAuNzU2OTU4XSBbPGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0
-bCsweDQ5NC8weDUwNCkgZnJvbSBbPGMwMGRiMDMwPl0gKHN5c19pb2N0bCsweDRjLzB4NmMpClsx
-MDQ1MC43NjU2ODZdIFs8YzAwZGIwMzA+XSAoc3lzX2lvY3RsKzB4NGMvMHg2YykgZnJvbSBbPGMw
-MDBkMGEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4M2MpClsxMDQ1MC43NzQ1MDVdIC0tLVsg
-ZW5kIHRyYWNlIGJlZDYwOWNiYjA3NTc3NDAgXS0tLQpbMTA0NTUuNjYxODA0XSAtLS0tLS0tLS0t
-LS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWzEwNDU1LjY2NjY4N10gV0FSTklORzogYXQgZHJp
-dmVycy91c2IvbXVzYi9tdXNiX2hvc3QuYzoxMjUgbXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8w
-eDY4KCkKWzEwNDU1LjY3NTIwMV0gQ291bGQgbm90IGZsdXNoIGhvc3QgVFgzIGZpZm86IGNzcjog
-MjAwMwpbMTA0NTUuNjgwMzg5XSBNb2R1bGVzIGxpbmtlZCBpbjogd2llZ2FuZF9ncGlvIGxlZHNf
-Z3BpbwpbMTA0NTUuNjg1Njk5XSBbPGMwMDExYzg4Pl0gKHVud2luZF9iYWNrdHJhY2UrMHgwLzB4
-ZTApIGZyb20gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDRjLzB4NjQpClsx
-MDQ1NS42OTU1MjZdIFs8YzAwMmQ4MTQ+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0Yy8weDY0
-KSBmcm9tIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0aF9mbXQrMHgyYy8weDNjKQpbMTA0NTUu
-NzA1NTM1XSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3BhdGhfZm10KzB4MmMvMHgzYykgZnJvbSBb
-PGMwMjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCkKWzEwNDU1LjcxNTU0
-NV0gWzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgpIGZyb20gWzxj
-MDIyYmNmOD5dIChtdXNiX2NsZWFudXBfdXJiKzB4NGMvMHg4OCkKWzEwNDU1LjcyNTQzM10gWzxj
-MDIyYmNmOD5dIChtdXNiX2NsZWFudXBfdXJiKzB4NGMvMHg4OCkgZnJvbSBbPGMwMjJiZTI0Pl0g
-KG11c2JfdXJiX2RlcXVldWUrMHhmMC8weDExMCkKWzEwNDU1LjczNTA3Nl0gWzxjMDIyYmUyND5d
-IChtdXNiX3VyYl9kZXF1ZXVlKzB4ZjAvMHgxMTApIGZyb20gWzxjMDIwZDczYz5dICh1bmxpbmsx
-KzB4Y2MvMHhkYykKWzEwNDU1Ljc0Mzg5Nl0gWzxjMDIwZDczYz5dICh1bmxpbmsxKzB4Y2MvMHhk
-YykgZnJvbSBbPGMwMjBlYmJjPl0gKHVzYl9oY2RfdW5saW5rX3VyYisweDVjLzB4YjApClsxMDQ1
-NS43NTI4MDddIFs8YzAyMGViYmM+XSAodXNiX2hjZF91bmxpbmtfdXJiKzB4NWMvMHhiMCkgZnJv
-bSBbPGMwMjBmZDM4Pl0gKHVzYl9raWxsX3VyYisweDQ4LzB4ZTQpClsxMDQ1NS43NjIxNzZdIFs8
-YzAyMGZkMzg+XSAodXNiX2tpbGxfdXJiKzB4NDgvMHhlNCkgZnJvbSBbPGMwMjE3ZWE4Pl0gKHVz
-YmRldl9pb2N0bCsweDE1YjAvMHgxYmMwKQpbMTA0NTUuNzcxMzYyXSBbPGMwMjE3ZWE4Pl0gKHVz
-YmRldl9pb2N0bCsweDE1YjAvMHgxYmMwKSBmcm9tIFs8YzAwZGFmNzQ+XSAoZG9fdmZzX2lvY3Rs
-KzB4NDk0LzB4NTA0KQpbMTA0NTUuNzgwNzMxXSBbPGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsw
-eDQ5NC8weDUwNCkgZnJvbSBbPGMwMGRiMDMwPl0gKHN5c19pb2N0bCsweDRjLzB4NmMpClsxMDQ1
-NS43ODk0NTldIFs8YzAwZGIwMzA+XSAoc3lzX2lvY3RsKzB4NGMvMHg2YykgZnJvbSBbPGMwMDBk
-MGEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4M2MpClsxMDQ1NS43OTgyNDhdIC0tLVsgZW5k
-IHRyYWNlIGJlZDYwOWNiYjA3NTc3NDEgXS0tLQpbMTA0NTguNjA3NTc0XSAtLS0tLS0tLS0tLS1b
-IGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWzEwNDU4LjYxMjQyNl0gV0FSTklORzogYXQgZHJpdmVy
-cy91c2IvbXVzYi9tdXNiX2hvc3QuYzoxMjUgbXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4
-KCkKWzEwNDU4LjYyMDk3MV0gQ291bGQgbm90IGZsdXNoIGhvc3QgVFgzIGZpZm86IGNzcjogMjAw
-MwpbMTA0NTguNjI2MTI5XSBNb2R1bGVzIGxpbmtlZCBpbjogd2llZ2FuZF9ncGlvIGxlZHNfZ3Bp
-bwpbMTA0NTguNjMxNDY5XSBbPGMwMDExYzg4Pl0gKHVud2luZF9iYWNrdHJhY2UrMHgwLzB4ZTAp
-IGZyb20gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDRjLzB4NjQpClsxMDQ1
-OC42NDEyOTZdIFs8YzAwMmQ4MTQ+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0Yy8weDY0KSBm
-cm9tIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0aF9mbXQrMHgyYy8weDNjKQpbMTA0NTguNjUx
-Mjc1XSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3BhdGhfZm10KzB4MmMvMHgzYykgZnJvbSBbPGMw
-MjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCkKWzEwNDU4LjY2MTI4NV0g
-WzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgpIGZyb20gWzxjMDIy
-YjIzMD5dIChtdXNiX3N0YXJ0X3VyYisweDE2OC8weDU0NCkKWzEwNDU4LjY3MTIwM10gWzxjMDIy
-YjIzMD5dIChtdXNiX3N0YXJ0X3VyYisweDE2OC8weDU0NCkgZnJvbSBbPGMwMjJiYTgwPl0gKG11
-c2JfdXJiX2VucXVldWUrMHg0NzQvMHg0ZGMpClsxMDQ1OC42ODA5MDhdIFs8YzAyMmJhODA+XSAo
-bXVzYl91cmJfZW5xdWV1ZSsweDQ3NC8weDRkYykgZnJvbSBbPGMwMjBlYTdjPl0gKHVzYl9oY2Rf
-c3VibWl0X3VyYisweDViOC8weDY5YykKWzEwNDU4LjY5MTAwOV0gWzxjMDIwZWE3Yz5dICh1c2Jf
-aGNkX3N1Ym1pdF91cmIrMHg1YjgvMHg2OWMpIGZyb20gWzxjMDIxN2NmMD5dICh1c2JkZXZfaW9j
-dGwrMHgxM2Y4LzB4MWJjMCkKWzEwNDU4LjcwMDkyN10gWzxjMDIxN2NmMD5dICh1c2JkZXZfaW9j
-dGwrMHgxM2Y4LzB4MWJjMCkgZnJvbSBbPGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8w
-eDUwNCkKWzEwNDU4LjcxMDI5Nl0gWzxjMDBkYWY3ND5dIChkb192ZnNfaW9jdGwrMHg0OTQvMHg1
-MDQpIGZyb20gWzxjMDBkYjAzMD5dIChzeXNfaW9jdGwrMHg0Yy8weDZjKQpbMTA0NTguNzE5MDI0
-XSBbPGMwMGRiMDMwPl0gKHN5c19pb2N0bCsweDRjLzB4NmMpIGZyb20gWzxjMDAwZDBhMD5dIChy
-ZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNjKQpbMTA0NTguNzI3ODEzXSAtLS1bIGVuZCB0cmFjZSBi
-ZWQ2MDljYmIwNzU3NzQyIF0tLS0KWzEwNDYzLjYwOTM3NF0gLS0tLS0tLS0tLS0tWyBjdXQgaGVy
-ZSBdLS0tLS0tLS0tLS0tClsxMDQ2My42MTQyMjddIFdBUk5JTkc6IGF0IGRyaXZlcnMvdXNiL211
-c2IvbXVzYl9ob3N0LmM6MTI1IG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCgpClsxMDQ2
-My42MjI3NzJdIENvdWxkIG5vdCBmbHVzaCBob3N0IFRYMyBmaWZvOiBjc3I6IDIwMDMKWzEwNDYz
-LjYyNzk2MF0gTW9kdWxlcyBsaW5rZWQgaW46IHdpZWdhbmRfZ3BpbyBsZWRzX2dwaW8KWzEwNDYz
-LjYzMzI3MF0gWzxjMDAxMWM4OD5dICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGUwKSBmcm9tIFs8
-YzAwMmQ4MTQ+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0Yy8weDY0KQpbMTA0NjMuNjQzMDk2
-XSBbPGMwMDJkODE0Pl0gKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkgZnJvbSBbPGMw
-MDJkOGFjPl0gKHdhcm5fc2xvd3BhdGhfZm10KzB4MmMvMHgzYykKWzEwNDYzLjY1MzEwNl0gWzxj
-MDAyZDhhYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDJjLzB4M2MpIGZyb20gWzxjMDIyYWYzYz5d
-IChtdXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgpClsxMDQ2My42NjMwODVdIFs8YzAyMmFm
-M2M+XSAobXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KSBmcm9tIFs8YzAyMmJjZjg+XSAo
-bXVzYl9jbGVhbnVwX3VyYisweDRjLzB4ODgpClsxMDQ2My42NzMwMDRdIFs8YzAyMmJjZjg+XSAo
-bXVzYl9jbGVhbnVwX3VyYisweDRjLzB4ODgpIGZyb20gWzxjMDIyYmUyND5dIChtdXNiX3VyYl9k
-ZXF1ZXVlKzB4ZjAvMHgxMTApClsxMDQ2My42ODI2NDddIFs8YzAyMmJlMjQ+XSAobXVzYl91cmJf
-ZGVxdWV1ZSsweGYwLzB4MTEwKSBmcm9tIFs8YzAyMGQ3M2M+XSAodW5saW5rMSsweGNjLzB4ZGMp
-ClsxMDQ2My42OTE0NjddIFs8YzAyMGQ3M2M+XSAodW5saW5rMSsweGNjLzB4ZGMpIGZyb20gWzxj
-MDIwZWJiYz5dICh1c2JfaGNkX3VubGlua191cmIrMHg1Yy8weGIwKQpbMTA0NjMuNzAwMzc4XSBb
-PGMwMjBlYmJjPl0gKHVzYl9oY2RfdW5saW5rX3VyYisweDVjLzB4YjApIGZyb20gWzxjMDIwZmQz
-OD5dICh1c2Jfa2lsbF91cmIrMHg0OC8weGU0KQpbMTA0NjMuNzA5NzQ3XSBbPGMwMjBmZDM4Pl0g
-KHVzYl9raWxsX3VyYisweDQ4LzB4ZTQpIGZyb20gWzxjMDIxN2VhOD5dICh1c2JkZXZfaW9jdGwr
-MHgxNWIwLzB4MWJjMCkKWzEwNDYzLjcxODkwMl0gWzxjMDIxN2VhOD5dICh1c2JkZXZfaW9jdGwr
-MHgxNWIwLzB4MWJjMCkgZnJvbSBbPGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8weDUw
-NCkKWzEwNDYzLjcyODI3MV0gWzxjMDBkYWY3ND5dIChkb192ZnNfaW9jdGwrMHg0OTQvMHg1MDQp
-IGZyb20gWzxjMDBkYjAzMD5dIChzeXNfaW9jdGwrMHg0Yy8weDZjKQpbMTA0NjMuNzM2OTk5XSBb
-PGMwMGRiMDMwPl0gKHN5c19pb2N0bCsweDRjLzB4NmMpIGZyb20gWzxjMDAwZDBhMD5dIChyZXRf
-ZmFzdF9zeXNjYWxsKzB4MC8weDNjKQpbMTA0NjMuNzQ1ODE5XSAtLS1bIGVuZCB0cmFjZSBiZWQ2
-MDljYmIwNzU3NzQzIF0tLS0KWzEwNDY2LjUyNzcwOV0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBd
-LS0tLS0tLS0tLS0tClsxMDQ2Ni41MzI1NjJdIFdBUk5JTkc6IGF0IGRyaXZlcnMvdXNiL211c2Iv
-bXVzYl9ob3N0LmM6MTI1IG11c2JfaF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCgpClsxMDQ2Ni41
-NDExMDddIENvdWxkIG5vdCBmbHVzaCBob3N0IFRYMyBmaWZvOiBjc3I6IDIwMDMKWzEwNDY2LjU0
-NjI2NF0gTW9kdWxlcyBsaW5rZWQgaW46IHdpZWdhbmRfZ3BpbyBsZWRzX2dwaW8KWzEwNDY2LjU1
-MTYwNV0gWzxjMDAxMWM4OD5dICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGUwKSBmcm9tIFs8YzAw
-MmQ4MTQ+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0Yy8weDY0KQpbMTA0NjYuNTYxNDAxXSBb
-PGMwMDJkODE0Pl0gKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkgZnJvbSBbPGMwMDJk
-OGFjPl0gKHdhcm5fc2xvd3BhdGhfZm10KzB4MmMvMHgzYykKWzEwNDY2LjU3MTQxMV0gWzxjMDAy
-ZDhhYz5dICh3YXJuX3Nsb3dwYXRoX2ZtdCsweDJjLzB4M2MpIGZyb20gWzxjMDIyYWYzYz5dICht
-dXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgpClsxMDQ2Ni41ODE0MjBdIFs8YzAyMmFmM2M+
-XSAobXVzYl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KSBmcm9tIFs8YzAyMmIyMzA+XSAobXVz
-Yl9zdGFydF91cmIrMHgxNjgvMHg1NDQpClsxMDQ2Ni41OTEzMzldIFs8YzAyMmIyMzA+XSAobXVz
-Yl9zdGFydF91cmIrMHgxNjgvMHg1NDQpIGZyb20gWzxjMDIyYmE4MD5dIChtdXNiX3VyYl9lbnF1
-ZXVlKzB4NDc0LzB4NGRjKQpbMTA0NjYuNjAxMDQzXSBbPGMwMjJiYTgwPl0gKG11c2JfdXJiX2Vu
-cXVldWUrMHg0NzQvMHg0ZGMpIGZyb20gWzxjMDIwZWE3Yz5dICh1c2JfaGNkX3N1Ym1pdF91cmIr
-MHg1YjgvMHg2OWMpClsxMDQ2Ni42MTExNDVdIFs8YzAyMGVhN2M+XSAodXNiX2hjZF9zdWJtaXRf
-dXJiKzB4NWI4LzB4NjljKSBmcm9tIFs8YzAyMTdjZjA+XSAodXNiZGV2X2lvY3RsKzB4MTNmOC8w
-eDFiYzApClsxMDQ2Ni42MjEwNjNdIFs8YzAyMTdjZjA+XSAodXNiZGV2X2lvY3RsKzB4MTNmOC8w
-eDFiYzApIGZyb20gWzxjMDBkYWY3ND5dIChkb192ZnNfaW9jdGwrMHg0OTQvMHg1MDQpClsxMDQ2
-Ni42MzA0MzJdIFs8YzAwZGFmNzQ+XSAoZG9fdmZzX2lvY3RsKzB4NDk0LzB4NTA0KSBmcm9tIFs8
-YzAwZGIwMzA+XSAoc3lzX2lvY3RsKzB4NGMvMHg2YykKWzEwNDY2LjYzOTE2MF0gWzxjMDBkYjAz
-MD5dIChzeXNfaW9jdGwrMHg0Yy8weDZjKSBmcm9tIFs8YzAwMGQwYTA+XSAocmV0X2Zhc3Rfc3lz
-Y2FsbCsweDAvMHgzYykKWzEwNDY2LjY0Nzk0OV0gLS0tWyBlbmQgdHJhY2UgYmVkNjA5Y2JiMDc1
-Nzc0NCBdLS0tClsxMDQ3MS41MjgyNTldIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0t
-LS0tLQpbMTA0NzEuNTMzMTQyXSBXQVJOSU5HOiBhdCBkcml2ZXJzL3VzYi9tdXNiL211c2JfaG9z
-dC5jOjEyNSBtdXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgoKQpbMTA0NzEuNTQxNjU2XSBD
-b3VsZCBub3QgZmx1c2ggaG9zdCBUWDMgZmlmbzogY3NyOiAyMDAzClsxMDQ3MS41NDY4NDRdIE1v
-ZHVsZXMgbGlua2VkIGluOiB3aWVnYW5kX2dwaW8gbGVkc19ncGlvClsxMDQ3MS41NTIxNTRdIFs8
-YzAwMTFjODg+XSAodW53aW5kX2JhY2t0cmFjZSsweDAvMHhlMCkgZnJvbSBbPGMwMDJkODE0Pl0g
-KHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkKWzEwNDcxLjU2MTk4MV0gWzxjMDAyZDgx
-ND5dICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDRjLzB4NjQpIGZyb20gWzxjMDAyZDhhYz5dICh3
-YXJuX3Nsb3dwYXRoX2ZtdCsweDJjLzB4M2MpClsxMDQ3MS41NzE5OTBdIFs8YzAwMmQ4YWM+XSAo
-d2Fybl9zbG93cGF0aF9mbXQrMHgyYy8weDNjKSBmcm9tIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4
-X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KQpbMTA0NzEuNTgyMDAwXSBbPGMwMjJhZjNjPl0gKG11c2Jf
-aF90eF9mbHVzaF9maWZvKzB4NDQvMHg2OCkgZnJvbSBbPGMwMjJiY2Y4Pl0gKG11c2JfY2xlYW51
-cF91cmIrMHg0Yy8weDg4KQpbMTA0NzEuNTkxODg4XSBbPGMwMjJiY2Y4Pl0gKG11c2JfY2xlYW51
-cF91cmIrMHg0Yy8weDg4KSBmcm9tIFs8YzAyMmJlMjQ+XSAobXVzYl91cmJfZGVxdWV1ZSsweGYw
-LzB4MTEwKQpbMTA0NzEuNjAxNTMxXSBbPGMwMjJiZTI0Pl0gKG11c2JfdXJiX2RlcXVldWUrMHhm
-MC8weDExMCkgZnJvbSBbPGMwMjBkNzNjPl0gKHVubGluazErMHhjYy8weGRjKQpbMTA0NzEuNjEw
-MzUxXSBbPGMwMjBkNzNjPl0gKHVubGluazErMHhjYy8weGRjKSBmcm9tIFs8YzAyMGViYmM+XSAo
-dXNiX2hjZF91bmxpbmtfdXJiKzB4NWMvMHhiMCkKWzEwNDcxLjYxOTI2Ml0gWzxjMDIwZWJiYz5d
-ICh1c2JfaGNkX3VubGlua191cmIrMHg1Yy8weGIwKSBmcm9tIFs8YzAyMGZkMzg+XSAodXNiX2tp
-bGxfdXJiKzB4NDgvMHhlNCkKWzEwNDcxLjYyODYzMV0gWzxjMDIwZmQzOD5dICh1c2Jfa2lsbF91
-cmIrMHg0OC8weGU0KSBmcm9tIFs8YzAyMTdlYTg+XSAodXNiZGV2X2lvY3RsKzB4MTViMC8weDFi
-YzApClsxMDQ3MS42Mzc4MTddIFs8YzAyMTdlYTg+XSAodXNiZGV2X2lvY3RsKzB4MTViMC8weDFi
-YzApIGZyb20gWzxjMDBkYWY3ND5dIChkb192ZnNfaW9jdGwrMHg0OTQvMHg1MDQpClsxMDQ3MS42
-NDcxODZdIFs8YzAwZGFmNzQ+XSAoZG9fdmZzX2lvY3RsKzB4NDk0LzB4NTA0KSBmcm9tIFs8YzAw
-ZGIwMzA+XSAoc3lzX2lvY3RsKzB4NGMvMHg2YykKWzEwNDcxLjY1NTkxNF0gWzxjMDBkYjAzMD5d
-IChzeXNfaW9jdGwrMHg0Yy8weDZjKSBmcm9tIFs8YzAwMGQwYTA+XSAocmV0X2Zhc3Rfc3lzY2Fs
-bCsweDAvMHgzYykKWzEwNDcxLjY2NDcwM10gLS0tWyBlbmQgdHJhY2UgYmVkNjA5Y2JiMDc1Nzc0
-NSBdLS0tClsxMDQ3Mi42NjQ4MjVdIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0t
-LQpbMTA0NzIuNjY5Njc3XSBXQVJOSU5HOiBhdCBkcml2ZXJzL3VzYi9tdXNiL211c2JfaG9zdC5j
-OjEyNSBtdXNiX2hfdHhfZmx1c2hfZmlmbysweDQ0LzB4NjgoKQpbMTA0NzIuNjc4MjIyXSBDb3Vs
-ZCBub3QgZmx1c2ggaG9zdCBUWDMgZmlmbzogY3NyOiAyMDAzClsxMDQ3Mi42ODM0MTBdIE1vZHVs
-ZXMgbGlua2VkIGluOiB3aWVnYW5kX2dwaW8gbGVkc19ncGlvClsxMDQ3Mi42ODg3MjBdIFs8YzAw
-MTFjODg+XSAodW53aW5kX2JhY2t0cmFjZSsweDAvMHhlMCkgZnJvbSBbPGMwMDJkODE0Pl0gKHdh
-cm5fc2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkKWzEwNDcyLjY5ODU0N10gWzxjMDAyZDgxND5d
-ICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDRjLzB4NjQpIGZyb20gWzxjMDAyZDhhYz5dICh3YXJu
-X3Nsb3dwYXRoX2ZtdCsweDJjLzB4M2MpClsxMDQ3Mi43MDg1NTddIFs8YzAwMmQ4YWM+XSAod2Fy
-bl9zbG93cGF0aF9mbXQrMHgyYy8weDNjKSBmcm9tIFs8YzAyMmFmM2M+XSAobXVzYl9oX3R4X2Zs
-dXNoX2ZpZm8rMHg0NC8weDY4KQpbMTA0NzIuNzE4NTM2XSBbPGMwMjJhZjNjPl0gKG11c2JfaF90
-eF9mbHVzaF9maWZvKzB4NDQvMHg2OCkgZnJvbSBbPGMwMjJiMjMwPl0gKG11c2Jfc3RhcnRfdXJi
-KzB4MTY4LzB4NTQ0KQpbMTA0NzIuNzI4NDU0XSBbPGMwMjJiMjMwPl0gKG11c2Jfc3RhcnRfdXJi
-KzB4MTY4LzB4NTQ0KSBmcm9tIFs8YzAyMmJhODA+XSAobXVzYl91cmJfZW5xdWV1ZSsweDQ3NC8w
-eDRkYykKWzEwNDcyLjczODE4OV0gWzxjMDIyYmE4MD5dIChtdXNiX3VyYl9lbnF1ZXVlKzB4NDc0
-LzB4NGRjKSBmcm9tIFs8YzAyMGVhN2M+XSAodXNiX2hjZF9zdWJtaXRfdXJiKzB4NWI4LzB4Njlj
-KQpbMTA0NzIuNzQ4MjYwXSBbPGMwMjBlYTdjPl0gKHVzYl9oY2Rfc3VibWl0X3VyYisweDViOC8w
-eDY5YykgZnJvbSBbPGMwMjE3Y2YwPl0gKHVzYmRldl9pb2N0bCsweDEzZjgvMHgxYmMwKQpbMTA0
-NzIuNzU4MTc4XSBbPGMwMjE3Y2YwPl0gKHVzYmRldl9pb2N0bCsweDEzZjgvMHgxYmMwKSBmcm9t
-IFs8YzAwZGFmNzQ+XSAoZG9fdmZzX2lvY3RsKzB4NDk0LzB4NTA0KQpbMTA0NzIuNzY3NTQ3XSBb
-PGMwMGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8weDUwNCkgZnJvbSBbPGMwMGRiMDMwPl0g
-KHN5c19pb2N0bCsweDRjLzB4NmMpClsxMDQ3Mi43NzYyNzVdIFs8YzAwZGIwMzA+XSAoc3lzX2lv
-Y3RsKzB4NGMvMHg2YykgZnJvbSBbPGMwMDBkMGEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4
-M2MpClsxMDQ3Mi43ODUwOTVdIC0tLVsgZW5kIHRyYWNlIGJlZDYwOWNiYjA3NTc3NDYgXS0tLQpb
-MTA0NzcuNjY1MTYxXSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWzEwNDc3
-LjY3MDA0M10gV0FSTklORzogYXQgZHJpdmVycy91c2IvbXVzYi9tdXNiX2hvc3QuYzoxMjUgbXVz
-Yl9oX3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KCkKWzEwNDc3LjY3ODU1OF0gQ291bGQgbm90IGZs
-dXNoIGhvc3QgVFgzIGZpZm86IGNzcjogMjAwMwpbMTA0NzcuNjgzNzQ2XSBNb2R1bGVzIGxpbmtl
-ZCBpbjogd2llZ2FuZF9ncGlvIGxlZHNfZ3BpbwpbMTA0NzcuNjg5MDU2XSBbPGMwMDExYzg4Pl0g
-KHVud2luZF9iYWNrdHJhY2UrMHgwLzB4ZTApIGZyb20gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dw
-YXRoX2NvbW1vbisweDRjLzB4NjQpClsxMDQ3Ny42OTg4ODNdIFs8YzAwMmQ4MTQ+XSAod2Fybl9z
-bG93cGF0aF9jb21tb24rMHg0Yy8weDY0KSBmcm9tIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0
-aF9mbXQrMHgyYy8weDNjKQpbMTA0NzcuNzA4ODkyXSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3Bh
-dGhfZm10KzB4MmMvMHgzYykgZnJvbSBbPGMwMjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZv
-KzB4NDQvMHg2OCkKWzEwNDc3LjcxODkwMl0gWzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hf
-ZmlmbysweDQ0LzB4NjgpIGZyb20gWzxjMDIyYmNmOD5dIChtdXNiX2NsZWFudXBfdXJiKzB4NGMv
-MHg4OCkKWzEwNDc3LjcyODc5MF0gWzxjMDIyYmNmOD5dIChtdXNiX2NsZWFudXBfdXJiKzB4NGMv
-MHg4OCkgZnJvbSBbPGMwMjJiZTI0Pl0gKG11c2JfdXJiX2RlcXVldWUrMHhmMC8weDExMCkKWzEw
-NDc3LjczODQzM10gWzxjMDIyYmUyND5dIChtdXNiX3VyYl9kZXF1ZXVlKzB4ZjAvMHgxMTApIGZy
-b20gWzxjMDIwZDczYz5dICh1bmxpbmsxKzB4Y2MvMHhkYykKWzEwNDc3Ljc0NzI1M10gWzxjMDIw
-ZDczYz5dICh1bmxpbmsxKzB4Y2MvMHhkYykgZnJvbSBbPGMwMjBlYmJjPl0gKHVzYl9oY2RfdW5s
-aW5rX3VyYisweDVjLzB4YjApClsxMDQ3Ny43NTYxNjRdIFs8YzAyMGViYmM+XSAodXNiX2hjZF91
-bmxpbmtfdXJiKzB4NWMvMHhiMCkgZnJvbSBbPGMwMjBmZDM4Pl0gKHVzYl9raWxsX3VyYisweDQ4
-LzB4ZTQpClsxMDQ3Ny43NjU1MzNdIFs8YzAyMGZkMzg+XSAodXNiX2tpbGxfdXJiKzB4NDgvMHhl
-NCkgZnJvbSBbPGMwMjE3ZWE4Pl0gKHVzYmRldl9pb2N0bCsweDE1YjAvMHgxYmMwKQpbMTA0Nzcu
-Nzc0NzE5XSBbPGMwMjE3ZWE4Pl0gKHVzYmRldl9pb2N0bCsweDE1YjAvMHgxYmMwKSBmcm9tIFs8
-YzAwZGFmNzQ+XSAoZG9fdmZzX2lvY3RsKzB4NDk0LzB4NTA0KQpbMTA0NzcuNzg0MDg4XSBbPGMw
-MGRhZjc0Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8weDUwNCkgZnJvbSBbPGMwMGRiMDMwPl0gKHN5
-c19pb2N0bCsweDRjLzB4NmMpClsxMDQ3Ny43OTI4MTZdIFs8YzAwZGIwMzA+XSAoc3lzX2lvY3Rs
-KzB4NGMvMHg2YykgZnJvbSBbPGMwMDBkMGEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4M2Mp
-ClsxMDQ3Ny44MDE2MDVdIC0tLVsgZW5kIHRyYWNlIGJlZDYwOWNiYjA3NTc3NDcgXS0tLQpbMTA0
-ODAuNjcwMDc0XSAtLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWzEwNDgwLjY3
-NDkyNl0gV0FSTklORzogYXQgZHJpdmVycy91c2IvbXVzYi9tdXNiX2hvc3QuYzoxMjUgbXVzYl9o
-X3R4X2ZsdXNoX2ZpZm8rMHg0NC8weDY4KCkKWzEwNDgwLjY4MzQ3MV0gQ291bGQgbm90IGZsdXNo
-IGhvc3QgVFgzIGZpZm86IGNzcjogMjAwMwpbMTA0ODAuNjg4NjI5XSBNb2R1bGVzIGxpbmtlZCBp
-bjogd2llZ2FuZF9ncGlvIGxlZHNfZ3BpbwpbMTA0ODAuNjkzOTY5XSBbPGMwMDExYzg4Pl0gKHVu
-d2luZF9iYWNrdHJhY2UrMHgwLzB4ZTApIGZyb20gWzxjMDAyZDgxND5dICh3YXJuX3Nsb3dwYXRo
-X2NvbW1vbisweDRjLzB4NjQpClsxMDQ4MC43MDM3NjVdIFs8YzAwMmQ4MTQ+XSAod2Fybl9zbG93
-cGF0aF9jb21tb24rMHg0Yy8weDY0KSBmcm9tIFs8YzAwMmQ4YWM+XSAod2Fybl9zbG93cGF0aF9m
-bXQrMHgyYy8weDNjKQpbMTA0ODAuNzEzNzc1XSBbPGMwMDJkOGFjPl0gKHdhcm5fc2xvd3BhdGhf
-Zm10KzB4MmMvMHgzYykgZnJvbSBbPGMwMjJhZjNjPl0gKG11c2JfaF90eF9mbHVzaF9maWZvKzB4
-NDQvMHg2OCkKWzEwNDgwLjcyMzc4NV0gWzxjMDIyYWYzYz5dIChtdXNiX2hfdHhfZmx1c2hfZmlm
-bysweDQ0LzB4NjgpIGZyb20gWzxjMDIyYjIzMD5dIChtdXNiX3N0YXJ0X3VyYisweDE2OC8weDU0
-NCkKWzEwNDgwLjczMzY3M10gWzxjMDIyYjIzMD5dIChtdXNiX3N0YXJ0X3VyYisweDE2OC8weDU0
-NCkgZnJvbSBbPGMwMjJiYTgwPl0gKG11c2JfdXJiX2VucXVldWUrMHg0NzQvMHg0ZGMpClsxMDQ4
-MC43NDM0MDhdIFs8YzAyMmJhODA+XSAobXVzYl91cmJfZW5xdWV1ZSsweDQ3NC8weDRkYykgZnJv
-bSBbPGMwMjBlYTdjPl0gKHVzYl9oY2Rfc3VibWl0X3VyYisweDViOC8weDY5YykKWzEwNDgwLjc1
-MzUwOV0gWzxjMDIwZWE3Yz5dICh1c2JfaGNkX3N1Ym1pdF91cmIrMHg1YjgvMHg2OWMpIGZyb20g
-WzxjMDIxN2NmMD5dICh1c2JkZXZfaW9jdGwrMHgxM2Y4LzB4MWJjMCkKWzEwNDgwLjc2MzQyN10g
-WzxjMDIxN2NmMD5dICh1c2JkZXZfaW9jdGwrMHgxM2Y4LzB4MWJjMCkgZnJvbSBbPGMwMGRhZjc0
-Pl0gKGRvX3Zmc19pb2N0bCsweDQ5NC8weDUwNCkKWzEwNDgwLjc3Mjc5Nl0gWzxjMDBkYWY3ND5d
-IChkb192ZnNfaW9jdGwrMHg0OTQvMHg1MDQpIGZyb20gWzxjMDBkYjAzMD5dIChzeXNfaW9jdGwr
-MHg0Yy8weDZjKQpbMTA0ODAuNzgxNTI0XSBbPGMwMGRiMDMwPl0gKHN5c19pb2N0bCsweDRjLzB4
-NmMpIGZyb20gWzxjMDAwZDBhMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNjKQpbMTA0ODAu
-NzkwMzEzXSAtLS1bIGVuZCB0cmFjZSBiZWQ2MDljYmIwNzU3NzQ4IF0tLS0K
+I think then we should modify this API to take *index* which should be
+used when we have a single controller using multiple phys. By that
+we'll make both dt and non-dt similar in that, both of them will take
+this index.
+>
+>> +{
+>> +     struct phy      *phy = NULL, **ptr;
+>> +     struct device_node *node;
+>> +
+>> +     if (!dev->of_node) {
+>> +             dev_dbg(dev, "device does not have a device node entry\n");
+>> +             return ERR_PTR(-EINVAL);
+>> +     }
+>> +
+>> +     node = of_parse_phandle(dev->of_node, phandle, 0);
+>> +     if (!node) {
+>> +             dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
+>> +                     dev->of_node->full_name);
+>> +             return ERR_PTR(-ENODEV);
+>> +     }
+>> +
+>> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+>> +     if (!ptr) {
+>> +             dev_dbg(dev, "failed to allocate memory for devres\n");
+>> +             return ERR_PTR(-ENOMEM);
+>> +     }
+>> +
+>> +     mutex_lock(&phy_list_mutex);
+>> +
+>> +     phy = of_phy_lookup(dev, node);
+>> +     if (IS_ERR(phy) || !try_module_get(phy->dev.driver->owner)) {
+>> +             devres_free(ptr);
+>> +             goto err0;
+>> +     }
+>
+> Please return -EPROBE_DEFER is the phy is not yet registered.
 
-------_=_NextPart_001_01CD9278.87ACB280--
+I really dont prefer to return -EPROBE_DEFER from the *framework*.
+IMHO, it's up-to the caller of this API to return *probe* errors.
+>
+>> +
+>> +     *ptr = phy;
+>> +     devres_add(dev, ptr);
+>> +
+>> +     get_device(&phy->dev);
+>> +
+>> +err0:
+>> +     mutex_unlock(&phy_list_mutex);
+>> +
+>> +     return phy;
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_of_phy_get);
+>> +
+>> +/**
+>> + * phy_get - lookup and obtain a reference to a phy.
+>> + * @dev: device that requests this phy
+>> + * @index: the index of the phy
+>> + *
+>> + * Returns the phy driver, after getting a refcount to it; or
+>> + * -ENODEV if there is no such phy.  The caller is responsible for
+>> + * calling phy_put() to release that count.
+>> + */
+>> +struct phy *phy_get(struct device *dev, u8 index)
+>> +{
+>> +     struct phy      *phy = NULL;
+>> +
+>> +     mutex_lock(&phy_list_mutex);
+>> +
+>> +     phy = phy_lookup(dev, index);
+>> +     if (IS_ERR(phy)) {
+>> +             pr_err("unable to find phy\n");
+>
+> dev_err()
 
---=-Qx9FbGDZ63LRjPuIMvUI
-Content-Type: application/pgp-signature
+Sure.
+>
+>> +             goto err0;
+>> +     }
+>> +
+>> +     get_device(&phy->dev);
+>> +
+>> +err0:
+>> +     mutex_unlock(&phy_list_mutex);
+>> +
+>> +     return phy;
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_get);
+>> +
+>> +/**
+>> + * phy_put - release the PHY
+>> + * @phy: the phy returned by phy_get()
+>> + *
+>> + * Releases a refcount the caller received from phy_get().
+>> + */
+>> +void phy_put(struct phy *phy)
+>> +{
+>> +     if (phy)
+>> +             put_device(&phy->dev);
+>> +}
+>> +EXPORT_SYMBOL_GPL(phy_put);
+>> +
+>> +/**
+>> + * create_phy - create a new phy
+>> + * @dev: device that is creating the new phy
+>> + * @desc: descriptor of the phy
+>> + *
+>> + * Called to create a phy using phy framework.
+>> + */
+>> +struct phy *create_phy(struct device *dev, struct phy_descriptor *desc)
+>
+> All other functions are named phy_*, please rename this, too.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
+Sure.
 
-iEYEABECAAYFAlBTKeIACgkQ6nqkzTWctv72UQCfXgHXuCUm4RjLk5qGSKqsJd3Q
-zA4AnivRShaunjqFeeVh32oTqboA3XuT
-=MFgH
------END PGP SIGNATURE-----
-
---=-Qx9FbGDZ63LRjPuIMvUI--
+Thanks
+Kishon
