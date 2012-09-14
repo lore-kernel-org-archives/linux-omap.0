@@ -1,63 +1,107 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup parameter via device_prep_dma_cyclic()
- callback
-Date: Fri, 14 Sep 2012 10:07:23 +0300
-Message-ID: <5052D7AB.1090804@ti.com>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>  <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com> <1347593040.1943.24.camel@vkoul-udesk3>
+Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup parameter to dmaengine_prep_dma_cyclic()
+Date: Fri, 14 Sep 2012 10:12:25 +0300
+Message-ID: <5052D8D9.8060802@ti.com>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com> <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com> <5051FB4D.3000009@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:34895 "EHLO
-	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551Ab2INHGp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Sep 2012 03:06:45 -0400
-Received: by obbuo13 with SMTP id uo13so5818678obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 00:06:44 -0700 (PDT)
-In-Reply-To: <1347593040.1943.24.camel@vkoul-udesk3>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5051FB4D.3000009@metafoo.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Barry Song <baohua.song@csr.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vista Silicon <javier.martin@vista-silicon.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Shawn Guo <shawn.guo@linaro.org>, Laxman Dewangan <ldewangan@nvidia.com>
 
-On 09/14/2012 06:24 AM, Vinod Koul wrote:
-> On Thu, 2012-09-13 at 16:37 +0300, Peter Ujfalusi wrote:
->> Change the parameter list of device_prep_dma_cyclic() so the DMA dri=
-vers
->> can receive the no_wakeup request coming from client drivers.
->> This feature can be used during audio operation to disable all audio
->> related interrupts.
-> We already have a flag to indicate this, see=20
-> * @DMA_PREP_INTERRUPT - trigger an interrupt (callback) upon completi=
-on  of
-> *  this transaction
+Hi,
 
-I have also noticed this flag. It is not really a direct match for our =
-case
-since the notion of "completion of this transfer" is not applicable for=
+On 09/13/2012 06:27 PM, Lars-Peter Clausen wrote:
+> On 09/13/2012 03:37 PM, Peter Ujfalusi wrote:
+>> The dmaengine_prep_dma_cyclic() function primarily used by audio for=
  cyclic
-mode, but it is close enough.
+>> transfer required by ALSA.
+>> With this new parameter it is going to be possible to enable the
+>> SNDRV_PCM_INFO_NO_PERIOD_WAKEUP mode on platforms where it is possib=
+le.
+>> This patch only changes the public API first. Followup patch will ch=
+ange
+>> the device_prep_dma_cyclic() callback parameters to pass this inform=
+ation
+>> towards the dma drivers.
+>>
+>=20
+> Hi,
+>=20
+> Hm... Do you think it would work as well if we implement this by sett=
+ing the
+> callback for the descriptor to NULL? If the callback is NULL there is
+> nothing to at the end of a transfer/period and the dma engine driver =
+may
+> choose to disable interrupts. This would also benefit non cyclic tran=
+sfers
+> where the callback is NULL and we do not need add the new parameter t=
+o
+> dmaengine_prep_dma_cyclic.
 
-> Unfortunately, the addition of cyclic API missed having this flag. So
-> right way would be to add flag argument in the API.
+We could do that but dma drivers enable the interrupts within
+dmaengine_prep_dma_cyclic() call, and we fill up the callback for
+dmaengine_submit() dmaengine API call.
+We need to tell the dma drivers in dmaengine_prep_dma_cyclic() to suppr=
+ess the
+interrupts.
 
-I have not looked at the non cyclic APIs, but I think I can modify the
-dmaengine_prep_dma_cyclic() to pass the flags instead of the 'bool no_w=
-akeup'.
-If the DMA_PREP_INTERRUPT is not set dma drivers can interpret it in a =
-way
-that they will disable all interrupts during cyclic mode.
-None of the dma drivers in cyclic mode cares about the flags AFAIK or t=
-hey can
-just ignore this parameter for now (as they did with my no_wakeup param=
-eter).
-Will resend the series soon with this change.
+Note: First I was trying this to be done in hw_params() time via the
+dmaengine_slave_config() call, but substream->runtime->no_period_wakeup=
+ is not
+configured in there. It is set for _prepare() and _trigger().
+
+As Vinod and Russell suggested I will modify the dmaengine_prep_dma_cyc=
+lic()
+API to pass flags as well instead of the no_wakeup parameter.
+
+>=20
+> - Lars
+>=20
+>> ---
+>>  include/linux/dmaengine.h     | 3 ++-
+>>  sound/soc/soc-dmaengine-pcm.c | 3 ++-
+>>  2 files changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+>> index 9c02a45..990444b 100644
+>> --- a/include/linux/dmaengine.h
+>> +++ b/include/linux/dmaengine.h
+>> @@ -653,7 +653,8 @@ static inline struct dma_async_tx_descriptor *dm=
+aengine_prep_rio_sg(
+>> =20
+>>  static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cy=
+clic(
+>>  		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+>> -		size_t period_len, enum dma_transfer_direction dir)
+>> +		size_t period_len, enum dma_transfer_direction dir,
+>> +		bool no_wakeup)
+>>  {
+>>  	return chan->device->device_prep_dma_cyclic(chan, buf_addr, buf_le=
+n,
+>>  						period_len, dir, NULL);
+>> diff --git a/sound/soc/soc-dmaengine-pcm.c b/sound/soc/soc-dmaengine=
+-pcm.c
+>> index 5df529e..6b70adb 100644
+>> --- a/sound/soc/soc-dmaengine-pcm.c
+>> +++ b/sound/soc/soc-dmaengine-pcm.c
+>> @@ -147,7 +147,8 @@ static int dmaengine_pcm_prepare_and_submit(stru=
+ct snd_pcm_substream *substream)
+>>  	desc =3D dmaengine_prep_dma_cyclic(chan,
+>>  		substream->runtime->dma_addr,
+>>  		snd_pcm_lib_buffer_bytes(substream),
+>> -		snd_pcm_lib_period_bytes(substream), direction);
+>> +		snd_pcm_lib_period_bytes(substream), direction,
+>> +		substream->runtime->no_period_wakeup);
+>> =20
+>>  	if (!desc)
+>>  		return -ENOMEM;
+>=20
+
 
 --=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+P=E9ter
