@@ -1,76 +1,833 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/4] i2c: introduce i2c-cbus driver
-Date: Fri, 14 Sep 2012 15:16:55 +0300
-Message-ID: <20120914121652.GC20659@arwen.pp.htv.fi>
-References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
- <1346703805-31598-2-git-send-email-aaro.koskinen@iki.fi>
- <20120914100806.GC2630@pengutronix.de>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
+Date: Fri, 14 Sep 2012 14:28:19 +0200
+Message-ID: <505322E3.4090806@pengutronix.de>
+References: <1347623899-14485-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="m51xatjYGsM+13rf"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20120914100806.GC2630-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+ protocol="application/pgp-signature";
+ boundary="------------enig7B6C41B3C5F81E8F2CA22334"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1347623899-14485-1-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: balbi@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, richard.zhao@freescale.com, B29397@freescale.com, alexander.shishkin@linux.intel.com, marex@denx.de
 List-Id: linux-omap@vger.kernel.org
 
-
---m51xatjYGsM+13rf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig7B6C41B3C5F81E8F2CA22334
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 14, 2012 at 12:08:06PM +0200, Wolfram Sang wrote:
-> On Mon, Sep 03, 2012 at 11:23:22PM +0300, Aaro Koskinen wrote:
-> > Add i2c driver to enable access to devices behind CBUS on Nokia Internet
-> > Tablets.
-> >=20
-> > The patch also adds CBUS I2C configuration for N8x0 which is one of the
-> > users of this driver.
-> >=20
-> > Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> > Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen-X3B1VOXEql0@public.gmane.org>
->=20
-> OK, I found the short paragrahp about CBUS in the I2C spec, so I2C might
-> be an appropriate place. Still, before deciding if it should rather be
-> in the core directory, I still have a few questions.
->=20
-> Also, does anybody know of a generic bit-banging implementation in the
-> kernel which could be used here?
+On 09/14/2012 01:58 PM, Kishon Vijay Abraham I wrote:
+> The PHY framework provides a set of API's for the PHY drivers to
+> create/remove a PHY and the PHY users to obtain a reference to the PHY
+> using or without using phandle. If the PHY users has to obtain a refere=
+nce to
+> the PHY without using phandle, the platform specfic intialization code =
+(say
+> from board file) should have already called phy_bind with the binding
+> information. The binding information consists of phy's device name, phy=
 
-there is i2c-gpio, but it wouldn't help much for cbus, unless we change
-it quite a lot. The generic i2c_algo_bit_data would have to be changed
-to learn about a 3 wire bus. I guess the impact is much bigger than just
-accepting this small, self-contained driver.
+> user device name and an index. The index is used when the same phy user=
+
+> binds to mulitple phys.
+>=20
+> PHY drivers should create the PHY by passing phy_descriptor that has
+> information about the PHY and ops like init, exit, suspend, resume,
+> poweron, shutdown.
+
+Some comments inside.
+
+While looking over the code, I was thinking why not abstract the phy
+with a "bus" in the linux kernel. The ethernet phys are on the mdio_bus,
+see /sys/bus/mdio_bus. This saves you hand crafting devices, drivers and
+bindings,
+
+Marc
+
+>=20
+> Nyet-signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> ---
+> This framework is actually intended to be used by all the PHY drivers i=
+n the
+> kernel. Though it's going to take a while for that, I intend to migrate=
+
+> existing USB/OTG phy drivers to use this framework as we align on the d=
+esign
+> of this framework. Once I migrate these phy drivers, I'll be able to te=
+st this
+> framework (I haven't tested this framework so far). I sent this patch e=
+arly
+> so as to get review comments and align on the design. Thanks :-)
+>=20
+>  drivers/Kconfig         |    2 +
+>  drivers/Makefile        |    2 +
+>  drivers/phy/Kconfig     |   13 ++
+>  drivers/phy/Makefile    |    5 +
+>  drivers/phy/phy-core.c  |  437 +++++++++++++++++++++++++++++++++++++++=
+++++++++
+>  include/linux/phy/phy.h |  181 ++++++++++++++++++++
+>  6 files changed, 640 insertions(+)
+>  create mode 100644 drivers/phy/Kconfig
+>  create mode 100644 drivers/phy/Makefile
+>  create mode 100644 drivers/phy/phy-core.c
+>  create mode 100644 include/linux/phy/phy.h
+>=20
+> diff --git a/drivers/Kconfig b/drivers/Kconfig
+> index ece958d..8488818 100644
+> --- a/drivers/Kconfig
+> +++ b/drivers/Kconfig
+> @@ -152,4 +152,6 @@ source "drivers/vme/Kconfig"
+> =20
+>  source "drivers/pwm/Kconfig"
+> =20
+> +source "drivers/phy/Kconfig"
+> +
+>  endmenu
+> diff --git a/drivers/Makefile b/drivers/Makefile
+> index 5b42184..63d6bbe 100644
+> --- a/drivers/Makefile
+> +++ b/drivers/Makefile
+> @@ -38,6 +38,8 @@ obj-y				+=3D char/
+>  # gpu/ comes after char for AGP vs DRM startup
+>  obj-y				+=3D gpu/
+> =20
+> +obj-y				+=3D phy/
+> +
+>  obj-$(CONFIG_CONNECTOR)		+=3D connector/
+> =20
+>  # i810fb and intelfb depend on char/agp/
+> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+> new file mode 100644
+> index 0000000..34f7077
+> --- /dev/null
+> +++ b/drivers/phy/Kconfig
+> @@ -0,0 +1,13 @@
+> +#
+> +# PHY
+> +#
+> +
+> +menuconfig GENERIC_PHY
+> +	tristate "Generic PHY Support"
+> +	help
+> +	  Generic PHY support.
+> +
+> +	  This framework is designed to provide a generic interface for PHY
+> +	  devices present in the kernel. This layer will have the generic
+> +	  API by which phy drivers can create PHY using the phy framework and=
+
+> +	  phy users can obtain reference to the PHY.
+> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+> new file mode 100644
+> index 0000000..9e9560f
+> --- /dev/null
+> +++ b/drivers/phy/Makefile
+> @@ -0,0 +1,5 @@
+> +#
+> +# Makefile for the phy drivers.
+> +#
+> +
+> +obj-$(CONFIG_GENERIC_PHY)	+=3D phy-core.o
+> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+> new file mode 100644
+> index 0000000..c55446a
+> --- /dev/null
+> +++ b/drivers/phy/phy-core.c
+> @@ -0,0 +1,437 @@
+> +/*
+> + * phy-core.c  --  Generic Phy framework.
+> + *
+> + * Copyright (C) 2012 Texas Instruments
+> + *
+> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
+> + *
+> + * This program is free software; you can redistribute  it and/or modi=
+fy it
+> + * under  the terms of  the GNU General  Public License as published b=
+y the
+> + * Free Software Foundation;  either version 2 of the  License, or (at=
+ your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program.  If not, see <http://www.gnu.org/licenses/=
+>.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/export.h>
+> +#include <linux/module.h>
+> +#include <linux/err.h>
+> +#include <linux/device.h>
+> +#include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/phy/phy.h>
+> +
+> +static struct class *phy_class;
+> +static LIST_HEAD(phy_list);
+> +static DEFINE_MUTEX(phy_list_mutex);
+> +static LIST_HEAD(phy_bind_list);
+> +
+> +static void devm_phy_release(struct device *dev, void *res)
+> +{
+> +	struct phy *phy =3D *(struct phy **)res;
+
+What about adding a struct phy_res, doing so,m you don't need these
+casts, and it's easier to add more pointers if needed.
+
+> +
+> +	phy_put(phy);
+> +}
+> +
+> +static int devm_phy_match(struct device *dev, void *res, void *match_d=
+ata)
+> +{
+> +	return res =3D=3D match_data;
+> +}
+> +
+> +static struct phy *phy_lookup(struct device *dev, u8 index)
+> +{
+> +	struct phy_bind *phy_bind =3D NULL;
+> +
+> +	list_for_each_entry(phy_bind, &phy_bind_list, list) {
+> +		if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
+> +				phy_bind->index =3D=3D index)
+> +			return phy_bind->phy;
+> +	}
+> +
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static struct phy *of_phy_lookup(struct device *dev, struct device_nod=
+e *node)
+> +{
+> +	int index =3D 0;
+> +	struct phy  *phy;
+                  ^^
+
+Please remove that stray space.
+
+> +	struct phy_bind *phy_map =3D NULL;
+> +
+> +	list_for_each_entry(phy_map, &phy_bind_list, list)
+> +		if (!(strcmp(phy_map->dev_name, dev_name(dev))))
+> +			index++;
+> +
+> +	list_for_each_entry(phy, &phy_list, head) {
+> +		if (node !=3D phy->desc->of_node)
+> +			continue;
+> +
+> +		phy_map =3D phy_bind(dev_name(dev), index, dev_name(&phy->dev));
+> +		if (!IS_ERR(phy_map)) {
+> +			phy_map->phy =3D phy;
+> +			phy_map->auto_bind =3D true;
+> +		}
+> +
+> +		return phy;
+> +	}
+> +
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +/**
+> + * devm_phy_get - lookup and obtain a reference to a phy.
+> + * @dev: device that requests this phy
+> + * @index: the index of the phy
+> + *
+> + * Gets the phy using phy_get(), and associates a device with it using=
+
+> + * devres. On driver detach, release function is invoked on the devres=
+ data,
+> + * then, devres data is freed.
+> + */
+> +struct phy *devm_phy_get(struct device *dev, u8 index)
+> +{
+> +	struct phy **ptr, *phy;
+> +
+> +	ptr =3D devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+> +	if (!ptr)
+> +		return NULL;
+> +
+> +	phy =3D phy_get(dev, index);
+> +	if (!IS_ERR(phy)) {
+> +		*ptr =3D phy;
+> +		devres_add(dev, ptr);
+> +	} else
+> +		devres_free(ptr);
+
+nitpick: when when if has { }, else should have, too.
+
+> +
+> +	return phy;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_phy_get);
+> +
+> +/**
+> + * devm_phy_put - release the PHY
+> + * @dev: device that wants to release this phy
+> + * @phy: the phy returned by devm_phy_get()
+> + *
+> + * destroys the devres associated with this phy and invokes phy_put
+> + * to release the phy.
+> + */
+> +void devm_phy_put(struct device *dev, struct phy *phy)
+> +{
+> +	int r;
+> +
+> +	r =3D devres_destroy(dev, devm_phy_release, devm_phy_match, phy);
+> +	dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
+> +}
+> +EXPORT_SYMBOL_GPL(devm_phy_put);
+> +
+> +/**
+> + * devm_of_phy_get - lookup and obtain a reference to a phy by phandle=
+
+> + * @dev: device that requests this phy
+> + * @phandle: name of the property holding the phy phandle value
+> + *
+> + * Returns the phy driver associated with the given phandle value,
+> + * after getting a refcount to it or -ENODEV if there is no such phy.
+> + * While at that, it also associates the device with the phy using dev=
+res.
+> + * On driver detach, release function is invoked on the devres data,
+> + * then, devres data is freed.
+> + */
+> +struct phy *devm_of_phy_get(struct device *dev, const char *phandle)
+
+We should discuss first how the DT binding for a phy should look like. I
+don't like that you hardcode the index (in of_parse_phandle()) to "0".
+Then we have the problem with USB2 and USB3 phys for the same usb device.=
+
+
+> +{
+> +	struct phy	*phy =3D NULL, **ptr;
+> +	struct device_node *node;
+> +
+> +	if (!dev->of_node) {
+> +		dev_dbg(dev, "device does not have a device node entry\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	node =3D of_parse_phandle(dev->of_node, phandle, 0);
+> +	if (!node) {
+> +		dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
+> +			dev->of_node->full_name);
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +
+> +	ptr =3D devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
+> +	if (!ptr) {
+> +		dev_dbg(dev, "failed to allocate memory for devres\n");
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	mutex_lock(&phy_list_mutex);
+> +
+> +	phy =3D of_phy_lookup(dev, node);
+> +	if (IS_ERR(phy) || !try_module_get(phy->dev.driver->owner)) {
+> +		devres_free(ptr);
+> +		goto err0;
+> +	}
+
+Please return -EPROBE_DEFER is the phy is not yet registered.
+
+> +
+> +	*ptr =3D phy;
+> +	devres_add(dev, ptr);
+> +
+> +	get_device(&phy->dev);
+> +
+> +err0:
+> +	mutex_unlock(&phy_list_mutex);
+> +
+> +	return phy;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_of_phy_get);
+> +
+> +/**
+> + * phy_get - lookup and obtain a reference to a phy.
+> + * @dev: device that requests this phy
+> + * @index: the index of the phy
+> + *
+> + * Returns the phy driver, after getting a refcount to it; or
+> + * -ENODEV if there is no such phy.  The caller is responsible for
+> + * calling phy_put() to release that count.
+> + */
+> +struct phy *phy_get(struct device *dev, u8 index)
+> +{
+> +	struct phy	*phy =3D NULL;
+> +
+> +	mutex_lock(&phy_list_mutex);
+> +
+> +	phy =3D phy_lookup(dev, index);
+> +	if (IS_ERR(phy)) {
+> +		pr_err("unable to find phy\n");
+
+dev_err()
+
+> +		goto err0;
+> +	}
+> +
+> +	get_device(&phy->dev);
+> +
+> +err0:
+> +	mutex_unlock(&phy_list_mutex);
+> +
+> +	return phy;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_get);
+> +
+> +/**
+> + * phy_put - release the PHY
+> + * @phy: the phy returned by phy_get()
+> + *
+> + * Releases a refcount the caller received from phy_get().
+> + */
+> +void phy_put(struct phy *phy)
+> +{
+> +	if (phy)
+> +		put_device(&phy->dev);
+> +}
+> +EXPORT_SYMBOL_GPL(phy_put);
+> +
+> +/**
+> + * create_phy - create a new phy
+> + * @dev: device that is creating the new phy
+> + * @desc: descriptor of the phy
+> + *
+> + * Called to create a phy using phy framework.
+> + */
+> +struct phy *create_phy(struct device *dev, struct phy_descriptor *desc=
+)
+
+All other functions are named phy_*, please rename this, too.
+
+> +{
+> +	int ret;
+> +	struct phy *phy;
+> +	struct phy_bind *phy_bind;
+> +	const char *devname =3D NULL;
+> +
+> +	if (!dev || !desc) {
+> +		dev_err(dev, "no descriptor/device provided for PHY\n");
+> +		ret =3D -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	if (!desc->ops) {
+> +		dev_err(dev, "no PHY ops provided\n");
+> +		ret =3D -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	phy =3D kzalloc(sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		dev_err(dev, "no memory for PHY\n");
+> +		ret =3D -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	devname =3D dev_name(dev);
+> +	device_initialize(&phy->dev);
+> +	phy->desc =3D desc;
+> +	phy->dev.class =3D phy_class;
+> +	phy->dev.parent =3D dev;
+> +	ret =3D dev_set_name(&phy->dev, "%s", devname);
+> +	if (ret)
+> +		goto err1;
+> +
+> +	mutex_lock(&phy_list_mutex);
+> +	list_for_each_entry(phy_bind, &phy_bind_list, list)
+> +		if (!(strcmp(phy_bind->phy_dev_name, devname)))
+> +			phy_bind->phy =3D phy;
+> +
+> +	list_add_tail(&phy->head, &phy_list);
+> +
+> +	ret =3D device_add(&phy->dev);
+> +	if (ret)
+> +		goto err2;
+> +
+> +	mutex_unlock(&phy_list_mutex);
+> +
+> +	return phy;
+> +
+> +err2:
+> +	phy_bind->phy =3D NULL;
+> +	list_del(&phy->head);
+> +	mutex_unlock(&phy_list_mutex);
+> +
+> +err1:
+> +	put_device(&phy->dev);
+> +	kfree(phy);
+> +
+> +err0:
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(create_phy);
+> +
+> +/**
+> + * destroy_phy - destroy the phy
+> + * @phy: the phy to be destroyed
+> + *
+> + * Called to destroy the phy.
+> + */
+> +void destroy_phy(struct phy *phy)
+> +{
+> +	struct phy_bind *phy_bind;
+> +
+> +	mutex_lock(&phy_list_mutex);
+> +	list_for_each_entry(phy_bind, &phy_bind_list, list) {
+> +		if (phy_bind->phy =3D=3D phy)
+> +			phy_bind->phy =3D NULL;
+> +
+> +		if (phy_bind->auto_bind) {
+> +			list_del(&phy_bind->list);
+> +			kfree(phy_bind);
+> +		}
+> +	}
+> +
+> +	list_del(&phy->head);
+> +	mutex_unlock(&phy_list_mutex);
+> +
+> +	device_unregister(&phy->dev);
+> +}
+> +EXPORT_SYMBOL_GPL(destroy_phy);
+> +
+> +/**
+> + * phy_bind - bind the phy and the controller that uses the phy
+> + * @dev_name: the device name of the device that will bind to the phy
+> + * @index: index to specify the port number
+> + * @phy_dev_name: the device name of the phy
+> + *
+> + * Fills the phy_bind structure with the dev_name and phy_dev_name. Th=
+is will
+> + * be used when the phy driver registers the phy and when the controll=
+er
+> + * requests this phy.
+> + *
+> + * To be used by platform specific initialization code.
+> + */
+> +struct phy_bind *phy_bind(const char *dev_name, u8 index,
+> +				const char *phy_dev_name)
+> +{
+> +	struct phy_bind *phy_bind;
+> +
+> +	phy_bind =3D kzalloc(sizeof(*phy_bind), GFP_KERNEL);
+> +	if (!phy_bind) {
+> +		pr_err("phy_bind(): No memory for phy_bind");
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	phy_bind->dev_name =3D dev_name;
+> +	phy_bind->phy_dev_name =3D phy_dev_name;
+> +	phy_bind->index =3D index;
+> +	phy_bind->auto_bind =3D false;
+> +
+> +	list_add_tail(&phy_bind->list, &phy_bind_list);
+> +
+> +	return phy_bind;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_bind);
+> +
+> +static ssize_t phy_name_show(struct device *dev,
+> +			     struct device_attribute *attr, char *buf)
+> +{
+> +	struct phy *phy;
+> +
+> +	phy =3D container_of(dev, struct phy, dev);
+> +
+> +	return sprintf(buf, "%s\n", phy->desc->label);
+> +}
+> +
+> +static ssize_t phy_bind_show(struct device *dev,
+> +			     struct device_attribute *attr, char *buf)
+> +{
+> +	struct phy_bind *phy_bind;
+> +	struct phy *phy;
+> +	char *p =3D buf;
+> +	int len;
+> +
+> +	phy =3D container_of(dev, struct phy, dev);
+> +
+> +	list_for_each_entry(phy_bind, &phy_bind_list, list)
+> +		if (phy_bind->phy =3D=3D phy)
+> +			p +=3D sprintf(p, "%s %d\n", phy_bind->dev_name,
+> +							phy_bind->index);
+> +	len =3D (p - buf);
+> +
+> +	return len;
+> +}
+> +
+> +static struct device_attribute phy_dev_attrs[] =3D {
+> +	__ATTR(label, 0444, phy_name_show, NULL),
+> +	__ATTR(bind, 0444, phy_bind_show, NULL),
+> +	__ATTR_NULL,
+> +};
+> +
+> +/**
+> + * phy_release - release the phy
+> + * @dev: the dev member within phy
+> + *
+> + * when the last reference to the device is removed; it is called
+> + * from the embedded kobject as release method.
+> + */
+> +static void phy_release(struct device *dev)
+> +{
+> +	struct phy *phy;
+> +
+> +	phy =3D container_of(dev, struct phy, dev);
+> +	dev_dbg(dev, "releasing '%s'\n", dev_name(dev));
+> +	kfree(phy);
+> +}
+> +
+> +static int __init phy_core_init(void)
+> +{
+> +	phy_class =3D class_create(THIS_MODULE, "phy");
+> +	if (IS_ERR(phy_class)) {
+> +		pr_err("failed to create phy class --> %ld\n",
+> +			PTR_ERR(phy_class));
+> +		return PTR_ERR(phy_class);
+> +	}
+> +
+> +	phy_class->dev_release =3D phy_release;
+> +	phy_class->dev_attrs =3D phy_dev_attrs;
+> +
+> +	return 0;
+> +}
+> +subsys_initcall(phy_core_init);
+> +
+> +static void __exit phy_core_exit(void)
+> +{
+> +	class_destroy(phy_class);
+> +}
+> +module_exit(phy_core_exit);
+> +
+> +MODULE_DESCRIPTION("Generic Phy Framework");
+> +MODULE_AUTHOR("Kishon Vijay Abraham I <kishon@ti.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/linux/phy/phy.h b/include/linux/phy/phy.h
+> new file mode 100644
+> index 0000000..831c1c0
+> --- /dev/null
+> +++ b/include/linux/phy/phy.h
+> @@ -0,0 +1,181 @@
+> +/*
+> + * phy.h -- generic phy header file
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.c=
+om
+> + * This program is free software; you can redistribute it and/or modif=
+y
+> + * it under the terms of the GNU General Public License as published b=
+y
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +
+> +#ifndef __DRIVERS_PHY_H
+> +#define __DRIVERS_PHY_H
+> +
+> +struct phy;
+> +
+> +/**
+> + * struct phy_descriptor - structure that describes the PHY
+> + * @label: label given to phy
+> + * @type: specifies the phy type
+> + * @of_node: device node of the phy
+> + * @ops: function pointers for performing phy operations
+> + */
+> +struct phy_descriptor {
+> +	const char		*label;
+> +	int			type;
+> +	struct device_node	*of_node;
+> +	struct phy_ops		*ops;
+> +};
+> +
+> +/**
+> + * struct phy_ops - set of function pointers for performing phy operat=
+ions
+> + * @init: operation to be performed for initializing phy
+> + * @exit: operation to be performed while exiting
+> + * @suspend: suspending the phy
+> + * @resume: resuming the phy
+> + * @poweron: powering on the phy
+> + * @shutdown: shutting down the phy
+> + */
+> +struct phy_ops {
+> +	int	(*init)(struct phy_descriptor *desc);
+> +	int	(*exit)(struct phy_descriptor *desc);
+> +	int	(*suspend)(struct phy_descriptor *desc);
+> +	int	(*resume)(struct phy_descriptor *desc);
+> +	int	(*poweron)(struct phy_descriptor *desc);
+> +	int	(*shutdown)(struct phy_descriptor *desc);
+> +};
+> +
+> +/**
+> + * struct phy - represent the phy device
+> + * @desc: descriptor for the phy
+> + * @head: to support multiple transceivers
+> + */
+> +struct phy {
+> +	struct device		dev;
+> +	struct phy_descriptor	*desc;
+> +	struct list_head	head;
+> +};
+> +
+> +/**
+> + * struct phy_bind - represent the binding for the phy
+> + * @dev_name: the device name of the device that will bind to the phy
+> + * @phy_dev_name: the device name of the phy
+> + * @index: used if a single controller uses multiple phys
+> + * @auto_bind: tells if the binding is done explicitly from board file=
+ or not
+> + * @phy: reference to the phy
+> + * @list: to maintain a linked list of the binding information
+> + */
+> +struct phy_bind {
+> +	const char	*dev_name;
+> +	const char	*phy_dev_name;
+> +	u8		index;
+> +	int		auto_bind:1;
+> +	struct phy	*phy;
+> +	struct list_head list;
+> +};
+> +
+> +#if defined(CONFIG_GENERIC_PHY) || defined(CONFIG_GENERIC_PHY_MODULE)
+> +extern struct phy *devm_phy_get(struct device *dev, u8 index);
+> +extern void devm_phy_put(struct device *dev, struct phy *phy);
+> +extern struct phy *devm_of_phy_get(struct device *dev, const char *pha=
+ndle);
+> +extern struct phy *phy_get(struct device *dev, u8 index);
+> +extern void phy_put(struct phy *phy);
+> +extern struct phy *create_phy(struct device *dev, struct phy_descripto=
+r *desc);
+> +extern void destroy_phy(struct phy *phy);
+> +extern struct phy_bind *phy_bind(const char *dev_name, u8 index,
+> +				const char *phy_dev_name);
+> +#else
+> +static inline struct phy *devm_phy_get(struct device *dev, u8 index)
+> +{
+> +	return ERR_PTR(-EINVAL);
+> +}
+> +
+> +static inline void devm_phy_put(struct device *dev, struct phy *phy)
+> +{
+> +}
+> +
+> +static inline struct phy *devm_of_phy_get(struct device *dev,
+> +		const char *phandle)
+> +{
+> +	return ERR_PTR(-EINVAL);
+> +}
+> +
+> +static inline struct phy *phy_get(struct device *dev, u8 index)
+> +{
+> +	return ERR_PTR(-EINVAL);
+> +}
+> +
+> +static inline void phy_put(struct phy *phy)
+> +{
+> +}
+> +
+> +static inline struct phy *create_phy(struct device *dev,
+> +	struct phy_descriptor *desc)
+> +{
+> +	return ERR_PTR(-EINVAL);
+> +}
+> +
+> +static inline void destroy_phy(struct phy *phy)
+> +{
+> +}
+> +
+> +static inline struct phy_bind *phy_bind(const char *dev_name, u8 index=
+,
+> +				const char *phy_dev_name)
+> +{
+> +}
+> +#endif
+> +
+> +static inline int phy_init(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->init)
+> +		return phy->desc->ops->init(phy->desc);
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static inline int phy_exit(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->exit)
+> +		return phy->desc->ops->exit(phy->desc);
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static inline int phy_suspend(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->suspend)
+> +		return phy->desc->ops->suspend(phy->desc);
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static inline int phy_resume(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->resume)
+> +		return phy->desc->ops->resume(phy->desc);
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static inline int phy_poweron(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->poweron)
+> +		return phy->desc->ops->poweron(phy->desc);
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static inline void phy_shutdown(struct phy *phy)
+> +{
+> +	if (phy->desc->ops->shutdown)
+> +		phy->desc->ops->shutdown(phy->desc);
+> +}
+> +#endif /* __DRIVERS_PHY_H */
+>=20
+
 
 --=20
-balbi
+Pengutronix e.K.                  | Marc Kleine-Budde           |
+Industrial Linux Solutions        | Phone: +49-231-2826-924     |
+Vertretung West/Dortmund          | Fax:   +49-5121-206917-5555 |
+Amtsgericht Hildesheim, HRA 2686  | http://www.pengutronix.de   |
 
---m51xatjYGsM+13rf
+
+--------------enig7B6C41B3C5F81E8F2CA22334
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQUyA0AAoJEIaOsuA1yqREdfIP/2N1Eosj/o1XnLIypmTvHekg
-E7JBUADTnZFd+9It4CyPAdeH1GkLVXrtJfofIOwuw8gT3Y1Q0ZypHYpBDWlYwMWx
-yrHD5FUqj1wWo1/CFxGckTgLUdMPtN95gL6eW3wMA9lhCfNP7LhxmOapkYR4TSPu
-qOKwmJwP4p217GF235JlG6WemXu1uAFAY/WO0vLvYvu4ekNP/IB2YKMbzUqInO4A
-wWv5+F4B6RXeyA+wqZRzmnGAzGur68WXQUK91/XpWt2e5922lh0OkJDVqWQ5DXIZ
-3+wW/hRkNnzLsvF9HvewTdZzLgzlmVh/Wcg278RDC7xVt8ulW+ymwXK+Oz0rBXC2
-a7D//FyyhTxnklTp/6ubR7Fd1Oaz2k9/9K9p3x+alYkkf9GWtm1uZKjlam/xJOo5
-a5olmm3/pbMiVoEg2lwlaSxS/VlH4Dsg1tmI9lDIJYZs/CEGFNMnUROs8GjTjrkb
-fbPa4apUgf/N1i+LhzuGw0zWRiH8bFqKx4Q/hdB1rFCF6cHP+20Csq7xEk01ujS8
-xawgdjW9Xv+cEChBaYvT8u5W1dE4kQYVjhTz95mUEMnJ0S/RXYC3hWLxkDs2tXgs
-wA2JXtD8DXz9j0k+gBvaNdfc4aghXHE2n2lBQ1nCCIpdQFjoIf92JpWSasy0l5rk
-lYl2ckDWWrrlu9OxNtKe
-=25Dt
+iEYEARECAAYFAlBTIucACgkQjTAFq1RaXHMsdACfW5CHD6e5J34/FdiHDWxkTn3F
+SiQAnRcFwjjnejD+8uA7EAiaB9um7Phm
+=DTqo
 -----END PGP SIGNATURE-----
 
---m51xatjYGsM+13rf--
+--------------enig7B6C41B3C5F81E8F2CA22334--
