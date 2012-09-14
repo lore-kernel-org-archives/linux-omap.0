@@ -1,126 +1,118 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 2/2] ARM: dts: AM33XX: Add lis331dlh device tree data to
- am335x-evm
-Date: Fri, 14 Sep 2012 09:18:32 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2F0AB@DBDE01.ent.ti.com>
-References: <1347551685-19781-1-git-send-email-anilkumar@ti.com>
- <1347551685-19781-3-git-send-email-anilkumar@ti.com>
- <201209140826.07069.arnd@arndb.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
+Date: Fri, 14 Sep 2012 14:50:34 +0530
+Message-ID: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52722 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758166Ab2INJTE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 05:19:04 -0400
-In-Reply-To: <201209140826.07069.arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "greg@kroah.com" <greg@kroah.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-Hi Arnd,
+OMAP interconnect drivers are used for the interconnect error handling.
+Since they are bus driver, lets move it to newly created drivers/bus.
 
-Thanks for the review,
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+Patch just moves OMAP interconnect drivers as is to the newly created
+driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
+tree and test on all OMAP boards.
 
-On Fri, Sep 14, 2012 at 13:56:06, Arnd Bergmann wrote:
-> On Thursday 13 September 2012, AnilKumar Ch wrote:
-> > Add lis331dlh device tree data to am335x-evm.dts. In AM335x EVM
-> > lis331dlh accelerometer is connected to I2C2 bus. So this patch
-> > change the status to "okay" to use I2C2 bus. Also added all the
-> > required platform data to am335x-evm.
-> > 
-> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
-> > ---
-> >  arch/arm/boot/dts/am335x-evm.dts |   42 ++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 42 insertions(+)
-> > 
-> > diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-> > index 9fb59c5..9e5a878 100644
-> > --- a/arch/arm/boot/dts/am335x-evm.dts
-> > +++ b/arch/arm/boot/dts/am335x-evm.dts
-> > @@ -47,6 +47,15 @@
-> >  			};
-> >  		};
-> >  
-> > +		i2c2: i2c@4802a000 {
-> > +			status = "okay";
-> > +			clock-frequency = <400000>;
-> > +
-> > +			lis331dlh: lis331dlh@18 {
-> > +				reg = <0x18>;
-> > +			};
-> > +		};
-> 
-> Why do you put the "reg" property here
+ arch/arm/mach-omap2/Kconfig                        |    2 ++
+ arch/arm/mach-omap2/Makefile                       |    5 -----
+ drivers/bus/Kconfig                                |    6 ++++++
+ drivers/bus/Makefile                               |    3 +++
+ {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.c |    0
+ {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.h |    0
+ {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.c |    0
+ {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.h |    0
+ 8 files changed, 11 insertions(+), 5 deletions(-)
+ rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.c (100%)
+ rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.h (100%)
+ rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.c (100%)
+ rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.h (100%)
 
-Here I specified reg property because lis331dlh I2C slave address is 0x18.
-
-> 
-> >  		dcan1: d_can@481d0000 {
-> >  			status = "okay";
-> >  			pinctrl-names = "default";
-> > @@ -61,6 +70,39 @@
-> >  		regulator-max-microvolt = <5000000>;
-> >  		regulator-boot-on;
-> >  	};
-> > +
-> > +	lis3_reg: fixedregulator@1 {
-> > +		compatible = "regulator-fixed";
-> > +		regulator-name = "lis3_reg";
-> > +		regulator-boot-on;
-> > +	};
-> > +};
-> > +&lis331dlh {
-> > +	compatible = "st,lis3lv02d-i2c";
-> 
-> and all the rest here? At least I would expect the "compatible" property
-> to be in the same place above.
-
-This data is appended to above one, to make it readable I moved remaining
-properties to here.
-
-> 
-> Also, I think you should remove the "-i2c" postfix from the name, that
-> is already implied by the parent bus.
-
-I will remove, but in case of spi the compatible name is lis3lv02d_spi.
-By mistake I have uses "-i2c" instead of "_i2c".
-
-> 
-> > +	Vdd-supply = <&lis3_reg>;
-> > +	Vdd_IO-supply = <&lis3_reg>;
-> > +
-> > +	st,click-single-x;
-> > +	st,click-single-y;
-> > +	st,click-single-z;
-> > +	st,click-thresh-x = <10>;
-> > +	st,click-thresh-y = <10>;
-> > +	st,click-thresh-z = <10>;
-> > +	st,irq1-click;
-> > +	st,irq2-click;
-> > +	st,wakeup-x-lo;
-> > +	st,wakeup-x-hi;
-> > +	st,wakeup-y-lo;
-> > +	st,wakeup-y-hi;
-> > +	st,wakeup-z-lo;
-> > +	st,wakeup-z-hi;
-> > +	st,min-limit-x = <120>;
-> > +	st,min-limit-y = <120>;
-> > +	st,min-limit-z = <140>;
-> > +	st,max-limit-x = <550>;
-> > +	st,max-limit-y = <550>;
-> > +	st,max-limit-z = <750>;
-> 
-> Is there a binding document that describes all these?
-
-Document is already present, 
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=2f2ff3cc8d930493f9a598b9192706c09403e12e
-
-Some minor changes in docs, in my next version I will update document
-as well. I will send V3 if there are no comments on v2.
-
-Thanks
-AnilKumar
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index dd2db02..7d3c8ab 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -44,6 +44,7 @@ config ARCH_OMAP3
+ 	select ARM_CPU_SUSPEND if PM
+ 	select MULTI_IRQ_HANDLER
+ 	select SOC_HAS_OMAP2_SDRC
++	select OMAP_INTERCONNECT
+ 
+ config ARCH_OMAP4
+ 	bool "TI OMAP4"
+@@ -63,6 +64,7 @@ config ARCH_OMAP4
+ 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARM_CPU_SUSPEND if PM
+ 	select ARCH_NEEDS_CPU_IDLE_COUPLED
++	select OMAP_INTERCONNECT
+ 
+ config SOC_OMAP5
+ 	bool "TI OMAP5"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f6a24b3..7fed980 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -199,11 +199,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
+ # EMU peripherals
+ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+ 
+-# L3 interconnect
+-obj-$(CONFIG_ARCH_OMAP3)		+= omap_l3_smx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= omap_l3_noc.o
+-obj-$(CONFIG_SOC_OMAP5)			+= omap_l3_noc.o
+-
+ obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
+ mailbox_mach-objs			:= mailbox.o
+ 
+diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+index 6270415..bbec35d 100644
+--- a/drivers/bus/Kconfig
++++ b/drivers/bus/Kconfig
+@@ -12,4 +12,10 @@ config OMAP_OCP2SCP
+ 	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
+ 	  OCP2SCP.
+ 
++config OMAP_INTERCONNECT
++	tristate "OMAP INTERCONNECT DRIVER"
++	depends on ARCH_OMAP2PLUS
++
++	help
++	  Driver to enable OMAP interconnect error handling driver.
+ endmenu
+diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
+index 0ec50bc..45d997c 100644
+--- a/drivers/bus/Makefile
++++ b/drivers/bus/Makefile
+@@ -3,3 +3,6 @@
+ #
+ 
+ obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
++
++# Interconnect bus driver for OMAP SoCs.
++obj-$(CONFIG_OMAP_INTERCONNECT)	+= omap_l3_smx.o omap_l3_noc.o
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+similarity index 100%
+rename from arch/arm/mach-omap2/omap_l3_noc.c
+rename to drivers/bus/omap_l3_noc.c
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
+similarity index 100%
+rename from arch/arm/mach-omap2/omap_l3_noc.h
+rename to drivers/bus/omap_l3_noc.h
+diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/drivers/bus/omap_l3_smx.c
+similarity index 100%
+rename from arch/arm/mach-omap2/omap_l3_smx.c
+rename to drivers/bus/omap_l3_smx.c
+diff --git a/arch/arm/mach-omap2/omap_l3_smx.h b/drivers/bus/omap_l3_smx.h
+similarity index 100%
+rename from arch/arm/mach-omap2/omap_l3_smx.h
+rename to drivers/bus/omap_l3_smx.h
+-- 
+1.7.9.5
