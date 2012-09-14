@@ -1,136 +1,85 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH V4 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 14 Sep 2012 09:03:18 -0500
-Message-ID: <50533926.1070201@ti.com>
-References: <1347573629-21299-1-git-send-email-jon-hunter@ti.com> <201209140943.49904.arnd@arndb.de> <505330B4.4070605@ti.com> <201209141332.42420.arnd@arndb.de>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] RTC: TWL: ensure all interrupts are disabled during probe
+Date: Fri, 14 Sep 2012 07:07:50 -0700
+Message-ID: <87r4q4aea1.fsf@deeprootsystems.com>
+References: <1347569157-19262-1-git-send-email-khilman@deeprootsystems.com>
+	<CAM=Q2cufVSReuvs3Yf6jvuBFeV9j5iPWV-DaMqRkCJFXUMZPQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50527 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756160Ab2INODo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Sep 2012 10:03:44 -0400
-In-Reply-To: <201209141332.42420.arnd@arndb.de>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49465 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755754Ab2INOHw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 10:07:52 -0400
+Received: by obbuo13 with SMTP id uo13so6262948obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 07:07:52 -0700 (PDT)
+In-Reply-To: <CAM=Q2cufVSReuvs3Yf6jvuBFeV9j5iPWV-DaMqRkCJFXUMZPQg@mail.gmail.com>
+	(Shubhrajyoti Datta's message of "Fri, 14 Sep 2012 17:12:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
+To: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 
+Shubhrajyoti Datta <omaplinuxkernel@gmail.com> writes:
 
-On 09/14/2012 08:32 AM, Arnd Bergmann wrote:
-> On Friday 14 September 2012, Jon Hunter wrote:
->> On 09/14/2012 04:43 AM, Arnd Bergmann wrote:
->>>> +
->>>> +Client drivers should specify the DMA property using a phandle to the controller
->>>> +followed by DMA controller specific data.
->>>> +
->>>> +Required property:
->>>> +- dmas:			List of one or more DMA specifiers, each consisting of
->>>> +			- A phandle pointing to DMA controller node
->>>> +			- A single integer cell containing DMA controller
->>>> +			  specific information. This typically contains a dma
->>>> +			  request line number or a channel number, but can
->>>> +			  contain any data that is used required for configuring
->>>> +			  a channel.
->>>> +- dma-names: 		Contains one identifier string for each dma specifier in
->>>> +			the dmas property. The specific strings that can be used
->>>> +			are defined in the binding of the DMA client device.
->>>
->>> I think here we need to clarify that listing the same name multiple times implies
->>> having multiple alternatives for the same channel.
+> Hi Kevin,
+>
+> On Fri, Sep 14, 2012 at 2:15 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> From: Kevin Hilman <khilman@ti.com>
 >>
->> Ok, however, the way it works right now is that we will use the first
->> specifier that matches the name. So if there are multiple with the same
->> name that would imply that someone will need call the
->> xxx_request_slave_channel() multiple times to extract these. Is that ok?
-> 
-> I would expect a driver to only call the function once, and get something
-> back from the dmaengine layer that works. If there are two controllers
-> to choose from and one is busy, then it should definitely give a channel
-> from the non-busy one.
-> 
-> It's not much of an issue if the code doesn't handle all corner cases at
-> first, but I would expect that the binding correctly describes how to write
-> a device tree that will work once the code implements it correctly.
+>> On some platforms, bootloaders are known to do some interesting RTC
+>> programming.  Without going into the obscurities as to why this may be
+>> the case, suffice it to say the the driver should not make any
+>> assumptions about the state of the RTC when the driver loads.  In
+>> particular, the driver probe should be sure that all interrupts are
+>> disabled until otherwise programmed.
+>>
+>> This was discovered when finding bursty I2C traffic every second on
+>> Overo platforms.  This I2C overhead was keeping the SoC from hitting
+>> deep power states.  The cause was found to be the RTC firing every
+>> second on the I2C-connected TWL PMIC.
+>>
+>> Special thanks to Felipe Balbi for suggesting to look for a rogue
+>> driver as the source of the I2C traffic rather than the I2C driver
+>> itself.
+>>
+>> Special thanks to Steve Sakoman for helping track down the source of
+>> the continuous RTC interrups on the Overo boards.
+>>
+>
+> Tested that the continuous interrupt issue after doing a i2c mm on omap4sdp.
+> This patch solves the issue.
+> thanks,
+>
+>> Cc: Felipe Balbi <balbi@ti.com>
+>> Cc: Steve Sakoman <steve@sakoman.com>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>> Patch applies to v3.6-rc5
+>>
+>>  drivers/rtc/rtc-twl.c |    5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+>> index c5d06fe..9277d94 100644
+>> --- a/drivers/rtc/rtc-twl.c
+>> +++ b/drivers/rtc/rtc-twl.c
+>> @@ -495,6 +495,11 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+>>         if (ret < 0)
+>>                 goto out1;
+>>
+>> +       /* ensure interrupts are disabled, bootloaders can be strange */
+>> +       ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
+>> +       if (ret < 0)
+>> +               dev_warn(&pdev->dev, "unable to disable interrupt\n");
+>> +
+> Now that it is always 0 can the below read be removed as it is redundant now.
 
-Gotcha, may be something like the following should work then ...
+Possibly, but I don't know this HW well enough to know if there are any
+persistent bits in that register on any of the various derivations of
+this PMIC.  Since this read-back value is used throughout the driver, I
+decided not to mess with it when doing this targetted fix.
 
-diff --git a/drivers/of/dma.c b/drivers/of/dma.c
-index 4025f2f..de59611 100644
---- a/drivers/of/dma.c
-+++ b/drivers/of/dma.c
-@@ -127,13 +127,15 @@ static int of_dma_find_channel(struct device_node *np, char *name,
- 		return count;
- 
- 	for (i = 0; i < count; i++) {
--		of_property_read_string_index(np, "dma-names", i, &s);
-+		if (of_property_read_string_index(np, "dma-names", i, &s))
-+			continue;
- 
- 		if (strcmp(name, s))
- 			continue;
- 
--		return of_parse_phandle_with_args(np, "dmas", "#dma-cells",
--							i, dma_spec);
-+		if (!of_parse_phandle_with_args(np, "dmas", "#dma-cells", i,
-+						dma_spec))
-+			return 0;
- 	}
- 
- 	return -ENODEV;
-@@ -159,33 +161,34 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- 		return NULL;
- 	}
- 
--	r = of_dma_find_channel(np, name, &dma_spec);
--
--	if (r) {
--		pr_err("%s: can't find DMA channel\n", np->full_name);
--		return NULL;
--	}
-+	do {
-+		r = of_dma_find_channel(np, name, &dma_spec);
-+		if (r) {
-+			pr_err("%s: can't find DMA channel\n", np->full_name);
-+			return NULL;
-+		}
-+
-+		ofdma = of_dma_find_controller(dma_spec.np);
-+		if (!ofdma) {
-+			pr_debug("%s: can't find DMA controller %s\n",
-+			       np->full_name, dma_spec.np->full_name);
-+			continue;
-+		}
- 
--	ofdma = of_dma_find_controller(dma_spec.np);
--	if (!ofdma) {
--		pr_err("%s: can't find DMA controller %s\n", np->full_name,
--		       dma_spec.np->full_name);
--		return NULL;
--	}
-+		if (dma_spec.args_count != ofdma->of_dma_nbcells) {
-+			pr_debug("%s: wrong #dma-cells for %s\n", np->full_name,
-+			       dma_spec.np->full_name);
-+			continue;
-+		}
- 
--	if (dma_spec.args_count != ofdma->of_dma_nbcells) {
--		pr_err("%s: wrong #dma-cells for %s\n", np->full_name,
--		       dma_spec.np->full_name);
--		return NULL;
--	}
-+		chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
- 
--	chan = ofdma->of_dma_xlate(&dma_spec, ofdma);
-+		of_node_put(dma_spec.np);
- 
--	of_node_put(dma_spec.np);
-+	} while (!chan);
- 
- 	return chan;
- }
--EXPORT_SYMBOL_GPL(of_dma_request_slave_channel);
- 
-Cheers
-Jon
+Kevin
+
