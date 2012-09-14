@@ -1,12 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 1/7] omap non-critical fixes for v3.7 merge window
+Subject: [GIT PULL 2/7] omap device changes for v3.7 merge window
 Date: Thu, 13 Sep 2012 19:34:10 -0700
-Message-ID: <33924.807518679$1347590219@news.gmane.org>
+Message-ID: <E1TCLk2-0006Tj-Rw@merlin.infradead.org>
+References: <pull-1347590052-683636>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
+In-Reply-To: <pull-1347590052-683636>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,26 +28,30 @@ The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-noncritical-for-v3.7
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/devel-omap-device-for-v3.7
 
-for you to fetch changes up to 3c5dc4a7daa6e64e39412fe9c7daa298834de623:
+for you to fetch changes up to 47d85ec2a23552fd3d8b56778a23a5a843c5b9b1:
 
-  ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write (2012-09-12 21:14:34 -0700)
-
-----------------------------------------------------------------
-Non critical omap fixes that we not considered necessary
-for the v3.6 -rc cycle.
+  Merge tag 'for_3.7-omap_device' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into devel-omap-device (2012-09-12 21:17:56 -0700)
 
 ----------------------------------------------------------------
-Paul Walmsley (1):
-      ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write
 
-Santosh Shilimkar (1):
-      ARM: OMAP4: wakeupgen: Fix the typo in AUXCOREBOOT register save
+Kevin Hilman <khilman@ti.com>:
 
-Wei Yongjun (1):
-      gpio/omap: fix possible memory leak in omap2_gpio_dev_init()
+Updates for omap_device layer for v3.7.
 
- arch/arm/mach-omap2/gpio.c           |    2 ++
- arch/arm/mach-omap2/omap-wakeupgen.c |    8 +-------
- 2 files changed, 3 insertions(+), 7 deletions(-)
+Allows omap_device layer to keep track of driver bound status in order
+to make more intelligent decisions about idling unused devices.
+
+----------------------------------------------------------------
+Kevin Hilman (3):
+      ARM: OMAP: omap_device: keep track of driver bound status
+      ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
+      ARM: OMAP: omap_device: idle devices with no driver bound
+
+Tony Lindgren (1):
+      Merge tag 'for_3.7-omap_device' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-omap-device
+
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/omap_device.c              |   56 ++++++++++++++++++++++---
+ 2 files changed, 53 insertions(+), 5 deletions(-)
