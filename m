@@ -1,39 +1,78 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup parameter to
-	dmaengine_prep_dma_cyclic()
-Date: Fri, 14 Sep 2012 11:01:40 +0100
-Message-ID: <20120914100140.GA12445@n2100.arm.linux.org.uk>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com> <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com> <5051FB4D.3000009@metafoo.de> <1347593217.1943.26.camel@vkoul-udesk3> <5052E72A.8040207@metafoo.de> <1347612630.1943.29.camel@vkoul-udesk3> <5052F8BC.4020102@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 09/21] OMAPDSS: DISPC: Calculate scaling limits in a more
+ generic way
+Date: Fri, 14 Sep 2012 15:33:40 +0530
+Message-ID: <505300FC.3020706@ti.com>
+References: <1347538505-25359-1-git-send-email-archit@ti.com>   <1347538505-25359-10-git-send-email-archit@ti.com>  <1347612788.2559.57.camel@deskari> <5052F547.9090102@ti.com> <1347616145.2559.70.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32795 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438Ab2INKCN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 06:02:13 -0400
-Content-Disposition: inline
-In-Reply-To: <5052F8BC.4020102@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56354 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756325Ab2INKDd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 06:03:33 -0400
+In-Reply-To: <1347616145.2559.70.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@linux.intel.com>, Lars-Peter Clausen <lars@metafoo.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Fri, Sep 14, 2012 at 12:28:28PM +0300, Peter Ujfalusi wrote:
-> I'm not sure about which flags should ASoC set for the two case we are going
-> to have. I think it should be something like this:
-> 
-> unsigned long flags = DMA_CTRL_ACK;
-> 
-> if (!substream->runtime->no_period_wakeup)
-> 	flags |= DMA_PREP_INTERRUPT;
+On Friday 14 September 2012 03:19 PM, Tomi Valkeinen wrote:
+> On Fri, 2012-09-14 at 14:43 +0530, Archit Taneja wrote:
+>> On Friday 14 September 2012 02:23 PM, Tomi Valkeinen wrote:
+>>> On Thu, 2012-09-13 at 17:44 +0530, Archit Taneja wrote:
+>>>> Scaling calculations for an overlay are done by comparing pixel clock of the
+>>>> connected overlay manager and the core clock of DISPC. The pixel clock is the
+>>>> output rate of the scalar. The scalar block needs to provide pixels at this rate
+>>>> since the manager is connected to a panel, which has real time constraints.
+>>>>
+>>>> In the case of writeback in memory to memory mode, the output of the scalar
+>>>> blocks aren't connected to a display, and hence there isn't a pixel clock which
+>>>> causes downscaling limitations.
+>>>>
+>>>> Make the input to scaling calculations a bit more generic by passing the scalar
+>>>> output rate rather than passing pixel clock of the overlay manager connected to
+>>>> the pipeline, as we now have use cases where the scalar's output may not go to
+>>>> a manager connected to a panel.
+>>>
+>>> Pixel clock is the rate at which pixels are processed. I don't see it
+>>> only meaning a clock that's related to actual video signal going out of
+>>> OMAP. So if in normal case the scaler outputs pixels at the rate of
+>>> pixel clock, we can call it pixel clock with WB's case also, instead of
+>>> renaming it to output clock.
+>>
+>> Pixel clock, in OMAP DSS terms, is the rate at which the video port of
+>> an overlay manager provides pixels to an output. It is a fixed rate at
+>> which the scaler needs to push out data.
+>>
+>> If we stick to this terminology of pixel clock, I don't think it applies
+>> to writeback. As far as I see it, there is no specific rate at which the
+>> scaler outputs data, it adjusts itself based on how much scaling is
+>> done, and at the rate we can get/push data to the interconnect. That's
+>> why I didn't want to call it pixel clock. Because, that sounds a lot
+>> like a fixed rate at which pixels need to be output.
+>
+> I see your reasoning. I'm a bit reluctant to add a new clock term to
+> omapdss. You can't (probably) find it in the TRM. Does the TRM talk
+> about clocks with regard to WB?
 
-That looks about right.  I would encourage DMA_CTRL_ACK to always be set
-for slave stuff, because it will (according to my understanding of it)
-make the behaviour no different from the async_tx stuff... which is
-important when support for that stuff gets added.
+Yes, you can't find the word pixel clock linked to WB in the TRM.
 
-We could, of course, set DMA_CTRL_ACK in the slave APIs beneath the
-user, but the user has access to tx->flags between the prepare and
-submit calls...  And doing it in the submit callback will force DMA
-engine drivers to have two separate submission paths (as tx'es can't
-be acked at submission time.)
+>
+> I do think pixel clock can be used as well here. While normally used for
+> output, it's just a clock used for pixels, and at each tick we process
+> one pixel, which is exactly what happens with WB also.
+>
+> Also, if I understood right, this pixel clock is not even used for WB,
+> and in a later patch you just use a dummy value of 1 for the clock for
+> WB. So even if pixel clock would not be the best name, would it make
+> sense to use the name of pixel clock, but return 0 as the pck for WB,
+> implying that pck is not valid/does not exist, and the scaling
+> restrictions can be skipped for that?
+
+Yes, we could do that. I can check if zero leads to some bad results, or 
+we could just bypass the scaler clock stuff if the pixel clock is 0.
+
+Archit
+
