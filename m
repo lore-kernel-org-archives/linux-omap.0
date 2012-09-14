@@ -1,40 +1,47 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: omap3/4 stall when idling
-Date: Fri, 14 Sep 2012 08:08:41 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209140808170.14465@utopia.booyaka.com>
-References: <1347608227.2559.21.camel@deskari>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup
+	parameter to dmaengine_prep_dma_cyclic()
+Date: Fri, 14 Sep 2012 10:13:30 +0200
+Message-ID: <5052E72A.8040207@metafoo.de>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com>
+ <5051FB4D.3000009@metafoo.de> <1347593217.1943.26.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:45664 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757397Ab2INIIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 04:08:42 -0400
-In-Reply-To: <1347608227.2559.21.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347593217.1943.26.camel@vkoul-udesk3>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>
 
-Hi Tomi
+On 09/14/2012 05:26 AM, Vinod Koul wrote:
+> On Thu, 2012-09-13 at 17:27 +0200, Lars-Peter Clausen wrote:
+>> Hi,
+>>
+>> Hm... Do you think it would work as well if we implement this by
+>> setting the
+>> callback for the descriptor to NULL? If the callback is NULL there is
+>> nothing to at the end of a transfer/period and the dma engine driver
+>> may
+>> choose to disable interrupts. This would also benefit non cyclic
+>> transfers
+>> where the callback is NULL and we do not need add the new parameter to
+>> dmaengine_prep_dma_cyclic.
+> That will work too.... BUT the idea of no_wake mode in ALSA is that we
+> should not have any interrupts, so anything which is going to cause
+> interrupts to AP in undesired. The interrupts still happen and it just
+> that dmaengine driver is not notifying client.
 
-On Fri, 14 Sep 2012, Tomi Valkeinen wrote:
-
-> I've noticed the following stack dump on omap3 and omap4 when the device
-> idles. It takes some time to happen, but it does happen reliably. I just
-> boot up the device to my minimal filesystem, and wait. Attached is my
-> kernel config, and I'm using Linus' master branch from today.
-> 
-> I haven't noticed these affect anything, but they sure are somewhat
-> annoying =).
-> 
-> Trace on omap3:
-> 
-> [  602.007629] INFO: rcu_sched self-detected stall on CPU { 0}  (t=29678 jiffies)
-
-Good timing, check out this thread:
-
-http://marc.info/?l=linux-omap&m=134756235228309&w=2
-
-
-- Paul
+Well, the idea was that the driver would disable interrupts if there is no
+callback to call, since there would be nothing to do in the interrupt
+handler anyway. But I guess the flags approach should work fine as well.
