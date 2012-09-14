@@ -1,49 +1,47 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] ARM: OMAP2420: Cosmetic fix for timer clock aliases
-Date: Thu, 13 Sep 2012 18:46:33 -0500
-Message-ID: <1347579993-4529-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/7] omap non-critical fixes for v3.7 merge window
+Date: Thu, 13 Sep 2012 19:18:43 -0700
+Message-ID: <45636.0902790495$1347589164@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50630 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751026Ab2IMXqk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Sep 2012 19:46:40 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47785 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751106Ab2INCSu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Sep 2012 22:18:50 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jon Hunter <jon-hunter@ti.com>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-In commit c59b537 (ARM: OMAP2+: Simplify dmtimer clock aliases) new clock
-aliases were added for OMAP2+ devices. For OMAP2420, I incorrectly set the
-clock flag as CK_243X instead of CK_242X. This did not introduce a regression
-as the clock flags are not checked for OMAP2 devices. This also explains why
-I did not catch this when testing on OMAP2420.
+The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
 
-Fix the clock flags for these aliases for correctness.
+  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/clock2420_data.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+are available in the git repository at:
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index 0027451..ebf3dfb 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1897,9 +1897,9 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
- 	CLK("musb-hdrc",	"fck",	&osc_ck,	CK_242X),
--	CLK(NULL,	"timer_32k_ck",	&func_32k_ck,	CK_243X),
--	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_243X),
--	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_243X),
-+	CLK(NULL,	"timer_32k_ck",	&func_32k_ck,	CK_242X),
-+	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_242X),
-+	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_242X),
- };
- 
- /*
--- 
-1.7.9.5
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-noncritical-for-v3.7
 
+for you to fetch changes up to 3c5dc4a7daa6e64e39412fe9c7daa298834de623:
+
+  ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write (2012-09-12 21:14:34 -0700)
+
+----------------------------------------------------------------
+Non critical omap fixes that we not considered necessary
+for the v3.6 -rc cycle.
+
+----------------------------------------------------------------
+Paul Walmsley (1):
+      ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write
+
+Santosh Shilimkar (1):
+      ARM: OMAP4: wakeupgen: Fix the typo in AUXCOREBOOT register save
+
+Wei Yongjun (1):
+      gpio/omap: fix possible memory leak in omap2_gpio_dev_init()
+
+ arch/arm/mach-omap2/gpio.c           |    2 ++
+ arch/arm/mach-omap2/omap-wakeupgen.c |    8 +-------
+ 2 files changed, 3 insertions(+), 7 deletions(-)
