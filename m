@@ -1,43 +1,63 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [patch] usb: phy: signedness bug in suspend/resume
-Date: Fri, 14 Sep 2012 09:52:49 +0300
-Message-ID: <20120914065249.GC11886@elgon.mountain>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup parameter via device_prep_dma_cyclic()
+ callback
+Date: Fri, 14 Sep 2012 10:07:23 +0300
+Message-ID: <5052D7AB.1090804@ti.com>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>  <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com> <1347593040.1943.24.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:34895 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754551Ab2INHGp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 03:06:45 -0400
+Received: by obbuo13 with SMTP id uo13so5818678obb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 00:06:44 -0700 (PDT)
+In-Reply-To: <1347593040.1943.24.camel@vkoul-udesk3>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Barry Song <baohua.song@csr.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vista Silicon <javier.martin@vista-silicon.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Shawn Guo <shawn.guo@linaro.org>, Laxman Dewangan <ldewangan@nvidia.com>
 
-"ret" should be signed here for the error handling to work.
+On 09/14/2012 06:24 AM, Vinod Koul wrote:
+> On Thu, 2012-09-13 at 16:37 +0300, Peter Ujfalusi wrote:
+>> Change the parameter list of device_prep_dma_cyclic() so the DMA dri=
+vers
+>> can receive the no_wakeup request coming from client drivers.
+>> This feature can be used during audio operation to disable all audio
+>> related interrupts.
+> We already have a flag to indicate this, see=20
+> * @DMA_PREP_INTERRUPT - trigger an interrupt (callback) upon completi=
+on  of
+> *  this transaction
 
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+I have also noticed this flag. It is not really a direct match for our =
+case
+since the notion of "completion of this transfer" is not applicable for=
+ cyclic
+mode, but it is close enough.
 
-diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
-index 15ab3d6..d36c282 100644
---- a/drivers/usb/phy/omap-usb2.c
-+++ b/drivers/usb/phy/omap-usb2.c
-@@ -120,7 +120,7 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
- 
- static int omap_usb2_suspend(struct usb_phy *x, int suspend)
- {
--	u32 ret;
-+	int ret;
- 	struct omap_usb *phy = phy_to_omapusb(x);
- 
- 	if (suspend && !phy->is_suspended) {
-@@ -223,7 +223,7 @@ static int omap_usb2_runtime_suspend(struct device *dev)
- 
- static int omap_usb2_runtime_resume(struct device *dev)
- {
--	u32 ret = 0;
-+	int ret;
- 	struct platform_device	*pdev = to_platform_device(dev);
- 	struct omap_usb	*phy = platform_get_drvdata(pdev);
- 
+> Unfortunately, the addition of cyclic API missed having this flag. So
+> right way would be to add flag argument in the API.
+
+I have not looked at the non cyclic APIs, but I think I can modify the
+dmaengine_prep_dma_cyclic() to pass the flags instead of the 'bool no_w=
+akeup'.
+If the DMA_PREP_INTERRUPT is not set dma drivers can interpret it in a =
+way
+that they will disable all interrupts during cyclic mode.
+None of the dma drivers in cyclic mode cares about the flags AFAIK or t=
+hey can
+just ignore this parameter for now (as they did with my no_wakeup param=
+eter).
+Will resend the series soon with this change.
+
+--=20
+P=C3=A9ter
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
