@@ -1,133 +1,85 @@
-From: "AnilKumar, Chimata" <anilkumar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/2] ARM: dts: AM33XX: Add lis331dlh device tree data to
- am335x-evm
-Date: Fri, 14 Sep 2012 11:16:26 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA2F2B1@DBDE01.ent.ti.com>
-References: <1347551685-19781-1-git-send-email-anilkumar@ti.com>
- <201209140826.07069.arnd@arndb.de>
- <331ABD5ECB02734CA317220B2BBEABC13EA2F0AB@DBDE01.ent.ti.com>
- <201209141028.38185.arnd@arndb.de>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH] RTC: TWL: ensure all interrupts are disabled during probe
+Date: Fri, 14 Sep 2012 17:12:19 +0530
+Message-ID: <CAM=Q2cufVSReuvs3Yf6jvuBFeV9j5iPWV-DaMqRkCJFXUMZPQg@mail.gmail.com>
+References: <1347569157-19262-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <201209141028.38185.arnd-r2nGTMty4D4@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: "dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org" <eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org" <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>, "greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org" <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:64703 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755487Ab2INLmV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 07:42:21 -0400
+Received: by lbbgj3 with SMTP id gj3so2676705lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 04:42:19 -0700 (PDT)
+In-Reply-To: <1347569157-19262-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Alessandro Zummo <a.zummo@towertech.it>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 
-+Daniel
+Hi Kevin,
 
-On Fri, Sep 14, 2012 at 15:58:37, Arnd Bergmann wrote:
-> On Friday 14 September 2012, AnilKumar, Chimata wrote:
-> >> On Fri, Sep 14, 2012 at 13:56:06, Arnd Bergmann wrote:
-> > > On Thursday 13 September 2012, AnilKumar Ch wrote:
-> 
-> > > 
-> > > Why do you put the "reg" property here
-> > 
-> > Here I specified reg property because lis331dlh I2C slave address is 0x18.
-> > 
-> > > 
-> > > >  		dcan1: d_can@481d0000 {
-> > > >  			status = "okay";
-> > > >  			pinctrl-names = "default";
-> > > > @@ -61,6 +70,39 @@
-> > > >  		regulator-max-microvolt = <5000000>;
-> > > >  		regulator-boot-on;
-> > > >  	};
-> > > > +
-> > > > +	lis3_reg: fixedregulator@1 {
-> > > > +		compatible = "regulator-fixed";
-> > > > +		regulator-name = "lis3_reg";
-> > > > +		regulator-boot-on;
-> > > > +	};
-> > > > +};
-> > > > +&lis331dlh {
-> > > > +	compatible = "st,lis3lv02d-i2c";
-> > > 
-> > > and all the rest here? At least I would expect the "compatible" property
-> > > to be in the same place above.
-> > 
-> > This data is appended to above one, to make it readable I moved remaining
-> > properties to here.
-> 
-> I don't follow how this is making things more readable.
+On Fri, Sep 14, 2012 at 2:15 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> From: Kevin Hilman <khilman@ti.com>
+>
+> On some platforms, bootloaders are known to do some interesting RTC
+> programming.  Without going into the obscurities as to why this may be
+> the case, suffice it to say the the driver should not make any
+> assumptions about the state of the RTC when the driver loads.  In
+> particular, the driver probe should be sure that all interrupts are
+> disabled until otherwise programmed.
+>
+> This was discovered when finding bursty I2C traffic every second on
+> Overo platforms.  This I2C overhead was keeping the SoC from hitting
+> deep power states.  The cause was found to be the RTC firing every
+> second on the I2C-connected TWL PMIC.
+>
+> Special thanks to Felipe Balbi for suggesting to look for a rogue
+> driver as the source of the I2C traffic rather than the I2C driver
+> itself.
+>
+> Special thanks to Steve Sakoman for helping track down the source of
+> the continuous RTC interrups on the Overo boards.
+>
 
-Basic lis3 parameter is in i2c2 node to tell the hierarchy of
-nodes and remaining parameters at the bottom. With this way
-we can understand easily what is start & end braces so that
-node hierarchy is cleaner. (This is my view)
+Tested that the continuous interrupt issue after doing a i2c mm on omap4sdp.
+This patch solves the issue.
+thanks,
 
-> 
-> Maybe a more logical way to do this would be use the existing i2c2 label
-> and write all the additions as
-> 
-> i2c2: {
-> 	status = "okay";
-> 	clock-frequency = <400000>;
-> 
-> 	lis331dlh@18 {
-> 		compatible = "st,lis3lv02d";
-> 		reg = <0x18>;
-> 
-> 		vdd-supply = <&lis3_reg>;
-> 		vdd-io-supply = <&lis3_reg>;
-> 		...
-> 	};
-> 
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Steve Sakoman <steve@sakoman.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> Patch applies to v3.6-rc5
+>
+>  drivers/rtc/rtc-twl.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+> index c5d06fe..9277d94 100644
+> --- a/drivers/rtc/rtc-twl.c
+> +++ b/drivers/rtc/rtc-twl.c
+> @@ -495,6 +495,11 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+>         if (ret < 0)
+>                 goto out1;
+>
+> +       /* ensure interrupts are disabled, bootloaders can be strange */
+> +       ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
+> +       if (ret < 0)
+> +               dev_warn(&pdev->dev, "unable to disable interrupt\n");
+> +
+Now that it is always 0 can the below read be removed as it is redundant now.
 
-If this is better/preferable way then I will change.
-
-> > > Also, I think you should remove the "-i2c" postfix from the name, that
-> > > is already implied by the parent bus.
-> > 
-> > I will remove, but in case of spi the compatible name is lis3lv02d_spi.
-> > By mistake I have uses "-i2c" instead of "_i2c".
-
-Then, I will change to 'st,lis3lv02d' in lis3lv02d_i2c driver
-and same will added to .dts file.
-
-Small question here, in my v2 version I have specified both
-the compatible names lis3lv02d and lis331dlh is it fine or
-only one is sufficient?
-
-+static struct of_device_id lis3lv02d_i2c_dt_ids[] = {
-+	{ .compatible = "st,lis3lv02d" },
-+	{ .compatible = "st,lis331dlh" },
-+	{}
-+};
-
-> 
-> The normal convention is to use '-', not '_', so that part was ok.
-> 
-> I think naming the other one lis3lv02d_spi was a mistake, it should
-> be named 'st,lis3lv02d' independent of the bus IMHO.
-
-Yes, initially I expected the same. I think driver name is used
-as a compatible string.
-
-> 
-> > Document is already present, 
-> > http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=2f2ff3cc8d930493f9a598b9192706c09403e12e
-> > 
-> > Some minor changes in docs, in my next version I will update document
-> > as well. I will send V3 if there are no comments on v2.
-> 
-
-Can you just quickly review v2 series? So that I will send
-V3.
-
-Thanks
-AnilKumar
+>         /* init cached IRQ enable bits */
+>         ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
+>         if (ret < 0)
+> --
+> 1.7.9.2
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
