@@ -1,118 +1,65 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
-Date: Fri, 14 Sep 2012 14:50:34 +0530
-Message-ID: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup
+	parameter to dmaengine_prep_dma_cyclic()
+Date: Fri, 14 Sep 2012 12:28:28 +0300
+Message-ID: <5052F8BC.4020102@ti.com>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com>
+ <5051FB4D.3000009@metafoo.de> <1347593217.1943.26.camel@vkoul-udesk3>
+ <5052E72A.8040207@metafoo.de> <1347612630.1943.29.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347612630.1943.29.camel@vkoul-udesk3>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP interconnect drivers are used for the interconnect error handling.
-Since they are bus driver, lets move it to newly created drivers/bus.
+Hi,
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>
-Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Patch just moves OMAP interconnect drivers as is to the newly created
-driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
-tree and test on all OMAP boards.
+On 09/14/2012 11:50 AM, Vinod Koul wrote:
+>> Well, the idea was that the driver would disable interrupts if there is =
+no
+>> callback to call, since there would be nothing to do in the interrupt
+>> handler anyway. But I guess the flags approach should work fine as well.
+> Yes we _could_ do that, but this relies on dmaengine driver to have this
+> implicit understanding. Anyone using dmaengine library in ASoC may or
+> may not be aware of this, so i would consider it hackish.
+> =
 
- arch/arm/mach-omap2/Kconfig                        |    2 ++
- arch/arm/mach-omap2/Makefile                       |    5 -----
- drivers/bus/Kconfig                                |    6 ++++++
- drivers/bus/Makefile                               |    3 +++
- {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.c |    0
- {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.h |    0
- {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.c |    0
- {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.h |    0
- 8 files changed, 11 insertions(+), 5 deletions(-)
- rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.c (100%)
- rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_noc.h (100%)
- rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.c (100%)
- rename {arch/arm/mach-omap2 => drivers/bus}/omap_l3_smx.h (100%)
+> Using this flag explicitly makes everyone aware what the intended
+> behaviour is.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index dd2db02..7d3c8ab 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -44,6 +44,7 @@ config ARCH_OMAP3
- 	select ARM_CPU_SUSPEND if PM
- 	select MULTI_IRQ_HANDLER
- 	select SOC_HAS_OMAP2_SDRC
-+	select OMAP_INTERCONNECT
- 
- config ARCH_OMAP4
- 	bool "TI OMAP4"
-@@ -63,6 +64,7 @@ config ARCH_OMAP4
- 	select USB_ARCH_HAS_EHCI if USB_SUPPORT
- 	select ARM_CPU_SUSPEND if PM
- 	select ARCH_NEEDS_CPU_IDLE_COUPLED
-+	select OMAP_INTERCONNECT
- 
- config SOC_OMAP5
- 	bool "TI OMAP5"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f6a24b3..7fed980 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -199,11 +199,6 @@ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
- 
--# L3 interconnect
--obj-$(CONFIG_ARCH_OMAP3)		+= omap_l3_smx.o
--obj-$(CONFIG_ARCH_OMAP4)		+= omap_l3_noc.o
--obj-$(CONFIG_SOC_OMAP5)			+= omap_l3_noc.o
--
- obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
- mailbox_mach-objs			:= mailbox.o
- 
-diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-index 6270415..bbec35d 100644
---- a/drivers/bus/Kconfig
-+++ b/drivers/bus/Kconfig
-@@ -12,4 +12,10 @@ config OMAP_OCP2SCP
- 	  OCP2SCP and in OMAP5, both USB PHY and SATA PHY is connected via
- 	  OCP2SCP.
- 
-+config OMAP_INTERCONNECT
-+	tristate "OMAP INTERCONNECT DRIVER"
-+	depends on ARCH_OMAP2PLUS
-+
-+	help
-+	  Driver to enable OMAP interconnect error handling driver.
- endmenu
-diff --git a/drivers/bus/Makefile b/drivers/bus/Makefile
-index 0ec50bc..45d997c 100644
---- a/drivers/bus/Makefile
-+++ b/drivers/bus/Makefile
-@@ -3,3 +3,6 @@
- #
- 
- obj-$(CONFIG_OMAP_OCP2SCP)	+= omap-ocp2scp.o
-+
-+# Interconnect bus driver for OMAP SoCs.
-+obj-$(CONFIG_OMAP_INTERCONNECT)	+= omap_l3_smx.o omap_l3_noc.o
-diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
-similarity index 100%
-rename from arch/arm/mach-omap2/omap_l3_noc.c
-rename to drivers/bus/omap_l3_noc.c
-diff --git a/arch/arm/mach-omap2/omap_l3_noc.h b/drivers/bus/omap_l3_noc.h
-similarity index 100%
-rename from arch/arm/mach-omap2/omap_l3_noc.h
-rename to drivers/bus/omap_l3_noc.h
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/drivers/bus/omap_l3_smx.c
-similarity index 100%
-rename from arch/arm/mach-omap2/omap_l3_smx.c
-rename to drivers/bus/omap_l3_smx.c
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.h b/drivers/bus/omap_l3_smx.h
-similarity index 100%
-rename from arch/arm/mach-omap2/omap_l3_smx.h
-rename to drivers/bus/omap_l3_smx.h
--- 
-1.7.9.5
+I'm not sure about which flags should ASoC set for the two case we are going
+to have. I think it should be something like this:
+
+unsigned long flags =3D DMA_CTRL_ACK;
+
+if (!substream->runtime->no_period_wakeup)
+	flags |=3D DMA_PREP_INTERRUPT;
+
+I'm not 100% sure of the role of DMA_CTRL_ACK in this case. Or should we on=
+ly
+handle the DMA_PREP_INTERRUPT flag, like this:
+
+unsigned long flags =3D 0;
+
+if (!substream->runtime->no_period_wakeup)
+	flags |=3D DMA_PREP_INTERRUPT;
+
+
+What do you think?
+
+-- =
+
+P=E9ter
