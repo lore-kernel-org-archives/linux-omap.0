@@ -1,47 +1,100 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH v2 03/15] dmaengine: Add no_wakeup
-	parameter to dmaengine_prep_dma_cyclic()
-Date: Fri, 14 Sep 2012 10:13:30 +0200
-Message-ID: <5052E72A.8040207@metafoo.de>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
- <1347543485-339-4-git-send-email-peter.ujfalusi@ti.com>
- <5051FB4D.3000009@metafoo.de> <1347593217.1943.26.camel@vkoul-udesk3>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 2/2] ARM: dts: AM33XX: Add lis331dlh device tree data to am335x-evm
+Date: Fri, 14 Sep 2012 08:26:06 +0000
+Message-ID: <201209140826.07069.arnd@arndb.de>
+References: <1347551685-19781-1-git-send-email-anilkumar@ti.com> <1347551685-19781-3-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1347593217.1943.26.camel@vkoul-udesk3>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:62451 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759190Ab2INI0R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 04:26:17 -0400
+In-Reply-To: <1347551685-19781-3-git-send-email-anilkumar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: gregkh@linuxfoundation.org, eric.piel@tremplin-utc.net, jic23@cam.ac.uk, greg@kroah.com, akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dmitry.torokhov@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-On 09/14/2012 05:26 AM, Vinod Koul wrote:
-> On Thu, 2012-09-13 at 17:27 +0200, Lars-Peter Clausen wrote:
->> Hi,
->>
->> Hm... Do you think it would work as well if we implement this by
->> setting the
->> callback for the descriptor to NULL? If the callback is NULL there is
->> nothing to at the end of a transfer/period and the dma engine driver
->> may
->> choose to disable interrupts. This would also benefit non cyclic
->> transfers
->> where the callback is NULL and we do not need add the new parameter to
->> dmaengine_prep_dma_cyclic.
-> That will work too.... BUT the idea of no_wake mode in ALSA is that we
-> should not have any interrupts, so anything which is going to cause
-> interrupts to AP in undesired. The interrupts still happen and it just
-> that dmaengine driver is not notifying client.
+On Thursday 13 September 2012, AnilKumar Ch wrote:
+> Add lis331dlh device tree data to am335x-evm.dts. In AM335x EVM
+> lis331dlh accelerometer is connected to I2C2 bus. So this patch
+> change the status to "okay" to use I2C2 bus. Also added all the
+> required platform data to am335x-evm.
+> 
+> Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> ---
+>  arch/arm/boot/dts/am335x-evm.dts |   42 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 42 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+> index 9fb59c5..9e5a878 100644
+> --- a/arch/arm/boot/dts/am335x-evm.dts
+> +++ b/arch/arm/boot/dts/am335x-evm.dts
+> @@ -47,6 +47,15 @@
+>  			};
+>  		};
+>  
+> +		i2c2: i2c@4802a000 {
+> +			status = "okay";
+> +			clock-frequency = <400000>;
+> +
+> +			lis331dlh: lis331dlh@18 {
+> +				reg = <0x18>;
+> +			};
+> +		};
 
-Well, the idea was that the driver would disable interrupts if there is no
-callback to call, since there would be nothing to do in the interrupt
-handler anyway. But I guess the flags approach should work fine as well.
+Why do you put the "reg" property here
+
+>  		dcan1: d_can@481d0000 {
+>  			status = "okay";
+>  			pinctrl-names = "default";
+> @@ -61,6 +70,39 @@
+>  		regulator-max-microvolt = <5000000>;
+>  		regulator-boot-on;
+>  	};
+> +
+> +	lis3_reg: fixedregulator@1 {
+> +		compatible = "regulator-fixed";
+> +		regulator-name = "lis3_reg";
+> +		regulator-boot-on;
+> +	};
+> +};
+> +&lis331dlh {
+> +	compatible = "st,lis3lv02d-i2c";
+
+and all the rest here? At least I would expect the "compatible" property
+to be in the same place above.
+
+Also, I think you should remove the "-i2c" postfix from the name, that
+is already implied by the parent bus.
+
+> +	Vdd-supply = <&lis3_reg>;
+> +	Vdd_IO-supply = <&lis3_reg>;
+> +
+> +	st,click-single-x;
+> +	st,click-single-y;
+> +	st,click-single-z;
+> +	st,click-thresh-x = <10>;
+> +	st,click-thresh-y = <10>;
+> +	st,click-thresh-z = <10>;
+> +	st,irq1-click;
+> +	st,irq2-click;
+> +	st,wakeup-x-lo;
+> +	st,wakeup-x-hi;
+> +	st,wakeup-y-lo;
+> +	st,wakeup-y-hi;
+> +	st,wakeup-z-lo;
+> +	st,wakeup-z-hi;
+> +	st,min-limit-x = <120>;
+> +	st,min-limit-y = <120>;
+> +	st,min-limit-z = <140>;
+> +	st,max-limit-x = <550>;
+> +	st,max-limit-y = <550>;
+> +	st,max-limit-z = <750>;
+
+Is there a binding document that describes all these?
+
+	Arnd
