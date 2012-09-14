@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 2/7] omap device changes for v3.7 merge window
+Subject: [GIT PULL 3/7] omap gpmc cleanup for v3.7 merge window
 Date: Thu, 13 Sep 2012 19:34:10 -0700
-Message-ID: <E1TCLk2-0006Tj-Rw@merlin.infradead.org>
+Message-ID: <E1TCLkJ-0006Xh-Kg@merlin.infradead.org>
 References: <pull-1347590052-683636>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,36 +22,40 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+The following changes since commit fea7a08acb13524b47711625eebea40a0ede69a0:
 
-  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+  Linux 3.6-rc3 (2012-08-22 13:29:06 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/devel-omap-device-for-v3.7
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-gpmc-fixed-for-v3.7
 
-for you to fetch changes up to 47d85ec2a23552fd3d8b56778a23a5a843c5b9b1:
+for you to fetch changes up to 5c4684557b7e37afd42fa35f420f2f28bfb75442:
 
-  Merge tag 'for_3.7-omap_device' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm into devel-omap-device (2012-09-12 21:17:56 -0700)
-
-----------------------------------------------------------------
-
-Kevin Hilman <khilman@ti.com>:
-
-Updates for omap_device layer for v3.7.
-
-Allows omap_device layer to keep track of driver bound status in order
-to make more intelligent decisions about idling unused devices.
+  mtd: nand: omap2: use gpmc provided irqs (2012-08-30 12:53:24 -0700)
 
 ----------------------------------------------------------------
-Kevin Hilman (3):
-      ARM: OMAP: omap_device: keep track of driver bound status
-      ARM: OMAP: omap_device: don't attempt late suspend if no driver bound
-      ARM: OMAP: omap_device: idle devices with no driver bound
+Changes for GPMC (General Purpose Memory Controller) that take it
+closer for being just a regular device driver.
 
-Tony Lindgren (1):
-      Merge tag 'for_3.7-omap_device' of git://git.kernel.org/.../khilman/linux-omap-pm into devel-omap-device
+----------------------------------------------------------------
+Afzal Mohammed (10):
+      ARM: OMAP2+: gpmc: update nand register helper
+      ARM: OMAP2+: gpmc-nand: update gpmc-nand regs
+      mtd: nand: omap2: handle nand on gpmc
+      ARM: OMAP2+: gpmc-nand: update resource with memory
+      ARM: OMAP2+: gpmc-onenand: provide memory as resource
+      mtd: nand: omap2: obtain memory from resource
+      mtd: onenand: omap2: obtain memory from resource
+      ARM: OMAP2+: gpmc: Modify interrupt handling
+      ARM: OMAP2+: gpmc-nand: Modify Interrupt handling
+      mtd: nand: omap2: use gpmc provided irqs
 
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/omap_device.c              |   56 ++++++++++++++++++++++---
- 2 files changed, 53 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/gpmc-nand.c        |   28 ++-
+ arch/arm/mach-omap2/gpmc-onenand.c     |   23 ++-
+ arch/arm/mach-omap2/gpmc.c             |  156 +++++++++++++++--
+ arch/arm/plat-omap/include/plat/gpmc.h |   19 ++
+ arch/arm/plat-omap/include/plat/nand.h |    2 +-
+ drivers/mtd/nand/omap2.c               |  301 ++++++++++++++++++++++++--------
+ drivers/mtd/onenand/omap2.c            |   29 +--
+ 7 files changed, 445 insertions(+), 113 deletions(-)
