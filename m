@@ -1,64 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 7/7] am33xx hwmod data for v3.7 merge window
-Date: Thu, 13 Sep 2012 19:34:12 -0700
-Message-ID: <E1TCLlA-0006nz-GV@merlin.infradead.org>
-References: <pull-1347590052-683636>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup
+ parameter via device_prep_dma_cyclic() callback
+Date: Fri, 14 Sep 2012 08:54:00 +0530
+Message-ID: <1347593040.1943.24.camel@vkoul-udesk3>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <pull-1347590052-683636>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-kernel@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>, Zhangfei Gao <zhangfei.gao@marvell.com>, Laxman Dewangan <ldewangan@nvidia.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, linux-arm-kernel@lists.infradead.org, Barry Song <baohua.song@csr.com>, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Vista Silicon <javier.martin@vista-silicon.com>
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 68cb700c59fae6cd539c9dc1e9f2584f671935a0:
+On Thu, 2012-09-13 at 16:37 +0300, Peter Ujfalusi wrote:
+> Change the parameter list of device_prep_dma_cyclic() so the DMA drivers
+> can receive the no_wakeup request coming from client drivers.
+> This feature can be used during audio operation to disable all audio
+> related interrupts.
+We already have a flag to indicate this, see 
+* @DMA_PREP_INTERRUPT - trigger an interrupt (callback) upon completion  of
+*  this transaction
 
-  ARM: OMAP1: Move SoC specific headers from plat to mach for omap1 (2012-09-12 18:06:31 -0700)
+Unfortunately, the addition of cyclic API missed having this flag. So
+right way would be to add flag argument in the API.
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-devel-am33xx-for-v3.7
-
-for you to fetch changes up to 11964f53eb4d9ce59a058be9999d9cfcb1ced878:
-
-  Merge tag 'omap-devel-a2-for-3.7' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into devel-am33xx (2012-09-12 21:29:07 -0700)
-
-----------------------------------------------------------------
-
->From Paul Walmsley <paul@pwsan.com>:
-
-AM33xx hwmod data and miscellaneous clock and hwmod fixes.  AM33xx
-should now boot on mainline after this is applied, according to
-Vaibhav.
-
-----------------------------------------------------------------
-Tony Lindgren (1):
-      Merge tag 'omap-devel-a2-for-3.7' of git://git.kernel.org/.../pjw/omap-pending into devel-am33xx
-
-Vaibhav Hiremath (4):
-      ARM: OMAP2+: hwmod: Hook-up am33xx support in omap_hwmod framework
-      ARM: OMAP3+: hwmod: Add AM33XX HWMOD data
-      ARM: OMAP2+: dpll: Add missing soc_is_am33xx() check for common functions
-      ARM: AM33XX: clock: Add dcan clock aliases for device-tree
-
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/clkt_dpll.c              |    4 +-
- arch/arm/mach-omap2/clock33xx_data.c         |    2 +
- arch/arm/mach-omap2/dpll3xxx.c               |    4 +-
- arch/arm/mach-omap2/io.c                     |    2 +
- arch/arm/mach-omap2/omap_hwmod.c             |  178 ++
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c   | 3381 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 8 files changed, 3569 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_33xx_data.c
+-- 
+~Vinod
