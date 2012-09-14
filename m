@@ -1,8 +1,8 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 03/15] dmaengine: Add flags parameter to
-	dmaengine_prep_dma_cyclic()
-Date: Fri, 14 Sep 2012 15:05:46 +0300
-Message-ID: <1347624358-25582-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 05/15] dmaengine: omap-dma: Add support to
+	suppress interrupts in cyclic mode
+Date: Fri, 14 Sep 2012 15:05:48 +0300
+Message-ID: <1347624358-25582-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,57 +22,41 @@ To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-With this parameter added to dmaengine_prep_dma_cyclic() the API will be in
-sync with other dmaengine_prep_*() functions.
-The dmaengine_prep_dma_cyclic() function primarily used by audio for cyclic
-transfer required by ALSA, we use the from audio to ask dma drivers to
-suppress interrupts (if DMA_PREP_INTERRUPT is cleared) when it is supported
-on the platform.
+When requested (DMA_PREP_INTERRUPT is cleared in flags) disable all DMA
+interrupts for the channel. In this mode user space does not expect
+periodic reports from kernel about the progress of the audio stream.
+PulseAudio for example support this type of mode.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Lars-Peter Clausen <lars@metafoo.de>
+CC: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- include/linux/dmaengine.h     | 3 ++-
- sound/soc/soc-dmaengine-pcm.c | 6 +++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/dma/omap-dma.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-index 9c02a45..2abcac5 100644
---- a/include/linux/dmaengine.h
-+++ b/include/linux/dmaengine.h
-@@ -653,7 +653,8 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_rio_sg(
- 
- static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cyclic(
- 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
--		size_t period_len, enum dma_transfer_direction dir)
-+		size_t period_len, enum dma_transfer_direction dir,
-+		unsigned long flags)
- {
- 	return chan->device->device_prep_dma_cyclic(chan, buf_addr, buf_len,
- 						period_len, dir, NULL);
-diff --git a/sound/soc/soc-dmaengine-pcm.c b/sound/soc/soc-dmaengine-pcm.c
-index 5df529e..bbc1257 100644
---- a/sound/soc/soc-dmaengine-pcm.c
-+++ b/sound/soc/soc-dmaengine-pcm.c
-@@ -140,14 +140,18 @@ static int dmaengine_pcm_prepare_and_submit(struct snd_pcm_substream *substream)
- 	struct dma_chan *chan = prtd->dma_chan;
- 	struct dma_async_tx_descriptor *desc;
- 	enum dma_transfer_direction direction;
-+	unsigned long flags = DMA_CTRL_ACK;
- 
- 	direction = snd_pcm_substream_to_dma_direction(substream);
- 
-+	if (!substream->runtime->no_period_wakeup)
-+		flags |= DMA_PREP_INTERRUPT;
+diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
+index 4d2650f..f59f244 100644
+--- a/drivers/dma/omap-dma.c
++++ b/drivers/dma/omap-dma.c
+@@ -429,7 +429,10 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 	if (!c->cyclic) {
+ 		c->cyclic = true;
+ 		omap_dma_link_lch(c->dma_ch, c->dma_ch);
+-		omap_enable_dma_irq(c->dma_ch, OMAP_DMA_FRAME_IRQ);
 +
- 	prtd->pos = 0;
- 	desc = dmaengine_prep_dma_cyclic(chan,
- 		substream->runtime->dma_addr,
- 		snd_pcm_lib_buffer_bytes(substream),
--		snd_pcm_lib_period_bytes(substream), direction);
-+		snd_pcm_lib_period_bytes(substream), direction, flags);
++		if (flags & DMA_PREP_INTERRUPT)
++			omap_enable_dma_irq(c->dma_ch, OMAP_DMA_FRAME_IRQ);
++
+ 		omap_disable_dma_irq(c->dma_ch, OMAP_DMA_BLOCK_IRQ);
+ 	}
  
- 	if (!desc)
- 		return -ENOMEM;
+@@ -438,7 +441,7 @@ static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
+ 		omap_set_dma_dest_burst_mode(c->dma_ch, OMAP_DMA_DATA_BURST_16);
+ 	}
+ 
+-	return vchan_tx_prep(&c->vc, &d->vd, DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
++	return vchan_tx_prep(&c->vc, &d->vd, flags);
+ }
+ 
+ static int omap_dma_slave_config(struct omap_chan *c, struct dma_slave_config *cfg)
 -- 
 1.7.12
