@@ -1,35 +1,38 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: Re: [PATCH] RTC: TWL: ensure all interrupts are disabled during probe
-Date: Fri, 14 Sep 2012 12:44:54 -0700
-Message-ID: <CAOSpxdYDbPZXtkdzpyUXN8j1rAvph=VQZCkFfiDA2jN4E=oFBw@mail.gmail.com>
-References: <1347569157-19262-1-git-send-email-khilman@deeprootsystems.com>
-	<CAOSpxdbGZFFShcS=_BZ78tAB3A5esPxY2WqNaGA9VXsBj8sP7g@mail.gmail.com>
-	<20120914122022.f56cd21d.akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v2 0/4] lis3: lis3lv02d_i2c: Add device tree support
+Date: Fri, 14 Sep 2012 12:51:06 -0700
+Message-ID: <20120914125106.ae809500.akpm@linux-foundation.org>
+References: <1347610016-10123-1-git-send-email-anilkumar@ti.com>
+	<201209141531.36734.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:43574 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354Ab2INToz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 15:44:55 -0400
-Received: by oago6 with SMTP id o6so3187606oag.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 12:44:54 -0700 (PDT)
-In-Reply-To: <20120914122022.f56cd21d.akpm@linux-foundation.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33595 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932374Ab2INTvH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 15:51:07 -0400
+In-Reply-To: <201209141531.36734.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>, Alessandro Zummo <a.zummo@towertech.it>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: AnilKumar Ch <anilkumar@ti.com>, gregkh@linuxfoundation.org, eric.piel@tremplin-utc.net, jic23@cam.ac.uk, greg@kroah.com, broonie@opensource.wolfsonmicro.com, dmitry.torokhov@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
 
-On Fri, Sep 14, 2012 at 12:20 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
+On Fri, 14 Sep 2012 15:31:36 +0000
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-> Given the tested-by's that are rolling in, I will assume that people
-> are hitting this problem in 3.5 and perhaps earlier kernels, so I
-> scheduled the fix for 3.6, with a -stable backport.
+> On Friday 14 September 2012, AnilKumar Ch wrote:
+> > Adds device tree support to lis3lv02d_i2c driver. Along with this
+> > DT init is moved from core driver to individual drivers, with the
+> > current implementation some pdata is missing in lis3lv02d_i2c driver.
+> > 
+> > Also adds platform data for lis331dlh driver to am335x-EVM. These
+> > patches were tested on AM335x-EVM.
+> > 
+> 
+> No further comments on this version besides the ones I already gave
+> on v1.
 
-Yes, I just checked an Overo setup here that is running 3.2 and it has
-the same issue.
+My linux-arm-kernel subscription died so I don't know what your v1
+comments said.  Were they fatal?
 
-So your plan for 3.6 and -stable is a good one.
-
-Steve
