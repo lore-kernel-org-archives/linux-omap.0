@@ -1,414 +1,87 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
-Date: Fri, 14 Sep 2012 18:36:30 +0530
-Message-ID: <CAAe_U6JVE40aOfP+8y51J=LazQf5pbdvO8GxQBc-78Pv2hCBbA@mail.gmail.com>
-References: <1347623899-14485-1-git-send-email-kishon@ti.com>
-	<505322E3.4090806@pengutronix.de>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: USB problem on beagleboard clone
+Date: Fri, 14 Sep 2012 16:07:56 +0300
+Message-ID: <20120914130755.GA21130@arwen.pp.htv.fi>
+References: <5448984682E7954C9BFF27F747A9C6CA56E2C8@dolphin.TIGRIS.local>
+ <5448984682E7954C9BFF27F747A9C6CA56E2CA@dolphin.TIGRIS.local>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:52088 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751735Ab2INNGd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 14 Sep 2012 09:06:33 -0400
-Received: by vbbff1 with SMTP id ff1so426468vbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 14 Sep 2012 06:06:31 -0700 (PDT)
-In-Reply-To: <505322E3.4090806@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E2CA-pd0mJjIfunmL041gAgtUOYT4S9po1h25@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maximilian Schwerin <Maximilian.Schwerin-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: balbi@ti.com, arnd@arndb.de, gregkh@linuxfoundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, richard.zhao@freescale.com, B29397@freescale.com, alexander.shishkin@linux.intel.com, marex@denx.de
+
+
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Fri, Sep 14, 2012 at 5:58 PM, Marc Kleine-Budde <mkl@pengutronix.de> wrote:
-> On 09/14/2012 01:58 PM, Kishon Vijay Abraham I wrote:
->> The PHY framework provides a set of API's for the PHY drivers to
->> create/remove a PHY and the PHY users to obtain a reference to the PHY
->> using or without using phandle. If the PHY users has to obtain a reference to
->> the PHY without using phandle, the platform specfic intialization code (say
->> from board file) should have already called phy_bind with the binding
->> information. The binding information consists of phy's device name, phy
->> user device name and an index. The index is used when the same phy user
->> binds to mulitple phys.
->>
->> PHY drivers should create the PHY by passing phy_descriptor that has
->> information about the PHY and ops like init, exit, suspend, resume,
->> poweron, shutdown.
->
-> Some comments inside.
->
-> While looking over the code, I was thinking why not abstract the phy
-> with a "bus" in the linux kernel. The ethernet phys are on the mdio_bus,
-> see /sys/bus/mdio_bus. This saves you hand crafting devices, drivers and
-> bindings,
+On Fri, Sep 14, 2012 at 02:57:49PM +0200, Maximilian Schwerin wrote:
+> Sorry :-( With log now.
+>=20
+> > -----Urspr=FCngliche Nachricht-----
+> > Von: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
+> > [mailto:linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] Im Auftrag von=20
+> > Maximilian Schwerin
+> > Gesendet: Freitag, 14. September 2012 14:26
+> > An: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Betreff: USB problem on beagleboard clone (PGP: Plain, Signed)
+> >=20
+> > Hi all,
+> >=20
+> > we've designed two beagle board clones (two different=20
+> > layouts) for a customer. After quite some time without any=20
+> > problems they are now seeing USB problems on some of the=20
+> > boards. I have so far not been able to reproduce the problem...
+> >=20
+> > The USB port of the OMAP the problems appear on is connected=20
+> > through a TPS65950 to a LAN9514 USB Hub + Ethernet Chip.=20
+> > Attached is the kernel output. I'm not even sure if this is=20
+> > related to our board, or if this might be a misbehaving device?!
+> >=20
+> > If someone has an idea what this could be and what I could do=20
+> > to fix or at least further debug the problem please speak up.
 
-well... have to think about it.
->
-> Marc
->
->>
->> Nyet-signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> ---
->> This framework is actually intended to be used by all the PHY drivers in the
->> kernel. Though it's going to take a while for that, I intend to migrate
->> existing USB/OTG phy drivers to use this framework as we align on the design
->> of this framework. Once I migrate these phy drivers, I'll be able to test this
->> framework (I haven't tested this framework so far). I sent this patch early
->> so as to get review comments and align on the design. Thanks :-)
->>
->>  drivers/Kconfig         |    2 +
->>  drivers/Makefile        |    2 +
->>  drivers/phy/Kconfig     |   13 ++
->>  drivers/phy/Makefile    |    5 +
->>  drivers/phy/phy-core.c  |  437 +++++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/phy/phy.h |  181 ++++++++++++++++++++
->>  6 files changed, 640 insertions(+)
->>  create mode 100644 drivers/phy/Kconfig
->>  create mode 100644 drivers/phy/Makefile
->>  create mode 100644 drivers/phy/phy-core.c
->>  create mode 100644 include/linux/phy/phy.h
->>
->> diff --git a/drivers/Kconfig b/drivers/Kconfig
->> index ece958d..8488818 100644
->> --- a/drivers/Kconfig
->> +++ b/drivers/Kconfig
->> @@ -152,4 +152,6 @@ source "drivers/vme/Kconfig"
->>
->>  source "drivers/pwm/Kconfig"
->>
->> +source "drivers/phy/Kconfig"
->> +
->>  endmenu
->> diff --git a/drivers/Makefile b/drivers/Makefile
->> index 5b42184..63d6bbe 100644
->> --- a/drivers/Makefile
->> +++ b/drivers/Makefile
->> @@ -38,6 +38,8 @@ obj-y                               += char/
->>  # gpu/ comes after char for AGP vs DRM startup
->>  obj-y                                += gpu/
->>
->> +obj-y                                += phy/
->> +
->>  obj-$(CONFIG_CONNECTOR)              += connector/
->>
->>  # i810fb and intelfb depend on char/agp/
->> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
->> new file mode 100644
->> index 0000000..34f7077
->> --- /dev/null
->> +++ b/drivers/phy/Kconfig
->> @@ -0,0 +1,13 @@
->> +#
->> +# PHY
->> +#
->> +
->> +menuconfig GENERIC_PHY
->> +     tristate "Generic PHY Support"
->> +     help
->> +       Generic PHY support.
->> +
->> +       This framework is designed to provide a generic interface for PHY
->> +       devices present in the kernel. This layer will have the generic
->> +       API by which phy drivers can create PHY using the phy framework and
->> +       phy users can obtain reference to the PHY.
->> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
->> new file mode 100644
->> index 0000000..9e9560f
->> --- /dev/null
->> +++ b/drivers/phy/Makefile
->> @@ -0,0 +1,5 @@
->> +#
->> +# Makefile for the phy drivers.
->> +#
->> +
->> +obj-$(CONFIG_GENERIC_PHY)    += phy-core.o
->> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
->> new file mode 100644
->> index 0000000..c55446a
->> --- /dev/null
->> +++ b/drivers/phy/phy-core.c
->> @@ -0,0 +1,437 @@
->> +/*
->> + * phy-core.c  --  Generic Phy framework.
->> + *
->> + * Copyright (C) 2012 Texas Instruments
->> + *
->> + * Author: Kishon Vijay Abraham I <kishon@ti.com>
->> + *
->> + * This program is free software; you can redistribute  it and/or modify it
->> + * under  the terms of  the GNU General  Public License as published by the
->> + * Free Software Foundation;  either version 2 of the  License, or (at your
->> + * option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/export.h>
->> +#include <linux/module.h>
->> +#include <linux/err.h>
->> +#include <linux/device.h>
->> +#include <linux/slab.h>
->> +#include <linux/of.h>
->> +#include <linux/phy/phy.h>
->> +
->> +static struct class *phy_class;
->> +static LIST_HEAD(phy_list);
->> +static DEFINE_MUTEX(phy_list_mutex);
->> +static LIST_HEAD(phy_bind_list);
->> +
->> +static void devm_phy_release(struct device *dev, void *res)
->> +{
->> +     struct phy *phy = *(struct phy **)res;
->
-> What about adding a struct phy_res, doing so,m you don't need these
-> casts, and it's easier to add more pointers if needed.
+I have never seen that error before on any of the boards I have. One
+question though, if the port is always Host, why are you using the OTG
+subsystem instead of the actual Host Subsystem which has an EHCI
+controller ?
 
-Wont we still need to do the cast since you get only a void pointer.
-Maybe I'm not getting you.
->
->> +
->> +     phy_put(phy);
->> +}
->> +
->> +static int devm_phy_match(struct device *dev, void *res, void *match_data)
->> +{
->> +     return res == match_data;
->> +}
->> +
->> +static struct phy *phy_lookup(struct device *dev, u8 index)
->> +{
->> +     struct phy_bind *phy_bind = NULL;
->> +
->> +     list_for_each_entry(phy_bind, &phy_bind_list, list) {
->> +             if (!(strcmp(phy_bind->dev_name, dev_name(dev))) &&
->> +                             phy_bind->index == index)
->> +                     return phy_bind->phy;
->> +     }
->> +
->> +     return ERR_PTR(-ENODEV);
->> +}
->> +
->> +static struct phy *of_phy_lookup(struct device *dev, struct device_node *node)
->> +{
->> +     int index = 0;
->> +     struct phy  *phy;
->                   ^^
->
-> Please remove that stray space.
+--=20
+balbi
 
-Sure.
->
->> +     struct phy_bind *phy_map = NULL;
->> +
->> +     list_for_each_entry(phy_map, &phy_bind_list, list)
->> +             if (!(strcmp(phy_map->dev_name, dev_name(dev))))
->> +                     index++;
->> +
->> +     list_for_each_entry(phy, &phy_list, head) {
->> +             if (node != phy->desc->of_node)
->> +                     continue;
->> +
->> +             phy_map = phy_bind(dev_name(dev), index, dev_name(&phy->dev));
->> +             if (!IS_ERR(phy_map)) {
->> +                     phy_map->phy = phy;
->> +                     phy_map->auto_bind = true;
->> +             }
->> +
->> +             return phy;
->> +     }
->> +
->> +     return ERR_PTR(-ENODEV);
->> +}
->> +
->> +/**
->> + * devm_phy_get - lookup and obtain a reference to a phy.
->> + * @dev: device that requests this phy
->> + * @index: the index of the phy
->> + *
->> + * Gets the phy using phy_get(), and associates a device with it using
->> + * devres. On driver detach, release function is invoked on the devres data,
->> + * then, devres data is freed.
->> + */
->> +struct phy *devm_phy_get(struct device *dev, u8 index)
->> +{
->> +     struct phy **ptr, *phy;
->> +
->> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
->> +     if (!ptr)
->> +             return NULL;
->> +
->> +     phy = phy_get(dev, index);
->> +     if (!IS_ERR(phy)) {
->> +             *ptr = phy;
->> +             devres_add(dev, ptr);
->> +     } else
->> +             devres_free(ptr);
->
-> nitpick: when when if has { }, else should have, too.
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Sure.
->
->> +
->> +     return phy;
->> +}
->> +EXPORT_SYMBOL_GPL(devm_phy_get);
->> +
->> +/**
->> + * devm_phy_put - release the PHY
->> + * @dev: device that wants to release this phy
->> + * @phy: the phy returned by devm_phy_get()
->> + *
->> + * destroys the devres associated with this phy and invokes phy_put
->> + * to release the phy.
->> + */
->> +void devm_phy_put(struct device *dev, struct phy *phy)
->> +{
->> +     int r;
->> +
->> +     r = devres_destroy(dev, devm_phy_release, devm_phy_match, phy);
->> +     dev_WARN_ONCE(dev, r, "couldn't find PHY resource\n");
->> +}
->> +EXPORT_SYMBOL_GPL(devm_phy_put);
->> +
->> +/**
->> + * devm_of_phy_get - lookup and obtain a reference to a phy by phandle
->> + * @dev: device that requests this phy
->> + * @phandle: name of the property holding the phy phandle value
->> + *
->> + * Returns the phy driver associated with the given phandle value,
->> + * after getting a refcount to it or -ENODEV if there is no such phy.
->> + * While at that, it also associates the device with the phy using devres.
->> + * On driver detach, release function is invoked on the devres data,
->> + * then, devres data is freed.
->> + */
->> +struct phy *devm_of_phy_get(struct device *dev, const char *phandle)
->
-> We should discuss first how the DT binding for a phy should look like. I
-> don't like that you hardcode the index (in of_parse_phandle()) to "0".
-> Then we have the problem with USB2 and USB3 phys for the same usb device.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-I think then we should modify this API to take *index* which should be
-used when we have a single controller using multiple phys. By that
-we'll make both dt and non-dt similar in that, both of them will take
-this index.
->
->> +{
->> +     struct phy      *phy = NULL, **ptr;
->> +     struct device_node *node;
->> +
->> +     if (!dev->of_node) {
->> +             dev_dbg(dev, "device does not have a device node entry\n");
->> +             return ERR_PTR(-EINVAL);
->> +     }
->> +
->> +     node = of_parse_phandle(dev->of_node, phandle, 0);
->> +     if (!node) {
->> +             dev_dbg(dev, "failed to get %s phandle in %s node\n", phandle,
->> +                     dev->of_node->full_name);
->> +             return ERR_PTR(-ENODEV);
->> +     }
->> +
->> +     ptr = devres_alloc(devm_phy_release, sizeof(*ptr), GFP_KERNEL);
->> +     if (!ptr) {
->> +             dev_dbg(dev, "failed to allocate memory for devres\n");
->> +             return ERR_PTR(-ENOMEM);
->> +     }
->> +
->> +     mutex_lock(&phy_list_mutex);
->> +
->> +     phy = of_phy_lookup(dev, node);
->> +     if (IS_ERR(phy) || !try_module_get(phy->dev.driver->owner)) {
->> +             devres_free(ptr);
->> +             goto err0;
->> +     }
->
-> Please return -EPROBE_DEFER is the phy is not yet registered.
+iQIcBAEBAgAGBQJQUywrAAoJEIaOsuA1yqREdSkP/R/97+oTbZnR/CCZPLAWmean
+oLEKJehtTXrRBp5b2aL9e8wD2pDPnRSe5nq1Zrkw5b6zYAdhcQzXSXWw6L5RbHrn
+E5Qn1Glfuyl6qfPBJAHyV91oTpTmV+MP22u26s549lpYNMdRvdG57Fbb1Yr+ftIK
+ax4JmmVqaokM3A8mqNIpmXJE+xZjUhRwz95G+RUN6y+aUnZZYLg09JznuPZdst4u
+/mIWS9ei91jE4bhbZpl5b5KqwpYw/1CeY8C8LoVWIf0VIj+07214pdFf07zKWkjp
+OFjMMiHSVf+fKxwmTEEQqoI+FpuUczcrzhEgH1fXQDpyXsUMRgExtzSNRwYHWeR+
+xoqVKyK6xUzI7wa/QrWTShJ3WxaP0Q6o/G1396IGfMtcycp+T4YGsfkHLK+nyUdA
+ptmkRtkjW79Z/FE5Gjd9deyzO9lkTHajB/LDzATv5TVHx86ulWdwKkUJ4xBcGQru
+z+FiLSrY0HU3qUftXZkoFmtsfRnw3jylkOBPhl0ERfvk392LVjdh+zy3IU6ulHwy
+yBJt7WC3k52/khBR2b2Yf+lgdxbJtSnZKbJKy8UxzzYOvuaA1OWJQfOpQBjorCW5
+nsrDsCvP8NGnYSi12Am+bWirSAdeXuHNMe5dISNdQzgBjPZzet5WOO2eiOdzDBIZ
+BSGOYqlG2lqEpCHKwhPX
+=F8zg
+-----END PGP SIGNATURE-----
 
-I really dont prefer to return -EPROBE_DEFER from the *framework*.
-IMHO, it's up-to the caller of this API to return *probe* errors.
->
->> +
->> +     *ptr = phy;
->> +     devres_add(dev, ptr);
->> +
->> +     get_device(&phy->dev);
->> +
->> +err0:
->> +     mutex_unlock(&phy_list_mutex);
->> +
->> +     return phy;
->> +}
->> +EXPORT_SYMBOL_GPL(devm_of_phy_get);
->> +
->> +/**
->> + * phy_get - lookup and obtain a reference to a phy.
->> + * @dev: device that requests this phy
->> + * @index: the index of the phy
->> + *
->> + * Returns the phy driver, after getting a refcount to it; or
->> + * -ENODEV if there is no such phy.  The caller is responsible for
->> + * calling phy_put() to release that count.
->> + */
->> +struct phy *phy_get(struct device *dev, u8 index)
->> +{
->> +     struct phy      *phy = NULL;
->> +
->> +     mutex_lock(&phy_list_mutex);
->> +
->> +     phy = phy_lookup(dev, index);
->> +     if (IS_ERR(phy)) {
->> +             pr_err("unable to find phy\n");
->
-> dev_err()
-
-Sure.
->
->> +             goto err0;
->> +     }
->> +
->> +     get_device(&phy->dev);
->> +
->> +err0:
->> +     mutex_unlock(&phy_list_mutex);
->> +
->> +     return phy;
->> +}
->> +EXPORT_SYMBOL_GPL(phy_get);
->> +
->> +/**
->> + * phy_put - release the PHY
->> + * @phy: the phy returned by phy_get()
->> + *
->> + * Releases a refcount the caller received from phy_get().
->> + */
->> +void phy_put(struct phy *phy)
->> +{
->> +     if (phy)
->> +             put_device(&phy->dev);
->> +}
->> +EXPORT_SYMBOL_GPL(phy_put);
->> +
->> +/**
->> + * create_phy - create a new phy
->> + * @dev: device that is creating the new phy
->> + * @desc: descriptor of the phy
->> + *
->> + * Called to create a phy using phy framework.
->> + */
->> +struct phy *create_phy(struct device *dev, struct phy_descriptor *desc)
->
-> All other functions are named phy_*, please rename this, too.
-
-Sure.
-
-Thanks
-Kishon
+--u3/rZRmxL6MmkK24--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
