@@ -1,108 +1,159 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: USB problem on beagleboard clone
-Date: Fri, 14 Sep 2012 16:19:13 +0300
-Message-ID: <20120914131911.GD21130@arwen.pp.htv.fi>
-References: <20120914130755.GA21130@arwen.pp.htv.fi>
- <5448984682E7954C9BFF27F747A9C6CA56E2CB@dolphin.TIGRIS.local>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH V4 1/2] of: Add generic device tree DMA helpers
+Date: Fri, 14 Sep 2012 08:27:16 -0500
+Message-ID: <505330B4.4070605@ti.com>
+References: <1347573629-21299-1-git-send-email-jon-hunter@ti.com> <1347573629-21299-2-git-send-email-jon-hunter@ti.com> <201209140943.49904.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="76DTJ5CE0DCVQemd"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E2CB-pd0mJjIfunmL041gAgtUOYT4S9po1h25@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maximilian Schwerin <Maximilian.Schwerin-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46245 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751596Ab2INN1i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 09:27:38 -0400
+In-Reply-To: <201209140943.49904.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Benoit Cousson <b-cousson@ti.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
 
+Hi Arnd,
 
---76DTJ5CE0DCVQemd
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 09/14/2012 04:43 AM, Arnd Bergmann wrote:
+> On Thursday 13 September 2012, Jon Hunter wrote:
+>> This is based upon the work by Benoit Cousson [1] and Nicolas Ferre [2]
+>> to add some basic helpers to retrieve a DMA controller device_node and the
+>> DMA request/channel information.
+> 
+> I think we're getting very close now, I only have a few small comments left
+> that should all be uncontroversial.
+> 
+>> +
+>> +Client drivers should specify the DMA property using a phandle to the controller
+>> +followed by DMA controller specific data.
+>> +
+>> +Required property:
+>> +- dmas:			List of one or more DMA specifiers, each consisting of
+>> +			- A phandle pointing to DMA controller node
+>> +			- A single integer cell containing DMA controller
+>> +			  specific information. This typically contains a dma
+>> +			  request line number or a channel number, but can
+>> +			  contain any data that is used required for configuring
+>> +			  a channel.
+>> +- dma-names: 		Contains one identifier string for each dma specifier in
+>> +			the dmas property. The specific strings that can be used
+>> +			are defined in the binding of the DMA client device.
+> 
+> I think here we need to clarify that listing the same name multiple times implies
+> having multiple alternatives for the same channel.
 
-On Fri, Sep 14, 2012 at 03:21:47PM +0200, Maximilian Schwerin wrote:
-> Hi,
->=20
-> > -----Urspr=FCngliche Nachricht-----
-> > Von: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]=20
-> > Gesendet: Freitag, 14. September 2012 15:08
-> > An: Maximilian Schwerin
-> > Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Betreff: Re: USB problem on beagleboard clone (PGP: Plain,=20
-> > Unable to verify signature)
-> >=20
-> > Hi,
-> >=20
-> > On Fri, Sep 14, 2012 at 02:57:49PM +0200, Maximilian Schwerin wrote:
-> > > Sorry :-( With log now.
-> > >=20
-> > > > -----Urspr=FCngliche Nachricht-----
-> > > > Von: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
-> > > > [mailto:linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] Im Auftrag von=20
-> > > > Maximilian Schwerin
-> > > > Gesendet: Freitag, 14. September 2012 14:26
-> > > > An: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > Betreff: USB problem on beagleboard clone (PGP: Plain, Signed)
-> > > >=20
-> > > > Hi all,
-> > > >=20
-> > > > we've designed two beagle board clones (two different=20
-> > > > layouts) for a customer. After quite some time without any=20
-> > > > problems they are now seeing USB problems on some of the=20
-> > > > boards. I have so far not been able to reproduce the problem...
-> > > >=20
-> > > > The USB port of the OMAP the problems appear on is connected=20
-> > > > through a TPS65950 to a LAN9514 USB Hub + Ethernet Chip.=20
-> > > > Attached is the kernel output. I'm not even sure if this is=20
-> > > > related to our board, or if this might be a misbehaving device?!
-> > > >=20
-> > > > If someone has an idea what this could be and what I could do=20
-> > > > to fix or at least further debug the problem please speak up.
-> >=20
-> > I have never seen that error before on any of the boards I have. One
-> > question though, if the port is always Host, why are you using the OTG
-> > subsystem instead of the actual Host Subsystem which has an EHCI
-> > controller ?
-> >=20
-> > --=20
-> > balbi
-> >=20
->=20
-> I'm still on 3.3 but am planing to go to a newer version. We used the
-> OTG port so we would not need another chip on a rather small board.
+Ok, however, the way it works right now is that we will use the first
+specifier that matches the name. So if there are multiple with the same
+name that would imply that someone will need call the
+xxx_request_slave_channel() multiple times to extract these. Is that ok?
 
-And which chip are you talking about ? You already have LAN9514 on your
-board anyway...
+>> +Example:
+>> +
+>> +- One DMA write channel, one DMA read/write channel:
+>> +
+>> +	i2c1: i2c@1 {
+>> +		...
+>> +		dmas = <&sdma 2		/* read channel */
+>> +			&sdma 3>;	/* write channel */
+>> +		dma-names = "rx", "tx"
+>> +		...
+>> +	};
+> 
+> And please add an example documenting this case.
 
---=20
-balbi
+Ok.
 
---76DTJ5CE0DCVQemd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>> +/**
+>> + * of_dma_find_channel - Find a DMA channel by name
+>> + * @np:		device node to look for DMA channels
+>> + * @name:	name of desired channel
+>> + * @dma_spec:	pointer to DMA specifier as found in the device tree
+>> + *
+>> + * Find a DMA channel by the name. Returns 0 on success or appropriate
+>> + * errno value on error.
+>> + */
+>> +static int of_dma_find_channel(struct device_node *np, char *name,
+>> +			       struct of_phandle_args *dma_spec)
+>> +{
+>> +	int count, i;
+>> +	const char *s;
+>> +
+>> +	count = of_property_count_strings(np, "dma-names");
+>> +	if (count < 0)
+>> +		return count;
+>> +
+>> +	for (i = 0; i < count; i++) {
+>> +		of_property_read_string_index(np, "dma-names", i, &s);
+>> +
+>> +		if (strcmp(name, s))
+>> +			continue;
+>> +
+>> +		return of_parse_phandle_with_args(np, "dmas", "#dma-cells",
+>> +							i, dma_spec);
+>> +	}
+>> +
+>> +	return -ENODEV;
+>> +}
+> 
+> I think we should at least keep trying the other channels with the same name when 
+> of_parse_phandle_with_args fails. We might want to do something smarter in
+> the long run, e.g. to spread channel allocations across the avaialable controllers.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Ok, can add this.
 
-iQIcBAEBAgAGBQJQUy7PAAoJEIaOsuA1yqREX+kQAI+rX9RAlAZfgnortabUmnEf
-9D1kW5pwTIO8/qxP7w2jnmY82yezPhmo8xl0kuQk6GPrSIL7WKaefDo10wLsRSk3
-ao/FiqDSk6P1curnE+uyzl48Vh1As5DXEJO65bEx7Cn2B/usrx/7pYT337oz98nU
-Hk6228lGy3flz+ZRm5xFhap84otVUM7F+C+dUgtQ6qn0qgcxo1wgW/G90up2zpWR
-3WrV5l99Bix6G3VRFX8PGrpuod0dVpq0zpuSDNjqWm98MqWjkwbkp69dq/ZrVNDI
-FF1Cjpakr4vYa/07B4vvbBsBOH1ffhPGroqU++DbW76FuXkkisiHe/ki1ORSIT9g
-rncw8bznoYnBKD1e2kOZJwwB1ChNtC/lNDwGRRy2LOdhZYPqpxihLE9iYyR0aIfd
-RFRc0q4iz/4ENOZAR0E1USMdAFSkvq85060nPkOLrKeEHh07ClDZ8G9RKVQ9Z9Ti
-7dPED4qN6LcdSIsxV6uLARwW4+CmR+8KHtjdusPD2zt7grLFi9OAzQjeLtTdysmG
-G8N7xdjbOI5249lprZ/jiul7+dYKJIryBaD4c1mCHpOWAWkeJSm0Wzckx6BL7nfJ
-b9h3q+SBxSa/mzZz/4ZmpjbJjs+WpjNX0cHRKBzAjMF3DvWTaW3azb1pv4PpCELw
-Xl4zQejBocyS+FS6XG92
-=osiI
------END PGP SIGNATURE-----
+>> +/**
+>> + * of_dma_request_slave_channel - Get the DMA slave channel
+>> + * @np:		device node to get DMA request from
+>> + * @name:	name of desired channel
+>> + *
+>> + * Returns pointer to appropriate dma channel on success or NULL on error.
+>> + */
+>> +struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
+>> +					      char *name)
+>> +{
+>> ...
+>> +}
+>> +EXPORT_SYMBOL_GPL(of_dma_request_slave_channel);
+> 
+> I think this no longer needs to be exported, with patch 2 on top.
 
---76DTJ5CE0DCVQemd--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Right, I was in two minds but I can remove this.
+
+>> +/**
+>> + * of_dma_simple_xlate - Simple DMA engine translation function
+>> + * @dma_spec:	pointer to DMA specifier as found in the device tree
+>> + * @of_dma:	pointer to DMA controller data
+>> + *
+>> + * A simple translation function for devices that use a 32-bit value for the
+>> + * filter_param when calling the DMA engine dma_request_channel() function.
+>> + * Note that this translation function requires that #dma-cells is equal to 1
+>> + * and the argument of the dma specifier is the 32-bit filter_param. Returns
+>> + * pointer to appropriate dma channel on success or NULL on error.
+>> + */
+>> +struct dma_chan *of_dma_simple_xlate(struct of_phandle_args *dma_spec,
+>> +						struct of_dma *ofdma)
+>> +{
+>> +	int count = dma_spec->args_count;
+>> +	struct of_dma_filter_info *info = ofdma->of_dma_data;
+>> +
+>> +	if (!info || !info->filter_fn)
+>> +		return NULL;
+>> +
+>> +	if (count != 1)
+>> +		return NULL;
+>> +
+>> +	return dma_request_channel(info->dma_cap, info->filter_fn,
+>> +			&dma_spec->args[0]);
+>> +}
+> 
+> But this one does.
+
+Good catch!
+
+Thanks
+Jon
