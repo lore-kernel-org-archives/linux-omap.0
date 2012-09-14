@@ -1,45 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 0/4] lis3: lis3lv02d_i2c: Add device tree support
-Date: Fri, 14 Sep 2012 20:01:57 +0000
-Message-ID: <201209142001.58022.arnd@arndb.de>
-References: <1347610016-10123-1-git-send-email-anilkumar@ti.com> <201209141531.36734.arnd@arndb.de> <20120914125106.ae809500.akpm@linux-foundation.org>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH V6 0/2] of: Add generic device tree DMA helpers
+Date: Fri, 14 Sep 2012 17:41:55 -0500
+Message-ID: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57732 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750734Ab2INUCQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Sep 2012 16:02:16 -0400
-In-Reply-To: <20120914125106.ae809500.akpm@linux-foundation.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35311 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760135Ab2INWmH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 14 Sep 2012 18:42:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: AnilKumar Ch <anilkumar@ti.com>, gregkh@linuxfoundation.org, eric.piel@tremplin-utc.net, jic23@cam.ac.uk, greg@kroah.com, broonie@opensource.wolfsonmicro.com, dmitry.torokhov@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca
+To: device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Cc: Jon Hunter <jon-hunter@ti.com>
 
-On Friday 14 September 2012, Andrew Morton wrote:
-> On Fri, 14 Sep 2012 15:31:36 +0000
-> Arnd Bergmann <arnd@arndb.de> wrote:
-> 
-> > On Friday 14 September 2012, AnilKumar Ch wrote:
-> > > Adds device tree support to lis3lv02d_i2c driver. Along with this
-> > > DT init is moved from core driver to individual drivers, with the
-> > > current implementation some pdata is missing in lis3lv02d_i2c driver.
-> > > 
-> > > Also adds platform data for lis331dlh driver to am335x-EVM. These
-> > > patches were tested on AM335x-EVM.
-> > > 
-> > 
-> > No further comments on this version besides the ones I already gave
-> > on v1.
-> 
-> My linux-arm-kernel subscription died so I don't know what your v1
-> comments said.  Were they fatal?
-> 
+Hi all,
 
-Just details. AnilKumar just said in that thread that he'd do a version 3
-based on the earlier discussion once I was done looking at v2, so I replied
-here to say that there is nothing new to add.
+I apologise for sending out so many updates in quick succession before everyone
+has had chance to review, however, I will be out of office next week and I know
+that several people have been waiting for this. Normally, I would not send out
+a series and disappear for a week, but Arnd agreed to help while I am out.
 
-	Arnd
+Arnd,
+Feel free to make any changes you see fit while I am out or correct any balls-up
+I have made!
+
+Cheers
+Jon
+
+This is based upon the work by Benoit Cousson [1] and Nicolas Ferre [2] to add
+some basic device-tree helpers to retrieve a DMA controller device_node and the
+DMA request/channel information.
+
+v6: - minor corrections in DMA binding documentation
+v5: - minor update to binding documentation
+    - added loop to exhaustively search for a slave channel in the case where
+      there could be alternative channels available
+v4: - revert the removal of xlate function from v3
+    - update the proposed binding format and APIs based upon discussions [3]
+v3: - avoid passing an xlate function and instead pass DMA engine parameters
+    - define number of dma channels and requests in dma-controller node
+v2: - remove of_dma_to_resource API
+    - make property #dma-cells required (no fallback anymore)
+    - another check in of_dma_xlate_onenumbercell() function
+
+[1] http://article.gmane.org/gmane.linux.drivers.devicetree/12022
+[2] http://article.gmane.org/gmane.linux.ports.arm.omap/73622
+[3] http://marc.info/?l=linux-omap&m=133582085008539&w=2
+
+Jon Hunter (2):
+  of: Add generic device tree DMA helpers
+  dmaengine: add helper function to request a slave DMA channel
+
+ Documentation/devicetree/bindings/dma/dma.txt |   81 +++++++++
+ drivers/dma/dmaengine.c                       |   16 ++
+ drivers/of/Makefile                           |    2 +-
+ drivers/of/dma.c                              |  219 +++++++++++++++++++++++++
+ include/linux/dmaengine.h                     |    6 +
+ include/linux/of_dma.h                        |   45 +++++
+ 6 files changed, 368 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/dma/dma.txt
+ create mode 100644 drivers/of/dma.c
+ create mode 100644 include/linux/of_dma.h
+
+-- 
+1.7.9.5
+
