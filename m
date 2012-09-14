@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 4/7] omap custom atag removal for v3.7 merge window
-Date: Thu, 13 Sep 2012 19:34:11 -0700
-Message-ID: <E1TCLkX-0006bF-N1@merlin.infradead.org>
+Subject: [GIT PULL 6/7] omap makefile and sparse cleanup for v3.7 merge window
+Date: Thu, 13 Sep 2012 19:34:12 -0700
+Message-ID: <E1TCLkx-0006iv-9h@merlin.infradead.org>
 References: <pull-1347590052-683636>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,108 +22,89 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+The following changes since commit 68cb700c59fae6cd539c9dc1e9f2584f671935a0:
 
-  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+  ARM: OMAP1: Move SoC specific headers from plat to mach for omap1 (2012-09-12 18:06:31 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-omap-tags-for-v3.7
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-makefile-sparse-for-v3.7
 
-for you to fetch changes up to cf3a6ec2c0a499ef019d25d4dbc79df66e7d3f0c:
+for you to fetch changes up to 3c101c41fbe5daf88afbbd575542aa1d047812bb:
 
-  ARM: OMAP: remove plat/board.h file (2012-09-10 16:39:21 -0700)
-
-----------------------------------------------------------------
-Remove the ancient omap specific atags that are no longer needed.
-
-At some point we were planning to pass the bootloader information
-with custom atags that did not work out too well.
-
-There's no need for these any longer as the kernel has been booting
-fine without them for quite some time. And Now we have device tree
-support that can be used instead.
+  Merge tag 'omap-cleanup-b-for-3.7' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into cleanup-makefile-sparse (2012-09-12 20:42:36 -0700)
 
 ----------------------------------------------------------------
-Igor Grinberg (9):
-      ARM: OMAP: cleanup struct omap_board_config_kernel
-      ARM: OMAP: omap3evm: cleanup revision bits
-      ARM: OMAP: remove the sti console workaround
-      ARM: OMAP1: remove the crystal type tag parsing
-      ARM: OMAP: remove the omap custom tags
-      ARM: OMAP1: move omap1_bl pdata out of arch/arm/*
-      ARM: OMAP1: move lcd pdata out of arch/arm/*
-      ARM: OMAP: move debug_card_init() function
-      ARM: OMAP: remove plat/board.h file
 
- arch/arm/mach-omap1/board-ams-delta.c           |    1 -
- arch/arm/mach-omap1/board-fsample.c             |    1 -
- arch/arm/mach-omap1/board-generic.c             |    6 -
- arch/arm/mach-omap1/board-htcherald.c           |    1 -
- arch/arm/mach-omap1/board-nokia770.c            |    1 -
- arch/arm/mach-omap1/board-osk.c                 |    1 +
- arch/arm/mach-omap1/board-palmte.c              |    2 +-
- arch/arm/mach-omap1/board-palmtt.c              |    2 +-
- arch/arm/mach-omap1/board-palmz71.c             |    2 +-
- arch/arm/mach-omap1/board-perseus2.c            |    1 -
- arch/arm/mach-omap1/board-sx1.c                 |    1 -
- arch/arm/mach-omap1/board-voiceblue.c           |    6 -
- arch/arm/mach-omap1/clock_data.c                |    8 --
- arch/arm/mach-omap1/devices.c                   |    1 -
- arch/arm/mach-omap1/serial.c                    |    1 -
- arch/arm/mach-omap2/board-2430sdp.c             |    1 -
- arch/arm/mach-omap2/board-3430sdp.c             |    6 -
- arch/arm/mach-omap2/board-3630sdp.c             |    6 -
- arch/arm/mach-omap2/board-4430sdp.c             |    1 -
- arch/arm/mach-omap2/board-am3517crane.c         |    9 --
- arch/arm/mach-omap2/board-am3517evm.c           |    6 -
- arch/arm/mach-omap2/board-apollon.c             |    1 -
- arch/arm/mach-omap2/board-cm-t35.c              |    6 -
- arch/arm/mach-omap2/board-cm-t3517.c            |    6 -
- arch/arm/mach-omap2/board-devkit8000.c          |    1 -
- arch/arm/mach-omap2/board-generic.c             |    1 -
- arch/arm/mach-omap2/board-h4.c                  |    2 +-
- arch/arm/mach-omap2/board-igep0020.c            |    1 -
- arch/arm/mach-omap2/board-ldp.c                 |    1 -
- arch/arm/mach-omap2/board-n8x0.c                |    1 -
- arch/arm/mach-omap2/board-omap3beagle.c         |    1 -
- arch/arm/mach-omap2/board-omap3evm.c            |   19 ++--
- arch/arm/mach-omap2/board-omap3logic.c          |    1 -
- arch/arm/mach-omap2/board-omap3pandora.c        |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c        |    6 -
- arch/arm/mach-omap2/board-omap3touchbook.c      |    1 -
- arch/arm/mach-omap2/board-omap4panda.c          |    1 -
- arch/arm/mach-omap2/board-overo.c               |    1 -
- arch/arm/mach-omap2/board-rx51-peripherals.c    |    1 -
- arch/arm/mach-omap2/board-rx51.c                |    1 -
- arch/arm/mach-omap2/board-ti8168evm.c           |    6 -
- arch/arm/mach-omap2/board-zoom.c                |    1 -
- arch/arm/mach-omap2/common.c                    |    1 -
- arch/arm/mach-omap2/devices.c                   |    1 -
- arch/arm/mach-omap2/gpmc-nand.c                 |    1 -
- arch/arm/mach-omap2/gpmc-onenand.c              |    1 -
- arch/arm/mach-omap2/gpmc-smc91x.c               |    1 -
- arch/arm/mach-omap2/gpmc-smsc911x.c             |    1 -
- arch/arm/mach-omap2/pm-debug.c                  |    1 -
- arch/arm/mach-omap2/pm24xx.c                    |   11 --
- arch/arm/mach-omap2/serial.c                    |    1 -
- arch/arm/plat-omap/common.c                     |   40 -------
- arch/arm/plat-omap/counter_32k.c                |    1 -
- arch/arm/plat-omap/debug-devices.c              |    3 -
- arch/arm/plat-omap/devices.c                    |    1 -
- arch/arm/plat-omap/fb.c                         |    2 -
- arch/arm/plat-omap/include/plat/board.h         |  138 -----------------------
- arch/arm/plat-omap/include/plat/debug-devices.h |    9 ++
- arch/arm/plat-omap/include/plat/mmc.h           |    1 -
- arch/arm/plat-omap/include/plat/usb.h           |    1 -
- arch/arm/plat-omap/sram.c                       |    1 -
- drivers/mmc/host/omap.c                         |    1 -
- drivers/mmc/host/omap_hsmmc.c                   |    1 -
- drivers/mtd/onenand/omap2.c                     |    2 -
- drivers/video/backlight/omap1_bl.c              |    2 +-
- include/linux/omapfb.h                          |    7 +-
- include/linux/platform_data/omap1_bl.h          |   11 ++
- 67 files changed, 44 insertions(+), 320 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/board.h
- create mode 100644 arch/arm/plat-omap/include/plat/debug-devices.h
- create mode 100644 include/linux/platform_data/omap1_bl.h
+>From Paul Walmsley <paul@pwsan.com>:
+
+Clean up and standardize several parts of
+arch/arm/mach-omap2/Makefile.  Beyond readability and diffstat
+improvements, the series should reduce the risk of conflicts during
+future cleanups by ensuring related lines are in the same section of the
+Makefile.
+
+smatch and string-wrapping cleanups for the OMAP subarch code.
+
+These changes fix some of the more meaningful warnings that smatch
+returns for the OMAP subarch code, and unwraps strings that are
+wrapped at the 80-column boundary, to conform with the current
+practice.
+
+----------------------------------------------------------------
+Paul Walmsley (8):
+      ARM: OMAP2+: clean up whitespace in Makefile
+      ARM: OMAP2+: clean up omap_hwmod.o build directives in Makefile
+      ARM: OMAP2+: move MPU INTCPS, secure monitor, SDRC build directives in Makefile
+      ARM: OMAP2+: clean up OMAP4 PRM & sleep build directives in Makefile
+      ARM: OMAP2+: clean up OMAP clock Makefile sections
+      ARM: OMAP2+: clean up PRCM sections of the Makefile
+      ARM: OMAP: clean up some smatch warnings, fix some printk(KERN_ERR ...
+      ARM: OMAP: unwrap strings
+
+Tony Lindgren (2):
+      Merge tag 'omap-cleanup-a-for-3.7' of git://git.kernel.org/.../pjw/omap-pending into cleanup-makefile-sparse
+      Merge tag 'omap-cleanup-b-for-3.7' of git://git.kernel.org/.../pjw/omap-pending into cleanup-makefile-sparse
+
+ arch/arm/mach-omap1/board-htcherald.c       |    3 +-
+ arch/arm/mach-omap1/clock.c                 |    4 +-
+ arch/arm/mach-omap1/clock_data.c            |   13 ++--
+ arch/arm/mach-omap1/dma.c                   |    5 +-
+ arch/arm/mach-omap1/lcd_dma.c               |    6 +-
+ arch/arm/mach-omap1/leds-h2p2-debug.c       |   12 +--
+ arch/arm/mach-omap2/Makefile                |  108 +++++++++++----------------
+ arch/arm/mach-omap2/board-n8x0.c            |    7 +-
+ arch/arm/mach-omap2/board-overo.c           |    6 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    7 +-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c      |   10 +--
+ arch/arm/mach-omap2/clkt_clksel.c           |   28 ++++---
+ arch/arm/mach-omap2/clkt_dpll.c             |    8 +-
+ arch/arm/mach-omap2/clock.c                 |   20 ++---
+ arch/arm/mach-omap2/clock3xxx.c             |    3 +-
+ arch/arm/mach-omap2/clockdomain.c           |   74 +++++++++---------
+ arch/arm/mach-omap2/common-board-devices.c  |    3 +-
+ arch/arm/mach-omap2/dpll3xxx.c              |    7 +-
+ arch/arm/mach-omap2/gpio.c                  |    1 +
+ arch/arm/mach-omap2/gpmc.c                  |    2 +-
+ arch/arm/mach-omap2/id.c                    |    5 +-
+ arch/arm/mach-omap2/irq.c                   |    5 +-
+ arch/arm/mach-omap2/omap_hwmod.c            |   16 ++--
+ arch/arm/mach-omap2/opp.c                   |   15 ++--
+ arch/arm/mach-omap2/pm.c                    |    4 +-
+ arch/arm/mach-omap2/pm34xx.c                |    8 +-
+ arch/arm/mach-omap2/pm44xx.c                |    8 +-
+ arch/arm/mach-omap2/powerdomain.c           |   36 +++++----
+ arch/arm/mach-omap2/powerdomain2xxx_3xxx.c  |    4 +-
+ arch/arm/mach-omap2/powerdomain44xx.c       |    4 +-
+ arch/arm/mach-omap2/prcm.c                  |    8 +-
+ arch/arm/mach-omap2/serial.c                |   12 +--
+ arch/arm/mach-omap2/sr_device.c             |   13 ++--
+ arch/arm/mach-omap2/timer.c                 |    2 +-
+ arch/arm/mach-omap2/vc.c                    |    5 +-
+ arch/arm/mach-omap2/voltage.c               |   12 +--
+ arch/arm/mach-omap2/vp.c                    |   16 ++--
+ arch/arm/plat-omap/dma.c                    |   51 ++++++-------
+ arch/arm/plat-omap/mux.c                    |    2 +-
+ arch/arm/plat-omap/omap-pm-noop.c           |   39 +++++-----
+ arch/arm/plat-omap/omap_device.c            |   25 +++----
+ 41 files changed, 277 insertions(+), 340 deletions(-)
