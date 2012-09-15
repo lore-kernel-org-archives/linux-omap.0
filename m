@@ -1,29 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
-Date: Sat, 15 Sep 2012 05:49:56 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209150548480.5261@utopia.booyaka.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com> <alpine.DEB.2.00.1209150527080.3370@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v3 00/15] ASoC: OMAP: Convert to use
+	dmaengine
+Date: Sat, 15 Sep 2012 23:38:32 +0200
+Message-ID: <3759862.8IETAs1y1n@acer>
+References: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:48184 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750746Ab2IOFt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Sep 2012 01:49:57 -0400
-In-Reply-To: <alpine.DEB.2.00.1209150527080.3370@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, 15 Sep 2012, Paul Walmsley wrote:
-
-> The problem was resolved by creating recalc_rate function pointers for the 
-> APLLs that return sys_ck if the APLL is bypassed, or the APLL rate if it's 
-> locked, for both 2420 and 2430.
-
-One correction - the APLL recalc functions return a zero rate if stopped, 
-not the bypass rate.  This appears to be the case, from a close reading of 
-the TRM.
-
-- Paul
+RG5pYSBwacSFdGVrLCAxNCB3cnplxZtuaWEgMjAxMiAxNTowNTo0MyBQZXRlciBVamZhbHVzaSBw
+aXN6ZToKPiBIZWxsbywKPiAKPiBDaGFuZ2VzIHNpbmNlIHYyOgo+IC0gQXMgaXQgaGFzIGJlZW4g
+ZGlzY3Vzc2VkIHRoZSBub193YWtldXAgcGFyYW1ldGVyIGhhcyBiZWVuIHJlcGxhY2VkIHdpdGgg
+ZmxhZ3MKPiAgIGZvciB0aGUgZG1hZW5naW5lIEFQSXMKPiAKPiBDaGFuZ2VzIHNpbmNlIHYxOgo+
+IC0gU3VwcG9ydCBmb3IgcGF1c2UvcmVzdW1lIGZvciBPTUFQIGF1ZGlvIHZpYSBkbWFlbmdpbmUK
+PiAtIGRtYWVuZ2luZTogc3VwcG9ydCBmb3IgTk9fUEVSSU9EX1dBS0VVUCBpbiBjeWNsaWMgbW9k
+ZQo+ICAtIE9NQVAgdG8ga2VlcCBzdXBwb3J0aW5nIE5PX1BFUklPRF9XQUtFVVAgZm9yIGF1ZGlv
+Cj4gIC0gT3RoZXIgcGxhZm9ybXMgY2FuIGFsc28gdHJ5IHRvIGVuYWJsZSB0aGlzIG1vZGUgc2lu
+Y2Ugd2UgaGF2ZSBub3cgZ2VuZXJpYwo+ICAgIGludGVyZmFjZSB0byBkbyBzby4KPiAKPiBUaGlz
+IHNlcmllcyB3aWxsIHN3aXRjaCB0aGUgT01BUCBhdWRpbyB0byB1c2UgZG1hZW5naW5lLgo+IFRo
+ZSBmaW5hbCBwYXRjaCB3aGljaCBkb2VzIHRoZSBzd2l0Y2ggd2FzIGJhc2VkIG9uIFJ1c3NlbGwg
+S2luZydzIGVhcmxpZXIgcGF0Y2guCj4gCj4gVGhlIGZpcnN0IDEwIHBhdGNoIGlzIHRvIHByZXBh
+cmUgdGhlIE9NQVAgYXVkaW8gZHJpdmVycyBmb3IgYSBzbW9vdGggY2hhbmdlIHRvCj4gZG1hZW5n
+aW5lOgo+IC0gc0RNQSBGUkFNRSBzeW5jIG1vZGUgaXMgcmVtb3ZlZCBhbmQgcmVwbGFjZWQgd2l0
+aCBQQUNLRVQgbW9kZQo+IC0gZGFpIGRyaXZlcnMgbm8gbG9uZ2VyIG5lZWQgdG8gY29uZmlndXJl
+IHNETUEgc3luYyBtb2RlCj4gLSBkYWkgZHJpdmVycyBkb2VzIG5vdCBuZWVkIHRvIHNwZWNpZnkg
+dGhlIERNQSB3b3JkIGxlbmd0aCAtIHdpdGggdGhlIGV4Y2VwdGlvbgo+ICAgb2YgdGhlIG9tYXAt
+aGRtaSBkcml2ZXIgd2hpY2ggcmVxdWlyZXMgMzJiaXQgd29yZCBsZW5ndGggcmVnYXJkbGVzcyBv
+ZiB0aGUKPiAgIGF1ZGlvIGZvcm1hdCBpbiB1c2UKPiAtIHRoZSBNY1BETSBkcml2ZXIgdXNlZCAo
+dG8gbXkgc3VycHJpc2UpIGhhY2tpc2ggd2F5IG9mIGdldHRpbmcgdGhlIERNQSBjaGFubmVsCj4g
+ICBhbmQgYWRkcmVzcyAtIHZpYSBkZWZpbmVzIGZyb20gc29tZSBoZWFkZXIgZmlsZXMKPiAKPiBB
+ZnRlciB0aGUgY29udmVyc2lvbiBPTUFQIGF1ZGlvIHN1cHBvcnQgc2hvdWxkIGhhdmUgdGhlIHNh
+bWUgZmVhdHVyZXMgYXMgYmVmb3JlLAo+IG5vIHJlZ3Jlc3Npb25zIGV4cGVjdGVkLgo+IAo+IEkg
+aGF2ZSB0ZXN0ZWQgdGhlIHNlcmllcyBvbjoKPiAtIEJlYWdsZUJvYXJkIChhdWRpbyB2aWEgTWNC
+U1ApOiAKPiAgLSBhcGxheS9hcmVjb3JkLiBJbiBlbGVtZW50IG1vZGUgYW5kIGluIHRocmVzaG9s
+ZCBtb2RlIHdpdGggZGlmZmVyZW50IHBlcmlvZAo+ICAgIHNpemVzCj4gIC0gbXBsYXllciAtYW8g
+YWxzYTogZm9yIGRpcmVjdCBBTFNBIGFjY2Vzcwo+ICAtIG1wbGF5ZXIgLWFvIHB1bHNlOiB2aWEg
+UHVsc2VBdWRpbyB0byB0ZXN0IE5PX1BFUklPRF9XQUtFVVAgZmVhdHVyZQo+IC0gT01BUDQgQmxh
+emUgKGF1ZGlvIHZpYSBNY1BETSBhbmQgRE1JQykKPiAgLSBhcGxheS9hcmVjb3JkCj4gIC0gbXBs
+YXllciAtYW8gYWxzYTogZm9yIGRpcmVjdCBBTFNBIGFjY2Vzcwo+ICAtIG1wbGF5ZXIgLWFvIHB1
+bHNlOiB2aWEgUHVsc2VBdWRpbyB0byB0ZXN0IE5PX1BFUklPRF9XQUtFVVAgZmVhdHVyZQo+IAo+
+IFRoZSBwYXRjaGVzIGhhcyBiZWVuIGdlbmVyYXRlZCBhZ2FpbnN0Ogo+IGdpdDovL2dpdC5rZXJu
+ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9icm9vbmllL3NvdW5kLmdpdCBmb3ItMy43
+Cj4gCj4gSmFudXN6OiBDYW4geW91IHJldGVzdCB0aGlzIHNlcmllcyBvbiBPTUFQMSB0byBiZSBz
+dXJlIEkgaGF2ZSBub3QgYnJva2VuIGl0PwoKSGkgUGV0ZXIsCkl0IGxvb2tzIGxpa2UgeW91IGhh
+dmVuJ3QgOi0pLgoKRm9yIE9NQVAxOgpUZXN0ZWQtYnk6IEphbnVzeiBLcnp5c3p0b2ZpayA8amty
+enlzenRAdGlzLmljbmV0LnBsPgoKVGhhbmtzLApKYW51c3oKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1k
+ZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
