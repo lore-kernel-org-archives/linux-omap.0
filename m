@@ -1,99 +1,193 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v4 00/21] OMAP UART Patches
-Date: Sun, 16 Sep 2012 21:36:22 +0300
-Message-ID: <20120916183620.GA30189@arwen.pp.htv.fi>
-References: <20120906122948.GC29202@arwen.pp.htv.fi>
- <1346935540-1792-1-git-send-email-balbi@ti.com>
- <alpine.DEB.2.00.1209062137000.11516@utopia.booyaka.com>
- <alpine.DEB.2.00.1209112141220.9444@utopia.booyaka.com>
- <20120912062259.GC18563@arwen.pp.htv.fi>
- <alpine.DEB.2.00.1209160117510.23371@utopia.booyaka.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209160117510.23371@utopia.booyaka.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Felipe Balbi <balbi@ti.com>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Greg KH <gregkh@linuxfoundation.org>, alan@linux.intel.com, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, linux-serial@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] ASoC: ams-delta: Convert to use snd_soc_register_card()
+Date: Sun, 16 Sep 2012 21:17:03 +0200
+Message-ID: <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
+References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:36074 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751221Ab2IPTSE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 16 Sep 2012 15:18:04 -0400
+In-Reply-To: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
+The old method of registering with the ASoC core by creating a
+"soc-audio" platform device no longer works for Amstrad Delta sound card
+after recent changes to drvdata handling (commit
+0998d0631001288a5974afc0b2a5f568bcdecb4d, 'device-core: Ensure drvdata =
+NULL when no driver is bound'.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Use snd_soc_register_card() method instead, as suggested by the ASoC
+core generated warning message, and move both the card and codec
+platform device registration to the arch board file where those belong.
 
-Hi,
+Created and tested against linux-3.6-rc5.
 
-On Sun, Sep 16, 2012 at 01:22:01AM +0000, Paul Walmsley wrote:
-> On Wed, 12 Sep 2012, Felipe Balbi wrote:
->=20
-> > On Tue, Sep 11, 2012 at 10:02:48PM +0000, Paul Walmsley wrote:
-> >=20
-> > > The bad news is that N800 no longer boots -- or the UART dies during=
-=20
-> > > serial init:
-> > >=20
-> > > http://www.pwsan.com/omap/testlogs/test_tty_next_e36851d0/20120910020=
-323/boot/2420n800/2420n800_log.txt
-> > >=20
-> > > The problem doesn't seem to affect the 2430SDP.
-> > >=20
-> > > Could you put together a patch to fix N800?
->=20
-> Bisected this down.  It's this one that causes the problem on N800:
->=20
-> commit 93220dcc3052182e7156c09655ad1316055564b9
-> Author: Felipe Balbi <balbi@ti.com>
-> Date:   Thu Sep 6 15:45:27 2012 +0300
->=20
->     serial: omap: set dev->drvdata before enabling pm_runtime
->    =20
->     by the time we call our first pm_runtme_get_sync()
->     after enable pm_runtime, our resume method might
->     be called. To avoid problems, we must make sure
->     that our dev->drvdata is set correctly before
->     our resume method gets called.
->    =20
->     Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->     Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->     Signed-off-by: Felipe Balbi <balbi@ti.com>
->     Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+On Thu, 6 Sep 2012 15:36:35 Mark Brown wrote:
+> On Sat, Sep 01, 2012 at 11:09:18AM +0200, Janusz Krzysztofik wrote:
+> 
+> > I see your point, however for now I can see no better way of referencing 
+> > the data (of type struct snd_soc_card) then passing it to 
+> > snd_soc_register_card(). But for this to work, I would have to register 
+> > successfully an ams-delta specific platform device first, not the soc-
+> > audio. This, even if still done from the sound/soc/omap/ams-delta.c, not 
+> > from an arch board file, would require now not existing ams-delta ASoC 
+> > platform driver probe/remove callbacks at least. I'm still not convinced 
+> > if such modification would be acceptable in the middle of the rc cycle.
+> 
+> > If there is a simpler, less intrusive way to do this, then sorry, I 
+> > still can't see it.
+> 
+> Like I already said just make it a static variable.
 
-Interesting. That simply moves platform_set_drvdata() to a saner
-location... The only way for this to cause problems is if we're trying
-to restore a context which was never saved.
+Mark,
+Sorry, I was still not able to understand what you actually meant, and
+to come out with a working fix other than I initially proposed. If what
+I've prepared now is not acceptable as a fix, than hard luck, please
+consider queueing it for 3.7, and 3.6 must go with Amstrad Delta sound
+not working unless someone else is still able to fix it.
 
-Is there a way to prevent runtime_resume() to be called during probe()
-if I know the HW is already enabled ? Maybe with
-pm_runtime_set_active() ?
+Tony,
+Please give your ack on the arch/arm/mach-omap1 bits if acceptable. I
+believe there should be no merge conflicts if this change goes through
+sound/soc.
 
---=20
-balbi
+Thanks,
+Janusz
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+ arch/arm/mach-omap1/board-ams-delta.c |   12 ++++++
+ sound/soc/omap/ams-delta.c            |   63 +++++++++++++++-----------------
+ 2 files changed, 42 insertions(+), 33 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index c534698..5ab9c6b 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -444,16 +444,28 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
+ 	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
+ };
+ 
++static struct platform_device ams_delta_audio_device = {
++	.name   = "ams-delta-audio",
++	.id     = -1,
++};
++
++static struct platform_device cx20442_codec_device = {
++	.name   = "cx20442-codec",
++	.id     = -1,
++};
++
+ static struct platform_device *ams_delta_devices[] __initdata = {
+ 	&latch1_gpio_device,
+ 	&latch2_gpio_device,
+ 	&ams_delta_kp_device,
+ 	&ams_delta_camera_device,
++	&ams_delta_audio_device,
+ };
+ 
+ static struct platform_device *late_devices[] __initdata = {
+ 	&ams_delta_nand_device,
+ 	&ams_delta_lcd_device,
++	&cx20442_codec_device,
+ };
+ 
+ static void __init ams_delta_init(void)
+diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
+index 7d4fa8e..7b18b74 100644
+--- a/sound/soc/omap/ams-delta.c
++++ b/sound/soc/omap/ams-delta.c
+@@ -575,56 +575,53 @@ static struct snd_soc_card ams_delta_audio_card = {
+ };
+ 
+ /* Module init/exit */
+-static struct platform_device *ams_delta_audio_platform_device;
+-static struct platform_device *cx20442_platform_device;
+-
+-static int __init ams_delta_module_init(void)
++static __devinit int ams_delta_probe(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = &ams_delta_audio_card;
+ 	int ret;
+ 
+-	if (!(machine_is_ams_delta()))
+-		return -ENODEV;
+-
+-	ams_delta_audio_platform_device =
+-			platform_device_alloc("soc-audio", -1);
+-	if (!ams_delta_audio_platform_device)
+-		return -ENOMEM;
++	card->dev = &pdev->dev;
+ 
+-	platform_set_drvdata(ams_delta_audio_platform_device,
+-				&ams_delta_audio_card);
+-
+-	ret = platform_device_add(ams_delta_audio_platform_device);
+-	if (ret)
+-		goto err;
+-
+-	/*
+-	 * Codec platform device could be registered from elsewhere (board?),
+-	 * but I do it here as it makes sense only if used with the card.
+-	 */
+-	cx20442_platform_device =
+-		platform_device_register_simple("cx20442-codec", -1, NULL, 0);
++	ret = snd_soc_register_card(card);
++	if (ret) {
++		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
++		card->dev = NULL;
++		return ret;
++	}
+ 	return 0;
+-err:
+-	platform_device_put(ams_delta_audio_platform_device);
+-	return ret;
+ }
+-late_initcall(ams_delta_module_init);
+ 
+-static void __exit ams_delta_module_exit(void)
++static int __devexit ams_delta_remove(struct platform_device *pdev)
+ {
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
+ 	if (tty_unregister_ldisc(N_V253) != 0)
+-		dev_warn(&ams_delta_audio_platform_device->dev,
++		dev_warn(&pdev->dev,
+ 			"failed to unregister V253 line discipline\n");
+ 
+ 	snd_soc_jack_free_gpios(&ams_delta_hook_switch,
+ 			ARRAY_SIZE(ams_delta_hook_switch_gpios),
+ 			ams_delta_hook_switch_gpios);
+ 
+-	platform_device_unregister(cx20442_platform_device);
+-	platform_device_unregister(ams_delta_audio_platform_device);
++	snd_soc_unregister_card(card);
++	card->dev = NULL;
++	return 0;
+ }
+-module_exit(ams_delta_module_exit);
++
++#define DRV_NAME "ams-delta-audio"
++
++static struct platform_driver ams_delta_driver = {
++	.driver = {
++		.name = DRV_NAME,
++		.owner = THIS_MODULE,
++	},
++	.probe = ams_delta_probe,
++	.remove = __devexit_p(ams_delta_remove),
++};
++
++module_platform_driver(ams_delta_driver);
+ 
+ MODULE_AUTHOR("Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>");
+ MODULE_DESCRIPTION("ALSA SoC driver for Amstrad E3 (Delta) videophone");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+-- 
+1.7.3.4
 
-iQIcBAEBAgAGBQJQVhwkAAoJEIaOsuA1yqREVJYP/jqYh5vUZOh5Fq/rEsortJiY
-baO1XAXccZhNqo8TyyEqMqMYqA+AtIrj5DROl8ZhBChsxwkKqgvHq/gaAhYMVnq5
-r4LboEbQ17EkJQAIwouTVBVsRpm/IP83bNpLl1dLCIVXMjIXUx6QAXFkIae9iwa9
-j9yTKzjYp7YFdmAINE6kvkoiDtrzu0qMBmUwqHklTqWGEU6xoZRG2QGXuPYWlVIB
-ZTJPTt+osJg1DPrCfZ6ZN0LoJt/snnILlXYZyJQ69B0QOTwLje9rNiYcb9YPseYv
-VurWmRa+u5WTmK0tE5vSrY3OKnIFFHJ9OpK98Ip2Pjx4r5fLQSHN/5xDPY8Tt0qu
-Twc8GML4vF7JYbJjI9JXm0OgwG1/UVeStYrCd0+RU9p/fZtlmL7Q2T7A/z/Ty3Iv
-BzXt7Q7fLsmflj44yPxjO8YNoI9/h6/lJf36eJ3b8k0NqyAYHrvPHDguHRz08ILI
-/SjpEVSMs0BWEh7+scOQJYm8fKtlCLgrzJzJeFoB/YT4zJkkSftyjV4mVyy+tK8n
-oIqtE5UQMlzKa1JnzWajWgyTt3rpjS5obBEKIeKciFhG0ssJ5L7Xl/E+rXSByq5l
-GOI813JXLCYL45ljcxdFDQX8kgwgAJtkFD3aVwjTsyjZzR69rrxQI+1+e6PVCgU/
-adIaEqEePasf5nZrLi42
-=Fdy5
------END PGP SIGNATURE-----
-
---a8Wt8u1KmwUX3Y2C--
