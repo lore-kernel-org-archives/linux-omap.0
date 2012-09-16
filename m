@@ -1,45 +1,30 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
-Date: Sun, 16 Sep 2012 20:36:54 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209162033400.698@utopia.booyaka.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ASoC: ams-delta: Convert to use snd_soc_register_card()
+Date: Sun, 16 Sep 2012 13:44:23 -0700
+Message-ID: <20120916204422.GJ4521@atomide.com>
+References: <20120906073633.GC22330@opensource.wolfsonmicro.com>
+ <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:49754 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608Ab2IPUgz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Sep 2012 16:36:55 -0400
-In-Reply-To: <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:52375 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751263Ab2IPUoa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Sep 2012 16:44:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1347823023-24922-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alsa-devel@alsa-project.org
 
-On Tue, 11 Sep 2012, Paul Walmsley wrote:
-
-> Then the branch was PM-tested to determine whether it can suspend and 
-> serial-resume properly, and whether dynamic idle works.  These tests 
-> didn't go so well:
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120916 12:18]:
 > 
-> - 3530ES3 Beagleboard here was able to enter retention-idle
->   suspend, and leave it with serial wakeup, but the CORE powerdomain never 
->   entered a low-power state.  Dynamic retention-idle with serial wakeup
->   never resumed, and the test stopped there:
-> 
->   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3530es3beagle/3530es3beagle_log.txt
-> 
-> - 37xx EVM and 3730 Beagle XM fared better; they made it through the whole 
->   test program, but the CORE powerdomain also never entered a low-power
->   state:
-> 
->   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/37xxevm/37xxevm_log.txt
->   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3730beaglexm/3730beaglexm_log.txt
+> Tony,
+> Please give your ack on the arch/arm/mach-omap1 bits if acceptable. I
+> believe there should be no merge conflicts if this change goes through
+> sound/soc.
 
-Thanks to debugging work by some TI LDC engineers, these two issues have 
-been resolved.  Some clockdomain associations had been removed that were 
-necessary for the OMAP power management code to function correctly.  The 
-obvious ones have been restored to the clock data, and the branch updated.
+Yes looks good to me:
 
-
-- Paul
+Acked-by: Tony Lindgren <tony@atomide.com>
