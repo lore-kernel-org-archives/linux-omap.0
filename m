@@ -1,77 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
-Date: Mon, 17 Sep 2012 16:19:29 +0300
-Message-ID: <20120917131926.GA7699@arwen.pp.htv.fi>
-References: <1347623899-14485-1-git-send-email-kishon@ti.com>
- <F281D0F91ED19E4D8E63A7504E8A649803C82462@039-SN2MPN1-022.039d.mgd.msft.net>
- <CAAe_U6KvnXf7v47tVv4LYFUXjKQip7V_1FU6ujqcpoxu8QfMgw@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: AW: [PATCH] ARM: Add config option DEBUG_DECOMPRESS_KERNEL
+Date: Mon, 17 Sep 2012 15:37:08 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E2F0@dolphin.TIGRIS.local>
+References: <20120917131723.GB25899@glitch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAe_U6KvnXf7v47tVv4LYFUXjKQip7V_1FU6ujqcpoxu8QfMgw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: Chen Peter-B29397 <B29397@freescale.com>, "balbi@ti.com" <balbi@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Zhao Richard-B20223 <B20223@freescale.com>, "alexander.shishkin@linux.intel.com" <alexander.shishkin@linux.intel.com>, "mkl@pengutronix.de" <mkl@pengutronix.de>, "marex@denx.de" <marex@denx.de>
+Content-Type: multipart/mixed; boundary="===============2428144771262612631=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120917131723.GB25899@glitch>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Domenico Andreoli <cavokz@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+--===============2428144771262612631==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-5XOQDs/JdOqaJR95x9Dg"
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-5XOQDs/JdOqaJR95x9Dg
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 17, 2012 at 11:19:53AM +0530, ABRAHAM, KISHON VIJAY wrote:
-> Hi,
+> -----Urspr=FCngliche Nachricht-----
+> Von: Domenico Andreoli=20
+> [mailto:domenico.andreoli.it@gmail.com] Im Auftrag von=20
+> Domenico Andreoli
+> Gesendet: Montag, 17. September 2012 15:17
+> An: Maximilian Schwerin
+> Cc: linux-arm-kernel@lists.infradead.org
+> Betreff: Re: [PATCH] ARM: Add config option DEBUG_DECOMPRESS_KERNEL
 >=20
-> On Mon, Sep 17, 2012 at 6:50 AM, Chen Peter-B29397 <B29397@freescale.com>=
- wrote:
-> >
-> >>
-> >> The PHY framework provides a set of API's for the PHY drivers to
-> >> create/remove a PHY and the PHY users to obtain a reference to the PHY
-> >> using or without using phandle. If the PHY users has to obtain a
-> >> reference to
-> >> the PHY without using phandle, the platform specfic intialization code
-> >> (say
-> >> from board file) should have already called phy_bind with the binding
-> >> information. The binding information consists of phy's device name, phy
-> >> user device name and an index. The index is used when the same phy user
-> >> binds to mulitple phys.
-> >>
-> >
-> > What's an example of "the same phy user binds to multiple phys"?
+> On Mon, Sep 17, 2012 at 03:08:44PM +0200, Maximilian Schwerin wrote:
+> > This change allows preventing the message "Uncompressing=20
+> Linux..." from
+> > being sent to serial port. This is necessary if the primary=20
+> serial port is
+> > used for something other than kernel debugging (e.g. some=20
+> external device
+> > controlled by serial commands).
 >=20
-> Single controller using multiple phys..
+> Disabling CONFIG_DEBUG_LL doesn't work?
+>=20
+> Regards,
+> Domenico
+>=20
 
-to be more specific here: any usb3 controller needs a USB2 PHY and USB3
-PHY.
+No (never had that enabled), but that may be a bug or omission in the =
+platform (omap3) code?!
 
---=20
-balbi
+Regards, m.
 
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--=-5XOQDs/JdOqaJR95x9Dg
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v2.0.9 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQVyNeAAoJEIaOsuA1yqREBdIP/2EL70mqU8ZLI71u0ZEEm9C4
-+QauV2QZZ22NGjpXIZCCNsrHAOtFeSGB/8kkJ8QWGklCP2SxUw6XDe9FbMz+uCWd
-J92bFmo0zXVwFtilziksfTBeP9n3WSbHJvtGP+eN3QjD+WOXMMsk5ujaBjUj2ck+
-3q3dmRINJLK+2Pz4FJFOmAGApaJZdftvgMNMT0QbFz8sAC8Mr4i7wKT2d/Rcyp0G
-TMZBpRwCh6iCs0Lz64+aij98LeNPRAeHZG6n3keia77UQsm+giVX990XvSt1J1e4
-CLt8eEz0EaTWPrFYs1cVPxZL8/bnFvWawf7oPXcD2Pmu5ybIGROcQMdYEokUOeYg
-JkACqLsmY/0czDOChYLABHv7sQQlXhWlOzupPnpHapiFUkL7Eys1bISBkV3cAvvd
-4uvTtZfA6FHTy8cN+twXUk1ardBgnSA42YI4TXmqmCzKJW4+1il0YZ8TkMKUHBya
-qRxysPvIqSDPCXXFeSRdZsHApMq0Qagi4SgWCnX+vP4mrrGiGoSIKuLlvxGc6HIF
-dsAmjRer41+HoksFpzD2x2ZAxxFPniLzI/OtwPvpsn3hLuipt9sy4LHO/F/zYApq
-2Nbbl9CrzxuVs5zCcv/uy3XCAVQ0QBrA9gabFERFDaERpw+gN0VDpWpt00quXeL9
-9aP4/41rFLyubYuHE4LU
-=I1Qg
+iEYEABECAAYFAlBXJ4YACgkQ6nqkzTWctv55iACgpEtWetMb5B1x/PfsP7tDb9Rw
+hMUAnj0QMoZH7yaLHlB6caTNshKzTYlY
+=vxH3
 -----END PGP SIGNATURE-----
 
---pf9I7BMVVzbSWLtt--
+--=-5XOQDs/JdOqaJR95x9Dg--
+
+
+--===============2428144771262612631==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--===============2428144771262612631==--
