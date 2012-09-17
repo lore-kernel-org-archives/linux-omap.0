@@ -1,36 +1,88 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup parameter via
- device_prep_dma_cyclic() callback
-Date: Mon, 17 Sep 2012 15:23:26 +0800
-Message-ID: <20120917072323.GD1338@S2101-09.ap.freescale.net>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
- <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
- <20120917063451.GB6413@S2101-09.ap.freescale.net>
- <5056CE65.9080401@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH v3 4/4] ARM: dts: AM33XX: Add lis331dlh device tree data to am335x-evm
+Date: Mon, 17 Sep 2012 12:53:22 +0530
+Message-ID: <1347866602-2088-5-git-send-email-anilkumar@ti.com>
+References: <1347866602-2088-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:43235 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603Ab2IQHXO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 03:23:14 -0400
-Received: by pbbrr13 with SMTP id rr13so8595183pbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 17 Sep 2012 00:23:14 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5056CE65.9080401@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33498 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753328Ab2IQHYT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Sep 2012 03:24:19 -0400
+In-Reply-To: <1347866602-2088-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Nicolas Ferre <nicolas.ferre@atmel.com>, Barry Song <baohua.song@csr.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vista Silicon <javier.martin@vista-silicon.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Laxman Dewangan <ldewangan@nvidia.com>
+To: arnd@arndb.de
+Cc: gregkh@linuxfoundation.org, eric.piel@tremplin-utc.net, jic23@cam.ac.uk, greg@kroah.com, akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, dmitry.torokhov@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, AnilKumar Ch <anilkumar@ti.com>
 
-On Mon, Sep 17, 2012 at 10:16:53AM +0300, Peter Ujfalusi wrote:
-> All users of this callback is updated with this patch.
-> The public API (dmaengine_prep_dma_cyclic) is only used by ASoC, which has
-> been updated by the previous patch.
-> 
-Ah, ok.  You actually changed dmaengine_prep_dma_cyclic signature before
-this patch.  Sorry, I overlooked that.
+Add lis331dlh device tree data to am335x-evm.dts. In AM335x EVM
+lis331dlh accelerometer is connected to I2C2 bus. So this patch
+change the status of I2C2 node to "okay" to use I2C2 bus. Also
+added all the required platform data to am335x-evm.
 
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 9fb59c5..be309df 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -47,6 +47,39 @@
+ 			};
+ 		};
+ 
++		i2c2: i2c@4802a000 {
++			status = "okay";
++			clock-frequency = <400000>;
++
++			lis331dlh: lis331dlh@18 {
++				compatible = "st,lis331dlh", "st,lis3lv02d";
++				reg = <0x18>;
++				Vdd-supply = <&lis3_reg>;
++				Vdd_IO-supply = <&lis3_reg>;
++
++				st,click-single-x;
++				st,click-single-y;
++				st,click-single-z;
++				st,click-thresh-x = <10>;
++				st,click-thresh-y = <10>;
++				st,click-thresh-z = <10>;
++				st,irq1-click;
++				st,irq2-click;
++				st,wakeup-x-lo;
++				st,wakeup-x-hi;
++				st,wakeup-y-lo;
++				st,wakeup-y-hi;
++				st,wakeup-z-lo;
++				st,wakeup-z-hi;
++				st,min-limit-x = <120>;
++				st,min-limit-y = <120>;
++				st,min-limit-z = <140>;
++				st,max-limit-x = <550>;
++				st,max-limit-y = <550>;
++				st,max-limit-z = <750>;
++			};
++		};
++
+ 		dcan1: d_can@481d0000 {
+ 			status = "okay";
+ 			pinctrl-names = "default";
+@@ -61,6 +94,12 @@
+ 		regulator-max-microvolt = <5000000>;
+ 		regulator-boot-on;
+ 	};
++
++	lis3_reg: fixedregulator@1 {
++		compatible = "regulator-fixed";
++		regulator-name = "lis3_reg";
++		regulator-boot-on;
++	};
+ };
+ 
+ /include/ "tps65910.dtsi"
 -- 
-Regards,
-Shawn
+1.7.9.5
+
