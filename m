@@ -1,48 +1,61 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH] drivers: phy: add generic PHY framework
-Date: Mon, 17 Sep 2012 11:19:53 +0530
-Message-ID: <CAAe_U6KvnXf7v47tVv4LYFUXjKQip7V_1FU6ujqcpoxu8QfMgw@mail.gmail.com>
-References: <1347623899-14485-1-git-send-email-kishon@ti.com>
-	<F281D0F91ED19E4D8E63A7504E8A649803C82462@039-SN2MPN1-022.039d.mgd.msft.net>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup
+ parameter via device_prep_dma_cyclic() callback
+Date: Mon, 17 Sep 2012 14:34:53 +0800
+Message-ID: <20120917063451.GB6413@S2101-09.ap.freescale.net>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F281D0F91ED19E4D8E63A7504E8A649803C82462-RL0Hj/+nBVC81RJBUSuqCa4g8xLGJsHaLnY5E4hWTkheoWH0uzbU5w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chen Peter-B29397 <B29397-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: "balbi-l0cyMroinI0@public.gmane.org" <balbi-l0cyMroinI0@public.gmane.org>, "arnd-r2nGTMty4D4@public.gmane.org" <arnd-r2nGTMty4D4@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Zhao Richard-B20223 <B20223-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org" <mkl-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, "marex-ynQEQJNshbs@public.gmane.org" <marex-ynQEQJNshbs@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-kernel@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Laxman Dewangan <ldewangan@nvidia.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, linux-arm-kernel@lists.infradead.org, Barry Song <baohua.song@csr.com>, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Vista Silicon <javier.martin@vista-silicon.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Sep 13, 2012 at 04:37:54PM +0300, Peter Ujfalusi wrote:
+> Change the parameter list of device_prep_dma_cyclic() so the DMA drivers
+> can receive the no_wakeup request coming from client drivers.
+> This feature can be used during audio operation to disable all audio
+> related interrupts.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Nicolas Ferre <nicolas.ferre@atmel.com>
+> CC: Barry Song <baohua.song@csr.com>
+> CC: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+> CC: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> CC: Vista Silicon <javier.martin@vista-silicon.com>
+> CC: Zhangfei Gao <zhangfei.gao@marvell.com>
+> CC: Shawn Guo <shawn.guo@linaro.org>
+> CC: Laxman Dewangan <ldewangan@nvidia.com>
+> ---
+>  drivers/dma/at_hdmac.c        | 3 ++-
+>  drivers/dma/ep93xx_dma.c      | 4 +++-
+>  drivers/dma/imx-dma.c         | 2 +-
+>  drivers/dma/imx-sdma.c        | 2 +-
+>  drivers/dma/mmp_tdma.c        | 2 +-
+>  drivers/dma/mxs-dma.c         | 2 +-
+>  drivers/dma/omap-dma.c        | 3 ++-
+>  drivers/dma/pl330.c           | 2 +-
+>  drivers/dma/sa11x0-dma.c      | 2 +-
+>  drivers/dma/sirf-dma.c        | 2 +-
+>  drivers/dma/ste_dma40.c       | 3 ++-
+>  drivers/dma/tegra20-apb-dma.c | 2 +-
+>  include/linux/dmaengine.h     | 5 +++--
+>  13 files changed, 20 insertions(+), 14 deletions(-)
+> 
+API changes without updating users?
 
-On Mon, Sep 17, 2012 at 6:50 AM, Chen Peter-B29397 <B29397-KZfg59tc24xl57MIdRCFDg@public.gmane.org> wrote:
->
->>
->> The PHY framework provides a set of API's for the PHY drivers to
->> create/remove a PHY and the PHY users to obtain a reference to the PHY
->> using or without using phandle. If the PHY users has to obtain a
->> reference to
->> the PHY without using phandle, the platform specfic intialization code
->> (say
->> from board file) should have already called phy_bind with the binding
->> information. The binding information consists of phy's device name, phy
->> user device name and an index. The index is used when the same phy user
->> binds to mulitple phys.
->>
->
-> What's an example of "the same phy user binds to multiple phys"?
-
-Single controller using multiple phys..
-> I only remembered that Felipe said there are two phy users for one single phy at
-> omap5 that is both usb3 and sata uses the same phy.
-
-*index* is used when a single controller uses multiple phys. For
-example it could be used for dwc3 (usb3 controller) where it uses usb2
-phy and usb3 phy.
-
-Thanks
-Kishon
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Shawn
