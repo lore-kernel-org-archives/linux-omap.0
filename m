@@ -1,41 +1,49 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL 7/7] am33xx hwmod data for v3.7 merge window
-Date: Sun, 16 Sep 2012 20:16:39 -0700
-Message-ID: <20120917031639.GC13322@quad.lixom.net>
+Subject: Re: [GIT PULL 1/7] omap non-critical fixes for v3.7 merge window
+Date: Sun, 16 Sep 2012 20:17:25 -0700
+Message-ID: <20120917031725.GD13322@quad.lixom.net>
 References: <pull-1347589125-283636>
- <E1TCLVa-0003Ea-Ej@merlin.infradead.org>
+ <20120914023403.GF4521@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:45224 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab2IQDQn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Sep 2012 23:16:43 -0400
-Received: by dady13 with SMTP id y13so597343dad.19
-        for <linux-omap@vger.kernel.org>; Sun, 16 Sep 2012 20:16:43 -0700 (PDT)
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:50296 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753334Ab2IQDRa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Sep 2012 23:17:30 -0400
+Received: by pbbrr13 with SMTP id rr13so8360575pbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 16 Sep 2012 20:17:29 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <E1TCLVa-0003Ea-Ej@merlin.infradead.org>
+In-Reply-To: <20120914023403.GF4521@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 13, 2012 at 07:18:45PM -0700, Tony Lindgren wrote:
-> The following changes since commit 68cb700c59fae6cd539c9dc1e9f2584f671935a0:
+On Thu, Sep 13, 2012 at 07:34:04PM -0700, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [120913 19:20]:
+> > The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+> > 
+> >   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-noncritical-for-v3.7
+> > 
+> > for you to fetch changes up to 3c5dc4a7daa6e64e39412fe9c7daa298834de623:
+> > 
+> >   ARM: OMAP4: wakeupgen: remove duplicate AUXCOREBOOT* read/write (2012-09-12 21:14:34 -0700)
+> > 
+> > ----------------------------------------------------------------
+> > Non critical omap fixes that we not considered necessary
+> > for the v3.6 -rc cycle.
+> > 
+> > ----------------------------------------------------------------
 > 
->   ARM: OMAP1: Move SoC specific headers from plat to mach for omap1 (2012-09-12 18:06:31 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap 
-> 
-> for you to fetch changes up to 11964f53eb4d9ce59a058be9999d9cfcb1ced878:
-> 
->   Merge tag 'omap-devel-a2-for-3.7' of git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending into devel-am33xx (2012-09-12 21:29:07 -0700)
+> Oops forgot to push out some of the tags and only this one
+> seems to got sent. Still a valid pull request, but I'll repost
+> the whole series of them.
 
-Looks like you did the request-pull before the tag had propagated out to the
-public git here, since it's not in the message above. Looking at your tree, it
-seems to be at tags/omap-devel-am33xx-for-v3.7, so I pulled that into next/soc.
-
-
--Olof
+Ah, I noticed this now. And it also explains why I got 4 copies of all pull
+requests, they all looked identical until the one that was missing a tag,
+I suppose. :)
