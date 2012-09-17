@@ -1,34 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to
- drivers/bus/
-Date: Mon, 17 Sep 2012 14:51:28 -0700
-Message-ID: <20120917215128.GF11762@atomide.com>
-References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] mfd: Fix compile for twl-core.c by removing cpu_is_omap
+ usage
+Date: Mon, 17 Sep 2012 22:08:40 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209172207480.16117@utopia.booyaka.com>
+References: <20120917202943.GV4521@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:52558 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112Ab2IQWIl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 18:08:41 -0400
+In-Reply-To: <20120917202943.GV4521@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Samuel Ortiz <sameo@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Felipe Balbi <balbi@ti.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
-> OMAP interconnect drivers are used for the interconnect error handling.
-> Since they are bus driver, lets move it to newly created drivers/bus.
+On Mon, 17 Sep 2012, Tony Lindgren wrote:
+
+> Commit 7d7e1eba (ARM: OMAP2+: Prepare for irqs.h removal) broke
+> compile for non-omap as include plat/cpu.h was added:
 > 
+> drivers/mfd/twl-core.c:49:22: fatal error: plat/cpu.h: No such file or directory
+> 
+> This header was indirectly included earlier when SPARSE_IRQ was not
+> set, but does not exist on most platforms.
+> 
+> Fix the problem by removing the cpu_is_omap usage that should
+> not exist in drivers at all. We can do this by adding proper
+> clock aliases for the twl-core.c drivers, and drop separate
+> handling for cases when clock framework is not available as
+> the behaviour will stay the same.
+> 
+> Note that we need to add a platform device to avoid using the
+> i2c provided names that may be different on various omaps.
+> 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 > Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Olof Johansson <olof@lixom.net>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
 > ---
-> Patch just moves OMAP interconnect drivers as is to the newly created
-> driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
-> tree and test on all OMAP boards.
+> 
+> Samuel, I'd like to queue this via arm-soc as that's where I have
+> the breaking patch is if this patch is OK with you.
 
-Great, looks like this should not conflict with other
-omap patches queued, so Arnd should probably take this into
-the bus branch:
+It would be ideal if I could queue this one, due to the clock dependency.  
+Still hoping that we can get the CCF conversion patches in for 3.7.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+
+- Paul
