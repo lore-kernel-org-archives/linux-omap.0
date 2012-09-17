@@ -1,34 +1,73 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v9 1/3] ARM: OMAP2/3: hwmod data: add gpmc
-Date: Mon, 17 Sep 2012 08:14:20 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E4DAD@DBDE01.ent.ti.com>
-References: <cover.1347355380.git.afzal@ti.com>
- <eb0761d198e52ea7d39d201702e1eff84c511396.1347355380.git.afzal@ti.com>
- <alpine.DEB.2.00.1209122202030.7275@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36386 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753472Ab2IQIO1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Sep 2012 04:14:27 -0400
-In-Reply-To: <alpine.DEB.2.00.1209122202030.7275@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 2/4] drivers/mmc/host/omap.c: fix error return code
+Date: Mon, 17 Sep 2012 10:15:26 +0200
+Message-ID: <1347869728-2696-2-git-send-email-peter.senna@gmail.com>
+References: <1347869728-2696-1-git-send-email-peter.senna@gmail.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1347869728-2696-1-git-send-email-peter.senna@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: jarkko.lavinen@nokia.com
+Cc: cjb@laptop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Peter Senna Tschudin <peter.senna@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgUGF1bCwNCg0KT24gVGh1LCBTZXAgMTMsIDIwMTIgYXQgMDM6NDU6MjcsIFBhdWwgV2FsbXNs
-ZXkgd3JvdGU6DQoNCj4gPiArCQkJCUhXTU9EX0lOSVRfTk9fUkVTRVQgfA0KDQo+IEFzIEkgdW5k
-ZXJzdGFuZCBpdCwgdGhpcyBpcyBub3QgZHVlIHRvIGFueSBHUE1DLXJlbGF0ZWQgcmVzZXQgYnVn
-cywgYnV0IA0KPiBqdXN0IGJlY2F1c2UgdGhlIGtlcm5lbCBpcyByZWx5aW5nIG9uIHRoZSBib290
-bG9hZGVyIEdQTUMgdGltaW5nIGRhdGEgDQo+IGJlaW5nIHByZXNlcnZlZC4gIElzIHRoYXQgY29y
-cmVjdD8NCg0KWWVzLCBpdCBpcyBkdWUgdG8gS2VybmVsIHJlbHlpbmcgb24gYm9vdGxvYWRlciBn
-cG1jIHNldHRpbmdzDQoNCj4gQXNzdW1pbmcgaXQgaXMsIGlkZWFsbHkgd2Ugd291bGRuJ3QgbWVy
-Z2Ugc3VjaCBhIHBhdGNoLCBidXQgSSBndWVzcyB0aGlzIA0KPiBpcyBzb21ld2hhdCBjb21wbGlj
-YXRlZCBub3cgd2l0aCB0aGUgRFQgdHJhbnNpdGlvbi4gIFNvIHRob3NlIHNob3VsZCBiZSANCj4g
-bWFya2VkIHdpdGggY29tbWVudHMgc28gd2Uga25vdyB0aGlzIGlzIG5vdCBhIGhhcmR3YXJlIGJ1
-Zy4uLiBzb21ldGhpbmcgDQo+IGxpa2UgdGhlIGZvbGxvd2luZy4NCg0KVGhhbmtzDQoNClJlZ2Fy
-ZHMNCkFmemFsDQo=
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/mmc/host/omap.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 48ad361..d468f51 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1369,8 +1369,10 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
+ 	host->irq = irq;
+ 	host->phys_base = host->mem_res->start;
+ 	host->virt_base = ioremap(res->start, resource_size(res));
+-	if (!host->virt_base)
++	if (!host->virt_base) {
++		ret = -ENOMEM;
+ 		goto err_ioremap;
++	}
+ 
+ 	host->iclk = clk_get(&pdev->dev, "ick");
+ 	if (IS_ERR(host->iclk)) {
+@@ -1438,8 +1440,10 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
+ 	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
+ 
+ 	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
+-	if (!host->mmc_omap_wq)
++	if (!host->mmc_omap_wq) {
++		err = -ENOMEM;
+ 		goto err_plat_cleanup;
++	}
+ 
+ 	for (i = 0; i < pdata->nr_slots; i++) {
+ 		ret = mmc_omap_new_slot(host, i);
+-- 
+1.7.11.4
+
