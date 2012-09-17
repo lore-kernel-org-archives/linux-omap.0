@@ -1,67 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
- calculation
-Date: Mon, 17 Sep 2012 16:10:02 -0700
-Message-ID: <20120917231001.GK11762@atomide.com>
-References: <20120824194630.GU11011@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC11D@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DEC85@DBDE01.ent.ti.com>
- <20120906204354.GJ1303@atomide.com>
- <20120911184606.GN23092@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E253B@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E3624@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E4DFE@DBDE01.ent.ti.com>
- <20120917225023.GJ11762@atomide.com>
+Subject: [PATCH] ARM: OMAP1: Include gpio-omap.h for board-h2 and board-h3
+Date: Mon, 17 Sep 2012 16:54:44 -0700
+Message-ID: <20120917234821.GL11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:12388 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25063 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754975Ab2IQXKG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 19:10:06 -0400
+	with ESMTP id S1757460Ab2IQXyr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 19:54:47 -0400
 Content-Disposition: inline
-In-Reply-To: <20120917225023.GJ11762@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Bryan Wu <bryan.wu@canonical.com>
 
-* Tony Lindgren <tony@atomide.com> [120917 15:54]:
-> * Mohammed, Afzal <afzal@ti.com> [120917 01:40]:
-> > Hi Tony,
-> > 
-> > On Fri, Sep 14, 2012 at 15:50:02, Mohammed, Afzal wrote:
-> > > * Mohammed, Afzal: Wednesday, September 12, 2012 3:20 PM
-> > 
-> > > > But some of the tusb async values is less by one. I need
-> > > > to get it right.
-> > > 
-> > > Reason has been identified. It was due to rounding error,
-> > > no changes are required in the expressions. Moving
-> > > completely to picoseconds resolves the issue.
-> > > 
-> > > Can you please try with the attached patch ?
-> 
-> Gave it a quick try and it seemed to work.. But when I tried
-> rebasing my patches for the cbus to keep things working with
-> the watchdog, I ran into multiple merge conflicts with
-> current linux next and gave up.
+=46rom de6ca33a96a6bf61fcb91d3d399703e19ead9d1e Mon Sep 17 00:00:00 200=
+1
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Mon, 17 Sep 2012 16:24:20 -0700
+Subject: [PATCH] ARM: OMAP1: Include gpio-omap.h for board-h2 and board=
+-h3
+MIME-Version: 1.0
+Content-Type: text/plain; charset=3DUTF-8
+Content-Transfer-Encoding: 8bit
 
-OK went back to my original branch without current linux
-next and with the new cbus + retu driver from Aaro applied.
-Confirmed it's now working on n800 tusb6010.
-  
-> Care to repost this series updated against current linux
-> next?
-> 
-> I'm afraid I've pretty much lost track of all the patches
-> and rather not start resolving the conflicts as I'm sure
-> I'll break something else :)
+Merge of the LED related changes with omap sparse IRQ and
+hardware.h related changes causes a build issue otherwise:
 
-You should still repost the whole updated series against
-linux next.
+arch/arm/mach-omap1/board-h2.c:319: error: implicit declaration of func=
+tion =E2=80=98OMAP_MPUIO=E2=80=99
+arch/arm/mach-omap1/board-h2.c:319: error: initializer element is not c=
+onstant
+arch/arm/mach-omap1/board-h2.c:319: error: (near initialization for =E2=
+=80=98h2_gpio_led_pins[1].gpio=E2=80=99)
 
-Regards,
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Tony
+---
+
+Noticed this with current linux next and omap1_defconfig.
+The arm-soc drivers branch builds fine, but merged
+with omap-cleanup-sparseirq-for-v3.7 compile breaks.
+
+I'll queue this into cleanup-fixes branch on top of the
+omap-cleanup-sparseirq-for-v3.7 branch.
+
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -31,6 +31,7 @@
+ #include <linux/i2c/tps65010.h>
+ #include <linux/smc91x.h>
+ #include <linux/omapfb.h>
++#include <linux/platform_data/gpio-omap.h>
+=20
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -31,6 +31,7 @@
+ #include <linux/i2c/tps65010.h>
+ #include <linux/smc91x.h>
+ #include <linux/omapfb.h>
++#include <linux/platform_data/gpio-omap.h>
+=20
+ #include <asm/setup.h>
+ #include <asm/page.h>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
