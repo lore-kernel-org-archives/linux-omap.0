@@ -1,13 +1,13 @@
 From: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 2/4] drivers/mmc/host/omap.c: fix error return code
-Date: Mon, 17 Sep 2012 10:15:26 +0200
-Message-ID: <1347869728-2696-2-git-send-email-peter.senna@gmail.com>
+Subject: [PATCH 3/4] drivers/mmc/host/omap_hsmmc.c: fix error return code
+Date: Mon, 17 Sep 2012 10:15:27 +0200
+Message-ID: <1347869728-2696-3-git-send-email-peter.senna@gmail.com>
 References: <1347869728-2696-1-git-send-email-peter.senna@gmail.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1347869728-2696-1-git-send-email-peter.senna@gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: jarkko.lavinen@nokia.com
-Cc: cjb@laptop.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Peter Senna Tschudin <peter.senna@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: svenkatr@ti.com
+Cc: cjb@laptop.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Peter Senna Tschudin <peter.senna@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Peter Senna Tschudin <peter.senna@gmail.com>
@@ -37,37 +37,20 @@ ret@p1 = 0
 
 Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- drivers/mmc/host/omap.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 48ad361..d468f51 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1369,8 +1369,10 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
- 	host->irq = irq;
- 	host->phys_base = host->mem_res->start;
- 	host->virt_base = ioremap(res->start, resource_size(res));
--	if (!host->virt_base)
-+	if (!host->virt_base) {
-+		ret = -ENOMEM;
- 		goto err_ioremap;
-+	}
- 
- 	host->iclk = clk_get(&pdev->dev, "ick");
- 	if (IS_ERR(host->iclk)) {
-@@ -1438,8 +1440,10 @@ static int __devinit mmc_omap_probe(struct platform_device *pdev)
- 	host->reg_shift = (cpu_is_omap7xx() ? 1 : 2);
- 
- 	host->mmc_omap_wq = alloc_workqueue("mmc_omap", 0, 0);
--	if (!host->mmc_omap_wq)
-+	if (!host->mmc_omap_wq) {
-+		err = -ENOMEM;
- 		goto err_plat_cleanup;
-+	}
- 
- 	for (i = 0; i < pdata->nr_slots; i++) {
- 		ret = mmc_omap_new_slot(host, i);
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e59ac62..c8a2b36 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1893,6 +1893,7 @@ static int __devinit omap_hsmmc_probe(struct platform_device *pdev)
+ 		if (pdata->init(&pdev->dev) != 0) {
+ 			dev_dbg(mmc_dev(host->mmc),
+ 				"Unable to configure MMC IRQs\n");
++			ret = -ENXIO;
+ 			goto err_irq_cd_init;
+ 		}
+ 	}
 -- 
 1.7.11.4
-
