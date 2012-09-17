@@ -1,59 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
- calculation
-Date: Mon, 17 Sep 2012 15:50:23 -0700
-Message-ID: <20120917225023.GJ11762@atomide.com>
-References: <bc000ac53bb1b3ae1a951bbcf372caf6336d2a19.1345524670.git.afzal@ti.com>
- <20120824194630.GU11011@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC11D@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DEC85@DBDE01.ent.ti.com>
- <20120906204354.GJ1303@atomide.com>
- <20120911184606.GN23092@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E253B@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E3624@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E4DFE@DBDE01.ent.ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] mfd: Fix compile for twl-core.c by removing cpu_is_omap
+ usage
+Date: Tue, 18 Sep 2012 00:59:30 +0200
+Message-ID: <20120917225930.GV3647@sortiz-mobl>
+References: <20120917202943.GV4521@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:36067 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755374Ab2IQWu1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 18:50:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9E4DFE@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20120917202943.GV4521@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Mohammed, Afzal <afzal@ti.com> [120917 01:40]:
-> Hi Tony,
+Hi Tony,
+
+On Mon, Sep 17, 2012 at 01:29:44PM -0700, Tony Lindgren wrote:
+> Commit 7d7e1eba (ARM: OMAP2+: Prepare for irqs.h removal) broke
+> compile for non-omap as include plat/cpu.h was added:
 > 
-> On Fri, Sep 14, 2012 at 15:50:02, Mohammed, Afzal wrote:
-> > * Mohammed, Afzal: Wednesday, September 12, 2012 3:20 PM
+> drivers/mfd/twl-core.c:49:22: fatal error: plat/cpu.h: No such file or directory
 > 
-> > > But some of the tusb async values is less by one. I need
-> > > to get it right.
-> > 
-> > Reason has been identified. It was due to rounding error,
-> > no changes are required in the expressions. Moving
-> > completely to picoseconds resolves the issue.
-> > 
-> > Can you please try with the attached patch ?
+> This header was indirectly included earlier when SPARSE_IRQ was not
+> set, but does not exist on most platforms.
+> 
+> Fix the problem by removing the cpu_is_omap usage that should
+> not exist in drivers at all. We can do this by adding proper
+> clock aliases for the twl-core.c drivers, and drop separate
+> handling for cases when clock framework is not available as
+> the behaviour will stay the same.
+> 
+> Note that we need to add a platform device to avoid using the
+> i2c provided names that may be different on various omaps.
+> 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Olof Johansson <olof@lixom.net>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> ---
+> 
+> Samuel, I'd like to queue this via arm-soc as that's where I have
+> the breaking patch is if this patch is OK with you.
+That's fine with me:
 
-Gave it a quick try and it seemed to work.. But when I tried
-rebasing my patches for the cbus to keep things working with
-the watchdog, I ran into multiple merge conflicts with
-current linux next and gave up.
- 
-Care to repost this series updated against current linux
-next?
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-I'm afraid I've pretty much lost track of all the patches
-and rather not start resolving the conflicts as I'm sure
-I'll break something else :)
+Cheers,
+Samuel.
 
-Regards,
-
-Tony
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
