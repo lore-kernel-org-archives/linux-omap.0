@@ -1,52 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
-Date: Mon, 17 Sep 2012 14:26:06 -0700
-Message-ID: <20120917212605.GC11762@atomide.com>
-References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
- <alpine.DEB.2.00.1209162033400.698@utopia.booyaka.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP5: Enable arch timer support
+Date: Mon, 17 Sep 2012 14:38:10 -0700
+Message-ID: <20120917213810.GD11762@atomide.com>
+References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
+ <1344856045-15134-3-git-send-email-santosh.shilimkar@ti.com>
+ <504DE165.4000208@ti.com>
+ <CAMQu2gxE8e9RBykLDyukZwV7dPKv3nG1vCynO1pijUBXBnyq8Q@mail.gmail.com>
+ <504DE79B.3090302@ti.com>
+ <CAMQu2gwT=XHcZtdKfYacGyt21Mo0of8MmSMNE+0PP9wemKSyxw@mail.gmail.com>
+ <CAMQu2gzKDLBJmVdm0SUr0ec=LueT0mqBUYmHyGMsav5k=ggKQg@mail.gmail.com>
+ <50519FB9.9060208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52835 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752670Ab2IQV0J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 17:26:09 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22844 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752474Ab2IQViN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 17:38:13 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209162033400.698@utopia.booyaka.com>
+In-Reply-To: <50519FB9.9060208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orig
 
-* Paul Walmsley <paul@pwsan.com> [120916 13:37]:
-> On Tue, 11 Sep 2012, Paul Walmsley wrote:
+* Benoit Cousson <b-cousson@ti.com> [120913 01:57]:
+> > 
+> > Enable Cortex A15 generic timer support for OMAP5 based SOCs.
+> > The CPU local timers run on the free running real time counter clock.
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> > Then the branch was PM-tested to determine whether it can suspend and 
-> > serial-resume properly, and whether dynamic idle works.  These tests 
-> > didn't go so well:
-> > 
-> > - 3530ES3 Beagleboard here was able to enter retention-idle
-> >   suspend, and leave it with serial wakeup, but the CORE powerdomain never 
-> >   entered a low-power state.  Dynamic retention-idle with serial wakeup
-> >   never resumed, and the test stopped there:
-> > 
-> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3530es3beagle/3530es3beagle_log.txt
-> > 
-> > - 37xx EVM and 3730 Beagle XM fared better; they made it through the whole 
-> >   test program, but the CORE powerdomain also never entered a low-power
-> >   state:
-> > 
-> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/37xxevm/37xxevm_log.txt
-> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3730beaglexm/3730beaglexm_log.txt
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
 > 
-> Thanks to debugging work by some TI LDC engineers, these two issues have 
-> been resolved.  Some clockdomain associations had been removed that were 
-> necessary for the OMAP power management code to function correctly.  The 
-> obvious ones have been restored to the clock data, and the branch updated.
+> Tony,
+> 
+> I can potentially add it along with the timer changes in the dts part2
+> series if you ack the timer patch. We don't have tons of OMAP5 content
+> in the dts branch so it should not conflict.
 
-That's good news. Does that mean we should try to merge these patches
-for v3.7 then? Or do we still have issues remaining?
+Yes makes sense to me.
 
 Regards,
 
