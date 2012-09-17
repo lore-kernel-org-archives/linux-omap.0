@@ -1,36 +1,34 @@
-From: Chen Peter-B29397 <B29397@freescale.com>
-Subject: RE: [RFC PATCH] drivers: phy: add generic PHY framework
-Date: Mon, 17 Sep 2012 01:20:19 +0000
-Message-ID: <F281D0F91ED19E4D8E63A7504E8A649803C82462@039-SN2MPN1-022.039d.mgd.msft.net>
-References: <1347623899-14485-1-git-send-email-kishon@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL 1/7] omap non-critical fixes for v3.7 merge window
+Date: Sun, 16 Sep 2012 19:51:38 -0700
+Message-ID: <20120917025138.GA12652@quad.lixom.net>
+References: <50529409.d487e50a.2f08.0ac6SMTPIN_ADDED@mx.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347623899-14485-1-git-send-email-kishon@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>, "balbi@ti.com" <balbi@ti.com>, "arnd@arndb.de" <arnd@arndb.de>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-Cc: Zhao Richard-B20223 <B20223@freescale.com>, "alexander.shishkin@linux.intel.com" <alexander.shishkin@linux.intel.com>, "mkl@pengutronix.de" <mkl@pengutronix.de>, "marex@denx.de" <marex@denx.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:39240 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094Ab2IQCvo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Sep 2012 22:51:44 -0400
+Received: by pbbrr13 with SMTP id rr13so8338658pbb.19
+        for <linux-omap@vger.kernel.org>; Sun, 16 Sep 2012 19:51:43 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <50529409.d487e50a.2f08.0ac6SMTPIN_ADDED@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
- 
+On Thu, Sep 13, 2012 at 07:18:43PM -0700, Tony Lindgren wrote:
+> The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
 > 
-> The PHY framework provides a set of API's for the PHY drivers to
-> create/remove a PHY and the PHY users to obtain a reference to the PHY
-> using or without using phandle. If the PHY users has to obtain a
-> reference to
-> the PHY without using phandle, the platform specfic intialization code
-> (say
-> from board file) should have already called phy_bind with the binding
-> information. The binding information consists of phy's device name, phy
-> user device name and an index. The index is used when the same phy user
-> binds to mulitple phys.
+>   Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
 > 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-fixes-noncritical-for-v3.7
 
-What's an example of "the same phy user binds to multiple phys"?
-I only remembered that Felipe said there are two phy users for one single phy at 
-omap5 that is both usb3 and sata uses the same phy.
 
+Pulled into next/fixes-non-critical. Thanks!
 
- 
+-Olof
