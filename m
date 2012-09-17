@@ -1,252 +1,215 @@
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: Re: [PATCH v3 04/15] dmaengine: Pass flags via device_prep_dma_cyclic()
- callback
-Date: Mon, 17 Sep 2012 12:06:06 +0200
-Message-ID: <5056F60E.1080305@atmel.com>
-References: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com> <1347624358-25582-5-git-send-email-peter.ujfalusi@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] mtd: nand: omap2: Fix the nand-disk led trigger
+Date: Mon, 17 Sep 2012 13:52:12 +0300
+Message-ID: <CANOLnOOfwe1EvG1VHAZbtaC2xAD7_Rc6PqCWrs2cwEqauun8KA@mail.gmail.com>
+References: <20120913150614.GC22993@renkinjitsu.usine.8d.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1347624358-25582-5-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>, Vinod Koul <vinod.koul@intel.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <rmk+kernel@arm.linux.org.uk>, Dan Williams <djbw@fb.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Ricardo Neri <ricardo.neri@ti.com>, Lars-Peter Clausen <lars@metafoo.de>, Barry Song <baohua.song@csr.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Vista Silicon <javier.martin@vista-silicon.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Shawn Guo <shawn.guo@linaro.org>, Laxman Dewangan <ldewangan@nvidia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:43731 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754909Ab2IQKwM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 06:52:12 -0400
+Received: by ieak13 with SMTP id k13so293647iea.19
+        for <linux-omap@vger.kernel.org>; Mon, 17 Sep 2012 03:52:12 -0700 (PDT)
+In-Reply-To: <20120913150614.GC22993@renkinjitsu.usine.8d.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-On 09/14/2012 02:05 PM, Peter Ujfalusi :
-> Change the parameter list of device_prep_dma_cyclic() so the DMA drivers
-> can receive the flags coming from clients.
-> This feature can be used during audio operation to disable all audio
-> related interrupts when the DMA_PREP_INTERRUPT is cleared from the flags.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Nicolas Ferre <nicolas.ferre@atmel.com>
-> CC: Barry Song <baohua.song@csr.com>
-> CC: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-> CC: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> CC: Vista Silicon <javier.martin@vista-silicon.com>
-> CC: Zhangfei Gao <zhangfei.gao@marvell.com>
-> CC: Shawn Guo <shawn.guo@linaro.org>
-> CC: Laxman Dewangan <ldewangan@nvidia.com>
-> ---
->  drivers/dma/at_hdmac.c        | 3 ++-
+On Thu, Sep 13, 2012 at 6:06 PM, Raphael Assenat <raph@8d.com> wrote:
+> When the omap2 nand flash driver is used, the nand-disk led trigger d=
+oes not
+> work due to nand_wait_ready not being called.
 
-For Atmel's driver:
+I think better solution is just to delete omap_wait() function, which
+is just a copy of nand_wait() without LED and oops handling. If
+waitfunc is not set by the driver, default nand_wait is used by the
+core.
 
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 
->  drivers/dma/ep93xx_dma.c      | 4 +++-
->  drivers/dma/imx-dma.c         | 2 +-
->  drivers/dma/imx-sdma.c        | 2 +-
->  drivers/dma/mmp_tdma.c        | 2 +-
->  drivers/dma/mxs-dma.c         | 2 +-
->  drivers/dma/omap-dma.c        | 3 ++-
->  drivers/dma/pl330.c           | 2 +-
->  drivers/dma/sa11x0-dma.c      | 2 +-
->  drivers/dma/sirf-dma.c        | 2 +-
->  drivers/dma/ste_dma40.c       | 3 ++-
->  drivers/dma/tegra20-apb-dma.c | 2 +-
->  include/linux/dmaengine.h     | 4 ++--
->  13 files changed, 19 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/dma/at_hdmac.c b/drivers/dma/at_hdmac.c
-> index 3934fcc..7e5f6b6 100644
-> --- a/drivers/dma/at_hdmac.c
-> +++ b/drivers/dma/at_hdmac.c
-> @@ -841,12 +841,13 @@ atc_dma_cyclic_fill_desc(struct dma_chan *chan, struct at_desc *desc,
->   * @buf_len: total number of bytes for the entire buffer
->   * @period_len: number of bytes for each period
->   * @direction: transfer direction, to or from device
-> + * @flags: tx descriptor status flags
->   * @context: transfer context (ignored)
+> This patch exports the trigger from nand_base.c, letting specific dri=
+vers
+> such omap2 control the led as appropriate.
+>
+> Signed-off-by: Raphael Assenat <raph@8d.com>
+>
+> diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_bas=
+e.c
+> index a11253a..b967c45 100644
+> --- a/drivers/mtd/nand/nand_base.c
+> +++ b/drivers/mtd/nand/nand_base.c
+> @@ -103,7 +103,7 @@ static int nand_do_write_oob(struct mtd_info *mtd=
+, loff_t to,
+>   * For devices which display every fart in the system on a separate =
+LED. Is
+>   * compiled away when LED support is disabled.
 >   */
->  static struct dma_async_tx_descriptor *
->  atc_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct at_dma_chan	*atchan = to_at_dma_chan(chan);
->  	struct at_dma_slave	*atslave = chan->private;
-> diff --git a/drivers/dma/ep93xx_dma.c b/drivers/dma/ep93xx_dma.c
-> index c64917e..493735b 100644
-> --- a/drivers/dma/ep93xx_dma.c
-> +++ b/drivers/dma/ep93xx_dma.c
-> @@ -1120,6 +1120,7 @@ fail:
->   * @buf_len: length of the buffer (in bytes)
->   * @period_len: lenght of a single period
->   * @dir: direction of the operation
-> + * @flags: tx descriptor status flags
->   * @context: operation context (ignored)
->   *
->   * Prepares a descriptor for cyclic DMA operation. This means that once the
-> @@ -1133,7 +1134,8 @@ fail:
->  static struct dma_async_tx_descriptor *
->  ep93xx_dma_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
->  			   size_t buf_len, size_t period_len,
-> -			   enum dma_transfer_direction dir, void *context)
-> +			   enum dma_transfer_direction dir, unsigned long flags,
-> +			   void *context)
->  {
->  	struct ep93xx_dma_chan *edmac = to_ep93xx_dma_chan(chan);
->  	struct ep93xx_dma_desc *desc, *first;
-> diff --git a/drivers/dma/imx-dma.c b/drivers/dma/imx-dma.c
-> index 5084975..41b4376 100644
-> --- a/drivers/dma/imx-dma.c
-> +++ b/drivers/dma/imx-dma.c
-> @@ -801,7 +801,7 @@ static struct dma_async_tx_descriptor *imxdma_prep_slave_sg(
->  static struct dma_async_tx_descriptor *imxdma_prep_dma_cyclic(
->  		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct imxdma_channel *imxdmac = to_imxdma_chan(chan);
->  	struct imxdma_engine *imxdma = imxdmac->imxdma;
-> diff --git a/drivers/dma/imx-sdma.c b/drivers/dma/imx-sdma.c
-> index 1dc2a4a..2c5fd3e 100644
-> --- a/drivers/dma/imx-sdma.c
-> +++ b/drivers/dma/imx-sdma.c
-> @@ -1012,7 +1012,7 @@ err_out:
->  static struct dma_async_tx_descriptor *sdma_prep_dma_cyclic(
->  		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct sdma_channel *sdmac = to_sdma_chan(chan);
->  	struct sdma_engine *sdma = sdmac->sdma;
-> diff --git a/drivers/dma/mmp_tdma.c b/drivers/dma/mmp_tdma.c
-> index 8a15cf2..6d52bd4 100644
-> --- a/drivers/dma/mmp_tdma.c
-> +++ b/drivers/dma/mmp_tdma.c
-> @@ -358,7 +358,7 @@ struct mmp_tdma_desc *mmp_tdma_alloc_descriptor(struct mmp_tdma_chan *tdmac)
->  static struct dma_async_tx_descriptor *mmp_tdma_prep_dma_cyclic(
->  		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct mmp_tdma_chan *tdmac = to_mmp_tdma_chan(chan);
->  	struct mmp_tdma_desc *desc;
-> diff --git a/drivers/dma/mxs-dma.c b/drivers/dma/mxs-dma.c
-> index 7f41b25..734a4eb 100644
-> --- a/drivers/dma/mxs-dma.c
-> +++ b/drivers/dma/mxs-dma.c
-> @@ -531,7 +531,7 @@ err_out:
->  static struct dma_async_tx_descriptor *mxs_dma_prep_dma_cyclic(
->  		struct dma_chan *chan, dma_addr_t dma_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct mxs_dma_chan *mxs_chan = to_mxs_dma_chan(chan);
->  	struct mxs_dma_engine *mxs_dma = mxs_chan->mxs_dma;
-> diff --git a/drivers/dma/omap-dma.c b/drivers/dma/omap-dma.c
-> index 71d7869..4d2650f 100644
-> --- a/drivers/dma/omap-dma.c
-> +++ b/drivers/dma/omap-dma.c
-> @@ -366,7 +366,8 @@ static struct dma_async_tx_descriptor *omap_dma_prep_slave_sg(
->  
->  static struct dma_async_tx_descriptor *omap_dma_prep_dma_cyclic(
->  	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
-> -	size_t period_len, enum dma_transfer_direction dir, void *context)
-> +	size_t period_len, enum dma_transfer_direction dir, unsigned long flags,
-> +	void *context)
->  {
->  	struct omap_chan *c = to_omap_dma_chan(chan);
->  	enum dma_slave_buswidth dev_width;
-> diff --git a/drivers/dma/pl330.c b/drivers/dma/pl330.c
-> index e4feba6..0035645 100644
-> --- a/drivers/dma/pl330.c
-> +++ b/drivers/dma/pl330.c
-> @@ -2683,7 +2683,7 @@ static inline int get_burst_len(struct dma_pl330_desc *desc, size_t len)
->  static struct dma_async_tx_descriptor *pl330_prep_dma_cyclic(
->  		struct dma_chan *chan, dma_addr_t dma_addr, size_t len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context)
-> +		unsigned long flags, void *context)
->  {
->  	struct dma_pl330_desc *desc;
->  	struct dma_pl330_chan *pch = to_pchan(chan);
-> diff --git a/drivers/dma/sa11x0-dma.c b/drivers/dma/sa11x0-dma.c
-> index f5a7360..b893159 100644
-> --- a/drivers/dma/sa11x0-dma.c
-> +++ b/drivers/dma/sa11x0-dma.c
-> @@ -614,7 +614,7 @@ static struct dma_async_tx_descriptor *sa11x0_dma_prep_slave_sg(
->  
->  static struct dma_async_tx_descriptor *sa11x0_dma_prep_dma_cyclic(
->  	struct dma_chan *chan, dma_addr_t addr, size_t size, size_t period,
-> -	enum dma_transfer_direction dir, void *context)
-> +	enum dma_transfer_direction dir, unsigned long flags, void *context)
->  {
->  	struct sa11x0_dma_chan *c = to_sa11x0_dma_chan(chan);
->  	struct sa11x0_dma_desc *txd;
-> diff --git a/drivers/dma/sirf-dma.c b/drivers/dma/sirf-dma.c
-> index 434ad31..3eed8b3 100644
-> --- a/drivers/dma/sirf-dma.c
-> +++ b/drivers/dma/sirf-dma.c
-> @@ -489,7 +489,7 @@ err_dir:
->  static struct dma_async_tx_descriptor *
->  sirfsoc_dma_prep_cyclic(struct dma_chan *chan, dma_addr_t addr,
->  	size_t buf_len, size_t period_len,
-> -	enum dma_transfer_direction direction, void *context)
-> +	enum dma_transfer_direction direction, unsigned long flags, void *context)
->  {
->  	struct sirfsoc_dma_chan *schan = dma_chan_to_sirfsoc_dma_chan(chan);
->  	struct sirfsoc_dma_desc *sdesc = NULL;
-> diff --git a/drivers/dma/ste_dma40.c b/drivers/dma/ste_dma40.c
-> index 000d309..eee8d9b 100644
-> --- a/drivers/dma/ste_dma40.c
-> +++ b/drivers/dma/ste_dma40.c
-> @@ -2347,7 +2347,8 @@ static struct dma_async_tx_descriptor *d40_prep_slave_sg(struct dma_chan *chan,
->  static struct dma_async_tx_descriptor *
->  dma40_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
->  		     size_t buf_len, size_t period_len,
-> -		     enum dma_transfer_direction direction, void *context)
-> +		     enum dma_transfer_direction direction, unsigned long flags,
-> +		     void *context)
->  {
->  	unsigned int periods = buf_len / period_len;
->  	struct dma_async_tx_descriptor *txd;
-> diff --git a/drivers/dma/tegra20-apb-dma.c b/drivers/dma/tegra20-apb-dma.c
-> index 24acd71..b42b6ff 100644
-> --- a/drivers/dma/tegra20-apb-dma.c
-> +++ b/drivers/dma/tegra20-apb-dma.c
-> @@ -990,7 +990,7 @@ static struct dma_async_tx_descriptor *tegra_dma_prep_slave_sg(
->  struct dma_async_tx_descriptor *tegra_dma_prep_dma_cyclic(
->  	struct dma_chan *dc, dma_addr_t buf_addr, size_t buf_len,
->  	size_t period_len, enum dma_transfer_direction direction,
-> -	void *context)
-> +	unsigned long flags, void *context)
->  {
->  	struct tegra_dma_channel *tdc = to_tegra_dma_chan(dc);
->  	struct tegra_dma_desc *dma_desc = NULL;
-> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
-> index 2abcac5..d3201e4 100644
-> --- a/include/linux/dmaengine.h
-> +++ b/include/linux/dmaengine.h
-> @@ -591,7 +591,7 @@ struct dma_device {
->  	struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
->  		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
->  		size_t period_len, enum dma_transfer_direction direction,
-> -		void *context);
-> +		unsigned long flags, void *context);
->  	struct dma_async_tx_descriptor *(*device_prep_interleaved_dma)(
->  		struct dma_chan *chan, struct dma_interleaved_template *xt,
->  		unsigned long flags);
-> @@ -657,7 +657,7 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cyclic(
->  		unsigned long flags)
->  {
->  	return chan->device->device_prep_dma_cyclic(chan, buf_addr, buf_len,
-> -						period_len, dir, NULL);
-> +						period_len, dir, flags, NULL);
+> -DEFINE_LED_TRIGGER(nand_led_trigger);
+> +DEFINE_LED_TRIGGER_GLOBAL(nand_led_trigger);
+>
+>  static int check_offs_len(struct mtd_info *mtd,
+>                                         loff_t ofs, uint64_t len)
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index ac4fd75..6aa683f 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/nand.h>
+>  #include <linux/mtd/partitions.h>
+> +#include <linux/leds.h>
+>  #include <linux/omap-dma.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> @@ -254,6 +255,8 @@ static void omap_read_buf_pref(struct mtd_info *m=
+td, u_char *buf, int len)
+>         int ret =3D 0;
+>         u32 *p =3D (u32 *)buf;
+>
+> +       led_trigger_event(nand_led_trigger, LED_FULL);
+> +
+>         /* take care of subpage reads */
+>         if (len % 4) {
+>                 if (info->nand.options & NAND_BUSWIDTH_16)
+> @@ -284,6 +287,8 @@ static void omap_read_buf_pref(struct mtd_info *m=
+td, u_char *buf, int len)
+>                 /* disable and stop the PFPW engine */
+>                 gpmc_prefetch_reset(info->gpmc_cs);
+>         }
+> +
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
 >  }
->  
->  static inline int dmaengine_terminate_all(struct dma_chan *chan)
-> 
+>
+>  /**
+> @@ -302,6 +307,8 @@ static void omap_write_buf_pref(struct mtd_info *=
+mtd,
+>         u16 *p =3D (u16 *)buf;
+>         unsigned long tim, limit;
+>
+> +       led_trigger_event(nand_led_trigger, LED_FULL);
+> +
+>         /* take care of subpage writes */
+>         if (len % 2 !=3D 0) {
+>                 writeb(*buf, info->nand.IO_ADDR_W);
+> @@ -335,6 +342,8 @@ static void omap_write_buf_pref(struct mtd_info *=
+mtd,
+>                 /* disable and stop the PFPW engine */
+>                 gpmc_prefetch_reset(info->gpmc_cs);
+>         }
+> +
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
+>  }
+>
+>  /*
+> @@ -366,6 +375,8 @@ static inline int omap_nand_dma_transfer(struct m=
+td_info *mtd, void *addr,
+>         unsigned n;
+>         int ret;
+>
+> +       led_trigger_event(nand_led_trigger, LED_FULL);
+> +
+>         if (addr >=3D high_memory) {
+>                 struct page *p1;
+>
+> @@ -417,6 +428,8 @@ static inline int omap_nand_dma_transfer(struct m=
+td_info *mtd, void *addr,
+>         gpmc_prefetch_reset(info->gpmc_cs);
+>
+>         dma_unmap_sg(info->dma->device->dev, &sg, 1, dir);
+> +
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
+>         return 0;
+>
+>  out_copy_unmap:
+> @@ -428,6 +441,9 @@ out_copy:
+>         else
+>                 is_write =3D=3D 0 ? omap_read_buf8(mtd, (u_char *) ad=
+dr, len)
+>                         : omap_write_buf8(mtd, (u_char *) addr, len);
+> +
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
+> +
+>         return 0;
+>  }
+>
+> @@ -886,6 +902,8 @@ static int omap_wait(struct mtd_info *mtd, struct=
+ nand_chip *chip)
+>         else
+>                 timeo +=3D (HZ * 20) / 1000;
+>
+> +       led_trigger_event(nand_led_trigger, LED_FULL);
+> +
+>         gpmc_nand_write(info->gpmc_cs,
+>                         GPMC_NAND_COMMAND, (NAND_CMD_STATUS & 0xFF));
+>         while (time_before(jiffies, timeo)) {
+> @@ -894,6 +912,7 @@ static int omap_wait(struct mtd_info *mtd, struct=
+ nand_chip *chip)
+>                         break;
+>                 cond_resched();
+>         }
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
+>
+>         status =3D gpmc_nand_read(info->gpmc_cs, GPMC_NAND_DATA);
+>         return status;
+> @@ -909,6 +928,8 @@ static int omap_dev_ready(struct mtd_info *mtd)
+>         struct omap_nand_info *info =3D container_of(mtd, struct omap=
+_nand_info,
+>                                                         mtd);
+>
+> +       led_trigger_event(nand_led_trigger, LED_FULL);
+> +
+>         val =3D gpmc_read_status(GPMC_GET_IRQ_STATUS);
+>         if ((val & 0x100) =3D=3D 0x100) {
+>                 /* Clear IRQ Interrupt */
+> @@ -923,6 +944,8 @@ static int omap_dev_ready(struct mtd_info *mtd)
+>                         val =3D gpmc_read_status(GPMC_GET_IRQ_STATUS)=
+;
+>                 }
+>         }
+> +
+> +       led_trigger_event(nand_led_trigger, LED_OFF);
+>
+>         return 1;
+>  }
+> diff --git a/include/linux/mtd/nand.h b/include/linux/mtd/nand.h
+> index 57977c6..321b7ef 100644
+> --- a/include/linux/mtd/nand.h
+> +++ b/include/linux/mtd/nand.h
+> @@ -23,6 +23,7 @@
+>  #include <linux/mtd/mtd.h>
+>  #include <linux/mtd/flashchip.h>
+>  #include <linux/mtd/bbm.h>
+> +#include <linux/leds.h>
+>
+>  struct mtd_info;
+>  struct nand_flash_dev;
+> @@ -48,6 +49,9 @@ extern int nand_lock(struct mtd_info *mtd, loff_t o=
+fs, uint64_t len);
+>  /* unlocks specified locked blocks */
+>  extern int nand_unlock(struct mtd_info *mtd, loff_t ofs, uint64_t le=
+n);
+>
+> +/* LED trigger for NAND drivers not using nand_wait_ready. */
+> +extern DEFINE_LED_TRIGGER_GLOBAL(nand_led_trigger);
+> +
+>  /* The maximum number of NAND chips in an array */
+>  #define NAND_MAX_CHIPS         8
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
--- 
-Nicolas Ferre
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
