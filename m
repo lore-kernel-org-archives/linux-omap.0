@@ -1,44 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] mfd: Fix compile for twl-core.c by removing cpu_is_omap usage
-Date: Mon, 17 Sep 2012 20:43:45 +0000
-Message-ID: <201209172043.45461.arnd@arndb.de>
-References: <20120917202943.GV4521@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/29] Move OMAP2+ over to use COMMON clock
+Date: Mon, 17 Sep 2012 14:26:06 -0700
+Message-ID: <20120917212605.GC11762@atomide.com>
+References: <1339678038-23082-1-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1209110403130.23042@utopia.booyaka.com>
+ <alpine.DEB.2.00.1209162033400.698@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120917202943.GV4521@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Olof Johansson <olof@lixom.net>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:52835 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752670Ab2IQV0J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 17:26:09 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1209162033400.698@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, mturquette@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 17 September 2012, Tony Lindgren wrote:
-> Commit 7d7e1eba (ARM: OMAP2+: Prepare for irqs.h removal) broke
-> compile for non-omap as include plat/cpu.h was added:
+* Paul Walmsley <paul@pwsan.com> [120916 13:37]:
+> On Tue, 11 Sep 2012, Paul Walmsley wrote:
 > 
-> drivers/mfd/twl-core.c:49:22: fatal error: plat/cpu.h: No such file or directory
+> > Then the branch was PM-tested to determine whether it can suspend and 
+> > serial-resume properly, and whether dynamic idle works.  These tests 
+> > didn't go so well:
+> > 
+> > - 3530ES3 Beagleboard here was able to enter retention-idle
+> >   suspend, and leave it with serial wakeup, but the CORE powerdomain never 
+> >   entered a low-power state.  Dynamic retention-idle with serial wakeup
+> >   never resumed, and the test stopped there:
+> > 
+> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3530es3beagle/3530es3beagle_log.txt
+> > 
+> > - 37xx EVM and 3730 Beagle XM fared better; they made it through the whole 
+> >   test program, but the CORE powerdomain also never entered a low-power
+> >   state:
+> > 
+> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/37xxevm/37xxevm_log.txt
+> >   http://www.pwsan.com/omap/testlogs/common_clk_testing_devel_3.7/20120911000742/boot/3730beaglexm/3730beaglexm_log.txt
 > 
-> This header was indirectly included earlier when SPARSE_IRQ was not
-> set, but does not exist on most platforms.
-> 
-> Fix the problem by removing the cpu_is_omap usage that should
-> not exist in drivers at all. We can do this by adding proper
-> clock aliases for the twl-core.c drivers, and drop separate
-> handling for cases when clock framework is not available as
-> the behaviour will stay the same.
-> 
-> Note that we need to add a platform device to avoid using the
-> i2c provided names that may be different on various omaps.
-> 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Olof Johansson <olof@lixom.net>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Thanks to debugging work by some TI LDC engineers, these two issues have 
+> been resolved.  Some clockdomain associations had been removed that were 
+> necessary for the OMAP power management code to function correctly.  The 
+> obvious ones have been restored to the clock data, and the branch updated.
 
+That's good news. Does that mean we should try to merge these patches
+for v3.7 then? Or do we still have issues remaining?
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Regards,
+
+Tony
