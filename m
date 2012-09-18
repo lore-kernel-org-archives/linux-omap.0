@@ -1,42 +1,66 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH] cpufreq: OMAP: Check IS_ERR() instead of NULL for
- omap_device_get_by_hwmod_name
-Date: Tue, 18 Sep 2012 09:45:47 +0800
-Message-ID: <1347932747.6562.3.camel@phoenix>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for linux next for v3.7 merge window
+Date: Mon, 17 Sep 2012 19:28:57 -0700
+Message-ID: <20120918022856.GN11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-Sender: cpufreq-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:59348 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932106Ab2IRC3B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 22:29:01 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-omap_device_get_by_hwmod_name() returns ERR_PTR on error.
+Hi Arnd & Olof,
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/cpufreq/omap-cpufreq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Here is the fix for the twl-core compile on non-omap
+platforms and few other fixes.
 
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 6e22f44..65f8e9a 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -266,9 +266,9 @@ static int __init omap_cpufreq_init(void)
- 	}
- 
- 	mpu_dev = omap_device_get_by_hwmod_name("mpu");
--	if (!mpu_dev) {
-+	if (IS_ERR(mpu_dev)) {
- 		pr_warning("%s: unable to get the mpu device\n", __func__);
--		return -EINVAL;
-+		return PTR_ERR(mpu_dev);
- 	}
- 
- 	mpu_reg = regulator_get(mpu_dev, "vcc");
--- 
-1.7.9.5
+This will probably cause a minor merge conflicts with
+the led changes merged in the arm-soc next/drivers branch
+as both linux/leds.h and linux/platform_data/gpio-omap.h
+now need to be included.
+
+Regards,
+
+Tony
 
 
+The following changes since commit 68cb700c59fae6cd539c9dc1e9f2584f671935a0:
 
+  ARM: OMAP1: Move SoC specific headers from plat to mach for omap1 (2012-09-12 18:06:31 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-fixes-for-v3.7
+
+for you to fetch changes up to de6ca33a96a6bf61fcb91d3d399703e19ead9d1e:
+
+  ARM: OMAP1: Include gpio-omap.h for board-h2 and board-h3 (2012-09-17 16:28:03 -0700)
+
+----------------------------------------------------------------
+These fixes are needed to fix non-omap build breakage for
+twl-core driver and to fix omap1_defconfig compile when
+led driver changes and omap sparse IRQ changes are merged
+together. Also fix warnings for omaps not using pinctrl
+framework yet.
+
+----------------------------------------------------------------
+Matt Porter (1):
+      ARM: OMAP2+: Enable pinctrl dummy states
+
+Tony Lindgren (2):
+      mfd: Fix compile for twl-core.c by removing cpu_is_omap usage
+      ARM: OMAP1: Include gpio-omap.h for board-h2 and board-h3
+
+ arch/arm/mach-omap1/board-h2.c       |    1 +
+ arch/arm/mach-omap1/board-h3.c       |    1 +
+ arch/arm/mach-omap2/clock2430_data.c |    1 +
+ arch/arm/mach-omap2/clock3xxx_data.c |    1 +
+ arch/arm/mach-omap2/devices.c        |    5 +++
+ drivers/mfd/twl-core.c               |   56 ++++++++++++++++++----------------
+ 6 files changed, 39 insertions(+), 26 deletions(-)
