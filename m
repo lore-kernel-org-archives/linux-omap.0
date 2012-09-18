@@ -1,100 +1,137 @@
-From: Mitch Bradley <wmb@firmworks.com>
-Subject: Re: [PATCH V6 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 19 Sep 2012 06:19:06 +0800
-Message-ID: <5058F35A.8040702@firmworks.com>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com> <1347662517-4210-2-git-send-email-jon-hunter@ti.com> <20120915001431.GB12445@n2100.arm.linux.org.uk> <201209172042.11860.arnd@arndb.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv4 8/8] ARM: OMAP3: do not delete per_clkdm autodeps during
+ idle
+Date: Tue, 18 Sep 2012 22:25:05 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209182156330.4747@utopia.booyaka.com>
+References: <1342189185-5306-1-git-send-email-t-kristo@ti.com> <1342189185-5306-9-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rs130.luxsci.com ([72.32.115.17]:43341 "EHLO rs130.luxsci.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755351Ab2IRWUQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Sep 2012 18:20:16 -0400
-In-Reply-To: <201209172042.11860.arnd@arndb.de>
+Received: from utopia.booyaka.com ([74.50.51.50]:55160 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813Ab2IRWZG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 18:25:06 -0400
+In-Reply-To: <1342189185-5306-9-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Vinod Koul <vinod.koul@intel.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 9/18/2012 4:42 AM, Arnd Bergmann wrote:
-> On Saturday 15 September 2012, Russell King - ARM Linux wrote:
->>
->> On Fri, Sep 14, 2012 at 05:41:56PM -0500, Jon Hunter wrote:
->>> 3. Supporting legacy devices not using DMA Engine
->>>
->>>    These devices present a problem, as there may not be a uniform way to easily
->>>    support them with regard to device tree. Ideally, these should be migrated
->>>    to DMA engine. However, if this is not possible, then they should still be
->>>    able to use this binding, the only constaint imposed by this implementation
->>>    is that when requesting a DMA channel via of_dma_request_slave_channel(), it
->>>    will return a type of dma_chan.
->>
->> As far as devices not using DMA engine, the answer is we don't support
->> their specification in the DT model.  Note that the legacy OMAP DMA
->> API is scheduled for removal next year, so it's not going to be around
->> that much longer.
-> 
-> There are a few platforms using the ISA DMA API (rpc, h720x, shark, footbridge),
-> and I agree that they are unlikely to see OF support,
+Hi Tero,
 
-(Warning - historical rambling follows)
+just looking at the usecounting series to see what is mergeable and 
+noticed this:
 
-There is a delicious irony here with respect to Shark.  Shark has real
-Open Firmware.  It's the platform that I used for the first OFW port to
-ARM.  We (the Shark design team) had a version of NetBSD that would run
-on Shark without any native drivers, calling into the Open Firmware
-drivers.  It was very useful for bringup.
+On Fri, 13 Jul 2012, Tero Kristo wrote:
 
-I wonder when was the last time anyone turned on a Shark?  I ran my mail
-server on one until 8 years ago, when the incoming spam load began to
-saturate the 10 Mbit Ethernet.  Shark had decent computational power,
-but the I/O system, built around a low cost PC I/O chip, didn't have
-much bandwidth.
+> Secondly, there are multiple erratas for omap3, which say that the 
+> wakedeps should be enabled for the PER domain, see e.g. errata i582 for 
+> omap3630.
 
-Also in that time frame (early 2000s), some of us Shark designers
-managed to grab a pile of Sharks that HP was going to scrap.  (HP had
-inherited them as part of Compaq, who had acquired them as part of
-Digital.)  We used them as production unit testers for a consumer gadget
-that we were building.  But, alas, even that usage fell to the wayside.
- I redesigned the tester around an ATSAM7 chip and put the entire test
-setup into a tiny box.  I still have a couple of Sharks, but they
-haven't been turned on for at least 6 years.
+Erratum i582 mentions that a wakeup dependency needs to exist between PER 
+and WKUP such that PER will wake when CORE_L3 does.  Our autodeps would 
+not add this dependency; they just would attempt to add a wakeup 
+dependency between PER and MPU/IVA2.  So we need a different mechanism.  
+What do you think about the following patch to handle part of the i582 
+workaround?
 
-Is there ever a point when old architectures leave the Linux tree, or
-will people have to see grep hits from them until the end of time?
+Also, do you have any of the other errata information handy, so we can 
+track those down also?  I'm pretty sure we need to enable the wakeup 
+dependency between PER and CORE also for OMAP3, but can't recall the 
+reference.
 
 
- although if they did, it
-> wouldn't be unreasonable to encode their DMA channels using the same binding.
-> 
-> The other ones that are currently around with their own DMA implementation are
-> 
-> bcmring --> platform is going away
-> samsung --> gradually getting moved to dmaengine, already has its own binding
->             that needs to be replaced with this one, so best do it at the same
->             time.
-> tegra   --> old dma code gone in 3.7
-> pxa/mmp --> dmaengine implementation being worked on, should wait for that.
-> msm     --> dma implementation only used by two drivers (serial and mmc). 
-> 
-> Outside of arch/arm, at least sh, cris, unicore32 and blackfin have their
-> own dma APIs based on the ISA interfaces. I don't currently see any of them
-> moving towards DT, but it's definitely possible. 
-> 
-> Among the above MSM seems to be the most likely candidate to use the binding
-> before moving to DT. The msm_sdcc driver is (like much of the msm platform
-> code) lagging far behind the internel version that qualcomm have, and the
-> device tree binding they are using is incompatible with the common MMC
-> binding (and of course the DMA binding here) as well. For getting MSM up
-> to speed compared with the other platforms, they have to use proper DT
-> bindings as well as proper DMA engine support. Between those two, I'd prefer
-> fixing the DT binding first, in order to limit the amount of changes that
-> have to be done to external device tree files.
-> 
-> 	Arnd
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Tue, 18 Sep 2012 16:02:38 -0600
+Subject: [PATCH] ARM: OMAP36xx: PM: apply part of the erratum i582 workaround
+
+On OMAP36xx chips with ES < 1.2, if the PER powerdomain goes to OSWR
+or OFF while CORE stays at CSWR or ON, or if, upon chip wakeup from
+OSWR or OFF, the CORE powerdomain goes ON before PER, the UART3/4
+FIFOs and McBSP2/3 SIDETONE memories will be unusable.  This is
+erratum i582 in the OMAP36xx Silicon Errata document.
+
+This patch implements one of several parts of the workaround: the
+addition of the wakeup dependency between the PER and WKUP
+clockdomains, such that PER will wake up at the same time CORE_L3
+does.
+
+This is not a complete workaround.  For it to be complete:
+
+1. the PER powerdomain's next power state must not be set to OSWR or
+   OFF if the CORE powerdomain's next power state is set to CSWR or
+   ON;
+
+2. the UART3/4 FIFO and McBSP2/3 SIDETONE loopback tests should be run
+   if the LASTPOWERSTATEENTERED bits for PER and CORE indicate that
+   PER went OFF while CORE stayed on.  If loopback tests fail, then
+   those devices will be unusable until PER and CORE can undergo a
+   transition from ON to OSWR/OFF and back ON.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <t-kristo@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/pm.h     |    1 +
+ arch/arm/mach-omap2/pm34xx.c |   24 +++++++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 686137d..67d6613 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -91,6 +91,7 @@ extern void omap3_save_scratchpad_contents(void);
+ 
+ #define PM_RTA_ERRATUM_i608		(1 << 0)
+ #define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
++#define PM_PER_MEMORIES_ERRATUM_i582	(1 << 2)
+ 
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+ extern u16 pm34xx_errata;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 05bd8f0..5e99345 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -651,7 +651,8 @@ static void __init pm_errata_configure(void)
+ 		/* Enable the l2 cache toggling in sleep logic */
+ 		enable_omap3630_toggle_l2_on_restore();
+ 		if (omap_rev() < OMAP3630_REV_ES1_2)
+-			pm34xx_errata |= PM_SDRC_WAKEUP_ERRATUM_i583;
++			pm34xx_errata |= (PM_SDRC_WAKEUP_ERRATUM_i583 |
++					  PM_PER_ERRATUM_i582);
+ 	}
+ }
+ 
+@@ -726,6 +727,27 @@ int __init omap3_pm_init(void)
+ 	if (IS_PM34XX_ERRATUM(PM_RTA_ERRATUM_i608))
+ 		omap3630_ctrl_disable_rta();
+ 
++	/*
++	 * The UART3/4 FIFO and the sidetone memory in McBSP2/3 are
++	 * not correctly reset when the PER powerdomain comes back
++	 * from OFF or OSWR when the CORE powerdomain is kept active.
++	 * See OMAP36xx Erratum i582 "PER Domain reset issue after
++	 * Domain-OFF/OSWR Wakeup".  This wakeup dependency is not a
++	 * complete workaround.  The kernel must also prevent the PER
++	 * powerdomain from going to OSWR/OFF while the CORE
++	 * powerdomain is not going to OSWR/OFF.  And if PER last
++	 * power state was off while CORE last power state was ON, the
++	 * UART3/4 and McBSP2/3 SIDETONE devices need to run a
++	 * self-test using their loopback tests; if that fails, those
++	 * devices are unusable until the PER/CORE can complete a transition
++	 * from ON to OSWR/OFF and then back to ON.
++	 *
++	 * XXX Technically this workaround is only needed if off-mode
++	 * or OSWR is enabled.
++	 */
++	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
++		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
++
+ 	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
+ 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+ 		omap3_secure_ram_storage =
+-- 
+1.7.10.4
+
