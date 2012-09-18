@@ -1,339 +1,143 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 1/8] ARM: OMAP2+: PM QoS: control the power domains next state from the constraints
-Date: Tue, 18 Sep 2012 10:52:05 +0200
-Message-ID: <1347958332-2205-2-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 5/8] ARM: OMAP3: update cpuidle latency and threshold figures
+Date: Tue, 18 Sep 2012 10:52:09 +0200
+Message-ID: <1347958332-2205-6-git-send-email-j-pihet@ti.com>
 References: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:38379 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757672Ab2IRIw2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 04:52:28 -0400
-Received: by weyx8 with SMTP id x8so4411252wey.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:26 -0700 (PDT)
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:45346 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756864Ab2IRIwc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 04:52:32 -0400
+Received: by wgbfm10 with SMTP id fm10so2728778wgb.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:30 -0700 (PDT)
 In-Reply-To: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
-Cc: Jean Pihet <j-pihet@ti.com>, Djamil Elaidi <d-elaidi@ti.com>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-When a PM QoS device latency constraint is requested or removed the
-constraint is stored in the constraints list of the corresponding power
-domain, then the aggregated constraint value is applied by programming
-the next functional power state using pwrdm_set_fpwrst.
+Update the data from the measurements performed at HW and SW levels.
 
-The per-device PM QoS locking requires a spinlock to be used. The reasons
-is that some drivers need to use the per-device PM QoS functionality from
-interrupt context or spinlock protected context, as reported by Djamil.
-An example of such a driver is the OMAP HSI (high-speed synchronous serial
-interface) driver which needs to control the IP block idle state from
-the FIFO empty state, from interrupt context.
+Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+for a detailed explanation on where are the numbers coming from.
 
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
-wake-up latency constraints on MPU, CORE and PER.
+ToDo:
+- Measure the wake-up latencies for all power domains for OMAP3
+- Correct some numbers when sys_clkreq and sys_offmode are supported
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Cc: Djamil Elaidi <d-elaidi@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |  212 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h |   18 +++-
- 2 files changed, 229 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   54 ++++++++++++++++++++++++++----------
+ 1 files changed, 39 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 37dfabf..3d81ac7 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -17,8 +17,10 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/list.h>
-+#include <linux/slab.h>
- #include <linux/errno.h>
- #include <linux/string.h>
-+#include <linux/pm_qos.h>
- #include <linux/ratelimit.h>
- #include <trace/events/power.h>
- 
-@@ -114,6 +116,12 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	for (i = 0; i < pwrdm->banks; i++)
- 		pwrdm->ret_mem_off_counter[i] = 0;
- 
-+	/* Initialize the per-device wake-up constraints framework data */
-+	spin_lock_init(&pwrdm->wkup_lat_plist_lock);
-+	plist_head_init(&pwrdm->wkup_lat_plist_head);
-+	pwrdm->wkup_lat_next_state = PWRDM_FUNC_PWRST_OFF;
-+
-+	/* Initialize the pwrdm state */
- 	pwrdm_wait_transition(pwrdm);
- 	pwrdm->state = pwrdm_read_fpwrst(pwrdm);
- 	pwrdm->state_counter[pwrdm->state] = 1;
-@@ -418,6 +426,60 @@ static int _pwrdm_read_next_fpwrst(struct powerdomain *pwrdm)
- 	return _pwrdm_pwrst_to_fpwrst(pwrdm, next_pwrst, next_logic);
- }
- 
-+/**
-+ * _pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
-+ * @pwrdm: struct powerdomain * to which requesting device belongs to.
-+ * @min_latency: the allowed wake-up latency for the given power domain. A
-+ *  value of PM_QOS_DEV_LAT_DEFAULT_VALUE means 'no constraint' on the pwrdm.
-+ *
-+ * Finds the power domain next power state that fulfills the constraint.
-+ * Programs a new target state if it is different from current power state.
-+ * The power domains get the next power state programmed directly in the
-+ * registers.
-+ *
-+ * Must be called with the wkup_lat_plist_lock lock held.
-+ *
-+ * Returns 0 in case of success, -EINVAL in case of invalid parameters,
-+ * or the return value from pwrdm_set_fpwrst.
-+ */
-+static int _pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm,
-+					 long min_latency)
-+{
-+	int ret = 0, state, new_state = PWRDM_FUNC_PWRST_ON;
-+
-+	if (!pwrdm) {
-+		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find the next supported power state with
-+	 *  wakeup latency <= min_latency.
-+	 * Pick the lower state if no constraint on the pwrdm
-+	 *  (min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE).
-+	 * Skip the states marked as unsupported (UNSUP_STATE).
-+	 * If no power state found, fall back to PWRDM_FUNC_PWRST_ON.
-+	 */
-+	for (state = 0x0; state < PWRDM_MAX_FUNC_PWRSTS; state++) {
-+		if ((min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE) ||
-+		    ((pwrdm->wakeup_lat[state] != UNSUP_STATE) &&
-+		     (pwrdm->wakeup_lat[state] <= min_latency))) {
-+			new_state = state;
-+			break;
-+		}
-+	}
-+
-+	pwrdm->wkup_lat_next_state = new_state;
-+	ret = pwrdm_set_fpwrst(pwrdm, new_state);
-+
-+	pr_debug("%s: func pwrst for %s: curr=%d, next=%d, min_latency=%ld, new_state=%d\n",
-+		 __func__, pwrdm->name, pwrdm_read_fpwrst(pwrdm),
-+		 pwrdm_read_next_fpwrst(pwrdm), min_latency, new_state);
-+
-+	return ret;
-+}
-+
-+
- /* Public functions */
- 
- /**
-@@ -1484,6 +1546,156 @@ int pwrdm_post_transition(struct powerdomain *pwrdm)
- }
- 
- /**
-+ * pwrdm_wakeuplat_update_constraint - Set or update a powerdomain wakeup
-+ *  latency constraint and apply it
-+ * @pwrdm: struct powerdomain * which the constraint applies to
-+ * @cookie: constraint identifier, used for tracking
-+ * @min_latency: minimum wakeup latency constraint (in microseconds) for
-+ *  the given pwrdm
-+ *
-+ * Tracks the constraints by @cookie.
-+ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
-+ * constraint list. If the constraint identifier already exists in the list,
-+ * the old value is overwritten.
-+ *
-+ * Applies the aggregated constraint value for the given pwrdm by calling
-+ * _pwrdm_wakeuplat_update_pwrst.
-+ *
-+ * Returns 0 upon success, -ENOMEM in case of memory shortage, -EINVAL in
-+ * case of invalid latency value, or the return value from
-+ * _pwrdm_wakeuplat_update_pwrst.
-+ *
-+ * The caller must check the validity of the parameters.
-+ */
-+int pwrdm_wakeuplat_update_constraint(struct powerdomain *pwrdm, void *cookie,
-+				      long min_latency)
-+{
-+	struct pwrdm_wkup_constraints_entry *tmp_user, *user = NULL;
-+	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
-+		 __func__, pwrdm->name, cookie, min_latency);
-+
-+	if (min_latency <= PM_QOS_DEV_LAT_DEFAULT_VALUE) {
-+		pr_warn("%s: min_latency >= PM_QOS_DEV_LAT_DEFAULT_VALUE\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	/* Check if there already is a constraint for cookie */
-+	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
-+		if (tmp_user->cookie == cookie) {
-+			user = tmp_user;
-+			break;
-+		}
-+	}
-+
-+	/* If nothing to update, job done */
-+	if (user && (user->node.prio == min_latency))
-+		goto out;
-+
-+	if (!user) {
-+		/* Allocate a new entry for insertion in the list */
-+		user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
-+			       GFP_ATOMIC);
-+		if (!user) {
-+			pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+		user->cookie = cookie;
-+	} else {
-+		/* Update existing entry */
-+		plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-+	}
-+
-+	plist_node_init(&user->node, min_latency);
-+	plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
-+
-+	/* Find the aggregated constraint value from the list */
-+	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
-+		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
-+
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	/* Apply the constraint to the pwrdm */
-+	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
-+		 __func__, pwrdm->name, value);
-+	return _pwrdm_wakeuplat_update_pwrst(pwrdm, value);
-+
-+out:
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+	return ret;
-+}
-+
-+/**
-+ * pwrdm_wakeuplat_remove_constraint - Release a powerdomain wakeup latency
-+ *  constraint and apply it
-+ * @pwrdm: struct powerdomain * which the constraint applies to
-+ * @cookie: constraint identifier, used for tracking
-+ *
-+ * Tracks the constraints by @cookie.
-+ * Constraint removal: Removes the identifier's entry from powerdomain's
-+ * wakeup latency constraint list.
-+ *
-+ * Applies the aggregated constraint value for the given pwrdm by calling
-+ * _pwrdm_wakeuplat_update_pwrst.
-+ *
-+ * Returns 0 upon success, -EINVAL in case the constraint to remove is not
-+ * existing, or the return value from _pwrdm_wakeuplat_update_pwrst.
-+ *
-+ * The caller must check the validity of the parameters.
-+ */
-+int pwrdm_wakeuplat_remove_constraint(struct powerdomain *pwrdm, void *cookie)
-+{
-+	struct pwrdm_wkup_constraints_entry *tmp_user, *user = NULL;
-+	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
-+	unsigned long flags;
-+
-+	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p\n",
-+		 __func__, pwrdm->name, cookie);
-+
-+	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	/* Check if there is a constraint for cookie */
-+	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
-+		if (tmp_user->cookie == cookie) {
-+			user = tmp_user;
-+			break;
-+		}
-+	}
-+
-+	/* If constraint not existing or list empty, return -EINVAL */
-+	if (!user)
-+		goto out;
-+
-+	/* Remove the constraint from the list */
-+	plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
-+
-+	/* Find the aggregated constraint value from the list */
-+	if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
-+		value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
-+
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+
-+	/* Release the constraint memory */
-+	kfree(user);
-+
-+	/* Apply the constraint to the pwrdm */
-+	pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
-+		 __func__, pwrdm->name, value);
-+	return _pwrdm_wakeuplat_update_pwrst(pwrdm, value);
-+
-+out:
-+	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
-+	return -EINVAL;
-+}
-+
-+/**
-  * pwrdm_get_context_loss_count - get powerdomain's context loss count
-  * @pwrdm: struct powerdomain * to wait for
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index ca6cb71..c086374 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -280,63 +280,87 @@ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
   *
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index dcd2315..c114ec2 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -16,7 +16,7 @@
- 
- #include <linux/types.h>
- #include <linux/list.h>
--
-+#include <linux/plist.h>
- #include <linux/spinlock.h>
- #include <linux/atomic.h>
- 
-@@ -115,6 +115,8 @@ extern void omap44xx_powerdomains_init(void);
- 
- #define PWRDM_MAX_PWRSTS	4
- 
-+#define UNSUP_STATE		-1
-+
- /* Powerdomain allowable state bitfields */
- #define PWRSTS_ON		(1 << PWRDM_POWER_ON)
- #define PWRSTS_INACTIVE		(1 << PWRDM_POWER_INACTIVE)
-@@ -222,6 +224,16 @@ struct powerdomain {
- 	s64 timer;
- 	s64 state_timer[PWRDM_MAX_FUNC_PWRSTS];
- #endif
-+	const s32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
-+	struct plist_head wkup_lat_plist_head;
-+	spinlock_t wkup_lat_plist_lock;
-+	int wkup_lat_next_state;
-+};
-+
-+/* Linked list for the wake-up latency constraints */
-+struct pwrdm_wkup_constraints_entry {
-+	void			*cookie;
-+	struct plist_node	node;
- };
- 
- /**
-@@ -284,6 +296,10 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm);
- 
- int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
- 
-+int pwrdm_wakeuplat_update_constraint(struct powerdomain *pwrdm, void *cookie,
-+				      long min_latency);
-+int pwrdm_wakeuplat_remove_constraint(struct powerdomain *pwrdm, void *cookie);
-+
- extern struct pwrdm_ops omap2_pwrdm_operations;
- extern struct pwrdm_ops omap3_pwrdm_operations;
- extern struct pwrdm_ops am33xx_pwrdm_operations;
+  * - target_residency: required amount of time in the C state
+  *  to break even on energy cost
++ *
++ * The MPU latency and threshold values for the C-states are the worst case
++ * values from the HW and SW, as described in details at
++ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#cpuidle_results
++ *
++ * Measurements conditions and remarks:
++ *  . the measurements have been performed at OPP50
++ *  . the sys_offmode signal is not supported and so not used for the
++ *    measurements. Instead the latency and threshold values for C9 are
++ *    corrected with the value for Triton 2, which is 11.5ms
++ *  . the sys_clkreq signal is not used and so a correction is needed - TBD
++ *  . the sys_clkoff signal is supported, this value need to be corrected with
++ *    the correct value of SYSCLK on/off timings (1ms for sysclk on, 2.5ms
++ *    for sysclk off)
++ *  . the setup time of DPLLs is included in the measured values. However
++ *    this is only valid for DPLLs that are enabled to auto-idle at
++ *    measurement time. There currently is no provision for the dynamic
++ *    nature of the auto-idle setting
++ *  . in order to force the cpuidle algorithm to chose the power efficient
++ *    C-states (C1, C3, C5, C7) in preference, the other C-states have a
++ *    threshold value equal to the next power efficient C-state
++ *
++ * The latency and threshold values can be overriden by data from the board
++ * files, using omap3_pm_init_cpuidle.
+  */
+ struct cpuidle_driver omap3_idle_driver = {
+ 	.name = 	"omap3_idle",
+ 	.owner = 	THIS_MODULE,
+ 	.states = {
+ 		{
+-			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 2 + 2,
+-			.target_residency = 5,
++			.enter		  = omap3_enter_idle,
++			.exit_latency	  = 73 + 78,
++			.target_residency = 152,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C1",
+ 			.desc		  = "MPU ON + CORE ON",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 10 + 10,
+-			.target_residency = 30,
++			.exit_latency	  = 165 + 88,
++			.target_residency = 345,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C2",
+ 			.desc		  = "MPU ON + CORE ON",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 50 + 50,
+-			.target_residency = 300,
++			.exit_latency	  = 163 + 182,
++			.target_residency = 345,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C3",
+ 			.desc		  = "MPU RET + CORE ON",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 1500 + 1800,
+-			.target_residency = 4000,
++			.exit_latency	  = 2852 + 605,
++			.target_residency = 150000,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C4",
+ 			.desc		  = "MPU OFF + CORE ON",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 2500 + 7500,
+-			.target_residency = 12000,
++			.exit_latency	  = 800 + 366,
++			.target_residency = 2120,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C5",
+ 			.desc		  = "MPU RET + CORE RET",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 3000 + 8500,
+-			.target_residency = 15000,
++			.exit_latency	  = 4080 + 801,
++			.target_residency = 215000,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C6",
+ 			.desc		  = "MPU OFF + CORE RET",
+ 		},
+ 		{
+ 			.enter		  = omap3_enter_idle_bm,
+-			.exit_latency	  = 10000 + 30000,
+-			.target_residency = 30000,
++			.exit_latency	  = 4300 + 13000,
++			.target_residency = 215000,
+ 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
+ 			.name		  = "C7",
+ 			.desc		  = "MPU OFF + CORE OFF",
 -- 
 1.7.7.6
 
