@@ -1,76 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP baseline test results for v3.6-rc6
-Date: Tue, 18 Sep 2012 16:55:50 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209181653300.4747@utopia.booyaka.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [REPOST PATCH v2 1/2] spi: omap2-mcspi: add pinctrl support
+Date: Tue, 18 Sep 2012 09:55:57 -0700
+Message-ID: <20120918165557.GQ11762@atomide.com>
+References: <1347969685-15571-1-git-send-email-mporter@ti.com>
+	<50586424.9040601@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:54441 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030Ab2IRQzv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 12:55:51 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <50586424.9040601-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, AnilKumar <anilkumar-l0cyMroinI0@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@vger.kernel.org
 
+* Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> [120918 05:09]:
+> On Tuesday 18 September 2012 05:31 PM, Matt Porter wrote:
+> > Adds pinctrl support to support OMAP platforms that boot from DT
+> > and rely on pinctrl support to set pinmuxes.
+> looks good
+> 
+> Acked-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-Here are some basic OMAP boot and power management test results for 
-v3.6-rc6:
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 
-   http://www.pwsan.com/omap/testlogs/test_v3.6-rc6/20120918101040/
-
-Some observations:
-
-Boot tests:
-
-* CM-T3517: L3 in-band error with USB OTG during boot
-  - Cause unknown; longstanding issue; does not occur on the 3517EVM
-
-* 3517EVM & CM-T3517: boot hangs               
-  - Probably due to the use of NFS root; there are likely some Kconfig,
-    board file, and PM issues with EMAC
-
-PM tests:
-
-* 37xx EVM: CORE not entering dynamic off-idle
-  - Cause unknown; dynamic retention-idle seems to work; system suspend to 
-    off works
-
-* 3730 Beagle XM: does not serial wake from off-idle suspend when console
-  UART doesn't clock gate ("debug ignore_loglevel")
-  - Not shown in the current test logs; cause unknown
-
-* 4430ES2 Panda: UART corruption during long transmit buffers
-  - Presumably due to either a missing hardware workaround or a bug in
-    the OMAP serial driver
-
-Changes from v3.6-rc5 (test 20120908202511):
-(see http://www.pwsan.com/omap/testlogs/test_v3.6-rc5/20120908202511/ )
-
-- Dropped the line in this README.txt about 4430ES2 retention not working;
-  this is expected until some further patch series are merged
-
-
-object size (delta in bytes from test_v3.6-rc5 (55d512e245bc7699a8800e23df1a24195dd08217)):
-  text 	  data 	   bss 	 total 	kernel
- +9633 	   +16 	     0 	 +9649 	2430_testconfig
- +8793 	   +48 	     0 	 +8841 	5912osk_testconfig
- +9901 	 +6120 	 -1280 	+14741 	am33xx_testconfig
- +8580 	   -16 	     0 	 +8564 	n800_b_testconfig
- +8996 	   -16 	     0 	 +8980 	n800_multi_omap2xxx
- +8980 	    +8 	     0 	 +8988 	n800_testconfig
- +8993 	    -8 	     0 	 +8985 	omap1510_defconfig
- +9089 	   +48 	     0 	 +9137 	omap1_defconfig
- +8852 	  -280 	 -1280 	 +7292 	omap2_4_testconfig
-+13397 	  -256 	 -1280 	+11861 	omap2plus_defconfig
- +9241 	  -320 	 -1280 	 +7641 	omap2plus_defconfig_cpupm
-+10745 	  -136 	 -1280 	 +9329 	omap2plus_no_pm
-+10833 	  -224 	 -1216 	 +9393 	omap3_4_testconfig
-+11001 	   +64 	     0 	+11065 	omap3_testconfig
-+10661 	  -184 	 -1280 	 +9197 	omap4_testconfig
-+10785 	 +2344 	     0 	+13129 	rmk_omap3430_ldp_oldconfig
- +5389 	  -208 	 -1280 	 +3901 	rmk_omap4430_sdp_oldconfig
-
-
-- Paul
+------------------------------------------------------------------------------
+Live Security Virtual Conference
+Exclusive live event will cover all the ways today's security and 
+threat landscape has changed and how IT managers can respond. Discussions 
+will include endpoint security, mobile security and the latest in malware 
+threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
