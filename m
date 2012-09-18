@@ -1,44 +1,38 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP: OMAP_DEBUG_LEDS needs to select LEDS_CLASS
-Date: Tue, 18 Sep 2012 14:49:50 +0800
-Message-ID: <CAF+7xWnJj4XovwT5K_BDN8Q4GBLogsCb29Ro9t0Taek95HaPDg@mail.gmail.com>
-References: <1347939042.15578.1.camel@phoenix> <CAK5ve-LXv76vuBLHQQtREHn_ZogUsbyqzz2-uTHT_Ps-9vS3Pw@mail.gmail.com>
-Reply-To: axel.lin@gmail.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] hwspinlock: a single fix for 3.6
+Date: Tue, 18 Sep 2012 09:55:40 +0300
+Message-ID: <CAK=WgbbGk1L9Jmh=XUc9U_D0B_-xrr2pm1quDtBFcKo2gvOuYQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK5ve-LXv76vuBLHQQtREHn_ZogUsbyqzz2-uTHT_Ps-9vS3Pw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 List-Id: linux-omap@vger.kernel.org
 
-2012/9/18 Bryan Wu <bryan.wu@canonical.com>:
-> On Tue, Sep 18, 2012 at 11:30 AM, Axel Lin <axel.lin@gmail.com> wrote:
->> This fixes below build error when CONFIG_LEDS_CLASS is not set.
->>
->>   LD      init/built-in.o
->> arch/arm/plat-omap/built-in.o: In function `fpga_probe':
->> arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
->> make: *** [vmlinux] Error 1
->>
->
-> Thanks for posting this. But I think Tony has already fixed it in mainline:
-> --
-> commit 359f64f7b3997e94ee71039b5fcdc1278b9b77c4
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Wed Sep 15 10:18:51 2010 -0700
->
->     omap: Fix compile dependency to LEDS_CLASS
->
->     If we LEDS_CLASS is not selected, we will get undefined reference
->     to `led_classdev_register'.
->
->     Signed-off-by: Tony Lindgren <tony@atomide.com>
+Hi Linus,
 
-Commit 359f64f7b was commited on Sep 15 2010.
-This patch is against current linux-next tree.
-I got the build error on linux-next tree (next-20120917).
+The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
 
-Regards,
-Axel
+  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+tags/hwspinlock-3.6-fix
+
+for you to fetch changes up to e352614cd3e7a5f7af7cff894a3b5a705181de21:
+
+  hwspinlock/core: move the dereference below the NULL test
+(2012-09-10 13:19:25 +0300)
+
+----------------------------------------------------------------
+A single hwspinlock fix by Wei Yongjun, which prevents potential
+NULL dereferences.
+
+----------------------------------------------------------------
+Wei Yongjun (1):
+      hwspinlock/core: move the dereference below the NULL test
+
+ drivers/hwspinlock/hwspinlock_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
