@@ -1,19 +1,19 @@
 From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [RFC PATCH v2 1/5] ARM: mm: implement LoUIS API for cache
- maintenance ops
-Date: Tue, 18 Sep 2012 14:12:52 -0400 (EDT)
-Message-ID: <alpine.LFD.2.02.1209181411530.28681@xanadu.home>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com> <1347986135-17979-2-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH v2 2/5] ARM: mm: rename jump labels in v7_flush_dcache_all
+ function
+Date: Tue, 18 Sep 2012 14:13:28 -0400 (EDT)
+Message-ID: <alpine.LFD.2.02.1209181413050.28681@xanadu.home>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com> <1347986135-17979-3-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:50453 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753299Ab2IRSM4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 14:12:56 -0400
-Received: by qaas11 with SMTP id s11so266078qaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 11:12:55 -0700 (PDT)
-In-Reply-To: <1347986135-17979-2-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:45219 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344Ab2IRSNb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 14:13:31 -0400
+Received: by qcro28 with SMTP id o28so117873qcr.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 11:13:30 -0700 (PDT)
+In-Reply-To: <1347986135-17979-3-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
@@ -21,482 +21,71 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Ma
 
 On Tue, 18 Sep 2012, Lorenzo Pieralisi wrote:
 
-> ARM v7 architecture introduced the concept of cache levels and related
-> control registers. New processors like A7 and A15 embed an L2 unified cache
-> controller that becomes part of the cache level hierarchy. Some operations in
-> the kernel like cpu_suspend and __cpu_disable do not require a flush of the
-> entire cache hierarchy to DRAM but just the cache levels belonging to the
-> Level of Unification Inner Shareable (LoUIS), which in most of ARM v7 systems
-> correspond to L1.
+> This patch renames jump labels in v7_flush_dcache_all in order to define
+> a specific flush cache levels entry point.
 > 
-> The current cache flushing API used in cpu_suspend and __cpu_disable,
-> flush_cache_all(), ends up flushing the whole cache hierarchy since for
-> v7 it cleans and invalidates all cache levels up to Level of Coherency
-> (LoC) which cripples system performance when used in hot paths like hotplug
-> and cpuidle.
+> TODO: factor out the level flushing loop if considered worthwhile and
+>       define the input registers requirements.
 > 
-> Therefore a new kernel cache maintenance API must be added to cope with
-> latest ARM system requirements.
-> 
-> This patch adds flush_cache_louis() to the ARM kernel cache maintenance API.
-> 
-> This function cleans and invalidates all data cache levels up to the
-> Level of Unification Inner Shareable (LoUIS) and invalidates the instruction
-> cache for processors that support it (> v7).
-> 
-> This patch also creates an alias of the cache LoUIS function to flush_kern_all
-> for all processor versions prior to v7, so that the current cache flushing
-> behaviour is unchanged for those processors.
-> 
-> v7 cache maintenance code implements a cache LoUIS function that cleans and
-> invalidates the D-cache up to LoUIS and invalidates the I-cache, according
-> to the new API.
-> 
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Reviewed-by: Nicolas Pitre <nico@linaro.org>
-
+Acked-by: Nicolas Pitre <nico@linaro.org>
 
 > ---
->  arch/arm/include/asm/cacheflush.h | 15 +++++++++++++++
->  arch/arm/include/asm/glue-cache.h |  1 +
->  arch/arm/mm/cache-fa.S            |  3 +++
->  arch/arm/mm/cache-v3.S            |  3 +++
->  arch/arm/mm/cache-v4.S            |  3 +++
->  arch/arm/mm/cache-v4wb.S          |  3 +++
->  arch/arm/mm/cache-v4wt.S          |  3 +++
->  arch/arm/mm/cache-v6.S            |  3 +++
->  arch/arm/mm/cache-v7.S            | 36 ++++++++++++++++++++++++++++++++++++
->  arch/arm/mm/proc-arm1020.S        |  3 +++
->  arch/arm/mm/proc-arm1020e.S       |  3 +++
->  arch/arm/mm/proc-arm1022.S        |  3 +++
->  arch/arm/mm/proc-arm1026.S        |  3 +++
->  arch/arm/mm/proc-arm920.S         |  3 +++
->  arch/arm/mm/proc-arm922.S         |  3 +++
->  arch/arm/mm/proc-arm925.S         |  3 +++
->  arch/arm/mm/proc-arm926.S         |  3 +++
->  arch/arm/mm/proc-arm940.S         |  3 +++
->  arch/arm/mm/proc-arm946.S         |  3 +++
->  arch/arm/mm/proc-feroceon.S       |  3 +++
->  arch/arm/mm/proc-macros.S         |  1 +
->  arch/arm/mm/proc-mohawk.S         |  3 +++
->  arch/arm/mm/proc-xsc3.S           |  3 +++
->  arch/arm/mm/proc-xscale.S         |  3 +++
->  24 files changed, 113 insertions(+)
+>  arch/arm/mm/cache-v7.S | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 > 
-> diff --git a/arch/arm/include/asm/cacheflush.h b/arch/arm/include/asm/cacheflush.h
-> index c6e2ed9..4e8217b 100644
-> --- a/arch/arm/include/asm/cacheflush.h
-> +++ b/arch/arm/include/asm/cacheflush.h
-> @@ -50,6 +50,13 @@
->   *
->   *		Unconditionally clean and invalidate the entire cache.
->   *
-> + *     flush_kern_louis()
-> + *
-> + *             Flush data cache levels up to the level of unification
-> + *             inner shareable and invalidate the I-cache.
-> + *             Only needed from v7 onwards, falls back to flush_cache_all()
-> + *             for all other processor versions.
-> + *
->   *	flush_user_all()
->   *
->   *		Clean and invalidate all user space cache entries
-> @@ -98,6 +105,7 @@
->  struct cpu_cache_fns {
->  	void (*flush_icache_all)(void);
->  	void (*flush_kern_all)(void);
-> +	void (*flush_kern_louis)(void);
->  	void (*flush_user_all)(void);
->  	void (*flush_user_range)(unsigned long, unsigned long, unsigned int);
->  
-> @@ -120,6 +128,7 @@ extern struct cpu_cache_fns cpu_cache;
->  
->  #define __cpuc_flush_icache_all		cpu_cache.flush_icache_all
->  #define __cpuc_flush_kern_all		cpu_cache.flush_kern_all
-> +#define __cpuc_flush_kern_louis		cpu_cache.flush_kern_louis
->  #define __cpuc_flush_user_all		cpu_cache.flush_user_all
->  #define __cpuc_flush_user_range		cpu_cache.flush_user_range
->  #define __cpuc_coherent_kern_range	cpu_cache.coherent_kern_range
-> @@ -140,6 +149,7 @@ extern struct cpu_cache_fns cpu_cache;
->  
->  extern void __cpuc_flush_icache_all(void);
->  extern void __cpuc_flush_kern_all(void);
-> +extern void __cpuc_flush_kern_louis(void);
->  extern void __cpuc_flush_user_all(void);
->  extern void __cpuc_flush_user_range(unsigned long, unsigned long, unsigned int);
->  extern void __cpuc_coherent_kern_range(unsigned long, unsigned long);
-> @@ -205,6 +215,11 @@ static inline void __flush_icache_all(void)
->  	__flush_icache_preferred();
->  }
->  
-> +/*
-> + * Flush caches up to Level of Unification Inner Shareable
-> + */
-> +#define flush_cache_louis()		__cpuc_flush_kern_louis()
-> +
->  #define flush_cache_all()		__cpuc_flush_kern_all()
->  
->  static inline void vivt_flush_cache_mm(struct mm_struct *mm)
-> diff --git a/arch/arm/include/asm/glue-cache.h b/arch/arm/include/asm/glue-cache.h
-> index 7e30874..2d6a7de 100644
-> --- a/arch/arm/include/asm/glue-cache.h
-> +++ b/arch/arm/include/asm/glue-cache.h
-> @@ -132,6 +132,7 @@
->  #ifndef MULTI_CACHE
->  #define __cpuc_flush_icache_all		__glue(_CACHE,_flush_icache_all)
->  #define __cpuc_flush_kern_all		__glue(_CACHE,_flush_kern_cache_all)
-> +#define __cpuc_flush_kern_louis		__glue(_CACHE,_flush_kern_cache_louis)
->  #define __cpuc_flush_user_all		__glue(_CACHE,_flush_user_cache_all)
->  #define __cpuc_flush_user_range		__glue(_CACHE,_flush_user_cache_range)
->  #define __cpuc_coherent_kern_range	__glue(_CACHE,_coherent_kern_range)
-> diff --git a/arch/arm/mm/cache-fa.S b/arch/arm/mm/cache-fa.S
-> index 0720163..e505bef 100644
-> --- a/arch/arm/mm/cache-fa.S
-> +++ b/arch/arm/mm/cache-fa.S
-> @@ -240,6 +240,9 @@ ENTRY(fa_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(fa_dma_unmap_area)
->  
-> +	.globl	fa_flush_kern_cache_louis
-> +	.equ	fa_flush_kern_cache_louis, fa_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
-> diff --git a/arch/arm/mm/cache-v3.S b/arch/arm/mm/cache-v3.S
-> index 52e35f3..8a3fade 100644
-> --- a/arch/arm/mm/cache-v3.S
-> +++ b/arch/arm/mm/cache-v3.S
-> @@ -128,6 +128,9 @@ ENTRY(v3_dma_map_area)
->  ENDPROC(v3_dma_unmap_area)
->  ENDPROC(v3_dma_map_area)
->  
-> +	.globl	v3_flush_kern_cache_louis
-> +	.equ	v3_flush_kern_cache_louis, v3_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
-> diff --git a/arch/arm/mm/cache-v4.S b/arch/arm/mm/cache-v4.S
-> index 022135d..43e5d77 100644
-> --- a/arch/arm/mm/cache-v4.S
-> +++ b/arch/arm/mm/cache-v4.S
-> @@ -140,6 +140,9 @@ ENTRY(v4_dma_map_area)
->  ENDPROC(v4_dma_unmap_area)
->  ENDPROC(v4_dma_map_area)
->  
-> +	.globl	v4_flush_kern_cache_louis
-> +	.equ	v4_flush_kern_cache_louis, v4_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
-> diff --git a/arch/arm/mm/cache-v4wb.S b/arch/arm/mm/cache-v4wb.S
-> index 8f1eeae..cd49453 100644
-> --- a/arch/arm/mm/cache-v4wb.S
-> +++ b/arch/arm/mm/cache-v4wb.S
-> @@ -251,6 +251,9 @@ ENTRY(v4wb_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(v4wb_dma_unmap_area)
->  
-> +	.globl	v4wb_flush_kern_cache_louis
-> +	.equ	v4wb_flush_kern_cache_louis, v4wb_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
-> diff --git a/arch/arm/mm/cache-v4wt.S b/arch/arm/mm/cache-v4wt.S
-> index b34a5f9..11e5e58 100644
-> --- a/arch/arm/mm/cache-v4wt.S
-> +++ b/arch/arm/mm/cache-v4wt.S
-> @@ -196,6 +196,9 @@ ENTRY(v4wt_dma_map_area)
->  ENDPROC(v4wt_dma_unmap_area)
->  ENDPROC(v4wt_dma_map_area)
->  
-> +	.globl	v4wt_flush_kern_cache_louis
-> +	.equ	v4wt_flush_kern_cache_louis, v4wt_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
-> diff --git a/arch/arm/mm/cache-v6.S b/arch/arm/mm/cache-v6.S
-> index f4e6027..7a3d3d8 100644
-> --- a/arch/arm/mm/cache-v6.S
-> +++ b/arch/arm/mm/cache-v6.S
-> @@ -343,6 +343,9 @@ ENTRY(v6_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(v6_dma_unmap_area)
->  
-> +	.globl	v6_flush_kern_cache_louis
-> +	.equ	v6_flush_kern_cache_louis, v6_flush_kern_cache_all
-> +
->  	__INITDATA
->  
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
 > diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
-> index 39e3fb3..d1fa2f6 100644
+> index d1fa2f6..140b294 100644
 > --- a/arch/arm/mm/cache-v7.S
 > +++ b/arch/arm/mm/cache-v7.S
-> @@ -33,6 +33,24 @@ ENTRY(v7_flush_icache_all)
->  	mov	pc, lr
->  ENDPROC(v7_flush_icache_all)
+> @@ -48,7 +48,7 @@ ENTRY(v7_flush_dcache_louis)
+>  	mov	r3, r3, lsr #20			@ r3 = LoUIS * 2
+>  	moveq	pc, lr				@ return if level == 0
+>  	mov	r10, #0				@ r10 (starting level) = 0
+> -	b	loop1				@ start flushing cache levels
+> +	b	flush_levels			@ start flushing cache levels
+>  ENDPROC(v7_flush_dcache_louis)
 >  
-> + /*
-> + *     v7_flush_dcache_louis()
-> + *
-> + *     Flush the D-cache up to the Level of Unification Inner Shareable
-> + *
-> + *     Corrupted registers: r0-r7, r9-r11 (r6 only in Thumb mode)
-> + */
-> +
-> +ENTRY(v7_flush_dcache_louis)
-> +	dmb					@ ensure ordering with previous memory accesses
-> +	mrc	p15, 1, r0, c0, c0, 1		@ read clidr, r0 = clidr
-> +	ands	r3, r0, #0xe00000		@ extract LoUIS from clidr
-> +	mov	r3, r3, lsr #20			@ r3 = LoUIS * 2
-> +	moveq	pc, lr				@ return if level == 0
-> +	mov	r10, #0				@ r10 (starting level) = 0
-> +	b	loop1				@ start flushing cache levels
-> +ENDPROC(v7_flush_dcache_louis)
-> +
 >  /*
->   *	v7_flush_dcache_all()
->   *
-> @@ -120,6 +138,24 @@ ENTRY(v7_flush_kern_cache_all)
->  	mov	pc, lr
->  ENDPROC(v7_flush_kern_cache_all)
->  
-> + /*
-> + *     v7_flush_kern_cache_louis(void)
-> + *
-> + *     Flush the data cache up to Level of Unification Inner Shareable.
-> + *     Invalidate the I-cache to the point of unification.
-> + */
-> +ENTRY(v7_flush_kern_cache_louis)
-> + ARM(	stmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
-> + THUMB(	stmfd	sp!, {r4-r7, r9-r11, lr}	)
-> +	bl	v7_flush_dcache_louis
-> +	mov	r0, #0
-> +	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)	@ invalidate I-cache inner shareable
-> +	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)	@ I+BTB cache invalidate
-> + ARM(	ldmfd	sp!, {r4-r5, r7, r9-r11, lr}	)
-> + THUMB(	ldmfd	sp!, {r4-r7, r9-r11, lr}	)
-> +	mov	pc, lr
-> +ENDPROC(v7_flush_kern_cache_louis)
-> +
->  /*
->   *	v7_flush_cache_all()
->   *
-> diff --git a/arch/arm/mm/proc-arm1020.S b/arch/arm/mm/proc-arm1020.S
-> index 0650bb8..2bb61e7 100644
-> --- a/arch/arm/mm/proc-arm1020.S
-> +++ b/arch/arm/mm/proc-arm1020.S
-> @@ -368,6 +368,9 @@ ENTRY(arm1020_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm1020_dma_unmap_area)
->  
-> +	.globl	arm1020_flush_kern_cache_louis
-> +	.equ	arm1020_flush_kern_cache_louis, arm1020_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm1020
->  
-> diff --git a/arch/arm/mm/proc-arm1020e.S b/arch/arm/mm/proc-arm1020e.S
-> index 4188478..8f96aa4 100644
-> --- a/arch/arm/mm/proc-arm1020e.S
-> +++ b/arch/arm/mm/proc-arm1020e.S
-> @@ -354,6 +354,9 @@ ENTRY(arm1020e_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm1020e_dma_unmap_area)
->  
-> +	.globl	arm1020e_flush_kern_cache_louis
-> +	.equ	arm1020e_flush_kern_cache_louis, arm1020e_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm1020e
->  
-> diff --git a/arch/arm/mm/proc-arm1022.S b/arch/arm/mm/proc-arm1022.S
-> index 33c6882..8ebe4a4 100644
-> --- a/arch/arm/mm/proc-arm1022.S
-> +++ b/arch/arm/mm/proc-arm1022.S
-> @@ -343,6 +343,9 @@ ENTRY(arm1022_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm1022_dma_unmap_area)
->  
-> +	.globl	arm1022_flush_kern_cache_louis
-> +	.equ	arm1022_flush_kern_cache_louis, arm1022_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm1022
->  
-> diff --git a/arch/arm/mm/proc-arm1026.S b/arch/arm/mm/proc-arm1026.S
-> index fbc1d5f..093fc7e 100644
-> --- a/arch/arm/mm/proc-arm1026.S
-> +++ b/arch/arm/mm/proc-arm1026.S
-> @@ -337,6 +337,9 @@ ENTRY(arm1026_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm1026_dma_unmap_area)
->  
-> +	.globl	arm1026_flush_kern_cache_louis
-> +	.equ	arm1026_flush_kern_cache_louis, arm1026_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm1026
->  
-> diff --git a/arch/arm/mm/proc-arm920.S b/arch/arm/mm/proc-arm920.S
-> index 1a8c138..2c3b942 100644
-> --- a/arch/arm/mm/proc-arm920.S
-> +++ b/arch/arm/mm/proc-arm920.S
-> @@ -319,6 +319,9 @@ ENTRY(arm920_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm920_dma_unmap_area)
->  
-> +	.globl	arm920_flush_kern_cache_louis
-> +	.equ	arm920_flush_kern_cache_louis, arm920_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm920
->  #endif
-> diff --git a/arch/arm/mm/proc-arm922.S b/arch/arm/mm/proc-arm922.S
-> index 4c44d7e..4464c49 100644
-> --- a/arch/arm/mm/proc-arm922.S
-> +++ b/arch/arm/mm/proc-arm922.S
-> @@ -321,6 +321,9 @@ ENTRY(arm922_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm922_dma_unmap_area)
->  
-> +	.globl	arm922_flush_kern_cache_louis
-> +	.equ	arm922_flush_kern_cache_louis, arm922_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm922
->  #endif
-> diff --git a/arch/arm/mm/proc-arm925.S b/arch/arm/mm/proc-arm925.S
-> index ec5b118..281eb9b 100644
-> --- a/arch/arm/mm/proc-arm925.S
-> +++ b/arch/arm/mm/proc-arm925.S
-> @@ -376,6 +376,9 @@ ENTRY(arm925_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm925_dma_unmap_area)
->  
-> +	.globl	arm925_flush_kern_cache_louis
-> +	.equ	arm925_flush_kern_cache_louis, arm925_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm925
->  
-> diff --git a/arch/arm/mm/proc-arm926.S b/arch/arm/mm/proc-arm926.S
-> index c31e62c..f1803f7 100644
-> --- a/arch/arm/mm/proc-arm926.S
-> +++ b/arch/arm/mm/proc-arm926.S
-> @@ -339,6 +339,9 @@ ENTRY(arm926_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm926_dma_unmap_area)
->  
-> +	.globl	arm926_flush_kern_cache_louis
-> +	.equ	arm926_flush_kern_cache_louis, arm926_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm926
->  
-> diff --git a/arch/arm/mm/proc-arm940.S b/arch/arm/mm/proc-arm940.S
-> index a613a7d..8da189d 100644
-> --- a/arch/arm/mm/proc-arm940.S
-> +++ b/arch/arm/mm/proc-arm940.S
-> @@ -267,6 +267,9 @@ ENTRY(arm940_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm940_dma_unmap_area)
->  
-> +	.globl	arm940_flush_kern_cache_louis
-> +	.equ	arm940_flush_kern_cache_louis, arm940_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm940
->  
-> diff --git a/arch/arm/mm/proc-arm946.S b/arch/arm/mm/proc-arm946.S
-> index 9f4f299..f666cf3 100644
-> --- a/arch/arm/mm/proc-arm946.S
-> +++ b/arch/arm/mm/proc-arm946.S
-> @@ -310,6 +310,9 @@ ENTRY(arm946_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(arm946_dma_unmap_area)
->  
-> +	.globl	arm946_flush_kern_cache_louis
-> +	.equ	arm946_flush_kern_cache_louis, arm946_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions arm946
->  
-> diff --git a/arch/arm/mm/proc-feroceon.S b/arch/arm/mm/proc-feroceon.S
-> index 23a8e4c..85e5e3b 100644
-> --- a/arch/arm/mm/proc-feroceon.S
-> +++ b/arch/arm/mm/proc-feroceon.S
-> @@ -415,6 +415,9 @@ ENTRY(feroceon_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(feroceon_dma_unmap_area)
->  
-> +	.globl	feroceon_flush_kern_cache_louis
-> +	.equ	feroceon_flush_kern_cache_louis, feroceon_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions feroceon
->  
-> diff --git a/arch/arm/mm/proc-macros.S b/arch/arm/mm/proc-macros.S
-> index 2d8ff3a..b29a226 100644
-> --- a/arch/arm/mm/proc-macros.S
-> +++ b/arch/arm/mm/proc-macros.S
-> @@ -299,6 +299,7 @@ ENTRY(\name\()_processor_functions)
->  ENTRY(\name\()_cache_fns)
->  	.long	\name\()_flush_icache_all
->  	.long	\name\()_flush_kern_cache_all
-> +	.long   \name\()_flush_kern_cache_louis
->  	.long	\name\()_flush_user_cache_all
->  	.long	\name\()_flush_user_cache_range
->  	.long	\name\()_coherent_kern_range
-> diff --git a/arch/arm/mm/proc-mohawk.S b/arch/arm/mm/proc-mohawk.S
-> index fbb2124..82f9cdc 100644
-> --- a/arch/arm/mm/proc-mohawk.S
-> +++ b/arch/arm/mm/proc-mohawk.S
-> @@ -303,6 +303,9 @@ ENTRY(mohawk_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(mohawk_dma_unmap_area)
->  
-> +	.globl	mohawk_flush_kern_cache_louis
-> +	.equ	mohawk_flush_kern_cache_louis, mohawk_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions mohawk
->  
-> diff --git a/arch/arm/mm/proc-xsc3.S b/arch/arm/mm/proc-xsc3.S
-> index b0d5786..eb93d64 100644
-> --- a/arch/arm/mm/proc-xsc3.S
-> +++ b/arch/arm/mm/proc-xsc3.S
-> @@ -337,6 +337,9 @@ ENTRY(xsc3_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(xsc3_dma_unmap_area)
->  
-> +	.globl	xsc3_flush_kern_cache_louis
-> +	.equ	xsc3_flush_kern_cache_louis, xsc3_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions xsc3
->  
-> diff --git a/arch/arm/mm/proc-xscale.S b/arch/arm/mm/proc-xscale.S
-> index 4ffebaa..b5ea31d 100644
-> --- a/arch/arm/mm/proc-xscale.S
-> +++ b/arch/arm/mm/proc-xscale.S
-> @@ -410,6 +410,9 @@ ENTRY(xscale_dma_unmap_area)
->  	mov	pc, lr
->  ENDPROC(xscale_dma_unmap_area)
->  
-> +	.globl	xscale_flush_kern_cache_louis
-> +	.equ	xscale_flush_kern_cache_louis, xscale_flush_kern_cache_all
-> +
->  	@ define struct cpu_cache_fns (see <asm/cacheflush.h> and proc-macros.S)
->  	define_cache_functions xscale
->  
+> @@ -67,7 +67,7 @@ ENTRY(v7_flush_dcache_all)
+>  	mov	r3, r3, lsr #23			@ left align loc bit field
+>  	beq	finished			@ if loc is 0, then no need to clean
+>  	mov	r10, #0				@ start clean at cache level 0
+> -loop1:
+> +flush_levels:
+>  	add	r2, r10, r10, lsr #1		@ work out 3x current cache level
+>  	mov	r1, r0, lsr r2			@ extract cache type bits from clidr
+>  	and	r1, r1, #7			@ mask of the bits for current cache only
+> @@ -89,9 +89,9 @@ loop1:
+>  	clz	r5, r4				@ find bit position of way size increment
+>  	ldr	r7, =0x7fff
+>  	ands	r7, r7, r1, lsr #13		@ extract max number of the index size
+> -loop2:
+> +loop1:
+>  	mov	r9, r4				@ create working copy of max way size
+> -loop3:
+> +loop2:
+>   ARM(	orr	r11, r10, r9, lsl r5	)	@ factor way and cache number into r11
+>   THUMB(	lsl	r6, r9, r5		)
+>   THUMB(	orr	r11, r10, r6		)	@ factor way and cache number into r11
+> @@ -100,13 +100,13 @@ loop3:
+>   THUMB(	orr	r11, r11, r6		)	@ factor index number into r11
+>  	mcr	p15, 0, r11, c7, c14, 2		@ clean & invalidate by set/way
+>  	subs	r9, r9, #1			@ decrement the way
+> -	bge	loop3
+> -	subs	r7, r7, #1			@ decrement the index
+>  	bge	loop2
+> +	subs	r7, r7, #1			@ decrement the index
+> +	bge	loop1
+>  skip:
+>  	add	r10, r10, #2			@ increment cache number
+>  	cmp	r3, r10
+> -	bgt	loop1
+> +	bgt	flush_levels
+>  finished:
+>  	mov	r10, #0				@ swith back to cache level 0
+>  	mcr	p15, 2, r10, c0, c0, 0		@ select current cache level in cssr
 > -- 
 > 1.7.12
 > 
