@@ -1,93 +1,100 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: hwmod code: convert missing clockdomain
- warnings to debug messages
-Date: Tue, 18 Sep 2012 16:50:39 -0500
-Message-ID: <5058ECAF.7010609@ti.com>
-References: <20120918211146.16484.85893.stgit@dusk.lan> <20120918211251.16484.18401.stgit@dusk.lan>
+From: Mitch Bradley <wmb@firmworks.com>
+Subject: Re: [PATCH V6 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 19 Sep 2012 06:19:06 +0800
+Message-ID: <5058F35A.8040702@firmworks.com>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com> <1347662517-4210-2-git-send-email-jon-hunter@ti.com> <20120915001431.GB12445@n2100.arm.linux.org.uk> <201209172042.11860.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51572 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab2IRVuo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 17:50:44 -0400
-In-Reply-To: <20120918211251.16484.18401.stgit@dusk.lan>
+Received: from rs130.luxsci.com ([72.32.115.17]:43341 "EHLO rs130.luxsci.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755351Ab2IRWUQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Sep 2012 18:20:16 -0400
+In-Reply-To: <201209172042.11860.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Vinod Koul <vinod.koul@intel.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Paul,
+On 9/18/2012 4:42 AM, Arnd Bergmann wrote:
+> On Saturday 15 September 2012, Russell King - ARM Linux wrote:
+>>
+>> On Fri, Sep 14, 2012 at 05:41:56PM -0500, Jon Hunter wrote:
+>>> 3. Supporting legacy devices not using DMA Engine
+>>>
+>>>    These devices present a problem, as there may not be a uniform way to easily
+>>>    support them with regard to device tree. Ideally, these should be migrated
+>>>    to DMA engine. However, if this is not possible, then they should still be
+>>>    able to use this binding, the only constaint imposed by this implementation
+>>>    is that when requesting a DMA channel via of_dma_request_slave_channel(), it
+>>>    will return a type of dma_chan.
+>>
+>> As far as devices not using DMA engine, the answer is we don't support
+>> their specification in the DT model.  Note that the legacy OMAP DMA
+>> API is scheduled for removal next year, so it's not going to be around
+>> that much longer.
+> 
+> There are a few platforms using the ISA DMA API (rpc, h720x, shark, footbridge),
+> and I agree that they are unlikely to see OF support,
 
-On 9/18/2012 4:12 PM, Paul Walmsley wrote:
-> The decision was made a few months ago to allow struct omap_hwmod
-> records and struct clk records to omit clockdomain information if the
-> clockdomain is not software-controllable.  See for example commit
-> 868c157df9721675c19729eed2c96bac6c3f1d01 ("ARM: OMAP2+: hwmod: remove
-> prm_clkdm, cm_clkdm; allow hwmods to have no clockdomain").
->
-> So convert an existing pr_warning() to a pr_debug() (regarding missin=
-g
-> clockdomains in clocks), and add a pr_debug() for missing hwmod
-> clockdomains.
+(Warning - historical rambling follows)
 
-At some point I sent you a small RFC to still keep the message if=20
-neither oh->clkdm nor oh->_clk->clkdm was there. I've never had the tim=
-e=20
-to test it, but that should then cover OMAP2, 3 & 4 cases.
+There is a delicious irony here with respect to Shark.  Shark has real
+Open Firmware.  It's the platform that I used for the first OFW port to
+ARM.  We (the Shark design team) had a version of NetBSD that would run
+on Shark without any native drivers, calling into the Open Firmware
+drivers.  It was very useful for bringup.
 
-Regards,
-Benoit
+I wonder when was the last time anyone turned on a Shark?  I ran my mail
+server on one until 8 years ago, when the incoming spam load began to
+saturate the 10 Mbit Ethernet.  Shark had decent computational power,
+but the I/O system, built around a low cost PC I/O chip, didn't have
+much bandwidth.
 
->  It's still useful to enable these messages for
-> debugging, since missing clockdomains can cause hard-to-debug problem=
-s
-> with power management; see for example commit
-> 6c4a057bffe9823221eab547e11fac181dc18a2b ("ARM: OMAP4: clock data:
-> Force a DPLL clkdm/pwrdm ON before a relock").
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod.c |    8 +++++---
->   1 file changed, 5 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
-map_hwmod.c
-> index 80cea5b..e05228a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -685,8 +685,8 @@ static int _init_main_clk(struct omap_hwmod *oh)
->   	}
->
->   	if (!oh->_clk->clkdm)
-> -		pr_warning("omap_hwmod: %s: missing clockdomain for %s.\n",
-> -			   oh->main_clk, oh->_clk->name);
-> +		pr_debug("omap_hwmod: %s: missing clockdomain for %s.\n",
-> +			 oh->main_clk, oh->_clk->name);
->
->   	return ret;
->   }
-> @@ -1380,8 +1380,10 @@ static struct omap_hwmod *_lookup(const char *=
-name)
->    */
->   static int _init_clkdm(struct omap_hwmod *oh)
->   {
-> -	if (!oh->clkdm_name)
-> +	if (!oh->clkdm_name) {
-> +		pr_debug("omap_hwmod: %s: missing clockdomain\n", oh->name);
->   		return 0;
-> +	}
->
->   	oh->clkdm =3D clkdm_lookup(oh->clkdm_name);
->   	if (!oh->clkdm) {
->
->
+Also in that time frame (early 2000s), some of us Shark designers
+managed to grab a pile of Sharks that HP was going to scrap.  (HP had
+inherited them as part of Compaq, who had acquired them as part of
+Digital.)  We used them as production unit testers for a consumer gadget
+that we were building.  But, alas, even that usage fell to the wayside.
+ I redesigned the tester around an ATSAM7 chip and put the entire test
+setup into a tiny box.  I still have a couple of Sharks, but they
+haven't been turned on for at least 6 years.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there ever a point when old architectures leave the Linux tree, or
+will people have to see grep hits from them until the end of time?
+
+
+ although if they did, it
+> wouldn't be unreasonable to encode their DMA channels using the same binding.
+> 
+> The other ones that are currently around with their own DMA implementation are
+> 
+> bcmring --> platform is going away
+> samsung --> gradually getting moved to dmaengine, already has its own binding
+>             that needs to be replaced with this one, so best do it at the same
+>             time.
+> tegra   --> old dma code gone in 3.7
+> pxa/mmp --> dmaengine implementation being worked on, should wait for that.
+> msm     --> dma implementation only used by two drivers (serial and mmc). 
+> 
+> Outside of arch/arm, at least sh, cris, unicore32 and blackfin have their
+> own dma APIs based on the ISA interfaces. I don't currently see any of them
+> moving towards DT, but it's definitely possible. 
+> 
+> Among the above MSM seems to be the most likely candidate to use the binding
+> before moving to DT. The msm_sdcc driver is (like much of the msm platform
+> code) lagging far behind the internel version that qualcomm have, and the
+> device tree binding they are using is incompatible with the common MMC
+> binding (and of course the DMA binding here) as well. For getting MSM up
+> to speed compared with the other platforms, they have to use proper DT
+> bindings as well as proper DMA engine support. Between those two, I'd prefer
+> fixing the DT binding first, in order to limit the amount of changes that
+> have to be done to external device tree files.
+> 
+> 	Arnd
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
