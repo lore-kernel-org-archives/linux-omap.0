@@ -1,52 +1,39 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH] ARM: OMAP: OMAP_DEBUG_LEDS needs to select LEDS_CLASS
-Date: Tue, 18 Sep 2012 16:02:03 +0800
-Message-ID: <CAK5ve-L92DqDv7ZApaaN5BOby+oPf2Ate-3jvgkadm7gfXZLcg@mail.gmail.com>
-References: <1347939042.15578.1.camel@phoenix> <CAK5ve-LXv76vuBLHQQtREHn_ZogUsbyqzz2-uTHT_Ps-9vS3Pw@mail.gmail.com>
- <CAF+7xWnJj4XovwT5K_BDN8Q4GBLogsCb29Ro9t0Taek95HaPDg@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 02/15] dmaengine: omap: Add support for
+	pause/resume	in cyclic dma mode
+Date: Tue, 18 Sep 2012 09:28:44 +0100
+Message-ID: <20120918082843.GD12445@n2100.arm.linux.org.uk>
+References: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347624358-25582-3-git-send-email-peter.ujfalusi@ti.com>
+ <1347851637.1943.125.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAF+7xWnJj4XovwT5K_BDN8Q4GBLogsCb29Ro9t0Taek95HaPDg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: axel.lin@gmail.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1347851637.1943.125.camel@vkoul-udesk3>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 18, 2012 at 2:49 PM, Axel Lin <axel.lin@gmail.com> wrote:
-> 2012/9/18 Bryan Wu <bryan.wu@canonical.com>:
->> On Tue, Sep 18, 2012 at 11:30 AM, Axel Lin <axel.lin@gmail.com> wrote:
->>> This fixes below build error when CONFIG_LEDS_CLASS is not set.
->>>
->>>   LD      init/built-in.o
->>> arch/arm/plat-omap/built-in.o: In function `fpga_probe':
->>> arch/arm/plat-omap/debug-leds.c:113: undefined reference to `led_classdev_register'
->>> make: *** [vmlinux] Error 1
->>>
->>
->> Thanks for posting this. But I think Tony has already fixed it in mainline:
->> --
->> commit 359f64f7b3997e94ee71039b5fcdc1278b9b77c4
->> Author: Tony Lindgren <tony@atomide.com>
->> Date:   Wed Sep 15 10:18:51 2010 -0700
->>
->>     omap: Fix compile dependency to LEDS_CLASS
->>
->>     If we LEDS_CLASS is not selected, we will get undefined reference
->>     to `led_classdev_register'.
->>
->>     Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> Commit 359f64f7b was commited on Sep 15 2010.
-> This patch is against current linux-next tree.
-> I got the build error on linux-next tree (next-20120917).
->
+On Mon, Sep 17, 2012 at 08:43:57AM +0530, Vinod Koul wrote:
+> On Fri, 2012-09-14 at 15:05 +0300, Peter Ujfalusi wrote:
+> > -       /* FIXME: not supported by platform private API */
+> > -       return -EINVAL;
+> > +       /* Pause/Resume only allowed with cyclic mode */
+> > +       if (!c->cyclic)
+> > +               return -EINVAL; 
+> This is not a dma restriction right?
 
-Obviously, linux-next is not updated to latest mainline, -:D
-
-Thanks,
--- 
-Bryan Wu <bryan.wu@canonical.com>
-Kernel Developer    +86.186-168-78255 Mobile
-Canonical Ltd.      www.canonical.com
-Ubuntu - Linux for human beings | www.ubuntu.com
+This is needed because this is not a real "pause" - it is a stop, which
+causes the contents of the DMA engine's FIFOs to be discarded - which
+means a subsequent resume will loose data.
