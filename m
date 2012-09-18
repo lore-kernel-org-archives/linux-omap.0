@@ -1,74 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP1: Include gpio-omap.h for board-h2 and board-h3
-Date: Mon, 17 Sep 2012 16:54:44 -0700
-Message-ID: <20120917234821.GL11762@atomide.com>
+From: Axel Lin <axel.lin@gmail.com>
+Subject: [PATCH] cpufreq: OMAP: Check IS_ERR() instead of NULL for
+ omap_device_get_by_hwmod_name
+Date: Tue, 18 Sep 2012 09:45:47 +0800
+Message-ID: <1347932747.6562.3.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:25063 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757460Ab2IQXyr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 19:54:47 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+Sender: cpufreq-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Bryan Wu <bryan.wu@canonical.com>
 
-=46rom de6ca33a96a6bf61fcb91d3d399703e19ead9d1e Mon Sep 17 00:00:00 200=
-1
-=46rom: Tony Lindgren <tony@atomide.com>
-Date: Mon, 17 Sep 2012 16:24:20 -0700
-Subject: [PATCH] ARM: OMAP1: Include gpio-omap.h for board-h2 and board=
--h3
-MIME-Version: 1.0
-Content-Type: text/plain; charset=3DUTF-8
-Content-Transfer-Encoding: 8bit
+omap_device_get_by_hwmod_name() returns ERR_PTR on error.
 
-Merge of the LED related changes with omap sparse IRQ and
-hardware.h related changes causes a build issue otherwise:
-
-arch/arm/mach-omap1/board-h2.c:319: error: implicit declaration of func=
-tion =E2=80=98OMAP_MPUIO=E2=80=99
-arch/arm/mach-omap1/board-h2.c:319: error: initializer element is not c=
-onstant
-arch/arm/mach-omap1/board-h2.c:319: error: (near initialization for =E2=
-=80=98h2_gpio_led_pins[1].gpio=E2=80=99)
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 ---
+ drivers/cpufreq/omap-cpufreq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Noticed this with current linux next and omap1_defconfig.
-The arm-soc drivers branch builds fine, but merged
-with omap-cleanup-sparseirq-for-v3.7 compile breaks.
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 6e22f44..65f8e9a 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -266,9 +266,9 @@ static int __init omap_cpufreq_init(void)
+ 	}
+ 
+ 	mpu_dev = omap_device_get_by_hwmod_name("mpu");
+-	if (!mpu_dev) {
++	if (IS_ERR(mpu_dev)) {
+ 		pr_warning("%s: unable to get the mpu device\n", __func__);
+-		return -EINVAL;
++		return PTR_ERR(mpu_dev);
+ 	}
+ 
+ 	mpu_reg = regulator_get(mpu_dev, "vcc");
+-- 
+1.7.9.5
 
-I'll queue this into cleanup-fixes branch on top of the
-omap-cleanup-sparseirq-for-v3.7 branch.
 
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -31,6 +31,7 @@
- #include <linux/i2c/tps65010.h>
- #include <linux/smc91x.h>
- #include <linux/omapfb.h>
-+#include <linux/platform_data/gpio-omap.h>
-=20
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -31,6 +31,7 @@
- #include <linux/i2c/tps65010.h>
- #include <linux/smc91x.h>
- #include <linux/omapfb.h>
-+#include <linux/platform_data/gpio-omap.h>
-=20
- #include <asm/setup.h>
- #include <asm/page.h>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
