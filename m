@@ -1,62 +1,60 @@
-From: "Philip, Avinash" <avinashphilip@ti.com>
-Subject: [PATCH v2] arm/dts: AM33XX: Add SPI device tree data
-Date: Tue, 18 Sep 2012 11:00:28 +0530
-Message-ID: <1347946228-25874-1-git-send-email-avinashphilip@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP5: Enable arch timer support
+Date: Tue, 18 Sep 2012 11:36:39 +0530
+Message-ID: <CAMQu2gzqvN3GZiEFZ7Xa+JeS4nz4HG4P4KDsNEoQxvdAhUc6qg@mail.gmail.com>
+References: <1344856045-15134-1-git-send-email-santosh.shilimkar@ti.com>
+ <1344856045-15134-3-git-send-email-santosh.shilimkar@ti.com>
+ <504DE165.4000208@ti.com> <CAMQu2gxE8e9RBykLDyukZwV7dPKv3nG1vCynO1pijUBXBnyq8Q@mail.gmail.com>
+ <504DE79B.3090302@ti.com> <CAMQu2gwT=XHcZtdKfYacGyt21Mo0of8MmSMNE+0PP9wemKSyxw@mail.gmail.com>
+ <CAMQu2gzKDLBJmVdm0SUr0ec=LueT0mqBUYmHyGMsav5k=ggKQg@mail.gmail.com>
+ <50519FB9.9060208@ti.com> <20120917213810.GD11762@atomide.com> <20120917213930.GE11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com, gururaja.hebbar@ti.com, "Philip, Avinash" <avinashphilip@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:34510 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756422Ab2IRGHB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Sep 2012 02:07:01 -0400
+Received: by vbbff1 with SMTP id ff1so3907287vbb.19
+        for <linux-omap@vger.kernel.org>; Mon, 17 Sep 2012 23:06:59 -0700 (PDT)
+In-Reply-To: <20120917213930.GE11762@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.orig
 
-Add McSPI data node to AM33XX device tree file. The McSPI module (and so
-as the driver) is reused from OMAP4.
+On Tue, Sep 18, 2012 at 3:09 AM, Tony Lindgren <tony@atomide.com> wrote:
+>
+> * Tony Lindgren <tony@atomide.com> [120917 14:39]:
+> > * Benoit Cousson <b-cousson@ti.com> [120913 01:57]:
+> > > >
+> > > > Enable Cortex A15 generic timer support for OMAP5 based SOCs.
+> > > > The CPU local timers run on the free running real time counter
+> > > > clock.
+> > > >
+> > > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > >
+> > > Acked-by: Benoit Cousson <b-cousson@ti.com>
+> > >
+> > > Tony,
+> > >
+> > > I can potentially add it along with the timer changes in the dts part2
+> > > series if you ack the timer patch. We don't have tons of OMAP5 content
+> > > in the dts branch so it should not conflict.
+> >
+> > Yes makes sense to me.
+>
+> These may cause bad merge conflicts with Jon's timer patches though?
+>
+These patches can be applied against any branch so not necessary to
+only apply against the DT tree.
 
-Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
-Tested-by: Matt Porter <mporter@ti.com>
----
-Changes since v1:
-        - Corrected reg offset in reg DT entry.
+Have you merged Jon's series ? I can refresh the patches
+against that branch. Another option is I can split the patch
+so that DT change and timer change is seperated.
 
-:100644 100644 ff3badb... 065fd54... M	arch/arm/boot/dts/am33xx.dtsi
- arch/arm/boot/dts/am33xx.dtsi |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+Let me know what is your preference.
 
-diff --git a/arch/arm/boot/dts/am33xx.dtsi b/arch/arm/boot/dts/am33xx.dtsi
-index ff3badb..065fd54 100644
---- a/arch/arm/boot/dts/am33xx.dtsi
-+++ b/arch/arm/boot/dts/am33xx.dtsi
-@@ -219,5 +219,30 @@
- 			interrupt-parent = <&intc>;
- 			interrupts = <91>;
- 		};
-+
-+		spi0: spi@48030000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x48030000 0x400>;
-+			interrupt-parent = <&intc>;
-+			interrupt = <65>;
-+			ti,spi-num-cs = <2>;
-+			ti,hwmods = "spi0";
-+			status = "disabled";
-+
-+		};
-+
-+		spi1: spi@481a0000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			reg = <0x481a0000 0x400>;
-+			interrupt-parent = <&intc>;
-+			interrupt = <125>;
-+			ti,spi-num-cs = <2>;
-+			ti,hwmods = "spi1";
-+			status = "disabled";
-+		};
- 	};
- };
--- 
-1.7.4.1
+Regards
+Santosh
