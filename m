@@ -1,57 +1,108 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH v2 4/5] ARM: kernel: update __cpu_disable to use cache LoUIS maintenance API
-Date: Tue, 18 Sep 2012 17:35:34 +0100
-Message-ID: <1347986135-17979-5-git-send-email-lorenzo.pieralisi@arm.com>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:40195 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588Ab2IRQgB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 12:36:01 -0400
-In-Reply-To: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH] arch/arm/mach-omap2: Remove unecessary semicolon
+Date: Tue, 18 Sep 2012 18:36:11 +0200
+Message-ID: <1347986174-30287-4-git-send-email-peter.senna@gmail.com>
+References: <1347986174-30287-1-git-send-email-peter.senna@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1347986174-30287-1-git-send-email-peter.senna@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Peter Senna Tschudin <peter.senna@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-When a CPU is hotplugged out caches that reside in its power domain
-lose their contents and so must be cleaned to the next memory level.
+Found by http://coccinelle.lip6.fr/
 
-Currently, __cpu_disable calls flush_cache_all() that for new generation
-processor like A15/A7 ends up cleaning and invalidating all cache levels
-up to Level of Coherency, which includes the unified L2.
-
-This ends up being a waste of cycles since the L2 cache contents are not
-lost on power down.
-
-This patch updates __cpu_disable to use the new LoUIS API cache operations.
-
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- arch/arm/kernel/smp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-flash.c          | 2 +-
+ arch/arm/mach-omap2/clkt_clksel.c          | 2 +-
+ arch/arm/mach-omap2/mux.c                  | 2 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 6 +++---
+ arch/arm/mach-omap2/pm-debug.c             | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index d3eb222..f44e9cd 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -136,8 +136,11 @@ int __cpu_disable(void)
- =09/*
- =09 * Flush user cache and TLB mappings, and then remove this CPU
- =09 * from the vm mask set of all processes.
-+=09 *
-+=09 * Caches are flushed to the Level of Unification Inner Shareable
-+=09 * to write-back dirty lines to unified caches shared by all CPUs.
- =09 */
--=09flush_cache_all();
-+=09flush_cache_louis();
- =09local_flush_tlb_all();
-=20
- =09clear_tasks_mm_cpumask(cpu);
---=20
-1.7.12
-
-
+diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
+index 53c39d2..d4c5bd5 100644
+--- a/arch/arm/mach-omap2/board-flash.c
++++ b/arch/arm/mach-omap2/board-flash.c
+@@ -218,7 +218,7 @@ void __init board_flash_init(struct flash_partitions partition_info[],
+ 			if (onenandcs > GPMC_CS_NUM)
+ 				onenandcs = cs;
+ 			break;
+-		};
++		}
+ 		cs++;
+ 	}
+ 
+diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
+index 04d551b..fdb79c5 100644
+--- a/arch/arm/mach-omap2/clkt_clksel.c
++++ b/arch/arm/mach-omap2/clkt_clksel.c
+@@ -365,7 +365,7 @@ void omap2_init_clksel_parent(struct clk *clk)
+ 						 ((clk->parent) ?
+ 						  clk->parent->name : "NULL"));
+ 					clk_reparent(clk, clks->parent);
+-				};
++				}
+ 				found = 1;
+ 			}
+ 		}
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 9fe6829..701e17c 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -486,7 +486,7 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ 		default:
+ 			/* Nothing to be done */
+ 			break;
+-		};
++		}
+ 
+ 		if (val >= 0) {
+ 			omap_mux_write(pad->partition, val,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index ce7e606..5b91454 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3459,7 +3459,7 @@ int __init omap3xxx_hwmod_init(void)
+ 	} else {
+ 		WARN(1, "OMAP3 hwmod family init: unknown chip type\n");
+ 		return -EINVAL;
+-	};
++	}
+ 
+ 	r = omap_hwmod_register_links(h);
+ 	if (r < 0)
+@@ -3476,7 +3476,7 @@ int __init omap3xxx_hwmod_init(void)
+ 		   rev == OMAP3430_REV_ES3_0 || rev == OMAP3430_REV_ES3_1 ||
+ 		   rev == OMAP3430_REV_ES3_1_2) {
+ 		h = omap3430es2plus_hwmod_ocp_ifs;
+-	};
++	}
+ 
+ 	if (h) {
+ 		r = omap_hwmod_register_links(h);
+@@ -3491,7 +3491,7 @@ int __init omap3xxx_hwmod_init(void)
+ 	} else if (rev == OMAP3430_REV_ES3_0 || rev == OMAP3430_REV_ES3_1 ||
+ 		   rev == OMAP3430_REV_ES3_1_2) {
+ 		h = omap3430_es3plus_hwmod_ocp_ifs;
+-	};
++	}
+ 
+ 	if (h)
+ 		r = omap_hwmod_register_links(h);
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 814bcd9..b5acc75 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -169,7 +169,7 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
+ 	default:
+ 		return single_open(file, pm_dbg_show_timers,
+ 			&inode->i_private);
+-	};
++	}
+ }
+ 
+ static const struct file_operations debug_fops = {
+-- 
+1.7.11.4
