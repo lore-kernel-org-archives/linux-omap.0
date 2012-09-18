@@ -1,50 +1,123 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a slave
- DMA channel
-Date: Tue, 18 Sep 2012 15:20:08 +0000
-Message-ID: <201209181520.08845.arnd@arndb.de>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
- <1347938035.1943.162.camel@vkoul-udesk3> <20120918132113.GT27758@beef>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120918132113.GT27758@beef>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Vinod Koul <vinod.koul-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [RFC PATCH v2 0/5] ARM: augment cache flushing API
+Date: Tue, 18 Sep 2012 17:35:30 +0100
+Message-ID: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:39243 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992Ab2IRQf7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 12:35:59 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-On Tuesday 18 September 2012, Matt Porter wrote:
-> On Tue, Sep 18, 2012 at 08:43:55AM +0530, Vinod Koul wrote:
-> > 
-> > Now would it make sense to NOT merge these changes for 3.7 and postpone
-> > to 3.8. I can host these patches on a topic branch and merge them when
-> > we are ready. I plan to spend some good amount of time on my work this
-> > week so we should be ready pretty soon.
-> > One these changes are merged, users can start moving to this scheme.
-> 
-> FWIW, I'm already basing the EDMA dmaengine support for OMAP (specifically
-> for AM335x) on using these helpers since AM335x only boots from DT.
+This patch series provides an update of a previous posting:
 
-I suspect the same thing will be happening for a lot of platforms
-after 3.7-rc1: ux500, lpc32xx, integrator, imx, mxs and probably
-others are all waiting for this so they can complete the move
-to DT-only booting.
+http://www.spinics.net/lists/arm-kernel/msg194946.html
 
-Having some support for the new binding in 3.7 would be a great
-help to reduce interdependencies for the 3.8 merge cycle. Both the
-driver interface and the binding should actually be in a good
-shape now, so I'd very much appriciate it getting merged for 3.7,
-even if the implementation may have to change again in 3.8.
+v2 updates:
+ - Dropped v7 dcache level patch
+ - Refactor the set to make it work on all processors with MULTI_CACHE
+   and !MULTI_CACHE
+ - Factor out label redefinition in v7_flush_dcache_all
+ - Updated some comments
 
-	Arnd
+v7 ARM architecture introduced the concept of cache levels and relative
+control registers to manage them. Cache operations that operate on set/way
+require to define the cache level at which maintenance operations are carri=
+ed
+out by using coprocessor registers.
+
+Processors like A7/A15 integrates a unified L2 that is part of the cache
+level hierarchy; this implies that cache operations operating on all levels
+also end up cleaning the L2 unified cache which is a very time consuming
+operation and it is not needed for some power-down operations like single C=
+PU
+shutdown.
+
+For v7, flush_kern_all() cleans all the cache levels up to the Level of
+Coherency which includes L2 in it. This is suboptimal for code paths that e=
+nd
+up shutting-down a single processor like CPU hotplug and CPU idle, where on=
+ly
+per-CPU cache state (ie L1 integrated cache) has to be cleaned and invalida=
+ted.
+
+To fix this performance issue this patchset introduces cache LoUIS (Level o=
+f
+Unification Inner Shareable) maintenance operations in the kernel.
+
+A new cache operations pointer is added to cpu_cache_fns
+
+void (*flush_kern_cache_louis)(void);
+
+that allows to clean and invalidate all data cache levels up to the LoUIS a=
+nd
+invalidate the instruction cache. This new API should provide a sufficientl=
+y
+optimized API to be used in generic C code in the kernel for power manageme=
+nt
+operations on most v7 systems.
+
+For architecture versions previous to v7, flush_kern_cache_louis() falls ba=
+ck
+to flush_kern_all() leaving the current behaviour unchanged.
+
+For A9/A5 processors Level of Unification Inner Shareable and Level of
+Coherency are equivalent hence this patch should not affect current kernel
+behaviour in any way when run on A9/A5 based systems, but should nonetheles=
+s
+be thoroughly tested on them.
+
+Tested on:
+  - OMAP4 (S2R, cpuidle and hotplug)
+  - OMAP5 (out of tree code) (S2R, cpuidle and hotplug)
+  - TC2 big.LITTLE testchip (out of tree code) (cpuidle, on both A7 and A15
+    clusters)
+
+Lorenzo Pieralisi (4):
+  ARM: mm: implement LoUIS API for cache maintenance ops
+  ARM: mm: rename jump labels in v7_flush_dcache_all function
+  ARM: kernel: update cpu_suspend code to use cache LoUIS operations
+  ARM: kernel: update __cpu_disable to use cache LoUIS maintenance API
+
+Santosh Shilimkar (1):
+  ARM: mm: update __v7_setup() to the new LoUIS cache maintenance API
+
+ arch/arm/include/asm/cacheflush.h | 15 ++++++++++++
+ arch/arm/include/asm/glue-cache.h |  1 +
+ arch/arm/kernel/smp.c             |  5 +++-
+ arch/arm/kernel/suspend.c         | 17 +++++++++++++-
+ arch/arm/mm/cache-fa.S            |  3 +++
+ arch/arm/mm/cache-v3.S            |  3 +++
+ arch/arm/mm/cache-v4.S            |  3 +++
+ arch/arm/mm/cache-v4wb.S          |  3 +++
+ arch/arm/mm/cache-v4wt.S          |  3 +++
+ arch/arm/mm/cache-v6.S            |  3 +++
+ arch/arm/mm/cache-v7.S            | 48 ++++++++++++++++++++++++++++++++++-=
+----
+ arch/arm/mm/proc-arm1020.S        |  3 +++
+ arch/arm/mm/proc-arm1020e.S       |  3 +++
+ arch/arm/mm/proc-arm1022.S        |  3 +++
+ arch/arm/mm/proc-arm1026.S        |  3 +++
+ arch/arm/mm/proc-arm920.S         |  3 +++
+ arch/arm/mm/proc-arm922.S         |  3 +++
+ arch/arm/mm/proc-arm925.S         |  3 +++
+ arch/arm/mm/proc-arm926.S         |  3 +++
+ arch/arm/mm/proc-arm940.S         |  3 +++
+ arch/arm/mm/proc-arm946.S         |  3 +++
+ arch/arm/mm/proc-feroceon.S       |  3 +++
+ arch/arm/mm/proc-macros.S         |  1 +
+ arch/arm/mm/proc-mohawk.S         |  3 +++
+ arch/arm/mm/proc-v7.S             |  2 +-
+ arch/arm/mm/proc-xsc3.S           |  3 +++
+ arch/arm/mm/proc-xscale.S         |  3 +++
+ 27 files changed, 140 insertions(+), 9 deletions(-)
+
+--=20
+1.7.12
+
+
