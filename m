@@ -1,143 +1,204 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 5/8] ARM: OMAP3: update cpuidle latency and threshold figures
-Date: Tue, 18 Sep 2012 10:52:09 +0200
-Message-ID: <1347958332-2205-6-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 6/8] ARM: OMAP3: powerdomain data: add wake-up latency figures
+Date: Tue, 18 Sep 2012 10:52:10 +0200
+Message-ID: <1347958332-2205-7-git-send-email-j-pihet@ti.com>
 References: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:45346 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756864Ab2IRIwc (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:42530 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757678Ab2IRIwc (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 04:52:32 -0400
-Received: by wgbfm10 with SMTP id fm10so2728778wgb.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:30 -0700 (PDT)
+Received: by wibhr14 with SMTP id hr14so3637867wib.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:31 -0700 (PDT)
 In-Reply-To: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 Cc: Jean Pihet <j-pihet@ti.com>
 
-Update the data from the measurements performed at HW and SW levels.
+Figures are added to the power domains structs for RET and OFF modes.
+
+Note: the latency figures for MPU, PER, CORE, NEON have been obtained
+from actual measurements.
+The latency figures for the other power domains are preliminary and
+shall be added.
 
 Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
 for a detailed explanation on where are the numbers coming from.
 
-ToDo:
-- Measure the wake-up latencies for all power domains for OMAP3
-- Correct some numbers when sys_clkreq and sys_offmode are supported
+Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   54 ++++++++++++++++++++++++++----------
- 1 files changed, 39 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |   83 +++++++++++++++++++++++++++
+ 1 files changed, 83 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index ca6cb71..c086374 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -280,63 +280,87 @@ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
-  *
-  * - target_residency: required amount of time in the C state
-  *  to break even on energy cost
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index bb883e4..2195518 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -32,6 +32,19 @@
+ 
+ /*
+  * Powerdomains
 + *
-+ * The MPU latency and threshold values for the C-states are the worst case
-+ * values from the HW and SW, as described in details at
-+ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#cpuidle_results
++ * The wakeup_lat values are derived from HW and SW measurements on
++ * the actual target. For more details cf.
++ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#Results_for_individual_power_domains
 + *
-+ * Measurements conditions and remarks:
-+ *  . the measurements have been performed at OPP50
-+ *  . the sys_offmode signal is not supported and so not used for the
-+ *    measurements. Instead the latency and threshold values for C9 are
-+ *    corrected with the value for Triton 2, which is 11.5ms
-+ *  . the sys_clkreq signal is not used and so a correction is needed - TBD
-+ *  . the sys_clkoff signal is supported, this value need to be corrected with
-+ *    the correct value of SYSCLK on/off timings (1ms for sysclk on, 2.5ms
-+ *    for sysclk off)
-+ *  . the setup time of DPLLs is included in the measured values. However
-+ *    this is only valid for DPLLs that are enabled to auto-idle at
-+ *    measurement time. There currently is no provision for the dynamic
-+ *    nature of the auto-idle setting
-+ *  . in order to force the cpuidle algorithm to chose the power efficient
-+ *    C-states (C1, C3, C5, C7) in preference, the other C-states have a
-+ *    threshold value equal to the next power efficient C-state
++ * Note: the latency figures for MPU, PER, CORE, NEON have been obtained
++ * from actual measurements.
++ * The latency figures for the other power domains are preliminary and
++ * shall be added.
 + *
-+ * The latency and threshold values can be overriden by data from the board
-+ * files, using omap3_pm_init_cpuidle.
++ * Note: only the SW restore timing values are taken into account.
++ * The HW impact of the sys_clkreq and sys_offmode signals is not taken
++ * into account - TDB
   */
- struct cpuidle_driver omap3_idle_driver = {
- 	.name = 	"omap3_idle",
- 	.owner = 	THIS_MODULE,
- 	.states = {
- 		{
--			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 2 + 2,
--			.target_residency = 5,
-+			.enter		  = omap3_enter_idle,
-+			.exit_latency	  = 73 + 78,
-+			.target_residency = 152,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C1",
- 			.desc		  = "MPU ON + CORE ON",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 10 + 10,
--			.target_residency = 30,
-+			.exit_latency	  = 165 + 88,
-+			.target_residency = 345,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C2",
- 			.desc		  = "MPU ON + CORE ON",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 50 + 50,
--			.target_residency = 300,
-+			.exit_latency	  = 163 + 182,
-+			.target_residency = 345,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C3",
- 			.desc		  = "MPU RET + CORE ON",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 1500 + 1800,
--			.target_residency = 4000,
-+			.exit_latency	  = 2852 + 605,
-+			.target_residency = 150000,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C4",
- 			.desc		  = "MPU OFF + CORE ON",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 2500 + 7500,
--			.target_residency = 12000,
-+			.exit_latency	  = 800 + 366,
-+			.target_residency = 2120,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C5",
- 			.desc		  = "MPU RET + CORE RET",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 3000 + 8500,
--			.target_residency = 15000,
-+			.exit_latency	  = 4080 + 801,
-+			.target_residency = 215000,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C6",
- 			.desc		  = "MPU OFF + CORE RET",
- 		},
- 		{
- 			.enter		  = omap3_enter_idle_bm,
--			.exit_latency	  = 10000 + 30000,
--			.target_residency = 30000,
-+			.exit_latency	  = 4300 + 13000,
-+			.target_residency = 215000,
- 			.flags		  = CPUIDLE_FLAG_TIME_VALID,
- 			.name		  = "C7",
- 			.desc		  = "MPU OFF + CORE OFF",
+ 
+ static struct powerdomain iva2_pwrdm = {
+@@ -52,6 +65,13 @@ static struct powerdomain iva2_pwrdm = {
+ 		[2] = PWRSTS_OFF_ON,
+ 		[3] = PWRSTS_ON,
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 1100,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 350,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+@@ -68,6 +88,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_OFF_ON,
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 1830,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 121,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
+@@ -111,6 +138,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 3082,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 153,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -133,6 +167,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 3082,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 153,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -165,6 +206,13 @@ static struct powerdomain dss_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 70,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 20,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -180,6 +228,13 @@ static struct powerdomain dss_am35x_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 1000,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -201,6 +256,13 @@ static struct powerdomain sgx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 850,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 35,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -216,6 +278,13 @@ static struct powerdomain sgx_am35x_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 671,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 31,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -231,6 +300,13 @@ static struct powerdomain cam_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 800,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 150,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "core" },
+ };
+ 
+@@ -275,6 +351,13 @@ static struct powerdomain neon_pwrdm = {
+ 	.prcm_offs	  = OMAP3430_NEON_MOD,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_RET,
++	.wakeup_lat = {
++		[PWRDM_FUNC_PWRST_OFF] = 0,
++		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_CSWR] = 0,
++		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
++		[PWRDM_FUNC_PWRST_ON] = 0,
++	},
+ 	.voltdm           = { .name = "mpu_iva" },
+ };
+ 
 -- 
 1.7.7.6
 
