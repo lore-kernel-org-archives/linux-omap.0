@@ -1,50 +1,73 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup
- parameter via device_prep_dma_cyclic() callback
-Date: Tue, 18 Sep 2012 14:22:59 +0200
-Message-ID: <CACRpkdbphfZ+Q9L1H3x_cs_nxjYYg4xuerOHJzzdkogsKu948Q@mail.gmail.com>
-References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
- <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
- <CACRpkdYAxFzPAZgMsdj9C3YVLzMc_w41Xs0SiqX-1DWaZqxAdw@mail.gmail.com>
- <20120918083146.GE12445@n2100.arm.linux.org.uk>
- <1347958810.1943.176.camel@vkoul-udesk3>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
+Date: Tue, 18 Sep 2012 18:10:50 +0530
+Message-ID: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1347958810.1943.176.camel@vkoul-udesk3>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Vinod Koul <vinod.koul@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-kernel@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Laxman Dewangan <ldewangan@nvidia.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, linux-arm-kernel@lists.infradead.org, Barry Song <baohua.song@csr.com>, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Vista Silicon <javier.martin@vista-silicon.com>
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, balbi@ti.com, paul@pwsan.com, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 18, 2012 at 11:00 AM, Vinod Koul <vinod.koul@linux.intel.com> wrote:
-> On Tue, 2012-09-18 at 09:31 +0100, Russell King - ARM Linux wrote:
->> On Mon, Sep 17, 2012 at 11:01:23AM +0200, Linus Walleij wrote:
->> > On Thu, Sep 13, 2012 at 3:37 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
->> >
->> > After some discussion with clever people I know I have come to the conclusion
->> > that this is a good idea, so:
->> > Acked-by: Linus Walleij <linus.walleij@linaro.org>
->>
->> NAKed-by: me
->>
->> If you look at the other sub-threads of the patch you're acking, you'll
->> notice that there's a v3 of this patch set which changes the way this is
->> done.
->
-> Was it a genuine mistake, think v3 reply v2? Or less caffeine..... :)
+Greg's tty-next is not booting on 2420 based N800. The failure is
+observed at serial init itself. The reason might be that n800 tries to
+resume even though it is not suspended before.
 
-I think both, stupid me.
-Ack on v3 indeed, I was probably fooled by some gmail autothreading, grrr.
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+This patch is developed on top of greg's tty-next branch
+CommitId: e740d8f tty: serial: Samsung: Fix return value +
+the following patch which I have already posted to the mailing list.
+http://comments.gmane.org/gmane.linux.ports.arm.omap/84729
 
-Yours,
-Linus Walleij
+ drivers/tty/serial/omap-serial.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 3c05c5e..bc355f2 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -110,6 +110,7 @@ struct uart_omap_port {
+ 	u32			calc_latency;
+ 	struct work_struct	qos_work;
+ 	struct pinctrl		*pins;
++	unsigned int		suspended:1;
+ };
+ 
+ #define to_uart_omap_port(p)	((container_of((p), struct uart_omap_port, port)))
+@@ -1545,14 +1546,20 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 	up->latency = PM_QOS_CPU_DMA_LAT_DEFAULT_VALUE;
+ 	schedule_work(&up->qos_work);
+ 
++	up->suspended = true;
++
+ 	return 0;
+ }
+ 
+ static int serial_omap_runtime_resume(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
++	u32 loss_cnt;
++
++	if (!up->suspended)
++		return 0;
+ 
+-	u32 loss_cnt = serial_omap_get_context_loss_count(up);
++	loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+ 	if (up->context_loss_cnt != loss_cnt)
+ 		serial_omap_restore_context(up);
+@@ -1560,6 +1567,8 @@ static int serial_omap_runtime_resume(struct device *dev)
+ 	up->latency = up->calc_latency;
+ 	schedule_work(&up->qos_work);
+ 
++	up->suspended = false;
++
+ 	return 0;
+ }
+ #endif
+-- 
+1.7.1
+
