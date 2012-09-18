@@ -1,92 +1,71 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 1/3] pinctrl: pinctrl-single must be initialized early.
-Date: Tue, 18 Sep 2012 22:10:08 +0300
-Message-ID: <B7D59159-4456-468B-A414-9B57BCEE018D@antoniou-consulting.com>
-References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com> <1348070841-23354-2-git-send-email-panto@antoniou-consulting.com> <20120918182150.GY11762@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120918182150.GY11762@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>
+From: a0919096 <b-cousson@ti.com>
+Subject: Re: [PATCH 3/3] i2c: OMAP fix driver initialization message
+Date: Tue, 18 Sep 2012 14:24:21 -0500
+Message-ID: <5058CA65.5080408@ti.com>
+References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com> <1348070841-23354-4-git-send-email-panto@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:42420 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754176Ab2IRTYY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 15:24:24 -0400
+In-Reply-To: <1348070841-23354-4-git-send-email-panto@antoniou-consulting.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tony,
+Hi Panto,
 
-On Sep 18, 2012, at 9:21 PM, Tony Lindgren wrote:
+That patch is good, but a similar one was already posted by Florian.
+https://patchwork.kernel.org/patch/1392671/
 
-> Hi,
-> 
-> * Pantelis Antoniou <panto@antoniou-consulting.com> [120918 11:13]:
->> When using pinctrl-single to handle i2c initialization, it has
->> to be done early.
->> On the beaglebone the regulator is connected to the i2c0 bus,
->> and for sure that's the case for many other am33xx boards.
-> 
-> Usually it's better to initialize things later than earlier as
-> that cuts down nasty dependencies and let's us have a proper
-> debug console before we start initializing things beyond
-> interrupts and drivers.
-> 
+Checking the email thread it seems that Wolfram	pulled it.
 
-Agreed.
+Regards,
+Benoit
 
-> Maybe just fix up the i2c-omap.c not to use subsys_initcall()?
-> And then deferred probe should be able to sort out the dependencies
-> for other drivers depending on i2c?
-> 
+On 9/19/2012 11:07 AM, Pantelis Antoniou wrote:
+> The message spit out when the i2c-omap driver load is printing
+> the platform device's id as a bus number. However when booting
+> from OF id is -1, which is not so nice.
+>
+> Fix it by printing the adapter number.
+>
+> [    0.210467] omap_i2c 44e0b000.i2c: bus -1 rev2.4.0 at 400 kHz
+> 	vs
+> [    0.210467] omap_i2c 44e0b000.i2c: bus 0 rev2.4.0 at 400 kHz
+>
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> ---
+>   drivers/i2c/busses/i2c-omap.c | 6 +++---
+>   1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index f722478..87bb705 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1178,9 +1178,6 @@ omap_i2c_probe(struct platform_device *pdev)
+>   		goto err_unuse_clocks;
+>   	}
+>
+> -	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
+> -		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+> -
+>   	adap = &dev->adapter;
+>   	i2c_set_adapdata(adap, dev);
+>   	adap->owner = THIS_MODULE;
+> @@ -1204,6 +1201,9 @@ omap_i2c_probe(struct platform_device *pdev)
+>   	if (IS_ERR(pinctrl))
+>   		dev_warn(dev->dev, "pins are not configured from the driver\n");
+>
+> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
+> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+> +
+>   	pm_runtime_mark_last_busy(dev->dev);
+>   	pm_runtime_put_autosuspend(dev->dev);
+>
+>
 
-As long as we get the regulator to work early in the game no problem.
-I don't know if deferring the probe will work in this case.
-I could give it a shot and see if it works at all.
-
-FWIW, the regulator is on I2C0 which doesn't need any pinmux setup.
-So in theory I2C0 is ready to go without any pinctrl action, however
-the other busses require it.
-
-It's not clear how to do so without making the driver all hacky.
-Perhaps a property that signals that no pinctrl binding is required.
-
-
-> Regards,
-> 
-> Tony
-> 
-
-Regards
-
--- Pantelis
-
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->> drivers/pinctrl/pinctrl-single.c | 12 +++++++++++-
->> 1 file changed, 11 insertions(+), 1 deletion(-)
->> 
->> diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
->> index 76a4260..3acf7f9 100644
->> --- a/drivers/pinctrl/pinctrl-single.c
->> +++ b/drivers/pinctrl/pinctrl-single.c
->> @@ -980,7 +980,17 @@ static struct platform_driver pcs_driver = {
->> 	},
->> };
->> 
->> -module_platform_driver(pcs_driver);
->> +static int __init pcs_init(void)
->> +{
->> +	return platform_driver_register(&pcs_driver);
->> +}
->> +postcore_initcall(pcs_init);
->> +
->> +static void __exit pcs_exit(void)
->> +{
->> +	platform_driver_unregister(&pcs_driver);
->> +}
->> +module_exit(pcs_exit);
->> 
->> MODULE_AUTHOR("Tony Lindgren <tony@atomide.com>");
->> MODULE_DESCRIPTION("One-register-per-pin type device tree based pinctrl driver");
->> -- 
->> 1.7.12
->> 
