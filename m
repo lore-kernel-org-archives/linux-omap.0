@@ -1,49 +1,68 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH V6 1/2] of: Add generic device tree DMA helpers
-Date: Tue, 18 Sep 2012 12:50:05 +0000
-Message-ID: <201209181250.05647.arnd@arndb.de>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a slave
+ DMA channel
+Date: Tue, 18 Sep 2012 09:21:13 -0400
+Message-ID: <20120918132113.GT27758@beef>
 References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
- <201209172042.11860.arnd@arndb.de> <20120917230615.GA26502@codeaurora.org>
+ <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
+ <1347852805.1943.130.camel@vkoul-udesk3>
+ <201209171159.27359.arnd@arndb.de>
+ <20120917223619.GC12445@n2100.arm.linux.org.uk>
+ <1347938035.1943.162.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120917230615.GA26502-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:53779 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755830Ab2IRNTk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 09:19:40 -0400
+Received: by iahk25 with SMTP id k25so6128679iah.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 06:19:39 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1347938035.1943.162.camel@vkoul-udesk3>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Jon Hunter <jon-hunter@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Dan Williams <djbw@fb.com>
 
-On Monday 17 September 2012, David Brown wrote:
-> There is also a lot of similarity between the mmci hardware and the
-> msm_sdcc hardware.  Enough so, that it is probably better for us to
-> make the mmci driver work with our hardware, rather than trying to
-> keep msm_sdcc going.
+On Tue, Sep 18, 2012 at 08:43:55AM +0530, Vinod Koul wrote:
+> On Mon, 2012-09-17 at 23:36 +0100, Russell King - ARM Linux wrote:
+> > > 
+> > > I believe that Jon is on vacation this week, so if this is the only issue
+> > > holding up the merge, maybe you can change this in his patch directly, or
+> > > I can send an updated version if you prefer.
+> > 
+> > I worry that too much is going on here too quickly.  We have some people
+> > working on changing the way DMA engine selects channels.  Meanwhile we
+> > have other people trying to create an OF DMA engine API.
+> > 
+> > It seems that Vinod's working on a way for platforms to specify bindings
+> > to the DMA engine code, and the DMA engine code itself selects the
+> > appropriate channel.  This patch, on the other hand, introduces a set of
+> > translation functions which need to be provided by platform code,
+> > which returns the dma_chan pointer.
+> > 
+> > This sounds like a recipe for a total abortion of interfaces.  Only one
+> > of those two activities should be going on at any one time, or if they
+> > have to occur, they need coordination so that the we don't end up with
+> > two totally different schemes.
+> > 
+> > In the mad rush to DTify everything, don't make hasty decisions, because
+> > it is very difficult to change it later - especially something like this
+> > which defines how DT encodes this information.
+> We discussed this in KS and IMHO we need to merge these two approaches.
 > 
-> There is also an MSM nand device that appears to have not made it in.
-> It is heavily dependent on the weird features of the DMA hardware.  I
-> don't have any current plans to support this device, since most boards
-> using MSMs these days are using mmc/sd instead of bare NAND.
+> For DT bindings, I think the binding itself shouldn't change based on my
+> work but I would like these same bindings to help build the DMA engine
+> code mappings.
 > 
-> Our DMA hardware is really weird, but should be a bit reasonable.  It
-> is also being gradually replaced in newer chips with a different DMA
-> framework.
-> 
-> As far as I'm concerned, I consider making our DMA driver(s) use the
-> DMA engine API to be part of getting these platforms working with DT.
-> 
-> It is planned, but there are quite a few things that need to be
-> tackled first.
+> Now would it make sense to NOT merge these changes for 3.7 and postpone
+> to 3.8. I can host these patches on a topic branch and merge them when
+> we are ready. I plan to spend some good amount of time on my work this
+> week so we should be ready pretty soon.
+> One these changes are merged, users can start moving to this scheme.
 
-Ok, thanks for the information.
+FWIW, I'm already basing the EDMA dmaengine support for OMAP (specifically
+for AM335x) on using these helpers since AM335x *only* boots from DT.
 
-	Arnd
+-Matt
