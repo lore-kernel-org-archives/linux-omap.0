@@ -1,102 +1,50 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-Subject: AW: How to disable message "Uncompressing linux..." on kernel start?
-Date: Tue, 18 Sep 2012 14:11:07 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E31D@dolphin.TIGRIS.local>
-References: <CAJe_ZhcEvW+M3OwvwDtH62pEDbaUwbZoy0ewpmYEUabu_3VfEA@mail.gmail.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 04/15] dmaengine: Pass no_wakeup
+ parameter via device_prep_dma_cyclic() callback
+Date: Tue, 18 Sep 2012 14:22:59 +0200
+Message-ID: <CACRpkdbphfZ+Q9L1H3x_cs_nxjYYg4xuerOHJzzdkogsKu948Q@mail.gmail.com>
+References: <1347543485-339-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347543485-339-5-git-send-email-peter.ujfalusi@ti.com>
+ <CACRpkdYAxFzPAZgMsdj9C3YVLzMc_w41Xs0SiqX-1DWaZqxAdw@mail.gmail.com>
+ <20120918083146.GE12445@n2100.arm.linux.org.uk>
+ <1347958810.1943.176.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-OujPlmAsB2yh5g/dXIhO"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www45.your-server.de ([213.133.104.45]:59112 "EHLO
-	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755018Ab2IRMMK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 08:12:10 -0400
-Received: from [77.12.73.83] (helo=IT-AstaroSecurityGateway)
-	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.74)
-	(envelope-from <prvs=06089b056d=maximilian.schwerin@tigris.de>)
-	id 1TDweu-0006pz-Vu
-	for linux-omap@vger.kernel.org; Tue, 18 Sep 2012 14:12:09 +0200
-In-Reply-To: <CAJe_ZhcEvW+M3OwvwDtH62pEDbaUwbZoy0ewpmYEUabu_3VfEA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1347958810.1943.176.camel@vkoul-udesk3>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, linux-kernel@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Zhangfei Gao <zhangfei.gao@marvell.com>, Laxman Dewangan <ldewangan@nvidia.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, linux-arm-kernel@lists.infradead.org, Barry Song <baohua.song@csr.com>, Dan Williams <djbw@fb.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Vista Silicon <javier.martin@vista-silicon.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jassi Brar <jaswinder.singh@linaro.org>
-Cc: linux-omap@vger.kernel.org
 
---=-OujPlmAsB2yh5g/dXIhO
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Sep 18, 2012 at 11:00 AM, Vinod Koul <vinod.koul@linux.intel.com> wrote:
+> On Tue, 2012-09-18 at 09:31 +0100, Russell King - ARM Linux wrote:
+>> On Mon, Sep 17, 2012 at 11:01:23AM +0200, Linus Walleij wrote:
+>> > On Thu, Sep 13, 2012 at 3:37 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+>> >
+>> > After some discussion with clever people I know I have come to the conclusion
+>> > that this is a good idea, so:
+>> > Acked-by: Linus Walleij <linus.walleij@linaro.org>
+>>
+>> NAKed-by: me
+>>
+>> If you look at the other sub-threads of the patch you're acking, you'll
+>> notice that there's a v3 of this patch set which changes the way this is
+>> done.
+>
+> Was it a genuine mistake, think v3 reply v2? Or less caffeine..... :)
 
-> -----Urspr=FCngliche Nachricht-----
-> Von: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] Im Auftrag von Jassi Brar
-> Gesendet: Dienstag, 18. September 2012 13:54
-> An: Maximilian Schwerin
-> Cc: linux-omap@vger.kernel.org
-> Betreff: Re: How to disable message "Uncompressing linux..."=20
-> on kernel start?
->=20
-> >> > On 18 September 2012 12:09, Maximilian Schwerin
-> >> > <Maximilian.Schwerin@tigris.de> wrote:
-> >> >> Hi all,
-> >> >>
-> >> >> I have been convinced that my patch for disabling the message
-> >> >> "Uncompressing linux..." on kernel start was not all that
-> >> good an idea.
-> >> >> As the problem still remains an issue for me and I'd like
-> >> to find a fix
-> >> >> for everyone I'd like to ask for pointers where or how=20
-> to fix this.
-> >> >>
-> >> >> To sum up my problem: I'm using the primary serial port on
-> >> an OMAP3 as a
-> >> >> debug console for development. In production we set the
-> >> u-boot silent
-> >> >> option which disables all kernel logging to this serial
-> >> port. The only
-> >> >> kernel message that remains is "Uncompressing linux..."=20
-> at the very
-> >> >> beginning. As we connect an external device via this port
-> >> in production
-> >> >> environments this is not acceptable.
-> >> >>
-> >> > Perhaps adding config choice under "Kernel low-level
-> >> debugging port",
-> >> > to select the UART port to direct the early prints to,=20
-> would help.
-> >> > Like some platforms already do. See DEBUG_CLPS711X_UART1/2 ,
-> >> > DEBUG_MSM_UART1/2/3 etc.
-> >>
-> >> On a second thought, I think we need a new config independent
-> >> of DEBUG_LL.
-> >> Something like what Samsung code does with symbol
-> >> S3C_LOWLEVEL_UART_PORT in arch/arm/plat-samsung/Kconfig
-> >
-> > In my case I need to be able to disable it completely.
-> >
-> The idea is to direct the output to some other (unused) UART port.
->=20
-> Also if one doesn't select DEBUG_LL, I wonder if it makes sense to
-> expect the "Uncompressing .... " message, which too is just dumping
-> raw data onto UART. So another option might be to simply use
-> CONFIG_DEBUG_LL instead of CONFIG_DEBUG_DECOMPRESS_KERNEL ?
+I think both, stupid me.
+Ack on v3 indeed, I was probably fooled by some gmail autothreading, grrr.
 
-In http://www.spinics.net/lists/arm-kernel/msg195871.html Russell King =
-pointed out that the message goes to fb on some platforms. So the ideal =
-solution would be to assure, that this message is not printed if the =
-kernel parameter console is not set.=20
-
---=-OujPlmAsB2yh5g/dXIhO
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAlBYZRUACgkQ6nqkzTWctv7EzwCfSapNYiLk5RaLuXVk/1Pt9+1v
-1dQAn27srm9aa6RGkrfeUbXC6YTDzZ73
-=7dVs
------END PGP SIGNATURE-----
-
---=-OujPlmAsB2yh5g/dXIhO--
+Yours,
+Linus Walleij
