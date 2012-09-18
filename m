@@ -1,204 +1,155 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 6/8] ARM: OMAP3: powerdomain data: add wake-up latency figures
-Date: Tue, 18 Sep 2012 10:52:10 +0200
-Message-ID: <1347958332-2205-7-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 3/8] ARM: OMAP: omap_device: register to the per-device PM QoS framework
+Date: Tue, 18 Sep 2012 10:52:07 +0200
+Message-ID: <1347958332-2205-4-git-send-email-j-pihet@ti.com>
 References: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:42530 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757678Ab2IRIwc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 04:52:32 -0400
-Received: by wibhr14 with SMTP id hr14so3637867wib.1
-        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:31 -0700 (PDT)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50750 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757675Ab2IRIw3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 04:52:29 -0400
+Received: by weyx8 with SMTP id x8so4411264wey.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 01:52:28 -0700 (PDT)
 In-Reply-To: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com
 Cc: Jean Pihet <j-pihet@ti.com>
 
-Figures are added to the power domains structs for RET and OFF modes.
+Implement the devices wake-up latency constraints using the global
+device PM QoS notification handler which applies the constraints to the
+underlying layer by calling the corresponding function at hwmod level.
 
-Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-from actual measurements.
-The latency figures for the other power domains are preliminary and
-shall be added.
+Reworked after Paul's suggestions.
 
-Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-for a detailed explanation on where are the numbers coming from.
-
-Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-on MPU, CORE and PER.
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
+latency constraints on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/powerdomains3xxx_data.c |   83 +++++++++++++++++++++++++++
- 1 files changed, 83 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/omap_device.c |   81 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 80 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index bb883e4..2195518 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -32,6 +32,19 @@
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index c490240..011825f 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -3,6 +3,7 @@
+  * omap_device implementation
+  *
+  * Copyright (C) 2009-2010 Nokia Corporation
++ * Copyright (C) 2012 Texas Instruments, Inc.
+  * Paul Walmsley, Kevin Hilman
+  *
+  * Developed in collaboration with (alphabetical order): Benoit
+@@ -89,6 +90,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
+ #include <linux/notifier.h>
++#include <linux/pm_qos.h>
  
- /*
-  * Powerdomains
+ #include <plat/omap_device.h>
+ #include <plat/omap_hwmod.h>
+@@ -401,6 +403,72 @@ static int _omap_device_notifier_call(struct notifier_block *nb,
+ 	return NOTIFY_DONE;
+ }
+ 
++/**
++ * _omap_device_pm_qos_handler - interface to the per-device PM QoS framework
++ * @nb: pointer to omap_device_pm_qos_nb (not used)
++ * @new_value: new maximum wakeup latency constraint for @req->dev (in us)
++ * @req: struct dev_pm_qos_request * passed by the Linux PM QoS code
 + *
-+ * The wakeup_lat values are derived from HW and SW measurements on
-+ * the actual target. For more details cf.
-+ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#Results_for_individual_power_domains
-+ *
-+ * Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-+ * from actual measurements.
-+ * The latency figures for the other power domains are preliminary and
-+ * shall be added.
-+ *
-+ * Note: only the SW restore timing values are taken into account.
-+ * The HW impact of the sys_clkreq and sys_offmode signals is not taken
-+ * into account - TDB
-  */
++ * Called by the Linux core device PM QoS code to alter the maximum
++ * wakeup latency constraint on a device.  If the underlying device is
++ * an omap_device, then this code will pass the constraint on to the
++ * underlying hwmods.  Returns -EINVAL if this code can't handle the
++ * constraint for some reason, or passes along the return code from the
++ * hwmod wakeup latency constraint functions.
++ */
++static int _omap_device_pm_qos_handler(struct notifier_block *nb,
++				       unsigned long new_value,
++				       void *req)
++{
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++	struct platform_device *pdev;
++	struct dev_pm_qos_request *dev_pm_qos_req = req;
++	int ret = NOTIFY_OK;
++	int r, i;
++
++	pr_debug("OMAP PM constraints: req@0x%p, new_value=%lu\n",
++		 req, new_value);
++
++	/* Look for the platform device for the constraint target device */
++	pdev = to_platform_device(dev_pm_qos_req->dev);
++
++	/* Try to catch non platform devices */
++	if (pdev->name == NULL) {
++		pr_err("%s: Error: platform device for device %s not valid\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return NOTIFY_DONE;
++	}
++
++	/* Find the associated omap_device for dev */
++	od = to_omap_device(pdev);
++	if (od == NULL) {
++		pr_err("%s: Error: no omap_device for device %s\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return NOTIFY_DONE;
++	}
++
++	pr_debug("OMAP PM constraints: req@0x%p, dev=0x%p, new_value=%lu\n",
++		 req, dev_pm_qos_req->dev, new_value);
++
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		oh = od->hwmods[i];
++		if (new_value == PM_QOS_DEV_LAT_DEFAULT_VALUE)
++			r = omap_hwmod_remove_wakeuplat_constraint(
++							oh,
++							dev_pm_qos_req);
++		else
++			r = omap_hwmod_set_wakeuplat_constraint(
++							oh,
++							dev_pm_qos_req,
++							new_value);
++
++		if (!r)
++			ret = NOTIFY_BAD;
++	}
++
++	return ret;
++}
  
- static struct powerdomain iva2_pwrdm = {
-@@ -52,6 +65,13 @@ static struct powerdomain iva2_pwrdm = {
- 		[2] = PWRSTS_OFF_ON,
- 		[3] = PWRSTS_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1100,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 350,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
+ /* Public functions for use by core code */
+ 
+@@ -1115,13 +1183,24 @@ int omap_device_enable_clocks(struct omap_device *od)
+ 	return 0;
+ }
+ 
++static struct notifier_block omap_device_pm_qos_nb = {
++	.notifier_call = _omap_device_pm_qos_handler,
++};
++
+ static struct notifier_block platform_nb = {
+ 	.notifier_call = _omap_device_notifier_call,
  };
  
-@@ -68,6 +88,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_OFF_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1830,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 121,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
- };
- 
-@@ -111,6 +138,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 3082,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 153,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -133,6 +167,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 3082,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 153,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -165,6 +206,13 @@ static struct powerdomain dss_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 70,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 20,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -180,6 +228,13 @@ static struct powerdomain dss_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1000,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -201,6 +256,13 @@ static struct powerdomain sgx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 850,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 35,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -216,6 +278,13 @@ static struct powerdomain sgx_am35x_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 671,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 31,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -231,6 +300,13 @@ static struct powerdomain cam_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 800,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 150,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -275,6 +351,13 @@ static struct powerdomain neon_pwrdm = {
- 	.prcm_offs	  = OMAP3430_NEON_MOD,
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_RET,
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 0,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 0,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
- };
- 
+ static int __init omap_device_init(void)
+ {
++	int ret;
++
+ 	bus_register_notifier(&platform_bus_type, &platform_nb);
+-	return 0;
++
++	ret = dev_pm_qos_add_global_notifier(&omap_device_pm_qos_nb);
++	if (ret)
++		pr_err("omap_device: cannot add global notifier for dev PM QoS\n");
++
++	return ret;
+ }
+ core_initcall(omap_device_init);
 -- 
 1.7.7.6
 
