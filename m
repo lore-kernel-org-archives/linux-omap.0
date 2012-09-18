@@ -1,45 +1,102 @@
-From: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] ARM: OMAP2+: Enable pinctrl dummy states
-Date: Tue, 18 Sep 2012 14:11:32 +0200
-Message-ID: <CACRpkdagKxUD2QUYLJxh_R6QjAU-jDXsG=8TxJS-Vs_k_8ir_Q@mail.gmail.com>
-References: <1347902538-21208-1-git-send-email-mporter@ti.com>
-	<1347902538-21208-3-git-send-email-mporter@ti.com>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: AW: How to disable message "Uncompressing linux..." on kernel start?
+Date: Tue, 18 Sep 2012 14:11:07 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E31D@dolphin.TIGRIS.local>
+References: <CAJe_ZhcEvW+M3OwvwDtH62pEDbaUwbZoy0ewpmYEUabu_3VfEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1347902538-21208-3-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, AnilKumar <anilkumar-l0cyMroinI0@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-OujPlmAsB2yh5g/dXIhO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from www45.your-server.de ([213.133.104.45]:59112 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755018Ab2IRMMK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 08:12:10 -0400
+Received: from [77.12.73.83] (helo=IT-AstaroSecurityGateway)
+	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.74)
+	(envelope-from <prvs=06089b056d=maximilian.schwerin@tigris.de>)
+	id 1TDweu-0006pz-Vu
+	for linux-omap@vger.kernel.org; Tue, 18 Sep 2012 14:12:09 +0200
+In-Reply-To: <CAJe_ZhcEvW+M3OwvwDtH62pEDbaUwbZoy0ewpmYEUabu_3VfEA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Sep 17, 2012 at 7:22 PM, Matt Porter <mporter-l0cyMroinI0@public.gmane.org> wrote:
+--=-OujPlmAsB2yh5g/dXIhO
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> Enable pinctrl dummy states for all OMAP platforms that don't
-> populate DT. This allows drivers to be converted to pinctrl
-> and not generate new warnings on platforms that do not provide
-> pinctrl data. These platforms already have pinmuxes configured
-> before the drivers probe.
->
-> Signed-off-by: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+> -----Urspr=FCngliche Nachricht-----
+> Von: linux-omap-owner@vger.kernel.org=20
+> [mailto:linux-omap-owner@vger.kernel.org] Im Auftrag von Jassi Brar
+> Gesendet: Dienstag, 18. September 2012 13:54
+> An: Maximilian Schwerin
+> Cc: linux-omap@vger.kernel.org
+> Betreff: Re: How to disable message "Uncompressing linux..."=20
+> on kernel start?
+>=20
+> >> > On 18 September 2012 12:09, Maximilian Schwerin
+> >> > <Maximilian.Schwerin@tigris.de> wrote:
+> >> >> Hi all,
+> >> >>
+> >> >> I have been convinced that my patch for disabling the message
+> >> >> "Uncompressing linux..." on kernel start was not all that
+> >> good an idea.
+> >> >> As the problem still remains an issue for me and I'd like
+> >> to find a fix
+> >> >> for everyone I'd like to ask for pointers where or how=20
+> to fix this.
+> >> >>
+> >> >> To sum up my problem: I'm using the primary serial port on
+> >> an OMAP3 as a
+> >> >> debug console for development. In production we set the
+> >> u-boot silent
+> >> >> option which disables all kernel logging to this serial
+> >> port. The only
+> >> >> kernel message that remains is "Uncompressing linux..."=20
+> at the very
+> >> >> beginning. As we connect an external device via this port
+> >> in production
+> >> >> environments this is not acceptable.
+> >> >>
+> >> > Perhaps adding config choice under "Kernel low-level
+> >> debugging port",
+> >> > to select the UART port to direct the early prints to,=20
+> would help.
+> >> > Like some platforms already do. See DEBUG_CLPS711X_UART1/2 ,
+> >> > DEBUG_MSM_UART1/2/3 etc.
+> >>
+> >> On a second thought, I think we need a new config independent
+> >> of DEBUG_LL.
+> >> Something like what Samsung code does with symbol
+> >> S3C_LOWLEVEL_UART_PORT in arch/arm/plat-samsung/Kconfig
+> >
+> > In my case I need to be able to disable it completely.
+> >
+> The idea is to direct the output to some other (unused) UART port.
+>=20
+> Also if one doesn't select DEBUG_LL, I wonder if it makes sense to
+> expect the "Uncompressing .... " message, which too is just dumping
+> raw data onto UART. So another option might be to simply use
+> CONFIG_DEBUG_LL instead of CONFIG_DEBUG_DECOMPRESS_KERNEL ?
 
-Looks like a good idea, so FWIW:
-Acked-by: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+In http://www.spinics.net/lists/arm-kernel/msg195871.html Russell King =
+pointed out that the message goes to fb on some platforms. So the ideal =
+solution would be to assure, that this message is not printed if the =
+kernel parameter console is not set.=20
 
-Yours,
-Linus Walleij
+--=-OujPlmAsB2yh5g/dXIhO
+Content-Type: application/pgp-signature
 
-------------------------------------------------------------------------------
-Live Security Virtual Conference
-Exclusive live event will cover all the ways today's security and 
-threat landscape has changed and how IT managers can respond. Discussions 
-will include endpoint security, mobile security and the latest in malware 
-threats. http://www.accelacomm.com/jaw/sfrnl04242012/114/50122263/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAlBYZRUACgkQ6nqkzTWctv7EzwCfSapNYiLk5RaLuXVk/1Pt9+1v
+1dQAn27srm9aa6RGkrfeUbXC6YTDzZ73
+=7dVs
+-----END PGP SIGNATURE-----
+
+--=-OujPlmAsB2yh5g/dXIhO--
