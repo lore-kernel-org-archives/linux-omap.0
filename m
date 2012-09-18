@@ -1,71 +1,73 @@
-From: a0919096 <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] i2c: OMAP fix driver initialization message
-Date: Tue, 18 Sep 2012 14:24:21 -0500
-Message-ID: <5058CA65.5080408@ti.com>
-References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com> <1348070841-23354-4-git-send-email-panto@antoniou-consulting.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+From: Pantelis Antoniou <panto@antoniou-consulting.com>
+Subject: Re: [PATCH 2/3] OMAP i2c: pinctrl-ify i2c-omap.c
+Date: Tue, 18 Sep 2012 22:37:22 +0300
+Message-ID: <34F7CFB5-4E48-4B74-99D3-3C1999A0B3B3@antoniou-consulting.com>
+References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com> <1348070841-23354-3-git-send-email-panto@antoniou-consulting.com> <20120918182358.GZ11762@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42420 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754176Ab2IRTYY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 15:24:24 -0400
-In-Reply-To: <1348070841-23354-4-git-send-email-panto@antoniou-consulting.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120918182358.GZ11762@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Pantelis Antoniou <panto@antoniou-consulting.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Panto,
+Hi Tony,
 
-That patch is good, but a similar one was already posted by Florian.
-https://patchwork.kernel.org/patch/1392671/
+On Sep 18, 2012, at 9:23 PM, Tony Lindgren wrote:
 
-Checking the email thread it seems that Wolfram	pulled it.
+> * Pantelis Antoniou <panto@antoniou-consulting.com> [120918 11:13]:
+>> Add support for pinctrl mux settings in the OMAP I2C driver.
+>> If no such pinctl bindings are found a warning message is printed.
+>> 
+>> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+>> 
+>> ---
+>> drivers/i2c/busses/i2c-omap.c | 7 +++++++
+>> 1 file changed, 7 insertions(+)
+>> 
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index b149e32..f722478 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -43,6 +43,8 @@
+>> #include <linux/slab.h>
+>> #include <linux/i2c-omap.h>
+>> #include <linux/pm_runtime.h>
+>> +#include <linux/pinctrl/consumer.h>
+>> +#include <linux/err.h>
+>> 
+>> /* I2C controller revisions */
+>> #define OMAP_I2C_OMAP1_REV_2		0x20
+>> @@ -1057,6 +1059,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>> 	const struct of_device_id *match;
+>> 	int irq;
+>> 	int r;
+>> +	struct pinctrl *pinctrl;
+>> 
+>> 	/* NOTE: driver uses the static register mapping */
+>> 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> @@ -1197,6 +1200,10 @@ omap_i2c_probe(struct platform_device *pdev)
+>> 
+>> 	of_i2c_register_devices(adap);
+>> 
+>> +	pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+>> +	if (IS_ERR(pinctrl))
+>> +		dev_warn(dev->dev, "pins are not configured from the driver\n");
+>> +
+>> 	pm_runtime_mark_last_busy(dev->dev);
+>> 	pm_runtime_put_autosuspend(dev->dev);
+> 
+> This must be just a warning here as otherwise things will break
+> badly for drivers doing pinmuxing in bootloader only. Other than
+> that:
+> 
 
-Regards,
-Benoit
+It is just a warning indeed. Not many boards do the pinctrl dance yet.
 
-On 9/19/2012 11:07 AM, Pantelis Antoniou wrote:
-> The message spit out when the i2c-omap driver load is printing
-> the platform device's id as a bus number. However when booting
-> from OF id is -1, which is not so nice.
->
-> Fix it by printing the adapter number.
->
-> [    0.210467] omap_i2c 44e0b000.i2c: bus -1 rev2.4.0 at 400 kHz
-> 	vs
-> [    0.210467] omap_i2c 44e0b000.i2c: bus 0 rev2.4.0 at 400 kHz
->
-> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
-> ---
->   drivers/i2c/busses/i2c-omap.c | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index f722478..87bb705 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1178,9 +1178,6 @@ omap_i2c_probe(struct platform_device *pdev)
->   		goto err_unuse_clocks;
->   	}
->
-> -	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
-> -		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-> -
->   	adap = &dev->adapter;
->   	i2c_set_adapdata(adap, dev);
->   	adap->owner = THIS_MODULE;
-> @@ -1204,6 +1201,9 @@ omap_i2c_probe(struct platform_device *pdev)
->   	if (IS_ERR(pinctrl))
->   		dev_warn(dev->dev, "pins are not configured from the driver\n");
->
-> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
-> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-> +
->   	pm_runtime_mark_last_busy(dev->dev);
->   	pm_runtime_put_autosuspend(dev->dev);
->
->
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
+Regards
+
+-- Pantelis
