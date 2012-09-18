@@ -1,81 +1,85 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use cache LoUIS operations
-Date: Tue, 18 Sep 2012 17:35:33 +0100
-Message-ID: <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+Subject: [RFC PATCH v2 2/5] ARM: mm: rename jump labels in v7_flush_dcache_all function
+Date: Tue, 18 Sep 2012 17:35:32 +0100
+Message-ID: <1347986135-17979-3-git-send-email-lorenzo.pieralisi@arm.com>
 References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:39954 "EHLO
+Received: from service87.mimecast.com ([91.220.42.44]:39656 "EHLO
 	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460Ab2IRQgB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 12:36:01 -0400
+	with ESMTP id S1751494Ab2IRQgA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Sep 2012 12:36:00 -0400
 In-Reply-To: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-In processors like A15/A7 L2 cache is unified and integrated within the
-processor cache hierarchy, so that it is not considered an outer cache
-anymore. For processors like A15/A7 flush_cache_all() ends up cleaning
-all cache levels up to Level of Coherency (LoC) that includes
-the L2 unified cache.
+This patch renames jump labels in v7_flush_dcache_all in order to define
+a specific flush cache levels entry point.
 
-When a single CPU is suspended (CPU idle) a complete L2 clean is not
-required, so generic cpu_suspend code must clean the data cache using the
-newly introduced cache LoUIS function.
+TODO: factor out the level flushing loop if considered worthwhile and
+      define the input registers requirements.
 
-The context and stack pointer (context pointer) are cleaned to main memory
-using cache area functions that operate on MVA and guarantee that the data
-is written back to main memory (perform cache cleaning up to the Point of
-Coherency - PoC) so that the processor can fetch the context when the MMU
-is off in the cpu_resume code path.
-
-outer_cache management remains unchanged.
-
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- arch/arm/kernel/suspend.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ arch/arm/mm/cache-v7.S | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
-index 1794cc3..358bca3 100644
---- a/arch/arm/kernel/suspend.c
-+++ b/arch/arm/kernel/suspend.c
-@@ -17,6 +17,8 @@ extern void cpu_resume_mmu(void);
-  */
- void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
- {
-+=09u32 *ctx =3D ptr;
-+
- =09*save_ptr =3D virt_to_phys(ptr);
+diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+index d1fa2f6..140b294 100644
+--- a/arch/arm/mm/cache-v7.S
++++ b/arch/arm/mm/cache-v7.S
+@@ -48,7 +48,7 @@ ENTRY(v7_flush_dcache_louis)
+ =09mov=09r3, r3, lsr #20=09=09=09@ r3 =3D LoUIS * 2
+ =09moveq=09pc, lr=09=09=09=09@ return if level =3D=3D 0
+ =09mov=09r10, #0=09=09=09=09@ r10 (starting level) =3D 0
+-=09b=09loop1=09=09=09=09@ start flushing cache levels
++=09b=09flush_levels=09=09=09@ start flushing cache levels
+ ENDPROC(v7_flush_dcache_louis)
 =20
- =09/* This must correspond to the LDM in cpu_resume() assembly */
-@@ -26,7 +28,20 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32=
- *save_ptr)
-=20
- =09cpu_do_suspend(ptr);
-=20
--=09flush_cache_all();
-+=09flush_cache_louis();
-+
-+=09/*
-+=09 * flush_cache_louis does not guarantee that
-+=09 * save_ptr and ptr are cleaned to main memory,
-+=09 * just up to the Level of Unification Inner Shareable.
-+=09 * Since the context pointer and context itself
-+=09 * are to be retrieved with the MMU off that
-+=09 * data must be cleaned from all cache levels
-+=09 * to main memory using "area" cache primitives.
-+=09*/
-+=09__cpuc_flush_dcache_area(ctx, ptrsz);
-+=09__cpuc_flush_dcache_area(save_ptr, sizeof(*save_ptr));
-+
- =09outer_clean_range(*save_ptr, *save_ptr + ptrsz);
- =09outer_clean_range(virt_to_phys(save_ptr),
- =09=09=09  virt_to_phys(save_ptr) + sizeof(*save_ptr));
+ /*
+@@ -67,7 +67,7 @@ ENTRY(v7_flush_dcache_all)
+ =09mov=09r3, r3, lsr #23=09=09=09@ left align loc bit field
+ =09beq=09finished=09=09=09@ if loc is 0, then no need to clean
+ =09mov=09r10, #0=09=09=09=09@ start clean at cache level 0
+-loop1:
++flush_levels:
+ =09add=09r2, r10, r10, lsr #1=09=09@ work out 3x current cache level
+ =09mov=09r1, r0, lsr r2=09=09=09@ extract cache type bits from clidr
+ =09and=09r1, r1, #7=09=09=09@ mask of the bits for current cache only
+@@ -89,9 +89,9 @@ loop1:
+ =09clz=09r5, r4=09=09=09=09@ find bit position of way size increment
+ =09ldr=09r7, =3D0x7fff
+ =09ands=09r7, r7, r1, lsr #13=09=09@ extract max number of the index size
+-loop2:
++loop1:
+ =09mov=09r9, r4=09=09=09=09@ create working copy of max way size
+-loop3:
++loop2:
+  ARM(=09orr=09r11, r10, r9, lsl r5=09)=09@ factor way and cache number int=
+o r11
+  THUMB(=09lsl=09r6, r9, r5=09=09)
+  THUMB(=09orr=09r11, r10, r6=09=09)=09@ factor way and cache number into r=
+11
+@@ -100,13 +100,13 @@ loop3:
+  THUMB(=09orr=09r11, r11, r6=09=09)=09@ factor index number into r11
+ =09mcr=09p15, 0, r11, c7, c14, 2=09=09@ clean & invalidate by set/way
+ =09subs=09r9, r9, #1=09=09=09@ decrement the way
+-=09bge=09loop3
+-=09subs=09r7, r7, #1=09=09=09@ decrement the index
+ =09bge=09loop2
++=09subs=09r7, r7, #1=09=09=09@ decrement the index
++=09bge=09loop1
+ skip:
+ =09add=09r10, r10, #2=09=09=09@ increment cache number
+ =09cmp=09r3, r10
+-=09bgt=09loop1
++=09bgt=09flush_levels
+ finished:
+ =09mov=09r10, #0=09=09=09=09@ swith back to cache level 0
+ =09mcr=09p15, 2, r10, c0, c0, 0=09=09@ select current cache level in cssr
 --=20
 1.7.12
 
