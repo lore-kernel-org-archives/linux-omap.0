@@ -1,147 +1,76 @@
-From: Marc Murphy <marcmltd@marcm.co.uk>
-Subject: Initialising omapfb on AM3517 issues
-Date: Tue, 18 Sep 2012 16:41:49 +0000
-Message-ID: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v6 0/7] ARM: OMAP2+: PM: introduce the power domains
+ functional states
+Date: Tue, 18 Sep 2012 18:51:23 +0200
+Message-ID: <CAORVsuV6h5JNXOB+u66OE4Sf3kiVKCaamEv1zQ7isgewUm0a1w@mail.gmail.com>
+References: <1347443732-7411-1-git-send-email-j-pihet@ti.com>
+	<87har2rc9q.fsf@deeprootsystems.com>
+	<CAORVsuVZ5AnsN9HYoXntMcF2Yc4VM3Mwk2bQBiGnV0=kdpMYfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm19-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.113]:42655
-	"HELO nm19-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751616Ab2IRQsO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 18 Sep 2012 12:48:14 -0400
-Content-Language: en-US
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:65284 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751807Ab2IRQvZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Sep 2012 12:51:25 -0400
+Received: by lagy9 with SMTP id y9so39368lag.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 09:51:23 -0700 (PDT)
+In-Reply-To: <CAORVsuVZ5AnsN9HYoXntMcF2Yc4VM3Mwk2bQBiGnV0=kdpMYfA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-Hello all,
-I have been moving from the ti 2.6.37 BSP to the 3.x kernel with quite a bit of success, the main issue I have at the moment is trying to get the frame buffer and any displays I have initialised.
+Hi Paul,
 
-[    2.805358] omapfb omapfb: no driver for display: lcd
-[    2.810729] omapfb omapfb: no displays
-[    2.814666] omapfb omapfb: failed to setup omapfb
+On Thu, Sep 13, 2012 at 9:04 AM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> On Thu, Sep 13, 2012 at 2:34 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>>
+>>> Here is a re-spin after some comments and suggestions after review
+>>> and discussions.
+Did you have a chance to look at the series?
 
-I have tried a few versions of release and none of them will initialise;
+Regards,
+Jean
 
-Currently on
-[    0.000000] Linux version 3.6.0-rc3
-
-I have started with board-am3517evm display config and even that doesn't initialise.  Is there something I am missing with the configs or is there a patch required to get the feature to work.
-
-My current config options use;
-#
-# Graphics support
-#
-CONFIG_DRM=y
-CONFIG_FB=y
-CONFIG_FB_CFB_FILLRECT=y
-CONFIG_FB_CFB_COPYAREA=y
-CONFIG_FB_CFB_IMAGEBLIT=y
-
-#
-# Frame buffer hardware drivers
-#
-CONFIG_OMAP2_VRAM=y
-CONFIG_OMAP2_VRFB=y
-CONFIG_OMAP2_DSS=y
-CONFIG_OMAP2_VRAM_SIZE=12
-CONFIG_OMAP2_DSS_DPI=y
-CONFIG_OMAP2_DSS_VENC=y
-CONFIG_OMAP2_DSS_DSI=y
-CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=1
-CONFIG_OMAP2_DSS_SLEEP_AFTER_VENC_RESET=y
-CONFIG_FB_OMAP2=y
-CONFIG_FB_OMAP2_NUM_FBS=3
-
-#
-# OMAP2/3 Display Device Drivers
-#
-CONFIG_PANEL_GENERIC_DPI=y
-CONFIG_PANEL_SHARP_LS037V7DW01=y
-CONFIG_BACKLIGHT_LCD_SUPPORT=y
-CONFIG_LCD_CLASS_DEVICE=y
-CONFIG_BACKLIGHT_CLASS_DEVICE=y
-CONFIG_BACKLIGHT_GENERIC=y
-
-And the init structs are
-static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
-{
-    gpio_set_value(TAM3517_DVI_PON_GPIO, 0);
-    gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 0);
-    gpio_set_value(TAM3517_LCD_PON_GPIO, 1);
-        printk("LCD voltage on\n");
-	return 0;
-}
-
-static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
-{
-    gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 1);
-    gpio_set_value(TAM3517_LCD_PON_GPIO, 0);
-}
-
-static struct panel_generic_dpi_data lcd_panel = {
-//    .name			= "generic_dpi_panel",
-	.platform_enable	= am3517_evm_panel_enable_lcd,
-	.platform_disable	= am3517_evm_panel_disable_lcd,
-};
-
-static struct omap_dss_device am3517_evm_lcd_device = {
-    .type                   = OMAP_DISPLAY_TYPE_DPI,
-    .name			= "lcd",
-    .driver_name		= "generic_dpi_panel",
-	.data			= &lcd_panel,
-	.phy.dpi.data_lines 	= 16,
-};
-
-static int am3517_evm_panel_enable_tv(struct omap_dss_device *dssdev)
-{
-	return 0;
-}
-
-static void am3517_evm_panel_disable_tv(struct omap_dss_device *dssdev)
-{
-}
-
-static struct omap_dss_device am3517_evm_tv_device = {
-	.type 			= OMAP_DISPLAY_TYPE_VENC,
-	.name 			= "tv",
-	.driver_name		= "venc",
-	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-	.platform_enable	= am3517_evm_panel_enable_tv,
-	.platform_disable	= am3517_evm_panel_disable_tv,
-};
-
-static struct tfp410_platform_data dvi_panel = {
-	.power_down_gpio	= -1,
-};
-
-static struct omap_dss_device am3517_evm_dvi_device = {
-	.type			= OMAP_DISPLAY_TYPE_DPI,
-	.name			= "dvi",
-	.driver_name		= "tfp410",
-	.data			= &dvi_panel,
-	.phy.dpi.data_lines	= 24,
-};     
-
-static struct omap_dss_device *am3517_evm_dss_devices[] = {
-	&am3517_evm_lcd_device,
-//	&am3517_evm_tv_device,
-//	&am3517_evm_dvi_device,
-};
-
-static struct omap_dss_board_info am3517_evm_dss_data = {
-	.num_devices	= ARRAY_SIZE(am3517_evm_dss_devices),
-	.devices	= am3517_evm_dss_devices,
-  	.default_device	= &am3517_evm_lcd_device,
-};
-
-And the device initialised with 
-    omap_display_init(&am3517_evm_dss_data);
-
-
-Any help feedback appreciated.
-
-Thanks
-Marc
+>>>
+>>> Implement the functional states for the power domains:
+>>> - unify the API to use the functional states. The new API
+>>>   consists of the pwrdm_set*_fpwrst and pwrdm_read*_fpwrst
+>>>   functions and is the API to use to control the power domains
+>>>   power and logic states,
+>>> - reorganize the powerdomain API in internal and external parts,
+>>>   in powerdomain.h [1]
+>>> - protect the power domain state change by a lock in the
+>>>   functions that read and set the powerdomains next functional state,
+>>> - introduce the functional states for power domains power states and
+>>>   logic power states [2], and the conversion functions between the
+>>>   functional and internal states. The conversion functions are
+>>>   lightweight and generic. The power domains allowed states [3] are
+>>>   defined in the pwrsts and pwrsts_logic_ret fields of the struct
+>>>   powerdomain,
+>>> - program the logic power state of power domains from the functional
+>>>   states, in pwrdm_set*_fpwrst
+>>> - convert the OMAP2/3/4 PM code to use the updated API,
+>>> - provide the power domains statistics by functional states,
+>>> - provide ftrace tracepoints with the functional state,
+>>> - provide error logs in critical code, which makes the development
+>>>   easier.
+>>
+>> I just gave this series a round of PM testing.  I tested retention
+>> and off in idle & suspend, with and without CPUidle on 3430/n900,
+>> 3530/Overo, 3730/OveroSTORM, 3730/Beagle-xM and 4430/Panda (though only
+>> MPU/CPU ret/off is supported for OMAP4 in mainline.)
+>>
+>> All PM tests passed with flying colors.  Nice!
+> Great!
+>
+> Thanks a lot Kevin for testing
+>
+> Jean
+>
+>>
+>> Kevin
