@@ -1,51 +1,38 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap fixes for linux next for v3.7 merge window
-Date: Mon, 17 Sep 2012 19:37:49 -0700
-Message-ID: <CAOesGMjadRQk0=DRZGvE6Lds4+ovFPMA3hQQZGYhe_GemEmycQ@mail.gmail.com>
-References: <20120918022856.GN11762@atomide.com>
+From: Vinod Koul <vinod.koul@linux.intel.com>
+Subject: Re: [PATCH V6 2/2] dmaengine: add helper function to request a
+ slave DMA channel
+Date: Tue, 18 Sep 2012 08:30:11 +0530
+Message-ID: <1347937211.1943.151.camel@vkoul-udesk3>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
+	 <1347662517-4210-3-git-send-email-jon-hunter@ti.com>
+	 <1347852805.1943.130.camel@vkoul-udesk3> <201209171159.27359.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41961 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932106Ab2IRChv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Sep 2012 22:37:51 -0400
-Received: by wibhi8 with SMTP id hi8so3500398wib.1
-        for <linux-omap@vger.kernel.org>; Mon, 17 Sep 2012 19:37:49 -0700 (PDT)
-In-Reply-To: <20120918022856.GN11762@atomide.com>
+Received: from mga09.intel.com ([134.134.136.24]:63625 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932358Ab2IRDEW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Sep 2012 23:04:22 -0400
+In-Reply-To: <201209171159.27359.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jon Hunter <jon-hunter@ti.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Stephen Warren <swarren@nvidia.com>, Benoit Cousson <b-cousson@ti.com>, Nicolas Ferre <nicolas.ferre@atmel.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Dan Williams <djbw@fb.com>, Russell King <linux@arm.linux.org.uk>
 
-Hi,
+On Mon, 2012-09-17 at 11:59 +0000, Arnd Bergmann wrote:
+> On Monday 17 September 2012, Vinod Koul wrote:
+> 
+> I believe that Jon is on vacation this week, so if this is the only issue
+> holding up the merge, maybe you can change this in his patch directly, or
+> I can send an updated version if you prefer.
+Yes that was my idea as well, we do similar stuff in dmaengine.
 
-On Mon, Sep 17, 2012 at 7:28 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi Arnd & Olof,
->
-> Here is the fix for the twl-core compile on non-omap
-> platforms and few other fixes.
->
-> This will probably cause a minor merge conflicts with
-> the led changes merged in the arm-soc next/drivers branch
-> as both linux/leds.h and linux/platform_data/gpio-omap.h
-> now need to be included.
->
-> Regards,
->
-> Tony
->
->
-> The following changes since commit 68cb700c59fae6cd539c9dc1e9f2584f671935a0:
->
->   ARM: OMAP1: Move SoC specific headers from plat to mach for omap1 (2012-09-12 18:06:31 -0700)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/cleanup-fixes-for-v3.7
+Okay I think we are good for merging this, I will add the patch for this
+as well.
 
-Thanks, pulled in on top of next/cleanup. We might have missed the
--next train for the day though.
+If anyone has objection please speak up _now_
 
+-- 
+~Vinod
 
--Olof
