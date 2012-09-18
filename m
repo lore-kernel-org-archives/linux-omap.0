@@ -1,111 +1,165 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
-Date: Tue, 18 Sep 2012 12:57:32 +0300
-Message-ID: <5058458C.5010908@ti.com>
-References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <1347368390-31252-13-git-send-email-arnd@arndb.de> <504F4227.4080206@ti.com> <201209121720.33822.arnd@arndb.de>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Tue, 18 Sep 2012 15:27:00 +0530
+Message-ID: <CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
+	<CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com>
+	<CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+	<20120723140830.GA8155@arwen.pp.htv.fi>
+	<CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
+	<CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
+	<CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
+	<20120813140928.GH14781@arwen.pp.htv.fi>
+	<CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
+	<CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201209121720.33822.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:42415 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932646Ab2IRJ5C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Sep 2012 05:57:02 -0400
+Received: by vbbff1 with SMTP id ff1so4074961vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 18 Sep 2012 02:57:00 -0700 (PDT)
+In-Reply-To: <CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Paul Walmsley <paul@pwsan.com>, parthab@india.ti.com, linux-omap@vger.kernel.org, Linux USB Devel <linux-usb@vger.kernel.org>
 
-Hi Arnd,
+On Thu, Sep 13, 2012 at 5:14 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Mon, Aug 13, 2012 at 8:23 PM, Munegowda, Keshava
+> <keshava_mgowda@ti.com> wrote:
+>> On Mon, Aug 13, 2012 at 7:39 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>> On Mon, Aug 13, 2012 at 06:52:13PM +0530, Munegowda, Keshava wrote:
+>>>> On Fri, Jul 27, 2012 at 5:44 PM, Munegowda, Keshava
+>>>> <keshava_mgowda@ti.com> wrote:
+>>>> > On Mon, Jul 23, 2012 at 8:04 PM, Munegowda, Keshava
+>>>> > <keshava_mgowda@ti.com> wrote:
+>>>> >> On Mon, Jul 23, 2012 at 7:38 PM, Felipe Balbi <balbi@ti.com> wrote:
+>>>> >>> Hi,
+>>>> >>>
+>>>> >>> On Mon, Jul 23, 2012 at 07:31:10PM +0530, Munegowda, Keshava wrote:
+>>>> >>>> On Thu, Jul 19, 2012 at 3:48 PM, Munegowda, Keshava
+>>>> >>>> <keshava_mgowda@ti.com> wrote:
+>>>> >>>> > On Mon, Jul 16, 2012 at 7:01 PM, Keshava Munegowda
+>>>> >>>> > <keshava_mgowda@ti.com> wrote:
+>>>> >>>> >> The TLL (Transceiver Less Link) is an separate IP block, independent of
+>>>> >>>> >> the host controller. Basically this TLL operates like USB PHY which allows
+>>>> >>>> >> the user to connect two USB transceiver interfaces together directly
+>>>> >>>> >> without the use of differential transceivers in omap3 and later chips.
+>>>> >>>> >> The TLL configuration is removed from the UHH driver and implemented as
+>>>> >>>> >> a seperate platform driver. Now, the UHH driver configures the TLL
+>>>> >>>> >> through API's exported by the TLL platform driver.
+>>>> >>>> >>
+>>>> >>>> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>>> >>>> >>
+>>>> >>>> >> In v4:
+>>>> >>>> >>     - rebased on top of linux kernel version 3.5.rc7
+>>>> >>>> >>     - reworked as per the comments given by Paul Walmsley <paul@pwsan.com>
+>>>> >>>> >>
+>>>> >>>> >> In v3:
+>>>> >>>> >>   - rebased on top V3 of Russ dill's patch
+>>>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>>> >>>> >>        while initializing the EHCI controller
+>>>> >>>> >>         http://permalink.gmane.org/gmane.linux.usb.general/65988
+>>>> >>>> >>
+>>>> >>>> >>   - rebased on top of patch
+>>>> >>>> >>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>>>> >>>> >>      http://permalink.gmane.org/gmane.linux.usb.general/66239
+>>>> >>>> >>
+>>>> >>>> >> In V2:
+>>>> >>>> >>     - covered review comments from linux omap and usb community
+>>>> >>>> >>     - rebased on top Russ dill's patch
+>>>> >>>> >>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>>>> >>>> >>        fixes an issue where the ULPI PHYs were not held in reset
+>>>> >>>> >>        while initializing the EHCI controller
+>>>> >>>> >>
+>>>> >>>> >> Keshava Munegowda (5):
+>>>> >>>> >>   ARM: OMAP: Add the USB TLL clocks device name
+>>>> >>>> >>   ARM: OMAP: USB: HOST TLL platform driver
+>>>> >>>> >>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>>>> >>>> >>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>>>> >>>> >>   ARM: OMAP: Remove older device name of the USB TLL clocks
+>>>> >>>> >>
+>>>> >>>> >>  arch/arm/mach-omap2/clock3xxx_data.c  |    8 +-
+>>>> >>>> >>  arch/arm/mach-omap2/clock44xx_data.c  |    4 +-
+>>>> >>>> >>  arch/arm/mach-omap2/usb-host.c        |   31 ++-
+>>>> >>>> >>  arch/arm/plat-omap/include/plat/usb.h |    7 +
+>>>> >>>> >>  drivers/mfd/Kconfig                   |    2 +-
+>>>> >>>> >>  drivers/mfd/Makefile                  |    2 +-
+>>>> >>>> >>  drivers/mfd/omap-usb-host.c           |  238 ++---------------
+>>>> >>>> >>  drivers/mfd/omap-usb-tll.c            |  471 +++++++++++++++++++++++++++++++++
+>>>> >>>> >>  8 files changed, 523 insertions(+), 240 deletions(-)
+>>>> >>>> >>  create mode 100644 drivers/mfd/omap-usb-tll.c
+>>>> >>>> >>
+>>>> >>>> >> --
+>>>> >>>> >> 1.7.9.5
+>>>> >>>> >
+>>>> >>>> >
+>>>> >>>> > Felipe/ Paul
+>>>> >>>> >       please let me know if you have any review comments on this v4 series.
+>>>> >>>> >
+>>>> >>>> > regards
+>>>> >>>> > keshava
+>>>> >>>>
+>>>> >>>> Hi Felipe
+>>>> >>>>           please let me know if you have any review comments on this series now.
+>>>> >>>
+>>>> >>> looks ok... pretty much just moving code around.
+>>>> >>>
+>>>> >>> --
+>>>> >>> balbi
+>>>> >>
+>>>> >>
+>>>> >> Thanks Felipe
+>>>> >>
+>>>> >> then I request please give your Ack by for this series.
+>>>> >>
+>>>> >> regards
+>>>> >> keshava
+>>>> >
+>>>> > Hi Paul
+>>>> >     do you have any review comments on this series?
+>>>> > Felipe is OK with this series.  if there are no review comments on this series
+>>>> > I request your ack by for the same.
+>>>> > Once this series gets in to mainline. i will start the Device tree
+>>>> > conversion for usb2 host.
+>>>> >
+>>>> > regards
+>>>> > keshava
+>>>>
+>>>> Hi Felipe
+>>>>        please give you ack by this series , so that I request
+>>>> samuel to merge to mainline.
+>>>
+>>> sure, here you go
+>>>
+>>> Acked-by: Felipe Balbi <balbi@ti.com>
+>>>
+>>> --
+>>> balbi
+>>
+>>
+>> Thanks Felipe
+>>
+>> Samuel
+>>       I request please queue this series for the next merge window.
+>>
+>> regards
+>> keshava
+>
+>
+> samuel : ping
+>
+> regards
+> keshava
 
-On 09/12/2012 08:20 PM, Arnd Bergmann wrote:
-> On Tuesday 11 September 2012, Peter Ujfalusi wrote:
->> OMAP McBSP has nothing to do with a dsp.
->> A better name would be: ti-mcbsp.h (or leave it as mcbsp.h)
->> McBSP stands for: Multichannel Buffered Serial Port and it is used f=
-or audio
->> connection (I2S, TDM, etc).
->=20
-> changed to asoc-ti-mcbsp.h to, as discussed.
->=20
->>>  .../include/plat/dsp.h =3D> include/linux/platform_data/dsp-omap.h=
-   |    0
->>>  .../plat/keypad.h =3D> include/linux/platform_data/keypad-omap.h  =
-   |    0
->>>  .../plat/lcd_mipid.h =3D> include/linux/platform_data/lcd-mipid.h =
-   |    0
->>>  .../plat/nand.h =3D> include/linux/platform_data/mtd-nand-omap2.h =
-   |    0
->>>  .../onenand.h =3D> include/linux/platform_data/mtd-onenand-omap2.h=
-   |    0
->>>  .../remoteproc.h =3D> include/linux/platform_data/remoteproc-omap.=
-h  |    0
->>>  .../voltage.h =3D> include/linux/platform_data/smartreflex-omap.h =
-   |    0
->>>  .../plat/mcspi.h =3D> include/linux/platform_data/spi-omap2-mcspi.=
-h  |    0
->>>  include/linux/power/smartreflex.h                                 =
- |    2 +-
->>
->> Let me see these:
->>
->> This four drivers are going to be removed via sound tree.
->>>  sound/soc/omap/igep0020.c                                         =
- |    2 +-
->>>  sound/soc/omap/omap3beagle.c                                      =
- |    2 +-
->>>  sound/soc/omap/omap3evm.c                                         =
- |    2 +-
->>>  sound/soc/omap/overo.c                                            =
- |    2 +-
->>
->> The new driver which replaces these (omap-twl4030.c) does not includ=
-e
->> plat/mcbsp.h
->=20
-> For the sake of bisection, I think we should leave the patch as is.
-> When merging the two branches, we will get a small conflict that
-> is trivial to resolve.
->=20
->> From these ASoC machine drivers you can just remove the <plat/mcbsp.=
-h>
->> include since they should not include them (I have pending patch for=
- this to
->> be sent):
->>>  sound/soc/omap/am3517evm.c                                        =
- |    2 +-
->>>  sound/soc/omap/ams-delta.c                                        =
- |    2 +-
->>>  sound/soc/omap/n810.c                                             =
- |    2 +-
->>>  sound/soc/omap/omap3pandora.c                                     =
- |    2 +-
->>>  sound/soc/omap/osk5912.c                                          =
- |    2 +-
->>>  sound/soc/omap/rx51.c                                             =
- |    2 +-
->>>  sound/soc/omap/sdp3430.c                                          =
- |    2 +-
->>>  sound/soc/omap/zoom2.c                                            =
- |    2 +-
->>
->>>  sound/soc/omap/omap-mcbsp.c                                       =
- |    2 +-
->>>  sound/soc/omap/mcbsp.c                                            =
- |    2 +-
->=20
-> Can you do that change on top of mine? I would prefer to leave it as =
-is
-> because I could create this version with a script.
->=20
-> The alternative is that I leave the mcbsp.h file alone entirely and y=
-ou
-> submit a patch to fix all instances where it's used, either rename or
-> remove them.
 
-I thought I have replied to this...
-Whichever way you prefer. I can craft a series to clean up the plat/mcb=
-sp.h
-usage and move the mcbsp header via ASoC tree.
-I'm also fine if you do the move.
-Let me know what you prefer.
+samuel: ping
 
-Thanks,
-P=C3=A9ter
+regards
+keshava
