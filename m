@@ -1,89 +1,199 @@
 From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v7 07/11] ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
-Date: Wed, 19 Sep 2012 18:53:30 +0530
-Message-ID: <0ccfe383826be0ac4123f97665c7797aebf0a1c2.1348058726.git.afzal@ti.com>
+Subject: [PATCH v7 09/11] ARM: OMAP2+: onenand: generic timing calculation
+Date: Wed, 19 Sep 2012 18:53:49 +0530
+Message-ID: <f0b7798048c64e15983770c30996d114902210ca.1348058726.git.afzal@ti.com>
 References: <cover.1348058726.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48939 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38007 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755518Ab2ISNXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 09:23:37 -0400
+	id S1755518Ab2ISNX5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Sep 2012 09:23:57 -0400
 In-Reply-To: <cover.1348058726.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Afzal Mohammed <afzal@ti.com>
 
-Divider value for a certain sync clk is determined solely
-based on gpmc fclk. CS# does not have any role here, thus
-remove presence of CS# in clock divider calculation API.
+Generic gpmc timing calculation helper is available now, use
+it instead of custom timing calculation.
 
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
-Reviewed-by: Jon Hunter <jon-hunter@ti.com>
 ---
- arch/arm/mach-omap2/gpmc-onenand.c     | 3 +--
- arch/arm/mach-omap2/gpmc.c             | 4 ++--
- arch/arm/plat-omap/include/plat/gpmc.h | 2 +-
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/gpmc-onenand.c | 124 +++++++++++++------------------------
+ 1 file changed, 43 insertions(+), 81 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index 1e6fce6..f2bf9d2 100644
+index f2bf9d2..837c77f 100644
 --- a/arch/arm/mach-omap2/gpmc-onenand.c
 +++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -182,7 +182,6 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+@@ -49,6 +49,7 @@ static struct platform_device gpmc_onenand_device = {
+ 
+ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings t;
+ 
+ 	const int t_cer = 15;
+@@ -58,35 +59,24 @@ static struct gpmc_timings omap2_onenand_calc_async_timings(void)
+ 	const int t_aa = 76;
+ 	const int t_oe = 20;
+ 	const int t_cez = 20; /* max of t_cez, t_oez */
+-	const int t_ds = 30;
+ 	const int t_wpl = 40;
+ 	const int t_wph = 30;
+ 
+-	memset(&t, 0, sizeof(t));
+-	t.sync_clk = 0;
+-	t.cs_on = 0;
+-	t.adv_on = 0;
+-
+-	/* Read */
+-	t.adv_rd_off = gpmc_round_ns_to_ticks(max_t(int, t_avdp, t_cer));
+-	t.oe_on  = t.adv_rd_off + gpmc_round_ns_to_ticks(t_aavdh);
+-	t.access = t.adv_on + gpmc_round_ns_to_ticks(t_aa);
+-	t.access = max_t(int, t.access, t.cs_on + gpmc_round_ns_to_ticks(t_ce));
+-	t.access = max_t(int, t.access, t.oe_on + gpmc_round_ns_to_ticks(t_oe));
+-	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
+-	t.cs_rd_off = t.oe_off;
+-	t.rd_cycle  = t.cs_rd_off + gpmc_round_ns_to_ticks(t_cez);
+-
+-	/* Write */
+-	t.adv_wr_off = t.adv_rd_off;
+-	t.we_on  = t.oe_on;
+-	if (cpu_is_omap34xx()) {
+-		t.wr_data_mux_bus = t.we_on;
+-		t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
+-	}
+-	t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
+-	t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
+-	t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
++	memset(&dev_t, 0, sizeof(dev_t));
++
++	dev_t.mux = true;
++	dev_t.t_avdp_r = max_t(int, t_avdp, t_cer) * 1000;
++	dev_t.t_avdp_w = dev_t.t_avdp_r;
++	dev_t.t_aavdh = t_aavdh * 1000;
++	dev_t.t_aa = t_aa * 1000;
++	dev_t.t_ce = t_ce * 1000;
++	dev_t.t_oe = t_oe * 1000;
++	dev_t.t_cez_r = t_cez * 1000;
++	dev_t.t_cez_w = dev_t.t_cez_r;
++	dev_t.t_wpl = t_wpl * 1000;
++	dev_t.t_wph = t_wph * 1000;
++
++	gpmc_calc_timings(&t, &dev_t);
+ 
+ 	return t;
+ }
+@@ -172,16 +162,15 @@ static struct gpmc_timings
+ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 				int freq)
+ {
++	struct gpmc_device_timings dev_t;
+ 	struct gpmc_timings t;
+ 	const int t_cer  = 15;
+ 	const int t_avdp = 12;
+ 	const int t_cez  = 20; /* max of t_cez, t_oez */
+-	const int t_ds   = 30;
+ 	const int t_wpl  = 40;
+ 	const int t_wph  = 30;
  	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
- 	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
- 	int ticks_cez;
--	int cs = cfg->cs;
+-	int div, fclk_offset_ns, fclk_offset, gpmc_clk_ns;
+-	int ticks_cez;
++	int div, gpmc_clk_ns;
  
  	if (cfg->flags & ONENAND_SYNC_READ)
  		onenand_flags = ONENAND_FLAG_SYNCREAD;
-@@ -229,7 +228,7 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
- 		break;
+@@ -248,62 +237,35 @@ omap2_onenand_calc_sync_timings(struct omap_onenand_platform_data *cfg,
+ 		latency = 4;
+ 
+ 	/* Set synchronous read timings */
+-	memset(&t, 0, sizeof(t));
+-
+-	if (div == 1) {
+-		t.bool_timings.cs_extra_delay = true;
+-		t.bool_timings.adv_extra_delay = true;
+-		t.bool_timings.oe_extra_delay = true;
+-		t.bool_timings.we_extra_delay = true;
+-	}
++	memset(&dev_t, 0, sizeof(dev_t));
+ 
+-	t.sync_clk = min_gpmc_clk_period;
+-	t.cs_on = 0;
+-	t.adv_on = 0;
+-	fclk_offset_ns = gpmc_round_ns_to_ticks(max_t(int, t_ces, t_avds));
+-	fclk_offset = gpmc_ns_to_ticks(fclk_offset_ns);
+-	t.page_burst_access = gpmc_clk_ns;
+-
+-	/* Read */
+-	t.adv_rd_off = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_avdh));
+-	t.oe_on = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_ach));
+-	/* Force at least 1 clk between AVD High to OE Low */
+-	if (t.oe_on <= t.adv_rd_off)
+-		t.oe_on = t.adv_rd_off + gpmc_round_ns_to_ticks(1);
+-	t.access = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div);
+-	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
+-	t.cs_rd_off = t.oe_off;
+-	ticks_cez = ((gpmc_ns_to_ticks(t_cez) + div - 1) / div) * div;
+-	t.rd_cycle = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div +
+-		     ticks_cez);
+-
+-	t.clk_activation = fclk_offset_ns;
+-
+-	/* Write */
++	dev_t.mux = true;
++	dev_t.sync_read = true;
+ 	if (onenand_flags & ONENAND_FLAG_SYNCWRITE) {
+-		t.adv_wr_off = t.adv_rd_off;
+-		t.we_on  = 0;
+-		t.we_off = t.cs_rd_off;
+-		t.cs_wr_off = t.cs_rd_off;
+-		t.wr_cycle  = t.rd_cycle;
+-		if (cpu_is_omap34xx()) {
+-			t.wr_data_mux_bus = gpmc_ticks_to_ns(fclk_offset +
+-					gpmc_ps_to_ticks(min_gpmc_clk_period +
+-					t_rdyo * 1000));
+-			t.wr_access = t.access;
+-		}
++		dev_t.sync_write = true;
+ 	} else {
+-		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int,
+-							t_avdp, t_cer));
+-		t.we_on  = t.adv_wr_off + gpmc_round_ns_to_ticks(t_aavdh);
+-		t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
+-		t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
+-		t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
+-		if (cpu_is_omap34xx()) {
+-			t.wr_data_mux_bus = t.we_on;
+-			t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
+-		}
++		dev_t.t_avdp_w = max(t_avdp, t_cer) * 1000;
++		dev_t.t_wpl = t_wpl * 1000;
++		dev_t.t_wph = t_wph * 1000;
++		dev_t.t_aavdh = t_aavdh * 1000;
  	}
++	dev_t.ce_xdelay = true;
++	dev_t.avd_xdelay = true;
++	dev_t.oe_xdelay = true;
++	dev_t.we_xdelay = true;
++	dev_t.clk = min_gpmc_clk_period;
++	dev_t.t_bacc = dev_t.clk;
++	dev_t.t_ces = t_ces * 1000;
++	dev_t.t_avds = t_avds * 1000;
++	dev_t.t_avdh = t_avdh * 1000;
++	dev_t.t_ach = t_ach * 1000;
++	dev_t.cyc_iaa = (latency + 1);
++	dev_t.t_cez_r = t_cez * 1000;
++	dev_t.t_cez_w = dev_t.t_cez_r;
++	dev_t.cyc_aavdh_oe = 1;
++	dev_t.t_rdyo = t_rdyo * 1000 + min_gpmc_clk_period;
++
++	gpmc_calc_timings(&t, &dev_t);
  
--	div = gpmc_cs_calc_divider(cs, min_gpmc_clk_period);
-+	div = gpmc_calc_divider(min_gpmc_clk_period);
- 	gpmc_clk_ns = gpmc_ticks_to_ns(div);
- 	if (gpmc_clk_ns < 15) /* >66Mhz */
- 		onenand_flags |= ONENAND_FLAG_HF;
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index d0916e9..35e4e7d 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -321,7 +321,7 @@ static int set_gpmc_timing_reg(int cs, int reg, int st_bit, int end_bit,
- 		return -1
- #endif
- 
--int gpmc_cs_calc_divider(int cs, unsigned int sync_clk)
-+int gpmc_calc_divider(unsigned int sync_clk)
- {
- 	int div;
- 	u32 l;
-@@ -341,7 +341,7 @@ int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t)
- 	int div;
- 	u32 l;
- 
--	div = gpmc_cs_calc_divider(cs, t->sync_clk);
-+	div = gpmc_calc_divider(t->sync_clk);
- 	if (div < 0)
- 		return div;
- 
-diff --git a/arch/arm/plat-omap/include/plat/gpmc.h b/arch/arm/plat-omap/include/plat/gpmc.h
-index b7c9ea6..1cafbfd 100644
---- a/arch/arm/plat-omap/include/plat/gpmc.h
-+++ b/arch/arm/plat-omap/include/plat/gpmc.h
-@@ -179,7 +179,7 @@ extern unsigned long gpmc_get_fclk_period(void);
- 
- extern void gpmc_cs_write_reg(int cs, int idx, u32 val);
- extern u32 gpmc_cs_read_reg(int cs, int idx);
--extern int gpmc_cs_calc_divider(int cs, unsigned int sync_clk);
-+extern int gpmc_calc_divider(unsigned int sync_clk);
- extern int gpmc_cs_set_timings(int cs, const struct gpmc_timings *t);
- extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
+ 	return t;
+ }
 -- 
 1.7.12
 
