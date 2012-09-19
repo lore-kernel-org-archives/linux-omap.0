@@ -1,59 +1,97 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 02/15] tidspbridge: hw_mmu: Removed unused functions
-Date: Wed, 19 Sep 2012 14:06:50 +0200
-Message-ID: <1348056423-25573-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 01/15] tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
+Date: Wed, 19 Sep 2012 14:06:49 +0200
+Message-ID: <1348056423-25573-2-git-send-email-laurent.pinchart@ideasonboard.com>
 References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35804 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35801 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755520Ab2ISMGc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:06:32 -0400
+	with ESMTP id S1754259Ab2ISMGb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:06:31 -0400
 In-Reply-To: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-The hw_mmu_tlb_flush() function is unused, and the mmu_flush_entry()
-function is used by hw_mmu_tlb_flush() only. Remove them both.
-
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Reviewed-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/staging/tidspbridge/hw/hw_mmu.c |   72 -------------------------------
- drivers/staging/tidspbridge/hw/hw_mmu.h |    3 -
- 2 files changed, 0 insertions(+), 75 deletions(-)
+ drivers/staging/tidspbridge/hw/hw_mmu.c |   95 +++++++++++++------------------
+ 1 files changed, 39 insertions(+), 56 deletions(-)
 
 diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.c b/drivers/staging/tidspbridge/hw/hw_mmu.c
-index 2194a3f..981794d 100644
+index 8a93d55..2194a3f 100644
 --- a/drivers/staging/tidspbridge/hw/hw_mmu.c
 +++ b/drivers/staging/tidspbridge/hw/hw_mmu.c
-@@ -48,40 +48,6 @@ enum hw_mmu_page_size_t {
- };
+@@ -70,7 +70,16 @@ enum hw_mmu_page_size_t {
+  * METHOD:	       : Check the Input parameter and Flush a
+  *			 single entry in the TLB.
+  */
+-static hw_status mmu_flush_entry(const void __iomem *base_address);
++static hw_status mmu_flush_entry(const void __iomem *base_address)
++{
++	hw_status status = 0;
++	u32 flush_entry_data = 0x1;
++
++	/* write values to register */
++	MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32(base_address, flush_entry_data);
++
++	return status;
++}
  
  /*
-- * FUNCTION	      : mmu_flush_entry
-- *
-- * INPUTS:
-- *
-- *       Identifier      : base_address
-- *       Type		: const u32
-- *       Description     : Base Address of instance of MMU module
-- *
-- * RETURNS:
-- *
-- *       Type		: hw_status
-- *       Description     : 0		 -- No errors occurred
-- *			 RET_BAD_NULL_PARAM     -- A Pointer
-- *						Paramater was set to NULL
-- *
-- * PURPOSE:	      : Flush the TLB entry pointed by the
-- *			lock counter register
-- *			even if this entry is set protected
-- *
-- * METHOD:	       : Check the Input parameter and Flush a
-- *			 single entry in the TLB.
-- */
+  * FUNCTION	      : mmu_set_cam_entry
+@@ -116,7 +125,20 @@ static hw_status mmu_set_cam_entry(const void __iomem *base_address,
+ 				   const u32 page_sz,
+ 				   const u32 preserved_bit,
+ 				   const u32 valid_bit,
+-				   const u32 virtual_addr_tag);
++				   const u32 virtual_addr_tag)
++{
++	hw_status status = 0;
++	u32 mmu_cam_reg;
++
++	mmu_cam_reg = (virtual_addr_tag << 12);
++	mmu_cam_reg = (mmu_cam_reg) | (page_sz) | (valid_bit << 2) |
++	    (preserved_bit << 3);
++
++	/* write values to register */
++	MMUMMU_CAM_WRITE_REGISTER32(base_address, mmu_cam_reg);
++
++	return status;
++}
+ 
+ /*
+  * FUNCTION	      : mmu_set_ram_entry
+@@ -161,7 +183,21 @@ static hw_status mmu_set_ram_entry(const void __iomem *base_address,
+ 				   const u32 physical_addr,
+ 				   enum hw_endianism_t endianism,
+ 				   enum hw_element_size_t element_size,
+-				   enum hw_mmu_mixed_size_t mixed_size);
++				   enum hw_mmu_mixed_size_t mixed_size)
++{
++	hw_status status = 0;
++	u32 mmu_ram_reg;
++
++	mmu_ram_reg = (physical_addr & MMU_ADDR_MASK);
++	mmu_ram_reg = (mmu_ram_reg) | ((endianism << 9) | (element_size << 7) |
++				       (mixed_size << 6));
++
++	/* write values to register */
++	MMUMMU_RAM_WRITE_REGISTER32(base_address, mmu_ram_reg);
++
++	return status;
++
++}
+ 
+ /* HW FUNCTIONS */
+ 
+@@ -503,59 +539,6 @@ hw_status hw_mmu_pte_clear(const u32 pg_tbl_va, u32 virtual_addr, u32 page_size)
+ 	return status;
+ }
+ 
+-/* mmu_flush_entry */
 -static hw_status mmu_flush_entry(const void __iomem *base_address)
 -{
 -	hw_status status = 0;
@@ -65,69 +103,50 @@ index 2194a3f..981794d 100644
 -	return status;
 -}
 -
--/*
-  * FUNCTION	      : mmu_set_cam_entry
-  *
-  * INPUTS:
-@@ -321,44 +287,6 @@ hw_status hw_mmu_twl_disable(const void __iomem *base_address)
- 	return status;
- }
- 
--hw_status hw_mmu_tlb_flush(const void __iomem *base_address, u32 virtual_addr,
--			   u32 page_sz)
+-/* mmu_set_cam_entry */
+-static hw_status mmu_set_cam_entry(const void __iomem *base_address,
+-				   const u32 page_sz,
+-				   const u32 preserved_bit,
+-				   const u32 valid_bit,
+-				   const u32 virtual_addr_tag)
 -{
 -	hw_status status = 0;
--	u32 virtual_addr_tag;
--	enum hw_mmu_page_size_t pg_size_bits;
+-	u32 mmu_cam_reg;
 -
--	switch (page_sz) {
--	case HW_PAGE_SIZE4KB:
--		pg_size_bits = HW_MMU_SMALL_PAGE;
--		break;
+-	mmu_cam_reg = (virtual_addr_tag << 12);
+-	mmu_cam_reg = (mmu_cam_reg) | (page_sz) | (valid_bit << 2) |
+-	    (preserved_bit << 3);
 -
--	case HW_PAGE_SIZE64KB:
--		pg_size_bits = HW_MMU_LARGE_PAGE;
--		break;
--
--	case HW_PAGE_SIZE1MB:
--		pg_size_bits = HW_MMU_SECTION;
--		break;
--
--	case HW_PAGE_SIZE16MB:
--		pg_size_bits = HW_MMU_SUPERSECTION;
--		break;
--
--	default:
--		return -EINVAL;
--	}
--
--	/* Generate the 20-bit tag from virtual address */
--	virtual_addr_tag = ((virtual_addr & MMU_ADDR_MASK) >> 12);
--
--	mmu_set_cam_entry(base_address, pg_size_bits, 0, 0, virtual_addr_tag);
--
--	mmu_flush_entry(base_address);
+-	/* write values to register */
+-	MMUMMU_CAM_WRITE_REGISTER32(base_address, mmu_cam_reg);
 -
 -	return status;
 -}
 -
- hw_status hw_mmu_tlb_add(const void __iomem *base_address,
- 			 u32 physical_addr,
- 			 u32 virtual_addr,
-diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.h b/drivers/staging/tidspbridge/hw/hw_mmu.h
-index 1458a2c..7f960cd 100644
---- a/drivers/staging/tidspbridge/hw/hw_mmu.h
-+++ b/drivers/staging/tidspbridge/hw/hw_mmu.h
-@@ -76,9 +76,6 @@ extern hw_status hw_mmu_twl_enable(const void __iomem *base_address);
- 
- extern hw_status hw_mmu_twl_disable(const void __iomem *base_address);
- 
--extern hw_status hw_mmu_tlb_flush(const void __iomem *base_address,
--				  u32 virtual_addr, u32 page_sz);
+-/* mmu_set_ram_entry */
+-static hw_status mmu_set_ram_entry(const void __iomem *base_address,
+-				   const u32 physical_addr,
+-				   enum hw_endianism_t endianism,
+-				   enum hw_element_size_t element_size,
+-				   enum hw_mmu_mixed_size_t mixed_size)
+-{
+-	hw_status status = 0;
+-	u32 mmu_ram_reg;
 -
- extern hw_status hw_mmu_tlb_add(const void __iomem *base_address,
- 				u32 physical_addr,
- 				u32 virtual_addr,
+-	mmu_ram_reg = (physical_addr & MMU_ADDR_MASK);
+-	mmu_ram_reg = (mmu_ram_reg) | ((endianism << 9) | (element_size << 7) |
+-				       (mixed_size << 6));
+-
+-	/* write values to register */
+-	MMUMMU_RAM_WRITE_REGISTER32(base_address, mmu_ram_reg);
+-
+-	return status;
+-
+-}
+-
+ void hw_mmu_tlb_flush_all(const void __iomem *base)
+ {
+ 	__raw_writel(1, base + MMU_GFLUSH);
 -- 
 1.7.8.6
 
