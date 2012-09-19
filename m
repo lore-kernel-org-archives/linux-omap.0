@@ -1,94 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP2+: clock data: add some aliases for use by CPUFreq
- only (was Re: [PATCH] CPUFreq: OMAP: remove unnecessary plat/ includes)
-Date: Wed, 19 Sep 2012 22:18:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209192217190.8278@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209120030420.9444@utopia.booyaka.com> <201209142103.49421.rjw@sisk.pl> <alpine.DEB.2.00.1209192202430.8278@utopia.booyaka.com> <201209200012.12275.rjw@sisk.pl>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: hwmod code: convert missing clockdomain
+ warnings to debug messages
+Date: Wed, 19 Sep 2012 22:48:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209192247250.8278@utopia.booyaka.com>
+References: <20120918211146.16484.85893.stgit@dusk.lan> <20120918211251.16484.18401.stgit@dusk.lan> <5058ECAF.7010609@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1632437826-1348094905=:8278"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57812 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:57854 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab2ISWSZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 18:18:25 -0400
-In-Reply-To: <201209200012.12275.rjw@sisk.pl>
+	with ESMTP id S1752567Ab2ISWsZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 18:48:25 -0400
+In-Reply-To: <5058ECAF.7010609@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Here's the updated patch for this one, queued for 3.7.
+--843723315-1632437826-1348094905=:8278
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi Beno=C3=AEt,
+
+On Tue, 18 Sep 2012, Cousson, Benoit wrote:
+
+> On 9/18/2012 4:12 PM, Paul Walmsley wrote:
+> > The decision was made a few months ago to allow struct omap_hwmod
+> > records and struct clk records to omit clockdomain information if the
+> > clockdomain is not software-controllable.  See for example commit
+> > 868c157df9721675c19729eed2c96bac6c3f1d01 ("ARM: OMAP2+: hwmod: remove
+> > prm_clkdm, cm_clkdm; allow hwmods to have no clockdomain").
+> >=20
+> > So convert an existing pr_warning() to a pr_debug() (regarding missing
+> > clockdomains in clocks), and add a pr_debug() for missing hwmod
+> > clockdomains.
+>=20
+> At some point I sent you a small RFC to still keep the message if neither
+> oh->clkdm nor oh->_clk->clkdm was there. I've never had the time to test =
+it,
+> but that should then cover OMAP2, 3 & 4 cases.
+
+OK let's plan to test and add something like that during the 3.8 time=20
+frame... probably it should also depend on the value of clkdm_control. =20
+It's not clear to me exactly what that conditional should look like...
+
 
 - Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Wed, 19 Sep 2012 16:14:02 -0600
-Subject: [PATCH] ARM: OMAP2+: clock data: add some aliases for use by CPUFreq only
-
-These clkdev aliases should make it possible to remove the
-cpu_is_omap*() calls and the omap_device*() call from
-drivers/cpufreq/omap-cpufreq.c during the next merge window.  Those
-are interfering with multi-subarch ARM kernels.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/clock2420_data.c |    1 +
- arch/arm/mach-omap2/clock2430_data.c |    1 +
- arch/arm/mach-omap2/clock3xxx_data.c |    1 +
- arch/arm/mach-omap2/clock44xx_data.c |    1 +
- 4 files changed, 4 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index ebf3dfb..0b53f3f 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1900,6 +1900,7 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"timer_32k_ck",	&func_32k_ck,	CK_242X),
- 	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_242X),
- 	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_242X),
-+	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_242X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index cacabb0..d3ecdf7 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1993,6 +1993,7 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"timer_32k_ck",  &func_32k_ck,   CK_243X),
- 	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_243X),
- 	CLK(NULL,	"timer_ext_ck",	&alt_ck,	CK_243X),
-+	CLK(NULL,	"cpufreq_ck",	&virt_prcm_set,	CK_243X),
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 4e786ab..0450351 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3469,6 +3469,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"uart4_ick",	&uart4_ick_am35xx,	CK_AM35XX),
- 	CLK(NULL,	"timer_32k_ck",	&omap_32k_fck,  CK_3XXX),
- 	CLK(NULL,	"timer_sys_ck",	&sys_ck,	CK_3XXX),
-+	CLK(NULL,	"cpufreq_ck",	&dpll1_ck,	CK_3XXX),
- };
- 
- 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 70058fb..1b006f1 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3327,6 +3327,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK("omap_timer.6",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK("omap_timer.7",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
- 	CLK("omap_timer.8",	"timer_sys_ck",	&syc_clk_div_ck,	CK_443X),
-+	CLK(NULL,	"cpufreq_ck",	&dpll_mpu_ck,	CK_443X),
- };
- 
- int __init omap4xxx_clk_init(void)
--- 
-1.7.10.4
-
+--843723315-1632437826-1348094905=:8278--
