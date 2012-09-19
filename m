@@ -1,51 +1,34 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
-Date: Wed, 19 Sep 2012 21:51:13 +0530
-Message-ID: <CAMQu2gyyROhnhhuD8pBviPojEr+4JJuK1hE_fg=6jOEX9Wd7Cg@mail.gmail.com>
-References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
- <20120917215128.GF11762@atomide.com> <201209191458.00531.arnd@arndb.de>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Unknown L3 interrupt/error
+Date: Wed, 19 Sep 2012 10:24:13 -0600
+Message-ID: <5059F1AD.40008@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50802 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932114Ab2ISQVf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 12:21:35 -0400
-Received: by vbbff1 with SMTP id ff1so1432511vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 09:21:33 -0700 (PDT)
-In-Reply-To: <201209191458.00531.arnd@arndb.de>
+Received: from mail.mlbassoc.com ([65.100.170.105]:34718 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752601Ab2ISQbV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 12:31:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Olof Johansson <olof@lixom.net>
+To: linux-omap@vger.kernel.org
 
-On Wed, Sep 19, 2012 at 8:28 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday 17 September 2012, Tony Lindgren wrote:
->> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
->> > OMAP interconnect drivers are used for the interconnect error handling.
->> > Since they are bus driver, lets move it to newly created drivers/bus.
->> >
->> > Cc: Arnd Bergmann <arnd@arndb.de>
->> > Cc: Tony Lindgren <tony@atomide.com>
->> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
->> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > ---
->> > Patch just moves OMAP interconnect drivers as is to the newly created
->> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
->> > tree and test on all OMAP boards.
->>
->> Great, looks like this should not conflict with other
->> omap patches queued, so Arnd should probably take this into
->> the bus branch:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->
-> Ok, added to the branch. In the future please Cc both Olof and me when submitting
-> patches for inclusion.
->
-Thanks Arnd. Sorry I missed to Cc Olof on the patch. Will take care of
-this in future.
+I'm trying to bring up a custom OMAP4 board and I get this
+error as soon as the EHCI USB controller is initialized:
+   WARNING: at /local/new_kernel/arch/arm/mach-omap2/omap_l3_noc.c:99 l3_interrupt_handler+0x114/0x174()
+   L3 standard error: TARGET:ABE at address 0x0
 
-Regards
-santosh
+Can someone enlighten me what this means and what might be
+causing it?  That USB controller is working fine in U-Boot.
+
+n.b. I'm working from the Ubuntu 12.04 kernel sources
+   git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git ti-ubuntu-3.4-1485.7
+
+Thanks for any pointers
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
