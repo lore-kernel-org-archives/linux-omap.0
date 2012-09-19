@@ -1,48 +1,101 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v6 10/10] ARM: OMAP2+: tusb6010: generic timing
- calculation
-Date: Wed, 19 Sep 2012 13:43:05 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E60D5@DBDE01.ent.ti.com>
-References: <20120824194630.GU11011@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9BA589@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DC11D@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9DEC85@DBDE01.ent.ti.com>
- <20120906204354.GJ1303@atomide.com> <20120911184606.GN23092@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E253B@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E3624@DBDE01.ent.ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A93E9E4DFE@DBDE01.ent.ti.com>
- <20120917225023.GJ11762@atomide.com> <20120917231001.GK11762@atomide.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Wed, 19 Sep 2012 14:46:58 +0100
+Message-ID: <20120919134658.GA2111@linaro.org>
+References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39195 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741Ab2ISNnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 09:43:12 -0400
-In-Reply-To: <20120917231001.GK11762@atomide.com>
-Content-Language: en-US
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64843 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab2ISNrN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 09:47:13 -0400
+Received: by bkwj10 with SMTP id j10so531984bkw.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 06:47:11 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-SGkgVG9ueSwNCg0KT24gVHVlLCBTZXAgMTgsIDIwMTIgYXQgMDQ6NDA6MDIsIFRvbnkgTGluZGdy
-ZW4gd3JvdGU6DQo+ICogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gWzEyMDkxNyAx
-NTo1NF06DQoNCj4gPiA+ID4gQ2FuIHlvdSBwbGVhc2UgdHJ5IHdpdGggdGhlIGF0dGFjaGVkIHBh
-dGNoID8NCj4gPiANCj4gPiBHYXZlIGl0IGEgcXVpY2sgdHJ5IGFuZCBpdCBzZWVtZWQgdG8gd29y
-ay4uIEJ1dCB3aGVuIEkgdHJpZWQNCj4gPiByZWJhc2luZyBteSBwYXRjaGVzIGZvciB0aGUgY2J1
-cyB0byBrZWVwIHRoaW5ncyB3b3JraW5nIHdpdGgNCj4gPiB0aGUgd2F0Y2hkb2csIEkgcmFuIGlu
-dG8gbXVsdGlwbGUgbWVyZ2UgY29uZmxpY3RzIHdpdGgNCj4gPiBjdXJyZW50IGxpbnV4IG5leHQg
-YW5kIGdhdmUgdXAuDQo+IA0KPiBPSyB3ZW50IGJhY2sgdG8gbXkgb3JpZ2luYWwgYnJhbmNoIHdp
-dGhvdXQgY3VycmVudCBsaW51eA0KPiBuZXh0IGFuZCB3aXRoIHRoZSBuZXcgY2J1cyArIHJldHUg
-ZHJpdmVyIGZyb20gQWFybyBhcHBsaWVkLg0KPiBDb25maXJtZWQgaXQncyBub3cgd29ya2luZyBv
-biBuODAwIHR1c2I2MDEwLg0KDQpUaGFua3MgZm9yIGNoZWNraW5nIGFuZCBjb25maXJtaW5nLg0K
-DQo+ID4gQ2FyZSB0byByZXBvc3QgdGhpcyBzZXJpZXMgdXBkYXRlZCBhZ2FpbnN0IGN1cnJlbnQg
-bGludXgNCj4gPiBuZXh0Pw0KPiA+IA0KPiA+IEknbSBhZnJhaWQgSSd2ZSBwcmV0dHkgbXVjaCBs
-b3N0IHRyYWNrIG9mIGFsbCB0aGUgcGF0Y2hlcw0KPiA+IGFuZCByYXRoZXIgbm90IHN0YXJ0IHJl
-c29sdmluZyB0aGUgY29uZmxpY3RzIGFzIEknbSBzdXJlDQo+ID4gSSdsbCBicmVhayBzb21ldGhp
-bmcgZWxzZSA6KQ0KPiANCj4gWW91IHNob3VsZCBzdGlsbCByZXBvc3QgdGhlIHdob2xlIHVwZGF0
-ZWQgc2VyaWVzIGFnYWluc3QNCj4gbGludXggbmV4dC4NCg0KTmV3IHVwZGF0ZWQgdmVyc2lvbiAt
-IHY3LCBiYXNlZCBvdmVyIGxpbnV4IG5leHQgaGFzIGJlZW4gcG9zdGVkLg0KDQpSZWdhcmRzDQpB
-ZnphbA0K
+On Tue, Sep 18, 2012 at 05:35:33PM +0100, Lorenzo Pieralisi wrote:
+> In processors like A15/A7 L2 cache is unified and integrated within the
+> processor cache hierarchy, so that it is not considered an outer cache
+> anymore. For processors like A15/A7 flush_cache_all() ends up cleaning
+> all cache levels up to Level of Coherency (LoC) that includes
+> the L2 unified cache.
+> 
+> When a single CPU is suspended (CPU idle) a complete L2 clean is not
+> required, so generic cpu_suspend code must clean the data cache using the
+> newly introduced cache LoUIS function.
+
+For patches 3-5 in this series, we know that the assumption that
+flushing LoUIS is sufficient for safely powering the CPU down is not
+valid in the general case, though we've agreed it's a sensible
+compromise for the CPU variants we know about today.
+
+I think we do need to document this assumption, though.
+
+At this point I don't mind whether it appears in code comments or in the
+commit messages.
+
+Cheers
+---Dave
+
+> 
+> The context and stack pointer (context pointer) are cleaned to main memory
+> using cache area functions that operate on MVA and guarantee that the data
+> is written back to main memory (perform cache cleaning up to the Point of
+> Coherency - PoC) so that the processor can fetch the context when the MMU
+> is off in the cpu_resume code path.
+> 
+> outer_cache management remains unchanged.
+> 
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> ---
+>  arch/arm/kernel/suspend.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm/kernel/suspend.c b/arch/arm/kernel/suspend.c
+> index 1794cc3..358bca3 100644
+> --- a/arch/arm/kernel/suspend.c
+> +++ b/arch/arm/kernel/suspend.c
+> @@ -17,6 +17,8 @@ extern void cpu_resume_mmu(void);
+>   */
+>  void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
+>  {
+> +	u32 *ctx = ptr;
+> +
+>  	*save_ptr = virt_to_phys(ptr);
+>  
+>  	/* This must correspond to the LDM in cpu_resume() assembly */
+> @@ -26,7 +28,20 @@ void __cpu_suspend_save(u32 *ptr, u32 ptrsz, u32 sp, u32 *save_ptr)
+>  
+>  	cpu_do_suspend(ptr);
+>  
+> -	flush_cache_all();
+> +	flush_cache_louis();
+> +
+> +	/*
+> +	 * flush_cache_louis does not guarantee that
+> +	 * save_ptr and ptr are cleaned to main memory,
+> +	 * just up to the Level of Unification Inner Shareable.
+> +	 * Since the context pointer and context itself
+> +	 * are to be retrieved with the MMU off that
+> +	 * data must be cleaned from all cache levels
+> +	 * to main memory using "area" cache primitives.
+> +	*/
+> +	__cpuc_flush_dcache_area(ctx, ptrsz);
+> +	__cpuc_flush_dcache_area(save_ptr, sizeof(*save_ptr));
+> +
+>  	outer_clean_range(*save_ptr, *save_ptr + ptrsz);
+>  	outer_clean_range(virt_to_phys(save_ptr),
+>  			  virt_to_phys(save_ptr) + sizeof(*save_ptr));
+> -- 
+> 1.7.12
+> 
+> 
