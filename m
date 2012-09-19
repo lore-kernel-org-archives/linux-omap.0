@@ -1,148 +1,110 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3/4] usb: phy: omap-usb3: Decrease the number of
- transitions to recovery
-Date: Wed, 19 Sep 2012 14:55:20 +0300
-Message-ID: <20120919115518.GH3772@arwen.pp.htv.fi>
+Subject: Re: [PATCH 4/4] usb: phy: omap-usb2: enable 960Mhz clock for omap5
+Date: Wed, 19 Sep 2012 14:56:49 +0300
+Message-ID: <20120919115647.GI3772@arwen.pp.htv.fi>
 References: <1348054229-27362-1-git-send-email-kishon@ti.com>
- <1348054229-27362-4-git-send-email-kishon@ti.com>
+ <1348054229-27362-5-git-send-email-kishon@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OfrWf2Fun5Ae4m0Y"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="J2uG6jHjFLimDtBY"
+Return-path: <linux-doc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1348054229-27362-4-git-send-email-kishon@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1348054229-27362-5-git-send-email-kishon@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moiz Sonasath <m-sonasath@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---OfrWf2Fun5Ae4m0Y
+--J2uG6jHjFLimDtBY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 19, 2012 at 05:00:28PM +0530, Kishon Vijay Abraham I wrote:
-> Power-cycling the PHY (partially) decreases the number of transitions to
-> "Recovery" state. Hence changed the power up sequence to a partial
-> power-up before a full power-up of the PHY.
+On Wed, Sep 19, 2012 at 05:00:29PM +0530, Kishon Vijay Abraham I wrote:
+> "usb_otg_ss_refclk960m" is needed by usb2 phy present in omap5. For
+> omap4, the clk_get of this clock will fail since it does not have this
+> clock.
 >=20
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
-
-this can be amended to patch 1. Why would you introduce a driver with a
-known problem ? ;-)
-
 > ---
->  drivers/usb/phy/omap-usb3.c  |   43 ++++++++++++++++++++++++++++++++++++=
-------
->  include/linux/usb/omap_usb.h |    1 +
->  2 files changed, 38 insertions(+), 6 deletions(-)
+>  Documentation/devicetree/bindings/usb/usb-phy.txt |    3 +++
+>  drivers/usb/phy/omap-usb2.c                       |   28 +++++++++++++++=
++++++-
+>  2 files changed, 30 insertions(+), 1 deletion(-)
 >=20
-> diff --git a/drivers/usb/phy/omap-usb3.c b/drivers/usb/phy/omap-usb3.c
-> index 26402d5..fb3c5e6 100644
-> --- a/drivers/usb/phy/omap-usb3.c
-> +++ b/drivers/usb/phy/omap-usb3.c
-> @@ -35,13 +35,15 @@ static struct usb_dpll_params omap_usb3_dpll_params[N=
-UM_SYS_CLKS] =3D {
->  };
+> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Document=
+ation/devicetree/bindings/usb/usb-phy.txt
+> index 7c5fd89..d5626de 100644
+> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
+> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
+> @@ -24,6 +24,9 @@ Required properties:
+>  add the address of control module phy power register until a driver for
+>  control module is added
 > =20
->  /**
-> - * omap5_usb_phy_power - power on/off the serializer using control module
-> + * omap5_usb_phy_partial_powerup - power on the serializer using control=
- module
->   * @phy: struct omap_usb *
-> - * @on: 0 to off and 1 to on based on powering on or off the PHY
->   *
-> - * omap_usb3 can call this API to power on or off the PHY.
-> + * After the dwc3 module is disabled and enabled again the synchronizati=
-on
-> + * between dwc3 and phy goes bad and the device does not get enumerated
-> + * in superspeed mode. After some trials it was found powering up TX and
-> + * part of RX PHY helped to solve the issue.
->   */
-> -static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
-> +static int omap5_usb_phy_partial_powerup(struct omap_usb *phy)
->  {
->  	u32 val;
->  	unsigned long rate;
-> @@ -58,10 +60,32 @@ static int omap5_usb_phy_power(struct omap_usb *phy, =
-bool on)
+> +Optional properties:
+> + - has960mhzclk: should be added if the phy needs 960mhz clock
+> +
+>  This is usually a subnode of ocp2scp to which it is connected.
 > =20
->  	val =3D readl(phy->control_dev);
+>  usb3phy@4a084400 {
+> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
+> index d36c282..d6612ba 100644
+> --- a/drivers/usb/phy/omap-usb2.c
+> +++ b/drivers/usb/phy/omap-usb2.c
+> @@ -146,6 +146,7 @@ static int __devinit omap_usb2_probe(struct platform_=
+device *pdev)
+>  	struct omap_usb			*phy;
+>  	struct usb_otg			*otg;
+>  	struct resource			*res;
+> +	struct device_node		*np =3D pdev->dev.of_node;
 > =20
-> +	val &=3D ~(USB_PWRCTL_CLK_CMD_MASK | USB_PWRCTL_CLK_FREQ_MASK);
-> +	val |=3D (USB3_PHY_PARTIAL_RX_POWERON | USB3_PHY_TX_RX_POWERON)
-> +		<< USB_PWRCTL_CLK_CMD_SHIFT;
-> +	val |=3D rate << USB_PWRCTL_CLK_FREQ_SHIFT;
-> +
-> +	writel(val, phy->control_dev);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * omap5_usb_phy_power - power on/off the serializer using control module
-> + * @phy: struct omap_usb *
-> + * @on: 0 to off and 1 to on based on powering on or off the PHY
-> + *
-> + * omap_usb3 can call this API to power on or off the PHY.
-> + */
-> +static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
-> +{
-> +	u32 val;
-> +
-> +	val =3D readl(phy->control_dev);
-> +
->  	if (on) {
-> -		val &=3D ~(USB_PWRCTL_CLK_CMD_MASK | USB_PWRCTL_CLK_FREQ_MASK);
-> +		val &=3D ~USB_PWRCTL_CLK_CMD_MASK;
->  		val |=3D USB3_PHY_TX_RX_POWERON << USB_PWRCTL_CLK_CMD_SHIFT;
-> -		val |=3D rate << USB_PWRCTL_CLK_FREQ_SHIFT;
->  	} else {
->  		val &=3D ~USB_PWRCTL_CLK_CMD_MASK;
->  		val |=3D USB3_PHY_TX_RX_POWEROFF << USB_PWRCTL_CLK_CMD_SHIFT;
-> @@ -207,6 +231,13 @@ static int omap_usb3_init(struct usb_phy *x)
->  	struct omap_usb	*phy =3D phy_to_omapusb(x);
+>  	phy =3D devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
+>  	if (!phy) {
+> @@ -190,6 +191,15 @@ static int __devinit omap_usb2_probe(struct platform=
+_device *pdev)
+>  	}
+>  	clk_prepare(phy->wkupclk);
 > =20
->  	omap_usb_dpll_lock(phy);
-> +	omap5_usb_phy_partial_powerup(phy);
-> +	/*
-> +	 * Give enough time for the PHY to partially power-up before
-> +	 * powering it up completely. delay value suggested by the HW
-> +	 * team.
-> +	 */
-> +	mdelay(100);
+> +	if (of_property_read_bool(np, "has960mhzclk")) {
+> +		phy->optclk =3D devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
+> +		if (IS_ERR(phy->optclk)) {
+> +			dev_err(&pdev->dev, "unable to get refclk960m\n");
+> +			return PTR_ERR(phy->optclk);
+> +		}
+> +		clk_prepare(phy->optclk);
+> +	}
 
-why 100 ms ? Has this been measured ? Again, 100 ms is a loooooong time.
-Soon enough user will be waiting for a bit over a second to see that
-after connecting usb cable, there's activity. We don't want user to
-notice that kind of thing ;-)
+instead, can't you just always try to get the clock but ignore the error
+if it fails ?
+
+If it works you can set a flag to let you know that you can use that
+optional clock.
 
 --=20
 balbi
 
---OfrWf2Fun5Ae4m0Y
+--J2uG6jHjFLimDtBY
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQWbKmAAoJEIaOsuA1yqREztcQAJ4r2cZV1/xQcz65WeE8bV7m
-UuKadpo5CrpdR2DESbjPD3vfD5nFQ9k/EToRLwypiC4aA4nFzai9oHrFk3eSfJLf
-hEhgz2q+J8Mcd+wWzkH19P+OlV/IGaeRQczUMVNXYo5XZtuKiTycrgVTA51fb5mE
-f4MwrNi1YQ+ZHrYuB+SdYKXG0yjlLzGrFLEnGmiv9RV1k8Jwkbxh3XGvCGeqRGdv
-c6mPdYwkISZXOIW5etXYu7d443VEnDmnvsbci4lfidd1kbuxMxqAIR+25ACthTwj
-Berrr28OERULcQh9KyTHv0fCOiNK0QFmTrmzZcp6Jk/y7empNnv4tgzcLhy747T8
-y4oRTvDbnPpSbvdl9Ad7s/FdTWWGL9u/IhTxmzGtH49xhctoGQscdaOSZRBSQ1sV
-0jOxNmX75J4LYanFOOwPujabKLPuJKm0XM+agh7868eoexuREl2mYxBrBMCey0IB
-M5n2jMBCmtdBZl5ay7LpUvEVEEnuqDS2leCVcW8nDdNAjST+Gz0rZs1d6nS9ZWVU
-AMeQUWkzommX+JqOPpfml/pdDmq1abI6oyZI0ORk+5j47HYupWk/uiZxiKWeiMSm
-OjBNgc4AewFxthK1trUxTsoj/LPx4Ro9Wumfaipyo8b9R8BAiUcUUFsv3j89d5xx
-EkOcUb/8f6p6mdnTDkqF
-=DSJ2
+iQIcBAEBAgAGBQJQWbL/AAoJEIaOsuA1yqREtrUP/2PImIswhxKJFOZKryi1J5i9
+GaPsZarphgZle12njovv8uECnzUxuxfCwYQWPnP8KnQpMnya6AsW+YbWDMun0hc7
+Wcefsg7187QQrsChrLG+ap7X1uiz3sdLv1AMIJ0+uIUkcUica5d77sOofd/iAERm
+WB8y5sLgF7tZ00XE6+7PpoFtvwkF9atFM6T6943vJrISPkKXxA/Sli2vXH/X3w7P
+7KyJZayhDJdmcOiWuJuAlO9rBzux3ebXTanx7kP2MOFAMgTKuQzSaPR+38ib+qS0
+vTf34vFv1s7NJTsvYUQ9b+/VG89bHKO9Yxmb7dq/26qPHclqSI500rZclo8Fjyzl
+hvGZF8qqxIOWRMSdJdP23RSX7MCgQnMEygO/G9Nb4nIpA7EWjKusi3CQB1peo04j
+VIHc3fQKLWVy/FaHH8Gy24hQRR/kaFXoLzLOtgSIaqxnoT1HXooj9nN45u1ZEoj0
+DQKC5rJX+jnjoYU6IJgQqyBGBCYlpBPoiQq9TtlbX4zgyQ5svNU64y9upNQhcjSL
+G3bMYbtZMc6PKBh5Z3/O+/fxZbg8DH96LuNJcxWGgNWSRNNiYKesIbrxjlnuhkA7
+aAopJtJdhxTHpy0qso5GdZnJXO5ZZ/ZHbuMvrkiN/BvDwhguANaMjWpVstc+RlIh
+KMwBS2ETHqITdOm65YMA
+=oCi/
 -----END PGP SIGNATURE-----
 
---OfrWf2Fun5Ae4m0Y--
+--J2uG6jHjFLimDtBY--
