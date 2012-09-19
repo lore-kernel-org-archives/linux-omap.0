@@ -1,163 +1,212 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/8] OMAPDSS: omap_dss_register_device() doesn't take display index
-Date: Wed, 19 Sep 2012 11:30:31 +0300
-Message-ID: <1348043438-2624-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 7/8] OMAPDSS: cleanup dss_recheck_connections further
+Date: Wed, 19 Sep 2012 11:30:37 +0300
+Message-ID: <1348043438-2624-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1348043438-2624-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:44321 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752498Ab2ISIbF (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:39375 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754023Ab2ISIbQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 04:31:05 -0400
-Received: by lbbgj3 with SMTP id gj3so618891lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 01:31:01 -0700 (PDT)
+	Wed, 19 Sep 2012 04:31:16 -0400
+Received: by lagy9 with SMTP id y9so510675lag.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 01:31:13 -0700 (PDT)
 In-Reply-To: <1348043438-2624-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: archit@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-We used to have all the displays of the board in one list, and we made a
-"displayX" directory in the sysfs, where X was the index of the display
-in the list.
-
-This doesn't work anymore with device tree, as there's no single list to
-get the number from, and it doesn't work very well even with non-DT as
-we need to do some tricks to get the index nowadays.
-
-This patch changes omap_dss_register_device() so that it doesn't take
-disp_num as a parameter anymore, but uses a private increasing counter
-for the display number.
+Cleanup dss_recheck_connections, move and rename it to a static
+dss_init_connections function inside display.c. Improve the function to
+return errors, and implement a matching dss_uninit_connections that can
+be used to free the mgr->dssdev link.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/core.c |    9 +++++----
- drivers/video/omap2/dss/dpi.c  |    2 +-
- drivers/video/omap2/dss/dsi.c  |    2 +-
- drivers/video/omap2/dss/dss.h  |    2 +-
- drivers/video/omap2/dss/hdmi.c |    2 +-
- drivers/video/omap2/dss/rfbi.c |    2 +-
- drivers/video/omap2/dss/sdi.c  |    2 +-
- drivers/video/omap2/dss/venc.c |    2 +-
- 8 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/video/omap2/dss/core.c    |    5 ---
+ drivers/video/omap2/dss/display.c |   62 +++++++++++++++++++++++++++++++++++--
+ drivers/video/omap2/dss/dss.h     |    1 -
+ drivers/video/omap2/dss/overlay.c |   32 -------------------
+ 4 files changed, 60 insertions(+), 40 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 58bd9c2..20c8bc8 100644
+index 9315ece..c4fd768 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -450,16 +450,17 @@ static void omap_dss_dev_release(struct device *dev)
- 	reset_device(dev, 0);
- }
+@@ -352,7 +352,6 @@ static int dss_driver_probe(struct device *dev)
+ 	int r;
+ 	struct omap_dss_driver *dssdrv = to_dss_driver(dev->driver);
+ 	struct omap_dss_device *dssdev = to_dss_device(dev);
+-	bool force;
  
-+static int disp_num_counter;
-+
- int omap_dss_register_device(struct omap_dss_device *dssdev,
--		struct device *parent, int disp_num)
-+		struct device *parent)
- {
--	WARN_ON(!dssdev->driver_name);
+ 	DSSDBG("driver_probe: dev %s/%s, drv %s\n",
+ 				dev_name(dev), dssdev->driver_name,
+@@ -362,10 +361,6 @@ static int dss_driver_probe(struct device *dev)
+ 	if (r)
+ 		return r;
+ 
+-	force = core.default_display_name &&
+-		strcmp(core.default_display_name, dssdev->name) == 0;
+-	dss_recheck_connections(dssdev, force);
 -
- 	reset_device(&dssdev->dev, 1);
+ 	r = dssdrv->probe(dssdev);
+ 
+ 	if (r) {
+diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
+index f719010..db83ae8 100644
+--- a/drivers/video/omap2/dss/display.c
++++ b/drivers/video/omap2/dss/display.c
+@@ -320,11 +320,66 @@ void omapdss_default_get_timings(struct omap_dss_device *dssdev,
+ }
+ EXPORT_SYMBOL(omapdss_default_get_timings);
+ 
++/*
++ * Connect dssdev to a manager if the manager is free or if force is specified.
++ * Connect all overlays to that manager if they are free or if force is
++ * specified.
++ */
++static int dss_init_connections(struct omap_dss_device *dssdev, bool force)
++{
++	struct omap_overlay_manager *mgr;
++	int i, r;
 +
- 	dssdev->dev.bus = &dss_bus_type;
- 	dssdev->dev.parent = parent;
- 	dssdev->dev.release = omap_dss_dev_release;
--	dev_set_name(&dssdev->dev, "display%d", disp_num);
-+	dev_set_name(&dssdev->dev, "display%d", disp_num_counter++);
- 	return device_register(&dssdev->dev);
++	WARN_ON(dssdev->manager);
++
++	mgr = omap_dss_get_overlay_manager(dssdev->channel);
++
++	if (mgr->device && !force)
++		return 0;
++
++	if (mgr->device)
++		mgr->unset_device(mgr);
++
++	r = mgr->set_device(mgr, dssdev);
++	if (r) {
++		DSSERR("failed to set initial manager\n");
++		return r;
++	}
++
++	for (i = 0; i < omap_dss_get_num_overlays(); ++i) {
++		struct omap_overlay *ovl = omap_dss_get_overlay(i);
++
++		if (!ovl->manager || force) {
++			if (ovl->manager)
++				ovl->unset_manager(ovl);
++
++			r = ovl->set_manager(ovl, mgr);
++			if (r) {
++				DSSERR("failed to set initial overlay\n");
++				return r;
++			}
++		}
++	}
++
++	return 0;
++}
++
++static void dss_uninit_connections(struct omap_dss_device *dssdev)
++{
++	if (dssdev->manager)
++		dssdev->manager->unset_device(dssdev->manager);
++}
++
+ int dss_init_device(struct platform_device *pdev,
+ 		struct omap_dss_device *dssdev)
+ {
+ 	struct device_attribute *attr;
+ 	int i, r;
++	const char *def_disp_name = dss_get_default_display_name();
++	bool force;
++
++	force = def_disp_name && strcmp(def_disp_name, dssdev->name) == 0;
++	dss_init_connections(dssdev, force);
+ 
+ 	/* create device sysfs files */
+ 	i = 0;
+@@ -336,6 +391,8 @@ int dss_init_device(struct platform_device *pdev,
+ 				device_remove_file(&dssdev->dev, attr);
+ 			}
+ 
++			dss_uninit_connections(dssdev);
++
+ 			DSSERR("failed to create sysfs file\n");
+ 			return r;
+ 		}
+@@ -348,6 +405,8 @@ int dss_init_device(struct platform_device *pdev,
+ 		while ((attr = display_sysfs_attrs[i++]) != NULL)
+ 			device_remove_file(&dssdev->dev, attr);
+ 
++		dss_uninit_connections(dssdev);
++
+ 		DSSERR("failed to create sysfs display link\n");
+ 		return r;
+ 	}
+@@ -366,8 +425,7 @@ void dss_uninit_device(struct platform_device *pdev,
+ 	while ((attr = display_sysfs_attrs[i++]) != NULL)
+ 		device_remove_file(&dssdev->dev, attr);
+ 
+-	if (dssdev->manager)
+-		dssdev->manager->unset_device(dssdev->manager);
++	dss_uninit_connections(dssdev);
  }
  
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 5ccce9b..703fc1d 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -388,7 +388,7 @@ static void __init dpi_probe_pdata(struct platform_device *pdev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &pdev->dev, i);
-+		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 					dssdev->name, r);
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 8d815e3..f7078fc 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -5027,7 +5027,7 @@ static void __init dsi_probe_pdata(struct platform_device *dsidev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &dsidev->dev, i);
-+		r = omap_dss_register_device(dssdev, &dsidev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 					dssdev->name, r);
+ static int dss_suspend_device(struct device *dev, void *data)
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5e9fd769..7bac8ee 100644
+index 98e8273..7a3fea6 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -185,7 +185,7 @@ int dss_set_min_bus_tput(struct device *dev, unsigned long tput);
- int dss_debugfs_create_file(const char *name, void (*write)(struct seq_file *));
+@@ -263,7 +263,6 @@ void dss_manager_kobj_uninit(struct omap_overlay_manager *mgr);
+ void dss_init_overlays(struct platform_device *pdev);
+ void dss_uninit_overlays(struct platform_device *pdev);
+ void dss_overlay_setup_dispc_manager(struct omap_overlay_manager *mgr);
+-void dss_recheck_connections(struct omap_dss_device *dssdev, bool force);
+ int dss_ovl_simple_check(struct omap_overlay *ovl,
+ 		const struct omap_overlay_info *info);
+ int dss_ovl_check(struct omap_overlay *ovl, struct omap_overlay_info *info,
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 1bf05ef..52455a0 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -105,38 +105,6 @@ void dss_init_overlays(struct platform_device *pdev)
+ 	}
+ }
  
- int omap_dss_register_device(struct omap_dss_device *dssdev,
--		struct device *parent, int disp_num);
-+		struct device *parent);
- void omap_dss_unregister_device(struct omap_dss_device *dssdev);
- void omap_dss_unregister_child_devices(struct device *parent);
- 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 83f1845..bb07143 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -923,7 +923,7 @@ static void __init hdmi_probe_pdata(struct platform_device *pdev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &pdev->dev, i);
-+		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 					dssdev->name, r);
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 2e520d3..845b4e7 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -959,7 +959,7 @@ static void __init rfbi_probe_pdata(struct platform_device *pdev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &pdev->dev, i);
-+		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 				dssdev->name, r);
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index 66c8de4..c9a9045 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -212,7 +212,7 @@ static void __init sdi_probe_pdata(struct platform_device *pdev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &pdev->dev, i);
-+		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 					dssdev->name, r);
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 17b3102..60bfc58 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -752,7 +752,7 @@ static void __init venc_probe_pdata(struct platform_device *pdev)
- 			continue;
- 		}
- 
--		r = omap_dss_register_device(dssdev, &pdev->dev, i);
-+		r = omap_dss_register_device(dssdev, &pdev->dev);
- 		if (r)
- 			DSSERR("device %s register failed: %d\n",
- 					dssdev->name, r);
+-/* connect overlays to the new device, if not already connected. if force
+- * selected, connect always. */
+-void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
+-{
+-	struct omap_overlay_manager *mgr = NULL;
+-	int i;
+-
+-	mgr =  omap_dss_get_overlay_manager(dssdev->channel);
+-
+-	if (!mgr->device || force) {
+-		if (mgr->device)
+-			mgr->unset_device(mgr);
+-		mgr->set_device(mgr, dssdev);
+-	}
+-
+-	if (mgr) {
+-		dispc_runtime_get();
+-
+-		for (i = 0; i < dss_feat_get_num_ovls(); i++) {
+-			struct omap_overlay *ovl;
+-			ovl = omap_dss_get_overlay(i);
+-			if (!ovl->manager || force) {
+-				if (ovl->manager)
+-					ovl->unset_manager(ovl);
+-				ovl->set_manager(ovl, mgr);
+-			}
+-		}
+-
+-		dispc_runtime_put();
+-	}
+-}
+-
+ void dss_uninit_overlays(struct platform_device *pdev)
+ {
+ 	int i;
 -- 
 1.7.9.5
 
