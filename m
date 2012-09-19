@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 10/29] ARM: OMAP2+: Make board-rx51.h local
-Date: Wed, 19 Sep 2012 14:06:01 -0700
-Message-ID: <20120919210601.28074.66797.stgit@muffinssi>
+Subject: [PATCH 11/29] ARM: OMAP2+: Make ctrl_module_core_44xx.h local
+Date: Wed, 19 Sep 2012 14:06:03 -0700
+Message-ID: <20120919210603.28074.17934.stgit@muffinssi>
 References: <20120919205732.28074.43697.stgit@muffinssi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26179 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26193 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752044Ab2ISVGC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 17:06:02 -0400
+	with ESMTP id S1752072Ab2ISVGE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 17:06:04 -0400
 In-Reply-To: <20120919205732.28074.43697.stgit@muffinssi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,40 +21,26 @@ This can be local to mach-omap2.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c  |    2 +-
- arch/arm/mach-omap2/board-rx51-video.c        |    2 +-
- arch/arm/mach-omap2/board-rx51.h              |    0 
- 3 files changed, 2 insertions(+), 2 deletions(-)
- rename arch/arm/mach-omap2/{include/mach/board-rx51.h => board-rx51.h} (100%)
+ arch/arm/mach-omap2/control.h                      |    2 +-
+ arch/arm/mach-omap2/ctrl_module_core_44xx.h        |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename arch/arm/mach-omap2/{include/mach/ctrl_module_core_44xx.h => ctrl_module_core_44xx.h} (100%)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 5b2edfe..bf78ad4 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -35,7 +35,7 @@
- #include <plat/gpmc-smc91x.h>
- #include <plat/omap-pm.h>
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index c1a5cab..2d25478 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -16,7 +16,7 @@
+ #ifndef __ARCH_ARM_MACH_OMAP2_CONTROL_H
+ #define __ARCH_ARM_MACH_OMAP2_CONTROL_H
  
--#include <mach/board-rx51.h>
-+#include "board-rx51.h"
- 
- #include <sound/tlv320aic3x.h>
- #include <sound/tpa6130a2-plat.h>
-diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-omap2/board-rx51-video.c
-index 2c1289b..6e5b196 100644
---- a/arch/arm/mach-omap2/board-rx51-video.c
-+++ b/arch/arm/mach-omap2/board-rx51-video.c
-@@ -19,7 +19,7 @@
- #include <plat/vram.h>
- #include <plat/mcspi.h>
- 
--#include <mach/board-rx51.h>
-+#include "board-rx51.h"
- 
- #include "mux.h"
- 
-diff --git a/arch/arm/mach-omap2/include/mach/board-rx51.h b/arch/arm/mach-omap2/board-rx51.h
+-#include <mach/ctrl_module_core_44xx.h>
++#include "ctrl_module_core_44xx.h"
+ #include <mach/ctrl_module_wkup_44xx.h>
+ #include <mach/ctrl_module_pad_core_44xx.h>
+ #include <mach/ctrl_module_pad_wkup_44xx.h>
+diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/ctrl_module_core_44xx.h
 similarity index 100%
-rename from arch/arm/mach-omap2/include/mach/board-rx51.h
-rename to arch/arm/mach-omap2/board-rx51.h
+rename from arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
+rename to arch/arm/mach-omap2/ctrl_module_core_44xx.h
 
