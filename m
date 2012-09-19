@@ -1,34 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Wed, 19 Sep 2012 20:39:40 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209192030270.5264@utopia.booyaka.com>
-References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com> <CAP05o4+O8FXRjnXtta26rUoZpcMnpZEkdu9+J0xatCyusrjQEw@mail.gmail.com> <CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com> <20120723140830.GA8155@arwen.pp.htv.fi>
- <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com> <CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com> <CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com> <20120813140928.GH14781@arwen.pp.htv.fi>
- <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com> <CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com> <CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 3/9] ARM: OMAP4: hwmod data: add mmu hwmod for ipu
+ and dsp
+Date: Wed, 19 Sep 2012 20:59:41 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209192059120.5264@utopia.booyaka.com>
+References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
+ <1347479152-588-4-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57448 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747Ab2ISUjl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 16:39:41 -0400
-In-Reply-To: <CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-1854640201-1348088381=:5264"
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1347479152-588-4-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joerg Roedel <joerg.roedel-5C7GfCeVMHo@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, parthab@india.ti.com, linux-omap@vger.kernel.org, Linux USB Devel <linux-usb@vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi Samuel,
+--843723315-1854640201-1348088381=:5264
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-I've queued patch 1 of this series for 3.7, which should go upstream via 
-the OMAP -> arm-soc path.  Also asked Keshava to re-send patch 5 to me 
-once patches 2-4 have been merged.
+Hi Beno=EEt,
 
-It's up to you how to handle patches 2-4.  The series is a good step 
-forward for us in terms of cleanup.  But what is probably worthwhile at 
-some point is for that USB TLL "phy" code (added in patch 2) to be moved 
-into some place like drivers/usb/phy, since it's not MFD-related.
+On Wed, 12 Sep 2012, Omar Ramirez Luna wrote:
+
+> Add mmu hwmod data for ipu and dsp.
+>=20
+> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+
+Care to ack this one?
 
 
 - Paul
+--843723315-1854640201-1348088381=:5264
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+devicetree-discuss mailing list
+devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+--843723315-1854640201-1348088381=:5264--
