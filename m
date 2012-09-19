@@ -1,80 +1,31 @@
-From: Matt Porter <mporter@ti.com>
-Subject: [PATCH v2] of: dma: fix typos in generic dma binding definition
-Date: Wed, 19 Sep 2012 10:49:48 -0400
-Message-ID: <1348066188-17937-1-git-send-email-mporter@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 13/16] ARM: omap: move platform_data definitions
+Date: Wed, 19 Sep 2012 14:49:30 +0000
+Message-ID: <201209191449.30935.arnd@arndb.de>
+References: <1347368350-31212-1-git-send-email-arnd@arndb.de> <201209121720.33822.arnd@arndb.de> <5058458C.5010908@ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:46306 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637Ab2ISOsO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 10:48:14 -0400
-Received: by yenm12 with SMTP id m12so106790yen.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 07:48:13 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.187]:59678 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752063Ab2ISOtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 10:49:50 -0400
+In-Reply-To: <5058458C.5010908@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Arnd Bergmann <arnd@arndb.de>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, =?utf-8?q?Beno=C3=AEt_Cousson?= <b-cousson@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, Kyungmin Park <kyungmin.park@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <artem.bityutskiy@linux.intel.com>, Jean Pihet <j-pihet@ti.com>, J Keerthy <j-keerthy@ti.com>, linux-omap@vger.kernel.org
 
-Some semicolons were left out in the examples.
+On Tuesday 18 September 2012, Peter Ujfalusi wrote:
+> I thought I have replied to this...
+> Whichever way you prefer. I can craft a series to clean up the plat/mcbsp.h
+> usage and move the mcbsp header via ASoC tree.
+> I'm also fine if you do the move.
+> Let me know what you prefer.
+> 
 
-The #dma-channels and #dma-requests properties have a prefix
-that is, by convention, reserved for cell size properties.
-Rename those properties to dma-channels and dma-requests.
+I think I'll just keep all my patches together then, and leave this one in.
 
-Signed-off-by: Matt Porter <mporter@ti.com>
----
- Documentation/devicetree/bindings/dma/dma.txt |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/dma/dma.txt b/Documentation/devicetree/bindings/dma/dma.txt
-index a4f59a5..8f504e6 100644
---- a/Documentation/devicetree/bindings/dma/dma.txt
-+++ b/Documentation/devicetree/bindings/dma/dma.txt
-@@ -13,22 +13,22 @@ Required property:
- 			more details.
- 
- Optional properties:
--- #dma-channels: 	Number of DMA channels supported by the controller.
--- #dma-requests: 	Number of DMA requests signals supported by the
-+- dma-channels: 	Number of DMA channels supported by the controller.
-+- dma-requests: 	Number of DMA requests signals supported by the
- 			controller.
- 
- Example:
- 
- 	dma: dma@48000000 {
--		compatible = "ti,omap-sdma"
-+		compatible = "ti,omap-sdma";
- 		reg = <0x48000000 0x1000>;
- 		interrupts = <0 12 0x4
- 			      0 13 0x4
- 			      0 14 0x4
- 			      0 15 0x4>;
- 		#dma-cells = <1>;
--		#dma-channels = <32>;
--		#dma-requests = <127>;
-+		dma-channels = <32>;
-+		dma-requests = <127>;
- 	};
- 
- 
-@@ -61,7 +61,7 @@ Examples:
- 		...
- 		dmas = <&dma 2		/* read channel */
- 			&dma 3>;	/* write channel */
--		dma-names = "rx", "tx"
-+		dma-names = "rx", "tx";
- 		...
- 	};
- 
-@@ -70,7 +70,7 @@ Examples:
- 	dmas = <&dma1 5
- 		&dma2 7
- 		&dma3 2>;
--	dma-names = "rx-tx", "rx-tx", "rx-tx"
-+	dma-names = "rx-tx", "rx-tx", "rx-tx";
- 
- 3. A device with three channels, one of which has two alternatives:
- 
--- 
-1.7.9.5
-
+	Arnd
