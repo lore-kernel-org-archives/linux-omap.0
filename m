@@ -1,34 +1,29 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] cpufreq: OMAP: Check IS_ERR() instead of NULL for omap_device_get_by_hwmod_name
-Date: Wed, 19 Sep 2012 22:17:42 +0200
-Message-ID: <201209192217.42157.rjw@sisk.pl>
-References: <1347932747.6562.3.camel@phoenix> <201209182052.57414.rjw@sisk.pl> <877grqj6qw.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V4 1/5] ARM: OMAP: Add the USB TLL clocks device name
+Date: Wed, 19 Sep 2012 20:28:30 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209192027560.5264@utopia.booyaka.com>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com> <1342445471-18704-2-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <877grqj6qw.fsf@deeprootsystems.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1342445471-18704-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, September 19, 2012, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > On Tuesday, September 18, 2012, Axel Lin wrote:
-> >> omap_device_get_by_hwmod_name() returns ERR_PTR on error.
-> >> 
-> >> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> >
-> > Kevin, should I take this?
-> 
-> Yes, please.
-> 
-> Acked-by: Kevin Hilman <khilman@ti.com>
+On Mon, 16 Jul 2012, Keshava Munegowda wrote:
 
-Done.
+> The platform device name "usbhs_tll" is added for the functional,
+> interface and channel clocks of the TLL module.
+> 
+> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
 
-Thanks,
-Rafael
+Thanks, queued this patch for 3.7.
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
