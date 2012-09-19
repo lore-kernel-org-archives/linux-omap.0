@@ -1,122 +1,70 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Initialising omapfb on AM3517 issues
-Date: Wed, 19 Sep 2012 10:23:41 +0300
-Message-ID: <1348039421.2565.6.camel@deskari>
-References: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
+Subject: Re: [PATCH v2] OMAPDSS: Do not require a VDDS_DSI regulator on
+ am35xx
+Date: Wed, 19 Sep 2012 10:49:03 +0300
+Message-ID: <1348040943.2565.8.camel@deskari>
+References: <20120815191627.GA22993@renkinjitsu.usine.8d.com>
+	 <1345545584.4085.49.camel@deskari>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-XGQioWi2g3Q8ZKfveYQt"
+	boundary="=-8IN0HiKvDZMF9E7IRTDK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:35614 "EHLO
-	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754624Ab2ISHXv (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44834 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751507Ab2ISHtJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 03:23:51 -0400
-Received: by lbbgj3 with SMTP id gj3so587021lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 00:23:48 -0700 (PDT)
-In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
+	Wed, 19 Sep 2012 03:49:09 -0400
+Received: by lbbgj3 with SMTP id gj3so598585lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 00:49:06 -0700 (PDT)
+In-Reply-To: <1345545584.4085.49.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Murphy <marcmltd@marcm.co.uk>
-Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: Raphael Assenat <raph@8d.com>
+Cc: linux-omap@vger.kernel.org
 
 
---=-XGQioWi2g3Q8ZKfveYQt
+--=-8IN0HiKvDZMF9E7IRTDK
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Tue, 2012-08-21 at 13:39 +0300, Tomi Valkeinen wrote:
+> Hi,
+>=20
+> On Wed, 2012-08-15 at 15:16 -0400, Raphael Assenat wrote:
+> > On our AM3505 based board, dpi.c complains that there is no VDSS_DSI re=
+gulator
+> > and the framebuffer cannot be enabled. However, this check does not see=
+m to
+> > apply to AM3505/17 chips.
+> >=20
+> > Taking into account comments received after my first patch[1], I have a=
+dded
+> > entries to dss_features.c to support the am35xx soc. Then in dpi.c, ins=
+tead
+> > of using cpu_is_omap34xx() and soc_is_am35xx(), a call to dss_has_featu=
+re()
+> > is used.
+> >=20
+> > [1] http://marc.info/?l=3Dlinux-fbdev&m=3D134272967203409&w=3D2
+> >=20
+> > Signed-off-by: Rapha=C3=ABl Ass=C3=A9nat <raph@8d.com>
+>=20
+> Chandrabhanu has posted a series that removes a bunch of cpu_is checks
+> from omapdss. On of them is the use of VDDS_DSI in dpi.c.
+>=20
+> Can you wait until I've merged those patches to omapdss master branch
+> (probably a few days), and then create a new patch that adds AM35xx to
+> dss_features?
 
-On Tue, 2012-09-18 at 16:41 +0000, Marc Murphy wrote:
-> Hello all,
-> I have been moving from the ti 2.6.37 BSP to the 3.x kernel with quite a =
-bit of success, the main issue I have at the moment is trying to get the fr=
-ame buffer and any displays I have initialised.
->=20
-> [    2.805358] omapfb omapfb: no driver for display: lcd
-> [    2.810729] omapfb omapfb: no displays
-> [    2.814666] omapfb omapfb: failed to setup omapfb
->=20
-> I have tried a few versions of release and none of them will initialise;
->=20
-> Currently on
-> [    0.000000] Linux version 3.6.0-rc3
->=20
-> I have started with board-am3517evm display config and even that doesn't =
-initialise.  Is there something I am missing with the configs or is there a=
- patch required to get the feature to work.
->=20
-> My current config options use;
-> #
-> # Graphics support
-> #
-> CONFIG_DRM=3Dy
+If you have time, can you revisit this? The current omapdss master
+branch has some cleanups for the cpu check:
 
-omapdrm and omapfb cannot be used at the same time. That said, you don't
-seem to enable omapdrm, only the core drm support, so it shouldn't
-matter. But you don't need CONFIG_DRM if you use omapfb.
-
-> CONFIG_FB=3Dy
-> CONFIG_FB_CFB_FILLRECT=3Dy
-> CONFIG_FB_CFB_COPYAREA=3Dy
-> CONFIG_FB_CFB_IMAGEBLIT=3Dy
->=20
-> #
-> # Frame buffer hardware drivers
-> #
-> CONFIG_OMAP2_VRAM=3Dy
-> CONFIG_OMAP2_VRFB=3Dy
-> CONFIG_OMAP2_DSS=3Dy
-> CONFIG_OMAP2_VRAM_SIZE=3D12
-> CONFIG_OMAP2_DSS_DPI=3Dy
-> CONFIG_OMAP2_DSS_VENC=3Dy
-> CONFIG_OMAP2_DSS_DSI=3Dy
-> CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=3D1
-> CONFIG_OMAP2_DSS_SLEEP_AFTER_VENC_RESET=3Dy
-> CONFIG_FB_OMAP2=3Dy
-> CONFIG_FB_OMAP2_NUM_FBS=3D3
->=20
-> #
-> # OMAP2/3 Display Device Drivers
-> #
-> CONFIG_PANEL_GENERIC_DPI=3Dy
-> CONFIG_PANEL_SHARP_LS037V7DW01=3Dy
-> CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
-> CONFIG_LCD_CLASS_DEVICE=3Dy
-> CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy
-> CONFIG_BACKLIGHT_GENERIC=3Dy
->=20
-> And the init structs are
-> static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
-> {
->     gpio_set_value(TAM3517_DVI_PON_GPIO, 0);
->     gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 0);
->     gpio_set_value(TAM3517_LCD_PON_GPIO, 1);
->         printk("LCD voltage on\n");
-> 	return 0;
-> }
->=20
-> static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
-> {
->     gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 1);
->     gpio_set_value(TAM3517_LCD_PON_GPIO, 0);
-> }
->=20
-> static struct panel_generic_dpi_data lcd_panel =3D {
-> //    .name			=3D "generic_dpi_panel",
-
-You need to define name for the panel you have. You can see the list of
-supported panels in drivers/video/omap2/displays/panel-generic-dpi.c. If
-you don't give a name, the panel driver doesn't start.
-
-There's also a problem with the vdds_dsi regulator. Search the list for
-"[PATCH] OMAPDSS: Do not require a VDDS_DSI regulator on am35xx". The
-patch to fix it hasn't been merged yet.
+git://gitorious.org/linux-omap-dss2/linux.git master
 
  Tomi
 
 
---=-XGQioWi2g3Q8ZKfveYQt
+--=-8IN0HiKvDZMF9E7IRTDK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
@@ -124,20 +72,20 @@ Content-Transfer-Encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQWXL9AAoJEPo9qoy8lh71tbMP/3HOwbpQ4Rrhu+Fa07l2MVv3
-T8tTvoB4e79i/ooM77f1+7VjlZAKISZJ64Xdxy1NhMNXtCsQ+65cyHCAoWScx4Tu
-65OlwihGAMI1Ea8TJybzXGVOjbYCwm5XYYq2hOFBZgioywbtGyN5TpsKJfpLzvGk
-vfMDm3mVhyp0F5NvQcygqTRCEB97DkJWpu366in12LtHc7lqNi90bDp/jtv4AByP
-Yq20/jXL89UnmZaV2BGoKUSPMRHMZDXVKDChSnwIbx5K48XzseGkhX4LIWctWBtN
-xBkqaWwynAZDe/19mv+rq6k4baBUtHVAukjXgFwihT7hkNBHjnGqrwy9pHv3tDRv
-Dfxjy5qinzUm8npddErxwf+wehsvQAZQotgYzA7xQQEgkKkrSFmXpmuQSx43u/Nk
-n+8DJsh9RAUFf6cU9pmoBxIe/aufdTnRR3dYRfFBmWCAljt8mnqL4M1gjC8FPX+3
-Td/7x12GUhnZwVafqEPsbRmGaH2V1EMP8PZxuD95PIkmnlKnjtzwYLP4nknnF8qd
-d7OsvKumbbrOe/qA+G52IvfyjYsnR9H2fEIEmWP6m9/JCANMtePuJQ9SJ7nD/umK
-AylBxxnZcdUgy+ZzXXxiqXCauTtroWtbyYm1VdW/BWlGfST3zhCZse9TTfgQvwlX
-AAzxk1r4ndr9/uEh+WD9
-=nWuL
+iQIcBAABAgAGBQJQWXjvAAoJEPo9qoy8lh71fdUQAIJaFtjTV5yjtZI9mJAJUZfy
+lNXz3HZAZNHaG/wzUf5QnS40AxHtxMEM2zifPdcOLQQ1cz8GOIPzbNwGxf74K2Du
+zyTBPV/rTbkxhRi+qYCbtlpCkq1wHlTjQY0M0IlNyQl43QMkX8MqJkewVIz6EENB
+BBt2f+VS1OeR71zVfuT0BRJRxBkk2I5wLeHveTEj4wKqA7lAGw1HN/PEXDQhGYbx
+5KqRNV5S685KD8zcrG/3OYMNJcUPw4kCUFrtcDdfdeZndvgDi0pOvvEPgqkn58SX
+f62G2xd71eMn075D2k1KHKbJVaJV1HVodj7rwzQADhs26+IjQvqVX2VArAAOcHFd
+Is80HenmCEugbihm3hghLQ27UNH6hsmAffYL5q0OKjhC93gV2FSiDts+EeW+ejUL
+mrn1zrsZfXGHFnJr31yKxIdf3KI+GMTa1aCtGeribFZ6o7epmQwbOiIt6bFGfd6I
+ibrzvwDR0v9z2Sb63XlNL6gGgG2N6mZDaUXqF69nHwCiqkoy4sEi16iRjoOXX9WE
+LvpRve6TZ/N4Zv3MBKSBfui6YhLGQ6/behQ+gFUp80sFOYXRvTlAwxaEHQgFhbsF
+FC8GtBOf4dkgZLd+C3/PK4/68S+wznDl5uCtZYMCktjX8GjoI2vBzZfK7r6nPgi4
+teKivPJribUghtqdM7nU
+=57P6
 -----END PGP SIGNATURE-----
 
---=-XGQioWi2g3Q8ZKfveYQt--
+--=-8IN0HiKvDZMF9E7IRTDK--
 
