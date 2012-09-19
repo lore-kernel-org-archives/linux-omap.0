@@ -1,78 +1,25 @@
-From: Pantelis Antoniou <panto@antoniou-consulting.com>
-Subject: Re: [PATCH 3/3] i2c: OMAP fix driver initialization message
-Date: Wed, 19 Sep 2012 12:57:34 +0300
-Message-ID: <942374D7-2A8D-4C15-BA6D-3931CE11F8D9@antoniou-consulting.com>
-References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com> <1348070841-23354-4-git-send-email-panto@antoniou-consulting.com> <5058CA65.5080408@ti.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH 2/2] OMAP i2c: pinctrl-ify i2c-omap.c
+Date: Wed, 19 Sep 2012 15:43:16 +0530
+Message-ID: <CAM=Q2cuk83QNWcir7LWx=0+8rP4u97ei94ZB2XN=T9sFQ7v6fQ@mail.gmail.com>
+References: <50596F8F.60506@ti.com>
+	<1348122889-28271-1-git-send-email-panto@antoniou-consulting.com>
+	<1348122889-28271-3-git-send-email-panto@antoniou-consulting.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5058CA65.5080408@ti.com>
+In-Reply-To: <1348122889-28271-3-git-send-email-panto@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: a0919096 <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Benoit,
-
-On Sep 18, 2012, at 10:24 PM, a0919096 wrote:
-
-> Hi Panto,
-> 
-> That patch is good, but a similar one was already posted by Florian.
-> https://patchwork.kernel.org/patch/1392671/
-> 
-> Checking the email thread it seems that Wolfram	pulled it.
-> 
-> Regards,
-> Benoit
-> 
-
-Great. One less thing to look after :)
-
-Regards
-
--- Pantelis
-
-> On 9/19/2012 11:07 AM, Pantelis Antoniou wrote:
->> The message spit out when the i2c-omap driver load is printing
->> the platform device's id as a bus number. However when booting
->> from OF id is -1, which is not so nice.
->> 
->> Fix it by printing the adapter number.
->> 
->> [    0.210467] omap_i2c 44e0b000.i2c: bus -1 rev2.4.0 at 400 kHz
->> 	vs
->> [    0.210467] omap_i2c 44e0b000.i2c: bus 0 rev2.4.0 at 400 kHz
->> 
->> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
->> ---
->>  drivers/i2c/busses/i2c-omap.c | 6 +++---
->>  1 file changed, 3 insertions(+), 3 deletions(-)
->> 
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index f722478..87bb705 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -1178,9 +1178,6 @@ omap_i2c_probe(struct platform_device *pdev)
->>  		goto err_unuse_clocks;
->>  	}
->> 
->> -	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
->> -		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
->> -
->>  	adap = &dev->adapter;
->>  	i2c_set_adapdata(adap, dev);
->>  	adap->owner = THIS_MODULE;
->> @@ -1204,6 +1201,9 @@ omap_i2c_probe(struct platform_device *pdev)
->>  	if (IS_ERR(pinctrl))
->>  		dev_warn(dev->dev, "pins are not configured from the driver\n");
->> 
->> +	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", adap->nr,
->> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
->> +
->>  	pm_runtime_mark_last_busy(dev->dev);
->>  	pm_runtime_put_autosuspend(dev->dev);
->> 
->> 
-> 
+On Thu, Sep 20, 2012 at 12:04 PM, Pantelis Antoniou
+<panto@antoniou-consulting.com> wrote:
+> Add support for pinctrl mux settings in the OMAP I2C driver.
+> If no such pinctl bindings are found a warning message is printed.
+>
+> Signed-off-by: Pantelis Antoniou <panto@antoniou-consulting.com>
+> ---
+looks good
+Acked-by: Shubhrajyoti D <shubhrajyoti@ti.com>
