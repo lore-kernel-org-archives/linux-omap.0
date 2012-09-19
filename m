@@ -1,68 +1,88 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH V2] mmc: omap_hsmmc: Pass on the suspend failure to the PM core
-Date: Wed, 19 Sep 2012 01:46:10 -0400
-Message-ID: <m34nmuk1jx.fsf@pullcord.laptop.org>
-References: <1347517863-30017-1-git-send-email-gururaja.hebbar@ti.com>
-	<CANfBPZ9hrKZgAbyUWfT7cLyRVDEEAVC7x=eBwFqBn49m-rmqkw@mail.gmail.com>
+From: "Maximilian Schwerin" <Maximilian.Schwerin-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>
+Subject: AW: USB problem on beagleboard clone
+Date: Wed, 19 Sep 2012 08:22:44 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E33A@dolphin.TIGRIS.local>
+References: <alpine.DEB.2.00.1209190122520.13435@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:38294 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753094Ab2ISFpt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 01:45:49 -0400
-In-Reply-To: <CANfBPZ9hrKZgAbyUWfT7cLyRVDEEAVC7x=eBwFqBn49m-rmqkw@mail.gmail.com>
-	(Venkatraman S.'s message of "Tue, 18 Sep 2012 00:21:02 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-c3FJ7//R5U/nF4DCoSVn"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1209190122520.13435-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, nsekhar@ti.com, sudhakar.raj@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>
+
+--=-c3FJ7//R5U/nF4DCoSVn
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Sep 17 2012, S, Venkatraman wrote:
-> On Thu, Sep 13, 2012 at 12:01 PM, Hebbar, Gururaja
-> <gururaja.hebbar@ti.com> wrote:
->> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
->>
->> In some cases mmc_suspend_host() is not able to claim the
->> host and proceed with the suspend process. The core returns
->> -EBUSY to the host controller driver. Unfortunately, the
->> host controller driver does not pass on this information
->> to the PM core and hence the system suspend process continues.
->>
->>         ret = mmc_suspend_host(host->mmc);
->>         if (ret) {
->>                 host->suspended = 0;
->>                 if (host->pdata->resume) {
->>                         ret = host->pdata->resume(dev, host->slot_id);
->>
->> The return status from mmc_suspend_host() is overwritten by return
->> status from host->pdata->resume. So the original return status is lost.
->>
->> In these cases the MMC core gets to an unexpected state
->> during resume and multiple issues related to MMC crop up.
->> 1. Host controller driver starts accessing the device registers
->> before the clocks are enabled which leads to a prefetch abort.
->> 2. A file copy thread which was launched before suspend gets
->> stuck due to the host not being reclaimed during resume.
->>
->> To avoid such problems pass on the -EBUSY status to the PM core
->> from the host controller driver. With this change, MMC core
->> suspend might still fail but it does not end up making the
->> system unusable. Suspend gets aborted and the user can try
->> suspending the system again.
->>
->> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->> Signed-off-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
->
-> This version is good.
->
-> Acked-by: Venkatraman S <svenkatr@ti.com>
+> -----Urspr=FCngliche Nachricht-----
+> Von: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
+> [mailto:linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] Im Auftrag von Paul Walmsley
+> Gesendet: Mittwoch, 19. September 2012 03:24
+> An: Maximilian Schwerin
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Betreff: Re: USB problem on beagleboard clone
+>=20
+> Hi
+>=20
+> On Fri, 14 Sep 2012, Maximilian Schwerin wrote:
+>=20
+> > we've designed two beagle board clones (two different=20
+> layouts) for a=20
+> > customer. After quite some time without any problems they=20
+> are now seeing=20
+> > USB problems on some of the boards. I have so far not been able to=20
+> > reproduce the problem...
+> >=20
+> > The USB port of the OMAP the problems appear on is=20
+> connected through a=20
+> > TPS65950 to a LAN9514 USB Hub + Ethernet Chip. Attached is=20
+> the kernel=20
+> > output. I'm not even sure if this is related to our board,=20
+> or if this=20
+> > might be a misbehaving device?!
+> >=20
+> > If someone has an idea what this could be and what I could=20
+> do to fix or=20
+> > at least further debug the problem please speak up.
+>=20
+> Are these BeagleBoard 3530 or BeagleBoard XM 3730 clones?
+>=20
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe=20
+> linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-Thanks, pushed to mmc-next for 3.7, with a stable@ tag added (right?).
+They're BeagleBoard XM clones. We're still trying to find out what the =
+real problem is. The problem persists across three separate layouts =
+using the same USB device and application. We're currently trying to see =
+if this is related to MUSB only by using an EHCI port on the same board =
+with the same device and application.
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Regards, m.
+
+--=-c3FJ7//R5U/nF4DCoSVn
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAlBZZNgACgkQ6nqkzTWctv4Y6ACgzR4lczwfOoowQZ1snoXKkiuU
+zaYAn2GbQe5wi+Aq2GRcZ8jCZkbLin2a
+=iNIZ
+-----END PGP SIGNATURE-----
+
+--=-c3FJ7//R5U/nF4DCoSVn--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
