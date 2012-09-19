@@ -1,66 +1,143 @@
-From: =?utf-8?B?5q+P5aSp5LuFMTDlhYM=?= <admin@soontest.com>
-Subject: =?utf-8?B?MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jEIyQuivog==?=
-	=?utf-8?B?55uY5Lmw5a6244CBdGhvbWFzbmV0IOmHh+i0reWVhizmtbflhbM=?=
-	=?utf-8?B?5pWw5o2uLOe+pOWPkei9r+S7tu+8jOWxleS8muS5sOWutiDku4UzMDDlhYMh?=
-Date: Wed, 19 Sep 2012 07:21:15 +0000 (UTC)
-Message-ID: <20240919150819053552@soontest.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Initialising omapfb on AM3517 issues
+Date: Wed, 19 Sep 2012 10:23:41 +0300
+Message-ID: <1348039421.2565.6.camel@deskari>
+References: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-XGQioWi2g3Q8ZKfveYQt"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [124.172.238.43] ([124.172.238.43]:3182 "HELO soontest.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
-	id S1754595Ab2ISHVB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 03:21:01 -0400
-Date: Thu, 19 Sep 2024 15:08:06 +0800
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:35614 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754624Ab2ISHXv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Sep 2012 03:23:51 -0400
+Received: by lbbgj3 with SMTP id gj3so587021lbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 00:23:48 -0700 (PDT)
+In-Reply-To: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, lucas@iuseelite.com, lucas@univ-reunion.fr, lucas_leecbc@hotmail.com, linwei08@163.com, linqi@zju.edu.cn, luanbo969@sohu.com, linqinghong2@163.com, luangonesi@hotmail.com, linqushida@hotmail.com
+To: Marc Murphy <marcmltd@marcm.co.uk>
+Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
 
-MjAxMuaYpeWtozExMeWxiuW5v+S6pOS8muS5sOWutu+8jOa1t+WFs+aVsOaNruaPkOWNlXBpZXJz
-54mI77yMMjAwOC0yMDEy5bm0OeWxiuW5v+S6pOS8muaVsOaNruOAgg0KDQrkuIDlhbExMOS4quWM
-hSjmlbDmja7mmK/lhajooYzkuJrnmoTvvIzlj6/ku6XmjInnhaflhbPplK7or43mj5Dlj5blh7rm
-naXnmoQp77yaIA0KMe+8jDIwMTLmmKXlraMxMTHlsYrlub/kuqTkvJrkubDlrrbnjrDlnLror6Ln
-m5jmlbDmja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDm
-ja7vvIzlrrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAx
-Mueni+Wto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOAgg0KM++8jDIwMTLm
-nIDmlrDlhajnkIPlsZXkvJrnjrDlnLrkubDlrrblupMo5LiO6LS45Y+R5ZCM5q2lKSzlhbE0NuS4
-h+adoeaVsOaNruOAgiAo5oyJ54Wn6KGM5Lia5YiG57G7KQ0KNO+8jDIwMTEsMjAxMOW5tCwyMDA5
-5bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8jDEwMyAxMDQg
-MTA1IDEwNiAxMDcgMTA4LDEwOSwxMTAg5YWx5YWt5bGKIOWFsTEyMC425LiH5pWw5o2u44CCDQo1
-77yMNDguNjjkuIfmnaHmnIDmlrDkubDlrrbor6Lnm5jvvIzpg73luKbmnIlFbWFpbO+8jOacgOac
-ieS7t+WAvOeahOivouebmOOAgg0KNu+8jDIwMTHmnIDmlrAgQjJCIOiLseaWh+WbvemZheermTYw
-5LiH5bim6IGU57uc5pa55byP6K+i55uYIOacgOacieS7t+WAvOivouebmOS5i+S4gC4NCjfvvIwy
-MDEw5rW35YWz5o+Q5Y2VcGllcnPniYgxMDAw5LiH5pWw5o2uLg0KOO+8jDIwMTHlubTliLDpppnm
-uK/ph4fotK3nmoTlm73lpJblrqLkurrlkI3lvZUo6aaZ5riv6LS45Y+R5bGA5o+Q5L6bKe+8jOi2
-hee6p+mHjeimgeeahOS5sOWutuOAgg0KOe+8jDIwMTHlubTmlrDlop7liqDnmoQt576O5Zu9QjJC
-IHRob21hc25ldCDph4fotK3llYblkI3ljZXjgIINCjEw77yM576k5Y+R6L2v5Lu25a6J6KOF5LiO
-6YOo572y5pyN5Yqh44CCDQoNCui/meS6m+WFqOacie+8jOWFsTEyODDkuIcg5pWw5o2u44CCDQoN
-CiANCuimgeeahOaKk+e0p+iBlOezu1FROiA0NjAxMjI2NDEg5oiW6ICF56uL5Y2z5Zue5aSN6YKu
-566xOiA0NjAxMjI2NDFAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogNDYwMTIyNjQxIOaI
-luiAheeri+WNs+WbnuWkjemCrueusTogNDYwMTIyNjQxQHFxLmNvbQ0K6KaB55qE5oqT57Sn6IGU
-57O7UVE6IDQ2MDEyMjY0MSDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDQ2MDEyMjY0MUBxcS5j
-b20NCg0K6K+a5L+h5Li65pys77yM5aaC5p6c5LiN5L+h5Lu75pys5Lq6LOWPr+S7pei1sOa3mOWu
-neS6pOaYkyzmlLbliLDmlbDmja7pqozor4Ez5aSp5ZCO5YaN5LuY5qy+LOi/meaYr+WvueaCqOac
-gOWlveeahOS/nemanOS6huOAgiANCg0KDQoNCuWwj+aKgOW3p++8miANCuaKijUwMOS4h+S5sOWu
-tue+pOWPkeS7peS4gOmBje+8jOWdh+S8muacieaVsOWNg+S4quWbnuWkjeeahO+8jOi/meS6m+Ww
-seaYr+mdnuW4uOmrmOi0qOmHj+eahOS5sOWutuOAgiANCuS9v+eUqOaIkeS7rOmAgeeahOe+pOWP
-kei9r+S7tu+8jDEtMuWRqOWwseWPr+WujOWFqOWPkeWujOOAgg0KDQoNCg0KDQoNCuW5v+S6pOS8
-muS5sOWutuaMieS6p+WTgeexu+WIq+WIhuexu++8jOWIhuS4uuS7peS4i+WHoOexu++8mg0KMSDl
-ip7lhazorr7lpIcNCjIg57yW57uH5Y+K6Jek6ZOB5bel6Im65ZOBDQozIOeOu+eSgw0KNCDppJDl
-jqjnlKjlhbcNCjUg6L2m6L6GDQo2IOWkp+Wei+acuuaisOWPiuiuvuWkhw0KNyDnlLXlrZDnlLXm
-sJQNCjgg55S15a2Q5raI6LS55ZOBDQo5IOe6uue7hw0KMTAg5pyN6KOFDQoxMSDkuKrkurrmiqTn
-kIYNCjEyIOW3peeoi+acuuaisA0KMTMg5bel5YW3DQoxNCDljJblt6UNCjE1IOiuoeeul+acuuWP
-iumAmuiurw0KMTYg5a625bGF55So5ZOBDQoxNyDlrrblsYXoo4XppbANCjE4IOWutuWFtw0KMTkg
-5a6255So55S15ZmoDQoyMCDlu7rnrZHlj4roo4XppbDmnZDmlpkNCjIxIOiKguaXpeeUqOWTgQ0K
-MjIg56S85ZOB5Y+K6LWg5ZOBDQoyMyDmkanmiZjovaYNCjI0IOaxvei9pumFjeS7tg0KMjUg6aOf
-5ZOBDQoyNiDpmbbnk7cNCjI3IOmTgeefsw0KMjgg546p5YW3DQoyOSDljavmtbQNCjMwIOS6lOmH
-kQ0KMzEg5bCP5Z6L5py65qKwDQozMiDpnosNCjMzIOS8kemXsueUqOWTgQ0KMzQg5Yy755aXDQoz
-NSDmtbTlrqTkuqflk4ENCjM2IOWbreaelw0KMzcg54Wn5piO5Lqn5ZOBDQozOCDpkp/ooajnnLzp
-lZwNCjM5IOiHquihjOi9pg0KNDAg5YyFDQoNCg0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemr
-mA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+ae
-gemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeOh+aegemrmA0K5paw6bKc5pWw5o2uLeaIkOWNleeO
-h+aegemrmA0K
 
+--=-XGQioWi2g3Q8ZKfveYQt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Tue, 2012-09-18 at 16:41 +0000, Marc Murphy wrote:
+> Hello all,
+> I have been moving from the ti 2.6.37 BSP to the 3.x kernel with quite a =
+bit of success, the main issue I have at the moment is trying to get the fr=
+ame buffer and any displays I have initialised.
+>=20
+> [    2.805358] omapfb omapfb: no driver for display: lcd
+> [    2.810729] omapfb omapfb: no displays
+> [    2.814666] omapfb omapfb: failed to setup omapfb
+>=20
+> I have tried a few versions of release and none of them will initialise;
+>=20
+> Currently on
+> [    0.000000] Linux version 3.6.0-rc3
+>=20
+> I have started with board-am3517evm display config and even that doesn't =
+initialise.  Is there something I am missing with the configs or is there a=
+ patch required to get the feature to work.
+>=20
+> My current config options use;
+> #
+> # Graphics support
+> #
+> CONFIG_DRM=3Dy
+
+omapdrm and omapfb cannot be used at the same time. That said, you don't
+seem to enable omapdrm, only the core drm support, so it shouldn't
+matter. But you don't need CONFIG_DRM if you use omapfb.
+
+> CONFIG_FB=3Dy
+> CONFIG_FB_CFB_FILLRECT=3Dy
+> CONFIG_FB_CFB_COPYAREA=3Dy
+> CONFIG_FB_CFB_IMAGEBLIT=3Dy
+>=20
+> #
+> # Frame buffer hardware drivers
+> #
+> CONFIG_OMAP2_VRAM=3Dy
+> CONFIG_OMAP2_VRFB=3Dy
+> CONFIG_OMAP2_DSS=3Dy
+> CONFIG_OMAP2_VRAM_SIZE=3D12
+> CONFIG_OMAP2_DSS_DPI=3Dy
+> CONFIG_OMAP2_DSS_VENC=3Dy
+> CONFIG_OMAP2_DSS_DSI=3Dy
+> CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=3D1
+> CONFIG_OMAP2_DSS_SLEEP_AFTER_VENC_RESET=3Dy
+> CONFIG_FB_OMAP2=3Dy
+> CONFIG_FB_OMAP2_NUM_FBS=3D3
+>=20
+> #
+> # OMAP2/3 Display Device Drivers
+> #
+> CONFIG_PANEL_GENERIC_DPI=3Dy
+> CONFIG_PANEL_SHARP_LS037V7DW01=3Dy
+> CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
+> CONFIG_LCD_CLASS_DEVICE=3Dy
+> CONFIG_BACKLIGHT_CLASS_DEVICE=3Dy
+> CONFIG_BACKLIGHT_GENERIC=3Dy
+>=20
+> And the init structs are
+> static int am3517_evm_panel_enable_lcd(struct omap_dss_device *dssdev)
+> {
+>     gpio_set_value(TAM3517_DVI_PON_GPIO, 0);
+>     gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 0);
+>     gpio_set_value(TAM3517_LCD_PON_GPIO, 1);
+>         printk("LCD voltage on\n");
+> 	return 0;
+> }
+>=20
+> static void am3517_evm_panel_disable_lcd(struct omap_dss_device *dssdev)
+> {
+>     gpio_set_value(TAM3517_LCD_ENVDD_GPIO, 1);
+>     gpio_set_value(TAM3517_LCD_PON_GPIO, 0);
+> }
+>=20
+> static struct panel_generic_dpi_data lcd_panel =3D {
+> //    .name			=3D "generic_dpi_panel",
+
+You need to define name for the panel you have. You can see the list of
+supported panels in drivers/video/omap2/displays/panel-generic-dpi.c. If
+you don't give a name, the panel driver doesn't start.
+
+There's also a problem with the vdds_dsi regulator. Search the list for
+"[PATCH] OMAPDSS: Do not require a VDDS_DSI regulator on am35xx". The
+patch to fix it hasn't been merged yet.
+
+ Tomi
+
+
+--=-XGQioWi2g3Q8ZKfveYQt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQWXL9AAoJEPo9qoy8lh71tbMP/3HOwbpQ4Rrhu+Fa07l2MVv3
+T8tTvoB4e79i/ooM77f1+7VjlZAKISZJ64Xdxy1NhMNXtCsQ+65cyHCAoWScx4Tu
+65OlwihGAMI1Ea8TJybzXGVOjbYCwm5XYYq2hOFBZgioywbtGyN5TpsKJfpLzvGk
+vfMDm3mVhyp0F5NvQcygqTRCEB97DkJWpu366in12LtHc7lqNi90bDp/jtv4AByP
+Yq20/jXL89UnmZaV2BGoKUSPMRHMZDXVKDChSnwIbx5K48XzseGkhX4LIWctWBtN
+xBkqaWwynAZDe/19mv+rq6k4baBUtHVAukjXgFwihT7hkNBHjnGqrwy9pHv3tDRv
+Dfxjy5qinzUm8npddErxwf+wehsvQAZQotgYzA7xQQEgkKkrSFmXpmuQSx43u/Nk
+n+8DJsh9RAUFf6cU9pmoBxIe/aufdTnRR3dYRfFBmWCAljt8mnqL4M1gjC8FPX+3
+Td/7x12GUhnZwVafqEPsbRmGaH2V1EMP8PZxuD95PIkmnlKnjtzwYLP4nknnF8qd
+d7OsvKumbbrOe/qA+G52IvfyjYsnR9H2fEIEmWP6m9/JCANMtePuJQ9SJ7nD/umK
+AylBxxnZcdUgy+ZzXXxiqXCauTtroWtbyYm1VdW/BWlGfST3zhCZse9TTfgQvwlX
+AAzxk1r4ndr9/uEh+WD9
+=nWuL
+-----END PGP SIGNATURE-----
+
+--=-XGQioWi2g3Q8ZKfveYQt--
 
