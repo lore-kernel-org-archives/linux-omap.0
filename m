@@ -1,39 +1,63 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2] backlight: Add TPS65217 WLED driver
-Date: Wed, 19 Sep 2012 17:29:48 +0200
-Message-ID: <20120919152948.GE28670@sortiz-mobl>
-References: <20120809204231.GF30282@darwin>
- <20120916230936.GK3647@sortiz-mobl>
- <20120918200507.GC14300@darwin>
+Subject: Re: [RFC PATCH 2/5] mfd: introduce retu-mfd driver
+Date: Wed, 19 Sep 2012 17:30:31 +0200
+Message-ID: <20120919153031.GI28670@sortiz-mobl>
+References: <1346189667-32330-1-git-send-email-aaro.koskinen@iki.fi>
+ <1346189667-32330-3-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:54385 "EHLO mga02.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:39120 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755556Ab2ISP3t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 11:29:49 -0400
+	id S1756001Ab2ISPae (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Sep 2012 11:30:34 -0400
 Content-Disposition: inline
-In-Reply-To: <20120918200507.GC14300@darwin>
+In-Reply-To: <1346189667-32330-3-git-send-email-aaro.koskinen@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, Richard Purdie <rpurdie@rpsys.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-omap@vger.kernel.org
 
-Hi Matthias,
+Hi Aaro,
 
-On Tue, Sep 18, 2012 at 10:05:07PM +0200, Matthias Kaehlcke wrote:
-> > The MFD API probably allows you to do exactly that by defining a specific cell
-> > for bl. Could you please try to use this API or otherwise justify not using
-> > it?
+On Wed, Aug 29, 2012 at 12:34:24AM +0300, Aaro Koskinen wrote:
+> Retu is a multi-function device found on Nokia Internet Tablets
+> implementing at least watchdog, RTC, headset detection and power button
+> functionality.
 > 
-> you seem to have missed v3 of the patch which addresses this, it was
-> sent on 22 Aug 2012
-Indeed, I missed it. Looks much better.
+> This patch implements a minimum functionality providing only register
+> access functions.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> Cc: sameo@linux.intel.com
+> ---
+>  drivers/mfd/Kconfig      |    8 +++
+>  drivers/mfd/Makefile     |    1 +
+>  drivers/mfd/retu-mfd.c   |  114 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/retu.h |   20 ++++++++
+>  4 files changed, 143 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/mfd/retu-mfd.c
+>  create mode 100644 include/linux/mfd/retu.h
+Besides Felipe's comments, you probably want to use regmap I2C for this
+driver.
 
 
-> in the next days i'll submit v4, with changes based on the comments
-> received for v3
-Sounds good.
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index b1a1462..8ca1270 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -1003,6 +1003,14 @@ config MFD_PALMAS
+>  	  If you say yes here you get support for the Palmas
+>  	  series of PMIC chips from Texas Instruments.
+>  
+> +config MFD_RETU
+> +	tristate "Support for Retu multi-function device"
+> +	select MFD_CORE
+> +	depends on I2C
+> +	help
+> +	  Retu is a multi-function device found on Nokia Internet Tables
+> +	  (770, N800 and N810).
+Which sub devices does it come with ?
 
 Cheers,
 Samuel.
