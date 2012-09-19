@@ -1,46 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH RESEND 0/5] ARM: dts: AM33XX: Add device tree data
-Date: Wed, 19 Sep 2012 21:26:29 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209192124570.5264@utopia.booyaka.com>
-References: <1348089570-16161-1-git-send-email-anilkumar@ti.com> <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH RESEND 3/5] ARM: OMAP2+: AM33XX: Add clock entries to
+ omap_clk data
+Date: Wed, 19 Sep 2012 21:27:24 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13EA34214@DBDE01.ent.ti.com>
+References: <1348089570-16161-1-git-send-email-anilkumar@ti.com>
+ <1348089570-16161-4-git-send-email-anilkumar@ti.com>
+ <alpine.DEB.2.00.1209192124090.5264@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="843723315-814770954-1348089989=:5264"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:57635 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab2ISV03 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 17:26:29 -0400
-In-Reply-To: <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49832 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904Ab2ISV1d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 17:27:33 -0400
+In-Reply-To: <alpine.DEB.2.00.1209192124090.5264@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Thu, Sep 20, 2012 at 02:54:31, Paul Walmsley wrote:
+> Hi
+> 
+> On Thu, 20 Sep 2012, AnilKumar Ch wrote:
+> 
+> > Add AM335x cpu0 clock entry to the corresponding clock data
+> > file. This is useful in getting the correct mpu clock pointer
+> > to change the cpu frequency in cpufreq driver.
+> > 
+> > Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+> 
+> Looks like this one is unrelated to the DTS changes, so I'll queue it 
+> separately here for 3.7.
+> 
 
---843723315-814770954-1348089989=:5264
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Thanks Paul
 
-Hi Beno=EEt
-
-On Wed, 19 Sep 2012, Cousson, Benoit wrote:
-
-> Thanks for the rebase / repost. I'll pulled the full series if Paul is OK=
- with
->   ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
->=20
-> Paul,
-> Is that OK?
-
-Looks to me like the clock change is unrelated to the DTS changes?  Best=20
-thing would be if you could just take the DTS changes and I'll take the=20
-clkdev alias change. =20
-
-Otherwise if that doesn't work I can ack it, but there might be some=20
-conflicts with other clkdev data changes.
-
-
-- Paul
---843723315-814770954-1348089989=:5264--
+Thanks
+AnilKumar
