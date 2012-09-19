@@ -1,53 +1,31 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
-Date: Wed, 19 Sep 2012 08:10:43 -0700
-Message-ID: <CAOesGMgHr4pnqerTm=bL8K5cwYxX6Ry9waEOc4H4y3xBzCFkMQ@mail.gmail.com>
-References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
-	<20120917215128.GF11762@atomide.com>
-	<201209191458.00531.arnd@arndb.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH v2] of: dma: fix typos in generic dma binding definition
+Date: Wed, 19 Sep 2012 15:26:33 +0000
+Message-ID: <201209191526.33642.arnd@arndb.de>
+References: <1348066188-17937-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:64234 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753209Ab2ISPKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 11:10:44 -0400
-Received: by lbbgj3 with SMTP id gj3so1052666lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 08:10:43 -0700 (PDT)
-In-Reply-To: <201209191458.00531.arnd@arndb.de>
+Received: from moutng.kundenserver.de ([212.227.17.9]:60104 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab2ISP0o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 11:26:44 -0400
+In-Reply-To: <1348066188-17937-1-git-send-email-mporter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Nicolas Ferre <nicolas.ferre@atmel.com>, Stephen Warren <swarren@nvidia.com>, Grant Likely <grant.likely@secretlab.ca>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <djbw@fb.com>
 
-On Wed, Sep 19, 2012 at 7:58 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday 17 September 2012, Tony Lindgren wrote:
->> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
->> > OMAP interconnect drivers are used for the interconnect error handling.
->> > Since they are bus driver, lets move it to newly created drivers/bus.
->> >
->> > Cc: Arnd Bergmann <arnd@arndb.de>
->> > Cc: Tony Lindgren <tony@atomide.com>
->> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
->> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > ---
->> > Patch just moves OMAP interconnect drivers as is to the newly created
->> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
->> > tree and test on all OMAP boards.
->>
->> Great, looks like this should not conflict with other
->> omap patches queued, so Arnd should probably take this into
->> the bus branch:
->>
->> Acked-by: Tony Lindgren <tony@atomide.com>
->
-> Ok, added to the branch. In the future please Cc both Olof and me when submitting
-> patches for inclusion.
->
-> Olof: I figured it would be easier if I just add this one than relaying it to
-> you.
+On Wednesday 19 September 2012, Matt Porter wrote:
+> 
+> Some semicolons were left out in the examples.
+> 
+> The #dma-channels and #dma-requests properties have a prefix
+> that is, by convention, reserved for cell size properties.
+> Rename those properties to dma-channels and dma-requests.
+> 
+> Signed-off-by: Matt Porter <mporter@ti.com>
 
-Sounds good, thanks for the heads up.
-
-
--Olof
+Acked-by: Arnd Bergmann <arnd@arndb.de>
