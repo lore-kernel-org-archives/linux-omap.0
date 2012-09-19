@@ -1,57 +1,61 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2 0/3] MFD/GPIO: Add twl6040 GPO driver
-Date: Wed, 19 Sep 2012 13:26:07 +0200
-Message-ID: <20120919112607.GD8138@sortiz-mobl>
-References: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Wed, 19 Sep 2012 13:27:22 +0200
+Message-ID: <20120919112722.GG8138@sortiz-mobl>
+References: <1342445471-18704-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:52793 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752184Ab2ISL0H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 07:26:07 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1342445471-18704-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
 
-Hi Peter,
+Hi Keshava,
 
-On Thu, Aug 16, 2012 at 03:13:12PM +0300, Peter Ujfalusi wrote:
-> Hello,
+On Mon, Jul 16, 2012 at 07:01:06PM +0530, Keshava Munegowda wrote:
+> The TLL (Transceiver Less Link) is an separate IP block, independent of
+> the host controller. Basically this TLL operates like USB PHY which allows
+> the user to connect two USB transceiver interfaces together directly
+> without the use of differential transceivers in omap3 and later chips.
+> The TLL configuration is removed from the UHH driver and implemented as
+> a seperate platform driver. Now, the UHH driver configures the TLL
+> through API's exported by the TLL platform driver.
 > 
-> Changes since v1:
-> - Removed the ti,use-gpo property from DT bindings
-> - Register the GPO driver if we booted with DT blob or in legacy if the pdata
->   for the GPO driver is present
-> - DT binding Documentation update
+> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 > 
-> The Documentation update has reference to the twl6040.dtsi file which will be
-> created to hold the common/static properties for the twl6040.
-> To avoid cross tree merge issues later I have only included the Documentation
-> update to this series and I will send the actual .dtsi/.dts changes via
-> linux-omap. If this is not a problem.
+> In v4:
+>     - rebased on top of linux kernel version 3.5.rc7
+>     - reworked as per the comments given by Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 > 
-> The dependencies for this series are in mainline and I think this series can
-> go via GPIO if Samuel agrees with the changes.
+> In v3:
+>   - rebased on top V3 of Russ dill's patch
+>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>        fixes an issue where the ULPI PHYs were not held in reset
+>        while initializing the EHCI controller
+> 	http://permalink.gmane.org/gmane.linux.usb.general/65988
+>       
+>   - rebased on top of patch 
+>     OMAP: USB : Fix the EHCI enumeration and core retention issue
+>      http://permalink.gmane.org/gmane.linux.usb.general/66239
 > 
-> Intro mail from v1:
+> In V2:
+>     - covered review comments from linux omap and usb community
+>     - rebased on top Russ dill's patch
+>        'ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue'
+>        fixes an issue where the ULPI PHYs were not held in reset
+>        while initializing the EHCI controller
 > 
-> The following series adds support for the GPO (General Purpose Output) on the
-> twl6040/41 audio chip.
-> The series has been tested on SDP4430, compile tested for x86_64 and x86_32 bit
-> to be sure it does not introduce build breakage.
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   mfd: twl6040: Fix GPO mask
->   mfd: twl6040: Add twl6040-gpio child
->   gpio: Add basic support for TWL6040 GPOs
-All 3 patches applied, thanks.
+> Keshava Munegowda (5):
+>   ARM: OMAP: Add the USB TLL clocks device name
+>   ARM: OMAP: USB: HOST TLL platform driver
+>   ARM: OMAP: USB: Invoke the TLL driver from USB HS core driver
+>   ARM: OMAP: USB: Remove TLL specific code from USB HS core driver
+>   ARM: OMAP: Remove older device name of the USB TLL clocks
+All 5 patches applied now. I had to manually apply patches #1 and #5. Could
+you please check that it's looking good to you ?
 
 Cheers,
 Samuel.
@@ -59,3 +63,7 @@ Samuel.
 -- 
 Intel Open Source Technology Centre
 http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
