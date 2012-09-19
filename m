@@ -1,78 +1,139 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not suspended.
-Date: Wed, 19 Sep 2012 14:52:18 +0300
-Message-ID: <CANOLnONC1oDN3yu=ipao2A6MfuSkZfROVPewWLLEM5fNTKipxQ@mail.gmail.com>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
-	<20120918140213.GA27463@arwen.pp.htv.fi>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/4] usb: dwc3: Fix gadget pullup in SS mode
+Date: Wed, 19 Sep 2012 14:53:10 +0300
+Message-ID: <20120919115306.GG3772@arwen.pp.htv.fi>
+References: <1348054229-27362-1-git-send-email-kishon@ti.com>
+ <1348054229-27362-3-git-send-email-kishon@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:56158 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262Ab2ISLwT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 07:52:19 -0400
-In-Reply-To: <20120918140213.GA27463@arwen.pp.htv.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Enx9fNJ0XV5HaWRu"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1348054229-27362-3-git-send-email-kishon@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moiz Sonasath <m-sonasath@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com
 
-On Tue, Sep 18, 2012 at 5:02 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Tue, Sep 18, 2012 at 06:10:50PM +0530, Sourav Poddar wrote:
->> Greg's tty-next is not booting on 2420 based N800. The failure is
->> observed at serial init itself. The reason might be that n800 tries =
-to
->> resume even though it is not suspended before.
->>
->> Reported-by: Paul Walmsley <paul@pwsan.com>
->> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
->
-> FWIW:
->
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
->
-> Paul does this fix the issue for you ? Note that it depends on a
-> previous patch Sourav sent [1]
->
-> [1] http://marc.info/?l=3Dlinux-omap&m=3D134796819607889&w=3D2
->
-> There's one thing that gets my attention, though, why only n800 would
-> fail here ?
->
-> I wonder if we should be using:
->
-> pm_runtime_set_active(dev);
-> pm_runtime_get_enable(dev);
->
-> to prevent our runtime_resume() to be called from probe, but Sourav
-> tested and it doesn't work on BeagleBoard, but it works on PandaBoard=
-=2E
->
-> Does it ring any bell ??
 
-Well I guess it's normal resume callback is called during probe as
-pm_runtime_get_sync() is called there, and according to documentation
-[1], devices are assumed to be suspended before probe is called.
+--Enx9fNJ0XV5HaWRu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-According to [1], pm_runtime_set_active() should be called before
-pm_runtime_enable() to indicate to the core that device is active
-during probe if that's the case, I guess this means
-pm_runtime_get_sync() is not needed in that case, but I'm not sure
-what's the actual serial state during probe nowadays.
+Hi,
 
-[1] chapter 5 of Documentation/power/runtime_pm.txt:
-The initial runtime PM status of all devices is 'suspended', but it
-need not reflect the actual physical state of the device. Thus, if the
-device is initially active (i.e. it is able to process I/O), its
-runtime PM status must be changed to 'active', with the help of
-pm_runtime_set_active(), before pm_runtime_enable() is called for the
-device.
+On Wed, Sep 19, 2012 at 05:00:27PM +0530, Kishon Vijay Abraham I wrote:
+> From: Moiz Sonasath <m-sonasath@ti.com>
+>=20
+> For the gadget pullup functionality to work in
+> SS mode it requires a particular sequence of
+> toggling the run-stop bit. Here is the required
+> sequence:
+>=20
+> - Set DCTL[31]
+> - Clear DCTL[31]
+> - Clear OMAP5430_CONTROL_CORE__PHY_POWER_USB[14]
+> - Clear DCTL[8:5] =3D 0x00
+> - Set DCTL[8:5] =3D 0x05
+> - Wait 25 Ms
+> - Set DCTL[31]
+> - Set OMAP5430_CONTROL_CORE__PHY_POWER_USB[14]
+>=20
+> Tested rigourously the gadget pull-up functionality
+> in bot HS and SS modes.
+>=20
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+
+this needs to split into three patches:
+
+add new poweron field, implement it on omap-usb3, use it on
+dwc3/gadget.c
+
+btw, I don't think the changes to run_stop bit are necessary and if they
+are, that'd either be a silicon errata or it would've been mentioned on
+the databook. I don't remember seeing that on the databook so I'm
+assuming that this is caused by a bad use of the PHY.
+
+Why that mdelay(25) ? why 25 ms ? That's quite a long time, actually.
+
+> ---
+>  drivers/usb/dwc3/gadget.c   |   21 +++++++++++++++------
+>  drivers/usb/phy/omap-usb3.c |   16 ++++++++++++++++
+>  include/linux/usb/phy.h     |   10 +++++++++-
+>  3 files changed, 40 insertions(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+> index 58fdfad..bcc0102 100644
+> --- a/drivers/usb/dwc3/gadget.c
+> +++ b/drivers/usb/dwc3/gadget.c
+> @@ -49,6 +49,7 @@
+> =20
+>  #include <linux/usb/ch9.h>
+>  #include <linux/usb/gadget.h>
+> +#include <linux/usb/otg.h>
+> =20
+>  #include "core.h"
+>  #include "gadget.h"
+> @@ -1417,19 +1418,27 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc,=
+ int is_on)
+>  	reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
+>  	if (is_on) {
+>  		if (dwc->revision <=3D DWC3_REVISION_187A) {
+> -			reg &=3D ~DWC3_DCTL_TRGTULST_MASK;
+> -			reg |=3D DWC3_DCTL_TRGTULST_RX_DET;
+> +			reg &=3D ~DWC3_DCTL_ULSTCHNGREQ_MASK;
+> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+> +			reg |=3D DWC3_DCTL_ULSTCHNG_RX_DETECT;
+> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+> +			mdelay(25);
+> +			reg |=3D DWC3_DCTL_RUN_STOP;
+> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+> +			usb_phy_poweron(dwc->usb3_phy);
+>  		}
+> =20
+> -		if (dwc->revision >=3D DWC3_REVISION_194A)
+> +		if (dwc->revision >=3D DWC3_REVISION_194A) {
+>  			reg &=3D ~DWC3_DCTL_KEEP_CONNECT;
+> -		reg |=3D DWC3_DCTL_RUN_STOP;
+> +			reg |=3D DWC3_DCTL_RUN_STOP;
+> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+> +		}
+>  	} else {
+>  		reg &=3D ~DWC3_DCTL_RUN_STOP;
+> +		dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+> +		usb_phy_shutdown(dwc->usb3_phy);
+>  	}
+> =20
+> -	dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+
+I'd prefer to hold all values on the variable and write only one.
 
 --=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+balbi
+
+--Enx9fNJ0XV5HaWRu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQWbIiAAoJEIaOsuA1yqREADEP/jVLnZElEph4rnD1fK54nz9B
+8aKEy9MmBIyN5FrqktmeWKzVU5kmMDZ3rCaDcq0hkepUlBCIZYzrj2671IZfG4UK
+bCLztVZnyhY9rfH/51GGjhaMrog44A8iDUpENV8FS6iBHt00EjVAE2Vh2rtXHDy+
+LJxjkCL73IPaCyfcLXjffmPrJRt+5NyfL0UrhvPSwuREnLreOJ/nIKLxERkRv7xA
+SJqtDXuE73Xq78JqRwqCXU97Ax8/Zn458fFeS2l12Sz16S8L4RaE+rq4TmNvRGK4
+mTZ3OoRniFewc0Z6OW0AfXcz5NVJlhs0+3XUblDVqF7m6gL1CiRPHOBBFD4MlpQT
+6bD21ZxyOJn32NKkVFYmZOt/li49ZI/l0h9O9Nu3A783HPryBCRjKbS84KTwvGXk
+ARcc1N/kZlsj1JfVqYTgeAkdqGDjscvxOCPOhhNhuxDv3PzK2dJNp42Mr9vbuCHl
+PlMmPNRFEPL7YkjGbr74Fu0DxTuTsWmuKAVkwF+wrjpBdmwGr3K9IA3bsIJKEYrW
+osVdexoI8Q0ztLC33vZk+85PvjG1u/Gui7nqO7PHaHMG2TXvqWfRwZOJOdGG2orw
+/ikoueXv1hJzXvpuMTq42ez0FRHWF7MEvf3LLdKf1XshcVEI0YZjbfWHmINAkpNm
+XHe8gqNZKE+kvEZzU2hY
+=zgsO
+-----END PGP SIGNATURE-----
+
+--Enx9fNJ0XV5HaWRu--
