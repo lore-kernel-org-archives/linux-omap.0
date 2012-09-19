@@ -1,36 +1,54 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH RESEND 0/5] ARM: dts: AM33XX: Add device tree data
-Date: Wed, 19 Sep 2012 16:46:52 -0500
-Message-ID: <505A3D4C.4090502@ti.com>
-References: <1348089570-16161-1-git-send-email-anilkumar@ti.com> <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com> <331ABD5ECB02734CA317220B2BBEABC13EA34232@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] CPUFreq: OMAP: remove unnecessary plat/ includes
+Date: Wed, 19 Sep 2012 22:03:50 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209192202430.8278@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209120030420.9444@utopia.booyaka.com> <201209142103.49421.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48876 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752076Ab2ISVqz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 17:46:55 -0400
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13EA34232@DBDE01.ent.ti.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:57790 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373Ab2ISWDv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 18:03:51 -0400
+In-Reply-To: <201209142103.49421.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>, Matt Porter <mporter@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, 'paul Walmsley' <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@vger.kernel.org, cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ Matt
+Hi
 
-On 9/19/2012 4:28 PM, AnilKumar, Chimata wrote:
-> On Thu, Sep 20, 2012 at 02:53:38, Cousson, Benoit wrote:
->> + Paul
->>
->> Hi Anil,
->>
->> Thanks for the rebase / repost. I'll pulled the full series if Paul is OK with
->>    ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
->>
+On Fri, 14 Sep 2012, Rafael J. Wysocki wrote:
 
-What about Matt's series to fix the I2C number? Should it be applied on 
-top of that one?
+> On Wednesday, September 12, 2012, Paul Walmsley wrote:
+> > 
+> > Remove some unnecessary plat/ includes that are interfering with multi-subarch
+> > ARM kernels.
+> > 
+> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> > Acked-by: Kevin Hilman <khilman@ti.com>
+> 
+> Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> > ---
+> > 
+> > Still awaiting some final testing here.  Rafael, was wondering if you 
+> > would be willing to ack this so we can merge it via the OMAP tree?   
+> > Otherwise the patch can be split into an OMAP part and a CPUFreq part that 
+> > can go in across two merge windows.
+> > 
+> >  arch/arm/mach-omap2/clock2420_data.c |    1 +
+> >  arch/arm/mach-omap2/clock2430_data.c |    1 +
+> >  arch/arm/mach-omap2/clock3xxx_data.c |    1 +
+> >  arch/arm/mach-omap2/clock44xx_data.c |    1 +
+> >  drivers/cpufreq/omap-cpufreq.c       |   19 +------------------
+> >  5 files changed, 5 insertions(+), 18 deletions(-)
 
-Regards,
-Benoit
+Thanks Rafael.  Looks like you've got "cpufreq: OMAP: Check IS_ERR() 
+instead of NULL for omap_device_get_by_hwmod_name" queued which conflicts 
+with this patch, so will just queue the arch/arm/mach-omap2/ changes for 
+now.  Then the drivers/cpufreq/omap-cpufreq.c part can go in during 3.8.
+
+- Paul
