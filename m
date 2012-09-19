@@ -1,45 +1,34 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 2/4] mfd: introduce retu-mfd driver
-Date: Wed, 19 Sep 2012 23:09:53 +0300
-Message-ID: <20120919200953.GB2063@blackmetal.musicnaut.iki.fi>
-References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
- <1346703805-31598-3-git-send-email-aaro.koskinen@iki.fi>
- <20120919160230.GK28670@sortiz-mobl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] cpufreq: OMAP: Check IS_ERR() instead of NULL for omap_device_get_by_hwmod_name
+Date: Wed, 19 Sep 2012 22:17:42 +0200
+Message-ID: <201209192217.42157.rjw@sisk.pl>
+References: <1347932747.6562.3.camel@phoenix> <201209182052.57414.rjw@sisk.pl> <877grqj6qw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120919160230.GK28670@sortiz-mobl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <877grqj6qw.fsf@deeprootsystems.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wednesday, September 19, 2012, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Tuesday, September 18, 2012, Axel Lin wrote:
+> >> omap_device_get_by_hwmod_name() returns ERR_PTR on error.
+> >> 
+> >> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> >
+> > Kevin, should I take this?
+> 
+> Yes, please.
+> 
+> Acked-by: Kevin Hilman <khilman@ti.com>
 
-On Wed, Sep 19, 2012 at 06:02:30PM +0200, Samuel Ortiz wrote:
-> On Mon, Sep 03, 2012 at 11:23:23PM +0300, Aaro Koskinen wrote:
-> > Retu is a multi-function device found on Nokia Internet Tablets
-> > implementing at least watchdog, RTC, headset detection and power button
-> > functionality.
-> > 
-> > This patch implements minimum functionality providing register access,
-> > IRQ handling and power off functions.
-> > 
-> > Cc: sameo@linux.intel.com
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> > ---
-> >  drivers/mfd/Kconfig      |    8 +
-> >  drivers/mfd/Makefile     |    1 +
-> >  drivers/mfd/retu-mfd.c   |  347 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  include/linux/mfd/retu.h |   22 +++
-> >  4 files changed, 378 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/mfd/retu-mfd.c
-> >  create mode 100644 include/linux/mfd/retu.h
-> Now with the IRQ chip code, using the regmap APIs would be even more
-> benefitial.
+Done.
 
-Thanks for feedback, I'll look into this.
-
-A.
+Thanks,
+Rafael
