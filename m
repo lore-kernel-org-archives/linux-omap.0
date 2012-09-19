@@ -1,65 +1,133 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v2 00/15] tidspbridge driver MMU-related cleanups
-Date: Wed, 19 Sep 2012 14:06:48 +0200
-Message-ID: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 02/15] tidspbridge: hw_mmu: Removed unused functions
+Date: Wed, 19 Sep 2012 14:06:50 +0200
+Message-ID: <1348056423-25573-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35800 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35804 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2ISMGa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:06:30 -0400
+	with ESMTP id S1755520Ab2ISMGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:06:32 -0400
+In-Reply-To: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Hello,
+The hw_mmu_tlb_flush() function is unused, and the mmu_flush_entry()
+function is used by hw_mmu_tlb_flush() only. Remove them both.
 
-Here's the second version of my tidspbridge MMU-related cleanup patches. The
-first version has been sent privately only, don't try to search the mailing
-list archive for it :-)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ drivers/staging/tidspbridge/hw/hw_mmu.c |   72 -------------------------------
+ drivers/staging/tidspbridge/hw/hw_mmu.h |    3 -
+ 2 files changed, 0 insertions(+), 75 deletions(-)
 
-Replacing hw/hw_mmu.c and part of core/tiomap3430.c with generic IOMMU calls
-should be less difficult now. Anyone would like to give it a try?
-
-Laurent Pinchart (14):
-  tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
-  tidspbridge: hw_mmu: Removed unused functions
-  tidspbridge: tiomap3430: Reorder functions to avoid forward
-    declarations
-  tidspbridge: tiomap3430: Remove unneeded dev_context local variables
-  tidspbridge: tiomap3430: Factor out common page release code
-  tidspbridge: tiomap3430: Remove ul_ prefix
-  tidspbridge: tiomap3430: Remove unneeded local variables
-  tidspbridge: Fix VM_PFNMAP mapping
-  tidspbridge: Remove unused hw_mmu_map_attrs_t::donotlockmpupage field
-  arm: omap: iommu: Include required headers in iommu.h and iopgtable.h
-  tidspbridge: Use constants defined in IOMMU platform headers
-  tidspbridge: Simplify pte_update and mem_map_vmalloc functions
-  tidspbridge: Use correct types to describe physical, MPU, DSP
-    addresses
-  tidspbridge: Replace hw_mmu_map_attrs_t structure with a prot
-    bitfield
-
-Omar Ramirez Luna (1):
-  ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
-
- arch/arm/plat-omap/include/plat/iommu.h            |    6 +
- arch/arm/plat-omap/include/plat/iopgtable.h        |    2 +
- drivers/staging/tidspbridge/core/io_sm.c           |    7 +-
- drivers/staging/tidspbridge/core/tiomap3430.c      | 1484 +++++++++-----------
- drivers/staging/tidspbridge/core/tiomap_io.c       |    2 +-
- drivers/staging/tidspbridge/core/ue_deh.c          |   21 +-
- drivers/staging/tidspbridge/hw/hw_defs.h           |   22 -
- drivers/staging/tidspbridge/hw/hw_mmu.c            |  332 ++----
- drivers/staging/tidspbridge/hw/hw_mmu.h            |   67 +-
- .../staging/tidspbridge/include/dspbridge/drv.h    |    1 +
- .../tidspbridge/include/dspbridge/dspdefs.h        |   27 +-
- .../tidspbridge/include/dspbridge/dspioctl.h       |   25 +
- drivers/staging/tidspbridge/rmgr/proc.c            |  119 +-
- 13 files changed, 899 insertions(+), 1216 deletions(-)
-
+diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.c b/drivers/staging/tidspbridge/hw/hw_mmu.c
+index 2194a3f..981794d 100644
+--- a/drivers/staging/tidspbridge/hw/hw_mmu.c
++++ b/drivers/staging/tidspbridge/hw/hw_mmu.c
+@@ -48,40 +48,6 @@ enum hw_mmu_page_size_t {
+ };
+ 
+ /*
+- * FUNCTION	      : mmu_flush_entry
+- *
+- * INPUTS:
+- *
+- *       Identifier      : base_address
+- *       Type		: const u32
+- *       Description     : Base Address of instance of MMU module
+- *
+- * RETURNS:
+- *
+- *       Type		: hw_status
+- *       Description     : 0		 -- No errors occurred
+- *			 RET_BAD_NULL_PARAM     -- A Pointer
+- *						Paramater was set to NULL
+- *
+- * PURPOSE:	      : Flush the TLB entry pointed by the
+- *			lock counter register
+- *			even if this entry is set protected
+- *
+- * METHOD:	       : Check the Input parameter and Flush a
+- *			 single entry in the TLB.
+- */
+-static hw_status mmu_flush_entry(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-	u32 flush_entry_data = 0x1;
+-
+-	/* write values to register */
+-	MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32(base_address, flush_entry_data);
+-
+-	return status;
+-}
+-
+-/*
+  * FUNCTION	      : mmu_set_cam_entry
+  *
+  * INPUTS:
+@@ -321,44 +287,6 @@ hw_status hw_mmu_twl_disable(const void __iomem *base_address)
+ 	return status;
+ }
+ 
+-hw_status hw_mmu_tlb_flush(const void __iomem *base_address, u32 virtual_addr,
+-			   u32 page_sz)
+-{
+-	hw_status status = 0;
+-	u32 virtual_addr_tag;
+-	enum hw_mmu_page_size_t pg_size_bits;
+-
+-	switch (page_sz) {
+-	case HW_PAGE_SIZE4KB:
+-		pg_size_bits = HW_MMU_SMALL_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE64KB:
+-		pg_size_bits = HW_MMU_LARGE_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE1MB:
+-		pg_size_bits = HW_MMU_SECTION;
+-		break;
+-
+-	case HW_PAGE_SIZE16MB:
+-		pg_size_bits = HW_MMU_SUPERSECTION;
+-		break;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	/* Generate the 20-bit tag from virtual address */
+-	virtual_addr_tag = ((virtual_addr & MMU_ADDR_MASK) >> 12);
+-
+-	mmu_set_cam_entry(base_address, pg_size_bits, 0, 0, virtual_addr_tag);
+-
+-	mmu_flush_entry(base_address);
+-
+-	return status;
+-}
+-
+ hw_status hw_mmu_tlb_add(const void __iomem *base_address,
+ 			 u32 physical_addr,
+ 			 u32 virtual_addr,
+diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.h b/drivers/staging/tidspbridge/hw/hw_mmu.h
+index 1458a2c..7f960cd 100644
+--- a/drivers/staging/tidspbridge/hw/hw_mmu.h
++++ b/drivers/staging/tidspbridge/hw/hw_mmu.h
+@@ -76,9 +76,6 @@ extern hw_status hw_mmu_twl_enable(const void __iomem *base_address);
+ 
+ extern hw_status hw_mmu_twl_disable(const void __iomem *base_address);
+ 
+-extern hw_status hw_mmu_tlb_flush(const void __iomem *base_address,
+-				  u32 virtual_addr, u32 page_sz);
+-
+ extern hw_status hw_mmu_tlb_add(const void __iomem *base_address,
+ 				u32 physical_addr,
+ 				u32 virtual_addr,
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.8.6
 
