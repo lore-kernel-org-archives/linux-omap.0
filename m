@@ -1,42 +1,53 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 2/9] ARM: OMAP3: hwmod data: add mmu data for iva and
- isp
-Date: Wed, 19 Sep 2012 21:35:06 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209192134490.5264@utopia.booyaka.com>
-References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
- <1347479152-588-3-git-send-email-omar.luna@linaro.org>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH RESEND 0/5] ARM: dts: AM33XX: Add device tree data
+Date: Wed, 19 Sep 2012 16:36:46 -0500
+Message-ID: <505A3AEE.8060408@ti.com>
+References: <1348089570-16161-1-git-send-email-anilkumar@ti.com> <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com> <alpine.DEB.2.00.1209192124570.5264@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1347479152-588-3-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joerg Roedel <joerg.roedel-5C7GfCeVMHo@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46632 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752335Ab2ISVgw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Sep 2012 17:36:52 -0400
+In-Reply-To: <alpine.DEB.2.00.1209192124570.5264@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 12 Sep 2012, Omar Ramirez Luna wrote:
+On 9/19/2012 4:26 PM, Paul Walmsley wrote:
+> Hi Beno=EEt
+>
+> On Wed, 19 Sep 2012, Cousson, Benoit wrote:
+>
+>> Thanks for the rebase / repost. I'll pulled the full series if Paul =
+is OK with
+>>    ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
+>>
+>> Paul,
+>> Is that OK?
+>
+> Looks to me like the clock change is unrelated to the DTS changes?  B=
+est
+> thing would be if you could just take the DTS changes and I'll take t=
+he
+> clkdev alias change.
 
-> Add mmu hwmod data for iva and isp.
-> 
-> Due to compatibility an ifdef CONFIG_OMAP_IOMMU_IVA2 needs to be
-> propagated (previously on iommu resource info) to hwmod data in OMAP3,
-> so users of iommu and tidspbridge can avoid issues of two modules
-> managing mmu data/irqs/resets; this until tidspbridge can be migrated
-> to iommu framework.
-> 
-> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Good point, it can be separated.
 
-Thanks, queued for 3.7.
+> Otherwise if that doesn't work I can ack it, but there might be some
+> conflicts with other clkdev data changes.
 
-- Paul
+No problem, that's fine for me.
+
+Regards,
+Benoit
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
