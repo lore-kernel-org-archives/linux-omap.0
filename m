@@ -1,66 +1,133 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v2 1/5] ARM: mm: implement LoUIS API for cache
- maintenance ops
-Date: Wed, 19 Sep 2012 13:30:13 +0100
-Message-ID: <20120919123002.GA11497@e102568-lin.cambridge.arm.com>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-2-git-send-email-lorenzo.pieralisi@arm.com>
- <alpine.LFD.2.02.1209181411530.28681@xanadu.home>
+From: Afzal Mohammed <afzal@ti.com>
+Subject: [PATCH v7 00/11] OMAP-GPMC: generic time calc, prepare for driver
+Date: Wed, 19 Sep 2012 18:51:08 +0530
+Message-ID: <cover.1348058726.git.afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:45643 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433Ab2ISMaU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:30:20 -0400
-In-Reply-To: <alpine.LFD.2.02.1209181411530.28681@xanadu.home>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37850 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756427Ab2ISNVW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Sep 2012 09:21:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Dave Martin <dave.martin@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+To: tony@atomide.com, paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Sep 18, 2012 at 07:12:52PM +0100, Nicolas Pitre wrote:
-> On Tue, 18 Sep 2012, Lorenzo Pieralisi wrote:
-> 
-> > ARM v7 architecture introduced the concept of cache levels and related
-> > control registers. New processors like A7 and A15 embed an L2 unified cache
-> > controller that becomes part of the cache level hierarchy. Some operations in
-> > the kernel like cpu_suspend and __cpu_disable do not require a flush of the
-> > entire cache hierarchy to DRAM but just the cache levels belonging to the
-> > Level of Unification Inner Shareable (LoUIS), which in most of ARM v7 systems
-> > correspond to L1.
-> >
-> > The current cache flushing API used in cpu_suspend and __cpu_disable,
-> > flush_cache_all(), ends up flushing the whole cache hierarchy since for
-> > v7 it cleans and invalidates all cache levels up to Level of Coherency
-> > (LoC) which cripples system performance when used in hot paths like hotplug
-> > and cpuidle.
-> >
-> > Therefore a new kernel cache maintenance API must be added to cope with
-> > latest ARM system requirements.
-> >
-> > This patch adds flush_cache_louis() to the ARM kernel cache maintenance API.
-> >
-> > This function cleans and invalidates all data cache levels up to the
-> > Level of Unification Inner Shareable (LoUIS) and invalidates the instruction
-> > cache for processors that support it (> v7).
-> >
-> > This patch also creates an alias of the cache LoUIS function to flush_kern_all
-> > for all processor versions prior to v7, so that the current cache flushing
-> > behaviour is unchanged for those processors.
-> >
-> > v7 cache maintenance code implements a cache LoUIS function that cleans and
-> > invalidates the D-cache up to LoUIS and invalidates the I-cache, according
-> > to the new API.
-> >
-> > Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> 
-> Reviewed-by: Nicolas Pitre <nico@linaro.org>
+Hi,
 
-Thanks a lot for reviewing the series.
+This version - v7 as compared to previous version, takes care of
+rounding issues due to the usage of nanoseconds in generic timing
+routine. All calculations are now in picoseconds. Once all timings
+are calculated it is converted to nanoseconds so that calculated
+timing values are compatible with existing custom timing routines
+(this will help in reverting back to custom routines easily in case
+of any issues). And documentation has been added on gpmc timings.
+Also redundant rounding of nand timings has been removed as part of
+this series.
 
-Lorenzo
+**********************************************************************
+Abstract:
+
+This series provides a generic gpmc timing calculation routine. There
+were three peripherals (OneNAND, tusb6010, smc91x) using custom timing
+calculations, they are migrated to use the generic timing calculation.
+
+Such a generic routine would help create a driver out of gpmc platform
+code, which would be peripheral agnostic and thus lead to DT finally.
+Input to generic timing calculation routine would be gpmc peripheral
+timings, output - translated timings that gpmc can understand. Later,
+to DT'ify, gpmc peripheral timings could be passed through DT. Input
+timings that has been used here are selected such that it represents
+those that are present in peripheral timing datasheets.
+
+Also this series contains minor cleanups that were low hanging fruits
+came across upon implementing generic timing routine. One such is
+credited to Jon Hunter, relevant patch is 1/2 of his series
+@ http://marc.info/?l=linux-omap&m=134090910321284&w=2
+
+**********************************************************************
+
+Proposed generic routine has been tested on OneNAND (async) on
+OMAP3EVM rev C (as mainline does not have the OneNAND support for this,
+local patch were used to test). For other cases of custom timing
+calculation (tusb6010, smc91x non-muxed, OneNAND sync), generic timing
+calculation routine was verified by simulating on OMAP3EVM.
+
+This series is available
+        @ git://gitorious.org/x0148406-public/linux-kernel.git gpmc-prep-v7
+and is based on
+        linux-next (next-20120918)
+
+Regards
+Afzal
+
+v7:
+        1. Use picoseconds throughout generic timing routine to prevent
+         rounding error.
+	2. Documentation on gpmc timings
+        3. Remove redundant rounding of nand timings (a new patch)
+
+v6:
+        1. Generic timing calculation, move existing users of custom
+         calculation to use the new generic one
+        2. Set OneNAND part to async mode before gpmc configuration
+        3. Move extra delay time user handling to proper patch
+         (3/10 -> 2/10)
+        4. Modify nand init for OMAP3EVM too as support got added
+v5:
+        Use flags for sync_read/write, hv, vhf
+v4:
+        Reorganize OneNAND set_sync/async functions in a better way
+v3:
+        1. Refactor OneNAND set_sync/async functions to separate out
+         timing and configurations
+        2. Handle bool type timings too
+        3. Swap patches 2 & 3 due to dependency of OneNAND change on
+         newly added bool type timings
+v2:
+        1. Make use of timing api for setting clock activation time,
+         and remove direct writing to register for clock activation.
+        2. Move ensuring that async mode in OneNAND has been setup from
+         set_sync to setup function, improve commit message
+
+Afzal Mohammed (10):
+  ARM: OMAP2+: nand: unify init functions
+  ARM: OMAP2+: nand: remove redundant rounding
+  ARM: OMAP2+: gpmc: handle additional timings
+  ARM: OMAP2+: onenand: refactor for clarity
+  ARM: OMAP2+: gpmc: find features by ip rev check
+  ARM: OMAP2+: gpmc: remove cs# in sync clk div calc
+  ARM: OMAP2+: gpmc: generic timing calculation
+  ARM: OMAP2+: onenand: generic timing calculation
+  ARM: OMAP2+: smc91x: generic timing calculation
+  ARM: OMAP2+: tusb6010: generic timing calculation
+
+Jon Hunter (1):
+  ARM: OMAP2+: GPMC: Remove unused OneNAND get_freq() platform function
+
+ Documentation/bus-devices/ti-gpmc.txt      |  77 ++++++
+ arch/arm/mach-omap2/board-devkit8000.c     |   8 +-
+ arch/arm/mach-omap2/board-flash.c          |  45 ++--
+ arch/arm/mach-omap2/board-flash.h          |   6 +-
+ arch/arm/mach-omap2/board-igep0020.c       |   2 +-
+ arch/arm/mach-omap2/board-ldp.c            |   4 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |   8 +-
+ arch/arm/mach-omap2/board-omap3evm.c       |   8 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |   8 +-
+ arch/arm/mach-omap2/board-overo.c          |   7 +-
+ arch/arm/mach-omap2/board-zoom.c           |   5 +-
+ arch/arm/mach-omap2/common-board-devices.c |  45 ----
+ arch/arm/mach-omap2/common-board-devices.h |   1 -
+ arch/arm/mach-omap2/gpmc-nand.c            |  30 +--
+ arch/arm/mach-omap2/gpmc-onenand.c         | 334 +++++++++++--------------
+ arch/arm/mach-omap2/gpmc-smc91x.c          |  43 ++--
+ arch/arm/mach-omap2/gpmc.c                 | 383 ++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/usb-tusb6010.c         | 181 ++++----------
+ arch/arm/plat-omap/include/plat/gpmc.h     | 114 +++++++--
+ arch/arm/plat-omap/include/plat/onenand.h  |   8 -
+ 20 files changed, 836 insertions(+), 481 deletions(-)
+ create mode 100644 Documentation/bus-devices/ti-gpmc.txt
+
+-- 
+1.7.12
 
