@@ -1,139 +1,148 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 2/4] usb: dwc3: Fix gadget pullup in SS mode
-Date: Wed, 19 Sep 2012 14:53:10 +0300
-Message-ID: <20120919115306.GG3772@arwen.pp.htv.fi>
+Subject: Re: [PATCH 3/4] usb: phy: omap-usb3: Decrease the number of
+ transitions to recovery
+Date: Wed, 19 Sep 2012 14:55:20 +0300
+Message-ID: <20120919115518.GH3772@arwen.pp.htv.fi>
 References: <1348054229-27362-1-git-send-email-kishon@ti.com>
- <1348054229-27362-3-git-send-email-kishon@ti.com>
+ <1348054229-27362-4-git-send-email-kishon@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Enx9fNJ0XV5HaWRu"
+	protocol="application/pgp-signature"; boundary="OfrWf2Fun5Ae4m0Y"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1348054229-27362-3-git-send-email-kishon@ti.com>
+In-Reply-To: <1348054229-27362-4-git-send-email-kishon@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Kishon Vijay Abraham I <kishon@ti.com>
 Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Moiz Sonasath <m-sonasath@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---Enx9fNJ0XV5HaWRu
+--OfrWf2Fun5Ae4m0Y
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Wed, Sep 19, 2012 at 05:00:27PM +0530, Kishon Vijay Abraham I wrote:
-> From: Moiz Sonasath <m-sonasath@ti.com>
+On Wed, Sep 19, 2012 at 05:00:28PM +0530, Kishon Vijay Abraham I wrote:
+> Power-cycling the PHY (partially) decreases the number of transitions to
+> "Recovery" state. Hence changed the power up sequence to a partial
+> power-up before a full power-up of the PHY.
 >=20
-> For the gadget pullup functionality to work in
-> SS mode it requires a particular sequence of
-> toggling the run-stop bit. Here is the required
-> sequence:
->=20
-> - Set DCTL[31]
-> - Clear DCTL[31]
-> - Clear OMAP5430_CONTROL_CORE__PHY_POWER_USB[14]
-> - Clear DCTL[8:5] =3D 0x00
-> - Set DCTL[8:5] =3D 0x05
-> - Wait 25 Ms
-> - Set DCTL[31]
-> - Set OMAP5430_CONTROL_CORE__PHY_POWER_USB[14]
->=20
-> Tested rigourously the gadget pull-up functionality
-> in bot HS and SS modes.
->=20
-> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
 > Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
 
-this needs to split into three patches:
-
-add new poweron field, implement it on omap-usb3, use it on
-dwc3/gadget.c
-
-btw, I don't think the changes to run_stop bit are necessary and if they
-are, that'd either be a silicon errata or it would've been mentioned on
-the databook. I don't remember seeing that on the databook so I'm
-assuming that this is caused by a bad use of the PHY.
-
-Why that mdelay(25) ? why 25 ms ? That's quite a long time, actually.
+this can be amended to patch 1. Why would you introduce a driver with a
+known problem ? ;-)
 
 > ---
->  drivers/usb/dwc3/gadget.c   |   21 +++++++++++++++------
->  drivers/usb/phy/omap-usb3.c |   16 ++++++++++++++++
->  include/linux/usb/phy.h     |   10 +++++++++-
->  3 files changed, 40 insertions(+), 7 deletions(-)
+>  drivers/usb/phy/omap-usb3.c  |   43 ++++++++++++++++++++++++++++++++++++=
+------
+>  include/linux/usb/omap_usb.h |    1 +
+>  2 files changed, 38 insertions(+), 6 deletions(-)
 >=20
-> diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-> index 58fdfad..bcc0102 100644
-> --- a/drivers/usb/dwc3/gadget.c
-> +++ b/drivers/usb/dwc3/gadget.c
-> @@ -49,6 +49,7 @@
+> diff --git a/drivers/usb/phy/omap-usb3.c b/drivers/usb/phy/omap-usb3.c
+> index 26402d5..fb3c5e6 100644
+> --- a/drivers/usb/phy/omap-usb3.c
+> +++ b/drivers/usb/phy/omap-usb3.c
+> @@ -35,13 +35,15 @@ static struct usb_dpll_params omap_usb3_dpll_params[N=
+UM_SYS_CLKS] =3D {
+>  };
 > =20
->  #include <linux/usb/ch9.h>
->  #include <linux/usb/gadget.h>
-> +#include <linux/usb/otg.h>
+>  /**
+> - * omap5_usb_phy_power - power on/off the serializer using control module
+> + * omap5_usb_phy_partial_powerup - power on the serializer using control=
+ module
+>   * @phy: struct omap_usb *
+> - * @on: 0 to off and 1 to on based on powering on or off the PHY
+>   *
+> - * omap_usb3 can call this API to power on or off the PHY.
+> + * After the dwc3 module is disabled and enabled again the synchronizati=
+on
+> + * between dwc3 and phy goes bad and the device does not get enumerated
+> + * in superspeed mode. After some trials it was found powering up TX and
+> + * part of RX PHY helped to solve the issue.
+>   */
+> -static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
+> +static int omap5_usb_phy_partial_powerup(struct omap_usb *phy)
+>  {
+>  	u32 val;
+>  	unsigned long rate;
+> @@ -58,10 +60,32 @@ static int omap5_usb_phy_power(struct omap_usb *phy, =
+bool on)
 > =20
->  #include "core.h"
->  #include "gadget.h"
-> @@ -1417,19 +1418,27 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc,=
- int is_on)
->  	reg =3D dwc3_readl(dwc->regs, DWC3_DCTL);
->  	if (is_on) {
->  		if (dwc->revision <=3D DWC3_REVISION_187A) {
-> -			reg &=3D ~DWC3_DCTL_TRGTULST_MASK;
-> -			reg |=3D DWC3_DCTL_TRGTULST_RX_DET;
-> +			reg &=3D ~DWC3_DCTL_ULSTCHNGREQ_MASK;
-> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> +			reg |=3D DWC3_DCTL_ULSTCHNG_RX_DETECT;
-> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> +			mdelay(25);
-> +			reg |=3D DWC3_DCTL_RUN_STOP;
-> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> +			usb_phy_poweron(dwc->usb3_phy);
->  		}
+>  	val =3D readl(phy->control_dev);
 > =20
-> -		if (dwc->revision >=3D DWC3_REVISION_194A)
-> +		if (dwc->revision >=3D DWC3_REVISION_194A) {
->  			reg &=3D ~DWC3_DCTL_KEEP_CONNECT;
-> -		reg |=3D DWC3_DCTL_RUN_STOP;
-> +			reg |=3D DWC3_DCTL_RUN_STOP;
-> +			dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> +		}
+> +	val &=3D ~(USB_PWRCTL_CLK_CMD_MASK | USB_PWRCTL_CLK_FREQ_MASK);
+> +	val |=3D (USB3_PHY_PARTIAL_RX_POWERON | USB3_PHY_TX_RX_POWERON)
+> +		<< USB_PWRCTL_CLK_CMD_SHIFT;
+> +	val |=3D rate << USB_PWRCTL_CLK_FREQ_SHIFT;
+> +
+> +	writel(val, phy->control_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap5_usb_phy_power - power on/off the serializer using control module
+> + * @phy: struct omap_usb *
+> + * @on: 0 to off and 1 to on based on powering on or off the PHY
+> + *
+> + * omap_usb3 can call this API to power on or off the PHY.
+> + */
+> +static int omap5_usb_phy_power(struct omap_usb *phy, bool on)
+> +{
+> +	u32 val;
+> +
+> +	val =3D readl(phy->control_dev);
+> +
+>  	if (on) {
+> -		val &=3D ~(USB_PWRCTL_CLK_CMD_MASK | USB_PWRCTL_CLK_FREQ_MASK);
+> +		val &=3D ~USB_PWRCTL_CLK_CMD_MASK;
+>  		val |=3D USB3_PHY_TX_RX_POWERON << USB_PWRCTL_CLK_CMD_SHIFT;
+> -		val |=3D rate << USB_PWRCTL_CLK_FREQ_SHIFT;
 >  	} else {
->  		reg &=3D ~DWC3_DCTL_RUN_STOP;
-> +		dwc3_writel(dwc->regs, DWC3_DCTL, reg);
-> +		usb_phy_shutdown(dwc->usb3_phy);
->  	}
+>  		val &=3D ~USB_PWRCTL_CLK_CMD_MASK;
+>  		val |=3D USB3_PHY_TX_RX_POWEROFF << USB_PWRCTL_CLK_CMD_SHIFT;
+> @@ -207,6 +231,13 @@ static int omap_usb3_init(struct usb_phy *x)
+>  	struct omap_usb	*phy =3D phy_to_omapusb(x);
 > =20
-> -	dwc3_writel(dwc->regs, DWC3_DCTL, reg);
+>  	omap_usb_dpll_lock(phy);
+> +	omap5_usb_phy_partial_powerup(phy);
+> +	/*
+> +	 * Give enough time for the PHY to partially power-up before
+> +	 * powering it up completely. delay value suggested by the HW
+> +	 * team.
+> +	 */
+> +	mdelay(100);
 
-I'd prefer to hold all values on the variable and write only one.
+why 100 ms ? Has this been measured ? Again, 100 ms is a loooooong time.
+Soon enough user will be waiting for a bit over a second to see that
+after connecting usb cable, there's activity. We don't want user to
+notice that kind of thing ;-)
 
 --=20
 balbi
 
---Enx9fNJ0XV5HaWRu
+--OfrWf2Fun5Ae4m0Y
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQWbIiAAoJEIaOsuA1yqREADEP/jVLnZElEph4rnD1fK54nz9B
-8aKEy9MmBIyN5FrqktmeWKzVU5kmMDZ3rCaDcq0hkepUlBCIZYzrj2671IZfG4UK
-bCLztVZnyhY9rfH/51GGjhaMrog44A8iDUpENV8FS6iBHt00EjVAE2Vh2rtXHDy+
-LJxjkCL73IPaCyfcLXjffmPrJRt+5NyfL0UrhvPSwuREnLreOJ/nIKLxERkRv7xA
-SJqtDXuE73Xq78JqRwqCXU97Ax8/Zn458fFeS2l12Sz16S8L4RaE+rq4TmNvRGK4
-mTZ3OoRniFewc0Z6OW0AfXcz5NVJlhs0+3XUblDVqF7m6gL1CiRPHOBBFD4MlpQT
-6bD21ZxyOJn32NKkVFYmZOt/li49ZI/l0h9O9Nu3A783HPryBCRjKbS84KTwvGXk
-ARcc1N/kZlsj1JfVqYTgeAkdqGDjscvxOCPOhhNhuxDv3PzK2dJNp42Mr9vbuCHl
-PlMmPNRFEPL7YkjGbr74Fu0DxTuTsWmuKAVkwF+wrjpBdmwGr3K9IA3bsIJKEYrW
-osVdexoI8Q0ztLC33vZk+85PvjG1u/Gui7nqO7PHaHMG2TXvqWfRwZOJOdGG2orw
-/ikoueXv1hJzXvpuMTq42ez0FRHWF7MEvf3LLdKf1XshcVEI0YZjbfWHmINAkpNm
-XHe8gqNZKE+kvEZzU2hY
-=zgsO
+iQIcBAEBAgAGBQJQWbKmAAoJEIaOsuA1yqREztcQAJ4r2cZV1/xQcz65WeE8bV7m
+UuKadpo5CrpdR2DESbjPD3vfD5nFQ9k/EToRLwypiC4aA4nFzai9oHrFk3eSfJLf
+hEhgz2q+J8Mcd+wWzkH19P+OlV/IGaeRQczUMVNXYo5XZtuKiTycrgVTA51fb5mE
+f4MwrNi1YQ+ZHrYuB+SdYKXG0yjlLzGrFLEnGmiv9RV1k8Jwkbxh3XGvCGeqRGdv
+c6mPdYwkISZXOIW5etXYu7d443VEnDmnvsbci4lfidd1kbuxMxqAIR+25ACthTwj
+Berrr28OERULcQh9KyTHv0fCOiNK0QFmTrmzZcp6Jk/y7empNnv4tgzcLhy747T8
+y4oRTvDbnPpSbvdl9Ad7s/FdTWWGL9u/IhTxmzGtH49xhctoGQscdaOSZRBSQ1sV
+0jOxNmX75J4LYanFOOwPujabKLPuJKm0XM+agh7868eoexuREl2mYxBrBMCey0IB
+M5n2jMBCmtdBZl5ay7LpUvEVEEnuqDS2leCVcW8nDdNAjST+Gz0rZs1d6nS9ZWVU
+AMeQUWkzommX+JqOPpfml/pdDmq1abI6oyZI0ORk+5j47HYupWk/uiZxiKWeiMSm
+OjBNgc4AewFxthK1trUxTsoj/LPx4Ro9Wumfaipyo8b9R8BAiUcUUFsv3j89d5xx
+EkOcUb/8f6p6mdnTDkqF
+=DSJ2
 -----END PGP SIGNATURE-----
 
---Enx9fNJ0XV5HaWRu--
+--OfrWf2Fun5Ae4m0Y--
