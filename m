@@ -1,190 +1,80 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 7/8] ARM: OMAP: convert I2C driver to PM QoS for latency constraints
-Date: Wed, 19 Sep 2012 20:34:19 +0200
-Message-ID: <CAORVsuXo8wvVX-DS3U+fRDFHwc0nV6SzQKfZi+o32ids5XvWZQ@mail.gmail.com>
-References: <1347958332-2205-1-git-send-email-j-pihet@ti.com>
-	<1347958332-2205-8-git-send-email-j-pihet@ti.com>
-	<505A0AD0.6020600@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to
+ drivers/bus/
+Date: Wed, 19 Sep 2012 18:57:57 +0000
+Message-ID: <201209191857.57862.arnd@arndb.de>
+References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120917215128.GF11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:52422 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641Ab2ISSeV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 14:34:21 -0400
-Received: by lbbgj3 with SMTP id gj3so1331249lbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 11:34:19 -0700 (PDT)
-In-Reply-To: <505A0AD0.6020600@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120917215128.GF11762@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>, balbi@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
-Hi!
+On Monday 17 September 2012, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
+> > OMAP interconnect drivers are used for the interconnect error handling.
+> > Since they are bus driver, lets move it to newly created drivers/bus.
+> > 
+> > Cc: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> > Patch just moves OMAP interconnect drivers as is to the newly created
+> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
+> > tree and test on all OMAP boards.
+> 
+> Great, looks like this should not conflict with other
+> omap patches queued, so Arnd should probably take this into
+> the bus branch:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-On Wed, Sep 19, 2012 at 8:11 PM, Shubhrajyoti <shubhrajyoti@ti.com> wrote:
-> On Tuesday 18 September 2012 02:22 PM, Jean Pihet wrote:
->> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
->> API to the new PM QoS API.
->> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATENCY
->> class of PM QoS. The resulting MPU constraints are used by cpuidle to
->> decide the next power state of the MPU subsystem.
->>
->> The I2C device latency timing is derived from the FIFO size and the
->> clock speed and so is applicable to all OMAP SoCs.
-> agree
-> thanks,
+It turns out that the patch actually did conflict and we now have a broken
+omap2plus_defconfig. The patch below seems to fix it, but please verify
+that this makes sense.
 
-The I2C patch will be rebased and submitted separately.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Thanks!
-Jean
-
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> ---
->>  arch/arm/plat-omap/i2c.c      |   21 ---------------------
->>  drivers/i2c/busses/i2c-omap.c |   28 +++++++++++++++++-----------
->>  include/linux/i2c-omap.h      |    1 -
->>  3 files changed, 17 insertions(+), 33 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
->> index db071bc..dba8338 100644
->> --- a/arch/arm/plat-omap/i2c.c
->> +++ b/arch/arm/plat-omap/i2c.c
->> @@ -26,7 +26,6 @@
->>  #include <linux/kernel.h>
->>  #include <linux/platform_device.h>
->>  #include <linux/i2c.h>
->> -#include <linux/i2c-omap.h>
->>  #include <linux/slab.h>
->>  #include <linux/err.h>
->>  #include <linux/clk.h>
->> @@ -34,7 +33,6 @@
->>  #include <mach/irqs.h>
->>  #include <plat/mux.h>
->>  #include <plat/i2c.h>
->> -#include <plat/omap-pm.h>
->>  #include <plat/omap_device.h>
->>
->>  #define OMAP_I2C_SIZE                0x3f
->> @@ -129,16 +127,6 @@ static inline int omap1_i2c_add_bus(int bus_id)
->>
->>
->>  #ifdef CONFIG_ARCH_OMAP2PLUS
->> -/*
->> - * XXX This function is a temporary compatibility wrapper - only
->> - * needed until the I2C driver can be converted to call
->> - * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
->> - */
->> -static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
->> -{
->> -     omap_pm_set_max_mpu_wakeup_lat(dev, t);
->> -}
->> -
->>  static inline int omap2_i2c_add_bus(int bus_id)
->>  {
->>       int l;
->> @@ -170,15 +158,6 @@ static inline int omap2_i2c_add_bus(int bus_id)
->>       dev_attr = (struct omap_i2c_dev_attr *)oh->dev_attr;
->>       pdata->flags = dev_attr->flags;
->>
->> -     /*
->> -      * When waiting for completion of a i2c transfer, we need to
->> -      * set a wake up latency constraint for the MPU. This is to
->> -      * ensure quick enough wakeup from idle, when transfer
->> -      * completes.
->> -      * Only omap3 has support for constraints
->> -      */
->> -     if (cpu_is_omap34xx())
->> -             pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
->>       pdev = omap_device_build(name, bus_id, oh, pdata,
->>                       sizeof(struct omap_i2c_bus_platform_data),
->>                       NULL, 0, 0);
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index 5d19a49..bd45cee 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -43,6 +43,7 @@
->>  #include <linux/slab.h>
->>  #include <linux/i2c-omap.h>
->>  #include <linux/pm_runtime.h>
->> +#include <linux/pm_qos.h>
->>
->>  /* I2C controller revisions */
->>  #define OMAP_I2C_OMAP1_REV_2         0x20
->> @@ -183,8 +184,7 @@ struct omap_i2c_dev {
->>       struct completion       cmd_complete;
->>       struct resource         *ioarea;
->>       u32                     latency;        /* maximum mpu wkup latency */
->> -     void                    (*set_mpu_wkup_lat)(struct device *dev,
->> -                                                 long latency);
->> +     struct pm_qos_request   pm_qos_request;
->>       u32                     speed;          /* Speed of bus in kHz */
->>       u32                     dtrev;          /* extra revision from DT */
->>       u32                     flags;
->> @@ -590,8 +590,16 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->>       if (r < 0)
->>               goto out;
->>
->> -     if (dev->set_mpu_wkup_lat != NULL)
->> -             dev->set_mpu_wkup_lat(dev->dev, dev->latency);
->> +     /*
->> +      * When waiting for completion of a i2c transfer, we need to
->> +      * set a wake up latency constraint for the MPU. This is to
->> +      * ensure quick enough wakeup from idle, when transfer
->> +      * completes.
->> +      */
->> +     if (dev->latency)
->> +             pm_qos_add_request(&dev->pm_qos_request,
->> +                                PM_QOS_CPU_DMA_LATENCY,
->> +                                dev->latency);
->>
->>       for (i = 0; i < num; i++) {
->>               r = omap_i2c_xfer_msg(adap, &msgs[i], (i == (num - 1)));
->> @@ -599,8 +607,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->>                       break;
->>       }
->>
->> -     if (dev->set_mpu_wkup_lat != NULL)
->> -             dev->set_mpu_wkup_lat(dev->dev, -1);
->> +     if (dev->latency)
->> +             pm_qos_remove_request(&dev->pm_qos_request);
->>
->>       if (r == 0)
->>               r = num;
->> @@ -989,7 +997,6 @@ omap_i2c_probe(struct platform_device *pdev)
->>       } else if (pdata != NULL) {
->>               dev->speed = pdata->clkrate;
->>               dev->flags = pdata->flags;
->> -             dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
->>               dev->dtrev = pdata->rev;
->>       }
->>
->> @@ -1046,10 +1053,9 @@ omap_i2c_probe(struct platform_device *pdev)
->>               else
->>                       dev->b_hw = 1; /* Enable hardware fixes */
->>
->> -             /* calculate wakeup latency constraint for MPU */
->> -             if (dev->set_mpu_wkup_lat != NULL)
->> -                     dev->latency = (1000000 * dev->fifo_size) /
->> -                                    (1000 * dev->speed / 8);
->> +             /* calculate wakeup latency constraint */
->> +             dev->latency = (1000000 * dev->fifo_size) /
->> +                            (1000 * dev->speed / 8);
->>       }
->>
->>       /* reset ASAP, clearing any IRQs */
->> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
->> index 92a0dc7..df804ba 100644
->> --- a/include/linux/i2c-omap.h
->> +++ b/include/linux/i2c-omap.h
->> @@ -34,7 +34,6 @@ struct omap_i2c_bus_platform_data {
->>       u32             clkrate;
->>       u32             rev;
->>       u32             flags;
->> -     void            (*set_mpu_wkup_lat)(struct device *dev, long set);
->>  };
->>
->>  #endif
->
+diff --git a/drivers/bus/omap_l3_noc.c b/drivers/bus/omap_l3_noc.c
+index f447e02..ab911a3 100644
+--- a/drivers/bus/omap_l3_noc.c
++++ b/drivers/bus/omap_l3_noc.c
+@@ -28,7 +28,6 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ 
+-#include "soc.h"
+ #include "omap_l3_noc.h"
+ 
+ /*
+@@ -191,7 +190,7 @@ static int __devinit omap4_l3_probe(struct platform_device *pdev)
+ 			IRQF_DISABLED, "l3-dbg-irq", l3);
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+-						9 + OMAP44XX_IRQ_GIC_START);
++						l3->debug_irq);
+ 		goto err3;
+ 	}
+ 
+@@ -201,7 +200,7 @@ static int __devinit omap4_l3_probe(struct platform_device *pdev)
+ 			IRQF_DISABLED, "l3-app-irq", l3);
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+-						10 + OMAP44XX_IRQ_GIC_START);
++						l3->app_irq);
+ 		goto err4;
+ 	}
