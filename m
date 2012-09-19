@@ -1,106 +1,65 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
- suspended.
-Date: Wed, 19 Sep 2012 14:59:35 +0300
-Message-ID: <20120919115933.GJ3772@arwen.pp.htv.fi>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
- <20120918140213.GA27463@arwen.pp.htv.fi>
- <CANOLnONC1oDN3yu=ipao2A6MfuSkZfROVPewWLLEM5fNTKipxQ@mail.gmail.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YQEH9CATo+4lan7A"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnONC1oDN3yu=ipao2A6MfuSkZfROVPewWLLEM5fNTKipxQ@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 00/15] tidspbridge driver MMU-related cleanups
+Date: Wed, 19 Sep 2012 14:06:48 +0200
+Message-ID: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35800 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab2ISMGa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 08:06:30 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 
+Hello,
 
---YQEH9CATo+4lan7A
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here's the second version of my tidspbridge MMU-related cleanup patches. The
+first version has been sent privately only, don't try to search the mailing
+list archive for it :-)
 
-On Wed, Sep 19, 2012 at 02:52:18PM +0300, Grazvydas Ignotas wrote:
-> On Tue, Sep 18, 2012 at 5:02 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Tue, Sep 18, 2012 at 06:10:50PM +0530, Sourav Poddar wrote:
-> >> Greg's tty-next is not booting on 2420 based N800. The failure is
-> >> observed at serial init itself. The reason might be that n800 tries to
-> >> resume even though it is not suspended before.
-> >>
-> >> Reported-by: Paul Walmsley <paul@pwsan.com>
-> >> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
-> >
-> > FWIW:
-> >
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> >
-> > Paul does this fix the issue for you ? Note that it depends on a
-> > previous patch Sourav sent [1]
-> >
-> > [1] http://marc.info/?l=3Dlinux-omap&m=3D134796819607889&w=3D2
-> >
-> > There's one thing that gets my attention, though, why only n800 would
-> > fail here ?
-> >
-> > I wonder if we should be using:
-> >
-> > pm_runtime_set_active(dev);
-> > pm_runtime_get_enable(dev);
-> >
-> > to prevent our runtime_resume() to be called from probe, but Sourav
-> > tested and it doesn't work on BeagleBoard, but it works on PandaBoard.
-> >
-> > Does it ring any bell ??
->=20
-> Well I guess it's normal resume callback is called during probe as
-> pm_runtime_get_sync() is called there, and according to documentation
-> [1], devices are assumed to be suspended before probe is called.
->=20
-> According to [1], pm_runtime_set_active() should be called before
-> pm_runtime_enable() to indicate to the core that device is active
-> during probe if that's the case, I guess this means
-> pm_runtime_get_sync() is not needed in that case, but I'm not sure
-> what's the actual serial state during probe nowadays.
->=20
-> [1] chapter 5 of Documentation/power/runtime_pm.txt:
-> The initial runtime PM status of all devices is 'suspended', but it
-> need not reflect the actual physical state of the device. Thus, if the
-> device is initially active (i.e. it is able to process I/O), its
-> runtime PM status must be changed to 'active', with the help of
-> pm_runtime_set_active(), before pm_runtime_enable() is called for the
-> device.
+Replacing hw/hw_mmu.c and part of core/tiomap3430.c with generic IOMMU calls
+should be less difficult now. Anyone would like to give it a try?
 
-this is what I mean, actually. If we remove pm_runtime_get_sync() in
-exchange for pm_runtime_set_active() before pm_runtime_enable(), it
-works on PandaBoard, but breaks BeagleBoard.
+Laurent Pinchart (14):
+  tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
+  tidspbridge: hw_mmu: Removed unused functions
+  tidspbridge: tiomap3430: Reorder functions to avoid forward
+    declarations
+  tidspbridge: tiomap3430: Remove unneeded dev_context local variables
+  tidspbridge: tiomap3430: Factor out common page release code
+  tidspbridge: tiomap3430: Remove ul_ prefix
+  tidspbridge: tiomap3430: Remove unneeded local variables
+  tidspbridge: Fix VM_PFNMAP mapping
+  tidspbridge: Remove unused hw_mmu_map_attrs_t::donotlockmpupage field
+  arm: omap: iommu: Include required headers in iommu.h and iopgtable.h
+  tidspbridge: Use constants defined in IOMMU platform headers
+  tidspbridge: Simplify pte_update and mem_map_vmalloc functions
+  tidspbridge: Use correct types to describe physical, MPU, DSP
+    addresses
+  tidspbridge: Replace hw_mmu_map_attrs_t structure with a prot
+    bitfield
 
---=20
-balbi
+Omar Ramirez Luna (1):
+  ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
 
---YQEH9CATo+4lan7A
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+ arch/arm/plat-omap/include/plat/iommu.h            |    6 +
+ arch/arm/plat-omap/include/plat/iopgtable.h        |    2 +
+ drivers/staging/tidspbridge/core/io_sm.c           |    7 +-
+ drivers/staging/tidspbridge/core/tiomap3430.c      | 1484 +++++++++-----------
+ drivers/staging/tidspbridge/core/tiomap_io.c       |    2 +-
+ drivers/staging/tidspbridge/core/ue_deh.c          |   21 +-
+ drivers/staging/tidspbridge/hw/hw_defs.h           |   22 -
+ drivers/staging/tidspbridge/hw/hw_mmu.c            |  332 ++----
+ drivers/staging/tidspbridge/hw/hw_mmu.h            |   67 +-
+ .../staging/tidspbridge/include/dspbridge/drv.h    |    1 +
+ .../tidspbridge/include/dspbridge/dspdefs.h        |   27 +-
+ .../tidspbridge/include/dspbridge/dspioctl.h       |   25 +
+ drivers/staging/tidspbridge/rmgr/proc.c            |  119 +-
+ 13 files changed, 899 insertions(+), 1216 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+-- 
+Regards,
 
-iQIcBAEBAgAGBQJQWbOlAAoJEIaOsuA1yqREtwIP/RpKtgRZ9Sory+BdUUkdW9MS
-fBR4WfhE0zg0HIjWA4SOy8gg0IbjU74cJBWdoqLXTKiDr77PTiqp9AKiEjGu7TiU
-n7V1ss+G5HsDzKKgzCwu5cjlswdhVu+xQw8Jk7cJQCS1nLA/bb548qrbV4dl4k3M
-b5HvjUsvIEFk9+Trf/Sou1oKQ8rPWyTGzTj0TRCHMdkNAPEq4RD61elB1FEt5GC2
-V+JIXlVTULiGfecVTPGfIY6EHumQYLS2YhYAtUwqWymKxAXGmR75olNgY3OLjv8Z
-/a+8BgW/o7y1PWWcH4LMeeI7Mb5YWntepKK/i/4cQOSC9XyLNBizBT++YfrcqsLb
-PAmhcjNBS/ydUf4BAQ4/1nAigG5oX+EVI881QrHMRj5ehBq2l7YpCccY4hc1tpV3
-3hDz6lgjH+l7B98CjskWjI1gt6wrXBrictxlYtd+tPeTYcNL9JhVVC4t57IjX4eR
-nJHgz7blAn55WQE8ijgkhvcE4siy099qRX0bHI4cPy0ehng+cQVnagTTcKGWYR5W
-5N+GrTd5pBu7VxGsB8ApQnDdeImtr2OJwARYa/GsKVInUHCUIOu4Gb9ClU6+1VMv
-b0DdCjfFmhhB2ePzPD6wzAedyI8lz7wpO2qmq+ivihyAc+MM9zapQ//TfOXUO+sW
-aJRzsVfC386bPVNsQYwl
-=+HId
------END PGP SIGNATURE-----
+Laurent Pinchart
 
---YQEH9CATo+4lan7A--
