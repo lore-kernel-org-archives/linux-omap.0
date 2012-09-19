@@ -1,110 +1,106 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] usb: phy: omap-usb2: enable 960Mhz clock for omap5
-Date: Wed, 19 Sep 2012 14:56:49 +0300
-Message-ID: <20120919115647.GI3772@arwen.pp.htv.fi>
-References: <1348054229-27362-1-git-send-email-kishon@ti.com>
- <1348054229-27362-5-git-send-email-kishon@ti.com>
+Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
+ suspended.
+Date: Wed, 19 Sep 2012 14:59:35 +0300
+Message-ID: <20120919115933.GJ3772@arwen.pp.htv.fi>
+References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com>
+ <20120918140213.GA27463@arwen.pp.htv.fi>
+ <CANOLnONC1oDN3yu=ipao2A6MfuSkZfROVPewWLLEM5fNTKipxQ@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J2uG6jHjFLimDtBY"
-Return-path: <linux-doc-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="YQEH9CATo+4lan7A"
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1348054229-27362-5-git-send-email-kishon@ti.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, rob@landley.net, linux@arm.linux.org.uk, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CANOLnONC1oDN3yu=ipao2A6MfuSkZfROVPewWLLEM5fNTKipxQ@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: balbi@ti.com, Sourav Poddar <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
 
---J2uG6jHjFLimDtBY
+--YQEH9CATo+4lan7A
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 19, 2012 at 05:00:29PM +0530, Kishon Vijay Abraham I wrote:
-> "usb_otg_ss_refclk960m" is needed by usb2 phy present in omap5. For
-> omap4, the clk_get of this clock will fail since it does not have this
-> clock.
+On Wed, Sep 19, 2012 at 02:52:18PM +0300, Grazvydas Ignotas wrote:
+> On Tue, Sep 18, 2012 at 5:02 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Tue, Sep 18, 2012 at 06:10:50PM +0530, Sourav Poddar wrote:
+> >> Greg's tty-next is not booting on 2420 based N800. The failure is
+> >> observed at serial init itself. The reason might be that n800 tries to
+> >> resume even though it is not suspended before.
+> >>
+> >> Reported-by: Paul Walmsley <paul@pwsan.com>
+> >> Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+> >
+> > FWIW:
+> >
+> > Reviewed-by: Felipe Balbi <balbi@ti.com>
+> >
+> > Paul does this fix the issue for you ? Note that it depends on a
+> > previous patch Sourav sent [1]
+> >
+> > [1] http://marc.info/?l=3Dlinux-omap&m=3D134796819607889&w=3D2
+> >
+> > There's one thing that gets my attention, though, why only n800 would
+> > fail here ?
+> >
+> > I wonder if we should be using:
+> >
+> > pm_runtime_set_active(dev);
+> > pm_runtime_get_enable(dev);
+> >
+> > to prevent our runtime_resume() to be called from probe, but Sourav
+> > tested and it doesn't work on BeagleBoard, but it works on PandaBoard.
+> >
+> > Does it ring any bell ??
 >=20
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> ---
->  Documentation/devicetree/bindings/usb/usb-phy.txt |    3 +++
->  drivers/usb/phy/omap-usb2.c                       |   28 +++++++++++++++=
-+++++-
->  2 files changed, 30 insertions(+), 1 deletion(-)
+> Well I guess it's normal resume callback is called during probe as
+> pm_runtime_get_sync() is called there, and according to documentation
+> [1], devices are assumed to be suspended before probe is called.
 >=20
-> diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Document=
-ation/devicetree/bindings/usb/usb-phy.txt
-> index 7c5fd89..d5626de 100644
-> --- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-> +++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
-> @@ -24,6 +24,9 @@ Required properties:
->  add the address of control module phy power register until a driver for
->  control module is added
-> =20
-> +Optional properties:
-> + - has960mhzclk: should be added if the phy needs 960mhz clock
-> +
->  This is usually a subnode of ocp2scp to which it is connected.
-> =20
->  usb3phy@4a084400 {
-> diff --git a/drivers/usb/phy/omap-usb2.c b/drivers/usb/phy/omap-usb2.c
-> index d36c282..d6612ba 100644
-> --- a/drivers/usb/phy/omap-usb2.c
-> +++ b/drivers/usb/phy/omap-usb2.c
-> @@ -146,6 +146,7 @@ static int __devinit omap_usb2_probe(struct platform_=
-device *pdev)
->  	struct omap_usb			*phy;
->  	struct usb_otg			*otg;
->  	struct resource			*res;
-> +	struct device_node		*np =3D pdev->dev.of_node;
-> =20
->  	phy =3D devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->  	if (!phy) {
-> @@ -190,6 +191,15 @@ static int __devinit omap_usb2_probe(struct platform=
-_device *pdev)
->  	}
->  	clk_prepare(phy->wkupclk);
-> =20
-> +	if (of_property_read_bool(np, "has960mhzclk")) {
-> +		phy->optclk =3D devm_clk_get(phy->dev, "usb_otg_ss_refclk960m");
-> +		if (IS_ERR(phy->optclk)) {
-> +			dev_err(&pdev->dev, "unable to get refclk960m\n");
-> +			return PTR_ERR(phy->optclk);
-> +		}
-> +		clk_prepare(phy->optclk);
-> +	}
+> According to [1], pm_runtime_set_active() should be called before
+> pm_runtime_enable() to indicate to the core that device is active
+> during probe if that's the case, I guess this means
+> pm_runtime_get_sync() is not needed in that case, but I'm not sure
+> what's the actual serial state during probe nowadays.
+>=20
+> [1] chapter 5 of Documentation/power/runtime_pm.txt:
+> The initial runtime PM status of all devices is 'suspended', but it
+> need not reflect the actual physical state of the device. Thus, if the
+> device is initially active (i.e. it is able to process I/O), its
+> runtime PM status must be changed to 'active', with the help of
+> pm_runtime_set_active(), before pm_runtime_enable() is called for the
+> device.
 
-instead, can't you just always try to get the clock but ignore the error
-if it fails ?
-
-If it works you can set a flag to let you know that you can use that
-optional clock.
+this is what I mean, actually. If we remove pm_runtime_get_sync() in
+exchange for pm_runtime_set_active() before pm_runtime_enable(), it
+works on PandaBoard, but breaks BeagleBoard.
 
 --=20
 balbi
 
---J2uG6jHjFLimDtBY
+--YQEH9CATo+4lan7A
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQWbL/AAoJEIaOsuA1yqREtrUP/2PImIswhxKJFOZKryi1J5i9
-GaPsZarphgZle12njovv8uECnzUxuxfCwYQWPnP8KnQpMnya6AsW+YbWDMun0hc7
-Wcefsg7187QQrsChrLG+ap7X1uiz3sdLv1AMIJ0+uIUkcUica5d77sOofd/iAERm
-WB8y5sLgF7tZ00XE6+7PpoFtvwkF9atFM6T6943vJrISPkKXxA/Sli2vXH/X3w7P
-7KyJZayhDJdmcOiWuJuAlO9rBzux3ebXTanx7kP2MOFAMgTKuQzSaPR+38ib+qS0
-vTf34vFv1s7NJTsvYUQ9b+/VG89bHKO9Yxmb7dq/26qPHclqSI500rZclo8Fjyzl
-hvGZF8qqxIOWRMSdJdP23RSX7MCgQnMEygO/G9Nb4nIpA7EWjKusi3CQB1peo04j
-VIHc3fQKLWVy/FaHH8Gy24hQRR/kaFXoLzLOtgSIaqxnoT1HXooj9nN45u1ZEoj0
-DQKC5rJX+jnjoYU6IJgQqyBGBCYlpBPoiQq9TtlbX4zgyQ5svNU64y9upNQhcjSL
-G3bMYbtZMc6PKBh5Z3/O+/fxZbg8DH96LuNJcxWGgNWSRNNiYKesIbrxjlnuhkA7
-aAopJtJdhxTHpy0qso5GdZnJXO5ZZ/ZHbuMvrkiN/BvDwhguANaMjWpVstc+RlIh
-KMwBS2ETHqITdOm65YMA
-=oCi/
+iQIcBAEBAgAGBQJQWbOlAAoJEIaOsuA1yqREtwIP/RpKtgRZ9Sory+BdUUkdW9MS
+fBR4WfhE0zg0HIjWA4SOy8gg0IbjU74cJBWdoqLXTKiDr77PTiqp9AKiEjGu7TiU
+n7V1ss+G5HsDzKKgzCwu5cjlswdhVu+xQw8Jk7cJQCS1nLA/bb548qrbV4dl4k3M
+b5HvjUsvIEFk9+Trf/Sou1oKQ8rPWyTGzTj0TRCHMdkNAPEq4RD61elB1FEt5GC2
+V+JIXlVTULiGfecVTPGfIY6EHumQYLS2YhYAtUwqWymKxAXGmR75olNgY3OLjv8Z
+/a+8BgW/o7y1PWWcH4LMeeI7Mb5YWntepKK/i/4cQOSC9XyLNBizBT++YfrcqsLb
+PAmhcjNBS/ydUf4BAQ4/1nAigG5oX+EVI881QrHMRj5ehBq2l7YpCccY4hc1tpV3
+3hDz6lgjH+l7B98CjskWjI1gt6wrXBrictxlYtd+tPeTYcNL9JhVVC4t57IjX4eR
+nJHgz7blAn55WQE8ijgkhvcE4siy099qRX0bHI4cPy0ehng+cQVnagTTcKGWYR5W
+5N+GrTd5pBu7VxGsB8ApQnDdeImtr2OJwARYa/GsKVInUHCUIOu4Gb9ClU6+1VMv
+b0DdCjfFmhhB2ePzPD6wzAedyI8lz7wpO2qmq+ivihyAc+MM9zapQ//TfOXUO+sW
+aJRzsVfC386bPVNsQYwl
+=+HId
 -----END PGP SIGNATURE-----
 
---J2uG6jHjFLimDtBY--
+--YQEH9CATo+4lan7A--
