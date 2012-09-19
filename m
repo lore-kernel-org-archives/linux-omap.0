@@ -1,68 +1,70 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP2+: hwmod code: convert missing clockdomain
- warnings to debug messages
-Date: Wed, 19 Sep 2012 17:58:40 -0500
-Message-ID: <505A4E20.5040903@ti.com>
-References: <20120918211146.16484.85893.stgit@dusk.lan> <20120918211251.16484.18401.stgit@dusk.lan> <5058ECAF.7010609@ti.com> <alpine.DEB.2.00.1209192247250.8278@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] PM / Runtime: let rpm_resume() succeed if RPM_ACTIVE, even when disabled
+Date: Wed, 19 Sep 2012 16:39:50 -0700
+Message-ID: <1348097990-5956-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50576 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752436Ab2ISW6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 18:58:44 -0400
-In-Reply-To: <alpine.DEB.2.00.1209192247250.8278@utopia.booyaka.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:60519 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752979Ab2ISXjw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 19:39:52 -0400
+Received: by pbbrr13 with SMTP id rr13so3663822pbb.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Sep 2012 16:39:52 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>
 
-Hi Paul,
+From: Kevin Hilman <khilman@ti.com>
 
-On 9/19/2012 5:48 PM, Paul Walmsley wrote:
-> Hi Beno=C3=AEt,
->
-> On Tue, 18 Sep 2012, Cousson, Benoit wrote:
->
->> On 9/18/2012 4:12 PM, Paul Walmsley wrote:
->>> The decision was made a few months ago to allow struct omap_hwmod
->>> records and struct clk records to omit clockdomain information if t=
-he
->>> clockdomain is not software-controllable.  See for example commit
->>> 868c157df9721675c19729eed2c96bac6c3f1d01 ("ARM: OMAP2+: hwmod: remo=
-ve
->>> prm_clkdm, cm_clkdm; allow hwmods to have no clockdomain").
->>>
->>> So convert an existing pr_warning() to a pr_debug() (regarding miss=
-ing
->>> clockdomains in clocks), and add a pr_debug() for missing hwmod
->>> clockdomains.
->>
->> At some point I sent you a small RFC to still keep the message if ne=
-ither
->> oh->clkdm nor oh->_clk->clkdm was there. I've never had the time to =
-test it,
->> but that should then cover OMAP2, 3 & 4 cases.
->
-> OK let's plan to test and add something like that during the 3.8 time
-> frame... probably it should also depend on the value of clkdm_control=
-=2E
-> It's not clear to me exactly what that conditional should look like..=
-=2E
+When runtime PM is disabled, what we want is for callbacks not to be
+called from then on.  However, currently, when runtime PM is disabled,
+operations such as 'get' will also fail even if the device is
+currently active.
 
-OK, I was thinking of a more basic thing. If some more values have to b=
-e=20
-checked it might be a little bit more tricky.
+Since calling 'get' on a device that is already RPM_ACTIVE does not
+involve calling the callbacks, it should be allowed to succeed, even
+if runtime PM is disabled.
 
-Let's see that later.
+This is particularily useful in runtime PM enabled drivers that are
+used during system suspend.  Because runtime PM is disabled during
+system suspend, currently any driver's use of pm_runtime_get* will
+fail with -EACCES.  This is expected if the device was already runtime
+suspended, but if the device is actually active (due to recent usage,
+autosuspend timeout not expired, or pm_runtime_resume() called in
+->suspend() method), the pm_runtime_get*() call should actually
+succeed.
 
-Thanks,
-Benoit
+To permit the usage described above, add a check to rpm_resume() so
+that success is returned in the case where a driver is suspended (it's
+->suspend callback has been called) but is still RPM_ACTIVE.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch was developed in close collaboration with Rafael J. Wysocki
+<rjw@sisk.pl>
+
+Tested on AM3730/Beagle-xM where wakeup IRQ firing during the late
+suspend phase triggers runtime PM activity in the I2C driver since the
+wakeup IRQ is on an I2C-connected PMIC.
+
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/base/power/runtime.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 7d9c1cb..dafa5ec 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -510,7 +510,8 @@ static int rpm_resume(struct device *dev, int rpmflags)
+ 	if (dev->power.runtime_error)
+ 		retval = -EINVAL;
+ 	else if (dev->power.disable_depth > 0)
+-		retval = -EACCES;
++		retval = dev->power.is_suspended && 
++			dev->power.runtime_status == RPM_ACTIVE ? 1 : -EACCES;
+ 	if (retval)
+ 		goto out;
+ 
+-- 
+1.7.9.2
+
