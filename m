@@ -1,50 +1,38 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 2/4] mfd: introduce retu-mfd driver
-Date: Wed, 19 Sep 2012 18:02:30 +0200
-Message-ID: <20120919160230.GK28670@sortiz-mobl>
-References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
- <1346703805-31598-3-git-send-email-aaro.koskinen@iki.fi>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: AW: USB problem on beagleboard clone
+Date: Wed, 19 Sep 2012 16:07:29 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209191557210.5264@utopia.booyaka.com>
+References: <5448984682E7954C9BFF27F747A9C6CA56E33A@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49309 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756364Ab2ISQCk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 12:02:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1346703805-31598-3-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E33A-pd0mJjIfunmL041gAgtUOYT4S9po1h25@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Maximilian Schwerin <Maximilian.Schwerin-Uf0zVKHSUsGzQB+pC5nmwQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Aaro,
+On Wed, 19 Sep 2012, Maximilian Schwerin wrote:
 
-On Mon, Sep 03, 2012 at 11:23:23PM +0300, Aaro Koskinen wrote:
-> Retu is a multi-function device found on Nokia Internet Tablets
-> implementing at least watchdog, RTC, headset detection and power button
-> functionality.
-> 
-> This patch implements minimum functionality providing register access,
-> IRQ handling and power off functions.
-> 
-> Cc: sameo@linux.intel.com
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> ---
->  drivers/mfd/Kconfig      |    8 +
->  drivers/mfd/Makefile     |    1 +
->  drivers/mfd/retu-mfd.c   |  347 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/mfd/retu.h |   22 +++
->  4 files changed, 378 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/mfd/retu-mfd.c
->  create mode 100644 include/linux/mfd/retu.h
-Now with the IRQ chip code, using the regmap APIs would be even more
-benefitial.
+> They're BeagleBoard XM clones. We're still trying to find out what the 
+> real problem is. The problem persists across three separate layouts 
+> using the same USB device and application. We're currently trying to see 
+> if this is related to MUSB only by using an EHCI port on the same board 
+> with the same device and application.
 
-Cheers,
-Samuel.
+Perhaps you might try this patch:
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+http://marc.info/?l=linux-omap&m=132976109928744&w=2
+
+Background is here:
+
+http://comments.gmane.org/gmane.linux.ports.arm.omap/71633
+
+The patch is for an EHCI issue, but MUSB is clocked from the same DPLL.
+
+
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
