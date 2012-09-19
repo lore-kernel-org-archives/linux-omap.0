@@ -1,54 +1,47 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH V6 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 19 Sep 2012 14:50:40 +0000
-Message-ID: <201209191450.40360.arnd@arndb.de>
-References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com>
- <5059D874.6040107@gmail.com> <20120919144040.GC16522@beef>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
+Date: Wed, 19 Sep 2012 14:58:00 +0000
+Message-ID: <201209191458.00531.arnd@arndb.de>
+References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com> <20120917215128.GF11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120919144040.GC16522@beef>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, device-tree <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-arm <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:63976 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753100Ab2ISO6J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 10:58:09 -0400
+In-Reply-To: <20120917215128.GF11762@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Wednesday 19 September 2012, Matt Porter wrote:
-> On Wed, Sep 19, 2012 at 09:36:36AM -0500, Rob Herring wrote:
-> > On 09/19/2012 09:24 AM, Arnd Bergmann wrote:
-> > > On Wednesday 19 September 2012, Matt Porter wrote:
-> > >>> +Optional properties:
-> > >>> +- #dma-channels:     Number of DMA channels supported by the controller.
-> > >>> +- #dma-requests:     Number of DMA requests signals supported by the
-> > >>> +                     controller.
-> > >>
-> > >> Shouldn't these two optional properties drop the prefix #?  By
-> > >> convention adopted from the various original OF/ePAPR/etc specs, the
-> > >> only properties I would expect to see with this prefix are the
-> > >> "*-cells" cell sizes. A quick search indicates this is the case
-> > >> throughout all the current bindings.
-> > > 
-> > > I always assumed that the # prefix is used to indicate that we are counting
-> > > things instead of listing them.
+On Monday 17 September 2012, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
+> > OMAP interconnect drivers are used for the interconnect error handling.
+> > Since they are bus driver, lets move it to newly created drivers/bus.
 > > 
-> > Lots of properties count things, but don't have a #. nr_gpios or spi
-> > chipselect counts for example. I'd say drop the #.
+> > Cc: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> > Patch just moves OMAP interconnect drivers as is to the newly created
+> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
+> > tree and test on all OMAP boards.
 > 
-> Ok, I can drop another trivial patch since I hear Jon is on vacation.
+> Great, looks like this should not conflict with other
+> omap patches queued, so Arnd should probably take this into
+> the bus branch:
 > 
-> Yeah, I grepped all the bindings and it's only ever encountered on cell
-> sizes. There's not even one example of it used as above.
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Ok, sounds good.
+Ok, added to the branch. In the future please Cc both Olof and me when submitting
+patches for inclusion.
+
+Olof: I figured it would be easier if I just add this one than relaying it to
+you.
 
 	Arnd
