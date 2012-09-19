@@ -1,67 +1,46 @@
-From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 0/3] MFD/GPIO: Add twl6040 GPO driver
-Date: Wed, 19 Sep 2012 12:22:00 +0200
-Message-ID: <20120919102200.GI3647@sortiz-mobl>
-References: <1345119195-7490-1-git-send-email-peter.ujfalusi@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V6 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 19 Sep 2012 11:09:16 +0000
+Message-ID: <201209191109.16529.arnd@arndb.de>
+References: <1347662517-4210-1-git-send-email-jon-hunter@ti.com> <201209172042.11860.arnd@arndb.de> <5058F35A.8040702@firmworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1345119195-7490-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:59689 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab2ISLJ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 07:09:29 -0400
+In-Reply-To: <5058F35A.8040702@firmworks.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mitch Bradley <wmb@firmworks.com>
+Cc: linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Vinod Koul <vinod.koul@intel.com>, device-tree <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, linux-omap <linux-omap@vger.kernel.org>, Alexander Schulz <alex@shark-linux.de>
 
-Hi Peter,
+On Tuesday 18 September 2012, Mitch Bradley wrote:
+> There is a delicious irony here with respect to Shark.  Shark has real
+> Open Firmware.  It's the platform that I used for the first OFW port to
+> ARM.  We (the Shark design team) had a version of NetBSD that would run
+> on Shark without any native drivers, calling into the Open Firmware
+> drivers.  It was very useful for bringup.
 
-On Thu, Aug 16, 2012 at 03:13:12PM +0300, Peter Ujfalusi wrote:
-> Hello,
-> 
-> Changes since v1:
-> - Removed the ti,use-gpo property from DT bindings
-> - Register the GPO driver if we booted with DT blob or in legacy if the pdata
->   for the GPO driver is present
-> - DT binding Documentation update
-> 
-> The Documentation update has reference to the twl6040.dtsi file which will be
-> created to hold the common/static properties for the twl6040.
-> To avoid cross tree merge issues later I have only included the Documentation
-> update to this series and I will send the actual .dtsi/.dts changes via
-> linux-omap. If this is not a problem.
-> 
-> The dependencies for this series are in mainline and I think this series can
-> go via GPIO if Samuel agrees with the changes.
-> 
-> Intro mail from v1:
-> 
-> The following series adds support for the GPO (General Purpose Output) on the
-> twl6040/41 audio chip.
-> The series has been tested on SDP4430, compile tested for x86_64 and x86_32 bit
-> to be sure it does not introduce build breakage.
-> 
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (3):
->   mfd: twl6040: Fix GPO mask
->   mfd: twl6040: Add twl6040-gpio child
->   gpio: Add basic support for TWL6040 GPOs
-All 3 patches applied, thanks.
+Very interesting, thanks for sharing this bit of history. Are you aware
+of other ARM systems using open firmware that we still support in Linux
+(besides the XO-1.75)?
 
-Cheers,
-Samuel.
+> Is there ever a point when old architectures leave the Linux tree, or
+> will people have to see grep hits from them until the end of time?
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+As long as someone is interested in keeping an architecture or driver
+alive, it stays. If something is causing problems and we have reason
+to assume it will never be used again with current kernels, we toss
+them out. Russell has recently removed support for ARMv3 CPUs, but
+some of the StrongARM targets (especially SA-1100) are still being
+actively used, so the CPU support is not going away any time soon.
+
+If you have a bunch of Shark machines for testing and would like to
+port it over to device tree passing from its open firmware, you are
+definitely welcome ;-)
+
+	Arnd
