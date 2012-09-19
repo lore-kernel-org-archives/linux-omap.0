@@ -1,56 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFT/PATCH] serial: omap: prevent resume if device is not
- suspended.
-Date: Tue, 18 Sep 2012 22:57:08 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209182255500.4747@utopia.booyaka.com>
-References: <1347972050-3509-1-git-send-email-sourav.poddar@ti.com> <20120918140213.GA27463@arwen.pp.htv.fi>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v4 00/14] MFD/ASoC/Input: twl4030-audio submodule DT
+ support
+Date: Wed, 19 Sep 2012 02:24:39 +0200
+Message-ID: <20120919002439.GB3647@sortiz-mobl>
+References: <1347273992-9107-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120918140213.GA27463@arwen.pp.htv.fi>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>, khilman@ti.com
-Cc: Sourav Poddar <sourav.poddar@ti.com>, gregkh@linuxfoundation.org, alan@linux.intel.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, santosh.shilimkar@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1347273992-9107-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: "devicetree-discuss"
+ <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
+Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 18 Sep 2012, Felipe Balbi wrote:
+Hi Peter,
 
-> On Tue, Sep 18, 2012 at 06:10:50PM +0530, Sourav Poddar wrote:
-> > Greg's tty-next is not booting on 2420 based N800. The failure is
-> > observed at serial init itself. The reason might be that n800 tries to
-> > resume even though it is not suspended before.
-> > 
-> > Reported-by: Paul Walmsley <paul@pwsan.com>
-> > Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+On Mon, Sep 10, 2012 at 01:46:18PM +0300, Peter Ujfalusi wrote:
+> Hello,
 > 
-> FWIW:
-> 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
-> 
-> Paul does this fix the issue for you ? Note that it depends on a
-> previous patch Sourav sent [1]
-> 
-> [1] http://marc.info/?l=linux-omap&m=134796819607889&w=2
+> Generated on top of:
+> git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/omap
+I applied the first 8 patches, but I'd like to get Mark's ACK for the rest of
+the serie.
+Unless you're expecting Mark to take the whole thing, in which case you can
+add my:
 
-Yes, thanks - that fixes it,
+Acked-by: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-Tested-by: Paul Walmsley <paul@pwsan.com>
+to the MFD patches.
+Please let me know how you'd like to proceed.
 
-> There's one thing that gets my attention, though, why only n800 would
-> fail here ?
-> 
-> I wonder if we should be using:
-> 
-> pm_runtime_set_active(dev);
-> pm_runtime_get_enable(dev);
-> 
-> to prevent our runtime_resume() to be called from probe, but Sourav
-> tested and it doesn't work on BeagleBoard, but it works on PandaBoard.
-> 
-> Does it ring any bell ??
+Cheers,
+Samuel.
 
-Nothing off the top of my head but haven't looked into it -- maybe this 
-rings a bell with Kevin?
-
-
-- Paul
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
