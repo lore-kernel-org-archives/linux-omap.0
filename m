@@ -1,53 +1,46 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH RESEND 0/5] ARM: dts: AM33XX: Add device tree data
-Date: Wed, 19 Sep 2012 16:36:46 -0500
-Message-ID: <505A3AEE.8060408@ti.com>
-References: <1348089570-16161-1-git-send-email-anilkumar@ti.com> <B7CE1C39EBFBA0428A012975D4B2FC830B5DF78F@DNCE05.ent.ti.com> <alpine.DEB.2.00.1209192124570.5264@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] serial: omap: Remove unnecessary checks from suspend/resume
+Date: Wed, 19 Sep 2012 14:43:17 -0700
+Message-ID: <87r4pxelje.fsf@deeprootsystems.com>
+References: <1347968154-27997-1-git-send-email-sourav.poddar@ti.com>
+	<20120918113444.GG24047@arwen.pp.htv.fi>
+	<CAKdam56UKpc3icL7J7+Om=5Qk_P4ckWM+XY5E+GFvXieAAxjyA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46632 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752335Ab2ISVgw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Sep 2012 17:36:52 -0400
-In-Reply-To: <alpine.DEB.2.00.1209192124570.5264@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAKdam56UKpc3icL7J7+Om=5Qk_P4ckWM+XY5E+GFvXieAAxjyA@mail.gmail.com>
+	(Sourav Poddar's message of "Tue, 18 Sep 2012 17:14:15 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Poddar, Sourav" <sourav.poddar@ti.com>
+Cc: balbi@ti.com, gregkh@linuxfoundation.org, alan@linux.intel.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 9/19/2012 4:26 PM, Paul Walmsley wrote:
-> Hi Beno=EEt
+"Poddar, Sourav" <sourav.poddar@ti.com> writes:
+
+> Hi Felipe,
 >
-> On Wed, 19 Sep 2012, Cousson, Benoit wrote:
->
->> Thanks for the rebase / repost. I'll pulled the full series if Paul =
-is OK with
->>    ARM: OMAP2+: AM33XX: Add clock entries to omap_clk data
+> On Tue, Sep 18, 2012 at 5:04 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> On Tue, Sep 18, 2012 at 05:05:54PM +0530, Sourav Poddar wrote:
+>>> Drop the check for "up" being valid on suspend/resume callbacks.
+>>> It should be valid always. Get rid of the "pdata" check also as
+>>> serial_omap_get_context_loss_count() checks for it.
+>>>
+>>> Tested on omap4 panda and 3630 based Beagle board.
 >>
->> Paul,
->> Is that OK?
->
-> Looks to me like the clock change is unrelated to the DTS changes?  B=
-est
-> thing would be if you could just take the DTS changes and I'll take t=
-he
-> clkdev alias change.
+>> you need a blank line here. Other than that:
+>>
+>> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>>
+>> ps: what kind of tests did you run, btw ?
+>>
+> Boot tested on Panda.
+> Boot and PM tested(hitiing Off) on Beagle.
 
-Good point, it can be separated.
+What does "PM tested" mean.  hitting off in idle?  hitting off in
+suspend?  both?
 
-> Otherwise if that doesn't work I can ack it, but there might be some
-> conflicts with other clkdev data changes.
+Please clarify.
 
-No problem, that's fine for me.
+Thanks,
 
-Regards,
-Benoit
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
