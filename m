@@ -1,49 +1,70 @@
-From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] MFD/ASoC/Input: twl4030-audio submodule DT
- support
-Date: Wed, 19 Sep 2012 02:24:39 +0200
-Message-ID: <20120919002439.GB3647@sortiz-mobl>
-References: <1347273992-9107-1-git-send-email-peter.ujfalusi@ti.com>
+From: Omar Ramirez Luna <omar.luna@linaro.org>
+Subject: Re: [PATCH v2 7/9] ARM: OMAP: iommu: optimize save and restore routines
+Date: Tue, 18 Sep 2012 19:53:34 -0500
+Message-ID: <CALLhW=6p1kJ4PpB-SBnj-mJ+b-e+pAo-ApZhp0edtkD+229FpA@mail.gmail.com>
+References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
+	<1347479152-588-8-git-send-email-omar.luna@linaro.org>
+	<20120918180430.GV11762@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1347273992-9107-1-git-send-email-peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>
-Cc: Tero Kristo <t-kristo-l0cyMroinI0@public.gmane.org>, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liam Girdwood <lrg-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <20120918180430.GV11762@atomide.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Joerg Roedel <joerg.roedel@amd.com>, Russell King <linux@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Peter,
+Hi Tony,
 
-On Mon, Sep 10, 2012 at 01:46:18PM +0300, Peter Ujfalusi wrote:
-> Hello,
-> 
-> Generated on top of:
-> git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git topic/omap
-I applied the first 8 patches, but I'd like to get Mark's ACK for the rest of
-the serie.
-Unless you're expecting Mark to take the whole thing, in which case you can
-add my:
+On 18 September 2012 13:04, Tony Lindgren <tony@atomide.com> wrote:
+> * Omar Ramirez Luna <omar.luna@linaro.org> [120912 12:47]:
+>> --- a/arch/arm/plat-omap/include/plat/iommu.h
+>> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+>> @@ -27,6 +27,13 @@ struct iotlb_entry {
+>>       };
+>>  };
+>>
+>> +/* context registers */
+>> +struct iommu_regs {
+>> +     u32 irqen;
+>> +     u32 cntl;
+>> +     u32 ttb;
+>> +};
+>> +
+>>  struct omap_iommu {
+>>       const char      *name;
+>>       struct module   *owner;
+>> @@ -50,7 +57,8 @@ struct omap_iommu {
+>>       struct list_head        mmap;
+>>       struct mutex            mmap_lock; /* protect mmap */
+>>
+>> -     void *ctx; /* iommu context: registres saved area */
+>> +     struct iommu_regs context;
+>> +     int ctx_loss_cnt;
+>>       u32 da_start;
+>>       u32 da_end;
+>>  };
+>> --- a/arch/arm/plat-omap/include/plat/iommu2.h
+>> +++ b/arch/arm/plat-omap/include/plat/iommu2.h
+>> @@ -35,8 +35,6 @@
+>>  #define MMU_READ_RAM         0x6c
+>>  #define MMU_EMU_FAULT_AD     0x70
+>>
+>> -#define MMU_REG_SIZE         256
+>> -
+>>  /*
+>>   * MMU Register bit definitions
+>>   */
+>
+> These headers should be moved to include/linux/platform_data/iommu-omap.h
+> or something like that. Care to take care of that too?
+>
+> I guess there's no reason to have both iommu.h and iommuh2.h?
 
-Acked-by: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Agree, can this be made as part of a separate cleanup series? I was
+hoping these could make it for 3.7 so we could have a usable rpmsg for
+omap4.
 
-to the MFD patches.
-Please let me know how you'd like to proceed.
+Regards,
 
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Omar
