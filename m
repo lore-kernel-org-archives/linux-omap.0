@@ -1,32 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
-Date: Thu, 20 Sep 2012 16:53:09 -0700
-Message-ID: <20120920235309.GO28835@atomide.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
- <505A7E0B.30709@ti.com>
+Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to
+ drivers/bus/
+Date: Thu, 20 Sep 2012 16:54:24 -0700
+Message-ID: <20120920235423.GP28835@atomide.com>
+References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120917215128.GF11762@atomide.com>
+ <201209191857.57862.arnd@arndb.de>
+ <CAMQu2gw0AmVhW+qR9GUGkUd2G+aZd9A=skTUDJiY2BMpURmSNQ@mail.gmail.com>
+ <CAOesGMgzAiFQKpZEpXqRS+U9fxcLAemhb+MCNsn0AOffa6JiNA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:54805 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756500Ab2ITXxQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 19:53:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <505A7E0B.30709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAOesGMgzAiFQKpZEpXqRS+U9fxcLAemhb+MCNsn0AOffa6JiNA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-* Benoit Cousson <b-cousson@ti.com> [120919 19:24]:
-> Hi Tony,
+* Olof Johansson <olof@lixom.net> [120920 16:23]:
+> On Wed, Sep 19, 2012 at 10:56 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> > On Thu, Sep 20, 2012 at 12:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> On Monday 17 September 2012, Tony Lindgren wrote:
+> >>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
+> >>> > OMAP interconnect drivers are used for the interconnect error handling.
+> >>> > Since they are bus driver, lets move it to newly created drivers/bus.
+> >>> >
+> >>> > Cc: Arnd Bergmann <arnd@arndb.de>
+> >>> > Cc: Tony Lindgren <tony@atomide.com>
+> >>> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+> >>> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >>> > ---
+> >>> > Patch just moves OMAP interconnect drivers as is to the newly created
+> >>> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
+> >>> > tree and test on all OMAP boards.
+> >>>
+> >>> Great, looks like this should not conflict with other
+> >>> omap patches queued, so Arnd should probably take this into
+> >>> the bus branch:
+> >>>
+> >>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>
+> >> It turns out that the patch actually did conflict and we now have a broken
+> >> omap2plus_defconfig. The patch below seems to fix it, but please verify
+> >> that this makes sense.
+> >>
+> >> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> >>
+> > Looks correct.
+> >
+> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> I was about to take the DTS patch, but was wondering if you will pull
-> the driver changes for 3.7.
+> I ended up applying something very similar to this and carried the
+> ACKs on that, but I broke it up in two pieces; one for the
+> drivers/ocp2scp branch to fix the irq numbers, and another to just
+> for-next to deal with the soc.h include file (since that should
+> probably have been fixed at branch merge time).
+> 
+> Pushed out to for-next as well.
 
-I suggest that you do a separate branch on top of Paul's hwmod series
-when he posts those if that works for you?
-
-Regards,
+OK thanks!
 
 Tony
