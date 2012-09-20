@@ -1,58 +1,72 @@
 From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [RFC PATCH v2 2/5] ARM: mm: rename jump labels in
- v7_flush_dcache_all function
-Date: Thu, 20 Sep 2012 12:01:19 +0100
-Message-ID: <20120920110119.GA2117@linaro.org>
+Subject: Re: [RFC PATCH v2 3/5] ARM: kernel: update cpu_suspend code to use
+ cache LoUIS operations
+Date: Thu, 20 Sep 2012 12:04:39 +0100
+Message-ID: <20120920110439.GB2117@linaro.org>
 References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-3-git-send-email-lorenzo.pieralisi@arm.com>
- <20120919135155.GB2111@linaro.org>
- <20120920103212.GE4588@e102568-lin.cambridge.arm.com>
+ <1347986135-17979-4-git-send-email-lorenzo.pieralisi@arm.com>
+ <20120919134658.GA2111@linaro.org>
+ <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:38369 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780Ab2ITLBa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 07:01:30 -0400
-Received: by eaac11 with SMTP id c11so644025eaa.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 04:01:29 -0700 (PDT)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:33545 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753864Ab2ITLEp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 07:04:45 -0400
+Received: by eekc1 with SMTP id c1so857355eek.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 04:04:44 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20120920103212.GE4588@e102568-lin.cambridge.arm.com>
+In-Reply-To: <20120920102514.GD4588@e102568-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
 
-On Thu, Sep 20, 2012 at 11:32:12AM +0100, Lorenzo Pieralisi wrote:
-> On Wed, Sep 19, 2012 at 02:51:56PM +0100, Dave Martin wrote:
-> > On Tue, Sep 18, 2012 at 05:35:32PM +0100, Lorenzo Pieralisi wrote:
-> > > This patch renames jump labels in v7_flush_dcache_all in order to define
-> > > a specific flush cache levels entry point.
+On Thu, Sep 20, 2012 at 11:25:14AM +0100, Lorenzo Pieralisi wrote:
+> On Wed, Sep 19, 2012 at 02:46:58PM +0100, Dave Martin wrote:
+> > On Tue, Sep 18, 2012 at 05:35:33PM +0100, Lorenzo Pieralisi wrote:
+> > > In processors like A15/A7 L2 cache is unified and integrated within the
+> > > processor cache hierarchy, so that it is not considered an outer cache
+> > > anymore. For processors like A15/A7 flush_cache_all() ends up cleaning
+> > > all cache levels up to Level of Coherency (LoC) that includes
+> > > the L2 unified cache.
 > > > 
-> > > TODO: factor out the level flushing loop if considered worthwhile and
-> > >       define the input registers requirements.
+> > > When a single CPU is suspended (CPU idle) a complete L2 clean is not
+> > > required, so generic cpu_suspend code must clean the data cache using the
+> > > newly introduced cache LoUIS function.
 > > 
-> > In the context of this series, this patch seems to do nothing at all (?)
+> > For patches 3-5 in this series, we know that the assumption that
+> > flushing LoUIS is sufficient for safely powering the CPU down is not
+> > valid in the general case, though we've agreed it's a sensible
+> > compromise for the CPU variants we know about today.
 > 
-> Agreed, it is just replacing some labels. I thought that something like:
+> I agree, but we should also keep in mind that there are suspend and
+> hotplug finishers where platform specific code can (and should sometimes)
+> carry out the required operations, if flushing to LoUIS is not sufficient.
 > 
-> b flush_levels
+> Patch 3-5 are there to avoid carrying out heavy cache operations that
+> are not needed, not to define LoUIS as a sufficient cache level for
+> powering down a CPU.
 > 
-> is clearer than:
+> Your concern is shared, though.
 > 
-> b loop1
+> > 
+> > I think we do need to document this assumption, though.
+> > 
+> > At this point I don't mind whether it appears in code comments or in the
+> > commit messages.
 > 
-> If I manage to factor out the cache level flushing loop I think things
-> are even better, I just did not want to change v7_flush_dcache_all, I would
-> avoid doing that, unless, as I mentioned, it is considered worthwhile.
-> 
-> > Maybe it would make sense to defer this patch until you post something
-> > that uses it.
-> 
-> v7_flush_dcache_louis uses it, I have no problem in deferring it though.
+> It is a fair point. I will improve comments in the code and commit logs
+> for next version.
 
-I don't think it's necessary to defer it -- I just wanted to understand
-whether there was some context here I wasn't aware of.
+That should be fine.
+
+Since the commit messages use quite precise terminology, I was worried
+that they could be misinterpreted as stating the correct architectural
+solution unless we point out that platform code maintainers still need
+to pay attention to ensure that the correct levels are flushed for their
+hardware.
 
 Cheers
 ---Dave
