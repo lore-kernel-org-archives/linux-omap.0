@@ -1,52 +1,77 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH v2 2/5] ARM: mm: rename jump labels in
- v7_flush_dcache_all function
-Date: Thu, 20 Sep 2012 11:32:12 +0100
-Message-ID: <20120920103212.GE4588@e102568-lin.cambridge.arm.com>
-References: <1347986135-17979-1-git-send-email-lorenzo.pieralisi@arm.com>
- <1347986135-17979-3-git-send-email-lorenzo.pieralisi@arm.com>
- <20120919135155.GB2111@linaro.org>
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH 1/4] i2c: introduce i2c-cbus driver
+Date: Thu, 20 Sep 2012 12:43:05 +0200
+Message-ID: <20120920104305.GA2609@pengutronix.de>
+References: <1346703805-31598-1-git-send-email-aaro.koskinen@iki.fi>
+ <1346703805-31598-2-git-send-email-aaro.koskinen@iki.fi>
+ <20120914100806.GC2630@pengutronix.de>
+ <20120919200812.GA2063@blackmetal.musicnaut.iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:51316 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627Ab2ITKcQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 06:32:16 -0400
-In-Reply-To: <20120919135155.GB2111@linaro.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58769 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752589Ab2ITKnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 06:43:15 -0400
 Content-Disposition: inline
+In-Reply-To: <20120919200812.GA2063@blackmetal.musicnaut.iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nicolas.pitre@linaro.org>, Colin Cross <ccross@android.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, Wenzeng Chen <wzch@marvell.com>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org
 
-On Wed, Sep 19, 2012 at 02:51:56PM +0100, Dave Martin wrote:
-> On Tue, Sep 18, 2012 at 05:35:32PM +0100, Lorenzo Pieralisi wrote:
-> > This patch renames jump labels in v7_flush_dcache_all in order to define
-> > a specific flush cache levels entry point.
-> > 
-> > TODO: factor out the level flushing loop if considered worthwhile and
-> >       define the input registers requirements.
-> 
-> In the context of this series, this patch seems to do nothing at all (?)
 
-Agreed, it is just replacing some labels. I thought that something like:
+--0OAP2g/MAC+5xKAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-b flush_levels
+On Wed, Sep 19, 2012 at 11:08:13PM +0300, Aaro Koskinen wrote:
+> On Fri, Sep 14, 2012 at 12:08:06PM +0200, Wolfram Sang wrote:
+> > On Mon, Sep 03, 2012 at 11:23:22PM +0300, Aaro Koskinen wrote:
+> > > Add i2c driver to enable access to devices behind CBUS on Nokia Inter=
+net
+> > > Tablets.
+> > >=20
+> > > The patch also adds CBUS I2C configuration for N8x0 which is one of t=
+he
+> > > users of this driver.
+> > >=20
+> > > Cc: linux-i2c@vger.kernel.org
+> > > Acked-by: Felipe Balbi <balbi@ti.com>
+> > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+> >=20
+> > OK, I found the short paragrahp about CBUS in the I2C spec, so I2C might
+> > be an appropriate place. Still, before deciding if it should rather be
+> > in the core directory, I still have a few questions.
+>=20
+> Thanks for your feedback. I will fix up the incorrect comments, and do
+> other improvements (e.g. use devm_* stuff) in the next version.
+>=20
+> The questions about delays and bit counts are very valid, but it's
+> difficult to do anything with them due to lack of documentation and HW on
+> which to test - I have Nokia tablets to test the driver, and the driver
+> is very reliable, but I do not know of any other HW with CBUS. :-/
 
-is clearer than:
+Fine enough, then please add comments saying that.
 
-b loop1
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-If I manage to factor out the cache level flushing loop I think things
-are even better, I just did not want to change v7_flush_dcache_all, I would
-avoid doing that, unless, as I mentioned, it is considered worthwhile.
+--0OAP2g/MAC+5xKAE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-> Maybe it would make sense to defer this patch until you post something
-> that uses it.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-v7_flush_dcache_louis uses it, I have no problem in deferring it though.
+iEYEARECAAYFAlBa8zkACgkQD27XaX1/VRsVHwCgsjykOB2kzmTya56rCzCbNrEA
+bE4An1fYtsnkBDBxTDYpvivonREAjUfc
+=2PKi
+-----END PGP SIGNATURE-----
 
-Lorenzo
-
+--0OAP2g/MAC+5xKAE--
