@@ -1,79 +1,43 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-Subject: AW: AW: USB problem on beagleboard clone
-Date: Thu, 20 Sep 2012 09:40:06 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E36F@dolphin.TIGRIS.local>
-References: <alpine.DEB.2.00.1209191557210.5264@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Thu, 20 Sep 2012 07:56:03 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-kFm+axe3Qd9+ohHAl8JB"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www45.your-server.de ([213.133.104.45]:38150 "EHLO
-	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab2ITHmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 03:42:23 -0400
-Received: from [77.12.97.12] (helo=IT-AstaroSecurityGateway)
-	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.74)
-	(envelope-from <prvs=0610406807=maximilian.schwerin@tigris.de>)
-	id 1TEbOt-0005Cj-OM
-	for linux-omap@vger.kernel.org; Thu, 20 Sep 2012 09:42:19 +0200
-In-Reply-To: <alpine.DEB.2.00.1209191557210.5264@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120920000351.GI2455@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Paul E. McKenney" <paul.mckenney@linaro.org>, linux-kernel@vger.kernel.org, bbruce@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, santosh.shilimkar@ti.com, jon-hunter@ti.com, snijsure@grid-net.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
---=-kFm+axe3Qd9+ohHAl8JB
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-> -----Urspr=FCngliche Nachricht-----
-> Von: Paul Walmsley [mailto:paul@pwsan.com]=20
-> Gesendet: Mittwoch, 19. September 2012 18:07
-> An: Maximilian Schwerin
-> Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org
-> Betreff: Re: AW: USB problem on beagleboard clone
->=20
-> On Wed, 19 Sep 2012, Maximilian Schwerin wrote:
->=20
-> > They're BeagleBoard XM clones. We're still trying to find=20
-> out what the=20
-> > real problem is. The problem persists across three separate layouts=20
-> > using the same USB device and application. We're currently=20
-> trying to see=20
-> > if this is related to MUSB only by using an EHCI port on=20
-> the same board=20
-> > with the same device and application.
->=20
-> Perhaps you might try this patch:
->=20
-> http://marc.info/?l=3Dlinux-omap&m=3D132976109928744&w=3D2
->=20
-> Background is here:
->=20
-> http://comments.gmane.org/gmane.linux.ports.arm.omap/71633
->=20
-> The patch is for an EHCI issue, but MUSB is clocked from the=20
-> same DPLL.
->=20
->=20
-> - Paul
->=20
+On Wed, 19 Sep 2012, Paul E. McKenney wrote:
 
-Thanks for the hint. I had this in my 3.2 kernel which also failed. I'll =
-try if adding this to 3.6 has any effect.
+> On Thu, Sep 13, 2012 at 06:52:10PM +0000, Paul Walmsley wrote:
+> 
+> > On Wed, 12 Sep 2012, Paul E. McKenney wrote:
+>  
+> > > Subodh Nijsure (also CCed) reported something that might be similar on
+> > > ARM, and also reported that setting the following got rid of the stalls:
+> > > 
+> > > 	CONFIG_CPU_IDLE=y
+> > > 	CONFIG_CPU_IDLE_GOV_LADDER=y
+> > > 	CONFIG_CPU_IDLE_GOV_MENU=y
+> > > 
+> > > At which point he was happy, which was good, but which also left the
+> > > underlying problem unsolved.  Do these affect your system?  If so,
+> > > do they cause a different ARM idle loop to be executed?
+> > 
+> > Will give this a try.  What board was Subodh using?
+> 
+> Any news on trying the above settings?
 
---=-kFm+axe3Qd9+ohHAl8JB
-Content-Type: application/pgp-signature
+Sorry, haven't had the chance to try it yet due to the impending merge 
+window opening.  Once things settle down I'll give it a try -- or maybe 
+someone else can test it in the meantime.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
 
-iEYEABECAAYFAlBayNgACgkQ6nqkzTWctv64qACgkKhwLR1xWfaN0Ugqfn+wevIl
-FPIAnRzSeq93hb61dKNU8yBlFY3zoDMv
-=nMc8
------END PGP SIGNATURE-----
-
---=-kFm+axe3Qd9+ohHAl8JB--
+- Paul
