@@ -1,65 +1,60 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 1/2] ARM: OMAP: SmartReflex: fix error path in init function
-Date: Thu, 20 Sep 2012 16:47:32 +0200
-Message-ID: <1348152453-30532-2-git-send-email-j-pihet@ti.com>
-References: <1348152453-30532-1-git-send-email-j-pihet@ti.com>
+From: "Bruce, Becky" <bbruce@ti.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Thu, 20 Sep 2012 15:03:57 +0000
+Message-ID: <BF035652-91E8-4091-A883-8AB1773A7A17@ti.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
+ <20120913011208.GT4257@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
+ <20120920000351.GI2455@linux.vnet.ibm.com>,<alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:59619 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932108Ab2ITOrq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 10:47:46 -0400
-Received: by wgbdr13 with SMTP id dr13so529895wgb.1
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 07:47:45 -0700 (PDT)
-In-Reply-To: <1348152453-30532-1-git-send-email-j-pihet@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53912 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754544Ab2ITPEZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 11:04:25 -0400
+In-Reply-To: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Anton Vorontsov <cbou@mail.ru>, Kevin Hilman <khilman@ti.com>, J Keerthy <j-keerthy@ti.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "snijsure@grid-net.com" <snijsure@grid-net.com>
 
-Fix the error handling path in omap_sr_probe to correctly
-de-allocate resources in case of problems.
+I'll give it a try on my panda later today.
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- drivers/power/avs/smartreflex.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+B
 
-diff --git a/drivers/power/avs/smartreflex.c b/drivers/power/avs/smartreflex.c
-index 44efc6e..92f6728 100644
---- a/drivers/power/avs/smartreflex.c
-+++ b/drivers/power/avs/smartreflex.c
-@@ -928,7 +928,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 	if (!sr_info->base) {
- 		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
- 		ret = -ENOMEM;
--		goto err_release_region;
-+		goto err_free_name;
- 	}
- 
- 	if (irq)
-@@ -967,7 +967,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
- 			__func__);
- 		ret = PTR_ERR(sr_info->dbg_dir);
--		goto err_free_name;
-+		goto err_debugfs;
- 	}
- 
- 	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
-@@ -1011,11 +1011,11 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 
- err_debugfs:
- 	debugfs_remove_recursive(sr_info->dbg_dir);
--err_free_name:
--	kfree(sr_info->name);
- err_iounmap:
- 	list_del(&sr_info->node);
- 	iounmap(sr_info->base);
-+err_free_name:
-+	kfree(sr_info->name);
- err_release_region:
- 	release_mem_region(mem->start, resource_size(mem));
- err_free_devinfo:
--- 
-1.7.7.6
+Sent from my iPhone
 
+On Sep 20, 2012, at 2:56 AM, "Paul Walmsley" <paul@pwsan.com> wrote:
+
+> Hi,
+> 
+> On Wed, 19 Sep 2012, Paul E. McKenney wrote:
+> 
+>> On Thu, Sep 13, 2012 at 06:52:10PM +0000, Paul Walmsley wrote:
+>> 
+>>> On Wed, 12 Sep 2012, Paul E. McKenney wrote:
+>> 
+>>>> Subodh Nijsure (also CCed) reported something that might be similar on
+>>>> ARM, and also reported that setting the following got rid of the stalls:
+>>>> 
+>>>>    CONFIG_CPU_IDLE=y
+>>>>    CONFIG_CPU_IDLE_GOV_LADDER=y
+>>>>    CONFIG_CPU_IDLE_GOV_MENU=y
+>>>> 
+>>>> At which point he was happy, which was good, but which also left the
+>>>> underlying problem unsolved.  Do these affect your system?  If so,
+>>>> do they cause a different ARM idle loop to be executed?
+>>> 
+>>> Will give this a try.  What board was Subodh using?
+>> 
+>> Any news on trying the above settings?
+> 
+> Sorry, haven't had the chance to try it yet due to the impending merge 
+> window opening.  Once things settle down I'll give it a try -- or maybe 
+> someone else can test it in the meantime.
+> 
+> 
+> - Paul
