@@ -1,27 +1,42 @@
-From: "System Administrator EmailUpgrading Team" <sushila@mnnit.ac.in>
-Subject: IMPORTANT NOTICE!
-Date: Fri, 21 Sep 2012 03:48:31 +0530 (IST)
-Message-ID: <4622.41.203.67.116.1348179511.squirrel@mail.mnnit.ac.in>
-Reply-To: customercare@upgrade.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Thu, 20 Sep 2012 22:47:25 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com> <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+ <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com> <20120920220130.GN2449@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [180.149.53.116] ([180.149.53.116]:58967 "EHLO
-	ganga.mnnit.ac.in" rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756443Ab2ITWjb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 18:39:31 -0400
+Received: from utopia.booyaka.com ([74.50.51.50]:60616 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932110Ab2ITWr1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 18:47:27 -0400
+In-Reply-To: <20120920220130.GN2449@linux.vnet.ibm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
 
-{E-mail Account Users} Maximum mail quota exceeded. Please click Below
-click to upgrade to prevent lost of data(s) and/or suspension of account.
-http://eolx.com.pk/secured/
-Sushila Tim FOR SYSTEM ADMIN.  THIS IS THE FINAL NOTIFICATIONS.
+On Thu, 20 Sep 2012, Paul E. McKenney wrote:
+
+> On Thu, Sep 20, 2012 at 09:49:13PM +0000, Bruce, Becky wrote:
+>
+> > OK, people, you can stop heckling me about "sent from my iPhone" - I'm in the wilds of rural Louisiana with really bad internet service and was trying to work on my phone (but, alas, did not notice the CC list included the entire universe).   Shame on me.
+> > 
+> > With the above set, I don't seem to see any stalls with the RCU timeout set to 60s (the default).  I left the board running for 25 minutes; I will fire it up again later and let it run for a bit longer, but usually I end up seeing the problem pretty quickly so I don't expect that to result in anything.  I also didn't see any stalls on Paul's RCU tree as of a week ago at 60s, so as far as I can tell the CPU_IDLE stuff didn't have any impact (it wasn't on when I tested Paul's tree).
+> > 
+> > If I drop the timeout to 5s as Paul M. suggested for debug a while back, I do see stalls (both with CPU_IDLE stuff and without). 
+> > 
+> > I'm using the default omap2plus config, with RCU stall info enabled and the cpu idle stuff turned on (console dump below).  This is a Panda ES 1.1 (OMAP4460)
+> 
+> Thank you for the testing, Becky!
+> 
+> Paul Walmsley, please let me know if the config below doesn't clear things
+> up for you or if there is some reason why this config is infeasible.
+
+Will certainly test it here once things settle down.  But I wouldn't 
+consider the use of CONFIG_CPU_IDLE to be a 'fix' until the problem can be 
+understood.  We use !CONFIG_CPU_IDLE kernels for testing here.
 
 
------------------------------------------
-This email was sent using the MNNIT, Allahabad ,UP , Webmail.
-"Motilal Nehru National Institute Of Technology - U.P, INDIA"
-http://www.mnnit.ac.in
-
+- Paul
