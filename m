@@ -1,42 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Thu, 20 Sep 2012 22:47:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com> <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com> <20120920220130.GN2449@linux.vnet.ibm.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: serial-omap regression?
+Date: Thu, 20 Sep 2012 15:56:11 -0700
+Message-ID: <87wqzofgms.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60616 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932110Ab2ITWr1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 18:47:27 -0400
-In-Reply-To: <20120920220130.GN2449@linux.vnet.ibm.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49073 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163Ab2ITW4H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 18:56:07 -0400
+Received: by pbbrr4 with SMTP id rr4so1208296pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 15:56:07 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, 20 Sep 2012, Paul E. McKenney wrote:
+Hi Felipe,
 
-> On Thu, Sep 20, 2012 at 09:49:13PM +0000, Bruce, Becky wrote:
->
-> > OK, people, you can stop heckling me about "sent from my iPhone" - I'm in the wilds of rural Louisiana with really bad internet service and was trying to work on my phone (but, alas, did not notice the CC list included the entire universe).   Shame on me.
-> > 
-> > With the above set, I don't seem to see any stalls with the RCU timeout set to 60s (the default).  I left the board running for 25 minutes; I will fire it up again later and let it run for a bit longer, but usually I end up seeing the problem pretty quickly so I don't expect that to result in anything.  I also didn't see any stalls on Paul's RCU tree as of a week ago at 60s, so as far as I can tell the CPU_IDLE stuff didn't have any impact (it wasn't on when I tested Paul's tree).
-> > 
-> > If I drop the timeout to 5s as Paul M. suggested for debug a while back, I do see stalls (both with CPU_IDLE stuff and without). 
-> > 
-> > I'm using the default omap2plus config, with RCU stall info enabled and the cpu idle stuff turned on (console dump below).  This is a Panda ES 1.1 (OMAP4460)
-> 
-> Thank you for the testing, Becky!
-> 
-> Paul Walmsley, please let me know if the config below doesn't clear things
-> up for you or if there is some reason why this config is infeasible.
+I just noticed today that one of my boards (3530/Overo) was not making
+it to the console when using an Debian rootfs (nfsroot) but works fine
+with my basic busybox initramfs.  Basically, it hangs somewhere between
+finishing the userspace init and launching the login shell.
 
-Will certainly test it here once things settle down.  But I wouldn't 
-consider the use of CONFIG_CPU_IDLE to be a 'fix' until the problem can be 
-understood.  We use !CONFIG_CPU_IDLE kernels for testing here.
+git bisect ended up pointing the finger at a patch in the OMAP serial
+series[1].  I didn't debug this any further.  Any ideas?
+
+Kevin
 
 
-- Paul
+72256cbd13904d4b4dbb16f5ec83a3293bb292c5 is the first bad commit
+commit 72256cbd13904d4b4dbb16f5ec83a3293bb292c5
+Author: Felipe Balbi <balbi@ti.com>
+Date:   Thu Sep 6 15:45:24 2012 +0300
+
+    serial: omap: refactor receive_chars() into rdi/rlsi handlers
+    
+    receive_chars() was getting too big and too difficult
+    to follow. By splitting it into separate RDI and RSLI
+    handlers, we have smaller functions which are easy
+    to understand and only touch the pieces which they need
+    to touch.
+    
+    Tested-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+    Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+    Signed-off-by: Felipe Balbi <balbi@ti.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+:040000 040000 69585356cd524953305cfba7d219cd65430a4067 ffdc0c05004afe8b73c1f2c0ba41e412c1faf5f4 M	drivers
