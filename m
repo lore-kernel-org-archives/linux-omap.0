@@ -1,43 +1,20 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Thu, 20 Sep 2012 07:56:03 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com>
+From: admin@subversion.tigris.org
+Subject: Notice about your recent message to dev-help@subversion.tigris.org
+Date: Thu, 20 Sep 2012 01:09:33 -0700 (PDT)
+Message-ID: <1348128573737@subversion.tigris.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120920000351.GI2455@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Paul E. McKenney" <paul.mckenney@linaro.org>, linux-kernel@vger.kernel.org, bbruce@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, santosh.shilimkar@ti.com, jon-hunter@ti.com, snijsure@grid-net.com
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sc157.sjc.collab.net ([204.16.104.226]:41221 "EHLO
+	sc157-tigr.sjc.collab.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab2ITIJe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 04:09:34 -0400
+Received: from sc157-tigr.sjc.collab.net (localhost [127.0.0.1])
+	by sc157-tigr.sjc.collab.net (Postfix) with ESMTP id B5C5154005B
+	for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 01:09:33 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
-
-On Wed, 19 Sep 2012, Paul E. McKenney wrote:
-
-> On Thu, Sep 13, 2012 at 06:52:10PM +0000, Paul Walmsley wrote:
-> 
-> > On Wed, 12 Sep 2012, Paul E. McKenney wrote:
->  
-> > > Subodh Nijsure (also CCed) reported something that might be similar on
-> > > ARM, and also reported that setting the following got rid of the stalls:
-> > > 
-> > > 	CONFIG_CPU_IDLE=y
-> > > 	CONFIG_CPU_IDLE_GOV_LADDER=y
-> > > 	CONFIG_CPU_IDLE_GOV_MENU=y
-> > > 
-> > > At which point he was happy, which was good, but which also left the
-> > > underlying problem unsolved.  Do these affect your system?  If so,
-> > > do they cause a different ARM idle loop to be executed?
-> > 
-> > Will give this a try.  What board was Subodh using?
-> 
-> Any news on trying the above settings?
-
-Sorry, haven't had the chance to try it yet due to the impending merge 
-window opening.  Once things settle down I'll give it a try -- or maybe 
-someone else can test it in the meantime.
-
-
-- Paul
+We are sorry, but this discussion does not exist. Your recent message to (Returned mail: Data format error) was rejected.
