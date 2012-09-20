@@ -1,44 +1,45 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
-Date: Thu, 20 Sep 2012 05:21:15 +0200
-Message-ID: <505A8BAB.2020004@ti.com>
-References: <1348047128-25692-1-git-send-email-kishon@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to drivers/bus/
+Date: Thu, 20 Sep 2012 11:26:39 +0530
+Message-ID: <CAMQu2gw0AmVhW+qR9GUGkUd2G+aZd9A=skTUDJiY2BMpURmSNQ@mail.gmail.com>
+References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
+ <20120917215128.GF11762@atomide.com> <201209191857.57862.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1348047128-25692-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
-Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201209191857.57862.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kishon,
+On Thu, Sep 20, 2012 at 12:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 17 September 2012, Tony Lindgren wrote:
+>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
+>> > OMAP interconnect drivers are used for the interconnect error handling.
+>> > Since they are bus driver, lets move it to newly created drivers/bus.
+>> >
+>> > Cc: Arnd Bergmann <arnd@arndb.de>
+>> > Cc: Tony Lindgren <tony@atomide.com>
+>> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
+>> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> > ---
+>> > Patch just moves OMAP interconnect drivers as is to the newly created
+>> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
+>> > tree and test on all OMAP boards.
+>>
+>> Great, looks like this should not conflict with other
+>> omap patches queued, so Arnd should probably take this into
+>> the bus branch:
+>>
+>> Acked-by: Tony Lindgren <tony@atomide.com>
+>
+> It turns out that the patch actually did conflict and we now have a broken
+> omap2plus_defconfig. The patch below seems to fix it, but please verify
+> that this makes sense.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>
+Looks correct.
 
-On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
-> This patch series adds dt data to get MUSB working in omap4 and omap3
-> 
-> Changes from v2:
-> * Changes the subject of all the patches to include "ARM: dts:"
-> * Added reg property and interrupt property for "usb_otg_hs". Previously these
->   were obtained from ti,hwmods property.
-> * Rebased on
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git devel-dt
-> 
-> Changes from v1:
-> Just removed the omap-usb2 dt data and sent that as a separate patch.
-> 
-> Kishon Vijay Abraham I (3):
->   ARM: dts: Add twl6030-usb data
->   ARM: dts: Add twl4030-usb data
->   ARM: dts: omap: Add usb_otg and glue data
-
-Thanks for the update. I've just pulled the series for 3.7.
-
-Regards,
-Benoit
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
