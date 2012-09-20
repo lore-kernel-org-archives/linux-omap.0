@@ -1,221 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap header cleanup to make headers local for v3.7
- merge window
-Date: Thu, 20 Sep 2012 16:09:36 -0700
-Message-ID: <20120920230935.GM28835@atomide.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Thu, 20 Sep 2012 16:21:14 -0700
+Message-ID: <20120920232114.GO2449@linux.vnet.ibm.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com>
+ <20120913011208.GT4257@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
+ <20120920000351.GI2455@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+ <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
+ <20120920220130.GN2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:34004 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932389Ab2ITXJl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 19:09:41 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, "Bruce,
+ Becky" <bbruce@ti.com>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "Shilimkar,
+ Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Arnd & Olof,
+On Thu, Sep 20, 2012 at 10:47:25PM +0000, Paul Walmsley wrote:
+> On Thu, 20 Sep 2012, Paul E. McKenney wrote:
+> 
+> > On Thu, Sep 20, 2012 at 09:49:13PM +0000, Bruce, Becky wrote:
+> >
+> > > OK, people, you can stop heckling me about "sent from my iPhone" - I'm in the wilds of rural Louisiana with really bad internet service and was trying to work on my phone (but, alas, did not notice the CC list included the entire universe).   Shame on me.
+> > > 
+> > > With the above set, I don't seem to see any stalls with the RCU timeout set to 60s (the default).  I left the board running for 25 minutes; I will fire it up again later and let it run for a bit longer, but usually I end up seeing the problem pretty quickly so I don't expect that to result in anything.  I also didn't see any stalls on Paul's RCU tree as of a week ago at 60s, so as far as I can tell the CPU_IDLE stuff didn't have any impact (it wasn't on when I tested Paul's tree).
+> > > 
+> > > If I drop the timeout to 5s as Paul M. suggested for debug a while back, I do see stalls (both with CPU_IDLE stuff and without). 
+> > > 
+> > > I'm using the default omap2plus config, with RCU stall info enabled and the cpu idle stuff turned on (console dump below).  This is a Panda ES 1.1 (OMAP4460)
+> > 
+> > Thank you for the testing, Becky!
+> > 
+> > Paul Walmsley, please let me know if the config below doesn't clear things
+> > up for you or if there is some reason why this config is infeasible.
+> 
+> Will certainly test it here once things settle down.  But I wouldn't 
+> consider the use of CONFIG_CPU_IDLE to be a 'fix' until the problem can be 
+> understood.  We use !CONFIG_CPU_IDLE kernels for testing here.
 
-Here's one more branch to take us a bit closer to getting the
-single zImage working on omaps. It would be nice to get merged
-into arm-soc/next/cleanup before the merge window if still
-possible.
+Fair point.  I am wondering whether there is some path into the idle
+loop that somehow avoids telling RCU that the CPU has in face entered
+idle.  There needs to be an rcu_idle_enter() call on the way to idle,
+otherwise RCU CPU stall warnings are expected behavior.
 
-I've based it on top of Arnd's 2203747c (ARM: omap: move
-platform_data definitions) to avoid more merge conflicts,
-and it seems to merge with few trivial include conflicts
-with current linux next and arm-soc/for-next.
-
-Regards,
-
-Tony
-
-
-The following changes since commit 2203747c97712975accc5e69bdaf1ad38a691635:
-
-  ARM: omap: move platform_data definitions (2012-09-19 17:39:52 +0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap tags/omap-cleanup-local-headers-for-v3.7
-
-for you to fetch changes up to 0e70156de4c8465bfb8cb45cdc1bbc2fa474ce14:
-
-  ARM: OMAP2+: Make omap4-keypad.h local (2012-09-20 15:04:04 -0700)
-
-----------------------------------------------------------------
-This branch contains mostly scripted changes to make omap
-header files local where possible to get us closer to supporting
-the ARM single zImage. After these changes mach includes are
-pretty much out of the way for omap2+, but still lots of manual
-work remains to sort through the remaining plat includes.
-
-----------------------------------------------------------------
-Tony Lindgren (26):
-      ARM: OMAP: Remove unused param.h
-      ARM: OMAP: Remove smp.h
-      ARM: OMAP1: Make plat/mux.h omap1 only
-      ARM: OMAP1: Move board-ams-delta.h from plat to mach
-      ARM: OMAP2+: Make id.h local
-      ARM: OMAP2+: Make am35xx.h local
-      ARM: OMAP2+: Make board-rx51.h local
-      ARM: OMAP2+: Make ctrl_module_core_44xx.h local
-      ARM: OMAP2+: Make ctrl_module_pad_core_44xx.h local
-      ARM: OMAP2+: Make ctrl_module_pad_wkup_44xx.h local
-      ARM: OMAP2+: Make ctrl_module_wkup_44xx.h local
-      ARM: OMAP2+: Make omap-secure.h local
-      ARM: OMAP2+: Make omap-wakeupgen.h local
-      ARM: OMAP1: Move board-sx1.h from plat to mach
-      ARM: OMAP1: Move board-voiceblue.h from plat to mach
-      ARM: OMAP2+: Make debug-devices.h local
-      ARM: OMAP1: Move flash.h from plat to mach
-      ARM: OMAP2+: Make gpmc-smc91x.h local
-      ARM: OMAP2+: Make gpmc-smsc911x.h local
-      ARM: OMAP2+: Make hdq1w.h local
-      ARM: OMAP1: Move irda.h from plat to mach
-      ARM: OMAP2+: Make l3_2xxx.h local
-      ARM: OMAP2+: Make l3_3xxx.h local
-      ARM: OMAP2+: Make l4_2xxx.h local
-      ARM: OMAP2+: Make l4_3xxx.h local
-      ARM: OMAP2+: Make omap4-keypad.h local
-
- arch/arm/mach-omap1/ams-delta-fiq-handler.S        |    2 +-
- arch/arm/mach-omap1/ams-delta-fiq.c                |    2 +-
- arch/arm/mach-omap1/board-ams-delta.c              |    4 +-
- arch/arm/mach-omap1/board-fsample.c                |    4 +-
- arch/arm/mach-omap1/board-generic.c                |    2 +-
- arch/arm/mach-omap1/board-h2.c                     |    6 +-
- arch/arm/mach-omap1/board-h3.c                     |    4 +-
- arch/arm/mach-omap1/board-innovator.c              |    4 +-
- arch/arm/mach-omap1/board-nokia770.c               |    2 +-
- arch/arm/mach-omap1/board-osk.c                    |    4 +-
- arch/arm/mach-omap1/board-palmte.c                 |    6 +-
- arch/arm/mach-omap1/board-palmtt.c                 |    6 +-
- arch/arm/mach-omap1/board-palmz71.c                |    6 +-
- arch/arm/mach-omap1/board-perseus2.c               |    4 +-
- arch/arm/mach-omap1/board-sx1-mmc.c                |    2 +-
- arch/arm/mach-omap1/board-sx1.c                    |    8 +-
- arch/arm/mach-omap1/board-voiceblue.c              |    6 +-
- arch/arm/mach-omap1/devices.c                      |    2 +-
- arch/arm/mach-omap1/flash.c                        |    2 +-
- arch/arm/mach-omap1/i2c.c                          |    2 +-
- .../include/mach}/board-ams-delta.h                |    0
- .../plat => mach-omap1/include/mach}/board-sx1.h   |    0
- .../include/mach}/board-voiceblue.h                |    0
- .../plat => mach-omap1/include/mach}/flash.h       |    0
- .../plat => mach-omap1/include/mach}/irda.h        |    0
- .../include/plat => mach-omap1/include/mach}/mux.h |    0
- arch/arm/mach-omap1/include/mach/smp.h             |    5 --
- arch/arm/mach-omap1/io.c                           |    2 +-
- arch/arm/mach-omap1/leds.c                         |    2 +-
- arch/arm/mach-omap1/mcbsp.c                        |    2 +-
- arch/arm/mach-omap1/mux.c                          |   58 ++++++++++++-
- arch/arm/mach-omap1/pm.c                           |    2 +-
- arch/arm/mach-omap1/serial.c                       |    2 +-
- arch/arm/mach-omap1/usb.c                          |    2 +-
- arch/arm/mach-omap2/am35xx-emac.c                  |    2 +-
- arch/arm/mach-omap2/{include/mach => }/am35xx.h    |    0
- arch/arm/mach-omap2/board-2430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-3630sdp.c                |    2 +-
- arch/arm/mach-omap2/board-4430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c                 |    2 +-
- arch/arm/mach-omap2/board-cm-t3517.c               |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c             |    2 +-
- arch/arm/mach-omap2/board-h4.c                     |    2 +-
- arch/arm/mach-omap2/board-igep0020.c               |    2 +-
- arch/arm/mach-omap2/board-ldp.c                    |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c               |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c             |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c           |    2 +-
- arch/arm/mach-omap2/board-overo.c                  |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c       |    4 +-
- arch/arm/mach-omap2/board-rx51-video.c             |    2 +-
- .../arm/mach-omap2/{include/mach => }/board-rx51.h |    0
- arch/arm/mach-omap2/board-zoom-debugboard.c        |    2 +-
- arch/arm/mach-omap2/common.c                       |    1 -
- arch/arm/mach-omap2/control.h                      |    8 +-
- .../{include/mach => }/ctrl_module_core_44xx.h     |    0
- .../{include/mach => }/ctrl_module_pad_core_44xx.h |    0
- .../{include/mach => }/ctrl_module_pad_wkup_44xx.h |    0
- .../{include/mach => }/ctrl_module_wkup_44xx.h     |    0
- .../include/plat => mach-omap2}/debug-devices.h    |    0
- arch/arm/mach-omap2/devices.c                      |    2 +-
- arch/arm/mach-omap2/gpmc-smc91x.c                  |    2 +-
- .../include/plat => mach-omap2}/gpmc-smc91x.h      |    0
- arch/arm/mach-omap2/gpmc-smsc911x.c                |    2 +-
- .../include/plat => mach-omap2}/gpmc-smsc911x.h    |    0
- arch/arm/mach-omap2/hdq1w.c                        |    2 +-
- .../{plat-omap/include/plat => mach-omap2}/hdq1w.h |    0
- arch/arm/mach-omap2/hsmmc.c                        |    1 -
- arch/arm/mach-omap2/id.c                           |    2 +-
- arch/arm/mach-omap2/{include/mach => }/id.h        |    0
- arch/arm/mach-omap2/include/mach/smp.h             |    5 --
- .../include/plat => mach-omap2}/l3_2xxx.h          |    0
- .../include/plat => mach-omap2}/l3_3xxx.h          |    0
- .../include/plat => mach-omap2}/l4_2xxx.h          |    0
- .../include/plat => mach-omap2}/l4_3xxx.h          |    0
- arch/arm/mach-omap2/omap-hotplug.c                 |    2 +-
- arch/arm/mach-omap2/omap-secure.c                  |    2 +-
- .../mach-omap2/{include/mach => }/omap-secure.h    |    0
- arch/arm/mach-omap2/omap-smp.c                     |    4 +-
- arch/arm/mach-omap2/omap-wakeupgen.c               |    4 +-
- .../mach-omap2/{include/mach => }/omap-wakeupgen.h |    0
- arch/arm/mach-omap2/omap4-common.c                 |    2 +-
- .../include/plat => mach-omap2}/omap4-keypad.h     |    0
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |    4 +-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |    2 +-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |    4 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |    6 +-
- arch/arm/mach-omap2/sleep44xx.S                    |    2 +-
- arch/arm/mach-omap2/usb-musb.c                     |    2 +-
- arch/arm/plat-omap/Makefile                        |    2 +-
- arch/arm/plat-omap/i2c.c                           |    1 -
- arch/arm/plat-omap/include/plat/omap-serial.h      |    2 -
- arch/arm/plat-omap/include/plat/param.h            |    8 --
- arch/arm/plat-omap/mux.c                           |   90 --------------------
- drivers/input/serio/ams_delta_serio.c              |    2 +-
- drivers/mmc/host/omap.c                            |    1 -
- drivers/mtd/nand/ams-delta.c                       |    2 +-
- drivers/pcmcia/omap_cf.c                           |    2 +-
- drivers/spi/spi-omap-uwire.c                       |    2 +-
- drivers/usb/host/ohci-omap.c                       |    2 +-
- drivers/usb/musb/tusb6010_omap.c                   |    1 -
- drivers/usb/otg/isp1301_omap.c                     |    2 +-
- drivers/video/backlight/omap1_bl.c                 |    2 +-
- drivers/video/omap/lcd_ams_delta.c                 |    3 +-
- drivers/video/omap/lcd_osk.c                       |    2 +-
- sound/soc/omap/ams-delta.c                         |    2 +-
- 109 files changed, 159 insertions(+), 221 deletions(-)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/board-ams-delta.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/board-sx1.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/board-voiceblue.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/flash.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/irda.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap1/include/mach}/mux.h (100%)
- delete mode 100644 arch/arm/mach-omap1/include/mach/smp.h
- rename arch/arm/mach-omap2/{include/mach => }/am35xx.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/board-rx51.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/ctrl_module_core_44xx.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/ctrl_module_pad_core_44xx.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/ctrl_module_pad_wkup_44xx.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/ctrl_module_wkup_44xx.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/debug-devices.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/gpmc-smc91x.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/gpmc-smsc911x.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/hdq1w.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/id.h (100%)
- delete mode 100644 arch/arm/mach-omap2/include/mach/smp.h
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/l3_2xxx.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/l3_3xxx.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/l4_2xxx.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/l4_3xxx.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/omap-secure.h (100%)
- rename arch/arm/mach-omap2/{include/mach => }/omap-wakeupgen.h (100%)
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/omap4-keypad.h (100%)
- delete mode 100644 arch/arm/plat-omap/include/plat/param.h
- delete mode 100644 arch/arm/plat-omap/mux.c
+							Thanx, Paul
