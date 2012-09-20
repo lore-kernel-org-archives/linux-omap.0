@@ -1,62 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: arm-soc/for-next: fixup compile after platform_data move
-Date: Thu, 20 Sep 2012 09:38:14 -0700
-Message-ID: <87obl0hcp5.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH V3 6/8] ARM: OMAP4: Route PMU IRQs to CTI IRQs
+Date: Thu, 20 Sep 2012 16:59:33 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209201655060.12583@utopia.booyaka.com>
+References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com> <1347290626-21164-7-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62034 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2ITQiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 12:38:10 -0400
-Received: by pbbrr4 with SMTP id rr4so576248pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 09:38:10 -0700 (PDT)
+Received: from utopia.booyaka.com ([74.50.51.50]:59840 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab2ITQ7e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 12:59:34 -0400
+In-Reply-To: <1347290626-21164-7-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Ming Lei <ming.lei@canonical.com>, Woodruff Richard <r-woodruff2@ti.com>, Will Deacon <will.deacon@arm.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Arnd, Olof,
+Hi
 
-Not sure if this has been reported yet, but arm-soc/for-next now has a
-build error on omap due to the recent merge of the platform_data move
-series.
+On Mon, 10 Sep 2012, Jon Hunter wrote:
 
-The arm-soc/next/soc branch contains the arm-soc/omap/am33xx branch
-which adds an include of "plat/mscpi.h" which has now moved.
+> From: Ming Lei <ming.lei@canonical.com>
+> 
+> For OMAP4430 there are no dedicate PMU interrupts, however, PMU events can be
+> routed to via the CTI IRQs. This allows tools such as PERF and OPROFILE to work
+> on OMAP4430.
+> 
+> The idea is from Woodruff Richard in the disscussion about "Oprofile on
+> Pandaboard / Omap4" on pandaboard@googlegroups.com.
+> 
+> Ming's original patch was called "arm: omap4: support pmu" [1] and has been
+> renamed and modified by Jon Hunter. There main differences from the original
+> patch are ...
+> 
+> 1. Instead of only configuring the CTI interrupt once during boot, the
+>    interrupts are configured everytime the the PMU is used. The reason for this
+>    is because during power transitions the CTI logic state will be lost and so
+>    we will need to configure the interrupts everytime they are used. This is
+>    accomplished by using the PM runtime callbacks which will be called whenever
+>    the PMU is used.
+> 2. Assign the PMU events to different cross triggering channels. This prevents
+>    a single PMU event generating interrupts to both CPUs and hence can cause
+>    spurious interrupts to occur. Reported by Ming [2].
+> 
+> [1] http://marc.info/?l=linux-arm-kernel&m=132227620816504&w=2
+> [2] http://permalink.gmane.org/gmane.linux.linaro.devel/10532
 
-Below is a simple fix.
+Spent some time with this one here.  At this point I don't think I can 
+queue it.  It's got hardcoded IRQ numbers and address information for the 
+CTI, and mixes the CTI and PMU programming.  A few months ago we might 
+have gotten away with this, but now it seems best to do this one cleanly.
+Probably the CTI control should be moved off into mach-omap2/omap4-cti.c 
+or somewhere into drivers/ if possible.  So let's revisit this for 3.8.
 
-Kevin
 
-
->From cae062932d1d28e499b03d31da815fc2696badfd Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Thu, 20 Sep 2012 09:28:43 -0700
-Subject: [PATCH] ARM: OMAP: AM33xx hwmod: fixup SPI after platform_data move
-
-AM33xx hwmod data includes "mcspi.h" which has now been moved after
-the platform_data move.  Fix it.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_33xx_data.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-index 22433cb..59d5c1c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_33xx_data.c
-@@ -17,9 +17,9 @@
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
- #include <linux/platform_data/gpio-omap.h>
-+#include <linux/platform_data/spi-omap2-mcspi.h>
- #include <plat/dma.h>
- #include <plat/mmc.h>
--#include <plat/mcspi.h>
- #include <plat/i2c.h>
- 
- #include "omap_hwmod_common_data.h"
--- 
-1.7.9.2
+- Paul
