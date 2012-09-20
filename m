@@ -1,84 +1,44 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH V2 0/7] ARM: OMAP2+: Add device-tree support for timers
-Date: Thu, 20 Sep 2012 04:23:07 +0200
-Message-ID: <505A7E0B.30709@ti.com>
-References: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 0/3] ARM: dts: omap: add dt data for MUSB
+Date: Thu, 20 Sep 2012 05:21:15 +0200
+Message-ID: <505A8BAB.2020004@ti.com>
+References: <1348047128-25692-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36253 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084Ab2ITCXW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Sep 2012 22:23:22 -0400
-In-Reply-To: <1347579091-3794-1-git-send-email-jon-hunter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1348047128-25692-1-git-send-email-kishon-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>
+Cc: grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, Paul Walmsley <paul@pwsan.com>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, device-tree <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Tony,
+Hi Kishon,
 
-I was about to take the DTS patch, but was wondering if you will pull
-the driver changes for 3.7.
+On 09/19/2012 11:32 AM, Kishon Vijay Abraham I wrote:
+> This patch series adds dt data to get MUSB working in omap4 and omap3
+> 
+> Changes from v2:
+> * Changes the subject of all the patches to include "ARM: dts:"
+> * Added reg property and interrupt property for "usb_otg_hs". Previously these
+>   were obtained from ti,hwmods property.
+> * Rebased on
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git devel-dt
+> 
+> Changes from v1:
+> Just removed the omap-usb2 dt data and sent that as a separate patch.
+> 
+> Kishon Vijay Abraham I (3):
+>   ARM: dts: Add twl6030-usb data
+>   ARM: dts: Add twl4030-usb data
+>   ARM: dts: omap: Add usb_otg and glue data
 
-Thanks,
+Thanks for the update. I've just pulled the series for 3.7.
+
+Regards,
 Benoit
 
-On 09/14/2012 01:31 AM, Jon Hunter wrote:
-> This series adds device-tree support for the timers on OMAP2+ devices
-> including AM33xx.
-> 
-> Testing:
-> 1. I have booted linux with this series on OMAP2420 H4, OMAP3430 Beagle and
->    OMAP4430 Panda with/without device-tree present.
-> 2. Vaibhav has booted linux on AM335x Beagle bone (thanks!)
-> 3. I have tested the all the timers (not used by the kernel as sys-timers) on
->    OMAP2420 H4, OMAP3430 Beagle and OMAP4430 Panda with/without device-tree with
->    this series. The testing includes ...
->    a. Configuring, starting a timer and checking the counter value is
->       incrementing.
->    b. Testing timer overflow interrupt when timer expires.
->    c. Using different clock sources to operate the timer with.
-> 4. Verified on OMAP4430 and AM33xx (Vaibhav) that the kernel boots when using a
->    GP timer as clock-source (default for OMAP is 32k-sync timer). Thanks to
->    Vaibhav for catching and tracking down a bug when using a GP-timer as the
->    clock-source!
-> 
-> V2 changes:
-> - Remove use of device-tree alias property
-> - Migrate OMAP timers to request timers by property instead of device ID
-> - Include OMAP2 support
-> 
-> Jon Hunter (7):
->   ARM: dts: OMAP: Add timer nodes
->   ARM: OMAP3: Dynamically disable secure timer nodes for secure devices
->   ARM: OMAP4: Add timer clock aliases for device-tree
->   ARM: OMAP: Add a timer attribute for timers that can interrupt the
->     DSP
->   ARM: OMAP: Add function to request a timer by capability
->   ARM: OMAP3: Add generic machine descriptor for boards with OMAP3 GP
->     devices
->   ARM: OMAP: Add DT support for timer driver
-> 
->  .../devicetree/bindings/arm/omap/timer.txt         |   30 +++++
->  arch/arm/boot/dts/am33xx.dtsi                      |   61 +++++++++
->  arch/arm/boot/dts/omap2.dtsi                       |   86 +++++++++++++
->  arch/arm/boot/dts/omap2420.dtsi                    |    8 ++
->  arch/arm/boot/dts/omap2430.dtsi                    |    8 ++
->  arch/arm/boot/dts/omap3.dtsi                       |   96 ++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |   86 +++++++++++++
->  arch/arm/mach-omap1/timer.c                        |    2 +-
->  arch/arm/mach-omap2/board-generic.c                |   18 +++
->  arch/arm/mach-omap2/clock44xx_data.c               |   12 ++
->  arch/arm/mach-omap2/common.h                       |    1 +
->  arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    9 ++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   15 ++-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   15 ++-
->  arch/arm/mach-omap2/timer.c                        |  131 +++++++++++++++++---
->  arch/arm/plat-omap/dmtimer.c                       |   94 +++++++++++++-
->  arch/arm/plat-omap/include/plat/dmtimer.h          |    2 +
->  17 files changed, 646 insertions(+), 28 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/arm/omap/timer.txt
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
