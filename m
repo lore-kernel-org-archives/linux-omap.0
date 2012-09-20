@@ -1,44 +1,72 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH V3 0/8] ARM: OMAP4: Add PMU Support
-Date: Thu, 20 Sep 2012 22:09:32 +0100
-Message-ID: <20120920210932.GB22307@mudshark.cambridge.arm.com>
-References: <1347290626-21164-1-git-send-email-jon-hunter@ti.com>
- <alpine.DEB.2.00.1209201714260.12583@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH RESEND] PM / Runtime: let rpm_resume() succeed if RPM_ACTIVE, even when disabled
+Date: Thu, 20 Sep 2012 14:29:02 -0700
+Message-ID: <1348176542-28983-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:45233 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755739Ab2ITVJr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Sep 2012 17:09:47 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209201714260.12583@utopia.booyaka.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:46417 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752936Ab2ITV3E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 17:29:04 -0400
+Received: by pbbrr4 with SMTP id rr4so1077991pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 14:29:04 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Ming Lei <ming.lei@canonical.com>, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Thu, Sep 20, 2012 at 06:17:02PM +0100, Paul Walmsley wrote:
-> 
-> Hi Jon, Will, Ming, et al.,
+From: Kevin Hilman <khilman@ti.com>
 
-Hi Paul,
+When runtime PM is disabled, what we want is for callbacks not to be
+called from then on.  However, currently, when runtime PM is disabled,
+operations such as 'get' will also fail even if the device is
+currently active.
 
-> Have queued most of these for 3.7 with the exception of the OMAP4430 
-> CTI-related patches (which look to me like 3.8 material) and the PM 
-> runtime suspend/resume patch (which looks to me like 3.7-rc material) -- 
-> assuming this series makes it in for 3.7 ... 
+Since calling 'get' on a device that is already RPM_ACTIVE does not
+involve calling the callbacks, it should be allowed to succeed, even
+if runtime PM is disabled.
 
-Ok, thanks for queueing what you did.
+This is particularily useful in runtime PM enabled drivers that are
+used during system suspend.  Because runtime PM is disabled during
+system suspend, currently any driver's use of pm_runtime_get* will
+fail with -EACCES.  This is expected if the device was already runtime
+suspended, but if the device is actually active (due to recent usage,
+autosuspend timeout not expired, or pm_runtime_resume() called in
+->suspend() method), the pm_runtime_get*() call should actually
+succeed.
 
-Jon -- could you pick the pieces up from what's left please and shout if
-you need anything from me?
+To permit the usage described above, add a check to rpm_resume() so
+that success is returned in the case where a driver is suspended (it's
+->suspend callback has been called) but is still RPM_ACTIVE.
 
-> Apologies in advance if I broke something else in the process.
+This patch was developed in close collaboration with Rafael J. Wysocki
+<rjw@sisk.pl>
 
-There's not really anything to break yet :)
+Tested on AM3730/Beagle-xM where wakeup IRQ firing during the late
+suspend phase triggers runtime PM activity in the I2C driver since the
+wakeup IRQ is on an I2C-connected PMIC.
 
-Cheers,
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+This version is just a resend with the vger address for linux-pm.
 
-Will
+ drivers/base/power/runtime.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index 7d9c1cb..dafa5ec 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -510,7 +510,8 @@ static int rpm_resume(struct device *dev, int rpmflags)
+ 	if (dev->power.runtime_error)
+ 		retval = -EINVAL;
+ 	else if (dev->power.disable_depth > 0)
+-		retval = -EACCES;
++		retval = dev->power.is_suspended && 
++			dev->power.runtime_status == RPM_ACTIVE ? 1 : -EACCES;
+ 	if (retval)
+ 		goto out;
+ 
+-- 
+1.7.9.2
+
