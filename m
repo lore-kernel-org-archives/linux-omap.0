@@ -1,31 +1,55 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 04/29] ARM: OMAP1: Move board-ams-delta.h from plat to mach
-Date: Thu, 20 Sep 2012 15:41:45 +0200
-Message-ID: <6194989.y5R5mbkCAc@acer>
-References: <20120919205732.28074.43697.stgit@muffinssi> <20120919210543.28074.10214.stgit@muffinssi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: jean.pihet@newoldbits.com
+Subject: [PATCH] ARM: OMAP: SmartReflex: select CONFIG_POWER_SUPPLY in Kconfig
+Date: Thu, 20 Sep 2012 16:36:56 +0200
+Message-ID: <1348151816-30248-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:41559 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751034Ab2ITNr1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 20 Sep 2012 09:47:27 -0400
-In-Reply-To: <20120919210543.28074.10214.stgit@muffinssi>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:56266 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755441Ab2ITOhV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 10:37:21 -0400
+Received: by wgbdr13 with SMTP id dr13so521395wgb.1
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 07:37:20 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Wed, 19 Sep 2012 14:05:43 Tony Lindgren wrote:
-> This is only used by omap1.
-> 
-> And to fix things properly, this should not be included
-> from the drivers at all.
+From: Jean Pihet <j-pihet@ti.com>
 
-Akced-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Select POWER_SUPPLY from POWER_AVS_OMAP entry in Kconfig.
 
-I'll take care of updating the drivers when I have some spare time.
+This avoids the following build problems using a randconfig
+that has CONFIG_POWER_SUPPLY not set:
 
-Thanks,
-Janusz
+  LD      init/built-in.o
+arch/arm/mach-omap2/built-in.o: In function `sr_class3_configure':
+arch/arm/mach-omap2/smartreflex-class3.c:44: undefined reference to `sr_configure_errgen'
+arch/arm/mach-omap2/built-in.o: In function `sr_class3_disable':
+arch/arm/mach-omap2/smartreflex-class3.c:33: undefined reference to `sr_disable_errgen'
+arch/arm/mach-omap2/smartreflex-class3.c:35: undefined reference to `sr_disable'
+arch/arm/mach-omap2/built-in.o: In function `sr_class3_enable':
+arch/arm/mach-omap2/smartreflex-class3.c:28: undefined reference to `sr_enable'
+arch/arm/mach-omap2/built-in.o: In function `sr_class3_init':
+arch/arm/mach-omap2/smartreflex-class3.c:59: undefined reference to `sr_register_class'
+make: *** [vmlinux] Error 1
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/plat-omap/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index dd36eba..001a795 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -48,6 +48,7 @@ config OMAP_DEBUG_LEDS
+ config POWER_AVS_OMAP
+ 	bool "AVS(Adaptive Voltage Scaling) support for OMAP IP versions 1&2"
+ 	depends on POWER_AVS && (ARCH_OMAP3 || ARCH_OMAP4) && PM
++	select POWER_SUPPLY
+ 	help
+ 	  Say Y to enable AVS(Adaptive Voltage Scaling)
+ 	  support on OMAP containing the version 1 or
+-- 
+1.7.7.6
+
