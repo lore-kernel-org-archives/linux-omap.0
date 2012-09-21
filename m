@@ -1,254 +1,52 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 2/9] ARM: OMAP3: hwmod data: add mmu data for iva and
- isp
-Date: Fri, 21 Sep 2012 00:30:20 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209210027050.6888@utopia.booyaka.com>
-References: <1347479152-588-1-git-send-email-omar.luna@linaro.org>
- <1347479152-588-3-git-send-email-omar.luna@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv7 04/12] ARM: OMAP: hwmod: Add support for per hwmod/module
+ context lost count
+Date: Fri, 21 Sep 2012 00:38:46 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209210032380.6888@utopia.booyaka.com>
+References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-5-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1209121946410.17903@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1347479152-588-3-git-send-email-omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss/>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: "devicetree-discuss"
- <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-To: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joerg Roedel <joerg.roedel-5C7GfCeVMHo@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:60904 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756659Ab2IUAir (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 20:38:47 -0400
+In-Reply-To: <alpine.DEB.2.00.1209121946410.17903@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>, balbi@ti.com, sourav.poddar@ti.com, gregkh@linuxfoundation.org
+Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 
-Hi
+Hi 
 
-On Wed, 12 Sep 2012, Omar Ramirez Luna wrote:
+On Wed, 12 Sep 2012, Paul Walmsley wrote:
 
-> Add mmu hwmod data for iva and isp.
+> On Thu, 19 Jul 2012, Tero Kristo wrote:
 > 
-> Due to compatibility an ifdef CONFIG_OMAP_IOMMU_IVA2 needs to be
-> propagated (previously on iommu resource info) to hwmod data in OMAP3,
-> so users of iommu and tidspbridge can avoid issues of two modules
-> managing mmu data/irqs/resets; this until tidspbridge can be migrated
-> to iommu framework.
+> > From: Rajendra Nayak <rnayak@ti.com>
+> > 
+> > OMAP4 has module specific context lost registers which makes it now
+> > possible to have module level context loss count, instead of relying
+> > on the powerdomain level context count.
+> > 
+> > Add 2 private hwmod api's to update/clear the hwmod/module specific
+> > context lost counters/register.
 > 
-> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> This one has been modified to align with the changes on patch 3, and 
+> queued for 3.7.
 
-During testing, this patch was found to cause boot warnings on
-AM3517-based devices.  The ISP MMUs do not appear to be present on
-those chips.  The patch has been modified to restrict these hwmods to
-OMAP34xx/36xx chips; updated patch below.
+Am sorry to say that I had to drop the code changes from this patch, due 
+to the OMAP serial bugs addressed by these two patches:
+
+    http://comments.gmane.org/gmane.linux.ports.arm.omap/84729
+    http://www.spinics.net/lists/arm-kernel/msg196034.html
+
+Without those two patches, OMAP4430ES2 Panda crashes after Tero's patches 
+are applied, with the same symptom as with the N800 crash.  Applying 
+those two patches fixes the problem.
+
+It would be good if you guys could ask Greg to pick up the first patch 
+ASAP so we can queue the second one during the early 3.7-rc time frame.
 
 
 - Paul
-
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Date: Thu, 20 Sep 2012 18:23:22 -0600
-Subject: [PATCH] ARM: OMAP3: hwmod data: add mmu data for iva and isp
-
-Add mmu hwmod data for iva and isp.
-
-Due to compatibility an ifdef CONFIG_OMAP_IOMMU_IVA2 needs to be
-propagated (previously on iommu resource info) to hwmod data in OMAP3,
-so users of iommu and tidspbridge can avoid issues of two modules
-managing mmu data/irqs/resets; this until tidspbridge can be migrated
-to iommu framework.
-
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Omar Ramirez Luna <omar.luna-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-[paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org: fixed some kerneldoc and whitespace; ISP MMUs not present
- on AM35xx so restricted these hwmods to 34xx/36xx]
-Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  125 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/iommu.h    |   13 +++
- 2 files changed, 138 insertions(+)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index f1328bc..11442d8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -27,6 +27,7 @@
- #include <plat/mcbsp.h>
- #include <plat/mcspi.h>
- #include <plat/dmtimer.h>
-+#include <plat/iommu.h>
- 
- #include <mach/am35xx.h>
- 
-@@ -2858,6 +2859,122 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio3 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/*
-+ * 'mmu' class
-+ * The memory management unit performs virtual to physical address translation
-+ * for its requestors.
-+ */
-+
-+static struct omap_hwmod_class_sysconfig mmu_sysc = {
-+	.rev_offs	= 0x000,
-+	.sysc_offs	= 0x010,
-+	.syss_offs	= 0x014,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3xxx_mmu_hwmod_class = {
-+	.name = "mmu",
-+	.sysc = &mmu_sysc,
-+};
-+
-+/* mmu isp */
-+
-+static struct omap_mmu_dev_attr mmu_isp_dev_attr = {
-+	.da_start	= 0x0,
-+	.da_end		= 0xfffff000,
-+	.nr_tlb_entries = 8,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmu_isp_hwmod;
-+static struct omap_hwmod_irq_info omap3xxx_mmu_isp_irqs[] = {
-+	{ .irq = 24 },
-+	{ .irq = -1 }
-+};
-+
-+static struct omap_hwmod_addr_space omap3xxx_mmu_isp_addrs[] = {
-+	{
-+		.pa_start	= 0x480bd400,
-+		.pa_end		= 0x480bd47f,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{ }
-+};
-+
-+/* l4_core -> mmu isp */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmu_isp = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_mmu_isp_hwmod,
-+	.addr		= omap3xxx_mmu_isp_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmu_isp_hwmod = {
-+	.name		= "mmu_isp",
-+	.class		= &omap3xxx_mmu_hwmod_class,
-+	.mpu_irqs	= omap3xxx_mmu_isp_irqs,
-+	.main_clk	= "cam_ick",
-+	.dev_attr	= &mmu_isp_dev_attr,
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+#ifdef CONFIG_OMAP_IOMMU_IVA2
-+
-+/* mmu iva */
-+
-+static struct omap_mmu_dev_attr mmu_iva_dev_attr = {
-+	.da_start	= 0x11000000,
-+	.da_end		= 0xfffff000,
-+	.nr_tlb_entries = 32,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmu_iva_hwmod;
-+static struct omap_hwmod_irq_info omap3xxx_mmu_iva_irqs[] = {
-+	{ .irq = 28 },
-+	{ .irq = -1 }
-+};
-+
-+static struct omap_hwmod_rst_info omap3xxx_mmu_iva_resets[] = {
-+	{ .name = "mmu", .rst_shift = 1, .st_shift = 9 },
-+};
-+
-+static struct omap_hwmod_addr_space omap3xxx_mmu_iva_addrs[] = {
-+	{
-+		.pa_start	= 0x5d000000,
-+		.pa_end		= 0x5d00007f,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{ }
-+};
-+
-+/* l3_main -> iva mmu */
-+static struct omap_hwmod_ocp_if omap3xxx_l3_main__mmu_iva = {
-+	.master		= &omap3xxx_l3_main_hwmod,
-+	.slave		= &omap3xxx_mmu_iva_hwmod,
-+	.addr		= omap3xxx_mmu_iva_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmu_iva_hwmod = {
-+	.name		= "mmu_iva",
-+	.class		= &omap3xxx_mmu_hwmod_class,
-+	.mpu_irqs	= omap3xxx_mmu_iva_irqs,
-+	.rst_lines	= omap3xxx_mmu_iva_resets,
-+	.rst_lines_cnt	= ARRAY_SIZE(omap3xxx_mmu_iva_resets),
-+	.main_clk	= "iva2_ck",
-+	.prcm = {
-+		.omap2 = {
-+			.module_offs = OMAP3430_IVA2_MOD,
-+		},
-+	},
-+	.dev_attr	= &mmu_iva_dev_attr,
-+	.flags		= HWMOD_NO_IDLEST,
-+};
-+
-+#endif
-+
- /* l4_per -> gpio4 */
- static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
- 	{
-@@ -3407,6 +3524,10 @@ static struct omap_hwmod_ocp_if *omap34xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3xxx_l4_core__mailbox,
- 	&omap3xxx_l4_core__hdq1w,
- 	&omap3xxx_sad2d__l3,
-+	&omap3xxx_l4_core__mmu_isp,
-+#ifdef CONFIG_OMAP_IOMMU_IVA2
-+	&omap3xxx_l3_main__mmu_iva,
-+#endif
- 	NULL
- };
- 
-@@ -3428,6 +3549,10 @@ static struct omap_hwmod_ocp_if *omap36xx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3xxx_l4_core__es3plus_mmc2,
- 	&omap3xxx_l4_core__hdq1w,
- 	&omap3xxx_sad2d__l3,
-+	&omap3xxx_l4_core__mmu_isp,
-+#ifdef CONFIG_OMAP_IOMMU_IVA2
-+	&omap3xxx_l3_main__mmu_iva,
-+#endif
- 	NULL
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index e58d571..68b5f03 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -103,6 +103,19 @@ struct iommu_functions {
- 	ssize_t (*dump_ctx)(struct omap_iommu *obj, char *buf, ssize_t len);
- };
- 
-+/**
-+ * struct omap_mmu_dev_attr - OMAP mmu device attributes for omap_hwmod
-+ * @da_start:		device address where the va space starts.
-+ * @da_end:		device address where the va space ends.
-+ * @nr_tlb_entries:	number of entries supported by the translation
-+ *			look-aside buffer (TLB).
-+ */
-+struct omap_mmu_dev_attr {
-+	u32 da_start;
-+	u32 da_end;
-+	int nr_tlb_entries;
-+};
-+
- struct iommu_platform_data {
- 	const char *name;
- 	const char *clk_name;
--- 
-1.7.10.4
