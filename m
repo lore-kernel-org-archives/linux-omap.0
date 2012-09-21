@@ -1,14 +1,14 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
-Date: Fri, 21 Sep 2012 01:04:53 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com>
+Subject: [GIT PULL] ARM: OMAP2+: clock patches for 3.7
+Date: Fri, 21 Sep 2012 02:47:31 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209210246110.20983@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60975 "EHLO
+Received: from utopia.booyaka.com ([74.50.51.50]:32896 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753026Ab2IUBEy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 21:04:54 -0400
+	with ESMTP id S1756954Ab2IUCrc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 22:47:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
@@ -19,165 +19,119 @@ Hash: SHA1
 
 Hi Tony
 
-The following changes since commit c4dbc7c086ce96d17f18b7a4a965b01d54d45f46:
+The following changes since commit 5698bd757d55b1bb87edd1a9744ab09c142abfc2:
 
-  Merge tag 'cleanup-fixes-for-v3.7' into test_merge_v3.6-rc6_cleanup-fixes (2012-09-19 13:54:08 -0600)
+  Linux 3.6-rc6 (2012-09-16 14:58:51 -0700)
 
 are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-c-for-3.7
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.7
+for you to fetch changes up to a238ce78aa0cfe0e3bcae706e77273516f33f31b:
 
-for you to fetch changes up to 2d8abe08923834bc41fb4d811b437033f567531e:
-
-  ARM: OMAP4460/4470: PMU: Enable PMU for OMAP4460/70 (2012-09-20 18:23:39 -0600)
+  ARM: AM33XX: cm: Add bit-field width values (2012-09-20 19:44:21 -0600)
 
 - ----------------------------------------------------------------
-Behind this tag are OMAP patches intended for the 3.7 merge window, for:
-
-- - Runtime PM conversions for the GPMC and RNG IP blocks
-- - Performance Monitoring Unit (PMU) support for OMAP2, 3, and non-4430 OMAP4
-- - OMAP hwmod code and data improvements
-- - Preparation patches for the IOMMU runtime PM conversion
-- - Preparation patches for OMAP4 full-chip retention support
-
-Based on a merge of v3.6-rc6 and the cleanup-fixes-for-v3.7
-tag (de6ca33a96a6bf61fcb91d3d399703e19ead9d1e), due to
-dependencies.
+OMAP clock changes for 3.7.  This includes some preparatory patches
+for common clock framework changeover.
 
 These patches have been tested for meaningful warnings from
-checkpatch, sparse, smatch, and cppcheck.  Basic build, boot[1], and
+checkpatch, sparse, smatch, and cppcheck.  Basic build, boot, and
 PM test logs are available here:
 
-    http://www.pwsan.com/omap/testlogs/omap_hwmod_prcm_devel_a_3.7/20120920182344/
-
-...
-
-1. Note that the N800 boot fails due to a known issue present in the
-   base commit:
-
-    http://www.spinics.net/lists/arm-kernel/msg196034.html
+    http://www.pwsan.com/omap/testlogs/clock_devel_3.7/20120920194425/
 
 - ----------------------------------------------------------------
 
-object size (delta in bytes from test_merge_v3.6-rc6_cleanup-fixes (c4dbc7c086ce96d17f18b7a4a965b01d54d45f46)):
+object size (delta in bytes from test_v3.6-rc6 (5698bd757d55b1bb87edd1a9744ab09c142abfc2)):
   text 	  data 	   bss 	 total 	kernel
- +1428 	  +256 	     0 	 +1684 	2430_testconfig
-  +180 	  +432 	     0 	  +612 	5912osk_testconfig
- +1152 	 +1736 	     0 	 +2888 	am33xx_testconfig
- +1304 	  +280 	    -8 	 +1576 	n800_b_testconfig
- +1336 	  +352 	   +56 	 +1744 	n800_multi_omap2xxx
- +1288 	  +256 	    -8 	 +1536 	n800_testconfig
-     0 	     0 	     0 	     0 	omap1510_defconfig
-  +184 	  +448 	     0 	  +632 	omap1_defconfig
- +5564 	 +1392 	    -8 	 +6948 	omap2_4_testconfig
- +1104 	 +2608 	     0 	 +3712 	omap2plus_defconfig
- +1100 	 +2584 	     0 	 +3684 	omap2plus_defconfig_cpupm
- +5104 	 +2592 	     0 	 +7696 	omap2plus_no_pm
- +1424 	 +1840 	     0 	 +3264 	omap3_4_testconfig
- +1036 	  +864 	   +64 	 +1964 	omap3_testconfig
- +5592 	 +1088 	     0 	 +6680 	omap4_testconfig
- +1096 	  +800 	     0 	 +1896 	rmk_omap3430_ldp_oldconfig
- +1344 	  +968 	     0 	 +2312 	rmk_omap4430_sdp_oldconfig
+  -120 	  +496 	     0 	  +376 	2430_testconfig
+   -96 	     0 	     0 	   -96 	5912osk_testconfig
+  -116 	 +1328 	     0 	 +1212 	am33xx_testconfig
+  -132 	  +464 	     0 	  +332 	n800_b_testconfig
+  -100 	  +976 	     0 	  +876 	n800_multi_omap2xxx
+  -132 	  +464 	     0 	  +332 	n800_testconfig
+   -96 	     0 	     0 	   -96 	omap1510_defconfig
+  -128 	     0 	     0 	  -128 	omap1_defconfig
+   -92 	 +1480 	     0 	 +1388 	omap2_4_testconfig
+  -116 	 +2288 	     0 	 +2172 	omap2plus_defconfig
+  -116 	 +2312 	     0 	 +2196 	omap2plus_defconfig_cpupm
+   -96 	 +2320 	     0 	 +2224 	omap2plus_no_pm
+  -160 	 +1416 	     0 	 +1256 	omap3_4_testconfig
+   -96 	  +904 	     0 	  +808 	omap3_testconfig
+  -156 	  +488 	     0 	  +332 	omap4_testconfig
+  -108 	  +880 	     0 	  +772 	rmk_omap3430_ldp_oldconfig
+ +3960 	  +520 	     0 	 +4480 	rmk_omap4430_sdp_oldconfig
 
+AnilKumar Ch (1):
+      ARM: OMAP2+: AM33XX: clock data: Add clkdev alias for cpu0
 
-Afzal Mohammed (3):
-      ARM: OMAP2/3: hwmod data: add gpmc
-      ARM: OMAP2+: gpmc: Adapt to HWMOD
-      ARM: OMAP2+: gpmc: minimal driver support
+Jon Hunter (2):
+      ARM: OMAP2420: Cosmetic fix for timer clock aliases
+      ARM: OMAP4: Add timer clock aliases for device-tree
 
-Benoit Cousson (1):
-      ARM: OMAP4: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs entries
+Michael Jones (1):
+      ARM: OMAP3: clock data: remove obsolete comment
 
-Igor Grinberg (1):
-      ARM: OMAP: hwmod code: remove unused hwmod function prototypes
+Mike Turquette (1):
+      ARM: omap4: cm: add bitfield width values
 
-Jon Hunter (5):
-      ARM: OMAP: Add a timer attribute for timers that can interrupt the DSP
-      ARM: OMAP3: hwmod data: Add debugss HWMOD data
-      ARM: OMAP2+: PMU: Convert OMAP2/3 devices to use HWMOD
-      ARM: OMAP2+: PMU: Add runtime PM support
-      ARM: OMAP4460/4470: PMU: Enable PMU for OMAP4460/70
+Paul Walmsley (3):
+      ARM: OMAP3: clock data: Add the USB TLL clocks device name
+      ARM: OMAP2+: clock data: add some aliases for use by CPUFreq only
+      SPI: OMAP: remove unnecessary includes of plat/clock.h
 
-Kishon Vijay Abraham I (1):
-      ARM: OMAP4: hwmod data: make *phy_48m* as the main_clk of ocp2scp
+Rajendra Nayak (3):
+      ARM: omap: clk: add clk_prepare and clk_unprepare
+      ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
+      ARM: OMAP2+: clock: Remove all direct dereferencing of struct clk
 
-Ming Lei (1):
-      ARM: OMAP4430: PMU: prepare to create PMU device via HWMOD
+Vaibhav Hiremath (1):
+      ARM: AM33XX: cm: Add bit-field width values
 
-Omar Ramirez Luna (5):
-      ARM: OMAP2+: omap_device: expose hwmod assert/deassert to omap devices
-      ARM: OMAP: hwmod: partially un-reset hwmods might not be properly enabled
-      ARM: OMAP: hwmod: revise deassert sequence
-      ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
-      ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
-
-Paul Walmsley (10):
-      ARM: OMAP4+: hwmod code: remove clkdm requirement in _omap4_wait_target_*()
-      ARM: OMAP2+: hwmod code: convert missing clockdomain warnings to debug messages
-      ARM: OMAP4: hwmod data: add missing HWMOD_NO_IDLEST flags to some PRCM IP blocks
-      ARM: OMAP3: hwmod data: add mmu data for iva and isp
-      ARM: OMAP2xxx: hwmod/CM: add RNG integration data
-      hwrng: OMAP: store per-device data in per-device variables, not file statics
-      hwrng: OMAP: convert to use runtime PM
-      ARM: OMAP: split OMAP1, OMAP2+ RNG device registration
-      hwrng: OMAP: remove SoC restrictions from driver registration
-      ARM: OMAP2+: clockdomain/hwmod: add workaround for EMU clockdomain idle problems
-
-Tero Kristo (4):
-      ARM: OMAP4: powerdomain: add support for reading prev logic and mem states
-      ARM: OMAP4: hwmod data: add support for lostcontext_mask
-      ARM: OMAP4: hwmod: flag hwmods/modules not supporting module level context status
-      ARM: OMAP3: hwmod data: add sad2d hwmod
-
- arch/arm/mach-omap1/devices.c                      |   28 ++
- arch/arm/mach-omap1/timer.c                        |    2 +-
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/clockdomain.c                  |   17 ++
- arch/arm/mach-omap2/clockdomain.h                  |   20 +-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c         |   22 ++
- arch/arm/mach-omap2/clockdomain44xx.c              |   11 +
- arch/arm/mach-omap2/clockdomains3xxx_data.c        |    7 +-
- arch/arm/mach-omap2/clockdomains44xx_data.c        |    3 +-
- arch/arm/mach-omap2/cm-regbits-34xx.h              |    2 +
- arch/arm/mach-omap2/cm2xxx_3xxx.c                  |    2 +-
- arch/arm/mach-omap2/cm2xxx_3xxx.h                  |    1 +
- arch/arm/mach-omap2/devices.c                      |   39 +--
- arch/arm/mach-omap2/gpmc.c                         |  194 ++++++++++----
- arch/arm/mach-omap2/omap_hwmod.c                   |   93 +++++--
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   19 ++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   19 ++
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   17 ++
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  110 +++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  280 +++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  243 ++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    6 +-
- arch/arm/mach-omap2/pm.c                           |    3 +-
- arch/arm/mach-omap2/pmu.c                          |   95 +++++++
- arch/arm/mach-omap2/powerdomain44xx.c              |   61 ++++-
- arch/arm/mach-omap2/prcm-common.h                  |    2 +
- arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
- arch/arm/plat-omap/include/plat/iommu.h            |   15 ++
- arch/arm/plat-omap/include/plat/omap_device.h      |    4 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |   26 +-
- arch/arm/plat-omap/omap_device.c                   |   55 ++++
- drivers/char/hw_random/omap-rng.c                  |  121 +++++----
- 32 files changed, 1336 insertions(+), 183 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pmu.c
+ arch/arm/mach-omap2/board-apollon.c          |    4 +-
+ arch/arm/mach-omap2/board-h4.c               |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   10 +-
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   20 +-
+ arch/arm/mach-omap2/clkt_clksel.c            |   91 +++---
+ arch/arm/mach-omap2/clkt_dpll.c              |   26 +-
+ arch/arm/mach-omap2/clock.c                  |   11 +-
+ arch/arm/mach-omap2/clock2420_data.c         |   24 +-
+ arch/arm/mach-omap2/clock2430_data.c         |   22 ++
+ arch/arm/mach-omap2/clock33xx_data.c         |    1 +
+ arch/arm/mach-omap2/clock3xxx.c              |    8 +-
+ arch/arm/mach-omap2/clock3xxx_data.c         |   33 ++-
+ arch/arm/mach-omap2/clock44xx_data.c         |   21 ++
+ arch/arm/mach-omap2/cm-regbits-33xx.h        |  158 +++++++++-
+ arch/arm/mach-omap2/cm-regbits-44xx.h        |  411 +++++++++++++++++++++-----
+ arch/arm/mach-omap2/control.h                |    1 +
+ arch/arm/mach-omap2/display.c                |    4 +-
+ arch/arm/mach-omap2/dpll3xxx.c               |   48 +--
+ arch/arm/mach-omap2/gpmc.c                   |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |   45 ++-
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/plat-omap/clock.c                   |   27 --
+ arch/arm/plat-omap/include/plat/clock.h      |    5 +
+ arch/arm/plat-omap/omap_device.c             |    4 +-
+ drivers/spi/spi-omap-100k.c                  |    2 -
+ drivers/spi/spi-omap2-mcspi.c                |    1 -
+ 28 files changed, 760 insertions(+), 231 deletions(-)
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iQIcBAEBAgAGBQJQW7zCAAoJEMePsQ0LvSpL9vgP/3daPbDgjtyXx6DpHMOhdoU7
-ShlGI7oGoq4SNCyUgq0zbYJCyp1+hplGj8JL/jA9ELVjnt0np5obQKWh0dGzU2pF
-X2TudDqSMgXJmzS2h3cjIPujJ/lWQIt2500F6Fhtf7msrWqdfnXeMBHs/q6s+Hco
-LMZh79pGnUwxjCjApdANmnEKjcKckGJBOUTHCWdol4cOyo8FbFaJDj74+6jd1PGV
-FtlvHtgBKaBMOY3lTnIyai53i+rnQ3peUYWDR9HubA1rJhfBvcW/tMiiPMTYPKz1
-efcpbMV70y6SOIoX3pJ0r+EwChUtYxWFoe1SiOmrhE6aSvmwtTwEDhDiDWNn4eYI
-zSKtiU2EJaCj4gUBlx8C/siSGhNRqAKWAdsDOOTU7XYhYshLcVOWDcZGZ1L/R6An
-0utW1Uv3/BoPxJ0sIsgFcxFuPH4uFXkwDy7TXUO9LLFRsFibQCoxfWXuUBqwFOIQ
-BxyjUlA4Hj2/8PdypgqVJJp+22hAWca1w/gsoSAxd9MHcY9CLX0FryiRcqoxUGWd
-Q5HKA284TE9/upYYwAiQ+CimRtJh/nwQlZMd7yLiSjaQcwEskq53rxFWklN3ki3L
-uAVoWcaAkUklPAL4x0XU7VQ82ZO3hk3NnhZo0Bd/j9EZXT/XGiof8wVg2baUWC0B
-WF7lfJDDivg9smyLYKWR
-=WJc2
+iQIcBAEBAgAGBQJQW9TLAAoJEMePsQ0LvSpLI8oP/1dFx71IBcgbOVQh94QCIwLQ
+xYsBeYWZSZDQhXKsbuqIsHQuROJMCC9DM5xXQJOihWgZ8ZqQ5KH/Uw8k/z3rrE05
+JWPwOktXNxnz2pNE3GiBusntIfUPtgHJOsUbQN9m12hrYRbA5GfFwEEr68rZUtln
+MmofQ6FtQjrluuxMj+hKD1QF8gEu8+xCL9kn88+KDxDkYSU4QTVJgW62emB0VT8U
+h1OnkbAy3JzMtLim9tp5GDMFgdko1OvmuwLo/puwvnaHePpTaghxfXPr5DLM3Cdb
+uedYLW11lMpbrE2laCkDkaHmdf/9i0WvUQshPF2GaBYvLXbe24slJ2D48FZk3ddh
+UrZWDF+D54xl1oaDzOE6imS0Q/sDSocuLKPrStYJ60IxTvmX+NM0wXvh4NbEMwKx
+8gudcy9YVHctrWcgD9v4u7EY9y5LpxEtvvM2YRsOVcuUTUhPYC7mOsMLODL5QZ52
+nQIH182E9SghRZpjfn7QhVqNbEZtyG1pv2a+ucBy4xfVtFuLCkkx3jgqAlVZZ8Ip
+9sWS4MBENg84olJ6kJ6yoivtF6sBwZu0yLatvhCZ+OZzjsqhuGarEgO22RDdjjwx
+1gsbUl57BQ8TxZvKu973f4TwjqdwldDW1JrGF5InUHGqDYCP8Xc6gPpo9Mh1jTZV
+k/4gUqgSWnbWPKdBpb9K
+=xRep
 -----END PGP SIGNATURE-----
