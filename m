@@ -1,69 +1,57 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2 00/15] tidspbridge driver MMU-related cleanups
-Date: Fri, 21 Sep 2012 11:18:56 -0500
-Message-ID: <CAB-zwWixOeCPoV=F1E8t7_6AdgCTLQhC72_G35+dSnaJsTwonA@mail.gmail.com>
-References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix max value of clkd
+Date: Fri, 21 Sep 2012 22:28:00 +0530
+Message-ID: <CANfBPZ8wpbMeePM8wOJ59gN0LKx3Ed+qRfnBeez18Nyq2DJ2Jg@mail.gmail.com>
+References: <1348240872-16068-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:38990 "EHLO
-	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750797Ab2IUQS5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Sep 2012 12:18:57 -0400
-Received: by ieak13 with SMTP id k13so5884162iea.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 09:18:56 -0700 (PDT)
-In-Reply-To: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1348240872-16068-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi Laurent,
-
-On Wed, Sep 19, 2012 at 7:06 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hello,
+On Fri, Sep 21, 2012 at 8:51 PM, Balaji T K <balajitk@ti.com> wrote:
+> clock divisor can take a max value of 1023
+> update code as per TRM so that card init can be handled with
+> higher IP clock frequencies from which clock to the card is
+> derived.
 >
-> Here's the second version of my tidspbridge MMU-related cleanup patches. The
-> first version has been sent privately only, don't try to search the mailing
-> list archive for it :-)
+This is difficult to read without some punctuation / capitalization.
+
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
 >
-> Replacing hw/hw_mmu.c and part of core/tiomap3430.c with generic IOMMU calls
-> should be less difficult now. Anyone would like to give it a try?
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d9af5f1..073b9ff 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -75,6 +75,7 @@
+>  #define ICE                    0x1
+>  #define ICS                    0x2
+>  #define CEN                    (1 << 2)
+> +#define CLKD_MAX               0x3FF
+
+It'd be nice to have a comment on what 3FF stands for and it's
+relation to clock in MHz.
+
+>  #define CLKD_MASK              0x0000FFC0
+>  #define CLKD_SHIFT             6
+>  #define DTO_MASK               0x000F0000
+> @@ -478,8 +479,8 @@ static u16 calc_divisor(struct omap_hsmmc_host *host, struct mmc_ios *ios)
 >
-> Laurent Pinchart (14):
->   tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
->   tidspbridge: hw_mmu: Removed unused functions
->   tidspbridge: tiomap3430: Reorder functions to avoid forward
->     declarations
->   tidspbridge: tiomap3430: Remove unneeded dev_context local variables
->   tidspbridge: tiomap3430: Factor out common page release code
->   tidspbridge: tiomap3430: Remove ul_ prefix
->   tidspbridge: tiomap3430: Remove unneeded local variables
->   tidspbridge: Fix VM_PFNMAP mapping
->   tidspbridge: Remove unused hw_mmu_map_attrs_t::donotlockmpupage field
->   arm: omap: iommu: Include required headers in iommu.h and iopgtable.h
->   tidspbridge: Use constants defined in IOMMU platform headers
->   tidspbridge: Simplify pte_update and mem_map_vmalloc functions
->   tidspbridge: Use correct types to describe physical, MPU, DSP
->     addresses
->   tidspbridge: Replace hw_mmu_map_attrs_t structure with a prot
->     bitfield
+>         if (ios->clock) {
+>                 dsor = DIV_ROUND_UP(clk_get_rate(host->fclk), ios->clock);
+> -               if (dsor > 250)
+> -                       dsor = 250;
+> +               if (dsor > CLKD_MAX)
+> +                       dsor = CLKD_MAX;
 
-Thanks, tested on beagle-xM, they look good!
+Can these two lines be written in one line as
+"dsor &= CLKD_MAX; " ?
 
-Can you submit them to Greg KH and devel@driverdev.osuosl.org,
-preferably with a 'staging:' prefix along with the current subject.
-
-The only thing of concern is that:
-ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
-
-Might be taking a different path than these to mainline[1].
-
-Cheers,
-
-Omar
-
----
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg76319.html
+>         }
+>
