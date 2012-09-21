@@ -1,52 +1,52 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv7 04/12] ARM: OMAP: hwmod: Add support for per hwmod/module
- context lost count
-Date: Fri, 21 Sep 2012 00:38:46 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209210032380.6888@utopia.booyaka.com>
-References: <1342704392-23657-1-git-send-email-t-kristo@ti.com> <1342704392-23657-5-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1209121946410.17903@utopia.booyaka.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: hwmod: partially un-reset hwmods might
+ not be properly enabled
+Date: Fri, 21 Sep 2012 00:44:28 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209210042370.6888@utopia.booyaka.com>
+References: <1345614150-25723-1-git-send-email-omar.luna@linaro.org> <1345614150-25723-2-git-send-email-omar.luna@linaro.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:60904 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756659Ab2IUAir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 20:38:47 -0400
-In-Reply-To: <alpine.DEB.2.00.1209121946410.17903@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1345614150-25723-2-git-send-email-omar.luna@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, balbi@ti.com, sourav.poddar@ti.com, gregkh@linuxfoundation.org
-Cc: linux-omap@vger.kernel.org, nm@ti.com, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 
-Hi 
+Hi Omar
 
-On Wed, 12 Sep 2012, Paul Walmsley wrote:
+On Wed, 22 Aug 2012, Omar Ramirez Luna wrote:
 
-> On Thu, 19 Jul 2012, Tero Kristo wrote:
+> Some IP blocks might not be using/controlling more than one
+> reset line, this check loosens the restriction to fully use
+> hwmod framework for those drivers.
 > 
-> > From: Rajendra Nayak <rnayak@ti.com>
-> > 
-> > OMAP4 has module specific context lost registers which makes it now
-> > possible to have module level context loss count, instead of relying
-> > on the powerdomain level context count.
-> > 
-> > Add 2 private hwmod api's to update/clear the hwmod/module specific
-> > context lost counters/register.
+> E.g.: ipu has reset lines: mmu_cache, cpu0 and cpu1.
+> - As of now cpu1 is not used and hence (with previous check) the
+>   IP block isn't fully enabled by hwmod code.
+> - Usually ipu and dsp processors configure their mmu module first
+>   and then enable the processors, this involves:
+>     * Deasserting mmu reset line, and enabling the module.
+>     * Deasserting cpu0 reset line, and enabling the processor.
+>   The ones portrayed in this example are controlled through
+>   rproc_fw_boot in drivers/remoteproc/remoteproc_core.c
 > 
-> This one has been modified to align with the changes on patch 3, and 
-> queued for 3.7.
+> While at it, prevent _omap4_module_disable if all the hardreset
+> lines on an IP block are not under reset.
+> 
+> This will allow the driver to:
+>   a. Deassert the reset line.
+>   b. Enable the hwmod through runtime PM default callbacks.
+>   c. Do its usecase.
+>   d. Disable hwmod through runtime PM.
+>   e. Assert the reset line.
+> 
+> Signed-off-by: Omar Ramirez Luna <omar.luna@linaro.org>
 
-Am sorry to say that I had to drop the code changes from this patch, due 
-to the OMAP serial bugs addressed by these two patches:
-
-    http://comments.gmane.org/gmane.linux.ports.arm.omap/84729
-    http://www.spinics.net/lists/arm-kernel/msg196034.html
-
-Without those two patches, OMAP4430ES2 Panda crashes after Tero's patches 
-are applied, with the same symptom as with the N800 crash.  Applying 
-those two patches fixes the problem.
-
-It would be good if you guys could ask Greg to pick up the first patch 
-ASAP so we can queue the second one during the early 3.7-rc time frame.
+Well, I don't think this is the right long-term solution, but I'd like to 
+see this moving forward.  So this one has been queued for 3.7.  Hopefully 
+we can figure out the right thing once the PRM driver is ready (which will 
+handle the low-level hard resets).
 
 
 - Paul
