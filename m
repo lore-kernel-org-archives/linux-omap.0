@@ -1,111 +1,38 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] Documentation: RCU: update the stall warning message
- "timer=-1" to match reality
-Date: Fri, 21 Sep 2012 15:07:41 -0700
-Message-ID: <20120921220741.GG2454@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209211610280.30239@utopia.booyaka.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: omap-usb-tll build broken in linux next
+Date: Sat, 22 Sep 2012 00:08:17 +0200
+Message-ID: <20120921220817.GZ28670@sortiz-mobl>
+References: <20120920183442.GH28835@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:3632 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755832Ab2IUWIW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 18:08:22 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209211610280.30239@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Bruce, Becky" <bbruce@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, snijsure@grid-net.com
+In-Reply-To: <20120920183442.GH28835@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>
 
-On Fri, Sep 21, 2012 at 04:13:29PM +0000, Paul Walmsley wrote:
+Hi Tony,
+
+On Thu, Sep 20, 2012 at 11:34:42AM -0700, Tony Lindgren wrote:
+> Hi Keshava & Felipe,
 > 
-> The CONFIG_RCU_FAST_NO_HZ stall warning messages can never emit
-> "timer=-1".  This is because the printf() format specifier to generate
-> that number is '%lu'.  So, update the documentation to use the
-> unsigned long equivalent instead, "timer=4294967295".  This is what
-> actually shows up in traces.
+> Looks like we have something broken in linux next:
 > 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> Cc: Dipankar Sarma <dipankar@in.ibm.com>
+> make[2]: *** No rule to make target `drivers/mfd/omap-usb-tll.o', needed by `drivers/mfd/built-in.o'.  Stop.
+> 
+> This is at least with my n8x0 config, see the attached file.
+Thanks for the notification. Felipe was right, I forgot a git add...It should
+be all fixed now.
 
-Good catch!  Even worse, it gives "timer=18446744073709551615" on
-64-bit systems, which is no easier on the eyes.  I therefore changed
-the code to print a nicer message in this case, patch below.
+Cheers,
+Samuel.
 
-The meaning of the "timer=4294967295" was that the corresponding CPU
-was either non-idle or idle with no RCU callbacks, FWIW.
-
-							Thanx, Paul
-
--------------------------------------------------------------------------
-
-rcu: Fix CONFIG_RCU_FAST_NO_HZ stall warning message
-
-The print_cpu_stall_fast_no_hz() function attempts to print -1 when
-the ->idle_gp_timer is not pending, but unsigned arithmetic causes it
-to instead print ULONG_MAX, which is 4294967295 on 32-bit systems and
-18446744073709551615 on 64-bit systems.  Neither of these are the most
-reader-friendly values, so this commit instead causes "timer not pending"
-to be printed when ->idle_gp_timer is not pending.
-
-Reported-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-
-diff --git a/Documentation/RCU/stallwarn.txt b/Documentation/RCU/stallwarn.txt
-index 523364e..1927151 100644
---- a/Documentation/RCU/stallwarn.txt
-+++ b/Documentation/RCU/stallwarn.txt
-@@ -99,7 +99,7 @@ In kernels with CONFIG_RCU_FAST_NO_HZ, even more information is
- printed:
- 
- 	INFO: rcu_preempt detected stall on CPU
--	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer=-1
-+	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer not pending
- 	   (t=65000 jiffies)
- 
- The "(64628 ticks this GP)" indicates that this CPU has taken more
-@@ -116,13 +116,13 @@ number between the two "/"s is the value of the nesting, which will
- be a small positive number if in the idle loop and a very large positive
- number (as shown above) otherwise.
- 
--For CONFIG_RCU_FAST_NO_HZ kernels, the "drain=0" indicates that the
--CPU is not in the process of trying to force itself into dyntick-idle
--state, the "." indicates that the CPU has not given up forcing RCU
--into dyntick-idle mode (it would be "H" otherwise), and the "timer=-1"
--indicates that the CPU has not recented forced RCU into dyntick-idle
--mode (it would otherwise indicate the number of microseconds remaining
--in this forced state).
-+For CONFIG_RCU_FAST_NO_HZ kernels, the "drain=0" indicates that the CPU is
-+not in the process of trying to force itself into dyntick-idle state, the
-+"." indicates that the CPU has not given up forcing RCU into dyntick-idle
-+mode (it would be "H" otherwise), and the "timer not pending" indicates
-+that the CPU has not recently forced RCU into dyntick-idle mode (it
-+would otherwise indicate the number of microseconds remaining in this
-+forced state).
- 
- 
- Multiple Warnings From One Stall
-diff --git a/kernel/rcutree_plugin.h b/kernel/rcutree_plugin.h
-index 3b1a11e..be822f0 100644
---- a/kernel/rcutree_plugin.h
-+++ b/kernel/rcutree_plugin.h
-@@ -2245,11 +2245,15 @@ static void print_cpu_stall_fast_no_hz(char *cp, int cpu)
- {
- 	struct rcu_dynticks *rdtp = &per_cpu(rcu_dynticks, cpu);
- 	struct timer_list *tltp = &rdtp->idle_gp_timer;
-+	char c;
- 
--	sprintf(cp, "drain=%d %c timer=%lu",
--		rdtp->dyntick_drain,
--		rdtp->dyntick_holdoff == jiffies ? 'H' : '.',
--		timer_pending(tltp) ? tltp->expires - jiffies : -1);
-+	c = rdtp->dyntick_holdoff == jiffies ? 'H' : '.';
-+	if (timer_pending(tltp))
-+		sprintf(cp, "drain=%d %c timer=%lu",
-+			rdtp->dyntick_drain, c, tltp->expires - jiffies);
-+	else
-+		sprintf(cp, "drain=%d %c timer not pending",
-+			rdtp->dyntick_drain, c);
- }
- 
- #else /* #ifdef CONFIG_RCU_FAST_NO_HZ */
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
