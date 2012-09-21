@@ -1,65 +1,27 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] drivers: bus: Move the OMAP interconnect driver to
- drivers/bus/
-Date: Thu, 20 Sep 2012 16:54:24 -0700
-Message-ID: <20120920235423.GP28835@atomide.com>
-References: <1347614434-15938-1-git-send-email-santosh.shilimkar@ti.com>
- <20120917215128.GF11762@atomide.com>
- <201209191857.57862.arnd@arndb.de>
- <CAMQu2gw0AmVhW+qR9GUGkUd2G+aZd9A=skTUDJiY2BMpURmSNQ@mail.gmail.com>
- <CAOesGMgzAiFQKpZEpXqRS+U9fxcLAemhb+MCNsn0AOffa6JiNA@mail.gmail.com>
+Subject: Re: [PATCH 1/3] pinctrl: pinctrl-single must be initialized early.
+Date: Thu, 20 Sep 2012 17:09:22 -0700
+Message-ID: <20120921000922.GQ28835@atomide.com>
+References: <1348070841-23354-1-git-send-email-panto@antoniou-consulting.com>
+ <1348070841-23354-2-git-send-email-panto@antoniou-consulting.com>
+ <20120918182150.GY11762@atomide.com>
+ <B7D59159-4456-468B-A414-9B57BCEE018D@antoniou-consulting.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOesGMgzAiFQKpZEpXqRS+U9fxcLAemhb+MCNsn0AOffa6JiNA@mail.gmail.com>
+In-Reply-To: <B7D59159-4456-468B-A414-9B57BCEE018D@antoniou-consulting.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pantelis Antoniou <panto@antoniou-consulting.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@ti.com>, Koen Kooi <koen@dominion.thruhere.net>, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [120920 16:23]:
-> On Wed, Sep 19, 2012 at 10:56 PM, Shilimkar, Santosh
-> <santosh.shilimkar@ti.com> wrote:
-> > On Thu, Sep 20, 2012 at 12:27 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> On Monday 17 September 2012, Tony Lindgren wrote:
-> >>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120914 02:21]:
-> >>> > OMAP interconnect drivers are used for the interconnect error handling.
-> >>> > Since they are bus driver, lets move it to newly created drivers/bus.
-> >>> >
-> >>> > Cc: Arnd Bergmann <arnd@arndb.de>
-> >>> > Cc: Tony Lindgren <tony@atomide.com>
-> >>> > Tested-by: Lokesh Vutla <lokeshvutla@ti.com>
-> >>> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> >>> > ---
-> >>> > Patch just moves OMAP interconnect drivers as is to the newly created
-> >>> > driver/bus/* directory. Patch is generated against "arm-soc/drivers/ocp2scp"
-> >>> > tree and test on all OMAP boards.
-> >>>
-> >>> Great, looks like this should not conflict with other
-> >>> omap patches queued, so Arnd should probably take this into
-> >>> the bus branch:
-> >>>
-> >>> Acked-by: Tony Lindgren <tony@atomide.com>
-> >>
-> >> It turns out that the patch actually did conflict and we now have a broken
-> >> omap2plus_defconfig. The patch below seems to fix it, but please verify
-> >> that this makes sense.
-> >>
-> >> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> >>
-> > Looks correct.
-> >
-> > Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+* Pantelis Antoniou <panto@antoniou-consulting.com> [120918 12:11]:
 > 
-> I ended up applying something very similar to this and carried the
-> ACKs on that, but I broke it up in two pieces; one for the
-> drivers/ocp2scp branch to fix the irq numbers, and another to just
-> for-next to deal with the soc.h include file (since that should
-> probably have been fixed at branch merge time).
-> 
-> Pushed out to for-next as well.
+> As long as we get the regulator to work early in the game no problem.
+> I don't know if deferring the probe will work in this case.
+> I could give it a shot and see if it works at all.
 
-OK thanks!
+Did you have any luck with deferred probe here?
 
 Tony
