@@ -1,59 +1,137 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Beagleboard xM crashes when being set to 800MHz with
- smartreflex on linux-omap-3.6-rc6
-Date: Fri, 21 Sep 2012 12:16:30 -0700
-Message-ID: <20120921191629.GH28835@atomide.com>
-References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH RESEND] PM / Runtime: let rpm_resume() succeed if RPM_ACTIVE, even when disabled
+Date: Fri, 21 Sep 2012 21:29:23 +0200
+Message-ID: <201209212129.24244.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1209211335100.1323-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:46179 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757644Ab2IUTQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 15:16:32 -0400
-Content-Disposition: inline
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1209211335100.1323-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>
-Cc: linux-omap@vger.kernel.org
 
-* Maximilian Schwerin <Maximilian.Schwerin@tigris.de> [120920 23:46]:
-> Hi,
+On Friday, September 21, 2012, Alan Stern wrote:
+> On Thu, 20 Sep 2012, Rafael J. Wysocki wrote:
 > 
-> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
-> as basis for the kernel config.
+> > On Thursday, September 20, 2012, Kevin Hilman wrote:
+> > > From: Kevin Hilman <khilman@ti.com>
+> > > 
+> > > When runtime PM is disabled, what we want is for callbacks not to be
+> > > called from then on.  However, currently, when runtime PM is disabled,
+> > > operations such as 'get' will also fail even if the device is
+> > > currently active.
+> > > 
+> > > Since calling 'get' on a device that is already RPM_ACTIVE does not
+> > > involve calling the callbacks, it should be allowed to succeed, even
+> > > if runtime PM is disabled.
+> > > 
+> > > This is particularily useful in runtime PM enabled drivers that are
+> > > used during system suspend.  Because runtime PM is disabled during
+> > > system suspend, currently any driver's use of pm_runtime_get* will
+> > > fail with -EACCES.  This is expected if the device was already runtime
+> > > suspended, but if the device is actually active (due to recent usage,
+> > > autosuspend timeout not expired, or pm_runtime_resume() called in
+> > > ->suspend() method), the pm_runtime_get*() call should actually
+> > > succeed.
+> > 
+> > I'd say the problem is when the drive in question uses the return value of
+> > pm_runtime_get_sync(), for example, to decide whether or not it is safe
+> > to access the hardware.  In that case it may decide that accessing the
+> > hardware is unsafe during system suspend, although that's not really the
+> > case.  So the change you're proposing allows drivers of this kind  (and there
+> > may be a substantial number of them) to be simplified slightly.
 > 
-> When I enable smartreflex and switch to 800MHz via
+> Kevin makes a good case that pm_runtime_resume() and related functions 
+> should succeed even when runtime PM is disabled, if the device is 
+> already in the desired state.
 > 
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
-> cpufreq-set -f 800MHz
+> The same may be true for pm_runtime_suspend().  What do you think?
+
+I've discussed that with Kevin.  The problem is that the runtime PM
+status may be changed at will when runtime PM is disabled by using
+__pm_runtime_set_status(), so the status generally cannod be trusted
+if power.disable_depth > 0.
+
+During system suspend, however, runtime PM is disabled by the core and
+if neither the driver nor the subsystem has disabled it in the meantime,
+the status should be actually valid.
+
+> > > To permit the usage described above, add a check to rpm_resume() so
+> > > that success is returned in the case where a driver is suspended (it's
+> > > ->suspend callback has been called) but is still RPM_ACTIVE.
+> > > 
+> > > This patch was developed in close collaboration with Rafael J. Wysocki
+> > > <rjw@sisk.pl>
+> > > 
+> > > Tested on AM3730/Beagle-xM where wakeup IRQ firing during the late
+> > > suspend phase triggers runtime PM activity in the I2C driver since the
+> > > wakeup IRQ is on an I2C-connected PMIC.
+> > > 
+> > > Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> > > Signed-off-by: Kevin Hilman <khilman@ti.com>
+> > 
+> > OK, I wonder if anyone has any objections against this.  Alan?
 > 
-> the board crashes. If I switch to 800MHz and enable smartreflex later
-> nothing happens. This used to work in my 3.3 based kernel.
+> The way the patch is written contradicts the documentation:
+> 
+>   * A request to execute ->runtime_resume() will cancel any pending or
+>     scheduled requests to execute the other callbacks for the same device,
+>     except for scheduled autosuspends.
 
-I'm suspecting that this is because of all the missing PM
-errata we don't have in the mainline kernel :(
+I'm not sure where the contradiction is.  The patch simply changes the
+behavior for disabled runtime PM, which is to return a nonzero value immediately
+anyway.
 
-I think we're missing at least the following based on a quick grep
-of the Nokia patched PM code:
+> > > @@ -510,7 +510,8 @@ static int rpm_resume(struct device *dev, int rpmflags)
+> > >  	if (dev->power.runtime_error)
+> > >  		retval = -EINVAL;
+> > >  	else if (dev->power.disable_depth > 0)
+> > > -		retval = -EACCES;
+> > > +		retval = dev->power.is_suspended && 
+> > > +			dev->power.runtime_status == RPM_ACTIVE ? 1 : -EACCES;
+> > >  	if (retval)
+> > >  		goto out;
+> 
+> Also, the is_suspended test seems irrelevant in general -- it makes 
+> sense in terms of the scenario Kevin described but that's not the 
+> stated purpose of the patch.
 
-- 3430 (and 3630?) hs omap cs1 off-idle bug where save/restore needs to be in lowmem
+Well, it is, although the changelog doesn't state it sufficiently clearly. :-)
 
-- 3630 retention idle is missing errata handling for 1.85/i581
+It fact, it is an optimization, because the driver can have a "suspended"
+flag that will be set in its .suspend() routine and then do something like:
 
-- 3630 off idle is missing 1.87 handling
+ret = pm_runtime_get_sync(dev);
+if (!ret || (private_driver_data(dev)->suspended && ret == -EACCES) {
+  /* access the hardware */
+}
 
-- smartreflex missing twl4030 errata?
+but if the above patch is applied, the driver won't need to do that (and
+that's something multiple drivers may need to do, so it seems to be worth
+optimizing).
 
-- Nokia patched PM code mentions also quite a few other missing
-  errata such as 1.88, 1.142, i582, i467, i468, 1.164
+> Both of these problems can be addressed by writing the code as follows:
+> 
+> 	if (dev->power.runtime_error)
+> 		retval = -EINVAL;
+> 	else if (dev->power.disable_depth > 0) {
+> 
+> 		/* Special case: allow this if the device is already active */
+> 		if (dev->power.runtime_status != RPM_ACTIVE)
+> 			retval = -EACCES;
+> 	}
+> 	if (retval)
+> 		goto out;
 
-This may be a bit out of date as it's based on some notes I made
-few months ago after I started noticing flakeyness on my 3630 zoom3
-board.
+We could do that too, but I'm a bit concerned about the situations where
+runtime PM is disabled by the driver itself or by the subsystem, because
+in those cases whoever disables runtime PM would have to make sure that the
+status still reflects the actual hardware state, but that's what the runtime
+PM framework is for (among other things).
 
-Regards,
-
-Tony
+Thanks,
+Rafael
