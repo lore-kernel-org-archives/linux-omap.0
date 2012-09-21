@@ -1,61 +1,81 @@
-From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
-Subject: Beagleboard xM crashes when being set to 800MHz with smartreflex on linux-omap-3.6-rc6
-Date: Fri, 21 Sep 2012 08:45:16 +0200
-Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+From: Sourav Poddar <sourav.poddar@ti.com>
+Subject: [PATCHv2] serial: omap: Remove unnecessary checks from suspend/resume
+Date: Fri, 21 Sep 2012 12:26:48 +0530
+Message-ID: <1348210608-9542-1-git-send-email-sourav.poddar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="=-mP/it4MoxKS3XaOAntn5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www45.your-server.de ([213.133.104.45]:39330 "EHLO
-	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab2IUGpZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 02:45:25 -0400
-Received: from [217.91.135.48] (helo=IT-AstaroSecurityGateway)
-	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.74)
-	(envelope-from <prvs=0611d79f6e=maximilian.schwerin@tigris.de>)
-	id 1TEwzM-0000DD-59
-	for linux-omap@vger.kernel.org; Fri, 21 Sep 2012 08:45:24 +0200
-Received: from [192.168.0.10] (port=2262 helo=dolphin.TIGRIS.local)
-	by IT-AstaroSecurityGateway with esmtp (Exim 4.76)
-	(envelope-from <Maximilian.Schwerin@tigris.de>)
-	id 1TEwz8-0006w1-0A
-	for linux-omap@vger.kernel.org; Fri, 21 Sep 2012 08:45:10 +0200
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: alan@linux.intel.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, santosh.shilimkar@ti.com, paul@pwsan.com, Sourav Poddar <sourav.poddar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
---=-mP/it4MoxKS3XaOAntn5
-Content-class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Drop the check for "up" being valid on suspend/resume callbacks.
+It should be valid always. Get rid of the "pdata" check also as
+serial_omap_get_context_loss_count() checks for it.
 
-Hi,
+Boot tested on omap4 panda and PM tested(hitting off in Idle
+and suspend) on 3630 based Beagle board.
 
-I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
-as basis for the kernel config.
+Signed-off-by: Sourav Poddar <sourav.poddar@ti.com>
+---
+v1->v2
+Not a functionality change, just
+Introduce a blank line before "signed off by" line.
+ drivers/tty/serial/omap-serial.c |   23 +++++++++--------------
+ 1 files changed, 9 insertions(+), 14 deletions(-)
 
-When I enable smartreflex and switch to 800MHz via
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index f175385..3c05c5e 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1222,10 +1222,8 @@ static int serial_omap_suspend(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 
+-	if (up) {
+-		uart_suspend_port(&serial_omap_reg, &up->port);
+-		flush_work_sync(&up->qos_work);
+-	}
++	uart_suspend_port(&serial_omap_reg, &up->port);
++	flush_work_sync(&up->qos_work);
+ 
+ 	return 0;
+ }
+@@ -1234,8 +1232,8 @@ static int serial_omap_resume(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 
+-	if (up)
+-		uart_resume_port(&serial_omap_reg, &up->port);
++	uart_resume_port(&serial_omap_reg, &up->port);
++
+ 	return 0;
+ }
+ #endif
+@@ -1553,17 +1551,14 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ static int serial_omap_runtime_resume(struct device *dev)
+ {
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+-	struct omap_uart_port_info *pdata = dev->platform_data;
+ 
+-	if (up && pdata) {
+-			u32 loss_cnt = serial_omap_get_context_loss_count(up);
++	u32 loss_cnt = serial_omap_get_context_loss_count(up);
+ 
+-			if (up->context_loss_cnt != loss_cnt)
+-				serial_omap_restore_context(up);
++	if (up->context_loss_cnt != loss_cnt)
++		serial_omap_restore_context(up);
+ 
+-		up->latency = up->calc_latency;
+-		schedule_work(&up->qos_work);
+-	}
++	up->latency = up->calc_latency;
++	schedule_work(&up->qos_work);
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
 
-echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
-cpufreq-set -f 800MHz
-
-the board crashes. If I switch to 800MHz and enable smartreflex later
-nothing happens. This used to work in my 3.3 based kernel.
-
-Regards, Maximilian
-
---=-mP/it4MoxKS3XaOAntn5
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAlBcDQAACgkQ6nqkzTWctv74yQCgwk5ZUDEP3lLJAuNbm/uFuJyU
-2yIAoL22UIzyy1ugNLv8M0+K/U9ofUNY
-=mGos
------END PGP SIGNATURE-----
-
---=-mP/it4MoxKS3XaOAntn5--
