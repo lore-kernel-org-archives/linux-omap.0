@@ -1,44 +1,32 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7 00/11] OMAP-GPMC: generic time calc, prepare for
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH v7 00/11] OMAP-GPMC: generic time calc, prepare for
  driver
-Date: Thu, 20 Sep 2012 21:51:04 -0700
-Message-ID: <20120921045104.GU28835@atomide.com>
+Date: Fri, 21 Sep 2012 05:01:09 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E6CA7@DBDE01.ent.ti.com>
 References: <cover.1348058726.git.afzal@ti.com>
+ <20120921045104.GU28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:16733 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751500Ab2IUEvJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 00:51:09 -0400
-Content-Disposition: inline
-In-Reply-To: <cover.1348058726.git.afzal@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47186 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751034Ab2IUFBT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 01:01:19 -0400
+In-Reply-To: <20120921045104.GU28835@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Afzal Mohammed <afzal@ti.com> [120919 06:22]:
-> Hi,
-> 
-> This version - v7 as compared to previous version, takes care of
-> rounding issues due to the usage of nanoseconds in generic timing
-> routine. All calculations are now in picoseconds. Once all timings
-> are calculated it is converted to nanoseconds so that calculated
-> timing values are compatible with existing custom timing routines
-> (this will help in reverting back to custom routines easily in case
-> of any issues). And documentation has been added on gpmc timings.
-> Also redundant rounding of nand timings has been removed as part of
-> this series.
-
-I gave this series a quick test on my n800 after applying the
-two serial patches needed to get the uart to work, and it seems
-to be working just fine.
-
-Was there still some discussion on the format of the generic
-timings that's still pending? I think Jon made some comments 
-on the format?
-
-Regards,
-
-Tony
+SGkgVG9ueSwNCg0KT24gRnJpLCBTZXAgMjEsIDIwMTIgYXQgMTA6MjE6MDQsIFRvbnkgTGluZGdy
+ZW4gd3JvdGU6DQoNCj4gSSBnYXZlIHRoaXMgc2VyaWVzIGEgcXVpY2sgdGVzdCBvbiBteSBuODAw
+IGFmdGVyIGFwcGx5aW5nIHRoZQ0KPiB0d28gc2VyaWFsIHBhdGNoZXMgbmVlZGVkIHRvIGdldCB0
+aGUgdWFydCB0byB3b3JrLCBhbmQgaXQgc2VlbXMNCj4gdG8gYmUgd29ya2luZyBqdXN0IGZpbmUu
+DQo+IA0KPiBXYXMgdGhlcmUgc3RpbGwgc29tZSBkaXNjdXNzaW9uIG9uIHRoZSBmb3JtYXQgb2Yg
+dGhlIGdlbmVyaWMNCj4gdGltaW5ncyB0aGF0J3Mgc3RpbGwgcGVuZGluZz8gSSB0aGluayBKb24g
+bWFkZSBzb21lIGNvbW1lbnRzIA0KPiBvbiB0aGUgZm9ybWF0Pw0KDQpXaGF0IEkgZGVkdWNlZCBm
+aW5hbGx5IGZyb20gSm9uJ3MgcmVwbGllcyB3YXMgdGhhdCBoZSB3YW50ZWQNCm1vcmUgZG9jdW1l
+bnRhdGlvbiBvbiBnZW5lcmljIHRpbWluZ3MsIGFuZCB0aGF0IGhhcyBiZWVuDQphZGRlZCBpbiB0
+aGlzIHNlcmllcy4NCg0KUmVnYXJkcw0KQWZ6YWwNCg==
