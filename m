@@ -1,108 +1,40 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH RESEND] PM / Runtime: let rpm_resume() succeed if
- RPM_ACTIVE, even when disabled
-Date: Fri, 21 Sep 2012 16:22:13 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1209211611020.1323-100000@iolanthe.rowland.org>
-References: <201209212129.24244.rjw@sisk.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Fri, 21 Sep 2012 13:31:49 -0700
+Message-ID: <20120921203149.GI28835@atomide.com>
+References: <20120920000351.GI2455@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+ <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
+ <20120920220130.GN2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+ <20120920232114.GO2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
+ <20120921185827.GC2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
+ <20120921195717.GD2454@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:48065 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757830Ab2IUUWO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 16:22:14 -0400
-In-Reply-To: <201209212129.24244.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120921195717.GD2454@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, 21 Sep 2012, Rafael J. Wysocki wrote:
-
-> > Kevin makes a good case that pm_runtime_resume() and related functions 
-> > should succeed even when runtime PM is disabled, if the device is 
-> > already in the desired state.
-> > 
-> > The same may be true for pm_runtime_suspend().  What do you think?
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [120921 12:58]:
 > 
-> I've discussed that with Kevin.  The problem is that the runtime PM
-> status may be changed at will when runtime PM is disabled by using
-> __pm_runtime_set_status(), so the status generally cannod be trusted
-> if power.disable_depth > 0.
-
-Hmmm.  That same argument applies even when is_suspended is true.  
-Runtime PM might have been disabled beforehand by the driver, so you 
-still don't know whether to believe the status.
-
-> During system suspend, however, runtime PM is disabled by the core and
-> if neither the driver nor the subsystem has disabled it in the meantime,
-> the status should be actually valid.
-
-I suppose you could check that .disable_depth == 1.  That would mean 
-only the core had disabled runtime PM.
-
-> > The way the patch is written contradicts the documentation:
-> > 
-> >   * A request to execute ->runtime_resume() will cancel any pending or
-> >     scheduled requests to execute the other callbacks for the same device,
-> >     except for scheduled autosuspends.
+> Just to make sure I understand the combinations:
 > 
-> I'm not sure where the contradiction is.  The patch simply changes the
-> behavior for disabled runtime PM, which is to return a nonzero value immediately
-> anyway.
+> o	All stalls have happened when running a minimal userspace.
+> o	CONFIG_NO_HZ=n suppresses the stalls.
+> o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
+> 	no observable effect on the stalls.
 
-It changes an error return to a non-error return.
+The reason why you may need minimal userspace is to cut down
+the number of timers waking up the system with NO_HZ.
+Booting with init=/bin/sh might also do the trick for that.
 
-However, if we limit the effects to times when the system is 
-suspending then there shouldn't be any pending or scheduled requests 
-anyway.  So okay, this isn't an issue.
+Regards,
 
-> > > > @@ -510,7 +510,8 @@ static int rpm_resume(struct device *dev, int rpmflags)
-> > > >  	if (dev->power.runtime_error)
-> > > >  		retval = -EINVAL;
-> > > >  	else if (dev->power.disable_depth > 0)
-> > > > -		retval = -EACCES;
-> > > > +		retval = dev->power.is_suspended && 
-> > > > +			dev->power.runtime_status == RPM_ACTIVE ? 1 : -EACCES;
-> > > >  	if (retval)
-> > > >  		goto out;
-> > 
-> > Also, the is_suspended test seems irrelevant in general -- it makes 
-> > sense in terms of the scenario Kevin described but that's not the 
-> > stated purpose of the patch.
-> 
-> Well, it is, although the changelog doesn't state it sufficiently clearly. :-)
-
-Good point.  The changelog needs to be improved.
-
-> > Both of these problems can be addressed by writing the code as follows:
-> > 
-> > 	if (dev->power.runtime_error)
-> > 		retval = -EINVAL;
-> > 	else if (dev->power.disable_depth > 0) {
-> > 
-> > 		/* Special case: allow this if the device is already active */
-> > 		if (dev->power.runtime_status != RPM_ACTIVE)
-> > 			retval = -EACCES;
-> > 	}
-> > 	if (retval)
-> > 		goto out;
-> 
-> We could do that too, but I'm a bit concerned about the situations where
-> runtime PM is disabled by the driver itself or by the subsystem, because
-> in those cases whoever disables runtime PM would have to make sure that the
-> status still reflects the actual hardware state, but that's what the runtime
-> PM framework is for (among other things).
-
-All right, let's use Kevin's original scheme but add a test for 
-disable_depth == 1.  I suggest changing the ?: operator to a regular 
-"if" statement, because the new condition will be even longer than the 
-old one (which I found a little hard to read in the first place).
-
-And of course, a comment should be added to explain the reason for the
-exception.
-
-Kevin, how does this sound?
-
-Alan Stern
-
+Tony
