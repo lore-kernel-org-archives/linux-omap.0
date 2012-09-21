@@ -1,54 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
-Date: Fri, 21 Sep 2012 16:10:40 -0700
-Message-ID: <20120921231039.GN28835@atomide.com>
-References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com>
- <20120921205322.GK28835@atomide.com>
+Subject: Re: gpmc_cs_request() causes early boot hang
+Date: Fri, 21 Sep 2012 16:13:12 -0700
+Message-ID: <20120921231312.GO28835@atomide.com>
+References: <505CBFAA.3080604@mimc.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30646 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758285Ab2IUXKm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 19:10:42 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120921205322.GK28835@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <505CBFAA.3080604@mimc.co.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Jackson <mpfj-list@mimc.co.uk>
+Cc: linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120921 13:55]:
-> * Paul Walmsley <paul@pwsan.com> [120920 18:05]:
-> > Hi Tony
-> > 
-> > The following changes since commit c4dbc7c086ce96d17f18b7a4a965b01d54d45f46:
-> > 
-> >   Merge tag 'cleanup-fixes-for-v3.7' into test_merge_v3.6-rc6_cleanup-fixes (2012-09-19 13:54:08 -0600)
-> > 
-> > are available in the git repository at:
-> > 
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-for-3.7
+* Mark Jackson <mpfj-list@mimc.co.uk> [120921 12:29]:
+> I'm developing a beaglebone cape board which requires the use of a
+> GPMC chip select.
 > 
-> Thanks pulling into devel-late.
+> I've chosen GPMC_CS0, and in board-am335xevm.c, I have added the following:-
 > 
-> Note that we're pretty much out of time for v3.7 merge window, so
-> most likely this won't get merged until for v3.8. See message
-> "Status of arm-soc for 3.7"  posted to LAKML for details.
+> static void gpmc_test()
+> {
+>     unsigned long base = 0x12345678;
+>     gpmc_cs_request(0, SZ_16M, &base);
+>     printk(KERN_INFO "gpmc base @ 0x%08lx\n", base);
+> }
+> 
+> ... and added a call to gpmc_test() at the end of am335x_evm_init().
+> 
+> If I try to run this code, the kernel fails to boot, and simply hangs at:-
+> 
+> Uncompressing Linux... done, booting the kernel.
+> 
+> If I comment out the call to gpmc_cs_request(), the system boots as
+> expected (but without my required cs).
+> 
+> I've looked at the use of this call in other board files, and can't
+> see that their code does anything special so I'm stuck on why this
+> simple code fails to work.
+> 
+> Can anyone shed light on what I'm doing wrong ?
+> 
+> Do I have to initialise the gpmc beforehand in some way ?
 
-I tried merging this into tmp-merge, but ran into all kinds of
-merge conflicts with the am33xx code etc and ended up with a
-result that booted with all kinds of warnings on 2430sdp and
-did not boot at all on zoom3 :) So I probably did something
-wrong..
+Can you enable DEBUG_LL + EARLYPRINTK and have earlyprintk in your
+cmdline? You may then get some error messages providing more info.
 
-Care to base this on something more mergeable? Maybe a merge
-of cleanup-fixes-for-v3.7 + omap-devel-am33xx-for-v3.7?
-
-Ideally it would be based on something that merges nicely
-when pulled into arm-soc/for-next, but that might be a bit
-hard to do right now.
+GPMC is working on many boards with various devices like smsc911x,
+onenand, tusb etc.
 
 Regards,
 
