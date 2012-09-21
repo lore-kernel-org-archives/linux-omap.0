@@ -1,137 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: clock patches for 3.7
-Date: Fri, 21 Sep 2012 02:47:31 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209210246110.20983@utopia.booyaka.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap header cleanup to make headers local for v3.7
+ merge window
+Date: Thu, 20 Sep 2012 20:29:46 -0700
+Message-ID: <20120921032946.GA22479@quad.lixom.net>
+References: <20120920230935.GM28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:32896 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756954Ab2IUCrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 22:47:32 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:46206 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753643Ab2IUD3g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 23:29:36 -0400
+Received: by pbbrr4 with SMTP id rr4so1628635pbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 20:29:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20120920230935.GM28835@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, Sep 20, 2012 at 04:09:36PM -0700, Tony Lindgren wrote:
+> Hi Arnd & Olof,
+> 
+> Here's one more branch to take us a bit closer to getting the
+> single zImage working on omaps. It would be nice to get merged
+> into arm-soc/next/cleanup before the merge window if still
+> possible.
+> 
+> I've based it on top of Arnd's 2203747c (ARM: omap: move
+> platform_data definitions) to avoid more merge conflicts,
+> and it seems to merge with few trivial include conflicts
+> with current linux next and arm-soc/for-next.
 
-Hi Tony
+Done, pulled in as omap/cleanup-headers and into next/cleanup.
 
-The following changes since commit 5698bd757d55b1bb87edd1a9744ab09c142abfc2:
 
-  Linux 3.6-rc6 (2012-09-16 14:58:51 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-c-for-3.7
-
-for you to fetch changes up to a238ce78aa0cfe0e3bcae706e77273516f33f31b:
-
-  ARM: AM33XX: cm: Add bit-field width values (2012-09-20 19:44:21 -0600)
-
-- ----------------------------------------------------------------
-OMAP clock changes for 3.7.  This includes some preparatory patches
-for common clock framework changeover.
-
-These patches have been tested for meaningful warnings from
-checkpatch, sparse, smatch, and cppcheck.  Basic build, boot, and
-PM test logs are available here:
-
-    http://www.pwsan.com/omap/testlogs/clock_devel_3.7/20120920194425/
-
-- ----------------------------------------------------------------
-
-object size (delta in bytes from test_v3.6-rc6 (5698bd757d55b1bb87edd1a9744ab09c142abfc2)):
-  text 	  data 	   bss 	 total 	kernel
-  -120 	  +496 	     0 	  +376 	2430_testconfig
-   -96 	     0 	     0 	   -96 	5912osk_testconfig
-  -116 	 +1328 	     0 	 +1212 	am33xx_testconfig
-  -132 	  +464 	     0 	  +332 	n800_b_testconfig
-  -100 	  +976 	     0 	  +876 	n800_multi_omap2xxx
-  -132 	  +464 	     0 	  +332 	n800_testconfig
-   -96 	     0 	     0 	   -96 	omap1510_defconfig
-  -128 	     0 	     0 	  -128 	omap1_defconfig
-   -92 	 +1480 	     0 	 +1388 	omap2_4_testconfig
-  -116 	 +2288 	     0 	 +2172 	omap2plus_defconfig
-  -116 	 +2312 	     0 	 +2196 	omap2plus_defconfig_cpupm
-   -96 	 +2320 	     0 	 +2224 	omap2plus_no_pm
-  -160 	 +1416 	     0 	 +1256 	omap3_4_testconfig
-   -96 	  +904 	     0 	  +808 	omap3_testconfig
-  -156 	  +488 	     0 	  +332 	omap4_testconfig
-  -108 	  +880 	     0 	  +772 	rmk_omap3430_ldp_oldconfig
- +3960 	  +520 	     0 	 +4480 	rmk_omap4430_sdp_oldconfig
-
-AnilKumar Ch (1):
-      ARM: OMAP2+: AM33XX: clock data: Add clkdev alias for cpu0
-
-Jon Hunter (2):
-      ARM: OMAP2420: Cosmetic fix for timer clock aliases
-      ARM: OMAP4: Add timer clock aliases for device-tree
-
-Michael Jones (1):
-      ARM: OMAP3: clock data: remove obsolete comment
-
-Mike Turquette (1):
-      ARM: omap4: cm: add bitfield width values
-
-Paul Walmsley (3):
-      ARM: OMAP3: clock data: Add the USB TLL clocks device name
-      ARM: OMAP2+: clock data: add some aliases for use by CPUFreq only
-      SPI: OMAP: remove unnecessary includes of plat/clock.h
-
-Rajendra Nayak (3):
-      ARM: omap: clk: add clk_prepare and clk_unprepare
-      ARM: omap: hwmod: get rid of all omap_clk_get_by_name usage
-      ARM: OMAP2+: clock: Remove all direct dereferencing of struct clk
-
-Vaibhav Hiremath (1):
-      ARM: AM33XX: cm: Add bit-field width values
-
- arch/arm/mach-omap2/board-apollon.c          |    4 +-
- arch/arm/mach-omap2/board-h4.c               |    6 +-
- arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c          |    2 +-
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   10 +-
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c       |   20 +-
- arch/arm/mach-omap2/clkt_clksel.c            |   91 +++---
- arch/arm/mach-omap2/clkt_dpll.c              |   26 +-
- arch/arm/mach-omap2/clock.c                  |   11 +-
- arch/arm/mach-omap2/clock2420_data.c         |   24 +-
- arch/arm/mach-omap2/clock2430_data.c         |   22 ++
- arch/arm/mach-omap2/clock33xx_data.c         |    1 +
- arch/arm/mach-omap2/clock3xxx.c              |    8 +-
- arch/arm/mach-omap2/clock3xxx_data.c         |   33 ++-
- arch/arm/mach-omap2/clock44xx_data.c         |   21 ++
- arch/arm/mach-omap2/cm-regbits-33xx.h        |  158 +++++++++-
- arch/arm/mach-omap2/cm-regbits-44xx.h        |  411 +++++++++++++++++++++-----
- arch/arm/mach-omap2/control.h                |    1 +
- arch/arm/mach-omap2/display.c                |    4 +-
- arch/arm/mach-omap2/dpll3xxx.c               |   48 +--
- arch/arm/mach-omap2/gpmc.c                   |    2 +-
- arch/arm/mach-omap2/omap_hwmod.c             |   45 ++-
- arch/arm/mach-omap2/pm.c                     |    2 +-
- arch/arm/plat-omap/clock.c                   |   27 --
- arch/arm/plat-omap/include/plat/clock.h      |    5 +
- arch/arm/plat-omap/omap_device.c             |    4 +-
- drivers/spi/spi-omap-100k.c                  |    2 -
- drivers/spi/spi-omap2-mcspi.c                |    1 -
- 28 files changed, 760 insertions(+), 231 deletions(-)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQW9TLAAoJEMePsQ0LvSpLI8oP/1dFx71IBcgbOVQh94QCIwLQ
-xYsBeYWZSZDQhXKsbuqIsHQuROJMCC9DM5xXQJOihWgZ8ZqQ5KH/Uw8k/z3rrE05
-JWPwOktXNxnz2pNE3GiBusntIfUPtgHJOsUbQN9m12hrYRbA5GfFwEEr68rZUtln
-MmofQ6FtQjrluuxMj+hKD1QF8gEu8+xCL9kn88+KDxDkYSU4QTVJgW62emB0VT8U
-h1OnkbAy3JzMtLim9tp5GDMFgdko1OvmuwLo/puwvnaHePpTaghxfXPr5DLM3Cdb
-uedYLW11lMpbrE2laCkDkaHmdf/9i0WvUQshPF2GaBYvLXbe24slJ2D48FZk3ddh
-UrZWDF+D54xl1oaDzOE6imS0Q/sDSocuLKPrStYJ60IxTvmX+NM0wXvh4NbEMwKx
-8gudcy9YVHctrWcgD9v4u7EY9y5LpxEtvvM2YRsOVcuUTUhPYC7mOsMLODL5QZ52
-nQIH182E9SghRZpjfn7QhVqNbEZtyG1pv2a+ucBy4xfVtFuLCkkx3jgqAlVZZ8Ip
-9sWS4MBENg84olJ6kJ6yoivtF6sBwZu0yLatvhCZ+OZzjsqhuGarEgO22RDdjjwx
-1gsbUl57BQ8TxZvKu973f4TwjqdwldDW1JrGF5InUHGqDYCP8Xc6gPpo9Mh1jTZV
-k/4gUqgSWnbWPKdBpb9K
-=xRep
------END PGP SIGNATURE-----
+-Olof
