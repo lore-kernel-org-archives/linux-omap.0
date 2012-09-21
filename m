@@ -1,36 +1,54 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 08/15] tidspbridge: Fix VM_PFNMAP mapping
-Date: Fri, 21 Sep 2012 20:37:40 +0200
-Message-ID: <CAMP44s2TTTotajCVE5WRwZPGQmFjzJNhuHBhJwMc45ttuDn6yQ@mail.gmail.com>
-References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1348056423-25573-9-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
+ DMAC
+Date: Fri, 21 Sep 2012 14:42:56 -0400
+Message-ID: <20120921184256.GJ16522@beef>
+References: <1348152226-13588-1-git-send-email-mporter@ti.com>
+ <1348152226-13588-9-git-send-email-mporter@ti.com>
+ <CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
+ <CANfBPZ-h7MD4X_NRYfwOmMnEyOKy0bTNNLNRmdbef2pe=2aHyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:42690 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757369Ab2IUShl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 14:37:41 -0400
-Received: by obbuo13 with SMTP id uo13so2892390obb.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 11:37:41 -0700 (PDT)
-In-Reply-To: <1348056423-25573-9-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CANfBPZ-h7MD4X_NRYfwOmMnEyOKy0bTNNLNRmdbef2pe=2aHyg@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infrad>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Wed, Sep 19, 2012 at 2:06 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> VMAs marked with the VM_PFNMAP flag have no struct page associated with
-> the memory PFNs. Don't call get_page()/put_page() on the pages
-> supposedly associated with the PFNs.
+On Fri, Sep 21, 2012 at 10:47:30PM +0530, S, Venkatraman wrote:
+> On Fri, Sep 21, 2012 at 10:45 PM, S, Venkatraman <svenkatr@ti.com> wrote:
+> > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter@ti.com> wrote:
+> >> The EDMA DMAC has a hardware limitation that prevents supporting
+> >> scatter gather lists with any number of segments. Since the EDMA
+> >> DMA Engine driver sets the maximum segments to 16, we do the
+> >> same.
+> >>
+> >> Note: this can be removed once the DMA Engine API supports an
+> >> API to query the DMAC's segment limitations.
+> >>
+> >
+> > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
+> > suggests. Why don't we have a max_segs property, which when explicitly specified
+> > in DT, will override the default ?
+> 
+> If you are adventurous, this can be a generic mmc DT binding instead
+> of restricting it to OMAP.
 
-I don't see anything wrong with the patch, but I think there's a lot
-of changes, and perhaps a bit more of explanation of how it's doing
-this might help. Also, it seems to be reordering
-match_exact_map_obj(), which messes up the diff a bit.
+I think it's bad practice to add something to a binding that is not part
+of the hardware definition for the device. In this case, the limitations
+comes strictly from the DMAC. As I noted, the proper fix for this is to
+have the DMA Engine API extended to allow querying the DMAC SG
+capabilities before setting up a DMA transfer. I brought this up
+previously in the thread where the actual EDMA dmaengine wrapper driver
+was discussed and Vinod indicated that he was open to dmaengine
+providing this information.
 
-Cheers.
+It makes sense as DMA Engine should tell the slave driver everything it
+needs to know to set up a transfer...this is just a missing piece right
+now. FWIW, we have this issue in davinci_mmc.c as well...it just was
+already hardcoded with a value to satisfy the EDMA DMAC. However, I'd
+like to see that go away as well.
 
--- 
-Felipe Contreras
+-Matt
