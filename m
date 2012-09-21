@@ -1,39 +1,44 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] omap header cleanup to make headers local for v3.7
- merge window
-Date: Thu, 20 Sep 2012 20:29:46 -0700
-Message-ID: <20120921032946.GA22479@quad.lixom.net>
-References: <20120920230935.GM28835@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 00/11] OMAP-GPMC: generic time calc, prepare for
+ driver
+Date: Thu, 20 Sep 2012 21:51:04 -0700
+Message-ID: <20120921045104.GU28835@atomide.com>
+References: <cover.1348058726.git.afzal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46206 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753643Ab2IUD3g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Sep 2012 23:29:36 -0400
-Received: by pbbrr4 with SMTP id rr4so1628635pbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 20:29:36 -0700 (PDT)
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:16733 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751500Ab2IUEvJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 00:51:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20120920230935.GM28835@atomide.com>
+In-Reply-To: <cover.1348058726.git.afzal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: paul@pwsan.com, jon-hunter@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 20, 2012 at 04:09:36PM -0700, Tony Lindgren wrote:
-> Hi Arnd & Olof,
+* Afzal Mohammed <afzal@ti.com> [120919 06:22]:
+> Hi,
 > 
-> Here's one more branch to take us a bit closer to getting the
-> single zImage working on omaps. It would be nice to get merged
-> into arm-soc/next/cleanup before the merge window if still
-> possible.
-> 
-> I've based it on top of Arnd's 2203747c (ARM: omap: move
-> platform_data definitions) to avoid more merge conflicts,
-> and it seems to merge with few trivial include conflicts
-> with current linux next and arm-soc/for-next.
+> This version - v7 as compared to previous version, takes care of
+> rounding issues due to the usage of nanoseconds in generic timing
+> routine. All calculations are now in picoseconds. Once all timings
+> are calculated it is converted to nanoseconds so that calculated
+> timing values are compatible with existing custom timing routines
+> (this will help in reverting back to custom routines easily in case
+> of any issues). And documentation has been added on gpmc timings.
+> Also redundant rounding of nand timings has been removed as part of
+> this series.
 
-Done, pulled in as omap/cleanup-headers and into next/cleanup.
+I gave this series a quick test on my n800 after applying the
+two serial patches needed to get the uart to work, and it seems
+to be working just fine.
 
+Was there still some discussion on the format of the generic
+timings that's still pending? I think Jon made some comments 
+on the format?
 
--Olof
+Regards,
+
+Tony
