@@ -1,69 +1,65 @@
-From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
-	DMAC
-Date: Fri, 21 Sep 2012 15:03:12 -0400
-Message-ID: <20120921190312.GL16522@beef>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
-	<1348152226-13588-9-git-send-email-mporter@ti.com>
-	<CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
-	<20120921184721.GD31374@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data
+ via platform data
+Date: Fri, 21 Sep 2012 12:07:11 -0700
+Message-ID: <20120921190710.GG28835@atomide.com>
+References: <1348152453-30532-1-git-send-email-j-pihet@ti.com>
+ <1348152453-30532-3-git-send-email-j-pihet@ti.com>
+ <20120920221504.GK28835@atomide.com>
+ <CAORVsuXS=zk6SEqo=qhyaAFyYQbhLA8CY9TTMMhEQtMZf7p21Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10211 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756608Ab2IUTHP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 15:07:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20120921184721.GD31374-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Venkatraman" <svenkatr-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <CAORVsuXS=zk6SEqo=qhyaAFyYQbhLA8CY9TTMMhEQtMZf7p21Q@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anton Vorontsov <cbou@mail.ru>, Kevin Hilman <khilman@ti.com>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-On Fri, Sep 21, 2012 at 07:47:21PM +0100, Russell King wrote:
-> On Fri, Sep 21, 2012 at 10:45:29PM +0530, S, Venkatraman wrote:
-> > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter-l0cyMroinI0@public.gmane.org> wrote:
-> > > The EDMA DMAC has a hardware limitation that prevents supporting
-> > > scatter gather lists with any number of segments. Since the EDMA
-> > > DMA Engine driver sets the maximum segments to 16, we do the
-> > > same.
-> > >
-> > > Note: this can be removed once the DMA Engine API supports an
-> > > API to query the DMAC's segment limitations.
-> > >
-> > 
-> > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
-> > suggests. Why don't we have a max_segs property, which when explicitly specified
-> > in DT, will override the default ?
-> 
-> Why not have a generic way that DMA engine can export these kinds of
-> properties?
+* Jean Pihet <jean.pihet@newoldbits.com> [120920 23:31]:
+> On Fri, Sep 21, 2012 at 12:15 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > You should be able to make this even simpler and not have to pass
+> > the clock name around at all. Just do:
+> >
+> > syc_ck = clk_get(NULL, "fck);
+> > ...
+> The problem is that the system has multiple instances of the
+> smartreflex module, each having its own fck. On OMAP3/4 the fck's are
+> derived from sys_clk via muxes and latches.
+> The proposed code uses the fck's as defined in the .main_clk field of
+> the hwmod entries, so that it takes the muxes and latches into account
+> and also has a consistent clock naming.
 
-That's exactly what my note above is suggesting...
+If the same system has multiple clocks, then you could have them matched
+by the smartreflex driver instance number.
 
-Something along the lines of:
+Or if you mean different source clocks for various omaps, then
+you just need to set multiple aliases for those clocks.
+ 
+> > In the driver, and add the necessary entries to the clock alias
+> > table. That way it's up to the SoC to set up the necessary clocks
+> > and the driver stays generic.
+> Got it. The only solution would be to use an unique fck for all
+> smartreflex modules in all configurations. Is that acceptable?
 
-	struct slave_sg_caps
-	{
-		int max_segs;	/* <0 is no limit */
-	}
+Hmm maybe I don't follow you, but sounds like you just need to
+use the driver instance like we do for timers:
 
-	struct slave_sg_cap *
-	dmaengine_get_slave_sg_caps(struct dma_chan *chan);
+$ grep omap_timer arch/arm/mach-omap2/clock*data*.c
+arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.1",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
+arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.2",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
+arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.3",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
+...
 
-I'm sure there are or will be other characteristics worth providing to
-slave drivers.
+If you need multiple clocks for a driver instance, then they
+typically are just "fck" and "ick".
 
--Matt
+Regards,
 
-------------------------------------------------------------------------------
-Got visibility?
-Most devs has no idea what their production app looks like.
-Find out how fast your code is with AppDynamics Lite.
-http://ad.doubleclick.net/clk;262219671;13503038;y?
-http://info.appdynamics.com/FreeJavaPerformanceDownload.html
+Tony
