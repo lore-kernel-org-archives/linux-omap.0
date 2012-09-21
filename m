@@ -1,50 +1,55 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: serial-omap regression?
-Date: Fri, 21 Sep 2012 15:10:55 +0530
-Message-ID: <505C3627.1060909@ti.com>
-References: <87wqzofgms.fsf@deeprootsystems.com> <87obl0fga1.fsf@deeprootsystems.com> <20120921092822.GE15115@arwen.pp.htv.fi>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH 01/13] ARM: davinci: move private EDMA API to
+	arm/common
+Date: Fri, 21 Sep 2012 10:42:05 +0100
+Message-ID: <20120921094205.GC31374@n2100.arm.linux.org.uk>
+References: <1348152226-13588-1-git-send-email-mporter@ti.com> <1348152226-13588-2-git-send-email-mporter@ti.com> <20120921092923.GA31374@n2100.arm.linux.org.uk> <1BAFE6F6C881BF42822005164F1491C33EA8AA3C@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:51019 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932742Ab2IUJlB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:41:01 -0400
-Received: by oago6 with SMTP id o6so3124837oag.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 02:41:00 -0700 (PDT)
-In-Reply-To: <20120921092822.GE15115@arwen.pp.htv.fi>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37309 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932882Ab2IUJmT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 05:42:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EA8AA3C@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, Sourav Poddar <sourav.poddar@ti.com>
+To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Cc: "Porter, Matt" <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Friday 21 September 2012 02:58 PM, Felipe Balbi wrote:
-> Hi,
->
-> On Thu, Sep 20, 2012 at 04:03:50PM -0700, Kevin Hilman wrote:
->> Kevin Hilman <khilman@deeprootsystems.com> writes:
->>
->>> Hi Felipe,
->>>
->>> I just noticed today that one of my boards (3530/Overo) was not making
->>> it to the console when using an Debian rootfs (nfsroot) but works fine
->>> with my basic busybox initramfs.  Basically, it hangs somewhere between
->>> finishing the userspace init and launching the login shell.
->>>
->>> git bisect ended up pointing the finger at a patch in the OMAP serial
->>> series[1].  I didn't debug this any further.  Any ideas?
->>>
->> I forgot to add, this was first noticed when testing with
->> arm-soc/for-next which has the serial-omap changes pulled in as a
->> dependency.
-> hmmm, Shubhro had written a patch to fix some mistakes on rlsi handler.
-> Maybe it fixes this problem ?
->
-> Shubhro, can you send your patch ?
-Yes I am in teh process of testing it.
-Will post in an hour.
+On Fri, Sep 21, 2012 at 09:33:42AM +0000, Hebbar, Gururaja wrote:
+> On Fri, Sep 21, 2012 at 14:59:23, Russell King - ARM Linux wrote:
+> > On Thu, Sep 20, 2012 at 10:43:34AM -0400, Matt Porter wrote:
+> > > Move mach-davinci/dma.c to common/edma.c so it can be used
+> > > by OMAP (specifically AM33xx atm) as well. This just moves
+> > > the private EDMA API but does not support OMAP.
+> > > 
+> > > Signed-off-by: Matt Porter <mporter@ti.com>
+> > > ---
+> > >  arch/arm/Kconfig                           |    1 +
+> > >  arch/arm/common/Kconfig                    |    3 +
+> > >  arch/arm/common/Makefile                   |    1 +
+> > >  arch/arm/common/edma.c                     | 1588 ++++++++++++++++++++++++++++
+> > >  arch/arm/include/asm/mach/edma.h           |  267 +++++
+> > 
+> > asm/mach should not be used as a dumping ground for platform header files.
+> > It is there to provide the interfaces between generic ARM architecture
+> > code and platform code.  (At least four files that are there at the
+> > moment need to be moved out of there - patch series to follow...)
+> 
+> Can this be moved to include/linux/platform_data/ ?
 
->
+Here's the pertinant question: "is it platform data?"  Looking at the
+file, it appears to be internal data structures and register definitions
+for the driver itself.  Therefore, it isn't platform data, and it
+shouldn't be living separately from the driver.
 
+If the driver itself only makes use of the data structures, the data
+structures should be defined either within the driver, or a header file
+co-located next to the driver itself.  The same goes for register
+definitions too.
+
+The only structure that I can find which isn't internal to the driver
+is struct edma_soc_info, struct edma_rsv_info, and the enum dma_event_q.
+Those can go to include/linux/platform_data, but the rest should not.
