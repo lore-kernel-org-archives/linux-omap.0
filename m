@@ -1,40 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Fri, 21 Sep 2012 13:31:49 -0700
-Message-ID: <20120921203149.GI28835@atomide.com>
-References: <20120920000351.GI2455@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
- <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
+Subject: Re: [GIT PULL] ARM: OMAP5: Enable arch timer support
+Date: Fri, 21 Sep 2012 13:46:13 -0700
+Message-ID: <20120921204612.GJ28835@atomide.com>
+References: <1348041069-947-1-git-send-email-santosh.shilimkar@ti.com>
+ <CAMQu2gxhOsMoaZfNkkx+j=bGCWOvGTWme-ZmEhJoAcUYDxtXcQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10419 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757828Ab2IUUqP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 16:46:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20120921195717.GD2454@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+In-Reply-To: <CAMQu2gxhOsMoaZfNkkx+j=bGCWOvGTWme-ZmEhJoAcUYDxtXcQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> [120921 12:58]:
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120919 00:54]:
+> (With fixed git URL)
 > 
-> Just to make sure I understand the combinations:
+> On Wed, Sep 19, 2012 at 1:21 PM, Santosh Shilimkar
+> <santosh.shilimkar@ti.com> wrote:
+> >
+> > Tony,
+> >
+> > Here is the pull request which enables the architected cpu local timer
+> > support for OMAP5 devices.
+> >
+> > The following changes since commit
+> > 5698bd757d55b1bb87edd1a9744ab09c142abfc2:
+> >
+> >   Linux 3.6-rc6 (2012-09-16 14:58:51 -0700)
+> >
+> > are available in the git repository at:
+> >
+> >   git@github.com:SantoshShilimkar/linux.git for_3.7/omap5_arch_timer
 > 
-> o	All stalls have happened when running a minimal userspace.
-> o	CONFIG_NO_HZ=n suppresses the stalls.
-> o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
-> 	no observable effect on the stalls.
+> git://github.com/SantoshShilimkar/linux.git for_3.7/omap5_arch_timer
 
-The reason why you may need minimal userspace is to cut down
-the number of timers waking up the system with NO_HZ.
-Booting with init=/bin/sh might also do the trick for that.
+Thanks pulled now into devel-dt-arch-timer branch.
+
+Note that we're pretty much out of time for v3.7 merge window, so
+most likely this won't get merged until for v3.8. See message
+"Status of arm-soc for 3.7"  posted to LAKML for details.
 
 Regards,
 
 Tony
+
+> 
+> >
+> > for you to fetch changes up to 3c7c5dab44d6c8861bc86dab924353d8d40344f8:
+> >
+> >   ARM: OMAP5: Enable arch timer support (2012-09-19 13:00:37 +0530)
+> >
+> > ----------------------------------------------------------------
+> > Santosh Shilimkar (2):
+> >       ARM: OMAP: Add initialisation for the real-time counter.
+> >       ARM: OMAP5: Enable arch timer support
+> >
+> >  arch/arm/boot/dts/omap5.dtsi |   12 ++++++
+> >  arch/arm/mach-omap2/Kconfig  |    5 +++
+> >  arch/arm/mach-omap2/timer.c  |   97
+> > +++++++++++++++++++++++++++++++++++++++++-
+> >  3 files changed, 113 insertions(+), 1 deletion(-)
