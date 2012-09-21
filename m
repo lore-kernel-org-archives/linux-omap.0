@@ -1,65 +1,88 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: SmartReflex: pass device dependent data
- via platform data
-Date: Fri, 21 Sep 2012 12:07:11 -0700
-Message-ID: <20120921190710.GG28835@atomide.com>
-References: <1348152453-30532-1-git-send-email-j-pihet@ti.com>
- <1348152453-30532-3-git-send-email-j-pihet@ti.com>
- <20120920221504.GK28835@atomide.com>
- <CAORVsuXS=zk6SEqo=qhyaAFyYQbhLA8CY9TTMMhEQtMZf7p21Q@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Fri, 21 Sep 2012 19:11:14 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com> <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+ <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com> <20120920220130.GN2449@linux.vnet.ibm.com> <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com> <20120920232114.GO2449@linux.vnet.ibm.com> <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
+ <20120921185827.GC2454@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10211 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756608Ab2IUTHP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 15:07:15 -0400
-Content-Disposition: inline
-In-Reply-To: <CAORVsuXS=zk6SEqo=qhyaAFyYQbhLA8CY9TTMMhEQtMZf7p21Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120921185827.GC2454@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Anton Vorontsov <cbou@mail.ru>, Kevin Hilman <khilman@ti.com>, J Keerthy <j-keerthy@ti.com>, Jean Pihet <j-pihet@ti.com>
 
-* Jean Pihet <jean.pihet@newoldbits.com> [120920 23:31]:
-> On Fri, Sep 21, 2012 at 12:15 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > You should be able to make this even simpler and not have to pass
-> > the clock name around at all. Just do:
-> >
-> > syc_ck = clk_get(NULL, "fck);
-> > ...
-> The problem is that the system has multiple instances of the
-> smartreflex module, each having its own fck. On OMAP3/4 the fck's are
-> derived from sys_clk via muxes and latches.
-> The proposed code uses the fck's as defined in the .main_clk field of
-> the hwmod entries, so that it takes the muxes and latches into account
-> and also has a consistent clock naming.
+On Fri, 21 Sep 2012, Paul E. McKenney wrote:
 
-If the same system has multiple clocks, then you could have them matched
-by the smartreflex driver instance number.
+> On Fri, Sep 21, 2012 at 06:08:59PM +0000, Paul Walmsley wrote:
+> 
+> > As far as I know, our only idle entry point is in 
+> > arch/arm/common/process.c:cpu_idle().
+> 
+> In mainline, this is arch/arm/kernel/process.c, correct?
 
-Or if you mean different source clocks for various omaps, then
-you just need to set multiple aliases for those clocks.
- 
-> > In the driver, and add the necessary entries to the clock alias
-> > table. That way it's up to the SoC to set up the necessary clocks
-> > and the driver stays generic.
-> Got it. The only solution would be to use an unique fck for all
-> smartreflex modules in all configurations. Is that acceptable?
+Indeed; sorry about that, mistyped.
 
-Hmm maybe I don't follow you, but sounds like you just need to
-use the driver instance like we do for timers:
+> > Looking at the x86 idle entry, they call rcu_idle_{enter,exit}() inside 
+> > {stop,start}_critical_timings().  Making that change here didn't help.
+> 
+> The reason x86 does this is that they have idle notifiers deeper in the
+> idle loop that use RCU read-side critical sections.  So this was an
+> expected result.
 
-$ grep omap_timer arch/arm/mach-omap2/clock*data*.c
-arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.1",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
-arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.2",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
-arch/arm/mach-omap2/clock44xx_data.c:   CLK("omap_timer.3",     "timer_sys_ck", &sys_clkin_ck,  CK_443X),
-...
+OK
 
-If you need multiple clocks for a driver instance, then they
-typically are just "fck" and "ick".
+> > Also tried commenting out the code from the stop_critical_timings() call 
+> > to the WARN_ON(irqs_disabled()), and adding a local_irq_enable().  That 
+> > also didn't help, which suggests that the problem is not caused by the 
+> > OMAP-specific PM idle code.
+> 
+> I must admit that you make a convincing case here.  Though it does leave
+> me wondering what is different about Panda (and MX28, IIRC).
 
-Regards,
+Given the dependency on CONFIG_NO_HZ, the stalls are probably dependent on 
+the userspace in use.  The userspaces here are quite minimal and so allow 
+the system to stay idle for relatively long periods of time.
 
-Tony
+> I may take your advice of remote access to a Panda board, though that
+> is likely to take a bit of time due to timezones.  Regardless of the
+> underlying issue here, I clearly need to make the stall-warning messages
+> do a better job of printing out needed information.
+
+If you've got a patch in mind for that, I'll boot it here.
+
+One other observation.  omap2plus_defconfig sets CONFIG_NO_HZ=y but 
+doesn't set CONFIG_RCU_FAST_NO_HZ.  The stall warning messages still 
+appear when CONFIG_RCU_FAST_NO_HZ=y.  One of them is attached below (with 
+CONFIG_RCU_CPU_STALL_INFO set as well, obviously).
+
+As an aside, in the CONFIG_RCU_FAST_NO_HZ=y build, I dropped a printk() 
+into rcu_idle_gp_timer_func() and it doesn't look like it ever executed.
+
+
+- Paul
+
+[  305.832000] INFO: rcu_sched self-detected stall on CPU
+[  305.834838]  1: (2 GPs behind) idle=5b1/1/0 drain=0 . timer=4294967295
+[  305.838378]   (t=17463 jiffies)
+[  305.840118] [<c001be10>] (unwind_backtrace+0x0/0xf0) from [<c00ad65c>] (rcu_pending+0xd0/0x540)
+[  305.844848] [<c00ad65c>] (rcu_pending+0xd0/0x540) from [<c00ae5cc>] (rcu_check_callbacks+0x110/0x198)
+[  305.849884] [<c00ae5cc>] (rcu_check_callbacks+0x110/0x198) from [<c0053800>] (update_process_times+0x38/0x68)
+[  305.855285] [<c0053800>] (update_process_times+0x38/0x68) from [<c008cf40>] (tick_sched_timer+0x80/0xec)
+[  305.860473] [<c008cf40>] (tick_sched_timer+0x80/0xec) from [<c006942c>] (__run_hrtimer+0x7c/0x1e0)
+[  305.865356] [<c006942c>] (__run_hrtimer+0x7c/0x1e0) from [<c006a210>] (hrtimer_interrupt+0x11c/0x2d0)
+[  305.870361] [<c006a210>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a54c>] (twd_handler+0x30/0x44)
+[  305.875274] [<c001a54c>] (twd_handler+0x30/0x44) from [<c00a8128>] (handle_percpu_devid_irq+0x90/0x13c)
+[  305.880371] [<c00a8128>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a489c>] (generic_handle_irq+0x30/0x48)
+[  305.885833] [<c00a489c>] (generic_handle_irq+0x30/0x48) from [<c0014fb8>] (handle_IRQ+0x4c/0xac)
+[  305.890624] [<c0014fb8>] (handle_IRQ+0x4c/0xac) from [<c000864c>] (gic_handle_irq+0x28/0x5c)
+[  305.895233] [<c000864c>] (gic_handle_irq+0x28/0x5c) from [<c04fbc64>] (__irq_svc+0x44/0x5c)
+[  305.899780] Exception stack(0xde86ff88 to 0xde86ffd0)
+[  305.902526] ff80:                   0004c062 00000001 00000000 de8660c0 de86e000 c07c42c8
+[  305.906982] ffa0: c05075a0 c074bdd0 00000000 411fc092 c074bff0 00000000 00000001 de86ffd0
+[  305.911437] ffc0: 0004c063 c00152b0 20000113 ffffffff
+[  305.914184] [<c04fbc64>] (__irq_svc+0x44/0x5c) from [<c00152b0>] (default_idle+0x20/0x44)
+[  305.918640] [<c00152b0>] (default_idle+0x20/0x44) from [<c00154dc>] (cpu_idle+0x9c/0x114)
+[  305.923126] [<c00154dc>] (cpu_idle+0x9c/0x114) from [<804f4a34>] (0x804f4a34)
