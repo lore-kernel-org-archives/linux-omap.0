@@ -1,121 +1,108 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Fri, 21 Sep 2012 12:57:17 -0700
-Message-ID: <20120921195717.GD2454@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
- <20120920000351.GI2455@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
- <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH RESEND] PM / Runtime: let rpm_resume() succeed if
+ RPM_ACTIVE, even when disabled
+Date: Fri, 21 Sep 2012 16:22:13 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1209211611020.1323-100000@iolanthe.rowland.org>
+References: <201209212129.24244.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:48065 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757830Ab2IUUWO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 16:22:14 -0400
+In-Reply-To: <201209212129.24244.rjw@sisk.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, Sep 21, 2012 at 07:11:14PM +0000, Paul Walmsley wrote:
-> On Fri, 21 Sep 2012, Paul E. McKenney wrote:
-> 
-> > On Fri, Sep 21, 2012 at 06:08:59PM +0000, Paul Walmsley wrote:
+On Fri, 21 Sep 2012, Rafael J. Wysocki wrote:
+
+> > Kevin makes a good case that pm_runtime_resume() and related functions 
+> > should succeed even when runtime PM is disabled, if the device is 
+> > already in the desired state.
 > > 
-> > > As far as I know, our only idle entry point is in 
-> > > arch/arm/common/process.c:cpu_idle().
+> > The same may be true for pm_runtime_suspend().  What do you think?
+> 
+> I've discussed that with Kevin.  The problem is that the runtime PM
+> status may be changed at will when runtime PM is disabled by using
+> __pm_runtime_set_status(), so the status generally cannod be trusted
+> if power.disable_depth > 0.
+
+Hmmm.  That same argument applies even when is_suspended is true.  
+Runtime PM might have been disabled beforehand by the driver, so you 
+still don't know whether to believe the status.
+
+> During system suspend, however, runtime PM is disabled by the core and
+> if neither the driver nor the subsystem has disabled it in the meantime,
+> the status should be actually valid.
+
+I suppose you could check that .disable_depth == 1.  That would mean 
+only the core had disabled runtime PM.
+
+> > The way the patch is written contradicts the documentation:
 > > 
-> > In mainline, this is arch/arm/kernel/process.c, correct?
+> >   * A request to execute ->runtime_resume() will cancel any pending or
+> >     scheduled requests to execute the other callbacks for the same device,
+> >     except for scheduled autosuspends.
 > 
-> Indeed; sorry about that, mistyped.
+> I'm not sure where the contradiction is.  The patch simply changes the
+> behavior for disabled runtime PM, which is to return a nonzero value immediately
+> anyway.
 
-No problem!
+It changes an error return to a non-error return.
 
-> > > Looking at the x86 idle entry, they call rcu_idle_{enter,exit}() inside 
-> > > {stop,start}_critical_timings().  Making that change here didn't help.
+However, if we limit the effects to times when the system is 
+suspending then there shouldn't be any pending or scheduled requests 
+anyway.  So okay, this isn't an issue.
+
+> > > > @@ -510,7 +510,8 @@ static int rpm_resume(struct device *dev, int rpmflags)
+> > > >  	if (dev->power.runtime_error)
+> > > >  		retval = -EINVAL;
+> > > >  	else if (dev->power.disable_depth > 0)
+> > > > -		retval = -EACCES;
+> > > > +		retval = dev->power.is_suspended && 
+> > > > +			dev->power.runtime_status == RPM_ACTIVE ? 1 : -EACCES;
+> > > >  	if (retval)
+> > > >  		goto out;
 > > 
-> > The reason x86 does this is that they have idle notifiers deeper in the
-> > idle loop that use RCU read-side critical sections.  So this was an
-> > expected result.
+> > Also, the is_suspended test seems irrelevant in general -- it makes 
+> > sense in terms of the scenario Kevin described but that's not the 
+> > stated purpose of the patch.
 > 
-> OK
-> 
-> > > Also tried commenting out the code from the stop_critical_timings() call 
-> > > to the WARN_ON(irqs_disabled()), and adding a local_irq_enable().  That 
-> > > also didn't help, which suggests that the problem is not caused by the 
-> > > OMAP-specific PM idle code.
+> Well, it is, although the changelog doesn't state it sufficiently clearly. :-)
+
+Good point.  The changelog needs to be improved.
+
+> > Both of these problems can be addressed by writing the code as follows:
 > > 
-> > I must admit that you make a convincing case here.  Though it does leave
-> > me wondering what is different about Panda (and MX28, IIRC).
+> > 	if (dev->power.runtime_error)
+> > 		retval = -EINVAL;
+> > 	else if (dev->power.disable_depth > 0) {
+> > 
+> > 		/* Special case: allow this if the device is already active */
+> > 		if (dev->power.runtime_status != RPM_ACTIVE)
+> > 			retval = -EACCES;
+> > 	}
+> > 	if (retval)
+> > 		goto out;
 > 
-> Given the dependency on CONFIG_NO_HZ, the stalls are probably dependent on 
-> the userspace in use.  The userspaces here are quite minimal and so allow 
-> the system to stay idle for relatively long periods of time.
+> We could do that too, but I'm a bit concerned about the situations where
+> runtime PM is disabled by the driver itself or by the subsystem, because
+> in those cases whoever disables runtime PM would have to make sure that the
+> status still reflects the actual hardware state, but that's what the runtime
+> PM framework is for (among other things).
 
-Could you please point me to a recipe for creating a minimal userspace?
-Just in case it is the userspac erather than the architecture/hardware
-that makes the difference.
+All right, let's use Kevin's original scheme but add a test for 
+disable_depth == 1.  I suggest changing the ?: operator to a regular 
+"if" statement, because the new condition will be even longer than the 
+old one (which I found a little hard to read in the first place).
 
-> > I may take your advice of remote access to a Panda board, though that
-> > is likely to take a bit of time due to timezones.  Regardless of the
-> > underlying issue here, I clearly need to make the stall-warning messages
-> > do a better job of printing out needed information.
-> 
-> If you've got a patch in mind for that, I'll boot it here.
+And of course, a comment should be added to explain the reason for the
+exception.
 
-Hammering it out, will send it along when it is a bit less destructive.  ;-)
+Kevin, how does this sound?
 
-> One other observation.  omap2plus_defconfig sets CONFIG_NO_HZ=y but 
-> doesn't set CONFIG_RCU_FAST_NO_HZ.  The stall warning messages still 
-> appear when CONFIG_RCU_FAST_NO_HZ=y.  One of them is attached below (with 
-> CONFIG_RCU_CPU_STALL_INFO set as well, obviously).
+Alan Stern
 
-Just to make sure I understand the combinations:
-
-o	All stalls have happened when running a minimal userspace.
-o	CONFIG_NO_HZ=n suppresses the stalls.
-o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
-	no observable effect on the stalls.
-
-Did I get that right, or am I missing a combination?
-
-> As an aside, in the CONFIG_RCU_FAST_NO_HZ=y build, I dropped a printk() 
-> into rcu_idle_gp_timer_func() and it doesn't look like it ever executed.
-
-Indeed, rcu_idle_gp_timer_func() is a bit strange in that it is cancelled
-upon exit from idle, and therefore should (almost) never actually execute.
-Its sole purpose is to wake up the CPU.  ;-)
-
-							Thanx, Paul
-
-> - Paul
-> 
-> [  305.832000] INFO: rcu_sched self-detected stall on CPU
-> [  305.834838]  1: (2 GPs behind) idle=5b1/1/0 drain=0 . timer=4294967295
-> [  305.838378]   (t=17463 jiffies)
-> [  305.840118] [<c001be10>] (unwind_backtrace+0x0/0xf0) from [<c00ad65c>] (rcu_pending+0xd0/0x540)
-> [  305.844848] [<c00ad65c>] (rcu_pending+0xd0/0x540) from [<c00ae5cc>] (rcu_check_callbacks+0x110/0x198)
-> [  305.849884] [<c00ae5cc>] (rcu_check_callbacks+0x110/0x198) from [<c0053800>] (update_process_times+0x38/0x68)
-> [  305.855285] [<c0053800>] (update_process_times+0x38/0x68) from [<c008cf40>] (tick_sched_timer+0x80/0xec)
-> [  305.860473] [<c008cf40>] (tick_sched_timer+0x80/0xec) from [<c006942c>] (__run_hrtimer+0x7c/0x1e0)
-> [  305.865356] [<c006942c>] (__run_hrtimer+0x7c/0x1e0) from [<c006a210>] (hrtimer_interrupt+0x11c/0x2d0)
-> [  305.870361] [<c006a210>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a54c>] (twd_handler+0x30/0x44)
-> [  305.875274] [<c001a54c>] (twd_handler+0x30/0x44) from [<c00a8128>] (handle_percpu_devid_irq+0x90/0x13c)
-> [  305.880371] [<c00a8128>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a489c>] (generic_handle_irq+0x30/0x48)
-> [  305.885833] [<c00a489c>] (generic_handle_irq+0x30/0x48) from [<c0014fb8>] (handle_IRQ+0x4c/0xac)
-> [  305.890624] [<c0014fb8>] (handle_IRQ+0x4c/0xac) from [<c000864c>] (gic_handle_irq+0x28/0x5c)
-> [  305.895233] [<c000864c>] (gic_handle_irq+0x28/0x5c) from [<c04fbc64>] (__irq_svc+0x44/0x5c)
-> [  305.899780] Exception stack(0xde86ff88 to 0xde86ffd0)
-> [  305.902526] ff80:                   0004c062 00000001 00000000 de8660c0 de86e000 c07c42c8
-> [  305.906982] ffa0: c05075a0 c074bdd0 00000000 411fc092 c074bff0 00000000 00000001 de86ffd0
-> [  305.911437] ffc0: 0004c063 c00152b0 20000113 ffffffff
-> [  305.914184] [<c04fbc64>] (__irq_svc+0x44/0x5c) from [<c00152b0>] (default_idle+0x20/0x44)
-> [  305.918640] [<c00152b0>] (default_idle+0x20/0x44) from [<c00154dc>] (cpu_idle+0x9c/0x114)
-> [  305.923126] [<c00154dc>] (cpu_idle+0x9c/0x114) from [<804f4a34>] (0x804f4a34)
-> 
