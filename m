@@ -1,64 +1,50 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: Help needed with remaining plat headers
-Date: Fri, 21 Sep 2012 12:06:42 +0300
-Message-ID: <505C2E22.9020001@compulab.co.il>
-References: <20120920232907.GN28835@atomide.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 10/13] spi: omap2-mcspi: dma_request_slave_channel() support for DT platforms
+Date: Fri, 21 Sep 2012 08:16:00 +0000
+Message-ID: <201209210816.01473.arnd@arndb.de>
+References: <1348152226-13588-1-git-send-email-mporter@ti.com> <1348152226-13588-11-git-send-email-mporter@ti.com> <20120920220931.GJ28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from softlayer.compulab.co.il ([50.23.254.55]:60790 "EHLO
-	compulab.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932072Ab2IUJGy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:06:54 -0400
-In-Reply-To: <20120920232907.GN28835@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120920220931.GJ28835@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+Cc: Matt Porter <mporter@ti.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
+List-Id: linux-omap@vger.kernel.org
 
-On 09/21/12 02:29, Tony Lindgren wrote:
-> Hi all,
+On Thursday 20 September 2012, Tony Lindgren wrote:
+> >  /* use PIO for small transfers, avoiding DMA setup/teardown overhead and
+> > @@ -798,14 +801,26 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
+> >       dma_cap_zero(mask);
+> >       dma_cap_set(DMA_SLAVE, mask);
+> >       sig = mcspi_dma->dma_rx_sync_dev;
+> > -     mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
+> > +     if (spi->dev.of_node)
+> > +             mcspi_dma->dma_rx =
+> > +                     dma_request_slave_channel(&master->dev,
+> > +                                               mcspi_dma->dma_rx_ch_name);
+> > +     else
+> > +             mcspi_dma->dma_rx =
+> > +                     dma_request_channel(mask, omap_dma_filter_fn, &sig);
+> >       if (!mcspi_dma->dma_rx) {
+> >               dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
+> >               return -EAGAIN;
+> >       }
+> >  
 > 
-> With the recent pull request I sent for v3.7, we now have pretty
-> much all the mach includes fixed up for omap2+ for single zImage
-> support.
-> 
-> We still have quite a few plat headers that we need to sort
-> out manually.
-> 
-> Please take a look at the following list, and reply to this
-> thread if you are working on patches moving one of the headers
-> in the list so we can coordinate things. The rules are simple
-> for most of them:
-> 
-> 1. For driver related data, the header should now be in
->    include/linux/platform_data/*.h
-> 
-> 2. For mach-omap2 specific things, the headers should be
->    in arch/arm/mach-omap2.
-> 
-> 3. Drivers should not include anything from plat or mach.
-> 
-> I'll be looking into getting rid of cpu.h etc for v3.8 merge
-> window, but won't be looking much at the driver related
-> headers. So some help would be appreciated here :)
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> $ ls arch/arm/plat-omap/include/plat/
+> Hmm this does not look nice.. We should be able to somehow not to care about
+> the configuration at the mcspi driver level.
 
-[...]
+I agree, but as far as I understand Vinod's plans, we would actually move
+all drivers over to dma_request_slave_channel() when we have an interface
+to register the lookup tables from platform code.
 
-> timex.h
+I think the above is ok for a transitional phase and we can remove the
+fallback path when we have converted all platforms using this driver
+to either use DT or move to the new style way of passing the channel
+configuration.
 
-I'll try to deal with this one,
-as it is related to the work I currently do for CONFIG_OMAP_32K_TIMER removal.
-Probably for v3.8 merge window.
+	Arnd
 
--- 
-Regards,
-Igor.
