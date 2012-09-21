@@ -1,245 +1,52 @@
 From: Ido Yariv <ido@wizery.com>
-Subject: [PATCH 2/3] iommu/omap: Merge iommu2.h into iommu.h
-Date: Fri, 21 Sep 2012 01:14:07 -0400
-Message-ID: <1348204448-30855-2-git-send-email-ido@wizery.com>
-References: <1348204448-30855-1-git-send-email-ido@wizery.com>
+Subject: [PATCH 1/3] [media] omap3isp: Fix compilation error in ispreg.h
+Date: Fri, 21 Sep 2012 01:14:06 -0400
+Message-ID: <1348204448-30855-1-git-send-email-ido@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:55186 "EHLO
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:59837 "EHLO
 	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2IUFO0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 01:14:26 -0400
-Received: by qcro28 with SMTP id o28so2325437qcr.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 22:14:25 -0700 (PDT)
-In-Reply-To: <1348204448-30855-1-git-send-email-ido@wizery.com>
+	with ESMTP id S1752819Ab2IUFOY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 01:14:24 -0400
+Received: by qcro28 with SMTP id o28so2325431qcr.19
+        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 22:14:24 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 Cc: Ido Yariv <ido@wizery.com>
 
-Since iommu is not currently supported on OMAP1, merge plat/iommu2.h into
-iommu.h so only one file would have to move to platform_data/ as part of the
-single zImage effort.
+Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+includes omap34xx.h.
+
+Instead of moving omap34xx to platform_data, simply add the two
+definitions the driver needs and remove the include altogether.
 
 Signed-off-by: Ido Yariv <ido@wizery.com>
 ---
- arch/arm/plat-omap/include/plat/iommu.h  | 88 +++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/iommu2.h | 96 --------------------------------
- 2 files changed, 83 insertions(+), 101 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/plat/iommu2.h
+ drivers/media/platform/omap3isp/ispreg.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-index 88be3e6..42f64e7 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -13,6 +13,12 @@
- #ifndef __MACH_IOMMU_H
- #define __MACH_IOMMU_H
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index 084ea77..e2c57f3 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -27,13 +27,13 @@
+ #ifndef OMAP3_ISP_REG_H
+ #define OMAP3_ISP_REG_H
  
-+#include <linux/io.h>
-+
-+#if defined(CONFIG_ARCH_OMAP1)
-+#error "iommu for this processor not implemented yet"
-+#endif
-+
- struct iotlb_entry {
- 	u32 da;
- 	u32 pa;
-@@ -144,11 +150,70 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
- #define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
- #define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
+-#include <plat/omap34xx.h>
+-
+-
+ #define CM_CAM_MCLK_HZ			172800000	/* Hz */
  
--#if defined(CONFIG_ARCH_OMAP1)
--#error "iommu for this processor not implemented yet"
--#else
--#include <plat/iommu2.h>
--#endif
-+/*
-+ * MMU Register offsets
-+ */
-+#define MMU_REVISION		0x00
-+#define MMU_SYSCONFIG		0x10
-+#define MMU_SYSSTATUS		0x14
-+#define MMU_IRQSTATUS		0x18
-+#define MMU_IRQENABLE		0x1c
-+#define MMU_WALKING_ST		0x40
-+#define MMU_CNTL		0x44
-+#define MMU_FAULT_AD		0x48
-+#define MMU_TTB			0x4c
-+#define MMU_LOCK		0x50
-+#define MMU_LD_TLB		0x54
-+#define MMU_CAM			0x58
-+#define MMU_RAM			0x5c
-+#define MMU_GFLUSH		0x60
-+#define MMU_FLUSH_ENTRY		0x64
-+#define MMU_READ_CAM		0x68
-+#define MMU_READ_RAM		0x6c
-+#define MMU_EMU_FAULT_AD	0x70
-+
-+#define MMU_REG_SIZE		256
-+
-+/*
-+ * MMU Register bit definitions
-+ */
-+#define MMU_LOCK_BASE_SHIFT	10
-+#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
-+#define MMU_LOCK_BASE(x)	\
-+	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
-+
-+#define MMU_LOCK_VICT_SHIFT	4
-+#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
-+#define MMU_LOCK_VICT(x)	\
-+	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
-+
-+#define MMU_CAM_VATAG_SHIFT	12
-+#define MMU_CAM_VATAG_MASK \
-+	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
-+#define MMU_CAM_P		(1 << 3)
-+#define MMU_CAM_V		(1 << 2)
-+#define MMU_CAM_PGSZ_MASK	3
-+#define MMU_CAM_PGSZ_1M		(0 << 0)
-+#define MMU_CAM_PGSZ_64K	(1 << 0)
-+#define MMU_CAM_PGSZ_4K		(2 << 0)
-+#define MMU_CAM_PGSZ_16M	(3 << 0)
-+
-+#define MMU_RAM_PADDR_SHIFT	12
-+#define MMU_RAM_PADDR_MASK \
-+	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
-+#define MMU_RAM_ENDIAN_SHIFT	9
-+#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
-+#define MMU_RAM_ELSZ_SHIFT	7
-+#define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
-+#define MMU_RAM_MIXED_SHIFT	6
-+#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
-+#define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
+ /* ISP Submodules offset */
  
- /*
-  * utilities for super page(16MB, 1MB, 64KB and 4KB)
-@@ -203,4 +268,17 @@ omap_iommu_dump_ctx(struct omap_iommu *obj, char *buf, ssize_t len);
- extern size_t
- omap_dump_tlb_entries(struct omap_iommu *obj, char *buf, ssize_t len);
++#define L4_34XX_BASE			0x48000000
++#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
++
+ #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+ #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
  
-+/*
-+ * register accessors
-+ */
-+static inline u32 iommu_read_reg(struct omap_iommu *obj, size_t offs)
-+{
-+	return __raw_readl(obj->regbase + offs);
-+}
-+
-+static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
-+{
-+	__raw_writel(val, obj->regbase + offs);
-+}
-+
- #endif /* __MACH_IOMMU_H */
-diff --git a/arch/arm/plat-omap/include/plat/iommu2.h b/arch/arm/plat-omap/include/plat/iommu2.h
-deleted file mode 100644
-index d4116b5..0000000
---- a/arch/arm/plat-omap/include/plat/iommu2.h
-+++ /dev/null
-@@ -1,96 +0,0 @@
--/*
-- * omap iommu: omap2 architecture specific definitions
-- *
-- * Copyright (C) 2008-2009 Nokia Corporation
-- *
-- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef __MACH_IOMMU2_H
--#define __MACH_IOMMU2_H
--
--#include <linux/io.h>
--
--/*
-- * MMU Register offsets
-- */
--#define MMU_REVISION		0x00
--#define MMU_SYSCONFIG		0x10
--#define MMU_SYSSTATUS		0x14
--#define MMU_IRQSTATUS		0x18
--#define MMU_IRQENABLE		0x1c
--#define MMU_WALKING_ST		0x40
--#define MMU_CNTL		0x44
--#define MMU_FAULT_AD		0x48
--#define MMU_TTB			0x4c
--#define MMU_LOCK		0x50
--#define MMU_LD_TLB		0x54
--#define MMU_CAM			0x58
--#define MMU_RAM			0x5c
--#define MMU_GFLUSH		0x60
--#define MMU_FLUSH_ENTRY		0x64
--#define MMU_READ_CAM		0x68
--#define MMU_READ_RAM		0x6c
--#define MMU_EMU_FAULT_AD	0x70
--
--#define MMU_REG_SIZE		256
--
--/*
-- * MMU Register bit definitions
-- */
--#define MMU_LOCK_BASE_SHIFT	10
--#define MMU_LOCK_BASE_MASK	(0x1f << MMU_LOCK_BASE_SHIFT)
--#define MMU_LOCK_BASE(x)	\
--	((x & MMU_LOCK_BASE_MASK) >> MMU_LOCK_BASE_SHIFT)
--
--#define MMU_LOCK_VICT_SHIFT	4
--#define MMU_LOCK_VICT_MASK	(0x1f << MMU_LOCK_VICT_SHIFT)
--#define MMU_LOCK_VICT(x)	\
--	((x & MMU_LOCK_VICT_MASK) >> MMU_LOCK_VICT_SHIFT)
--
--#define MMU_CAM_VATAG_SHIFT	12
--#define MMU_CAM_VATAG_MASK \
--	((~0UL >> MMU_CAM_VATAG_SHIFT) << MMU_CAM_VATAG_SHIFT)
--#define MMU_CAM_P		(1 << 3)
--#define MMU_CAM_V		(1 << 2)
--#define MMU_CAM_PGSZ_MASK	3
--#define MMU_CAM_PGSZ_1M		(0 << 0)
--#define MMU_CAM_PGSZ_64K	(1 << 0)
--#define MMU_CAM_PGSZ_4K		(2 << 0)
--#define MMU_CAM_PGSZ_16M	(3 << 0)
--
--#define MMU_RAM_PADDR_SHIFT	12
--#define MMU_RAM_PADDR_MASK \
--	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
--#define MMU_RAM_ENDIAN_SHIFT	9
--#define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
--#define MMU_RAM_ELSZ_SHIFT	7
--#define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
--#define MMU_RAM_MIXED_SHIFT	6
--#define MMU_RAM_MIXED_MASK	(1 << MMU_RAM_MIXED_SHIFT)
--#define MMU_RAM_MIXED		MMU_RAM_MIXED_MASK
--
--/*
-- * register accessors
-- */
--static inline u32 iommu_read_reg(struct omap_iommu *obj, size_t offs)
--{
--	return __raw_readl(obj->regbase + offs);
--}
--
--static inline void iommu_write_reg(struct omap_iommu *obj, u32 val, size_t offs)
--{
--	__raw_writel(val, obj->regbase + offs);
--}
--
--#endif /* __MACH_IOMMU2_H */
 -- 
 1.7.11.4
 
