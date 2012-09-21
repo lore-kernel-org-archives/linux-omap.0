@@ -1,37 +1,82 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH 01/13] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Fri, 21 Sep 2012 10:29:23 +0100
-Message-ID: <20120921092923.GA31374@n2100.arm.linux.org.uk>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com> <1348152226-13588-2-git-send-email-mporter@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: serial-omap regression?
+Date: Fri, 21 Sep 2012 12:28:24 +0300
+Message-ID: <20120921092822.GE15115@arwen.pp.htv.fi>
+References: <87wqzofgms.fsf@deeprootsystems.com>
+ <87obl0fga1.fsf@deeprootsystems.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37251 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932510Ab2IUJaH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 05:30:07 -0400
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:58256 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751138Ab2IUJdN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 05:33:13 -0400
+Received: by lbbgj3 with SMTP id gj3so3590944lbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 02:33:10 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1348152226-13588-2-git-send-email-mporter@ti.com>
+In-Reply-To: <87obl0fga1.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Shubhrajyoti Datta <shubhrajyoti@ti.com>, Sourav Poddar <sourav.poddar@ti.com>
 
-On Thu, Sep 20, 2012 at 10:43:34AM -0400, Matt Porter wrote:
-> Move mach-davinci/dma.c to common/edma.c so it can be used
-> by OMAP (specifically AM33xx atm) as well. This just moves
-> the private EDMA API but does not support OMAP.
-> 
-> Signed-off-by: Matt Porter <mporter@ti.com>
-> ---
->  arch/arm/Kconfig                           |    1 +
->  arch/arm/common/Kconfig                    |    3 +
->  arch/arm/common/Makefile                   |    1 +
->  arch/arm/common/edma.c                     | 1588 ++++++++++++++++++++++++++++
->  arch/arm/include/asm/mach/edma.h           |  267 +++++
 
-asm/mach should not be used as a dumping ground for platform header files.
-It is there to provide the interfaces between generic ARM architecture
-code and platform code.  (At least four files that are there at the
-moment need to be moved out of there - patch series to follow...)
+--Rgf3q3z9SdmXC6oT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Thu, Sep 20, 2012 at 04:03:50PM -0700, Kevin Hilman wrote:
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>=20
+> > Hi Felipe,
+> >
+> > I just noticed today that one of my boards (3530/Overo) was not making
+> > it to the console when using an Debian rootfs (nfsroot) but works fine
+> > with my basic busybox initramfs.  Basically, it hangs somewhere between
+> > finishing the userspace init and launching the login shell.
+> >
+> > git bisect ended up pointing the finger at a patch in the OMAP serial
+> > series[1].  I didn't debug this any further.  Any ideas?
+> >
+>=20
+> I forgot to add, this was first noticed when testing with
+> arm-soc/for-next which has the serial-omap changes pulled in as a
+> dependency.
+
+hmmm, Shubhro had written a patch to fix some mistakes on rlsi handler.
+Maybe it fixes this problem ?
+
+Shubhro, can you send your patch ?
+
+--=20
+balbi
+
+--Rgf3q3z9SdmXC6oT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQXDM2AAoJEIaOsuA1yqRE0IQP/0uxR5qDDrbdUIFK/+IPsrFA
+l3VYpUIchRPRotkBrOmaSpjnbDeSRvHVM7R5d1MLzS9s92cDVuLtcjBElX6AUDu/
+WtxKjtZSO337pbdMjzy6sRH0kGCqq4ffUxXsfef0QTZQzzQKxIDHiwv7vkMJIOA/
+EKeiExubX/jh5nnzPdZingWdT9wu2b/mZ2LKmSZQ3gQqWO9q0e15KttXAiJ9g57O
+MlqsMWnqiKFcBREpXEGQDvyKv954EycoChNXinVhakYYA+0Kdxsv+h9vTwQ0yEH/
+TblQVTvwpH+wogjGIiyvypqURwNqj35Q1IyEJ1AZceWSIl1t1uYpq0RpGWZDB6kZ
+AVtJIN/nh6BA1gOtBg29VhVos5QlG79ceVsC7hkkHyKo0AGlYH2oQSD3SPQ8ju6S
+td3lHaA3XNPEjx9RjTuafmFGr60Tfv9yJTcEbbe0Hh4E2eyvkKpkefySPaD3aaac
+X4G9q1QqSaQSirtOT4N4qUBFbk4fk6Pwo28SLtdUhsi8LtB7mijg5KlHS5Nus7zU
+oteg0yJLCnJfWZ6h/J7AX3rzCa72DxVvgCP1Ni+djYZ9t5PUr8vcpNCle/l9DArd
+ZTOZ0PVyxnCI7zM5E6Q/KzSm8lCG02yDA5v/Z4tI+8GDWKmMuEk5KHy5nj7ZOvy7
+lkO6Q7ZYWMOsmsZxTwCy
+=gq8w
+-----END PGP SIGNATURE-----
+
+--Rgf3q3z9SdmXC6oT--
