@@ -1,55 +1,69 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: Beagleboard xM crashes when being set to 800MHz with smartreflex
- on linux-omap-3.6-rc6
-Date: Fri, 21 Sep 2012 07:52:14 -0500
-Message-ID: <CAOCHtYgfGqJzO2cs2_EP6HcZyxR7pU=JW0EwGJqFi4UBz5NBUw@mail.gmail.com>
-References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] serial: omap: fix the overrun case
+Date: Fri, 21 Sep 2012 07:18:54 -0700
+Message-ID: <87a9wjfohd.fsf@deeprootsystems.com>
+References: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:38772 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754726Ab2IUMwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 08:52:15 -0400
-Received: by vbbff1 with SMTP id ff1so3781841vbb.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 05:52:14 -0700 (PDT)
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
+	(Shubhrajyoti D.'s message of "Fri, 21 Sep 2012 15:52:56 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sourav.poddar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>
-Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 21, 2012 at 1:45 AM, Maximilian Schwerin
-<Maximilian.Schwerin@tigris.de> wrote:
-> Hi,
+Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+
+> Overrun also causes an internal flag to be set, which disables furthe=
+r
+> reception. Before the next frame can
+> be received, the MPU must:
+> =E2=80=A2 Reset the RX FIFO.
+> =E2=80=A2 clear the internal flag.
 >
-> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
-> as basis for the kernel config.
+> In the uart mode a dummy read is needed. Add the same.
 >
-> When I enable smartreflex and switch to 800MHz via
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> - functional testing on omap4sdp
+> - Verified idle and suspend path hits off on beagle.
+
+Tested-by: Kevin Hilman <khilman@ti.com>
+
+This fixes the console hang I was seeing on 3530/Overo.
+
+Thanks,
+
+Kevin
+
+>  drivers/tty/serial/omap-serial.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
 >
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
-> cpufreq-set -f 800MHz
->
-> the board crashes. If I switch to 800MHz and enable smartreflex later
-> nothing happens. This used to work in my 3.3 based kernel.
-
-btw, once it locks up... retry with your 3.3 based kernel (hold reset
-and swap sd card's, the "bug" should lock up again when trying to set
-800Mhz on bootup..  In my testing, once it locks up, any cpufreq
-enabled kernel will keep locking up...  Makes you wonder if a pll
-setting isn't getting reset on bootup...)
-
-I've traced it to the "arch_clock->clk_set_rate(clk, rate);" call in
-the "int clk_set_rate(struct clk *clk, unsigned long rate)" function
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/plat-omap/clock.c;hb=HEAD#l132
-
-at that point, I'm a little lost in the omap36xx code..
-
-Regards,
-
--- 
-Robert Nelson
-http://www.rcn-ee.com/
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index a0d4460..bc22a2b 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -334,6 +334,13 @@ static unsigned int check_modem_status(struct ua=
+rt_omap_port *up)
+>  static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int=
+ lsr)
+>  {
+>  	unsigned int flag;
+> +	unsigned char ch =3D 0;
+> +
+> +	if (!(lsr & UART_LSR_BRK_ERROR_BITS))
+> +		return;
+> +
+> +	if (likely(lsr & UART_LSR_DR))
+> +		ch =3D serial_in(up, UART_RX);
+> =20
+>  	up->port.icount.rx++;
+>  	flag =3D TTY_NORMAL;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
