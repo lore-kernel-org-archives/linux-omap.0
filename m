@@ -1,52 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Fri, 21 Sep 2012 18:59:58 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209211855500.8839@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1209122237080.7275@utopia.booyaka.com> <20120913011208.GT4257@linux.vnet.ibm.com> <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com> <20120920000351.GI2455@linux.vnet.ibm.com> <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com> <20120920220130.GN2449@linux.vnet.ibm.com> <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com> <20120920232114.GO2449@linux.vnet.ibm.com> <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
+From: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
+	DMAC
+Date: Fri, 21 Sep 2012 15:03:12 -0400
+Message-ID: <20120921190312.GL16522@beef>
+References: <1348152226-13588-1-git-send-email-mporter@ti.com>
+	<1348152226-13588-9-git-send-email-mporter@ti.com>
+	<CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
+	<20120921184721.GD31374@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20120921184721.GD31374-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Linux DaVinci Kernel List <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Linux Documentation List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Devicetree Discuss <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Rob Landley <rob-VoJi6FS/r0vR7s880joybQ@public.gmane.org>, Dan Williams <djbw-b10kYP2dOMg@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Venkatraman" <svenkatr-l0cyMroinI0@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+On Fri, Sep 21, 2012 at 07:47:21PM +0100, Russell King wrote:
+> On Fri, Sep 21, 2012 at 10:45:29PM +0530, S, Venkatraman wrote:
+> > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter-l0cyMroinI0@public.gmane.org> wrote:
+> > > The EDMA DMAC has a hardware limitation that prevents supporting
+> > > scatter gather lists with any number of segments. Since the EDMA
+> > > DMA Engine driver sets the maximum segments to 16, we do the
+> > > same.
+> > >
+> > > Note: this can be removed once the DMA Engine API supports an
+> > > API to query the DMAC's segment limitations.
+> > >
+> > 
+> > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
+> > suggests. Why don't we have a max_segs property, which when explicitly specified
+> > in DT, will override the default ?
+> 
+> Why not have a generic way that DMA engine can export these kinds of
+> properties?
 
-Just did a test with CONFIG_NO_HZ=n, and no rcu_sched stall messages 
-appeared for 60 minutes.
+That's exactly what my note above is suggesting...
 
-Following is the diff from omap2plus_defconfig.
+Something along the lines of:
 
-- Paul
+	struct slave_sg_caps
+	{
+		int max_segs;	/* <0 is no limit */
+	}
 
---- .config	2012-09-21 12:51:19.114938954 -0600
-+++ .testconfig	2012-09-21 12:51:15.686926318 -0600
-@@ -69,7 +69,7 @@
- # Timers subsystem
- #
- CONFIG_TICK_ONESHOT=y
--CONFIG_NO_HZ=y
-+# CONFIG_NO_HZ is not set
- CONFIG_HIGH_RES_TIMERS=y
- 
- #
-@@ -80,7 +80,6 @@
- CONFIG_RCU_FANOUT=32
- CONFIG_RCU_FANOUT_LEAF=16
- # CONFIG_RCU_FANOUT_EXACT is not set
--# CONFIG_RCU_FAST_NO_HZ is not set
- # CONFIG_TREE_RCU_TRACE is not set
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
-@@ -2535,7 +2534,7 @@
- # CONFIG_BOOT_PRINTK_DELAY is not set
- # CONFIG_RCU_TORTURE_TEST is not set
- CONFIG_RCU_CPU_STALL_TIMEOUT=60
--# CONFIG_RCU_CPU_STALL_INFO is not set
-+CONFIG_RCU_CPU_STALL_INFO=y
- # CONFIG_RCU_TRACE is not set
- # CONFIG_KPROBES_SANITY_TEST is not set
- # CONFIG_BACKTRACE_SELF_TEST is not set
+	struct slave_sg_cap *
+	dmaengine_get_slave_sg_caps(struct dma_chan *chan);
+
+I'm sure there are or will be other characteristics worth providing to
+slave drivers.
+
+-Matt
+
+------------------------------------------------------------------------------
+Got visibility?
+Most devs has no idea what their production app looks like.
+Find out how fast your code is with AppDynamics Lite.
+http://ad.doubleclick.net/clk;262219671;13503038;y?
+http://info.appdynamics.com/FreeJavaPerformanceDownload.html
