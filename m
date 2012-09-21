@@ -1,52 +1,44 @@
-From: Ido Yariv <ido@wizery.com>
-Subject: [PATCH 1/3] [media] omap3isp: Fix compilation error in ispreg.h
-Date: Fri, 21 Sep 2012 01:14:06 -0400
-Message-ID: <1348204448-30855-1-git-send-email-ido@wizery.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v7 00/11] OMAP-GPMC: generic time calc, prepare for
+ driver
+Date: Thu, 20 Sep 2012 22:19:13 -0700
+Message-ID: <20120921051909.GW28835@atomide.com>
+References: <cover.1348058726.git.afzal@ti.com>
+ <20120921045104.GU28835@atomide.com>
+ <C8443D0743D26F4388EA172BF4E2A7A93E9E6CA7@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:59837 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819Ab2IUFOY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 01:14:24 -0400
-Received: by qcro28 with SMTP id o28so2325431qcr.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 22:14:24 -0700 (PDT)
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:63722 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753635Ab2IUFTR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 01:19:17 -0400
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93E9E6CA7@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
-mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
-includes omap34xx.h.
+* Mohammed, Afzal <afzal@ti.com> [120920 22:02]:
+> Hi Tony,
+> 
+> On Fri, Sep 21, 2012 at 10:21:04, Tony Lindgren wrote:
+> 
+> > I gave this series a quick test on my n800 after applying the
+> > two serial patches needed to get the uart to work, and it seems
+> > to be working just fine.
+> > 
+> > Was there still some discussion on the format of the generic
+> > timings that's still pending? I think Jon made some comments 
+> > on the format?
+> 
+> What I deduced finally from Jon's replies was that he wanted
+> more documentation on generic timings, and that has been
+> added in this series.
 
-Instead of moving omap34xx to platform_data, simply add the two
-definitions the driver needs and remove the include altogether.
+OK let's see if he has other pending comments next week.
 
-Signed-off-by: Ido Yariv <ido@wizery.com>
----
- drivers/media/platform/omap3isp/ispreg.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
-index 084ea77..e2c57f3 100644
---- a/drivers/media/platform/omap3isp/ispreg.h
-+++ b/drivers/media/platform/omap3isp/ispreg.h
-@@ -27,13 +27,13 @@
- #ifndef OMAP3_ISP_REG_H
- #define OMAP3_ISP_REG_H
- 
--#include <plat/omap34xx.h>
--
--
- #define CM_CAM_MCLK_HZ			172800000	/* Hz */
- 
- /* ISP Submodules offset */
- 
-+#define L4_34XX_BASE			0x48000000
-+#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-+
- #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
- #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
- 
--- 
-1.7.11.4
-
+Tony
