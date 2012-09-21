@@ -1,54 +1,73 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
- DMAC
-Date: Fri, 21 Sep 2012 14:42:56 -0400
-Message-ID: <20120921184256.GJ16522@beef>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1348152226-13588-9-git-send-email-mporter@ti.com>
- <CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
- <CANfBPZ-h7MD4X_NRYfwOmMnEyOKy0bTNNLNRmdbef2pe=2aHyg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Help needed with remaining plat headers
+Date: Fri, 21 Sep 2012 11:46:45 -0700
+Message-ID: <20120921184644.GD28835@atomide.com>
+References: <20120920232907.GN28835@atomide.com>
+ <505C2E22.9020001@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22785 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757439Ab2IUSqr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 14:46:47 -0400
 Content-Disposition: inline
-In-Reply-To: <CANfBPZ-h7MD4X_NRYfwOmMnEyOKy0bTNNLNRmdbef2pe=2aHyg@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infrad>
+In-Reply-To: <505C2E22.9020001@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 21, 2012 at 10:47:30PM +0530, S, Venkatraman wrote:
-> On Fri, Sep 21, 2012 at 10:45 PM, S, Venkatraman <svenkatr@ti.com> wrote:
-> > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter@ti.com> wrote:
-> >> The EDMA DMAC has a hardware limitation that prevents supporting
-> >> scatter gather lists with any number of segments. Since the EDMA
-> >> DMA Engine driver sets the maximum segments to 16, we do the
-> >> same.
-> >>
-> >> Note: this can be removed once the DMA Engine API supports an
-> >> API to query the DMAC's segment limitations.
-> >>
-> >
-> > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
-> > suggests. Why don't we have a max_segs property, which when explicitly specified
-> > in DT, will override the default ?
+* Igor Grinberg <grinberg@compulab.co.il> [120921 02:07]:
+> On 09/21/12 02:29, Tony Lindgren wrote:
+> > Hi all,
+> > 
+> > With the recent pull request I sent for v3.7, we now have pretty
+> > much all the mach includes fixed up for omap2+ for single zImage
+> > support.
+> > 
+> > We still have quite a few plat headers that we need to sort
+> > out manually.
+> > 
+> > Please take a look at the following list, and reply to this
+> > thread if you are working on patches moving one of the headers
+> > in the list so we can coordinate things. The rules are simple
+> > for most of them:
+> > 
+> > 1. For driver related data, the header should now be in
+> >    include/linux/platform_data/*.h
+
+Just to clarify this, these headers should only contain
+the platform data shared between the SoC specific code and
+driver. Things that are driver internal should be in the driver
+specific header or moved to the driver. Things that are SoC
+internal should be in the local *.[chS] files in the
+arch/arm/mach-omap2 directory.
+
+> > 2. For mach-omap2 specific things, the headers should be
+> >    in arch/arm/mach-omap2.
+> > 
+> > 3. Drivers should not include anything from plat or mach.
+> > 
+> > I'll be looking into getting rid of cpu.h etc for v3.8 merge
+> > window, but won't be looking much at the driver related
+> > headers. So some help would be appreciated here :)
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > 
+> > $ ls arch/arm/plat-omap/include/plat/
 > 
-> If you are adventurous, this can be a generic mmc DT binding instead
-> of restricting it to OMAP.
+> [...]
+> 
+> > timex.h
+> 
+> I'll try to deal with this one,
+> as it is related to the work I currently do for CONFIG_OMAP_32K_TIMER removal.
+> Probably for v3.8 merge window.
 
-I think it's bad practice to add something to a binding that is not part
-of the hardware definition for the device. In this case, the limitations
-comes strictly from the DMAC. As I noted, the proper fix for this is to
-have the DMA Engine API extended to allow querying the DMAC SG
-capabilities before setting up a DMA transfer. I brought this up
-previously in the thread where the actual EDMA dmaengine wrapper driver
-was discussed and Vinod indicated that he was open to dmaengine
-providing this information.
+OK great thanks,
 
-It makes sense as DMA Engine should tell the slave driver everything it
-needs to know to set up a transfer...this is just a missing piece right
-now. FWIW, we have this issue in davinci_mmc.c as well...it just was
-already hardcoded with a value to satisfy the EDMA DMAC. However, I'd
-like to see that go away as well.
-
--Matt
+Tony
