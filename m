@@ -1,53 +1,111 @@
-From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
-Date: Sat, 22 Sep 2012 00:07:20 +0200
-Message-ID: <20120921220720.GY28670@sortiz-mobl>
-References: <CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
- <20120723140830.GA8155@arwen.pp.htv.fi>
- <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
- <CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
- <CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
- <20120813140928.GH14781@arwen.pp.htv.fi>
- <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
- <CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
- <CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
- <alpine.DEB.2.00.1209192030270.5264@utopia.booyaka.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] Documentation: RCU: update the stall warning message
+ "timer=-1" to match reality
+Date: Fri, 21 Sep 2012 15:07:41 -0700
+Message-ID: <20120921220741.GG2454@linux.vnet.ibm.com>
+References: <alpine.DEB.2.00.1209211610280.30239@utopia.booyaka.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209192030270.5264-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux USB Devel <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1209211610280.30239@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Dipankar Sarma <dipankar@in.ibm.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Bruce, Becky" <bbruce@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, snijsure@grid-net.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul,
-
-On Wed, Sep 19, 2012 at 08:39:40PM +0000, Paul Walmsley wrote:
+On Fri, Sep 21, 2012 at 04:13:29PM +0000, Paul Walmsley wrote:
 > 
-> Hi Samuel,
+> The CONFIG_RCU_FAST_NO_HZ stall warning messages can never emit
+> "timer=-1".  This is because the printf() format specifier to generate
+> that number is '%lu'.  So, update the documentation to use the
+> unsigned long equivalent instead, "timer=4294967295".  This is what
+> actually shows up in traces.
 > 
-> I've queued patch 1 of this series for 3.7, which should go upstream via 
-> the OMAP -> arm-soc path.  Also asked Keshava to re-send patch 5 to me 
-> once patches 2-4 have been merged.
-> 
-> It's up to you how to handle patches 2-4.  The series is a good step 
-> forward for us in terms of cleanup.  But what is probably worthwhile at 
-> some point is for that USB TLL "phy" code (added in patch 2) to be moved 
-> into some place like drivers/usb/phy, since it's not MFD-related.
-That would be ideal, yes. I kept patches 2-4 as they're alreeady going in the
-right direction (I dropped patches 1 and 5).
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: Dipankar Sarma <dipankar@in.ibm.com>
 
-Thanks for the heads up.
+Good catch!  Even worse, it gives "timer=18446744073709551615" on
+64-bit systems, which is no easier on the eyes.  I therefore changed
+the code to print a nicer message in this case, patch below.
 
-Cheers,
-Samuel.
+The meaning of the "timer=4294967295" was that the corresponding CPU
+was either non-idle or idle with no RCU callbacks, FWIW.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+							Thanx, Paul
+
+-------------------------------------------------------------------------
+
+rcu: Fix CONFIG_RCU_FAST_NO_HZ stall warning message
+
+The print_cpu_stall_fast_no_hz() function attempts to print -1 when
+the ->idle_gp_timer is not pending, but unsigned arithmetic causes it
+to instead print ULONG_MAX, which is 4294967295 on 32-bit systems and
+18446744073709551615 on 64-bit systems.  Neither of these are the most
+reader-friendly values, so this commit instead causes "timer not pending"
+to be printed when ->idle_gp_timer is not pending.
+
+Reported-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+
+diff --git a/Documentation/RCU/stallwarn.txt b/Documentation/RCU/stallwarn.txt
+index 523364e..1927151 100644
+--- a/Documentation/RCU/stallwarn.txt
++++ b/Documentation/RCU/stallwarn.txt
+@@ -99,7 +99,7 @@ In kernels with CONFIG_RCU_FAST_NO_HZ, even more information is
+ printed:
+ 
+ 	INFO: rcu_preempt detected stall on CPU
+-	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer=-1
++	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer not pending
+ 	   (t=65000 jiffies)
+ 
+ The "(64628 ticks this GP)" indicates that this CPU has taken more
+@@ -116,13 +116,13 @@ number between the two "/"s is the value of the nesting, which will
+ be a small positive number if in the idle loop and a very large positive
+ number (as shown above) otherwise.
+ 
+-For CONFIG_RCU_FAST_NO_HZ kernels, the "drain=0" indicates that the
+-CPU is not in the process of trying to force itself into dyntick-idle
+-state, the "." indicates that the CPU has not given up forcing RCU
+-into dyntick-idle mode (it would be "H" otherwise), and the "timer=-1"
+-indicates that the CPU has not recented forced RCU into dyntick-idle
+-mode (it would otherwise indicate the number of microseconds remaining
+-in this forced state).
++For CONFIG_RCU_FAST_NO_HZ kernels, the "drain=0" indicates that the CPU is
++not in the process of trying to force itself into dyntick-idle state, the
++"." indicates that the CPU has not given up forcing RCU into dyntick-idle
++mode (it would be "H" otherwise), and the "timer not pending" indicates
++that the CPU has not recently forced RCU into dyntick-idle mode (it
++would otherwise indicate the number of microseconds remaining in this
++forced state).
+ 
+ 
+ Multiple Warnings From One Stall
+diff --git a/kernel/rcutree_plugin.h b/kernel/rcutree_plugin.h
+index 3b1a11e..be822f0 100644
+--- a/kernel/rcutree_plugin.h
++++ b/kernel/rcutree_plugin.h
+@@ -2245,11 +2245,15 @@ static void print_cpu_stall_fast_no_hz(char *cp, int cpu)
+ {
+ 	struct rcu_dynticks *rdtp = &per_cpu(rcu_dynticks, cpu);
+ 	struct timer_list *tltp = &rdtp->idle_gp_timer;
++	char c;
+ 
+-	sprintf(cp, "drain=%d %c timer=%lu",
+-		rdtp->dyntick_drain,
+-		rdtp->dyntick_holdoff == jiffies ? 'H' : '.',
+-		timer_pending(tltp) ? tltp->expires - jiffies : -1);
++	c = rdtp->dyntick_holdoff == jiffies ? 'H' : '.';
++	if (timer_pending(tltp))
++		sprintf(cp, "drain=%d %c timer=%lu",
++			rdtp->dyntick_drain, c, tltp->expires - jiffies);
++	else
++		sprintf(cp, "drain=%d %c timer not pending",
++			rdtp->dyntick_drain, c);
+ }
+ 
+ #else /* #ifdef CONFIG_RCU_FAST_NO_HZ */
