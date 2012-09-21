@@ -1,67 +1,51 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [RFC PATCH 08/13] mmc: omap_hsmmc: limit max_segs with the EDMA
- DMAC
-Date: Fri, 21 Sep 2012 14:54:05 -0400
-Message-ID: <20120921185405.GK16522@beef>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1348152226-13588-9-git-send-email-mporter@ti.com>
- <CANfBPZ81anOy8fWgKM1PgCtB4V2pEp2x1Qi4x1uPsq7QieMN5g@mail.gmail.com>
- <CANfBPZ-h7MD4X_NRYfwOmMnEyOKy0bTNNLNRmdbef2pe=2aHyg@mail.gmail.com>
- <20120921171840.GB10409@arwen.pp.htv.fi>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Makefile.boot: Add am335x evm and bone
+ targets
+Date: Fri, 21 Sep 2012 11:54:55 -0700
+Message-ID: <20120921185454.GE28835@atomide.com>
+References: <1346435674-6207-1-git-send-email-hvaibhav@ti.com>
+ <79CD15C6BA57404B839C016229A409A83EAB0764@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120921171840.GB10409@arwen.pp.htv.fi>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Linux OMAP List <linux-omap@vger.kernel.org>Linux
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83EAB0764@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 21, 2012 at 08:18:41PM +0300, Felipe Balbi wrote:
-> On Fri, Sep 21, 2012 at 10:47:30PM +0530, S, Venkatraman wrote:
-> > On Fri, Sep 21, 2012 at 10:45 PM, S, Venkatraman <svenkatr@ti.com> wrote:
-> > > On Thu, Sep 20, 2012 at 8:13 PM, Matt Porter <mporter@ti.com> wrote:
-> > >> The EDMA DMAC has a hardware limitation that prevents supporting
-> > >> scatter gather lists with any number of segments. Since the EDMA
-> > >> DMA Engine driver sets the maximum segments to 16, we do the
-> > >> same.
-> > >>
-> > >> Note: this can be removed once the DMA Engine API supports an
-> > >> API to query the DMAC's segment limitations.
-> > >>
-> > >
-> > > I wouldn't want to bind the properties of EDMA to omap_hsmmc as this patch
-> > > suggests. Why don't we have a max_segs property, which when explicitly specified
-> > > in DT, will override the default ?
+* Hiremath, Vaibhav <hvaibhav@ti.com> [120910 23:56]:
+> On Fri, Aug 31, 2012 at 23:24:34, Hiremath, Vaibhav wrote:
+> > This adds am335x-evm and am335x-bone dtb targets to
+> > 'make dtbs', just like other platforms.
 > > 
-> > If you are adventurous, this can be a generic mmc DT binding instead
-> > of restricting it to OMAP.
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/Makefile.boot |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/Makefile.boot b/arch/arm/mach-omap2/Makefile.boot
+> > index 6cf1c2d..1136072 100644
+> > --- a/arch/arm/mach-omap2/Makefile.boot
+> > +++ b/arch/arm/mach-omap2/Makefile.boot
+> > @@ -7,3 +7,4 @@ dtb-$(CONFIG_ARCH_OMAP3)	+= omap3-beagle.dtb omap3-evm.dtb
+> >  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-panda.dtb omap4-pandaES.dtb
+> >  dtb-$(CONFIG_ARCH_OMAP4)	+= omap4-var_som.dtb omap4-sdp.dtb
+> >  dtb-$(CONFIG_SOC_OMAP5)		+= omap5-evm.dtb
+> > +dtb-$(CONFIG_SOC_AM33XX)	+= am335x-evm.dtb am335x-bone.dtb
 > 
-> I say if it's a limitation in the DMAC, then DMAC's driver should handle
-> it, no ? Meaning that in this case you would copy from one multi-segment
-> sg into a one-segment sg and when transfer is complete, before calling
-> user's callback, copy data the other way around (?)
+> Tony,
+> 
+> Gentle reminder on this patch !!!
 
-With this DMAC, we would have to do a CPU-based copy or a series of
-smaller DMA-based 16 segment copies with completion interrupts in between.
+Sorry I'm behind with patches with all the clean up happening right now.
+Can you please repost this for fixes the arm-soc/for-next has now moved
+these to a common location for CONFIG_MULTIARCH.
 
-The reason the EDMA DMA Engine driver sets this limit is that we have
-a hardware limitation preventing setting up a large multi-segment
-transfer. The limitation is set by how many EDMA PaRaM slots are
-available (varies based on how the hwmod is instantiated) but on AM335x
-it's 256. You can't use all of those for just one slave device and so
-the EDMA dmaengine driver arbitrarily hardcodes (atm) 16 as the max
-any one channel can claim.  Even if you could use all of them, it's
-common for an unrestricted scatter gather transfer to exceed even our
-best case hardware limitation.
+The commit is 85594df2 (ARM: dtb: move all dtb targets to common Makefile).
 
-This is a case where asking the DMA Engine driver to handle any length
-SG is going to result in a big peformance hit, since the MMC subsystem
-provides this hook for a reason, we just need the proper DMA Engine API
-to find out how to set it.
+Thanks,
 
-So I guess I'm going to need to write up an API proposal unless Vinod
-has already been thinking about this...
-
--Matt
+Tony
