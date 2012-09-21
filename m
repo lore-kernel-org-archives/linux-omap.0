@@ -1,47 +1,61 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] ARM: OMAP: omap_device: fix return value check in omap_device_build_ss()
-Date: Fri, 21 Sep 2012 14:32:04 +0800
-Message-ID: <CAPgLHd8ys7uU8wBhMF7JWZEDAddOnGo4vHPu1V_+Q3__WWK-3g@mail.gmail.com>
+From: "Maximilian Schwerin" <Maximilian.Schwerin@tigris.de>
+Subject: Beagleboard xM crashes when being set to 800MHz with smartreflex on linux-omap-3.6-rc6
+Date: Fri, 21 Sep 2012 08:45:16 +0200
+Message-ID: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-mP/it4MoxKS3XaOAntn5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:45581 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752440Ab2IUGcF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 02:32:05 -0400
-Received: by qaas11 with SMTP id s11so1011943qaa.19
-        for <linux-omap@vger.kernel.org>; Thu, 20 Sep 2012 23:32:04 -0700 (PDT)
+Received: from www45.your-server.de ([213.133.104.45]:39330 "EHLO
+	www45.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab2IUGpZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 02:45:25 -0400
+Received: from [217.91.135.48] (helo=IT-AstaroSecurityGateway)
+	by www45.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.74)
+	(envelope-from <prvs=0611d79f6e=maximilian.schwerin@tigris.de>)
+	id 1TEwzM-0000DD-59
+	for linux-omap@vger.kernel.org; Fri, 21 Sep 2012 08:45:24 +0200
+Received: from [192.168.0.10] (port=2262 helo=dolphin.TIGRIS.local)
+	by IT-AstaroSecurityGateway with esmtp (Exim 4.76)
+	(envelope-from <Maximilian.Schwerin@tigris.de>)
+	id 1TEwz8-0006w1-0A
+	for linux-omap@vger.kernel.org; Fri, 21 Sep 2012 08:45:10 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: linux-omap@vger.kernel.org
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+--=-mP/it4MoxKS3XaOAntn5
+Content-class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-In case of error, the function omap_device_alloc() returns ERR_PTR()
-and never returns NULL pointer. The NULL test in the return value
-check should be replaced with IS_ERR().
+Hi,
 
-dpatch engine is used to auto generated this patch.
-(https://github.com/weiyj/dpatch)
+I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
+as basis for the kernel config.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- arch/arm/plat-omap/omap_device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+When I enable smartreflex and switch to 800MHz via
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index c490240..3f62de6 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -671,7 +671,7 @@ struct platform_device __init *omap_device_build_ss(const char *pdev_name, int p
- 		dev_set_name(&pdev->dev, "%s", pdev->name);
- 
- 	od = omap_device_alloc(pdev, ohs, oh_cnt, pm_lats, pm_lats_cnt);
--	if (!od)
-+	if (IS_ERR(od))
- 		goto odbs_exit1;
- 
- 	ret = platform_device_add_data(pdev, pdata, pdata_len);
+echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
+cpufreq-set -f 800MHz
 
+the board crashes. If I switch to 800MHz and enable smartreflex later
+nothing happens. This used to work in my 3.3 based kernel.
 
+Regards, Maximilian
+
+--=-mP/it4MoxKS3XaOAntn5
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAlBcDQAACgkQ6nqkzTWctv74yQCgwk5ZUDEP3lLJAuNbm/uFuJyU
+2yIAoL22UIzyy1ugNLv8M0+K/U9ofUNY
+=mGos
+-----END PGP SIGNATURE-----
+
+--=-mP/it4MoxKS3XaOAntn5--
