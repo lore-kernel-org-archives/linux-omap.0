@@ -1,42 +1,41 @@
-From: Joni Lapilainen <joni.lapilainen@gmail.com>
-Subject: Re: Beagleboard xM crashes when being set to 800MHz with smartreflex
- on linux-omap-3.6-rc6
-Date: Fri, 21 Sep 2012 11:34:37 +0300
-Message-ID: <CAOSRfZ7cgAwP62QvhqEdKTk73AznCGM=ajVmYcb+96jswDdfBg@mail.gmail.com>
-References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: omap3 hsusb0_clk
+Date: Fri, 21 Sep 2012 08:45:43 +0000
+Message-ID: <FB41A22788BFC44EB94B0CCFEF5E2E2C3EB82C26@DBDE01.ent.ti.com>
+References: <alpine.DEB.2.01.1209181137320.3627@pmeerw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42396 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481Ab2IUIei (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 04:34:38 -0400
-Received: by eekc1 with SMTP id c1so1307922eek.19
-        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 01:34:37 -0700 (PDT)
-In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+Received: from comal.ext.ti.com ([198.47.26.152]:59662 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757071Ab2IUIq0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 04:46:26 -0400
+In-Reply-To: <alpine.DEB.2.01.1209181137320.3627@pmeerw.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>
-Cc: linux-omap@vger.kernel.org
+To: Peter Meerwald <pmeerw@pmeerw.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Balbi, Felipe" <balbi@ti.com>
 
-On Fri, Sep 21, 2012 at 9:45 AM, Maximilian Schwerin
-<Maximilian.Schwerin@tigris.de> wrote:
-> Hi,
->
-> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
-> as basis for the kernel config.
->
-> When I enable smartreflex and switch to 800MHz via
->
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
-> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
-> cpufreq-set -f 800MHz
->
-> the board crashes. If I switch to 800MHz and enable smartreflex later
-> nothing happens. This used to work in my 3.3 based kernel.
->
-> Regards, Maximilian
+Peter Meerwald wrote:
+> Hello,
+> 
+> I am wondering if an OMAP3 (say dm3730) can generate the hsusb0_clk (musb)
+> for ULPI by itself? (and if so, how?)
+> 
+> is hsusb0_clk strictly an input depending on an external clock source?
+> 
+> looking at the DM3730 TRM I am not entirely sure
 
-Also happens with N900 when changing frequency.
+For MUSB, no it cannot do that. HSUSB0 is strictly ULPI output clocking mode, 
+which means the transceiver provides a 60 MHz clock to the OMAP.
+For the OMAP, this signal has to be an input.
 
--JL
+For the EHCI controller on OMAP3 (hsusb1/2), it's the other way around. The clock
+line is ULPI input clocking mode and the OMAP provides the 60MHz clock to the PHY.
+
+Only a small number of transceivers can accept this input clock.
+
+- Anand
+
