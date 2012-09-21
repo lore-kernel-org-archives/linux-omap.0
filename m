@@ -1,55 +1,62 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH 01/13] ARM: davinci: move private EDMA API to
-	arm/common
-Date: Fri, 21 Sep 2012 10:42:05 +0100
-Message-ID: <20120921094205.GC31374@n2100.arm.linux.org.uk>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com> <1348152226-13588-2-git-send-email-mporter@ti.com> <20120921092923.GA31374@n2100.arm.linux.org.uk> <1BAFE6F6C881BF42822005164F1491C33EA8AA3C@DBDE01.ent.ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] serial: omap: fix the overrun case
+Date: Fri, 21 Sep 2012 15:52:56 +0530
+Message-ID: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37309 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932882Ab2IUJmT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 05:42:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C33EA8AA3C@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40797 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754567Ab2IUKXF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 06:23:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "Porter, Matt" <mporter@ti.com>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux OMAP List <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Arnd Bergmann <arnd@arndb.de>, Linux Documentation List <linux-doc@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Linux MMC List <linux-mmc@vger.kernel.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Dan Williams <djbw@fb.com>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Chris Ball <cjb@laptop.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sourav.poddar@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Fri, Sep 21, 2012 at 09:33:42AM +0000, Hebbar, Gururaja wrote:
-> On Fri, Sep 21, 2012 at 14:59:23, Russell King - ARM Linux wrote:
-> > On Thu, Sep 20, 2012 at 10:43:34AM -0400, Matt Porter wrote:
-> > > Move mach-davinci/dma.c to common/edma.c so it can be used
-> > > by OMAP (specifically AM33xx atm) as well. This just moves
-> > > the private EDMA API but does not support OMAP.
-> > > 
-> > > Signed-off-by: Matt Porter <mporter@ti.com>
-> > > ---
-> > >  arch/arm/Kconfig                           |    1 +
-> > >  arch/arm/common/Kconfig                    |    3 +
-> > >  arch/arm/common/Makefile                   |    1 +
-> > >  arch/arm/common/edma.c                     | 1588 ++++++++++++++++++++++++++++
-> > >  arch/arm/include/asm/mach/edma.h           |  267 +++++
-> > 
-> > asm/mach should not be used as a dumping ground for platform header files.
-> > It is there to provide the interfaces between generic ARM architecture
-> > code and platform code.  (At least four files that are there at the
-> > moment need to be moved out of there - patch series to follow...)
-> 
-> Can this be moved to include/linux/platform_data/ ?
+Overrun also causes an internal flag to be set, which disables further
+reception. Before the next frame can
+be received, the MPU must:
+=E2=80=A2 Reset the RX FIFO.
+=E2=80=A2 clear the internal flag.
 
-Here's the pertinant question: "is it platform data?"  Looking at the
-file, it appears to be internal data structures and register definitions
-for the driver itself.  Therefore, it isn't platform data, and it
-shouldn't be living separately from the driver.
+In the uart mode a dummy read is needed. Add the same.
 
-If the driver itself only makes use of the data structures, the data
-structures should be defined either within the driver, or a header file
-co-located next to the driver itself.  The same goes for register
-definitions too.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+- functional testing on omap4sdp
+- Verified idle and suspend path hits off on beagle.
 
-The only structure that I can find which isn't internal to the driver
-is struct edma_soc_info, struct edma_rsv_info, and the enum dma_event_q.
-Those can go to include/linux/platform_data, but the rest should not.
+ drivers/tty/serial/omap-serial.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap=
+-serial.c
+index a0d4460..bc22a2b 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -334,6 +334,13 @@ static unsigned int check_modem_status(struct uart=
+_omap_port *up)
+ static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int l=
+sr)
+ {
+ 	unsigned int flag;
++	unsigned char ch =3D 0;
++
++	if (!(lsr & UART_LSR_BRK_ERROR_BITS))
++		return;
++
++	if (likely(lsr & UART_LSR_DR))
++		ch =3D serial_in(up, UART_RX);
+=20
+ 	up->port.icount.rx++;
+ 	flag =3D TTY_NORMAL;
+--=20
+1.7.5.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
