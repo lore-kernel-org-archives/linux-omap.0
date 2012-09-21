@@ -1,78 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] serial: omap: fix the overrun case
-Date: Fri, 21 Sep 2012 15:07:53 +0300
-Message-ID: <20120921120752.GG16003@arwen.pp.htv.fi>
-References: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
- <20120921110050.GC16003@arwen.pp.htv.fi>
- <CAKdam55VG8KTRZNvPgur9M-wkbD7wyJt27Jsvks=r4PNiuEGaQ@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: Beagleboard xM crashes when being set to 800MHz with smartreflex
+ on linux-omap-3.6-rc6
+Date: Fri, 21 Sep 2012 07:52:14 -0500
+Message-ID: <CAOCHtYgfGqJzO2cs2_EP6HcZyxR7pU=JW0EwGJqFi4UBz5NBUw@mail.gmail.com>
+References: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4eRLI4hEmsdu6Npr"
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKdam55VG8KTRZNvPgur9M-wkbD7wyJt27Jsvks=r4PNiuEGaQ@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Poddar, Sourav" <sourav.poddar@ti.com>
-Cc: balbi@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:38772 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754726Ab2IUMwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 08:52:15 -0400
+Received: by vbbff1 with SMTP id ff1so3781841vbb.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 05:52:14 -0700 (PDT)
+In-Reply-To: <5448984682E7954C9BFF27F747A9C6CA56E38E@dolphin.TIGRIS.local>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Maximilian Schwerin <Maximilian.Schwerin@tigris.de>
+Cc: linux-omap@vger.kernel.org
 
+On Fri, Sep 21, 2012 at 1:45 AM, Maximilian Schwerin
+<Maximilian.Schwerin@tigris.de> wrote:
+> Hi,
+>
+> I've just built a linux-omap kernel at 3.6-rc6 using omap2plus_defconfig
+> as basis for the kernel config.
+>
+> When I enable smartreflex and switch to 800MHz via
+>
+> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_core/autocomp
+> echo 1 > /sys/kernel/debug/smartreflex/smartreflex_mpu_iva/autocomp
+> cpufreq-set -f 800MHz
+>
+> the board crashes. If I switch to 800MHz and enable smartreflex later
+> nothing happens. This used to work in my 3.3 based kernel.
 
---4eRLI4hEmsdu6Npr
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+btw, once it locks up... retry with your 3.3 based kernel (hold reset
+and swap sd card's, the "bug" should lock up again when trying to set
+800Mhz on bootup..  In my testing, once it locks up, any cpufreq
+enabled kernel will keep locking up...  Makes you wonder if a pll
+setting isn't getting reset on bootup...)
 
-On Fri, Sep 21, 2012 at 05:09:56PM +0530, Poddar, Sourav wrote:
-> Hi Felipe,
->=20
-> On Fri, Sep 21, 2012 at 4:30 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Sep 21, 2012 at 03:52:56PM +0530, Shubhrajyoti D wrote:
-> >> Overrun also causes an internal flag to be set, which disables further
-> >> reception. Before the next frame can
-> >> be received, the MPU must:
-> >> =E2=80=A2 Reset the RX FIFO.
-> >> =E2=80=A2 clear the internal flag.
-> >>
-> >> In the uart mode a dummy read is needed. Add the same.
-> >
-> > Very nice patch but I think commit log can be a bit more verbose.
-> >
-> > Please make the problem a little clearer. Why do we even get that
-> > interrupt fired if BRK_ERROR_BITS aren't set ?
-> >
-> According to LSR registers, there are few other bits like RX_FIFO_E( atle=
-ast 1
-> character in RX_FIFO or TX FIFO Empty), which might be the cause of an
-> interrupt. ?
+I've traced it to the "arch_clock->clk_set_rate(clk, rate);" call in
+the "int clk_set_rate(struct clk *clk, unsigned long rate)" function
 
-right. In that case, is it really correct to just return if
-BRK_ERROR_BITS aren't set ? IRQ line will not toggle and we just might
-end up with an IRQ storm, right ?
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=arch/arm/plat-omap/clock.c;hb=HEAD#l132
 
---=20
-balbi
+at that point, I'm a little lost in the omap36xx code..
 
---4eRLI4hEmsdu6Npr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQXFiXAAoJEIaOsuA1yqREX2oP/2FywlS1qPBc8elm79pdRfbw
-MmeENv8PI7SQxn+RJC1bhH56WYSeF43srN5sE96G1dChs5zZemfS6cMukO5pIZVa
-nINXKJ9kNYZtmdBTIo4e4SLgAulmNfg93oFjwyqpSHKo8r+ELU3JK+A6FKGF8hTo
-0JR41hCEhBDKad9xNfkOsq4YFQ8QV8ZBPSfSpU2nB0oGbbeVzEKvW+r+GmRGAtap
-rrqEcmt0nEp4+ilQ7O1Rd2P5lAlBPgeaq0p+XINBlfoZf10fTkQmnLt0RTN8KNc/
-bTL3h4bV+ncq94EAjGXdn5V1TXlI0plKL5kcU2ioylRgtKHO4UDy0c2KYdPF0oY0
-HqHGLKTAph65hUiEaPXXcYN6z54FKNyFF2dbq+4+5hzuK+UaXveds1o66uziffMA
-R08QowC9rfSZz+thmxAS0w/LabsMbqrPPd5XbVBQK1ZRgLBYm3fdsi5+3YcvxiT/
-NZvZr175ABEfvVFu3s1GagMT2ZVDzLVzi2GqAMZIpXIDfND5ZvXK9GpI3tF82Gp+
-p20ONxB/w5xX5uMKQidyxBMs0UNvMOA9KoFSjWyPMXticrgLQTcZKOY4Axlvms83
-A57DkcKBbX5fgVNQ6diW+xrQTuEQYYdBZzWcnT/yaoUS5YbewPr8Ld+YUKofktd2
-piUltdefZ4iVfJ8BuO99
-=LplN
------END PGP SIGNATURE-----
-
---4eRLI4hEmsdu6Npr--
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
