@@ -1,67 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 10/13] spi: omap2-mcspi:
- dma_request_slave_channel() support for DT platforms
-Date: Fri, 21 Sep 2012 08:42:47 -0700
-Message-ID: <20120921154247.GZ28835@atomide.com>
-References: <1348152226-13588-1-git-send-email-mporter@ti.com>
- <1348152226-13588-11-git-send-email-mporter@ti.com>
- <20120920220931.GJ28835@atomide.com>
- <201209210816.01473.arnd@arndb.de>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH] ARM: dts: AM33XX: Add tsl2550 ambient light sensor DT data
+Date: Fri, 21 Sep 2012 21:19:11 +0530
+Message-ID: <1348242551-21293-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201209210816.01473.arnd@arndb.de>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Matt Porter <mporter@ti.com>, Sekhar Nori <nsekhar@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Vinod Koul <vinod.koul@intel.com>, Rob Landley <rob@landley.net>, Chris Ball <cjb@laptop.org>, Devicetree Discuss <devicetree-discuss@lists.ozlabs.org>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, Linux DaVinci Kernel List <davinci-linux-open-source@linux.davincidsp.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Documentation List <linux-doc@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, Linux SPI Devel List <spi-devel-general@lists.sourceforge.net>, Dan Williams <djbw@fb.com>, Rob Herring <rob.herring@calxeda.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59739 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753932Ab2IUPtz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 11:49:55 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, AnilKumar Ch <anilkumar@ti.com>
 
-* Arnd Bergmann <arnd@arndb.de> [120921 02:19]:
-> On Thursday 20 September 2012, Tony Lindgren wrote:
-> > >  /* use PIO for small transfers, avoiding DMA setup/teardown overhead and
-> > > @@ -798,14 +801,26 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
-> > >       dma_cap_zero(mask);
-> > >       dma_cap_set(DMA_SLAVE, mask);
-> > >       sig = mcspi_dma->dma_rx_sync_dev;
-> > > -     mcspi_dma->dma_rx = dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> > > +     if (spi->dev.of_node)
-> > > +             mcspi_dma->dma_rx =
-> > > +                     dma_request_slave_channel(&master->dev,
-> > > +                                               mcspi_dma->dma_rx_ch_name);
-> > > +     else
-> > > +             mcspi_dma->dma_rx =
-> > > +                     dma_request_channel(mask, omap_dma_filter_fn, &sig);
-> > >       if (!mcspi_dma->dma_rx) {
-> > >               dev_err(&spi->dev, "no RX DMA engine channel for McSPI\n");
-> > >               return -EAGAIN;
-> > >       }
-> > >  
-> > 
-> > Hmm this does not look nice.. We should be able to somehow not to care about
-> > the configuration at the mcspi driver level.
-> 
-> I agree, but as far as I understand Vinod's plans, we would actually move
-> all drivers over to dma_request_slave_channel() when we have an interface
-> to register the lookup tables from platform code.
-> 
-> I think the above is ok for a transitional phase and we can remove the
-> fallback path when we have converted all platforms using this driver
-> to either use DT or move to the new style way of passing the channel
-> configuration.
+Add tsl2550 ambient light sensor DT data to am335x-evm.dts. In AM335x
+EVM tsl2550 ambient light sensor is connected to I2C2 bus. So this patch
+adds child node inside i2c2 node with i2c slave address.
 
-Can't we come up with a version of dma_request_slave_channel that works
-both ways for now:
+TAOS tsl2550 sensor with two-wire SMBus serial interface. This patch
+also reduces I2C2 clock frequency to 100KHz from 400KHz because the
+maximum clock frequency of SMBus is 100KHz.
 
-	mcspi_dma->dma_rx =
-		dma_request_slave_channel_compat(mask, omap_dma_filter_fn, &sig,
-					&master->dev, mcspi_dma->dma_rx_ch_name);
-	...			
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+---
+ arch/arm/boot/dts/am335x-evm.dts |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Then it's just question of patching away two lines later on rather than
-having to add all this if else to all the drivers first, then patching
-it away again.
+diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
+index 3b1f313..d99aa0f 100644
+--- a/arch/arm/boot/dts/am335x-evm.dts
++++ b/arch/arm/boot/dts/am335x-evm.dts
+@@ -49,7 +49,7 @@
+ 
+ 		i2c2: i2c@4802a000 {
+ 			status = "okay";
+-			clock-frequency = <400000>;
++			clock-frequency = <100000>;
+ 
+ 			lis331dlh: lis331dlh@18 {
+ 				compatible = "st,lis331dlh", "st,lis3lv02d";
+@@ -79,6 +79,11 @@
+ 				st,max-limit-z = <750>;
+ 			};
+ 
++			tsl2550: tsl2550@39 {
++				compatible = "taos,tsl2550";
++				reg = <0x39>;
++			};
++
+ 			tmp275: tmp275@48 {
+ 				compatible = "ti,tmp275";
+ 				reg = <0x48>;
+-- 
+1.7.9.5
 
-Regards,
-
-Tony
