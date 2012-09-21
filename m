@@ -1,45 +1,53 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Fri, 21 Sep 2012 15:03:03 -0700
-Message-ID: <20120921220302.GF2454@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
- <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
- <20120921203149.GI28835@atomide.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH V4 0/5] ARM: OMAP: HOST: TLL driver implementation
+Date: Sat, 22 Sep 2012 00:07:20 +0200
+Message-ID: <20120921220720.GY28670@sortiz-mobl>
+References: <CAP05o4+rdtsXKV9U0MrLyu7Ce8zJ4uUEcZOJ5yfarpF42gSogA@mail.gmail.com>
+ <20120723140830.GA8155@arwen.pp.htv.fi>
+ <CAP05o4JDa5WH14SLkFswEqx6jWyr94VfxtEBsbmaiQ+5kT_abQ@mail.gmail.com>
+ <CAP05o4+dOH6tDXU4bs5ubh8rqjpjumZjfu4zM1G6MupE0T4fhQ@mail.gmail.com>
+ <CAP05o4LRS=svfTsNV45CcToKT7XcZ+et3+fmYzJ7xMLhidtCOA@mail.gmail.com>
+ <20120813140928.GH14781@arwen.pp.htv.fi>
+ <CAP05o4K1J_ZzUT7PtKb6ZK-DzxJogLZ+hFUv65qKE2zFFNFbGg@mail.gmail.com>
+ <CAP05o4K5f5xUdfT2V7m+Jp9D74btPMz1bB6eYCnkBBpsZqP9tA@mail.gmail.com>
+ <CAP05o4KaQFvOBwQoVy_-Ve=T_fwDw-SEyO8DCtfuX-r5ryiOeA@mail.gmail.com>
+ <alpine.DEB.2.00.1209192030270.5264@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20120921203149.GI28835@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+In-Reply-To: <alpine.DEB.2.00.1209192030270.5264-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux USB Devel <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Sep 21, 2012 at 01:31:49PM -0700, Tony Lindgren wrote:
-> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [120921 12:58]:
-> > 
-> > Just to make sure I understand the combinations:
-> > 
-> > o	All stalls have happened when running a minimal userspace.
-> > o	CONFIG_NO_HZ=n suppresses the stalls.
-> > o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
-> > 	no observable effect on the stalls.
+Hi Paul,
+
+On Wed, Sep 19, 2012 at 08:39:40PM +0000, Paul Walmsley wrote:
 > 
-> The reason why you may need minimal userspace is to cut down
-> the number of timers waking up the system with NO_HZ.
-> Booting with init=/bin/sh might also do the trick for that.
+> Hi Samuel,
+> 
+> I've queued patch 1 of this series for 3.7, which should go upstream via 
+> the OMAP -> arm-soc path.  Also asked Keshava to re-send patch 5 to me 
+> once patches 2-4 have been merged.
+> 
+> It's up to you how to handle patches 2-4.  The series is a good step 
+> forward for us in terms of cleanup.  But what is probably worthwhile at 
+> some point is for that USB TLL "phy" code (added in patch 2) to be moved 
+> into some place like drivers/usb/phy, since it's not MFD-related.
+That would be ideal, yes. I kept patches 2-4 as they're alreeady going in the
+right direction (I dropped patches 1 and 5).
 
-Good point!  This does make for a very quiet system, but does not
-reproduce the problem under kvm, even after waiting for four minutes.
-I will leave it for more time, but it looks like I really might need to
-ask Linaro for remote access to a Panda.
+Thanks for the heads up.
 
-							Thanx, Paul
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
