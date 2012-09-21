@@ -1,57 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] Documentation: RCU: update the stall warning message "timer=-1"
- to match reality
-Date: Fri, 21 Sep 2012 16:13:29 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209211610280.30239@utopia.booyaka.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 00/15] tidspbridge driver MMU-related cleanups
+Date: Fri, 21 Sep 2012 11:18:56 -0500
+Message-ID: <CAB-zwWixOeCPoV=F1E8t7_6AdgCTLQhC72_G35+dSnaJsTwonA@mail.gmail.com>
+References: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Dipankar Sarma <dipankar@in.ibm.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, "Bruce, Becky" <bbruce@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, snijsure@grid-net.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:38990 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750797Ab2IUQS5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Sep 2012 12:18:57 -0400
+Received: by ieak13 with SMTP id k13so5884162iea.19
+        for <linux-omap@vger.kernel.org>; Fri, 21 Sep 2012 09:18:56 -0700 (PDT)
+In-Reply-To: <1348056423-25573-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org
 
+Hi Laurent,
 
-The CONFIG_RCU_FAST_NO_HZ stall warning messages can never emit
-"timer=-1".  This is because the printf() format specifier to generate
-that number is '%lu'.  So, update the documentation to use the
-unsigned long equivalent instead, "timer=4294967295".  This is what
-actually shows up in traces.
+On Wed, Sep 19, 2012 at 7:06 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hello,
+>
+> Here's the second version of my tidspbridge MMU-related cleanup patches. The
+> first version has been sent privately only, don't try to search the mailing
+> list archive for it :-)
+>
+> Replacing hw/hw_mmu.c and part of core/tiomap3430.c with generic IOMMU calls
+> should be less difficult now. Anyone would like to give it a try?
+>
+> Laurent Pinchart (14):
+>   tidspbridge: hw_mmu: Reorder functions to avoid forward declarations
+>   tidspbridge: hw_mmu: Removed unused functions
+>   tidspbridge: tiomap3430: Reorder functions to avoid forward
+>     declarations
+>   tidspbridge: tiomap3430: Remove unneeded dev_context local variables
+>   tidspbridge: tiomap3430: Factor out common page release code
+>   tidspbridge: tiomap3430: Remove ul_ prefix
+>   tidspbridge: tiomap3430: Remove unneeded local variables
+>   tidspbridge: Fix VM_PFNMAP mapping
+>   tidspbridge: Remove unused hw_mmu_map_attrs_t::donotlockmpupage field
+>   arm: omap: iommu: Include required headers in iommu.h and iopgtable.h
+>   tidspbridge: Use constants defined in IOMMU platform headers
+>   tidspbridge: Simplify pte_update and mem_map_vmalloc functions
+>   tidspbridge: Use correct types to describe physical, MPU, DSP
+>     addresses
+>   tidspbridge: Replace hw_mmu_map_attrs_t structure with a prot
+>     bitfield
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Thanks, tested on beagle-xM, they look good!
+
+Can you submit them to Greg KH and devel@driverdev.osuosl.org,
+preferably with a 'staging:' prefix along with the current subject.
+
+The only thing of concern is that:
+ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
+
+Might be taking a different path than these to mainline[1].
+
+Cheers,
+
+Omar
+
 ---
- Documentation/RCU/stallwarn.txt |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/Documentation/RCU/stallwarn.txt b/Documentation/RCU/stallwarn.txt
-index 523364e..fe3379e 100644
---- a/Documentation/RCU/stallwarn.txt
-+++ b/Documentation/RCU/stallwarn.txt
-@@ -99,7 +99,7 @@ In kernels with CONFIG_RCU_FAST_NO_HZ, even more information is
- printed:
- 
- 	INFO: rcu_preempt detected stall on CPU
--	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer=-1
-+	0: (64628 ticks this GP) idle=dd5/3fffffffffffffff/0 drain=0 . timer=4294967295
- 	   (t=65000 jiffies)
- 
- The "(64628 ticks this GP)" indicates that this CPU has taken more
-@@ -119,10 +119,10 @@ number (as shown above) otherwise.
- For CONFIG_RCU_FAST_NO_HZ kernels, the "drain=0" indicates that the
- CPU is not in the process of trying to force itself into dyntick-idle
- state, the "." indicates that the CPU has not given up forcing RCU
--into dyntick-idle mode (it would be "H" otherwise), and the "timer=-1"
--indicates that the CPU has not recented forced RCU into dyntick-idle
--mode (it would otherwise indicate the number of microseconds remaining
--in this forced state).
-+into dyntick-idle mode (it would be "H" otherwise), and the
-+"timer=4294967295" (the magic number (2^32)-1) indicates that the CPU
-+has not recently forced RCU into dyntick-idle mode (it would otherwise
-+indicate the number of microseconds remaining in this forced state).
- 
- 
- Multiple Warnings From One Stall
--- 
-1.7.10.4
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg76319.html
