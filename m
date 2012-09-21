@@ -1,69 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] serial: omap: fix the overrun case
-Date: Fri, 21 Sep 2012 07:18:54 -0700
-Message-ID: <87a9wjfohd.fsf@deeprootsystems.com>
-References: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH v2] serial: omap: fix the reciever line error case
+Date: Fri, 21 Sep 2012 20:07:19 +0530
+Message-ID: <1348238239-18510-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1348222976-7241-1-git-send-email-shubhrajyoti@ti.com>
-	(Shubhrajyoti D.'s message of "Fri, 21 Sep 2012 15:52:56 +0530")
 Sender: linux-serial-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sourav.poddar@ti.com
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+This patch does the following
+- In case of errors if there least one data character in the RX FIFO
+read it otherwise it may stall the receiver.
 
-> Overrun also causes an internal flag to be set, which disables furthe=
-r
-> reception. Before the next frame can
-> be received, the MPU must:
-> =E2=80=A2 Reset the RX FIFO.
-> =E2=80=A2 clear the internal flag.
->
-> In the uart mode a dummy read is needed. Add the same.
->
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-> - functional testing on omap4sdp
-> - Verified idle and suspend path hits off on beagle.
+This is recommended in the interrupt reset method in the table 23-246 of
+the omap4 TRM.
 
-Tested-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+- Tested on omap4sdp.
+- pm tested hitting off in idle and suspend.
+- v2 changes update the changelogs.
+- Also remove the dummy check as FE , PE , BI and OE are the only
+receiver errors.
 
-This fixes the console hang I was seeing on 3530/Overo.
+ drivers/tty/serial/omap-serial.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks,
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index a0d4460..4fea16b 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -334,6 +334,10 @@ static unsigned int check_modem_status(struct uart_omap_port *up)
+ static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int lsr)
+ {
+ 	unsigned int flag;
++	unsigned char ch = 0;
++
++	if (likely(lsr & UART_LSR_DR))
++		ch = serial_in(up, UART_RX);
+ 
+ 	up->port.icount.rx++;
+ 	flag = TTY_NORMAL;
+-- 
+1.7.5.4
 
-Kevin
-
->  drivers/tty/serial/omap-serial.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index a0d4460..bc22a2b 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -334,6 +334,13 @@ static unsigned int check_modem_status(struct ua=
-rt_omap_port *up)
->  static void serial_omap_rlsi(struct uart_omap_port *up, unsigned int=
- lsr)
->  {
->  	unsigned int flag;
-> +	unsigned char ch =3D 0;
-> +
-> +	if (!(lsr & UART_LSR_BRK_ERROR_BITS))
-> +		return;
-> +
-> +	if (likely(lsr & UART_LSR_DR))
-> +		ch =3D serial_in(up, UART_RX);
-> =20
->  	up->port.icount.rx++;
->  	flag =3D TTY_NORMAL;
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
