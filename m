@@ -1,50 +1,48 @@
-From: Chris Hoffmann <chrmhoffmann@gmail.com>
-Subject: Re: CPU_IDLE causes random reboots on custom 4430
-Date: Sat, 22 Sep 2012 19:11:34 +0200
-Message-ID: <505DF146.6050100@gmail.com>
-References: <505CEEFD.1080507@gmail.com> <CAMQu2gwwU2QYAmn+WY19t5krOJeEUF7YT03FojLbQcfo3h4BmQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
+Date: Sat, 22 Sep 2012 17:47:45 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209220211090.8626@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com>
+ <20120921205322.GK28835@atomide.com> <20120921231039.GN28835@atomide.com>
+ <alpine.DEB.2.00.1209220002290.6510@utopia.booyaka.com>
+ <20120922002111.GP28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45750 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab2IVRLk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 13:11:40 -0400
-Received: by eaac11 with SMTP id c11so1387399eaa.19
-        for <linux-omap@vger.kernel.org>; Sat, 22 Sep 2012 10:11:39 -0700 (PDT)
-In-Reply-To: <CAMQu2gwwU2QYAmn+WY19t5krOJeEUF7YT03FojLbQcfo3h4BmQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120922002111.GP28835@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Chris Hoffmann <chrmhoffmann@gmail.com>, linux-omap@vger.kernel.org
 
-On 09/22/2012 07:45 AM, Shilimkar, Santosh wrote:
-> On Sat, Sep 22, 2012 at 4:19 AM, Chris Hoffmann <chrmhoffmann@gmail.com> wrote:
->> Hi,
->>
->> We're trying to get a custom 4430 board (aka. nook tablet with OMAP4430
->> ES2.3 HS TWL6030 ES2.1) working with p-android-omap-3.0 on android jelly
->> bean. The board works quite well, but we experience random hangs and the
->> watchdog kicks the board to reboot.
->>
-> On the same kernel, you should have support for the persistent log. You might
-> want to check the output. That should give you pointers on what CPU was
-> doing before the freeze which resulted in reboot.
+On Fri, 21 Sep 2012, Tony Lindgren wrote:
 
-Hi,
+> Hmm I wonder what's causing it then? There must be something
+> else in tmp-merge at commit abfee61f that causes the problems.
+> Maybe try to merge with that commit and see what you get?
 
-I have some problems to provide logs. If I add -DDEBUG to cpuidle44xx.o 
-the problem doesn't seem to occur. It could be that printk-ing 
-alleviates the issue.
+Probably the merge with the clock patches was causing trouble.
 
-Also the watchdog seems to shutdown the device rather than rebooting it 
-(or it hangs?) and then I can't provide /proc/last_kmsg.
+> That commit can't be used as a base though as that's temporary
+> most likely.. But we can create a base to use out of the
+> branches once we know them, you can do it yourself too.
 
-How could I provide more info?
-
-Rgds,
-Chris
+Your tmp-merge contains branch/tag merges that haven't yet gone upstream 
+to arm-soc.  I don't know which of those merges you consider stable (aside 
+from the upstream ones, obviously).  For this one it looks like the clock 
+patches were the ones causing the merge trouble.  So since that series 
+also came from me and is unmerged, will just merge the clock and hwmod 
+patches into a new pull request on v3.6-rc6 + cleanup-fixes-for-v3.7 + 
+omap-devel-am33xx-for-v3.7.  Hopefully that will work for you...
 
 
-
+- Paul
