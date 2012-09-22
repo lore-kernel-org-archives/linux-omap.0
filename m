@@ -1,54 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: gpmc_cs_request() causes early boot hang
-Date: Fri, 21 Sep 2012 16:13:12 -0700
-Message-ID: <20120921231312.GO28835@atomide.com>
-References: <505CBFAA.3080604@mimc.co.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
+Date: Sat, 22 Sep 2012 00:03:47 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209220002290.6510@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com> <20120921205322.GK28835@atomide.com> <20120921231039.GN28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <505CBFAA.3080604@mimc.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>
-Cc: linux-omap@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([74.50.51.50]:35287 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753744Ab2IVADs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Sep 2012 20:03:48 -0400
+In-Reply-To: <20120921231039.GN28835@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Mark Jackson <mpfj-list@mimc.co.uk> [120921 12:29]:
-> I'm developing a beaglebone cape board which requires the use of a
-> GPMC chip select.
-> 
-> I've chosen GPMC_CS0, and in board-am335xevm.c, I have added the following:-
-> 
-> static void gpmc_test()
-> {
->     unsigned long base = 0x12345678;
->     gpmc_cs_request(0, SZ_16M, &base);
->     printk(KERN_INFO "gpmc base @ 0x%08lx\n", base);
-> }
-> 
-> ... and added a call to gpmc_test() at the end of am335x_evm_init().
-> 
-> If I try to run this code, the kernel fails to boot, and simply hangs at:-
-> 
-> Uncompressing Linux... done, booting the kernel.
-> 
-> If I comment out the call to gpmc_cs_request(), the system boots as
-> expected (but without my required cs).
-> 
-> I've looked at the use of this call in other board files, and can't
-> see that their code does anything special so I'm stuck on why this
-> simple code fails to work.
-> 
-> Can anyone shed light on what I'm doing wrong ?
-> 
-> Do I have to initialise the gpmc beforehand in some way ?
+On Fri, 21 Sep 2012, Tony Lindgren wrote:
 
-Can you enable DEBUG_LL + EARLYPRINTK and have earlyprintk in your
-cmdline? You may then get some error messages providing more info.
+> I tried merging this into tmp-merge, but ran into all kinds of
+> merge conflicts with the am33xx code etc and ended up with a
+> result that booted with all kinds of warnings on 2430sdp and
+> did not boot at all on zoom3 :) So I probably did something
+> wrong..
+> 
+> Care to base this on something more mergeable?
 
-GPMC is working on many boards with various devices like smsc911x,
-onenand, tusb etc.
+Just let me know what you want me to base it on.
 
-Regards,
+> Maybe a merge of cleanup-fixes-for-v3.7 + omap-devel-am33xx-for-v3.7?
 
-Tony
+The series rebases cleanly onto cleanup-fixes-for-v3.7 + 
+omap-devel-am33xx-for-v3.7, so I guess you'll probably want me to base it 
+somewhere else?
+
+
+- Paul
