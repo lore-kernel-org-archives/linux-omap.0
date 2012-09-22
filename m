@@ -1,92 +1,98 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP4+: wakeupgen: fix memory corruption
-Date: Sat, 22 Sep 2012 08:11:25 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209220732400.23491@utopia.booyaka.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v2] PM / Runtime: let rpm_resume() succeed if RPM_ACTIVE, even when disabled
+Date: Sat, 22 Sep 2012 13:25:10 +0200
+Message-ID: <201209221325.10889.rjw@sisk.pl>
+References: <1348267654-30697-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:35668 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754418Ab2IVIL0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 04:11:26 -0400
+Received: from ogre.sisk.pl ([193.178.161.156]:39659 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752947Ab2IVLSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 Sep 2012 07:18:39 -0400
+In-Reply-To: <1348267654-30697-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, santosh.shilimkar@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Nishanth Menon <nm@ti.com>
+
+On Saturday, September 22, 2012, Kevin Hilman wrote:
+> From: Kevin Hilman <khilman@ti.com>
+> 
+> There are several drivers where the return value of
+> pm_runtime_get_sync() is used to decide whether or not it is safe to
+> access hardware and that don't provide .suspend() callbacks for system
+> suspend (but may use late/noirq callbacks.)  If such a driver happens
+> to call pm_runtime_get_sync() during system suspend, after the core
+> has disabled runtime PM, it will get the error code and will decide
+> that the hardware should not be accessed, although this may be a wrong
+> conclusion, depending on the state of the device when runtime PM was
+> disabled.
+> 
+> Drivers might work around this problem by using a test like:
+> 
+>    ret = pm_runtime_get_sync(dev);
+>    if (!ret || (ret == -EACCES && driver_private_data(dev)->suspended)) {
+>       /* access hardware */
+>    }
+> 
+> where driver_private_data(dev)->suspended is a flag set by the
+> driver's .suspend() method (that would have to be added for this
+> purpose).  However, that potentially would need to be done by multiple
+> drivers which means quite a lot of duplicated code and bloat.
+> 
+> To avoid that we can use the observation that the core sets
+> dev->power.is_suspended before disabling runtime PM and use that
+> instead of the driver's private flag.  Still, potentially many drivers
+> would need to repeat that same check in quite a few places, so it's
+> better to let the core do it.
+> 
+> Then we can be a bit smarter and check whether or not runtime PM was
+> disabled by the core only (disable_depth == 1) or by someone else in
+> addition to the core (disable_depth > 1).  In the former case
+> rpm_resume() can return 1 if the runtime PM status is RPM_ACTIVE,
+> because it means the device was active when the core disabled runtime
+> PM.  In the latter case it should still return -EACCES, because it
+> isn't clear why runtime PM has been disabled.
+> 
+> Tested on AM3730/Beagle-xM where a wakeup IRQ firing during the late
+> suspend phase triggers runtime PM activity in the I2C driver since the
+> wakeup IRQ is on an I2C-connected PMIC.
+> 
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Alan Stern <stern@rowland.harvard.edu>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> v2: 
+> - major changelog rewrite, based largely on input from Rafael 
+> - add check for disable_depth == 1 and move to separate if statement,
+>   both suggested by Alan Stern
+
+OK, this looks good to me, thanks!
+
+Alan, what do you think?
+
+Rafael
 
 
-Fix a memory corruption bug caused by commit
-247c445c0fbd52c77e497ff5bfcf0dceb8afea8d ("ARM: OMAP5: Add the
-WakeupGen IP updates") and commit
-ec2c0825ca3183a646a24717966cc7752e8b0393 ("ARM: OMAP2+: Remove
-hardcoded IRQs and enable SPARSE_IRQ").
+>  drivers/base/power/runtime.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+> index 7d9c1cb..d43856b 100644
+> --- a/drivers/base/power/runtime.c
+> +++ b/drivers/base/power/runtime.c
+> @@ -509,6 +509,9 @@ static int rpm_resume(struct device *dev, int rpmflags)
+>   repeat:
+>  	if (dev->power.runtime_error)
+>  		retval = -EINVAL;
+> +	else if (dev->power.disable_depth == 1 && dev->power.is_suspended
+> +		 && dev->power.runtime_status == RPM_ACTIVE)
+> +		retval = 1;
+>  	else if (dev->power.disable_depth > 0)
+>  		retval = -EACCES;
+>  	if (retval)
+> 
 
-The first commit, in the OMAP4+ wakeupgen code, has an implicit
-dependency on !SPARSE_IRQ.  It allocates a static array with NR_IRQS
-elements, then proceeds to iterate over 128 or 160 elements of
-that array, clearing them to zero.
-
-The second commit switched OMAP2+ to use sparse IRQs, but missed the
-NR_IRQS reference in the wakeupgen code.  Before the second commit,
-NR_IRQS was 474 on OMAP4430; but afterwards, it became 16.
-
-This resulted in the wakeupgen code allocating a 16 element array, and
-then attempting to write to 128 or 160 of those elements, depending on the
-type of SoC.  This trashed a chunk of whatever was allocated after the
-array.
-
-The immediate manifestation was a set of boot warnings similar to the
-following:
-
-   WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1941 _enable+0x1bc/0x204()
-   omap_hwmod: mpu: could not enable clockdomain mpuss_clkdm: -22
-   ...
-
-since it blew away arch_clkdm.  Ultimately the kernel crashed during boot.
-
-Fix the problem in the OMAP4+ wakeupgen code by removing the reference to
-NR_IRQS, allocating a larger array, and warning if the iteration is larger
-than the array.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Applies on arm-soc omap/cleanup-sparseirq and should ideally be merged 
-there before the 3.7 merge window.
-
-Test logs are here:
-
-   http://www.pwsan.com/omap/testlogs/broken_sparseirq_fix_3.7/20120922012656/
-
- arch/arm/mach-omap2/omap-wakeupgen.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-index b54427d..869f16c 100644
---- a/arch/arm/mach-omap2/omap-wakeupgen.c
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -47,7 +47,7 @@
- static void __iomem *wakeupgen_base;
- static void __iomem *sar_base;
- static DEFINE_SPINLOCK(wakeupgen_lock);
--static unsigned int irq_target_cpu[NR_IRQS];
-+static unsigned int irq_target_cpu[MAX_IRQS];
- static unsigned int irq_banks = MAX_NR_REG_BANKS;
- static unsigned int max_irqs = MAX_IRQS;
- static unsigned int omap_secure_apis;
-@@ -446,6 +446,12 @@ int __init omap_wakeupgen_init(void)
- 	 * GIC code has necessary hooks in place.
- 	 */
- 
-+	/*
-+	 * If you see this warning, then the subsequent loop just
-+	 * corrupted some memory
-+	 */
-+	WARN_ON(max_irqs > ARRAY_SIZE(irq_target_cpu));
-+
- 	/* Associate all the IRQs to boot CPU like GIC init does. */
- 	for (i = 0; i < max_irqs; i++)
- 		irq_target_cpu[i] = boot_cpu;
--- 
-1.7.10.4
