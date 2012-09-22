@@ -1,65 +1,35 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Sat, 22 Sep 2012 09:00:31 -0700
-Message-ID: <20120922160031.GC2934@linux.vnet.ibm.com>
-References: <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
- <20120921203149.GI28835@atomide.com>
- <20120921220302.GF2454@linux.vnet.ibm.com>
- <CAFTL4hy5wO9CL5_1e8U7L3Tihm_HYD6uAsda3ue-zDKFjir2Xg@mail.gmail.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [REPOST PATCH v2 1/2] spi: omap2-mcspi: add pinctrl support
+Date: Sat, 22 Sep 2012 12:06:43 -0400
+Message-ID: <20120922160643.GS4495@opensource.wolfsonmicro.com>
+References: <1347969685-15571-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFTL4hy5wO9CL5_1e8U7L3Tihm_HYD6uAsda3ue-zDKFjir2Xg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
+In-Reply-To: <1347969685-15571-1-git-send-email-mporter-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matt Porter <mporter-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, AnilKumar <anilkumar-l0cyMroinI0@public.gmane.org>, Linux SPI Devel List <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux OMAP List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM Kernel List <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Sep 22, 2012 at 05:45:12PM +0200, Frederic Weisbecker wrote:
-> 2012/9/22 Paul E. McKenney <paulmck@linux.vnet.ibm.com>:
-> > On Fri, Sep 21, 2012 at 01:31:49PM -0700, Tony Lindgren wrote:
-> >> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [120921 12:58]:
-> >> >
-> >> > Just to make sure I understand the combinations:
-> >> >
-> >> > o   All stalls have happened when running a minimal userspace.
-> >> > o   CONFIG_NO_HZ=n suppresses the stalls.
-> >> > o   CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
-> >> >     no observable effect on the stalls.
-> >>
-> >> The reason why you may need minimal userspace is to cut down
-> >> the number of timers waking up the system with NO_HZ.
-> >> Booting with init=/bin/sh might also do the trick for that.
-> >
-> > Good point!  This does make for a very quiet system, but does not
-> > reproduce the problem under kvm, even after waiting for four minutes.
-> > I will leave it for more time, but it looks like I really might need to
-> > ask Linaro for remote access to a Panda.
-> 
-> I have one. I'm currently installing Ubuntu on it and I'll try to
-> manage to build
-> a kernel and reproduce the issue.
-> 
-> I'll give more news soon.
+On Tue, Sep 18, 2012 at 08:01:25AM -0400, Matt Porter wrote:
+> Adds pinctrl support to support OMAP platforms that boot from DT
+> and rely on pinctrl support to set pinmuxes.
 
-Thank you!
+Applied, thanks.
 
-My bet is that you have to have a userspace that is so small that it
-registers only a few (but at least one!) RCU callback at boot time,
-then never registers any callbacks ever again.  I have coded up a
-crude test case, using Tony Lindgren's suggestion of "init=/bin/sh",
-but I appear to have inadvertently fixed this bug in current -rcu
-(git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git,
-branch rcu/next).
-
-But I have been wrong a few times already on this particular bug...
-
-							Thanx, Paul
+------------------------------------------------------------------------------
+How fast is your code?
+3 out of 4 devs don\\\'t know how their code performs in production.
+Find out how slow your code is with AppDynamics Lite.
+http://ad.doubleclick.net/clk;262219672;13503038;z?
+http://info.appdynamics.com/FreeJavaPerformanceDownload.html
