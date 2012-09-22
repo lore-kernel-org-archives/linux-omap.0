@@ -1,91 +1,81 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Sat, 22 Sep 2012 16:11:22 -0700
-Message-ID: <20120922231121.GH2934@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
- <20120922201043.GE2934@linux.vnet.ibm.com>
- <20120922215923.GA13161@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209222223080.22590@utopia.booyaka.com>
+Date: Sat, 22 Sep 2012 16:17:33 -0700
+Message-ID: <20120922231733.GI2934@linux.vnet.ibm.com>
+References: <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
+ <20120920220130.GN2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+ <alpine.DEB.2.00.1209211740170.8839@utopia.booyaka.com>
+ <20120921212054.GE2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209212240190.31812@utopia.booyaka.com>
+ <20120922000537.GH2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
+ <20120922195253.GD2934@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209222214120.22590@utopia.booyaka.com>
 Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209222223080.22590@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <alpine.DEB.2.00.1209222214120.22590@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com, "Bruce,
- Becky" <bbruce@ti.com>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "Shilimkar,
- Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>
+Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, Sep 22, 2012 at 10:25:59PM +0000, Paul Walmsley wrote:
+On Sat, Sep 22, 2012 at 10:20:19PM +0000, Paul Walmsley wrote:
+> Hi Paul
+> 
 > On Sat, 22 Sep 2012, Paul E. McKenney wrote:
 > 
-> > And here is a patch.  I am still having trouble reproducing the problem,
-> > but figured that I should avoid serializing things.
+> > Strangely enough, I believe that I have inadvertently fixed this in
+> > my -rcu tree:
+> > 
+> > git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git rcu/next
+> > 
+> > Nevertheless, if you get a chance to try it, I would be interested to
+> > hear if my guess is correct.
 > 
-> Thanks, testing this now on v3.6-rc6.
+> Yes, good news: the stall warnings go away with that branch.
 
-Very cool, thank you!
+Very good!
 
->                                        One question though about the patch 
-> description:
+> > The trick is that a kthread drives the grace period in -rcu, regardless 
+> > of whether or not there are callbacks.
 > 
-> > All this begs the question of exactly how a callback-free grace period
-> > gets started in the first place.  This can happen due to the fact that
-> > CPUs do not necessarily agree on which grace period is in progress.
-> > If a CPU still believes that the grace period that just completed is
-> > still ongoing, it will believe that it has callbacks that need to wait
-> > for another grace period, never mind the fact that the grace period
-> > that they were waiting for just completed.  This CPU can therefore
-> > erroneously decide to start a new grace period.
+> This is "rcu: Move quiescent-state forcing into kthread" ?
+
+Yep, plus the preceding commits moving grace-period initialization and
+cleanup into that same kthread.  This was motivated by a bug report
+last February complaining about 200-microsecond latency spikes from
+RCU grace-period initialization.  On systems with 4096 CPUs.
+
+Real-time response.  It is far bigger than I thought.  ;-)
+
+> Added some debugging into rcu_gp_kthread() after that commit and can 
+> confirm that the quiescent-state forcing loop does start a few times when 
+> there are zero callbacks pending (modulo any races in my measurement 
+> code).
+
+Cool, thank you!  Assuming it works, that indicates that there is long-term
+value to the fix for this problem.  On larger systems, extra grace periods
+are not what you want, as their expense increases with the number of CPUs.
+
+> > However, the backport would not be something that -stable would be happy
+> > with, so I will be putting together a fix for mainline.  This thing
+> > has been in the kernel since about 2004, not sure why you didn't hit
+> > it earlier.
 > 
-> Doesn't this imply that this bug would only affect multi-CPU systems?  
+> One other data point in that regard - noticed the warnings don't appear 
+> when the board is booted with:
+> 
+> commit 4fa3b6cb1bc8c14b81b4c8ffdfd3f2500a7e9367
+> Author: Paul E. McKenney <paul.mckenney@linaro.org>
+> Date:   Tue Jun 5 15:53:53 2012 -0700
+> 
+>     rcu: Fix qlen_lazy breakage
 
-Surprisingly not, at least when running TREE_RCU or TREE_PREEMPT_RCU.
-In order to keep lock contention down to a dull roar on larger systems,
-TREE_RCU keeps three sets of books: (1) the global state in the rcu_state
-structure, (2) the combining-tree per-node state in the rcu_node
-structure, and the per-CPU state in the rcu_data structure.  A CPU is
-not officially aware of the end of a grace period until it is reflected
-in its rcu_data structure.  This has the perhaps-surprising consequence
-that the CPU that detected the end of the old grace period might start
-a new one before becoming officially aware that the old one ended.
-
-Why not have the CPU inform itself immediately upon noticing that the
-old grace period ended?  Deadlock.  The rcu_node locks must be acquired
-from leaf towards root, and the CPU is holding the root rcu_node lock
-when it notices that the grace period has ended.
-
-I have made this a bit less problematic in the bigrt branch, working
-towards a goal of getting RCU into a state where automatic formal
-validation might one day be possible.  And yes, I am starting to get some
-formal-validation people interested in this lofty goal, see for example:
-http://sites.google.com/site/popl13grace/paper.pdf.
-
-> The recent tests here have been on Pandaboard, which is dual-CPU, but my 
-> recollection is that I also observed the warnings on a single-core 
-> Beagleboard.  Will re-test.
-
-Anxiously awaiting the results.  This has been a strange one, even by
-RCU's standards.
-
-Plus I need to add a few Reported-by lines.  Next version...
+You lost me on this one.  This is already in mainline, so if you were
+using (say) 3.6-rc6, you would already have this commit applied.
 
 							Thanx, Paul
