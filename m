@@ -1,232 +1,73 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP2+: PRCM/runtime PM patches for 3.7
-Date: Sat, 22 Sep 2012 18:01:13 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209221759590.10663@utopia.booyaka.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Sat, 22 Sep 2012 18:16:15 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
+References: <20120913011208.GT4257@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
+ <20120920000351.GI2455@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+ <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
+ <20120920220130.GN2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+ <alpine.DEB.2.00.1209211740170.8839@utopia.booyaka.com>
+ <20120921212054.GE2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209212240190.31812@utopia.booyaka.com>
+ <20120922000537.GH2454@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:36131 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753095Ab2IVSBO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 14:01:14 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120922000537.GH2454@linux.vnet.ibm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, "Bruce,
+ Becky" <bbruce@ti.com>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "Shilimkar,
+ Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Paul
 
-Hi Tony
+On Fri, 21 Sep 2012, Paul E. McKenney wrote:
 
-The following changes since commit 9fe0624e1b9faa43d1f6136c70409c4716fb73c9:
+> I am wondering if your system somehow figured out how to start a grace
+> period that had no RCU callbacks waiting for it.  If that happened,
+> then a CONFIG_NO_HZ=y system could in theory get into a state where all
+> CPUs are in dyntick-idle mode, so that none of them is doing anything
+> to force the grace period to complete.
+>
+> That should be easy to diagnose, anyway.  Please see below, which
+> includes the earlier diagnostic patch.
 
-  Merge tag 'omap-devel-am33xx-for-v3.7' into test_v3.6-rc6_cff3.7_odaf3.7 (2012-09-22 10:00:35 -0600)
+Here you go.
+ 
+- Paul
 
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pjw/omap-pending.git tags/omap-devel-b-c-for-3.7
-
-for you to fetch changes up to 55e16433bffc70538f304987776b000e730e497c:
-
-  ARM: OMAP4460/4470: PMU: Enable PMU for OMAP4460/70 (2012-09-22 10:57:44 -0600)
-
-- ----------------------------------------------------------------
-OMAP patches intended for the 3.7 merge window:
-
-- - Runtime PM conversions for the GPMC and RNG IP blocks
-- - Preparation patches for the OMAP common clock framework conversion
-- - clkdev alias additions required by other drivers
-- - Performance Monitoring Unit (PMU) support for OMAP2, 3, and non-4430 OMAP4
-- - OMAP hwmod code and data improvements
-- - Preparation patches for the IOMMU runtime PM conversion
-- - Preparation patches for OMAP4 full-chip retention support
-
-Based on a merge of v3.6-rc6, the cleanup-fixes-for-v3.7 tag
-(de6ca33a96a6bf61fcb91d3d399703e19ead9d1e), and the
-omap-devel-am33xx-for-v3.7 tag
-(11964f53eb4d9ce59a058be9999d9cfcb1ced878), due to dependencies.
-
-These patches have been tested for meaningful warnings from
-checkpatch, sparse, smatch, and cppcheck.  Basic build, boot[1], and
-PM test logs are available here:
-
-    http://www.pwsan.com/omap/testlogs/omap_hwmod_prcm_devel_a_3.7/20120922105800/
-
-...
-
-1. Note that the N800 boot fails due to a known issue present in the
-   base commit:
-
-    http://www.spinics.net/lists/arm-kernel/msg196034.html
-
-- ----------------------------------------------------------------
-
-object size (delta in bytes from test_v3.6-rc6_cff3.7_odaf3.7 (9fe0624e1b9faa43d1f6136c70409c4716fb73c9)):
-  text 	  data 	   bss 	 total 	kernel
- +1304 	 +1112 	   +64 	 +2480 	2430_testconfig
-   +84 	  +432 	     0 	  +516 	5912osk_testconfig
- +1040 	 +3408 	     0 	 +4448 	am33xx_testconfig
- +1204 	 +1000 	   +56 	 +2260 	n800_b_testconfig
- +5296 	 +1680 	    -8 	 +6968 	n800_multi_omap2xxx
- +1188 	  +976 	   +56 	 +2220 	n800_testconfig
-   -96 	     0 	     0 	   -96 	omap1510_defconfig
-   +56 	  +448 	     0 	  +504 	omap1_defconfig
- +1372 	 +3096 	   +56 	 +4524 	omap2_4_testconfig
-  +988 	 +5312 	   +64 	 +6364 	omap2plus_defconfig
-  +984 	 +5280 	     0 	 +6264 	omap2plus_defconfig_cpupm
- +5080 	 +5320 	   +64 	+10464 	omap2plus_no_pm
- +1268 	 +3576 	     0 	 +4844 	omap3_4_testconfig
-  +944 	 +2088 	     0 	 +3032 	omap3_testconfig
- +1408 	 +1800 	   +64 	 +3272 	omap4_testconfig
-  +960 	 +2088 	   +64 	 +3112 	rmk_omap3430_ldp_oldconfig
- +1244 	 +1768 	     0 	 +3012 	rmk_omap4430_sdp_oldconfig
-
-
-Afzal Mohammed (3):
-      ARM: OMAP2/3: hwmod data: add gpmc
-      ARM: OMAP2+: gpmc: Adapt to HWMOD
-      ARM: OMAP2+: gpmc: minimal driver support
-
-AnilKumar Ch (1):
-      ARM: OMAP2+: AM33XX: clock data: Add clkdev alias for cpu0
-
-Benoit Cousson (1):
-      ARM: OMAP4: hwmod data: Fix ocp2scp_usb_phy and usb_host_hs entries
-
-Igor Grinberg (1):
-      ARM: OMAP: hwmod code: remove unused hwmod function prototypes
-
-Jon Hunter (7):
-      ARM: OMAP2420: Cosmetic fix for timer clock aliases
-      ARM: OMAP4: Add timer clock aliases for device-tree
-      ARM: OMAP: Add a timer attribute for timers that can interrupt the DSP
-      ARM: OMAP3: hwmod data: Add debugss HWMOD data
-      ARM: OMAP2+: PMU: Convert OMAP2/3 devices to use HWMOD
-      ARM: OMAP2+: PMU: Add runtime PM support
-      ARM: OMAP4460/4470: PMU: Enable PMU for OMAP4460/70
-
-Kishon Vijay Abraham I (1):
-      ARM: OMAP4: hwmod data: make *phy_48m* as the main_clk of ocp2scp
-
-Michael Jones (1):
-      ARM: OMAP3: clock data: remove obsolete comment
-
-Mike Turquette (1):
-      ARM: OMAP4: cm: add bitfield width values
-
-Ming Lei (1):
-      ARM: OMAP4430: PMU: prepare to create PMU device via HWMOD
-
-Omar Ramirez Luna (5):
-      ARM: OMAP2+: omap_device: expose hwmod assert/deassert to omap devices
-      ARM: OMAP: hwmod: partially un-reset hwmods might not be properly enabled
-      ARM: OMAP: hwmod: revise deassert sequence
-      ARM: OMAP: iommu: fix including iommu.h without IOMMU_API selected
-      ARM: OMAP4: hwmod data: add mmu hwmod for ipu and dsp
-
-Paul Walmsley (13):
-      ARM: OMAP3: clock data: Add the USB TLL clocks device name
-      ARM: OMAP2+: clock data: add some aliases for use by CPUFreq only
-      SPI: OMAP: remove unnecessary includes of plat/clock.h
-      ARM: OMAP4+: hwmod code: remove clkdm requirement in _omap4_wait_target_*()
-      ARM: OMAP2+: hwmod code: convert missing clockdomain warnings to debug messages
-      ARM: OMAP4: hwmod data: add missing HWMOD_NO_IDLEST flags to some PRCM IP blocks
-      ARM: OMAP3: hwmod data: add mmu data for iva and isp
-      ARM: OMAP2xxx: hwmod/CM: add RNG integration data
-      hwrng: OMAP: store per-device data in per-device variables, not file statics
-      hwrng: OMAP: convert to use runtime PM
-      ARM: OMAP: split OMAP1, OMAP2+ RNG device registration
-      hwrng: OMAP: remove SoC restrictions from driver registration
-      ARM: OMAP2+: clockdomain/hwmod: add workaround for EMU clockdomain idle problems
-
-Rajendra Nayak (3):
-      ARM: omap: clk: add clk_prepare and clk_unprepare
-      ARM: OMAP2+: hwmod: get rid of all omap_clk_get_by_name usage
-      ARM: OMAP2+: clock: Remove all direct dereferencing of struct clk
-
-Tero Kristo (4):
-      ARM: OMAP4: powerdomain: add support for reading prev logic and mem states
-      ARM: OMAP4: hwmod data: add support for lostcontext_mask
-      ARM: OMAP4: hwmod: flag hwmods/modules not supporting module level context status
-      ARM: OMAP3: hwmod data: add sad2d hwmod
-
-Vaibhav Hiremath (1):
-      ARM: AM33XX: cm: Add bit-field width values
-
- arch/arm/mach-omap1/devices.c                      |   28 ++
- arch/arm/mach-omap1/timer.c                        |    2 +-
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/board-apollon.c                |    4 +-
- arch/arm/mach-omap2/board-h4.c                     |    6 +-
- arch/arm/mach-omap2/board-omap4panda.c             |    2 +-
- arch/arm/mach-omap2/clkt2xxx_apll.c                |    2 +-
- arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c       |   10 +-
- arch/arm/mach-omap2/clkt34xx_dpll3m2.c             |   20 +-
- arch/arm/mach-omap2/clkt_clksel.c                  |   91 +++--
- arch/arm/mach-omap2/clkt_dpll.c                    |   26 +-
- arch/arm/mach-omap2/clock.c                        |   11 +-
- arch/arm/mach-omap2/clock2420_data.c               |   24 +-
- arch/arm/mach-omap2/clock2430_data.c               |   23 ++
- arch/arm/mach-omap2/clock33xx_data.c               |    1 +
- arch/arm/mach-omap2/clock3xxx.c                    |    8 +-
- arch/arm/mach-omap2/clock3xxx_data.c               |   37 +-
- arch/arm/mach-omap2/clock44xx_data.c               |   21 +
- arch/arm/mach-omap2/clockdomain.c                  |   17 +
- arch/arm/mach-omap2/clockdomain.h                  |   20 +-
- arch/arm/mach-omap2/clockdomain2xxx_3xxx.c         |   49 ++-
- arch/arm/mach-omap2/clockdomain44xx.c              |   11 +
- arch/arm/mach-omap2/clockdomains3xxx_data.c        |    7 +-
- arch/arm/mach-omap2/clockdomains44xx_data.c        |    3 +-
- arch/arm/mach-omap2/cm-regbits-33xx.h              |  158 +++++++-
- arch/arm/mach-omap2/cm-regbits-34xx.h              |    2 +
- arch/arm/mach-omap2/cm-regbits-44xx.h              |  411 ++++++++++++++++----
- arch/arm/mach-omap2/cm2xxx_3xxx.c                  |    2 +-
- arch/arm/mach-omap2/cm2xxx_3xxx.h                  |    1 +
- arch/arm/mach-omap2/control.h                      |    1 +
- arch/arm/mach-omap2/devices.c                      |   39 +-
- arch/arm/mach-omap2/display.c                      |    4 +-
- arch/arm/mach-omap2/dpll3xxx.c                     |   48 ++-
- arch/arm/mach-omap2/gpmc.c                         |  194 ++++++---
- arch/arm/mach-omap2/omap_hwmod.c                   |  138 +++++--
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   19 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   19 +
- .../mach-omap2/omap_hwmod_2xxx_interconnect_data.c |   17 +
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |  110 +++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |  280 ++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |  243 +++++++++++-
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    6 +-
- arch/arm/mach-omap2/pm.c                           |    5 +-
- arch/arm/mach-omap2/pmu.c                          |   95 +++++
- arch/arm/mach-omap2/powerdomain44xx.c              |   61 ++-
- arch/arm/mach-omap2/prcm-common.h                  |    2 +
- arch/arm/plat-omap/clock.c                         |   27 --
- arch/arm/plat-omap/include/plat/clock.h            |    5 +
- arch/arm/plat-omap/include/plat/dmtimer.h          |    1 +
- arch/arm/plat-omap/include/plat/iommu.h            |   15 +
- arch/arm/plat-omap/include/plat/omap_device.h      |    4 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h       |   26 +-
- arch/arm/plat-omap/omap_device.c                   |   59 ++-
- drivers/char/hw_random/omap-rng.c                  |  121 +++---
- drivers/spi/spi-omap-100k.c                        |    2 -
- drivers/spi/spi-omap2-mcspi.c                      |    1 -
- 56 files changed, 2113 insertions(+), 427 deletions(-)
- create mode 100644 arch/arm/mach-omap2/pmu.c
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQXfyKAAoJEMePsQ0LvSpL9agQALAeH8QHm0ZwXlOnovkBLfEZ
-Hg5QmLyP5Dlmz8iQsmy/rW6AAwIYliJhWtarTrhM1vcm4K7r7KIcjvCS501B0CoW
-JVD5W9GFVNY5KfECADw3HnfJK8TL01BMJT/15IK/6s7/Iw4bq2lk6etEcTk6Bnr/
-PNx4rIPW5f/PlqEuvftZQUSca2mwCdFQcjghj0LmBJFEX3p9uxtGn/LQIMjcRwfM
-2stLNXGApSpDNTtGMr/Ixuy2aqU0j2Lrx9SSTYXwuRjgOus6QWia4HVHgVPujBOy
-E2K19YyaTZXL6Ooinzym8gUv6ahOa65ySHYnBThS8O9LDMLIhPh27AvRbvWwwA2e
-c18N8/MRaVe92V86BBCPuXux/bsALsGME3aoVmmpOKIsM2uarwKv5Mk0oYRtPn3U
-Qy7IkzAh6jL6d5J0PglTQft6v4p748BRaYBmLz94zquw9QoYVQQxMdaSvqObjM7Q
-tP6bClaqs6u43RJFLkE5aGYsps8u0kidxTSALPvRKnp6yaEZkj5G8xvH7C1JkJ59
-bBm5/iSnUHxiX8T81runhD5MpjUZLRz8+6zjTgOtccU9/bw8k3aCDTFpNCptlVBp
-he1sOc1xd8vu7AO5JUt38TxBrkZCmKbCKPcwnZQ3Tp61cQOlW5dWwSM7ZXIhFyx1
-NzJM0nJASnjlVqLV2/Mf
-=hSWt
------END PGP SIGNATURE-----
+[  248.902618] INFO: rcu_sched self-detected stall on CPU
+[  248.905456]  0: (1 ticks this GP) idle=933/1/0 
+[  248.907897]   (t=26570 jiffies g=11 c=10 q=0)
+[  248.910339] [<c001bc90>] (unwind_backtrace+0x0/0xf0) from [<c00ad800>] (rcu_check_callbacks+0x220/0x714)
+[  248.915527] [<c00ad800>] (rcu_check_callbacks+0x220/0x714) from [<c00532a0>] (update_process_times+0x38/0x68)
+[  248.920928] [<c00532a0>] (update_process_times+0x38/0x68) from [<c008c9e8>] (tick_sched_timer+0x80/0xec)
+[  248.926116] [<c008c9e8>] (tick_sched_timer+0x80/0xec) from [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0)
+[  248.930999] [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0) from [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0)
+[  248.936035] [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a3cc>] (twd_handler+0x30/0x44)
+[  248.940948] [<c001a3cc>] (twd_handler+0x30/0x44) from [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c)
+[  248.946075] [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a4344>] (generic_handle_irq+0x30/0x48)
+[  248.951538] [<c00a4344>] (generic_handle_irq+0x30/0x48) from [<c0014e38>] (handle_IRQ+0x4c/0xac)
+[  248.956329] [<c0014e38>] (handle_IRQ+0x4c/0xac) from [<c00084cc>] (gic_handle_irq+0x28/0x5c)
+[  248.960937] [<c00084cc>] (gic_handle_irq+0x28/0x5c) from [<c04fb1a4>] (__irq_svc+0x44/0x5c)
+[  248.965484] Exception stack(0xc0729f58 to 0xc0729fa0)
+[  248.968231] 9f40:                                                       0003b832 00000001
+[  248.972686] 9f60: 00000000 c074a8e8 c0728000 c07c42c8 c05065a0 c074bdc8 00000000 411fc092
+[  248.977142] 9f80: c074bfe8 00000000 00000001 c0729fa0 0003b833 c0015130 20000113 ffffffff
+[  248.981597] [<c04fb1a4>] (__irq_svc+0x44/0x5c) from [<c0015130>] (default_idle+0x20/0x44)
+[  248.986083] [<c0015130>] (default_idle+0x20/0x44) from [<c001535c>] (cpu_idle+0x9c/0x114)
+[  248.990539] [<c001535c>] (cpu_idle+0x9c/0x114) from [<c06d77b0>] (start_kernel+0x2b4/0x304)
