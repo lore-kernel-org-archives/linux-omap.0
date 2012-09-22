@@ -1,95 +1,83 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Sat, 22 Sep 2012 12:52:53 -0700
-Message-ID: <20120922195253.GD2934@linux.vnet.ibm.com>
-References: <20120920000351.GI2455@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+Date: Sat, 22 Sep 2012 13:10:44 -0700
+Message-ID: <20120922201043.GE2934@linux.vnet.ibm.com>
+References: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
  <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
  <20120920220130.GN2449@linux.vnet.ibm.com>
  <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <alpine.DEB.2.00.1209211740170.8839@utopia.booyaka.com>
- <20120921212054.GE2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209212240190.31812@utopia.booyaka.com>
- <20120922000537.GH2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
+ <20120920232114.GO2449@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
+ <20120921185827.GC2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
+ <20120921195717.GD2454@linux.vnet.ibm.com>
+ <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
 Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from e33.co.us.ibm.com ([32.97.110.151]:36317 "EHLO
+	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab2IVUKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 16:10:50 -0400
+Received: from /spool/local
+	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-omap@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Sat, 22 Sep 2012 14:10:50 -0600
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, "Bruce,
- Becky" <bbruce@ti.com>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "Shilimkar,
- Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
 
-On Sat, Sep 22, 2012 at 06:16:15PM +0000, Paul Walmsley wrote:
-> Hi Paul
-> 
+On Sat, Sep 22, 2012 at 06:42:08PM +0000, Paul Walmsley wrote:
 > On Fri, 21 Sep 2012, Paul E. McKenney wrote:
 > 
-> > I am wondering if your system somehow figured out how to start a grace
-> > period that had no RCU callbacks waiting for it.  If that happened,
-> > then a CONFIG_NO_HZ=y system could in theory get into a state where all
-> > CPUs are in dyntick-idle mode, so that none of them is doing anything
-> > to force the grace period to complete.
-> >
-> > That should be easy to diagnose, anyway.  Please see below, which
-> > includes the earlier diagnostic patch.
+> > Could you please point me to a recipe for creating a minimal userspace?
+> > Just in case it is the userspac erather than the architecture/hardware
+> > that makes the difference.
 > 
-> Here you go.
+> Tony's suggestion is pretty good.  Note that there may also be differences 
+> in kernel timers -- either between x86 and ARM architectures, or loaded 
+> device drivers -- that may confound the problem.
+
+For example, there must be at least one RCU callback outstanding after
+the boot sequence quiets down.  Of course, the last time I tried Tony's
+approach, I was doing it on top of my -rcu stack, so am retrying on
+v3.6-rc6.
+
+> > Just to make sure I understand the combinations:
+> > 
+> > o	All stalls have happened when running a minimal userspace.
+> > o	CONFIG_NO_HZ=n suppresses the stalls.
+> > o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
+> > 	no observable effect on the stalls.
+> > 
+> > Did I get that right, or am I missing a combination?
 > 
-> - Paul
+> That's correct.
 > 
-> [  248.902618] INFO: rcu_sched self-detected stall on CPU
-> [  248.905456]  0: (1 ticks this GP) idle=933/1/0 
-> [  248.907897]   (t=26570 jiffies g=11 c=10 q=0)
+> > Indeed, rcu_idle_gp_timer_func() is a bit strange in that it is 
+> > cancelled upon exit from idle, and therefore should (almost) never 
+> > actually execute. Its sole purpose is to wake up the CPU.  ;-)
+> 
+> Right.  Just curious, what would wake up the kernel from idle to handle a 
+> grace period expiration when CONFIG_RCU_FAST_NO_HZ=n?  On a very idle 
+> system, the time between timer ticks could potentially be several tens of 
+> seconds.
 
-Bingo!!!  (q=0, in case you were wondering.  And thank you for testing this!)
+If CONFIG_RCU_FAST_NO_HZ=n, then CPUs with RCU callbacks are not permitted
+to shut off the scheduling-clock tick, so any CPU with RCU callbacks will
+be awakened every jiffy.  The problem is that there appears to be a way
+to get an RCU grace period started without any CPU having any callbacks,
+which, as you surmise, would result in all the CPUs going to sleep and
+the grace period never ending.  So if a CPU is awakened for any reason
+after this everlasting grace period has extended for more than a minute,
+the first thing that CPU will do is print an RCU CPU stall warning.
 
-Strangely enough, I believe that I have inadvertently fixed this in
-my -rcu tree:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/paulmck/linux-rcu.git rcu/next
-
-Nevertheless, if you get a chance to try it, I would be interested to
-hear if my guess is correct.  The trick is that a kthread drives the
-grace period in -rcu, regardless of whether or not there are callbacks.
-
-However, the backport would not be something that -stable would be happy
-with, so I will be putting together a fix for mainline.  This thing
-has been in the kernel since about 2004, not sure why you didn't hit
-it earlier.
+I believe that I see how to prevent callback-free grace periods from
+ever starting.  (Famous last words...)
 
 							Thanx, Paul
 
-> [  248.910339] [<c001bc90>] (unwind_backtrace+0x0/0xf0) from [<c00ad800>] (rcu_check_callbacks+0x220/0x714)
-> [  248.915527] [<c00ad800>] (rcu_check_callbacks+0x220/0x714) from [<c00532a0>] (update_process_times+0x38/0x68)
-> [  248.920928] [<c00532a0>] (update_process_times+0x38/0x68) from [<c008c9e8>] (tick_sched_timer+0x80/0xec)
-> [  248.926116] [<c008c9e8>] (tick_sched_timer+0x80/0xec) from [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0)
-> [  248.930999] [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0) from [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0)
-> [  248.936035] [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a3cc>] (twd_handler+0x30/0x44)
-> [  248.940948] [<c001a3cc>] (twd_handler+0x30/0x44) from [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c)
-> [  248.946075] [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a4344>] (generic_handle_irq+0x30/0x48)
-> [  248.951538] [<c00a4344>] (generic_handle_irq+0x30/0x48) from [<c0014e38>] (handle_IRQ+0x4c/0xac)
-> [  248.956329] [<c0014e38>] (handle_IRQ+0x4c/0xac) from [<c00084cc>] (gic_handle_irq+0x28/0x5c)
-> [  248.960937] [<c00084cc>] (gic_handle_irq+0x28/0x5c) from [<c04fb1a4>] (__irq_svc+0x44/0x5c)
-> [  248.965484] Exception stack(0xc0729f58 to 0xc0729fa0)
-> [  248.968231] 9f40:                                                       0003b832 00000001
-> [  248.972686] 9f60: 00000000 c074a8e8 c0728000 c07c42c8 c05065a0 c074bdc8 00000000 411fc092
-> [  248.977142] 9f80: c074bfe8 00000000 00000001 c0729fa0 0003b833 c0015130 20000113 ffffffff
-> [  248.981597] [<c04fb1a4>] (__irq_svc+0x44/0x5c) from [<c0015130>] (default_idle+0x20/0x44)
-> [  248.986083] [<c0015130>] (default_idle+0x20/0x44) from [<c001535c>] (cpu_idle+0x9c/0x114)
-> [  248.990539] [<c001535c>] (cpu_idle+0x9c/0x114) from [<c06d77b0>] (start_kernel+0x2b4/0x304)
-> 
