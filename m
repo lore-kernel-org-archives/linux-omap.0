@@ -1,23 +1,14 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Sat, 22 Sep 2012 18:16:15 +0000 (UTC)
-Message-ID: <alpine.DEB.2.00.1209221813330.10663@utopia.booyaka.com>
-References: <20120913011208.GT4257@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209131839000.23318@utopia.booyaka.com>
- <20120920000351.GI2455@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
- <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <alpine.DEB.2.00.1209211740170.8839@utopia.booyaka.com>
- <20120921212054.GE2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209212240190.31812@utopia.booyaka.com>
- <20120922000537.GH2454@linux.vnet.ibm.com>
+Subject: Re: OMAP baseline test results for v3.6-rc4
+Date: Sat, 22 Sep 2012 18:31:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209221817540.10663@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209051523340.11516@utopia.booyaka.com>
+ <504999AB.6020703@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120922000537.GH2454@linux.vnet.ibm.com>
+In-Reply-To: <504999AB.6020703@compulab.co.il>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -27,47 +18,89 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, "Bruce,
- Becky" <bbruce@ti.com>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "Shilimkar,
- Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Dmitry Lifshitz <lifshitz@compulab.co.il>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, "Balbi, Felipe" <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Paul
+cc Santosh
 
-On Fri, 21 Sep 2012, Paul E. McKenney wrote:
+Hi Igor,
 
-> I am wondering if your system somehow figured out how to start a grace
-> period that had no RCU callbacks waiting for it.  If that happened,
-> then a CONFIG_NO_HZ=y system could in theory get into a state where all
-> CPUs are in dyntick-idle mode, so that none of them is doing anything
-> to force the grace period to complete.
->
-> That should be easy to diagnose, anyway.  Please see below, which
-> includes the earlier diagnostic patch.
+I regret the delay in responding,
 
-Here you go.
- 
+On Fri, 7 Sep 2012, Igor Grinberg wrote:
+
+> On 09/05/12 18:44, Paul Walmsley wrote:
+> 
+> > * CM-T3517: L3 in-band error with USB OTG during boot
+> >   - Cause unknown; longstanding issue; does not occur on the 3517EVM
+> 
+> We see this problem on several cm-t3517, but not all of them.
+
+There's probably a dependency on the bootloader or X-Loader.
+
+> It looks something like:
+> --------------------cut----------------------------
+> NET: Registered protocol family 16
+> GPMC revision 5.0
+> gpmc: irq-20 could not claim: err -22
+> OMAP GPIO hardware version 2.5
+> In-band Error seen by USB_OTG  at address 0
+
+That tag "USB_OTG" above isn't 100% accurate for AM3517/3505, by the way.  
+omap_l3_smx.c doesn't have a correct initiator map for those chips.  The 
+offender could be USBOTG, but it could also be any other initiator in the 
+"IP subsystem", such as Camera/VPFE or EMAC.  Table 5-18 "InitiatorID 
+Definition" in the AM35x TRM vB (SPRUGR0B) lists these.
+
+As far as I know, the message means that some module in the IPSS tried to 
+initiate an L3 interconnect transaction, but that it failed.  Probably the 
+IPSS isn't clocked.
+
+> ------------[ cut here ]------------
+> WARNING: at /home/lifshitz/workroot/git-repo/linux-cm-t3x/arch/arm/mach-omap2/omap_l3_smx.c:162 omap3_l3_app_irq+0xdc/0x120()
+> Modules linked in:
+> [<c001ad08>] (unwind_backtrace+0x0/0xf4) from [<c003f670>] (warn_slowpath_common+0x4c/0x64)
+> [<c003f670>] (warn_slowpath_common+0x4c/0x64) from [<c003f6a4>] (warn_slowpath_null+0x1c/0x24)
+> [<c003f6a4>] (warn_slowpath_null+0x1c/0x24) from [<c0033af0>] (omap3_l3_app_irq+0xdc/0x120)
+> [<c0033af0>] (omap3_l3_app_irq+0xdc/0x120) from [<c008b8bc>] (handle_irq_event_percpu+0xac/0x298)
+> [<c008b8bc>] (handle_irq_event_percpu+0xac/0x298) from [<c008bafc>] (handle_irq_event+0x54/0x74)
+> [<c008bafc>] (handle_irq_event+0x54/0x74) from [<c008e290>] (handle_level_irq+0xc4/0x118)
+> [<c008e290>] (handle_level_irq+0xc4/0x118) from [<c008b3ac>] (generic_handle_irq+0x2c/0x44)
+> [<c008b3ac>] (generic_handle_irq+0x2c/0x44) from [<c001500c>] (handle_IRQ+0x60/0x80)
+> [<c001500c>] (handle_IRQ+0x60/0x80) from [<c00085ec>] (omap3_intc_handle_irq+0x60/0x74)
+> [<c00085ec>] (omap3_intc_handle_irq+0x60/0x74) from [<c04e3100>] (__irq_svc+0x40/0x74)
+> Exception stack(0xcf02de00 to 0xcf02de48)
+> de00: 00000000 0000000a 00000000 00000021 c074bcac cf046280 0000000a 60000013
+> de20: c074bcdc c070020c 00010000 00000000 00000000 cf02de48 00000000 c008c988
+> de40: 40000013 ffffffff
+> [<c04e3100>] (__irq_svc+0x40/0x74) from [<c008c988>] (__setup_irq+0x2a8/0x404)
+> [<c008c988>] (__setup_irq+0x2a8/0x404) from [<c008cd18>] (request_threaded_irq+0xe8/0x13c)
+> [<c008cd18>] (request_threaded_irq+0xe8/0x13c) from [<c06c3d24>] (omap3_l3_probe+0x10c/0x16c)
+> [<c06c3d24>] (omap3_l3_probe+0x10c/0x16c) from [<c033586c>] (platform_drv_probe+0x18/0x1c)
+> [<c033586c>] (platform_drv_probe+0x18/0x1c) from [<c0334414>] (really_probe+0xac/0x1c8)
+> [<c0334414>] (really_probe+0xac/0x1c8) from [<c0334578>] (driver_probe_device+0x48/0x60)
+> [<c0334578>] (driver_probe_device+0x48/0x60) from [<c03345f0>] (__driver_attach+0x60/0x84)
+> [<c03345f0>] (__driver_attach+0x60/0x84) from [<c0332ce0>] (bus_for_each_dev+0x4c/0x80)
+> [<c0332ce0>] (bus_for_each_dev+0x4c/0x80) from [<c0333414>] (bus_add_driver+0xa4/0x294)
+> [<c0333414>] (bus_add_driver+0xa4/0x294) from [<c0334bdc>] (driver_register+0xa4/0x188)
+> [<c0334bdc>] (driver_register+0xa4/0x188) from [<c0335c5c>] (platform_driver_probe+0x18/0x98)
+> [<c0335c5c>] (platform_driver_probe+0x18/0x98) from [<c0008798>] (do_one_initcall+0xac/0x16c)
+> [<c0008798>] (do_one_initcall+0xac/0x16c) from [<c06b52ac>] (do_basic_setup+0x88/0xc0)
+> [<c06b52ac>] (do_basic_setup+0x88/0xc0) from [<c06b53c4>] (kernel_init+0x60/0xfc)
+> [<c06b53c4>] (kernel_init+0x60/0xfc) from [<c00150a4>] (kernel_thread_exit+0x0/0x8)
+> ---[ end trace 1b75b31a2719ed1c ]---
+> -----------------------------cut-------------------------------
+> 
+> After that, the board continues to function properly.
+> Any hints how to debug this?
+
+Probably the core problem is that we don't yet have the IPSS correctly 
+supported in the AM35xx hwmod data.  This is partially due to the fact 
+that we're missing hierarchical enables/disables in that code, a 
+longstanding omission.  My guess is that if you hacked in some code to 
+enable the IPSS early in boot (see the CONTROL_IPSS_CLK_CTRL register), 
+the problem would probably go away.
+
+
 - Paul
-
-[  248.902618] INFO: rcu_sched self-detected stall on CPU
-[  248.905456]  0: (1 ticks this GP) idle=933/1/0 
-[  248.907897]   (t=26570 jiffies g=11 c=10 q=0)
-[  248.910339] [<c001bc90>] (unwind_backtrace+0x0/0xf0) from [<c00ad800>] (rcu_check_callbacks+0x220/0x714)
-[  248.915527] [<c00ad800>] (rcu_check_callbacks+0x220/0x714) from [<c00532a0>] (update_process_times+0x38/0x68)
-[  248.920928] [<c00532a0>] (update_process_times+0x38/0x68) from [<c008c9e8>] (tick_sched_timer+0x80/0xec)
-[  248.926116] [<c008c9e8>] (tick_sched_timer+0x80/0xec) from [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0)
-[  248.930999] [<c0068ed4>] (__run_hrtimer+0x7c/0x1e0) from [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0)
-[  248.936035] [<c0069cb8>] (hrtimer_interrupt+0x11c/0x2d0) from [<c001a3cc>] (twd_handler+0x30/0x44)
-[  248.940948] [<c001a3cc>] (twd_handler+0x30/0x44) from [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c)
-[  248.946075] [<c00a7bd0>] (handle_percpu_devid_irq+0x90/0x13c) from [<c00a4344>] (generic_handle_irq+0x30/0x48)
-[  248.951538] [<c00a4344>] (generic_handle_irq+0x30/0x48) from [<c0014e38>] (handle_IRQ+0x4c/0xac)
-[  248.956329] [<c0014e38>] (handle_IRQ+0x4c/0xac) from [<c00084cc>] (gic_handle_irq+0x28/0x5c)
-[  248.960937] [<c00084cc>] (gic_handle_irq+0x28/0x5c) from [<c04fb1a4>] (__irq_svc+0x44/0x5c)
-[  248.965484] Exception stack(0xc0729f58 to 0xc0729fa0)
-[  248.968231] 9f40:                                                       0003b832 00000001
-[  248.972686] 9f60: 00000000 c074a8e8 c0728000 c07c42c8 c05065a0 c074bdc8 00000000 411fc092
-[  248.977142] 9f80: c074bfe8 00000000 00000001 c0729fa0 0003b833 c0015130 20000113 ffffffff
-[  248.981597] [<c04fb1a4>] (__irq_svc+0x44/0x5c) from [<c0015130>] (default_idle+0x20/0x44)
-[  248.986083] [<c0015130>] (default_idle+0x20/0x44) from [<c001535c>] (cpu_idle+0x9c/0x114)
-[  248.990539] [<c001535c>] (cpu_idle+0x9c/0x114) from [<c06d77b0>] (start_kernel+0x2b4/0x304)
