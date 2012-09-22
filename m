@@ -1,83 +1,87 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
-Date: Sat, 22 Sep 2012 13:10:44 -0700
-Message-ID: <20120922201043.GE2934@linux.vnet.ibm.com>
-References: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
- <F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
- <20120920220130.GN2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
- <20120920232114.GO2449@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
- <20120921185827.GC2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
- <20120921195717.GD2454@linux.vnet.ibm.com>
- <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Marc Murphy <marcmltd@marcm.co.uk>
+Subject: RE: Initialising omapfb on AM3517 issues
+Date: Sat, 22 Sep 2012 20:35:14 +0000
+Message-ID: <F690310232FDDF4AB457E8B3EF90DDE05D7B9AE7@MARCM-SBS2011.marcmltd.local>
+References: <F690310232FDDF4AB457E8B3EF90DDE05D7B4BDE@MARCM-SBS2011.marcmltd.local>
+ <1348039421.2565.6.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e33.co.us.ibm.com ([32.97.110.151]:36317 "EHLO
-	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825Ab2IVUKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 16:10:50 -0400
-Received: from /spool/local
-	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-omap@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Sat, 22 Sep 2012 14:10:50 -0600
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209221836070.10663@utopia.booyaka.com>
+Received: from nm12-vm0.bullet.mail.ird.yahoo.com ([77.238.189.196]:25340 "HELO
+	nm12-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752441Ab2IVUfT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 22 Sep 2012 16:35:19 -0400
+In-Reply-To: <1348039421.2565.6.camel@deskari>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>, fweisbec@gmail.com
+To: 'Tomi Valkeinen' <tomi.valkeinen@ti.com>
+Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
 
-On Sat, Sep 22, 2012 at 06:42:08PM +0000, Paul Walmsley wrote:
-> On Fri, 21 Sep 2012, Paul E. McKenney wrote:
-> 
-> > Could you please point me to a recipe for creating a minimal userspace?
-> > Just in case it is the userspac erather than the architecture/hardware
-> > that makes the difference.
-> 
-> Tony's suggestion is pretty good.  Note that there may also be differences 
-> in kernel timers -- either between x86 and ARM architectures, or loaded 
-> device drivers -- that may confound the problem.
-
-For example, there must be at least one RCU callback outstanding after
-the boot sequence quiets down.  Of course, the last time I tried Tony's
-approach, I was doing it on top of my -rcu stack, so am retrying on
-v3.6-rc6.
-
-> > Just to make sure I understand the combinations:
-> > 
-> > o	All stalls have happened when running a minimal userspace.
-> > o	CONFIG_NO_HZ=n suppresses the stalls.
-> > o	CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
-> > 	no observable effect on the stalls.
-> > 
-> > Did I get that right, or am I missing a combination?
-> 
-> That's correct.
-> 
-> > Indeed, rcu_idle_gp_timer_func() is a bit strange in that it is 
-> > cancelled upon exit from idle, and therefore should (almost) never 
-> > actually execute. Its sole purpose is to wake up the CPU.  ;-)
-> 
-> Right.  Just curious, what would wake up the kernel from idle to handle a 
-> grace period expiration when CONFIG_RCU_FAST_NO_HZ=n?  On a very idle 
-> system, the time between timer ticks could potentially be several tens of 
-> seconds.
-
-If CONFIG_RCU_FAST_NO_HZ=n, then CPUs with RCU callbacks are not permitted
-to shut off the scheduling-clock tick, so any CPU with RCU callbacks will
-be awakened every jiffy.  The problem is that there appears to be a way
-to get an RCU grace period started without any CPU having any callbacks,
-which, as you surmise, would result in all the CPUs going to sleep and
-the grace period never ending.  So if a CPU is awakened for any reason
-after this everlasting grace period has extended for more than a minute,
-the first thing that CPU will do is print an RCU CPU stall warning.
-
-I believe that I see how to prevent callback-free grace periods from
-ever starting.  (Famous last words...)
-
-							Thanx, Paul
-
+SGkgVG9taSwNClRoYW5rIHlvdSBmb3IgdGhvc2UgaGludHMuLi4gSSBub3cgaGF2ZSB0aGUgTENE
+IGRpc3BsYXlpbmcgdGhlIGJvb3R1cCBsb2dvLCBzbyBpdOKAmXMgYSBnb29kIHN0YXJ0Lg0KDQpI
+b3cgZG8gSSBwdXNoIHRoZSBwYXRjaCBmb3IgdGhlIG5ldyBwYW5lbCA/DQoNCiAgICAJLyogSGFu
+blN0YXIgSFNEMDQzaTlXMSovDQoJew0KCQl7DQoJCQkueF9yZXMJCT0gNDgwLA0KCQkJLnlfcmVz
+CQk9IDI3MiwNCg0KCQkJLnBpeGVsX2Nsb2NrCT0gOTAwMCwNCg0KCQkJLmhzdwkJPSA0MSwNCgkJ
+CS5oZnAJCT0gMiwNCgkJCS5oYnAJCT0gMiwNCg0KCQkJLnZzdwkJPSAxMCwNCgkJCS52ZnAJCT0g
+MiwNCgkJCS52YnAJCT0gMiwNCg0KCQkJLnZzeW5jX2xldmVsCT0gT01BUERTU19TSUdfQUNUSVZF
+X0hJR0gsDQoJCQkuaHN5bmNfbGV2ZWwJPSBPTUFQRFNTX1NJR19BQ1RJVkVfSElHSCwNCgkJCS5k
+YXRhX3BjbGtfZWRnZQk9IE9NQVBEU1NfRFJJVkVfU0lHX1JJU0lOR19FREdFLA0KCQkJLmRlX2xl
+dmVsCT0gT01BUERTU19TSUdfQUNUSVZFX0hJR0gsDQoJCQkuc3luY19wY2xrX2VkZ2UJPSBPTUFQ
+RFNTX0RSSVZFX1NJR19PUFBPU0lURV9FREdFUywNCgkJfSwNCgkJLm5hbWUJCQk9ICJoYW5uc3Rh
+cl9oc2QwNDNpOXcxIiwNCgl9LA0KDQpSZWdhcmRzDQpNYXJjDQoNCg0KLS0tLS1PcmlnaW5hbCBN
+ZXNzYWdlLS0tLS0NCkZyb206IFRvbWkgVmFsa2VpbmVuIFttYWlsdG86dG9taS52YWxrZWluZW5A
+dGkuY29tXSANClNlbnQ6IDE5IFNlcHRlbWJlciAyMDEyIDA4OjI0DQpUbzogTWFyYyBNdXJwaHkN
+CkNjOiAnbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcnDQpTdWJqZWN0OiBSZTogSW5pdGlhbGlz
+aW5nIG9tYXBmYiBvbiBBTTM1MTcgaXNzdWVzDQoNCkhpLA0KDQpPbiBUdWUsIDIwMTItMDktMTgg
+YXQgMTY6NDEgKzAwMDAsIE1hcmMgTXVycGh5IHdyb3RlOg0KPiBIZWxsbyBhbGwsDQo+IEkgaGF2
+ZSBiZWVuIG1vdmluZyBmcm9tIHRoZSB0aSAyLjYuMzcgQlNQIHRvIHRoZSAzLngga2VybmVsIHdp
+dGggcXVpdGUgYSBiaXQgb2Ygc3VjY2VzcywgdGhlIG1haW4gaXNzdWUgSSBoYXZlIGF0IHRoZSBt
+b21lbnQgaXMgdHJ5aW5nIHRvIGdldCB0aGUgZnJhbWUgYnVmZmVyIGFuZCBhbnkgZGlzcGxheXMg
+SSBoYXZlIGluaXRpYWxpc2VkLg0KPiANCj4gWyAgICAyLjgwNTM1OF0gb21hcGZiIG9tYXBmYjog
+bm8gZHJpdmVyIGZvciBkaXNwbGF5OiBsY2QNCj4gWyAgICAyLjgxMDcyOV0gb21hcGZiIG9tYXBm
+Yjogbm8gZGlzcGxheXMNCj4gWyAgICAyLjgxNDY2Nl0gb21hcGZiIG9tYXBmYjogZmFpbGVkIHRv
+IHNldHVwIG9tYXBmYg0KPiANCj4gSSBoYXZlIHRyaWVkIGEgZmV3IHZlcnNpb25zIG9mIHJlbGVh
+c2UgYW5kIG5vbmUgb2YgdGhlbSB3aWxsIA0KPiBpbml0aWFsaXNlOw0KPiANCj4gQ3VycmVudGx5
+IG9uDQo+IFsgICAgMC4wMDAwMDBdIExpbnV4IHZlcnNpb24gMy42LjAtcmMzDQo+IA0KPiBJIGhh
+dmUgc3RhcnRlZCB3aXRoIGJvYXJkLWFtMzUxN2V2bSBkaXNwbGF5IGNvbmZpZyBhbmQgZXZlbiB0
+aGF0IGRvZXNuJ3QgaW5pdGlhbGlzZS4gIElzIHRoZXJlIHNvbWV0aGluZyBJIGFtIG1pc3Npbmcg
+d2l0aCB0aGUgY29uZmlncyBvciBpcyB0aGVyZSBhIHBhdGNoIHJlcXVpcmVkIHRvIGdldCB0aGUg
+ZmVhdHVyZSB0byB3b3JrLg0KPiANCj4gTXkgY3VycmVudCBjb25maWcgb3B0aW9ucyB1c2U7DQo+
+ICMNCj4gIyBHcmFwaGljcyBzdXBwb3J0DQo+ICMNCj4gQ09ORklHX0RSTT15DQoNCm9tYXBkcm0g
+YW5kIG9tYXBmYiBjYW5ub3QgYmUgdXNlZCBhdCB0aGUgc2FtZSB0aW1lLiBUaGF0IHNhaWQsIHlv
+dSBkb24ndCBzZWVtIHRvIGVuYWJsZSBvbWFwZHJtLCBvbmx5IHRoZSBjb3JlIGRybSBzdXBwb3J0
+LCBzbyBpdCBzaG91bGRuJ3QgbWF0dGVyLiBCdXQgeW91IGRvbid0IG5lZWQgQ09ORklHX0RSTSBp
+ZiB5b3UgdXNlIG9tYXBmYi4NCg0KPiBDT05GSUdfRkI9eQ0KPiBDT05GSUdfRkJfQ0ZCX0ZJTExS
+RUNUPXkNCj4gQ09ORklHX0ZCX0NGQl9DT1BZQVJFQT15DQo+IENPTkZJR19GQl9DRkJfSU1BR0VC
+TElUPXkNCj4gDQo+ICMNCj4gIyBGcmFtZSBidWZmZXIgaGFyZHdhcmUgZHJpdmVycw0KPiAjDQo+
+IENPTkZJR19PTUFQMl9WUkFNPXkNCj4gQ09ORklHX09NQVAyX1ZSRkI9eQ0KPiBDT05GSUdfT01B
+UDJfRFNTPXkNCj4gQ09ORklHX09NQVAyX1ZSQU1fU0laRT0xMg0KPiBDT05GSUdfT01BUDJfRFNT
+X0RQST15DQo+IENPTkZJR19PTUFQMl9EU1NfVkVOQz15DQo+IENPTkZJR19PTUFQMl9EU1NfRFNJ
+PXkNCj4gQ09ORklHX09NQVAyX0RTU19NSU5fRkNLX1BFUl9QQ0s9MQ0KPiBDT05GSUdfT01BUDJf
+RFNTX1NMRUVQX0FGVEVSX1ZFTkNfUkVTRVQ9eQ0KPiBDT05GSUdfRkJfT01BUDI9eQ0KPiBDT05G
+SUdfRkJfT01BUDJfTlVNX0ZCUz0zDQo+IA0KPiAjDQo+ICMgT01BUDIvMyBEaXNwbGF5IERldmlj
+ZSBEcml2ZXJzDQo+ICMNCj4gQ09ORklHX1BBTkVMX0dFTkVSSUNfRFBJPXkNCj4gQ09ORklHX1BB
+TkVMX1NIQVJQX0xTMDM3VjdEVzAxPXkNCj4gQ09ORklHX0JBQ0tMSUdIVF9MQ0RfU1VQUE9SVD15
+DQo+IENPTkZJR19MQ0RfQ0xBU1NfREVWSUNFPXkNCj4gQ09ORklHX0JBQ0tMSUdIVF9DTEFTU19E
+RVZJQ0U9eQ0KPiBDT05GSUdfQkFDS0xJR0hUX0dFTkVSSUM9eQ0KPiANCj4gQW5kIHRoZSBpbml0
+IHN0cnVjdHMgYXJlDQo+IHN0YXRpYyBpbnQgYW0zNTE3X2V2bV9wYW5lbF9lbmFibGVfbGNkKHN0
+cnVjdCBvbWFwX2Rzc19kZXZpY2UgKmRzc2RldikgDQo+IHsNCj4gICAgIGdwaW9fc2V0X3ZhbHVl
+KFRBTTM1MTdfRFZJX1BPTl9HUElPLCAwKTsNCj4gICAgIGdwaW9fc2V0X3ZhbHVlKFRBTTM1MTdf
+TENEX0VOVkREX0dQSU8sIDApOw0KPiAgICAgZ3Bpb19zZXRfdmFsdWUoVEFNMzUxN19MQ0RfUE9O
+X0dQSU8sIDEpOw0KPiAgICAgICAgIHByaW50aygiTENEIHZvbHRhZ2Ugb25cbiIpOw0KPiAJcmV0
+dXJuIDA7DQo+IH0NCj4gDQo+IHN0YXRpYyB2b2lkIGFtMzUxN19ldm1fcGFuZWxfZGlzYWJsZV9s
+Y2Qoc3RydWN0IG9tYXBfZHNzX2RldmljZSANCj4gKmRzc2Rldikgew0KPiAgICAgZ3Bpb19zZXRf
+dmFsdWUoVEFNMzUxN19MQ0RfRU5WRERfR1BJTywgMSk7DQo+ICAgICBncGlvX3NldF92YWx1ZShU
+QU0zNTE3X0xDRF9QT05fR1BJTywgMCk7IH0NCj4gDQo+IHN0YXRpYyBzdHJ1Y3QgcGFuZWxfZ2Vu
+ZXJpY19kcGlfZGF0YSBsY2RfcGFuZWwgPSB7DQo+IC8vICAgIC5uYW1lCQkJPSAiZ2VuZXJpY19k
+cGlfcGFuZWwiLA0KDQpZb3UgbmVlZCB0byBkZWZpbmUgbmFtZSBmb3IgdGhlIHBhbmVsIHlvdSBo
+YXZlLiBZb3UgY2FuIHNlZSB0aGUgbGlzdCBvZiBzdXBwb3J0ZWQgcGFuZWxzIGluIGRyaXZlcnMv
+dmlkZW8vb21hcDIvZGlzcGxheXMvcGFuZWwtZ2VuZXJpYy1kcGkuYy4gSWYgeW91IGRvbid0IGdp
+dmUgYSBuYW1lLCB0aGUgcGFuZWwgZHJpdmVyIGRvZXNuJ3Qgc3RhcnQuDQoNClRoZXJlJ3MgYWxz
+byBhIHByb2JsZW0gd2l0aCB0aGUgdmRkc19kc2kgcmVndWxhdG9yLiBTZWFyY2ggdGhlIGxpc3Qg
+Zm9yICJbUEFUQ0hdIE9NQVBEU1M6IERvIG5vdCByZXF1aXJlIGEgVkREU19EU0kgcmVndWxhdG9y
+IG9uIGFtMzV4eCIuIFRoZSBwYXRjaCB0byBmaXggaXQgaGFzbid0IGJlZW4gbWVyZ2VkIHlldC4N
+Cg0KIFRvbWkNCg0K
