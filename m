@@ -1,58 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
-Date: Sat, 22 Sep 2012 08:44:45 -0700
-Message-ID: <20120922154444.GQ28835@atomide.com>
-References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com>
- <20120921205322.GK28835@atomide.com>
- <20120921231039.GN28835@atomide.com>
- <alpine.DEB.2.00.1209220442010.16893@utopia.booyaka.com>
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: Re: rcu self-detected stall messages on OMAP3, 4 boards
+Date: Sat, 22 Sep 2012 17:45:12 +0200
+Message-ID: <CAFTL4hy5wO9CL5_1e8U7L3Tihm_HYD6uAsda3ue-zDKFjir2Xg@mail.gmail.com>
+References: <alpine.DEB.2.00.1209200753450.3801@utopia.booyaka.com>
+	<F95344A7-3351-4E6B-BF61-37E591AF16A2@ti.com>
+	<20120920220130.GN2449@linux.vnet.ibm.com>
+	<alpine.DEB.2.00.1209202244470.32589@utopia.booyaka.com>
+	<20120920232114.GO2449@linux.vnet.ibm.com>
+	<alpine.DEB.2.00.1209211803290.8839@utopia.booyaka.com>
+	<20120921185827.GC2454@linux.vnet.ibm.com>
+	<alpine.DEB.2.00.1209211900520.8839@utopia.booyaka.com>
+	<20120921195717.GD2454@linux.vnet.ibm.com>
+	<20120921203149.GI28835@atomide.com>
+	<20120921220302.GF2454@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64504 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751627Ab2IVPor (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 11:44:47 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1209220442010.16893@utopia.booyaka.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:38553 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816Ab2IVPpN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Sep 2012 11:45:13 -0400
+In-Reply-To: <20120921220302.GF2454@linux.vnet.ibm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: paulmck@linux.vnet.ibm.com
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "Bruce, Becky" <bbruce@ti.com>, "Paul E. McKenney" <paul.mckenney@linaro.org>, "<linux-kernel@vger.kernel.org>" <linux-kernel@vger.kernel.org>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<linux-arm-kernel@lists.infradead.org>" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, "<snijsure@grid-net.com>" <snijsure@grid-net.com>
 
-* Paul Walmsley <paul@pwsan.com> [120921 22:41]:
-> 
-> On Fri, 21 Sep 2012, Tony Lindgren wrote:
-> 
-> > * Tony Lindgren <tony@atomide.com> [120921 13:55]:
-> > 
-> > Care to base this on something more mergeable? Maybe a merge
-> > of cleanup-fixes-for-v3.7 + omap-devel-am33xx-for-v3.7?
-> 
-> While working on this, noticed that the 4430ES2 Panda test boot failed on 
-> the merge base of cleanup-fixes-for-v3.7 and omap-devel-am33xx-for-v3.7.  
-> Enabling DEBUG_LL and adding some debug revealed that the static variable 
-> 'arch_clkdm' in mach-omap2/clockdomain.c was getting overwritten between 
-> omap44xx_clockdomains_init() and the end of IRQ setup.  This was bisected 
-> down to this commit:
-> 
-> commit ec2c0825ca3183a646a24717966cc7752e8b0393
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Mon Aug 27 17:43:01 2012 -0700
-> 
->     ARM: OMAP2+: Remove hardcoded IRQs and enable SPARSE_IRQ
->     
->     Remove hardcoded IRQs in irqs.h and related files as these
->     are no longer needed.
->     
-> ...
-> 
-> Looks to me like something is wrong with the IRQ allocation and it's 
-> corrupting memory.
+2012/9/22 Paul E. McKenney <paulmck@linux.vnet.ibm.com>:
+> On Fri, Sep 21, 2012 at 01:31:49PM -0700, Tony Lindgren wrote:
+>> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> [120921 12:58]:
+>> >
+>> > Just to make sure I understand the combinations:
+>> >
+>> > o   All stalls have happened when running a minimal userspace.
+>> > o   CONFIG_NO_HZ=n suppresses the stalls.
+>> > o   CONFIG_RCU_FAST_NO_HZ (which depends on CONFIG_NO_HZ=y) has
+>> >     no observable effect on the stalls.
+>>
+>> The reason why you may need minimal userspace is to cut down
+>> the number of timers waking up the system with NO_HZ.
+>> Booting with init=/bin/sh might also do the trick for that.
+>
+> Good point!  This does make for a very quiet system, but does not
+> reproduce the problem under kvm, even after waiting for four minutes.
+> I will leave it for more time, but it looks like I really might need to
+> ask Linaro for remote access to a Panda.
 
-Yeah I bet that's e534e871 (ARM: OMAP4: Fix array size for irq_target_cpu)
-already in mainline since -rc6.
+I have one. I'm currently installing Ubuntu on it and I'll try to
+manage to build
+a kernel and reproduce the issue.
 
-Regards,
-
-Tony
+I'll give more news soon.
