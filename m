@@ -1,77 +1,37 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4+: wakeupgen: fix memory corruption
-Date: Sat, 22 Sep 2012 18:52:46 +0530
-Message-ID: <CAMQu2gyW4Dp0tVWab60no57XH1LOUb+jzo7xLDNjwBk8UNU+uQ@mail.gmail.com>
-References: <alpine.DEB.2.00.1209220732400.23491@utopia.booyaka.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 03/15] dmaengine: Add flags parameter to
+ dmaengine_prep_dma_cyclic()
+Date: Sat, 22 Sep 2012 11:09:58 -0400
+Message-ID: <20120922150957.GH4495@opensource.wolfsonmicro.com>
+References: <1347624358-25582-1-git-send-email-peter.ujfalusi@ti.com>
+ <1347624358-25582-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:43002 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751522Ab2IVNXI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Sep 2012 09:23:08 -0400
-Received: by vbbff1 with SMTP id ff1so4775345vbb.19
-        for <linux-omap@vger.kernel.org>; Sat, 22 Sep 2012 06:23:07 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1209220732400.23491@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1347624358-25582-4-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Lars-Peter Clausen <lars@metafoo.de>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Ricardo Neri <ricardo.neri@ti.com>, linux-kernel@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, linux-arm-kernel@lists.infradead.org, Dan Williams <djbw@fb.com>, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Paul,
+On Fri, Sep 14, 2012 at 03:05:46PM +0300, Peter Ujfalusi wrote:
+> With this parameter added to dmaengine_prep_dma_cyclic() the API will be in
+> sync with other dmaengine_prep_*() functions.
+> The dmaengine_prep_dma_cyclic() function primarily used by audio for cyclic
+> transfer required by ALSA, we use the from audio to ask dma drivers to
+> suppress interrupts (if DMA_PREP_INTERRUPT is cleared) when it is supported
+> on the platform.
 
-On Sat, Sep 22, 2012 at 1:41 PM, Paul Walmsley <paul@pwsan.com> wrote:
->
->
-> Fix a memory corruption bug caused by commit
-> 247c445c0fbd52c77e497ff5bfcf0dceb8afea8d ("ARM: OMAP5: Add the
-> WakeupGen IP updates") and commit
-> ec2c0825ca3183a646a24717966cc7752e8b0393 ("ARM: OMAP2+: Remove
-> hardcoded IRQs and enable SPARSE_IRQ").
->
-> The first commit, in the OMAP4+ wakeupgen code, has an implicit
-> dependency on !SPARSE_IRQ.  It allocates a static array with NR_IRQS
-> elements, then proceeds to iterate over 128 or 160 elements of
-> that array, clearing them to zero.
->
-> The second commit switched OMAP2+ to use sparse IRQs, but missed the
-> NR_IRQS reference in the wakeupgen code.  Before the second commit,
-> NR_IRQS was 474 on OMAP4430; but afterwards, it became 16.
->
-> This resulted in the wakeupgen code allocating a 16 element array, and
-> then attempting to write to 128 or 160 of those elements, depending on the
-> type of SoC.  This trashed a chunk of whatever was allocated after the
-> array.
->
-> The immediate manifestation was a set of boot warnings similar to the
-> following:
->
->    WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1941 _enable+0x1bc/0x204()
->    omap_hwmod: mpu: could not enable clockdomain mpuss_clkdm: -22
->    ...
->
-> since it blew away arch_clkdm.  Ultimately the kernel crashed during boot.
->
-> Fix the problem in the OMAP4+ wakeupgen code by removing the reference to
-> NR_IRQS, allocating a larger array, and warning if the iteration is larger
-> than the array.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
-> Applies on arm-soc omap/cleanup-sparseirq and should ideally be merged
-> there before the 3.7 merge window.
->
-The issue is already fixed by commit e534e87 {ARM: OMAP4: Fix array size for
-irq_target_cpu} in mainline. The fix got merged after 3.6-rc5 tag and hence
-not appearing in the 'omap/cleanup-sparseirq' branch which seems to be based
-of 3.6-rc5.
-
-If you merge 3.6-rc6 tag or the latest mainline with omap/cleanup-sparseirq, the
-issue should go away. So from 3.7 merge window point of view, the fix is already
-in place.
-
-Regards
-Santosh
+Are you sure this was generated against for-3.7?  There's fuzz against
+dmaengine.h and git can't find the blobs to do resolution.  Anyway, I
+applied this and the rest of the series.
