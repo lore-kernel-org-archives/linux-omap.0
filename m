@@ -1,41 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: tidspbridge build fails
-Date: Sun, 23 Sep 2012 14:16:22 -0700
-Message-ID: <20120923211621.GU28835@atomide.com>
-References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
+Date: Sun, 23 Sep 2012 22:59:02 +0000 (UTC)
+Message-ID: <alpine.DEB.2.00.1209232233080.31370@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com> <20120921205322.GK28835@atomide.com> <20120921231039.GN28835@atomide.com> <alpine.DEB.2.00.1209220002290.6510@utopia.booyaka.com> <20120922002111.GP28835@atomide.com>
+ <alpine.DEB.2.00.1209220211090.8626@utopia.booyaka.com> <20120923190933.GS28835@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26587 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754464Ab2IWVQY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Sep 2012 17:16:24 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
+Received: from utopia.booyaka.com ([74.50.51.50]:37528 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754598Ab2IWW7D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Sep 2012 18:59:03 -0400
+In-Reply-To: <20120923190933.GS28835@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joni Lapilainen <joni.lapilainen@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Joni Lapilainen <joni.lapilainen@gmail.com> [120921 18:47]:
-> Building tidspbridge fails:
+On Sun, 23 Sep 2012, Tony Lindgren wrote:
+
+> * Paul Walmsley <paul@pwsan.com> [120922 10:48]:
+>
+> > Your tmp-merge contains branch/tag merges that haven't yet gone upstream 
+> > to arm-soc.  I don't know which of those merges you consider stable (aside 
+> > from the upstream ones, obviously).
 > 
->   CC [M]  drivers/staging/tidspbridge/core/tiomap3430.o
-> drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_start':
-> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: error:
-> 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
-> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: note: each
-> undeclared identifier is reported only once for each function it
-> appears in
-> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
+> Well tmp-merge is a merge of the upstream branches, but the branch
+> itself is temporary. 
 
-Hmm I think a fix for that is already queued by Greg and it
-seems we don't have it in linux-omap master any longer as
-I dropped it after Greg picked it up.
+tmp-merge at commit abfee61f contains some branches/tags that aren't 
+upstream at arm-soc - for example, Santosh's omap5_arch_timer (3c7c5da) 
+and my omap-devel-c-for-3.7 (a238ce7).
 
-Does commit c37a1747 (staging: tidspbridge: Prepare for irqs.h removal)
-in linux next solve the problem for you?
+> The issue here is that's it's too messy to get
+> your branch merged currently because of the various merge conflicts with
+> other branches. Trying to merge in your updated branch for testing
+> into tmp-merge with the other branches produces:
+> 
+> CONFLICT (content): Merge conflict in drivers/spi/spi-omap2-mcspi.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/omap_hwmod.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/gpmc.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/devices.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt_dpll.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt_clksel.c
+> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt34xx_dpll3m2.c
 
-Regards,
+If you don't want to resolve the conflicts yourself, I'll be happy to do 
+it if you give me a stable commit for me to base my pull request on.  But 
+probably those conflicts are due to a miscommunication; see below.
 
-Tony
+> It seems to be conflicting with your own formatting changes,
+> am33xx changes, PMU changes and RNG changes.
+
+The PMU changes and RNG changes are in the tag you're pulling.  There 
+aren't any previous changes in those areas from me.  Did you drop the 
+temporary merge of omap-devel-c-for-3.7 before pulling 
+omap-devel-b-c-for-3.7?  I merged the b (hwmod/etc.) and c (clock) pull 
+requests into the updated pull request to reduce merge conflicts for you.
+
+
+- Paul
