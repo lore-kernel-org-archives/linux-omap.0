@@ -1,72 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: hwmod/PMU/PRCM patches for 3.7
-Date: Sun, 23 Sep 2012 14:06:38 -0700
-Message-ID: <20120923210638.GT28835@atomide.com>
-References: <alpine.DEB.2.00.1209210103140.6888@utopia.booyaka.com>
- <20120921205322.GK28835@atomide.com>
- <20120921231039.GN28835@atomide.com>
- <alpine.DEB.2.00.1209220002290.6510@utopia.booyaka.com>
- <20120922002111.GP28835@atomide.com>
- <alpine.DEB.2.00.1209220211090.8626@utopia.booyaka.com>
- <20120923190933.GS28835@atomide.com>
+Subject: Re: tidspbridge build fails
+Date: Sun, 23 Sep 2012 14:16:22 -0700
+Message-ID: <20120923211621.GU28835@atomide.com>
+References: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30308 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754441Ab2IWVGl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Sep 2012 17:06:41 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26587 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754464Ab2IWVQY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Sep 2012 17:16:24 -0400
 Content-Disposition: inline
-In-Reply-To: <20120923190933.GS28835@atomide.com>
+In-Reply-To: <CAOSRfZ7FsVw+MOUfGZZFiCrg2Ec1iSgypdY=Lijzn_x8NpkhLw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Joni Lapilainen <joni.lapilainen@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [120923 12:11]:
-> * Paul Walmsley <paul@pwsan.com> [120922 10:48]:
-> > On Fri, 21 Sep 2012, Tony Lindgren wrote:
-> > 
-> > > Hmm I wonder what's causing it then? There must be something
-> > > else in tmp-merge at commit abfee61f that causes the problems.
-> > > Maybe try to merge with that commit and see what you get?
-> > 
-> > Probably the merge with the clock patches was causing trouble.
-> > 
-> > > That commit can't be used as a base though as that's temporary
-> > > most likely.. But we can create a base to use out of the
-> > > branches once we know them, you can do it yourself too.
-> > 
-> > Your tmp-merge contains branch/tag merges that haven't yet gone upstream 
-> > to arm-soc.  I don't know which of those merges you consider stable (aside 
-> > from the upstream ones, obviously).  For this one it looks like the clock 
-> > patches were the ones causing the merge trouble.  So since that series 
-> > also came from me and is unmerged, will just merge the clock and hwmod 
-> > patches into a new pull request on v3.6-rc6 + cleanup-fixes-for-v3.7 + 
-> > omap-devel-am33xx-for-v3.7.  Hopefully that will work for you...
+* Joni Lapilainen <joni.lapilainen@gmail.com> [120921 18:47]:
+> Building tidspbridge fails:
 > 
-> Well tmp-merge is a merge of the upstream branches, but the branch
-> itself is temporary. The issue here is that's it's too messy to get
-> your branch merged currently because of the various merge conflicts with
-> other branches. Trying to merge in your updated branch for testing
-> into tmp-merge with the other branches produces:
-> 
-> CONFLICT (content): Merge conflict in drivers/spi/spi-omap2-mcspi.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/omap_hwmod.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/gpmc.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/devices.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt_dpll.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt_clksel.c
-> CONFLICT (content): Merge conflict in arch/arm/mach-omap2/clkt34xx_dpll3m2.c
-> 
-> It seems to be conflicting with your own formatting changes,
-> am33xx changes, PMU changes and RNG changes. Sounds like we're
-> safest to wait for -rc1 to for the dependencies to clear?
+>   CC [M]  drivers/staging/tidspbridge/core/tiomap3430.o
+> drivers/staging/tidspbridge/core/tiomap3430.c: In function 'bridge_brd_start':
+> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: error:
+> 'OMAP343X_CTRL_BASE' undeclared (first use in this function)
+> drivers/staging/tidspbridge/core/tiomap3430.c:421:25: note: each
+> undeclared identifier is reported only once for each function it
+> appears in
+> make[3]: *** [drivers/staging/tidspbridge/core/tiomap3430.o] Error 1
 
-Or maybe it's possible to split the series into smaller chunks
-that can be pulled in to the existing branches without causing
-new merge conflicts?
- 
-> Regards,
-> 
-> Tony
+Hmm I think a fix for that is already queued by Greg and it
+seems we don't have it in linux-omap master any longer as
+I dropped it after Greg picked it up.
+
+Does commit c37a1747 (staging: tidspbridge: Prepare for irqs.h removal)
+in linux next solve the problem for you?
+
+Regards,
+
+Tony
