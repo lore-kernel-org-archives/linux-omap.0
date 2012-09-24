@@ -1,37 +1,35 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: gpmc_cs_request() causes early boot hang
-Date: Mon, 24 Sep 2012 04:51:17 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93E9E7628@DBDE01.ent.ti.com>
-References: <505CBFAA.3080604@mimc.co.uk>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v4 2/3] ARM: omap: hwmod: get rid of all
+ omap_clk_get_by_name usage
+Date: Mon, 24 Sep 2012 10:39:41 +0530
+Message-ID: <505FEB15.3010008@ti.com>
+References: <1346230576-20004-1-git-send-email-rnayak@ti.com>
+ <1346230576-20004-3-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1209221852590.10663@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <505CBFAA.3080604@mimc.co.uk>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Jackson <mpfj-list@mimc.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1209221852590.10663@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, mturquette@linaro.org, linux-arm-kernel@lists.infradead.org, mturquette@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-SGkgTWFyaywNCg0KT24gU2F0LCBTZXAgMjIsIDIwMTIgYXQgMDA6NTc6MzgsIE1hcmsgSmFja3Nv
-biB3cm90ZToNCj4gSSdtIGRldmVsb3BpbmcgYSBiZWFnbGVib25lIGNhcGUgYm9hcmQgd2hpY2gg
-cmVxdWlyZXMgdGhlIHVzZSBvZiBhIEdQTUMgDQo+IGNoaXAgc2VsZWN0Lg0KPiANCj4gSSd2ZSBj
-aG9zZW4gR1BNQ19DUzAsIGFuZCBpbiBib2FyZC1hbTMzNXhldm0uYywgSSBoYXZlIGFkZGVkIHRo
-ZSBmb2xsb3dpbmc6LQ0KPiANCj4gc3RhdGljIHZvaWQgZ3BtY190ZXN0KCkNCj4gew0KPiAgICAg
-IHVuc2lnbmVkIGxvbmcgYmFzZSA9IDB4MTIzNDU2Nzg7DQo+ICAgICAgZ3BtY19jc19yZXF1ZXN0
-KDAsIFNaXzE2TSwgJmJhc2UpOw0KPiAgICAgIHByaW50ayhLRVJOX0lORk8gImdwbWMgYmFzZSBA
-IDB4JTA4bHhcbiIsIGJhc2UpOw0KPiB9DQo+IA0KPiAuLi4gYW5kIGFkZGVkIGEgY2FsbCB0byBn
-cG1jX3Rlc3QoKSBhdCB0aGUgZW5kIG9mIGFtMzM1eF9ldm1faW5pdCgpLg0KPiANCj4gSWYgSSB0
-cnkgdG8gcnVuIHRoaXMgY29kZSwgdGhlIGtlcm5lbCBmYWlscyB0byBib290LCBhbmQgc2ltcGx5
-IGhhbmdzIGF0Oi0NCj4gDQo+IFVuY29tcHJlc3NpbmcgTGludXguLi4gZG9uZSwgYm9vdGluZyB0
-aGUga2VybmVsLg0KPiANCj4gSWYgSSBjb21tZW50IG91dCB0aGUgY2FsbCB0byBncG1jX2NzX3Jl
-cXVlc3QoKSwgdGhlIHN5c3RlbSBib290cyBhcyANCj4gZXhwZWN0ZWQgKGJ1dCB3aXRob3V0IG15
-IHJlcXVpcmVkIGNzKS4NCj4gDQo+IEkndmUgbG9va2VkIGF0IHRoZSB1c2Ugb2YgdGhpcyBjYWxs
-IGluIG90aGVyIGJvYXJkIGZpbGVzLCBhbmQgY2FuJ3Qgc2VlIA0KPiB0aGF0IHRoZWlyIGNvZGUg
-ZG9lcyBhbnl0aGluZyBzcGVjaWFsIHNvIEknbSBzdHVjayBvbiB3aHkgdGhpcyBzaW1wbGUgDQo+
-IGNvZGUgZmFpbHMgdG8gd29yay4NCj4gDQo+IENhbiBhbnlvbmUgc2hlZCBsaWdodCBvbiB3aGF0
-IEknbSBkb2luZyB3cm9uZyA/DQo+IA0KPiBEbyBJIGhhdmUgdG8gaW5pdGlhbGlzZSB0aGUgZ3Bt
-YyBiZWZvcmVoYW5kIGluIHNvbWUgd2F5ID8NCg0KSXQgc2VlbXMgeW91IGFyZSB1c2luZyBQU1Ag
-S2VybmVsLg0KDQpJbnZva2luZyBvbWFwX2luaXRfZ3BtYyBiZWZvcmUgZ3BtYyByZXF1ZXN0IHNo
-b3VsZCBoZWxwLg0KDQpSZWdhcmRzDQpBZnphbA0K
+On Sunday 23 September 2012 12:25 AM, Paul Walmsley wrote:
+> Updated this one to include several missing clock aliases and to fix a bug
+> it introduced with omap_96m_alwon_fck_3630; modified patch below.
+
+Thanks Paul, for the updates and the fix. Updated patch looks good to
+me.
+
+regards,
+Rajendra
